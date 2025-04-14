@@ -1,17 +1,6 @@
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading;
-
-using WejeajaihurleyereRearchicobairnurjeyu.Analyzer.Properties;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace WejeajaihurleyereRearchicobairnurjeyu.Analyzer;
 
@@ -31,21 +20,32 @@ public class FooIncrementalGenerator : IIncrementalGenerator
 
                 if (namedTypeSymbol.Name == "F1")
                 {
-                    foreach (var allInterface in namedTypeSymbol.AllInterfaces)
-                    {
-                        
-                    }
+                    var typeName = namedTypeSymbol.Name;
+                    var allInterfaces = string.Join(";", namedTypeSymbol.AllInterfaces.Select(t => t.Name));
+
+                    return $$"""
+                           namespace WejeajaihurleyereRearchicobairnurjeyu;
+
+                           public static class NamedTypeSymbolHelper
+                           {
+                               public static void OutputAllInterfaces()
+                               {
+                                   Console.WriteLine($"AllInterfaces of '{{typeName}}' is {{allInterfaces}}");
+                               }
+                           }
+                           """;
                 }
 
-                return "";
+                return null;
             })
             .Where(t => t != null)
             .Select((t, _) => t!);
 
-        context.RegisterImplementationSourceOutput(incrementalValuesProvider,
+        context.RegisterSourceOutput(incrementalValuesProvider,
             (SourceProductionContext productionContext, string generatedCode) =>
             {
-
+                productionContext.AddSource("GeneratedCode.cs", generatedCode);
             });
     }
 }
+

@@ -1,3 +1,3 @@
 using WejeajaihurleyereRearchicobairnurjeyu;
 
-Console.WriteLine($"Hello");
+NamedTypeSymbolHelper.OutputAllInterfaces();
