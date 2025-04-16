@@ -9,4 +9,9 @@
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
     <PackageReference Include="dotnetCampus.OpenXmlUnitConverter" Version="2.3.1" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Test.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

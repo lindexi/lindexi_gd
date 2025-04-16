@@ -11,8 +11,8 @@ using GraphicFrame = DocumentFormat.OpenXml.Presentation.GraphicFrame;
 using NonVisualDrawingProperties = DocumentFormat.OpenXml.Presentation.NonVisualDrawingProperties;
 using NonVisualShapeProperties = DocumentFormat.OpenXml.Presentation.NonVisualShapeProperties;
 
-using var presentationDocument =
-    DocumentFormat.OpenXml.Packaging.PresentationDocument.Open("Test.pptx", true);
+using var document = SpreadsheetDocument.Open("Test.xlsx",isEditable:true);
+CopyExcelSheet(document, "Sheet1", "Sheet2", 0);
 
 
 WorksheetPart CopyExcelSheet(
@@ -28,6 +28,8 @@ WorksheetPart CopyExcelSheet(
         .FirstOrDefault(s => s.Name == sourceSheetName)
         ?? throw new Exception($"工作表 '{sourceSheetName}' 未找到.");
 
+    
+
     var worksheetPart = (WorksheetPart) workbookPart.GetPartById(sourceSheet.Id);
     var sourceSheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
     var mergeCells = worksheetPart.Worksheet.Elements<MergeCells>().FirstOrDefault();
@@ -39,6 +41,8 @@ WorksheetPart CopyExcelSheet(
         Name = newSheetName,
         SheetId = (uint) (workbookPart.Workbook.Sheets.Count() + 1),
     };
+
+    newSheet = (Sheet) sourceSheet.CloneNode(deep: true);
 
     // 获取工作表集合并插入新工作表
     var sheets = workbookPart.Workbook.Sheets.Elements<Sheet>().ToList();
