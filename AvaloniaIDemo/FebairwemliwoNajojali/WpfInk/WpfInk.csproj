@@ -5,6 +5,21 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <DefineConstants>$(DefineConstants);PRESENTATION_CORE;WpfInk</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\PresentationCore\**\*" LinkBase="PresentationCore" />
+    <Compile Include="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\**\*" LinkBase="ref" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\PresentationCore\MS\Internal\Ink\GestureRecognizer\NativeRecognizer.cs" />
+    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\PresentationCore\System\Windows\Ink\GestureRecognizer.cs" />
+    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\WpfCommon\Graphics\exports.cs" />
+    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\WpfCommon\Graphics\Generated\wgx_commands.cs" />
+    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\WpfCommon\Graphics\wgx_exports.cs" />
+  </ItemGroup>
 
 </Project>
