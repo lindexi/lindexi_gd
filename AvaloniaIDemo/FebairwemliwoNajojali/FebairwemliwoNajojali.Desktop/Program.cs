@@ -3,6 +3,8 @@ using System;
 using Avalonia;
 using Avalonia.ReactiveUI;
 
+using WpfInk;
+
 namespace FebairwemliwoNajojali.Desktop;
 
 class Program
@@ -16,9 +18,17 @@ class Program
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        var appBuilder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace()
             .UseReactiveUI();
+        appBuilder.AfterSetup(builder =>
+        {
+            var wpfInkWindow = new WpfInkWindow();
+            wpfInkWindow.Show();
+        });
+        return appBuilder;
+    }
 }
