@@ -8,6 +8,8 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform;
+using Avalonia.Rendering.Composition;
+using Avalonia.Rendering.Composition.Transport;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
@@ -38,9 +40,12 @@ public class AvaSkiaInkCanvas : Control
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             SkiaStrokeList.Add(e);
+            _toClearList.Add(e);
             InvalidateVisual();
         });
     }
+
+    private readonly List<SkiaStroke> _toClearList = [];
 
     public List<SkiaStroke> SkiaStrokeList { get; } = [];
 
@@ -92,12 +97,28 @@ public class AvaSkiaInkCanvas : Control
 
     public override void Render(DrawingContext context)
     {
-        var bounds = this.Bounds;
-        context.Custom(new InkCanvasCustomDrawOperation()
+        var bounds = Bounds;
+        var inkCanvasCustomDrawOperation = new InkCanvasCustomDrawOperation()
         {
             Bounds = bounds,
-            SkiaStrokeList = SkiaStrokeList.ToList()
-        });
+            SkiaStrokeList = SkiaStrokeList.ToList(),
+            ToClearList = _toClearList.ToList(),
+        };
+        _toClearList.Clear();
+        context.Custom(inkCanvasCustomDrawOperation);
+
+        if (ElementComposition.GetElementVisual(this) is { } selfVisual)
+        {
+            Compositor compositor = selfVisual.Compositor;
+            CompositionBatch batch = compositor.RequestCompositionBatchCommitAsync();
+            batch.Rendered.ContinueWith(_ =>
+            {
+                foreach (var skiaStroke in inkCanvasCustomDrawOperation.ToClearList)
+                {
+                    InkingAcceleratorLayer.HideStroke(skiaStroke);
+                }
+            });
+        }
     }
 }
 
@@ -116,6 +137,8 @@ class InkDynamicDrawingContext
 file class InkCanvasCustomDrawOperation : ICustomDrawOperation
 {
     public required List<SkiaStroke> SkiaStrokeList { get; init; }
+    public required List<SkiaStroke> ToClearList { get; init; }
+
     public Rect Bounds { get; set; }
 
     public bool HitTest(Point p)
@@ -138,6 +161,7 @@ file class InkCanvasCustomDrawOperation : ICustomDrawOperation
         {
             paint.Style = SKPaintStyle.Fill;
             paint.Color = new SKColor(skiaStroke.Color.R, skiaStroke.Color.G, skiaStroke.Color.B, skiaStroke.Color.A);
+            paint.IsAntialias = true;
 
             canvas.DrawPath(skiaStroke.InkPath, paint);
         }
