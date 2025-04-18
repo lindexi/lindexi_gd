@@ -12,10 +12,6 @@
 
     <febairwemliwoNajojali:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
 
-    <Border Background="White" HorizontalAlignment="Right" VerticalAlignment="Top">
-      <Button x:Name="CloseButton" Content="退出" Click="CloseButton_OnClick"></Button>
-    </Border>
-
     <StackPanel Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" Background="White">
       <StackPanel.Styles>
         <Style Selector="Button">
@@ -25,6 +21,7 @@
       <Button x:Name="ReduceInkThicknessButton" Content="减少尺寸" Click="ReduceInkThicknessButton_OnClick"></Button>
       <Button x:Name="AddInkThicknessButton" Content="增加尺寸" Click="AddInkThicknessButton_OnClick"></Button>
       <Button x:Name="ToggleStrokeButton" Content="隐藏或显示WPF笔迹" Click="ToggleStrokeButton_OnClick"></Button>
+      <Button x:Name="CloseButton" Content="退出" Click="CloseButton_OnClick"></Button>
     </StackPanel>
 
   </Grid>

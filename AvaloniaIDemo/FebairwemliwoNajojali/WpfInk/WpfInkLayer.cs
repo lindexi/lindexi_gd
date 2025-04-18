@@ -21,7 +21,7 @@ public class WpfInkLayer : IWpfInkLayer
     private readonly Dictionary<InkId, WpfInkDrawingContext> _dictionary = [];
 
     public StandardRgbColor Color { set; get; } = StandardRgbColor.Red;
-    public double InkThickness { set; get; } = 10;
+    public double InkThickness { set; get; } = 6;
 
     public void Render(DrawingContext drawingContext)
     {
@@ -48,12 +48,15 @@ public class WpfInkLayer : IWpfInkLayer
     {
         Run(() =>
         {
-            var context = new WpfInkDrawingContext(new DrawingAttributes()
+            var drawingAttributes = new DrawingAttributes()
             {
                 Color = Color.ToWpfColor(),
                 Width = InkThickness,
                 Height = InkThickness,
-            });
+            };
+            drawingAttributes.FitToCurve = true;
+
+            var context = new WpfInkDrawingContext(drawingAttributes);
             _dictionary[screenPoint.Id] = context;
             context.Add(screenPoint);
 
