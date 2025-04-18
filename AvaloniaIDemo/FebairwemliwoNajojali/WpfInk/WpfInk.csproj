@@ -9,6 +9,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\BrushCreator.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\PerformanceDesktopTransparentWindow.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.Dwmapi.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.WM.cs" />
+  </ItemGroup>
+
   <!--<PropertyGroup>
     <WpfInkFolder>..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk</WpfInkFolder>
   </PropertyGroup>
@@ -27,7 +35,6 @@
   </ItemGroup>-->
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear.csproj" />
     <ProjectReference Include="..\InkBase\InkBase.csproj" />
   </ItemGroup>
 
