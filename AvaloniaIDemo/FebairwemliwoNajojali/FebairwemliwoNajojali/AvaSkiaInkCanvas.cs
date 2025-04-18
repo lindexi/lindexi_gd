@@ -1,10 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using InkBase;
+
 using SkiaSharp;
 
 namespace FebairwemliwoNajojali;
@@ -15,6 +18,20 @@ public class AvaSkiaInkCanvas : Control
     {
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
+    }
+
+    private IWpfInkLayer InkingAcceleratorLayer => WpfForAvaloniaInkingAccelerator.Instance.InkLayer;
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
     }
 
     public override void Render(DrawingContext context)
@@ -45,7 +62,7 @@ file class InkCanvasCustomDrawOperation : ICustomDrawOperation
         }
 
         using var skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
-        var canvas = skiaSharpApiLease.SkCanvas;
+        SKCanvas canvas = skiaSharpApiLease.SkCanvas;
 
         //canvas.Clear(new SKColor(0x5c, 0x56, 0x56, 0xff));
     }
