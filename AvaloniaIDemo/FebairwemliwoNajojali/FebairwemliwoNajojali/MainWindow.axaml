@@ -2,12 +2,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:febairwemliwoNajojali="clr-namespace:FebairwemliwoNajojali"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="FebairwemliwoNajojali.MainWindow"
         WindowState="FullScreen"
         Icon="/Assets/avalonia-logo.ico"
         Title="FebairwemliwoNajojali" Background="Transparent">
   <Grid>
+
+    <febairwemliwoNajojali:AvaSkiaInkCanvas/>
+
     <Border Background="White" HorizontalAlignment="Right" VerticalAlignment="Top">
       <Button x:Name="CloseButton" Content="退出" Click="CloseButton_OnClick"></Button>
     </Border>

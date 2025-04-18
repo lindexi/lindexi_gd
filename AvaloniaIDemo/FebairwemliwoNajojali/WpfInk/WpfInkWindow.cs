@@ -12,12 +12,11 @@ using InkBase;
 
 namespace WpfInk;
 
-public class WpfInkWindow : PerformanceDesktopTransparentWindow, IWpfInkLayer
+public class WpfInkWindow : PerformanceDesktopTransparentWindow
 {
     public WpfInkWindow()
     {
         Title = "WpfInk";
-        //AllowsTransparency = true;123
         WindowStyle = WindowStyle.None;
         Background = new SolidColorBrush(new Color()
         {
@@ -29,7 +28,8 @@ public class WpfInkWindow : PerformanceDesktopTransparentWindow, IWpfInkLayer
         WindowState = WindowState.Maximized;
         SetTransparentHitThrough();
 
-        WpfForAvaloniaInkingAccelerator.Instance.InkLayer = this;
+        _wpfInkLayer = new WpfInkLayer(this);
+        WpfForAvaloniaInkingAccelerator.Instance.InkLayer = _wpfInkLayer;
 
         //Content = new Grid
         //{
@@ -53,30 +53,11 @@ public class WpfInkWindow : PerformanceDesktopTransparentWindow, IWpfInkLayer
         //};
     }
 
+    private readonly WpfInkLayer _wpfInkLayer;
+
     protected override void OnRender(DrawingContext drawingContext)
     {
-        drawingContext.DrawRectangle(Brushes.Red, null, new Rect(10, 10, 100, 100));
-    }
-
-    public void Down(InkPoint screenPoint)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Move(InkPoint screenPoint)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Up(InkPoint screenPoint)
-    {
-        throw new NotImplementedException();
-    }
-
-    public event EventHandler<SkiaStroke>? StrokeCollected;
-    public void HideStroke(SkiaStroke skiaStroke)
-    {
-        throw new NotImplementedException();
+        _wpfInkLayer.Render(drawingContext);
     }
 }
 

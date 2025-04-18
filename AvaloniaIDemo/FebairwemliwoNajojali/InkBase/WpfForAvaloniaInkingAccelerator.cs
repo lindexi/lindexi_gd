@@ -26,6 +26,8 @@ public interface IWpfInkLayer
     event EventHandler<SkiaStroke>? StrokeCollected;
 
     void HideStroke(SkiaStroke skiaStroke);
+
+    SkiaStroke PointListToStroke(InkId id, IReadOnlyList<InkPoint> points);
 }
 
 public readonly record struct InkPoint(InkId Id, double X, double Y);
