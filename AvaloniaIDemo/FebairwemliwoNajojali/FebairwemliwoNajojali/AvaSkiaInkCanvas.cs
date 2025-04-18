@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform;
@@ -23,6 +24,15 @@ public class AvaSkiaInkCanvas : Control
     {
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        InkingAcceleratorLayer.StrokeCollected += InkingAcceleratorLayer_StrokeCollected;
+    }
+
+    private void InkingAcceleratorLayer_StrokeCollected(object? sender, SkiaStroke e)
+    {
     }
 
     private IWpfInkLayer InkingAcceleratorLayer => WpfForAvaloniaInkingAccelerator.Instance.InkLayer;

@@ -21,7 +21,7 @@ public class WpfInkLayer : IWpfInkLayer
     private readonly Dictionary<InkId, WpfInkDrawingContext> _dictionary = [];
 
     public StandardRgbColor Color { set; get; } = StandardRgbColor.Red;
-    public double InkThickness { set; get; } = 20;
+    public double InkThickness { set; get; } = 10;
 
     public void Render(DrawingContext drawingContext)
     {
@@ -30,8 +30,13 @@ public class WpfInkLayer : IWpfInkLayer
 
         foreach (WpfInkDrawingContext context in _dictionary.Values)
         {
+            if (context.IsHide)
+            {
+                continue;
+            }
+
             var stroke = context.Stroke;
-            var geometry = stroke.GetGeometry(context.DrawingAttributes);
+            var geometry = stroke.GetGeometry();
             var brush = new SolidColorBrush(context.DrawingAttributes.Color);
             drawingContext.DrawGeometry(brush, null, geometry);
         }
@@ -96,6 +101,19 @@ public class WpfInkLayer : IWpfInkLayer
         });
     }
 
+    public void ToggleShowHideAllStroke()
+    {
+        Run(() =>
+        {
+            foreach (var context in _dictionary.Values)
+            {
+                context.IsHide = !context.IsHide;
+            }
+
+            InkWindow.InvalidateVisual();
+        });
+    }
+
     public SkiaStroke PointListToStroke(InkId id, IReadOnlyList<InkPoint> points)
     {
         throw new NotImplementedException();
@@ -126,7 +144,7 @@ class WpfInkDrawingContext
         {
             if (_stroke == null)
             {
-                _stroke = new Stroke(StylusPointCollection);
+                _stroke = new Stroke(StylusPointCollection, DrawingAttributes);
             }
 
             return _stroke;

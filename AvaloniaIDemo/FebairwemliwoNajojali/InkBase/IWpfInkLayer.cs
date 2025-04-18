@@ -15,5 +15,7 @@ public interface IWpfInkLayer
 
     void HideStroke(SkiaStroke skiaStroke);
 
+    void ToggleShowHideAllStroke();
+
     SkiaStroke PointListToStroke(InkId id, IReadOnlyList<InkPoint> points);
 }
