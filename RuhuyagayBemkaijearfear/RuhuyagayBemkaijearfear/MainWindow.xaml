@@ -1,0 +1,19 @@
+﻿<local:PerformanceDesktopTransparentWindow x:Class="RuhuyagayBemkaijearfear.MainWindow"
+                                           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                           xmlns:local="clr-namespace:RuhuyagayBemkaijearfear"
+                                           mc:Ignorable="d"
+                                           Title="MainWindow" Height="450" Width="800">
+  <Grid>
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <StackPanel.Resources>
+        <Style TargetType="Button">
+          <Setter Property="Margin" Value="10,10,10,10" />
+        </Style>
+      </StackPanel.Resources>
+      <Button Content="穿透" Click="SetTransparentHitThroughButton_OnClick" />
+    </StackPanel>
+  </Grid>
+</local:PerformanceDesktopTransparentWindow>
