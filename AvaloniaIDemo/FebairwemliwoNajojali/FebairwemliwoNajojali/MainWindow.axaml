@@ -4,7 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="FebairwemliwoNajojali.MainWindow"
+        WindowState="FullScreen"
         Icon="/Assets/avalonia-logo.ico"
-        Title="FebairwemliwoNajojali">
+        Title="FebairwemliwoNajojali" Background="Transparent">
         
 </Window>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace WpfInk;
@@ -23,5 +24,40 @@ public class WpfInkWindow : Window
             B = 0x56
         });
         WindowState = WindowState.Maximized;
+
+        Content = new Grid
+        {
+            Children =
+            {
+                new Button()
+                {
+                    Width = 100,
+                    Height = 30,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Content = "退出"
+                }.Do(b =>
+                {
+                    b.Click += (s, e) =>
+                    {
+                        Environment.Exit(0);
+                    };
+                }),
+            }
+        };
+    }
+
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+        drawingContext.DrawRectangle(Brushes.Red, null, new Rect(10, 10, 100, 100));
+    }
+}
+
+static class UIExtension
+{
+    public static T Do<T>(this T t, Action<T> action)
+    {
+        action(t);
+        return t;
     }
 }
