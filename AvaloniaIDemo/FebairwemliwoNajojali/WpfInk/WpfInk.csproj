@@ -22,4 +22,8 @@
     <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\WpfCommon\Graphics\wgx_exports.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\InkBase\InkBase.csproj" />
+  </ItemGroup>
+
 </Project>

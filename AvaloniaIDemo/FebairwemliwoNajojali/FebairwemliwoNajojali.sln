@@ -8,6 +8,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FebairwemliwoNajojali.Deskt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfInk", "WpfInk\WpfInk.csproj", "{3B1D03F2-500D-A190-570C-F7A069588D7E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InkBase", "InkBase\InkBase.csproj", "{00ADF579-A22B-A325-0AA1-02549A38CD26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{3B1D03F2-500D-A190-570C-F7A069588D7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B1D03F2-500D-A190-570C-F7A069588D7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B1D03F2-500D-A190-570C-F7A069588D7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00ADF579-A22B-A325-0AA1-02549A38CD26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00ADF579-A22B-A325-0AA1-02549A38CD26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00ADF579-A22B-A325-0AA1-02549A38CD26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00ADF579-A22B-A325-0AA1-02549A38CD26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
