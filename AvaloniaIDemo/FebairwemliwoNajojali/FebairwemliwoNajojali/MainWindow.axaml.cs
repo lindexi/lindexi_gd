@@ -16,3 +16,8 @@ public partial class MainWindow : Window
         Environment.Exit(0);
     }
 }
+
+public class AvaSkiaInkCanvas : Control
+{
+
+}

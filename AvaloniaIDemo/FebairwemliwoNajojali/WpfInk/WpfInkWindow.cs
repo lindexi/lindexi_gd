@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using InkBase;
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
 
 namespace WpfInk;
 
@@ -17,7 +18,6 @@ public class WpfInkWindow : PerformanceDesktopTransparentWindow, IWpfInkLayer
     public WpfInkWindow()
     {
         Title = "WpfInk";
-        //AllowsTransparency = true;123
         WindowStyle = WindowStyle.None;
         Background = new SolidColorBrush(new Color()
         {
@@ -75,6 +75,11 @@ public class WpfInkWindow : PerformanceDesktopTransparentWindow, IWpfInkLayer
 
     public event EventHandler<SkiaStroke>? StrokeCollected;
     public void HideStroke(SkiaStroke skiaStroke)
+    {
+        throw new NotImplementedException();
+    }
+
+    public SkiaStroke PointListToStroke(InkId id, IReadOnlyList<InkPoint> points)
     {
         throw new NotImplementedException();
     }
