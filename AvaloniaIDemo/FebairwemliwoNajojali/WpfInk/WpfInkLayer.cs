@@ -6,6 +6,7 @@ using System.Windows.Media;
 using InkBase;
 
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
+using SkiaSharp;
 
 namespace WpfInk;
 
@@ -25,7 +26,7 @@ public class WpfInkLayer : IWpfInkLayer
 
     public void Render(DrawingContext drawingContext)
     {
-        drawingContext.DrawRectangle(_isBlue ? Brushes.Blue : Brushes.Red, null, new Rect(10, 10, 100, 100));
+        //drawingContext.DrawRectangle(_isBlue ? Brushes.Blue : Brushes.Red, null, new Rect(10, 10, 100, 100));
         _isBlue = !_isBlue;
 
         foreach (WpfInkDrawingContext context in _dictionary.Values)
@@ -48,15 +49,7 @@ public class WpfInkLayer : IWpfInkLayer
     {
         Run(() =>
         {
-            var drawingAttributes = new DrawingAttributes()
-            {
-                Color = Color.ToWpfColor(),
-                Width = InkThickness,
-                Height = InkThickness,
-            };
-            drawingAttributes.FitToCurve = true;
-
-            var context = new WpfInkDrawingContext(drawingAttributes);
+            var context = new WpfInkDrawingContext(Color,InkThickness);
             _dictionary[screenPoint.Id] = context;
             context.Add(screenPoint);
 
@@ -86,6 +79,19 @@ public class WpfInkLayer : IWpfInkLayer
                 context.Add(screenPoint);
 
                 InkWindow.InvalidateVisual();
+
+                var geometry = context.Stroke.GetGeometry();
+                var path = geometry.ToString();
+                if (path.StartsWith("F1"))
+                {
+                    path = path.Substring("F1".Length);
+                }
+                var skPath = SKPath.ParseSvgPathData(path);
+                StrokeCollected?.Invoke(this, new SkiaStroke(screenPoint.Id, skPath)
+                {
+                    Color = context.Color,
+                    PointList = context.PointList,
+                });
             }
         });
     }
@@ -130,9 +136,19 @@ public class WpfInkLayer : IWpfInkLayer
 
 class WpfInkDrawingContext
 {
-    public WpfInkDrawingContext(DrawingAttributes drawingAttributes)
+    public WpfInkDrawingContext(StandardRgbColor color, double inkThickness)
     {
+        var drawingAttributes = new DrawingAttributes()
+        {
+            Color = color.ToWpfColor(),
+            Width = inkThickness,
+            Height = inkThickness,
+        };
+        drawingAttributes.FitToCurve = true;
         DrawingAttributes = drawingAttributes;
+
+        Color = color;
+        InkThickness = inkThickness;
     }
 
     public bool IsHide { get; set; }
@@ -157,6 +173,8 @@ class WpfInkDrawingContext
     private Stroke? _stroke;
 
     private StylusPointCollection StylusPointCollection { get; } = new StylusPointCollection();
+    public StandardRgbColor Color { get; set; }
+    public double InkThickness { get; set; }
 
     public void Add(InkPoint point)
     {

@@ -14,4 +14,8 @@ public class SkiaStroke
     public InkId Id { get; }
 
     public SKPath InkPath { get; }
+
+    public StandardRgbColor Color { get; init; } = StandardRgbColor.Red;
+
+    public required List<InkPoint> PointList { get; init; }
 }

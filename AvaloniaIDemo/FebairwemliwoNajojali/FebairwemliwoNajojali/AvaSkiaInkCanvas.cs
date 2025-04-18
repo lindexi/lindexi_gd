@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 using Avalonia;
 using Avalonia.Controls;
@@ -9,6 +10,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using Avalonia.Threading;
 
 using InkBase;
 
@@ -33,7 +35,14 @@ public class AvaSkiaInkCanvas : Control
 
     private void InkingAcceleratorLayer_StrokeCollected(object? sender, SkiaStroke e)
     {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            SkiaStrokeList.Add(e);
+            InvalidateVisual();
+        });
     }
+
+    public List<SkiaStroke> SkiaStrokeList { get; } = [];
 
     private IWpfInkLayer InkingAcceleratorLayer => WpfForAvaloniaInkingAccelerator.Instance.InkLayer;
 
@@ -86,7 +95,8 @@ public class AvaSkiaInkCanvas : Control
         var bounds = this.Bounds;
         context.Custom(new InkCanvasCustomDrawOperation()
         {
-            Bounds = bounds
+            Bounds = bounds,
+            SkiaStrokeList = SkiaStrokeList.ToList()
         });
     }
 }
@@ -105,6 +115,7 @@ class InkDynamicDrawingContext
 
 file class InkCanvasCustomDrawOperation : ICustomDrawOperation
 {
+    public required List<SkiaStroke> SkiaStrokeList { get; init; }
     public Rect Bounds { get; set; }
 
     public bool HitTest(Point p)
@@ -122,7 +133,14 @@ file class InkCanvasCustomDrawOperation : ICustomDrawOperation
 
         using var skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
         SKCanvas canvas = skiaSharpApiLease.SkCanvas;
+        using var paint = new SKPaint();
+        foreach (var skiaStroke in SkiaStrokeList)
+        {
+            paint.Style = SKPaintStyle.Fill;
+            paint.Color = new SKColor(skiaStroke.Color.R, skiaStroke.Color.G, skiaStroke.Color.B, skiaStroke.Color.A);
 
+            canvas.DrawPath(skiaStroke.InkPath, paint);
+        }
         //canvas.Clear(new SKColor(0x5c, 0x56, 0x56, 0xff));
     }
 
