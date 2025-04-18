@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 
 namespace FebairwemliwoNajojali;
 
@@ -15,9 +16,4 @@ public partial class MainWindow : Window
     {
         Environment.Exit(0);
     }
-}
-
-public class AvaSkiaInkCanvas : Control
-{
-
 }
