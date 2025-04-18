@@ -25,7 +25,7 @@ public class WpfInkLayer : IWpfInkLayer
 
     public void Render(DrawingContext drawingContext)
     {
-        drawingContext.DrawRectangle(_isBlue ? Brushes.Blue : Brushes.Red, null, new Rect(10, 10, 100, 100));
+        //drawingContext.DrawRectangle(_isBlue ? Brushes.Blue : Brushes.Red, null, new Rect(10, 10, 100, 100));
         _isBlue = !_isBlue;
 
         foreach (WpfInkDrawingContext context in _dictionary.Values)
