@@ -9,7 +9,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\BrushCreator.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\PerformanceDesktopTransparentWindow.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.Dwmapi.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.WM.cs" />
+  </ItemGroup>
+
+  <!--<PropertyGroup>
     <WpfInkFolder>..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk</WpfInkFolder>
   </PropertyGroup>
 
@@ -24,10 +32,9 @@
     <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\exports.cs" />
     <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\Generated\wgx_commands.cs" />
     <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\wgx_exports.cs" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear.csproj" />
     <ProjectReference Include="..\InkBase\InkBase.csproj" />
   </ItemGroup>
 
