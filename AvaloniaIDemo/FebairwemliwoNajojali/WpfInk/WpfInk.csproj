@@ -9,17 +9,21 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <WpfInkFolder>..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk</WpfInkFolder>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\PresentationCore\**\*" LinkBase="PresentationCore" />
-    <Compile Include="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\**\*" LinkBase="ref" />
+    <Compile Include="$(WpfInkFolder)\PresentationCore\**\*" LinkBase="PresentationCore" />
+    <Compile Include="$(WpfInkFolder)\ref\**\*" LinkBase="ref" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\PresentationCore\MS\Internal\Ink\GestureRecognizer\NativeRecognizer.cs" />
-    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\PresentationCore\System\Windows\Ink\GestureRecognizer.cs" />
-    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\WpfCommon\Graphics\exports.cs" />
-    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\WpfCommon\Graphics\Generated\wgx_commands.cs" />
-    <Compile Remove="..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk\ref\WpfCommon\Graphics\wgx_exports.cs" />
+    <Compile Remove="$(WpfInkFolder)\PresentationCore\MS\Internal\Ink\GestureRecognizer\NativeRecognizer.cs" />
+    <Compile Remove="$(WpfInkFolder)\PresentationCore\System\Windows\Ink\GestureRecognizer.cs" />
+    <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\exports.cs" />
+    <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\Generated\wgx_commands.cs" />
+    <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\wgx_exports.cs" />
   </ItemGroup>
 
   <ItemGroup>
