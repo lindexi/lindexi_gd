@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear.csproj" />
     <ProjectReference Include="..\InkBase\InkBase.csproj" />
   </ItemGroup>
 
