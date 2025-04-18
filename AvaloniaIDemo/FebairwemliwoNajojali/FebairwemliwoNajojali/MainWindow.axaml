@@ -7,10 +7,10 @@
         WindowState="FullScreen"
         Icon="/Assets/avalonia-logo.ico"
         Title="FebairwemliwoNajojali" Background="Transparent">
-        <Grid>
-            <Border Background="White" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <Button x:Name="CloseButton" Content="退出" Click="CloseButton_OnClick"></Button>
-            </Border>
+  <Grid>
+    <Border Background="White" HorizontalAlignment="Right" VerticalAlignment="Top">
+      <Button x:Name="CloseButton" Content="退出" Click="CloseButton_OnClick"></Button>
+    </Border>
 
-          </Grid>
+  </Grid>
 </Window>
