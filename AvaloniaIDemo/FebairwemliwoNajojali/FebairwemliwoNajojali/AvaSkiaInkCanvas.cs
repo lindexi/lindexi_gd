@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -7,8 +8,11 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+
 using InkBase;
+
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
+
 using SkiaSharp;
 
 namespace FebairwemliwoNajojali;
@@ -47,9 +51,9 @@ public class AvaSkiaInkCanvas : Control
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        if (_dictionary.Remove(e.Pointer.Id, out var inkDynamicDrawingContext))
+        if (_dictionary.Remove(e.Pointer.Id, out InkDynamicDrawingContext? inkDynamicDrawingContext))
         {
-            var inkPoint = AddPoint(e);
+            var inkPoint = AddPoint(e, inkDynamicDrawingContext);
 
             InkingAcceleratorLayer.Up(inkPoint);
 
@@ -57,9 +61,9 @@ public class AvaSkiaInkCanvas : Control
         }
     }
 
-    private InkPoint AddPoint(PointerEventArgs e)
+    private InkPoint AddPoint(PointerEventArgs e, InkDynamicDrawingContext? inkDynamicDrawingContext = null)
     {
-        var inkDynamicDrawingContext = _dictionary[e.Pointer.Id];
+        inkDynamicDrawingContext ??= _dictionary[e.Pointer.Id];
         var currentPoint = e.GetCurrentPoint(this);
         var (x, y) = currentPoint.Position;
         var inkPoint = new InkPoint(inkDynamicDrawingContext.InkId, x, y);
@@ -119,6 +123,6 @@ file class InkCanvasCustomDrawOperation : ICustomDrawOperation
 
     public void Dispose()
     {
-        
+
     }
 }

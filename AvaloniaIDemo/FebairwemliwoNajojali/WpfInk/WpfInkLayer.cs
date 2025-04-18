@@ -1,6 +1,9 @@
 ﻿using System.Windows;
+using System.Windows.Ink;
 using System.Windows.Media;
+
 using InkBase;
+
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
 
 namespace WpfInk;
@@ -14,24 +17,52 @@ public class WpfInkLayer : IWpfInkLayer
 
     public WpfInkWindow InkWindow { get; }
 
+    private readonly Dictionary<InkId, WpfInkDrawingContext> _dictionary = [];
+
     public void Render(DrawingContext drawingContext)
     {
-        drawingContext.DrawRectangle(Brushes.Red, null, new Rect(10, 10, 100, 100));
+        drawingContext.DrawRectangle(_isBlue ? Brushes.Blue : Brushes.Red, null, new Rect(10, 10, 100, 100));
+        _isBlue = !_isBlue;
     }
+
+    private bool _isBlue;
 
     public void Down(InkPoint screenPoint)
     {
-        throw new NotImplementedException();
+        Run(() =>
+        {
+            var context = new WpfInkDrawingContext();
+            _dictionary[screenPoint.Id] = context;
+            context.PointList.Add(screenPoint);
+
+            InkWindow.InvalidateVisual();
+        });
     }
 
     public void Move(InkPoint screenPoint)
     {
-        throw new NotImplementedException();
+        Run(() =>
+        {
+            if (_dictionary.TryGetValue(screenPoint.Id, out var context))
+            {
+                context.PointList.Add(screenPoint);
+                
+                InkWindow.InvalidateVisual();
+            }
+        });
     }
 
     public void Up(InkPoint screenPoint)
     {
-        throw new NotImplementedException();
+        Run(() =>
+        {
+            if (_dictionary.TryGetValue(screenPoint.Id, out var context))
+            {
+                context.PointList.Add(screenPoint);
+
+                InkWindow.InvalidateVisual();
+            }
+        });
     }
 
     public event EventHandler<SkiaStroke>? StrokeCollected;
@@ -44,4 +75,16 @@ public class WpfInkLayer : IWpfInkLayer
     {
         throw new NotImplementedException();
     }
+
+    private void Run(Action action)
+    {
+        InkWindow.Dispatcher.InvokeAsync(action);
+    }
+}
+
+class WpfInkDrawingContext
+{
+    public List<InkPoint> PointList { get; } = [];
+
+    //public Stroke Stroke { get; } 
 }
