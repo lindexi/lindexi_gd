@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using InkBase;
 
 namespace WpfInk;
 
-public class WpfInkWindow : PerformanceDesktopTransparentWindow
+public class WpfInkWindow : PerformanceDesktopTransparentWindow, IWpfInkLayer
 {
     public WpfInkWindow()
     {
@@ -27,6 +28,8 @@ public class WpfInkWindow : PerformanceDesktopTransparentWindow
         });
         WindowState = WindowState.Maximized;
         SetTransparentHitThrough();
+
+        WpfForAvaloniaInkingAccelerator.Instance.InkLayer = this;
 
         //Content = new Grid
         //{
@@ -53,6 +56,27 @@ public class WpfInkWindow : PerformanceDesktopTransparentWindow
     protected override void OnRender(DrawingContext drawingContext)
     {
         drawingContext.DrawRectangle(Brushes.Red, null, new Rect(10, 10, 100, 100));
+    }
+
+    public void Down(InkPoint screenPoint)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Move(InkPoint screenPoint)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Up(InkPoint screenPoint)
+    {
+        throw new NotImplementedException();
+    }
+
+    public event EventHandler<SkiaStroke>? StrokeCollected;
+    public void HideStroke(SkiaStroke skiaStroke)
+    {
+        throw new NotImplementedException();
     }
 }
 

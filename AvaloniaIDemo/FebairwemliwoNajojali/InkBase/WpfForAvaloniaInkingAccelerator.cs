@@ -12,8 +12,10 @@ namespace InkBase;
 
 public class WpfForAvaloniaInkingAccelerator
 {
-}
+    public static WpfForAvaloniaInkingAccelerator Instance { get; } = new WpfForAvaloniaInkingAccelerator();
 
+    public IWpfInkLayer InkLayer { get; set; } = null!;
+}
 
 public interface IWpfInkLayer
 {
