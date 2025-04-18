@@ -2,4 +2,4 @@
 
 namespace InkBase;
 
-public readonly record struct InkPoint(InkId Id, double X, double Y);
+public readonly record struct InkPoint(InkId Id, double X, double Y, float PressureFactor = 0.5f);

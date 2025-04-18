@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Ink;
+using System.Windows.Input;
 using System.Windows.Media;
 
 using InkBase;
@@ -19,10 +20,21 @@ public class WpfInkLayer : IWpfInkLayer
 
     private readonly Dictionary<InkId, WpfInkDrawingContext> _dictionary = [];
 
+    public StandardRgbColor Color { set; get; } = StandardRgbColor.Red;
+    public double InkThickness { set; get; } = 20;
+
     public void Render(DrawingContext drawingContext)
     {
         drawingContext.DrawRectangle(_isBlue ? Brushes.Blue : Brushes.Red, null, new Rect(10, 10, 100, 100));
         _isBlue = !_isBlue;
+
+        foreach (WpfInkDrawingContext context in _dictionary.Values)
+        {
+            var stroke = context.Stroke;
+            var geometry = stroke.GetGeometry(context.DrawingAttributes);
+            var brush = new SolidColorBrush(context.DrawingAttributes.Color);
+            drawingContext.DrawGeometry(brush, null, geometry);
+        }
     }
 
     private bool _isBlue;
@@ -31,9 +43,14 @@ public class WpfInkLayer : IWpfInkLayer
     {
         Run(() =>
         {
-            var context = new WpfInkDrawingContext();
+            var context = new WpfInkDrawingContext(new DrawingAttributes()
+            {
+                Color = Color.ToWpfColor(),
+                Width = InkThickness,
+                Height = InkThickness,
+            });
             _dictionary[screenPoint.Id] = context;
-            context.PointList.Add(screenPoint);
+            context.Add(screenPoint);
 
             InkWindow.InvalidateVisual();
         });
@@ -45,8 +62,8 @@ public class WpfInkLayer : IWpfInkLayer
         {
             if (_dictionary.TryGetValue(screenPoint.Id, out var context))
             {
-                context.PointList.Add(screenPoint);
-                
+                context.Add(screenPoint);
+
                 InkWindow.InvalidateVisual();
             }
         });
@@ -58,7 +75,7 @@ public class WpfInkLayer : IWpfInkLayer
         {
             if (_dictionary.TryGetValue(screenPoint.Id, out var context))
             {
-                context.PointList.Add(screenPoint);
+                context.Add(screenPoint);
 
                 InkWindow.InvalidateVisual();
             }
@@ -68,7 +85,15 @@ public class WpfInkLayer : IWpfInkLayer
     public event EventHandler<SkiaStroke>? StrokeCollected;
     public void HideStroke(SkiaStroke skiaStroke)
     {
-        throw new NotImplementedException();
+        Run(() =>
+        {
+            if (_dictionary.TryGetValue(skiaStroke.Id, out var context))
+            {
+                context.IsHide = !context.IsHide;
+            }
+
+            InkWindow.InvalidateVisual();
+        });
     }
 
     public SkiaStroke PointListToStroke(InkId id, IReadOnlyList<InkPoint> points)
@@ -84,7 +109,40 @@ public class WpfInkLayer : IWpfInkLayer
 
 class WpfInkDrawingContext
 {
+    public WpfInkDrawingContext(DrawingAttributes drawingAttributes)
+    {
+        DrawingAttributes = drawingAttributes;
+    }
+
+    public bool IsHide { get; set; }
+
+    public DrawingAttributes DrawingAttributes { get; }
+
     public List<InkPoint> PointList { get; } = [];
 
-    //public Stroke Stroke { get; } 
+    public Stroke Stroke
+    {
+        get
+        {
+            if (_stroke == null)
+            {
+                _stroke = new Stroke(StylusPointCollection);
+            }
+
+            return _stroke;
+        }
+    }
+
+    private Stroke? _stroke;
+
+    private StylusPointCollection StylusPointCollection { get; } = new StylusPointCollection();
+
+    public void Add(InkPoint point)
+    {
+        PointList.Add(point);
+
+        StylusPointCollection.Add(new StylusPoint(point.X, point.Y, point.PressureFactor));
+
+        _stroke = null;
+    }
 }

@@ -9,7 +9,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <!--<PropertyGroup>
     <WpfInkFolder>..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk</WpfInkFolder>
   </PropertyGroup>
 
@@ -24,7 +24,7 @@
     <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\exports.cs" />
     <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\Generated\wgx_commands.cs" />
     <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\wgx_exports.cs" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear.csproj" />
