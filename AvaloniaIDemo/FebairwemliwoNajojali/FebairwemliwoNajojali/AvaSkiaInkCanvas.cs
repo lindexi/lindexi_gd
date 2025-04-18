@@ -138,6 +138,7 @@ file class InkCanvasCustomDrawOperation : ICustomDrawOperation
         {
             paint.Style = SKPaintStyle.Fill;
             paint.Color = new SKColor(skiaStroke.Color.R, skiaStroke.Color.G, skiaStroke.Color.B, skiaStroke.Color.A);
+            paint.IsAntialias = true;
 
             canvas.DrawPath(skiaStroke.InkPath, paint);
         }
