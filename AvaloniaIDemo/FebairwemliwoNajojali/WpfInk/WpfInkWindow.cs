@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RuhuyagayBemkaijearfear;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,12 +11,12 @@ using System.Windows.Media;
 
 namespace WpfInk;
 
-public class WpfInkWindow : Window
+public class WpfInkWindow : PerformanceDesktopTransparentWindow
 {
     public WpfInkWindow()
     {
         Title = "WpfInk";
-        AllowsTransparency = true;
+        //AllowsTransparency = true;123
         WindowStyle = WindowStyle.None;
         Background = new SolidColorBrush(new Color()
         {
@@ -24,27 +26,28 @@ public class WpfInkWindow : Window
             B = 0x56
         });
         WindowState = WindowState.Maximized;
+        SetTransparentHitThrough();
 
-        Content = new Grid
-        {
-            Children =
-            {
-                new Button()
-                {
-                    Width = 100,
-                    Height = 30,
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Top,
-                    Content = "退出"
-                }.Do(b =>
-                {
-                    b.Click += (s, e) =>
-                    {
-                        Environment.Exit(0);
-                    };
-                }),
-            }
-        };
+        //Content = new Grid
+        //{
+        //    Children =
+        //    {
+        //        new Button()
+        //        {
+        //            Width = 100,
+        //            Height = 30,
+        //            HorizontalAlignment = HorizontalAlignment.Right,
+        //            VerticalAlignment = VerticalAlignment.Top,
+        //            Content = "退出"
+        //        }.Do(b =>
+        //        {
+        //            b.Click += (s, e) =>
+        //            {
+        //                Environment.Exit(0);
+        //            };
+        //        }),
+        //    }
+        //};
     }
 
     protected override void OnRender(DrawingContext drawingContext)
