@@ -47,6 +47,16 @@ public partial class MainWindow : Window
             var handle = safeHandle.DangerousGetHandle();
             var wicBitmap = Marshal.GetObjectForIUnknown(handle);
             Marshal.QueryInterface(handle, IWICBitmap.IID_IWICBitmap, out var ppv);
+            IWICBitmap bitmap = new IWICBitmap();
+            unsafe
+            {
+                bitmap.lpVtbl = (void**) (ppv);
+                uint w = 0, h = 0;
+                Guid f = Guid.Empty;
+                bitmap.GetPixelFormat(&f);
+
+                bitmap.GetSize(&w, &h);
+            }
         }
     }
 }
