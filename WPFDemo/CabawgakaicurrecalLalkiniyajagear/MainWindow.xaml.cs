@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Microsoft.Win32.SafeHandles;
+
 using stakx.WIC;
 
 
@@ -48,6 +49,9 @@ public partial class MainWindow : Window
             var wicBitmap = (IWICBitmap) Marshal.GetObjectForIUnknown(handle);
 
             var size = wicBitmap.GetSize();
+            var buffer = new byte[size.Width * size.Height * 4];
+            Random.Shared.NextBytes(buffer);
+            wicBitmap.CopyPixels(4 * size.Width, buffer);
         }
     }
 }
