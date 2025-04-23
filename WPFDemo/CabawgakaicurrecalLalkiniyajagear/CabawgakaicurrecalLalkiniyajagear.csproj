@@ -10,9 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Vortice.DXGI" Version="3.6.2" />
-    <PackageReference Include="Vortice.Win32" Version="2.2.7" />
-    <PackageReference Include="Vortice.Win32.Graphics.Imaging" Version="2.2.7" />
+    <PackageReference Include="stakx.WIC" Version="0.1.0" />
   </ItemGroup>
 
 </Project>
