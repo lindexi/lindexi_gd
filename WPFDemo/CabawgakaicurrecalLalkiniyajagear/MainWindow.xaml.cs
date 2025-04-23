@@ -13,8 +13,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Microsoft.Win32.SafeHandles;
+using stakx.WIC;
 
-using Win32.Graphics.Imaging;
 
 namespace CabawgakaicurrecalLalkiniyajagear;
 
@@ -45,27 +45,9 @@ public partial class MainWindow : Window
         if (value is SafeHandleZeroOrMinusOneIsInvalid safeHandle)
         {
             var handle = safeHandle.DangerousGetHandle();
-            var wicBitmap = Marshal.GetObjectForIUnknown(handle);
-            Marshal.QueryInterface(handle, IWICBitmap.IID_IWICBitmap, out var ppv);
-            IWICBitmap bitmap = new IWICBitmap();
-            unsafe
-            {
-                bitmap.lpVtbl = (void**) (ppv);
-                uint w = 0, h = 0;
-                Guid f = Guid.Empty;
-                bitmap.GetPixelFormat(&f);
+            var wicBitmap = (IWICBitmap) Marshal.GetObjectForIUnknown(handle);
 
-                bitmap.GetSize(&w, &h);
-            }
+            var size = wicBitmap.GetSize();
         }
     }
-}
-
-file static class Extensions
-{
-    // +		_pDoubleBufferedBitmap	{System.Windows.Media.SafeMILHandle}	System.Windows.Media.SafeMILHandle
-    // 
-    [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_WicSourceHandle")]
-    internal static extern SafeHandleZeroOrMinusOneIsInvalid GetDoubleBufferedBitmap(
-        this WriteableBitmap writeableBitmap);
 }
