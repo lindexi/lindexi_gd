@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Microsoft.Win32.SafeHandles;
+
 using Win32.Graphics.Imaging;
 
 namespace JaikikerallkurBerhayeajur;
@@ -50,20 +51,15 @@ public partial class MainWindow : Window
             var wicBitmap = new IWICBitmap();
             unsafe
             {
-                wicBitmap.lpVtbl = (void**)*(void***)wicBitmapHandle;
+                void*** pvtable = (void***) wicBitmapHandle;
+                void** vtable = *pvtable;
+                wicBitmap.lpVtbl = vtable;
 
                 uint w = 0, h = 0;
                 wicBitmap.GetSize(&w, &h);
+                Debug.Assert(w == 100);
             }
-
-            //var wicBitmap = (IWICBitmap) Marshal.GetObjectForIUnknown(handle);
-
-            //var size = wicBitmap.GetSize();
-            //var buffer = new byte[size.Width * size.Height * 4];
-            //Random.Shared.NextBytes(buffer);
-
-            //// 这里的绘制是无效的，因为在 WPF 底层会重新被 m_pFrontBuffer 覆盖
-            //wicBitmap.CopyPixels(4 * size.Width, buffer);
         }
+        Debug.Assert(wicBitmapHandle != 0);
     }
 }
