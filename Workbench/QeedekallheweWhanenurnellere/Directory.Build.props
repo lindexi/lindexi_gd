@@ -1,0 +1,23 @@
+<Project>
+
+  <!-- 框架和语言信息 -->
+  <PropertyGroup>
+    <!-- 语言 -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 构建 -->
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+ 
+  </PropertyGroup>
+
+  <!-- 自定义属性 -->
+  <PropertyGroup>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <IsInSubmodule>$([System.IO.File]::Exists(`$(RepositoryRoot).git`))</IsInSubmodule>
+    <PackAllInOne>true</PackAllInOne>
+    <PackAllInOne Condition="!$(IsInSubmodule) and '$(Configuration)'=='debug'">false</PackAllInOne>
+  </PropertyGroup>
+
+
+</Project>
