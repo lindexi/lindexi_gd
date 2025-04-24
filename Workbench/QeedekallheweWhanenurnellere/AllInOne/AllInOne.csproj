@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" $(PackAllInOne) == true ">
+    <Compile Include="..\Lib\**\*.cs" Visible="False" LinkBase="" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" $(PackAllInOne) != true ">
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+  </ItemGroup>
+</Project>
