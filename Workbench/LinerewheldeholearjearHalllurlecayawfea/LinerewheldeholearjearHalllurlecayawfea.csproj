@@ -5,8 +5,9 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AppHostDotNetSearch>Global;AppRelative</AppHostDotNetSearch>
-    <AppHostRelativeDotNet>./relative/path/to/runtime</AppHostRelativeDotNet>
+    <!--AppLocal, AppRelative, EnvironmentVariables, or Global-->
+    <AppHostDotNetSearch>AppRelative;Global;EnvironmentVariables</AppHostDotNetSearch>
+    <AppHostRelativeDotNet>../relative/path/to/runtime</AppHostRelativeDotNet>
   </PropertyGroup>
 
 </Project>
