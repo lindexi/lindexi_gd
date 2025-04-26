@@ -5,6 +5,6 @@ using System.Runtime.InteropServices;
 
 long result = 5283938767475196740;
 ReadOnlySpan<byte> value = "DCFBPRTI"u8;
-var converted = MemoryMarshal.Cast<byte, long>(value);
+var converted = MemoryMarshal.Read<long>(value);
 
-Console.WriteLine(converted[0] == result);
+Console.WriteLine(converted == result);
