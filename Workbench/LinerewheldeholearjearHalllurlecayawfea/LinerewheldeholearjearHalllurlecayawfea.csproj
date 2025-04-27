@@ -5,8 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!--AppLocal, AppRelative, EnvironmentVariables, or Global-->
-    <!--C:\Program Files\dotnet\sdk\9.0.203\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Publish.targets(737,5): 错误 NETSDK1217: AppHostDotNetSearch 中的值无效: "EnvironmentVariables"。--> <AppHostDotNetSearch>AppRelative;Global;</AppHostDotNetSearch>
+    <AppHostDotNetSearch>AppRelative;Global;</AppHostDotNetSearch>
     <AppHostRelativeDotNet>../relative/path/to/runtime</AppHostRelativeDotNet>
   </PropertyGroup>
 
