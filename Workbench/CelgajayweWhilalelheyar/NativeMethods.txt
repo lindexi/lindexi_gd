@@ -2,3 +2,5 @@
 SetupDiEnumDeviceInterfaces
 SetupDiGetDeviceInterfaceDetail
 SP_DEVICE_INTERFACE_DATA
+EnumDisplayDevices
+DisplayDeviceStateFlags
