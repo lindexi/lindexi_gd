@@ -15,12 +15,12 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|Any CPU.Build.0 = Debug|x86
 		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|x64.Build.0 = Debug|Any CPU
-		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|x86.Build.0 = Debug|Any CPU
+		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|x86.ActiveCfg = Debug|x86
+		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Debug|x86.Build.0 = Debug|x86
 		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7E675EBE-667C-48AB-BA64-2D04B7D3666F}.Release|x64.ActiveCfg = Release|Any CPU
@@ -30,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {69CF3E26-7598-49E0-995E-200097E8AA09}
 	EndGlobalSection
 EndGlobal
