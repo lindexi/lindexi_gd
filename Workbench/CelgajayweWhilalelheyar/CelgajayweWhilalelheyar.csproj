@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Device.Net" Version="4.2.1" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" Version="0.3.183" />
   </ItemGroup>
 
 </Project>

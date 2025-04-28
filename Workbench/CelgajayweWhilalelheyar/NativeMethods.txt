@@ -1,0 +1,4 @@
+﻿SetupDiGetClassDevs
+SetupDiEnumDeviceInterfaces
+SetupDiGetDeviceInterfaceDetail
+SP_DEVICE_INTERFACE_DATA
