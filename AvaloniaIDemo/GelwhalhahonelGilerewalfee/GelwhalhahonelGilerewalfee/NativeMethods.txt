@@ -1,0 +1,8 @@
+﻿SetWindowsHookEx
+CallNextHookEx
+SetWindowLong
+SetWindowLongPtr
+SetWindowLongPtrW
+CallWindowProc
+PostMessage
+WM_POINTE*
