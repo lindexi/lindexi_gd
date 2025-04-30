@@ -10,3 +10,4 @@ GetPointerDeviceProperties
 GetRawPointerDeviceData
 GetPointerTouchInfo
 GetPointerDeviceRects
+GetPointerDevices
