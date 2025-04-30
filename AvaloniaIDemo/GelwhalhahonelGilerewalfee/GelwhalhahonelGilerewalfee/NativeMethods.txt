@@ -11,3 +11,4 @@ GetRawPointerDeviceData
 GetPointerTouchInfo
 GetPointerDeviceRects
 GetPointerDevices
+GetPointerCursorId
