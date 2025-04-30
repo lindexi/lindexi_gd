@@ -6,3 +6,7 @@ SetWindowLongPtrW
 CallWindowProc
 PostMessage
 WM_POINTE*
+GetPointerDeviceProperties
+GetRawPointerDeviceData
+GetPointerTouchInfo
+GetPointerDeviceRects
