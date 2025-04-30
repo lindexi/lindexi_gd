@@ -13,8 +13,11 @@ using System.Runtime.Versioning;
 using System.Text;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.Input.Pointer;
+using Avalonia;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
+using Avalonia.Media;
+using Splat;
 
 namespace GelwhalhahonelGilerewalfee.Views;
 
@@ -198,7 +201,7 @@ public partial class MainWindow : Window
                     var xProperty = pointerDevicePropertySpan[xPropertyIndex];
                     var yProperty = pointerDevicePropertySpan[yPropertyIndex];
 
-                    var xForScreen = ((double)xValue - xProperty.logicalMin) /
+                    var xForScreen = ((double) xValue - xProperty.logicalMin) /
                         (xProperty.logicalMax - xProperty.logicalMin) * displayRect.Width;
                     var yForScreen = ((double) yValue - yProperty.logicalMin) /
                         (yProperty.logicalMax - yProperty.logicalMin) * displayRect.Height;
@@ -214,7 +217,7 @@ public partial class MainWindow : Window
                 {
                     // 这里的 Id 关联会出现 id 重复的问题，似乎是在上层处理的
                     var contactIdentifierValue = rawPointerData[baseIndex + contactIdentifierPropertyIndex];
-                   
+
                     rawPointerPoint = rawPointerPoint with
                     {
                         Id = contactIdentifierValue
@@ -273,6 +276,29 @@ public partial class MainWindow : Window
             touchInfo.AppendLine($"PointerPoint PointerId={pointerInfo.pointerId} XY={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} rc ContactXY={info.rcContactRaw.X},{info.rcContactRaw.Y} ContactWH={info.rcContactRaw.Width},{info.rcContactRaw.Height}");
             touchInfo.AppendLine($"RawPointerPoint Id={rawPointerPoint.Id} XY={rawPointerPoint.X:0.00},{rawPointerPoint.Y:0.00} PixelWH={rawPointerPoint.PixelWidth:0.00},{rawPointerPoint.PixelHeight:0.00} PhysicalWH={rawPointerPoint.PhysicalWidth:0.00},{rawPointerPoint.PhysicalHeight:0.00}cm");
 
+            // 转换为 Avalonia 坐标系
+            var scale = this.RenderScaling;
+            var originPointToScreen = this.PointToScreen(new Point(0, 0));
+
+            var xAvalonia = (rawPointerPoint.X - originPointToScreen.X) / scale;
+            var yAvalonia = (rawPointerPoint.Y - originPointToScreen.Y) / scale;
+            var widthAvalonia = rawPointerPoint.PixelWidth / scale;
+            var heightAvalonia = rawPointerPoint.PixelHeight / scale;
+            touchInfo.AppendLine($"RawPointerPoint For Avalonia XY={xAvalonia:0.00},{yAvalonia:0.00} WH={widthAvalonia:0.00},{heightAvalonia:0.00}");
+
+            if (double.IsRealNumber(xAvalonia) && double.IsRealNumber(yAvalonia) && double.IsRealNumber(widthAvalonia) && double.IsRealNumber(heightAvalonia))
+            {
+                TouchSizeBorder.IsVisible = true;
+                if (TouchSizeBorder.RenderTransform is TranslateTransform translateTransform)
+                {
+                    translateTransform.X = xAvalonia - widthAvalonia / 2;
+                    translateTransform.Y = yAvalonia - heightAvalonia / 2;
+                }
+
+                TouchSizeBorder.Width = widthAvalonia;
+                TouchSizeBorder.Height = heightAvalonia;
+            }
+
             TouchInfoTextBlock.Text = touchInfo.ToString();
         }
 
@@ -292,20 +318,6 @@ public partial class MainWindow : Window
     private static int ToInt32(WPARAM wParam) => ToInt32((IntPtr) wParam.Value);
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 }
-
-readonly
-    record
-    struct
-    RawPointerPoint
-    (
-        int Id,
-        double X,
-        double Y,
-        double PixelWidth,
-        double PixelHeight,
-        double PhysicalWidth,
-        double PhysicalHeight
-    );
 
 /// <summary>
 ///
