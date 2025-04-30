@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Windows.Win32;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 using static Windows.Win32.PInvoke;
@@ -14,10 +12,8 @@ using System.Text;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.Input.Pointer;
 using Avalonia;
-using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
-using Splat;
 
 namespace GelwhalhahonelGilerewalfee.Views;
 
@@ -49,7 +45,7 @@ public partial class MainWindow : Window
         {
             return;
         }
-
+        
         uint deviceCount = 0;
         GetPointerDevices(&deviceCount, null);
         var pointerDeviceInfoArray = stackalloc POINTER_DEVICE_INFO[(int) deviceCount];
@@ -79,25 +75,22 @@ public partial class MainWindow : Window
     }
 
     /*
-     *LONG_PTR SetWindowLongPtrW(
+     * LONG_PTR SetWindowLongPtrW
+       (
          [in] HWND     hWnd,
          [in] int      nIndex,
          [in] LONG_PTR dwNewLong
        );
      */
     [LibraryImport("User32.dll")]
-    private static partial IntPtr SetWindowLongPtrW(
-        IntPtr hWnd,
-        int nIndex,
-        IntPtr dwNewLong);
+    private static partial IntPtr SetWindowLongPtrW(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
-    // cswin32 生成的是 [MarshalAs(UnmanagedType.FunctionPtr)] winmdroot.UI.WindowsAndMessaging.WNDPROC lpPrevWndFunc 的参数
+    // cswin32 生成的是 [MarshalAs(UnmanagedType.FunctionPtr)] winmdroot.UI.WindowsAndMessaging.WNDPROC lpPrevWndFunc 的参数。咱这里已经拿到了函数指针，所以不能使用 WNDPROC 委托
     [DllImport("USER32.dll", ExactSpelling = true, EntryPoint = "CallWindowProcW"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [SupportedOSPlatform("windows5.0")]
     private static extern LRESULT CallWindowProc(nint lpPrevWndFunc, HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
 
-    private delegate LRESULT WndProcDelegate(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam);
-    private WndProcDelegate? _newWndProc;
+    private WNDPROC? _newWndProc;
     private IntPtr _oldWndProc;
 
     [SupportedOSPlatform("windows5.0")]
