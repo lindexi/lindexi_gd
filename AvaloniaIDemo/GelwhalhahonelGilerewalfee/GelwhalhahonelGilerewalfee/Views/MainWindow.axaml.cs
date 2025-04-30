@@ -9,6 +9,8 @@ using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 using static Windows.Win32.PInvoke;
 using System.Runtime.Versioning;
+using System.Text;
+using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.Input.Pointer;
 
 namespace GelwhalhahonelGilerewalfee.Views;
@@ -22,12 +24,25 @@ public partial class MainWindow : Window
         Loaded += MainWindow_Loaded;
     }
 
-    private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
+    private unsafe void MainWindow_Loaded(object? sender, RoutedEventArgs e)
     {
-        if (!OperatingSystem.IsWindowsVersionAtLeast(5, 0))
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0))
         {
             return;
         }
+
+        uint deviceCount = 0;
+        GetPointerDevices(&deviceCount, null);
+        var pointerDeviceInfoArray = stackalloc  POINTER_DEVICE_INFO[(int) deviceCount];
+        var span = new Span<POINTER_DEVICE_INFO>(pointerDeviceInfoArray, (int) deviceCount);
+        GetPointerDevices(&deviceCount, pointerDeviceInfoArray);
+        var info = new StringBuilder();
+        foreach (POINTER_DEVICE_INFO pointerDeviceInfo in span)
+        {
+            info.AppendLine($"Device={pointerDeviceInfo.device} DisplayOrientation={pointerDeviceInfo.displayOrientation} MaxActiveContacts={pointerDeviceInfo.maxActiveContacts} Monitor={pointerDeviceInfo.monitor} PointerDeviceType={pointerDeviceInfo.pointerDeviceType} StartingCursorId={pointerDeviceInfo.startingCursorId} ProductString={pointerDeviceInfo.productString.ToString()}");
+        }
+
+        TouchInfoTextBlock.Text = info.ToString();
 
         if (TryGetPlatformHandle() is {} handle)
         {
@@ -71,7 +86,7 @@ public partial class MainWindow : Window
     {
         if (msg == WM_POINTERUPDATE/*Pointer Update*/)
         {
-           Debug.Assert(OperatingSystem.IsWindowsVersionAtLeast(8, 0),"能够收到 WM_Pointer 消息，必定系统版本号不会低");
+           Debug.Assert(OperatingSystem.IsWindowsVersionAtLeast(10, 0),"能够收到 WM_Pointer 消息，必定系统版本号不会低");
            
             var pointerId = (uint) (ToInt32(wParam) & 0xFFFF);
             GetPointerTouchInfo(pointerId, out POINTER_TOUCH_INFO info);
