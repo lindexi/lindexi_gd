@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -26,7 +26,7 @@ public partial class MainWindow : Window
 
         Loaded += MainWindow_Loaded;
 
-        this.PointerMoved += MainWindow_PointerMoved;
+        PointerMoved += MainWindow_PointerMoved;
     }
 
     private void MainWindow_PointerMoved(object? sender, PointerEventArgs e)
@@ -49,7 +49,7 @@ public partial class MainWindow : Window
 
         uint deviceCount = 0;
         GetPointerDevices(&deviceCount, null);
-        var pointerDeviceInfoArray = stackalloc  POINTER_DEVICE_INFO[(int) deviceCount];
+        var pointerDeviceInfoArray = stackalloc POINTER_DEVICE_INFO[(int) deviceCount];
         var span = new Span<POINTER_DEVICE_INFO>(pointerDeviceInfoArray, (int) deviceCount);
         GetPointerDevices(&deviceCount, pointerDeviceInfoArray);
         var info = new StringBuilder();
@@ -60,14 +60,14 @@ public partial class MainWindow : Window
 
         TouchInfoTextBlock.Text = info.ToString();
 
-        if (TryGetPlatformHandle() is {} handle)
+        if (TryGetPlatformHandle() is { } handle)
         {
-            // һ����˵���� SetWindowsHookEx �Ǹ�ȫ�ֵģ��Լ�Ӧ���ڿ��Ը��Ӽ�
+            // 一般来说，用 SetWindowsHookEx 是给全局的，自己应用内可以更加简单
             //SetWindowsHookEx()
             Debug.Assert(Environment.Is64BitProcess);
 
-            // ������ SetWindowLongPtrW ��ԭ���ǣ�64λ�ĳ������ 32λ�� SetWindowLongW �ᵼ���쳣������λ������ƥ�䷽��ָ�룬��ϸ�뿴
-            // [ʵս���飺SetWindowLongPtr�ڿ���64λ�����ʹ�÷��� | �ٷ����� | ����÷���ǻ۰칫ƽ̨ | TopomelBox �ٷ�վ��](https://www.topomel.com/archives/245.html )
+            // 这里用 SetWindowLongPtrW 的原因是，64位的程序调用 32位的 SetWindowLongW 会导致异常，第三位参数不匹配方法指针，详细请看
+            // [实战经验：SetWindowLongPtr在开发64位程序的使用方法 | 官方博客 | 拓扑梅尔智慧办公平台 | TopomelBox 官方站点](https://www.topomel.com/archives/245.html )
 
             _newWndProc = Hook;
             var functionPointer = Marshal.GetFunctionPointerForDelegate(_newWndProc);
@@ -88,7 +88,7 @@ public partial class MainWindow : Window
         int nIndex,
         IntPtr dwNewLong);
 
-    // cswin32 ���ɵ��� [MarshalAs(UnmanagedType.FunctionPtr)] winmdroot.UI.WindowsAndMessaging.WNDPROC lpPrevWndFunc �Ĳ���
+    // cswin32 生成的是 [MarshalAs(UnmanagedType.FunctionPtr)] winmdroot.UI.WindowsAndMessaging.WNDPROC lpPrevWndFunc 的参数
     [DllImport("USER32.dll", ExactSpelling = true, EntryPoint = "CallWindowProcW"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [SupportedOSPlatform("windows5.0")]
     private static extern LRESULT CallWindowProc(nint lpPrevWndFunc, HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
@@ -102,8 +102,8 @@ public partial class MainWindow : Window
     {
         if (msg == WM_POINTERUPDATE/*Pointer Update*/)
         {
-           Debug.Assert(OperatingSystem.IsWindowsVersionAtLeast(10, 0),"�ܹ��յ� WM_Pointer ��Ϣ���ض�ϵͳ�汾�Ų����");
-           
+            Debug.Assert(OperatingSystem.IsWindowsVersionAtLeast(10, 0), "能够收到 WM_Pointer 消息，必定系统版本号不会低");
+
             var pointerId = (uint) (ToInt32(wParam) & 0xFFFF);
             GetPointerTouchInfo(pointerId, out POINTER_TOUCH_INFO info);
             POINTER_INFO pointerInfo = info.pointerInfo;
@@ -115,26 +115,163 @@ public partial class MainWindow : Window
 
             uint propertyCount = 0;
             GetPointerDeviceProperties(pointerInfo.sourceDevice, &propertyCount, null);
-            POINTER_DEVICE_PROPERTY* pointerDevicePropertyArray = stackalloc POINTER_DEVICE_PROPERTY[(int)propertyCount];
+            POINTER_DEVICE_PROPERTY* pointerDevicePropertyArray = stackalloc POINTER_DEVICE_PROPERTY[(int) propertyCount];
             GetPointerDeviceProperties(pointerInfo.sourceDevice, &propertyCount, pointerDevicePropertyArray);
             var pointerDevicePropertySpan =
-                new Span<POINTER_DEVICE_PROPERTY>(pointerDevicePropertyArray, (int)propertyCount);
+                new Span<POINTER_DEVICE_PROPERTY>(pointerDevicePropertyArray, (int) propertyCount);
 
             GetPointerCursorId(pointerId, out uint cursorId);
 
             var touchInfo = new StringBuilder();
             touchInfo.Append($"[{DateTime.Now}] ");
-            touchInfo.AppendLine($"PointerId={pointerId} CursorId={cursorId} PointerDeviceRect={RectToWHString(pointerDeviceRect)} RectToWHString={RectToWHString(displayRect)} PropertyCount={propertyCount} SourceDevice={pointerInfo.sourceDevice}");
+            touchInfo.AppendLine($"PointerId={pointerId} CursorId={cursorId} PointerDeviceRect={RectToString(pointerDeviceRect)} DisplayRect={RectToString(displayRect)} PropertyCount={propertyCount} SourceDevice={pointerInfo.sourceDevice}");
 
-            foreach (var pointerDeviceProperty in pointerDevicePropertySpan)
+            var xPropertyIndex = -1;
+            var yPropertyIndex = -1;
+            var contactIdentifierPropertyIndex = -1;
+            var widthPropertyIndex = -1;
+            var heightPropertyIndex = -1;
+
+            for (var i = 0; i < pointerDevicePropertySpan.Length; i++)
             {
+                POINTER_DEVICE_PROPERTY pointerDeviceProperty = pointerDevicePropertySpan[i];
                 var usagePageId = pointerDeviceProperty.usagePageId;
                 var usageId = pointerDeviceProperty.usageId;
+                // 单位
                 var unit = pointerDeviceProperty.unit;
-                touchInfo.AppendLine($"UsagePageId={(HidUsagePage)usagePageId}({usagePageId}) UsageId={(HidUsage)usageId}({usageId}) Unit={StylusPointPropertyUnitHelper.FromPointerUnit(unit)}({unit})");
+                // 单位指数。 它与 Unit 字段一起定义了设备报告中数据的物理单位。具体来说：
+                // - Unit：定义了数据的基本单位，例如厘米、英寸、弧度等。
+                // - UnitExponent：表示单位的数量级（即 10 的幂次）。它用于缩放单位值，使其适应不同的范围
+                var unitExponent = pointerDeviceProperty.unitExponent;
+                touchInfo.Append(
+                    $"{UsagePageAndIdConverter.ConvertToString(usagePageId, usageId)} Unit={StylusPointPropertyUnitHelper.FromPointerUnit(unit)}({unit}) UnitExponent={unitExponent}")
+                    .Append($"  LogicalMin={pointerDeviceProperty.logicalMin} LogicalMax={pointerDeviceProperty.logicalMax}")
+                    .Append($"  PhysicalMin={pointerDeviceProperty.physicalMin} PhysicalMax={pointerDeviceProperty.physicalMax}")
+                    .AppendLine();
+
+                if (usagePageId == (ushort) HidUsagePage.Generic)
+                {
+                    if (usageId == (ushort) HidUsage.X)
+                    {
+                        xPropertyIndex = i;
+                    }
+                    else if (usageId == (ushort) HidUsage.Y)
+                    {
+                        yPropertyIndex = i;
+                    }
+                }
+                else if (usagePageId == (ushort) HidUsagePage.Digitizer)
+                {
+                    if (usageId == (ushort) DigitizersUsageId.Width)
+                    {
+                        widthPropertyIndex = i;
+                    }
+                    else if (usageId == (ushort) DigitizersUsageId.Height)
+                    {
+                        heightPropertyIndex = i;
+                    }
+                    else if (usageId == (ushort) DigitizersUsageId.ContactIdentifier)
+                    {
+                        contactIdentifierPropertyIndex = i;
+                    }
+                }
             }
 
-            //TouchInfoTextBlock.Text = $"[{DateTime.Now}] Id={pointerId} PointerDeviceRect={RectToString(pointerDeviceRect)} DisplayRect={RectToString(displayRect)}";
+            var historyCount = pointerInfo.historyCount;
+            int[] rawPointerData = new int[propertyCount * historyCount];
+
+            fixed (int* pValue = rawPointerData)
+            {
+                GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
+            }
+
+            var rawPointerPoint = new RawPointerPoint();
+
+            for (int i = 0; i < historyCount; i++)
+            {
+                var baseIndex = i * propertyCount;
+
+                if (xPropertyIndex >= 0 && yPropertyIndex >= 0)
+                {
+                    var xValue = rawPointerData[baseIndex + xPropertyIndex];
+                    var yValue = rawPointerData[baseIndex + yPropertyIndex];
+                    var xProperty = pointerDevicePropertySpan[xPropertyIndex];
+                    var yProperty = pointerDevicePropertySpan[yPropertyIndex];
+
+                    var xForScreen = ((double)xValue - xProperty.logicalMin) /
+                        (xProperty.logicalMax - xProperty.logicalMin) * displayRect.Width;
+                    var yForScreen = ((double) yValue - yProperty.logicalMin) /
+                        (yProperty.logicalMax - yProperty.logicalMin) * displayRect.Height;
+
+                    rawPointerPoint = rawPointerPoint with
+                    {
+                        X = xForScreen,
+                        Y = yForScreen,
+                    };
+                }
+
+                if (contactIdentifierPropertyIndex >= 0)
+                {
+                    // 这里的 Id 关联会出现 id 重复的问题，似乎是在上层处理的
+                    var contactIdentifierValue = rawPointerData[baseIndex + contactIdentifierPropertyIndex];
+                   
+                    rawPointerPoint = rawPointerPoint with
+                    {
+                        Id = contactIdentifierValue
+                    };
+                }
+
+                if (widthPropertyIndex >= 0 && heightPropertyIndex >= 0)
+                {
+                    var widthValue = rawPointerData[baseIndex + widthPropertyIndex];
+                    var heightValue = rawPointerData[baseIndex + heightPropertyIndex];
+
+                    var widthProperty = pointerDevicePropertySpan[widthPropertyIndex];
+                    var heightProperty = pointerDevicePropertySpan[heightPropertyIndex];
+
+                    var widthScale = ((double) widthValue - widthProperty.logicalMin) /
+                                                  (widthProperty.logicalMax - widthProperty.logicalMin);
+
+                    var heightScale = ((double) heightValue - heightProperty.logicalMin) / (heightProperty.logicalMax - heightProperty.logicalMin);
+
+                    var widthPixel = widthScale * displayRect.Width;
+                    var heightPixel = heightScale * displayRect.Height;
+
+                    rawPointerPoint = rawPointerPoint with
+                    {
+                        PixelWidth = widthPixel,
+                        PixelHeight = heightPixel,
+                    };
+
+                    if (StylusPointPropertyUnitHelper.FromPointerUnit(widthProperty.unit) ==
+                        StylusPointPropertyUnit.Centimeters)
+                    {
+                        var unitExponent = (int) widthProperty.unitExponent;
+                        if (unitExponent < -8 || unitExponent > 7)
+                        {
+                            unitExponent = -2;
+                        }
+
+                        var widthPhysical = widthScale * (widthProperty.physicalMax - widthProperty.physicalMin) * Math.Pow(10, unitExponent);
+                        var heightPhysical = heightScale * (heightProperty.physicalMax - heightProperty.physicalMin) * Math.Pow(10, unitExponent);
+
+                        rawPointerPoint = rawPointerPoint with
+                        {
+                            PhysicalWidth = widthPhysical,
+                            PhysicalHeight = heightPhysical,
+                        };
+                    }
+                }
+
+                if (rawPointerPoint != default)
+                {
+                    // 默认调试只取一个点好了
+                    break;
+                }
+            }
+
+            touchInfo.AppendLine($"PointerPoint PointerId={pointerInfo.pointerId} XY={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} rc ContactXY={info.rcContactRaw.X},{info.rcContactRaw.Y} ContactWH={info.rcContactRaw.Width},{info.rcContactRaw.Height}");
+            touchInfo.AppendLine($"RawPointerPoint Id={rawPointerPoint.Id} XY={rawPointerPoint.X:0.00},{rawPointerPoint.Y:0.00} PixelWH={rawPointerPoint.PixelWidth:0.00},{rawPointerPoint.PixelHeight:0.00} PhysicalWH={rawPointerPoint.PhysicalWidth:0.00},{rawPointerPoint.PhysicalHeight:0.00}cm");
 
             TouchInfoTextBlock.Text = touchInfo.ToString();
         }
@@ -152,17 +289,31 @@ public partial class MainWindow : Window
         }
     }
 
-    private static int ToInt32(WPARAM wParam) => ToInt32((IntPtr)wParam.Value);
+    private static int ToInt32(WPARAM wParam) => ToInt32((IntPtr) wParam.Value);
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 }
+
+readonly
+    record
+    struct
+    RawPointerPoint
+    (
+        int Id,
+        double X,
+        double Y,
+        double PixelWidth,
+        double PixelHeight,
+        double PhysicalWidth,
+        double PhysicalHeight
+    );
 
 /// <summary>
 ///
 /// WM_POINTER stack must parse out HID spec usage pages
-/// <see cref="http://www.usb.org/developers/hidpage/Hut1_12v2.pdf"/> 
+/// <see cref="http://www.usb.org/developers/hidpage/Hut1_12v2.pdf"/>
 /// </summary>
 /// Copy from https://github.com/dotnet/wpf
-internal enum HidUsagePage
+internal enum HidUsagePage : ushort
 {
     Undefined = 0x00,
     Generic = 0x01,
