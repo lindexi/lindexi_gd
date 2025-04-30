@@ -9,7 +9,7 @@
         Title="GelwhalhahonelGilerewalfee">
   <Grid>
     <TextBlock x:Name="TouchInfoTextBlock" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15"></TextBlock>
-    <Border x:Name="TouchSizeBorder" IsVisible="False" IsHitTestVisible="False" BorderThickness="2" BorderBrush="Gray" Background="Red" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <Border x:Name="TouchSizeBorder" IsVisible="False" IsHitTestVisible="False" BorderThickness="2" BorderBrush="Gray" HorizontalAlignment="Left" VerticalAlignment="Top">
         <Border.RenderTransform>
             <TranslateTransform></TranslateTransform>
         </Border.RenderTransform>
