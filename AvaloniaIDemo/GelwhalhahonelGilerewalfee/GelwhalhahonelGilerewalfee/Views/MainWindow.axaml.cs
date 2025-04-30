@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Windows.Win32;
@@ -119,11 +120,18 @@ public partial class MainWindow : Window
             var pointerDevicePropertySpan =
                 new Span<POINTER_DEVICE_PROPERTY>(pointerDevicePropertyArray, (int)propertyCount);
 
+            GetPointerCursorId(pointerId, out uint cursorId);
+
             var touchInfo = new StringBuilder();
             touchInfo.Append($"[{DateTime.Now}] ");
-            touchInfo.AppendLine($"Id={pointerId} PointerDeviceRect={RectToWHString(pointerDeviceRect)} RectToWHString={RectToWHString(displayRect)} PropertyCount={propertyCount} SourceDevice={pointerInfo.sourceDevice}");
+            touchInfo.AppendLine($"PointerId={pointerId} CursorId={cursorId} PointerDeviceRect={RectToWHString(pointerDeviceRect)} RectToWHString={RectToWHString(displayRect)} PropertyCount={propertyCount} SourceDevice={pointerInfo.sourceDevice}");
+
             foreach (var pointerDeviceProperty in pointerDevicePropertySpan)
             {
+                var usagePageId = pointerDeviceProperty.usagePageId;
+                var usageId = pointerDeviceProperty.usageId;
+                var unit = pointerDeviceProperty.unit;
+                touchInfo.AppendLine($"UsagePageId={(HidUsagePage)usagePageId}({usagePageId}) UsageId={(HidUsage)usageId}({usageId}) Unit={StylusPointPropertyUnitHelper.FromPointerUnit(unit)}({unit})");
             }
 
             //TouchInfoTextBlock.Text = $"[{DateTime.Now}] Id={pointerId} PointerDeviceRect={RectToString(pointerDeviceRect)} DisplayRect={RectToString(displayRect)}";
@@ -146,4 +154,112 @@ public partial class MainWindow : Window
 
     private static int ToInt32(WPARAM wParam) => ToInt32((IntPtr)wParam.Value);
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
+}
+
+/// <summary>
+///
+/// WM_POINTER stack must parse out HID spec usage pages
+/// <see cref="http://www.usb.org/developers/hidpage/Hut1_12v2.pdf"/> 
+/// </summary>
+/// Copy from https://github.com/dotnet/wpf
+internal enum HidUsagePage
+{
+    Undefined = 0x00,
+    Generic = 0x01,
+    Simulation = 0x02,
+    Vr = 0x03,
+    Sport = 0x04,
+    Game = 0x05,
+    Keyboard = 0x07,
+    Led = 0x08,
+    Button = 0x09,
+    Ordinal = 0x0a,
+    Telephony = 0x0b,
+    Consumer = 0x0c,
+    Digitizer = 0x0d,
+    Unicode = 0x10,
+    Alphanumeric = 0x14,
+    BarcodeScanner = 0x8C,
+    WeighingDevice = 0x8D,
+    MagneticStripeReader = 0x8E,
+    CameraControl = 0x90,
+    MicrosoftBluetoothHandsfree = 0xfff3,
+}
+
+/// <summary>
+///
+/// 
+/// WISP pre-parsed these, WM_POINTER stack must do it itself
+/// 
+/// See Stylus\biblio.txt - 1
+/// <see cref="http://www.usb.org/developers/hidpage/Hut1_12v2.pdf"/> 
+/// </summary>
+/// Copy from https://github.com/dotnet/wpf
+internal enum HidUsage
+{
+    X = 0x30,
+    Y = 0x31,
+    Z = 0x32,
+    TipPressure = 0x30,
+    BarrelPressure = 0x31,
+    XTilt = 0x3D,
+    YTilt = 0x3E,
+    Azimuth = 0x3F,
+    Altitude = 0x40,
+    Twist = 0x41,
+    TipSwitch = 0x42,
+    SecondaryTipSwitch = 0x43,
+    BarrelSwitch = 0x44,
+    TouchConfidence = 0x47,
+    Width = 0x48,
+    Height = 0x49,
+    TransducerSerialNumber = 0x5B,
+}
+
+internal static class StylusPointPropertyUnitHelper
+{
+    // Copy from https://github.com/dotnet/wpf
+
+    /// <summary>
+    /// Convert WM_POINTER units to WPF units
+    /// </summary>
+    /// <param name="pointerUnit"></param>
+    /// <returns></returns>
+    internal static StylusPointPropertyUnit? FromPointerUnit(uint pointerUnit)
+    {
+        StylusPointPropertyUnit unit = StylusPointPropertyUnit.None;
+
+        if (_pointerUnitMap.TryGetValue(pointerUnit & UNIT_MASK, out unit))
+        {
+            return unit;
+        }
+
+        return (StylusPointPropertyUnit?) null;
+    }
+
+    /// <summary>
+    /// Mapping for WM_POINTER based unit, taken from legacy WISP code
+    /// </summary>
+    private static Dictionary<uint, StylusPointPropertyUnit> _pointerUnitMap = new Dictionary<uint, StylusPointPropertyUnit>()
+    {
+        { 1, StylusPointPropertyUnit.Centimeters },
+        { 2, StylusPointPropertyUnit.Radians },
+        { 3, StylusPointPropertyUnit.Inches },
+        { 4, StylusPointPropertyUnit.Degrees },
+    };
+
+    /// <summary>
+    /// Mask to extract units from raw WM_POINTER data
+    /// <see cref="http://www.usb.org/developers/hidpage/Hut1_12v2.pdf"/> 
+    /// </summary>
+    private const uint UNIT_MASK = 0x000F;
+}
+
+enum StylusPointPropertyUnit
+{
+    None,
+    Centimeters,
+    Radians,
+    Inches,
+    Degrees,
 }
