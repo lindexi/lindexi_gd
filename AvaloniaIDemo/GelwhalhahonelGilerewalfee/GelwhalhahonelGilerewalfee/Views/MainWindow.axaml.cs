@@ -12,6 +12,8 @@ using System.Runtime.Versioning;
 using System.Text;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.Input.Pointer;
+using Avalonia.Controls.Documents;
+using Avalonia.Input;
 
 namespace GelwhalhahonelGilerewalfee.Views;
 
@@ -22,6 +24,19 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         Loaded += MainWindow_Loaded;
+
+        this.PointerMoved += MainWindow_PointerMoved;
+    }
+
+    private void MainWindow_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (e.Pointer.Type == PointerType.Mouse)
+        {
+            return;
+        }
+
+        var (x, y) = e.GetPosition(this);
+        TouchInfoTextBlock.Text += $"\r\n[Avalonia PointerMoved] Id={e.Pointer.Id} XY={x:0.00},{y:0.00}";
     }
 
     private unsafe void MainWindow_Loaded(object? sender, RoutedEventArgs e)
@@ -99,10 +114,21 @@ public partial class MainWindow : Window
 
             uint propertyCount = 0;
             GetPointerDeviceProperties(pointerInfo.sourceDevice, &propertyCount, null);
+            POINTER_DEVICE_PROPERTY* pointerDevicePropertyArray = stackalloc POINTER_DEVICE_PROPERTY[(int)propertyCount];
+            GetPointerDeviceProperties(pointerInfo.sourceDevice, &propertyCount, pointerDevicePropertyArray);
+            var pointerDevicePropertySpan =
+                new Span<POINTER_DEVICE_PROPERTY>(pointerDevicePropertyArray, (int)propertyCount);
+
+            var touchInfo = new StringBuilder();
+            touchInfo.Append($"[{DateTime.Now}] ");
+            touchInfo.AppendLine($"Id={pointerId} PointerDeviceRect={RectToWHString(pointerDeviceRect)} RectToWHString={RectToWHString(displayRect)} PropertyCount={propertyCount} SourceDevice={pointerInfo.sourceDevice}");
+            foreach (var pointerDeviceProperty in pointerDevicePropertySpan)
+            {
+            }
 
             //TouchInfoTextBlock.Text = $"[{DateTime.Now}] Id={pointerId} PointerDeviceRect={RectToString(pointerDeviceRect)} DisplayRect={RectToString(displayRect)}";
 
-            TouchInfoTextBlock.Text = $"[{DateTime.Now}] Id={pointerId} PointerDeviceRect={RectToWHString(pointerDeviceRect)} RectToWHString={RectToWHString(displayRect)} PropertyCount={propertyCount} SourceDevice={pointerInfo.sourceDevice}";
+            TouchInfoTextBlock.Text = touchInfo.ToString();
         }
 
         return CallWindowProc(_oldWndProc, hwnd, msg, wParam, lParam);
