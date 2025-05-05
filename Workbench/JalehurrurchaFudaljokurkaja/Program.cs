@@ -3,14 +3,14 @@ using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
 
 var response = new JsonIpcDirectRoutedHandleRequestExceptionResponse()
 {
-    ExceptionInfo = new JsonIpcDirectRoutedHandleRequestExceptionInfo()
+    ExceptionInfo = new JsonIpcDirectRoutedHandleRequestExceptionResponse.JsonIpcDirectRoutedHandleRequestExceptionInfo()
     {
         ExceptionType = "Foo"
     }
 };
 
-var jsonText = JsonSerializer.Serialize(response);
+var jsonText = JsonSerializer.Serialize(response, IpcInternalJsonSerializerContext.Default.Options);
 Console.WriteLine(jsonText); // {"__$Exception":{"ExceptionType":"Foo"}}
 
-var jsonIpcDirectRoutedHandleRequestExceptionResponse = JsonSerializer.Deserialize<JsonIpcDirectRoutedHandleRequestExceptionResponse>(jsonText);
+var jsonIpcDirectRoutedHandleRequestExceptionResponse = JsonSerializer.Deserialize<JsonIpcDirectRoutedHandleRequestExceptionResponse>(jsonText, IpcInternalJsonSerializerContext.Default.Options);
 Console.WriteLine(jsonIpcDirectRoutedHandleRequestExceptionResponse?.ExceptionInfo?.ExceptionType); // Foo

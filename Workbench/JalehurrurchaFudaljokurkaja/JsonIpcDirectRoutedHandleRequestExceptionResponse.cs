@@ -10,4 +10,9 @@ internal class JsonIpcDirectRoutedHandleRequestExceptionResponse
 {
     [JsonPropertyName("__$Exception")]
     public JsonIpcDirectRoutedHandleRequestExceptionInfo? ExceptionInfo { get; set; }
+
+    internal class JsonIpcDirectRoutedHandleRequestExceptionInfo
+    {
+        public string? ExceptionType { get; set; }
+    }
 }
