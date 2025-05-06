@@ -182,12 +182,21 @@ public partial class MainWindow : Window
                 bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
             }
 
-            int[] rawPointerData2 = new int[propertyCount * historyCount];
-            fixed (int* pValue = rawPointerData2)
+            for (int i = 0; i < int.MaxValue; i++)
             {
-                bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
+                int[] rawPointerData2 = new int[propertyCount * historyCount];
+                fixed (int* pValue = rawPointerData2)
+                {
+                    bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
 
-                var sequenceEqual = rawPointerData.SequenceEqual(rawPointerData2);
+                    var sequenceEqual = rawPointerData.SequenceEqual(rawPointerData2);
+
+                    if (!success || !sequenceEqual)
+                    {
+                        // 如果能进入此分支，证明不能多次获取
+                        // 实际测试没有进入，可以多次获取
+                    }
+                }
             }
 
             var rawPointerPoint = new RawPointerPoint();
