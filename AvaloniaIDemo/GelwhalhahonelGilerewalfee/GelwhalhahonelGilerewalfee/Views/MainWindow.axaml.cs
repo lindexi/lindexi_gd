@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -178,7 +179,24 @@ public partial class MainWindow : Window
 
             fixed (int* pValue = rawPointerData)
             {
-                GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
+                bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
+            }
+
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                int[] rawPointerData2 = new int[propertyCount * historyCount];
+                fixed (int* pValue = rawPointerData2)
+                {
+                    bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
+
+                    var sequenceEqual = rawPointerData.SequenceEqual(rawPointerData2);
+
+                    if (!success || !sequenceEqual)
+                    {
+                        // 如果能进入此分支，证明不能多次获取
+                        // 实际测试没有进入，可以多次获取
+                    }
+                }
             }
 
             var rawPointerPoint = new RawPointerPoint();
