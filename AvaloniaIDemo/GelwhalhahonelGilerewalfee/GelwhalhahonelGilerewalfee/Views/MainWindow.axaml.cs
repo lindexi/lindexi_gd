@@ -37,7 +37,7 @@ public partial class MainWindow : Window
         }
 
         var (x, y) = e.GetPosition(this);
-        TouchInfoTextBlock.Text += $"\r\n[Avalonia PointerMoved] Id={e.Pointer.Id} XY={x:0.00},{y:0.00}";
+        TouchInfoTextBlock.Text = $"\r\n[Avalonia PointerMoved] Id={e.Pointer.Id} XY={x:0.00},{y:0.00}";
     }
 
     private unsafe void MainWindow_Loaded(object? sender, RoutedEventArgs e)
@@ -184,22 +184,22 @@ public partial class MainWindow : Window
                 bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
             }
 
-            for (int i = 0; historyCount > 1 && i < int.MaxValue; i++)
-            {
-                int[] rawPointerData2 = new int[propertyCount * historyCount];
-                fixed (int* pValue = rawPointerData2)
-                {
-                    bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
+            //for (int i = 0; historyCount > 1 && i < int.MaxValue; i++)
+            //{
+            //    int[] rawPointerData2 = new int[propertyCount * historyCount];
+            //    fixed (int* pValue = rawPointerData2)
+            //    {
+            //        bool success = GetRawPointerDeviceData(pointerId, historyCount, propertyCount, pointerDevicePropertyArray, pValue);
 
-                    var sequenceEqual = rawPointerData.SequenceEqual(rawPointerData2);
+            //        var sequenceEqual = rawPointerData.SequenceEqual(rawPointerData2);
 
-                    if (!success || !sequenceEqual)
-                    {
-                        // 如果能进入此分支，证明不能多次获取
-                        // 实际测试没有进入，可以多次获取
-                    }
-                }
-            }
+            //        if (!success || !sequenceEqual)
+            //        {
+            //            // 如果能进入此分支，证明不能多次获取
+            //            // 实际测试没有进入，可以多次获取
+            //        }
+            //    }
+            //}
 
             var rawPointerPoint = new RawPointerPoint();
 
@@ -293,8 +293,8 @@ public partial class MainWindow : Window
             var scale = this.RenderScaling;
             var originPointToScreen = this.PointToScreen(new Point(0, 0));
 
-            var xAvalonia = (rawPointerPoint.X - originPointToScreen.X) / scale;
-            var yAvalonia = (rawPointerPoint.Y - originPointToScreen.Y) / scale;
+            var xAvalonia = (rawPointerPoint.X + displayRect.left - originPointToScreen.X) / scale;
+            var yAvalonia = (rawPointerPoint.Y + displayRect.top - originPointToScreen.Y) / scale;
             var widthAvalonia = rawPointerPoint.PixelWidth / scale;
             var heightAvalonia = rawPointerPoint.PixelHeight / scale;
             touchInfo.AppendLine($"RawPointerPoint For Avalonia XY={xAvalonia:0.00},{yAvalonia:0.00} WH={widthAvalonia:0.00},{heightAvalonia:0.00}");
@@ -312,7 +312,7 @@ public partial class MainWindow : Window
                 TouchSizeBorder.Height = heightAvalonia;
             }
 
-            TouchInfoTextBlock.Text = touchInfo.ToString();
+            TouchInfoTextBlock.Text += "\r\n" + touchInfo.ToString();
 
             return result;
         }
