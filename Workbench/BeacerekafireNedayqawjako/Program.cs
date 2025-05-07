@@ -9,14 +9,14 @@ ThreadPool.SetMinThreads(100, 100);
 var manualResetEvent = new ManualResetEvent(false);
 for (int i = 0; i < 1000; i++)
 {
-    Task.Factory.StartNew(async () =>
+    Task.Factory.StartNew(() =>
     {
         manualResetEvent.WaitOne();
 
         while (true)
         {
             foo.Total++;
-            await Task.Delay(100);
+            Thread.Sleep(100);
         }
     }, TaskCreationOptions.LongRunning);
 }
@@ -33,9 +33,13 @@ while (true)
         Console.WriteLine($"数值返回 Total={total} Current={current}");
         count++;
     }
+    else
+    {
+        count = 0;
+    }
     current = total;
 
-    if (count > 10)
+    if (count > 100)
     {
         break;
     }
