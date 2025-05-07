@@ -1,11 +1,18 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-var foo = new Foo("Foo");
+var foo = new Foo("Foo")
+{
+    Total = Random.Shared.Next()
+};
 
+ThreadPool.SetMinThreads(100, 100);
+var manualResetEvent = new ManualResetEvent(false);
 for (int i = 0; i < 1000; i++)
 {
     Task.Run(async () =>
     {
+        manualResetEvent.WaitOne();
+
         while (true)
         {
             foo.Total++;
@@ -13,6 +20,8 @@ for (int i = 0; i < 1000; i++)
         }
     });
 }
+
+manualResetEvent.Set();
 
 var current = 0;
 var count = 0;
