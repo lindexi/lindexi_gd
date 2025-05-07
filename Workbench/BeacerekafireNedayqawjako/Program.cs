@@ -9,7 +9,7 @@ ThreadPool.SetMinThreads(100, 100);
 var manualResetEvent = new ManualResetEvent(false);
 for (int i = 0; i < 1000; i++)
 {
-    Task.Run(async () =>
+    Task.Factory.StartNew(async () =>
     {
         manualResetEvent.WaitOne();
 
@@ -18,7 +18,7 @@ for (int i = 0; i < 1000; i++)
             foo.Total++;
             await Task.Delay(100);
         }
-    });
+    }, TaskCreationOptions.LongRunning);
 }
 
 manualResetEvent.Set();
