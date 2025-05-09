@@ -9,7 +9,7 @@ using ModelContextProtocol.Protocol.Transport;
 using ModelContextProtocol.Protocol.Types;
 using ModelContextProtocol.Server;
 
-var sameProcessTransportFactory = new SameProcessTransportFactory();
+var transportFactory = new InterprocessTransportFactory();
 
 McpServerOptions options = new()
 {
@@ -64,11 +64,11 @@ McpServerOptions options = new()
     },
 };
 
-await using IMcpServer server = McpServerFactory.Create(sameProcessTransportFactory.GetServerTransport(), options);
+await using IMcpServer server = McpServerFactory.Create(transportFactory.GetServerTransport(), options);
 _ = server.RunAsync();
 
 // 以下是客户端代码
-var client = await McpClientFactory.CreateAsync(sameProcessTransportFactory.GetClientTransport());
+var client = await McpClientFactory.CreateAsync(transportFactory.GetClientTransport());
 
 // Print the list of tools available from the server.
 foreach (var tool in await client.ListToolsAsync())
@@ -86,9 +86,9 @@ foreach (var content in callToolResponse.Content)
     Console.WriteLine($"CallToolResponse: Type={content.Type} Text='{content.Text}'");
 }
 
-class SameProcessTransportFactory
+class InterprocessTransportFactory
 {
-    public SameProcessTransportFactory()
+    public InterprocessTransportFactory()
     {
         _clientTransport = new ClientTransport(this);
         _serverTransport = new ServerTransport(this);
@@ -103,9 +103,9 @@ class SameProcessTransportFactory
     public ITransport GetServerTransport()
         => _serverTransport;
 
-    class ClientTransport(SameProcessTransportFactory factory) : TransportBase, IClientTransport, ITransport
+    class ClientTransport(InterprocessTransportFactory factory) : TransportBase, IClientTransport, ITransport
     {
-        private readonly SameProcessTransportFactory _factory = factory;
+        private readonly InterprocessTransportFactory _factory = factory;
 
         public Task<ITransport> ConnectAsync(CancellationToken cancellationToken = new CancellationToken())
         {
@@ -121,9 +121,9 @@ class SameProcessTransportFactory
         }
     }
 
-    class ServerTransport(SameProcessTransportFactory factory) : TransportBase
+    class ServerTransport(InterprocessTransportFactory factory) : TransportBase
     {
-        private readonly SameProcessTransportFactory _factory = factory;
+        private readonly InterprocessTransportFactory _factory = factory;
 
         public override async Task SendMessageAsync(JsonRpcMessage message,
             CancellationToken cancellationToken = new CancellationToken())
