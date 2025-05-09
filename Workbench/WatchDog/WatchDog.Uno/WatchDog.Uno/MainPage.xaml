@@ -61,7 +61,7 @@
                                             <ColumnDefinition Width="300"></ColumnDefinition>
                                             <ColumnDefinition></ColumnDefinition>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock FontSize="25" Text="{Binding Name}"></TextBlock>
+                                        <TextBlock FontSize="20" Text="{Binding Name}"></TextBlock>
                                         <TextBlock Grid.Column="1" Foreground="Red" VerticalAlignment="Center"
                                                    Text="{Binding WangStatus,Mode=OneTime}">
                                         </TextBlock>

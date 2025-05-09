@@ -45,10 +45,12 @@ public sealed partial class MainPage : Page
                         """;
             xmlDocument.LoadXml(xml: toast);
 
+#if WINDOWS10_0_19041_0_OR_GREATER
             var toastNotification = new ToastNotification(xmlDocument);
             var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
             var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier(applicationId: "WatchDog");
             toastNotifier.Show(toastNotification);
+#endif
         };
         return;
 
