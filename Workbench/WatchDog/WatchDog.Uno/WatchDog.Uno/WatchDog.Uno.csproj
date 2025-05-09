@@ -1,22 +1,22 @@
-<Project Sdk="Uno.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net8.0-windows10.0.26100;net8.0-desktop</TargetFrameworks>
+﻿<Project Sdk="Uno.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>net9.0-windows10.0.26100;net9.0-browserwasm;net9.0-desktop</TargetFrameworks>
 
-    <OutputType>Exe</OutputType>
-    <UnoSingleProject>true</UnoSingleProject>
+        <OutputType>Exe</OutputType>
+        <UnoSingleProject>true</UnoSingleProject>
 
-    <!-- Display name -->
-    <ApplicationTitle>WatchDog.Uno</ApplicationTitle>
-    <!-- App Identifier -->
-    <ApplicationId>lindexi</ApplicationId>
-    <!-- Versions -->
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
-    <!-- Package Publisher -->
-    <ApplicationPublisher>O=lindexi</ApplicationPublisher>
-    <!-- Package Description -->
-    <Description>WatchDog.Uno powered by Uno Platform.</Description>
-    <!--
+        <!-- Display name -->
+        <ApplicationTitle>WatchDog.Uno</ApplicationTitle>
+        <!-- App Identifier -->
+        <ApplicationId>com.companyname.watchdog-uno</ApplicationId>
+        <!-- Versions -->
+        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>1</ApplicationVersion>
+        <!-- Package Publisher -->
+        <ApplicationPublisher>WatchDog.Uno</ApplicationPublisher>
+        <!-- Package Description -->
+        <Description>WatchDog.Uno powered by Uno Platform.</Description>
+        <!--
       If you encounter this error message:
 
         error NETSDK1148: A referenced assembly was compiled using a newer version of Microsoft.Windows.SDK.NET.dll.
@@ -26,18 +26,20 @@
       the "Microsoft.Windows.SDK.BuildTools" package above, and the "revision" version number
       must be the highest found in https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref.
     -->
-    <!-- <WindowsSdkPackageVersion>10.0.22621.28</WindowsSdkPackageVersion> -->
+        <!-- <WindowsSdkPackageVersion>10.0.22621.28</WindowsSdkPackageVersion> -->
 
-    <!--
+        <!--
       UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
       https://aka.platform.uno/singleproject-features
     -->
-    <UnoFeatures>
-    </UnoFeatures>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\WatchDog.Core\Context\*.cs" LinkBase="WatchDogClient" />
-    <Compile Include="..\..\WatchDog.Service\Contexts\*.cs" LinkBase="WatchDogClient" />
-  </ItemGroup>
+        <UnoFeatures>
+            SkiaRenderer;
+        </UnoFeatures>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="..\..\WatchDog.Core\Context\*.cs" LinkBase="WatchDogClient" />
+        <Compile Include="..\..\WatchDog.Service\Contexts\*.cs" LinkBase="WatchDogClient" />
+    </ItemGroup>
 
 </Project>
