@@ -1,4 +1,4 @@
-﻿using Windows.Data.Xml.Dom;
+using Windows.Data.Xml.Dom;
 using Windows.UI.Notifications;
 using WatchDog.Core.Context;
 using WatchDog.Service.Contexts;

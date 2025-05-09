@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "WatchDog.Uno",
+  "display": "standalone",
+  "name": "WatchDog.Uno",
+  "short_name": "WatchDog.Uno",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}
