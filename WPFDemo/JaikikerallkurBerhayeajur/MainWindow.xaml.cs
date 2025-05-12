@@ -17,6 +17,8 @@ using Microsoft.Win32.SafeHandles;
 
 using Win32.Graphics.Imaging;
 
+using Rectangle = System.Drawing.Rectangle;
+
 namespace JaikikerallkurBerhayeajur;
 
 /// <summary>
@@ -39,6 +41,11 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        Foo();
+    }
+
+    private unsafe void Foo()
+    {
         var writeableBitmap = (WriteableBitmap) Image.Source;
         var type = writeableBitmap.GetType();
         var propertyInfo = type.GetProperty("WicSourceHandle", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -49,17 +56,41 @@ public partial class MainWindow : Window
             var handle = safeHandle.DangerousGetHandle();
             wicBitmapHandle = handle;
             var wicBitmap = new IWICBitmap();
-            unsafe
-            {
-                void*** pvtable = (void***) wicBitmapHandle;
-                void** vtable = *pvtable;
-                wicBitmap.lpVtbl = vtable;
 
-                uint w = 0, h = 0;
-                wicBitmap.GetSize(&w, &h);
-                Debug.Assert(w == 100);
+            void*** pvtable = (void***) wicBitmapHandle;
+            void** vtable = *pvtable;
+            wicBitmap.lpVtbl = vtable;
+
+            uint w = 0, h = 0;
+            wicBitmap.GetSize(&w, &h);
+            Debug.Assert(w == 100);
+
+            var rectangle = new Rectangle()
+            {
+                X = 0,
+                Y = 0,
+                Width = 100,
+                Height = 100
+            };
+
+            var buffer = new byte[w * h * 4];
+            Random.Shared.NextBytes(buffer);
+            fixed (byte* p = buffer)
+            {
+                wicBitmap.CopyPixels(&rectangle, w * 4, (uint) buffer.Length, p);
+
+                writeableBitmap.Lock();
+                writeableBitmap.WritePixels(new Int32Rect(0, 0, 100, 100), new IntPtr(p),  buffer.Length, (int) (w * 4));
+                writeableBitmap.Unlock();
             }
+
+
         }
         Debug.Assert(wicBitmapHandle != 0);
+    }
+
+    private void Button_OnClick(object sender, RoutedEventArgs e)
+    {
+        Foo();
     }
 }
