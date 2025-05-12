@@ -80,7 +80,7 @@ public partial class MainWindow : Window
                 wicBitmap.CopyPixels(&rectangle, w * 4, (uint) buffer.Length, p);
 
                 writeableBitmap.Lock();
-                writeableBitmap.WritePixels(new Int32Rect(0, 0, 1, 1), new IntPtr(p), 4, 4);
+                writeableBitmap.WritePixels(new Int32Rect(0, 0, 100, 100), new IntPtr(p),  buffer.Length, (int) (w * 4));
                 writeableBitmap.Unlock();
             }
 
