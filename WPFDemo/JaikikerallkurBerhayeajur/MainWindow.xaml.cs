@@ -33,6 +33,9 @@ public partial class MainWindow : Window
         var width = (int) 100;
         var height = (int) 100;
 
+        Image.Width = width;
+        Image.Height = height;
+
         var writeableBitmap =
             new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
         Image.Source = writeableBitmap;
@@ -77,11 +80,11 @@ public partial class MainWindow : Window
             Random.Shared.NextBytes(buffer);
             fixed (byte* p = buffer)
             {
-                wicBitmap.CopyPixels(&rectangle, w * 4, (uint) buffer.Length, p);
 
                 writeableBitmap.Lock();
-                writeableBitmap.WritePixels(new Int32Rect(0, 0, 100, 100), new IntPtr(p),  buffer.Length, (int) (w * 4));
+                writeableBitmap.WritePixels(new Int32Rect(0, 0, 10, 10), new IntPtr(p),  buffer.Length, (int) (w * 4));
                 writeableBitmap.Unlock();
+                wicBitmap.CopyPixels(&rectangle, w * 4, (uint) buffer.Length, p);
             }
 
 
