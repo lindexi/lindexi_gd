@@ -253,8 +253,6 @@ public partial class MainWindow : Window
                     {
                         var unitExponent = (int) widthProperty.unitExponent;
 
-                        touchInfo.AppendLine($"unitExponent = {unitExponent}");
-
                         const byte HidExponentMask = 0x0F;
                         // HID hut1_6.pdf 23.18.4 Generic Unit Exponent
                         // 以下代码也能从 WPF 的 System.Windows.Input.StylusPointer.PointerStylusPointPropertyInfoHelper 找到
