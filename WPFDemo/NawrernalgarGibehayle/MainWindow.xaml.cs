@@ -200,6 +200,7 @@ public partial class MainWindow : Window
                     var xProperty = pointerDevicePropertySpan[xPropertyIndex];
                     var yProperty = pointerDevicePropertySpan[yPropertyIndex];
 
+                    // 从 Pointer 算到的只能是屏幕坐标的点，转换进应用程序窗口坐标还需要自己再次计算
                     var xForScreen = ((double) xValue - xProperty.logicalMin) /
                         (xProperty.logicalMax - xProperty.logicalMin) * displayRect.Width;
                     var yForScreen = ((double) yValue - yProperty.logicalMin) /
@@ -231,6 +232,10 @@ public partial class MainWindow : Window
                     var widthProperty = pointerDevicePropertySpan[widthPropertyIndex];
                     var heightProperty = pointerDevicePropertySpan[heightPropertyIndex];
 
+                    // 计算宽度高度的方法：
+                    // 1. 计算出宽度 Value 和最大值最小值的比例
+                    // 2. 按照比例计算出宽度高度在屏幕上的像素值
+                    // 3. 按照比例配合物理最小值和最大值计算出宽度高度的物理值
                     var widthScale = ((double) widthValue - widthProperty.logicalMin) /
                                      (widthProperty.logicalMax - widthProperty.logicalMin);
 
@@ -253,6 +258,7 @@ public partial class MainWindow : Window
                     {
                         var unitExponent = (int) widthProperty.unitExponent;
 
+                        // 根据 HID 规范，单位指数的值范围是 0x00-0x0F，带上 mask 可以强行约束范围
                         const byte HidExponentMask = 0x0F;
                         // HID hut1_6.pdf 23.18.4 Generic Unit Exponent
                         // 以下代码也能从 WPF 的 System.Windows.Input.StylusPointer.PointerStylusPointPropertyInfoHelper 找到
@@ -282,6 +288,7 @@ public partial class MainWindow : Window
 
                         rawPointerPoint = rawPointerPoint with
                         {
+                            // 物理尺寸的计算能够保持和 WPF 的 StylusPoint 拿到的相同
                             PhysicalWidth = widthPhysical,
                             PhysicalHeight = heightPhysical,
                         };
@@ -302,6 +309,9 @@ public partial class MainWindow : Window
 
             // 转换为 WPF 坐标系
             var scale = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+            // 计算出窗口的左上角坐标对应到屏幕坐标的点
+            // 为什么不是在 PointToScreen 传入坐标点，而是传入 0 点呢？这是因为经过了 PointToScreen 方法会丢失精度，即小数点之后的内容会被丢失。因此正常的计算方法都是取 0 点计算出窗口坐标系相对于屏幕坐标系的偏移量
+            // 减去偏移量之后，再经过 DPI 缩放即可获取窗口坐标系的坐标
             var originPointToScreen = this.PointToScreen(new Point(0, 0));
 
             var xWpf = (rawPointerPoint.X + displayRect.left - originPointToScreen.X) / scale;
