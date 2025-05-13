@@ -8,6 +8,8 @@ readonly
         int Id,
         double X,
         double Y,
+        int RawWidth,
+        int RawHeight,
         double PixelWidth,
         double PixelHeight,
         double PhysicalWidth,

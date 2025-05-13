@@ -33,6 +33,23 @@ public partial class MainWindow : Window
         var x = position.X;
         var y = position.Y;
         TouchInfoTextBlock.Text = $"\r\n[WPF StylusMove] Id={e.StylusDevice.Id} XY={x:0.00},{y:0.00}";
+
+        var stylusPointCollection = e.GetStylusPoints(null);
+        if (stylusPointCollection.Description.HasProperty(StylusPointProperties.Width))
+        {
+            var stylusPointPropertyInfo = stylusPointCollection.Description.GetPropertyInfo(StylusPointProperties.Width);
+            var width = stylusPointCollection[0].GetPropertyValue(StylusPointProperties.Width);
+
+            TouchInfoTextBlock.Text +=
+                $" Width=[Value:{width},Max:{stylusPointPropertyInfo.Maximum},Min:{stylusPointPropertyInfo.Minimum},Resolution:{stylusPointPropertyInfo.Resolution:0.###},Physical:{width/stylusPointPropertyInfo.Resolution:0.###}{stylusPointPropertyInfo.Unit}]";
+        }
+        if (stylusPointCollection.Description.HasProperty(StylusPointProperties.Height))
+        {
+            var stylusPointPropertyInfo = stylusPointCollection.Description.GetPropertyInfo(StylusPointProperties.Height);
+            var height = stylusPointCollection[0].GetPropertyValue(StylusPointProperties.Height);
+            TouchInfoTextBlock.Text +=
+                $" Height=[Value:{height},Max:{stylusPointPropertyInfo.Maximum},Min:{stylusPointPropertyInfo.Minimum},Resolution:{stylusPointPropertyInfo.Resolution:0.###},Physical:{height / stylusPointPropertyInfo.Resolution:0.###}{stylusPointPropertyInfo.Unit}]";
+        }
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -225,6 +242,8 @@ public partial class MainWindow : Window
 
                     rawPointerPoint = rawPointerPoint with
                     {
+                        RawWidth = widthValue,
+                        RawHeight = heightValue,
                         PixelWidth = widthPixel,
                         PixelHeight = heightPixel,
                     };
@@ -261,7 +280,7 @@ public partial class MainWindow : Window
             touchInfo.AppendLine(
                 $"PointerPoint PointerId={pointerInfo.pointerId} XY={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} rc ContactXY={info.rcContactRaw.X},{info.rcContactRaw.Y} ContactWH={info.rcContactRaw.Width},{info.rcContactRaw.Height}");
             touchInfo.AppendLine(
-                $"RawPointerPoint Id={rawPointerPoint.Id} XY={rawPointerPoint.X:0.00},{rawPointerPoint.Y:0.00} PixelWH={rawPointerPoint.PixelWidth:0.00},{rawPointerPoint.PixelHeight:0.00} PhysicalWH={rawPointerPoint.PhysicalWidth:0.00},{rawPointerPoint.PhysicalHeight:0.00}cm");
+                $"RawPointerPoint Id={rawPointerPoint.Id} XY={rawPointerPoint.X:0.00},{rawPointerPoint.Y:0.00} RawWH={rawPointerPoint.RawWidth},{rawPointerPoint.RawHeight} PixelWH={rawPointerPoint.PixelWidth:0.00},{rawPointerPoint.PixelHeight:0.00} PhysicalWH={rawPointerPoint.PhysicalWidth:0.00},{rawPointerPoint.PhysicalHeight:0.00}cm");
 
             // 转换为 WPF 坐标系
             var scale = VisualTreeHelper.GetDpi(this).PixelsPerDip;
@@ -408,13 +427,4 @@ internal static class StylusPointPropertyUnitHelper
     /// <see cref="http://www.usb.org/developers/hidpage/Hut1_12v2.pdf"/> 
     /// </summary>
     private const uint UNIT_MASK = 0x000F;
-}
-
-enum StylusPointPropertyUnit
-{
-    None,
-    Centimeters,
-    Radians,
-    Inches,
-    Degrees,
 }
