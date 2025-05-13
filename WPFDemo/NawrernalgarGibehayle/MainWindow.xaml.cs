@@ -252,15 +252,40 @@ public partial class MainWindow : Window
                         StylusPointPropertyUnit.Centimeters)
                     {
                         var unitExponent = (int) widthProperty.unitExponent;
-                        if (unitExponent < -8 || unitExponent > 7)
+
+                        touchInfo.AppendLine($"unitExponent = {unitExponent}");
+
+                        const byte HidExponentMask = 0x0F;
+                        // HID hut1_6.pdf 23.18.4 Generic Unit Exponent
+                        // 以下代码也能从 WPF 的 System.Windows.Input.StylusPointer.PointerStylusPointPropertyInfoHelper 找到
+                        unitExponent = (byte)(unitExponent & HidExponentMask) switch
                         {
-                            unitExponent = -2;
-                        }
+                            5 => 5,
+                            6 => 6,
+                            7 => 7,
+                            8 => -8,
+                            9 => -7,
+                            0x0A => -6,
+                            0x0B => -5,
+                            0x0C => -4,
+                            0x0D => -3,
+                            0x0E => -2,
+                            0x0F => -1,
+                            _ => unitExponent
+                        };
+
+                        //if (unitExponent < -8 || unitExponent > 7)
+                        //{
+                        //    unitExponent = -2;
+                        //}
+
+                        // 宽度高度都使用相同的单位值好了，预计也没有哪个厂商的触摸框有这么有趣，宽度和高度分别采用不同的单位
+                        var exponent = Math.Pow(10, unitExponent);
 
                         var widthPhysical = widthScale * (widthProperty.physicalMax - widthProperty.physicalMin) *
-                                            Math.Pow(10, unitExponent);
+                                            exponent;
                         var heightPhysical = heightScale * (heightProperty.physicalMax - heightProperty.physicalMin) *
-                                             Math.Pow(10, unitExponent);
+                                             exponent;
 
                         rawPointerPoint = rawPointerPoint with
                         {
