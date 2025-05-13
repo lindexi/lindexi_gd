@@ -272,11 +272,6 @@ public partial class MainWindow : Window
                             _ => unitExponent
                         };
 
-                        //if (unitExponent < -8 || unitExponent > 7)
-                        //{
-                        //    unitExponent = -2;
-                        //}
-
                         // 宽度高度都使用相同的单位值好了，预计也没有哪个厂商的触摸框有这么有趣，宽度和高度分别采用不同的单位
                         var exponent = Math.Pow(10, unitExponent);
 
