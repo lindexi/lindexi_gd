@@ -277,6 +277,13 @@ public partial class MainWindow : Window
                             0x0F => -1,
                             _ => unitExponent
                         };
+                        // 也可以这么写，正好也是相同的值。只是这么写在玩二进制的转换，不如打一个表好
+                        // - unchecked((short) (0xFFF0 | 0xA)) == -6
+                        // - unchecked((short) (0xFFF0 | 0x9)) == -7
+                        //if (unitExponent > 7)
+                        //{
+                        //    unitExponent = unchecked((short)(0xFFF0 | unitExponent));
+                        //}
 
                         // 宽度高度都使用相同的单位值好了，预计也没有哪个厂商的触摸框有这么有趣，宽度和高度分别采用不同的单位
                         var exponent = Math.Pow(10, unitExponent);
