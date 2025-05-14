@@ -103,7 +103,7 @@ public class TextEditorTest
     }
 
     [UIContractTestCase]
-    public void AppendTestAfterSetRunProperty()
+    public void AppendTextAfterSetRunProperty()
     {
         "先追加一段文本，再修改当前光标属性，再追加一段文本，可以符合预期的显示两段样式不同的文本".Test(async () =>
         {
