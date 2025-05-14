@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Layout;
-using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
@@ -12,16 +11,15 @@ public readonly record struct LayoutCompletedLogInfo
     /// <summary>
     /// 布局完成的日志信息
     /// </summary>
-    internal LayoutCompletedLogInfo(DocumentLayoutResult result, UpdateLayoutContext updateLayoutContext)
+    internal LayoutCompletedLogInfo(DocumentLayoutResult result)
     {
-        UpdateLayoutContext = updateLayoutContext;
         _documentLayoutResult = result;
     }
 
     /// <summary>
     /// 本次布局的上下文
     /// </summary>
-    public UpdateLayoutContext UpdateLayoutContext { get; }
+    public UpdateLayoutContext UpdateLayoutContext => _documentLayoutResult.UpdateLayoutContext;
 
     /// <summary>
     /// 获取文档的布局范围

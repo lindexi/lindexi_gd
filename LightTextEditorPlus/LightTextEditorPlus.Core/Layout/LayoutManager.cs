@@ -50,7 +50,7 @@ class LayoutManager
     /// <summary>
     /// 更新布局
     /// </summary>
-    public void UpdateLayout()
+    public DocumentLayoutResult UpdateLayout()
     {
         var currentConfiguration = NextUpdateLayoutConfiguration;
         NextUpdateLayoutConfiguration = default; // 清空配置
@@ -61,13 +61,13 @@ class LayoutManager
 
         updateLayoutContext.RecordDebugLayoutInfo($"开始布局", LayoutDebugCategory.Document);
 
-        var result = arrangingLayoutProvider.UpdateLayout(updateLayoutContext);
+        DocumentLayoutResult result = arrangingLayoutProvider.UpdateLayout(updateLayoutContext);
         DocumentLayoutBounds = result.LayoutBounds;
 
         updateLayoutContext.RecordDebugLayoutInfo($"完成布局", LayoutDebugCategory.Document);
         updateLayoutContext.SetLayoutCompleted();
-        TextEditor.Logger.Log(new LayoutCompletedLogInfo(result, updateLayoutContext));
 
+        return result;
         //InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }
 
