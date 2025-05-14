@@ -324,6 +324,11 @@ class RichTextCaseProvider
             editor.AppendText("qpih12345609微软雅黑");
             editor.ArrangingType = ArrangingType.Vertical;
         }, "竖排文本多行");
+
+        Add(editor =>
+        {
+            editor.AppendText("😊");
+        }, "追加 Emoij 表情字符");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;

@@ -11,6 +11,23 @@ namespace LightTextEditorPlus.Core.Tests;
 public class TextEditorAppendTest
 {
     [ContractTestCase]
+    public void AppendEmoijText()
+    {
+        "追加 Emoij 表情字符，文本库内能够处理".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.AppendText("😊");
+
+            // Assert
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            Assert.IsNotNull(renderInfoProvider);
+        });
+    }
+
+    [ContractTestCase]
     public void AppendText()
     {
         "给文本编辑器连续两次追加文本，可以将后追加的文本，追加在最后".Test(() =>
