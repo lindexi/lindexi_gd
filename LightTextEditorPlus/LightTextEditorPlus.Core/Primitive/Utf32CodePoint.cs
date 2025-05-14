@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// UTF-32 码点，等价于 <see cref="System.Text.Rune"/> 类型
 /// </summary>
 /// https://en.wikipedia.org/wiki/Code_point
-/// 感觉不如 Rune 类型
+/// 比 Rune 类型添加了一些辅助方法，又不怕添加成扩展方法干扰上层业务代码
 /// [.NET 中的字符编码简介 - .NET Microsoft Learn](https://learn.microsoft.com/zh-cn/dotnet/standard/base-types/character-encoding-introduction#grapheme-clusters )
 public readonly record struct Utf32CodePoint(int Value) : IEquatable<char>
 {

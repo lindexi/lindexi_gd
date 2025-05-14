@@ -187,6 +187,28 @@ class HorizontalTextRender : TextRenderBase
                 drawingGroup.GuidelineSet.GuidelinesX.Add(location.X);
                 drawingGroup.GuidelineSet.GuidelinesY.Add(location.Y);
 
+                ushort[]? clusterMap = null;
+                if (glyphIndices.Count != characters.Count)
+                {
+                    clusterMap = new ushort[characters.Count];
+
+                    var clusterMapIndex = 0;
+                    for (ushort i = 0; i < charSpanDrawInfoList.Count; i++)
+                    {
+                        Utf32CodePoint utf32CodePoint = charSpanDrawInfoList[i].CurrentChar;
+                        int charLength = utf32CodePoint.CharLength;
+
+                        clusterMap[clusterMapIndex] = i;
+                        clusterMapIndex++;
+
+                        if (charLength == 2)
+                        {
+                            clusterMap[clusterMapIndex] = i;
+                            clusterMapIndex++;
+                        }
+                    }
+                }
+
                 var glyphRun = new GlyphRun
                 (
                     currentGlyphTypeface,
@@ -200,7 +222,7 @@ class HorizontalTextRender : TextRenderBase
                     glyphOffsets: null, // 设置每个字符的偏移量，可以为空
                     characters: characters,
                     deviceFontName: null,
-                    clusterMap: null,
+                    clusterMap: clusterMap,
                     caretStops: null,
                     language: DefaultXmlLanguage
                 );

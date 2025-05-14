@@ -328,7 +328,7 @@ class RichTextCaseProvider
         Add(editor =>
         {
             editor.AppendText("😊");
-        }, "追加 Emoij 表情字符");
+        }, "追加 Emoji 表情字符");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;

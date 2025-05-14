@@ -11,9 +11,9 @@ namespace LightTextEditorPlus.Core.Tests;
 public class TextEditorAppendTest
 {
     [ContractTestCase]
-    public void AppendEmoijText()
+    public void AppendEmojiText()
     {
-        "追加 Emoij 表情字符，文本库内能够处理".Test(() =>
+        "追加 Emoji 表情字符，文本库内能够处理".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
