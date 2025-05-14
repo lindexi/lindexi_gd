@@ -66,11 +66,13 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                         var space = frameSize.Height - faceSize.Height;
 
                         (double x, double y) = charData.GetStartPoint();
+                        var contentMargin = argument.StartPoint.X - x;
 
                         if (!arrangingType.IsLeftToRightVertical)
                         {
                             // 如果不是从左到右的竖排，则需要将 x 减去行宽度，确保从左到右渲染，不会让竖排越过文档右边
-                            x -= argument.LineContentSize.Height;
+                            // 文本字符是从左
+                            x -= (argument.LineContentSize.Height - contentMargin);
                         }
 
                         var charBounds = new TextRect(x, y, frameSize.Width, frameSize.Height);
