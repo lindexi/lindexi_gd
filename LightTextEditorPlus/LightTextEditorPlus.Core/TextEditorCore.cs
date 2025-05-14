@@ -273,7 +273,13 @@ public partial class TextEditorCore
 
         try
         {
-            _layoutManager.UpdateLayout();
+            var result = _layoutManager.UpdateLayout();
+
+            // 布局完成了，文本不是脏的，可以获取布局内容
+            IsDirty = false;
+
+            // 特意在布局完成的 IsDirty 设置为 false 之后，再触发日志。防止业务方监听日志从而获取属性的时候，抛出文本还是脏的异常
+            Logger.Log(new LayoutCompletedLogInfo(result));
         }
         finally
         {
@@ -287,8 +293,7 @@ public partial class TextEditorCore
 
     private void OnLayoutCompleted()
     {
-        // 布局完成了，文本不是脏的，可以获取布局内容
-        IsDirty = false;
+
 
         Debug.Assert(_renderInfoProvider is null);
         _renderInfoProvider = new RenderInfoProvider(this);

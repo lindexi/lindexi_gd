@@ -109,7 +109,7 @@ abstract class ArrangingLayoutProvider
         Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
-        return new DocumentLayoutResult(finalUpdateDocumentLayoutResult.LayoutBounds);
+        return new DocumentLayoutResult(finalUpdateDocumentLayoutResult.LayoutBounds, updateLayoutContext);
     }
 
     /// <summary>
