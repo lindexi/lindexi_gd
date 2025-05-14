@@ -14,6 +14,7 @@ using Font = HarfBuzzSharp.Font;
 using System.Text;
 using LightTextEditorPlus.Core.Exceptions;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
@@ -339,8 +340,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, textFrameSize, textFaceSize, baselineY);
             }
 
-            // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
-            charSizeInfoListIndex += charData.CharObject.CodePoint.CharLength;
+            // 实际上不会存在不匹配问题，上面计算也是采用 utf16 的方式，兼容处理了高低代理。核心处理在 HarfBuzzSharp.Buffer 里面
+            //// 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
+            //charSizeInfoListIndex += charData.CharObject.CodePoint.CharLength;
+            Debug.Assert(charSizeInfoListIndex == i);
+            charSizeInfoListIndex++;
+
             // 预期不会出现超出的情况
             if (charSizeInfoListIndex >= charSizeInfoList.Length)
             {

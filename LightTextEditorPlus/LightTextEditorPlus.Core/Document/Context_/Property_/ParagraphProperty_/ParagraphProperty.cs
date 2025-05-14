@@ -50,7 +50,6 @@ public record ParagraphProperty
     /// <summary>
     /// 缩进类型
     /// </summary>
-    /// todo 首行缩进 悬挂缩进
     /// 和 <see cref="LineSpacingStrategy"/> 不相同哦，这个是缩进的类型，而不是行距的类型。可以理解为 <see cref="LineSpacingStrategy"/> 的首行 <see cref="LineSpacingStrategy.FirstLineShrink"/> 处理的是整个文本的首行，而这个是处理段落的首行。且 <see cref="LineSpacingStrategy"/> 处理的是垂直方向的行距，而这个是处理段落的水平方向的缩进
     public IndentType IndentType { get; init; } = IndentType.Hanging;
 
