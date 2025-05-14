@@ -245,8 +245,12 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint.ToCurrentArrangingTypePoint(), LineContentSize,
-            GetCharList());
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint.ToCurrentArrangingTypePoint(), 
+            GetCharList())
+        {
+            LineContentSize = LineContentSize,
+            LineCharTextSize = LineCharTextSize,
+        };
     }
 
     #endregion

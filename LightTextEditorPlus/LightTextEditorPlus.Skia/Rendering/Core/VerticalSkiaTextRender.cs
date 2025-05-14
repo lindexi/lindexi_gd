@@ -70,7 +70,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                         if (!arrangingType.IsLeftToRightVertical)
                         {
                             // 如果不是从左到右的竖排，则需要将 x 减去行宽度，确保从左到右渲染，不会让竖排越过文档右边
-                            x -= argument.LineSize.Height;
+                            x -= argument.LineContentSize.Height;
                         }
 
                         var charBounds = new TextRect(x, y, frameSize.Width, frameSize.Height);
@@ -91,10 +91,10 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                 {
                     lineStartPoint = lineStartPoint with
                     {
-                        X = lineStartPoint.X - argument.LineSize.Height
+                        X = lineStartPoint.X - argument.LineContentSize.Height
                     };
                 }
-                DrawDebugBounds(new TextRect(lineStartPoint, argument.LineSize.SwapWidthAndHeight()), Config.DebugDrawLineContentBoundsInfo);
+                DrawDebugBounds(new TextRect(lineStartPoint, argument.LineContentSize.SwapWidthAndHeight()), Config.DebugDrawLineContentBoundsInfo);
             }
 
             void DrawDebugBounds(TextRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)

@@ -80,7 +80,7 @@ public static class RenderManagerExtension
         _ = x;
 
         // 开始的高度应该是计算行高减去字高的距离
-        TextSize lineSize = lineDrawingArgument.LineSize;
+        TextSize lineSize = lineDrawingArgument.LineContentSize;
         var charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
         var distance = lineSize.Height - charHeight;

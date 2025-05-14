@@ -106,4 +106,17 @@ public readonly struct ArrangingType : IEquatable<ArrangingType>
     {
         return HashCode.Combine(IsVertical, IsLeftToRightVertical, LatinRotationDegree, NumberRotationDegree);
     }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        if (IsHorizontal)
+        {
+            return "Horizontal";
+        }
+        else
+        {
+            return $"Vertical {base.ToString()}";
+        }
+    }
 }
