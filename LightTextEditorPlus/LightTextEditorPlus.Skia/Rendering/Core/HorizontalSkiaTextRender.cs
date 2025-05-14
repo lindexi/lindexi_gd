@@ -109,7 +109,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                     {
                         CharHandwritingPaperInfo charHandwritingPaperInfo =
                             renderInfoProvider.GetHandwritingPaperInfo(in lineInfo);
-                        DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.LineSize with
+                        DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.LineContentSize with
                         {
                             // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
                             Width = renderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
@@ -117,7 +117,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                     }
                 }
 
-                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
+                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
             }
         }
 

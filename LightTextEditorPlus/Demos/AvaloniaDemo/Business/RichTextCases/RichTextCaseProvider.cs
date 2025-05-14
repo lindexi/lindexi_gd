@@ -321,7 +321,7 @@ class RichTextCaseProvider
         {
             editor.UseWpfLineSpacingStyle();
             editor.SetFontSize(30);
-            editor.AppendText("一二一个中文雅黑对齐");
+            editor.AppendText("一二一个中文雅黑对齐ddddddddd");
             editor.ArrangingType = ArrangingType.Vertical;
         }, "竖排文本");
     }
