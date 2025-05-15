@@ -67,6 +67,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
     /// <summary>
     /// 尝试执行布局，如果无需布局，那就啥都不做
     /// </summary>
+    /// <returns>True: 有需要进行布局；False: 不需要进行布局</returns>
     public bool EnsureLayoutUpdated()
     {
         if (_lastTextLayout is null)

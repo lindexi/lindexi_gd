@@ -20,6 +20,7 @@ using System.Windows.Navigation;
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Platform;
@@ -134,12 +135,31 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                var hasLayout = TextEditorPlatformProvider.EnsureLayoutUpdated();
                if (!hasLayout)
                {
+                   // 如果是存在上次异常的情况，可能这次也不能成功
+                   bool isFinishUpdateLayoutWithException = TextEditorCore.IsFinishUpdateLayoutWithException;
+
                    // 继续循环也是不行的，需要强行压入布局内容
-                   // todo 这里可以考虑记录异常日志
+                   Logger.Log(new ForceLayoutNotFoundUpdateActionLogInfo(isFinishUpdateLayoutWithException));
 
                    // 如果没有压入的话，继续循环多少次也没用
                    TextEditorCore.DebugRequireReUpdateAllDocumentLayout(); // todo 换一个正确的方法来调用
-               }
+
+                    // 压入之后，可以强行跑一次试试看
+                    try
+                    {
+                        var hasLayout2 = TextEditorPlatformProvider.EnsureLayoutUpdated();
+                        Debug.Assert(hasLayout2); // 由于前面强行压入了，现在必定是有得处理的
+                    }
+                    catch
+                    {
+                        if (isFinishUpdateLayoutWithException)
+                        {
+                            // 如果上次异常，这次也异常，那就基本没救了，继续靠异常炸掉吧
+                        }
+
+                        throw;
+                    }
+                }
             }
 
             return renderInfoProvider;
