@@ -67,8 +67,6 @@ class LayoutManager
         updateLayoutContext.RecordDebugLayoutInfo($"完成布局", LayoutDebugCategory.Document);
         updateLayoutContext.SetLayoutCompleted();
 
-        throw new Exception("这是一个测试的异常");
-
         return result;
         //InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }
