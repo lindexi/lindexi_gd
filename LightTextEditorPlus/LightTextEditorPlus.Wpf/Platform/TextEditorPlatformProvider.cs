@@ -41,8 +41,11 @@ internal class TextEditorPlatformProvider : PlatformProvider
     private void UpdateLayout()
     {
         Debug.Assert(_lastTextLayout is not null);
-        _lastTextLayout?.Invoke();
-        _lastTextLayout = null;
+        if (_lastTextLayout is {} lastTextLayout)
+        {
+            _lastTextLayout = null;
+            lastTextLayout();
+        }
     }
 
     private TextEditor TextEditor { get; }

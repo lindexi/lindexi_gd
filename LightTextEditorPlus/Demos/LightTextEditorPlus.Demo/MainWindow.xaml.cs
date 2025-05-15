@@ -262,6 +262,7 @@ namespace LightTextEditorPlus.Demo
         {
             TextEditor.TextEditorCore.RunDebug();
             TextEditor.InvalidateMeasure();
+            return;
 
 #pragma warning disable CS0618
             TextEditor.TextEditorCore.Clear();
