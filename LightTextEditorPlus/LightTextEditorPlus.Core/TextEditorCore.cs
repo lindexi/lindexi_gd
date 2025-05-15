@@ -287,12 +287,6 @@ public partial class TextEditorCore
 
         try
         {
-            if (ShouldThrowException)
-            {
-                ShouldThrowException = false;
-                throw new Exception("这是一个调试异常");
-            }
-
             var result = _layoutManager.UpdateLayout();
 
             // 布局完成了，文本不是脏的，可以获取布局内容
@@ -348,13 +342,4 @@ public partial class TextEditorCore
     }
 
     #endregion
-
-    public void RunDebug()
-    {
-        // todo 删除这个调试代码
-        ShouldThrowException = true;
-        DebugRequireReUpdateAllDocumentLayout();
-    }
-
-    public bool ShouldThrowException { get; set; }
 }

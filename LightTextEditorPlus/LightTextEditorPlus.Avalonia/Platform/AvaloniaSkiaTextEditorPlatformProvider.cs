@@ -72,6 +72,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     private void UpdateLayout()
     {
         _updatingLayout = true;
+        Debug.Assert(_layoutUpdateAction is not null);
         try
         {
             // Fixed : 这里有安全性问题。如果没有获取变量，则可能在 _layoutUpdateAction 执行过程中，调用进了 RequireDispatchUpdateLayout 或 InvokeDispatchUpdateLayout 方法，从而导致 _layoutUpdateAction 对象变更。即在进行禁止多次执行的 `_layoutUpdateAction = null` 方法时，将新的布局委托赋空
@@ -94,7 +95,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     /// <summary>
     /// 立刻布局
     /// </summary>
-    public void EnsureLayoutUpdated()
+    public bool EnsureLayoutUpdated()
     {
         if (_updatingLayout)
         {
@@ -105,10 +106,11 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
         {
             // 无需布局
             Debug.Assert(!AvaloniaTextEditor.TextEditorCore.IsDirty || AvaloniaTextEditor.TextEditorCore.DocumentManager.CharCount == 0, "无需布局的情况只有两个，要么文本不是脏的 IsDirty 为 false 值。要么是空文本，即 CharCount 为零");
-            return;
+            return false;
         }
 
         LayoutDispatcherRequiring.Invoke(withRequire: true);
+        return true;
     }
 
     #endregion
