@@ -142,7 +142,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                    Logger.Log(new ForceLayoutNotFoundUpdateActionLogInfo(isFinishUpdateLayoutWithException));
 
                    // 如果没有压入的话，继续循环多少次也没用
-                   TextEditorCore.DebugRequireReUpdateAllDocumentLayout(); // todo 换一个正确的方法来调用
+                   TextEditorCore
+                       .RequireReUpdateAllDocumentWhenFinishWithException();
 
                     // 压入之后，可以强行跑一次试试看
                     try
@@ -150,12 +151,14 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                         var hasLayout2 = TextEditorPlatformProvider.EnsureLayoutUpdated();
                         Debug.Assert(hasLayout2); // 由于前面强行压入了，现在必定是有得处理的
                     }
-                    catch
+                    catch (Exception e)
                     {
                         if (isFinishUpdateLayoutWithException)
                         {
                             // 如果上次异常，这次也异常，那就基本没救了，继续靠异常炸掉吧
+                            Logger.Log(new ForceLayoutContinuousExceptionLogInfo(e));
                         }
+
                         throw;
                     }
                 }
