@@ -42,6 +42,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
     {
         Debug.Assert(_lastTextLayout is not null);
         _lastTextLayout?.Invoke();
+        _lastTextLayout = null;
     }
 
     private TextEditor TextEditor { get; }
@@ -63,7 +64,17 @@ internal class TextEditorPlatformProvider : PlatformProvider
     /// <summary>
     /// 尝试执行布局，如果无需布局，那就啥都不做
     /// </summary>
-    public void EnsureLayoutUpdated() => _textLayoutDispatcherRequiring.Invoke();
+    public bool EnsureLayoutUpdated()
+    {
+        if (_lastTextLayout is null)
+        {
+            // 没有需要更新的布局
+            return false;
+        }
+
+        _textLayoutDispatcherRequiring.Invoke();
+        return true;
+    }
 
     public override ICharInfoMeasurer? GetCharInfoMeasurer()
     {

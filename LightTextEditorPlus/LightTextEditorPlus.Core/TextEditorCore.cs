@@ -283,6 +283,7 @@ public partial class TextEditorCore
         }
         finally
         {
+            // todo 抛出异常之后记录异常状态，异常结束
             IsUpdatingLayout = false;
         }
 
