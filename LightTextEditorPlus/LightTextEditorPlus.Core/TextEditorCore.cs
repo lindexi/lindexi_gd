@@ -159,6 +159,20 @@ public partial class TextEditorCore
     #endregion
 
     /// <summary>
+    /// 当上次布局完成是带着异常的，请求重新更新整个文档
+    /// </summary>
+    public void RequireReUpdateAllDocumentWhenFinishWithException()
+    {
+        if (!IsDirty || !IsFinishUpdateLayoutWithException)
+        {
+            // 如果文本不是脏的，或者上次布局完成没有异常，则本次调用是错误的
+            throw new InvalidOperationException($"仅当文本是脏的，且上次布局存在异常时，才能调用此方法");
+        }
+
+        RequireDispatchReUpdateAllDocumentLayout(nameof(RequireReUpdateAllDocumentWhenFinishWithException));
+    }
+
+    /// <summary>
     /// 准备重新布局整个文档。如果是空文本、文本初始化时，不会重新布局整个文档
     /// </summary>
     /// <param name="reason"></param>

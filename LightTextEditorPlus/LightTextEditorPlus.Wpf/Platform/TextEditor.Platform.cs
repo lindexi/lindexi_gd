@@ -142,7 +142,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                    Logger.Log(new ForceLayoutNotFoundUpdateActionLogInfo(isFinishUpdateLayoutWithException));
 
                    // 如果没有压入的话，继续循环多少次也没用
-                   TextEditorCore.DebugRequireReUpdateAllDocumentLayout(); // todo 换一个正确的方法来调用
+                   TextEditorCore.RequireReUpdateAllDocumentWhenFinishWithException();
 
                     // 压入之后，可以强行跑一次试试看
                     try
