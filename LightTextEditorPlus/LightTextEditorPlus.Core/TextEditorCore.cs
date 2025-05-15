@@ -284,12 +284,21 @@ public partial class TextEditorCore
             // 布局完成了，文本不是脏的，可以获取布局内容
             IsDirty = false;
 
+            // 布局完成了，即最新一次布局是没有异常的
+            IsFinishUpdateLayoutWithException = false;
+
             // 特意在布局完成的 IsDirty 设置为 false 之后，再触发日志。防止业务方监听日志从而获取属性的时候，抛出文本还是脏的异常
             Logger.Log(new LayoutCompletedLogInfo(result));
         }
+        catch (Exception e)
+        {
+            Logger.Log(new TextEditorUpdateLayoutExceptionLogInfo(e));
+            // 设置状态，表示最新的一次布局完成是带着异常的
+            IsFinishUpdateLayoutWithException = true;
+            throw;
+        }
         finally
         {
-            // todo 抛出异常之后记录异常状态，异常结束
             IsUpdatingLayout = false;
         }
 
@@ -300,8 +309,6 @@ public partial class TextEditorCore
 
     private void OnLayoutCompleted()
     {
-
-
         Debug.Assert(_renderInfoProvider is null);
         _renderInfoProvider = new RenderInfoProvider(this);
 

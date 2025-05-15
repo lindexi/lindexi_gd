@@ -219,6 +219,11 @@ partial class TextEditorCore
     public bool IsUpdatingLayout { get; private set; }
 
     /// <summary>
+    /// 最新的一次完成布局是带着异常完成的
+    /// </summary>
+    public bool IsFinishUpdateLayoutWithException { get; private set; }
+
+    /// <summary>
     /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
     // ReSharper disable once RedundantDefaultMemberInitializer
