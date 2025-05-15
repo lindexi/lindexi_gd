@@ -156,7 +156,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                         {
                             // 如果上次异常，这次也异常，那就基本没救了，继续靠异常炸掉吧
                         }
-
                         throw;
                     }
                 }
