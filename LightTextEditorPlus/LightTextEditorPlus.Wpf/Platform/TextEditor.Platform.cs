@@ -20,6 +20,7 @@ using System.Windows.Navigation;
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Platform;
@@ -138,7 +139,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                    bool isFinishUpdateLayoutWithException = TextEditorCore.IsFinishUpdateLayoutWithException;
 
                    // 继续循环也是不行的，需要强行压入布局内容
-                   // todo 这里可以考虑记录异常日志
+                   Logger.Log(new ForceLayoutNotFoundUpdateActionLogInfo(isFinishUpdateLayoutWithException));
 
                    // 如果没有压入的话，继续循环多少次也没用
                    TextEditorCore.DebugRequireReUpdateAllDocumentLayout(); // todo 换一个正确的方法来调用
