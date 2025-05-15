@@ -249,4 +249,22 @@ public class TextEditorAppendTest
             Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds.Height);
         });
     }
+
+    [ContractTestCase]
+    public void AppendPunctuation()
+    {
+        "追加各种符号，都能追加成功".Test((char c) =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.AppendText(c.ToString());
+
+            // Assert
+            Assert.AreEqual(c.ToString(), textEditorCore.GetText());
+        })
+            // [']!！@#$%^&*()￥…（）；;：:【】{}|、\/?.。,，-—=+
+            .WithArguments('[', '\'', ']', '!', '！', '@', '#', '$', '%', '^', '&', '*', '(', ')', '￥', '…', '（', '）', '；', ';', '：', ':', '【', '】', '{', '}', '|', '、', '\\', '/', '?', '.', ',', '，', '-', '—', '=', '+');
+    }
 }
