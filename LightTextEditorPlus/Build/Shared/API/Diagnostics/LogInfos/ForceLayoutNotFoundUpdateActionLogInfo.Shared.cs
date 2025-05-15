@@ -1,4 +1,6 @@
-﻿using LightTextEditorPlus.Core.Layout;
+﻿using System;
+using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
