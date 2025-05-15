@@ -260,10 +260,6 @@ namespace LightTextEditorPlus.Demo
 
         private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
         {
-            TextEditor.TextEditorCore.RunDebug();
-            TextEditor.InvalidateMeasure();
-            return;
-
 #pragma warning disable CS0618
             TextEditor.TextEditorCore.Clear();
 
