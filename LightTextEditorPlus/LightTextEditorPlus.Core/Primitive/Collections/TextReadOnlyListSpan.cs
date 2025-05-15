@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Utils;
 
@@ -52,7 +53,17 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     public int Count => _length;
 
     /// <inheritdoc />
-    public T this[int index] => _source[index + _start];
+    public T this[int index]
+    {
+        get
+        {
+            if (index >= _length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, $"TextReadOnlyListSpan Index out of range. Length={_length} index={index}");
+            }
+            return _source[index + _start];
+        }
+    }
 
     /// <summary>
     /// 分出给定范围的新列表

@@ -131,7 +131,15 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             while (!TextEditorCore.TryGetRenderInfo(out renderInfoProvider))
             {
                 // 什么时候这个循环会进入两次？当文本刚刚布局完成之后，就被其他业务弄脏了。如有业务监听 LayoutCompleted 事件，在此事件里面修改文本
-                TextEditorPlatformProvider.EnsureLayoutUpdated();
+               var hasLayout = TextEditorPlatformProvider.EnsureLayoutUpdated();
+               if (!hasLayout)
+               {
+                   // 继续循环也是不行的，需要强行压入布局内容
+                   // todo 这里可以考虑记录异常日志
+
+                   // 如果没有压入的话，继续循环多少次也没用
+                   TextEditorCore.DebugRequireReUpdateAllDocumentLayout(); // todo 换一个正确的方法来调用
+               }
             }
 
             return renderInfoProvider;

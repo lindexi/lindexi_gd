@@ -36,6 +36,12 @@ internal static class WordCharHelper
 
     public static int ReadWordCharCount(TextReadOnlyListSpan<CharData> runList, int currentIndex)
     {
+        if (currentIndex >= runList.Count)
+        {
+            // 读到不能继续读取了，返回 0 个字符
+            return 0;
+        }
+
         // 读取当前的字符所在的单词的字符数量
         if (TryReadWordCharCount(CheckSpace, out var count)
             || TryReadWordCharCount(CheckEnglish, out count)
