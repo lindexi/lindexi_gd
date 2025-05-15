@@ -150,17 +150,13 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                         var hasLayout2 = TextEditorPlatformProvider.EnsureLayoutUpdated();
                         Debug.Assert(hasLayout2); // 由于前面强行压入了，现在必定是有得处理的
                     }
-                    catch(Exception e)
+                    catch
                     {
                         if (isFinishUpdateLayoutWithException)
                         {
                             // 如果上次异常，这次也异常，那就基本没救了，继续靠异常炸掉吧
-                            throw new ForceLayoutContinuousException(e);
                         }
-                        else
-                        {
-                            throw;
-                        }
+                        throw;
                     }
                 }
             }
