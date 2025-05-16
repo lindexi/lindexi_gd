@@ -43,10 +43,12 @@ partial class TextEditor
         /// </summary>
         private readonly HashSet<ITextEditorContentSkiaRender> _contentSkiaRenderCache = new HashSet<ITextEditorContentSkiaRender>(ReferenceEqualityComparer.Instance);
 
+#if DEBUG 
         /// <summary>
         /// 这是一个用于调试使用的字段
         /// </summary>
         private List<ITextEditorContentSkiaRender>? _debugAllContentSkiaRenderList;
+#endif
 
         public void Render(DrawingContext context)
         {
@@ -80,9 +82,11 @@ partial class TextEditor
 #endif
             }
 
+#if DEBUG
             var count = _debugAllContentSkiaRenderList?.Count(t => !t.IsDisposed);
             _ = count;
             Debug.WriteLine($"当前未释放数量： {count}/{_debugAllContentSkiaRenderList?.Count}");
+#endif
             #endregion
 
             currentBounds = currentBounds.Union(textEditorSkiaRender.RenderBounds.ToAvaloniaRect());

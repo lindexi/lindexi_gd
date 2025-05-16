@@ -1,4 +1,5 @@
-﻿namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
+﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
+namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
 /// <summary>
 /// 进行 ForceLayout 立刻布局时，没有找到任何可更新的任务
@@ -18,3 +19,4 @@ public readonly record struct ForceLayoutNotFoundUpdateActionLogInfo(bool IsFini
         return message;
     }
 }
+#endif
