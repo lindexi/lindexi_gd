@@ -159,8 +159,9 @@ public partial class TextEditorCore
     #endregion
 
     /// <summary>
-    /// 当上次布局完成是带着异常的，请求重新更新整个文档
+    /// 当上次布局完成是带着异常的，请求重新更新整个文档。理论上正常业务不应该调用本方法，只有上一次布局出现异常且当前文本是脏的情况下，才会调用本方法。否则将抛出异常
     /// </summary>
+    /// <exception cref="InvalidOperationException">文本不是脏的，或上一次布局不存在异常</exception>
     public void RequireReUpdateAllDocumentWhenFinishWithException()
     {
         if (!IsDirty || !IsFinishUpdateLayoutWithException)
