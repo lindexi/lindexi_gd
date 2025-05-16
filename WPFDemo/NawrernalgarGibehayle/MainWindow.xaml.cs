@@ -32,7 +32,7 @@ public partial class MainWindow : Window
         var position = e.GetPosition(this);
         var x = position.X;
         var y = position.Y;
-        TouchInfoTextBlock.Text = $"\r\n[WPF StylusMove] Id={e.StylusDevice.Id} XY={x:0.00},{y:0.00}";
+        TouchInfoTextBlock.Text += $"\r\n[WPF StylusMove] Id={e.StylusDevice.Id} XY={x:0.00},{y:0.00}";
 
         var stylusPointCollection = e.GetStylusPoints(null);
         if (stylusPointCollection.Description.HasProperty(StylusPointProperties.Width))
@@ -57,47 +57,14 @@ public partial class MainWindow : Window
         var windowInteropHelper = new WindowInteropHelper(this);
         var hwnd = windowInteropHelper.Handle;
 
-        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0))
-        {
-            return;
-        }
-
-        // 这里用 SetWindowLongPtrW 的原因是，64位的程序调用 32位的 SetWindowLongW 会导致异常，第三位参数不匹配方法指针，详细请看
-        // [实战经验：SetWindowLongPtr在开发64位程序的使用方法 | 官方博客 | 拓扑梅尔智慧办公平台 | TopomelBox 官方站点](https://www.topomel.com/archives/245.html )
-
-        _newWndProc = Hook;
-        var functionPointer = Marshal.GetFunctionPointerForDelegate(_newWndProc);
-
-        if (Environment.Is64BitProcess)
-        {
-            _oldWndProc = SetWindowLongPtrW(hwnd, (int) WINDOW_LONG_PTR_INDEX.GWLP_WNDPROC, functionPointer);
-        }
-        else
-        {
-            _oldWndProc = GetWindowLong(new HWND(hwnd), WINDOW_LONG_PTR_INDEX.GWL_WNDPROC);
-            SetWindowLong(new HWND(hwnd), WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, functionPointer.ToInt32());
-        }
+        HwndSource source = HwndSource.FromHwnd(hwnd)!;
+        source.AddHook(Hook);
     }
 
-    [DllImport("User32.dll")]
-    private static extern IntPtr SetWindowLongPtrW(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
-
-    // cswin32 生成的是 [MarshalAs(UnmanagedType.FunctionPtr)] winmdroot.UI.WindowsAndMessaging.WNDPROC lpPrevWndFunc 的参数。咱这里已经拿到了函数指针，所以不能使用 WNDPROC 委托
-    [DllImport("USER32.dll", ExactSpelling = true, EntryPoint = "CallWindowProcW"),
-     DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [SupportedOSPlatform("windows5.0")]
-    private static extern LRESULT CallWindowProc(nint lpPrevWndFunc, HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
-
-    private WNDPROC? _newWndProc;
-    private IntPtr _oldWndProc;
-
-    [SupportedOSPlatform("windows5.0")]
-    private unsafe LRESULT Hook(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
+    private unsafe IntPtr Hook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == WM_POINTERUPDATE /*Pointer Update*/)
         {
-            var result = CallWindowProc(_oldWndProc, hwnd, msg, wParam, lParam);
-
             Debug.Assert(OperatingSystem.IsWindowsVersionAtLeast(10, 0), "能够收到 WM_Pointer 消息，必定系统版本号不会低");
 
             var pointerId = (uint) (ToInt32(wParam) & 0xFFFF);
@@ -262,7 +229,7 @@ public partial class MainWindow : Window
                         const byte HidExponentMask = 0x0F;
                         // HID hut1_6.pdf 23.18.4 Generic Unit Exponent
                         // 以下代码也能从 WPF 的 System.Windows.Input.StylusPointer.PointerStylusPointPropertyInfoHelper 找到
-                        unitExponent = (byte)(unitExponent & HidExponentMask) switch
+                        unitExponent = (byte) (unitExponent & HidExponentMask) switch
                         {
                             5 => 5,
                             6 => 6,
@@ -342,17 +309,10 @@ public partial class MainWindow : Window
                 TouchSizeBorder.Height = heightWpf;
             }
 
-            TouchInfoTextBlock.Text += "\r\n" + touchInfo.ToString();
-
-            return result;
+            TouchInfoTextBlock.Text = touchInfo.ToString();
         }
 
-        return CallWindowProc(_oldWndProc, hwnd, msg, wParam, lParam);
-
-        static string RectToWHString(global::Windows.Win32.Foundation.RECT rect)
-        {
-            return $"[WH:{rect.Width},{rect.Height}]";
-        }
+        return 0;
 
         static string RectToString(global::Windows.Win32.Foundation.RECT rect)
         {
