@@ -1,8 +1,4 @@
-﻿using System;
-using LightTextEditorPlus.Core.Exceptions;
-using LightTextEditorPlus.Core.Layout;
-using LightTextEditorPlus.Core.Primitive;
-
+﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
 /// <summary>
@@ -23,3 +19,4 @@ public readonly record struct ForceLayoutNotFoundUpdateActionLogInfo(bool IsFini
         return message;
     }
 }
+#endif

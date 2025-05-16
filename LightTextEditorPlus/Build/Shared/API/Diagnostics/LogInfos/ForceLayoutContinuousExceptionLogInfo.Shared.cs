@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
+using System;
 
 namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
@@ -13,3 +14,4 @@ public readonly record struct ForceLayoutContinuousExceptionLogInfo(Exception Cu
         return $"文本布局过程中连续出现异常 CurrentException={CurrentException}";
     }
 }
+#endif

@@ -7,6 +7,19 @@
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="360">
+    <UserControl.Resources>
+        <Style x:Key="PlainTextButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Width="16" Height="16" BorderThickness="1" BorderBrush="Bisque">
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{TemplateBinding FontFamily}" Text="{TemplateBinding Content}"></TextBlock>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <Grid d:Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
@@ -69,7 +82,7 @@
                                                         <Ellipse Width="16" Height="16"
                                                                  Fill="{TemplateBinding Foreground}" 
                                                                  Stroke="Black" StrokeThickness="1"/>
-                                                     
+
                                                     </Grid>
                                                 </ControlTemplate>
                                             </Setter.Value>
@@ -174,24 +187,50 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid>
+                <Grid Margin="0,5,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
-                    <TextBlock FontWeight="Bold" VerticalAlignment="Center">左边距</TextBlock>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock FontWeight="Bold" VerticalAlignment="Center">左边距</TextBlock>
                         <TextBox x:Name="LeftIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
                         <Button x:Name="LeftIndentationButton" Margin="5,0,0,0" Click="LeftIndentationButton_OnClick">应用</Button>
                         <RepeatButton x:Name="AddLeftIndentationButton" Margin="5,0,0,0" Width="20" Click="AddLeftIndentationButton_OnClick">+</RepeatButton>
                         <RepeatButton x:Name="SubtractLeftIndentationButton" Margin="5,0,0,0" Width="20" Click="SubtractLeftIndentationButton_OnClick">-</RepeatButton>
-                </StackPanel>
-                    <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <TextBlock FontWeight="Bold" VerticalAlignment="Center">右边距</TextBlock>
                         <TextBox x:Name="RightIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
                         <Button x:Name="RightIndentationButton" Margin="5,0,0,0" Click="RightIndentationButton_OnClick">应用</Button>
                         <RepeatButton x:Name="AddRightIndentationButton" Margin="5,0,0,0" Width="20" Click="AddRightIndentationButton_OnClick">+</RepeatButton>
                         <RepeatButton x:Name="SubtractRightIndentationButton" Margin="5,0,0,0" Width="20" Click="SubtractRightIndentationButton_OnClick">-</RepeatButton>
+                    </StackPanel>
+                </Grid>
+                <Grid Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="75"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock FontWeight="Bold">无序项目符号</TextBlock>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings" Content="l"></Button>
+                        <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings" Content="u"></Button>
+                        <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings" Content="n"></Button>
+                        <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings 2" Content="P"></Button>
+                        <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings 2" Content="é"></Button>
+                    </StackPanel>
+                </Grid>
+                <Grid Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="75"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock FontWeight="Bold">有序项目符号</TextBlock>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource PlainTextButtonStyle}" Content="1."></Button>
+                        <Button Style="{StaticResource PlainTextButtonStyle}" Content="a."></Button>
+                        <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings 2" Content="j"></Button>
                     </StackPanel>
                 </Grid>
 
