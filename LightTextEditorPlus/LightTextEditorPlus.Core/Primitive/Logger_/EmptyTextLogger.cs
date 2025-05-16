@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Layout.HitTests;
 
@@ -75,6 +76,10 @@ internal class EmptyTextLogger : ITextLogger
 
             RecordMessage("===完成布局===");
         }
+        else if (info is TextEditorUpdateLayoutExceptionLogInfo updateLayoutExceptionLogInfo)
+        {
+            RecordMessage($"布局过程中出现异常 Exception={updateLayoutExceptionLogInfo.UpdateLayoutException}");
+        }
         else if (info is HitTestLogInfo hitTestLogInfo)
         {
             TextHitTestResult textHitTestResult = hitTestLogInfo.TextHitTestResult;
@@ -83,6 +88,11 @@ internal class EmptyTextLogger : ITextLogger
             (
                 $"命中测试结果： HitPoint={hitTestLogInfo.HitPoint.ToMathPointFormat()}, 命中到第 {textHitTestResult.HitParagraphIndex.Index}段，第{textHitTestResult.LineLayoutData?.LineInParagraphIndex}行，字符为：'{textHitTestResult.HitCharData?.CharObject.ToText()}'。命中到空白={textHitTestResult.IsHitSpace}"
             );
+        }
+        else if (info is TextFeaturesBeDisabledLogInfo textFeaturesBeDisabledLogInfo)
+        {
+            TextFeatures textFeatures = textFeaturesBeDisabledLogInfo.Features;
+            RecordMessage($"[TextFeatures] 操作无效，因为 {textFeatures} 被禁止");
         }
         else
         {
