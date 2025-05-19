@@ -104,8 +104,6 @@ public enum AutoNumberType
     /// <summary>
     /// 带圈的双字节阿拉伯数字，如 ①、 ②、 ③
     /// </summary>
-    [Obsolete("NotImplemented", true)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
     CircleNumberDoubleBytePlain,
 
     /// <summary>
