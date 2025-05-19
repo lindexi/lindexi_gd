@@ -2,16 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UseWpf>true</UseWpf>
     <AppHostDotNetSearch>AppRelative;Global;</AppHostDotNetSearch>
     <AppHostRelativeDotNet>../relative2</AppHostRelativeDotNet>
-    <AppHostSourcePath>C:\Program Files\dotnet\sdk\9.0.203\AppHostTemplate\apphost.exe</AppHostSourcePath>
+    <AppHostSourcePath Condition="'$(RuntimeIdentifier)'=='win-x64'">C:\Program Files\dotnet\sdk\9.0.203\AppHostTemplate\apphost.exe</AppHostSourcePath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
-  </ItemGroup>
 
 </Project>
