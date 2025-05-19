@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <AppHostDotNetSearch>AppRelative;Global;</AppHostDotNetSearch>
     <AppHostRelativeDotNet>../relative2</AppHostRelativeDotNet>
+    <AppHostSourcePath>C:\Program Files\dotnet\sdk\9.0.203\AppHostTemplate\apphost.exe</AppHostSourcePath>
   </PropertyGroup>
 
   <ItemGroup>
