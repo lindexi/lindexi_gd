@@ -13,6 +13,5 @@ public interface ISingleCharInLineLayouter
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    /// todo 改名为 MeasureSingleRunLayout
-    SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument);
+    SingleCharInLineLayoutResult MeasureSingleRunLayout(in SingleCharInLineLayoutArgument argument);
 }

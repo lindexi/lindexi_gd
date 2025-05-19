@@ -17,6 +17,7 @@ namespace LightTextEditorPlus.Core.Layout;
 
 // ReSharper 禁用不可达代码提示
 // ReSharper disable HeuristicUnreachableCode
+
 /// <summary>
 /// 水平方向布局的提供器
 /// </summary>
@@ -549,7 +550,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             SingleCharInLineLayoutResult result;
             if (singleRunLineLayouter is not null)
             {
-                result = singleRunLineLayouter.LayoutSingleCharInLine(arguments);
+                result = singleRunLineLayouter.MeasureSingleRunLayout(arguments);
 
 #if DEBUG
                 if (result.TotalSize.Width > 0 && result.TotalSize.Height == 0)
