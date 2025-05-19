@@ -7,11 +7,7 @@
     <Nullable>enable</Nullable>
     <AppHostDotNetSearch>AppRelative;Global;</AppHostDotNetSearch>
     <AppHostRelativeDotNet>../relative2</AppHostRelativeDotNet>
-    <AppHostSourcePath>C:\Program Files\dotnet\sdk\9.0.203\AppHostTemplate\apphost.exe</AppHostSourcePath>
+    <AppHostSourcePath Condition="'$(RuntimeIdentifier)'=='win-x64'">C:\Program Files\dotnet\sdk\9.0.203\AppHostTemplate\apphost.exe</AppHostSourcePath>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
-  </ItemGroup>
 
 </Project>
