@@ -59,12 +59,14 @@ public partial class MainWindow : Window
 
         HwndSource source = HwndSource.FromHwnd(hwnd)!;
         source.AddHook(Hook);
-    }
+        }
 
     private unsafe IntPtr Hook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == WM_POINTERUPDATE /*Pointer Update*/)
         {
+            var result = CallWindowProc(_oldWndProc, hwnd, msg, wParam, lParam);
+
             Debug.Assert(OperatingSystem.IsWindowsVersionAtLeast(10, 0), "能够收到 WM_Pointer 消息，必定系统版本号不会低");
 
             var pointerId = (uint) (ToInt32(wParam) & 0xFFFF);
