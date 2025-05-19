@@ -96,14 +96,14 @@ public record ParagraphProperty
     /// </remarks>
     public ITextLineSpacing LineSpacing { get; init; } = TextLineSpacings.SingleLineSpace();
 
-    ///// <summary>
-    ///// 项目符号
-    ///// </summary>
-    //internal MarkerProperty MarkerProperty
-    //{
-    //    get;
-    //    set;
-    //} = new MarkerProperty();
+    /// <summary>
+    /// 项目符号
+    /// </summary>
+    public TextMarker? Marker
+    {
+        get;
+        init;
+    }
 
     /// <summary>
     /// 段落文本左中右对齐方式，默认左对齐
