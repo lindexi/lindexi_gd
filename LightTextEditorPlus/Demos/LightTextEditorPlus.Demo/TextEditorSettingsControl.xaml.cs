@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -20,6 +21,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
 using Brush = System.Windows.Media.Brush;
+using FontFamily = System.Windows.Media.FontFamily;
 using Size = System.Windows.Size;
 
 namespace LightTextEditorPlus.Demo;
@@ -35,6 +37,8 @@ public partial class TextEditorSettingsControl : UserControl
         FontNameComboBox.ItemsSource = Fonts.SystemFontFamilies
             .Where(t => t.FamilyNames.Values is not null)
             .SelectMany(t => t.FamilyNames.Values!).Distinct();
+
+        BulletMarkerStackPanel.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(BulletMarkerButton_OnClick));
     }
 
     public static readonly DependencyProperty TextEditorProperty = DependencyProperty.Register(
@@ -426,4 +430,65 @@ public partial class TextEditorSettingsControl : UserControl
         TextEditor.Height = double.NaN;
     }
     #endregion
+
+    #region 项目符号
+
+    /// <summary>
+    /// 无符号项目符号按钮点击
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void BulletMarkerButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        var button = (Button) e.Source;
+        var textMarker = (string) button.Content;
+        FontFamily fontFamily = button.FontFamily;
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            // todo 简化创建方法
+            Marker = new BulletMarker()
+            {
+                MarkerText = textMarker,
+                ShouldFollowParagraphFirstCharRunProperty = true,
+                RunProperty = ((RunProperty) TextEditor.StyleRunProperty) with
+                {
+                    FontName = new FontName(fontFamily.Source)
+                }
+            }
+        });
+    }
+
+    private void ArabicPeriodButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        // 带点号的阿拉伯数字，如 1.、 2.、 3.
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property =>
+            property with
+            {
+                Marker = new NumberMarker()
+                {
+                    AutoNumberType = AutoNumberType.ArabicPeriod
+                }
+            });
+    }
+
+    private void AlphaLowerCharacterPeriodButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        // 带点号的小写字母，如 a.、 b.、 c.
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property =>
+            property with
+            {
+                Marker = new NumberMarker()
+                {
+                    AutoNumberType = AutoNumberType.AlphaLowerCharacterPeriod
+                }
+            });
+    }
+
+    private void CircleNumberDoubleBytePlainButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        // 带圈的双字节阿拉伯数字，如 ①、 ②、 ③
+    }
+
+    #endregion
+
 }

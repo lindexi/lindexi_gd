@@ -213,7 +213,7 @@
                         <ColumnDefinition Width="*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
                     <TextBlock FontWeight="Bold">无序项目符号</TextBlock>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <StackPanel x:Name="BulletMarkerStackPanel" Grid.Column="1" Orientation="Horizontal">
                         <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings" Content="l"></Button>
                         <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings" Content="u"></Button>
                         <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings" Content="n"></Button>
@@ -228,9 +228,9 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock FontWeight="Bold">有序项目符号</TextBlock>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Style="{StaticResource PlainTextButtonStyle}" Content="1."></Button>
-                        <Button Style="{StaticResource PlainTextButtonStyle}" Content="a."></Button>
-                        <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings 2" Content="j"></Button>
+                        <Button x:Name="ArabicPeriodButton" Style="{StaticResource PlainTextButtonStyle}" Content="1." Click="ArabicPeriodButton_OnClick"></Button>
+                        <Button x:Name="AlphaLowerCharacterPeriodButton" Style="{StaticResource PlainTextButtonStyle}" Content="a." Click="AlphaLowerCharacterPeriodButton_OnClick"></Button>
+                        <Button x:Name="CircleNumberDoubleBytePlainButton" Style="{StaticResource PlainTextButtonStyle}" Content="①" Click="CircleNumberDoubleBytePlainButton_OnClick"></Button>
                     </StackPanel>
                 </Grid>
 
