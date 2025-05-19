@@ -10,6 +10,7 @@
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Ccontext_005F_005Cdocument_005F_005Cdocumentlinespacing_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Ccontext_005F_005Cproperty_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Ccontext_005F_005Cproperty_005F_005Cparagraphproperty_005F/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Ccontext_005F_005Cproperty_005F_005Cparagraphproperty_005F_005Cmarker_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Ccontext_005F_005Cproperty_005F_005Cparagraphproperty_005F_005Ctextlinespacing_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Ccontext_005F_005Cproperty_005F_005Crunproperty_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Ccontext_005F_005Crun_005F/@EntryIndexedValue">True</s:Boolean>
