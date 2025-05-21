@@ -748,7 +748,22 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     protected override ParagraphLayoutIndentInfo CalculateParagraphIndent(in CalculateParagraphIndentArgument argument)
     {
-        throw new NotImplementedException();
+        ParagraphData paragraphData = argument.CurrentParagraphData;
+        ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
+        ParagraphIndex paragraphIndex = argument.ParagraphIndex;
+
+        double lineMaxWidth = GetLineMaxWidth();
+
+        var indentInfo = new ParagraphLayoutIndentInfo
+        {
+            LineMaxWidth = lineMaxWidth, 
+            Indent = paragraphProperty.Indent, 
+            IndentType = paragraphProperty.IndentType,
+            LeftIndentation = paragraphProperty.LeftIndentation,
+            RightIndentation = paragraphProperty.RightIndentation,
+        };
+
+        return indentInfo;
     }
 
     #endregion
