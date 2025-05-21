@@ -232,11 +232,12 @@ abstract class ArrangingLayoutProvider
             ParagraphIndex index = new ParagraphIndex(paragraphIndex);
 
             // 在这里进行项目符号的计算
-            ParagraphLayoutIndentInfo paragraphLayoutIndentInfo = CalculateParagraphIndent(new CalculateParagraphIndentArgument(paragraphData, index,paragraphList, updateLayoutContext));
+            ParagraphLayoutIndentInfo indentInfo = CalculateParagraphIndent(new CalculateParagraphIndentArgument(paragraphData, index, paragraphList, updateLayoutContext));
+            paragraphData.SetParagraphLayoutIndentInfo(in indentInfo);
             updateLayoutContext.RecordDebugLayoutInfo($"缩进计算", LayoutDebugCategory.PreIndent);
 
             var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData,
-                paragraphList, paragraphLayoutIndentInfo, updateLayoutContext);
+                paragraphList, indentInfo, updateLayoutContext);
 
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
