@@ -461,7 +461,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
         // 遍历这一行的所有字符，找到最大字符的字符属性
         var charDataTakeList = charDataList.Slice(0, wholeCharCount);
-        CharData maxFontSizeCharData = GetMaxFontSizeCharData(charDataTakeList);
+        CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(charDataTakeList);
         IReadOnlyRunProperty maxFontSizeCharRunProperty = maxFontSizeCharData.RunProperty;
 
         // 处理行距
