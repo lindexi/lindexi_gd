@@ -449,17 +449,17 @@ public partial class TextEditorSettingsControl : UserControl
         var button = (Button) e.Source;
         var textMarker = (string) button.Content;
         FontFamily fontFamily = button.FontFamily;
+       
         TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
         {
-            // todo 简化创建方法
             Marker = new BulletMarker()
             {
                 MarkerText = textMarker,
                 ShouldFollowParagraphFirstCharRunProperty = true,
-                RunProperty = ((RunProperty) TextEditor.StyleRunProperty) with
+                RunProperty = TextEditor.CreateRunProperty(styleRunProperty => styleRunProperty with
                 {
                     FontName = new FontName(fontFamily.Source)
-                }
+                })
             }
         });
     }
