@@ -275,22 +275,28 @@ public partial class TextEditorSettingsControl : UserControl
     {
         TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
         {
-            Indent = indent
+            Indent = indent,
+            IndentType = GetIndentType(),
         });
     }
 
     private void IndentTypeButton_OnClick(object sender, RoutedEventArgs e)
     {
-        string? text = IndentTypeComboBox.SelectionBoxItem.ToString();
         TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
         {
-            IndentType = text switch
-            {
-                "首行缩进" => IndentType.FirstLine,
-                "悬挂缩进" => IndentType.Hanging,
-                _ => IndentType.FirstLine
-            }
+            IndentType = GetIndentType()
         });
+    }
+
+    private IndentType GetIndentType()
+    {
+        string? text = IndentTypeComboBox.SelectionBoxItem.ToString();
+        return text switch
+        {
+            "首行缩进" => IndentType.FirstLine,
+            "悬挂缩进" => IndentType.Hanging,
+            _ => IndentType.FirstLine
+        };
     }
 
     #endregion

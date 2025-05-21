@@ -754,12 +754,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         double lineMaxWidth = GetLineMaxWidth();
 
-        var indentInfo = new ParagraphLayoutIndentInfo() with
+        var indentInfo = new ParagraphLayoutIndentInfo
         {
-            
+            LineMaxWidth = lineMaxWidth, 
+            Indent = paragraphProperty.Indent, 
+            IndentType = paragraphProperty.IndentType,
+            LeftIndentation = paragraphProperty.LeftIndentation,
+            RightIndentation = paragraphProperty.RightIndentation,
         };
 
-        throw new NotImplementedException();
+        return indentInfo;
     }
 
     #endregion
