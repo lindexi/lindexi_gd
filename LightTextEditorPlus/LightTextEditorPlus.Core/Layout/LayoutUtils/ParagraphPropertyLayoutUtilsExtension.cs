@@ -16,7 +16,7 @@ internal static class ParagraphPropertyLayoutUtilsExtension
     /// <param name="lineMaxWidth">行的最大空间</param>
     /// <param name="isFirstLine">是否首行</param>
     /// <returns></returns>
-    /// 没有考虑项目哦
+    /// 没有考虑项目符号哦
     public static double GetUsableLineMaxWidth(this ParagraphProperty paragraphProperty, double lineMaxWidth, bool isFirstLine)
     {
         double indent = paragraphProperty.GetIndent(isFirstLine);

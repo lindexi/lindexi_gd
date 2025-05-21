@@ -229,13 +229,14 @@ abstract class ArrangingLayoutProvider
             updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {paragraphIndex} 段", LayoutDebugCategory.PreParagraph);
             ParagraphData paragraphData = paragraphList[paragraphIndex];
 
+            ParagraphIndex index = new ParagraphIndex(paragraphIndex);
+
             // 在这里进行项目符号的计算
-            double paragraphLineUsableMaxWidth;
-            double lineMaxWidth = GetLineMaxWidth();
-            paragraphLineUsableMaxWidth = lineMaxWidth;// todo 完善项目符号计算逻辑
+            ParagraphLayoutIndentInfo paragraphLayoutIndentInfo = CalculateParagraphIndent(new CalculateParagraphIndentArgument(paragraphData, index,paragraphList, updateLayoutContext));
             updateLayoutContext.RecordDebugLayoutInfo($"缩进计算", LayoutDebugCategory.PreIndent);
-            var argument = new ParagraphLayoutArgument(new ParagraphIndex(paragraphIndex), currentStartPoint, paragraphData,
-                paragraphList, paragraphLineUsableMaxWidth, updateLayoutContext);
+
+            var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData,
+                paragraphList, paragraphLayoutIndentInfo, updateLayoutContext);
 
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
@@ -297,6 +298,13 @@ abstract class ArrangingLayoutProvider
 
         return new PreUpdateDocumentLayoutResult(documentContentSize);
     }
+
+    /// <summary>
+    /// 计算缩进和项目符号
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    protected abstract ParagraphLayoutIndentInfo CalculateParagraphIndent(in CalculateParagraphIndentArgument argument);
 
     /// <summary>
     /// 计算文档的内容尺寸

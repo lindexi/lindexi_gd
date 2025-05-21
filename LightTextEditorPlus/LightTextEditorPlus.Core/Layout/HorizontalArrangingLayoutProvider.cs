@@ -306,9 +306,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         _ = currentStartPoint;
 
         ParagraphData paragraph = argument.ParagraphData;
-        // 获取最大宽度信息
-        double lineMaxWidth = argument.ParagraphLineUsableMaxWidth;
-
+  
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
         for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
         {
@@ -331,9 +329,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 LayoutDebugCategory.PreWholeLine);
 
             var isFirstLine = lineIndex == 0;
-            ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
 
-            var usableLineMaxWidth = paragraphProperty.GetUsableLineMaxWidth(lineMaxWidth, isFirstLine);
+            var usableLineMaxWidth = argument.IndentInfo.GetUsableLineMaxWidth(isFirstLine);
 
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
@@ -746,6 +743,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
     }
+
+    #region 缩进和项目符号
+
+    protected override ParagraphLayoutIndentInfo CalculateParagraphIndent(in CalculateParagraphIndentArgument argument)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
+
 
     /// <inheritdoc />
     protected override TextSize CalculateDocumentContentSize(IReadOnlyList<ParagraphData> paragraphList, UpdateLayoutContext updateLayoutContext)
