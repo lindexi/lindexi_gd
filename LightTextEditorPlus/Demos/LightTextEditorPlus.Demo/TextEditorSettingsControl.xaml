@@ -211,6 +211,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="75"></ColumnDefinition>
                         <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
                     <TextBlock FontWeight="Bold">无序项目符号</TextBlock>
                     <StackPanel x:Name="BulletMarkerStackPanel" Grid.Column="1" Orientation="Horizontal">
@@ -220,6 +221,7 @@
                         <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings 2" Content="P"></Button>
                         <Button Style="{StaticResource PlainTextButtonStyle}" FontFamily="Wingdings 2" Content="é"></Button>
                     </StackPanel>
+                    <Button x:Name="MarkerButton" Grid.Column="2" Content="清理项目符号" Click="MarkerButton_OnClick"></Button>
                 </Grid>
                 <Grid Margin="0,5,0,0">
                     <Grid.ColumnDefinitions>

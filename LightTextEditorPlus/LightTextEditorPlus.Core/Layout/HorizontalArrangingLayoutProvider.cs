@@ -752,6 +752,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
         ParagraphIndex paragraphIndex = argument.ParagraphIndex;
 
+        double markerIndentation = 0;
+        if (paragraphProperty.Marker is {} marker)
+        {
+            if (marker is BulletMarker bulletMarker)
+            {
+                string? markerText = bulletMarker.MarkerText;
+
+            }
+
+            markerIndentation = 10;// todo 这是测试代码
+        }
+
         double lineMaxWidth = GetLineMaxWidth();
 
         var indentInfo = new ParagraphLayoutIndentInfo
@@ -761,6 +773,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             IndentType = paragraphProperty.IndentType,
             LeftIndentation = paragraphProperty.LeftIndentation,
             RightIndentation = paragraphProperty.RightIndentation,
+            MarkerIndentation = markerIndentation,
         };
 
         return indentInfo;
@@ -937,7 +950,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 调试逻辑，理论上下一段的起始点就是等于本段最低点
         var firstParagraph = paragraphList[0];
-        var currentExceptedStartPoint = GetExceptedNextStartPoint(firstParagraph);
+        var currentExceptedStartPoint = GetExpectedNextStartPoint(firstParagraph);
         var lastParagraphLayoutData = firstParagraph.ParagraphLayoutData;
 
         for (var paragraphIndex = 1;
@@ -955,11 +968,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
 
             lastParagraphLayoutData = paragraphData.ParagraphLayoutData;
-            currentExceptedStartPoint = GetExceptedNextStartPoint(paragraphData);
+            currentExceptedStartPoint = GetExpectedNextStartPoint(paragraphData);
         }
 
         // 获取期望的下一个段的起始点
-        TextPointInDocumentContentCoordinateSystem GetExceptedNextStartPoint(ParagraphData paragraph)
+        TextPointInDocumentContentCoordinateSystem GetExpectedNextStartPoint(ParagraphData paragraph)
         {
             var layoutData = paragraph.ParagraphLayoutData;
             TextPointInDocumentContentCoordinateSystem startPoint = layoutData.StartPointInDocumentContentCoordinateSystem;
@@ -1053,13 +1066,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         double indent = indentInfo.GetIndent(isFirstLine);
 
+        // 左侧 = 左缩进 + 缩进（首行、悬挂） + 项目符号的缩进
+        // 右侧 = 右缩进
         var indentationThickness =
             new TextThickness(leftIndentation + indent + indentInfo.MarkerIndentation, 0, indentInfo.RightIndentation, 0);
 
-        // 可用的空白宽度。即空白宽度减去左缩进和右缩进
-        double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
+        // 剩余的空白宽度。即空白宽度减去左缩进和右缩进
+        double remainingGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
 
-        TextThickness horizontalTextAlignmentGapThickness = paragraphProperty.GetHorizontalTextAlignmentGapThickness(usableGapWidth);
+        TextThickness horizontalTextAlignmentGapThickness = paragraphProperty.GetHorizontalTextAlignmentGapThickness(remainingGapWidth);
 
         lineLayoutData
             .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);

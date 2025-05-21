@@ -456,6 +456,11 @@ class ParagraphData : ITextParagraph
     }
 
     /// <summary>
+    /// 由于缩进变更，设置当前段落是脏的
+    /// </summary>
+    internal void SetDirtyByIndentChanged() => SetDirty();
+
+    /// <summary>
     /// 设置当前布局完成，布局完成就不是脏的
     /// </summary>
     public void SetFinishLayout()
