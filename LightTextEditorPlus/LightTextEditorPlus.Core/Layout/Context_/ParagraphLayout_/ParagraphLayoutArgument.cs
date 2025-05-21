@@ -12,9 +12,9 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="CurrentStartPoint">段落的起点布局坐标。对于正横排布局，那就是左上角坐标。对于正竖排，也是左上角坐标。对于蒙文竖排，从右到左的竖排布局，是右上角坐标</param>
 /// <param name="ParagraphData">段落数据</param>
 /// <param name="ParagraphList">文档的所有段落</param>
-/// <param name="ParagraphLineUsableMaxWidth">段内行最大可用宽度</param>
+/// <param name="ParagraphLayoutIndentInfo">段落缩进信息</param>
 /// <param name="UpdateLayoutContext"></param>
-readonly record struct ParagraphLayoutArgument(ParagraphIndex ParagraphIndex, TextPointInDocumentContentCoordinateSystem CurrentStartPoint, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList, double ParagraphLineUsableMaxWidth, UpdateLayoutContext UpdateLayoutContext)
+readonly record struct ParagraphLayoutArgument(ParagraphIndex ParagraphIndex, TextPointInDocumentContentCoordinateSystem CurrentStartPoint, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList, ParagraphLayoutIndentInfo ParagraphLayoutIndentInfo, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
     /// 是否首段
