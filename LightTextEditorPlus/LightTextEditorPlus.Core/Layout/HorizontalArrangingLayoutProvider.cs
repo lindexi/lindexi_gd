@@ -307,7 +307,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         ParagraphData paragraph = argument.ParagraphData;
         // 获取最大宽度信息
-        double lineMaxWidth = GetLineMaxWidth();
+        double lineMaxWidth = argument.ParagraphLineUsableMaxWidth;
 
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
         for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
@@ -804,7 +804,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    protected virtual double GetLineMaxWidth()
+    protected override double GetLineMaxWidth()
     {
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
