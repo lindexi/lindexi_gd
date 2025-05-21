@@ -97,6 +97,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
             LayoutDebugCategory.PreDocument => 1,
             LayoutDebugCategory.PreParagraph => 2,
+            LayoutDebugCategory.PreIndent => 3,
             LayoutDebugCategory.PreWholeLine => 3,
             LayoutDebugCategory.PreLineSpacingInWholeLine => 4,
             LayoutDebugCategory.PreSingleCharLine => 4,
