@@ -330,7 +330,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             var isFirstLine = lineIndex == 0;
 
-            var usableLineMaxWidth = argument.ParagraphLayoutIndentInfo.GetUsableLineMaxWidth(isFirstLine);
+            var usableLineMaxWidth = argument.IndentInfo.GetUsableLineMaxWidth(isFirstLine);
 
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
