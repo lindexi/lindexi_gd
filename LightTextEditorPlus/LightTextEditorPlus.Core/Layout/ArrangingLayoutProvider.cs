@@ -224,31 +224,37 @@ abstract class ArrangingLayoutProvider
 
         // 进入段落内布局
         var currentStartPoint = firstStartPoint;
-        for (var index = firstDirtyParagraphIndex.Index; index < paragraphList.Count; index++)
+        for (var paragraphIndex = firstDirtyParagraphIndex.Index; paragraphIndex < paragraphList.Count; paragraphIndex++)
         {
-            updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {index} 段", LayoutDebugCategory.PreParagraph);
-            ParagraphData paragraphData = paragraphList[index];
+            updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {paragraphIndex} 段", LayoutDebugCategory.PreParagraph);
+            ParagraphData paragraphData = paragraphList[paragraphIndex];
 
-            var argument = new ParagraphLayoutArgument(new ParagraphIndex(index), currentStartPoint, paragraphData,
-                paragraphList, updateLayoutContext);
+            // 在这里进行项目符号的计算
+            double paragraphLineUsableMaxWidth;
+            double lineMaxWidth = GetLineMaxWidth();
+            paragraphLineUsableMaxWidth = lineMaxWidth;// todo 完善项目符号计算逻辑
+            var argument = new ParagraphLayoutArgument(new ParagraphIndex(paragraphIndex), currentStartPoint, paragraphData,
+                paragraphList, paragraphLineUsableMaxWidth, updateLayoutContext);
 
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
-            // 预布局过程中，没有获取其 Outline 的值。 于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
-            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段，共 {paragraphData.LineLayoutDataList.Count} 行 StartPoint={paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem};Size={paragraphData.ParagraphLayoutData.TextSize}; NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
+            // 预布局过程中，没有获取其 Outline 的值。于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
+            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {paragraphIndex} 段，共 {paragraphData.LineLayoutDataList.Count} 行 StartPoint={paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem};Size={paragraphData.ParagraphLayoutData.TextSize}; NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
+
             currentStartPoint = nextParagraphStartPoint;
 
+            // 以下是调试辅助代码，用于确保布局计算正确
             if (IsInDebugMode)
             {
                 // 预期此时完成了起始点和文本尺寸的布局了，即已经有值了
                 if (paragraphData.ParagraphLayoutData.TextSize == TextSize.Invalid)
                 {
-                    throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本尺寸布局信息");
+                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本尺寸布局信息");
                 }
 
                 if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
                 {
-                    throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本起始点布局信息");
+                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本起始点布局信息");
                 }
 
                 var exceptedOffsetY = argument.GetParagraphBefore() +
@@ -660,6 +666,8 @@ abstract class ArrangingLayoutProvider
 
         return maxFontSizeCharData;
     }
+
+    protected abstract double GetLineMaxWidth();
 
     #endregion 通用辅助方法
 

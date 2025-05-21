@@ -138,25 +138,27 @@ public class NumberMarker : TextMarker
     /// </summary>
     /// <param name="levelIndex"></param>
     /// <returns></returns>
+    /// 算法测试请参阅 9d1e0f52472534bba136e18b59f7bd2439cef368
+    /// 规则和 Office PPT 相同
     protected static string GetLowerLatinMarkerText(uint levelIndex)
     {
-/*
-   其对应关系如下：
-   0 a.
-   1 b.
-   2 c.
-   3 d.
-   4 e.
-   ...
-   23 x.
-   24 y.
-   25 z.
-   26 aa.
-   27 bb.
-   28 cc.
-   29 dd.
-   30 ee.
- */
+        /*
+           其对应关系如下：
+           0 a.
+           1 b.
+           2 c.
+           3 d.
+           4 e.
+           ...
+           23 x.
+           24 y.
+           25 z.
+           26 aa.
+           27 bb.
+           28 cc.
+           29 dd.
+           30 ee.
+         */
         const int startAsciiNum = 'a'; //97
         const int aToZCount = 'z' - 'a' + 1;
         int count = (int) levelIndex / aToZCount;
@@ -193,7 +195,13 @@ public class NumberMarker : TextMarker
         return (levelIndex + 1).ToString(CultureInfo.InvariantCulture);
     }
 
-    private string GetCircleNumberDoubleBytePlainMarkerText(uint levelIndex)
+    /// <summary>
+    /// 获取带圈的双字节阿拉伯数字字符串
+    /// </summary>
+    /// <param name="levelIndex"></param>
+    /// <returns></returns>
+    /// 规则和 Office PPT 相同
+    protected static string GetCircleNumberDoubleBytePlainMarkerText(uint levelIndex)
     {
         if (levelIndex <= 20)
         {
