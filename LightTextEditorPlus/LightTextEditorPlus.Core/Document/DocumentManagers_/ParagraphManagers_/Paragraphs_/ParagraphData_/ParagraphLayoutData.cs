@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -41,6 +42,11 @@ public interface IParagraphLayoutData
     /// 外接边界，包含对齐的空白
     /// </summary>
     TextRect OutlineBounds { get; }
+
+    /// <summary>
+    /// 缩进信息
+    /// </summary>
+    internal ParagraphLayoutIndentInfo IndentInfo { get; }
 }
 
 /// <summary>
@@ -123,6 +129,11 @@ class ParagraphLayoutData : IParagraphLayoutData
             return new TextRect(textPoint, TextSize);
         }
     }
+
+    /// <summary>
+    /// 缩进信息
+    /// </summary>
+    public ParagraphLayoutIndentInfo IndentInfo { get; set; }
 
     public void SetLayoutDirty(bool exceptTextSize)
     {

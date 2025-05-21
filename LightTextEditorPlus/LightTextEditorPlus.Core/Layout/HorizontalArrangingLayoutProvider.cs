@@ -1033,6 +1033,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         FinalParagraphLayoutArgument paragraphLayoutArgument = lineLayoutArgument.FinalParagraphLayoutArgument;
         UpdateLayoutContext updateLayoutContext = paragraphLayoutArgument.UpdateLayoutContext;
         ParagraphProperty paragraphProperty = paragraphLayoutArgument.Paragraph.ParagraphProperty;
+        IParagraphLayoutData paragraphLayoutData = paragraphLayoutArgument.Paragraph.ParagraphLayoutData;
+        ParagraphLayoutIndentInfo indentInfo = paragraphLayoutData.IndentInfo;
         double documentWidth = paragraphLayoutArgument.DocumentWidth;
 
         var isFirstLine = lineLayoutArgument.IsFirstLine;
@@ -1044,11 +1046,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 空白的宽度
         var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
-        double leftIndentation = paragraphProperty.LeftIndentation;
-        double indent = paragraphProperty.GetIndent(isFirstLine);
+        
+        double leftIndentation = indentInfo.LeftIndentation;
+        Debug.Assert(Nearly.Equals(indentInfo.LeftIndentation, paragraphProperty.LeftIndentation));
+        Debug.Assert(Nearly.Equals(indentInfo.RightIndentation, paragraphProperty.RightIndentation));
+
+        double indent = indentInfo.GetIndent(isFirstLine);
 
         var indentationThickness =
-            new TextThickness(leftIndentation + indent, 0, paragraphProperty.RightIndentation, 0);
+            new TextThickness(leftIndentation + indent + indentInfo.MarkerIndentation, 0, indentInfo.RightIndentation, 0);
 
         // 可用的空白宽度。即空白宽度减去左缩进和右缩进
         double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;

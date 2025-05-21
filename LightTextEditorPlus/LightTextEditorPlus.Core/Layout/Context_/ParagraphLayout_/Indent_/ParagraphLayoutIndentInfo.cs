@@ -39,7 +39,7 @@ internal readonly record struct ParagraphLayoutIndentInfo(double LeftIndentation
     /// </summary>
     /// <param name="isFirstLine">是否首行</param>
     /// <returns></returns>
-    private double GetIndent(bool isFirstLine)
+    public double GetIndent(bool isFirstLine)
     {
         double indent = IndentType switch
         {

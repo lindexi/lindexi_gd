@@ -10,25 +10,6 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 internal static class ParagraphPropertyLayoutUtilsExtension
 {
     /// <summary>
-    /// 获取缩进
-    /// </summary>
-    /// <param name="paragraphProperty"></param>
-    /// <param name="isFirstLine">是否首行</param>
-    /// <returns></returns>
-    public static double GetIndent(this ParagraphProperty paragraphProperty, bool isFirstLine)
-    {
-        double indent = paragraphProperty.IndentType switch
-        {
-            // 首行缩进
-            IndentType.FirstLine => isFirstLine ? paragraphProperty.Indent : 0,
-            // 悬挂缩进，首行不缩进
-            IndentType.Hanging => isFirstLine ? 0 : paragraphProperty.Indent,
-            _ => 0
-        };
-        return indent;
-    }
-
-    /// <summary>
     /// 获取水平文本对齐的空白
     /// </summary>
     /// <param name="paragraphProperty"></param>

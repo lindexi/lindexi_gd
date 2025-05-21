@@ -2,12 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Xml.Linq;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -38,6 +43,45 @@ class ParagraphData : ITextParagraph
 
     public void SetParagraphLayoutContentThickness(TextThickness contentThickness)
         => _paragraphLayoutData.TextContentThickness = contentThickness;
+
+    /// <summary>
+    /// 设置段落的缩进信息
+    /// </summary>
+    /// <param name="indentInfo"></param>
+    public void SetParagraphLayoutIndentInfo(in ParagraphLayoutIndentInfo indentInfo)
+    {
+        _paragraphLayoutData.IndentInfo = indentInfo;
+
+        if (IsInDebugMode)
+        {
+            Verify();
+        }
+
+        return;
+
+        void Verify()
+        {
+            ParagraphLayoutIndentInfo indentInfo = _paragraphLayoutData.IndentInfo;
+
+            EqualAssets(ParagraphProperty.LeftIndentation, indentInfo.LeftIndentation, nameof(ParagraphProperty.LeftIndentation));
+            EqualAssets(ParagraphProperty.RightIndentation, indentInfo.RightIndentation,
+                nameof(ParagraphProperty.RightIndentation));
+            EqualAssets(ParagraphProperty.Indent, indentInfo.Indent, nameof(ParagraphProperty.Indent));
+            if (ParagraphProperty.IndentType != indentInfo.IndentType)
+            {
+                throw new TextEditorInnerDebugException($"对 IndentType 的预期和实际值不符。预期：{ParagraphProperty.IndentType}，实际：{indentInfo.IndentType}");
+            }
+         
+
+            static void EqualAssets(double expect, double actual, string name)
+            {
+                if (Nearly.Equals(expect, actual) is false)
+                {
+                    throw new TextEditorInnerDebugException($"对 {name} 的预期和实际值不符。预期：{expect}，实际：{actual}");
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// 设置布局数据是脏的
