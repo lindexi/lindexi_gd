@@ -66,7 +66,7 @@ public abstract class PlatformProvider : ITextEditorPlatformProvider
     //}
 
     /// <inheritdoc />
-    public virtual ISingleCharInLineLayouter? GetSingleRunLineLayouter()
+    public virtual ISingleRunInLineLayouter? GetSingleRunLineLayouter()
     {
         return null;
     }
