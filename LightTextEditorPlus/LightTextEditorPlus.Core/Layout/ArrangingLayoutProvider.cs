@@ -233,6 +233,7 @@ abstract class ArrangingLayoutProvider
             double paragraphLineUsableMaxWidth;
             double lineMaxWidth = GetLineMaxWidth();
             paragraphLineUsableMaxWidth = lineMaxWidth;// todo 完善项目符号计算逻辑
+            updateLayoutContext.RecordDebugLayoutInfo($"缩进计算", LayoutDebugCategory.PreIndent);
             var argument = new ParagraphLayoutArgument(new ParagraphIndex(paragraphIndex), currentStartPoint, paragraphData,
                 paragraphList, paragraphLineUsableMaxWidth, updateLayoutContext);
 

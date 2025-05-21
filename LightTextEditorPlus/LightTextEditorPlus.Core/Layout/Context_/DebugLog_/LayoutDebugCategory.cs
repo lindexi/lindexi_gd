@@ -26,6 +26,11 @@ public enum LayoutDebugCategory
     PreParagraph,
 
     /// <summary>
+    /// 段落缩进、项目符号缩进
+    /// </summary>
+    PreIndent,
+
+    /// <summary>
     /// 预布局的整行部分
     /// </summary>
     PreWholeLine,
