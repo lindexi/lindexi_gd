@@ -10,21 +10,6 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 internal static class ParagraphPropertyLayoutUtilsExtension
 {
     /// <summary>
-    /// 获取一行最大可用宽度。即 <paramref name="lineMaxWidth"/> 减去左右边距和缩进
-    /// </summary>
-    /// <param name="paragraphProperty"></param>
-    /// <param name="lineMaxWidth">行的最大空间</param>
-    /// <param name="isFirstLine">是否首行</param>
-    /// <returns></returns>
-    /// 没有考虑项目符号哦
-    public static double GetUsableLineMaxWidth(this ParagraphProperty paragraphProperty, double lineMaxWidth, bool isFirstLine)
-    {
-        double indent = paragraphProperty.GetIndent(isFirstLine);
-
-        return lineMaxWidth - paragraphProperty.LeftIndentation - paragraphProperty.RightIndentation - indent;
-    }
-
-    /// <summary>
     /// 获取缩进
     /// </summary>
     /// <param name="paragraphProperty"></param>
