@@ -752,6 +752,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
         ParagraphIndex paragraphIndex = argument.ParagraphIndex;
 
+        double markerIndentation = 0;
+        if (paragraphProperty.Marker is {} marker)
+        {
+            if (marker is BulletMarker bulletMarker)
+            {
+                string? markerText = bulletMarker.MarkerText;
+
+            }
+
+            markerIndentation = 10;// todo 这是测试代码
+        }
+
         double lineMaxWidth = GetLineMaxWidth();
 
         var indentInfo = new ParagraphLayoutIndentInfo
@@ -761,6 +773,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             IndentType = paragraphProperty.IndentType,
             LeftIndentation = paragraphProperty.LeftIndentation,
             RightIndentation = paragraphProperty.RightIndentation,
+            MarkerIndentation = markerIndentation,
         };
 
         return indentInfo;

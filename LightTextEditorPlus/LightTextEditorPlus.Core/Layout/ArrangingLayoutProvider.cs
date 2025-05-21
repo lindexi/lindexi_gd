@@ -231,9 +231,15 @@ abstract class ArrangingLayoutProvider
 
             ParagraphIndex index = new ParagraphIndex(paragraphIndex);
 
-            // 在这里进行项目符号的计算
+            // 在这里进行项目符号和缩进的计算
             ParagraphLayoutIndentInfo indentInfo = CalculateParagraphIndent(new CalculateParagraphIndentArgument(paragraphData, index, paragraphList, updateLayoutContext));
+            if (paragraphData.ParagraphLayoutData.IndentInfo != indentInfo)
+            {
+                // 如果设置前后存在差异，则表示当前段落应该重新布局，比如自动编号项目符号，从原本的 9. 变更为 10.，那么就需要重新布局
+                paragraphData.SetDirtyByIndentChanged();
+            }
             paragraphData.SetParagraphLayoutIndentInfo(in indentInfo);
+
             updateLayoutContext.RecordDebugLayoutInfo($"缩进计算", LayoutDebugCategory.PreIndent);
 
             var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData,

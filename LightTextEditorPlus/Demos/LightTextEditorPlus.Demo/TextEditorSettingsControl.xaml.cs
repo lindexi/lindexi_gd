@@ -495,6 +495,15 @@ public partial class TextEditorSettingsControl : UserControl
         // 带圈的双字节阿拉伯数字，如 ①、 ②、 ③
     }
 
+    private void MarkerButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property =>
+            property with
+            {
+                Marker = null,
+            });
+    }
+
     #endregion
 
 }
