@@ -13,26 +13,26 @@ internal static class ParagraphPropertyLayoutUtilsExtension
     /// 获取水平文本对齐的空白
     /// </summary>
     /// <param name="paragraphProperty"></param>
-    /// <param name="usableGapWidth">可用的空白</param>
+    /// <param name="remainingGapWidth">剩余的空白</param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
     public static TextThickness GetHorizontalTextAlignmentGapThickness(this ParagraphProperty paragraphProperty,
-        double usableGapWidth)
+        double remainingGapWidth)
     {
         HorizontalTextAlignment horizontalTextAlignment = paragraphProperty.HorizontalTextAlignment;
         TextThickness horizontalTextAlignmentGapThickness;
         if (horizontalTextAlignment == HorizontalTextAlignment.Left)
         {
-            horizontalTextAlignmentGapThickness = new TextThickness(0, 0, usableGapWidth, 0);
+            horizontalTextAlignmentGapThickness = new TextThickness(0, 0, remainingGapWidth, 0);
         }
         else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
         {
             horizontalTextAlignmentGapThickness =
-                new TextThickness(usableGapWidth / 2, 0, usableGapWidth / 2, 0);
+                new TextThickness(remainingGapWidth / 2, 0, remainingGapWidth / 2, 0);
         }
         else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
         {
-            horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth, 0, 0, 0);
+            horizontalTextAlignmentGapThickness = new TextThickness(remainingGapWidth, 0, 0, 0);
         }
         else
         {
