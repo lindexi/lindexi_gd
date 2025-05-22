@@ -25,6 +25,7 @@
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Cdocumentmanagers_005F_005Cparagraphmanagers_005F_005Cparagraphs_005F_005Cchars_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Cdocumentmanagers_005F_005Cparagraphmanagers_005F_005Cparagraphs_005F_005Clines_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Cdocumentmanagers_005F_005Cparagraphmanagers_005F_005Cparagraphs_005F_005Cparagraphdata_005F/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Cdocumentmanagers_005F_005Cparagraphmanagers_005F_005Cparagraphs_005F_005Cparagraphdata_005F_005Cmarker_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Cparagraphmanagers_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Cparagraphmanagers_005F_005Cparagraphmanager_005F/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeInspection/NamespaceProvider/NamespaceFoldersToSkip/=document_005Cparagraphmanagers_005F_005Cparagraphs/@EntryIndexedValue">True</s:Boolean>

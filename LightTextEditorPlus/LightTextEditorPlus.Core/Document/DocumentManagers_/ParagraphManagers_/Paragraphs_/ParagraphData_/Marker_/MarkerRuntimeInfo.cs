@@ -13,6 +13,11 @@ internal readonly record struct MarkerRuntimeInfo(string Text, IReadOnlyRunPrope
 {
     public TextReadOnlyListSpan<CharData> ToCharDataList()
     {
+        if (string.IsNullOrEmpty(Text))
+        {
+            return new TextReadOnlyListSpan<CharData>([], 0, 0);
+        }
+
         TextRun textRun = new TextRun(Text,RunProperty);
         var array = new CharData[textRun.Count];
         for (int i = 0; i < textRun.Count; i++)
