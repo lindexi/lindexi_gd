@@ -153,4 +153,12 @@ public record ParagraphProperty
             throw new NotSupportedException($"Not Support {Direction}");
         }
     }
+
+    /// <summary>
+    /// 段落属性被拷贝时进入
+    /// </summary>
+    internal void OnCopy()
+    {
+
+    }
 }

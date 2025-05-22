@@ -306,7 +306,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         _ = currentStartPoint;
 
         ParagraphData paragraph = argument.ParagraphData;
-  
+
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
         for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
         {
@@ -753,23 +753,23 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         ParagraphIndex paragraphIndex = argument.ParagraphIndex;
 
         double markerIndentation = 0;
-        if (paragraphProperty.Marker is {} marker)
+
+        MarkerRuntimeInfo markerRuntimeInfo = MarkerRuntimeCalculator.CalculateMarkerRuntimeInfo(in argument);
+
+        TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.ToCharDataList();
+        var fillSizeOfRunArgument = new FillSizeOfRunArgument(charDataList, argument.UpdateLayoutContext);
+        MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
+        foreach (CharData charData in charDataList)
         {
-            if (marker is BulletMarker bulletMarker)
-            {
-                string? markerText = bulletMarker.MarkerText;
-
-            }
-
-            markerIndentation = 10;// todo 这是测试代码
+            markerIndentation += charData.Size!.Value.Width;
         }
 
         double lineMaxWidth = GetLineMaxWidth();
 
         var indentInfo = new ParagraphLayoutIndentInfo
         {
-            LineMaxWidth = lineMaxWidth, 
-            Indent = paragraphProperty.Indent, 
+            LineMaxWidth = lineMaxWidth,
+            Indent = paragraphProperty.Indent,
             IndentType = paragraphProperty.IndentType,
             LeftIndentation = paragraphProperty.LeftIndentation,
             RightIndentation = paragraphProperty.RightIndentation,
@@ -779,8 +779,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return indentInfo;
     }
 
-    #endregion
 
+    #endregion
 
     /// <inheritdoc />
     protected override TextSize CalculateDocumentContentSize(IReadOnlyList<ParagraphData> paragraphList, UpdateLayoutContext updateLayoutContext)
@@ -1059,7 +1059,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 空白的宽度
         var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
-        
+
         double leftIndentation = indentInfo.LeftIndentation;
         Debug.Assert(Nearly.Equals(indentInfo.LeftIndentation, paragraphProperty.LeftIndentation));
         Debug.Assert(Nearly.Equals(indentInfo.RightIndentation, paragraphProperty.RightIndentation));

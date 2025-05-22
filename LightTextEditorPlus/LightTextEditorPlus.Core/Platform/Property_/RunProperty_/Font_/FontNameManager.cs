@@ -8,6 +8,7 @@ namespace LightTextEditorPlus.Core.Platform;
 /// <summary>
 /// 管理文本使用的字体名称和字体回退策略。
 /// </summary>
+/// 默认回滚可参阅： https://github.com/dotnet/wpf/blob/main/src/Microsoft.DotNet.Wpf/src/PresentationCore/Fonts/GlobalUserInterface.CompositeFont
 public class FontNameManager : IFontNameManager
 {
     ///// <summary>

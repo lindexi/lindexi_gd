@@ -16,6 +16,12 @@ public abstract class TextMarker
     /// </summary>
     public bool ShouldFollowParagraphFirstCharRunProperty { get; init; }
 
+    // 有可能最小的缩进值需要和字体成比例关系，不能作为固定值设置
+    ///// <summary>
+    ///// 最小的缩进值
+    ///// </summary>
+    //public double? MinimumIndent { get; init; }
+
     /// <summary>
     /// 项目符号的字符属性
     /// </summary>
