@@ -28,6 +28,11 @@ class HorizontalTextRender : TextRenderBase
             {
                 foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
                 {
+                    if (lineRenderInfo.IsFirstLine)
+                    {
+                        // todo 考虑渲染项目符号
+                    }
+
                     var argument = lineRenderInfo.Argument;
                     drawingContext.PushTransform(new TranslateTransform(0, argument.StartPoint.Y));
 
