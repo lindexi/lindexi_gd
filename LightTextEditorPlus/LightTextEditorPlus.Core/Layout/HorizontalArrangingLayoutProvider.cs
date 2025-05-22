@@ -757,11 +757,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         MarkerRuntimeInfo markerRuntimeInfo = MarkerRuntimeCalculator.CalculateMarkerRuntimeInfo(in argument);
 
         TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
-        var fillSizeOfRunArgument = new FillSizeOfRunArgument(charDataList, argument.UpdateLayoutContext);
-        MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
-        foreach (CharData charData in charDataList)
+        if (charDataList.Count > 0)
         {
-            markerIndentation += charData.Size!.Value.Width;
+            var fillSizeOfRunArgument = new FillSizeOfRunArgument(charDataList, argument.UpdateLayoutContext);
+            MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
+            foreach (CharData charData in charDataList)
+            {
+                markerIndentation += charData.Size!.Value.Width;
+            }
         }
 
         markerRuntimeInfo.MarkerIndentation = markerIndentation;
