@@ -51,6 +51,11 @@ public readonly struct ParagraphLineRenderInfo
     public int LineIndex { get; }
 
     /// <summary>
+    /// 是否首行
+    /// </summary>
+    public bool IsFirstLine => LineIndex == 0;
+
+    /// <summary>
     /// 当前是在第几个段落，从0开始
     /// </summary>
     public ParagraphIndex ParagraphIndex { get; }
