@@ -9,8 +9,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Input.StylusPlugIns;
-using System.Windows.Input.StylusWisp;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.TextFormatting;
@@ -346,28 +344,3 @@ namespace LightTextEditorPlus.Demo
 class DocumentBoundsDebugBorder : Border
 {
 }
-
-class Foo : StylusPlugIn
-{
-    protected override void OnStylusDown(RawStylusInput rawStylusInput)
-    {
-        foreach (TabletDevice tabletDevice in Tablet.TabletDevices)
-        {
-            if (tabletDevice.Id == rawStylusInput.TabletDeviceId)
-            {
-                switch (tabletDevice.Type)
-                {
-                    case TabletDeviceType.Stylus:
-                        break;
-                    case TabletDeviceType.Touch:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-        }
-
-        base.OnStylusDown(rawStylusInput);
-    }
-}
-
