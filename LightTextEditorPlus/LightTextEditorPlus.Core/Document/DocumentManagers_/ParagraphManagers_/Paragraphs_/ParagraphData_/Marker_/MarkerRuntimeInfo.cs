@@ -3,22 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
-// todo 考虑直接就是 TextRun 类型好了，或类似的类型
-internal readonly record struct MarkerRuntimeInfo(string Text, IReadOnlyRunProperty RunProperty)
+internal record MarkerRuntimeInfo
 {
-    public TextReadOnlyListSpan<CharData> ToCharDataList()
+    public MarkerRuntimeInfo(string text, IReadOnlyRunProperty runProperty)
+    {
+        Text = text;
+        RunProperty = runProperty;
+    }
+
+    public double MarkerIndentation { get; set; } = 0;
+
+    public TextReadOnlyListSpan<CharData> CharDataList => _charDataList ??= ToCharDataList();
+    private TextReadOnlyListSpan<CharData>? _charDataList;
+
+    public string Text { get; init; }
+    public IReadOnlyRunProperty RunProperty { get; init; }
+
+    private TextReadOnlyListSpan<CharData> ToCharDataList()
     {
         if (string.IsNullOrEmpty(Text))
         {
             return new TextReadOnlyListSpan<CharData>([], 0, 0);
         }
 
-        TextRun textRun = new TextRun(Text,RunProperty);
+        TextRun textRun = new TextRun(Text, RunProperty);
         var array = new CharData[textRun.Count];
         for (int i = 0; i < textRun.Count; i++)
         {
