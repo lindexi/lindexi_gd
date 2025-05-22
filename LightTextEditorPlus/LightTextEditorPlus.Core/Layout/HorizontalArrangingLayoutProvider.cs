@@ -750,24 +750,24 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         ParagraphData paragraphData = argument.CurrentParagraphData;
         ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
-        ParagraphIndex paragraphIndex = argument.ParagraphIndex;
 
         double markerIndentation = 0;
 
-        MarkerRuntimeInfo markerRuntimeInfo = MarkerRuntimeCalculator.CalculateMarkerRuntimeInfo(in argument);
+        MarkerRuntimeInfo? markerRuntimeInfo = paragraphData.MarkerRuntimeInfo;
 
-        TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
-        if (charDataList.Count > 0)
+        if (markerRuntimeInfo != null)
         {
+            TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
+            Debug.Assert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
             var fillSizeOfRunArgument = new FillSizeOfRunArgument(charDataList, argument.UpdateLayoutContext);
             MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
             foreach (CharData charData in charDataList)
             {
                 markerIndentation += charData.Size!.Value.Width;
             }
-        }
 
-        markerRuntimeInfo.MarkerIndentation = markerIndentation;
+            markerRuntimeInfo.MarkerIndentation = markerIndentation;
+        }
 
         double lineMaxWidth = GetLineMaxWidth();
 

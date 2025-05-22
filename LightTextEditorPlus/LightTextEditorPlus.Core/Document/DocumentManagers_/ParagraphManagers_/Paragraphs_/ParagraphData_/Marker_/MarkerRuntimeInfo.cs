@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.Primitive.Collections;
+﻿using System;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -6,6 +7,11 @@ internal record MarkerRuntimeInfo
 {
     public MarkerRuntimeInfo(string text, IReadOnlyRunProperty runProperty)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            throw new ArgumentNullException(nameof(text));
+        }
+        
         Text = text;
         RunProperty = runProperty;
     }
