@@ -38,6 +38,11 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
         {
             foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
+                if (lineInfo.IsFirstLine)
+                {
+                    // todo 考虑渲染项目符号
+                }
+
                 // 先不考虑缓存
                 LineDrawingArgument argument = lineInfo.Argument;
                 foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
