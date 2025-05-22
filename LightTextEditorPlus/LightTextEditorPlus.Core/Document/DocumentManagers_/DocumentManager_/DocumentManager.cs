@@ -10,6 +10,7 @@ using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
@@ -1005,6 +1006,19 @@ namespace LightTextEditorPlus.Core.Document
         {
             TextEditor.VerifyInUndoRedoMode();
             StyleRunProperty = runProperty;
+        }
+
+        #endregion
+
+        #region 项目符号
+
+        /// <summary>
+        /// 更新段落的项目符号信息
+        /// </summary>
+        internal void UpdateParagraphMarkerRuntimeInfo()
+        {
+            IReadOnlyList<ParagraphData> paragraphList = ParagraphManager.GetRawParagraphList();
+            MarkerRuntimeCalculator.UpdateParagraphMarkerRuntimeInfo(paragraphList);
         }
 
         #endregion

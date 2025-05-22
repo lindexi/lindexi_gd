@@ -1,7 +1,8 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Layout;
 
-namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
+namespace LightTextEditorPlus.Core.Document;
 
 // todo 考虑自动项目的重新开始应该如何表示
 
@@ -28,5 +29,14 @@ static class MarkerRuntimeCalculator
         }
 
         return default;
+    }
+
+    /// <summary>
+    /// 更新段落的项目符号信息
+    /// </summary>
+    /// <param name="paragraphList"></param>
+    public static void UpdateParagraphMarkerRuntimeInfo(IReadOnlyList<ParagraphData> paragraphList)
+    {
+        
     }
 }

@@ -288,6 +288,8 @@ public partial class TextEditorCore
 
         try
         {
+            DocumentManager.UpdateParagraphMarkerRuntimeInfo();
+
             var result = _layoutManager.UpdateLayout();
 
             // 布局完成了，文本不是脏的，可以获取布局内容
