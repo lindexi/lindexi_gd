@@ -114,7 +114,7 @@ public partial class TextEditor
     /// </summary>
     /// <param name="createRunProperty">传入默认的 <see cref="StyleRunProperty"/> 字符属性，返回创建的新的字符属性</param>
     /// <returns></returns>
-    public IRunProperty CreateRunProperty(CreateRunProperty createRunProperty) =>
+    public IRunProperty CreateRunProperty(CreateRunPropertyDelegate createRunProperty) =>
         createRunProperty((RunProperty) StyleRunProperty);
 
     /// <inheritdoc cref="DocumentManager.SetStyleTextRunProperty{T}"/>
@@ -418,4 +418,4 @@ public partial class TextEditor
 /// </summary>
 /// <param name="styleRunProperty"></param>
 /// <returns></returns>
-public delegate IRunProperty CreateRunProperty(RunProperty styleRunProperty);
+public delegate IRunProperty CreateRunPropertyDelegate(RunProperty styleRunProperty);

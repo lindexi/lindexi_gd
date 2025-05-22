@@ -126,6 +126,8 @@ class ParagraphManager
         {
             // 使用 with 关键词，重新拷贝一份对象，防止多个段落之间使用相同的段落对象属性，导致可能存在的对象变更
         };
+        paragraphProperty.OnCopy();
+
         paragraphStartRunProperty ??=
             relativeParagraph?.ParagraphStartRunProperty ?? TextEditor.DocumentManager.StyleRunProperty;
 

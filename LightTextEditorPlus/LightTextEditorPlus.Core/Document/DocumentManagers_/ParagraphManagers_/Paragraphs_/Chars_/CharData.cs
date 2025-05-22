@@ -152,7 +152,7 @@ public sealed class CharData
     private TextSize? _frameSize;
 
     /// <summary>
-    /// Character Face Size 字面尺寸，字墨尺寸，字墨大小，字墨量。文字的字身框中，字图实际分布的空间的尺寸
+    /// Character Face Size 字面尺寸，字墨尺寸，字墨大小，字墨量。文字的字身框中，字图实际分布的空间的尺寸。小于等于 <see cref="Size"/> 尺寸
     /// </summary>
     public TextSize FaceSize { get; private set; } = TextSize.Invalid;
    
