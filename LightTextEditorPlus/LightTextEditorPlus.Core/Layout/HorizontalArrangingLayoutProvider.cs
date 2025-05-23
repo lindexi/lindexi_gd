@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -281,8 +283,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var currentX = -markerRuntimeInfo.MarkerIndentation;
 
         Debug.Assert(markerRuntimeInfo.CharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
-        foreach (CharData charData in markerRuntimeInfo.CharDataList)
+        for (int i = 0; i < markerRuntimeInfo.CharDataList.Count; i++)
         {
+            CharData charData = markerRuntimeInfo.CharDataList[i];
             double xOffset = currentX;
             double yOffset = lineTop + charData.Baseline;
 
@@ -290,6 +293,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             var charDataSize = charData.Size!.Value;
             currentX += charDataSize.Width;
+
+            // 设计上让项目符号是段落负数的值
+            var charIndex = new ParagraphCharOffset(-markerRuntimeInfo.CharDataList.Count + i);
+            UpdateCharLayoutLineInfo(charData, charIndex, firstLineLayoutData);
         }
     }
 
@@ -414,10 +421,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     }
                 }
 
-                Debug.Assert(charData.CharLayoutData != null, "经过行布局，字符存在行布局信息");
-                charData.CharLayoutData!.CharIndex = new ParagraphCharOffset(i + index);
-                charData.CharLayoutData.CurrentLine = currentLineLayoutData;
-                charData.CharLayoutData.UpdateVersion();
+                ParagraphCharOffset charIndex = new ParagraphCharOffset(i + index);
+                UpdateCharLayoutLineInfo(charData, charIndex, currentLineLayoutData);
             }
 
             paragraph.LineLayoutDataList.Add(currentLineLayoutData);
@@ -440,6 +445,20 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 下一段的起始坐标。从行进行转换
         var nextParagraphStartPoint = currentStartPoint.ToDocumentContentCoordinateSystem(argument.ParagraphData);
         return nextParagraphStartPoint;
+    }
+
+    /// <summary>
+    /// 更新字符的行布局信息。只有在行布局完成后，才可以调用
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <param name="charIndex"></param>
+    /// <param name="currentLineLayoutData"></param>
+    private static void UpdateCharLayoutLineInfo(CharData charData, ParagraphCharOffset charIndex, LineLayoutData currentLineLayoutData)
+    {
+        Debug.Assert(charData.CharLayoutData != null, "经过行布局，字符存在行布局信息");
+        charData.CharLayoutData!.CharIndex = charIndex;
+        charData.CharLayoutData.CurrentLine = currentLineLayoutData;
+        charData.CharLayoutData.UpdateVersion();
     }
 
     #endregion

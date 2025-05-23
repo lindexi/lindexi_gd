@@ -1,12 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Utils.Maths;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace LightTextEditorPlus.Core.Utils;
 
 internal static class TextEditorInnerDebugAsset

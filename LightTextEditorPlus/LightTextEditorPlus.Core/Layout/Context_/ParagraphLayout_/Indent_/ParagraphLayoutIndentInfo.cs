@@ -2,6 +2,15 @@
 
 namespace LightTextEditorPlus.Core.Layout;
 
+/// <summary>
+/// 段落布局的缩进信息
+/// </summary>
+/// <param name="LeftIndentation"></param>
+/// <param name="RightIndentation"></param>
+/// <param name="Indent"></param>
+/// <param name="IndentType"></param>
+/// <param name="MarkerIndentation"></param>
+/// <param name="LineMaxWidth"></param>
 internal readonly record struct ParagraphLayoutIndentInfo(double LeftIndentation, double RightIndentation,
     double Indent,
     IndentType IndentType,

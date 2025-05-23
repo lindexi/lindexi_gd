@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
@@ -26,14 +27,9 @@ class HorizontalTextRender : TextRenderBase
         {
             foreach (var paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
             {
-                foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
+                foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
                 {
-                    if (lineRenderInfo.IsFirstLine)
-                    {
-                        // todo 考虑渲染项目符号
-                    }
-
-                    var argument = lineRenderInfo.Argument;
+                   var argument = lineRenderInfo.Argument;
                     drawingContext.PushTransform(new TranslateTransform(0, argument.StartPoint.Y));
 
                     try
@@ -48,7 +44,7 @@ class HorizontalTextRender : TextRenderBase
                             }
                         }
 
-                        var lineVisual = DrawLine(argument, pixelsPerDip);
+                        var lineVisual = DrawLine(lineRenderInfo, pixelsPerDip);
                         lineVisual.Freeze();
                         drawingContext.DrawDrawing(lineVisual);
                         lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
@@ -132,8 +128,10 @@ class HorizontalTextRender : TextRenderBase
         }
     }
 
-    private DrawingGroup DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
+    private DrawingGroup DrawLine(in ParagraphLineRenderInfo lineRenderInfo, float pixelsPerDip)
     {
+        LineDrawingArgument argument = lineRenderInfo.Argument;
+
         var drawingGroup = new DrawingGroup();
         drawingGroup.GuidelineSet = new GuidelineSet();
 
@@ -142,7 +140,20 @@ class HorizontalTextRender : TextRenderBase
         // 获取字符属性相同聚合一起的拆分之后的字符
         IEnumerable<TextReadOnlyListSpan<CharData>> splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
 
-        foreach (var charList in splitList)
+        var renderList = splitList;
+
+        if (lineRenderInfo.IsIncludeMarker)
+        {
+            // 如果包含了项目符号，那么就需要先绘制项目符号
+            TextReadOnlyListSpan<CharData> markerCharDataList = lineRenderInfo.GetMarkerCharDataList();
+
+            renderList = new []
+            {
+                markerCharDataList
+            }.Concat(renderList);
+        }
+
+        foreach (var charList in renderList)
         {
             var firstCharData = charList[0];
             var runProperty = firstCharData.RunProperty;
