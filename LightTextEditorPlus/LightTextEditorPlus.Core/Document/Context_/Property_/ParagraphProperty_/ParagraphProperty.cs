@@ -154,11 +154,12 @@ public record ParagraphProperty
         }
     }
 
-    /// <summary>
-    /// 段落属性被拷贝时进入
-    /// </summary>
-    internal void OnCopy()
-    {
-
-    }
+    ///// <summary>
+    ///// 段落属性被拷贝时进入
+    ///// </summary>
+    //internal void OnCopy()
+    //{
+    //    // 原本设计是为了让项目符号可以决定是否断开联系。然而现在有序项目符号引入了 Group Id 的概念，就不需要在这里获取时机
+    //    // 现在这里只是一个空白的机制
+    //}
 }

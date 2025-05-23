@@ -306,12 +306,52 @@ abstract class ArrangingLayoutProvider
         return new PreUpdateDocumentLayoutResult(documentContentSize);
     }
 
+    #region 缩进和项目符号
+
     /// <summary>
     /// 计算缩进和项目符号
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected abstract ParagraphLayoutIndentInfo CalculateParagraphIndent(in CalculateParagraphIndentArgument argument);
+    protected ParagraphLayoutIndentInfo CalculateParagraphIndent(in CalculateParagraphIndentArgument argument)
+    {
+        ParagraphData paragraphData = argument.CurrentParagraphData;
+        ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
+
+        double markerIndentation = 0;
+
+        MarkerRuntimeInfo? markerRuntimeInfo = paragraphData.MarkerRuntimeInfo;
+
+        if (markerRuntimeInfo != null)
+        {
+            TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
+            Debug.Assert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
+            var fillSizeOfRunArgument = new FillSizeOfRunArgument(charDataList, argument.UpdateLayoutContext);
+            MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
+            foreach (CharData charData in charDataList)
+            {
+                markerIndentation += charData.Size!.Value.Width;
+            }
+
+            markerRuntimeInfo.MarkerIndentation = markerIndentation;
+        }
+
+        double lineMaxWidth = GetLineMaxWidth();
+
+        var indentInfo = new ParagraphLayoutIndentInfo
+        {
+            LineMaxWidth = lineMaxWidth,
+            Indent = paragraphProperty.Indent,
+            IndentType = paragraphProperty.IndentType,
+            LeftIndentation = paragraphProperty.LeftIndentation,
+            RightIndentation = paragraphProperty.RightIndentation,
+            MarkerIndentation = markerIndentation,
+        };
+
+        return indentInfo;
+    }
+
+    #endregion
 
     /// <summary>
     /// 计算文档的内容尺寸
