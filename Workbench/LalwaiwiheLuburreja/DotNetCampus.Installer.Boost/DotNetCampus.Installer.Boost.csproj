@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="VC-LTL" Version="5.2.1" />
     <PackageReference Include="YY-Thunks" Version="1.1.7" />
   </ItemGroup>
 
