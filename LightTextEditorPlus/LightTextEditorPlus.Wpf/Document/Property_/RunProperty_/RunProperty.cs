@@ -156,7 +156,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
 
     #region 框架
 
-    private RunPropertyPlatformManager RunPropertyPlatformManager { get; }
+    internal RunPropertyPlatformManager RunPropertyPlatformManager { get; init; }
 
     /// <summary>
     /// 缓存的回滚字体

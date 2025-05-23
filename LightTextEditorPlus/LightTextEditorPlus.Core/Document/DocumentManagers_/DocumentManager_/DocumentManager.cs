@@ -1018,7 +1018,7 @@ namespace LightTextEditorPlus.Core.Document
         internal void UpdateParagraphMarkerRuntimeInfo()
         {
             IReadOnlyList<ParagraphData> paragraphList = ParagraphManager.GetRawParagraphList();
-            MarkerRuntimeCalculator.UpdateParagraphMarkerRuntimeInfo(paragraphList);
+            MarkerRuntimeCalculator.UpdateParagraphMarkerRuntimeInfo(paragraphList, TextEditor);
         }
 
         #endregion

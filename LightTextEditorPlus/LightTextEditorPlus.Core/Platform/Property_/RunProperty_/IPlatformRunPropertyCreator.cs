@@ -23,4 +23,12 @@ public interface IPlatformRunPropertyCreator
     /// <param name="baseRunProperty"></param>
     /// <returns></returns>
     IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty);
+
+    /// <summary>
+    /// 更新项目符号的字符属性
+    /// </summary>
+    /// <param name="markerRunProperty">当前项目符号的属性，可能有些属性要保留，如字体</param>
+    /// <param name="styleRunProperty"></param>
+    /// <returns></returns>
+    IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty, IReadOnlyRunProperty styleRunProperty);
 }

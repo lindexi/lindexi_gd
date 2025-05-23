@@ -18,6 +18,7 @@ class RunPropertyPlatformManager
     }
 
     private readonly TextEditor _textEditor;
+    public TextEditor TextEditor => _textEditor;
 
     public RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(RunProperty runProperty, Utf32CodePoint unicodeChar)
     {
