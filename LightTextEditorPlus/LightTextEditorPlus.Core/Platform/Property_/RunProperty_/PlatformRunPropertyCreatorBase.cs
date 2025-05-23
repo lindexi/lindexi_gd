@@ -1,4 +1,5 @@
 using System;
+
 using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -10,16 +11,6 @@ namespace LightTextEditorPlus.Core.Platform;
 public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCreator
     where T : IReadOnlyRunProperty
 {
-    ///// <inheritdoc />
-    //public IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config,
-    //    IReadOnlyRunProperty baseRunProperty)
-    //{
-    //    return OnBuildNewProperty(config, (T)baseRunProperty);
-    //}
-
-    ///// <inheritdoc cref="BuildNewProperty"/>
-    //protected abstract T OnBuildNewProperty(Action<IReadOnlyRunProperty> config, T baseRunProperty);
-
     /// <inheritdoc />
     public IReadOnlyRunProperty GetDefaultRunProperty()
     {
@@ -31,23 +22,46 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     {
         if (baseRunProperty is not T)
         {
-            ThrowRunPropertyTypeNotSupportedException(baseRunProperty);
+            throw CreateRunPropertyTypeNotSupportedException(baseRunProperty);
         }
 
         return baseRunProperty;
     }
 
     /// <inheritdoc />
-    public abstract IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty,
-        IReadOnlyRunProperty styleRunProperty);
+    public IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty,
+        IReadOnlyRunProperty styleRunProperty)
+    {
+        if (styleRunProperty is not T style)
+        {
+            throw CreateRunPropertyTypeNotSupportedException(styleRunProperty);
+        }
+
+        if (markerRunProperty is not T marker)
+        {
+            if (markerRunProperty is null)
+            {
+                marker = default!;
+            }
+            else
+            {
+                throw CreateRunPropertyTypeNotSupportedException(markerRunProperty);
+            }
+        }
+
+        return OnUpdateMarkerRunProperty(marker, style);
+    }
+
+    /// <inheritdoc cref="UpdateMarkerRunProperty"/>
+    protected abstract T OnUpdateMarkerRunProperty(T? markerRunProperty, T styleRunProperty);
 
     /// <inheritdoc cref="GetDefaultRunProperty"/>
     protected abstract T OnGetDefaultRunProperty();
 
     /// <summary>
-    /// 抛出不支持的字符属性异常
+    /// 创建不支持的字符属性异常
     /// </summary>
     /// <param name="runProperty"></param>
     /// <exception cref="NotSupportedException"></exception>
-    protected void ThrowRunPropertyTypeNotSupportedException(IReadOnlyRunProperty? runProperty) => throw new NotSupportedException($"传入了非当前平台所能支持的字符属性。当前平台属性类型： {typeof(T).FullName}；传入的字符属性类型：{runProperty?.GetType().FullName ?? "<null>"}");
+    private static NotSupportedException CreateRunPropertyTypeNotSupportedException(IReadOnlyRunProperty? runProperty) => new NotSupportedException($"传入了非当前平台所能支持的字符属性。当前平台属性类型： {typeof(T).FullName}；传入的字符属性类型：{runProperty?.GetType().FullName ?? "<null>"}");
 }
