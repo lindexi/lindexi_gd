@@ -390,8 +390,16 @@ class ParagraphData : ITextParagraph
     /// <summary>
     /// 段落内的各个行的布局信息。即使是空段也至少有一个行
     /// </summary>
-    /// todo 分为写入和读取两个属性
-    public List<LineLayoutData> LineLayoutDataList { get; } = new List<LineLayoutData>();
+    public IReadOnlyList<LineLayoutData> LineLayoutDataList => _lineLayoutDataList;
+
+    private readonly List<LineLayoutData> _lineLayoutDataList = new List<LineLayoutData>();
+
+    public int GetLineIndex(LineLayoutData lineLayoutData) => _lineLayoutDataList.FindIndex(t => ReferenceEquals(t, lineLayoutData));
+    public void ClearLineLayoutDataList() => _lineLayoutDataList.Clear();
+
+    public void RemoveLineLayoutDataRange(int index, int count) => _lineLayoutDataList.RemoveRange(index, count);
+
+    public void AddLineLayoutData(LineLayoutData lineLayoutData) => _lineLayoutDataList.Add(lineLayoutData);
 
     #endregion
 

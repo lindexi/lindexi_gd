@@ -444,7 +444,7 @@ abstract class ArrangingLayoutProvider
                 lineLayoutData.Dispose();
             }
 
-            paragraph.LineLayoutDataList.Clear();
+            paragraph.ClearLineLayoutDataList();
         }
         else if (lastIndex > 0)
         {
@@ -454,7 +454,7 @@ abstract class ArrangingLayoutProvider
                 lineVisualData.Dispose();
             }
 
-            paragraph.LineLayoutDataList.RemoveRange(lastIndex, paragraph.LineLayoutDataList.Count - lastIndex);
+            paragraph.RemoveLineLayoutDataRange(lastIndex, paragraph.LineLayoutDataList.Count - lastIndex);
         }
         else
         {
