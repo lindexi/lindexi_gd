@@ -8,6 +8,18 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
 static class CharDataLayoutHelper
 {
+    public static CharData GetMaxFontSizeCharData(CharData a, CharData b)
+    {
+        if (a.RunProperty.FontSize > b.RunProperty.FontSize)
+        {
+            return a;
+        }
+        else
+        {
+            return b;
+        }
+    }
+
     /// <summary>
     /// 获取给定行的最大字号的字符属性。这个属性就是这一行的代表属性
     /// </summary>
@@ -21,10 +33,7 @@ static class CharDataLayoutHelper
         for (var i = 1; i < charDataList.Count; i++)
         {
             var charData = charDataList[i];
-            if (charData.RunProperty.FontSize > maxFontSizeCharData.RunProperty.FontSize)
-            {
-                maxFontSizeCharData = charData;
-            }
+            maxFontSizeCharData = GetMaxFontSizeCharData(charData, maxFontSizeCharData);
         }
 
         return maxFontSizeCharData;

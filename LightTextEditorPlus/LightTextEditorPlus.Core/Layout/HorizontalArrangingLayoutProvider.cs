@@ -285,9 +285,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextReadOnlyListSpan<CharData> markerCharDataList = markerRuntimeInfo.CharDataList;
         Debug.Assert(markerCharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
         // 采用加上首个字符的方法是为了实现基线对齐
-        // ~~在项目符号里面，所有字符都采用相同的字符属性，因此最大不需要和 UpdateTextLineStartPoint 一样取最大字号的字符。或者说最大字号的字符就是首个字符~~
-        // todo 这里应该取最大字符
-        double maxFontYOffset = lineTop + markerCharDataList[0].Baseline;
+        var maxFontSizeCharData = firstLineLayoutData.CharCount > 0
+            ? CharDataLayoutHelper.GetMaxFontSizeCharData(firstLineLayoutData.GetCharList())
+            : markerCharDataList[0];
+        // 在项目符号里面，所有字符都采用相同的字符属性，最大字号的字符就是和首个字符相同
+        maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(markerCharDataList[0], maxFontSizeCharData);
+      
+        double maxFontYOffset = lineTop + maxFontSizeCharData.Baseline;
 
         for (int i = 0; i < markerCharDataList.Count; i++)
         {
@@ -390,7 +394,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
                 lineIndex, paragraph, charDataList,
-                usableLineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
+                usableLineMaxWidth, currentStartPoint, argument.UpdateLayoutContext)
+            {
+                MarkerRuntimeInfo = paragraph.MarkerRuntimeInfo,
+            };
             if (wholeRunLineLayouter != null)
             {
                 result = wholeRunLineLayouter.LayoutWholeLine(in wholeRunLineLayoutArgument);
@@ -525,7 +532,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
         // 遍历这一行的所有字符，找到最大字符的字符属性
         var charDataTakeList = charDataList.Slice(0, wholeCharCount);
-        CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(charDataTakeList); // todo 考虑项目符号字高
+        CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(charDataTakeList);
+        if (argument.IsIncludeMarker)
+        {
+            CharData markerMaxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(argument.GetMarkerCharDataList());
+            // 预期就是首个项目符号字符了，因为项目符号字符都是相同的
+            maxFontSizeCharData =
+                CharDataLayoutHelper.GetMaxFontSizeCharData(maxFontSizeCharData, markerMaxFontSizeCharData);
+        }
+
         IReadOnlyRunProperty maxFontSizeCharRunProperty = maxFontSizeCharData.RunProperty;
 
         // 处理行距
