@@ -7,7 +7,6 @@
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
     <SupportedOSPlatformVersion>5.1</SupportedOSPlatformVersion>
-    <StaticExecutable>true</StaticExecutable>
   </PropertyGroup>
 
   <ItemGroup>
