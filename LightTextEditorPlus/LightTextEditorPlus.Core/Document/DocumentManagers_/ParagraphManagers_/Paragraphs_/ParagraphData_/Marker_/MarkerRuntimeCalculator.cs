@@ -35,52 +35,58 @@ static class MarkerRuntimeCalculator
 
             ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
 
-            if (paragraphProperty.Marker is { } marker)
-            {
-                IReadOnlyRunProperty? markerRunProperty = marker.RunProperty;
-
-                if (markerRunProperty is null || marker.ShouldFollowParagraphFirstCharRunProperty)
-                {
-                    IReadOnlyRunProperty styleRunProperty;
-                    if (paragraphData.IsEmptyParagraph)
-                    {
-                        styleRunProperty = paragraphData.ParagraphStartRunProperty;
-                    }
-                    else
-                    {
-                        CharData firstCharData = paragraphData.GetCharData(new ParagraphCharOffset(0));
-                        styleRunProperty = firstCharData.RunProperty;
-                    }
-
-                    markerRunProperty = platformRunPropertyCreator.UpdateMarkerRunProperty(markerRunProperty, styleRunProperty);
-                }
-
-                if (paragraphData.MarkerRuntimeInfo is {} markerRuntimeInfo)
-                {
-                    if (string.Equals(markerRuntimeInfo.Text, markerTextInfo.MarkerText, StringComparison.InvariantCulture) && markerRuntimeInfo.RunProperty.Equals(markerRunProperty))
-                    {
-                        // 没有改变
-                        continue;
-                    }
-                }
-
-                paragraphData.MarkerRuntimeInfo = new MarkerRuntimeInfo(markerTextInfo.MarkerText, markerRunProperty);
-            }
-            else
+            if (paragraphProperty.Marker is null)
             {
                 Debug.Fail("如果能拿到 MarkerText 则 ParagraphProperty.Marker 必定存在");
+                continue;
             }
+
+            var marker = paragraphProperty.Marker;
+
+            IReadOnlyRunProperty? markerRunProperty = marker.RunProperty;
+
+            if (markerRunProperty is null || marker.ShouldFollowParagraphFirstCharRunProperty)
+            {
+                // 没有字符属性、或需要跟随段落首个字符的字符属性，则取段落首个字符的属性作为样式进行更新
+
+                IReadOnlyRunProperty styleRunProperty;
+                if (paragraphData.IsEmptyParagraph)
+                {
+                    styleRunProperty = paragraphData.ParagraphStartRunProperty;
+                }
+                else
+                {
+                    Debug.Assert(paragraphData.CharCount > 0);
+                    CharData firstCharData = paragraphData.GetCharData(new ParagraphCharOffset(0));
+                    styleRunProperty = firstCharData.RunProperty;
+                }
+
+                markerRunProperty = platformRunPropertyCreator.UpdateMarkerRunProperty(markerRunProperty, styleRunProperty);
+            }
+
+            if (paragraphData.MarkerRuntimeInfo is { } markerRuntimeInfo)
+            {
+                if (string.Equals(markerRuntimeInfo.Text, markerTextInfo.MarkerText, StringComparison.InvariantCulture) && markerRuntimeInfo.RunProperty.Equals(markerRunProperty))
+                {
+                    // 没有改变
+                    continue;
+                }
+                else
+                {
+                    // 改变了，继续更新
+                }
+            }
+
+            paragraphData.MarkerRuntimeInfo = new MarkerRuntimeInfo(markerTextInfo.MarkerText, markerRunProperty);
         }
     }
 
-    readonly record struct MarkerTextInfo(string? MarkerText, ParagraphData ParagraphData);
+    public readonly record struct MarkerTextInfo(string? MarkerText, ParagraphData ParagraphData);
 
-    private static List<MarkerTextInfo> GetMarkerTextInfoList(IReadOnlyList<ParagraphData> paragraphList)
+    public static List<MarkerTextInfo> GetMarkerTextInfoList(IReadOnlyList<ParagraphData> paragraphList)
     {
         var list = new List<MarkerTextInfo>(paragraphList.Count);
 
-        //AutoNumberType lastAutoNumberType = default;
-        //int lastAutoNumberIndex = -1; // 人类友好，从 1 开始
         var dictionary = new Dictionary<NumberMarkerGroupId, uint>();
 
         for (var i = 0; i < paragraphList.Count; i++)
