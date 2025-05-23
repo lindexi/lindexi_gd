@@ -36,4 +36,18 @@ public class FakePlatformRunPropertyCreator : IPlatformRunPropertyCreator
 
         return baseRunProperty;
     }
+
+    public IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty,
+        IReadOnlyRunProperty styleRunProperty)
+    {
+        if (markerRunProperty is LayoutOnlyRunProperty layoutOnlyRunProperty)
+        {
+            return (LayoutOnlyRunProperty) styleRunProperty with
+            {
+                FontName = layoutOnlyRunProperty.FontName
+            };
+        }
+
+        return styleRunProperty;
+    }
 }

@@ -31,12 +31,23 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     {
         if (baseRunProperty is not T)
         {
-            throw new NotSupportedException($"传入了非当前平台所能支持的字符属性。当前平台属性类型： {typeof(T).FullName}；传入的字符属性类型：{baseRunProperty?.GetType().FullName ?? "<null>"}");
+            ThrowRunPropertyTypeNotSupportedException(baseRunProperty);
         }
 
         return baseRunProperty;
     }
 
+    /// <inheritdoc />
+    public abstract IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty,
+        IReadOnlyRunProperty styleRunProperty);
+
     /// <inheritdoc cref="GetDefaultRunProperty"/>
     protected abstract T OnGetDefaultRunProperty();
+
+    /// <summary>
+    /// 抛出不支持的字符属性异常
+    /// </summary>
+    /// <param name="runProperty"></param>
+    /// <exception cref="NotSupportedException"></exception>
+    protected void ThrowRunPropertyTypeNotSupportedException(IReadOnlyRunProperty? runProperty) => throw new NotSupportedException($"传入了非当前平台所能支持的字符属性。当前平台属性类型： {typeof(T).FullName}；传入的字符属性类型：{runProperty?.GetType().FullName ?? "<null>"}");
 }

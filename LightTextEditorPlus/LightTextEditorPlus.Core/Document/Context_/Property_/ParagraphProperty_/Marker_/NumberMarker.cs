@@ -11,7 +11,25 @@ public class NumberMarker : TextMarker
     /// <summary>
     /// 表示当前缩进级别的数字项目符号起始编号
     /// </summary>
-    public int StartAt { get; init; } = 1;
+    public uint StartAt
+    {
+        get => _startAt;
+        init
+        {
+            if (value < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "有序项目符号起始编号最小从 1 开始");
+            }
+            _startAt = value;
+        }
+    }
+
+    private readonly uint _startAt = 1;
+
+    /// <summary>
+    /// 自动编号组 ID，ID 相同则编号加一
+    /// </summary>
+    public NumberMarkerGroupId GroupId { get; init; } = new NumberMarkerGroupId();
 
     /// <summary>
     /// 编号项目符号类型
