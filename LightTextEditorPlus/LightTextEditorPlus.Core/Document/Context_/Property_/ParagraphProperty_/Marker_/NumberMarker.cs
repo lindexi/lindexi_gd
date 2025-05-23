@@ -179,8 +179,9 @@ public class NumberMarker : TextMarker
            30 ee.
          */
         Debug.Assert(levelIndex >= 1);
+        levelIndex -= 1;
         const int startAsciiNum = 'a'; //97
-        const int aToZCount = 'z' - 'a';
+        const int aToZCount = 'z' - 'a' + 1;
         int count = (int) levelIndex / aToZCount;
         int index = (int) levelIndex % aToZCount;
 
@@ -195,9 +196,10 @@ public class NumberMarker : TextMarker
     /// <returns></returns>
     protected static string GetUpperLatinMarkerText(uint levelIndex)
     {
+        levelIndex -= 1;
         Debug.Assert(levelIndex >= 1);
         const int startAsciiNum = 'A'; //65
-        const int aToZCount = 'Z' - 'A';
+        const int aToZCount = 'Z' - 'A' + 1;
         int count = (int) levelIndex / aToZCount;
         int index = (int) levelIndex % aToZCount;
 
@@ -228,7 +230,7 @@ public class NumberMarker : TextMarker
         if (levelIndex <= 20)
         {
             // 在 20 以内，采用圆圈的写法，大于等于 21 就用数字
-            return ((char) ('①' + levelIndex)).ToString();
+            return ((char) ('①' + levelIndex - 1)).ToString();
         }
 
         return GetArabicNumberMarkerText(levelIndex);
