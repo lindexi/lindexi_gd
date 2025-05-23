@@ -864,6 +864,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局过程是： 文档-段落-行
     /// <param name="preUpdateDocumentLayoutResult"></param>
     /// <param name="updateLayoutContext"></param>
+    /// todo 处理项目符号回溯
     protected override FinalUpdateDocumentLayoutResult FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult, UpdateLayoutContext updateLayoutContext)
     {
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段", LayoutDebugCategory.FinalDocument);

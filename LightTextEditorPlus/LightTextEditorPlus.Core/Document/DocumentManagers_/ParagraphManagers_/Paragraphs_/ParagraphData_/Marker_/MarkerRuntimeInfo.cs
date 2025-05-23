@@ -5,7 +5,7 @@ namespace LightTextEditorPlus.Core.Document;
 
 internal record MarkerRuntimeInfo
 {
-    public MarkerRuntimeInfo(string text, IReadOnlyRunProperty runProperty)
+    public MarkerRuntimeInfo(string text, IReadOnlyRunProperty runProperty, TextMarker textMarker)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -14,6 +14,7 @@ internal record MarkerRuntimeInfo
         
         Text = text;
         RunProperty = runProperty;
+        TextMarker = textMarker;
     }
 
     //依靠渲染时，判断段落是否空段即可知道，不需要再加一个属性，再加一个属性还要去维护它
@@ -21,6 +22,8 @@ internal record MarkerRuntimeInfo
     ///// 是否隐藏的标记
     ///// </summary>
     //public bool IsHidden { get; set; }
+
+    public TextMarker TextMarker { get; }
 
     public double MarkerIndentation { get; set; } = 0;
 

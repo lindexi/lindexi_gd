@@ -16,11 +16,11 @@ public abstract class TextMarker
     /// </summary>
     public bool ShouldFollowParagraphFirstCharRunProperty { get; init; }
 
-    // 有可能最小的缩进值需要和字体成比例关系，不能作为固定值设置
-    ///// <summary>
-    ///// 最小的缩进值
-    ///// </summary>
-    //public double? MinimumIndent { get; init; }
+    /// <summary>
+    /// 最小的缩进值
+    /// </summary>
+    /// 在 Word 里面是有带最小缩进值的功能的，按照标尺的方式缩进
+    public double? MinimumIndent { get; init; }
 
     /// <summary>
     /// 项目符号的字符属性
