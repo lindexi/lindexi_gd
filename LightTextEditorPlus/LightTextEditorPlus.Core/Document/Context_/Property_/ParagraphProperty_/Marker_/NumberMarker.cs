@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -39,7 +40,7 @@ public class NumberMarker : TextMarker
     /// <summary>
     /// 获取当前级别的编号文本
     /// </summary>
-    /// <param name="levelIndex"></param>
+    /// <param name="levelIndex">从 1 开始的值，按照人类的方式</param>
     /// <returns></returns>
     public virtual string GetMarkerText(uint levelIndex)
     {
@@ -154,7 +155,7 @@ public class NumberMarker : TextMarker
     /// <summary>
     /// 根据当前级别获取小写英文字符串
     /// </summary>
-    /// <param name="levelIndex"></param>
+    /// <param name="levelIndex">从 1 开始的值，按照人类的方式</param>
     /// <returns></returns>
     /// 算法测试请参阅 9d1e0f52472534bba136e18b59f7bd2439cef368
     /// 规则和 Office PPT 相同
@@ -177,8 +178,9 @@ public class NumberMarker : TextMarker
            29 dd.
            30 ee.
          */
+        Debug.Assert(levelIndex >= 1);
         const int startAsciiNum = 'a'; //97
-        const int aToZCount = 'z' - 'a' + 1;
+        const int aToZCount = 'z' - 'a';
         int count = (int) levelIndex / aToZCount;
         int index = (int) levelIndex % aToZCount;
 
@@ -189,12 +191,13 @@ public class NumberMarker : TextMarker
     /// <summary>
     /// 根据当前级别获取大写英文字符串
     /// </summary>
-    /// <param name="levelIndex"></param>
+    /// <param name="levelIndex">从 1 开始的值，按照人类的方式</param>
     /// <returns></returns>
     protected static string GetUpperLatinMarkerText(uint levelIndex)
     {
+        Debug.Assert(levelIndex >= 1);
         const int startAsciiNum = 'A'; //65
-        const int aToZCount = 'Z' - 'A' + 1;
+        const int aToZCount = 'Z' - 'A';
         int count = (int) levelIndex / aToZCount;
         int index = (int) levelIndex % aToZCount;
 
@@ -205,18 +208,19 @@ public class NumberMarker : TextMarker
     /// <summary>
     /// 根据当前级别获取阿拉伯数字字符串
     /// </summary>
-    /// <param name="levelIndex"></param>
+    /// <param name="levelIndex">从 1 开始的值，按照人类的方式</param>
     /// <returns></returns>
     protected static string GetArabicNumberMarkerText(uint levelIndex)
     {
         // 从 1 开始的
-        return (levelIndex + 1).ToString(CultureInfo.InvariantCulture);
+        Debug.Assert(levelIndex >= 1);
+        return levelIndex.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
     /// 获取带圈的双字节阿拉伯数字字符串
     /// </summary>
-    /// <param name="levelIndex"></param>
+    /// <param name="levelIndex">从 1 开始的值，按照人类的方式</param>
     /// <returns></returns>
     /// 规则和 Office PPT 相同
     protected static string GetCircleNumberDoubleBytePlainMarkerText(uint levelIndex)
