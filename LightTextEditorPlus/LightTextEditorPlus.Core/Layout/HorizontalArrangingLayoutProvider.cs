@@ -243,6 +243,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         //// 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
+        // 更新项目符号内容
+        PreUpdateMarker(in argument);
+
         // 计算段落的文本尺寸
         //TextPoint paragraphTextStartPoint = argument.ParagraphData.LineLayoutDataList[0].CharStartPoint;
         TextSize paragraphTextSize = BuildParagraphSize(argument);
@@ -250,6 +253,24 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         paragraph.SetParagraphLayoutTextSize(paragraphTextSize);
 
         return new ParagraphLayoutResult(nextParagraphStartPoint);
+    }
+
+    /// <summary>
+    /// 预布局项目符号信息，只能布局获取相对坐标，还不能拿到确切坐标，确切坐标需要在回溯过程才能计算
+    /// </summary>
+    /// <param name="argument"></param>
+    private void PreUpdateMarker(in ParagraphLayoutArgument argument)
+    {
+        ParagraphData paragraph = argument.ParagraphData;
+        var markerRuntimeInfo = paragraph.MarkerRuntimeInfo;
+        if (paragraph.IsEmptyParagraph)
+        {
+
+        }
+        else
+        {
+
+        }
     }
 
     /// <summary>
@@ -427,7 +448,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         if (charDataList.Count == 0)
         {
             // 理论上不会进入这里，如果没有任何的字符，那就不需要进行行布局
-            return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0, default);
+            return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0, default, null!);
         }
 
         // 1. 布局一行的字符，分行算法
@@ -452,13 +473,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             Debug.Assert(currentTextSize == TextSize.Zero);
             // 有可能这一行一个字符都不能拿，但是还是有行高的
             var currentLineSize = currentTextSize; // todo 这里需要重新确认一下，行高应该是多少，行距是多少
-            return new WholeLineLayoutResult(currentLineSize, currentTextSize, wholeCharCount, default);
+            return new WholeLineLayoutResult(currentLineSize, currentTextSize, wholeCharCount, default, null!);
         }
 
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
         // 遍历这一行的所有字符，找到最大字符的字符属性
         var charDataTakeList = charDataList.Slice(0, wholeCharCount);
-        CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(charDataTakeList);
+        CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(charDataTakeList); // todo 考虑项目符号字高
         IReadOnlyRunProperty maxFontSizeCharRunProperty = maxFontSizeCharData.RunProperty;
 
         // 处理行距
@@ -500,8 +521,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 行的尺寸
         var lineSize = new TextSize(currentTextSize.Width, lineHeight);
 
-        return new WholeLineLayoutResult(lineSize, currentTextSize, wholeCharCount,
-            new TextThickness(0, topLineSpacingGap, 0, bottomLineSpacingGap));
+        var result = new WholeLineLayoutResult(lineSize, currentTextSize, wholeCharCount,
+            new TextThickness(0, topLineSpacingGap, 0, bottomLineSpacingGap), maxFontSizeCharData);
+        if (IsInDebugMode)
+        {
+            var resultText = result.ToString();
+            _ = resultText; // todo 查看输出内容是否相同
+        }
+        return result;
     }
 
     /// <summary>
@@ -586,7 +613,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 
     /// <summary>
-    /// 更新行的起始点
+    /// 更新行的起始点，在这里将每个字符处理行距-距离行顶部距离的偏移量
     /// </summary>
     /// <param name="lineCharList"></param>
     /// <param name="charLineStartPoint">文档布局给到行的距离</param>

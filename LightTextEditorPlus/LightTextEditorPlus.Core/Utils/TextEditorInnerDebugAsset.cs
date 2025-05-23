@@ -11,7 +11,7 @@ namespace LightTextEditorPlus.Core.Utils;
 
 internal static class TextEditorInnerDebugAsset
 {
-    public static void Equals(double expect, double actual, string name)
+    public static void AreEquals(double expect, double actual, string name)
     {
         if (Nearly.Equals(expect, actual) is false)
         {

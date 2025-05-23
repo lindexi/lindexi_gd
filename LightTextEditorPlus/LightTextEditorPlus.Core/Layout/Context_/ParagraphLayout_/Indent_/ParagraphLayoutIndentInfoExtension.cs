@@ -27,7 +27,7 @@ static class ParagraphLayoutIndentInfoExtension
 
         static void EqualAssets(double expect, double actual, string name)
         {
-            TextEditorInnerDebugAsset.Equals(expect, actual, name);
+            TextEditorInnerDebugAsset.AreEquals(expect, actual, name);
         }
     }
 }
