@@ -39,7 +39,9 @@ public readonly struct ParagraphLineRenderInfo
     /// <summary>
     /// 当前行所在的段落属性
     /// </summary>
-    public ParagraphProperty ParagraphProperty => LineLayoutData.CurrentParagraph.ParagraphProperty;
+    public ParagraphProperty ParagraphProperty => CurrentParagraph.ParagraphProperty;
+
+    internal ParagraphData CurrentParagraph => LineLayoutData.CurrentParagraph;
 
     /// <summary>
     /// 获取当前行所在的段落的渲染信息
@@ -72,8 +74,7 @@ public readonly struct ParagraphLineRenderInfo
     /// <summary>
     /// 项目符号运行时信息
     /// </summary>
-    /// todo 去掉传值，直接从段落获取
-    internal MarkerRuntimeInfo? MarkerRuntimeInfo { get; init; }
+    internal MarkerRuntimeInfo? MarkerRuntimeInfo => CurrentParagraph.MarkerRuntimeInfo;
 
     /// <summary>
     /// 是否包含项目符号。段内首行并且有项目符号
