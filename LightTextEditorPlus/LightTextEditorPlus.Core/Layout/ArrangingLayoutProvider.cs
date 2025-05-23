@@ -327,8 +327,20 @@ abstract class ArrangingLayoutProvider
         {
             TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
             Debug.Assert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
-            var fillSizeOfRunArgument = new FillSizeOfRunArgument(charDataList, argument.UpdateLayoutContext);
-            MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
+
+            for (var i = 0; i < charDataList.Count; i++)
+            {
+                CharData charData = charDataList[i];
+                if (charData.Size is null)
+                {
+                    TextReadOnlyListSpan<CharData> toMeasureCharDataList = charDataList.Slice(i);
+
+                    var fillSizeOfRunArgument = new FillSizeOfRunArgument(toMeasureCharDataList, argument.UpdateLayoutContext);
+                    MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
+                }
+            }
+           
+
             foreach (CharData charData in charDataList)
             {
                 markerIndentation += charData.Size!.Value.Width;
