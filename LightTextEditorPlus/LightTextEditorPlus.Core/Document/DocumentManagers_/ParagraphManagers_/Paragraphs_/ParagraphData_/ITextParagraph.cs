@@ -26,6 +26,11 @@ public interface ITextParagraph
     ParagraphIndex Index { get; }
 
     /// <summary>
+    /// 是否空段
+    /// </summary>
+    bool IsEmptyParagraph { get; }
+
+    /// <summary>
     /// 这一段的字符长度。不包括 \n 字符
     /// </summary>
     int CharCount { get; }

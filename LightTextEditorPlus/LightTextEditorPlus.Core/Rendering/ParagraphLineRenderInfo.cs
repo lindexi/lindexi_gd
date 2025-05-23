@@ -39,16 +39,21 @@ public readonly struct ParagraphLineRenderInfo
     /// <summary>
     /// 当前行所在的段落属性
     /// </summary>
-    public ParagraphProperty ParagraphProperty => CurrentParagraph.ParagraphProperty;
+    public ParagraphProperty ParagraphProperty => Paragraph.ParagraphProperty;
 
-    internal ParagraphData CurrentParagraph => LineLayoutData.CurrentParagraph;
+    internal ParagraphData Paragraph => LineLayoutData.CurrentParagraph;
+
+    /// <summary>
+    /// 当前行所在的段落
+    /// </summary>
+    public ITextParagraph CurrentParagraph => Paragraph;
 
     /// <summary>
     /// 获取当前行所在的段落的渲染信息
     /// </summary>
     /// <returns></returns>
     public ParagraphRenderInfo GetCurrentParagraphRenderInfo()
-        => new ParagraphRenderInfo(ParagraphIndex, LineLayoutData.CurrentParagraph, _renderInfoProvider);
+        => new ParagraphRenderInfo(ParagraphIndex, Paragraph, _renderInfoProvider);
 
     /// <summary>这一行是段落的第几行，从0开始</summary>
     public int LineIndex { get; }
@@ -74,7 +79,7 @@ public readonly struct ParagraphLineRenderInfo
     /// <summary>
     /// 项目符号运行时信息
     /// </summary>
-    internal MarkerRuntimeInfo? MarkerRuntimeInfo => CurrentParagraph.MarkerRuntimeInfo;
+    internal MarkerRuntimeInfo? MarkerRuntimeInfo => Paragraph.MarkerRuntimeInfo;
 
     /// <summary>
     /// 是否包含项目符号。段内首行并且有项目符号

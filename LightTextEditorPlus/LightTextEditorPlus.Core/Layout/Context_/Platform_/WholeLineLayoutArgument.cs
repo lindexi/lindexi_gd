@@ -20,10 +20,31 @@ public readonly record struct WholeLineLayoutArgument(ParagraphIndex ParagraphIn
     ITextParagraph Paragraph, in TextReadOnlyListSpan<CharData> CharDataList, double LineMaxWidth,
     TextPointInParagraphCoordinateSystem CurrentStartPoint, UpdateLayoutContext UpdateLayoutContext)
 {
+    internal MarkerRuntimeInfo? MarkerRuntimeInfo { get; init; }
+
     /// <summary>
     /// 段落属性
     /// </summary>
     public ParagraphProperty ParagraphProperty => Paragraph.ParagraphProperty;
+
+    /// <summary>
+    /// 是否首行
+    /// </summary>
+    public bool IsFirstLine => LineIndex == 0;
+
+    /// <summary>
+    /// 是否包含项目符号。段内首行并且有项目符号
+    /// </summary>
+    public bool IsIncludeMarker => IsFirstLine && MarkerRuntimeInfo != null;
+
+    /// <summary>
+    /// 获取项目符号字符内容
+    /// </summary>
+    /// <returns></returns>
+    public TextReadOnlyListSpan<CharData> GetMarkerCharDataList()
+    {
+        return MarkerRuntimeInfo?.CharDataList ?? new TextReadOnlyListSpan<CharData>([], 0, 0);
+    }
 
     /// <summary>
     /// 调试使用的这一行的文本

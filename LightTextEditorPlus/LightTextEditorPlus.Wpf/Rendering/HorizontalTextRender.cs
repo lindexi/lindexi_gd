@@ -147,13 +147,29 @@ class HorizontalTextRender : TextRenderBase
             // 如果包含了项目符号，那么就需要先绘制项目符号
             TextReadOnlyListSpan<CharData> markerCharDataList = lineRenderInfo.GetMarkerCharDataList();
 
-            renderList = new []
+            if (lineRenderInfo.CurrentParagraph.IsEmptyParagraph)
             {
-                markerCharDataList
-            }.Concat(renderList);
+                // 空段落的情况，修改一下透明度
+                drawingContext.PushOpacity(0.3);
+            }
+
+            RenderCharList(markerCharDataList);
+
+            if (lineRenderInfo.CurrentParagraph.IsEmptyParagraph)
+            {
+                // 空段落的情况，修改一下透明度
+                drawingContext.Pop();
+            }
         }
 
         foreach (var charList in renderList)
+        {
+            RenderCharList(charList);
+        }
+
+        return drawingGroup;
+
+        void RenderCharList(TextReadOnlyListSpan<CharData> charList)
         {
             var firstCharData = charList[0];
             var runProperty = firstCharData.RunProperty;
@@ -247,7 +263,5 @@ class HorizontalTextRender : TextRenderBase
                 drawingContext.DrawGlyphRun(brush, glyphRun);
             }
         }
-
-        return drawingGroup;
     }
 }

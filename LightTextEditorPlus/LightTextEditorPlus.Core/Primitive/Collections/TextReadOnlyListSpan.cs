@@ -59,7 +59,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
         {
             if (index >= _length)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), index, $"TextReadOnlyListSpan Index out of range. Length={_length} index={index}");
+               throw new ArgumentOutOfRangeException(nameof(index), index, $"TextReadOnlyListSpan Index out of range. Length={_length} index={index}");
             }
             return _source[index + _start];
         }
