@@ -77,7 +77,7 @@ public sealed class CharData
     {
         if (CharLayoutData is null)
         {
-            throw new InvalidOperationException($"禁止在开始布局之前设置");
+            throw new InvalidOperationException($"禁止在加入到段落之前设置");
         }
 
         CharLayoutData.CharLineStartPoint = point;
