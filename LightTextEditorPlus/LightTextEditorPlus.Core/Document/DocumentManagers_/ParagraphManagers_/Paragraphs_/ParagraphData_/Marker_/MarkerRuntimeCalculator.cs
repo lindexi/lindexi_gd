@@ -80,7 +80,7 @@ static class MarkerRuntimeCalculator
                 }
             }
 
-            paragraphData.MarkerRuntimeInfo = new MarkerRuntimeInfo(markerTextInfo.MarkerText, markerRunProperty);
+            paragraphData.MarkerRuntimeInfo = new MarkerRuntimeInfo(markerTextInfo.MarkerText, markerRunProperty, marker);
         }
 
         textEditor.Logger.LogDebug($"[TextEditorCore][MarkerRuntimeCalculator] 完成更新段落的项目符号信息");

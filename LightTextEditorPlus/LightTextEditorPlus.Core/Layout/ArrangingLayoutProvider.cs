@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -232,7 +233,7 @@ abstract class ArrangingLayoutProvider
             ParagraphIndex index = new ParagraphIndex(paragraphIndex);
 
             // 在这里进行项目符号和缩进的计算
-            ParagraphLayoutIndentInfo indentInfo = CalculateParagraphIndent(new CalculateParagraphIndentArgument(paragraphData, index, paragraphList, updateLayoutContext));
+            ParagraphLayoutIndentInfo indentInfo = CalculateParagraphIndentAndMarker(new CalculateParagraphIndentArgument(paragraphData, index, paragraphList, updateLayoutContext));
             if (paragraphData.ParagraphLayoutData.IndentInfo != indentInfo)
             {
                 // 如果设置前后存在差异，则表示当前段落应该重新布局，比如自动编号项目符号，从原本的 9. 变更为 10.，那么就需要重新布局
@@ -247,7 +248,7 @@ abstract class ArrangingLayoutProvider
 
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
-            // 预布局过程中，没有获取其 Outline 的值。于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
+            // 预布局过程中，没有获取其 Outline 的值。于是将在无缓存时调用 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 为 {X=0 Y=0 Width=0 Height=0} 的值
             updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {paragraphIndex} 段，共 {paragraphData.LineLayoutDataList.Count} 行 StartPoint={paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem};Size={paragraphData.ParagraphLayoutData.TextSize}; NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
 
             currentStartPoint = nextParagraphStartPoint;
@@ -313,7 +314,7 @@ abstract class ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected ParagraphLayoutIndentInfo CalculateParagraphIndent(in CalculateParagraphIndentArgument argument)
+    protected ParagraphLayoutIndentInfo CalculateParagraphIndentAndMarker(in CalculateParagraphIndentArgument argument)
     {
         ParagraphData paragraphData = argument.CurrentParagraphData;
         ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
@@ -331,6 +332,11 @@ abstract class ArrangingLayoutProvider
             foreach (CharData charData in charDataList)
             {
                 markerIndentation += charData.Size!.Value.Width;
+            }
+
+            if (markerRuntimeInfo.TextMarker.MinimumIndent != null)
+            {
+                markerIndentation = Math.Max(markerIndentation, markerRuntimeInfo.TextMarker.MinimumIndent.Value);
             }
 
             markerRuntimeInfo.MarkerIndentation = markerIndentation;
@@ -702,6 +708,6 @@ abstract class ArrangingLayoutProvider
     //protected abstract TextRect CalculateHitBounds(in TextRect documentBounds);
 
     protected abstract double GetLineMaxWidth();
-   
+
     #endregion 通用辅助方法
 }
