@@ -330,6 +330,7 @@ abstract class ArrangingLayoutProvider
 
             for (var i = 0; i < charDataList.Count; i++)
             {
+                // 循环进行字符测量。在 MeasureAndFillSizeOfRun 方法里面，不会测量整个字符列表，只会测量连续的部分
                 CharData charData = charDataList[i];
                 if (charData.Size is null)
                 {
