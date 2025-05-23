@@ -100,7 +100,17 @@ class ParagraphData : ITextParagraph
     /// <summary>
     /// 项目符号的运行时信息
     /// </summary>
-    internal MarkerRuntimeInfo? MarkerRuntimeInfo { get; set; }
+    internal MarkerRuntimeInfo? MarkerRuntimeInfo
+    {
+        get => _markerRuntimeInfo;
+        set
+        {
+            _markerRuntimeInfo = value; 
+            SetDirty();
+        }
+    }
+
+    private MarkerRuntimeInfo? _markerRuntimeInfo;
 
     /// <inheritdoc />
     public IReadOnlyRunProperty ParagraphStartRunProperty { get; private set; }
