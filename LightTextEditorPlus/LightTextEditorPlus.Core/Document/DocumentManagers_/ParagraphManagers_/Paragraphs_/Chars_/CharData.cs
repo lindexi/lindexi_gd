@@ -55,7 +55,12 @@ public sealed class CharData
     /// <exception cref="InvalidOperationException"></exception>
     public TextPoint GetStartPoint()
     {
-        if (CharLayoutData is null || CharLayoutData.IsInvalidVersion()
+        if (CharLayoutData is null)
+        {
+            throw new InvalidOperationException($"禁止在加入到段落之前获取");
+        }
+
+        if (CharLayoutData.IsInvalidVersion()
             || CharLayoutData.CurrentLine is null)
         {
             throw new InvalidOperationException($"禁止在开始布局之前获取");

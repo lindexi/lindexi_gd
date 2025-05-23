@@ -271,7 +271,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             return;
         }
 
-        List<LineLayoutData> paragraphLineLayoutDataList = paragraph.LineLayoutDataList;
+        IReadOnlyList<LineLayoutData> paragraphLineLayoutDataList = paragraph.LineLayoutDataList;
         var firstLineLayoutData = paragraphLineLayoutDataList[0]; // 空段也能有一行的
         TextThickness lineSpacingThickness = firstLineLayoutData.LineSpacingThickness;
         var topLineSpacingGap = lineSpacingThickness.Top;
@@ -332,7 +332,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             CharStartPointInParagraphCoordinateSystem = new TextPointInParagraphCoordinateSystem(0, 0, paragraph),
             LineContentSize = new TextSize(0, lineHeight)
         };
-        paragraph.LineLayoutDataList.Add(lineLayoutData);
+        paragraph.AddLineLayoutData(lineLayoutData);
 
         // 下一段的起始坐标
         //  = 当前的坐标 + 段前 + 行高 + 段后
@@ -432,7 +432,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 UpdateCharLayoutLineInfo(charData, charIndex, currentLineLayoutData);
             }
 
-            paragraph.LineLayoutDataList.Add(currentLineLayoutData);
+            paragraph.AddLineLayoutData(currentLineLayoutData);
 
             i += result.CharCount;
 
@@ -1035,7 +1035,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="lineLayoutArgument"></param>
     /// <exception cref="NotSupportedException"></exception>
-    /// todo 处理项目符号回溯
     private static void FinalUpdateParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
     {
         FinalParagraphLayoutArgument paragraphLayoutArgument = lineLayoutArgument.FinalParagraphLayoutArgument;

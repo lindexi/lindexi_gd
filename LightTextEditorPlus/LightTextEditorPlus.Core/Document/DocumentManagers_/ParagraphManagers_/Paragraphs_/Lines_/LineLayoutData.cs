@@ -176,12 +176,12 @@ class LineLayoutData : IParagraphCache, IDisposable
         {
             if (IsDirty)
             {
-                // 理论上框架内不会进入此分支，于是可以在 get 方法抛出异常
-                // 业务层无法访问到这个属性
+                // 理论上框架内正常不会进入此分支，只有异常情况才能进入此分支，于是可以在 get 方法抛出异常
+                // 业务层无法访问到这个属性，因此在 get 方法抛出异常是安全的
                 throw new TextEditorDirtyException(CurrentParagraph.ParagraphManager.TextEditor);
             }
 
-            return CurrentParagraph.LineLayoutDataList.FindIndex(t => ReferenceEquals(t, this));
+            return CurrentParagraph.GetLineIndex(this);
         }
     }
 
