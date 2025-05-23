@@ -77,7 +77,7 @@ public sealed class CharData
     {
         if (CharLayoutData is null)
         {
-            throw new InvalidOperationException($"禁止在开始布局之前设置");
+            throw new InvalidOperationException($"禁止在加入到段落之前设置");
         }
 
         CharLayoutData.CharLineStartPoint = point;
@@ -187,6 +187,6 @@ public sealed class CharData
 
         if (IsLineBreakCharData) return "\\r\\n";
 
-        return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(Size != null ? $"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}" : "")}";
+        return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(Size != null ? $"W:{Size.Value.Width:0.###} H:{Size.Value.Height:0.###}" : "")}";
     }
 }

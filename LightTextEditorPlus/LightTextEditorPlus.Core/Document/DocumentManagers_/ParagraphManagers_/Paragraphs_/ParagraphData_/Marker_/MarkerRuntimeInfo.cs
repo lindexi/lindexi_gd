@@ -5,7 +5,8 @@ namespace LightTextEditorPlus.Core.Document;
 
 internal record MarkerRuntimeInfo
 {
-    public MarkerRuntimeInfo(string text, IReadOnlyRunProperty runProperty, TextMarker textMarker)
+    public MarkerRuntimeInfo(string text, IReadOnlyRunProperty runProperty, TextMarker textMarker,
+        ParagraphData paragraphData)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -15,6 +16,7 @@ internal record MarkerRuntimeInfo
         Text = text;
         RunProperty = runProperty;
         TextMarker = textMarker;
+        ParagraphData = paragraphData;
     }
 
     //依靠渲染时，判断段落是否空段即可知道，不需要再加一个属性，再加一个属性还要去维护它
@@ -24,6 +26,8 @@ internal record MarkerRuntimeInfo
     //public bool IsHidden { get; set; }
 
     public TextMarker TextMarker { get; }
+
+    internal ParagraphData ParagraphData { get; }
 
     public double MarkerIndentation { get; set; } = 0;
 
@@ -44,7 +48,9 @@ internal record MarkerRuntimeInfo
         var array = new CharData[textRun.Count];
         for (int i = 0; i < textRun.Count; i++)
         {
-            array[i] = new CharData(textRun.GetChar(i), RunProperty);
+            CharData charData = new CharData(textRun.GetChar(i), RunProperty);
+            charData.CharLayoutData = new CharLayoutData(charData, ParagraphData);
+            array[i] = charData;
         }
 
         return new TextReadOnlyListSpan<CharData>(array, 0, array.Length);
