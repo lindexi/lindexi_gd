@@ -387,6 +387,10 @@ class ParagraphData : ITextParagraph
 
     #region 渲染排版数据
 
+    /// <summary>
+    /// 段落内的各个行的布局信息。即使是空段也至少有一个行
+    /// </summary>
+    /// todo 分为写入和读取两个属性
     public List<LineLayoutData> LineLayoutDataList { get; } = new List<LineLayoutData>();
 
     #endregion

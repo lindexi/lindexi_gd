@@ -187,6 +187,6 @@ public sealed class CharData
 
         if (IsLineBreakCharData) return "\\r\\n";
 
-        return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(Size != null ? $"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}" : "")}";
+        return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(Size != null ? $"W:{Size.Value.Width:0.###} H:{Size.Value.Height:0.###}" : "")}";
     }
 }

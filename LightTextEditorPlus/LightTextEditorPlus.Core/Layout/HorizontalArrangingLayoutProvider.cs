@@ -262,14 +262,34 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     private void PreUpdateMarker(in ParagraphLayoutArgument argument)
     {
         ParagraphData paragraph = argument.ParagraphData;
-        var markerRuntimeInfo = paragraph.MarkerRuntimeInfo;
-        if (paragraph.IsEmptyParagraph)
+        MarkerRuntimeInfo? markerRuntimeInfo = paragraph.MarkerRuntimeInfo;
+        if (markerRuntimeInfo is null)
         {
-
+            // 没有项目符号，不用布局
+            return;
         }
-        else
-        {
 
+        List<LineLayoutData> paragraphLineLayoutDataList = paragraph.LineLayoutDataList;
+        var firstLineLayoutData = paragraphLineLayoutDataList[0]; // 空段也能有一行的
+        TextThickness lineSpacingThickness = firstLineLayoutData.LineSpacingThickness;
+        var topLineSpacingGap = lineSpacingThickness.Top;
+        var bottomLineSpacingGap = lineSpacingThickness.Bottom;
+        _ = bottomLineSpacingGap;
+
+        var lineTop = topLineSpacingGap;
+        // 在行的左边部分，刚好就是缩进的值
+        var currentX = -markerRuntimeInfo.MarkerIndentation;
+
+        Debug.Assert(markerRuntimeInfo.CharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
+        foreach (CharData charData in markerRuntimeInfo.CharDataList)
+        {
+            double xOffset = currentX;
+            double yOffset = lineTop + charData.Baseline;
+
+            charData.SetLayoutCharLineStartPoint(new TextPointInLineCoordinateSystem(xOffset, yOffset));
+
+            var charDataSize = charData.Size!.Value;
+            currentX += charDataSize.Width;
         }
     }
 
@@ -526,7 +546,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         if (IsInDebugMode)
         {
             var resultText = result.ToString();
-            _ = resultText; // todo 查看输出内容是否相同
+            _ = resultText;
         }
         return result;
     }
