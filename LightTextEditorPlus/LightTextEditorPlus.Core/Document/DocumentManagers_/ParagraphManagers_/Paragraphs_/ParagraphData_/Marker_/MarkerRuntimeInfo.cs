@@ -3,6 +3,9 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Document;
 
+/// <summary>
+/// 项目符号运行时信息
+/// </summary>
 internal record MarkerRuntimeInfo
 {
     public MarkerRuntimeInfo(string text, IReadOnlyRunProperty runProperty, TextMarker textMarker,

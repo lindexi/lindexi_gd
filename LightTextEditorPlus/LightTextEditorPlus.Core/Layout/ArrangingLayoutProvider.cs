@@ -332,6 +332,11 @@ abstract class ArrangingLayoutProvider
             foreach (CharData charData in charDataList)
             {
                 markerIndentation += charData.Size!.Value.Width;
+
+                if (IsInDebugMode)
+                {
+                    charData.IsSetStartPointInDebugMode = false;
+                }
             }
 
             if (markerRuntimeInfo.TextMarker.MinimumIndent != null)

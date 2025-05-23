@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
@@ -15,7 +17,9 @@ internal static class LayoutChecker
     {
         EnsureNextStartPoint(updateLayoutContext);
         EnsureParagraphIndent(updateLayoutContext);
+        EnsureMarker(updateLayoutContext);
     }
+
 
     private static void EnsureNextStartPoint(UpdateLayoutContext updateLayoutContext)
     {
@@ -66,6 +70,44 @@ internal static class LayoutChecker
 
             double markerIndentation = paragraphData.MarkerRuntimeInfo?.MarkerIndentation??0;
             TextEditorInnerDebugAsset.AreEquals(markerIndentation, indentInfo.MarkerIndentation, "MarkerIndentation");
+        }
+    }
+
+    /// <summary>
+    /// 确保项目符号布局
+    /// </summary>
+    /// <param name="updateLayoutContext"></param>
+    private static void EnsureMarker(UpdateLayoutContext updateLayoutContext)
+    {
+        foreach (ParagraphData paragraphData in updateLayoutContext.InternalParagraphList)
+        {
+            var marker = paragraphData.MarkerRuntimeInfo;
+
+            if (marker is null)
+            {
+                // 没有项目符号
+                continue;
+            }
+
+            TextReadOnlyListSpan<CharData> charDataList = marker.CharDataList;
+
+            if (charDataList.Count == 0)
+            {
+                throw new TextEditorInnerDebugException($"包含项目符号下，必定存在项目符号字符");
+            }
+
+            foreach (CharData charData in charDataList)
+            {
+                if (charData.Size is null)
+                {
+                    throw new TextEditorInnerDebugException($"存在项目符号字符没有在布局时计算尺寸");
+                }
+
+                if (!charData.IsSetStartPointInDebugMode)
+                {
+                    throw new TextEditorInnerDebugException($"存在项目符号字符没有在布局时设置坐标");
+                }
+            }
         }
     }
 }

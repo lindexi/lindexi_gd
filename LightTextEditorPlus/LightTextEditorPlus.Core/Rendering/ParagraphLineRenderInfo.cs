@@ -1,5 +1,6 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Rendering;
 
@@ -68,7 +69,27 @@ public readonly struct ParagraphLineRenderInfo
     /// </summary>
     public IReadOnlyRunProperty ParagraphStartRunProperty { get; }
 
+    /// <summary>
+    /// 项目符号运行时信息
+    /// </summary>
+    /// todo 去掉传值，直接从段落获取
+    internal MarkerRuntimeInfo? MarkerRuntimeInfo { get; init; }
+
+    /// <summary>
+    /// 是否包含项目符号。段内首行并且有项目符号
+    /// </summary>
+    public bool IsIncludeMarker => IsFirstLine && MarkerRuntimeInfo != null;
+
     private readonly RenderInfoProvider _renderInfoProvider;
+
+    /// <summary>
+    /// 获取项目符号字符内容
+    /// </summary>
+    /// <returns></returns>
+    public TextReadOnlyListSpan<CharData> GetMarkerCharDataList()
+    {
+        return MarkerRuntimeInfo?.CharDataList ?? new TextReadOnlyListSpan<CharData>([], 0, 0);
+    }
 
     /// <summary>
     /// 设置渲染结果
