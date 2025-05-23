@@ -2,6 +2,7 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
@@ -11,6 +12,12 @@ internal static class LayoutChecker
     /// 调试下判断布局是否正确
     /// </summary>
     public static void DebugCheckLayoutBeCorrected(UpdateLayoutContext updateLayoutContext)
+    {
+        EnsureNextStartPoint(updateLayoutContext);
+        EnsureParagraphIndent(updateLayoutContext);
+    }
+
+    private static void EnsureNextStartPoint(UpdateLayoutContext updateLayoutContext)
     {
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
 
@@ -45,6 +52,20 @@ internal static class LayoutChecker
             TextSize outlineSize = layoutData.OutlineSize;
             // 当前段落的起始点就等于上一段的最低点
             return startPoint.Offset(0, outlineSize.Height);
+        }
+    }
+
+    private static void EnsureParagraphIndent(UpdateLayoutContext updateLayoutContext)
+    {
+        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
+        foreach (ParagraphData paragraphData in paragraphList)
+        {
+            ParagraphLayoutIndentInfo indentInfo = paragraphData.ParagraphLayoutData.IndentInfo;
+
+            indentInfo.DebugVerifyParagraphPropertyIndentInfo(paragraphData.ParagraphProperty);
+
+            double markerIndentation = paragraphData.MarkerRuntimeInfo?.MarkerIndentation??0;
+            TextEditorInnerDebugAsset.AreEquals(markerIndentation, indentInfo.MarkerIndentation, "MarkerIndentation");
         }
     }
 }

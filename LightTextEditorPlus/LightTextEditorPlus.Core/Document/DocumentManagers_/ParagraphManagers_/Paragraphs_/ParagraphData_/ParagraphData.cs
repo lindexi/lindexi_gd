@@ -62,24 +62,8 @@ class ParagraphData : ITextParagraph
         void Verify()
         {
             ParagraphLayoutIndentInfo indentInfo = _paragraphLayoutData.IndentInfo;
-
-            EqualAssets(ParagraphProperty.LeftIndentation, indentInfo.LeftIndentation, nameof(ParagraphProperty.LeftIndentation));
-            EqualAssets(ParagraphProperty.RightIndentation, indentInfo.RightIndentation,
-                nameof(ParagraphProperty.RightIndentation));
-            EqualAssets(ParagraphProperty.Indent, indentInfo.Indent, nameof(ParagraphProperty.Indent));
-            if (ParagraphProperty.IndentType != indentInfo.IndentType)
-            {
-                throw new TextEditorInnerDebugException($"对 IndentType 的预期和实际值不符。预期：{ParagraphProperty.IndentType}，实际：{indentInfo.IndentType}");
-            }
-         
-
-            static void EqualAssets(double expect, double actual, string name)
-            {
-                if (Nearly.Equals(expect, actual) is false)
-                {
-                    throw new TextEditorInnerDebugException($"对 {name} 的预期和实际值不符。预期：{expect}，实际：{actual}");
-                }
-            }
+            indentInfo
+                .DebugVerifyParagraphPropertyIndentInfo(ParagraphProperty);
         }
     }
 
