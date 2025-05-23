@@ -17,18 +17,20 @@ public class DefaultPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<
     //}
 
     /// <inheritdoc />
-    public override IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty,
-        IReadOnlyRunProperty styleRunProperty)
+    protected override LayoutOnlyRunProperty OnUpdateMarkerRunProperty(LayoutOnlyRunProperty? markerRunProperty,
+        LayoutOnlyRunProperty styleRunProperty)
     {
-        if (markerRunProperty is LayoutOnlyRunProperty layoutOnlyRunProperty)
+        if (markerRunProperty is null)
         {
-            return (LayoutOnlyRunProperty) styleRunProperty with
+            return styleRunProperty;
+        }
+        else
+        {
+            return styleRunProperty with
             {
-                FontName = layoutOnlyRunProperty.FontName
+                FontName = markerRunProperty.FontName,
             };
         }
-
-        return styleRunProperty;
     }
 
     /// <inheritdoc />

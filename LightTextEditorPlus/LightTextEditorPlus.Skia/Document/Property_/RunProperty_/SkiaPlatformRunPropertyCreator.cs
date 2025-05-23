@@ -56,37 +56,19 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
         }
     }
 
-    public override IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty,
-        IReadOnlyRunProperty styleRunProperty)
+    protected override SkiaTextRunProperty OnUpdateMarkerRunProperty(SkiaTextRunProperty? markerRunProperty,
+        SkiaTextRunProperty styleRunProperty)
     {
-        if (styleRunProperty is not SkiaTextRunProperty styleSkiaTextRunProperty)
-        {
-            // 理论上不会进入此分支，因为这是从框架层传入的值
-            ThrowRunPropertyTypeNotSupportedException(styleRunProperty);
-            Debug.Fail("上面方法已经抛出异常了，理论上不会进入此分支");
-            return null!;
-        }
-
         if (markerRunProperty is null)
         {
             return styleRunProperty;
         }
         else
         {
-            if (markerRunProperty is SkiaTextRunProperty markerSkiaTextRunProperty)
+            return styleRunProperty with
             {
-                // 只保留字体名称，因为有些项目符号需要特殊字体，如 Wingdings 等
-                return styleSkiaTextRunProperty with
-                {
-                    FontName = markerSkiaTextRunProperty.FontName,
-                };
-            }
-            else
-            {
-                ThrowRunPropertyTypeNotSupportedException(markerRunProperty);
-                Debug.Fail("上面方法已经抛出异常了，理论上不会进入此分支");
-                return null!;
-            }
+                FontName = markerRunProperty.FontName,
+            };
         }
     }
 
