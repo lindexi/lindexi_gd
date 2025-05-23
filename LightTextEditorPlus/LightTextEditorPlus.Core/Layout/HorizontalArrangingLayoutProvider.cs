@@ -282,12 +282,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 在行的左边部分，刚好就是缩进的值
         var currentX = -markerRuntimeInfo.MarkerIndentation;
 
-        Debug.Assert(markerRuntimeInfo.CharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
-        for (int i = 0; i < markerRuntimeInfo.CharDataList.Count; i++)
+        TextReadOnlyListSpan<CharData> markerCharDataList = markerRuntimeInfo.CharDataList;
+        Debug.Assert(markerCharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
+        // 采用加上首个字符的方法是为了实现基线对齐
+        // ~~在项目符号里面，所有字符都采用相同的字符属性，因此最大不需要和 UpdateTextLineStartPoint 一样取最大字号的字符。或者说最大字号的字符就是首个字符~~
+        // todo 这里应该取最大字符
+        double maxFontYOffset = lineTop + markerCharDataList[0].Baseline;
+
+        for (int i = 0; i < markerCharDataList.Count; i++)
         {
-            CharData charData = markerRuntimeInfo.CharDataList[i];
+            // 于此相似的处理，处理行内字符的行距和行内 Y 坐标是在 UpdateTextLineStartPoint 方法里面
+            CharData charData = markerCharDataList[i];
             double xOffset = currentX;
-            double yOffset = lineTop + charData.Baseline;
+            double yOffset = maxFontYOffset - charData.Baseline;
 
             charData.SetLayoutCharLineStartPoint(new TextPointInLineCoordinateSystem(xOffset, yOffset));
 
@@ -295,7 +302,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             currentX += charDataSize.Width;
 
             // 设计上让项目符号是段落负数的值
-            var charIndex = new ParagraphCharOffset(-markerRuntimeInfo.CharDataList.Count + i);
+            var charIndex = new ParagraphCharOffset(-markerCharDataList.Count + i);
             UpdateCharLayoutLineInfo(charData, charIndex, firstLineLayoutData);
         }
     }
