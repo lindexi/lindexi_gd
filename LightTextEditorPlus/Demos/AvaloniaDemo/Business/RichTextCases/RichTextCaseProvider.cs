@@ -329,6 +329,25 @@ class RichTextCaseProvider
         {
             editor.AppendText("😊");
         }, "追加 Emoji 表情字符");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(30);
+            editor.AppendText("123");
+
+            editor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+            {
+                Marker = new BulletMarker()
+                {
+                    MarkerText = "é",
+                    ShouldFollowParagraphFirstCharRunProperty = true,
+                    RunProperty = TextEditor.CreateRunProperty(styleRunProperty => styleRunProperty with
+                    {
+                        FontName = new FontName("Wingdings 2")
+                    })
+                }
+            });
+        }, "无序项目符号");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;

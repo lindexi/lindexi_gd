@@ -493,6 +493,14 @@ public partial class TextEditorSettingsControl : UserControl
     private void CircleNumberDoubleBytePlainButton_OnClick(object sender, RoutedEventArgs e)
     {
         // 带圈的双字节阿拉伯数字，如 ①、 ②、 ③
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property =>
+            property with
+            {
+                Marker = new NumberMarker()
+                {
+                    AutoNumberType = AutoNumberType.CircleNumberDoubleBytePlain
+                }
+            });
     }
 
     private void MarkerButton_OnClick(object sender, RoutedEventArgs e)
