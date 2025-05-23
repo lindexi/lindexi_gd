@@ -744,49 +744,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
     }
 
-    #region 缩进和项目符号
-
-    protected override ParagraphLayoutIndentInfo CalculateParagraphIndent(in CalculateParagraphIndentArgument argument)
-    {
-        ParagraphData paragraphData = argument.CurrentParagraphData;
-        ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
-
-        double markerIndentation = 0;
-
-        MarkerRuntimeInfo? markerRuntimeInfo = paragraphData.MarkerRuntimeInfo;
-
-        if (markerRuntimeInfo != null)
-        {
-            TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
-            Debug.Assert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
-            var fillSizeOfRunArgument = new FillSizeOfRunArgument(charDataList, argument.UpdateLayoutContext);
-            MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
-            foreach (CharData charData in charDataList)
-            {
-                markerIndentation += charData.Size!.Value.Width;
-            }
-
-            markerRuntimeInfo.MarkerIndentation = markerIndentation;
-        }
-
-        double lineMaxWidth = GetLineMaxWidth();
-
-        var indentInfo = new ParagraphLayoutIndentInfo
-        {
-            LineMaxWidth = lineMaxWidth,
-            Indent = paragraphProperty.Indent,
-            IndentType = paragraphProperty.IndentType,
-            LeftIndentation = paragraphProperty.LeftIndentation,
-            RightIndentation = paragraphProperty.RightIndentation,
-            MarkerIndentation = markerIndentation,
-        };
-
-        return indentInfo; // todo 将这个方法放在底层
-    }
-
-
-    #endregion
-
     /// <inheritdoc />
     protected override TextSize CalculateDocumentContentSize(IReadOnlyList<ParagraphData> paragraphList, UpdateLayoutContext updateLayoutContext)
     {
