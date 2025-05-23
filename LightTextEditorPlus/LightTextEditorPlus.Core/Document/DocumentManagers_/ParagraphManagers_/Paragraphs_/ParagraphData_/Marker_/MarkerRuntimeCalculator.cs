@@ -17,10 +17,10 @@ static class MarkerRuntimeCalculator
     /// <param name="textEditor"></param>
     public static void UpdateParagraphMarkerRuntimeInfo(IReadOnlyList<ParagraphData> paragraphList, TextEditorCore textEditor)
     {
-        textEditor.Logger.LogDebug($"[MarkerRuntimeCalculator] 开始更新段落的项目符号信息");
+        textEditor.Logger.LogDebug($"[TextEditorCore][MarkerRuntimeCalculator] 开始更新段落的项目符号信息");
         if (paragraphList.All(t => t.ParagraphProperty.Marker is null))
         {
-            textEditor.Logger.LogDebug($"[MarkerRuntimeCalculator] 完成更新段落的项目符号信息。未找到任何一段设置了项目符号，直接跳过");
+            textEditor.Logger.LogDebug($"[TextEditorCore][MarkerRuntimeCalculator] 完成更新段落的项目符号信息。未找到任何一段设置了项目符号，直接跳过");
 
             // 短路代码，没有任何一个项目符号的情况
             return;
@@ -83,7 +83,7 @@ static class MarkerRuntimeCalculator
             paragraphData.MarkerRuntimeInfo = new MarkerRuntimeInfo(markerTextInfo.MarkerText, markerRunProperty);
         }
 
-        textEditor.Logger.LogDebug($"[MarkerRuntimeCalculator] 完成更新段落的项目符号信息");
+        textEditor.Logger.LogDebug($"[TextEditorCore][MarkerRuntimeCalculator] 完成更新段落的项目符号信息");
     }
 
     public readonly record struct MarkerTextInfo(string? MarkerText, ParagraphData ParagraphData);
