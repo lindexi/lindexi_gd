@@ -38,6 +38,7 @@
             </Border>
             <StackPanel Grid.Row="1" Margin="10,0,10,5" Orientation="Horizontal">
                 <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+                <Button x:Name="DebugRequireReUpdateAllDocumentLayoutButton" Margin="5,0,0,0" Click="DebugRequireReUpdateAllDocumentLayoutButton_OnClick">强行重新布局</Button>
                 <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
 
             </StackPanel>
