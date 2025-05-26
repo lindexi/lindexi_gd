@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.Installer.Boost", "DotNetCampus.Installer.Boost\DotNetCampus.Installer.Boost.csproj", "{962E1067-1A6C-415C-A3F1-B9F8EE8DB3AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsApp", "WinFormsApp\WinFormsApp.csproj", "{79E50C03-A583-4251-BF24-85C932C21F8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{962E1067-1A6C-415C-A3F1-B9F8EE8DB3AD}.Release|x64.Build.0 = Release|Any CPU
 		{962E1067-1A6C-415C-A3F1-B9F8EE8DB3AD}.Release|x86.ActiveCfg = Release|Any CPU
 		{962E1067-1A6C-415C-A3F1-B9F8EE8DB3AD}.Release|x86.Build.0 = Release|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Debug|x64.Build.0 = Debug|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Debug|x86.Build.0 = Debug|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Release|x64.ActiveCfg = Release|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Release|x64.Build.0 = Release|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Release|x86.ActiveCfg = Release|Any CPU
+		{79E50C03-A583-4251-BF24-85C932C21F8B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

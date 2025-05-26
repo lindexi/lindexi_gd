@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IlcDisableReflection>true</IlcDisableReflection>
+    <PublishAot>true</PublishAot>
+    <_SuppressWinFormsTrimError Condition="$(PublishAot) == true">true</_SuppressWinFormsTrimError>
+    <SupportedOSPlatformVersion>5.1</SupportedOSPlatformVersion>
+    <!-- [.NET 9 AOT的突破 - 支持老旧Win7与XP环境 - 码界工坊 - 博客园](https://www.cnblogs.com/lsq6/p/18519287 ) -->
+    <WindowsSupportedOSPlatformVersion>5.1</WindowsSupportedOSPlatformVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="VC-LTL" Version="5.2.1" />
+    <PackageReference Include="YY-Thunks" Version="1.1.7" />
+
+    <PackageReference Include="WinFormsComInterop" Version="0.5.0" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.0" />
+  </ItemGroup>
+</Project>
