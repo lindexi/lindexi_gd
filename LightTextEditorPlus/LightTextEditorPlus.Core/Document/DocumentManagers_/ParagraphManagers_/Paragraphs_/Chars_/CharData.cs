@@ -83,7 +83,7 @@ public sealed class CharData
     {
         if (CharLayoutData is null)
         {
-            throw new InvalidOperationException($"禁止在加入到段落之前设置");
+            throw new InvalidOperationException("禁止在加入到段落之前设置字符的起始点信息");
         }
 
         CharLayoutData.CharLineStartPoint = point;
@@ -99,17 +99,6 @@ public sealed class CharData
     /// 是否已经设置了此字符的起始（左上角）坐标。这是一个调试属性，仅调试下有用
     /// </summary>
     public bool IsSetStartPointInDebugMode { set; get; }
-
-    /// <summary>
-    /// 设置字符信息
-    /// </summary>
-    /// <param name="frameSize">文字外框，字外框尺寸</param>
-    /// <param name="faceSize">字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸</param>
-    /// <param name="baseline">基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</param>
-    internal void SetCharDataInfo(TextSize frameSize, TextSize faceSize, double baseline)
-    {
-        SetCharDataInfo(new CharDataInfo(frameSize, faceSize, baseline));
-    }
 
     /// <summary>
     /// 设置字符信息

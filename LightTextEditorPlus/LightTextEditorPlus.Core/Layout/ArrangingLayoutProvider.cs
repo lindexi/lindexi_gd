@@ -536,8 +536,7 @@ abstract class ArrangingLayoutProvider
             double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
             if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
             {
-                // 如果需要使用文本高度，那么进行
-                // 测量空行文本
+                // 如果需要使用文本高度，那么进行测量空行文本
                 var size = MeasureEmptyParagraphLineSize(runProperty, argument.UpdateLayoutContext);
 
                 lineHeight = size.Height;
@@ -556,13 +555,24 @@ abstract class ArrangingLayoutProvider
     private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty, UpdateLayoutContext context)
     {
         context.RecordDebugLayoutInfo($"空行布局", LayoutDebugCategory.PreWholeLine);
-        SingleObjectList<CharData> virtualCharDataList = context.GetEmptyParagraphSingleVirtualCharDataList(runProperty);
+        CharDataInfo charDataInfo = MeasureEmptyParagraphCharDataInfo(runProperty, context);
+        return charDataInfo.FrameSize;
+    }
+
+    /// <summary>
+    /// 测量空段的字符数据
+    /// </summary>
+    /// <returns></returns>
+    protected CharDataInfo MeasureEmptyParagraphCharDataInfo(IReadOnlyRunProperty paragraphStartRunProperty, UpdateLayoutContext context)
+    {
+        SingleObjectList<CharData> virtualCharDataList = context.GetEmptyParagraphSingleVirtualCharDataList(paragraphStartRunProperty);
         var listSpan = virtualCharDataList.ToListSpan();
         CharData virtualCharData = virtualCharDataList.CurrentObject;
 
         MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(listSpan, context));
         Debug.Assert(!virtualCharData.IsInvalidCharDataInfo);
-        return virtualCharData.Size;
+        // 尽管 virtualCharData 是瞬时的，但是从中取出 CharDataInfo 结构体是安全的
+        return virtualCharData.CharDataInfo;
     }
 
     /// <summary>
@@ -713,7 +723,7 @@ abstract class ArrangingLayoutProvider
         // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
         TextSize textFaceSize = size;
 
-        setter.SetCharDataInfo(charData, textFrameSize, textFaceSize, baseline);
+        setter.SetCharDataInfo(charData, new CharDataInfo(textFrameSize, textFaceSize, baseline));
     }
 
     ///// <summary>

@@ -8,6 +8,12 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
 static class CharDataLayoutHelper
 {
+    /// <summary>
+    /// 获取两个字符属性中，最大字号的字符属性。如果两个字符属性的字号相同，则返回首个字符属性。
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
     public static CharData GetMaxFontSizeCharData(CharData a, CharData b)
     {
         if (a.RunProperty.FontSize > b.RunProperty.FontSize)

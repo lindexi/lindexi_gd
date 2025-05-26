@@ -11,6 +11,11 @@ namespace LightTextEditorPlus.Core.Document;
 public readonly record struct CharDataInfo(TextSize FrameSize, TextSize FaceSize, double Baseline)
 {
     /// <summary>
+    /// 字符的尺寸。字符意义上的字符尺寸。等同于 <see cref="FrameSize"/> 的值
+    /// </summary>
+    public TextSize Size => FrameSize;
+
+    /// <summary>
     /// 表示无效的字符固有信息
     /// </summary>
     public static CharDataInfo Invalid => new CharDataInfo()
