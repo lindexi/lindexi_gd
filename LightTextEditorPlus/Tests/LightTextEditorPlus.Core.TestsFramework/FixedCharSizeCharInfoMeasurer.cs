@@ -32,6 +32,6 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
         // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
         TextSize textFaceSize = size;
 
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, textFrameSize, textFaceSize, baseline);
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, new CharDataInfo(textFrameSize, textFaceSize, baseline));
     }
 }

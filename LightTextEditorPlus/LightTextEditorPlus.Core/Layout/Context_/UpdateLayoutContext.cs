@@ -166,14 +166,14 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     }
 
     /// <inheritdoc />
-    public void SetCharDataInfo(CharData charData, TextSize frameSize, TextSize faceSize, double baseline)
+    public void SetCharDataInfo(CharData charData, in CharDataInfo charDataInfo)
     {
         if (IsCurrentLayoutCompleted)
         {
             throw new InvalidOperationException($"只有在布局过程才能设置 {nameof(charData)} 的布局属性");
         }
 
-        charData.SetCharDataInfo(frameSize, faceSize, baseline);
+        charData.SetCharDataInfo(charDataInfo);
     }
 
     #endregion

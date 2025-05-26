@@ -337,7 +337,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 TextSize textFrameSize = charSizeInfo.TextFrameSize;
                 TextSize textFaceSize = charSizeInfo.TextFaceSize;
 
-                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, textFrameSize, textFaceSize, baselineY);
+                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new CharDataInfo(textFrameSize, textFaceSize, baselineY));
             }
 
             // 实际上不会存在不匹配问题，上面计算也是采用 utf16 的方式，兼容处理了高低代理。核心处理在 HarfBuzzSharp.Buffer 里面
