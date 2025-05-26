@@ -414,4 +414,17 @@ partial class TextEditorCore
     }
 
     #endregion
+
+    #region Handlers
+
+    // 还没想好如何设计
+    //private List<ITextEditorHandler>? Handlers { get; }
+
+    //public IReadOnlyList<ITextEditorHandler> GetHandlers() => (IReadOnlyList<ITextEditorHandler>?) Handlers ?? Array.Empty<ITextEditorHandler>();
+
+    #endregion
+}
+
+file interface ITextEditorHandler
+{
 }

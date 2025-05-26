@@ -16,4 +16,10 @@ public partial class TextEditor
     /// 文本核心
     /// </summary>
     public TextEditorCore TextEditorCore { get; }
+
+    #region Handlers
+
+    
+
+    #endregion
 }
