@@ -329,6 +329,15 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         return GetTransientSingleCharDataList(charData);
     }
 
+    /// <summary>
+    /// 获取空段的虚拟的字符数据列表。这个列表只包含一个元素，且元素是使用了 <paramref name="paragraphStartRunProperty"/> 属性的瞬时的 <see cref="CharData"/> 对象，只有瞬时作用，不得存放起来
+    /// </summary>
+    /// <param name="paragraphStartRunProperty"></param>
+    /// <returns></returns>
+    /// 只是为了让空段也假装有文本内容，方便进行测量动作
+    internal SingleObjectList<CharData> GetEmptyParagraphSingleVirtualCharDataList(IReadOnlyRunProperty paragraphStartRunProperty) =>
+        GetTransientSingleCharDataList(paragraphStartRunProperty);
+
     #endregion
 
     #endregion

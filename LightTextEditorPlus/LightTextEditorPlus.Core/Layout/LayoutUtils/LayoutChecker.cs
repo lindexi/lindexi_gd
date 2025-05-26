@@ -98,7 +98,7 @@ internal static class LayoutChecker
 
             foreach (CharData charData in charDataList)
             {
-                if (charData.Size is null)
+                if (charData.IsInvalidCharDataInfo)
                 {
                     throw new TextEditorInnerDebugException($"存在项目符号字符没有在布局时计算尺寸");
                 }

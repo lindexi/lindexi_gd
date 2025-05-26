@@ -147,9 +147,9 @@ public readonly struct CaretRenderInfo
         TextRect lineBounds = LineBounds;
         var startPoint = charData?.GetStartPoint() ?? lineBounds.LeftTop;
         TextSize textSize;
-        if (charData?.Size is not null)
+        if (charData != null && !charData.IsInvalidCharDataInfo)
         {
-            textSize = charData.Size.Value;
+            textSize = charData.Size;
         }
         else
         {

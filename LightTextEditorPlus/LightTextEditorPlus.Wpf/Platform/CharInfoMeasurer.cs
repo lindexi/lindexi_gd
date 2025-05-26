@@ -21,8 +21,9 @@ class CharInfoMeasurer : ICharInfoMeasurer
     {
         CharData currentCharData = argument.CurrentCharData;
 
-        if (currentCharData.Size is not null)
+        if (!currentCharData.IsInvalidCharDataInfo)
         {
+            // 如果有字符属性了，就不需要再执行测量了
             return;
         }
 

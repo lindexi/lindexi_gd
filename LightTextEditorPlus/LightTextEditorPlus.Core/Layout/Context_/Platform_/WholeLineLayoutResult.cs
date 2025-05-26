@@ -25,7 +25,7 @@ public readonly record struct WholeLineLayoutResult(TextSize LineSize, TextSize 
 
         var textHeight = TextSize.Height;
 
-        var lineSpacing = lineHeight - MaxFontSizeCharData.Size!.Value.Height;
+        var lineSpacing = lineHeight - MaxFontSizeCharData.Size.Height;
         var topLineSpacingGap = LineSpacingThickness.Top;
         var bottomLineSpacingGap = LineSpacingThickness.Bottom;
         var lineSpacingGap = topLineSpacingGap + bottomLineSpacingGap;

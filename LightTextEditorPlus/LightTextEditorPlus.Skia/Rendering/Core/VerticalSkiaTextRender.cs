@@ -58,7 +58,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                     for (int i = 0; i < charList.Count; i++)
                     {
                         CharData charData = charList[i];
-                        TextSize frameSize = charData.Size!.Value
+                        TextSize frameSize = charData.Size
                             // 由于采用的是横排的坐标，在竖排计算下，需要倒换一下
                             .SwapWidthAndHeight();
                         TextSize faceSize = charData.FaceSize.SwapWidthAndHeight();
