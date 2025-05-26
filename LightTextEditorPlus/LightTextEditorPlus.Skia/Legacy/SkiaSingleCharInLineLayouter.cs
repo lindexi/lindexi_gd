@@ -31,7 +31,7 @@
 //        TextEditor = textEditor;
 //    }
 
-//    private SkiaTextEditor TextEditor { get; } // todo 后续考虑弱引用，方便释放
+//    private SkiaTextEditor TextEditor { get; }
 //    private TextEditorDebugConfiguration DebugConfiguration => TextEditor.TextEditorCore.DebugConfiguration;
 //    private ITextLogger Logger => TextEditor.TextEditorCore.Logger;
 

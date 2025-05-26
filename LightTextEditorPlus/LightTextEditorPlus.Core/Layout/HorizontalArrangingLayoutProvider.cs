@@ -290,15 +290,35 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextReadOnlyListSpan<CharData> markerCharDataList = markerRuntimeInfo.CharDataList;
         DebugAssert(markerCharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
         // 采用加上首个字符的方法是为了实现基线对齐
+        double maxFontSizeCharDataBaseline;
+        bool isEmptyParagraph = firstLineLayoutData.CharCount == 0;//首个行都是 0 个字符，这就是一个空段了
+        if (isEmptyParagraph)
+        {
+            // 先判断一下是段落的字符属性的字号大还是项目符号的字号大。如果是段落的大，则使用段落的字号，否则使用项目符号的字号
+            IReadOnlyRunProperty paragraphStartRunProperty = paragraph.ParagraphStartRunProperty;
+            // 在项目符号里面，所有字符都采用相同的字符属性，最大字号的字符就是和首个字符相同
+            if (paragraphStartRunProperty.FontSize >= markerCharDataList[0].RunProperty.FontSize)
+            {
+                CharDataInfo charDataInfo =
+                    MeasureEmptyParagraphCharDataInfo(paragraphStartRunProperty, argument.UpdateLayoutContext);
+                maxFontSizeCharDataBaseline = charDataInfo.Baseline;
+            }
+            else
+            {
+                // 项目符号的字号更大
+                maxFontSizeCharDataBaseline = markerCharDataList[0].Baseline;
+            }
+        }
+        else
+        {
+            // 非空段的情况下，测试一下项目符号更大还是首个字符更大
+            var maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(firstLineLayoutData.GetCharList());
+            // 在项目符号里面，所有字符都采用相同的字符属性，最大字号的字符就是和首个字符相同
+            maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(markerCharDataList[0], maxFontSizeCharData);
+            maxFontSizeCharDataBaseline = maxFontSizeCharData.Baseline;
+        }
 
-
-        var maxFontSizeCharData = firstLineLayoutData.CharCount > 0
-            ? CharDataLayoutHelper.GetMaxFontSizeCharData(firstLineLayoutData.GetCharList())
-            : markerCharDataList[0];
-        // 在项目符号里面，所有字符都采用相同的字符属性，最大字号的字符就是和首个字符相同
-        maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(markerCharDataList[0], maxFontSizeCharData);
-      
-        double maxFontYOffset = lineTop + maxFontSizeCharData.Baseline;
+        double maxFontYOffset = lineTop + maxFontSizeCharDataBaseline;
 
         for (int i = 0; i < markerCharDataList.Count; i++)
         {
@@ -326,11 +346,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <returns></returns>
     private TextPointInDocumentContentCoordinateSystem UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPointInDocumentContentCoordinateSystem currentStartPoint)
     {
-        double paragraphBefore = argument.GetParagraphBefore();
-
         var paragraph = argument.ParagraphData;
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
         DebugAssert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
+
+        //// 测量和获取空段的字符信息
+        // 段落的字符信息不是必要的，就不要放在这里立刻计算了
+     
         var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
             new EmptyParagraphLineHeightMeasureArgument(paragraph, argument.ParagraphIndex, argument.UpdateLayoutContext));
         double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
@@ -347,6 +369,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 下一段的起始坐标
         //  = 当前的坐标 + 段前 + 行高 + 段后
+        double paragraphBefore = argument.GetParagraphBefore();
         double paragraphAfter = argument.GetParagraphAfter();
         const double offsetX = 0;
         double offsetY = paragraphBefore + lineHeight + paragraphAfter;
