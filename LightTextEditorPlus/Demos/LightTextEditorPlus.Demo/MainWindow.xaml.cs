@@ -338,6 +338,11 @@ namespace LightTextEditorPlus.Demo
                 }
             }
         }
+
+        private void DebugRequireReUpdateAllDocumentLayoutButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            TextEditor.TextEditorCore.DebugRequireReUpdateAllDocumentLayout();
+        }
     }
 }
 

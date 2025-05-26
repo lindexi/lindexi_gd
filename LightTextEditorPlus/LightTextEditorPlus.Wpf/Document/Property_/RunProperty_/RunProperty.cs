@@ -253,88 +253,88 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
 
     #endregion
 
-    //#region 相等判断
+    #region 相等判断
 
-    ///// <inheritdoc />
-    //public override bool Equals(IReadOnlyRunProperty? other)
-    //{
-    //    if (ReferenceEquals(other, this))
-    //    {
-    //        // 大部分的判断情况下，都会进入这个分支
-    //        return true;
-    //    }
+    /// <inheritdoc />
+    public override bool Equals(IReadOnlyRunProperty? other)
+    {
+        if (ReferenceEquals(other, this))
+        {
+            // 大部分的判断情况下，都会进入这个分支
+            return true;
+        }
 
-    //    if (other is RunProperty otherRunProperty)
-    //    {
-    //        return Equals(otherRunProperty);
-    //    }
-    //    else
-    //    {
-    //        return false;
-    //    }
-    //}
+        if (other is RunProperty otherRunProperty)
+        {
+            return Equals(otherRunProperty);
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-    ///// <inheritdoc />
-    //public override int GetHashCode()
-    //{
-    //    var hashCode = new HashCode();
-    //    hashCode.Add(FontName);
-    //    hashCode.Add(FontSize);
-    //    hashCode.Add(Foreground);
-    //    hashCode.Add(Opacity);
-    //    hashCode.Add(FontWeight);
-    //    hashCode.Add(FontStyle);
-    //    hashCode.Add(Stretch);
-    //    hashCode.Add(Background);
-    //    return hashCode.ToHashCode();
-    //}
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(FontName);
+        hashCode.Add(FontSize);
+        hashCode.Add(Foreground);
+        hashCode.Add(Opacity);
+        hashCode.Add(FontWeight);
+        hashCode.Add(FontStyle);
+        hashCode.Add(Stretch);
+        hashCode.Add(Background);
+        return hashCode.ToHashCode();
+    }
 
-    ///// <inheritdoc />
-    //public virtual bool Equals(RunProperty? other)
-    //{
-    //    if (other == null)
-    //    {
-    //        return false;
-    //    }
+    /// <inheritdoc />
+    public virtual bool Equals(RunProperty? other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
 
-    //    // 按照用户可能修改的属性排序，被设置越多的属性放在最前面
-    //    if (!base.Equals(other))
-    //    {
-    //        return false;
-    //    }
+        // 按照用户可能修改的属性排序，被设置越多的属性放在最前面
+        if (!base.Equals(other))
+        {
+            return false;
+        }
 
-    //    if (!Equals(Foreground, other.Foreground))
-    //    {
-    //        return false;
-    //    }
+        if (!Equals(Foreground, other.Foreground))
+        {
+            return false;
+        }
 
-    //    if (!Equals(Opacity, other.Opacity))
-    //    {
-    //        return false;
-    //    }
+        if (!Equals(Opacity, other.Opacity))
+        {
+            return false;
+        }
 
-    //    if (!Equals(FontWeight, other.FontWeight))
-    //    {
-    //        return false;
-    //    }
+        if (!Equals(FontWeight, other.FontWeight))
+        {
+            return false;
+        }
 
-    //    if (!Equals(FontStyle, other.FontStyle))
-    //    {
-    //        return false;
-    //    }
+        if (!Equals(FontStyle, other.FontStyle))
+        {
+            return false;
+        }
 
-    //    if (!Equals(Stretch, other.Stretch))
-    //    {
-    //        return false;
-    //    }
+        if (!Equals(Stretch, other.Stretch))
+        {
+            return false;
+        }
 
-    //    if (!Equals(Background, other.Background))
-    //    {
-    //        return false;
-    //    }
+        if (!Equals(Background, other.Background))
+        {
+            return false;
+        }
 
-    //    return true;
-    //}
+        return true;
+    }
 
-    //#endregion
+    #endregion
 }

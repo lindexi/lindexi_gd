@@ -409,7 +409,7 @@ abstract class ArrangingLayoutProvider
             // 继续执行段落内布局
         }
 
-        context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局", LayoutDebugCategory.PreParagraph);
+        context.RecordDebugLayoutInfo($"第 {argument.ParagraphIndex.Index} 段，段落是脏的，执行段落内布局", LayoutDebugCategory.PreParagraph);
         argument.ParagraphData.SetLayoutDirty(exceptTextSize: false/*应该是连文本尺寸都是脏的*/);
 
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
@@ -513,6 +513,9 @@ abstract class ArrangingLayoutProvider
     protected EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(
         in EmptyParagraphLineHeightMeasureArgument argument)
     {
+        argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {argument.ParagraphIndex.Index} 段，空段布局",
+            LayoutDebugCategory.PreParagraph);
+
         var emptyParagraphLineHeightMeasurer = TextEditor.PlatformProvider.GetEmptyParagraphLineHeightMeasurer();
         if (emptyParagraphLineHeightMeasurer != null)
         {
@@ -549,6 +552,7 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty, UpdateLayoutContext context)
     {
+        context.RecordDebugLayoutInfo($"空行布局", LayoutDebugCategory.PreWholeLine);
         var testCharData = context.GetTransientMeasureCharData(runProperty);
         SingleObjectList<CharData> list = context.GetTransientCharDataList(testCharData);
         var listSpan = new TextReadOnlyListSpan<CharData>(list, 0, 1);
