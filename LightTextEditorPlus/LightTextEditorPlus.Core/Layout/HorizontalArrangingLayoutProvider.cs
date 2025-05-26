@@ -258,9 +258,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 
     /// <summary>
-    /// 预布局项目符号信息，只能布局获取相对坐标，还不能拿到确切坐标，确切坐标需要在回溯过程才能计算
+    /// 预布局项目符号信息，只能布局获取相对坐标，还不能拿到确切坐标，确切坐标需要在回溯过程才能计算。事实上不需要在回溯过程处理，因为本身的坐标类型就自带了计算逻辑，因此在回溯过程里面不需要再进行额外的处理了
     /// </summary>
     /// <param name="argument"></param>
+    /// 项目符号计算分为两个部分：
+    /// 1. 在 <see cref="ArrangingLayoutProvider.CalculateParagraphIndentAndMarker"/> 计算左右方向的缩进影响
+    /// 2. 在 <see cref="HorizontalArrangingLayoutProvider.PreUpdateMarker"/> 计算左上角的起始点坐标
     private void PreUpdateMarker(in ParagraphLayoutArgument argument)
     {
         ParagraphData paragraph = argument.ParagraphData;

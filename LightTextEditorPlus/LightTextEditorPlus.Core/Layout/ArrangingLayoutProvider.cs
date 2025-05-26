@@ -314,6 +314,10 @@ abstract class ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
+    /// UpdateMarker
+    /// 项目符号计算分为两个部分：
+    /// 1. 在 <see cref="ArrangingLayoutProvider.CalculateParagraphIndentAndMarker"/> 计算左右方向的缩进影响
+    /// 2. 在 <see cref="HorizontalArrangingLayoutProvider.PreUpdateMarker"/> 计算左上角的起始点坐标
     protected ParagraphLayoutIndentInfo CalculateParagraphIndentAndMarker(in CalculateParagraphIndentArgument argument)
     {
         ParagraphData paragraphData = argument.CurrentParagraphData;
@@ -340,7 +344,6 @@ abstract class ArrangingLayoutProvider
                     MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
                 }
             }
-           
 
             foreach (CharData charData in charDataList)
             {

@@ -13,6 +13,9 @@ namespace LightTextEditorPlus.Core.Layout;
 /// 
 /// 左右方向比较复杂，需要考虑项目符号的存在
 /// 现在放在 <see cref="ArrangingLayoutProvider.CalculateParagraphIndentAndMarker"/> 里面进行计算
+///
+/// Q: 项目符号是如何参与布局计算的？
+/// A: 在段落布局之前，先调用 <see cref="ArrangingLayoutProvider.CalculateParagraphIndentAndMarker"/> 方法计算段落的缩进和项目符号的缩进贡献。此时项目符号的 CharData 将被测量，但还没被设置左上角坐标点。在 <see cref="HorizontalArrangingLayoutProvider.PreUpdateMarker"/> 里面设置项目符号 Y 坐标垂直方向的行距等信息
 file class ReadMe
 {
 }
