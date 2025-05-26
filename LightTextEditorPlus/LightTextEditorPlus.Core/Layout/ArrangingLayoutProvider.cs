@@ -77,7 +77,7 @@ abstract class ArrangingLayoutProvider
         //     - 垂直对齐的下对齐、居中对齐等
 
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
-        Debug.Assert(paragraphList.Count > 0, "获取到的段落只有 0 段，即使空文本也会存在一段");
+        DebugAssert(paragraphList.Count > 0, "获取到的段落只有 0 段，即使空文本也会存在一段");
 
         bool shouldClearCharSize = updateLayoutContext.CurrentConfiguration.ShouldClearCharSizeForArrangingTypeChanged;
         if (shouldClearCharSize)
@@ -185,7 +185,7 @@ abstract class ArrangingLayoutProvider
             throw new TextEditorInnerException($"进入布局时，没有任何一段需要布局");
         }
 
-        Debug.Assert(!firstStartPoint.IsInvalid, "必定能获取到起始点");
+        DebugAssert(!firstStartPoint.IsInvalid, "必定能获取到起始点");
 
         updateLayoutContext.RecordDebugLayoutInfo(
             $"完成寻找首个变脏段落序号。首个变脏的段落序号是： {firstDirtyParagraphIndex}；首个脏段的起始点：{firstStartPoint}", LayoutDebugCategory.FindDirty);
@@ -330,7 +330,7 @@ abstract class ArrangingLayoutProvider
         if (markerRuntimeInfo != null)
         {
             TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
-            Debug.Assert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
+            DebugAssert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
 
             for (var i = 0; i < charDataList.Count; i++)
             {
@@ -733,6 +733,19 @@ abstract class ArrangingLayoutProvider
     //protected abstract TextRect CalculateHitBounds(in TextRect documentBounds);
 
     protected abstract double GetLineMaxWidth();
+
+    /// <summary>
+    /// 调试断言，只有在调试模式下才会执行。只有一些不影响性能的简单判断才能调用此方法。其他可能有性能问题的，依然使用 <see cref="Debug.Assert(bool,string)"/> 方法
+    /// </summary>
+    /// <param name="condition"></param>
+    /// <param name="message"></param>
+    protected void DebugAssert(bool condition, string message)
+    {
+        if (IsInDebugMode)
+        {
+            TextEditorInnerDebugAsset.Assert(condition, message);
+        }
+    }
 
     #endregion 通用辅助方法
 }

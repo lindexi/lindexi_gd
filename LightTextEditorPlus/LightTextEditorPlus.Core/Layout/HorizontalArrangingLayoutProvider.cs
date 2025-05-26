@@ -282,11 +282,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         _ = bottomLineSpacingGap;
 
         var lineTop = topLineSpacingGap;
-        // 在行的左边部分，刚好就是缩进的值
+        // 项目符号在行的左边部分，其X坐标就刚好就是缩进的值
+        //      · | ---
+        // Marker | Line Content Start Point
         var currentX = -markerRuntimeInfo.MarkerIndentation;
 
         TextReadOnlyListSpan<CharData> markerCharDataList = markerRuntimeInfo.CharDataList;
-        Debug.Assert(markerCharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
+        DebugAssert(markerCharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
         // 采用加上首个字符的方法是为了实现基线对齐
         var maxFontSizeCharData = firstLineLayoutData.CharCount > 0
             ? CharDataLayoutHelper.GetMaxFontSizeCharData(firstLineLayoutData.GetCharList())
@@ -298,7 +300,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         for (int i = 0; i < markerCharDataList.Count; i++)
         {
-            // 于此相似的处理，处理行内字符的行距和行内 Y 坐标是在 UpdateTextLineStartPoint 方法里面
+            // 与此相似的处理，处理行内字符的行距和行内 Y 坐标是在 UpdateTextLineStartPoint 方法里面
             CharData charData = markerCharDataList[i];
             double xOffset = currentX;
             double yOffset = maxFontYOffset - charData.Baseline;
@@ -326,7 +328,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         var paragraph = argument.ParagraphData;
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
-        Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
+        DebugAssert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
         var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
             new EmptyParagraphLineHeightMeasureArgument(paragraph, argument.ParagraphIndex, argument.UpdateLayoutContext));
         double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
@@ -424,7 +426,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             };
 
             // 更新字符信息
-            Debug.Assert(result.CharCount <= charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
+            DebugAssert(result.CharCount <= charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
             for (var index = 0; index < result.CharCount; index++)
             {
                 var charData = charDataList[index];
@@ -682,6 +684,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="lineCharList"></param>
     /// <param name="charLineStartPoint">文档布局给到行的距离</param>
     /// <param name="maxFontSizeCharData"></param>
+    /// 这里只处理行内的，项目符号是在 <see cref="HorizontalArrangingLayoutProvider.PreUpdateMarker"/> 里面处理的
     private void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint charLineStartPoint, CharData maxFontSizeCharData)
     {
         // 是否需要重新排列 X 坐标。对于只是更新行的 Y 坐标的情况，是不需要重新排列的
@@ -703,7 +706,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         foreach (CharData charData in lineCharList)
         {
             // 计算和更新每个字符的相对文本框的坐标
-            Debug.Assert(charData.Size != null, "charData.LineCharSize != null");
+            DebugAssert(charData.Size != null, "charData.LineCharSize != null");
             var charDataSize = charData.Size!.Value;
 
             double xOffset;
@@ -806,7 +809,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     // 单个字符直接布局，无视语言文化。快，但是诡异
 
                     var charData = currentRunList[i];
-                    Debug.Assert(charData.Size != null, "进入当前逻辑里，必然已经完成字符尺寸测量");
+                    DebugAssert(charData.Size != null, "进入当前逻辑里，必然已经完成字符尺寸测量");
 
                     testSize = testSize.HorizontalUnion(charData.Size.Value);
 
@@ -1133,7 +1136,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         double documentHeight = documentContentSize.Height;
         double outlineHeight = documentOutlineSize.Height;
         var gapHeight = outlineHeight - documentHeight;
-        Debug.Assert(gapHeight >= 0, "外接的尺寸高度肯定大于等于内容尺寸");
+        DebugAssert(gapHeight >= 0, "外接的尺寸高度肯定大于等于内容尺寸");
 
         const int left = 0; // 水平方向不需要处理
         var top = verticalTextAlignment switch
