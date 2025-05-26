@@ -7,3 +7,6 @@ Console.WriteLine($"Hello, World!测试中文 RuntimeIdentifier={RuntimeInformat
 
 var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("DotNetCampus.Installer.Boost.Assets.zip")!;
 Console.WriteLine(stream.Length);
+var assetsZip = Path.Join(AppContext.BaseDirectory, "Assets.zip");
+using var fileStream = new FileStream(assetsZip,FileMode.Create,FileAccess.Write);
+stream.CopyTo(fileStream);
