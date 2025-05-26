@@ -298,7 +298,12 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
     private CharData? _transientCharData;
 
-    internal SingleObjectList<CharData> GetTransientCharDataList(CharData charData)
+    /// <summary>
+    /// 获取一个瞬时的字符数据列表。这个列表只包含一个元素，且元素是 <see cref="CharData"/> 对象，只有瞬时作用，不得存放起来
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <returns></returns>
+    internal SingleObjectList<CharData> GetTransientSingleCharDataList(CharData charData)
     {
         if (_transientCharDataList is null)
         {
@@ -313,6 +318,16 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     }
 
     private SingleObjectList<CharData>? _transientCharDataList;
+
+    /// <summary>
+    /// 获取一个瞬时的字符数据列表。这个列表只包含一个元素，且元素是使用了 <paramref name="runProperty"/> 属性的瞬时的 <see cref="CharData"/> 对象，只有瞬时作用，不得存放起来
+    /// </summary>
+    /// <returns></returns>
+    internal SingleObjectList<CharData> GetTransientSingleCharDataList(IReadOnlyRunProperty runProperty)
+    {
+        CharData charData = GetTransientMeasureCharData(runProperty);
+        return GetTransientSingleCharDataList(charData);
+    }
 
     #endregion
 
