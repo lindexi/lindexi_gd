@@ -131,7 +131,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         CharData currentCharData = argument.CurrentCharData;
         bool isHorizontal = updateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
 
-        if (currentCharData.Size != null)
+        if (!currentCharData.IsInvalidCharDataInfo)
         {
             // 已有缓存的尺寸，直接返回即可
             return;
@@ -330,7 +330,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         for (var i = 0; i < runList.Count; i++)
         {
             CharData charData = runList[i];
-            if (charData.Size == null)
+            if (charData.IsInvalidCharDataInfo)
             {
                 // 确保赋值给每个字符的尺寸
                 CharSizeInfo charSizeInfo = charSizeInfoList[charSizeInfoListIndex];
@@ -369,7 +369,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             }
         }
 
-        if (currentCharData.Size == null)
+        if (currentCharData.IsInvalidCharDataInfo)
         {
             throw new TextEditorInnerException($"测量之后，必然能够获取当前字符的尺寸");
         }

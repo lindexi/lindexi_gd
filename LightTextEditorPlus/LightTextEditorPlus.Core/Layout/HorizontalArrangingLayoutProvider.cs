@@ -290,6 +290,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextReadOnlyListSpan<CharData> markerCharDataList = markerRuntimeInfo.CharDataList;
         DebugAssert(markerCharDataList.Count > 0, "有项目符号的情况下，一定有项目符号字符");
         // 采用加上首个字符的方法是为了实现基线对齐
+
+
         var maxFontSizeCharData = firstLineLayoutData.CharCount > 0
             ? CharDataLayoutHelper.GetMaxFontSizeCharData(firstLineLayoutData.GetCharList())
             : markerCharDataList[0];
@@ -307,7 +309,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             charData.SetLayoutCharLineStartPoint(new TextPointInLineCoordinateSystem(xOffset, yOffset));
 
-            var charDataSize = charData.Size!.Value;
+            var charDataSize = charData.Size;
             currentX += charDataSize.Width;
 
             // 设计上让项目符号是段落负数的值
@@ -563,7 +565,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         GC.KeepAlive(lineSpacing);
         // 不能使用 lineSpacing 作为计算参考，因为在 Skia 平台下 TextSize 会更大，超过了布局行高的值，导致 lineSpacing 为负数
         // 正确的应该是使用 MaxFontHeight 进行计算。尽管这个计算可能算出负数
-        var maxFontHeight = maxFontSizeCharData.Size!.Value.Height;
+        var maxFontHeight = maxFontSizeCharData.Size.Height;
         // 行距的空白。正常 MaxFontHeight 小于 LineHeight 的情况下，可以认为这就是行距的空白
         var lineSpacingGap = lineHeight - maxFontHeight;
         RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
@@ -706,8 +708,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         foreach (CharData charData in lineCharList)
         {
             // 计算和更新每个字符的相对文本框的坐标
-            DebugAssert(charData.Size != null, "charData.LineCharSize != null");
-            var charDataSize = charData.Size!.Value;
+            DebugAssert(!charData.IsInvalidCharDataInfo, "charData.LineCharSize != null");
+            var charDataSize = charData.Size;
 
             double xOffset;
             if (reArrangeXPosition)
@@ -766,7 +768,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             var charData = currentRunList[i];
 
-            if (charData.Size is null)
+            if (charData.IsInvalidCharDataInfo)
             {
                 var fillSizeOfRunArgument = new FillSizeOfRunArgument(currentRunList.Slice(i), updateLayoutContext);
                 Debug.Assert(ReferenceEquals(charData, fillSizeOfRunArgument.CurrentCharData));
@@ -774,12 +776,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
 
                 // 不用扔调试异常了，在 MeasureAndFillSizeOfRun 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfRun 方法的判断而已
-                Debug.Assert(charData.Size != null, $"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
+                Debug.Assert(!charData.IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
             }
 
             // todo 考虑字间距的情况
             // 这里直接加等合并，是不包含 Kern 字间距的情况
-            totalSize = totalSize.HorizontalUnion(charData.Size.Value);
+            totalSize = totalSize.HorizontalUnion(charData.Size);
         }
 
         if (argument.LineRemainingWidth >= totalSize.Width)
@@ -811,7 +813,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     var charData = currentRunList[i];
                     DebugAssert(charData.Size != null, "进入当前逻辑里，必然已经完成字符尺寸测量");
 
-                    testSize = testSize.HorizontalUnion(charData.Size.Value);
+                    testSize = testSize.HorizontalUnion(charData.Size);
 
                     if (testSize.Width > argument.LineRemainingWidth)
                     {

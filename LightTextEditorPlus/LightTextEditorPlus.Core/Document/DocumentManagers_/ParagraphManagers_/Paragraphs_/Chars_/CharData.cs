@@ -44,6 +44,7 @@ public sealed class CharData
     internal void DangerousChangeRunProperty(IReadOnlyRunProperty runProperty)
     {
         RunProperty = runProperty;
+        ClearCharDataInfo();
     }
 
     internal CharLayoutData? CharLayoutData { set; get; } // todo 考虑将 CharLayoutData 作为结构体，直接存放在类里面，避免多余地创建
@@ -100,72 +101,74 @@ public sealed class CharData
     public bool IsSetStartPointInDebugMode { set; get; }
 
     /// <summary>
-    /// 设置尺寸
+    /// 设置字符信息
     /// </summary>
     /// <param name="frameSize">文字外框，字外框尺寸</param>
     /// <param name="faceSize">字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸</param>
     /// <param name="baseline">基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</param>
     internal void SetCharDataInfo(TextSize frameSize, TextSize faceSize, double baseline)
     {
-        Size = frameSize;
-        Baseline = baseline;
+        SetCharDataInfo(new CharDataInfo(frameSize, faceSize, baseline));
+    }
 
-        if (!FaceSize.IsInvalid)
+    /// <summary>
+    /// 设置字符信息
+    /// </summary>
+    /// <param name="charDataInfo"></param>
+    internal void SetCharDataInfo(in CharDataInfo charDataInfo)
+    {
+        if (charDataInfo.IsInvalid)
         {
-            throw new InvalidOperationException($"禁止重复给 {nameof(FaceSize)} 字墨尺寸赋值");
+            throw new ArgumentException("禁止传入无效的字符信息", nameof(charDataInfo));
         }
 
-        FaceSize = faceSize;
+        if (!CharDataInfo.IsInvalid)
+        {
+            throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
+        }
+
+        CharDataInfo = charDataInfo;
     }
+
+    /// <summary>
+    /// 字符信息，包括尺寸等信息
+    /// </summary>
+    public CharDataInfo CharDataInfo { get; private set; } = CharDataInfo.Invalid;
 
     /// <summary>
     /// 清除字符数据
     /// </summary>
     internal void ClearCharDataInfo()
     {
-        _frameSize = null;
-        Baseline = double.NaN;
-        FaceSize = TextSize.Invalid;
+        CharDataInfo = CharDataInfo.Invalid;
     }
 
     /// <summary>
     /// 基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的
     /// </summary>
-    public double Baseline { private set; get; } = double.NaN;
+    public double Baseline => CharDataInfo.Baseline;
 
     /// <summary>
     /// FrameSize 尺寸，即字外框尺寸。文字外框尺寸
     /// </summary>
     /// 尺寸是可以复用的
-    public TextSize? Size
-    {
-        private set
-        {
-            if (_frameSize != null)
-            {
-                throw new InvalidOperationException($"禁止重复给文字外框尺寸赋值");
-            }
-
-            _frameSize = value;
-        }
-        get => _frameSize;
-    }
-
-    /// <summary>
-    /// 文字外框尺寸，字外框尺寸
-    /// </summary>
-    private TextSize? _frameSize;
+    public TextSize Size => CharDataInfo.FrameSize;
 
     /// <summary>
     /// Character Face Size 字面尺寸，字墨尺寸，字墨大小，字墨量。文字的字身框中，字图实际分布的空间的尺寸。小于等于 <see cref="Size"/> 尺寸
     /// </summary>
-    public TextSize FaceSize { get; private set; } = TextSize.Invalid;
-   
+    public TextSize FaceSize => CharDataInfo.FaceSize;
+
+    /// <summary>
+    /// 是否字符属性是无效的
+    /// </summary>
+    public bool IsInvalidCharDataInfo => CharDataInfo.IsInvalid;
+
     /// <summary>
     /// 获取字符的布局范围
     /// </summary>
     /// <returns></returns>
-    public TextRect GetBounds() => new TextRect(GetStartPoint(), Size!.Value);
+    public TextRect GetBounds() => new TextRect(GetStartPoint(), Size);
 
     /// <summary>
     /// 调试下的判断逻辑
@@ -192,6 +195,6 @@ public sealed class CharData
 
         if (IsLineBreakCharData) return "\\r\\n";
 
-        return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(Size != null ? $"W:{Size.Value.Width:0.###} H:{Size.Value.Height:0.###}" : "")}";
+        return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(!IsInvalidCharDataInfo ? $"W:{Size.Width:0.###} H:{Size.Height:0.###}" : "")}";
     }
 }

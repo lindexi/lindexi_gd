@@ -336,7 +336,7 @@ abstract class ArrangingLayoutProvider
             {
                 // 循环进行字符测量。在 MeasureAndFillSizeOfRun 方法里面，不会测量整个字符列表，只会测量连续的部分
                 CharData charData = charDataList[i];
-                if (charData.Size is null)
+                if (charData.IsInvalidCharDataInfo)
                 {
                     TextReadOnlyListSpan<CharData> toMeasureCharDataList = charDataList.Slice(i);
 
@@ -347,7 +347,7 @@ abstract class ArrangingLayoutProvider
 
             foreach (CharData charData in charDataList)
             {
-                markerIndentation += charData.Size!.Value.Width;
+                markerIndentation += charData.Size.Width;
 
                 if (IsInDebugMode)
                 {
@@ -556,13 +556,13 @@ abstract class ArrangingLayoutProvider
     private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty, UpdateLayoutContext context)
     {
         context.RecordDebugLayoutInfo($"空行布局", LayoutDebugCategory.PreWholeLine);
-        var testCharData = context.GetTransientMeasureCharData(runProperty);
-        SingleObjectList<CharData> list = context.GetTransientSingleCharDataList(testCharData);
-        var listSpan = list.ToListSpan();
+        SingleObjectList<CharData> virtualCharDataList = context.GetEmptyParagraphSingleVirtualCharDataList(runProperty);
+        var listSpan = virtualCharDataList.ToListSpan();
+        CharData virtualCharData = virtualCharDataList.CurrentObject;
 
         MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(listSpan, context));
-        Debug.Assert(testCharData.Size != null);
-        return testCharData.Size.Value;
+        Debug.Assert(!virtualCharData.IsInvalidCharDataInfo);
+        return virtualCharData.Size;
     }
 
     /// <summary>
@@ -673,7 +673,7 @@ abstract class ArrangingLayoutProvider
 
             if (IsInDebugMode)
             {
-                if (argument.CurrentCharData.Size is null)
+                if (argument.CurrentCharData.IsInvalidCharDataInfo)
                 {
                     throw new TextEditorDebugException($"测量布局之后，当前字符依然没有尺寸");
                 }
@@ -681,8 +681,9 @@ abstract class ArrangingLayoutProvider
         }
         else
         {
-            if (argument.CurrentCharData.Size is not null)
+            if (!argument.CurrentCharData.IsInvalidCharDataInfo)
             {
+                // 如果字符信息有效，则无须继续测量
                 return;
             }
 

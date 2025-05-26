@@ -111,7 +111,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
             {
                 DrawDebugBounds(charData.GetBounds().ToSKRect(), Config.DebugDrawCharBoundsInfo);
 
-                width += (float) charData.Size!.Value.Width;
+                width += (float) charData.Size.Width;
             }
 
             SKRect charSpanBounds = SKRect.Create(x, y, width, height);

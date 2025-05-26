@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Core.Primitive.Collections;
 /// </summary>
 /// 这里面的实现是不安全的，仅在框架内使用
 /// <typeparam name="T"></typeparam>
-internal class SingleObjectList<T> : IReadOnlyList<T>
+internal sealed class SingleObjectList<T> : IReadOnlyList<T>
 {
     public SingleObjectList(T currentObject)
     {
