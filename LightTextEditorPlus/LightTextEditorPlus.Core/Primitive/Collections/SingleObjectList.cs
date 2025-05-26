@@ -39,6 +39,8 @@ internal class SingleObjectList<T> : IReadOnlyList<T>
         get => CurrentObject;
     }
 
+    public TextReadOnlyListSpan<T> ToListSpan() => new TextReadOnlyListSpan<T>(this, 0, 1);
+
     class SingleObjectListEnumerator : IEnumerator<T>
     {
         public SingleObjectListEnumerator(T current)

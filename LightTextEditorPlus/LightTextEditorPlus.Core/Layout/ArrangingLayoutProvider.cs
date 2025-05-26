@@ -554,8 +554,8 @@ abstract class ArrangingLayoutProvider
     {
         context.RecordDebugLayoutInfo($"空行布局", LayoutDebugCategory.PreWholeLine);
         var testCharData = context.GetTransientMeasureCharData(runProperty);
-        SingleObjectList<CharData> list = context.GetTransientCharDataList(testCharData);
-        var listSpan = new TextReadOnlyListSpan<CharData>(list, 0, 1);
+        SingleObjectList<CharData> list = context.GetTransientSingleCharDataList(testCharData);
+        var listSpan = list.ToListSpan();
 
         MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(listSpan, context));
         Debug.Assert(testCharData.Size != null);
