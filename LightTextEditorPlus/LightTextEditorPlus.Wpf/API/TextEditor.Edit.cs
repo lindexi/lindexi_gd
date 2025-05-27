@@ -5,6 +5,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Events;
 
 namespace LightTextEditorPlus;
@@ -177,7 +178,7 @@ public partial class TextEditor
     }
 
     /// <summary>
-    /// 开启或关闭文本斜体
+    /// 开启或关闭文本斜体。如果想明确设置斜体或取消斜体，请使用 <see cref="SetFontStyle"/> 方法
     /// </summary>
     public void ToggleItalic(Selection? selection = null)
     {
@@ -211,7 +212,7 @@ public partial class TextEditor
     }
 
     /// <summary>
-    /// 开启或关闭文本加粗
+    /// 开启或关闭文本加粗。如果只想明确加粗或取消加粗，请使用 <see cref="SetFontWeight"/> 方法
     /// </summary>
     public void ToggleBold(Selection? selection = null)
     {
@@ -241,6 +242,63 @@ public partial class TextEditor
     public void SetFontWeight(FontWeight fontWeight, Selection? selection = null)
     {
         SetRunProperty(p => p with { FontWeight = fontWeight }, PropertyType.FontWeight, selection);
+    }
+
+    public void ToggleTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
+    {
+        bool addDecoration;
+        if (IsAllRunPropertyMatchPredicate(property => ((RunProperty) property).DecorationCollection.Contains(textDecoration), selection))
+        {
+            addDecoration = false;
+        }
+        else
+        {
+            addDecoration = true;
+        }
+
+        SetTextDecoration(textDecoration, addDecoration, selection);
+    }
+
+    /// <summary>
+    /// 设置文本装饰
+    /// </summary>
+    /// <param name="textDecoration"></param>
+    /// <param name="addOrRemove">true 表示添加，false 表示删除</param>
+    /// <param name="selection"></param>
+    public void SetTextDecoration(TextEditorDecoration textDecoration, bool addOrRemove, Selection? selection = null)
+    {
+        if (addOrRemove)
+        {
+            AddTextDecoration(textDecoration, selection);
+        }
+        else
+        {
+            RemoveTextDecoration(textDecoration, selection);
+        }
+    }
+
+    public void AddTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
+    {
+        SetRunProperty(property => property with
+        {
+            DecorationCollection = property.DecorationCollection.Add(textDecoration)
+        }, PropertyType.TextDecoration, selection);
+    }
+
+    public void RemoveTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
+    {
+        SetRunProperty(property => property with
+        {
+            DecorationCollection = property.DecorationCollection.Remove(textDecoration)
+        }, PropertyType.TextDecoration, selection);
+    }
+
+    public void ClearTextDecoration(Selection? selection = null)
+    {
+        SetRunProperty(property => property with
+        {
+            DecorationCollection = new TextEditorImmutableDecorationCollection()
+        }, PropertyType.TextDecoration, selection);
     }
 
     /// <summary>

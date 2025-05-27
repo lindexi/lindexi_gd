@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows;
 
 namespace LightTextEditorPlus.Document.Decorations;
 
@@ -110,7 +111,7 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
     private readonly TextEditorDecoration? _one;
 
     /// <summary>
-    /// 添加一个装饰到不可变集合中
+    /// 添加一个装饰到不可变集合中，自带去重功能
     /// </summary>
     /// <param name="decoration"></param>
     /// <returns></returns>
@@ -122,6 +123,11 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
         }
         else if (_one is not null && _more is null)
         {
+            if (_one.Equals(decoration))
+            {
+                return this;
+            }
+
             return new TextEditorImmutableDecorationCollection(ImmutableList.Create(_one, decoration));
         }
         else
@@ -133,16 +139,21 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
                 return this;
             }
 
+            if (_more.Contains(decoration))
+            {
+                return this;
+            }
+
             return new TextEditorImmutableDecorationCollection(_more.Add(decoration));
         }
     }
 
     /// <summary>
-    /// 添加一组装饰到不可变集合中
+    /// 添加一组装饰到不可变集合中，无去重
     /// </summary>
     /// <param name="decorations"></param>
     /// <returns></returns>
-    public TextEditorImmutableDecorationCollection AddRange(ICollection<TextEditorDecoration> decorations)
+    internal TextEditorImmutableDecorationCollection AddRange(ICollection<TextEditorDecoration> decorations)
     {
         if (_one is null && _more is null)
         {
@@ -192,10 +203,21 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
         {
             if (collectionCount == 1)
             {
+                if (_one.Equals(collection._one))
+                {
+                    return this;
+                }
+
                 return new TextEditorImmutableDecorationCollection(ImmutableList.Create(_one, collection._one!));
             }
             else
             {
+                Debug.Assert(collection._more != null, "由于 collectionCount 大于 1 因此 _more 必定不是空");
+                if (collection._more.Contains(_one))
+                {
+                    return collection;
+                }
+
                 ImmutableList<TextEditorDecoration>.Builder builder =
                     ImmutableList.CreateBuilder<TextEditorDecoration>();
                 builder.Add(_one);
@@ -212,7 +234,30 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
                 return this;
             }
 
-            return new TextEditorImmutableDecorationCollection(_more.AddRange(collection._more!));
+            if (collectionCount == 1)
+            {
+                if (_more.Contains(collection._one!))
+                {
+                    return this;
+                }
+
+                return new TextEditorImmutableDecorationCollection(_more.Add(collection._one!));
+            }
+            else
+            {
+                ImmutableList<TextEditorDecoration>.Builder builder = _more.ToBuilder();
+
+                foreach (TextEditorDecoration textEditorDecoration in collection._more!)
+                {
+                    if (!builder.Contains(textEditorDecoration))
+                    {
+                        builder.Add(textEditorDecoration);
+                    }
+                }
+
+                ImmutableList<TextEditorDecoration> immutableList = builder.ToImmutable();
+                return new TextEditorImmutableDecorationCollection(immutableList);
+            }
         }
     }
 
@@ -290,5 +335,27 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
     public static implicit operator TextEditorImmutableDecorationCollection(TextEditorDecoration decoration)
     {
         return new TextEditorImmutableDecorationCollection(decoration);
+    }
+
+    /// <summary>
+    /// 包含指定的装饰
+    /// </summary>
+    /// <param name="textDecoration"></param>
+    /// <returns></returns>
+    public bool Contains(TextEditorDecoration textDecoration)
+    {
+        if (_one is null && _more is null)
+        {
+            return false;
+        }
+        else if (_one is not null)
+        {
+            return _one.Equals(textDecoration);
+        }
+        else
+        {
+            Debug.Assert(_more != null);
+            return _more.Contains(textDecoration);
+        }
     }
 }

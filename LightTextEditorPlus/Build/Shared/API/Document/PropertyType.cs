@@ -51,7 +51,7 @@ public enum PropertyType
     FontVariants,
 
     /// <summary>
-    /// 下划线
+    /// 文本装饰，如下划线
     /// </summary>
     TextDecoration,
 

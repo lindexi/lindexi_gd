@@ -42,6 +42,14 @@ public abstract class TextEditorDecoration
     {
         return a.Equals(b);
     }
+
+    /// <summary>
+    /// 隐式转换
+    /// </summary>
+    public static implicit operator TextEditorDecoration(TextDecoration textDecoration)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 /// <summary>
