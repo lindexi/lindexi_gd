@@ -834,7 +834,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     // 单个字符直接布局，无视语言文化。快，但是诡异
 
                     var charData = currentRunList[i];
-                    DebugAssert(charData.Size != null, "进入当前逻辑里，必然已经完成字符尺寸测量");
+                    DebugAssert(!charData.IsInvalidCharDataInfo, "进入当前逻辑里，必然已经完成字符尺寸测量");
 
                     testSize = testSize.HorizontalUnion(charData.Size);
 
