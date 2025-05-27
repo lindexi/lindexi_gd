@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
@@ -311,37 +312,47 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
             return false;
         }
 
-        if (!Equals(Foreground, other.Foreground))
+        bool IsForegroundEquals()
+        {
+            if (_foreground is null && other._foreground is null)
+            {
+                return true;
+            }
+
+            return Foreground.Equals(other.Foreground);
+        }
+
+        if (!IsForegroundEquals())
         {
             return false;
         }
 
-        if (!Equals(Opacity, other.Opacity))
+        if (!Opacity.Equals(other.Opacity))
         {
             return false;
         }
 
-        if (!Equals(FontWeight, other.FontWeight))
+        if (!FontWeight.Equals(other.FontWeight))
         {
             return false;
         }
 
-        if (!Equals(FontStyle, other.FontStyle))
+        if (!FontStyle.Equals(other.FontStyle))
         {
             return false;
         }
 
-        if (!Equals(Stretch, other.Stretch))
+        if (!Stretch.Equals(other.Stretch))
+        {
+            return false;
+        }
+        
+        if (!EqualityComparer<ImmutableBrush>.Default.Equals(Background, other.Background))
         {
             return false;
         }
 
-        if (!Equals(Background, other.Background))
-        {
-            return false;
-        }
-
-        if (!Equals(DecorationCollection, other.DecorationCollection))
+        if (!DecorationCollection.Equals(other.DecorationCollection))
         {
             return false;
         }
