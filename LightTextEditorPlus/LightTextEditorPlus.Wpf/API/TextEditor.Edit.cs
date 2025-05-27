@@ -244,6 +244,11 @@ public partial class TextEditor
         SetRunProperty(p => p with { FontWeight = fontWeight }, PropertyType.FontWeight, selection);
     }
 
+    /// <summary>
+    /// 开启或关闭文本装饰
+    /// </summary>
+    /// <param name="textDecoration"></param>
+    /// <param name="selection"></param>
     public void ToggleTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         bool addDecoration;
@@ -277,6 +282,11 @@ public partial class TextEditor
         }
     }
 
+    /// <summary>
+    /// 添加文本装饰
+    /// </summary>
+    /// <param name="textDecoration"></param>
+    /// <param name="selection"></param>
     public void AddTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         SetRunProperty(property => property with
@@ -285,6 +295,11 @@ public partial class TextEditor
         }, PropertyType.TextDecoration, selection);
     }
 
+    /// <summary>
+    /// 删除文本装饰
+    /// </summary>
+    /// <param name="textDecoration"></param>
+    /// <param name="selection"></param>
     public void RemoveTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         SetRunProperty(property => property with
@@ -293,6 +308,10 @@ public partial class TextEditor
         }, PropertyType.TextDecoration, selection);
     }
 
+    /// <summary>
+    /// 清理文本装饰
+    /// </summary>
+    /// <param name="selection"></param>
     public void ClearTextDecoration(Selection? selection = null)
     {
         SetRunProperty(property => property with

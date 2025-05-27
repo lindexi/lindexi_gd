@@ -51,6 +51,29 @@ public abstract class TextEditorDecoration
     {
         throw new NotImplementedException();
     }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        // 相等判断是通过是否相同的类型进行判断的
+        if (ReferenceEquals(obj, this))
+        {
+            return true;
+        }
+
+        if (obj is not TextEditorDecoration other)
+        {
+            return false;
+        }
+
+        return other.GetType() == this.GetType() && TextDecorationLocation == other.TextDecorationLocation;
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(TextDecorationLocation, GetType());
+    }
 }
 
 /// <summary>
