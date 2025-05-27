@@ -10,7 +10,7 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// 文本的装饰不可变集合
 /// </summary>
 /// 其作用是放在 RunProperty 里面时，可以不用一定开启一个新的对象。绝大部分时候，只添加一个装饰时，只开一个对象，也不用开两个对象（一个 List 一个元素），可以更省一些
-public readonly struct TextEditorImmutableDecorationCollection
+public readonly struct TextEditorImmutableDecorationCollection:IEquatable<TextEditorImmutableDecorationCollection>
 {
     /// <summary>
     /// 创建文本的装饰不可变集合
@@ -260,5 +260,23 @@ public readonly struct TextEditorImmutableDecorationCollection
                 return this;
             }
         }
+    }
+
+    /// <inheritdoc />
+    public bool Equals(TextEditorImmutableDecorationCollection other)
+    {
+        return Equals(_more, other._more) && Equals(_one, other._one);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return obj is TextEditorImmutableDecorationCollection other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_more, _one);
     }
 }

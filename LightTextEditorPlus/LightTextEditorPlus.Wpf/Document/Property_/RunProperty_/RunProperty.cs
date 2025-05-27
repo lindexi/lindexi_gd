@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document.Decorations;
 
 namespace LightTextEditorPlus.Document;
 
@@ -42,14 +43,8 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <inheritdoc />
     public ImmutableBrush Foreground
     {
-        init
-        {
-            _foreground = value;
-        }
-        get
-        {
-            return _foreground ?? DefaultForeground;
-        }
+        init { _foreground = value; }
+        get { return _foreground ?? DefaultForeground; }
     }
 
     /// <summary>
@@ -107,6 +102,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     private readonly FontStretch? _stretch;
+
     /// <summary>
     /// 默认字体拉伸
     /// </summary>
@@ -126,6 +122,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     private readonly FontWeight? _fontWeight;
+
     /// <summary>
     /// 默认字重
     /// </summary>
@@ -145,10 +142,16 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     private readonly FontStyle? _fontStyle;
+
     /// <summary>
     /// 默认字体样式
     /// </summary>
     public static FontStyle DefaultFontStyle => FontStyles.Normal;
+
+    /// <summary>
+    /// 文本的装饰集合
+    /// </summary>
+    public TextEditorImmutableDecorationCollection DecorationCollection { init; get; }
 
     #endregion
 
@@ -286,6 +289,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
         hashCode.Add(FontStyle);
         hashCode.Add(Stretch);
         hashCode.Add(Background);
+        hashCode.Add(DecorationCollection);
         return hashCode.ToHashCode();
     }
 
@@ -308,32 +312,47 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
             return false;
         }
 
-        if (!Equals(Foreground, other.Foreground))
+        bool IsForegroundEquals()
+        {
+            if (_foreground is null && other._foreground is null)
+            {
+                return true;
+            }
+
+            return Foreground.Equals(other.Foreground);
+        }
+
+        if (!IsForegroundEquals())
         {
             return false;
         }
 
-        if (!Equals(Opacity, other.Opacity))
+        if (!Opacity.Equals(other.Opacity))
         {
             return false;
         }
 
-        if (!Equals(FontWeight, other.FontWeight))
+        if (!FontWeight.Equals(other.FontWeight))
         {
             return false;
         }
 
-        if (!Equals(FontStyle, other.FontStyle))
+        if (!FontStyle.Equals(other.FontStyle))
         {
             return false;
         }
 
-        if (!Equals(Stretch, other.Stretch))
+        if (!Stretch.Equals(other.Stretch))
+        {
+            return false;
+        }
+        
+        if (!EqualityComparer<ImmutableBrush>.Default.Equals(Background, other.Background))
         {
             return false;
         }
 
-        if (!Equals(Background, other.Background))
+        if (!DecorationCollection.Equals(other.DecorationCollection))
         {
             return false;
         }
