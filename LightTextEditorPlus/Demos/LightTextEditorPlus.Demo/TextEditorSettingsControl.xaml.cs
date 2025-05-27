@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
-
+using LightTextEditorPlus.Document.Decorations;
 using Brush = System.Windows.Media.Brush;
 using FontFamily = System.Windows.Media.FontFamily;
 using Size = System.Windows.Size;
@@ -503,6 +503,11 @@ public partial class TextEditorSettingsControl : UserControl
             });
     }
 
+    /// <summary>
+    /// 清理项目符号
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void MarkerButton_OnClick(object sender, RoutedEventArgs e)
     {
         TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property =>
@@ -514,4 +519,8 @@ public partial class TextEditorSettingsControl : UserControl
 
     #endregion
 
+    private void ToggleWaveLineButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleTextDecoration(new WaveLineTextEditorDecoration());
+    }
 }
