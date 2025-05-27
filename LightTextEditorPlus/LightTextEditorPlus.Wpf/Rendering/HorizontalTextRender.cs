@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -301,13 +302,29 @@ class HorizontalTextRender : TextRenderBase
                     {
                         break;
                     }
-                    else if(result.TakeCharCount == 0)
+                    else if(result.TakeCharCount < 1)
                     {
-                        // todo 抛出异常
+                        var message = $"文本装饰渲染时，所需使用的字符数量至少要有一个。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}";
+                        if (textEditor.IsInDebugMode)
+                        {
+                            throw new TextEditorDebugException(message);
+                        }
+                        else
+                        {
+                            textEditor.Logger.LogWarning(message);
+                        }
                     }
                     else if (result.TakeCharCount > currentCharDataList.Count)
                     {
-                        // todo 抛出异常
+                        var message = $"文本装饰渲染时，所需使用的字符数量不能超过传入的字符数量。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}；CurrentCharDataListCount={currentCharDataList.Count}";
+                        if (textEditor.IsInDebugMode)
+                        {
+                            throw new TextEditorDebugException(message);
+                        }
+                        else
+                        {
+                            textEditor.Logger.LogWarning(message);
+                        }
                     }
                     else
                     {
