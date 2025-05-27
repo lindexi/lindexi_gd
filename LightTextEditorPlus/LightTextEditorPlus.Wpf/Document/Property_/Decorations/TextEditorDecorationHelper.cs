@@ -73,25 +73,23 @@ static class TextEditorDecorationHelper
 
             offset += minCount;
         }
+    }
 
-        yield break;
-
-        static int SkipEmptyTextEditorDecoration(in TextReadOnlyListSpan<CharData> charList, int currentIndex)
+    private static int SkipEmptyTextEditorDecoration(in TextReadOnlyListSpan<CharData> charList, int currentIndex)
+    {
+        for (var i = currentIndex; i < charList.Count; i++)
         {
-            for (var i = currentIndex; i < charList.Count; i++)
+            RunProperty runProperty = charList[i].RunProperty.AsRunProperty();
+            if (runProperty.DecorationCollection.IsEmpty)
             {
-                RunProperty runProperty = charList[i].RunProperty.AsRunProperty();
-                if (runProperty.DecorationCollection.IsEmpty)
-                {
-                    // 跳过
-                }
-                else
-                {
-                    return currentIndex;
-                }
+                // 跳过
             }
-
-            return charList.Count; // 返回结束位置
+            else
+            {
+                return currentIndex;
+            }
         }
+
+        return charList.Count; // 返回结束位置
     }
 }
