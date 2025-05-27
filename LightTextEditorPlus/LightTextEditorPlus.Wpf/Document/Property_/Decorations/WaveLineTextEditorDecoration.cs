@@ -27,7 +27,7 @@ public class WaveLineTextEditorDecoration : TextEditorDecoration
         ImmutableBrush foregroundBrush = argument.RunProperty.Foreground;
         var foreground = foregroundBrush.Value;
         Drawing? drawing = null;
-        if (!argument.TextEditor.ArrangingType.IsHorizontal)
+        if (argument.TextEditor.ArrangingType.IsHorizontal)
         {
             var bounds = argument.RecommendedBounds;
             var waveLine = new WaveLine()

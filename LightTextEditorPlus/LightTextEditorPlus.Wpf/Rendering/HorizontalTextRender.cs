@@ -276,18 +276,45 @@ class HorizontalTextRender : TextRenderBase
             {
                 TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
                 RunProperty runProperty = decorationSplitResult.RunProperty;
-                TextReadOnlyListSpan<CharData> charList = decorationSplitResult.CharList;
+                TextReadOnlyListSpan<CharData> charDataList = decorationSplitResult.CharList;
 
-                textEditorDecoration.BuildDecoration(new BuildDecorationArgument()
+                var currentCharDataList = charDataList;
+
+                while (true)
                 {
-                    CharDataList = charList,
-                    RunProperty = runProperty,
-                    LineRenderInfo = lineRenderInfo,
-                    TextEditor = textEditor,
-                    RecommendedBounds = GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in charList)
-                });
-            }
+                    var decorationArgument = new BuildDecorationArgument()
+                    {
+                        CharDataList = currentCharDataList,
+                        RunProperty = runProperty,
+                        LineRenderInfo = lineRenderInfo,
+                        TextEditor = textEditor,
+                        RecommendedBounds = GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in charDataList)
+                    };
+                    BuildDecorationResult result = textEditorDecoration.BuildDecoration(in decorationArgument);
 
+                    if (result.Drawing is { } drawing)
+                    {
+                        drawingContext.DrawDrawing(drawing);
+                    }
+
+                    if (result.TakeCharCount == currentCharDataList.Count)
+                    {
+                        break;
+                    }
+                    else if(result.TakeCharCount == 0)
+                    {
+                        // todo 抛出异常
+                    }
+                    else if (result.TakeCharCount > currentCharDataList.Count)
+                    {
+                        // todo 抛出异常
+                    }
+                    else
+                    {
+                        currentCharDataList = currentCharDataList.Slice(result.TakeCharCount);
+                    }
+                }
+            }
         }
 
         TextRect GetDecorationLocationRecommendedBounds(TextDecorationLocation location, in TextReadOnlyListSpan<CharData> charList)

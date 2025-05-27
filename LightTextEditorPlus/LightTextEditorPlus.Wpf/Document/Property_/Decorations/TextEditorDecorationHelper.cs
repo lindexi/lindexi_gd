@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -31,6 +32,7 @@ static class TextEditorDecorationHelper
             CharData firstCharData = textDecorationCharDataList[0];
             RunProperty runProperty = firstCharData.RunProperty.AsRunProperty();
 
+            var count = 0;
             for (var i = 0; i < runProperty.DecorationCollection.Count; i++)
             {
                 TextEditorDecoration textEditorDecoration = runProperty.DecorationCollection[i];
@@ -44,15 +46,14 @@ static class TextEditorDecorationHelper
                         bRunProperty);
                 }
 
-                IEnumerable<TextReadOnlyListSpan<CharData>> splitList = textDecorationCharDataList.SplitContinuousCharData(Predicate);
+                TextReadOnlyListSpan<CharData> firstCharSpanContinuous = textDecorationCharDataList.GetFirstCharSpanContinuous(Predicate);
 
-                foreach (TextReadOnlyListSpan<CharData> textReadOnlyListSpan in splitList)
-                {
-                    yield return new DecorationSplitResult(textEditorDecoration, runProperty, textReadOnlyListSpan);
-                }
+                yield return new DecorationSplitResult(textEditorDecoration, runProperty, firstCharSpanContinuous);
+
+                count = Math.Max(count, firstCharSpanContinuous.Count);
             }
 
-            textDecorationCharDataList = SkipEmptyTextDecoration(textDecorationCharDataList);
+            textDecorationCharDataList = SkipEmptyTextDecoration(textDecorationCharDataList.Slice(count));
         }
     }
 
