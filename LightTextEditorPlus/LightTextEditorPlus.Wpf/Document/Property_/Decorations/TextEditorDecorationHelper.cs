@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -22,20 +23,35 @@ static class TextEditorDecorationHelper
     /// </summary>
     /// <param name="charList"></param>
     /// <returns></returns>
-    public static IEnumerable<DecorationSplitResult> SplitContinuousTextDecorationCharData(TextReadOnlyListSpan<CharData> charList)
+    public static IEnumerable<DecorationSplitResult> SplitContinuousTextDecorationCharData(
+        TextReadOnlyListSpan<CharData> charList)
     {
-        var textDecorationCharDataList = SkipEmptyTextDecoration(charList);
+        var offset = SkipEmptyTextEditorDecoration(in charList, 0);
+        if (offset == charList.Count)
+        {
+            yield break;
+        }
+        Debug.Assert(offset < charList.Count);
 
-        while (textDecorationCharDataList.Count > 0)
+        Dictionary<Type /*TextEditorDecorationType*/, int /*Offset*/> dictionary = [];
+
+        for (; offset < charList.Count;)
         {
             // 获取到装饰
-            CharData firstCharData = textDecorationCharDataList[0];
+            CharData firstCharData = charList[offset];
             RunProperty runProperty = firstCharData.RunProperty.AsRunProperty();
 
-            var count = 0;
-            for (var i = 0; i < runProperty.DecorationCollection.Count; i++)
+            var minCount = 1;
+
+            for (var decorationIndex = 0; decorationIndex < runProperty.DecorationCollection.Count; decorationIndex++)
             {
-                TextEditorDecoration textEditorDecoration = runProperty.DecorationCollection[i];
+                TextEditorDecoration textEditorDecoration = runProperty.DecorationCollection[decorationIndex];
+                Type textEditorDecorationType = textEditorDecoration.GetType();
+                int textEditorDecorationOffset = dictionary.GetValueOrDefault(textEditorDecorationType, -1);
+                if (textEditorDecorationOffset >= offset)
+                {
+                    continue;
+                }
 
                 bool Predicate(CharData a, CharData b)
                 {
@@ -46,32 +62,36 @@ static class TextEditorDecorationHelper
                         bRunProperty);
                 }
 
+                var textDecorationCharDataList = charList.Slice(offset);
                 TextReadOnlyListSpan<CharData> firstCharSpanContinuous = textDecorationCharDataList.GetFirstCharSpanContinuous(Predicate);
 
                 yield return new DecorationSplitResult(textEditorDecoration, runProperty, firstCharSpanContinuous);
 
-                count = Math.Max(count, firstCharSpanContinuous.Count);
+                minCount = Math.Min(minCount, firstCharSpanContinuous.Count);
+                dictionary[textEditorDecorationType] = offset + firstCharSpanContinuous.Count;
             }
 
-            textDecorationCharDataList = SkipEmptyTextDecoration(textDecorationCharDataList.Slice(count));
+            offset += minCount;
         }
-    }
 
-    private static TextReadOnlyListSpan<CharData> SkipEmptyTextDecoration(TextReadOnlyListSpan<CharData> charList)
-    {
-        for (var i = 0; i < charList.Count; i++)
+        yield break;
+
+        static int SkipEmptyTextEditorDecoration(in TextReadOnlyListSpan<CharData> charList, int currentIndex)
         {
-            RunProperty runProperty = charList[i].RunProperty.AsRunProperty();
-            if (runProperty.DecorationCollection.IsEmpty)
+            for (var i = currentIndex; i < charList.Count; i++)
             {
-                // 跳过
+                RunProperty runProperty = charList[i].RunProperty.AsRunProperty();
+                if (runProperty.DecorationCollection.IsEmpty)
+                {
+                    // 跳过
+                }
+                else
+                {
+                    return currentIndex;
+                }
             }
-            else
-            {
-                return charList.Slice(i);
-            }
-        }
 
-        return new TextReadOnlyListSpan<CharData>();
+            return charList.Count; // 返回结束位置
+        }
     }
 }
