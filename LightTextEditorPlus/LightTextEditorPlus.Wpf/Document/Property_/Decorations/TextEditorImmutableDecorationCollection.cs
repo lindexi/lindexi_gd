@@ -10,7 +10,7 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// 文本的装饰不可变集合
 /// </summary>
 /// 其作用是放在 RunProperty 里面时，可以不用一定开启一个新的对象。绝大部分时候，只添加一个装饰时，只开一个对象，也不用开两个对象（一个 List 一个元素），可以更省一些
-public readonly struct TextEditorImmutableDecorationCollection:IEquatable<TextEditorImmutableDecorationCollection>
+public readonly struct TextEditorImmutableDecorationCollection : IEquatable<TextEditorImmutableDecorationCollection>
 {
     /// <summary>
     /// 创建文本的装饰不可变集合
@@ -166,6 +166,7 @@ public readonly struct TextEditorImmutableDecorationCollection:IEquatable<TextEd
                 // 这不可能发生
                 return this;
             }
+
             return new TextEditorImmutableDecorationCollection(_more.AddRange(decorations));
         }
     }
@@ -195,7 +196,8 @@ public readonly struct TextEditorImmutableDecorationCollection:IEquatable<TextEd
             }
             else
             {
-                ImmutableList<TextEditorDecoration>.Builder builder = ImmutableList.CreateBuilder<TextEditorDecoration>();
+                ImmutableList<TextEditorDecoration>.Builder builder =
+                    ImmutableList.CreateBuilder<TextEditorDecoration>();
                 builder.Add(_one);
                 builder.AddRange(collection._more!);
                 return new TextEditorImmutableDecorationCollection(builder.ToImmutable());
@@ -209,6 +211,7 @@ public readonly struct TextEditorImmutableDecorationCollection:IEquatable<TextEd
                 // 这不可能发生
                 return this;
             }
+
             return new TextEditorImmutableDecorationCollection(_more.AddRange(collection._more!));
         }
     }
@@ -278,5 +281,14 @@ public readonly struct TextEditorImmutableDecorationCollection:IEquatable<TextEd
     public override int GetHashCode()
     {
         return HashCode.Combine(_more, _one);
+    }
+
+    /// <summary>
+    /// 隐式转换
+    /// </summary>
+    /// <param name="decoration"></param>
+    public static implicit operator TextEditorImmutableDecorationCollection(TextEditorDecoration decoration)
+    {
+        return new TextEditorImmutableDecorationCollection(decoration);
     }
 }
