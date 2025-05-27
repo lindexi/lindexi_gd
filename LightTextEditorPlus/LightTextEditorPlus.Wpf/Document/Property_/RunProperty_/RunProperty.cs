@@ -3,9 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document.Decorations;
 
 namespace LightTextEditorPlus.Document;
 
@@ -42,14 +42,8 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <inheritdoc />
     public ImmutableBrush Foreground
     {
-        init
-        {
-            _foreground = value;
-        }
-        get
-        {
-            return _foreground ?? DefaultForeground;
-        }
+        init { _foreground = value; }
+        get { return _foreground ?? DefaultForeground; }
     }
 
     /// <summary>
@@ -107,6 +101,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     private readonly FontStretch? _stretch;
+
     /// <summary>
     /// 默认字体拉伸
     /// </summary>
@@ -126,6 +121,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     private readonly FontWeight? _fontWeight;
+
     /// <summary>
     /// 默认字重
     /// </summary>
@@ -145,10 +141,16 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     private readonly FontStyle? _fontStyle;
+
     /// <summary>
     /// 默认字体样式
     /// </summary>
     public static FontStyle DefaultFontStyle => FontStyles.Normal;
+
+    /// <summary>
+    /// 文本的装饰集合
+    /// </summary>
+    public TextEditorImmutableDecorationCollection DecorationCollection { init; get; }
 
     #endregion
 
@@ -286,6 +288,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
         hashCode.Add(FontStyle);
         hashCode.Add(Stretch);
         hashCode.Add(Background);
+        hashCode.Add(DecorationCollection);
         return hashCode.ToHashCode();
     }
 
@@ -334,6 +337,11 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
         }
 
         if (!Equals(Background, other.Background))
+        {
+            return false;
+        }
+
+        if (!Equals(DecorationCollection, other.DecorationCollection))
         {
             return false;
         }
