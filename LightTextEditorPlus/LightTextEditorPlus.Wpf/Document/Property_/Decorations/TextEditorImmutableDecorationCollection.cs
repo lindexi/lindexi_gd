@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,11 +12,18 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// 其作用是放在 RunProperty 里面时，可以不用一定开启一个新的对象。绝大部分时候，只添加一个装饰时，只开一个对象，也不用开两个对象（一个 List 一个元素），可以更省一些
 public readonly struct TextEditorImmutableDecorationCollection
 {
+    /// <summary>
+    /// 创建文本的装饰不可变集合
+    /// </summary>
     public TextEditorImmutableDecorationCollection(TextEditorDecoration decoration)
     {
         _one = decoration;
     }
 
+    /// <summary>
+    /// 创建文本的装饰不可变集合
+    /// </summary>
+    /// <param name="decorationCollection"></param>
     public TextEditorImmutableDecorationCollection(ICollection<TextEditorDecoration> decorationCollection)
     {
         if (decorationCollection.Count == 1)
@@ -28,6 +36,10 @@ public readonly struct TextEditorImmutableDecorationCollection
         }
     }
 
+    /// <summary>
+    /// 创建文本的装饰不可变集合
+    /// </summary>
+    /// <param name="decorationImmutableList"></param>
     public TextEditorImmutableDecorationCollection(ImmutableList<TextEditorDecoration> decorationImmutableList)
     {
         if (decorationImmutableList.Count > 0)
@@ -43,6 +55,39 @@ public readonly struct TextEditorImmutableDecorationCollection
         }
     }
 
+    /// <summary>
+    /// 获取指定索引的装饰
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public TextEditorDecoration this[int index]
+    {
+        get
+        {
+            if (index >= Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), $"Count={Count};Index={index}");
+            }
+
+            if (index < 0)
+            {
+                throw new ArgumentException($"传入的索引不能小于 0 的值", nameof(index));
+            }
+
+            if (index == 0 && _one is not null)
+            {
+                return _one;
+            }
+            else
+            {
+                return _more![index];
+            }
+        }
+    }
+
+    /// <summary>
+    /// 包含的数量
+    /// </summary>
     public int Count
     {
         get
@@ -64,6 +109,11 @@ public readonly struct TextEditorImmutableDecorationCollection
     private readonly ImmutableList<TextEditorDecoration>? _more;
     private readonly TextEditorDecoration? _one;
 
+    /// <summary>
+    /// 添加一个装饰到不可变集合中
+    /// </summary>
+    /// <param name="decoration"></param>
+    /// <returns></returns>
     public TextEditorImmutableDecorationCollection Add(TextEditorDecoration decoration)
     {
         if (_one is null && _more is null)
@@ -87,6 +137,11 @@ public readonly struct TextEditorImmutableDecorationCollection
         }
     }
 
+    /// <summary>
+    /// 添加一组装饰到不可变集合中
+    /// </summary>
+    /// <param name="decorations"></param>
+    /// <returns></returns>
     public TextEditorImmutableDecorationCollection AddRange(ICollection<TextEditorDecoration> decorations)
     {
         if (_one is null && _more is null)
@@ -115,6 +170,11 @@ public readonly struct TextEditorImmutableDecorationCollection
         }
     }
 
+    /// <summary>
+    /// 添加一个不可变集合到当前不可变集合中
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <returns></returns>
     public TextEditorImmutableDecorationCollection Add(in TextEditorImmutableDecorationCollection collection)
     {
         int collectionCount = collection.Count;
@@ -153,6 +213,11 @@ public readonly struct TextEditorImmutableDecorationCollection
         }
     }
 
+    /// <summary>
+    /// 从不可变集合中移除一个装饰
+    /// </summary>
+    /// <param name="decoration"></param>
+    /// <returns></returns>
     public TextEditorImmutableDecorationCollection Remove(TextEditorDecoration? decoration)
     {
         if (decoration is null)
