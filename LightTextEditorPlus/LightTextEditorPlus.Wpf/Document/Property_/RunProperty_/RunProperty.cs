@@ -292,6 +292,11 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <inheritdoc />
     public virtual bool Equals(RunProperty? other)
     {
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         if (other == null)
         {
             return false;
