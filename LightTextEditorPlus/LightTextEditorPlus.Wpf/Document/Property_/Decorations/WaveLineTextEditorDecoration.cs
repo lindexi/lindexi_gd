@@ -22,14 +22,14 @@ public class WaveLineTextEditorDecoration : TextEditorDecoration
     }
 
     /// <inheritdoc />
-    public override BuildDecorationResult OnBuildDecoration(in BuildDecorationArgument argument)
+    public override BuildDecorationResult BuildDecoration(in BuildDecorationArgument argument)
     {
         ImmutableBrush foregroundBrush = argument.RunProperty.Foreground;
         var foreground = foregroundBrush.Value;
         Drawing? drawing = null;
         if (!argument.TextEditor.ArrangingType.IsHorizontal)
         {
-            Rect bounds = argument.RecommendedBounds;
+            var bounds = argument.RecommendedBounds;
             var waveLine = new WaveLine()
             {
                 WaveHeight = bounds.Height,

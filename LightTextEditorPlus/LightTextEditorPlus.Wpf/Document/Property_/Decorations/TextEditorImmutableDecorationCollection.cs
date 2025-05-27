@@ -86,6 +86,8 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
         }
     }
 
+    public bool IsEmpty => _one is null && _more is null;
+
     /// <summary>
     /// 包含的数量
     /// </summary>

@@ -6,7 +6,10 @@ using System.Collections.Generic;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
-static class CharDataLayoutHelper
+/// <summary>
+/// 字符布局相关的帮助类
+/// </summary>
+public static class CharDataLayoutHelper
 {
     /// <summary>
     /// 获取两个字符属性中，最大字号的字符属性。如果两个字符属性的字号相同，则返回首个字符属性。
@@ -14,7 +17,7 @@ static class CharDataLayoutHelper
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static CharData GetMaxFontSizeCharData(CharData a, CharData b)
+    internal static CharData GetMaxFontSizeCharData(CharData a, CharData b)
     {
         if (a.RunProperty.FontSize > b.RunProperty.FontSize)
         {
@@ -50,7 +53,7 @@ static class CharDataLayoutHelper
     /// </summary>
     /// <param name="paragraphList"></param>
     /// <param name="context"></param>
-    public static void ClearAllCharDataInfo(IReadOnlyList<ParagraphData> paragraphList, UpdateLayoutContext context)
+    internal static void ClearAllCharDataInfo(IReadOnlyList<ParagraphData> paragraphList, UpdateLayoutContext context)
     {
         foreach (ParagraphData paragraphData in paragraphList)
         {

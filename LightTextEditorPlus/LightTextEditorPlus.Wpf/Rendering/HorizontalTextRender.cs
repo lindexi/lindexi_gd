@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 
 namespace LightTextEditorPlus.Rendering;
 
@@ -29,7 +32,7 @@ class HorizontalTextRender : TextRenderBase
             {
                 foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
                 {
-                   var argument = lineRenderInfo.Argument;
+                    var argument = lineRenderInfo.Argument;
                     drawingContext.PushTransform(new TranslateTransform(0, argument.StartPoint.Y));
 
                     try
@@ -44,7 +47,7 @@ class HorizontalTextRender : TextRenderBase
                             }
                         }
 
-                        var lineVisual = DrawLine(lineRenderInfo, pixelsPerDip);
+                        var lineVisual = DrawLine(lineRenderInfo, pixelsPerDip, textEditor);
                         lineVisual.Freeze();
                         drawingContext.DrawDrawing(lineVisual);
                         lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
@@ -128,7 +131,7 @@ class HorizontalTextRender : TextRenderBase
         }
     }
 
-    private DrawingGroup DrawLine(in ParagraphLineRenderInfo lineRenderInfo, float pixelsPerDip)
+    private DrawingGroup DrawLine(ParagraphLineRenderInfo lineRenderInfo, float pixelsPerDip, TextEditor textEditor)
     {
         LineDrawingArgument argument = lineRenderInfo.Argument;
 
@@ -136,11 +139,6 @@ class HorizontalTextRender : TextRenderBase
         drawingGroup.GuidelineSet = new GuidelineSet();
 
         using var drawingContext = drawingGroup.Open();
-
-        // 获取字符属性相同聚合一起的拆分之后的字符
-        IEnumerable<TextReadOnlyListSpan<CharData>> splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
-
-        var renderList = splitList;
 
         if (lineRenderInfo.IsIncludeMarker)
         {
@@ -162,10 +160,18 @@ class HorizontalTextRender : TextRenderBase
             }
         }
 
+        // 获取字符属性相同聚合一起的拆分之后的字符
+        IEnumerable<TextReadOnlyListSpan<CharData>> splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
+
+        var renderList = splitList;
+
         foreach (var charList in renderList)
         {
             RenderCharList(charList);
         }
+
+        // 渲染文本装饰
+        RenderTextDecoration();
 
         return drawingGroup;
 
@@ -262,6 +268,40 @@ class HorizontalTextRender : TextRenderBase
                 Brush brush = currentRunProperty.Foreground.Value;
                 drawingContext.DrawGlyphRun(brush, glyphRun);
             }
+        }
+
+        void RenderTextDecoration()
+        {
+            foreach (DecorationSplitResult decorationSplitResult in TextEditorDecorationHelper.SplitContinuousTextDecorationCharData(argument.CharList))
+            {
+                TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
+                RunProperty runProperty = decorationSplitResult.RunProperty;
+                TextReadOnlyListSpan<CharData> charList = decorationSplitResult.CharList;
+
+                textEditorDecoration.BuildDecoration(new BuildDecorationArgument()
+                {
+                    CharDataList = charList,
+                    RunProperty = runProperty,
+                    LineRenderInfo = lineRenderInfo,
+                    TextEditor = textEditor,
+                    RecommendedBounds = GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in charList)
+                });
+            }
+
+        }
+
+        TextRect GetDecorationLocationRecommendedBounds(TextDecorationLocation location, in TextReadOnlyListSpan<CharData> charList)
+        {
+            CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(in charList);
+            // 经验值，大概就是 0.1-0.05 之间
+            var ratio = 0.06;
+            var height = maxFontSizeCharData.RunProperty.FontSize * ratio;
+            // 这里是在没有 Kern 的情况下，刚好就是各个字符之和就等于宽度。如果有 Kern 的情况，则不正确
+            // todo 后续加上 Kern 需要考虑这里的宽度情况
+            var width = charList.Sum(charData => charData.Size.Width);
+            var x = charList[0].GetStartPoint().X;
+            var y = charList[0].GetBounds().Bottom - height;
+            return new TextRect(x, y, width, height);
         }
     }
 }
