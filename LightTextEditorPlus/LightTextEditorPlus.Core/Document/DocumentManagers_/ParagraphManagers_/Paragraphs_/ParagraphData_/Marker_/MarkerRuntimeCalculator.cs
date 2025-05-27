@@ -120,7 +120,9 @@ static class MarkerRuntimeCalculator
                         {
                             // 如果是空段落，则不增加编号，保持 currentIndex 不变
                             // 忽略 CS1717 建议
+#pragma warning disable CS1717 // Assignment made to same variable
                             currentIndex = currentIndex;
+#pragma warning restore CS1717 // Assignment made to same variable
                         }
                         else
                         {
