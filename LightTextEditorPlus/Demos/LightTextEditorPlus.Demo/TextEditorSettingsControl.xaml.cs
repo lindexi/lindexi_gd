@@ -519,6 +519,11 @@ public partial class TextEditorSettingsControl : UserControl
 
     #endregion
 
+    /// <summary>
+    /// 波浪线
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void ToggleWaveLineButton_OnClick(object sender, RoutedEventArgs e)
     {
         TextEditor.ToggleTextDecoration(new WaveLineTextEditorDecoration());
