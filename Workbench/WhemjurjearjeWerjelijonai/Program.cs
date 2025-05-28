@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using CearcurwaidereFerkearjurnawhea;
 using WhemjurjearjeWerjelijonai;
 
 var class1 = new Class1();
@@ -22,6 +23,7 @@ class Foo
             Task.Run(() =>
             {
                 _class1.Foo();
+                Console.WriteLine(typeof(ProgramAttribute));
             });
 
             Console.ReadLine();
