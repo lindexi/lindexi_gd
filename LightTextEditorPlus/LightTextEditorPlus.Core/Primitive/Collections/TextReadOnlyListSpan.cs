@@ -18,6 +18,11 @@ namespace LightTextEditorPlus.Core.Primitive.Collections;
 public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<TextReadOnlyListSpan<T>>
 {
     /// <inheritdoc cref="TextReadOnlyListSpan{T}"/>
+    public TextReadOnlyListSpan(IReadOnlyList<T> source):this(source,0, source.Count)
+    {
+    }
+
+    /// <inheritdoc cref="TextReadOnlyListSpan{T}"/>
     public TextReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)
     {
         _source = source;
