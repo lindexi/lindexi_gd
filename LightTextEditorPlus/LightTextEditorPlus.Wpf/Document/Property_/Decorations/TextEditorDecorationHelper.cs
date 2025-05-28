@@ -38,7 +38,7 @@ static class TextEditorDecorationHelper
         // 装饰：-----   ---
         // 装饰：---   ---
         // 如上所示，有两个装饰，两个装饰覆盖的范围不相同。通过此字典记录进行处理
-        Dictionary<Type /*TextEditorDecorationType*/, int /*Offset*/> dictionary = [];
+        Dictionary<TextEditorDecoration, int /*Offset*/> dictionary = [];
 
         for (; offset < charList.Count;)
         {
@@ -58,8 +58,7 @@ static class TextEditorDecorationHelper
             for (var decorationIndex = 0; decorationIndex < runProperty.DecorationCollection.Count; decorationIndex++)
             {
                 TextEditorDecoration textEditorDecoration = runProperty.DecorationCollection[decorationIndex];
-                Type textEditorDecorationType = textEditorDecoration.GetType();
-                int textEditorDecorationOffset = dictionary.GetValueOrDefault(textEditorDecorationType, -1);
+                int textEditorDecorationOffset = dictionary.GetValueOrDefault(textEditorDecoration, -1);
                 if (textEditorDecorationOffset > offset)
                 {
                     continue;
@@ -80,7 +79,7 @@ static class TextEditorDecorationHelper
                 yield return new DecorationSplitResult(textEditorDecoration, runProperty, firstCharSpanContinuous);
 
                 minCount = Math.Min(minCount, firstCharSpanContinuous.Count);
-                dictionary[textEditorDecorationType] = offset + firstCharSpanContinuous.Count;
+                dictionary[textEditorDecoration] = offset + firstCharSpanContinuous.Count;
             }
 
             offset += minCount;
