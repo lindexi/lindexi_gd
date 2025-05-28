@@ -31,7 +31,6 @@ public interface IRunProperty : IReadOnlyRunProperty
     /// 背景色
     /// </summary>
     ImmutableBrush? Background { get; } 
-#endif
 
     /// <summary>
     /// 获取描述与某个字体与该字体的正常纵横比相比的拉伸程度
@@ -47,8 +46,9 @@ public interface IRunProperty : IReadOnlyRunProperty
     /// 获取字体样式
     /// </summary>
     FontStyle FontStyle { get; }
+#endif
 
-#elif USE_SKIA && !USE_AllInOne
+#elif USE_SKIA
     SKColor Foreground { get; }
     SKColor Background { get; }
 
