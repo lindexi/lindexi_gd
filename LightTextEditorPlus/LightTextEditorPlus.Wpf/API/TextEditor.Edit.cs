@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
@@ -132,7 +132,7 @@ public partial class TextEditor
     /// 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性
     /// </summary>
     /// <param name="config"></param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     /// <remarks>这是给业务层调用的，非框架内调用</remarks>
     public void SetRunProperty(ConfigRunProperty config, Selection? selection = null)
     {
@@ -143,7 +143,7 @@ public partial class TextEditor
     /// 设置字体名
     /// </summary>
     /// <param name="fontName">如果字体不存在，将会自动回滚</param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetFontName(string fontName, Selection? selection = null)
         => SetFontName(new FontName(fontName), selection);
 
@@ -151,7 +151,7 @@ public partial class TextEditor
     /// 设置字体名
     /// </summary>
     /// <param name="fontName">如果字体不存在，将会自动回滚</param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetFontName(FontName fontName, Selection? selection = null)
     {
         SetRunProperty(p => p with { FontName = fontName }, PropertyType.FontName, selection);
@@ -161,7 +161,7 @@ public partial class TextEditor
     /// 设置字体大小
     /// </summary>
     /// <param name="fontSize">使用WPF单位</param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetFontSize(double fontSize, Selection? selection = null)
     {
         SetRunProperty(p => p with { FontSize = fontSize }, PropertyType.FontSize, selection);
@@ -171,7 +171,7 @@ public partial class TextEditor
     /// 设置前景色
     /// </summary>
     /// <param name="foreground"></param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetForeground(ImmutableBrush foreground, Selection? selection = null)
     {
         SetRunProperty(p => p with { Foreground = foreground }, PropertyType.Foreground, selection);
@@ -180,6 +180,7 @@ public partial class TextEditor
     /// <summary>
     /// 开启或关闭文本斜体。如果想明确设置斜体或取消斜体，请使用 <see cref="SetFontStyle"/> 方法
     /// </summary>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void ToggleItalic(Selection? selection = null)
     {
         FontStyle fontStyle;
@@ -205,7 +206,7 @@ public partial class TextEditor
     /// 设置字体样式
     /// </summary>
     /// <param name="fontStyle"></param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetFontStyle(FontStyle fontStyle, Selection? selection = null)
     {
         SetRunProperty(p => p with { FontStyle = fontStyle }, PropertyType.FontStyle, selection);
@@ -214,6 +215,7 @@ public partial class TextEditor
     /// <summary>
     /// 开启或关闭文本加粗。如果只想明确加粗或取消加粗，请使用 <see cref="SetFontWeight"/> 方法
     /// </summary>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void ToggleBold(Selection? selection = null)
     {
         FontWeight fontWeight;
@@ -244,11 +246,22 @@ public partial class TextEditor
         SetRunProperty(p => p with { FontWeight = fontWeight }, PropertyType.FontWeight, selection);
     }
 
+    #region 文本装饰
+
+    /// <summary>
+    /// 开启或关闭文本的下划线
+    /// </summary>
+    /// <param name="selection"></param>
+    public void ToggleUnderline(Selection? selection = null)
+    {
+        ToggleTextDecoration(UnderlineTextEditorDecoration.Instance, selection);
+    }
+
     /// <summary>
     /// 开启或关闭文本装饰
     /// </summary>
     /// <param name="textDecoration"></param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void ToggleTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         bool addDecoration;
@@ -269,7 +282,7 @@ public partial class TextEditor
     /// </summary>
     /// <param name="textDecoration"></param>
     /// <param name="addOrRemove">true 表示添加，false 表示删除</param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetTextDecoration(TextEditorDecoration textDecoration, bool addOrRemove, Selection? selection = null)
     {
         if (addOrRemove)
@@ -286,7 +299,7 @@ public partial class TextEditor
     /// 添加文本装饰
     /// </summary>
     /// <param name="textDecoration"></param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void AddTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         SetRunProperty(property => property with
@@ -299,7 +312,7 @@ public partial class TextEditor
     /// 删除文本装饰
     /// </summary>
     /// <param name="textDecoration"></param>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void RemoveTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         SetRunProperty(property => property with
@@ -311,7 +324,7 @@ public partial class TextEditor
     /// <summary>
     /// 清理文本装饰
     /// </summary>
-    /// <param name="selection"></param>
+    /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void ClearTextDecoration(Selection? selection = null)
     {
         SetRunProperty(property => property with
@@ -319,6 +332,8 @@ public partial class TextEditor
             DecorationCollection = new TextEditorImmutableDecorationCollection()
         }, PropertyType.TextDecoration, selection);
     }
+
+    #endregion
 
     /// <summary>
     /// 设置字符属性。如果传入的 <paramref name="selection"/> 是空，将会使用当前选择。当前选择是空将会修改当前光标字符属性。修改当前光标字符属性样式，只触发 StyleChanging 和 StyleChanged 事件，不触发布局变更

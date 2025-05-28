@@ -533,7 +533,7 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void ToggleUnderlineButton_OnClick(object sender, RoutedEventArgs e)
     {
-        TextEditor.ToggleTextDecoration(new UnderlineTextEditorDecoration());
+        TextEditor.ToggleUnderline();
     }
 
     #endregion
