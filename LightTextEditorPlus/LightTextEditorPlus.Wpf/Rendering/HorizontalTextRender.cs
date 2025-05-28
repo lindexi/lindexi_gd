@@ -280,12 +280,13 @@ class HorizontalTextRender : TextRenderBase
                 TextReadOnlyListSpan<CharData> charDataList = decorationSplitResult.CharList;
 
                 var currentCharDataList = charDataList;
-
+                var currentCharIndexInLine = decorationSplitResult.CurrentCharIndexInLine;
                 while (true)
                 {
                     var decorationArgument = new BuildDecorationArgument()
                     {
                         CharDataList = currentCharDataList,
+                        CurrentCharIndexInLine = currentCharIndexInLine,
                         RunProperty = runProperty,
                         LineRenderInfo = lineRenderInfo,
                         TextEditor = textEditor,
@@ -329,6 +330,7 @@ class HorizontalTextRender : TextRenderBase
                     else
                     {
                         currentCharDataList = currentCharDataList.Slice(result.TakeCharCount);
+                        currentCharIndexInLine += result.TakeCharCount;
                     }
                 }
             }
