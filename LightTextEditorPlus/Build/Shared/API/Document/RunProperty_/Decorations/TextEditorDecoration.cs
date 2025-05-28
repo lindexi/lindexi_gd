@@ -1,5 +1,11 @@
-﻿using System;
+﻿#if DirectTextEditorDefinition
+using System;
+
+#if USE_WPF
 using System.Windows;
+#elif USE_AVALONIA
+using Avalonia.Media;
+#endif
 
 namespace LightTextEditorPlus.Document.Decorations;
 
@@ -33,7 +39,7 @@ public abstract class TextEditorDecoration
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public virtual bool AreSameRunProperty(RunProperty a, RunProperty b)
+    public virtual bool AreSameRunProperty(IRunProperty a, IRunProperty b)
     {
         return a.Equals(b);
     }
@@ -44,20 +50,20 @@ public abstract class TextEditorDecoration
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    protected bool CheckSameRunPropertyByContainsCurrentDecoration(RunProperty a, RunProperty b)
+    protected bool CheckSameRunPropertyByContainsCurrentDecoration(IRunProperty a, IRunProperty b)
     {
         var aContains = a.DecorationCollection.Contains(this);
         var bContains = b.DecorationCollection.Contains(this);
         return aContains && bContains; // 为什么取都包含？因为首次判定，必然是包含当前的装饰，否则也就不会进来了
     }
-
-    /// <summary>
-    /// 隐式转换
-    /// </summary>
-    public static implicit operator TextEditorDecoration(TextDecoration textDecoration)
-    {
-        throw new NotImplementedException();
-    }
+    
+    ///// <summary>
+    ///// 隐式转换
+    ///// </summary>
+    //public static implicit operator TextEditorDecoration(TextDecoration textDecoration)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
     /// <inheritdoc />
     public override bool Equals(object? obj)
@@ -82,3 +88,12 @@ public abstract class TextEditorDecoration
         return HashCode.Combine(TextDecorationLocation, GetType());
     }
 }
+
+#if USE_SKIA
+public enum TextDecorationLocation
+{
+    // todo 等待放到底层
+}
+
+#endif
+#endif

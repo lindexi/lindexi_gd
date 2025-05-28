@@ -1,7 +1,16 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿#if DirectTextEditorDefinition
+
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
+
+#if USE_SKIA
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+#if !USE_AllInOne
+using TextEditor = LightTextEditorPlus.SkiaTextEditor;
+#endif
+#endif
 
 namespace LightTextEditorPlus.Document.Decorations;
 
@@ -13,4 +22,13 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// <param name="RecommendedBounds">推荐的渲染范围</param>
 /// <param name="LineRenderInfo">段落内的行的渲染信息</param>
 ///// <param name="CurrentCharIndexInLine">当前准备绘制的起始字符所在当前行的坐标</param>
-public readonly record struct BuildDecorationArgument(IRunProperty RunProperty, /*int CurrentCharIndexInLine,*/ TextReadOnlyListSpan<CharData> CharDataList, TextRect RecommendedBounds, ParagraphLineRenderInfo LineRenderInfo, TextEditor TextEditor);
+public readonly record struct BuildDecorationArgument
+(
+    IRunProperty RunProperty,
+    /*int CurrentCharIndexInLine,*/
+    TextReadOnlyListSpan<CharData> CharDataList,
+    TextRect RecommendedBounds,
+    ParagraphLineRenderInfo LineRenderInfo,
+    TextEditor TextEditor
+);
+#endif

@@ -278,6 +278,25 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     /// <inheritdoc />
+    public bool Equals(IRunProperty? other)
+    {
+        if (ReferenceEquals(other, this))
+        {
+            // 大部分的判断情况下，都会进入这个分支
+            return true;
+        }
+
+        if (other is RunProperty otherRunProperty)
+        {
+            return Equals(otherRunProperty);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         var hashCode = new HashCode();

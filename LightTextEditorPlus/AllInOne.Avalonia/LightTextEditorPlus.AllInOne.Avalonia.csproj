@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseUIFramework>Avalonia</UseUIFramework>
-    <DefineConstants>$(DefineConstants);USE_SKIA;USE_AllInOne</DefineConstants>
+    <DefineConstants>$(DefineConstants);USE_SKIA;USE_AllInOne;DirectTextEditorDefinition</DefineConstants>
     <AssemblyName>LightTextEditorPlus.Avalonia</AssemblyName>
     <!-- 为什么命名上会带一个 AllInOne 标识？ 因为还有不带 AllInOne 的版本，分开多个包的版本 -->
     <PackageId>LightTextEditorPlus.AllInOne.Avalonia</PackageId>

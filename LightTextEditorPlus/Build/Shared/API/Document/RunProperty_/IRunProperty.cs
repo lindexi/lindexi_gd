@@ -1,4 +1,6 @@
+using System;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Document.Decorations;
 #if USE_SKIA
 using SkiaSharp;
 #endif
@@ -11,13 +13,17 @@ namespace LightTextEditorPlus.Document;
 /// 设计上文本字符属性是只读的，但是 IReadOnlyRunProperty 命名已用
 /// 为什么需要再定义一个接口？因为文本的字符属性是用到了很多平台相关属性，有些定义是有些平台不支持的
 /// 这个接口是用来框架外的业务层的，在框架内是不使用接口的
-public interface IRunProperty : IReadOnlyRunProperty
+public interface IRunProperty : IReadOnlyRunProperty, IEquatable<IRunProperty>
 {
     /// <summary>
     /// 不透明度
     /// </summary>
     double Opacity { get; }
 
+    /// <summary>
+    /// 文本的装饰集合
+    /// </summary>
+    TextEditorImmutableDecorationCollection DecorationCollection { get; }
 
 #if USE_WPF || USE_AVALONIA
 

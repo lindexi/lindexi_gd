@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DirectTextEditorDefinition
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -361,3 +362,4 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
         }
     }
 }
+#endif
