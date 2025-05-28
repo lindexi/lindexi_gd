@@ -11,6 +11,9 @@ namespace LightTextEditorPlus.Document;
 /// </summary>
 [APIConstraint("RunProperty.txt")]
 public record SkiaTextRunProperty : LayoutOnlyRunProperty
+#if USE_SKIA && !USE_AllInOne
+    , IRunProperty
+#endif
 {
     internal SkiaTextRunProperty(SkiaPlatformResourceManager skiaPlatformResourceManager)
     {

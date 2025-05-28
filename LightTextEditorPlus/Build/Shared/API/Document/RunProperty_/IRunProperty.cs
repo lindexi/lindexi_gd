@@ -1,4 +1,7 @@
 using LightTextEditorPlus.Core.Document;
+#if USE_SKIA
+using SkiaSharp;
+#endif
 
 namespace LightTextEditorPlus.Document;
 
@@ -15,6 +18,9 @@ public interface IRunProperty : IReadOnlyRunProperty
     /// </summary>
     double Opacity { get; }
 
+
+#if USE_WPF || USE_AVALONIA
+
 #if USE_WPF
     /// <summary>
     /// 前景色
@@ -24,10 +30,8 @@ public interface IRunProperty : IReadOnlyRunProperty
     /// <summary>
     /// 背景色
     /// </summary>
-    ImmutableBrush? Background { get; }
+    ImmutableBrush? Background { get; } 
 #endif
-
-#if USE_WPF || USE_AVALONIA
 
     /// <summary>
     /// 获取描述与某个字体与该字体的正常纵横比相比的拉伸程度
@@ -43,5 +47,15 @@ public interface IRunProperty : IReadOnlyRunProperty
     /// 获取字体样式
     /// </summary>
     FontStyle FontStyle { get; }
+
+#elif USE_SKIA && !USE_AllInOne
+    SKColor Foreground { get; }
+    SKColor Background { get; }
+
+    SKFontStyleWidth Stretch { get; }
+
+    SKFontStyleWeight FontWeight { get; }
+    SKFontStyleSlant FontStyle { get; }
 #endif
+
 }

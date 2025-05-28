@@ -13,4 +13,4 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// <param name="RecommendedBounds">推荐的渲染范围</param>
 /// <param name="LineRenderInfo">段落内的行的渲染信息</param>
 ///// <param name="CurrentCharIndexInLine">当前准备绘制的起始字符所在当前行的坐标</param>
-public readonly record struct BuildDecorationArgument(RunProperty RunProperty, /*int CurrentCharIndexInLine,*/ TextReadOnlyListSpan<CharData> CharDataList, TextRect RecommendedBounds, ParagraphLineRenderInfo LineRenderInfo, TextEditor TextEditor);
+public readonly record struct BuildDecorationArgument(IRunProperty RunProperty, /*int CurrentCharIndexInLine,*/ TextReadOnlyListSpan<CharData> CharDataList, TextRect RecommendedBounds, ParagraphLineRenderInfo LineRenderInfo, TextEditor TextEditor);
