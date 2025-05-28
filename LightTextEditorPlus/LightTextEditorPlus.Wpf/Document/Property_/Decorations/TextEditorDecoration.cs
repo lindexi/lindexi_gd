@@ -39,6 +39,19 @@ public abstract class TextEditorDecoration
     }
 
     /// <summary>
+    /// 判断两个 RunProperty 是否是相同的，通过判断是否包含了当前装饰层的装饰来判断是否相同
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    protected bool CheckSameRunPropertyByContainsCurrentDecoration(RunProperty a, RunProperty b)
+    {
+        var aContains = a.DecorationCollection.Contains(this);
+        var bContains = b.DecorationCollection.Contains(this);
+        return aContains && bContains; // 为什么取都包含？因为首次判定，必然是包含当前的装饰，否则也就不会进来了
+    }
+
+    /// <summary>
     /// 隐式转换
     /// </summary>
     public static implicit operator TextEditorDecoration(TextDecoration textDecoration)

@@ -55,6 +55,12 @@ public class WaveLineTextEditorDecoration : TextEditorDecoration
         };
     }
 
+    /// <inheritdoc />
+    public override bool AreSameRunProperty(RunProperty a, RunProperty b)
+    {
+        return CheckSameRunPropertyByContainsCurrentDecoration(a, b);
+    }
+
     class WaveLine
     {
         /// <summary>
