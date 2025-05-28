@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -27,7 +27,7 @@ class HorizontalTextRender : TextRenderBase
 
         var pixelsPerDip = (float) VisualTreeHelper.GetDpi(textEditor).PixelsPerDip;
 
-        using (var drawingContext = drawingVisual.RenderOpen())
+        using (DrawingContext drawingContext = drawingVisual.RenderOpen())
         {
             foreach (var paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
             {
@@ -338,16 +338,7 @@ class HorizontalTextRender : TextRenderBase
 
         TextRect GetDecorationLocationRecommendedBounds(TextEditorDecorationLocation location, in TextReadOnlyListSpan<CharData> currentCharDataList)
         {
-            CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(in currentCharDataList);
-            // 经验值，大概就是 0.1-0.05 之间
-            var ratio = 0.06;
-            var height = maxFontSizeCharData.RunProperty.FontSize * ratio;
-            // 这里是在没有 Kern 的情况下，刚好就是各个字符之和就等于宽度。如果有 Kern 的情况，则不正确
-            // todo 后续加上 Kern 需要考虑这里的宽度情况
-            var width = currentCharDataList.Sum(charData => charData.Size.Width);
-            var x = currentCharDataList[0].GetStartPoint().X;
-            var y = currentCharDataList[0].GetBounds().Bottom - height;
-            return new TextRect(x, y, width, height);
+            return TextEditorDecoration.GetDecorationLocationRecommendedBounds(location, in currentCharDataList);
         }
     }
 }

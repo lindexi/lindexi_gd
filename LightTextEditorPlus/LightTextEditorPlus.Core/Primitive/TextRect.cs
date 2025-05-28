@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System;
 
@@ -337,7 +337,7 @@ public struct TextRect : IEquatable<TextRect>
     }
 
     /// <summary>
-    /// 中心店
+    /// 中心点
     /// </summary>
     public TextPoint Center => new TextPoint(X + (Width / 2), Y + (Height / 2));
 

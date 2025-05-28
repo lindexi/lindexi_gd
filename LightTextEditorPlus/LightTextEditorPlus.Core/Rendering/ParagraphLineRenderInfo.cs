@@ -71,6 +71,12 @@ public readonly struct ParagraphLineRenderInfo
     /// <summary>行渲染参数</summary>
     public LineDrawingArgument Argument { get; }
 
+    /// <inheritdoc cref="LineDrawingArgument.CharList"/>
+    /// <remarks>
+    /// 完全等价于 <see cref="Argument"/> 的 <see cref="LineDrawingArgument.CharList"/> 属性
+    /// </remarks>
+    public TextReadOnlyListSpan<CharData> CharList => Argument.CharList;
+
     /// <summary>
     /// 段落起始字符信息
     /// </summary>
