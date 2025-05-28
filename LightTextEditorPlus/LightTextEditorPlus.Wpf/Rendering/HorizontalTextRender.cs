@@ -334,7 +334,7 @@ class HorizontalTextRender : TextRenderBase
             }
         }
 
-        TextRect GetDecorationLocationRecommendedBounds(TextDecorationLocation location, in TextReadOnlyListSpan<CharData> charList)
+        TextRect GetDecorationLocationRecommendedBounds(TextEditorDecorationLocation location, in TextReadOnlyListSpan<CharData> charList)
         {
             CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(in charList);
             // 经验值，大概就是 0.1-0.05 之间

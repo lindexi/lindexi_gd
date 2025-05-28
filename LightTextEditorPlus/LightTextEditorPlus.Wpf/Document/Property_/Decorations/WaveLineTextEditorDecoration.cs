@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document.Decorations;
 
@@ -17,7 +18,7 @@ public class WaveLineTextEditorDecoration : TextEditorDecoration
     /// 创建文本波浪线装饰
     /// </summary>
     public WaveLineTextEditorDecoration() : base(
-        TextDecorationLocation.Underline)
+        TextEditorDecorationLocation.Underline)
     {
     }
 
