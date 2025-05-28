@@ -7,3 +7,5 @@ Stretch
 FontWeight
 // 斜体
 FontStyle
+// 文本的装饰集合
+DecorationCollection

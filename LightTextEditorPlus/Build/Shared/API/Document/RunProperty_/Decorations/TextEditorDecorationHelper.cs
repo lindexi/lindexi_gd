@@ -1,10 +1,16 @@
-﻿using System;
+﻿#if DirectTextEditorDefinition
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
+
+#if USE_SKIA
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+#endif
 
 namespace LightTextEditorPlus.Document.Decorations;
 
@@ -14,7 +20,7 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// <param name="Decoration"></param>
 /// <param name="RunProperty"></param>
 /// <param name="CharList"></param>
-readonly record struct DecorationSplitResult(TextEditorDecoration Decoration, RunProperty RunProperty, TextReadOnlyListSpan<CharData> CharList);
+readonly record struct DecorationSplitResult(TextEditorDecoration Decoration, IRunProperty RunProperty, TextReadOnlyListSpan<CharData> CharList);
 
 static class TextEditorDecorationHelper
 {
@@ -51,8 +57,7 @@ static class TextEditorDecorationHelper
 
             // 获取到装饰
             CharData firstCharData = charList[offset];
-            RunProperty runProperty = firstCharData.RunProperty.AsRunProperty();
-
+            IRunProperty runProperty = firstCharData.RunProperty.AsIRunProperty();
             var minCount = 1;
 
             for (var decorationIndex = 0; decorationIndex < runProperty.DecorationCollection.Count; decorationIndex++)
@@ -66,8 +71,8 @@ static class TextEditorDecorationHelper
 
                 bool Predicate(CharData a, CharData b)
                 {
-                    RunProperty aRunProperty = a.RunProperty.AsRunProperty();
-                    RunProperty bRunProperty = b.RunProperty.AsRunProperty();
+                    IRunProperty aRunProperty = a.RunProperty.AsIRunProperty();
+                    IRunProperty bRunProperty = b.RunProperty.AsIRunProperty();
 
                     return textEditorDecoration.AreSameRunProperty(aRunProperty,
                         bRunProperty);
@@ -90,7 +95,7 @@ static class TextEditorDecorationHelper
     {
         for (var i = currentIndex; i < charList.Count; i++)
         {
-            RunProperty runProperty = charList[i].RunProperty.AsRunProperty();
+            IRunProperty runProperty = charList[i].RunProperty.AsIRunProperty();
             if (runProperty.DecorationCollection.IsEmpty)
             {
                 // 跳过
@@ -104,3 +109,4 @@ static class TextEditorDecorationHelper
         return charList.Count; // 返回结束位置
     }
 }
+#endif

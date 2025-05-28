@@ -1,6 +1,7 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Platform;
 using SkiaSharp;
 
@@ -65,6 +66,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty, IRunProperty
     /// 不透明度 [0-1] 范围
     /// </summary>
     public double Opacity { get; init; } = 1;
+
     public SKColor Foreground { get; init; } = SKColors.Black;
     public SKColor Background { get; init; } = SKColors.Transparent;
 
@@ -123,6 +125,9 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty, IRunProperty
 
     private readonly SKFontStyleSlant _fontStyle = SKFontStyleSlant.Upright;
 
+    /// <inheritdoc />
+    public TextEditorImmutableDecorationCollection DecorationCollection { get; init; }
+
     private void InvalidateFont()
     {
         // 后续可以考虑删除，因为缓存策略是在每次布局的时候制作的
@@ -130,4 +135,23 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty, IRunProperty
 
     internal SKFontStyle ToSKFontStyle() =>
         new SKFontStyle(FontWeight, Stretch, FontStyle);
+
+    /// <inheritdoc />
+    public bool Equals(IRunProperty? other)
+    {
+        if (ReferenceEquals(other, this))
+        {
+            // 大部分的判断情况下，都会进入这个分支
+            return true;
+        }
+
+        if (other is SkiaTextRunProperty otherRunProperty)
+        {
+            return Equals(otherRunProperty);
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
