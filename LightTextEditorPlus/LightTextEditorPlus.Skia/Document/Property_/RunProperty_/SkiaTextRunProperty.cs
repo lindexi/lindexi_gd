@@ -11,7 +11,7 @@ namespace LightTextEditorPlus.Document;
 /// 字符属性。创建字符属性时，应该基于所在文本框的某个现有的 <see cref="SkiaTextRunProperty"/> 使用 <see langword="with"/> 关键字进行修改和创建新的属性
 /// </summary>
 [APIConstraint("RunProperty.txt")]
-public record SkiaTextRunProperty : LayoutOnlyRunProperty, IRunProperty
+public record SkiaTextRunProperty : LayoutOnlyRunProperty
 {
     internal SkiaTextRunProperty(SkiaPlatformResourceManager skiaPlatformResourceManager)
     {
@@ -125,7 +125,9 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty, IRunProperty
 
     private readonly SKFontStyleSlant _fontStyle = SKFontStyleSlant.Upright;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 文本的装饰集合
+    /// </summary>
     public TextEditorImmutableDecorationCollection DecorationCollection { get; init; }
 
     private void InvalidateFont()
@@ -135,23 +137,4 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty, IRunProperty
 
     internal SKFontStyle ToSKFontStyle() =>
         new SKFontStyle(FontWeight, Stretch, FontStyle);
-
-    /// <inheritdoc />
-    public bool Equals(IRunProperty? other)
-    {
-        if (ReferenceEquals(other, this))
-        {
-            // 大部分的判断情况下，都会进入这个分支
-            return true;
-        }
-
-        if (other is SkiaTextRunProperty otherRunProperty)
-        {
-            return Equals(otherRunProperty);
-        }
-        else
-        {
-            return false;
-        }
-    }
 }

@@ -276,16 +276,17 @@ class HorizontalTextRender : TextRenderBase
             foreach (DecorationSplitResult decorationSplitResult in TextEditorDecorationHelper.SplitContinuousTextDecorationCharData(argument.CharList))
             {
                 TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
-                IRunProperty runProperty = decorationSplitResult.RunProperty;
+                RunProperty runProperty = decorationSplitResult.RunProperty;
                 TextReadOnlyListSpan<CharData> charDataList = decorationSplitResult.CharList;
 
                 var currentCharDataList = charDataList;
-
+                var currentCharIndexInLine = decorationSplitResult.CurrentCharIndexInLine;
                 while (true)
                 {
                     var decorationArgument = new BuildDecorationArgument()
                     {
                         CharDataList = currentCharDataList,
+                        CurrentCharIndexInLine = currentCharIndexInLine,
                         RunProperty = runProperty,
                         LineRenderInfo = lineRenderInfo,
                         TextEditor = textEditor,
@@ -329,6 +330,7 @@ class HorizontalTextRender : TextRenderBase
                     else
                     {
                         currentCharDataList = currentCharDataList.Slice(result.TakeCharCount);
+                        currentCharIndexInLine += result.TakeCharCount;
                     }
                 }
             }

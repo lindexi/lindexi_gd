@@ -4,10 +4,11 @@ using LightTextEditorPlus.Core.Document.Decorations;
 using System;
 using LightTextEditorPlus.Core.Primitive;
 
-#if USE_WPF
-using System.Windows;
-#elif USE_AVALONIA
-using Avalonia.Media;
+#if USE_SKIA
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+#if !USE_AllInOne
+using TextEditor = LightTextEditorPlus.SkiaTextEditor;
+#endif
 #endif
 
 namespace LightTextEditorPlus.Document.Decorations;
@@ -42,7 +43,7 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public virtual bool AreSameRunProperty(IRunProperty a, IRunProperty b)
+    public virtual bool AreSameRunProperty(RunProperty a, RunProperty b)
     {
         return a.Equals(b);
     }
@@ -53,7 +54,7 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    protected bool CheckSameRunPropertyByContainsCurrentDecoration(IRunProperty a, IRunProperty b)
+    protected bool CheckSameRunPropertyByContainsCurrentDecoration(RunProperty a, RunProperty b)
     {
         var aContains = a.DecorationCollection.Contains(this);
         var bContains = b.DecorationCollection.Contains(this);

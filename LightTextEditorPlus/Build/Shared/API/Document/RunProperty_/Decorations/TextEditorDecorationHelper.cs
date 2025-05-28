@@ -20,20 +20,21 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// <param name="Decoration"></param>
 /// <param name="RunProperty"></param>
 /// <param name="CharList"></param>
-readonly record struct DecorationSplitResult(TextEditorDecoration Decoration, IRunProperty RunProperty, TextReadOnlyListSpan<CharData> CharList);
+/// <param name="CurrentCharIndexInLine"></param>
+readonly record struct DecorationSplitResult(TextEditorDecoration Decoration, RunProperty RunProperty, TextReadOnlyListSpan<CharData> CharList, int CurrentCharIndexInLine);
 
 static class TextEditorDecorationHelper
 {
     /// <summary>
     /// 按照文本装饰进行分割字符列表
     /// </summary>
-    /// <param name="charList"></param>
+    /// <param name="lineCharList"></param>
     /// <returns></returns>
     public static IEnumerable<DecorationSplitResult> SplitContinuousTextDecorationCharData(
-        TextReadOnlyListSpan<CharData> charList)
+        TextReadOnlyListSpan<CharData> lineCharList)
     {
-        var offset = SkipEmptyTextEditorDecoration(in charList, 0);
-        if (offset == charList.Count)
+        var lineOffset = SkipEmptyTextEditorDecoration(in lineCharList, 0);
+        if (lineOffset == lineCharList.Count)
         {
             // 短路分支，如果没有装饰则快速返回
             yield break;
@@ -46,48 +47,48 @@ static class TextEditorDecorationHelper
         // 如上所示，有两个装饰，两个装饰覆盖的范围不相同。通过此字典记录进行处理
         Dictionary<TextEditorDecoration, int /*Offset*/> dictionary = [];
 
-        for (; offset < charList.Count;)
+        for (; lineOffset < lineCharList.Count;)
         {
-            offset = SkipEmptyTextEditorDecoration(in charList, offset);
-            if (offset == charList.Count)
+            lineOffset = SkipEmptyTextEditorDecoration(in lineCharList, lineOffset);
+            if (lineOffset == lineCharList.Count)
             {
                 yield break;
             }
-            Debug.Assert(offset < charList.Count);
+            Debug.Assert(lineOffset < lineCharList.Count);
 
             // 获取到装饰
-            CharData firstCharData = charList[offset];
-            IRunProperty runProperty = firstCharData.RunProperty.AsIRunProperty();
+            CharData firstCharData = lineCharList[lineOffset];
+            RunProperty runProperty = firstCharData.RunProperty.AsRunProperty();
             var minCount = 1;
 
             for (var decorationIndex = 0; decorationIndex < runProperty.DecorationCollection.Count; decorationIndex++)
             {
                 TextEditorDecoration textEditorDecoration = runProperty.DecorationCollection[decorationIndex];
                 int textEditorDecorationOffset = dictionary.GetValueOrDefault(textEditorDecoration, -1);
-                if (textEditorDecorationOffset > offset)
+                if (textEditorDecorationOffset > lineOffset)
                 {
                     continue;
                 }
 
                 bool Predicate(CharData a, CharData b)
                 {
-                    IRunProperty aRunProperty = a.RunProperty.AsIRunProperty();
-                    IRunProperty bRunProperty = b.RunProperty.AsIRunProperty();
+                    RunProperty aRunProperty = a.RunProperty.AsRunProperty();
+                    RunProperty bRunProperty = b.RunProperty.AsRunProperty();
 
                     return textEditorDecoration.AreSameRunProperty(aRunProperty,
                         bRunProperty);
                 }
 
-                var textDecorationCharDataList = charList.Slice(offset);
+                var textDecorationCharDataList = lineCharList.Slice(lineOffset);
                 TextReadOnlyListSpan<CharData> firstCharSpanContinuous = textDecorationCharDataList.GetFirstCharSpanContinuous(Predicate);
 
-                yield return new DecorationSplitResult(textEditorDecoration, runProperty, firstCharSpanContinuous);
+                yield return new DecorationSplitResult(textEditorDecoration, runProperty, firstCharSpanContinuous, lineOffset);
 
                 minCount = Math.Min(minCount, firstCharSpanContinuous.Count);
-                dictionary[textEditorDecoration] = offset + firstCharSpanContinuous.Count;
+                dictionary[textEditorDecoration] = lineOffset + firstCharSpanContinuous.Count;
             }
 
-            offset += minCount;
+            lineOffset += minCount;
         }
     }
 
@@ -95,7 +96,7 @@ static class TextEditorDecorationHelper
     {
         for (var i = currentIndex; i < charList.Count; i++)
         {
-            IRunProperty runProperty = charList[i].RunProperty.AsIRunProperty();
+            RunProperty runProperty = charList[i].RunProperty.AsRunProperty();
             if (runProperty.DecorationCollection.IsEmpty)
             {
                 // 跳过
@@ -109,4 +110,12 @@ static class TextEditorDecorationHelper
         return charList.Count; // 返回结束位置
     }
 }
+
+#if USE_SKIA
+file static class RunPropertyExtension
+{
+    public static RunProperty AsRunProperty(this IReadOnlyRunProperty runProperty) => runProperty.AsSkiaRunProperty();
+}
+#endif
+
 #endif
