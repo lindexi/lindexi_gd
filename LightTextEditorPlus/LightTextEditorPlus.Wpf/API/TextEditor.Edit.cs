@@ -105,18 +105,18 @@ public partial class TextEditor
 
     /// <inheritdoc cref="DocumentManager.CurrentCaretRunProperty"/>
     /// 这里的转换使用 <see cref="RunProperty"/> 明确类型，这是为了在乱用的时候，可以更好抛出异常
-    public IRunProperty CurrentCaretRunProperty => (RunProperty) TextEditorCore.DocumentManager.CurrentCaretRunProperty;
+    public RunProperty CurrentCaretRunProperty => (RunProperty) TextEditorCore.DocumentManager.CurrentCaretRunProperty;
 
     /// <inheritdoc cref="DocumentManager.StyleRunProperty"/>
-    public IRunProperty StyleRunProperty => (RunProperty) TextEditorCore.DocumentManager.StyleRunProperty;
+    public RunProperty StyleRunProperty => (RunProperty) TextEditorCore.DocumentManager.StyleRunProperty;
 
     /// <summary>
     /// 创建一个新的 RunProperty 对象
     /// </summary>
     /// <param name="createRunProperty">传入默认的 <see cref="StyleRunProperty"/> 字符属性，返回创建的新的字符属性</param>
     /// <returns></returns>
-    public IRunProperty CreateRunProperty(CreateRunPropertyDelegate createRunProperty) =>
-        createRunProperty((RunProperty) StyleRunProperty);
+    public RunProperty CreateRunProperty(CreateRunPropertyDelegate createRunProperty) =>
+        createRunProperty(StyleRunProperty);
 
     /// <inheritdoc cref="DocumentManager.SetStyleTextRunProperty{T}"/>
     public void SetStyleTextRunProperty(ConfigRunProperty config)
@@ -229,7 +229,7 @@ public partial class TextEditor
         SetFontWeight(fontWeight, selection);
     }
 
-    private bool IsAllRunPropertyMatchPredicate(Predicate<IRunProperty> predicate, Selection? selection)
+    private bool IsAllRunPropertyMatchPredicate(Predicate<RunProperty> predicate, Selection? selection)
     {
         return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
     }
@@ -495,4 +495,4 @@ public partial class TextEditor
 /// </summary>
 /// <param name="styleRunProperty"></param>
 /// <returns></returns>
-public delegate IRunProperty CreateRunPropertyDelegate(RunProperty styleRunProperty);
+public delegate RunProperty CreateRunPropertyDelegate(RunProperty styleRunProperty);

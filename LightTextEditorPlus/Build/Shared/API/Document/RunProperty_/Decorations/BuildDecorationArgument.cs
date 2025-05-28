@@ -25,7 +25,7 @@ namespace LightTextEditorPlus.Document.Decorations;
 ///// <param name="CurrentCharIndexInLine">当前准备绘制的起始字符所在当前行的坐标</param>
 public readonly record struct BuildDecorationArgument
 (
-    IRunProperty RunProperty,
+    RunProperty RunProperty,
     /*int CurrentCharIndexInLine,*/
     TextReadOnlyListSpan<CharData> CharDataList,
     TextRect RecommendedBounds,

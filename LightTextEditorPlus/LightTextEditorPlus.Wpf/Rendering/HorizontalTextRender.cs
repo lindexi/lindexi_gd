@@ -276,7 +276,7 @@ class HorizontalTextRender : TextRenderBase
             foreach (DecorationSplitResult decorationSplitResult in TextEditorDecorationHelper.SplitContinuousTextDecorationCharData(argument.CharList))
             {
                 TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
-                IRunProperty runProperty = decorationSplitResult.RunProperty;
+                RunProperty runProperty = decorationSplitResult.RunProperty;
                 TextReadOnlyListSpan<CharData> charDataList = decorationSplitResult.CharList;
 
                 var currentCharDataList = charDataList;

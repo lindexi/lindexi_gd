@@ -14,7 +14,7 @@ namespace LightTextEditorPlus.Document;
 /// 文本字符属性
 /// </summary>
 [APIConstraint("RunProperty.txt")]
-public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunProperty
+public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 {
     internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager)
     {
@@ -260,25 +260,6 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
 
     /// <inheritdoc />
     public override bool Equals(IReadOnlyRunProperty? other)
-    {
-        if (ReferenceEquals(other, this))
-        {
-            // 大部分的判断情况下，都会进入这个分支
-            return true;
-        }
-
-        if (other is RunProperty otherRunProperty)
-        {
-            return Equals(otherRunProperty);
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /// <inheritdoc />
-    public bool Equals(IRunProperty? other)
     {
         if (ReferenceEquals(other, this))
         {

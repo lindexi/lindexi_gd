@@ -20,7 +20,7 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// <param name="Decoration"></param>
 /// <param name="RunProperty"></param>
 /// <param name="CharList"></param>
-readonly record struct DecorationSplitResult(TextEditorDecoration Decoration, IRunProperty RunProperty, TextReadOnlyListSpan<CharData> CharList);
+readonly record struct DecorationSplitResult(TextEditorDecoration Decoration, RunProperty RunProperty, TextReadOnlyListSpan<CharData> CharList);
 
 static class TextEditorDecorationHelper
 {
@@ -57,7 +57,7 @@ static class TextEditorDecorationHelper
 
             // 获取到装饰
             CharData firstCharData = charList[offset];
-            IRunProperty runProperty = firstCharData.RunProperty.AsIRunProperty();
+            RunProperty runProperty = firstCharData.RunProperty.AsRunProperty();
             var minCount = 1;
 
             for (var decorationIndex = 0; decorationIndex < runProperty.DecorationCollection.Count; decorationIndex++)
@@ -71,8 +71,8 @@ static class TextEditorDecorationHelper
 
                 bool Predicate(CharData a, CharData b)
                 {
-                    IRunProperty aRunProperty = a.RunProperty.AsIRunProperty();
-                    IRunProperty bRunProperty = b.RunProperty.AsIRunProperty();
+                    RunProperty aRunProperty = a.RunProperty.AsRunProperty();
+                    RunProperty bRunProperty = b.RunProperty.AsRunProperty();
 
                     return textEditorDecoration.AreSameRunProperty(aRunProperty,
                         bRunProperty);
@@ -95,7 +95,7 @@ static class TextEditorDecorationHelper
     {
         for (var i = currentIndex; i < charList.Count; i++)
         {
-            IRunProperty runProperty = charList[i].RunProperty.AsIRunProperty();
+            RunProperty runProperty = charList[i].RunProperty.AsRunProperty();
             if (runProperty.DecorationCollection.IsEmpty)
             {
                 // 跳过
@@ -109,4 +109,12 @@ static class TextEditorDecorationHelper
         return charList.Count; // 返回结束位置
     }
 }
+
+#if USE_SKIA
+file static class RunPropertyExtension
+{
+    public static RunProperty AsRunProperty(this IReadOnlyRunProperty runProperty) => runProperty.AsSkiaRunProperty();
+}
+#endif
+
 #endif

@@ -10,7 +10,7 @@ public class ImmutableRun : TextRun
     /// <summary>
     /// 创建不可变的文本
     /// </summary>
-    public ImmutableRun(string text, IRunProperty? runProperty = null) : base(text, runProperty)
+    public ImmutableRun(string text, RunProperty? runProperty = null) : base(text, runProperty)
     {
     }
 }
