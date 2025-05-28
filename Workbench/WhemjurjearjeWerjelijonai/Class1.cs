@@ -11,4 +11,9 @@ namespace WhemjurjearjeWerjelijonai;
 [ProgramAttribute]
 internal class Class1
 {
+    public string Foo()
+    {
+        Console.WriteLine($"Foo");
+        return "";
+    }
 }
