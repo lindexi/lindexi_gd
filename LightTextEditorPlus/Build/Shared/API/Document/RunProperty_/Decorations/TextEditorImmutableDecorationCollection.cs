@@ -87,6 +87,9 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
         }
     }
 
+    /// <summary>
+    /// 是否空的
+    /// </summary>
     public bool IsEmpty => _one is null && _more is null;
 
     /// <summary>

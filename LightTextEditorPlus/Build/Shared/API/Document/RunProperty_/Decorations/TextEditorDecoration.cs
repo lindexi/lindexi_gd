@@ -1,5 +1,8 @@
 ﻿#if DirectTextEditorDefinition
+using LightTextEditorPlus.Core.Document.Decorations;
+
 using System;
+using LightTextEditorPlus.Core.Primitive;
 
 #if USE_WPF
 using System.Windows;
@@ -12,12 +15,12 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// <summary>
 /// 文本的装饰
 /// </summary>
-public abstract class TextEditorDecoration
+public abstract class TextEditorDecoration : ITextEditorDecoration
 {
     /// <summary>
     /// 文本的装饰
     /// </summary>
-    protected TextEditorDecoration(TextDecorationLocation textDecorationLocation)
+    protected TextEditorDecoration(TextEditorDecorationLocation textDecorationLocation)
     {
         TextDecorationLocation = textDecorationLocation;
     }
@@ -25,7 +28,7 @@ public abstract class TextEditorDecoration
     /// <summary>
     /// 获取文本的装饰放在文本的哪里
     /// </summary>
-    public TextDecorationLocation TextDecorationLocation { get; }
+    public TextEditorDecorationLocation TextDecorationLocation { get; }
 
     /// <summary>
     /// 创建装饰
@@ -88,12 +91,4 @@ public abstract class TextEditorDecoration
         return HashCode.Combine(TextDecorationLocation, GetType());
     }
 }
-
-#if USE_SKIA
-public enum TextDecorationLocation
-{
-    // todo 等待放到底层
-}
-
-#endif
 #endif
