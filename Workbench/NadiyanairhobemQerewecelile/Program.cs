@@ -5,5 +5,5 @@ using System.Runtime.InteropServices;
 HalQueryRealTimeClock(out var time);
 Console.WriteLine("Hello, World!");
 
-[DllImport("kernel32.dll")]
+[DllImport("ntdll.dll")]
 static extern void HalQueryRealTimeClock(out int time);
