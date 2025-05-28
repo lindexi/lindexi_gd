@@ -28,11 +28,12 @@ public class UnderlineTextEditorDecoration() : TextEditorDecoration(TextEditorDe
                 Width = argument.RecommendedBounds.Width
             };
 
-            var thickness = bounds.Height / 5; // 下划线的粗细
+            var thickness = bounds.Height / 2; // 下划线的粗细
 
-            TextPoint center = bounds.Center;
-            var startPoint = new Point(bounds.Left, center.Y);
-            var endPoint = new Point(bounds.Right, center.Y);
+            var y = bounds.Top;
+            //TextPoint center = bounds.Center;
+            var startPoint = new Point(bounds.Left, y);
+            var endPoint = new Point(bounds.Right, y);
 
             drawing = new GeometryDrawing(null, new Pen(foreground, thickness), new LineGeometry(startPoint, endPoint));
         }
