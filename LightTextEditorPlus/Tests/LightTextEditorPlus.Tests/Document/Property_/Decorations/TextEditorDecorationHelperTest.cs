@@ -34,6 +34,9 @@ public class TextEditorDecorationHelperTest
             };
             var listSpan = new TextReadOnlyListSpan<CharData>(charDataList);
             List<DecorationSplitResult> decorationSplitResults = TextEditorDecorationHelper.SplitContinuousTextDecorationCharData(listSpan).ToList();
+            Assert.AreEqual(2, decorationSplitResults.Count, "应该分割成两个分割集");
+            Assert.AreEqual(1, decorationSplitResults[0].CharList.Count);
+            Assert.AreEqual(2, decorationSplitResults[1].CharList.Count);
         });
     }
 }

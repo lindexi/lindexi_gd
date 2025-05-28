@@ -29,14 +29,26 @@ static class TextEditorDecorationHelper
         var offset = SkipEmptyTextEditorDecoration(in charList, 0);
         if (offset == charList.Count)
         {
+            // 短路分支，如果没有装饰则快速返回
             yield break;
         }
-        Debug.Assert(offset < charList.Count);
 
+        // 这个字典用于处理快慢装饰层的问题
+        // 字符：1 2 3 4 5 6
+        // 装饰：-----   ---
+        // 装饰：---   ---
+        // 如上所示，有两个装饰，两个装饰覆盖的范围不相同。通过此字典记录进行处理
         Dictionary<Type /*TextEditorDecorationType*/, int /*Offset*/> dictionary = [];
 
         for (; offset < charList.Count;)
         {
+            offset = SkipEmptyTextEditorDecoration(in charList, offset);
+            if (offset == charList.Count)
+            {
+                yield break;
+            }
+            Debug.Assert(offset < charList.Count);
+
             // 获取到装饰
             CharData firstCharData = charList[offset];
             RunProperty runProperty = firstCharData.RunProperty.AsRunProperty();
@@ -48,7 +60,7 @@ static class TextEditorDecorationHelper
                 TextEditorDecoration textEditorDecoration = runProperty.DecorationCollection[decorationIndex];
                 Type textEditorDecorationType = textEditorDecoration.GetType();
                 int textEditorDecorationOffset = dictionary.GetValueOrDefault(textEditorDecorationType, -1);
-                if (textEditorDecorationOffset >= offset)
+                if (textEditorDecorationOffset > offset)
                 {
                     continue;
                 }
