@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -519,6 +519,8 @@ public partial class TextEditorSettingsControl : UserControl
 
     #endregion
 
+    #region 文本装饰
+
     /// <summary>
     /// 波浪线
     /// </summary>
@@ -528,4 +530,12 @@ public partial class TextEditorSettingsControl : UserControl
     {
         TextEditor.ToggleTextDecoration(new WaveLineTextEditorDecoration());
     }
+
+    private void ToggleUnderlineButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleTextDecoration(new UnderlineTextEditorDecoration());
+    }
+
+    #endregion
+
 }

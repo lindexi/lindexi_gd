@@ -2,7 +2,11 @@
 using LightTextEditorPlus.Core.Document.Decorations;
 
 using System;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
+using System.Linq;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 
 #if USE_SKIA
 using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
@@ -90,6 +94,27 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
     public override int GetHashCode()
     {
         return HashCode.Combine(TextDecorationLocation, GetType());
+    }
+
+    /// <summary>
+    /// 获取推荐的范围边界
+    /// </summary>
+    /// <param name="location"></param>
+    /// <param name="currentCharDataList"></param>
+    /// <returns></returns>
+    public static TextRect GetDecorationLocationRecommendedBounds
+        (TextEditorDecorationLocation location, in TextReadOnlyListSpan<CharData> currentCharDataList)
+    {
+        CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(in currentCharDataList);
+        // 经验值，大概就是 0.1-0.05 之间
+        var ratio = 0.06;
+        var height = maxFontSizeCharData.RunProperty.FontSize * ratio;
+        // 这里是在没有 Kern 的情况下，刚好就是各个字符之和就等于宽度。如果有 Kern 的情况，则不正确
+        // todo 后续加上 Kern 需要考虑这里的宽度情况
+        var width = currentCharDataList.Sum(charData => charData.Size.Width);
+        var x = currentCharDataList[0].GetStartPoint().X;
+        var y = currentCharDataList[0].GetBounds().Bottom - height;
+        return new TextRect(x, y, width, height);
     }
 }
 #endif
