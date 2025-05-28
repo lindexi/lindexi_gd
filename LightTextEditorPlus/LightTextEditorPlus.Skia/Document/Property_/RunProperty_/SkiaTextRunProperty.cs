@@ -10,10 +10,7 @@ namespace LightTextEditorPlus.Document;
 /// 字符属性。创建字符属性时，应该基于所在文本框的某个现有的 <see cref="SkiaTextRunProperty"/> 使用 <see langword="with"/> 关键字进行修改和创建新的属性
 /// </summary>
 [APIConstraint("RunProperty.txt")]
-public record SkiaTextRunProperty : LayoutOnlyRunProperty
-#if USE_SKIA && !USE_AllInOne
-    , IRunProperty
-#endif
+public record SkiaTextRunProperty : LayoutOnlyRunProperty, IRunProperty
 {
     internal SkiaTextRunProperty(SkiaPlatformResourceManager skiaPlatformResourceManager)
     {
