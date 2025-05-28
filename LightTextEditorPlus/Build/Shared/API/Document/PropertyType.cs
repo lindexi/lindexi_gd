@@ -118,7 +118,7 @@ public enum PropertyType
     TextAlignment = TextHorizontalAlignment,
 
     /// <summary>
-    /// 下划线
+    /// 超链接
     /// </summary>
     Hyperlink,
 
