@@ -57,6 +57,7 @@ public class EmphasisDotsTextEditorDecoration() : TextEditorDecoration(TextEdito
 
             // 0.06 是经验值，大概就是 0.1-0.05 之间
             var size = firstCharData.RunProperty.FontSize * 0.06;
+            y += size;
 
             var ellipseGeometry = new EllipseGeometry(new Point(x, y), size, size);
             drawing = new GeometryDrawing(foreground, null, ellipseGeometry);
