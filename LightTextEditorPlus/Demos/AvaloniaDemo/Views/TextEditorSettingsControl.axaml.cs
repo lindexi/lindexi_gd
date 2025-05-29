@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using Avalonia;
@@ -366,6 +366,28 @@ public partial class TextEditorSettingsControl : UserControl
         {
             RightIndentation = rightIndentation
         });
+    }
+    #endregion
+
+    #region 文本装饰
+    private void ToggleStrikeThroughButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        
+    }
+
+    private void ToggleWaveLineButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        
+    }
+
+    private void EmphasisDotsButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        
+    }
+
+    private void ToggleUnderlineButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        
     }
     #endregion
 }
