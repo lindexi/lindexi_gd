@@ -8,5 +8,6 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <local:Foo/>
+        <Ellipse Margin="10,10,10,10" Fill="Black" Width="10" Height="10" RenderOptions.EdgeMode="Aliased" HorizontalAlignment="Left" VerticalAlignment="Top"/>
     </Grid>
 </Window>
