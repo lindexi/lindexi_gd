@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -66,8 +66,10 @@
         <StackPanel Orientation="Horizontal">
           <Button x:Name="ToggleBoldButton" Margin="1,1,1,1" Click="ToggleBoldButton_OnClick">加粗</Button>
           <Button x:Name="ToggleItalicButton" Margin="1,1,1,1" Click="ToggleItalicButton_OnClick">斜体</Button>
-          <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1">删除线</Button>
-          <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1">下划线</Button>
+          <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1" Click="ToggleStrikeThroughButton_OnClick">删除线</Button>
+          <Button x:Name="ToggleWaveLineButton" Margin="1,1,1,1" Click="ToggleWaveLineButton_OnClick">波浪线</Button>
+          <Button x:Name="EmphasisDotsButton" Margin="1,1,1,1" Click="EmphasisDotsButton_OnClick">着重号</Button>
+          <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1" Click="ToggleUnderlineButton_OnClick">下划线</Button>
           <Button x:Name="ToggleFontSuperscriptButton" Margin="1,1,1,1">上标</Button>
           <Button x:Name="ToggleFontSubscriptButton" Margin="1,1,1,1">下标</Button>
         </StackPanel>
