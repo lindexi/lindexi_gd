@@ -522,6 +522,16 @@ public partial class TextEditorSettingsControl : UserControl
     #region 文本装饰
 
     /// <summary>
+    /// 删除线
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void ToggleStrikeThroughButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleStrikethrough();
+    }
+
+    /// <summary>
     /// 波浪线
     /// </summary>
     /// <param name="sender"></param>

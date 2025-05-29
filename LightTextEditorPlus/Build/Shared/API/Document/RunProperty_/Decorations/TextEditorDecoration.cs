@@ -126,8 +126,23 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
         // 这里是在没有 Kern 的情况下，刚好就是各个字符之和就等于宽度。如果有 Kern 的情况，则不正确
         // todo 后续加上 Kern 需要考虑这里的宽度情况
         var width = currentCharDataList.Sum(charData => charData.Size.Width);
-        var x = currentCharDataList[0].GetStartPoint().X;
-        var y = currentCharDataList[0].GetBounds().Bottom - height;
+        CharData firstCharData = currentCharDataList[0];
+        var x = firstCharData.GetStartPoint().X;
+        double y;
+
+        if (location == TextEditorDecorationLocation.Underline)
+        {
+            y = firstCharData.GetBounds().Bottom - height;
+        }
+        else if (location == TextEditorDecorationLocation.Strikethrough)
+        {
+            TextRect bounds = maxFontSizeCharData.GetBounds();
+            y = bounds.Top + (bounds.Height - height) / 2; // 在中间
+        }
+        else
+        {
+            throw new NotSupportedException("暂不支持");
+        }
 
         // 在 WPF 里面文本是按照行渲染的，如此可以获得更多的缓存实现逻辑
         // 而是 GetBounds 等获取的是文本框坐标系的，需要将其转换为行坐标系下
