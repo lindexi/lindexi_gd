@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -64,7 +64,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         SnapsToDevicePixels = true;
         RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
-        RenderOptions.SetEdgeMode(this, EdgeMode.Aliased);
+        //RenderOptions.SetEdgeMode(this, EdgeMode.Aliased); // 开启之后将导致着重号的圆不圆，而是有棱角的样子
+        VisualTextHintingMode = TextHintingMode.Fixed;
+        VisualTextRenderingMode = TextRenderingMode.ClearType;
 
         #endregion
 
