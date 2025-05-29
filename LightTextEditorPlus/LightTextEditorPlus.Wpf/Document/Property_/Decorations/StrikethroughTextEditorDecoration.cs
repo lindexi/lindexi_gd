@@ -1,19 +1,19 @@
 ﻿using System.Windows;
 using System.Windows.Media;
-
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document.Decorations;
 
 /// <summary>
-/// 文本下划线装饰
+/// 文本删除线装饰
 /// </summary>
-public class UnderlineTextEditorDecoration() : TextEditorDecoration(TextEditorDecorationLocation.Underline)
+/// 删除线不叫 DeleteLine 哦
+public class StrikethroughTextEditorDecoration() : TextEditorDecoration(TextEditorDecorationLocation.Strikethrough)
 {
     /// <summary>
-    /// 文本下划线装饰
+    /// 文本删除线装饰
     /// </summary>
-    public static UnderlineTextEditorDecoration Instance { get; } = new UnderlineTextEditorDecoration();
+    public static StrikethroughTextEditorDecoration Instance { get; } = new StrikethroughTextEditorDecoration();
 
     /// <inheritdoc />
     public override BuildDecorationResult BuildDecoration(in BuildDecorationArgument argument)
@@ -26,7 +26,7 @@ public class UnderlineTextEditorDecoration() : TextEditorDecoration(TextEditorDe
         if (argument.TextEditor.ArrangingType.IsHorizontal)
         {
             // todo 后续上下标需要在这里也进行处理
-            TextRect bounds = GetDecorationLocationRecommendedBounds(TextDecorationLocation,  argument.LineRenderInfo.CharList, argument.LineRenderInfo, argument.TextEditor);
+            TextRect bounds = GetDecorationLocationRecommendedBounds(TextDecorationLocation, argument.LineRenderInfo.CharList, argument.LineRenderInfo, argument.TextEditor);
             bounds = bounds with
             {
                 X = argument.RecommendedBounds.X,

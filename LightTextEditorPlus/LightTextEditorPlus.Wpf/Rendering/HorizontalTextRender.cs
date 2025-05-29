@@ -283,6 +283,9 @@ class HorizontalTextRender : TextRenderBase
                 var currentCharIndexInLine = decorationSplitResult.CurrentCharIndexInLine;
                 while (true)
                 {
+                    TextRect recommendedBounds = TextEditorDecoration
+                        .GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in currentCharDataList, in lineRenderInfo, textEditor);
+
                     var decorationArgument = new BuildDecorationArgument()
                     {
                         CharDataList = currentCharDataList,
@@ -290,7 +293,7 @@ class HorizontalTextRender : TextRenderBase
                         RunProperty = runProperty,
                         LineRenderInfo = lineRenderInfo,
                         TextEditor = textEditor,
-                        RecommendedBounds = GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in currentCharDataList)
+                        RecommendedBounds = recommendedBounds
                     };
                     BuildDecorationResult result = textEditorDecoration.BuildDecoration(in decorationArgument);
 
@@ -334,11 +337,6 @@ class HorizontalTextRender : TextRenderBase
                     }
                 }
             }
-        }
-
-        TextRect GetDecorationLocationRecommendedBounds(TextEditorDecorationLocation location, in TextReadOnlyListSpan<CharData> currentCharDataList)
-        {
-            return TextEditorDecoration.GetDecorationLocationRecommendedBounds(location, in currentCharDataList);
         }
     }
 }

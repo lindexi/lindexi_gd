@@ -7,6 +7,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using System.Linq;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
+using LightTextEditorPlus.Core.Rendering;
 
 #if USE_SKIA
 using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
@@ -101,10 +102,23 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
     /// </summary>
     /// <param name="location"></param>
     /// <param name="currentCharDataList"></param>
+    /// <param name="lineRenderInfo"></param>
+    /// <param name="textEditor"></param>
     /// <returns></returns>
     public static TextRect GetDecorationLocationRecommendedBounds
-        (TextEditorDecorationLocation location, in TextReadOnlyListSpan<CharData> currentCharDataList)
+    (
+        TextEditorDecorationLocation location,
+        in TextReadOnlyListSpan<CharData> currentCharDataList,
+        in ParagraphLineRenderInfo lineRenderInfo,
+        TextEditor textEditor
+    )
     {
+        if (!textEditor.TextEditorCore.ArrangingType.IsHorizontal)
+        {
+            // 现在还不能支持竖排
+            throw new NotSupportedException("竖排的文本装饰暂时不支持");
+        }
+
         CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(in currentCharDataList);
         // 经验值，大概就是 0.1-0.05 之间
         var ratio = 0.06;
@@ -112,8 +126,28 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
         // 这里是在没有 Kern 的情况下，刚好就是各个字符之和就等于宽度。如果有 Kern 的情况，则不正确
         // todo 后续加上 Kern 需要考虑这里的宽度情况
         var width = currentCharDataList.Sum(charData => charData.Size.Width);
-        var x = currentCharDataList[0].GetStartPoint().X;
-        var y = currentCharDataList[0].GetBounds().Bottom - height;
+        CharData firstCharData = currentCharDataList[0];
+        var x = firstCharData.GetStartPoint().X;
+        double y;
+
+        if (location == TextEditorDecorationLocation.Underline)
+        {
+            y = firstCharData.GetBounds().Bottom - height;
+        }
+        else if (location == TextEditorDecorationLocation.Strikethrough)
+        {
+            TextRect bounds = maxFontSizeCharData.GetBounds();
+            y = bounds.Top + (bounds.Height - height) / 2; // 在中间
+        }
+        else
+        {
+            throw new NotSupportedException("暂不支持");
+        }
+
+        // 在 WPF 里面文本是按照行渲染的，如此可以获得更多的缓存实现逻辑
+        // 而是 GetBounds 等获取的是文本框坐标系的，需要将其转换为行坐标系下
+        y -= lineRenderInfo.Argument.StartPoint.Y;
+
         return new TextRect(x, y, width, height);
     }
 }
