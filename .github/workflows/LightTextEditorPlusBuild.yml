@@ -21,6 +21,9 @@ jobs:
       run: |
         dotnet build --configuration release LightTextEditorPlus
         dotnet test --configuration release LightTextEditorPlus --no-build
+    - name: BuildWithAot
+      run: |
+        dotnet publish -r win-x86 -p:ValidateExecutableReferencesMatchSelfContained=false .\LightTextEditorPlus\Demos\AvaloniaDemo\LightTextEditorPlus.AvaloniaDemo.csproj
 
   BuildInLinux:
     runs-on: ubuntu-latest
