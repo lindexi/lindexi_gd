@@ -24,10 +24,10 @@ public class UnderlineTextEditorDecorationTest
             // 设置首个字符的字号为 90 让其与其他字符的字号不同
             textEditor.SetFontSize(90, new Selection(new CaretOffset(0), 1));
 
-            // 添加波浪线装饰
+            // 添加下划线装饰
             textEditor.ToggleUnderline(textEditor.TextEditorCore.GetAllDocumentSelection());
 
-            // 可以符合预期的显示波浪线
+            // 可以符合预期的显示下划线
             // 先靠人去看
             await TestFramework.FreezeTestToDebug();
         });
