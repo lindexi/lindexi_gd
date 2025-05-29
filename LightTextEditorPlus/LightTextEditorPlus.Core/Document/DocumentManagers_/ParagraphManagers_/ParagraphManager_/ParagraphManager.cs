@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -207,9 +207,9 @@ class ParagraphManager
     //}
 
     /// <summary>
-    /// 获取文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123/r/n123，那么第二个段落的Offset为5
+    /// 获取文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123\r\n123，那么第二个段落的 Offset 为 "123".Length + DelimiterLength 的长度
     /// </summary>
-    /// <exception cref="InvalidOperationException">这个文本行被删除后引发此异常</exception>
+    /// <exception cref="InvalidOperationException">这个文本段被删除后引发此异常</exception>
     public DocumentOffset GetParagraphStartOffset(ParagraphData paragraphData)
     {
         var offset = 0;
@@ -226,7 +226,7 @@ class ParagraphManager
         }
 
         // 没有找到段落，证明段落被删除
-        throw new InvalidOperationException();
+        throw new InvalidOperationException("传入的段落没有从段落列表找到，段落被删除。被删除的段落不能传入本方法");
     }
 
     public ParagraphIndex GetParagraphIndex(ParagraphData paragraphData)

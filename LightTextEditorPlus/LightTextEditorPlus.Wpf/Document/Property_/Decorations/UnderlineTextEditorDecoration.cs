@@ -10,6 +10,11 @@ namespace LightTextEditorPlus.Document.Decorations;
 /// </summary>
 public class UnderlineTextEditorDecoration() : TextEditorDecoration(TextEditorDecorationLocation.Underline)
 {
+    /// <summary>
+    /// 文本下划线装饰
+    /// </summary>
+    public static UnderlineTextEditorDecoration Instance { get; } = new UnderlineTextEditorDecoration();
+
     /// <inheritdoc />
     public override BuildDecorationResult BuildDecoration(in BuildDecorationArgument argument)
     {
