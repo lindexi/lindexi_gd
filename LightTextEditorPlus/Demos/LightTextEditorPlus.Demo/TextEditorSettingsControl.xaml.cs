@@ -553,6 +553,7 @@ public partial class TextEditorSettingsControl : UserControl
     /// <param name="e"></param>
     private void EmphasisDotsButton_OnClick(object sender, RoutedEventArgs e)
     {
+        TextEditor.ToggleEmphasisDots();
     }
 
     #endregion

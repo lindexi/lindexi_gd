@@ -267,6 +267,15 @@ public partial class TextEditor
     }
 
     /// <summary>
+    /// 开启或关闭文本的着重号
+    /// </summary>
+    /// <param name="selection"></param>
+    public void ToggleEmphasisDots(Selection? selection = null)
+    {
+        ToggleTextDecoration(EmphasisDotsTextEditorDecoration.Instance, selection);
+    }
+
+    /// <summary>
     /// 开启或关闭文本删除线
     /// </summary>
     /// <param name="selection"></param>
