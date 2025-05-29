@@ -546,6 +546,15 @@ public partial class TextEditorSettingsControl : UserControl
         TextEditor.ToggleUnderline();
     }
 
-    #endregion
+    /// <summary>
+    /// 着重号，中文着重号
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void EmphasisDotsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleEmphasisDots();
+    }
 
+    #endregion
 }

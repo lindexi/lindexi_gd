@@ -99,6 +99,7 @@
                     <Button x:Name="ToggleItalicButton" Margin="1,1,1,1" Click="ToggleItalicButton_OnClick">斜体</Button>
                     <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1" Click="ToggleStrikeThroughButton_OnClick">删除线</Button>
                     <Button x:Name="ToggleWaveLineButton" Margin="1,1,1,1" Click="ToggleWaveLineButton_OnClick">波浪线</Button>
+                    <Button x:Name="EmphasisDotsButton" Margin="1,1,1,1" Click="EmphasisDotsButton_OnClick">着重号</Button>
                     <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1" Click="ToggleUnderlineButton_OnClick">下划线</Button>
                     <Button x:Name="ToggleFontSuperscriptButton" Margin="1,1,1,1">上标</Button>
                     <Button x:Name="ToggleFontSubscriptButton" Margin="1,1,1,1">下标</Button>
