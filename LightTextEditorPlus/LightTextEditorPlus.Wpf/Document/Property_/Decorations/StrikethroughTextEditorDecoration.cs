@@ -33,10 +33,9 @@ public class StrikethroughTextEditorDecoration() : TextEditorDecoration(TextEdit
                 Width = argument.RecommendedBounds.Width
             };
 
-            var thickness = bounds.Height / 2; // 下划线的粗细
+            var thickness = bounds.Height / 2; // 删除线的粗细
 
             var y = bounds.Top;
-            //TextPoint center = bounds.Center;
             var startPoint = new Point(bounds.Left, y);
             var endPoint = new Point(bounds.Right, y);
 
