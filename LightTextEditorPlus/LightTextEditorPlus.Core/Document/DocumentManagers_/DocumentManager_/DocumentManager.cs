@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -454,9 +454,10 @@ namespace LightTextEditorPlus.Core.Document
         /// 设置当前文本的样式字符属性
         /// </summary>
         /// <remarks>
-        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性
+        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性。通过 <see cref="IsInitializingTextEditor"/> 方法判断是否初始化
         /// </remarks>
         /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
+        /// <exception cref="InvalidOperationException">文本创建出了段落，不是在文本初始化完成之前设置</exception>
         public void SetStyleTextRunProperty<T>(ConfigReadOnlyRunProperty<T> config) where T : IReadOnlyRunProperty
         {
             var isInit = IsInitializingTextEditor();

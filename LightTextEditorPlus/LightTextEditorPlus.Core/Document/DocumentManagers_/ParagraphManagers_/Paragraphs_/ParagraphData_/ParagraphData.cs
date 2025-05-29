@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -80,16 +80,6 @@ class ParagraphData : ITextParagraph
     public void UpdateParagraphLayoutStartPoint(TextPointInDocumentContentCoordinateSystem startPoint)
     {
         _paragraphLayoutData.StartPointInDocumentContentCoordinateSystem = startPoint;
-        //_paragraphLayoutData.TextBounds = _paragraphLayoutData.TextBounds with
-        //{
-        //    X = textStartPoint.X,
-        //    Y = textStartPoint.Y
-        //};
-
-        //_paragraphLayoutData.OutlineBounds = _paragraphLayoutData.OutlineBounds with
-        //{
-        //    X = outlineStartPoint.X, Y = outlineStartPoint.Y
-        //};
     }
 
     #endregion
@@ -246,9 +236,9 @@ class ParagraphData : ITextParagraph
     public static int DelimiterLength => TextContext.NewLine.Length;
 
     /// <summary>
-    /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如“123/r/n123”字符串，那么第二个段落的 Offset 为 "123".Length + DelimiterLength 的长度
+    /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如“123\r\n123”字符串，那么第二个段落的 Offset 为 "123".Length + DelimiterLength 的长度
     /// </summary>
-    /// <exception cref="InvalidOperationException">这个文本行被删除后引发此异常</exception>
+    /// <exception cref="InvalidOperationException">这个文本段被删除后引发此异常</exception>
     public DocumentOffset GetParagraphStartOffset() => ParagraphManager.GetParagraphStartOffset(this);
 
     /// <summary>

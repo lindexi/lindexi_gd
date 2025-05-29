@@ -265,7 +265,7 @@ public partial class TextEditor
     public void ToggleTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         bool addDecoration;
-        if (IsAllRunPropertyMatchPredicate(property => ((RunProperty) property).DecorationCollection.Contains(textDecoration), selection))
+        if (IsAllRunPropertyMatchPredicate(property => property.DecorationCollection.Contains(textDecoration), selection))
         {
             addDecoration = false;
         }
