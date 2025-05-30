@@ -5,13 +5,12 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 
-#if USE_SKIA
+#if USE_WPF
+using Editor = LightTextEditorPlus.TextEditor;
+#elif USE_SKIA
 using SkiaSharp;
 using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
-#if !USE_AllInOne // 这个判断是多余的，因为有 `#if DirectTextEditorDefinition` 判断
-using TextEditor = LightTextEditorPlus.SkiaTextEditor;
-#endif
-
+using Editor = LightTextEditorPlus.SkiaTextEditor;
 #endif
 
 namespace LightTextEditorPlus.Document.Decorations;
@@ -32,7 +31,7 @@ public readonly record struct BuildDecorationArgument
     TextReadOnlyListSpan<CharData> CharDataList,
     TextRect RecommendedBounds,
     ParagraphLineRenderInfo LineRenderInfo,
-    TextEditor TextEditor
+    Editor TextEditor
 )
 {
 #if USE_SKIA

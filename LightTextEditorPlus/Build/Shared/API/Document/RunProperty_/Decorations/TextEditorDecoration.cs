@@ -10,11 +10,11 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 
-#if USE_SKIA
+#if USE_WPF
+using Editor = LightTextEditorPlus.TextEditor;
+#elif USE_SKIA
 using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
-#if !USE_AllInOne
-using TextEditor = LightTextEditorPlus.SkiaTextEditor;
-#endif
+using Editor = LightTextEditorPlus.SkiaTextEditor;
 #endif
 
 namespace LightTextEditorPlus.Document.Decorations;
@@ -113,7 +113,7 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
         TextEditorDecorationLocation location,
         in TextReadOnlyListSpan<CharData> currentCharDataList,
         in ParagraphLineRenderInfo lineRenderInfo,
-        TextEditor textEditor
+        Editor textEditor
     )
     {
         if (!textEditor.TextEditorCore.ArrangingType.IsHorizontal)
