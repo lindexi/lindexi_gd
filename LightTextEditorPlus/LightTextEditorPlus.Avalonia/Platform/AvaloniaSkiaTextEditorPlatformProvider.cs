@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 
 using Avalonia.Threading;
@@ -10,7 +10,12 @@ namespace LightTextEditorPlus.Platform;
 
 public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProvider
 {
-    public TextEditor AvaloniaTextEditor { get; internal set; } = null!;
+    public AvaloniaSkiaTextEditorPlatformProvider(TextEditor avaloniaTextEditor)
+    {
+        AvaloniaTextEditor = avaloniaTextEditor;
+    }
+
+    public TextEditor AvaloniaTextEditor { get; }
 
     #region 可基类重写方法
 
