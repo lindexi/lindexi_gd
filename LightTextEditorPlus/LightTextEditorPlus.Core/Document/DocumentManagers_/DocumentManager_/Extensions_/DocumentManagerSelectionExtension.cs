@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -28,7 +28,7 @@ internal static class DocumentManagerSelectionExtension
     /// <param name="documentManager"></param>
     /// <returns></returns>
     public static Selection GetDocumentStartSelection(this DocumentManager documentManager) =>
-        new Selection(documentManager.GetDocumentStartCaretOffset(), 0);
+        documentManager.GetDocumentStartCaretOffset().ToSelection();
 
     /// <summary>
     /// 获取选择到文档的末尾，也就是 CharCount,0 选择范围
@@ -36,7 +36,7 @@ internal static class DocumentManagerSelectionExtension
     /// <param name="documentManager"></param>
     /// <returns></returns>
     public static Selection GetDocumentEndSelection(this DocumentManager documentManager) =>
-        new Selection(documentManager.GetDocumentEndCaretOffset(), 0);
+        documentManager.GetDocumentEndCaretOffset().ToSelection();
 
     /// <summary>
     /// 获取对文档的全选

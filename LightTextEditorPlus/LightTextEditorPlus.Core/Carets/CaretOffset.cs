@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Document.Segments;
 
@@ -107,4 +107,11 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     {
         return !left.Equals(right);
     }
+
+    /// <summary>
+    /// 从光标转换为选择
+    /// </summary>
+    /// <param name="length">默认0表示没有真的选择任何内容</param>
+    /// <returns></returns>
+    public Selection ToSelection(int length = 0) => new Selection(this, length);
 }

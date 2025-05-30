@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
@@ -76,7 +76,7 @@ class CaretManager
             // 如果当前的进入不是由选择范围触发的，那么更新选择范围
             if (_isCurrentSelectionChanging is false)
             {
-                CurrentSelection = new Selection(value, 0);
+                CurrentSelection = value.ToSelection();
             }
 
             _isCurrentCaretOffsetChanging = false;

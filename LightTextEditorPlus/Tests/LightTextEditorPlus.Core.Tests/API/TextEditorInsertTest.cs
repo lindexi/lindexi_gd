@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -91,7 +91,7 @@ public class TextEditorInsertTest
              */
             // 在 2 后面插入 456 字符串
             // 在字符串 “2” 后面的光标选择就是 `new CaretOffset(2)` 的内容
-            var selection = new Selection(new CaretOffset(2), 0);
+            var selection = new CaretOffset(2).ToSelection();
             // 插入 456 字符串
             var textRun = new TextRun("456");
             textEditorCore.DocumentManager.EditAndReplaceRun(selection, textRun);
