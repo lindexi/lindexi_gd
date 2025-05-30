@@ -420,7 +420,7 @@ abstract class ArrangingLayoutProvider
         if (!argument.ParagraphData.IsDirty())
         {
             context.RecordDebugLayoutInfo($"段落本身没有脏，进入快速分支，只需更新段落起始点坐标", LayoutDebugCategory.PreParagraph);
-            return UpdateParagraphStartPoint(argument);
+            return UpdateNotDirtyParagraphStartPoint(argument);
         }
         else
         {
@@ -521,7 +521,7 @@ abstract class ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected abstract ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument);
+    protected abstract ParagraphLayoutResult UpdateNotDirtyParagraphStartPoint(in ParagraphLayoutArgument argument);
 
     /// <summary>
     /// 测量空段高度。空段的文本行高度包括行距，不包括段前和段后间距

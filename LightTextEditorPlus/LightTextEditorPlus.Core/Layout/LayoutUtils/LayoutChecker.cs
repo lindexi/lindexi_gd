@@ -106,6 +106,11 @@ internal static class LayoutChecker
                 {
                     throw new TextEditorInnerDebugException($"存在项目符号字符没有在布局时设置坐标");
                 }
+
+                if (charData.CharLayoutData!.IsInvalidVersion())
+                {
+                    throw new TextEditorInnerDebugException($"存在项目符号字符缓存版本错误");
+                }
             }
         }
     }
