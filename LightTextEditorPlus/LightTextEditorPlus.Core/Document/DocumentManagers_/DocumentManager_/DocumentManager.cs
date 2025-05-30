@@ -465,9 +465,10 @@ namespace LightTextEditorPlus.Core.Document
             {
                 throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性");
             }
-            // todo 处理传入的 T 类型不符合框架预期
+
             T runProperty = config((T) StyleRunProperty);
-            StyleRunProperty = runProperty;
+            StyleRunProperty =
+                TextEditor.PlatformProvider.GetPlatformRunPropertyCreator().ToPlatformRunProperty(null, runProperty);
         }
 
         /// <summary>

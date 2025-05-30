@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -431,5 +431,38 @@ public class DocumentManagerTests
             // Assert
             Assert.AreEqual(3, textEditorCore.DocumentManager.CharCount);
         });
+    }
+
+    [ContractTestCase]
+    public void SetStyleTextRunProperty()
+    {
+        "设置不符合约定类型的字符属性作为样式属性，能够抛出异常".Test(() =>
+        {
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            try
+            {
+                textEditorCore.DocumentManager.SetStyleTextRunProperty<FakeRunProperty>(_ => new FakeRunProperty());
+            }
+            catch
+            {
+                return;
+            }
+
+            Assert.Fail("传入不符合约定类型的字符属性作为样式属性，能够抛出异常");
+        });
+    }
+
+    /// <summary>
+    /// 这是一个不符合约定类型的字符属性
+    /// </summary>
+    class FakeRunProperty : IReadOnlyRunProperty
+    {
+        public bool Equals(IReadOnlyRunProperty? other)
+        {
+            return ReferenceEquals(this, other);
+        }
+
+        public double FontSize { get; set; }
+        public FontName FontName { get; set; }
     }
 }

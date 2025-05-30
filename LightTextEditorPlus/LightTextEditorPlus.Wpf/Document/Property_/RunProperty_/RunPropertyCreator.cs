@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media.Media3D;
@@ -27,18 +27,18 @@ class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
 
     private readonly RunPropertyPlatformManager _runPropertyPlatformManager;
 
-    public override IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
+    public override IReadOnlyRunProperty ToPlatformRunProperty(ICharObject? charObject, IReadOnlyRunProperty baseRunProperty)
     {
         if (baseRunProperty is RunProperty runProperty)
         {
             if (!ReferenceEquals(runProperty.RunPropertyPlatformManager, _runPropertyPlatformManager))
             {
-                // ÊÇ´ÓÆäËûÆ½Ì¨´´½¨µÄ£¿
+                // æ˜¯ä»å…¶ä»–å¹³å°åˆ›å»ºçš„ï¼Ÿ
                 var message = $"""
-                               µ±Ç°´«Èë×Ö·ûÊôĞÔ²»ÊÇÓÉµ±Ç°ÎÄ±¾µÄ×ÊÔ´¹ÜÀíÆ÷Ëù´´½¨£¬¿ÉÄÜ½«ÆäËûÎÄ±¾µÄ×Ö·ûÊôĞÔ´«Èë¸øµ½µ±Ç°ÎÄ±¾¡£
-                               ÇëÈ·±£´«ÈëµÄ×Ö·ûÊôĞÔÓÉµ±Ç°ÎÄ±¾µÄ×ÊÔ´¹ÜÀíÆ÷´´½¨¡£
-                               ¿ÉÊ¹ÓÃ with ¹Ø¼ü×Ö´Ó DefaultRunProperty ÊôĞÔ´´½¨³öĞÂµÄ×Ö·ûÊôĞÔ¡£
-                               µ±Ç°ÎÄ±¾¿òDebugName='{TextEditor.TextEditorCore.DebugName}';×Ö·ûÊôĞÔRunPropertyËùÔÚ×ÊÔ´µÄÎÄ±¾¿òDebugName='{runProperty.RunPropertyPlatformManager.TextEditor.TextEditorCore.DebugName}'
+                               å½“å‰ä¼ å…¥å­—ç¬¦å±æ€§ä¸æ˜¯ç”±å½“å‰æ–‡æœ¬çš„èµ„æºç®¡ç†å™¨æ‰€åˆ›å»ºï¼Œå¯èƒ½å°†å…¶ä»–æ–‡æœ¬çš„å­—ç¬¦å±æ€§ä¼ å…¥ç»™åˆ°å½“å‰æ–‡æœ¬ã€‚
+                               è¯·ç¡®ä¿ä¼ å…¥çš„å­—ç¬¦å±æ€§ç”±å½“å‰æ–‡æœ¬çš„èµ„æºç®¡ç†å™¨åˆ›å»ºã€‚
+                               å¯ä½¿ç”¨ with å…³é”®å­—ä» DefaultRunProperty å±æ€§åˆ›å»ºå‡ºæ–°çš„å­—ç¬¦å±æ€§ã€‚
+                               å½“å‰æ–‡æœ¬æ¡†DebugName='{TextEditor.TextEditorCore.DebugName}';å­—ç¬¦å±æ€§RunPropertyæ‰€åœ¨èµ„æºçš„æ–‡æœ¬æ¡†DebugName='{runProperty.RunPropertyPlatformManager.TextEditor.TextEditorCore.DebugName}'
                                """;
                 TextEditor. Logger.LogWarning(message);
                 if (TextEditor.IsInDebugMode)
@@ -46,20 +46,20 @@ class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
                     throw new TextEditorDebugException(message);
                 }
 
-                // ³¢ÊÔ¼æÈİ
+                // å°è¯•å…¼å®¹
                 runProperty = runProperty with
                 {
                     RunPropertyPlatformManager = _runPropertyPlatformManager
                 };
             }
 
-            // todo ºóĞø¿¼ÂÇÔÚÕâÀï´¦Àí×Ö·û¼æÈİĞÔÎÊÌâ
+            // todo åç»­è€ƒè™‘åœ¨è¿™é‡Œå¤„ç†å­—ç¬¦å…¼å®¹æ€§é—®é¢˜
 
             return runProperty;
         }
         else
         {
-            // ÈÃµ×²ãÈ¥Å×³öÒì³£
+            // è®©åº•å±‚å»æŠ›å‡ºå¼‚å¸¸
             return base.ToPlatformRunProperty(charObject, baseRunProperty);
         }
     }
