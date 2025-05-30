@@ -297,7 +297,7 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void ToggleUnderline(Selection? selection = null)
         {
-            throw new NotImplementedException();
+            ToggleTextDecoration(UnderlineTextEditorDecoration.Instance, selection);
         }
 
         /// <summary>
@@ -306,7 +306,7 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void ToggleStrikethrough(Selection? selection = null)
         {
-            throw new NotImplementedException();
+            ToggleTextDecoration(StrikethroughTextEditorDecoration.Instance, selection);
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void ToggleEmphasisDots(Selection? selection = null)
         {
-            throw new NotImplementedException();
+            ToggleTextDecoration(EmphasisDotsTextEditorDecoration.Instance, selection);
         }
 
         /// <summary>

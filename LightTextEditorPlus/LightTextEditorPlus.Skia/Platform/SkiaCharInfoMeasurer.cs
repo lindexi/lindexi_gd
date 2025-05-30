@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
@@ -148,7 +148,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         SKTypeface skTypeface = renderingRunPropertyInfo.Typeface;
         SKFont skFont = renderingRunPropertyInfo.Font;
-        SKPaint skPaint = renderingRunPropertyInfo.Paint;
 
         // 确保设置了字符的尺寸
         // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
@@ -197,7 +196,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
             font.GetScale(out var scaleX, out _);
 
-            var fontRenderingEmSize = skPaint.TextSize;
+            var fontRenderingEmSize = skFont.Size;
             var textScale = fontRenderingEmSize / (float) scaleX;
 
             var bufferLength = buffer.Length;
