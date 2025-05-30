@@ -91,34 +91,9 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         string formattedText = message.GetFormattedText();
         var layoutDebugMessage = new LayoutDebugMessage(category, formattedText);
 #if DEBUG
-        var padCount = category switch
-        {
-            LayoutDebugCategory.Document => 0,
-            LayoutDebugCategory.FindDirty => 1,
-
-            LayoutDebugCategory.PreDocument => 1,
-            LayoutDebugCategory.PreParagraph => 2,
-            LayoutDebugCategory.PreIndent => 3,
-            LayoutDebugCategory.PreMarkerIndent => 4,
-            LayoutDebugCategory.PreWholeLine => 3,
-            LayoutDebugCategory.PreLineSpacingInWholeLine => 4,
-            LayoutDebugCategory.PreSingleCharLine => 4,
-            LayoutDebugCategory.PreDivideWord => 5,
-
-            LayoutDebugCategory.FinalDocument => 1,
-            LayoutDebugCategory.FinalParagraph => 2,
-            LayoutDebugCategory.FinalLine => 3,
-
-            _ => throw new ArgumentOutOfRangeException(nameof(category), category, null)
-        };
+        var padCount = category.ToLogPadCount();
         // 两个两个的空格
         padCount *= 2;
-
-        // 如果连续两个相同的分类，则非首个的，加一个空格。这样日志更好阅读
-        if (LayoutDebugMessageList is { Count: > 0 } list && list.Last().Category == category)
-        {
-            padCount++;
-        }
 
         var debugMessage = $"{"".PadLeft(padCount)}[{category}] {formattedText}";
         Debug.WriteLine(debugMessage);
