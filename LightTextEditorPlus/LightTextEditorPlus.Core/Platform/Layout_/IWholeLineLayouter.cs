@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Layout;
+﻿using LightTextEditorPlus.Core.Layout;
 
 namespace LightTextEditorPlus.Core.Platform;
 
@@ -12,5 +12,5 @@ public interface IWholeLineLayouter
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    WholeLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument);
+    WholeLineLayoutResult UpdateLayoutWholeLine(in WholeLineLayoutArgument argument);
 }

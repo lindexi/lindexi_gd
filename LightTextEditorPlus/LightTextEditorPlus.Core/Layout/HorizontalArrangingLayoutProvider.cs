@@ -455,7 +455,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             };
             if (wholeRunLineLayouter != null)
             {
-                result = wholeRunLineLayouter.LayoutWholeLine(in wholeRunLineLayoutArgument);
+                result = wholeRunLineLayouter.UpdateLayoutWholeLine(in wholeRunLineLayoutArgument);
             }
             else
             {
