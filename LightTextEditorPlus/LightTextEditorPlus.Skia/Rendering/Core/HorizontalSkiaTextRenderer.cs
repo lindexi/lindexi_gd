@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
@@ -67,6 +68,8 @@ file struct Renderer
 
     private SkiaTextEditorDebugConfiguration Config => TextEditor.DebugConfiguration;
 
+    private ITextLogger Logger => TextEditor.TextEditorCore.Logger;
+
     public SkiaTextRenderResult Render()
     {
         foreach (ParagraphRenderInfo paragraphRenderInfo in RenderInfoProvider.GetParagraphRenderInfoList())
@@ -121,6 +124,12 @@ file struct Renderer
         DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
     }
 
+    /// <summary>
+    /// 连续、相同字符属性的字符列表渲染方法
+    /// </summary>
+    /// <param name="charList"></param>
+    /// <param name="lineInfo"></param>
+    /// <exception cref="TextEditorInnerException"></exception>
     private void RenderCharList(TextReadOnlyListSpan<CharData> charList, ParagraphLineRenderInfo lineInfo)
     {
         CharData firstCharData = charList[0];
@@ -188,7 +197,69 @@ file struct Renderer
     /// <param name="lineRenderInfo"></param>
     private void RenderTextDecoration(ParagraphLineRenderInfo lineRenderInfo)
     {
+        LineDrawingArgument argument = lineRenderInfo.Argument;
+        foreach (DecorationSplitResult decorationSplitResult in TextEditorDecorationHelper
+                     .SplitContinuousTextDecorationCharData(argument.CharList))
+        {
+            TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
+            SkiaTextRunProperty runProperty = decorationSplitResult.RunProperty;
+            TextReadOnlyListSpan<CharData> charDataList = decorationSplitResult.CharList;
 
+            var currentCharDataList = charDataList;
+            var currentCharIndexInLine = decorationSplitResult.CurrentCharIndexInLine;
+
+            while (true)
+            {
+                TextRect recommendedBounds = TextEditorDecoration
+                    .GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in currentCharDataList, in lineRenderInfo, TextEditor);
+
+                var decorationArgument = new BuildDecorationArgument()
+                {
+                    CharDataList = currentCharDataList,
+                    CurrentCharIndexInLine = currentCharIndexInLine,
+                    RunProperty = runProperty,
+                    LineRenderInfo = lineRenderInfo,
+                    TextEditor = TextEditor,
+                    RecommendedBounds = recommendedBounds,
+                    Canvas = Canvas,
+                };
+                BuildDecorationResult result = textEditorDecoration.BuildDecoration(in decorationArgument);
+
+                if (result.TakeCharCount == currentCharDataList.Count)
+                {
+                    break;
+                }
+                else if (result.TakeCharCount < 1)
+                {
+                    var message = $"文本装饰渲染时，所需使用的字符数量至少要有一个。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}";
+                    if (Config.IsInDebugMode)
+                    {
+                        throw new TextEditorDebugException(message);
+                    }
+                    else
+                    {
+                        Logger.LogWarning(message);
+                    }
+                }
+                else if (result.TakeCharCount > currentCharDataList.Count)
+                {
+                    var message = $"文本装饰渲染时，所需使用的字符数量不能超过传入的字符数量。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}；CurrentCharDataListCount={currentCharDataList.Count}";
+                    if (Config.IsInDebugMode)
+                    {
+                        throw new TextEditorDebugException(message);
+                    }
+                    else
+                    {
+                        Logger.LogWarning(message);
+                    }
+                }
+                else
+                {
+                    currentCharDataList = currentCharDataList.Slice(result.TakeCharCount);
+                    currentCharIndexInLine += result.TakeCharCount;
+                }
+            }
+        }
     }
 
     private void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)

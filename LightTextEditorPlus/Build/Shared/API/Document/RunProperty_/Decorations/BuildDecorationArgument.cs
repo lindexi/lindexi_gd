@@ -6,10 +6,12 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 
 #if USE_SKIA
+using SkiaSharp;
 using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
-#if !USE_AllInOne
+#if !USE_AllInOne // 这个判断是多余的，因为有 `#if DirectTextEditorDefinition` 判断
 using TextEditor = LightTextEditorPlus.SkiaTextEditor;
 #endif
+
 #endif
 
 namespace LightTextEditorPlus.Document.Decorations;
@@ -31,5 +33,13 @@ public readonly record struct BuildDecorationArgument
     TextRect RecommendedBounds,
     ParagraphLineRenderInfo LineRenderInfo,
     TextEditor TextEditor
-);
+)
+{
+#if USE_SKIA
+    /// <summary>
+    /// 画布
+    /// </summary>
+    public SKCanvas Canvas { get; init; } = null!;
+#endif
+}
 #endif
