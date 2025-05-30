@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
@@ -29,7 +30,7 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
 
     public override SkiaTextRenderResult Render(in SkiaTextRenderArgument renderArgument)
     {
-        var renderer = new Renderer(in renderArgument, TextEditor, this);
+        using var renderer = new Renderer(in renderArgument, TextEditor, this);
         return renderer.Render();
     }
 }
@@ -38,7 +39,7 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
 /// 渲染器
 /// </summary>
 /// 这个结构体仅仅只是为了减少一些内部方法而已，没有实际的逻辑作用
-file struct Renderer
+file struct Renderer : IDisposable
 {
     public Renderer(in SkiaTextRenderArgument renderArgument, SkiaTextEditor textEditor, HorizontalSkiaTextRenderer horizontalSkiaTextRenderer)
     {
@@ -66,6 +67,8 @@ file struct Renderer
     public HorizontalSkiaTextRenderer HorizontalSkiaTextRenderer { get; }
 
     private SkiaTextEditorDebugConfiguration Config => TextEditor.DebugConfiguration;
+
+    private ITextLogger Logger => TextEditor.TextEditorCore.Logger;
 
     public SkiaTextRenderResult Render()
     {
@@ -121,6 +124,12 @@ file struct Renderer
         DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
     }
 
+    /// <summary>
+    /// 连续、相同字符属性的字符列表渲染方法
+    /// </summary>
+    /// <param name="charList"></param>
+    /// <param name="lineInfo"></param>
+    /// <exception cref="TextEditorInnerException"></exception>
     private void RenderCharList(TextReadOnlyListSpan<CharData> charList, ParagraphLineRenderInfo lineInfo)
     {
         CharData firstCharData = charList[0];
@@ -188,11 +197,112 @@ file struct Renderer
     /// <param name="lineRenderInfo"></param>
     private void RenderTextDecoration(ParagraphLineRenderInfo lineRenderInfo)
     {
+        LineDrawingArgument argument = lineRenderInfo.Argument;
+        foreach (DecorationSplitResult decorationSplitResult in TextEditorDecorationHelper
+                     .SplitContinuousTextDecorationCharData(argument.CharList))
+        {
+            TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
+            SkiaTextRunProperty runProperty = decorationSplitResult.RunProperty;
+            TextReadOnlyListSpan<CharData> charDataList = decorationSplitResult.CharList;
 
+            var currentCharDataList = charDataList;
+            var currentCharIndexInLine = decorationSplitResult.CurrentCharIndexInLine;
+
+            while (true)
+            {
+                TextRect recommendedBounds = TextEditorDecoration
+                    .GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in currentCharDataList, in lineRenderInfo, TextEditor);
+
+                var decorationArgument = new BuildDecorationArgument()
+                {
+                    CharDataList = currentCharDataList,
+                    CurrentCharIndexInLine = currentCharIndexInLine,
+                    RunProperty = runProperty,
+                    LineRenderInfo = lineRenderInfo,
+                    TextEditor = TextEditor,
+                    RecommendedBounds = recommendedBounds,
+                    Canvas = Canvas,
+                    CachePaint = CachePaint,
+                };
+                BuildDecorationResult result = textEditorDecoration.BuildDecoration(in decorationArgument);
+
+                if (result.TakeCharCount == currentCharDataList.Count)
+                {
+                    break;
+                }
+                else if (result.TakeCharCount < 1)
+                {
+                    var message = $"文本装饰渲染时，所需使用的字符数量至少要有一个。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}";
+                    if (Config.IsInDebugMode)
+                    {
+                        throw new TextEditorDebugException(message);
+                    }
+                    else
+                    {
+                        Logger.LogWarning(message);
+                    }
+                }
+                else if (result.TakeCharCount > currentCharDataList.Count)
+                {
+                    var message = $"文本装饰渲染时，所需使用的字符数量不能超过传入的字符数量。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}；CurrentCharDataListCount={currentCharDataList.Count}";
+                    if (Config.IsInDebugMode)
+                    {
+                        throw new TextEditorDebugException(message);
+                    }
+                    else
+                    {
+                        Logger.LogWarning(message);
+                    }
+                }
+                else
+                {
+                    currentCharDataList = currentCharDataList.Slice(result.TakeCharCount);
+                    currentCharIndexInLine += result.TakeCharCount;
+                }
+            }
+        }
     }
 
     private void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
     {
         HorizontalSkiaTextRenderer.DrawDebugBoundsInfo(Canvas, bounds, drawInfo);
     }
+
+    private SKPaint CachePaint
+    {
+        get
+        {
+            if (_cachePaint is null)
+            {
+                _cachePaint = new SKPaint()
+                {
+                    IsAntialias = true
+                };
+            }
+
+            return _cachePaint;
+        }
+    }
+
+    private SKPaint? _cachePaint;
+
+    public void Dispose()
+    {
+        _cachePaint?.Dispose();
+    }
 }
+
+// 由于可能会在业务层访问，因此不开启
+///// <summary>
+///// 支持借用的 SKPaint 信息，只能支持有限量的更改
+///// </summary>
+//struct SKPaintRentInfo
+//{
+//    public SKPaintRentInfo(SKPaint paint)
+//    {
+//        Paint = paint;
+//        paint.
+//    }
+
+//    public SKPaint Paint { get; }
+//}

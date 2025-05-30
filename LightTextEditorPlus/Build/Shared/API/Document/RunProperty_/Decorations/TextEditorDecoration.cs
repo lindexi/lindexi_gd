@@ -1,12 +1,13 @@
 ﻿#if DirectTextEditorDefinition
-using LightTextEditorPlus.Core.Document.Decorations;
 
 using System;
+using System.Linq;
+
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Decorations;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using System.Linq;
-using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Rendering;
 
 #if USE_SKIA
@@ -17,6 +18,8 @@ using TextEditor = LightTextEditorPlus.SkiaTextEditor;
 #endif
 
 namespace LightTextEditorPlus.Document.Decorations;
+
+// ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
 
 /// <summary>
 /// 文本的装饰
@@ -65,7 +68,7 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
         var bContains = b.DecorationCollection.Contains(this);
         return aContains && bContains; // 为什么取都包含？因为首次判定，必然是包含当前的装饰，否则也就不会进来了
     }
-    
+
     ///// <summary>
     ///// 隐式转换
     ///// </summary>
@@ -144,9 +147,11 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
             throw new NotSupportedException("暂不支持");
         }
 
+#if USE_WPF
         // 在 WPF 里面文本是按照行渲染的，如此可以获得更多的缓存实现逻辑
         // 而是 GetBounds 等获取的是文本框坐标系的，需要将其转换为行坐标系下
         y -= lineRenderInfo.Argument.StartPoint.Y;
+#endif
 
         return new TextRect(x, y, width, height);
     }
