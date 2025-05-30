@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Avalonia;
@@ -372,22 +373,22 @@ public partial class TextEditorSettingsControl : UserControl
     #region 文本装饰
     private void ToggleStrikeThroughButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        
+        TextEditor.ToggleStrikethrough();
     }
 
     private void ToggleWaveLineButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        
+        throw new NotImplementedException();
     }
 
     private void EmphasisDotsButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        
+        TextEditor.ToggleEmphasisDots();
     }
 
     private void ToggleUnderlineButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        
+        TextEditor.ToggleUnderline();
     }
     #endregion
 }
