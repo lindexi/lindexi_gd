@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core;
@@ -25,7 +25,7 @@ public static class TextEditorCoreSelectionExtension
     {
         // todo 确认清空选择的时候，光标应该在哪
 
-        var selection = new Selection(textEditor.CaretManager.CurrentCaretOffset, 0);
+        var selection = textEditor.CaretManager.CurrentCaretOffset.ToSelection();
         textEditor.CaretManager.SetSelection(selection);
     }
 }
