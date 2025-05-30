@@ -227,7 +227,7 @@ abstract class ArrangingLayoutProvider
         var currentStartPoint = firstStartPoint;
         for (var paragraphIndex = firstDirtyParagraphIndex.Index; paragraphIndex < paragraphList.Count; paragraphIndex++)
         {
-            updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {paragraphIndex} 段", LayoutDebugCategory.PreParagraph);
+            updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {paragraphIndex} 段", LayoutDebugCategory.PreParagraphStart);
             ParagraphData paragraphData = paragraphList[paragraphIndex];
 
             ParagraphIndex index = new ParagraphIndex(paragraphIndex);

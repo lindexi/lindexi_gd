@@ -440,7 +440,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             int lineIndex = paragraph.LineLayoutDataList.Count;
 
             argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {lineIndex} 行开始布局",
-                LayoutDebugCategory.PreWholeLine);
+                LayoutDebugCategory.PreWholeLineStart);
 
             var isFirstLine = lineIndex == 0;
 
@@ -455,7 +455,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             };
             if (wholeRunLineLayouter != null)
             {
-                result = wholeRunLineLayouter.LayoutWholeLine(in wholeRunLineLayoutArgument);
+                result = wholeRunLineLayouter.UpdateLayoutWholeLine(in wholeRunLineLayoutArgument);
             }
             else
             {
