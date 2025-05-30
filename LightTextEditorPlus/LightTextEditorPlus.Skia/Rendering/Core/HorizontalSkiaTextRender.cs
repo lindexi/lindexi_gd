@@ -81,6 +81,9 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                 }
             }
 
+            // 渲染文本装饰
+            RenderTextDecoration(lineRenderInfo);
+
             DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
         }
 
@@ -143,6 +146,11 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
             y += baselineY;
             using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan, skFont);
             canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
+        }
+
+        void RenderTextDecoration(ParagraphLineRenderInfo lineRenderInfo)
+        {
+          
         }
 
         void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)

@@ -273,6 +273,7 @@ class HorizontalTextRender : TextRenderBase
 
         void RenderTextDecoration()
         {
+            // todo 后续考虑文本装饰在另一个层绘制，规避 EdgeMode.Aliased 导致的着重号圆点有棱角的问题
             foreach (DecorationSplitResult decorationSplitResult in TextEditorDecorationHelper.SplitContinuousTextDecorationCharData(argument.CharList))
             {
                 TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
