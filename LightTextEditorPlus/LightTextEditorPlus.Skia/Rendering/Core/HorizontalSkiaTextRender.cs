@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
@@ -36,39 +38,9 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
-            foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
+            foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
-                if (lineInfo.IsIncludeMarker)
-                {
-                    TextReadOnlyListSpan<CharData> markerCharDataList = lineInfo.GetMarkerCharDataList();
-                    RenderCharList(markerCharDataList, lineInfo);
-                }
-
-                // 先不考虑缓存
-                LineDrawingArgument argument = lineInfo.Argument;
-
-                foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
-                {
-                    RenderCharList(charList, lineInfo);
-                }
-
-                if (argument.CharList.Count == 0)
-                {
-                    // 空行
-                    // 绘制四线三格的调试信息
-                    if (TextEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
-                    {
-                        CharHandwritingPaperInfo charHandwritingPaperInfo =
-                            renderInfoProvider.GetHandwritingPaperInfo(in lineInfo);
-                        DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.LineContentSize with
-                        {
-                            // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
-                            Width = renderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
-                        }).ToSKRect(), charHandwritingPaperInfo);
-                    }
-                }
-
-                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
+                DrawLine(lineRenderInfo);
             }
         }
 
@@ -77,9 +49,39 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
             RenderBounds = renderBounds
         };
 
-        void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
+        void DrawLine(ParagraphLineRenderInfo lineRenderInfo)
         {
-            DrawDebugBoundsInfo(canvas, bounds, drawInfo);
+            if (lineRenderInfo.IsIncludeMarker)
+            {
+                TextReadOnlyListSpan<CharData> markerCharDataList = lineRenderInfo.GetMarkerCharDataList();
+                RenderCharList(markerCharDataList, lineRenderInfo);
+            }
+
+            // 先不考虑缓存
+            LineDrawingArgument argument = lineRenderInfo.Argument;
+
+            foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+            {
+                RenderCharList(charList, lineRenderInfo);
+            }
+
+            if (argument.CharList.Count == 0)
+            {
+                // 空行
+                // 绘制四线三格的调试信息
+                if (TextEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
+                {
+                    CharHandwritingPaperInfo charHandwritingPaperInfo =
+                        renderInfoProvider.GetHandwritingPaperInfo(in lineRenderInfo);
+                    DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.LineContentSize with
+                    {
+                        // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
+                        Width = renderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
+                    }).ToSKRect(), charHandwritingPaperInfo);
+                }
+            }
+
+            DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
         }
 
         void RenderCharList(TextReadOnlyListSpan<CharData> charList, ParagraphLineRenderInfo lineInfo)
@@ -141,6 +143,11 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
             y += baselineY;
             using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan, skFont);
             canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
+        }
+
+        void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
+        {
+            DrawDebugBoundsInfo(canvas, bounds, drawInfo);
         }
     }
 }
