@@ -36,12 +36,9 @@ using LightTextEditorPlus.Utils;
 
 using FrameworkElement = System.Windows.FrameworkElement;
 
+// ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus;
 
-/// <summary>
-/// 文本编辑器
-/// </summary>
-/// 这就是整个程序集的入口
 public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEditor, INotifyPropertyChanged
 {
     static TextEditor()
@@ -58,7 +55,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// <summary>
     /// 创建文本框
     /// </summary>
-    public TextEditor()
+    public TextEditor() : this(null)
+    {
+    }
+
+    /// <inheritdoc cref="TextEditor()"/>
+    public TextEditor(TextEditorPlatformProviderBuilder? builder)
     {
         #region 清晰文本
 
@@ -72,7 +74,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         #region 配置文本
 
-        var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
+        var textEditorPlatformProvider = builder?.Build(this) ?? new TextEditorPlatformProvider(this);
         TextEditorPlatformProvider = textEditorPlatformProvider;
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
         TextEditorCore.TextChanged += TextEditorCore_TextChanged;

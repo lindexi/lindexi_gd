@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -39,13 +39,17 @@ namespace LightTextEditorPlus;
 // 这里存放和 Avalonia 相关的代码
 partial class TextEditor : Control
 {
-    public TextEditor()
+    public TextEditor() : this(null)
+    {
+    }
+
+    public TextEditor(AvaloniaSkiaTextEditorPlatformProviderBuilder? builder)
     {
         // 属性初始化
         Focusable = true;
 
-        TextEditorPlatformProvider = new AvaloniaSkiaTextEditorPlatformProvider();
-        TextEditorPlatformProvider.AvaloniaTextEditor = this;
+        TextEditorPlatformProvider = builder?.Build(this) ??
+                                     new AvaloniaSkiaTextEditorPlatformProvider(this);
         SkiaTextEditor = new SkiaTextEditor(TextEditorPlatformProvider);
 
         _renderEngine = new AvaloniaTextEditorRenderEngine(this);

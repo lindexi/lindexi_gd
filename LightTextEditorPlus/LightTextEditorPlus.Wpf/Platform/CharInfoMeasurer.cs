@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows.Media;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
@@ -6,6 +6,7 @@ using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
+// ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus;
 
 class CharInfoMeasurer : ICharInfoMeasurer

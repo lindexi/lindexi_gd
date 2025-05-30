@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Windows.Threading;
 using LightTextEditorPlus.Core.Document;
@@ -8,10 +8,18 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Utils.Threading;
 
+// ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus;
 
-internal class TextEditorPlatformProvider : PlatformProvider
+/// <summary>
+/// 文本库的平台提供者
+/// </summary>
+public class TextEditorPlatformProvider : PlatformProvider
 {
+    /// <summary>
+    /// 创建文本库的平台提供者
+    /// </summary>
+    /// <param name="textEditor"></param>
     public TextEditorPlatformProvider(TextEditor textEditor)
     {
         TextEditor = textEditor;
@@ -31,6 +39,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
         return TextEditor.BuildCustomTextEditorUndoRedoProvider() ?? base.BuildTextEditorUndoRedoProvider();
     }
 
+    /// <inheritdoc />
     public override ITextLogger? BuildTextLogger()
     {
         return TextEditor.BuildCustomTextLogger() ?? base.BuildTextLogger();
@@ -64,12 +73,14 @@ internal class TextEditorPlatformProvider : PlatformProvider
     private readonly DispatcherRequiring _textLayoutDispatcherRequiring;
     private Action? _layoutUpdateAction;
 
+    /// <inheritdoc />
     public override void RequireDispatchUpdateLayout(Action updateLayoutAction)
     {
         _layoutUpdateAction = updateLayoutAction;
         _textLayoutDispatcherRequiring.Require();
     }
 
+    /// <inheritdoc />
     public override void InvokeDispatchUpdateLayout(Action updateLayoutAction)
     {
         _layoutUpdateAction = updateLayoutAction;
@@ -98,6 +109,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
         return true;
     }
 
+    /// <inheritdoc />
     public override ICharInfoMeasurer? GetCharInfoMeasurer()
     {
         return _charInfoMeasurer;
@@ -105,20 +117,24 @@ internal class TextEditorPlatformProvider : PlatformProvider
 
     private readonly CharInfoMeasurer _charInfoMeasurer;
 
+    /// <inheritdoc />
     public override IRenderManager? GetRenderManager()
     {
         return TextEditor;
     }
 
+    /// <inheritdoc />
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator() => _runPropertyCreator;
 
     private readonly RunPropertyCreator _runPropertyCreator; //= new RunPropertyCreator();
 
+    /// <inheritdoc />
     public override double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
     {
         return runProperty.AsRunProperty().GetRenderingFontFamily().LineSpacing;
     }
 
+    /// <inheritdoc />
     public override IPlatformFontNameManager GetPlatformFontNameManager()
     {
         return TextEditor.StaticConfiguration.PlatformFontNameManager;

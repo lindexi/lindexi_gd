@@ -434,7 +434,6 @@ public partial class TextEditor
     public VerticalAlignment VerticalContentAlignment
     {
         get => VerticalTextAlignment;
-        [Obsolete("当前还没实现，请不要调用")]
         set => VerticalTextAlignment = value;
     }
 

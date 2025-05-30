@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
@@ -22,8 +22,10 @@ public abstract class PlatformProvider : ITextEditorPlatformProvider
     public virtual IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
         // 尽管有默认的实现，但是推荐还是有具体的平台实现逻辑
-        return new DefaultPlatformRunPropertyCreator();
+        return _platformRunPropertyCreator ??= new DefaultPlatformRunPropertyCreator();
     }
+
+    private IPlatformRunPropertyCreator? _platformRunPropertyCreator;
 
     /// <inheritdoc />
     public virtual void RequireDispatchUpdateLayout(Action updateLayoutAction)
