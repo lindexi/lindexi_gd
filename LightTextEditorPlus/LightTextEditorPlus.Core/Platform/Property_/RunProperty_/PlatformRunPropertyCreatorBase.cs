@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using LightTextEditorPlus.Core.Document;
 
@@ -18,7 +18,7 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     }
 
     /// <inheritdoc />
-    public virtual IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
+    public virtual IReadOnlyRunProperty ToPlatformRunProperty(ICharObject? charObject, IReadOnlyRunProperty baseRunProperty)
     {
         if (baseRunProperty is not T)
         {

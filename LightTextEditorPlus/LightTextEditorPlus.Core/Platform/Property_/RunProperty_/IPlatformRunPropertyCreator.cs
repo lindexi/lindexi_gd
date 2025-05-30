@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core.Platform;
 
@@ -19,10 +19,10 @@ public interface IPlatformRunPropertyCreator
     /// 1. 如果传入的平台属性不属于当前的平台属性，则自动进行处理或记录或报告错误
     /// 2. 如果给定字符不能满足当前的平台属性，则自动处理字符的字体降级、或记录或报告错误
     /// </summary>
-    /// <param name="charObject"></param>
+    /// <param name="charObject">什么时候是空？传入的样式字符属性</param>
     /// <param name="baseRunProperty"></param>
     /// <returns></returns>
-    IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty);
+    IReadOnlyRunProperty ToPlatformRunProperty(ICharObject? charObject, IReadOnlyRunProperty baseRunProperty);
 
     /// <summary>
     /// 更新项目符号的字符属性

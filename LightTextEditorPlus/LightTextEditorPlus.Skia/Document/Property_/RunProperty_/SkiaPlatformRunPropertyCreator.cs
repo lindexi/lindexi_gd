@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -21,7 +21,7 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
     private ITextLogger Logger => _skiaTextEditor.Logger;
     private readonly SkiaTextEditor _skiaTextEditor;
 
-    public override IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
+    public override IReadOnlyRunProperty ToPlatformRunProperty(ICharObject? charObject, IReadOnlyRunProperty baseRunProperty)
     {
         if (baseRunProperty is SkiaTextRunProperty skiaTextRunProperty)
         {
@@ -47,7 +47,14 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
                 };
             }
 
-            return _skiaPlatformResourceManager.NormalRunProperty(skiaTextRunProperty, charObject);
+            if (charObject is null)
+            {
+                return skiaTextRunProperty;
+            }
+            else
+            {
+                return _skiaPlatformResourceManager.NormalRunProperty(skiaTextRunProperty, charObject);
+            }
         }
         else
         {
