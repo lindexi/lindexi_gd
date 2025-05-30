@@ -6,9 +6,9 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering.Core;
 
-abstract class BaseSkiaTextRender : IDisposable
+abstract class BaseSkiaTextRenderer : IDisposable
 {
-    protected BaseSkiaTextRender(SkiaTextEditor textEditor)
+    protected BaseSkiaTextRenderer(SkiaTextEditor textEditor)
     {
         TextEditor = textEditor;
     }

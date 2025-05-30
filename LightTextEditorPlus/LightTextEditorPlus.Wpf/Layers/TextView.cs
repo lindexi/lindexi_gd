@@ -50,7 +50,7 @@ class TextView : UIElement, IRenderManager
     private readonly TextEditor _textEditor;
     private readonly VisualCollection _visualCollection;
 
-    private TextRenderBase? _textRenderBase;
+    private TextRendererBase? _textRenderBase;
 
     public void Render(RenderInfoProvider renderInfoProvider)
     {
@@ -75,17 +75,17 @@ class TextView : UIElement, IRenderManager
         //InvalidateVisual();
     }
 
-    private TextRenderBase GetTextRenderBase()
+    private TextRendererBase GetTextRenderBase()
     {
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            if (_textRenderBase is HorizontalTextRender)
+            if (_textRenderBase is HorizontalTextRenderer)
             {
                 return _textRenderBase;
             }
             else
             {
-                _textRenderBase = new HorizontalTextRender();
+                _textRenderBase = new HorizontalTextRenderer();
                 return _textRenderBase;
             }
         }

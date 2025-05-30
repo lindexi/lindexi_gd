@@ -17,9 +17,9 @@ namespace LightTextEditorPlus.Rendering.Core;
 /// <summary>
 /// 竖排文本渲染器
 /// </summary>
-class VerticalSkiaTextRender : BaseSkiaTextRender
+class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
 {
-    public VerticalSkiaTextRender(RenderManager renderManager) : base(renderManager.TextEditor)
+    public VerticalSkiaTextRenderer(RenderManager renderManager) : base(renderManager.TextEditor)
     {
         RenderManager = renderManager;
     }

@@ -18,9 +18,9 @@ namespace LightTextEditorPlus.Rendering.Core;
 /// <summary>
 /// 水平横排的文本渲染器
 /// </summary>
-class HorizontalSkiaTextRender : BaseSkiaTextRender
+class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
 {
-    public HorizontalSkiaTextRender(RenderManager renderManager) : base(renderManager.TextEditor)
+    public HorizontalSkiaTextRenderer(RenderManager renderManager) : base(renderManager.TextEditor)
     {
         RenderManager = renderManager;
     }
@@ -40,7 +40,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 /// 这个结构体仅仅只是为了减少一些内部方法而已，没有实际的逻辑作用
 file struct Renderer
 {
-    public Renderer(in SkiaTextRenderArgument renderArgument, SkiaTextEditor textEditor, HorizontalSkiaTextRender horizontalSkiaTextRender)
+    public Renderer(in SkiaTextRenderArgument renderArgument, SkiaTextEditor textEditor, HorizontalSkiaTextRenderer horizontalSkiaTextRenderer)
     {
         TextEditor = textEditor;
         SKCanvas canvas = renderArgument.Canvas;
@@ -53,7 +53,7 @@ file struct Renderer
 
         Debug.Assert(!renderInfoProvider.IsDirty);
 
-        HorizontalSkiaTextRender = horizontalSkiaTextRender;
+        HorizontalSkiaTextRenderer = horizontalSkiaTextRenderer;
     }
 
     public SkiaTextEditor TextEditor { get; }
@@ -63,7 +63,7 @@ file struct Renderer
     public RenderInfoProvider RenderInfoProvider { get; }
 
     public TextRect RenderBounds { get; set; }
-    public HorizontalSkiaTextRender HorizontalSkiaTextRender { get; }
+    public HorizontalSkiaTextRenderer HorizontalSkiaTextRenderer { get; }
 
     private SkiaTextEditorDebugConfiguration Config => TextEditor.DebugConfiguration;
 
@@ -107,7 +107,7 @@ file struct Renderer
             {
                 CharHandwritingPaperInfo charHandwritingPaperInfo =
                     RenderInfoProvider.GetHandwritingPaperInfo(in lineRenderInfo);
-                HorizontalSkiaTextRender.DrawDebugHandwritingPaper(Canvas, new TextRect(argument.StartPoint, argument.LineContentSize with
+                HorizontalSkiaTextRenderer.DrawDebugHandwritingPaper(Canvas, new TextRect(argument.StartPoint, argument.LineContentSize with
                 {
                     // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
                     Width = RenderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
@@ -168,7 +168,7 @@ file struct Renderer
         {
             CharHandwritingPaperInfo charHandwritingPaperInfo =
                 RenderInfoProvider.GetHandwritingPaperInfo(in lineInfo, firstCharData);
-            HorizontalSkiaTextRender.DrawDebugHandwritingPaper(Canvas, charSpanBounds, charHandwritingPaperInfo);
+            HorizontalSkiaTextRenderer.DrawDebugHandwritingPaper(Canvas, charSpanBounds, charHandwritingPaperInfo);
         }
 
         //float x = skiaTextRenderInfo.X;
@@ -193,6 +193,6 @@ file struct Renderer
 
     private void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
     {
-        HorizontalSkiaTextRender.DrawDebugBoundsInfo(Canvas, bounds, drawInfo);
+        HorizontalSkiaTextRenderer.DrawDebugBoundsInfo(Canvas, bounds, drawInfo);
     }
 }
