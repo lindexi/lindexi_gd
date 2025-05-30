@@ -19,7 +19,7 @@ namespace LightTextEditorPlus.Rendering;
 /// <summary>
 /// 水平文本渲染器
 /// </summary>
-class HorizontalTextRender : TextRenderBase
+class HorizontalTextRenderer : TextRendererBase
 {
     public override DrawingVisual Render(RenderInfoProvider renderInfoProvider, TextEditor textEditor)
     {

@@ -10,7 +10,7 @@ namespace LightTextEditorPlus.Rendering;
 /// <summary>
 /// 文本渲染器基类
 /// </summary>
-abstract class TextRenderBase
+abstract class TextRendererBase
 {
     public abstract DrawingVisual Render(RenderInfoProvider renderInfoProvider, TextEditor textEditor);
 

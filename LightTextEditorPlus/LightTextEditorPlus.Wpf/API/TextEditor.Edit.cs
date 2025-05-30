@@ -185,7 +185,7 @@ public partial class TextEditor
     {
         FontStyle fontStyle;
 
-        if (IsAllRunPropertyMatchPredicate(property => property.FontStyle == FontStyles.Normal, selection))
+        if (AreAllRunPropertiesMatch(property => property.FontStyle == FontStyles.Normal, selection))
         {
             // 字体倾斜 Italic 和 Oblique 的差别
             // 使用 Italic 是字体提供的斜体，可以和正常字体有不同的界面
@@ -219,7 +219,7 @@ public partial class TextEditor
     public void ToggleBold(Selection? selection = null)
     {
         FontWeight fontWeight;
-        if (IsAllRunPropertyMatchPredicate(property => property.FontWeight == FontWeights.Normal, selection))
+        if (AreAllRunPropertiesMatch(property => property.FontWeight == FontWeights.Normal, selection))
         {
             fontWeight = FontWeights.Bold;
         }
@@ -285,7 +285,7 @@ public partial class TextEditor
     public void ToggleTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
     {
         bool addDecoration;
-        if (IsAllRunPropertyMatchPredicate(property => property.DecorationCollection.Contains(textDecoration), selection))
+        if (AreAllRunPropertiesMatch(property => property.DecorationCollection.Contains(textDecoration), selection))
         {
             addDecoration = false;
         }
@@ -395,7 +395,7 @@ public partial class TextEditor
         OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
     }
 
-    private bool IsAllRunPropertyMatchPredicate(Predicate<RunProperty> predicate, Selection? selection)
+    private bool AreAllRunPropertiesMatch(Predicate<RunProperty> predicate, Selection? selection)
     {
         return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
     }

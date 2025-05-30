@@ -113,7 +113,7 @@ class RenderManager
     {
         Debug.Assert(!renderInfoProvider.IsDirty);
 
-        BaseSkiaTextRender textRender = GetSkiaTextRender();
+        BaseSkiaTextRenderer textRenderer = GetSkiaTextRender();
 
         UpdateCaretAndSelectionRender(renderInfoProvider, TextEditor.TextEditorCore.CurrentSelection);
 
@@ -161,7 +161,7 @@ class RenderManager
 
         using (SKCanvas canvas = skPictureRecorder.BeginRecording(SKRect.Create(0, 0, renderWidth, renderHeight)))
         {
-            SkiaTextRenderResult skiaTextRenderResult = textRender.Render(new SkiaTextRenderArgument()
+            SkiaTextRenderResult skiaTextRenderResult = textRenderer.Render(new SkiaTextRenderArgument()
             {
                 Canvas = canvas,
                 RenderInfoProvider = renderInfoProvider,
@@ -172,9 +172,9 @@ class RenderManager
             SkiaTextEditorDebugConfiguration skiaTextEditorDebugConfiguration = TextEditor.DebugConfiguration;
             if (skiaTextEditorDebugConfiguration.IsInDebugMode)
             {
-                textRender.DrawDebugBoundsInfo(canvas, renderBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentRenderBoundsInfo);
-                textRender.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentContentBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo);
-                textRender.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentOutlineBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo);
+                textRenderer.DrawDebugBoundsInfo(canvas, renderBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentRenderBoundsInfo);
+                textRenderer.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentContentBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo);
+                textRenderer.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentOutlineBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo);
             }
         }
 
@@ -182,24 +182,24 @@ class RenderManager
         _currentRender = new TextEditorSkiaRender(TextEditor, skPicture, renderBounds);
     }
 
-    private BaseSkiaTextRender GetSkiaTextRender()
+    private BaseSkiaTextRenderer GetSkiaTextRender()
     {
         if (TextEditor.TextEditorCore.ArrangingType.IsHorizontal)
         {
-            if (_textRender is not HorizontalSkiaTextRender)
+            if (_textRender is not HorizontalSkiaTextRenderer)
             {
                 _textRender?.Dispose();
-                _textRender = new HorizontalSkiaTextRender(this);
+                _textRender = new HorizontalSkiaTextRenderer(this);
             }
 
             return _textRender;
         }
         else if (TextEditor.TextEditorCore.ArrangingType.IsVertical)
         {
-            if (_textRender is not VerticalSkiaTextRender)
+            if (_textRender is not VerticalSkiaTextRenderer)
             {
                 _textRender?.Dispose();
-                _textRender = new VerticalSkiaTextRender(this);
+                _textRender = new VerticalSkiaTextRenderer(this);
             }
 
             return _textRender;
@@ -212,5 +212,5 @@ class RenderManager
         throw new NotSupportedException();
     }
 
-    private BaseSkiaTextRender? _textRender;
+    private BaseSkiaTextRenderer? _textRender;
 }
