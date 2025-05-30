@@ -37,7 +37,10 @@ public class MarkerTest
             textEditor.AppendText("abc\r\ndef");
             // 此时瞬间就进入了布局了
             // 编辑修改第一段文本，让第二段进入缓存布局
-            textEditor.EditAndReplace("1", new Selection(new CaretOffset(3), 1));
+            textEditor.EditAndReplace("1", new CaretOffset(3).ToSelection());
+
+            string firstParagraphText = textEditor.ParagraphList[0].GetText();
+            Assert.AreEqual("abc1", firstParagraphText);
         });
     }
 }

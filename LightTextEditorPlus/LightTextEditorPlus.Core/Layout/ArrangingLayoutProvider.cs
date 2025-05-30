@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -241,7 +241,7 @@ abstract class ArrangingLayoutProvider
             }
             paragraphData.SetParagraphLayoutIndentInfo(in indentInfo);
 
-            updateLayoutContext.RecordDebugLayoutInfo($"缩进计算", LayoutDebugCategory.PreIndent);
+            updateLayoutContext.RecordDebugLayoutInfo($"完成缩进计算", LayoutDebugCategory.PreIndent);
 
             var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData,
                 paragraphList, indentInfo, updateLayoutContext);
@@ -318,17 +318,45 @@ abstract class ArrangingLayoutProvider
     /// 项目符号计算分为两个部分：
     /// 1. 在 <see cref="ArrangingLayoutProvider.CalculateParagraphIndentAndMarker"/> 计算左右方向的缩进影响
     /// 2. 在 <see cref="HorizontalArrangingLayoutProvider.PreUpdateMarker"/> 计算左上角的起始点坐标
-    protected ParagraphLayoutIndentInfo CalculateParagraphIndentAndMarker(in CalculateParagraphIndentArgument argument)
+    protected ParagraphLayoutIndentInfo CalculateParagraphIndentAndMarker(CalculateParagraphIndentArgument argument)
     {
+        argument.UpdateLayoutContext.RecordDebugLayoutInfo($"开始缩进计算", LayoutDebugCategory.PreIndent);
         ParagraphData paragraphData = argument.CurrentParagraphData;
         ParagraphProperty paragraphProperty = paragraphData.ParagraphProperty;
 
         double markerIndentation = 0;
 
-        MarkerRuntimeInfo? markerRuntimeInfo = paragraphData.MarkerRuntimeInfo;
+        MarkerRuntimeInfo? info = paragraphData.MarkerRuntimeInfo;
 
-        if (markerRuntimeInfo != null)
+        if (info != null)
         {
+            argument.UpdateLayoutContext.RecordDebugLayoutInfo($"段落存在项目符号，测量项目符号缩进", LayoutDebugCategory.PreMarkerIndent);
+            markerIndentation = MeasureMarkerIndentation(info);
+        }
+
+        double lineMaxWidth = GetLineMaxWidth();
+
+        var indentInfo = new ParagraphLayoutIndentInfo
+        {
+            LineMaxWidth = lineMaxWidth,
+            Indent = paragraphProperty.Indent,
+            IndentType = paragraphProperty.IndentType,
+            LeftIndentation = paragraphProperty.LeftIndentation,
+            RightIndentation = paragraphProperty.RightIndentation,
+            MarkerIndentation = markerIndentation,
+        };
+
+        return indentInfo;
+
+        double MeasureMarkerIndentation(MarkerRuntimeInfo markerRuntimeInfo)
+        {
+            if (!paragraphData.IsDirty())
+            {
+                argument.UpdateLayoutContext.RecordDebugLayoutInfo($"段落非脏，返回缓存值", LayoutDebugCategory.PreMarkerIndent);
+
+                return markerRuntimeInfo.MarkerIndentation;
+            }
+
             TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
             DebugAssert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
 
@@ -361,21 +389,8 @@ abstract class ArrangingLayoutProvider
             }
 
             markerRuntimeInfo.MarkerIndentation = markerIndentation;
+            return markerIndentation;
         }
-
-        double lineMaxWidth = GetLineMaxWidth();
-
-        var indentInfo = new ParagraphLayoutIndentInfo
-        {
-            LineMaxWidth = lineMaxWidth,
-            Indent = paragraphProperty.Indent,
-            IndentType = paragraphProperty.IndentType,
-            LeftIndentation = paragraphProperty.LeftIndentation,
-            RightIndentation = paragraphProperty.RightIndentation,
-            MarkerIndentation = markerIndentation,
-        };
-
-        return indentInfo;
     }
 
     #endregion

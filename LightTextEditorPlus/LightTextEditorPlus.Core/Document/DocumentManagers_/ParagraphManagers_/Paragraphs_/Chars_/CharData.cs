@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using LightTextEditorPlus.Core.Exceptions;
@@ -61,10 +61,14 @@ public sealed class CharData
             throw new InvalidOperationException($"禁止在加入到段落之前获取");
         }
 
-        if (CharLayoutData.IsInvalidVersion()
-            || CharLayoutData.CurrentLine is null)
+        if (CharLayoutData.CurrentLine is null)
         {
             throw new InvalidOperationException($"禁止在开始布局之前获取");
+        }
+
+        if (CharLayoutData.IsInvalidVersion())
+        {
+            throw new InvalidOperationException($"字符数据已失效");
         }
 
         var textPoint = CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);

@@ -20,7 +20,6 @@ internal static class LayoutChecker
         EnsureMarker(updateLayoutContext);
     }
 
-
     private static void EnsureNextStartPoint(UpdateLayoutContext updateLayoutContext)
     {
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
