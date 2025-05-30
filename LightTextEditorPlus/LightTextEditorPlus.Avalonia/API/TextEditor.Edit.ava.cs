@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -18,6 +18,7 @@ using ReactiveUI;
 using SkiaSharp;
 using Avalonia.Layout;
 using Avalonia.Skia;
+using LightTextEditorPlus.Document.Decorations;
 
 namespace LightTextEditorPlus
 {
@@ -278,11 +279,6 @@ namespace LightTextEditorPlus
             SetFontWeight(fontWeight, selection);
         }
 
-        private bool AreAllRunPropertiesMatch(Predicate<SkiaTextRunProperty> predicate, Selection? selection)
-        {
-            return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
-        }
-
         /// <summary>
         /// 设置字重
         /// </summary>
@@ -292,6 +288,120 @@ namespace LightTextEditorPlus
         {
             SetRunProperty(p => p with { FontWeight = fontWeight.ToSKFontStyleWeight() }, PropertyType.FontWeight, selection);
         }
+
+        #region 文本装饰
+
+        /// <summary>
+        /// 开启或关闭文本的下划线
+        /// </summary>
+        /// <param name="selection"></param>
+        public void ToggleUnderline(Selection? selection = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 开启或关闭文本的删除线
+        /// </summary>
+        /// <param name="selection"></param>
+        public void ToggleStrikethrough(Selection? selection = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 开启或关闭文本删除线
+        /// </summary>
+        /// <param name="selection"></param>
+        [Obsolete("请使用 ToggleStrikethrough 代替。本方法只是让你知道删除线应该叫 Strikethrough 而不是 DeleteLine 而已")]
+        public void ToggleDeleteLine(Selection? selection = null) => ToggleStrikethrough(selection);
+
+        /// <summary>
+        /// 开启或关闭文本的着重号
+        /// </summary>
+        /// <param name="selection"></param>
+        public void ToggleEmphasisDots(Selection? selection = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 开启或关闭文本装饰
+        /// </summary>
+        /// <param name="textDecoration"></param>
+        /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
+        public void ToggleTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
+        {
+            bool addDecoration;
+            if (AreAllRunPropertiesMatch(property => property.DecorationCollection.Contains(textDecoration), selection))
+            {
+                addDecoration = false;
+            }
+            else
+            {
+                addDecoration = true;
+            }
+
+            SetTextDecoration(textDecoration, addDecoration, selection);
+        }
+
+        /// <summary>
+        /// 设置文本装饰
+        /// </summary>
+        /// <param name="textDecoration"></param>
+        /// <param name="addOrRemove">true 表示添加，false 表示删除</param>
+        /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
+        public void SetTextDecoration(TextEditorDecoration textDecoration, bool addOrRemove, Selection? selection = null)
+        {
+            if (addOrRemove)
+            {
+                AddTextDecoration(textDecoration, selection);
+            }
+            else
+            {
+                RemoveTextDecoration(textDecoration, selection);
+            }
+        }
+
+        /// <summary>
+        /// 添加文本装饰
+        /// </summary>
+        /// <param name="textDecoration"></param>
+        /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
+        public void AddTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
+        {
+            SetRunProperty(property => property with
+            {
+                DecorationCollection = property.DecorationCollection.Add(textDecoration)
+            }, PropertyType.TextDecoration, selection);
+        }
+
+        /// <summary>
+        /// 删除文本装饰
+        /// </summary>
+        /// <param name="textDecoration"></param>
+        /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
+        public void RemoveTextDecoration(TextEditorDecoration textDecoration, Selection? selection = null)
+        {
+            SetRunProperty(property => property with
+            {
+                DecorationCollection = property.DecorationCollection.Remove(textDecoration)
+            }, PropertyType.TextDecoration, selection);
+        }
+
+        /// <summary>
+        /// 清理文本装饰
+        /// </summary>
+        /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
+        public void ClearTextDecoration(Selection? selection = null)
+        {
+            SetRunProperty(property => property with
+            {
+                DecorationCollection = new TextEditorImmutableDecorationCollection()
+            }, PropertyType.TextDecoration, selection);
+        }
+
+        #endregion
 
         /// <summary>
         /// 设置字符属性。如果传入的 <paramref name="selection"/> 是空，将会使用当前选择。当前选择是空将会修改当前光标字符属性。修改当前光标字符属性样式，只触发 StyleChanging 和 StyleChanged 事件，不触发布局变更
@@ -331,6 +441,11 @@ namespace LightTextEditorPlus
             TextEditorCore.DocumentManager.SetRunProperty<SkiaTextRunProperty>(runProperty => config(runProperty), selection);
 
             OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
+        }
+
+        private bool AreAllRunPropertiesMatch(Predicate<SkiaTextRunProperty> predicate, Selection? selection)
+        {
+            return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
         }
 
         #endregion

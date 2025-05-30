@@ -231,11 +231,6 @@ public partial class TextEditor
         SetFontWeight(fontWeight, selection);
     }
 
-    private bool IsAllRunPropertyMatchPredicate(Predicate<RunProperty> predicate, Selection? selection)
-    {
-        return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
-    }
-
     /// <summary>
     /// 设置字重
     /// </summary>
@@ -267,6 +262,13 @@ public partial class TextEditor
     }
 
     /// <summary>
+    /// 开启或关闭文本删除线
+    /// </summary>
+    /// <param name="selection"></param>
+    [Obsolete("请使用 ToggleStrikethrough 代替。本方法只是让你知道删除线应该叫 Strikethrough 而不是 DeleteLine 而已")]
+    public void ToggleDeleteLine(Selection? selection = null) => ToggleStrikethrough(selection);
+
+    /// <summary>
     /// 开启或关闭文本的着重号
     /// </summary>
     /// <param name="selection"></param>
@@ -274,13 +276,6 @@ public partial class TextEditor
     {
         ToggleTextDecoration(EmphasisDotsTextEditorDecoration.Instance, selection);
     }
-
-    /// <summary>
-    /// 开启或关闭文本删除线
-    /// </summary>
-    /// <param name="selection"></param>
-    [Obsolete("请使用 ToggleStrikethrough 代替。本方法只是让你知道删除线应该叫 Strikethrough 而不是 DeleteLine 而已")]
-    public void ToggleDeleteLine(Selection? selection = null) => ToggleStrikethrough(selection);
 
     /// <summary>
     /// 开启或关闭文本装饰
@@ -398,6 +393,11 @@ public partial class TextEditor
         TextEditorCore.DocumentManager.SetRunProperty<RunProperty>(runProperty => config(runProperty), selection);
 
         OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
+    }
+
+    private bool IsAllRunPropertyMatchPredicate(Predicate<RunProperty> predicate, Selection? selection)
+    {
+        return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
     }
 
     #endregion

@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Primitive;
+﻿using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -11,10 +11,12 @@ public readonly struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem
     /// 相对于水平排列的坐标系的点，文档内容的起始点
     /// </summary>
     public required TextPointInHorizontalArrangingCoordinateSystem DocumentContentStartPoint { get; init; }
+
     /// <summary>
     /// 文档内容的尺寸
     /// </summary>
     public required TextSize DocumentContentSize { get; init; }
+
     /// <summary>
     /// 文档外接范围的尺寸
     /// </summary>

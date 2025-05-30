@@ -1,4 +1,4 @@
-CurrentCaretRunProperty
+﻿CurrentCaretRunProperty
 StyleRunProperty
 CreateRunProperty
 SetStyleTextRunProperty
@@ -12,6 +12,16 @@ ToggleItalic
 SetFontStyle
 ToggleBold
 SetFontWeight
+// 文本装饰
+ToggleUnderline
+ToggleStrikethrough
+ToggleDeleteLine
+ToggleEmphasisDots
+ToggleTextDecoration
+SetTextDecoration
+AddTextDecoration
+RemoveTextDecoration
+ClearTextDecoration
 // 文本属性
 VerticalTextAlignment
 VerticalContentAlignment
