@@ -27,7 +27,7 @@ abstract class BaseSkiaTextRender : IDisposable
     /// <param name="canvas"></param>
     /// <param name="charSpanBounds"></param>
     /// <param name="charHandwritingPaperInfo"></param>
-    protected void DrawDebugHandwritingPaper(SKCanvas canvas, SKRect charSpanBounds, in CharHandwritingPaperInfo charHandwritingPaperInfo)
+    public void DrawDebugHandwritingPaper(SKCanvas canvas, SKRect charSpanBounds, in CharHandwritingPaperInfo charHandwritingPaperInfo)
     {
         HandwritingPaperDebugDrawInfo drawInfo = TextEditor.DebugConfiguration.HandwritingPaperDebugDrawInfo;
         DrawLine(charHandwritingPaperInfo.TopLineGradation, drawInfo.TopLineGradationDebugDrawInfo);
