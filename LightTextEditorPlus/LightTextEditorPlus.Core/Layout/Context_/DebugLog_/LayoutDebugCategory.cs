@@ -1,4 +1,4 @@
-namespace LightTextEditorPlus.Core.Layout;
+﻿namespace LightTextEditorPlus.Core.Layout;
 
 /// <summary>
 /// 布局过程中的调试分类信息
@@ -29,6 +29,11 @@ public enum LayoutDebugCategory
     /// 段落缩进、项目符号缩进
     /// </summary>
     PreIndent,
+
+    /// <summary>
+    /// 项目符号缩进
+    /// </summary>
+    PreMarkerIndent,
 
     /// <summary>
     /// 预布局的整行部分

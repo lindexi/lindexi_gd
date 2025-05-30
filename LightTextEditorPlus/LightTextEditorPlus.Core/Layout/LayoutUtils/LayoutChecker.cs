@@ -20,7 +20,6 @@ internal static class LayoutChecker
         EnsureMarker(updateLayoutContext);
     }
 
-
     private static void EnsureNextStartPoint(UpdateLayoutContext updateLayoutContext)
     {
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
@@ -106,6 +105,11 @@ internal static class LayoutChecker
                 if (!charData.IsSetStartPointInDebugMode)
                 {
                     throw new TextEditorInnerDebugException($"存在项目符号字符没有在布局时设置坐标");
+                }
+
+                if (charData.CharLayoutData!.IsInvalidVersion())
+                {
+                    throw new TextEditorInnerDebugException($"存在项目符号字符缓存版本错误");
                 }
             }
         }

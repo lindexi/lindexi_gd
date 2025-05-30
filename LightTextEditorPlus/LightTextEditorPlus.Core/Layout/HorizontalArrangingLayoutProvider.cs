@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -43,11 +43,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected override ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument)
+    protected override ParagraphLayoutResult UpdateNotDirtyParagraphStartPoint(in ParagraphLayoutArgument argument)
     {
         var paragraph = argument.ParagraphData;
-
-        if (TextEditor.IsInDebugMode && paragraph.IsDirty())
+        if (argument.UpdateLayoutContext.IsInDebugMode && paragraph.IsDirty())
         {
             throw new TextEditorInnerDebugException("更新非脏的段落和行时，段落是脏的");
         }
@@ -65,6 +64,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //};
 
         var nextLineStartPoint = UpdateParagraphLineLayoutDataStartPoint(in argument);
+        // 附带更新项目符号版本
+        PreUpdateNotDirtyParagraphMarkerCharDataVersion(in argument);
+
         // 设置当前段落已经布局完成
         paragraph.SetFinishLayout();
 
@@ -264,6 +266,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 项目符号计算分为两个部分：
     /// 1. 在 <see cref="ArrangingLayoutProvider.CalculateParagraphIndentAndMarker"/> 计算左右方向的缩进影响
     /// 2. 在 <see cref="HorizontalArrangingLayoutProvider.PreUpdateMarker"/> 计算左上角的起始点坐标
+    /// 
+    /// 非脏段的项目符号，直接更新版本即可，无需额外布局计算。逻辑放在 <see cref="PreUpdateNotDirtyParagraphMarkerCharDataVersion"/>
     private void PreUpdateMarker(in ParagraphLayoutArgument argument)
     {
         ParagraphData paragraph = argument.ParagraphData;
@@ -339,6 +343,27 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 
     /// <summary>
+    /// 更新非脏的段落的项目符号字符信息
+    /// </summary>
+    /// <param name="argument"></param>
+    /// 引用： 脏的段落的项目符号处理请参阅 <see cref="PreUpdateMarker"/>
+    private void PreUpdateNotDirtyParagraphMarkerCharDataVersion(in ParagraphLayoutArgument argument)
+    {
+        ParagraphData paragraph = argument.ParagraphData;
+        if (paragraph.MarkerRuntimeInfo is not {} markerRuntimeInfo)
+        {
+            return;
+        }
+
+        argument.UpdateLayoutContext.RecordDebugLayoutInfo($"更新非脏段落项目符号", LayoutDebugCategory.PreMarkerIndent);
+
+        foreach (CharData charData in markerRuntimeInfo.CharDataList)
+        {
+            charData.CharLayoutData!.UpdateVersion();
+        }
+    }
+
+    /// <summary>
     /// 布局空段
     /// </summary>
     /// <param name="argument"></param>
@@ -352,7 +377,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         //// 测量和获取空段的字符信息
         // 段落的字符信息不是必要的，就不要放在这里立刻计算了
-     
+
         var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
             new EmptyParagraphLineHeightMeasureArgument(paragraph, argument.ParagraphIndex, argument.UpdateLayoutContext));
         double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;

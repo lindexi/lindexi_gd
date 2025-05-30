@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
@@ -98,6 +99,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
             LayoutDebugCategory.PreDocument => 1,
             LayoutDebugCategory.PreParagraph => 2,
             LayoutDebugCategory.PreIndent => 3,
+            LayoutDebugCategory.PreMarkerIndent => 4,
             LayoutDebugCategory.PreWholeLine => 3,
             LayoutDebugCategory.PreLineSpacingInWholeLine => 4,
             LayoutDebugCategory.PreSingleCharLine => 4,
