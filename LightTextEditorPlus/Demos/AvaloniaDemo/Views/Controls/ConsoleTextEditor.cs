@@ -95,7 +95,12 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         useLatin = Rune.IsNumber(rune);
         useLatin = useLatin || char.IsAsciiLetter(c);
 
-        float charFrameWidth;
+        if (c == 'b')
+        {
+
+        }
+
+    float charFrameWidth;
         if (useLatin)
         {
             charFrameWidth = cacheInfo.LatinMinWidth;
