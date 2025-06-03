@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-
+using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
@@ -163,6 +163,27 @@ file struct Renderer : IDisposable
         float y = (float) startPoint.Y;
         float width = 0;
         float height = (float) runBounds.Height;
+
+        var marginLeft = 0f;
+        if (TextEditor.RenderConfiguration.UseRenderCharByCharMode)
+        {
+            switch (TextEditor.RenderConfiguration.RenderFaceInFrameAlignment)
+            {
+                case SkiaTextEditorCharRenderFaceInFrameAlignment.Left:
+                    marginLeft = 0;
+                    break;
+                case SkiaTextEditorCharRenderFaceInFrameAlignment.Center:
+                    marginLeft = (float)
+                        (firstCharData.CharDataInfo.FrameSize.Width - firstCharData.CharDataInfo.FaceSize.Width) / 2;
+                    break;
+                case SkiaTextEditorCharRenderFaceInFrameAlignment.Right:
+                    marginLeft = (float)
+                        (firstCharData.CharDataInfo.FrameSize.Width - firstCharData.CharDataInfo.FaceSize.Width);
+                    break;
+            }
+        }
+
+        x += marginLeft;
 
         using CharDataListToCharSpanResult charSpanResult = charList.ToCharSpan();
         ReadOnlySpan<char> charSpan = charSpanResult.CharSpan;
