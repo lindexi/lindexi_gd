@@ -25,6 +25,10 @@ public class ConsoleTextEditor : TextEditor
     public ConsoleTextEditor() : base(new Builder())
     {
         base.CaretConfiguration.CaretBrush = Colors.White;
+        base.SkiaTextEditor.RenderConfiguration = SkiaTextEditor.RenderConfiguration with
+        {
+            UseRenderCharByCharMode = true
+        };
 
         Loaded += ConsoleTextEditor_Loaded;
     }

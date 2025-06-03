@@ -48,9 +48,22 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
 
                 // 先不考虑缓存
                 LineDrawingArgument argument = lineInfo.Argument;
-                foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+
+                if (TextEditor.RenderConfiguration.UseRenderCharByCharMode)
                 {
-                    renderBounds = RenderCharList(charList, lineInfo);
+                    // 逐字符渲染。渲染效率慢，但可以遵循布局结果
+                    for (var i = 0; i < argument.CharList.Count; i++)
+                    {
+                        TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i, 1);
+                        RenderCharList(charList, lineInfo);
+                    }
+                }
+                else
+                {
+                    foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+                    {
+                        renderBounds = RenderCharList(charList, lineInfo);
+                    }
                 }
 
                 TextPoint lineStartPoint = argument.StartPoint;
