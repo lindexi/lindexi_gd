@@ -38,8 +38,11 @@ class ParagraphData : ITextParagraph
     public void SetParagraphLayoutTextSize(TextSize textSize)
         => _paragraphLayoutData.TextSize = textSize;
 
-    public void SetParagraphLayoutOutlineSize(TextSize outlineSize)
-        => _paragraphLayoutData.OutlineSize = outlineSize;
+    public void SetParagraphLayoutContentAndOutlineSize(TextSize contentSize, TextSize outlineSize)
+    {
+        _paragraphLayoutData.ContentSize = contentSize;
+        _paragraphLayoutData.OutlineSize = outlineSize;
+    }
 
     public void SetParagraphLayoutContentThickness(TextThickness contentThickness)
         => _paragraphLayoutData.TextContentThickness = contentThickness;

@@ -225,7 +225,31 @@ public class LayoutTest
     [ContractTestCase]
     public void TestCenterHorizontalTextAlignment()
     {
-        "文本设置为水平居中，可以获取比水平居左更大的内容范围".Test(() =>
+        "文本设置为水平居中，可以获取比水平居左更大的段落内容范围".Test(() =>
+        {
+            // Arrange
+            const double fontSize = TestHelper.LayoutTestFontSize;
+            TextEditorCore testTextEditor = TestHelper.GetLayoutTestTextEditor(fontSize: fontSize);
+
+            // Action
+            var text = "123";
+            testTextEditor.AppendText(text);
+
+            ParagraphRenderInfo paragraphRenderInfo = testTextEditor.GetRenderInfo().GetParagraphRenderInfoList().First();
+            TextRect paragraphContentBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
+            Assert.AreEqual(fontSize * text.Length, paragraphContentBounds.Width, "水平居左时，段落尺寸宽度刚好就是三个字符乘以每个字符的宽度的值");
+
+            // 修改为水平居中的情况
+            testTextEditor.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), testTextEditor.DocumentManager.StyleParagraphProperty with
+            {
+                HorizontalTextAlignment = HorizontalTextAlignment.Center
+            });
+
+            paragraphRenderInfo = testTextEditor.GetRenderInfo().GetParagraphRenderInfoList().First();
+            paragraphContentBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
+        });
+
+        "文本设置为水平居中，可以获取比水平居左更大的文档内容范围".Test(() =>
         {
             // Arrange
             const double fontSize = TestHelper.LayoutTestFontSize;
@@ -244,6 +268,7 @@ public class LayoutTest
                 HorizontalTextAlignment = HorizontalTextAlignment.Center
             });
 
+            // Assert
             // 水平居中之后，原本一行只能放入 5 个字符，现在放入了 3 个，居中之后，就约等于前后各空一个字符的宽度
             documentContentBounds = testTextEditor.GetDocumentLayoutBounds().DocumentContentBounds;
             Assert.IsTrue(Math.Abs(documentContentBounds.Width - (text.Length + 1/*前面空一个字符*/) * fontSize) < 0.1);
