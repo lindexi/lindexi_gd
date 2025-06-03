@@ -108,6 +108,11 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         var frameSize = new TextSize(charFrameWidth, cacheInfo.CharHeight);
 
         float charFaceWidth = MeasureCharWidth(c, cacheInfo.Font);
+        using SKPath skPath = cacheInfo.Font.GetGlyphPath(c);
+        if (charFaceWidth > skPath.Bounds.Width)
+        {
+            charFaceWidth = skPath.Bounds.Width;
+        }
 
         var faceSize = new TextSize(charFaceWidth, cacheInfo.CharHeight);
 
