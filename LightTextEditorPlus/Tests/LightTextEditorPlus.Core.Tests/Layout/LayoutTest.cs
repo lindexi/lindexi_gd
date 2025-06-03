@@ -247,6 +247,9 @@ public class LayoutTest
 
             paragraphRenderInfo = testTextEditor.GetRenderInfo().GetParagraphRenderInfoList().First();
             paragraphContentBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
+            // Assert
+            // 水平居中之后，原本一行只能放入 5 个字符，现在放入了 3 个，居中之后，就约等于前后各空一个字符的宽度
+            Assert.IsTrue(Math.Abs(paragraphContentBounds.Width - (text.Length + 1/*前面空一个字符*/) * fontSize) < 0.1);
         });
 
         "文本设置为水平居中，可以获取比水平居左更大的文档内容范围".Test(() =>
