@@ -12,5 +12,9 @@ partial class SkiaTextEditor
     /// </summary>
     public SkiaCaretConfiguration CaretConfiguration { get; set; } = new SkiaCaretConfiguration();
 
-    // SkiaTextEditorRenderConfiguration
+    /// <summary>
+    /// 渲染的配置
+    /// </summary>
+    public SkiaTextEditorRenderConfiguration RenderConfiguration { get; set; } =
+        new SkiaTextEditorRenderConfiguration();
 }

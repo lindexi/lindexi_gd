@@ -97,16 +97,21 @@ file struct Renderer : IDisposable
         // 先不考虑缓存
         LineDrawingArgument argument = lineRenderInfo.Argument;
 
-        //foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
-        //{
-        //    RenderCharList(charList, lineRenderInfo);
-        //}
-
-        // 逐字符渲染。渲染效率慢，但可以遵循布局结果
-        for (var i = 0; i < argument.CharList.Count; i++)
+        if (TextEditor.RenderConfiguration.UseRenderCharByCharMode)
         {
-            TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i,1);
-            RenderCharList(in charList, in lineRenderInfo);
+            // 逐字符渲染。渲染效率慢，但可以遵循布局结果
+            for (var i = 0; i < argument.CharList.Count; i++)
+            {
+                TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i, 1);
+                RenderCharList(in charList, in lineRenderInfo);
+            }
+        }
+        else
+        {
+            foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+            {
+                RenderCharList(charList, lineRenderInfo);
+            }
         }
 
         if (argument.CharList.Count == 0)
