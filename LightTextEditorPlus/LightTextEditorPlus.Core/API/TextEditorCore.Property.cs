@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core;
 
@@ -332,7 +326,9 @@ partial class TextEditorCore
     /// <summary>
     /// 获取文档的段落列表
     /// </summary>
-    public ReadOnlyParagraphList ParagraphList => _paragraphList ??= new ReadOnlyParagraphList(this);
+    public ReadOnlyParagraphList ParagraphList =>
+        // 正常情况，框架内不会调用到这里，不会创建出 ReadOnlyParagraphList 对象的
+        _paragraphList ??= new ReadOnlyParagraphList(this);
     private ReadOnlyParagraphList? _paragraphList;
 
     #endregion

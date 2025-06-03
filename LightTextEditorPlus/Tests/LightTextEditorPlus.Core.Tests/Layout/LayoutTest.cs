@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
@@ -219,6 +219,34 @@ public class LayoutTest
             // 文档尺寸 = a段高度 15 + a段段后 22 + 空段前 5 + 空段高度 15
             TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
             Assert.AreEqual(15 + 22 + 5 + 15, documentLayoutBounds.Height);
+        });
+    }
+
+    [ContractTestCase]
+    public void TestCenterHorizontalTextAlignment()
+    {
+        "文本设置为水平居中，可以获取比水平居左更大的内容范围".Test(() =>
+        {
+            // Arrange
+            const double fontSize = TestHelper.LayoutTestFontSize;
+            TextEditorCore testTextEditor = TestHelper.GetLayoutTestTextEditor(fontSize: fontSize);
+
+            // Action
+            var text = "123";
+            testTextEditor.AppendText(text);
+            // 获取居左的内容尺寸
+            TextRect documentContentBounds = testTextEditor.GetDocumentLayoutBounds().DocumentContentBounds;
+            Assert.AreEqual(fontSize * text.Length, documentContentBounds.Width, "水平居左时，文档尺寸宽度刚好就是三个字符乘以每个字符的宽度的值");
+
+            // 修改为水平居中的情况
+            testTextEditor.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), testTextEditor.DocumentManager.StyleParagraphProperty with
+            {
+                HorizontalTextAlignment = HorizontalTextAlignment.Center
+            });
+
+            // 水平居中之后，原本一行只能放入 5 个字符，现在放入了 3 个，居中之后，就约等于前后各空一个字符的宽度
+            documentContentBounds = testTextEditor.GetDocumentLayoutBounds().DocumentContentBounds;
+            Assert.IsTrue(Math.Abs(documentContentBounds.Width - (text.Length + 1/*前面空一个字符*/) * fontSize) < 0.1);
         });
     }
 }
