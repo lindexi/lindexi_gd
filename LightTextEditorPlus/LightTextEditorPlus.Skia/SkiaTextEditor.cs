@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -28,6 +28,11 @@ namespace LightTextEditorPlus;
 /// - API 定义层： API\[Skia]TextEditor.*.cs
 public partial class SkiaTextEditor : IRenderManager
 {
+    /// <summary>
+    /// 创建使用 Skia 渲染承载的文本编辑器
+    /// </summary>
+    /// <param name="platformProvider"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public SkiaTextEditor(SkiaTextEditorPlatformProvider? platformProvider = null)
     {
         SkiaTextEditorPlatformProvider? skiaTextEditorPlatformProvider;
@@ -66,6 +71,9 @@ public partial class SkiaTextEditor : IRenderManager
 
     private DocumentManager DocumentManager => TextEditorCore.DocumentManager;
 
+    /// <summary>
+    /// 文本编辑器内核
+    /// </summary>
     public TextEditorCore TextEditorCore { get; }
 
     internal SkiaTextEditorPlatformProvider SkiaTextEditorPlatformProvider { get; }
@@ -79,8 +87,6 @@ public partial class SkiaTextEditor : IRenderManager
     /// 获取文档的布局尺寸，实际布局尺寸
     /// </summary>
     public TextRect CurrentLayoutBounds { get; private set; } = TextRect.Zero;
-
-
 
     #region 渲染
     internal RenderManager RenderManager { get; }
@@ -137,16 +143,28 @@ public partial class SkiaTextEditor : IRenderManager
         _renderCompletionSource.TrySetResult();
     }
 
+    /// <summary>
+    /// 获取当前的文本渲染内容
+    /// </summary>
+    /// <returns></returns>
     public ITextEditorContentSkiaRender GetCurrentTextRender()
     {
         return RenderManager.GetCurrentTextRender();
     }
 
+    /// <summary>
+    /// 获取当前的光标和选择的渲染内容
+    /// </summary>
+    /// <param name="renderContext"></param>
+    /// <returns></returns>
     public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
     {
         return RenderManager.GetCurrentCaretAndSelectionRender(renderContext);
     }
 
+    /// <summary>
+    /// 请求重新渲染当前的文本编辑器内容
+    /// </summary>
     public event EventHandler? InvalidateVisualRequested;
 
     internal event EventHandler? InternalRenderCompleted;
@@ -176,17 +194,31 @@ public partial class SkiaTextEditor : IRenderManager
 
     #region 调试
 
+    /// <summary>
+    /// 调试配置
+    /// </summary>
     public SkiaTextEditorDebugConfiguration DebugConfiguration { get; }
 
     #endregion
 }
 
+/// <summary>
+/// Skia 文本编辑器平台提供者
+/// </summary>
 public class SkiaTextEditorPlatformProvider : PlatformProvider
 {
+    /// <summary>
+    /// 文本编辑器
+    /// </summary>
     public SkiaTextEditor TextEditor { get; internal set; }
     // 框架确保赋值
         = null!;
 
+    /// <summary>
+    /// 从传入字符信息获取字体的行距信息
+    /// </summary>
+    /// <param name="runProperty"></param>
+    /// <returns></returns>
     public override double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
     {
         // 兼容获取的方法
@@ -200,21 +232,28 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     private SkiaPlatformRunPropertyCreator? _skiaPlatformRunPropertyCreator;
 
+    /// <summary>
+    /// 获取资源管理器
+    /// </summary>
+    /// <returns></returns>
     protected virtual SkiaPlatformResourceManager GetSkiaPlatformResourceManager()
     {
         return _skiaPlatformFontManager ??= new SkiaPlatformResourceManager(TextEditor);
     }
 
+    /// <inheritdoc />
     public override IPlatformFontNameManager GetPlatformFontNameManager()
     {
         return GetSkiaPlatformResourceManager();
     }
 
+    /// <inheritdoc />
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
         return _skiaPlatformRunPropertyCreator ??= new SkiaPlatformRunPropertyCreator(GetSkiaPlatformResourceManager(), TextEditor);
     }
 
+    /// <inheritdoc />
     public override IRenderManager GetRenderManager()
     {
         return TextEditor;
@@ -233,6 +272,7 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     //private SkiaWholeLineCharsLayouter? _skiaWholeLineLayouter;
 
+    /// <inheritdoc />
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
         return _charInfoMeasurer ??= new SkiaCharInfoMeasurer();

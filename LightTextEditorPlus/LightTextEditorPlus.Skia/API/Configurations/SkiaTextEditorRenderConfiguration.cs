@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace LightTextEditorPlus.Configurations;
 
-namespace LightTextEditorPlus.Configurations;
-
+/// <summary>
+/// 渲染配置
+/// </summary>
 public readonly record struct SkiaTextEditorRenderConfiguration()
 {
     /// <summary>
@@ -16,7 +13,8 @@ public readonly record struct SkiaTextEditorRenderConfiguration()
     /// <summary>
     /// 字墨在字外框内的对齐方式
     /// </summary>
-    public SkiaTextEditorCharRenderFaceInFrameAlignment RenderFaceInFrameAlignment { get; init; } = SkiaTextEditorCharRenderFaceInFrameAlignment.Left;
+    public SkiaTextEditorCharRenderFaceInFrameAlignment RenderFaceInFrameAlignment { get; init; } =
+        SkiaTextEditorCharRenderFaceInFrameAlignment.Left;
 }
 
 /// <summary>
@@ -25,7 +23,18 @@ public readonly record struct SkiaTextEditorRenderConfiguration()
 /// <remarks>仅横排生效，仅只在逐字渲染时才能生效</remarks>
 public enum SkiaTextEditorCharRenderFaceInFrameAlignment : byte
 {
+    /// <summary>
+    /// 左对齐
+    /// </summary>
     Left = 0,
+
+    /// <summary>
+    /// 居中对齐
+    /// </summary>
     Center,
+
+    /// <summary>
+    /// 右对齐
+    /// </summary>
     Right,
 }

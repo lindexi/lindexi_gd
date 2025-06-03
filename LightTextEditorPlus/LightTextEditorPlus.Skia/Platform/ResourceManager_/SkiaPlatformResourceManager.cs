@@ -25,12 +25,19 @@ public class SkiaPlatformResourceManager :
     //IFontNameToSKTypefaceManager,
     IPlatformFontNameManager
 {
+    /// <summary>
+    /// 创建 Skia 平台资源管理器
+    /// </summary>
+    /// <param name="textEditor"></param>
     public SkiaPlatformResourceManager(SkiaTextEditor textEditor)
     {
         SkiaTextEditor = textEditor;
         textEditor.InternalRenderCompleted += TextEditor_InternalRenderCompleted;
     }
 
+    /// <summary>
+    /// 文本编辑器
+    /// </summary>
     public SkiaTextEditor SkiaTextEditor { get; }
 
     //public SkiaTextEditorPlatformProvider PlatformProvider => _skiaTextEditor.SkiaTextEditorPlatformProvider;
@@ -238,6 +245,12 @@ public class SkiaPlatformResourceManager :
         return typeface;
     }
 
+    /// <summary>
+    /// 尝试从传入的参数转换出 SKTypeface 字体信息
+    /// </summary>
+    /// <param name="fontName"></param>
+    /// <param name="skFontStyle"></param>
+    /// <returns></returns>
     protected virtual SKTypeface? TryResolveFont(string fontName, SKFontStyle skFontStyle)
     {
         var typeface = SKFontManager.Default.MatchFamily(fontName, skFontStyle);
@@ -268,6 +281,10 @@ public class SkiaPlatformResourceManager :
         return GetDefaultFontName();
     }
 
+    /// <summary>
+    /// 获取默认字名
+    /// </summary>
+    /// <returns></returns>
     public static string GetDefaultFontName()
     {
         var defaultFontName = "微软雅黑";
