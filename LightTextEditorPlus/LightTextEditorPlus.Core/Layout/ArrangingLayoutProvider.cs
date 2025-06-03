@@ -131,11 +131,11 @@ abstract class ArrangingLayoutProvider
             {
                 throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本起始点布局信息");
             }
-            if (paragraphLayoutData.TextSize == TextSize.Invalid)
+            if (paragraphLayoutData.TextSize.IsInvalid)
             {
                 throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本尺寸布局信息");
             }
-            if (paragraphLayoutData.OutlineSize == TextSize.Invalid)
+            if (paragraphLayoutData.OutlineSize.IsInvalid)
             {
                 throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本外接尺寸布局信息");
             }
@@ -256,25 +256,7 @@ abstract class ArrangingLayoutProvider
             // 以下是调试辅助代码，用于确保布局计算正确
             if (IsInDebugMode)
             {
-                // 预期此时完成了起始点和文本尺寸的布局了，即已经有值了
-                if (paragraphData.ParagraphLayoutData.TextSize == TextSize.Invalid)
-                {
-                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本尺寸布局信息");
-                }
-
-                if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
-                {
-                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本起始点布局信息");
-                }
-
-                var exceptedOffsetY = argument.GetParagraphBefore() +
-                                      paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
-                var excepted = argument.CurrentStartPoint.Offset(0, exceptedOffsetY);
-                if (!nextParagraphStartPoint.NearlyEquals(excepted))
-                {
-                    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
-                    throw new TextEditorInnerDebugException($"预期下一个段落的起始点是 {excepted}，实际是 {nextParagraphStartPoint}");
-                }
+                DebugAssertPreUpdateParagraphLayoutResult(in argument, nextParagraphStartPoint);
             }
         }
 
@@ -307,6 +289,49 @@ abstract class ArrangingLayoutProvider
 
         return new PreUpdateDocumentLayoutResult(documentContentSize);
     }
+
+    /// <summary>
+    /// 调试下判断段落预布局结果是否正确
+    /// </summary>
+    private void DebugAssertPreUpdateParagraphLayoutResult
+        (in ParagraphLayoutArgument argument, TextPointInDocumentContentCoordinateSystem nextParagraphStartPoint)
+    {
+        var paragraphData = argument.ParagraphData;
+        ParagraphIndex paragraphIndex = argument.ParagraphIndex;
+
+        // 预期此时完成了起始点和文本尺寸的布局了，即已经有值了
+        if (paragraphData.ParagraphLayoutData.TextSize == TextSize.Invalid)
+        {
+            throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本尺寸布局信息");
+        }
+
+        if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
+        {
+            throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本起始点布局信息");
+        }
+
+        var exceptedOffsetY = argument.GetParagraphBefore() +
+                              paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
+        var excepted = argument.CurrentStartPoint.Offset(0, exceptedOffsetY);
+        if (!nextParagraphStartPoint.NearlyEquals(excepted))
+        {
+            // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
+            throw new TextEditorInnerDebugException($"预期下一个段落的起始点是 {excepted}，实际是 {nextParagraphStartPoint}");
+        }
+
+        // 预期段落的文本尺寸是行尺寸总和
+        var paragraphTextWidth = 0d;
+        var paragraphTextHeight = 0d;
+        foreach (LineLayoutData lineLayoutData in paragraphData.LineLayoutDataList)
+        {
+            paragraphTextWidth = Math.Max(paragraphTextWidth, lineLayoutData.LineContentSize.Width);
+            paragraphTextHeight += lineLayoutData.LineContentSize.Height;
+        }
+
+        TextEditorInnerDebugAsset.AreEquals(paragraphData.ParagraphLayoutData.TextSize.Width, paragraphTextWidth, "ParagraphLayoutData.TextSize.Width");
+        TextEditorInnerDebugAsset.AreEquals(paragraphData.ParagraphLayoutData.TextSize.Height, paragraphTextHeight, "ParagraphLayoutData.TextSize.Height");
+    }
+    
 
     #region 缩进和项目符号
 

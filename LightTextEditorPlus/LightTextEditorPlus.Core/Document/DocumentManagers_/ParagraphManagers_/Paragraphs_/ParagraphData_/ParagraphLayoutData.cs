@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -27,6 +27,11 @@ public interface IParagraphLayoutData
     /// 为什么左右边距不叠加在段落上？现在是每一行都叠加，因为前面实现错误，以为左边距会受到悬挂缩进的影响。实际应该让左右边距放在这里，行只处理缩进
     /// 但行在处理的过程，本身就需要考虑左右边距影响了行的可用宽度，因此放在行里面处理也是可以的
     TextThickness TextContentThickness { get; }
+
+    /// <summary>
+    /// 段落内容尺寸，大于 <see cref="TextSize"/> 段落文本尺寸
+    /// </summary>
+    TextSize ContentSize { get; }
 
     /// <summary>
     /// 外接的尺寸，包含段前和段后和左右边距
@@ -66,9 +71,14 @@ class ParagraphLayoutData : IParagraphLayoutData
     public TextPointInDocumentContentCoordinateSystem StartPointInDocumentContentCoordinateSystem { set; get; }
 
     /// <summary>
-    /// 段落尺寸，包含文本的尺寸
+    /// 段落文本尺寸，包含文本的尺寸
     /// </summary>
     public TextSize TextSize { set; get; } = TextSize.Invalid;
+
+    /// <summary>
+    /// 段落内容尺寸，大于 <see cref="TextSize"/> 段落文本尺寸
+    /// </summary>
+    public TextSize ContentSize { set; get; } = TextSize.Invalid;
 
     /// <summary>
     /// 段落的文本内容的边距。一般就是段前和段后间距
@@ -89,7 +99,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     private TextThickness _textContentThickness = TextThickness.Invalid;
 
     /// <summary>
-    /// 外接的尺寸，包含段前和段后和左右边距
+    /// 外接的尺寸，包含段前和段后和左右边距，大于 <see cref="ContentSize"/> 内容尺寸
     /// </summary>
     public TextSize OutlineSize
     {
@@ -126,7 +136,7 @@ class ParagraphLayoutData : IParagraphLayoutData
         {
             // 跳过空白部分
             TextPoint textPoint = StartPoint.Offset(TextContentThickness.Left, TextContentThickness.Top).ToCurrentArrangingTypePoint();
-            return new TextRect(textPoint, TextSize);
+            return new TextRect(textPoint, ContentSize);
         }
     }
 
@@ -142,6 +152,7 @@ class ParagraphLayoutData : IParagraphLayoutData
         {
             TextSize = TextSize.Invalid;
         }
+        ContentSize = TextSize.Invalid;
         OutlineSize = TextSize.Invalid;
         TextContentThickness = TextThickness.Invalid;
     }

@@ -252,7 +252,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 计算段落的文本尺寸
         //TextPoint paragraphTextStartPoint = argument.ParagraphData.LineLayoutDataList[0].CharStartPoint;
-        TextSize paragraphTextSize = BuildParagraphSize(argument);
+        TextSize paragraphTextSize = BuildParagraphTextSize(in argument);
         //TextRect paragraphTextBounds = new TextRect(paragraphTextStartPoint, paragraphTextSize);
         paragraph.SetParagraphLayoutTextSize(paragraphTextSize);
 
@@ -926,13 +926,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return currentStartPoint.Offset(0, currentLineLayoutData.LineContentSize.Height);
     }
 
-    private static TextSize BuildParagraphSize(in ParagraphLayoutArgument argument)
+    private static TextSize BuildParagraphTextSize(in ParagraphLayoutArgument argument)
     {
         var paragraphSize = new TextSize(0, 0);
-        foreach (var lineVisualData in argument.ParagraphData.LineLayoutDataList)
+        foreach (var lineLayoutData in argument.ParagraphData.LineLayoutDataList)
         {
-            var width = Math.Max(paragraphSize.Width, lineVisualData.LineContentSize.Width);
-            var height = paragraphSize.Height + lineVisualData.LineContentSize.Height;
+            var width = Math.Max(paragraphSize.Width, lineLayoutData.LineContentSize.Width);
+            var height = paragraphSize.Height + lineLayoutData.LineContentSize.Height;
 
             paragraphSize = new TextSize(width, height);
         }
@@ -1060,6 +1060,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         IParagraphLayoutData layoutData = paragraph.ParagraphLayoutData;
 
+        var paragraphMaxX = 0d;
         for (int lineIndex = 0; lineIndex < paragraph.LineLayoutDataList.Count; lineIndex++)
         {
             updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行", LayoutDebugCategory.FinalLine);
@@ -1068,15 +1069,31 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             var lineLayoutArgument = new FinalParagraphLineLayoutArgument(lineIndex, lineLayoutData, argument);
 
             FinalUpdateParagraphLineLayout(in lineLayoutArgument);
+
+            TextPointInDocumentContentCoordinateSystem lineStartPoint
+                = lineLayoutData.CharStartPointInParagraphCoordinateSystem.ToDocumentContentCoordinateSystem(paragraph);
+            lineStartPoint.DangerousGetXY(out var lineX, out _);
+            lineX +=
+                lineLayoutData.IndentationThickness.Left
+                + lineLayoutData.HorizontalTextAlignmentGapThickness.Left;
+            double lineWidth = lineLayoutData.LineContentSize.Width;
+            var rightX = lineX + lineWidth;
+            paragraphMaxX = Math.Max(paragraphMaxX, rightX);
         }
 
         // 给定段落的尺寸
         TextThickness contentThickness = layoutData.TextContentThickness;
-        paragraph.SetParagraphLayoutOutlineSize(new TextSize
+        TextSize contentSize = layoutData.TextSize with
+        {
+            Width = paragraphMaxX
+        };
+
+        TextSize outlineSize = new TextSize
         {
             Width = documentWidth,
             Height = contentThickness.Top + layoutData.TextSize.Height + contentThickness.Bottom
-        });
+        };
+        paragraph.SetParagraphLayoutContentAndOutlineSize(contentSize, outlineSize);
 
         updateLayoutContext.RecordDebugLayoutInfo($"完成回溯第 {paragraphIndex} 段", LayoutDebugCategory.FinalParagraph);
 
@@ -1208,23 +1225,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         foreach (ParagraphData paragraphData in context.InternalParagraphList)
         {
-            foreach (LineLayoutData lineLayoutData in paragraphData.LineLayoutDataList)
-            {
-                // 相对于文档坐标系来说，必定 left 是 0 的值，即使是居中的情况
-                TextPointInDocumentContentCoordinateSystem lineStartPoint
-                    = lineLayoutData.CharStartPointInParagraphCoordinateSystem.ToDocumentContentCoordinateSystem(paragraphData);
-
-                lineStartPoint.DangerousGetXY(out var lineX, out _);
-
-                lineX +=
-                    lineLayoutData.IndentationThickness.Left 
-                    + lineLayoutData.HorizontalTextAlignmentGapThickness.Left;
-
-
-                double lineWidth = lineLayoutData.LineContentSize.Width;
-                var rightX = lineX + lineWidth;
-                maxX = Math.Max(maxX, rightX);
-            }
+            maxX = Math.Max(maxX, paragraphData.ParagraphLayoutData.ContentSize.Width);
         }
 
         var contentSize = documentContentSize with
