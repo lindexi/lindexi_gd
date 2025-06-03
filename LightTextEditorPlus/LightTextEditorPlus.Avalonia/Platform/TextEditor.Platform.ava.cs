@@ -154,28 +154,21 @@ partial class TextEditor : Control
         if (e.Key == Key.Delete)
         {
             TextEditorCore.Delete();
+            return;
         }
         else if (e.Key == Key.Back)
         {
             TextEditorCore.Backspace();
+            return;
         }
         else if (e.Key == Key.Enter)
         {
             TextEditorCore.EditAndReplace("\n");
+            return;
         }
         else if (e.Key == Key.Insert)
         {
             IsOvertypeMode = !IsOvertypeMode;
-        }
-    }
-
-    protected override void OnKeyUp(KeyEventArgs e)
-    {
-        base.OnKeyUp(e);
-
-        if (!IsInEditingInputMode)
-        {
-            // 没有进入编辑模式，不处理键盘事件
             return;
         }
 
@@ -201,6 +194,18 @@ partial class TextEditor : Control
         {
             TextEditorCore.MoveCaret(CaretMoveType.RightByCharacter);
         }
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        base.OnKeyUp(e);
+
+        if (!IsInEditingInputMode)
+        {
+            // 没有进入编辑模式，不处理键盘事件
+            return;
+        }
+
     }
 
     #endregion
