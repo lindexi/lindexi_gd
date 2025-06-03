@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Avalonia.Media;
-
+using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
@@ -27,7 +27,8 @@ public class ConsoleTextEditor : TextEditor
         base.CaretConfiguration.CaretBrush = Colors.White;
         base.SkiaTextEditor.RenderConfiguration = SkiaTextEditor.RenderConfiguration with
         {
-            UseRenderCharByCharMode = true
+            UseRenderCharByCharMode = true,
+            RenderFaceInFrameAlignment = SkiaTextEditorCharRenderFaceInFrameAlignment.Center,
         };
 
         Loaded += ConsoleTextEditor_Loaded;
@@ -94,18 +95,23 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         useLatin = Rune.IsNumber(rune);
         useLatin = useLatin || char.IsAsciiLetter(c);
 
-        float charWidth;
+        float charFrameWidth;
         if (useLatin)
         {
-            charWidth = cacheInfo.LatinMinWidth;
+            charFrameWidth = cacheInfo.LatinMinWidth;
         }
         else
         {
-            charWidth = cacheInfo.EastAsianMinWidth;
+            charFrameWidth = cacheInfo.EastAsianMinWidth;
         }
 
-        var charSize = new TextSize(charWidth, cacheInfo.CharHeight);
-        argument.UpdateLayoutContext.SetCharDataInfo(currentCharData, new CharDataInfo(FrameSize: charSize, FaceSize: charSize, cacheInfo.Baseline));
+        var frameSize = new TextSize(charFrameWidth, cacheInfo.CharHeight);
+
+        float charFaceWidth = MeasureCharWidth(c, cacheInfo.Font);
+
+        var faceSize = new TextSize(charFaceWidth, cacheInfo.CharHeight);
+
+        argument.UpdateLayoutContext.SetCharDataInfo(currentCharData, new CharDataInfo(frameSize, faceSize, cacheInfo.Baseline));
     }
 
     private CacheInfo GetOrCreateCacheInfo(SkiaTextRunProperty runProperty)
@@ -114,10 +120,11 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         {
             return _cacheInfo;
         }
+        _cacheInfo?.Dispose();
 
         using SKFontStyle skFontStyle = new SKFontStyle(runProperty.FontWeight, runProperty.Stretch, runProperty.FontStyle);
         using SKTypeface typeface = SKFontManager.Default.MatchFamily(runProperty.FontName.UserFontName, skFontStyle);
-        using SKFont renderSkFont = new SKFont(typeface, (float) runProperty.FontSize);
+        SKFont renderSkFont = new SKFont(typeface, (float) runProperty.FontSize);
 
         float latinMinWidth = 0;
         float eastAsianMinWidth = Measure('十');
@@ -160,18 +167,10 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         }
 
         float charHeight = GetCharHeight();
-        _cacheInfo = new CacheInfo(runProperty, latinMinWidth, eastAsianMinWidth, charHeight, GetBaseline());
+        _cacheInfo = new CacheInfo(runProperty, latinMinWidth, eastAsianMinWidth, charHeight, GetBaseline(), renderSkFont);
         return _cacheInfo;
 
-        float Measure(char c)
-        {
-            Span<ushort> glyphs = stackalloc ushort[1] { c };
-            Span<float> widths = stackalloc float[1];
-            Span<SKRect> bounds = stackalloc SKRect[1];
-            renderSkFont.GetGlyphWidths(glyphs, widths, bounds);
-
-            return widths[0];
-        }
+        float Measure(char c) => MeasureCharWidth(c, renderSkFont);
 
         float GetCharHeight()
         {
@@ -185,8 +184,32 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         float GetBaseline() => -renderSkFont.Metrics.Ascent;
     }
 
+    private float MeasureCharWidth(char c, SKFont renderSkFont)
+    {
+        Span<ushort> glyphs = stackalloc ushort[1] { c };
+        Span<float> widths = stackalloc float[1];
+        Span<SKRect> bounds = stackalloc SKRect[1];
+        renderSkFont.GetGlyphWidths(glyphs, widths, bounds);
+
+        return widths[0];
+    }
+
     private CacheInfo? _cacheInfo;
 
-    record CacheInfo(SkiaTextRunProperty RunProperty, float LatinMinWidth, float EastAsianMinWidth, float CharHeight, float Baseline);
+    record CacheInfo
+    (
+        SkiaTextRunProperty RunProperty,
+        float LatinMinWidth,
+        float EastAsianMinWidth,
+        float CharHeight,
+        float Baseline,
+        SKFont Font
+    ) : IDisposable
+    {
+        public void Dispose()
+        {
+            Font.Dispose();
+        }
+    }
 }
 
