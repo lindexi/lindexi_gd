@@ -38,12 +38,12 @@ public readonly record struct BuildDecorationArgument
     /// <summary>
     /// 画布
     /// </summary>
-    public SKCanvas Canvas { get; init; } = null!;
+    public required SKCanvas Canvas { get; init; }
 
     /// <summary>
     /// 缓存的画笔
     /// </summary>
-    public SKPaint CachePaint { get; init; } = null!;
+    public required SKPaint CachePaint { get; init; }
 #endif
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.ArrangingType"/>
