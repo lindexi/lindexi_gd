@@ -109,12 +109,12 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         var frameSize = new TextSize(charFrameWidth, cacheInfo.CharHeight);
 
         float charFaceWidth = MeasureCharWidth(c, cacheInfo.Font);
-        using SKPath skPath = cacheInfo.Font.GetGlyphPath(c);
-        // 这里取字符 b 的效果是不正确的，参阅 181f2a807c986c0146501bb9b66195347a53f7bf 的测试
-        if (charFaceWidth > skPath.Bounds.Width)
-        {
-            charFaceWidth = skPath.Bounds.Width;
-        }
+        //using SKPath skPath = cacheInfo.Font.GetGlyphPath(c);
+        //// 这里取字符 b 的效果是不正确的，参阅 181f2a807c986c0146501bb9b66195347a53f7bf 的测试
+        //if (charFaceWidth > skPath.Bounds.Width)
+        //{
+        //    charFaceWidth = skPath.Bounds.Width;
+        //}
 
         var faceSize = new TextSize(charFaceWidth, cacheInfo.CharHeight);
 
