@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using Avalonia.Media;
+
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
+
+using SkiaSharp;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views.Controls;
 
@@ -16,6 +24,7 @@ public class ConsoleTextEditor : TextEditor
 {
     public ConsoleTextEditor() : base(new Builder())
     {
+        base.CaretConfiguration.CaretBrush = Colors.White;
     }
 }
 
@@ -33,9 +42,45 @@ file class Provider : AvaloniaSkiaTextEditorPlatformProvider
     {
     }
 
+    public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
+    {
+        return new PlatformRunPropertyCreator(base.GetPlatformRunPropertyCreator());
+    }
+
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
         return new CharInfoMeasurer();
+    }
+}
+
+file class PlatformRunPropertyCreator : IPlatformRunPropertyCreator
+{
+    public PlatformRunPropertyCreator(IPlatformRunPropertyCreator inner)
+    {
+        _inner = inner;
+    }
+
+    private readonly IPlatformRunPropertyCreator _inner;
+    public IReadOnlyRunProperty GetDefaultRunProperty()
+    {
+        var defaultRunProperty = (SkiaTextRunProperty) _inner.GetDefaultRunProperty();
+        defaultRunProperty = defaultRunProperty with
+        {
+            Foreground = SKColors.White
+        };
+
+        return defaultRunProperty;
+    }
+
+    public IReadOnlyRunProperty ToPlatformRunProperty(ICharObject? charObject, IReadOnlyRunProperty baseRunProperty)
+    {
+        return _inner.ToPlatformRunProperty(charObject, baseRunProperty);
+    }
+
+    public IReadOnlyRunProperty UpdateMarkerRunProperty
+        (IReadOnlyRunProperty? markerRunProperty, IReadOnlyRunProperty styleRunProperty)
+    {
+        return _inner.UpdateMarkerRunProperty(markerRunProperty, styleRunProperty);
     }
 }
 
@@ -43,6 +88,116 @@ file class CharInfoMeasurer : ICharInfoMeasurer
 {
     public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
-        
+        UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
+        CharData currentCharData = argument.CurrentCharData;
+
+        if (!currentCharData.IsInvalidCharDataInfo)
+        {
+            // 已有缓存的尺寸，直接返回即可
+            return;
+        }
+
+        if (!updateLayoutContext.TextEditor.ArrangingType.IsHorizontal)
+        {
+            throw new NotSupportedException("控制台文本库不支持竖排文本");
+        }
+
+        var runProperty = (SkiaTextRunProperty) currentCharData.RunProperty;
+
+        CacheInfo cacheInfo = GetOrCreateCacheInfo(runProperty);
+
+        Span<char> destination = stackalloc char[2];
+        Rune rune = currentCharData.CharObject.CodePoint.Rune;
+        int length = rune.EncodeToUtf16(destination);
+        if (length > 1)
+        {
+            throw new NotSupportedException($"控制台文本编辑器不支持合写字");
+        }
+
+        float charWidth;
+        if (Rune.IsLetterOrDigit(rune))
+        {
+            charWidth = cacheInfo.LatinMinWidth;
+        }
+        else
+        {
+            charWidth = cacheInfo.EastAsianMinWidth;
+        }
+
+        var charSize = new TextSize(charWidth, cacheInfo.CharHeight);
+        argument.UpdateLayoutContext.SetCharDataInfo(currentCharData, new CharDataInfo(FrameSize: charSize, FaceSize: charSize, cacheInfo.Baseline));
     }
+
+    private CacheInfo GetOrCreateCacheInfo(SkiaTextRunProperty runProperty)
+    {
+        if (_cacheInfo is not null && _cacheInfo.RunProperty.Equals(runProperty))
+        {
+            return _cacheInfo;
+        }
+
+        using SKFontStyle skFontStyle = new SKFontStyle(runProperty.FontWeight, runProperty.Stretch, runProperty.FontStyle);
+        using SKTypeface typeface = SKFontManager.Default.MatchFamily(runProperty.FontName.UserFontName, skFontStyle);
+        using SKFont renderSkFont = new SKFont(typeface, (float) runProperty.FontSize);
+
+        float latinMinWidth = 0;
+        float eastAsianMinWidth = Measure('十');
+
+        for (int i = 0; i < 10; i++)
+        {
+            var width = Measure((char) ('0' + i));
+            latinMinWidth = Math.Max(latinMinWidth, width);
+        }
+
+        for (char i = 'a'; i <= 'z'; i++)
+        {
+            var width = Measure(i);
+            latinMinWidth = Math.Max(latinMinWidth, width);
+        }
+
+        for (char i = 'A'; i <= 'Z'; i++)
+        {
+            var width = Measure(i);
+            latinMinWidth = Math.Max(latinMinWidth, width);
+        }
+
+        var doubleWidth = latinMinWidth * 2;
+        if (eastAsianMinWidth > doubleWidth)
+        {
+            latinMinWidth = eastAsianMinWidth / 2;
+        }
+        else if (eastAsianMinWidth < doubleWidth)
+        {
+            eastAsianMinWidth = doubleWidth;
+        }
+
+        float charHeight = GetCharHeight();
+        _cacheInfo = new CacheInfo(runProperty, latinMinWidth, eastAsianMinWidth, charHeight, GetBaseline());
+        return _cacheInfo;
+
+        float Measure(char c)
+        {
+            Span<ushort> glyphs = stackalloc ushort[1] { c };
+            Span<float> widths = stackalloc float[1];
+            Span<SKRect> bounds = stackalloc SKRect[1];
+            renderSkFont.GetGlyphWidths(glyphs, widths, bounds);
+
+            return widths[0];
+        }
+
+        float GetCharHeight()
+        {
+            // 详细计算方法请参阅 《Skia 字体信息属性.enbx》 文档
+            var enhance = 0f;
+            var baseline = GetBaseline();
+            var height =/*skFont.Metrics.Leading + 有些字体的 Leading 是不参与排版的，越过的，属于上加。不能将其加入计算 */ baseline + renderSkFont.Metrics.Descent + enhance;
+            return height;
+        }
+
+        float GetBaseline() => -renderSkFont.Metrics.Ascent;
+    }
+
+    private CacheInfo? _cacheInfo;
+
+    record CacheInfo(SkiaTextRunProperty RunProperty, float LatinMinWidth, float EastAsianMinWidth, float CharHeight, float Baseline);
 }
+

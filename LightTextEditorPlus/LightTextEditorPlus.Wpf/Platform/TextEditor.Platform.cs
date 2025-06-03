@@ -55,12 +55,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// <summary>
     /// 创建文本框
     /// </summary>
-    public TextEditor() : this(null)
+    public TextEditor() : this(builder: null)
     {
     }
 
     /// <inheritdoc cref="TextEditor()"/>
-    public TextEditor(TextEditorPlatformProviderBuilder? builder)
+    public TextEditor(ITextEditorPlatformProviderBuilder? builder)
     {
         #region 清晰文本
 
