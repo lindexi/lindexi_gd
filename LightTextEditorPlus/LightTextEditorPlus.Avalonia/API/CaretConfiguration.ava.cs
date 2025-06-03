@@ -1,5 +1,6 @@
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using Avalonia.Skia;
+using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus;

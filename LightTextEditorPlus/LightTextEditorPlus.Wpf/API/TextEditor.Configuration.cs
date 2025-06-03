@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 
 using System.Windows;
+using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Rendering;
 
 namespace LightTextEditorPlus;

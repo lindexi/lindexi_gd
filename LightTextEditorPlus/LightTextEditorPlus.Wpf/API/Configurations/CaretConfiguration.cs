@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Media;
 using LightTextEditorPlus.Utils;
 
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Configurations;
 
 /// <summary>
 /// 光标的配置
