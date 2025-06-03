@@ -25,6 +25,13 @@ public class ConsoleTextEditor : TextEditor
     public ConsoleTextEditor() : base(new Builder())
     {
         base.CaretConfiguration.CaretBrush = Colors.White;
+
+        Loaded += ConsoleTextEditor_Loaded;
+    }
+
+    private void ConsoleTextEditor_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        AppendText("123abc中文\r\n中文123abc");
     }
 }
 
@@ -114,8 +121,13 @@ file class CharInfoMeasurer : ICharInfoMeasurer
             throw new NotSupportedException($"控制台文本编辑器不支持合写字");
         }
 
+        var c = destination[0];
+        var useLatin = false;
+        useLatin = Rune.IsNumber(rune);
+        useLatin = useLatin || char.IsAsciiLetter(c);
+
         float charWidth;
-        if (Rune.IsLetterOrDigit(rune))
+        if (useLatin)
         {
             charWidth = cacheInfo.LatinMinWidth;
         }
@@ -167,7 +179,16 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         }
         else if (eastAsianMinWidth < doubleWidth)
         {
-            eastAsianMinWidth = doubleWidth;
+            if (latinMinWidth * 1.1 > eastAsianMinWidth)
+            {
+                // 如果中文字符宽度比英文大不了多少，在 1.1 倍以内。那就扩大英文字符好了
+                latinMinWidth = eastAsianMinWidth;
+            }
+            else
+            {
+                // 否则就拉大中文字符
+                eastAsianMinWidth = doubleWidth;
+            }
         }
 
         float charHeight = GetCharHeight();
