@@ -49,45 +49,9 @@ file class Provider : AvaloniaSkiaTextEditorPlatformProvider
     {
     }
 
-    public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
-    {
-        return new PlatformRunPropertyCreator(base.GetPlatformRunPropertyCreator());
-    }
-
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
         return new CharInfoMeasurer();
-    }
-}
-
-file class PlatformRunPropertyCreator : IPlatformRunPropertyCreator
-{
-    public PlatformRunPropertyCreator(IPlatformRunPropertyCreator inner)
-    {
-        _inner = inner;
-    }
-
-    private readonly IPlatformRunPropertyCreator _inner;
-    public IReadOnlyRunProperty GetDefaultRunProperty()
-    {
-        var defaultRunProperty = (SkiaTextRunProperty) _inner.GetDefaultRunProperty();
-        defaultRunProperty = defaultRunProperty with
-        {
-            Foreground = SKColors.White
-        };
-
-        return defaultRunProperty;
-    }
-
-    public IReadOnlyRunProperty ToPlatformRunProperty(ICharObject? charObject, IReadOnlyRunProperty baseRunProperty)
-    {
-        return _inner.ToPlatformRunProperty(charObject, baseRunProperty);
-    }
-
-    public IReadOnlyRunProperty UpdateMarkerRunProperty
-        (IReadOnlyRunProperty? markerRunProperty, IReadOnlyRunProperty styleRunProperty)
-    {
-        return _inner.UpdateMarkerRunProperty(markerRunProperty, styleRunProperty);
     }
 }
 
