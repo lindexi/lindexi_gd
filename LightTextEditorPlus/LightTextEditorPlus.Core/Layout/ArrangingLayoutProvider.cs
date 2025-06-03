@@ -696,25 +696,30 @@ abstract class ArrangingLayoutProvider
         {
             charInfoMeasurer.MeasureAndFillSizeOfRun(argument);
 
-            if (IsInDebugMode)
+            if (argument.CurrentCharData.IsInvalidCharDataInfo)
             {
-                if (argument.CurrentCharData.IsInvalidCharDataInfo)
+                if (IsInDebugMode)
                 {
                     throw new TextEditorDebugException($"测量布局之后，当前字符依然没有尺寸");
                 }
+                else
+                {
+                    // 非调试下
+                    // 如果测量之后依然没有尺寸，那么就使用默认的测量方式
+                    // 继续往下执行
+                    argument.UpdateLayoutContext.Logger.LogWarning($"测量布局之后，当前字符依然没有尺寸，字符测量器： {charInfoMeasurer.GetType().FullName}；当前字符 Char={argument.CurrentCharData.CharObject.ToText()} Font={argument.CurrentCharData.RunProperty.FontName}");
+                }
             }
         }
-        else
-        {
-            if (!argument.CurrentCharData.IsInvalidCharDataInfo)
-            {
-                // 如果字符信息有效，则无须继续测量
-                return;
-            }
 
-            // 默认的字符信息测量器
-            MeasureAndFillCharInfo(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
+        if (!argument.CurrentCharData.IsInvalidCharDataInfo)
+        {
+            // 如果字符信息有效，则无须继续测量
+            return;
         }
+
+        // 默认的字符信息测量器
+        MeasureAndFillCharInfo(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
     }
 
     /// <summary>
