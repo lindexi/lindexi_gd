@@ -95,7 +95,12 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         useLatin = Rune.IsNumber(rune);
         useLatin = useLatin || char.IsAsciiLetter(c);
 
-        float charFrameWidth;
+        if (c == 'b')
+        {
+
+        }
+
+    float charFrameWidth;
         if (useLatin)
         {
             charFrameWidth = cacheInfo.LatinMinWidth;
@@ -108,6 +113,11 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         var frameSize = new TextSize(charFrameWidth, cacheInfo.CharHeight);
 
         float charFaceWidth = MeasureCharWidth(c, cacheInfo.Font);
+        using SKPath skPath = cacheInfo.Font.GetGlyphPath(c);
+        if (charFaceWidth > skPath.Bounds.Width)
+        {
+            charFaceWidth = skPath.Bounds.Width;
+        }
 
         var faceSize = new TextSize(charFaceWidth, cacheInfo.CharHeight);
 
