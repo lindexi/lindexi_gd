@@ -1133,6 +1133,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 剩余的空白宽度。即空白宽度减去左缩进和右缩进
         double remainingGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
 
+        // 处理段落水平居中
         TextThickness horizontalTextAlignmentGapThickness = paragraphProperty.GetHorizontalTextAlignmentGapThickness(remainingGapWidth);
 
         lineLayoutData

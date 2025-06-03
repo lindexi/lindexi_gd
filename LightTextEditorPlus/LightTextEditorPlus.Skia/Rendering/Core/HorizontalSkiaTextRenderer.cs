@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+
 using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -74,6 +75,14 @@ file struct Renderer : IDisposable
     {
         foreach (ParagraphRenderInfo paragraphRenderInfo in RenderInfoProvider.GetParagraphRenderInfoList())
         {
+            if (Config.IsInDebugMode)
+            {
+                IParagraphLayoutData paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
+
+                DrawDebugBounds(paragraphLayoutData.TextContentBounds.ToSKRect(), Config.DebugDrawParagraphContentBoundsInfo);
+                DrawDebugBounds(paragraphLayoutData.OutlineBounds.ToSKRect(), Config.DebugDrawParagraphOutlineBoundsInfo);
+            }
+
             foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
                 DrawLine(in lineRenderInfo);
