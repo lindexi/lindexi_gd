@@ -350,7 +350,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     private void PreUpdateNotDirtyParagraphMarkerCharDataVersion(in ParagraphLayoutArgument argument)
     {
         ParagraphData paragraph = argument.ParagraphData;
-        if (paragraph.MarkerRuntimeInfo is not {} markerRuntimeInfo)
+        if (paragraph.MarkerRuntimeInfo is not { } markerRuntimeInfo)
         {
             return;
         }
@@ -1033,14 +1033,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
 
         // 计算内容的左上角起点。处理垂直居中、底部对齐等情况
-        TextPointInHorizontalArrangingCoordinateSystem documentStartPoint = CalculateDocumentContentLeftTopStartPoint(in documentContentSize, in documentOutlineSize);
-        var documentLayoutBounds = new DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem()
-        {
-            DocumentContentStartPoint = documentStartPoint,
-            DocumentContentSize = documentContentSize,
-            DocumentOutlineSize = documentOutlineSize,
-            TextEditor = TextEditor,
-        };
+        DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem documentLayoutBounds
+            = CalculateDocumentLayoutBounds(in documentContentSize, in documentOutlineSize, updateLayoutContext);
 
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容坐标：{documentLayoutBounds.DocumentContentStartPoint.ToStringValueOnly()} 文档内容尺寸：{documentContentSize.ToCommaSplitWidthAndHeight()} 文档外接尺寸：{documentOutlineSize.ToCommaSplitWidthAndHeight()}", LayoutDebugCategory.FinalDocument);
 
@@ -1198,6 +1192,55 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         };
 
         return new TextPointInHorizontalArrangingCoordinateSystem(left, top, LayoutManager);
+    }
+
+    /// <summary>
+    /// 计算文档范围
+    /// </summary>
+    /// <returns></returns>
+    /// 为什么这个方法不用什么参数？这是因为需要计算的布局的，都计算完成了。直接拿状态即可。唯一需要传递的，只是一些为了重复计算的值而已
+    private DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem CalculateDocumentLayoutBounds(in TextSize documentContentSize, in TextSize documentOutlineSize, UpdateLayoutContext context)
+    {
+        // 内容尺寸范围需要重新计算，不能用 PreUpdateDocumentLayoutResult 预先计算的，这是因为受限于缩进、项目符号等影响，不同行之间的坐标值预计会受到影响
+
+        var maxX = 0d;
+
+        foreach (ParagraphData paragraphData in context.InternalParagraphList)
+        {
+            foreach (LineLayoutData lineLayoutData in paragraphData.LineLayoutDataList)
+            {
+                // 相对于文档坐标系来说，必定 left 是 0 的值，即使是居中的情况
+                TextPointInDocumentContentCoordinateSystem lineStartPoint
+                    = lineLayoutData.CharStartPointInParagraphCoordinateSystem.ToDocumentContentCoordinateSystem(paragraphData);
+
+                lineStartPoint.DangerousGetXY(out var lineX, out _);
+
+                lineX +=
+                    lineLayoutData.IndentationThickness.Left 
+                    + lineLayoutData.HorizontalTextAlignmentGapThickness.Left;
+
+
+                double lineWidth = lineLayoutData.LineContentSize.Width;
+                var rightX = lineX + lineWidth;
+                maxX = Math.Max(maxX, rightX);
+            }
+        }
+
+        var contentSize = documentContentSize with
+        {
+            Width = maxX
+        };
+
+        // 计算文档内容的左上角点，处理垂直居中、底部对齐等情况
+        TextPointInHorizontalArrangingCoordinateSystem startPoint = CalculateDocumentContentLeftTopStartPoint(in contentSize, in documentOutlineSize);
+
+        return new DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem()
+        {
+            TextEditor = TextEditor,
+            DocumentContentStartPoint = startPoint,
+            DocumentContentSize = contentSize,
+            DocumentOutlineSize = documentOutlineSize
+        };
     }
 
     #endregion 03 回溯最终布局阶段

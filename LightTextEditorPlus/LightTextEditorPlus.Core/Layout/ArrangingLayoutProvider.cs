@@ -299,6 +299,7 @@ abstract class ArrangingLayoutProvider
         //    }
         //}
 
+        // 这个文档内容尺寸算了意义不大，因为后续如果是带项目符号居中之类的布局方式，这个尺寸无法给到最终的 Bounds 范围里面直接使用
         TextSize documentContentSize = CalculateDocumentContentSize(paragraphList, updateLayoutContext);
 
         //Debug.Assert(documentBounds.Location == TextPoint.Zero);

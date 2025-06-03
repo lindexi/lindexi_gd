@@ -30,13 +30,12 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
         IReadOnlyList<ParagraphData> paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
         InternalParagraphList = paragraphList;
-        ParagraphList = TextEditor.ParagraphList;
     }
 
     /// <summary>
     /// 段落列表
     /// </summary>
-    public ReadOnlyParagraphList ParagraphList { get; set; }
+    public ReadOnlyParagraphList ParagraphList => TextEditor.ParagraphList;
 
     /// <summary>
     /// 内部使用的段落列表
