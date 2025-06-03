@@ -39,11 +39,11 @@ namespace LightTextEditorPlus;
 // 这里存放和 Avalonia 相关的代码
 partial class TextEditor : Control
 {
-    public TextEditor() : this(null)
+    public TextEditor() : this(builder: null)
     {
     }
 
-    public TextEditor(AvaloniaSkiaTextEditorPlatformProviderBuilder? builder)
+    public TextEditor(IAvaloniaSkiaTextEditorPlatformProviderBuilder? builder)
     {
         // 属性初始化
         Focusable = true;
@@ -234,6 +234,7 @@ partial class TextEditor : Control
     {
         if (e.Property == TextElement.ForegroundProperty)
         {
+            Logger.LogDebug($"TextEditor Platform OnPropertyChanged Foreground changed.");
             //if (e.NewValue is BindingValue<IBrush> bindingBrush)
             //{
             //    SetForegroundInternal(bindingBrush.Value);
@@ -248,6 +249,8 @@ partial class TextEditor : Control
                     // 为了避免这种情况，需要在初始化之前先判断一下文本库是否有内容
                     if (TextEditorCore.DocumentManager.IsInitializingTextEditor())
                     {
+                        Logger.LogDebug("TextEditor Platform OnPropertyChanged Foreground changed. IsInitializingTextEditor=true. SetStyleTextRunProperty.");
+
                         SetStyleTextRunProperty(property => property with
                         {
                             Foreground = color
@@ -257,10 +260,14 @@ partial class TextEditor : Control
                     {
                         // 文本已经初始化过了，那就不能再设置颜色了，否则将会覆盖文本现有的属性配置
                         // 对应测试用例：“文本加入界面之前被设置颜色，颜色不会在加入界面之后被覆盖”
+
+                        Logger.LogDebug("TextEditor Platform OnPropertyChanged Foreground changed. IsInitializingTextEditor=False. Ignore.");
                     }
                 }
                 else
                 {
+                    Logger.LogDebug("TextEditor Platform OnPropertyChanged Foreground changed. IsInitialized=False. SetForeground");
+
                     SetForeground(color);
                 }
             }

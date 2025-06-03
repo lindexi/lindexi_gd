@@ -76,7 +76,7 @@ file struct Renderer : IDisposable
         {
             foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
-                DrawLine(lineRenderInfo);
+                DrawLine(in lineRenderInfo);
             }
         }
 
@@ -86,20 +86,27 @@ file struct Renderer : IDisposable
         };
     }
 
-    private void DrawLine(ParagraphLineRenderInfo lineRenderInfo)
+    private void DrawLine(in ParagraphLineRenderInfo lineRenderInfo)
     {
         if (lineRenderInfo.IsIncludeMarker)
         {
             TextReadOnlyListSpan<CharData> markerCharDataList = lineRenderInfo.GetMarkerCharDataList();
-            RenderCharList(markerCharDataList, lineRenderInfo);
+            RenderCharList(in markerCharDataList, in lineRenderInfo);
         }
 
         // 先不考虑缓存
         LineDrawingArgument argument = lineRenderInfo.Argument;
 
-        foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+        //foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+        //{
+        //    RenderCharList(charList, lineRenderInfo);
+        //}
+
+        // 逐字符渲染。渲染效率慢，但可以遵循布局结果
+        for (var i = 0; i < argument.CharList.Count; i++)
         {
-            RenderCharList(charList, lineRenderInfo);
+            TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i,1);
+            RenderCharList(in charList, in lineRenderInfo);
         }
 
         if (argument.CharList.Count == 0)
@@ -130,7 +137,7 @@ file struct Renderer : IDisposable
     /// <param name="charList"></param>
     /// <param name="lineInfo"></param>
     /// <exception cref="TextEditorInnerException"></exception>
-    private void RenderCharList(TextReadOnlyListSpan<CharData> charList, ParagraphLineRenderInfo lineInfo)
+    private void RenderCharList(in TextReadOnlyListSpan<CharData> charList, in ParagraphLineRenderInfo lineInfo)
     {
         CharData firstCharData = charList[0];
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace LightTextEditorPlus;
 
@@ -10,4 +10,6 @@ partial class SkiaTextEditor
     /// 光标的配置
     /// </summary>
     public SkiaCaretConfiguration CaretConfiguration { get; set; } = new SkiaCaretConfiguration();
+
+    // SkiaTextEditorRenderConfiguration
 }
