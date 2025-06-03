@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
@@ -89,6 +89,13 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
 
     //internal bool NearlyEqualsX(double x) => Nearly.Equals(_x, x);
     //internal bool NearlyEqualsY(double y) => Nearly.Equals(_y, y);
+
+    // ReSharper disable once InconsistentNaming
+    internal void DangerousGetXY(out double x, out double y)
+    {
+        x = _x;
+        y = _y;
+    }
 
     /// <summary>
     /// 偏移

@@ -1203,25 +1203,42 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         // 内容尺寸范围需要重新计算，不能用 PreUpdateDocumentLayoutResult 预先计算的，这是因为受限于缩进、项目符号等影响，不同行之间的坐标值预计会受到影响
 
-        // 计算文档内容的左上角点，处理垂直居中、底部对齐等情况
-        TextRect contentBounds = TextRect.Empty;
+        var maxX = 0d;
 
         foreach (ParagraphData paragraphData in context.InternalParagraphList)
         {
             foreach (LineLayoutData lineLayoutData in paragraphData.LineLayoutDataList)
             {
                 // 相对于文档坐标系来说，必定 left 是 0 的值，即使是居中的情况
-                // lineLayoutData.OutlineStartPointInParagraphCoordinateSystem.ToDocumentPoint()
+                TextPointInDocumentContentCoordinateSystem lineStartPoint
+                    = lineLayoutData.CharStartPointInParagraphCoordinateSystem.ToDocumentContentCoordinateSystem(paragraphData);
+
+                lineStartPoint.DangerousGetXY(out var lineX, out _);
+
+                lineX +=
+                    lineLayoutData.IndentationThickness.Left 
+                    + lineLayoutData.HorizontalTextAlignmentGapThickness.Left;
+
+
+                double lineWidth = lineLayoutData.LineContentSize.Width;
+                var rightX = lineX + lineWidth;
+                maxX = Math.Max(maxX, rightX);
             }
         }
 
-        TextPointInHorizontalArrangingCoordinateSystem startPoint = CalculateDocumentContentLeftTopStartPoint(in documentContentSize, in documentOutlineSize);
+        var contentSize = documentContentSize with
+        {
+            Width = maxX
+        };
+
+        // 计算文档内容的左上角点，处理垂直居中、底部对齐等情况
+        TextPointInHorizontalArrangingCoordinateSystem startPoint = CalculateDocumentContentLeftTopStartPoint(in contentSize, in documentOutlineSize);
 
         return new DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem()
         {
             TextEditor = TextEditor,
             DocumentContentStartPoint = startPoint,
-            DocumentContentSize = documentContentSize,
+            DocumentContentSize = contentSize,
             DocumentOutlineSize = documentOutlineSize
         };
     }

@@ -9,6 +9,8 @@ public readonly struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem
 {
     /// <summary>
     /// 相对于水平排列的坐标系的点，文档内容的起始点
+    /// 对于水平布局来说，永远 X 是 0 的值。即使是进行水平居中等行为，也不会改变这个点的 X 坐标
+    /// 其作用是在进行 Y 坐标的垂直居中、居下时，能够不动段落坐标，让段落自然快速完成布局
     /// </summary>
     public required TextPointInHorizontalArrangingCoordinateSystem DocumentContentStartPoint { get; init; }
 
