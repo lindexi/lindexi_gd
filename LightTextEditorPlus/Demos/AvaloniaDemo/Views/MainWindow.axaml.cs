@@ -17,6 +17,7 @@ public partial class MainWindow : Window
             ("调试", () => new TextEditorDebugView()),
             ("测试", () => new TextEditorTestView()),
             ("Markdown", () => new DualEditorUserControl()),
+            ("控制台文本库", () => new ConsoleTextEditorTestView()),
         ];
 
         foreach ((string? name, Func<Control>? creator) in _contentCreatorList)
