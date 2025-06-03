@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 
 using SkiaSharp;
 
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Configurations;
 
 /// <summary>
 /// 光标的配置

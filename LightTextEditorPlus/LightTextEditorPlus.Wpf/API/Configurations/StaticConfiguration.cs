@@ -1,8 +1,8 @@
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Exceptions;
 
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Configurations;
 
 /// <summary>
 /// 文本库的静态配置，请从 <see cref="TextEditor.StaticConfiguration"/> 进行配置。许多配置只能配置一次

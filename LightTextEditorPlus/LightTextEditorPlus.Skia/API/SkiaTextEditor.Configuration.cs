@@ -1,4 +1,5 @@
 ﻿using System;
+using LightTextEditorPlus.Configurations;
 
 namespace LightTextEditorPlus;
 
