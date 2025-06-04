@@ -1,3 +1,4 @@
+﻿using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
@@ -18,6 +19,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         ResourceManager = skiaPlatformResourceManager;
     }
 
+    /// <inheritdoc />
     public override FontName FontName
     {
         get => base.FontName;
@@ -67,7 +69,16 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// </summary>
     public double Opacity { get; init; } = 1;
 
+    /// <summary>
+    /// 前景色
+    /// </summary>
     public SKColor Foreground { get; init; } = SKColors.Black;
+
+    /// <summary>
+    /// 背景色
+    /// </summary>
+    [Obsolete("还没完成背景色的支持", true)]
+    // todo 支持背景色
     public SKColor Background { get; init; } = SKColors.Transparent;
 
     /// <summary>

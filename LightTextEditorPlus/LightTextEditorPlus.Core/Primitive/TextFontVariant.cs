@@ -1,0 +1,100 @@
+﻿using System;
+using LightTextEditorPlus.Core.Utils.Maths;
+
+namespace LightTextEditorPlus.Core.Primitive;
+
+/// <summary>
+/// 表示文本上下标字符属性
+/// </summary>
+/// 在 PPT 里面，使用 Baseline 表示上下标的距离。使用正数表示上标，使用负数表示下标，详细请看 059b7e5807c33ebc6e9156971e6b8d51235a9c0e
+/// 在 Word 里面，采用 VerticalAlignment Value= "Subscript" 或 "Superscript" 来表示下标或上标
+public readonly record struct TextFontVariant()
+{
+    /// <summary>
+    /// 正常，非上下标
+    /// </summary>
+    public bool IsNormal => FontVariants == TextFontVariants.Normal;
+
+    /// <summary>
+    /// 上标或下标的基线比例
+    /// </summary>
+    /// 和 PPT 不同的是，不采用正负号来表示。需要配合表示上下标的属性来表示
+    public double BaselineProportion { get; init; } = 0.3;
+
+    /// <summary>
+    /// 上下标
+    /// </summary>
+    public TextFontVariants FontVariants { get; init; } = TextFontVariants.Normal;
+
+    /// <summary>
+    /// 正常，非上下标
+    /// </summary>
+    public static TextFontVariant Normal => new TextFontVariant();
+
+    /// <summary>
+    /// 上标
+    /// </summary>
+    public static TextFontVariant Superscript => new TextFontVariant()
+    {
+        FontVariants = TextFontVariants.Superscript
+    };
+
+    /// <summary>
+    /// 下标
+    /// </summary>
+    public static TextFontVariant Subscript => new TextFontVariant()
+    {
+        FontVariants = TextFontVariants.Subscript
+    };
+
+    /// <inheritdoc />
+    public bool Equals(TextFontVariant other)
+    {
+        if (this.IsNormal)
+        {
+            if (other.IsNormal)
+            {
+                // 无视 BaselineProportion 属性判断，因为正常状态下不需要考虑上下标
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return FontVariants == other.FontVariants && Nearly.Equals(BaselineProportion, other.BaselineProportion);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        if (FontVariants == TextFontVariants.Normal)
+        {
+            return 0;
+        }
+
+        return HashCode.Combine((int) FontVariants, BaselineProportion);
+    }
+}
+
+/// <summary>
+/// 文本字体变体，上下标
+/// </summary>
+public enum TextFontVariants
+{
+    /// <summary>
+    /// 正常，非上下标
+    /// </summary>
+    Normal = 0,
+
+    /// <summary>
+    /// 上标
+    /// </summary>
+    Superscript,
+
+    /// <summary>
+    /// 下标
+    /// </summary>
+    Subscript,
+}

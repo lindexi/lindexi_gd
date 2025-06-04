@@ -205,7 +205,6 @@ partial class TextEditor : Control
             // 没有进入编辑模式，不处理键盘事件
             return;
         }
-
     }
 
     #endregion

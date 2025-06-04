@@ -1,3 +1,4 @@
+﻿using LightTextEditorPlus.Core.Diagnostics;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Diagnostics
@@ -12,6 +13,7 @@ namespace LightTextEditorPlus.Diagnostics
             TextEditor = textEditor;
         }
 
+        /// <inheritdoc cref="TextEditorDebugConfiguration.IsInDebugMode"/>
         public bool IsInDebugMode => TextEditor.TextEditorCore.IsInDebugMode;
 
         private SkiaTextEditor TextEditor { get; }
@@ -34,12 +36,30 @@ namespace LightTextEditorPlus.Diagnostics
         /// <remarks>设置为 null 则代表不显示</remarks>
         public TextEditorDebugBoundsDrawInfo? DebugDrawLineContentBoundsInfo { get; set; }
 
+        /// <summary>
+        /// 调试绘制每行的轮廓边界的颜色
+        /// </summary>
         public TextEditorDebugBoundsDrawInfo? DebugDrawLineOutlineBoundsInfo { get; set; }
 
+        /// <summary>
+        /// 调试绘制每个段落的内容边界的颜色
+        /// </summary>
         public TextEditorDebugBoundsDrawInfo? DebugDrawParagraphContentBoundsInfo { get; set; }
+        /// <summary>
+        /// 调试绘制每个段落的轮廓边界的颜色
+        /// </summary>
         public TextEditorDebugBoundsDrawInfo? DebugDrawParagraphOutlineBoundsInfo { get; set; }
+        /// <summary>
+        /// 调试绘制整个文档的渲染边界的颜色
+        /// </summary>
         public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentRenderBoundsInfo { get; set; }
+        /// <summary>
+        /// 调试绘制整个文档的内容边界的颜色
+        /// </summary>
         public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentContentBoundsInfo { get; set; }
+        /// <summary>
+        /// 调试绘制整个文档的轮廓边界的颜色
+        /// </summary>
         public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentOutlineBoundsInfo { get; set; }
 
         // 现在的赋值属性太多了，不如交给 Demo 来设置，让设置能够和调试界面相同
@@ -99,6 +119,9 @@ namespace LightTextEditorPlus.Diagnostics
         }
         private bool _showHandwritingPaperDebugInfo;
 
+        /// <summary>
+        /// 四线格的调试绘制信息
+        /// </summary>
         public HandwritingPaperDebugDrawInfo HandwritingPaperDebugDrawInfo { get; set; }
 
         /// <summary>
@@ -121,6 +144,9 @@ namespace LightTextEditorPlus.Diagnostics
             TextEditor.DebugReRender();
         }
 
+        /// <summary>
+        /// 隐藏四线格的调试信息
+        /// </summary>
         public void HideHandwritingPaperDebugInfoWhenInDebugMode()
         {
             if (!IsInDebugMode)

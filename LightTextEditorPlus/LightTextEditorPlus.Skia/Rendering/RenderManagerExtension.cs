@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using LightTextEditorPlus.Core.Document;
@@ -13,6 +13,9 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering;
 
+/// <summary>
+/// 渲染管理器扩展方法
+/// </summary>
 public static class RenderManagerExtension
 {
     /// <summary>
