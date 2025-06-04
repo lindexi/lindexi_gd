@@ -1,9 +1,9 @@
-namespace LightTextEditorPlus.Core.Primitive;
+﻿namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 /// 表示缩进类型
 /// </summary>
-public enum IndentType
+public enum IndentType : byte
 {
     /// <summary>
     ///悬挂缩进，指第一行包含度量值以及文本之前的距离(MarginLeft)的时候，

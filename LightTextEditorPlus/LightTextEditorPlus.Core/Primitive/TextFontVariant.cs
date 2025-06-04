@@ -1,4 +1,5 @@
 ﻿using System;
+
 using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Primitive;
@@ -82,7 +83,7 @@ public readonly record struct TextFontVariant()
 /// <summary>
 /// 文本字体变体，上下标
 /// </summary>
-public enum TextFontVariants
+public enum TextFontVariants : byte
 {
     /// <summary>
     /// 正常，非上下标

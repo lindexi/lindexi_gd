@@ -2,7 +2,7 @@
 
 /// <summary>Specifies the vertical position of a <see cref="T:LightTextEditorPlus.Core.Document.Decorations.ITextEditorDecoration" /> object.</summary>
 /// Copy From WPF
-public enum TextEditorDecorationLocation
+public enum TextEditorDecorationLocation : byte
 {
     /// <summary>The vertical position of an underline. This is the default value.</summary>
     Underline,
