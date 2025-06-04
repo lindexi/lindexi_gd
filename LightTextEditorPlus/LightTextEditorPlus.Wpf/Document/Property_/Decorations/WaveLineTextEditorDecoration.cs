@@ -22,6 +22,11 @@ public class WaveLineTextEditorDecoration : TextEditorDecoration
     {
     }
 
+    /// <summary>
+    /// 文本波浪线装饰
+    /// </summary>
+    public static WaveLineTextEditorDecoration Instance { get; } = new WaveLineTextEditorDecoration();
+
     /// <inheritdoc />
     public override BuildDecorationResult BuildDecoration(in BuildDecorationArgument argument)
     {

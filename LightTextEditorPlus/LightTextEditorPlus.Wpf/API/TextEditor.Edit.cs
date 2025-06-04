@@ -10,6 +10,8 @@ using LightTextEditorPlus.Events;
 
 namespace LightTextEditorPlus;
 
+// ReSharper disable RedundantDefaultMemberInitializer
+
 // 此文件存放编辑相关的方法
 [APIConstraint("TextEditor.Edit.Style.txt")]
 [APIConstraint("TextEditor.Edit.Input.txt")]
@@ -165,6 +167,81 @@ public partial class TextEditor
     public void SetFontSize(double fontSize, Selection? selection = null)
     {
         SetRunProperty(p => p with { FontSize = fontSize }, PropertyType.FontSize, selection);
+    }
+
+    /// <summary>
+    /// 开启或关闭文本上标
+    /// </summary>
+    /// <param name="selection"></param>
+    public void ToggleSuperscript(Selection? selection = null)
+    {
+        TextFontVariant fontVariants;
+
+        if (AreAllRunPropertiesMatch(property => property.FontVariant.FontVariants == TextFontVariants.Superscript,
+                selection))
+        {
+            fontVariants = TextFontVariant.Normal;
+        }
+        else
+        {
+            fontVariants = TextFontVariant.Superscript;
+        }
+
+        SetFontVariants(fontVariants, selection);
+    }
+
+    /// <summary>
+    /// 开启或关闭文本下标
+    /// </summary>
+    /// <param name="selection"></param>
+    public void ToggleSubscript(Selection? selection = null)
+    {
+        TextFontVariant fontVariants;
+
+        if (AreAllRunPropertiesMatch(property => property.FontVariant.FontVariants == TextFontVariants.Subscript,
+                selection))
+        {
+            fontVariants = TextFontVariant.Normal;
+        }
+        else
+        {
+            fontVariants = TextFontVariant.Subscript;
+        }
+
+        SetFontVariants(fontVariants, selection);
+    }
+
+    /// <summary>
+    /// 设置文本上下标
+    /// </summary>
+    /// <param name="fontVariants"></param>
+    /// <exception cref="NotSupportedException"></exception>
+    public void SetFontVariants(FontVariants fontVariants)
+    {
+        switch (fontVariants)
+        {
+            case FontVariants.Normal:
+                SetFontVariants(TextFontVariant.Normal);
+                break;
+            case FontVariants.Superscript:
+                SetFontVariants(TextFontVariant.Superscript);
+                break;
+            case FontVariants.Subscript:
+                SetFontVariants(TextFontVariant.Subscript);
+                break;
+            default:
+                throw new NotSupportedException($"Only support Normal, Superscript, Subscript. 只支持正常、上标、下标。当前传入是 {fontVariants}");
+        }
+    }
+
+    /// <summary>
+    /// 设置文本上下标
+    /// </summary>
+    /// <param name="fontVariants"></param>
+    /// <param name="selection"></param>
+    public void SetFontVariants(TextFontVariant fontVariants, Selection? selection = null)
+    {
+        SetRunProperty(p => p with { FontVariant = fontVariants }, PropertyType.FontVariants, selection);
     }
 
     /// <summary>

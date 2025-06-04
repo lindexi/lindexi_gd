@@ -391,4 +391,18 @@ public partial class TextEditorSettingsControl : UserControl
         TextEditor.ToggleUnderline();
     }
     #endregion
+
+    #region 上下标
+
+    private void ToggleFontSuperscriptButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleSuperscript();
+    }
+
+    private void ToggleFontSubscriptButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleSubscript();
+    }
+
+    #endregion
 }
