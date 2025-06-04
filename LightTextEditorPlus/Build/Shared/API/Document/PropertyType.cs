@@ -1,4 +1,4 @@
-#if !USE_SKIA || USE_AllInOne
+﻿#if !USE_SKIA || USE_AllInOne
 using System;
 using System.ComponentModel;
 
@@ -36,7 +36,7 @@ public enum PropertyType
     Foreground,
 
     /// <summary>
-    /// 字体样式
+    /// 字体斜体
     /// </summary>
     FontStyle,
 
@@ -46,7 +46,7 @@ public enum PropertyType
     FontWeight,
 
     /// <summary>
-    /// 斜体
+    /// 上下标
     /// </summary>
     FontVariants,
 

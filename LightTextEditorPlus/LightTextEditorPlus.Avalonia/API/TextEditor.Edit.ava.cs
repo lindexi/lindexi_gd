@@ -1,24 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Skia;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
-using LightTextEditorPlus.Events;
-using Avalonia.Media;
-using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Utils;
-using ReactiveUI;
-using SkiaSharp;
-using Avalonia.Layout;
-using Avalonia.Skia;
 using LightTextEditorPlus.Document.Decorations;
+using LightTextEditorPlus.Events;
+using LightTextEditorPlus.Utils;
+
+using SkiaSharp;
+
+// ReSharper disable RedundantDefaultMemberInitializer
+// ReSharper disable RedundantBoolCompare
 
 namespace LightTextEditorPlus
 {
@@ -197,6 +198,58 @@ namespace LightTextEditorPlus
         public void SetFontSize(double fontSize, Selection? selection = null)
         {
             SetRunProperty(p => p with { FontSize = fontSize }, PropertyType.FontSize, selection);
+        }
+
+        /// <summary>
+        /// 开启或关闭文本上标
+        /// </summary>
+        /// <param name="selection"></param>
+        public void ToggleSuperscript(Selection? selection = null)
+        {
+            TextFontVariant fontVariants;
+
+            if (AreAllRunPropertiesMatch(property => property.FontVariant.FontVariants == TextFontVariants.Superscript,
+                    selection))
+            {
+                fontVariants = TextFontVariant.Normal;
+            }
+            else
+            {
+                fontVariants = TextFontVariant.Superscript;
+            }
+
+            SetFontVariants(fontVariants, selection);
+        }
+
+        /// <summary>
+        /// 开启或关闭文本下标
+        /// </summary>
+        /// <param name="selection"></param>
+        public void ToggleSubscript(Selection? selection = null)
+        {
+            TextFontVariant fontVariants;
+
+            if (AreAllRunPropertiesMatch(property => property.FontVariant.FontVariants == TextFontVariants.Subscript,
+                    selection))
+            {
+                fontVariants = TextFontVariant.Normal;
+            }
+            else
+            {
+                fontVariants = TextFontVariant.Subscript;
+            }
+
+            SetFontVariants(fontVariants, selection);
+        }
+
+        /// <summary>
+        /// 设置文本上下标
+        /// </summary>
+        /// <param name="fontVariants"></param>
+        /// <param name="selection"></param>
+        public void SetFontVariants(TextFontVariant fontVariants, Selection? selection = null)
+        {
+            SetRunProperty(p => p with { FontVariant = fontVariants }, PropertyType.FontVariants, selection);
         }
 
         /// <summary>

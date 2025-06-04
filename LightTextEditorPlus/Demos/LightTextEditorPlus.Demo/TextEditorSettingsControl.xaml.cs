@@ -538,7 +538,7 @@ public partial class TextEditorSettingsControl : UserControl
     /// <param name="e"></param>
     private void ToggleWaveLineButton_OnClick(object sender, RoutedEventArgs e)
     {
-        TextEditor.ToggleTextDecoration(new WaveLineTextEditorDecoration());
+        TextEditor.ToggleTextDecoration(WaveLineTextEditorDecoration.Instance);
     }
 
     private void ToggleUnderlineButton_OnClick(object sender, RoutedEventArgs e)
@@ -554,6 +554,20 @@ public partial class TextEditorSettingsControl : UserControl
     private void EmphasisDotsButton_OnClick(object sender, RoutedEventArgs e)
     {
         TextEditor.ToggleEmphasisDots();
+    }
+
+    #endregion
+
+    #region 上下标
+
+    private void ToggleFontSuperscriptButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleSuperscript();
+    }
+
+    private void ToggleFontSubscriptButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleSubscript();
     }
 
     #endregion

@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Decorations;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
@@ -12,6 +11,7 @@ using LightTextEditorPlus.Core.Rendering;
 
 #if USE_WPF
 using Editor = LightTextEditorPlus.TextEditor;
+using System.Windows;
 #elif USE_SKIA
 using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
 using Editor = LightTextEditorPlus.SkiaTextEditor;
@@ -69,13 +69,26 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
         return aContains && bContains; // 为什么取都包含？因为首次判定，必然是包含当前的装饰，否则也就不会进来了
     }
 
-    ///// <summary>
-    ///// 隐式转换
-    ///// </summary>
-    //public static implicit operator TextEditorDecoration(TextDecoration textDecoration)
-    //{
-    //    throw new NotImplementedException();
-    //}
+#if USE_WPF
+    /// <summary>
+    /// 隐式转换
+    /// </summary>
+    public static implicit operator TextEditorDecoration(TextDecoration textDecoration)
+    {
+        if (TextDecorations.Underline[0] == textDecoration)
+        {
+            return TextEditorDecorations.Underline;
+        }
+
+        if (TextDecorations.Strikethrough[0] == textDecoration)
+        {
+            return TextEditorDecorations.Strikethrough;
+        }
+
+        throw new NotSupportedException();
+    }
+
+#endif
 
     /// <inheritdoc />
     public override bool Equals(object? obj)

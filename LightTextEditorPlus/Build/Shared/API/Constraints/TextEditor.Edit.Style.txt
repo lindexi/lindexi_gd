@@ -7,12 +7,18 @@ SetCurrentCaretRunProperty
 // RunProperty
 SetFontName
 SetFontSize
+// RunProperty-上下标
+ToggleSuperscript
+ToggleSubscript
+SetFontVariants
+// RunProperty-前景色
 SetForeground
+// RunProperty-加粗斜体
 ToggleItalic
 SetFontStyle
 ToggleBold
 SetFontWeight
-// 文本装饰
+// RunProperty-文本装饰
 ToggleUnderline
 ToggleStrikethrough
 ToggleDeleteLine

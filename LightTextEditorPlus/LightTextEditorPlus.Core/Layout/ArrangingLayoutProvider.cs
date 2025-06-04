@@ -152,10 +152,6 @@ abstract class ArrangingLayoutProvider
     private FirstDirtyParagraphInfo GetFirstDirtyParagraph(IReadOnlyList<ParagraphData> paragraphList,
         UpdateLayoutContext updateLayoutContext)
     {
-        // todo 项目符号的段落，如果在段落上方新建段落，那需要项目符号更新
-        // 这个逻辑准备给项目符号逻辑更新，逻辑是，假如现在有两段，分别采用 `1. 2.` 作为项目符号
-        // 在 `1.` 后面新建一个段落，需要自动将原本的 `2.` 修改为 `3.` 的内容，这个逻辑准备交给项目符号模块自己编辑实现
-
         updateLayoutContext.RecordDebugLayoutInfo($"开始寻找首个变脏段落序号", LayoutDebugCategory.FindDirty);
 
         // 首行出现变脏的序号

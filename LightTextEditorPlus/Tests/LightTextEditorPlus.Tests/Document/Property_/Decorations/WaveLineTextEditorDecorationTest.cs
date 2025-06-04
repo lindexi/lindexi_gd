@@ -32,7 +32,7 @@ public class WaveLineTextEditorDecorationTest
             textEditor.SetFontSize(90, new Selection(new CaretOffset(0), 1));
 
             // 添加波浪线装饰
-            textEditor.AddTextDecoration(new WaveLineTextEditorDecoration(), new Selection(new CaretOffset(0), 3));
+            textEditor.AddTextDecoration(WaveLineTextEditorDecoration.Instance, new Selection(new CaretOffset(0), 3));
 
             // 可以符合预期的显示波浪线
             // 先靠人去看
