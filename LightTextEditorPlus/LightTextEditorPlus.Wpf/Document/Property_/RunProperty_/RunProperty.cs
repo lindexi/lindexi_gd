@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -40,7 +40,9 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #region Foreground
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 前景色，默认值为黑色
+    /// </summary>
     public ImmutableBrush Foreground
     {
         init { _foreground = value; }
@@ -58,7 +60,9 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #region Background
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 背景色
+    /// </summary>
     public ImmutableBrush? Background
     {
         init => _background = value;
@@ -76,7 +80,9 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #region Opacity
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 透明度
+    /// </summary>
     public double Opacity
     {
         init => _opacity = value;
@@ -94,7 +100,9 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #region FontStretch
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取描述与某个字体与该字体的正常纵横比相比的拉伸程度
+    /// </summary>
     public FontStretch Stretch
     {
         init => _stretch = value;
@@ -113,7 +121,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
     #region FontWeight
 
     /// <summary>
-    /// 字的粗细度，默认值为Normal
+    /// 字重，字的粗细度，默认值为Normal
     /// </summary>
     public FontWeight FontWeight
     {
