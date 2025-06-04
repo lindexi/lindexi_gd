@@ -10,22 +10,9 @@ namespace LightTextEditorPlus.Core.Document;
 public class NumberMarker : TextMarker
 {
     /// <summary>
-    /// 表示当前缩进级别的数字项目符号起始编号
+    /// 表示当前缩进级别的数字项目符号起始编号。默认从 1 开始，符合人类的习惯
     /// </summary>
-    public uint StartAt
-    {
-        get => _startAt;
-        init
-        {
-            if (value < 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(value), "有序项目符号起始编号最小从 1 开始");
-            }
-            _startAt = value;
-        }
-    }
-
-    private readonly uint _startAt = 1;
+    public uint StartAt { get; init; } = 1;
 
     /// <summary>
     /// 自动编号组 ID，ID 相同则编号加一
@@ -35,7 +22,7 @@ public class NumberMarker : TextMarker
     /// <summary>
     /// 编号项目符号类型
     /// </summary>
-    public AutoNumberType AutoNumberType { get; set; } = AutoNumberType.ArabicPeriod;
+    public AutoNumberType AutoNumberType { get; init; } = AutoNumberType.ArabicPeriod;
 
     /// <summary>
     /// 获取当前级别的编号文本

@@ -464,5 +464,6 @@ public class DocumentManagerTests
 
         public double FontSize { get; set; }
         public FontName FontName { get; set; }
+        public TextFontVariant FontVariant { get; set; }
     }
 }
