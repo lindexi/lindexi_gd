@@ -30,6 +30,9 @@ unsafe
     Console.WriteLine($"sizeof(Foo1)={sizeof(Foo1)}");
     Console.WriteLine($"sizeof(Foo2)={SizeOf<Foo2>()}");
     Console.WriteLine($"sizeof(Foo3)={SizeOf<Foo3>()}");
+
+    Console.WriteLine($"sizeof(TextFontVariant)={sizeof(TextFontVariant)}"); // sizeof(TextFontVariant)=16
+    // 无论用 byte 还是 int 都是 16 长度
 }
 
 static unsafe Int32 SizeOf<T>()
@@ -128,6 +131,73 @@ readonly record struct TextFontVariant2()
 }
 
 enum TextFontVariants2 : byte
+{
+    /// <summary>
+    /// 正常，非上下标
+    /// </summary>
+    Normal = 0,
+
+    /// <summary>
+    /// 上标
+    /// </summary>
+    Superscript,
+
+    /// <summary>
+    /// 下标
+    /// </summary>
+    Subscript,
+}
+
+/// <summary>
+/// 表示文本上下标字符属性
+/// </summary>
+/// 在 PPT 里面，使用 Baseline 表示上下标的距离。使用正数表示上标，使用负数表示下标，详细请看 059b7e5807c33ebc6e9156971e6b8d51235a9c0e
+/// 在 Word 里面，采用 VerticalAlignment Value= "Subscript" 或 "Superscript" 来表示下标或上标
+/// 采用 PPT 的定义方式，可以包含 Word 的功能。但 PPT 里面使用正数负数表示比较不直观，且判断逻辑稍微复杂，不如再添加一个枚举属性好了。加一个枚举只加一个 sizeof(byte) 长度，不亏
+public readonly record struct TextFontVariant()
+{
+    /// <summary>
+    /// 正常，非上下标
+    /// </summary>
+    //public bool IsNormal => FontVariants == TextFontVariants1.Normal;
+
+    /// <summary>
+    /// 上标或下标的基线比例
+    /// </summary>
+    /// 和 PPT 不同的是，不采用正负号来表示。需要配合表示上下标的属性来表示
+    public double BaselineProportion { get; init; } = 0.3;
+
+    /// <summary>
+    /// 上下标
+    /// </summary>
+    TextFontVariants FontVariants { get; init; } = TextFontVariants.Normal;
+
+    /// <summary>
+    /// 正常，非上下标
+    /// </summary>
+    public static TextFontVariant Normal => new TextFontVariant();
+
+    /// <summary>
+    /// 上标
+    /// </summary>
+    public static TextFontVariant Superscript => new TextFontVariant()
+    {
+        //FontVariants = TextFontVariants.Superscript
+    };
+
+    /// <summary>
+    /// 下标
+    /// </summary>
+    public static TextFontVariant Subscript => new TextFontVariant()
+    {
+        //FontVariants = TextFontVariants.Subscript
+    };
+}
+
+/// <summary>
+/// 文本字体变体，上下标
+/// </summary>
+public enum TextFontVariants : byte
 {
     /// <summary>
     /// 正常，非上下标
