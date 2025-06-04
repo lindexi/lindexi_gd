@@ -53,6 +53,17 @@ public partial class TextEditorSettingsControl : UserControl
         FontSizeTextBox.Text = currentCaretRunProperty.FontSize.ToString("0");
     }
 
+    private void TextEditor_IsInEditingInputModeChanged(object? sender, EventArgs e)
+    {
+        if (TextEditor.Parent is Grid grid)
+        {
+            if (grid.Children.OfType<Border>().FirstOrDefault() is {} border)
+            {
+                border.BorderBrush = TextEditor.IsInEditingInputMode ? Brushes.Blue : Brushes.Red;
+            }
+        }
+    }
+
     public TextEditor TextEditor
     {
         get => _textEditor;
@@ -61,6 +72,7 @@ public partial class TextEditorSettingsControl : UserControl
             _textEditor = value;
 
             _textEditor.CurrentCaretOffsetChanged += TextEditorCore_CurrentCaretOffsetChanged;
+            _textEditor.IsInEditingInputModeChanged += TextEditor_IsInEditingInputModeChanged;
             SetFeedback();
         }
     }
@@ -405,4 +417,14 @@ public partial class TextEditorSettingsControl : UserControl
     }
 
     #endregion
+
+    private void IsAutoEditingModeByFocusCheckBox_OnIsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.IsAutoEditingModeByFocus = IsAutoEditingModeByFocusCheckBox.IsChecked == true;
+
+        if (!TextEditor.IsAutoEditingModeByFocus)
+        {
+            TextEditor.EnterEditMode();
+        }
+    }
 }
