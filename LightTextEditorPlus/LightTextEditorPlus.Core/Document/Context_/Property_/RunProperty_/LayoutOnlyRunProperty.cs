@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Maths;
 
@@ -59,10 +59,15 @@ namespace LightTextEditorPlus.Core.Document
 
         private readonly FontName? _fontFamily;
 
+        /// <summary>
+        /// 上下标
+        /// </summary>
+        public TextFontVariant FontVariant { get; init; } = TextFontVariant.Normal;
+
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return HashCode.Combine(FontSize, FontName);
+            return HashCode.Combine(FontSize, FontName, FontVariant.GetHashCode());
         }
 
         /// <summary>
@@ -78,6 +83,7 @@ namespace LightTextEditorPlus.Core.Document
             (
                 FontSize.Equals(other.FontSize)
                 && FontName.Equals(other.FontName)
+                && FontVariant.Equals(other.FontVariant)
             )
             {
                 return true;
