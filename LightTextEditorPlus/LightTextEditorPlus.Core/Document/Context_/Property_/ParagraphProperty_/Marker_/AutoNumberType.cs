@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// 编号项目符号类型
 /// </summary>
 /// 类型定义完全参考 OpenXML 的定义，具体参考 《编号项目符号整理大全.pptx》 文档
-public enum AutoNumberType
+public enum AutoNumberType : short
 {
     /// <summary>
     /// 带双括号的小写字母，如 (a)、 (b)、 (c)

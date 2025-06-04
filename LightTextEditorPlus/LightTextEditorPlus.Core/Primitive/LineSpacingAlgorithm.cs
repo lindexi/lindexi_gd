@@ -1,10 +1,10 @@
-namespace LightTextEditorPlus.Core.Primitive;
+﻿namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 /// 行距算法
 /// </summary>
 /// ReSharper disable InconsistentNaming
-public enum LineSpacingAlgorithm
+public enum LineSpacingAlgorithm : byte
 {
     /// <summary>
     /// 使用 WPF 的行距计算方法。使用此算法即可计算出 TextBlock 的行距

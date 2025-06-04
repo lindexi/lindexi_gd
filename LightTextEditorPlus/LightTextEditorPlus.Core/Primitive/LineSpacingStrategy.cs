@@ -1,9 +1,9 @@
-namespace LightTextEditorPlus.Core.Primitive;
+﻿namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 /// 多倍行距呈现策略
 /// </summary>
-public enum LineSpacingStrategy
+public enum LineSpacingStrategy : byte
 {
     /// <summary>
     /// 空间全部展开，例如ppt的文本框

@@ -1,9 +1,9 @@
-namespace LightTextEditorPlus.Core.Primitive;
+﻿namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 /// Specifies how a window will automatically size itself to fit the size of its content.
 /// </summary>
-public enum TextSizeToContent
+public enum TextSizeToContent : byte
 {
     /// <summary>
     /// 手动指定宽度和高度
