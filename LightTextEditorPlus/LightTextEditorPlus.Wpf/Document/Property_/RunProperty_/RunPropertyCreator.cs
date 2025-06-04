@@ -1,12 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.Windows;
-using System.Windows.Media.Media3D;
-
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document;
 

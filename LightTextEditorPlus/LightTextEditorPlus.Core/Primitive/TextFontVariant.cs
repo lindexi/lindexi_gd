@@ -8,6 +8,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// </summary>
 /// 在 PPT 里面，使用 Baseline 表示上下标的距离。使用正数表示上标，使用负数表示下标，详细请看 059b7e5807c33ebc6e9156971e6b8d51235a9c0e
 /// 在 Word 里面，采用 VerticalAlignment Value= "Subscript" 或 "Superscript" 来表示下标或上标
+/// 采用 PPT 的定义方式，可以包含 Word 的功能。但 PPT 里面使用正数负数表示比较不直观，且判断逻辑稍微复杂，不如再添加一个枚举属性好了。加一个枚举只加一个 sizeof(int) 长度，不亏
 public readonly record struct TextFontVariant()
 {
     /// <summary>
