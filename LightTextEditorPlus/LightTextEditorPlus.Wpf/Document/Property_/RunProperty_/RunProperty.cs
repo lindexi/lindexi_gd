@@ -298,6 +298,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
         hashCode.Add(Stretch);
         hashCode.Add(Background);
         hashCode.Add(DecorationCollection);
+        hashCode.Add(FontVariant.GetHashCode());
         return hashCode.ToHashCode();
     }
 

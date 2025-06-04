@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -28,6 +28,11 @@ public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
     /// 输入法修改输入为中文，使用中文字体，于是行高再次变更，可以看到行高就在跳动
     /// 大部分的中文字体都有带英文字符，那不如就依然是单个字体
     FontName FontName { get; }
+
+    /// <summary>
+    /// 文本上下标字符属性
+    /// </summary>
+    TextFontVariant FontVariant { get; }
 
     ///// <summary>
     ///// 尝试获取属性
