@@ -109,14 +109,14 @@ static class MarkerRuntimeCalculator
                 else if (marker is NumberMarker numberMarker)
                 {
                     // 有序项目符号
-                    if (!dictionary.TryGetValue(numberMarker.GroupId,out var currentIndex))
+                    if (!dictionary.TryGetValue(numberMarker.GroupId, out var currentIndex))
                     {
                         currentIndex = numberMarker.StartAt;
                     }
                     else
                     {
                         // 如果上一段是空段，则不增加编号，保持 currentIndex 不变
-                        var isLastParagraphEmpty = i>0 && paragraphList[i - 1].IsEmptyParagraph;
+                        var isLastParagraphEmpty = i > 0 && paragraphList[i - 1].IsEmptyParagraph;
 
                         if (isLastParagraphEmpty)
                         {
