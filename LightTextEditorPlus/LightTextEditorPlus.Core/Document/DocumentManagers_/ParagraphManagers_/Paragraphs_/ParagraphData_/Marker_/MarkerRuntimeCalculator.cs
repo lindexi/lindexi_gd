@@ -115,7 +115,10 @@ static class MarkerRuntimeCalculator
                     }
                     else
                     {
-                        if (paragraphData.IsEmptyParagraph)
+                        // 如果上一段是空段，则不增加编号，保持 currentIndex 不变
+                        var isLastParagraphEmpty = i>0 && paragraphList[i - 1].IsEmptyParagraph;
+
+                        if (isLastParagraphEmpty)
                         {
                             // 如果是空段落，则不增加编号，保持 currentIndex 不变
                             // 忽略 CS1717 建议，忽略自己等于自己的警告，这里就是要明确这么写
