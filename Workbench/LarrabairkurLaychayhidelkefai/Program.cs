@@ -13,14 +13,17 @@ unsafe
     Console.WriteLine($"sizeof(Run1)={SizeOf<Run1>()}");
     Console.WriteLine($"sizeof(Run2)={SizeOf<Run2>()}");
 
-/*
-   sizeof(TextFontVariant1)=8
-   sizeof(TextFontVariants1)=4
-   sizeof(TextFontVariant2)=2
-   sizeof(TextFontVariants2)=1
-   sizeof(Run1)=24
-   sizeof(Run2)=24
-*/
+    /*
+       sizeof(TextFontVariant1)=8
+       sizeof(TextFontVariants1)=4
+       sizeof(TextFontVariant2)=2
+       sizeof(TextFontVariants2)=1
+       sizeof(Run1)=40
+       sizeof(Run2)=24
+
+       对于 Run1 来说，每个 TextFontVariant1 是 8 个byte长度，总长度=3*sizeof(TextFontVariant1)+Header(16)=3*8+16=40
+       对于 Run2 来说，每个 TextFontVariant2 是 2 个byte长度，总长度=3*sizeof(TextFontVariant2)+Header(16)=3*2+16=24
+    */
 }
 
 static unsafe Int32 SizeOf<T>()
@@ -63,8 +66,8 @@ public unsafe struct MethodTableInfo
     public int* EEClass;
 }
 
-record Run1(TextFontVariant1 FontVariant);
-record Run2(TextFontVariant2 FontVariant);
+record Run1(TextFontVariant1 F1, TextFontVariant1 F2, TextFontVariant1 F3);
+record Run2(TextFontVariant2 F1, TextFontVariant2 F2, TextFontVariant2 F3);
 
 readonly record struct TextFontVariant1()
 {
