@@ -26,11 +26,34 @@ unsafe
        对于 Run2 来说，每个 TextFontVariant2 是 2 个byte长度，总长度=3*sizeof(TextFontVariant2)+Header&Pad(16)=3*2+16=6+16，将6对齐到8，结果为 8+16=24
        对于 Run3 来说，尽管比 Run2 多了一个 TextFontVariant2 字段，但刚好还在对齐范围内 4*sizeof(TextFontVariant2)+Header&Pad(16)=8+Header&Pad(16)=8+16=24
     */
+
+    Console.WriteLine($"sizeof(Foo1)={sizeof(Foo1)}");
+    Console.WriteLine($"sizeof(Foo2)={SizeOf<Foo2>()}");
+    Console.WriteLine($"sizeof(Foo3)={SizeOf<Foo3>()}");
 }
 
 static unsafe Int32 SizeOf<T>()
 {
     return ((MethodTableInfo*) (typeof(T).TypeHandle.Value.ToPointer()))->Size;
+}
+
+readonly record struct Foo1()
+{
+    public bool F1 { get; init; }
+    public bool F2 { get; init; }
+    public bool F3 { get; init; }
+}
+
+record Foo2()
+{
+    public Foo1 F1 { get; set; }
+}
+
+record Foo3()
+{
+    public Foo1 F1 { get; set; }
+    public Foo1 F2 { get; set; }
+    public bool F3 { get; set; }
 }
 
 [StructLayout(LayoutKind.Explicit)]
