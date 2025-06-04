@@ -109,8 +109,7 @@ static class MarkerRuntimeCalculator
                 else if (marker is NumberMarker numberMarker)
                 {
                     // 有序项目符号
-                    var currentIndex = dictionary.GetValueOrDefault(numberMarker.GroupId, 0u);
-                    if (currentIndex == 0)
+                    if (!dictionary.TryGetValue(numberMarker.GroupId,out var currentIndex))
                     {
                         currentIndex = numberMarker.StartAt;
                     }
@@ -119,7 +118,7 @@ static class MarkerRuntimeCalculator
                         if (paragraphData.IsEmptyParagraph)
                         {
                             // 如果是空段落，则不增加编号，保持 currentIndex 不变
-                            // 忽略 CS1717 建议
+                            // 忽略 CS1717 建议，忽略自己等于自己的警告，这里就是要明确这么写
 #pragma warning disable CS1717 // Assignment made to same variable
                             currentIndex = currentIndex;
 #pragma warning restore CS1717 // Assignment made to same variable
