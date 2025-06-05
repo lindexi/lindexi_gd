@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -85,7 +85,7 @@ public class VisionComparer
 
         List<VisionCompareRect> list = GetVisionCompareRectList(mapArray, imageWidth, imageHeight);
 
-        double similarityValue = totalDistanceValue / imageWidth * imageHeight;
+        double similarityValue = totalDistanceValue / (imageWidth * imageHeight);
         return new VisionCompareResult(true, similarityValue, pixelCount, dissimilarPixelCount, list, "成功");
     }
 
