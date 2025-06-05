@@ -1,4 +1,5 @@
 ﻿using dotnetCampus.UITest.WPF;
+using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Document.Decorations;
@@ -19,13 +20,13 @@ public class UnderlineTextEditorDecorationTest
 
             textEditor.SetFontSize(60);
             // 先追加一段文本
-            textEditor.TextEditorCore.AppendText("123");
+            textEditor.AppendText("123");
 
             // 设置首个字符的字号为 90 让其与其他字符的字号不同
             textEditor.SetFontSize(90, new Selection(new CaretOffset(0), 1));
 
             // 添加下划线装饰
-            textEditor.ToggleUnderline(textEditor.TextEditorCore.GetAllDocumentSelection());
+            textEditor.ToggleUnderline(textEditor.GetAllDocumentSelection());
 
             // 可以符合预期的显示下划线
             // 先靠人去看
