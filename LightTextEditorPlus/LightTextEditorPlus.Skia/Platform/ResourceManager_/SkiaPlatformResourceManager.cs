@@ -173,12 +173,7 @@ public class SkiaPlatformResourceManager :
             }
         }
 
-        double fontSize = runProperty.FontSize;
-        if (!runProperty.FontVariant.IsNormal)
-        {
-            // 上下标的字号减半
-            fontSize /= 2;
-        }
+        double fontSize = runProperty.GetRenderFontSize();
 
         SKFont renderSkFont = new SKFont(skTypeface, (float) fontSize);
         // From Avalonia
