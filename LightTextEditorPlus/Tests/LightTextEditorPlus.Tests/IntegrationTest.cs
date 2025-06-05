@@ -151,14 +151,15 @@ public class VisionCompareResultException(string name, VisionCompareResult resul
 {
     public override string ToString()
     {
+        var debugReason = result.Success ? "" : $"\r\n对比的调试原因:{result.DebugReason}";
+
         return $"""
                 图片视觉对比失败
                 测试用例: {name}
-                对比结果: {result.Success}
+                对比成功: {result.Success}{debugReason}
                 视觉相似:{result.IsSimilar()}
-                视觉相似度: {result.SimilarityValue}
+                视觉相似度:{result.SimilarityValue}
                 像素数量:{result.PixelCount}
-                对比的调试原因:{result.DebugReason}
                 预设图片:{assertImageFilePath}
                 当前状态截图:{imageFilePath}
                 """;
