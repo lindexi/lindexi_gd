@@ -183,7 +183,7 @@ class HorizontalTextRenderer : TextRendererBase
             // 获取到字体信息
             var currentRunProperty = runProperty.AsRunProperty();
             // 文本字体大小
-            var fontSize = runProperty.FontSize;
+            var fontSize = runProperty.GetRenderFontSize();
 
             // 再拆分为实际渲染可以连续的字符
             foreach (var charSpanDrawInfoList in GetCharSpanContinuous(charList))

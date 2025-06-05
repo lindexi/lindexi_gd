@@ -752,13 +752,8 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     private static void MeasureAndFillCharInfo(CharData charData, ICharDataLayoutInfoSetter setter)
     {
-        double fontSize = charData.RunProperty.FontSize;
-        if (!charData.RunProperty.FontVariant.IsNormal)
-        {
-            // 上下标的字号减半
-            // 在 PPT 里面，取的是 2/3 的字号大小，而不是 1/2 的字号大小
-            fontSize /= 2;
-        }
+        double fontSize = charData.RunProperty.GetRenderFontSize();
+     
         // 默认是方块字符
         var size = new TextSize(fontSize, fontSize);
         // 设置基线为字号大小的向上一点点

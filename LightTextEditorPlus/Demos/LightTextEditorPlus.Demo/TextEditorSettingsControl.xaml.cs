@@ -148,6 +148,7 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void FixedLineSpacingResetButton_OnClick(object sender, RoutedEventArgs e)
     {
+        // 等价于调用 ConfigCurrentCaretOffsetParagraphProperty 方法
         SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
         {
             LineSpacing = TextLineSpacings.SingleLineSpace(),
