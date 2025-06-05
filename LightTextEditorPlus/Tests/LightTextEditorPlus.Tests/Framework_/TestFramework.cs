@@ -46,30 +46,32 @@ public class TestFramework
             Title = "文本库 UI 单元测试",
             Width = 1000,
             Height = 700,
-            Content = Border
+            Content = Grid
             (
-                BorderThickness: Thickness(1),
-                BorderBrush: Brushes.Blue,
-                Child: Grid
+                Columns(620, "*"),
+                Border
                 (
-                    Columns(600, "*"),
+                    BorderThickness: Thickness(1),
+                    BorderBrush: Brushes.Blue,
+                    Child: 
                     new TextEditor()
-                    {
-                        Width = 600,
-                        Height = 600,
-                        Margin = Thickness(0, 10, 10, 0),
-                        HorizontalAlignment = HorizontalAlignment.Left,
-                        VerticalAlignment = VerticalAlignment.Stretch,
-                    }
-                        .Column(0)
-                        .Out(out var textEditor),
-
-                    new TextEditorSettingsControl()
+                        {
+                            Width = 600,
+                            Height = 600,
+                            VerticalAlignment = VerticalAlignment.Top
+                        }
+                        .Out(out var textEditor)
+                )
+                .HorizontalAlignment(HorizontalAlignment.Left)
+                .VerticalAlignment(VerticalAlignment.Stretch)
+                .Margin(10,10,10,10)
+                    .UI
+                    .Column(0),
+                new TextEditorSettingsControl()
                     {
                         TextEditor = textEditor
                     }
-                        .Column(1)
-                )
+                    .Column(1)
             ).Margin(10).UI
         };
 
