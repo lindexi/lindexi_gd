@@ -131,11 +131,11 @@ abstract class ArrangingLayoutProvider
             {
                 throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本起始点布局信息");
             }
-            if (paragraphLayoutData.TextSize.IsInvalid)
+            if (paragraphLayoutData.TextSize == TextSize.Invalid)
             {
                 throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本尺寸布局信息");
             }
-            if (paragraphLayoutData.OutlineSize.IsInvalid)
+            if (paragraphLayoutData.OutlineSize == TextSize.Invalid)
             {
                 throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本外接尺寸布局信息");
             }
@@ -152,6 +152,10 @@ abstract class ArrangingLayoutProvider
     private FirstDirtyParagraphInfo GetFirstDirtyParagraph(IReadOnlyList<ParagraphData> paragraphList,
         UpdateLayoutContext updateLayoutContext)
     {
+        // todo 项目符号的段落，如果在段落上方新建段落，那需要项目符号更新
+        // 这个逻辑准备给项目符号逻辑更新，逻辑是，假如现在有两段，分别采用 `1. 2.` 作为项目符号
+        // 在 `1.` 后面新建一个段落，需要自动将原本的 `2.` 修改为 `3.` 的内容，这个逻辑准备交给项目符号模块自己编辑实现
+
         updateLayoutContext.RecordDebugLayoutInfo($"开始寻找首个变脏段落序号", LayoutDebugCategory.FindDirty);
 
         // 首行出现变脏的序号
@@ -252,7 +256,25 @@ abstract class ArrangingLayoutProvider
             // 以下是调试辅助代码，用于确保布局计算正确
             if (IsInDebugMode)
             {
-                DebugAssertPreUpdateParagraphLayoutResult(in argument, nextParagraphStartPoint);
+                // 预期此时完成了起始点和文本尺寸的布局了，即已经有值了
+                if (paragraphData.ParagraphLayoutData.TextSize == TextSize.Invalid)
+                {
+                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本尺寸布局信息");
+                }
+
+                if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
+                {
+                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本起始点布局信息");
+                }
+
+                var exceptedOffsetY = argument.GetParagraphBefore() +
+                                      paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
+                var excepted = argument.CurrentStartPoint.Offset(0, exceptedOffsetY);
+                if (!nextParagraphStartPoint.NearlyEquals(excepted))
+                {
+                    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
+                    throw new TextEditorInnerDebugException($"预期下一个段落的起始点是 {excepted}，实际是 {nextParagraphStartPoint}");
+                }
             }
         }
 
@@ -277,7 +299,6 @@ abstract class ArrangingLayoutProvider
         //    }
         //}
 
-        // 这个文档内容尺寸算了意义不大，因为后续如果是带项目符号居中之类的布局方式，这个尺寸无法给到最终的 Bounds 范围里面直接使用
         TextSize documentContentSize = CalculateDocumentContentSize(paragraphList, updateLayoutContext);
 
         //Debug.Assert(documentBounds.Location == TextPoint.Zero);
@@ -285,49 +306,6 @@ abstract class ArrangingLayoutProvider
 
         return new PreUpdateDocumentLayoutResult(documentContentSize);
     }
-
-    /// <summary>
-    /// 调试下判断段落预布局结果是否正确
-    /// </summary>
-    private void DebugAssertPreUpdateParagraphLayoutResult
-        (in ParagraphLayoutArgument argument, TextPointInDocumentContentCoordinateSystem nextParagraphStartPoint)
-    {
-        var paragraphData = argument.ParagraphData;
-        ParagraphIndex paragraphIndex = argument.ParagraphIndex;
-
-        // 预期此时完成了起始点和文本尺寸的布局了，即已经有值了
-        if (paragraphData.ParagraphLayoutData.TextSize == TextSize.Invalid)
-        {
-            throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本尺寸布局信息");
-        }
-
-        if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
-        {
-            throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本起始点布局信息");
-        }
-
-        var exceptedOffsetY = argument.GetParagraphBefore() +
-                              paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
-        var excepted = argument.CurrentStartPoint.Offset(0, exceptedOffsetY);
-        if (!nextParagraphStartPoint.NearlyEquals(excepted))
-        {
-            // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
-            throw new TextEditorInnerDebugException($"预期下一个段落的起始点是 {excepted}，实际是 {nextParagraphStartPoint}");
-        }
-
-        // 预期段落的文本尺寸是行尺寸总和
-        var paragraphTextWidth = 0d;
-        var paragraphTextHeight = 0d;
-        foreach (LineLayoutData lineLayoutData in paragraphData.LineLayoutDataList)
-        {
-            paragraphTextWidth = Math.Max(paragraphTextWidth, lineLayoutData.LineContentSize.Width);
-            paragraphTextHeight += lineLayoutData.LineContentSize.Height;
-        }
-
-        TextEditorInnerDebugAsset.AreEquals(paragraphData.ParagraphLayoutData.TextSize.Width, paragraphTextWidth, "ParagraphLayoutData.TextSize.Width");
-        TextEditorInnerDebugAsset.AreEquals(paragraphData.ParagraphLayoutData.TextSize.Height, paragraphTextHeight, "ParagraphLayoutData.TextSize.Height");
-    }
-    
 
     #region 缩进和项目符号
 
@@ -752,8 +730,7 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     private static void MeasureAndFillCharInfo(CharData charData, ICharDataLayoutInfoSetter setter)
     {
-        double fontSize = charData.RunProperty.GetRenderFontSize();
-     
+        double fontSize = charData.RunProperty.FontSize;
         // 默认是方块字符
         var size = new TextSize(fontSize, fontSize);
         // 设置基线为字号大小的向上一点点

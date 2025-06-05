@@ -1,4 +1,4 @@
-﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
+﻿#if DirectTextEditorDefinition
 using System;
 
 namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;

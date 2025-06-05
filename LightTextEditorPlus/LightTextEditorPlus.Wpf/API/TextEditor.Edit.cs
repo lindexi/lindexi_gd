@@ -2,6 +2,7 @@
 using System.Windows;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
@@ -464,6 +465,8 @@ public partial class TextEditor
             // 选择范围不为空，那就是一定有变更内容，记录布局变更原因
             TextEditorCore.AddLayoutReason($"SetRunPropertyWPF PropertyType={property} Selection={selection.Value.FrontOffset.Offset}-{selection.Value.BehindOffset.Offset}");
         }
+
+        TextEditorCore.Logger.Log(new SetRunPropertyLogInfo(property, selection.Value));
 
         OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
 

@@ -40,7 +40,8 @@ internal partial class RichTextCaseProvider
         {
             TextEditor textEditor = editor;
             textEditor.AppendText("abc");
-            textEditor.SetFontName("Times New Roman");
+            Selection selection = new Selection(new CaretOffset(0), 2);
+            textEditor.SetFontName("Times New Roman", selection);
         }, "设置字体");
     }
 }
