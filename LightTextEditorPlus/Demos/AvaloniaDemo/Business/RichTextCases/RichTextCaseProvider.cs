@@ -21,6 +21,8 @@ partial class RichTextCaseProvider
 {
     private partial void OnInit()
     {
+        AddCommonCase();
+
         Add(editor =>
         {
             // 追加文本

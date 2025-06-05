@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Primitive;
 
 // ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus.Demo.Business.RichTextCases;
@@ -17,17 +18,39 @@ internal partial class RichTextCaseProvider
     public RichTextCaseProvider(ITextEditorProvider textEditorProvider)
     {
         _textEditorProvider = textEditorProvider;
-        AddCommonCase();
         OnInit();
     }
 
     private void AddCommonCase()
     {
+        // 文本和字符属性
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.Text = "Text";
+        }, "直接设置文本内容");
+
         Add(editor =>
         {
             TextEditor textEditor = editor;
             textEditor.AppendText("123");
         }, "追加文本");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            // 换行符用 \n 或 \r\n 都可以，文本库底层会自行处理
+            textEditor.AppendText("123\nabc");
+            textEditor.AppendText("def\r\n123");
+        }, "追加两段文本");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.Text = "abc";
+            textEditor.EditAndReplace("B", new Selection(new CaretOffset(1), 1));
+        }, "替换文本内容");
 
         Add(editor =>
         {
@@ -59,7 +82,80 @@ internal partial class RichTextCaseProvider
             textEditor.AppendText("abc");
             Selection selection = new Selection(new CaretOffset(0), 2);
             textEditor.ToggleBold(selection);
-        }, "设置加粗");
+        }, "开启或关闭加粗");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.AppendText("abc");
+            // 调用 GetAllDocumentSelection 可获取全选的选择范围，注： 这里只获取选择范围，不会将文本选中
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.ToggleItalic(selection);
+        }, "开启或关闭斜体");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.AppendText("abc");
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.ToggleUnderline(selection);
+        }, "开启或关闭下划线");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.AppendText("abc");
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.ToggleStrikethrough(selection);
+        }, "开启或关闭删除线");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.AppendText("abc");
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.ToggleEmphasisDots(selection);
+        }, "开启或关闭着重号");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.AppendText("x2");
+            Selection selection = new Selection(new CaretOffset(1), 1);
+            textEditor.ToggleSuperscript(selection);
+        }, "开启或关闭上标");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.AppendText("x2");
+            Selection selection = new Selection(new CaretOffset(1), 1);
+            textEditor.ToggleSubscript(selection);
+        }, "开启或关闭下标");
+
+        // 段落属性
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.Text = "Text";
+            // 水平居中是段落属性的
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+            {
+                HorizontalTextAlignment = HorizontalTextAlignment.Center
+            });
+        }, "设置文本水平居中");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.Text = "Text";
+            // 水平居右是段落属性的
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+            {
+                HorizontalTextAlignment = HorizontalTextAlignment.Right
+            });
+        }, "设置文本水平居右");
     }
 
     private partial void OnInit();
