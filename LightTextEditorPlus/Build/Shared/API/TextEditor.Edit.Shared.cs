@@ -1,4 +1,4 @@
-#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
+﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
 using System;
 
@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus
 {
@@ -135,7 +136,7 @@ namespace LightTextEditorPlus
         /// </summary>
         /// <param name="caretOffset"></param>
         /// <param name="paragraphProperty"></param>
-        public void SetParagraphProperty(CaretOffset caretOffset, ParagraphProperty paragraphProperty)
+        public void SetParagraphProperty(in CaretOffset caretOffset, ParagraphProperty paragraphProperty)
         {
             TextEditorCore.DocumentManager.SetParagraphProperty(caretOffset, paragraphProperty);
         }
@@ -149,6 +150,30 @@ namespace LightTextEditorPlus
         }
 
         /// <summary>
+        /// 配置更改段落属性。此方法等同于手动调用 <see cref="GetParagraphProperty(in CaretOffset)"/> 获取段落属性，再调用 <see cref="SetParagraphProperty(in LightTextEditorPlus.Core.Carets.CaretOffset,LightTextEditorPlus.Core.Document.ParagraphProperty)"/> 设置段落属性
+        /// </summary>
+        /// <param name="caretOffset"></param>
+        /// <param name="config">传入的样式段落属性为当前准备更改的段落的段落属性</param>
+        public void ConfigParagraphProperty(in CaretOffset caretOffset, CreateParagraphPropertyDelegate config)
+        {
+            ParagraphProperty paragraphProperty = GetParagraphProperty(caretOffset);
+            ParagraphProperty newParagraphProperty = config(paragraphProperty);
+            SetParagraphProperty(in caretOffset, newParagraphProperty);
+        }
+
+        /// <summary>
+        /// 配置更改段落属性。此方法等同于手动调用 <see cref="GetParagraphProperty(ParagraphIndex)"/> 获取段落属性，再调用 <see cref="SetParagraphProperty(ParagraphIndex,LightTextEditorPlus.Core.Document.ParagraphProperty)"/> 设置段落属性
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="config">传入的样式段落属性为当前准备更改的段落的段落属性</param>
+        public void ConfigParagraphProperty(ParagraphIndex index, CreateParagraphPropertyDelegate config)
+        {
+            ParagraphProperty paragraphProperty = GetParagraphProperty(index);
+            ParagraphProperty newParagraphProperty = config(paragraphProperty);
+            SetParagraphProperty(index, newParagraphProperty);
+        }
+
+        /// <summary>
         /// 设置当前光标所在的段落的段落属性
         /// </summary>
         /// <param name="paragraphProperty"></param>
@@ -158,7 +183,7 @@ namespace LightTextEditorPlus
         /// 配置当前光标所在的段落的段落属性
         /// </summary>
         /// <param name="config"></param>
-        public void ConfigCurrentCaretOffsetParagraphProperty(Func<ParagraphProperty, ParagraphProperty> config)
+        public void ConfigCurrentCaretOffsetParagraphProperty(CreateParagraphPropertyDelegate config)
         {
             CaretOffset currentCaretOffset = TextEditorCore.CurrentCaretOffset;
             ParagraphProperty paragraphProperty = GetParagraphProperty(currentCaretOffset);
@@ -180,9 +205,9 @@ namespace LightTextEditorPlus
         /// </summary>
         /// <param name="caretOffset"></param>
         /// <returns></returns>
-        public ParagraphProperty GetParagraphProperty(CaretOffset caretOffset)
+        public ParagraphProperty GetParagraphProperty(in CaretOffset caretOffset)
         {
-            return TextEditorCore.DocumentManager.GetParagraphProperty(caretOffset);
+            return TextEditorCore.DocumentManager.GetParagraphProperty(in caretOffset);
         }
 
         /// <summary>
@@ -203,5 +228,12 @@ namespace LightTextEditorPlus
 
         #endregion
     }
+
+    /// <summary>
+    /// 创建一个新的 <see cref="ParagraphProperty"/> 对象的委托
+    /// </summary>
+    /// <param name="styleRunProperty"></param>
+    /// <returns></returns>
+    public delegate ParagraphProperty CreateParagraphPropertyDelegate(ParagraphProperty styleRunProperty);
 }
 #endif

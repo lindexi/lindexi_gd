@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 
 // ReSharper disable once CheckNamespace
@@ -156,6 +157,26 @@ internal partial class RichTextCaseProvider
                 HorizontalTextAlignment = HorizontalTextAlignment.Right
             });
         }, "设置文本水平居右");
+
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.Text = """
+                              aaa
+                              bbb
+                              ccc
+                              """;
+
+            textEditor.ConfigParagraphProperty(new ParagraphIndex(1), property => property with
+            {
+                HorizontalTextAlignment = HorizontalTextAlignment.Center
+            });
+            textEditor.ConfigParagraphProperty(new ParagraphIndex(2), property => property with
+            {
+                HorizontalTextAlignment = HorizontalTextAlignment.Right
+            });
+        }, "设置指定段落属性");
     }
 
     private partial void OnInit();
