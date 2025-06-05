@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
@@ -365,6 +366,24 @@ class RichTextCaseProvider
                 FontVariant = TextFontVariant.Superscript
             }));
         }, "文本带上标");
+
+        Add(editor =>
+        {
+            editor.UseWpfLineSpacingStyle();
+            editor.SetCurrentCaretOffsetParagraphProperty(editor.StyleParagraphProperty with
+            {
+                LineSpacing = new MultipleTextLineSpace(2)
+            });
+
+            editor.SetFontSize(60);
+            editor.AppendText("x");
+            editor.AppendRun(new SkiaTextRun("2", editor.StyleRunProperty with
+            {
+                // 在当前文本库算法里面，上下标是 1/2 的字号。而 PPT 里面是 2/3 的字号。想要对齐 PPT 的行为，就需要进行以下计算 `字号/ 1/2 * 2/3`
+                FontSize = 60d / (1d / 2d) * (2d / 3d),
+                FontVariant = TextFontVariant.Subscript
+            }));
+        }, "文本带下标");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;

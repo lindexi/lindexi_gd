@@ -756,6 +756,7 @@ abstract class ArrangingLayoutProvider
         if (!charData.RunProperty.FontVariant.IsNormal)
         {
             // 上下标的字号减半
+            // 在 PPT 里面，取的是 2/3 的字号大小，而不是 1/2 的字号大小
             fontSize /= 2;
         }
         // 默认是方块字符
