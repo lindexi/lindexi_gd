@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
+namespace LightTextEditorPlus.Demo.Business.RichTextCases;
 
 class DelegateTextEditorProvider : ITextEditorProvider
 {
