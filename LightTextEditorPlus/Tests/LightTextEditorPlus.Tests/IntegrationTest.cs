@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Diagnostics;
 using System.Text;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -64,6 +65,9 @@ public class IntegrationTest
 
                         if (!result.Success || !result.IsSimilar())
                         {
+#if DEBUG
+                            Debugger.Break();
+#endif
                             await TestFramework.FreezeTestToDebug();
                             throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath, imageFilePath);
                         }
