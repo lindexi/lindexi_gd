@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -14,12 +14,15 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Demo.Business.RichTextCases;
 using LightTextEditorPlus.Utils;
+
 using FlowDirection = System.Windows.FlowDirection;
 using TextRun = System.Windows.Media.TextFormatting.TextRun;
 
@@ -54,6 +57,9 @@ namespace LightTextEditorPlus.Demo
 
             TextEditor.SizeChanged += TextEditor_SizeChanged;
             TextEditor.LayoutUpdated += TextEditor_LayoutUpdated;
+
+            var richTextCaseProvider = new RichTextCaseProvider(() => TextEditor);
+            richTextCaseProvider.Debug();
         }
 
         private void TextEditor_LayoutUpdated(object? sender, EventArgs e)

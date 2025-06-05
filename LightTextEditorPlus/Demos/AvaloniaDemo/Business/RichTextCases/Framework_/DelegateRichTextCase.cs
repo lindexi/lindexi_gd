@@ -1,7 +1,6 @@
-using System;
-using LightTextEditorPlus;
+﻿using System;
 
-namespace LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
+namespace LightTextEditorPlus.Demo.Business.RichTextCases;
 
 class DelegateRichTextCase(Action<TextEditor> action, string name) : IRichTextCase
 {

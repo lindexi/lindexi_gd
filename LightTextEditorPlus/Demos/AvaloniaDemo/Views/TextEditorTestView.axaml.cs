@@ -8,7 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 
-using LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
+using LightTextEditorPlus.Demo.Business.RichTextCases;
 using LightTextEditorPlus.Core.Primitive;
 
 using TextVisionComparer;

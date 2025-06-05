@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -7,6 +7,10 @@
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AvaloniaDemo\Business\RichTextCases\Framework_\*.cs" LinkBase="TextEditorCases\Framework_" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj" />

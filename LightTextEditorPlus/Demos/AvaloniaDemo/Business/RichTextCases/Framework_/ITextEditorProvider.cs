@@ -1,4 +1,4 @@
-namespace LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
+namespace LightTextEditorPlus.Demo.Business.RichTextCases;
 
 interface ITextEditorProvider
 {

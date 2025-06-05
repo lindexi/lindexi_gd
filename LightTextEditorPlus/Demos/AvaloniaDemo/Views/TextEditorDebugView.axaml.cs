@@ -8,9 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-
-using LightTextEditorPlus.AvaloniaDemo.Business;
-using LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
+using LightTextEditorPlus.Demo.Business.RichTextCases;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.FontManagers;
 
