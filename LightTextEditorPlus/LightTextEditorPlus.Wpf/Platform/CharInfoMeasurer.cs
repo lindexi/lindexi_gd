@@ -31,7 +31,11 @@ class CharInfoMeasurer : ICharInfoMeasurer
         var runProperty = currentCharData.RunProperty.AsRunProperty();
 
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
-        var fontSize = currentCharData.RunProperty.FontSize;
+        var fontSize = runProperty.FontSize;
+        if (!runProperty.FontVariant.IsNormal)
+        {
+            fontSize /= 2;
+        }
 
         // 字外框。文字外框，字外框尺寸
         TextSize textFrameSize;

@@ -173,7 +173,14 @@ public class SkiaPlatformResourceManager :
             }
         }
 
-        SKFont renderSkFont = new SKFont(skTypeface, (float) runProperty.FontSize);
+        double fontSize = runProperty.FontSize;
+        if (!runProperty.FontVariant.IsNormal)
+        {
+            // 上下标的字号减半
+            fontSize /= 2;
+        }
+
+        SKFont renderSkFont = new SKFont(skTypeface, (float) fontSize);
         // From Avalonia
         // Ideally the requested edging should be passed to the glyph run.
         // Currently the edging is computed dynamically inside the drawing context, so we can't know it in advance.

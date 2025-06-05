@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
@@ -348,6 +348,17 @@ class RichTextCaseProvider
                 }
             });
         }, "无序项目符号");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(60);
+            editor.AppendText("a");
+            editor.AppendRun(new SkiaTextRun("b", editor.StyleRunProperty with
+            {
+                FontSize = 60,
+                FontVariant = TextFontVariant.Superscript
+            }));
+        }, "文本带上标");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
