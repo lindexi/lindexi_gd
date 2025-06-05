@@ -88,6 +88,24 @@ public class IntegrationTest
         });
     }
 
+#if DEBUG
+    [UIContractTestCase]
+#endif
+    public void RunTestCase()
+    {
+        "调试下，执行一条测试内容".Test(async () =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+
+            var richTextCaseProvider = new RichTextCaseProvider(() => textEditor);
+
+            richTextCaseProvider.Debug();
+
+            await TestFramework.FreezeTestToDebug();
+        });
+    }
+
     private const int TextEditorSize = 600;
 
     public static string? CurrentTestFolder { get; set; }

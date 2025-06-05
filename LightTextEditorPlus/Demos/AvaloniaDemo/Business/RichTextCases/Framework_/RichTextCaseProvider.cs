@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -157,7 +158,6 @@ internal partial class RichTextCaseProvider
                 HorizontalTextAlignment = HorizontalTextAlignment.Right
             });
         }, "设置文本水平居右");
-
 
         Add(editor =>
         {

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -57,7 +57,7 @@ public class TestFramework
                     {
                         Width = 600,
                         Height = 600,
-                        Margin = Thickness(10, 10, 10, 10),
+                        Margin = Thickness(0, 10, 10, 0),
                         HorizontalAlignment = HorizontalAlignment.Left,
                         VerticalAlignment = VerticalAlignment.Stretch,
                     }

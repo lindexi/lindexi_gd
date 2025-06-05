@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
@@ -49,5 +51,45 @@ internal partial class RichTextCaseProvider
 
         // 段落属性
 
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.Text = """
+                              aaa
+                              bbb
+                              ccc
+                              """;
+
+            textEditor.ConfigParagraphProperty(new ParagraphIndex(2), property => property with
+            {
+                LineSpacing = new MultipleTextLineSpace(2)
+            });
+        }, "设置两倍行距");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
+
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            {
+                Indent = 50,
+                IndentType = IndentType.FirstLine,
+            });
+        }, "设置段落首行缩进");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
+            textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            {
+                Indent = 200,
+                IndentType = IndentType.Hanging,
+            });
+        }, "设置段落悬挂缩进");
     }
 }
