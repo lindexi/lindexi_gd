@@ -1,22 +1,47 @@
-using System;
-using LightTextEditorPlus.Core.Attributes;
+﻿using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using System;
 
-namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core;
 
 /// <summary>
-/// 文本的选择扩展
+/// 文本选择扩展方法
 /// </summary>
 public static class TextEditorSelectionExtension
 {
+    /// <summary>
+    /// 全选文本
+    /// </summary>
+    [TextEditorPublicAPI]
+    public static void SelectAll(this TextEditorCore textEditor)
+    {
+        DocumentManager documentManager = textEditor.DocumentManager;
+        var allDocumentSelection = documentManager.GetAllDocumentSelection();
+        textEditor.CaretManager.SetSelection(allDocumentSelection);
+    }
+
+    /// <summary>
+    /// 清空选择
+    /// </summary>
+    [TextEditorPublicAPI]
+    public static void ClearSelection(this TextEditorCore textEditor)
+    {
+        // todo 确认清空选择的时候，光标应该在哪
+
+        var selection = textEditor.CaretManager.CurrentCaretOffset.ToSelection();
+        textEditor.CaretManager.SetSelection(selection);
+    }
+
     /// <summary>
     /// 获取文档开始的光标
     /// </summary>
     /// <param name="textEditor"></param>
     /// <returns></returns>
     [TextEditorPublicAPI]
-    public static CaretOffset GetDocumentStartCaretOffset(this TextEditorCore textEditor) => textEditor.DocumentManager.GetDocumentStartCaretOffset();
+    public static CaretOffset GetDocumentStartCaretOffset
+        (this TextEditorCore textEditor) => textEditor.DocumentManager.GetDocumentStartCaretOffset();
 
     /// <summary>
     /// 获取文档结尾的光标，等于 CharCount 值
@@ -24,7 +49,8 @@ public static class TextEditorSelectionExtension
     /// <param name="textEditor"></param>
     /// <returns></returns>
     [TextEditorPublicAPI]
-    public static CaretOffset GetDocumentEndCaretOffset(this TextEditorCore textEditor) => textEditor.DocumentManager.GetDocumentEndCaretOffset();
+    public static CaretOffset GetDocumentEndCaretOffset
+        (this TextEditorCore textEditor) => textEditor.DocumentManager.GetDocumentEndCaretOffset();
 
     /// <summary>
     /// 获取选择到文档的起始，也就是 0,0 选择范围
@@ -67,7 +93,8 @@ public static class TextEditorSelectionExtension
             // 只有在无选择的情况下才能使用覆盖模式
             // 先获取所在的段落，取当前的输入文本长度和光标到段落的末尾的最小值
             var caretOffset = currentSelection.FrontOffset;
-            HitParagraphDataResult hitParagraphDataResult = textEditor.DocumentManager.ParagraphManager.GetHitParagraphData(caretOffset);
+            HitParagraphDataResult hitParagraphDataResult =
+                textEditor.DocumentManager.ParagraphManager.GetHitParagraphData(caretOffset);
             // 命中到的段落偏移量
             ParagraphCaretOffset hitOffset = hitParagraphDataResult.HitOffset;
             int charCount = hitParagraphDataResult.ParagraphData.CharCount;

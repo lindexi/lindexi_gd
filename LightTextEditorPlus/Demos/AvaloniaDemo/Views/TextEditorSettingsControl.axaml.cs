@@ -143,7 +143,7 @@ public partial class TextEditorSettingsControl : UserControl
         }
         else if (ApplyStyleToTextEditorRadioButton.IsChecked is true)
         {
-            return TextEditor.TextEditorCore.GetAllDocumentSelection();
+            return TextEditor.GetAllDocumentSelection();
         }
 
         return null;
