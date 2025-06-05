@@ -174,7 +174,14 @@ public class IntegrationTestException : AggregateException
 
     private readonly List<(string Name, Exception Exception)> _exceptionList;
 
+    public override string Message => ToText();
+
     public override string ToString()
+    {
+        return ToText();
+    }
+
+    private string ToText()
     {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("IntegrationTest Fail!");
