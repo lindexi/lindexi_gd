@@ -1,4 +1,4 @@
-﻿#if DirectTextEditorDefinition
+﻿#if (!USE_SKIA) || USE_AllInOne
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Document;
 
