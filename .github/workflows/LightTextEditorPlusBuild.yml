@@ -21,7 +21,7 @@ jobs:
     - name: Build
       run: "dotnet build --configuration release LightTextEditorPlus"
     - name: Test
-      run: dotnet test --configuration release LightTextEditorPlus --no-build
+      run: dotnet test --configuration release -v:n --tl:off --logger:"console;verbosity=detailed" --no-build LightTextEditorPlus
     - name: BuildWithAot
       run: dotnet publish -r win-x86 -p:ValidateExecutableReferencesMatchSelfContained=false .\LightTextEditorPlus\Demos\AvaloniaDemo\LightTextEditorPlus.AvaloniaDemo.csproj
 
@@ -43,5 +43,7 @@ jobs:
       run: dotnet build --configuration release LightTextEditorPlus/LightTextEditorPlus.Core/LightTextEditorPlus.Core.csproj
     - name: Build LightTextEditorPlus.AvaloniaDemo
       run: dotnet build --configuration release LightTextEditorPlus/Demos/AvaloniaDemo/LightTextEditorPlus.AvaloniaDemo.csproj
+    - name: BuildWithAot
+      run: dotnet publish -r linux-x64 -p:ValidateExecutableReferencesMatchSelfContained=false .\LightTextEditorPlus\Demos\AvaloniaDemo\LightTextEditorPlus.AvaloniaDemo.csproj
     - name: Test
-      run: dotnet test --configuration release LightTextEditorPlus/Tests/LightTextEditorPlus.Core.Tests/LightTextEditorPlus.Core.Tests.csproj
+      run: dotnet test --configuration release -v:n --tl:off --logger:"console;verbosity=detailed" LightTextEditorPlus/Tests/LightTextEditorPlus.Core.Tests/LightTextEditorPlus.Core.Tests.csproj
