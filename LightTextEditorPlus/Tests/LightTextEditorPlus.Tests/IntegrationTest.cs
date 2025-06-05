@@ -68,6 +68,12 @@ public class IntegrationTest
                             throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath, imageFilePath);
                         }
                     }
+
+                    if (TestFramework.IsDebug())
+                    {
+                        // 调试下，手动关闭
+                        context.TestWindow.Close();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -84,7 +90,7 @@ public class IntegrationTest
 
     private const int TextEditorSize = 600;
 
-    private static string? _currentTestFolder;
+    public static string? CurrentTestFolder { get; set; }
 
     private static string SaveAsImage(TextEditor textEditor, string fileName)
     {
@@ -95,13 +101,13 @@ public class IntegrationTest
         PngBitmapEncoder pngBitmapEncoder = new PngBitmapEncoder();
         pngBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
 
-        if (_currentTestFolder is null)
+        if (CurrentTestFolder is null)
         {
-            _currentTestFolder = Path.Join(AppContext.BaseDirectory, "TestImage", Path.GetRandomFileName());
-            Directory.CreateDirectory(_currentTestFolder);
+            CurrentTestFolder = Path.Join(AppContext.BaseDirectory, "TestImage", Path.GetRandomFileName());
+            Directory.CreateDirectory(CurrentTestFolder);
         }
 
-        var folder = _currentTestFolder;
+        var folder = CurrentTestFolder;
         var file = Path.Join(folder, fileName);
         using FileStream fileStream = File.OpenWrite(file);
         pngBitmapEncoder.Save(fileStream);
@@ -150,6 +156,7 @@ public class IntegrationTestException : AggregateException
     {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("IntegrationTest Fail!");
+        stringBuilder.AppendLine($"Current Image Output Folder: {IntegrationTest.CurrentTestFolder}");
 
         stringBuilder.AppendLine("==========");
 
