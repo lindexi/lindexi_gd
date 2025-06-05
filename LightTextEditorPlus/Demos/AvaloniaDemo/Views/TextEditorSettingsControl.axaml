@@ -215,6 +215,8 @@
           </StackPanel>
         </Grid>
 
+        <CheckBox x:Name="IsAutoEditingModeByFocusCheckBox" IsChecked="True" Content="获取焦点自动进入编辑模式" IsCheckedChanged="IsAutoEditingModeByFocusCheckBox_OnIsCheckedChanged"></CheckBox>
+
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition />
