@@ -25,6 +25,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Demos\LightTextEditorPlus.Demo\LightTextEditorPlus.Demo.csproj" />
     <ProjectReference Include="..\..\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj" />
+    <ProjectReference Include="..\TextVisionComparer\TextVisionComparer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\TestImage\**\*.png" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
 </Project>
