@@ -200,6 +200,7 @@ namespace LightTextEditorPlus.Core.Document
             var isInit = IsInitializingTextEditor();
             if (!isInit)
             {
+                // 可在 ParagraphManager.EnsureFirstParagraphExists 方法打断点，了解是哪个模块提前设置了
                 throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性");
             }
 

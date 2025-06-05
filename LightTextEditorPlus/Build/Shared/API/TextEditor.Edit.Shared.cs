@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus
@@ -130,6 +131,9 @@ namespace LightTextEditorPlus
         #endregion
 
         #region 段落属性
+
+        /// <inheritdoc cref="TextEditorCore.ParagraphList"/>
+        public ReadOnlyParagraphList ParagraphList => TextEditorCore.ParagraphList;
 
         /// <summary>
         /// 设置段落属性
