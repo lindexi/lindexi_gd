@@ -743,7 +743,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 这时候必定这一行需要重新更新渲染，不需要标记脏，这是新加入的布局行
         const bool needUpdateCharLayoutDataVersion = false;
 
-        var lineTop = charLineStartPoint.Y; // 相对于行的坐标，绝大部分情况下应该是 0 的值
+        var lineTop = charLineStartPoint.Y; // 相对于行的坐标，已去掉行距空白
         var currentX = charLineStartPoint.X;
 
         // 求基线的行内偏移量
@@ -772,7 +772,29 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 如此可以实现字体的基线对齐
             double yOffset = maxFontYOffset - charData.Baseline;
 
-            charData.SetLayoutCharLineStartPoint(new TextPointInLineCoordinateSystem(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
+            // 对于上下标来说，不跟随前一个字符的高度决定。由自身的基线决定。决策原因：如果上下标在行首时，应该如何布局？如果跟随前一个字符，在行首时无前一个字符，无法\难以布局。详细请看 `上下标行为.enbx` 文件效果
+            // 当前文本库对上下标处理规则：
+            // 1. 保持和 Word 和 PPT 相同
+            // 2. 不同字号的上下标没有保持基线对齐
+            // 3. 上下标不跟随前一个字符的高度布局
+            // 于是对于上下标来说，需要额外进行 yOffset 高度值的计算
+            IReadOnlyRunProperty runProperty = charData.RunProperty;
+            TextFontVariant fontVariant = runProperty.FontVariant;
+            if (fontVariant.IsNormal)
+            {
+                // 非上下标，无需额外处理
+            }
+            else if (fontVariant.FontVariants == TextFontVariants.Superscript)
+            {
+                yOffset -= runProperty.FontSize * fontVariant.BaselineProportion;
+            }
+            else if (fontVariant.FontVariants == TextFontVariants.Subscript)
+            {
+                yOffset += runProperty.FontSize * fontVariant.BaselineProportion;
+            }
+
+            charData.SetLayoutCharLineStartPoint(
+                new TextPointInLineCoordinateSystem(xOffset, yOffset) /*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {

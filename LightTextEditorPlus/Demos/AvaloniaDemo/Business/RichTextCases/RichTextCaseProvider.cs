@@ -351,6 +351,12 @@ class RichTextCaseProvider
 
         Add(editor =>
         {
+            editor.UseWpfLineSpacingStyle();
+            editor.SetCurrentCaretOffsetParagraphProperty(editor.StyleParagraphProperty with
+            {
+                LineSpacing = new MultipleTextLineSpace(2)
+            });
+
             editor.SetFontSize(60);
             editor.AppendText("a");
             editor.AppendRun(new SkiaTextRun("b", editor.StyleRunProperty with
