@@ -159,6 +159,7 @@ public class VisionCompareResultException(string name, VisionCompareResult resul
                 对比成功: {result.Success}{debugReason}
                 视觉相似:{result.IsSimilar()}
                 视觉相似度:{result.SimilarityValue}
+                不相似的像素数量:{result.DissimilarPixelCount}
                 像素数量:{result.PixelCount}
                 预设图片:{assertImageFilePath}
                 当前状态截图:{imageFilePath}

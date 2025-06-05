@@ -30,10 +30,10 @@ public class VisionComparer
         using Image<Rgba32> image1 = Image.Load<Rgba32>(textImageFile1.FullName);
         using Image<Rgba32> image2 = Image.Load<Rgba32>(textImageFile2.FullName);
 
-        //if (image1.Size != image2.Size)
-        //{
-        //    return VisionCompareResult.FailResult($"两张图片尺寸不相同，不能进行相似比较");
-        //}
+        if (image1.Size != image2.Size)
+        {
+            return VisionCompareResult.FailResult($"两张图片尺寸不相同，不能进行相似比较");
+        }
 
         // 总像素点数量
         int imageWidth = Math.Min(image1.Width, image2.Width);
@@ -66,7 +66,7 @@ public class VisionComparer
                 + (Math.Abs(pixel1.R - pixel2.R))
                 + (Math.Abs(pixel1.G - pixel2.G))
                 + (Math.Abs(pixel1.B - pixel2.B));
-            pixelDistance[n] = distance;
+            pixelDistance[n] = distance / 4;
         });
 
         var mapArray = new BitArray(pixelCount, false);
