@@ -66,7 +66,9 @@ public class VisionComparer
                 + (Math.Abs(pixel1.R - pixel2.R))
                 + (Math.Abs(pixel1.G - pixel2.G))
                 + (Math.Abs(pixel1.B - pixel2.B));
-            pixelDistance[n] = distance / 4;
+            const int countOfArgb = 4;
+            // 距离应该计算到 0-1 之间，除以最大值
+            pixelDistance[n] = distance / (countOfArgb * byte.MaxValue);
         });
 
         var mapArray = new BitArray(pixelCount, false);
@@ -85,7 +87,7 @@ public class VisionComparer
 
         List<VisionCompareRect> list = GetVisionCompareRectList(mapArray, imageWidth, imageHeight);
 
-        double similarityValue = totalDistanceValue / (imageWidth * imageHeight);
+        double similarityValue = 1 - totalDistanceValue / (imageWidth * imageHeight);
         return new VisionCompareResult(true, similarityValue, pixelCount, dissimilarPixelCount, list, "成功");
     }
 
