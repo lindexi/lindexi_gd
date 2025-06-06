@@ -177,6 +177,154 @@ internal partial class RichTextCaseProvider
                 HorizontalTextAlignment = HorizontalTextAlignment.Right
             });
         }, "设置指定段落属性");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+            textEditor.Text = """
+                              aaa
+                              bbb
+                              ccc
+                              """;
+
+            textEditor.ConfigParagraphProperty(new ParagraphIndex(2), property => property with
+            {
+                LineSpacing = new MultipleTextLineSpace(2)
+            });
+        }, "设置两倍行距");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
+
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            {
+                Indent = 50,
+                IndentType = IndentType.FirstLine,
+            });
+        }, "设置段落首行缩进");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
+            textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            {
+                Indent = 200,
+                IndentType = IndentType.Hanging,
+            });
+        }, "设置段落悬挂缩进");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            // 制作两段，方便查看效果
+            string text = new string(Enumerable.Repeat('a', 100).ToArray());
+            textEditor.Text = text;
+            textEditor.AppendText("\n" + text);
+
+            textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            {
+                LeftIndentation = 100
+            });
+        }, "设置段落左侧缩进");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            // 制作两段，方便查看效果
+            string text = new string(Enumerable.Repeat('a', 100).ToArray());
+            textEditor.Text = text;
+            textEditor.AppendText("\n" + text);
+
+            textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
+            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            {
+                RightIndentation = 100
+            });
+        }, "设置段落右侧缩进");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            // 制作三段，方便查看效果
+            string text = new string(Enumerable.Repeat('a', 100).ToArray());
+            textEditor.Text = text;
+            textEditor.AppendText("\n" + text + "\n" + text);
+
+            textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
+            textEditor.ConfigParagraphProperty(new ParagraphIndex(1), paragraphProperty => paragraphProperty with
+            {
+                ParagraphBefore = 100
+            });
+        }, "设置段前间距");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            // 制作三段，方便查看效果
+            string text = new string(Enumerable.Repeat('a', 100).ToArray());
+            textEditor.Text = text;
+            textEditor.AppendText("\n" + text + "\n" + text);
+
+            textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
+            textEditor.ConfigParagraphProperty(new ParagraphIndex(1), paragraphProperty => paragraphProperty with
+            {
+                ParagraphAfter = 100
+            });
+        }, "设置段后间距");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            textEditor.AppendText("a\nb\nc");
+            for (var i = 0; i < textEditor.ParagraphList.Count; i++)
+            {
+                textEditor.ConfigParagraphProperty(new ParagraphIndex(i), paragraphProperty => paragraphProperty with
+                {
+                    Marker = new BulletMarker()
+                    {
+                        MarkerText = "l",
+                        RunProperty = textEditor.CreateRunProperty(runProperty => runProperty with
+                        {
+                            FontName = new FontName("Wingdings"),
+                            FontSize = 15,
+                        })
+                    }
+                });
+            }
+        }, "设置无序项目符号");
+
+        Add(editor =>
+        {
+            TextEditor textEditor = editor;
+
+            textEditor.AppendText("a\nb\nc");
+            var numberMarkerGroupId = new NumberMarkerGroupId();
+            for (var i = 0; i < textEditor.ParagraphList.Count; i++)
+            {
+                textEditor.ConfigParagraphProperty(new ParagraphIndex(i), paragraphProperty =>
+                {
+                    return paragraphProperty with
+                    {
+                        Marker = new NumberMarker()
+                        {
+                            GroupId = numberMarkerGroupId
+                        }
+                    };
+                });
+            }
+        }, "设置有序项目符号");
     }
 
     private partial void OnInit();

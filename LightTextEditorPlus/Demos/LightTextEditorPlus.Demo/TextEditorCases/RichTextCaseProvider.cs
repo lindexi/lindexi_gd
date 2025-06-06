@@ -49,47 +49,72 @@ internal partial class RichTextCaseProvider
             textEditor.EditAndReplaceRun(new ImmutableRun("b", newRunProperty), selection);
         }, "替换带格式文本内容");
 
-        // 段落属性
-
         Add(editor =>
         {
             TextEditor textEditor = editor;
-            textEditor.Text = """
-                              aaa
-                              bbb
-                              ccc
-                              """;
 
-            textEditor.ConfigParagraphProperty(new ParagraphIndex(2), property => property with
-            {
-                LineSpacing = new MultipleTextLineSpace(2)
-            });
-        }, "设置两倍行距");
+            textEditor.Text = "abc";
+            // 选中 'b' 这个字符
+            Selection selection = new Selection(new CaretOffset(1), 1);
+            textEditor.SetForeground(new ImmutableBrush(Brushes.Red), selection);
+        }, "设置文本字符前景色");
 
         Add(editor =>
         {
             TextEditor textEditor = editor;
 
-            textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
-
-            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            RunProperty styleRunProperty = textEditor.StyleRunProperty;
+            textEditor.AppendRun(new ImmutableRun("a", styleRunProperty with
             {
-                Indent = 50,
-                IndentType = IndentType.FirstLine,
-            });
-        }, "设置段落首行缩进");
+                Foreground = new ImmutableBrush(Brushes.Red)
+            }));
+            textEditor.AppendRun(new ImmutableRun("b", styleRunProperty with
+            {
+                Foreground = new ImmutableBrush(Brushes.Green)
+            }));
+            textEditor.AppendRun(new ImmutableRun("c", styleRunProperty with
+            {
+                Foreground = new ImmutableBrush(Brushes.Blue)
+            }));
+
+            // 这是最全的设置文本字符属性的方式
+            textEditor.ConfigRunProperty(runProperty => runProperty with
+            {
+                // 此方式是传入委托，将会进入多次，允许只修改某几个属性，而保留其他原本的字符属性
+                // 如这里没有碰颜色属性，则依然能够保留原本字符的颜色
+                FontSize = 30,
+                FontName = new FontName("Times New Roman"),
+            }, textEditor.GetAllDocumentSelection());
+        }, "配置文本字符属性");
 
         Add(editor =>
         {
             TextEditor textEditor = editor;
 
-            textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
-            textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
-            textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
+            RunProperty styleRunProperty = textEditor.StyleRunProperty;
+            textEditor.AppendRun(new ImmutableRun("a", styleRunProperty with
             {
-                Indent = 200,
-                IndentType = IndentType.Hanging,
+                Foreground = new ImmutableBrush(Brushes.Red)
+            }));
+            textEditor.AppendRun(new ImmutableRun("b", styleRunProperty with
+            {
+                Foreground = new ImmutableBrush(Brushes.Green)
+            }));
+            textEditor.AppendRun(new ImmutableRun("c", styleRunProperty with
+            {
+                Foreground = new ImmutableBrush(Brushes.Blue)
+            }));
+
+            // 这是最全的设置文本字符属性的方式
+            RunProperty runProperty = textEditor.CreateRunProperty(runProperty => runProperty with
+            {
+                // 此方式是传入委托，将会进入多次，允许只修改某几个属性，而保留其他原本的字符属性
+                FontSize = 30,
+                FontName = new FontName("Times New Roman"),
             });
-        }, "设置段落悬挂缩进");
+
+            // 此时会使用 runProperty 覆盖全部的文本字符属性
+            textEditor.SetRunProperty(runProperty, textEditor.GetAllDocumentSelection());
+        }, "设置文本字符属性");
     }
 }

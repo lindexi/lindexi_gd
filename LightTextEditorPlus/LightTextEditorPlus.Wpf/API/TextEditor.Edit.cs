@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
@@ -141,6 +142,20 @@ public partial class TextEditor
     {
         SetRunProperty(config, PropertyType.RunProperty, selection);
     }
+
+    /// <inheritdoc cref="SetRunProperty(LightTextEditorPlus.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/>
+    public void SetRunProperty(RunProperty runProperty, Selection? selection = null)
+    {
+        SetRunProperty(_ => runProperty, PropertyType.RunProperty, selection);
+    }
+
+    /// <summary>  
+    /// 设置文本字符属性。此方法完全等价于 <see cref="SetRunProperty(LightTextEditorPlus.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/> 方法  
+    /// </summary>
+    /// <param name="config"></param>
+    /// <param name="selection"></param>
+    public void ConfigRunProperty(ConfigRunProperty config, Selection? selection = null) 
+        => SetRunProperty(config, selection);
 
     /// <summary>
     /// 设置字体名
