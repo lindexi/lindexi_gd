@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -135,12 +135,12 @@ class RenderManager
         }
 
         DocumentLayoutBounds layoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
-        TextRect documentLayoutBounds = layoutBounds.DocumentOutlineBounds;
+        TextRect documentOutlineBounds = layoutBounds.DocumentOutlineBounds;
 
-        var textWidth = (float) documentLayoutBounds.Width;
-        var textHeight = (float) documentLayoutBounds.Height;
+        var textWidth = (float) documentOutlineBounds.Width;
+        var textHeight = (float) documentOutlineBounds.Height;
 
-        TextRect renderBounds = documentLayoutBounds;
+        TextRect renderBounds = documentOutlineBounds;
 
         using SKPictureRecorder skPictureRecorder = new SKPictureRecorder();
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -91,6 +91,11 @@ public partial class TextEditorDebugView : UserControl
 
     private void DebugButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        //TextEditor.SkiaTextEditor.SaveAsImageFile("1.png");
+        SkiaTextEditor skiaTextEditor = new SkiaTextEditor();
+        skiaTextEditor.AppendText("123");
+        skiaTextEditor.SaveAsImageFile("1.png");
+
         _ = _richTextCaseProvider;
         TextEditor.TextEditorCore.DebugRequireReUpdateAllDocumentLayout();
 

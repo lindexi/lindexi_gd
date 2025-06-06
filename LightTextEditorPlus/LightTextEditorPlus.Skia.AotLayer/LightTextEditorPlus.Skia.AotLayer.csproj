@@ -10,7 +10,10 @@
     <PublishAot>true</PublishAot>
     <NativeLib>Shared</NativeLib>
 
+    <RootNamespace>LightTextEditorPlus</RootNamespace>
     <AssemblyName>LightTextEditorPlus</AssemblyName>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
