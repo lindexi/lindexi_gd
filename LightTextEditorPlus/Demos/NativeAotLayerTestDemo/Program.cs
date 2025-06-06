@@ -2,6 +2,11 @@
 
 using System.Runtime.InteropServices;
 
+if (Environment.Is64BitProcess)
+{
+    Console.WriteLine($"当前引用的是 x86 版本，不能使用 x64 方式运行");
+}
+
 Console.WriteLine(Environment.Is64BitProcess);
 CreateTextEditor();
 /*
@@ -9,5 +14,5 @@ System.DllNotFoundException:“Unable to load DLL 'CreateTextEditor' or one of i
  */
 Console.WriteLine("Hello, World!");
 
-[DllImport("LightTextEditorPlus.Skia.AotLayer.dll")]
+[DllImport("LightTextEditorPlus.dll")]
 static extern uint CreateTextEditor();
