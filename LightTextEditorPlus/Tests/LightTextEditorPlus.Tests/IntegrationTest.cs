@@ -9,6 +9,7 @@ using dotnetCampus.UITest.WPF;
 
 using LightTextEditorPlus.Demo.Business.RichTextCases;
 
+using MSTest.Extensions.AssertExtensions;
 using MSTest.Extensions.Contracts;
 
 using TextVisionComparer;
@@ -145,6 +146,24 @@ public class IntegrationTest
             return TextEditor;
         }
     }
+
+    /// <summary>
+    /// 测试对比算法，这里只当成调试用
+    /// </summary>
+    [TestMethod]
+    public void TestVisionComparer()
+    {
+        var assertImageFolder = Path.Join(AppContext.BaseDirectory, "Assets", "TestImage");
+        var assertImageFilePath1 = Path.Join(assertImageFolder, "设置段落悬挂缩进.png");
+        var assertImageFilePath2 = Path.Join(assertImageFolder, "设置段落首行缩进.png");
+
+        VisionComparer visionComparer = new VisionComparer();
+        VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath1), new FileInfo(assertImageFilePath2));
+
+        double similarityValue = result.SimilarityValue;
+        Assert.IsTrue(similarityValue < 1);
+        Assert.IsFalse(result.IsSimilar());
+    }
 }
 
 public class VisionCompareResultException(string name, VisionCompareResult result, string assertImageFilePath, string imageFilePath) : Exception
@@ -153,6 +172,13 @@ public class VisionCompareResultException(string name, VisionCompareResult resul
     {
         var debugReason = result.Success ? "" : $"\r\n对比的调试原因:{result.DebugReason}";
 
+        var maxSize = 0;
+        foreach (VisionCompareRect visionCompareRect in result.CompareRectList)
+        {
+            var size = visionCompareRect.Width * visionCompareRect.Height;
+            maxSize = Math.Max(size, maxSize);
+        }
+
         return $"""
                 图片视觉对比失败
                 测试用例: {name}
@@ -160,6 +186,7 @@ public class VisionCompareResultException(string name, VisionCompareResult resul
                 视觉相似:{result.IsSimilar()}
                 视觉相似度:{result.SimilarityValue}
                 不相似的像素数量:{result.DissimilarPixelCount}
+                最大不相似区域大小:{maxSize}
                 像素数量:{result.PixelCount}
                 预设图片:{assertImageFilePath}
                 当前状态截图:{imageFilePath}

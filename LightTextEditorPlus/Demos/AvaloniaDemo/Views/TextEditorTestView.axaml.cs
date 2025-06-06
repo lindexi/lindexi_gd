@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -10,7 +11,7 @@ using Avalonia.Media.Imaging;
 
 using LightTextEditorPlus.Demo.Business.RichTextCases;
 using LightTextEditorPlus.Core.Primitive;
-
+using SkiaSharp;
 using TextVisionComparer;
 
 using Path = System.IO.Path;
