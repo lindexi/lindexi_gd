@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>x86</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\LightTextEditorPlus.Skia.AotLayer\NativeTextEditor.cs" Link="NativeTextEditor.cs" />
+    <Compile Include="..\..\LightTextEditorPlus.Skia.AotLayer\NativeTextEditors\**\*.cs" LinkBase="NativeTextEditors" />
   </ItemGroup>
 
 </Project>

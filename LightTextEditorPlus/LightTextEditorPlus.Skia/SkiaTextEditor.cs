@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -200,6 +201,23 @@ public partial class SkiaTextEditor : IRenderManager
     public SkiaTextEditorDebugConfiguration DebugConfiguration { get; }
 
     #endregion
+
+    /// <summary>
+    /// 存放到图片文件
+    /// </summary>
+    /// <param name="filePath"></param>
+    public void SaveAsImageFile(string filePath)
+    {
+        ITextEditorContentSkiaRender textRender = GetCurrentTextRender();
+        TextRect bounds = textRender.RenderBounds;
+        using var skBitmap = new SKBitmap((int) bounds.Width, (int) bounds.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+        using SKCanvas skCanvas = new SKCanvas(skBitmap);
+
+        textRender.Render(skCanvas);
+
+        using FileStream fileStream = File.OpenWrite(filePath);
+        skBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+    }
 }
 
 /// <summary>
