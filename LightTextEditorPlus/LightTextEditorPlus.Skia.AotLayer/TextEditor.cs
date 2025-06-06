@@ -20,6 +20,10 @@ internal class TextEditor : SkiaTextEditor
 
     private readonly NativeTextEditorPlatformProvider _platformProvider;
 
+    /// <summary>
+    /// 创建文本编辑器
+    /// </summary>
+    /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "CreateTextEditor")]
     public static uint CreateTextEditor()
     {
@@ -30,6 +34,11 @@ internal class TextEditor : SkiaTextEditor
         return id;
     }
 
+    /// <summary>
+    /// 释放文本编辑器
+    /// </summary>
+    /// <param name="textEditorId"></param>
+    /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "FreeTextEditor")]
     public static int FreeTextEditor(uint textEditorId)
     {
@@ -43,6 +52,12 @@ internal class TextEditor : SkiaTextEditor
         }
     }
 
+    /// <summary>
+    /// 设置文档宽度
+    /// </summary>
+    /// <param name="textEditorId"></param>
+    /// <param name="documentWidth"></param>
+    /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "SetDocumentWidth")]
     public static int SetDocumentWidth(uint textEditorId, double documentWidth)
     {
@@ -60,6 +75,12 @@ internal class TextEditor : SkiaTextEditor
         return ErrorCode.Success;
     }
 
+    /// <summary>
+    /// 设置文档高度
+    /// </summary>
+    /// <param name="textEditorId"></param>
+    /// <param name="documentHeight"></param>
+    /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "SetDocumentHeight")]
     public static int SetDocumentHeight(uint textEditorId, double documentHeight)
     {
@@ -102,6 +123,13 @@ internal class TextEditor : SkiaTextEditor
         return ErrorCode.Success;
     }
 
+    /// <summary>
+    /// 将文本编辑器的内容保存为图片文件
+    /// </summary>
+    /// <param name="textEditorId"></param>
+    /// <param name="unicode16FilePath"></param>
+    /// <param name="charCountOfFilePath"></param>
+    /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "SaveAsImageFile")]
     public static int SaveAsImageFile(uint textEditorId, IntPtr unicode16FilePath, int charCountOfFilePath)
     {
