@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,10 +10,20 @@ namespace LightTextEditorPlus.Skia.AotLayer;
 
 internal static class TextEditor
 {
-    [UnmanagedCallersOnly(EntryPoint = "GetSystemInfoWrite")]
-    public static void GetSystemInfo()
+    [UnmanagedCallersOnly(EntryPoint = "CreateTextEditor")]
+    public static uint CreateTextEditor()
     {
-        Console.WriteLine($"ProcessorCount: {Environment.ProcessorCount}");
-        Console.WriteLine($"MachineName: {Environment.MachineName}");
+        var skiaTextEditor = new SkiaTextEditor();
+        uint id = Interlocked.Increment(ref _id);
+
+        Console.WriteLine($"SkiaTextEditor={id}");
+
+        SkiaTextEditorDictionary[id] = skiaTextEditor;
+        return id;
     }
+
+
+    private static uint _id = 0;
+
+    private static readonly ConcurrentDictionary<uint/*Id*/, SkiaTextEditor> SkiaTextEditorDictionary = new ConcurrentDictionary<uint, SkiaTextEditor>();
 }
