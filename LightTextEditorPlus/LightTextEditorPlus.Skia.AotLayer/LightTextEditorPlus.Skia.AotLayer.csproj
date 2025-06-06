@@ -9,6 +9,8 @@
 
     <PublishAot>true</PublishAot>
     <NativeLib>Shared</NativeLib>
+
+    <AssemblyName>LightTextEditorPlus</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
