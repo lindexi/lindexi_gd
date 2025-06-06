@@ -5,11 +5,15 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Platforms>AnyCPU;x86;x64</Platforms>
+    <Platforms>x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Skia.AotLayer\bin\Release\net9.0\win-x86\publish\*.dll" LinkBase="" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\LightTextEditorPlus.Skia.AotLayer\bin\Release\net9.0\win-x86\publish\*.dll" LinkBase="" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\LightTextEditorPlus.Skia.AotLayer\NativeTextEditor.cs" Link="NativeTextEditor.cs" />
   </ItemGroup>
 
 </Project>
