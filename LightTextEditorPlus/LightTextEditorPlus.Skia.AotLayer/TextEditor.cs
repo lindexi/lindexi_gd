@@ -3,15 +3,16 @@ using System.Runtime.InteropServices;
 
 namespace LightTextEditorPlus;
 
-internal static class TextEditor
+// 发布命令： dotnet publish -r win-x86
+// 自动进行 AOT 方式发布 Native Dll 文件
+
+internal class TextEditor
 {
     [UnmanagedCallersOnly(EntryPoint = "CreateTextEditor")]
     public static uint CreateTextEditor()
     {
         var skiaTextEditor = new SkiaTextEditor();
         uint id = Interlocked.Increment(ref _id);
-
-        Console.WriteLine($"SkiaTextEditor={id}");
 
         SkiaTextEditorDictionary[id] = skiaTextEditor;
         return id;
@@ -30,6 +31,40 @@ internal static class TextEditor
         }
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "SetDocumentWidth")]
+    public static int SetDocumentWidth(uint textEditorId, double documentWidth)
+    {
+        if (!SkiaTextEditorDictionary.TryGetValue(textEditorId, out var textEditor))
+        {
+            if (textEditorId < _id)
+            {
+                return ErrorCode.TextEditorBeFree;
+            }
+
+            return ErrorCode.TextEditorNotFound;
+        }
+
+        textEditor.TextEditorCore.DocumentManager.DocumentWidth = documentWidth;
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetDocumentHeight")]
+    public static int SetDocumentHeight(uint textEditorId, double documentHeight)
+    {
+        if (!SkiaTextEditorDictionary.TryGetValue(textEditorId, out var textEditor))
+        {
+            if (textEditorId < _id)
+            {
+                return ErrorCode.TextEditorBeFree;
+            }
+
+            return ErrorCode.TextEditorNotFound;
+        }
+
+        textEditor.TextEditorCore.DocumentManager.DocumentHeight = documentHeight;
+        return ErrorCode.Success;
+    }
+
     /// <summary>
     /// 追加文本到指定的文本编辑器中
     /// </summary>
@@ -43,16 +78,16 @@ internal static class TextEditor
         {
             if (textEditorId < _id)
             {
-                return ErrorCode.TextEditorBeFree.Code;
+                return ErrorCode.TextEditorBeFree;
             }
 
-            return ErrorCode.TextEditorNotFound.Code;
+            return ErrorCode.TextEditorNotFound;
         }
 
         string text = Marshal.PtrToStringUni(unicode16Text, charCount);
         textEditor.AppendText(text);
 
-        return ErrorCode.Success.Code;
+        return ErrorCode.Success;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "SaveAsImageFile")]
@@ -60,7 +95,7 @@ internal static class TextEditor
     {
         if (!SkiaTextEditorDictionary.TryGetValue(textEditorId, out var textEditor))
         {
-            return ErrorCode.TextEditorNotFound.Code;
+            return ErrorCode.TextEditorNotFound;
         }
 
         string filePath = Marshal.PtrToStringUni(unicode16FilePath, charCountOfFilePath);
@@ -73,7 +108,7 @@ internal static class TextEditor
 
         Console.WriteLine($"将文本框画面保存到图片文件");
 
-        return ErrorCode.Success.Code;
+        return ErrorCode.Success;
     }
 
     private static uint _id = 0;
