@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Runtime.InteropServices;
+using LightTextEditorPlus;
 
 if (Environment.Is64BitProcess)
 {
@@ -8,11 +8,8 @@ if (Environment.Is64BitProcess)
 }
 
 Console.WriteLine(Environment.Is64BitProcess);
-CreateTextEditor();
+NativeTextEditor.CreateTextEditor();
 /*
 System.DllNotFoundException:“Unable to load DLL 'CreateTextEditor' or one of its dependencies: 找不到指定的模块。 (0x8007007E)”
  */
 Console.WriteLine("Hello, World!");
-
-[DllImport("LightTextEditorPlus.dll")]
-static extern uint CreateTextEditor();

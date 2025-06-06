@@ -12,4 +12,8 @@
     <None Include="..\..\LightTextEditorPlus.Skia.AotLayer\bin\Release\net9.0\win-x86\publish\*.dll" LinkBase="" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\LightTextEditorPlus.Skia.AotLayer\NativeTextEditor.cs" Link="NativeTextEditor.cs" />
+  </ItemGroup>
+
 </Project>
