@@ -8,233 +8,96 @@ string inputCode =
     Add(editor =>
     {
         TextEditor textEditor = editor;
-        textEditor.AppendText("abc");
-        Selection selection = textEditor.GetAllDocumentSelection();
-        textEditor.ToggleUnderline(selection);
-    }, "开启或关闭下划线");
+        textEditor.AppendRun(new ImmutableRun("abc", textEditor.CreateRunProperty(property => property with
+        {
+            FontSize = 90,
+            FontName = new FontName("Times New Roman"),
+            FontWeight = FontWeights.Bold,
+            DecorationCollection = TextEditorDecorations.Strikethrough
+        })));
+    }, "追加带格式的文本");
     
     Add(editor =>
     {
         TextEditor textEditor = editor;
-        textEditor.AppendText("abc");
-        Selection selection = textEditor.GetAllDocumentSelection();
-        textEditor.ToggleStrikethrough(selection);
-    }, "开启或关闭删除线");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-        textEditor.AppendText("abc");
-        Selection selection = textEditor.GetAllDocumentSelection();
-        textEditor.ToggleEmphasisDots(selection);
-    }, "开启或关闭着重号");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-        textEditor.AppendText("x2");
+        textEditor.Text = "abc";
+        // 选中 'b' 这个字符
         Selection selection = new Selection(new CaretOffset(1), 1);
-        textEditor.ToggleSuperscript(selection);
-    }, "开启或关闭上标");
+        RunProperty newRunProperty = textEditor.CreateRunProperty(property => property with
+        {
+            FontSize = 90,
+            Foreground = new ImmutableBrush(Brushes.Red)
+        });
+        textEditor.EditAndReplaceRun(new ImmutableRun("b", newRunProperty), selection);
+    }, "替换带格式文本内容");
     
     Add(editor =>
     {
         TextEditor textEditor = editor;
-        textEditor.AppendText("x2");
+    
+        textEditor.Text = "abc";
+        // 选中 'b' 这个字符
         Selection selection = new Selection(new CaretOffset(1), 1);
-        textEditor.ToggleSubscript(selection);
-    }, "开启或关闭下标");
-    
-    // 段落属性
+        textEditor.SetForeground(new ImmutableBrush(Brushes.Red), selection);
+    }, "设置文本字符前景色");
     
     Add(editor =>
     {
         TextEditor textEditor = editor;
-        textEditor.Text = "Text";
-        // 水平居中是段落属性的
-        textEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+    
+        RunProperty styleRunProperty = textEditor.StyleRunProperty;
+        textEditor.AppendRun(new ImmutableRun("a", styleRunProperty with
         {
-            HorizontalTextAlignment = HorizontalTextAlignment.Center
+            Foreground = new ImmutableBrush(Brushes.Red)
+        }));
+        textEditor.AppendRun(new ImmutableRun("b", styleRunProperty with
+        {
+            Foreground = new ImmutableBrush(Brushes.Green)
+        }));
+        textEditor.AppendRun(new ImmutableRun("c", styleRunProperty with
+        {
+            Foreground = new ImmutableBrush(Brushes.Blue)
+        }));
+    
+        // 这是最全的设置文本字符属性的方式
+        textEditor.ConfigRunProperty(runProperty => runProperty with
+        {
+            // 此方式是传入委托，将会进入多次，允许只修改某几个属性，而保留其他原本的字符属性
+            // 如这里没有碰颜色属性，则依然能够保留原本字符的颜色
+            FontSize = 30,
+            FontName = new FontName("Times New Roman"),
+        }, textEditor.GetAllDocumentSelection());
+    }, "配置文本字符属性");
+    
+    Add(editor =>
+    {
+        TextEditor textEditor = editor;
+    
+        RunProperty styleRunProperty = textEditor.StyleRunProperty;
+        textEditor.AppendRun(new ImmutableRun("a", styleRunProperty with
+        {
+            Foreground = new ImmutableBrush(Brushes.Red)
+        }));
+        textEditor.AppendRun(new ImmutableRun("b", styleRunProperty with
+        {
+            Foreground = new ImmutableBrush(Brushes.Green)
+        }));
+        textEditor.AppendRun(new ImmutableRun("c", styleRunProperty with
+        {
+            Foreground = new ImmutableBrush(Brushes.Blue)
+        }));
+    
+        // 这是最全的设置文本字符属性的方式
+        RunProperty runProperty = textEditor.CreateRunProperty(runProperty => runProperty with
+        {
+            // 此方式是传入委托，将会进入多次，允许只修改某几个属性，而保留其他原本的字符属性
+            FontSize = 30,
+            FontName = new FontName("Times New Roman"),
         });
-    }, "设置文本水平居中");
     
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-        textEditor.Text = "Text";
-        // 水平居右是段落属性的
-        textEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
-        {
-            HorizontalTextAlignment = HorizontalTextAlignment.Right
-        });
-    }, "设置文本水平居右");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-        textEditor.Text = """
-                          aaa
-                          bbb
-                          ccc
-                          """;
-    
-        textEditor.ConfigParagraphProperty(new ParagraphIndex(1), property => property with
-        {
-            HorizontalTextAlignment = HorizontalTextAlignment.Center
-        });
-        textEditor.ConfigParagraphProperty(new ParagraphIndex(2), property => property with
-        {
-            HorizontalTextAlignment = HorizontalTextAlignment.Right
-        });
-    }, "设置指定段落属性");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-        textEditor.Text = """
-                          aaa
-                          bbb
-                          ccc
-                          """;
-    
-        textEditor.ConfigParagraphProperty(new ParagraphIndex(2), property => property with
-        {
-            LineSpacing = new MultipleTextLineSpace(2)
-        });
-    }, "设置两倍行距");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
-    
-        textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
-        {
-            Indent = 50,
-            IndentType = IndentType.FirstLine,
-        });
-    }, "设置段落首行缩进");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        textEditor.Text = new string(Enumerable.Repeat('a', 100).ToArray());
-        textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
-        textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
-        {
-            Indent = 200,
-            IndentType = IndentType.Hanging,
-        });
-    }, "设置段落悬挂缩进");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        // 制作两段，方便查看效果
-        string text = new string(Enumerable.Repeat('a', 100).ToArray());
-        textEditor.Text = text;
-        textEditor.AppendText("\n" + text);
-    
-        textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
-        textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
-        {
-            LeftIndentation = 100
-        });
-    }, "设置段落左侧缩进");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        // 制作两段，方便查看效果
-        string text = new string(Enumerable.Repeat('a', 100).ToArray());
-        textEditor.Text = text;
-        textEditor.AppendText("\n" + text);
-    
-        textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
-        textEditor.ConfigCurrentCaretOffsetParagraphProperty(paragraphProperty => paragraphProperty with
-        {
-            RightIndentation = 100
-        });
-    }, "设置段落右侧缩进");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        // 制作三段，方便查看效果
-        string text = new string(Enumerable.Repeat('a', 100).ToArray());
-        textEditor.Text = text;
-        textEditor.AppendText("\n" + text + "\n" + text);
-    
-        textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
-        textEditor.ConfigParagraphProperty(new ParagraphIndex(1), paragraphProperty => paragraphProperty with
-        {
-            ParagraphBefore = 100
-        });
-    }, "设置段前间距");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        // 制作三段，方便查看效果
-        string text = new string(Enumerable.Repeat('a', 100).ToArray());
-        textEditor.Text = text;
-        textEditor.AppendText("\n" + text + "\n" + text);
-    
-        textEditor.SetFontSize(20, textEditor.GetAllDocumentSelection());
-        textEditor.ConfigParagraphProperty(new ParagraphIndex(1), paragraphProperty => paragraphProperty with
-        {
-            ParagraphAfter = 100
-        });
-    }, "设置段后间距");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        textEditor.AppendText("a\nb\nc");
-        for (var i = 0; i < textEditor.ParagraphList.Count; i++)
-        {
-            textEditor.ConfigParagraphProperty(new ParagraphIndex(i), paragraphProperty => paragraphProperty with
-            {
-                Marker = new BulletMarker()
-                {
-                    MarkerText = "l",
-                    RunProperty = textEditor.CreateRunProperty(runProperty => runProperty with
-                    {
-                        FontName = new FontName("Wingdings"),
-                        FontSize = 15,
-                    })
-                }
-            });
-        }
-    }, "设置无序项目符号");
-    
-    Add(editor =>
-    {
-        TextEditor textEditor = editor;
-    
-        textEditor.AppendText("a\nb\nc");
-        var numberMarkerGroupId = new NumberMarkerGroupId();
-        for (var i = 0; i < textEditor.ParagraphList.Count; i++)
-        {
-            textEditor.ConfigParagraphProperty(new ParagraphIndex(i), paragraphProperty =>
-            {
-                return paragraphProperty with
-                {
-                    Marker = new NumberMarker()
-                    {
-                        GroupId = numberMarkerGroupId
-                    }
-                };
-            });
-        }
-    }, "设置有序项目符号");
+        // 此时会使用 runProperty 覆盖全部的文本字符属性
+        textEditor.SetRunProperty(runProperty, textEditor.GetAllDocumentSelection());
+    }, "设置文本字符属性");
     """";
 
 var subCode = new StringBuilder();
