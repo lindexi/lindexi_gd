@@ -45,7 +45,7 @@ internal partial class RichTextCaseProvider
             // 换行符用 \n 或 \r\n 都可以，文本库底层会自行处理
             textEditor.AppendText("123\nabc");
             textEditor.AppendText("def\r\n123");
-        }, "追加两段文本");
+        }, "追加几段文本");
 
         Add(editor =>
         {
