@@ -1,3 +1,4 @@
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -5,9 +6,12 @@ using System.Windows.Media;
 using CSharpMarkup.Wpf;
 
 using dotnetCampus.UITest.WPF;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Demo;
-
+using LightTextEditorPlus.Document;
 using MSTest.Extensions.Contracts;
 
 using static CSharpMarkup.Wpf.Helpers;
@@ -149,6 +153,46 @@ public class TextEditorTest
             textEditor.TextEditorCore.AppendText("123");
 
             await TestFramework.FreezeTestToDebug();
+        });
+    }
+
+    [UIContractTestCase]
+    public void TestParagraphList()
+    {
+        "添加三段文本，获取当前的所有段落数据信息，可以获取到三段内容".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+
+            textEditor.Text = "a\nb\nc";
+
+            ReadOnlyParagraphList paragraphList = textEditor.ParagraphList;
+
+            Assert.AreEqual(3, paragraphList.Count);
+            for (var i = 0; i < paragraphList.Count; i++)
+            {
+                ITextParagraph textEditorParagraph = paragraphList[i];
+                Assert.AreEqual(i, textEditorParagraph.Index.Index);
+
+                // 获取字符数量
+                Assert.AreEqual(1, textEditorParagraph.CharCount);
+
+                // 获取段落文本内容
+                var expectedChar = (char) ('a' + i);
+                Assert.AreEqual(expectedChar.ToString(), textEditorParagraph.GetText());
+
+                // 获取字符带字符属性的内容
+                foreach (CharInfo charInfo in textEditorParagraph.GetParagraphCharInfoList())
+                {
+                    ICharObject charObject = charInfo.CharObject;
+                    Utf32CodePoint utf32CodePoint = charObject.CodePoint;
+                    Rune rune = utf32CodePoint.Rune;
+                    
+                    // 在这个单元测试里面，只有一个字符，可以放心使用以下判断
+                    Assert.AreEqual(new Rune(expectedChar), rune);
+                    Assert.AreEqual(expectedChar.ToString(), charObject.ToText());
+                }
+            }
         });
     }
 }

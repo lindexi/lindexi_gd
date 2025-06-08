@@ -185,6 +185,11 @@ class ParagraphData : ITextParagraph
     /// <inheritdoc />
     public TextReadOnlyListSpan<CharData> GetParagraphCharDataList() => ToReadOnlyListSpan(new ParagraphCharOffset(0));
 
+    IReadOnlyList<CharInfo> ITextParagraph.GetParagraphCharInfoList()
+    {
+        return CharDataExtensions.ToCharInfoList(GetParagraphCharDataList());
+    }
+
     /// <summary>
     /// 获取字符列表
     /// </summary>
