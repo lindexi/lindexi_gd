@@ -3,10 +3,11 @@
 
 using System.ComponentModel;
 using System.Diagnostics;
-using MS.Internal;
+using System.Windows;
 using System.Windows.Media;
+using MS.Internal;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows
 {
     [Serializable]
     [TypeConverter(typeof(RectConverter))]
@@ -44,7 +45,7 @@ namespace System.Windows
         {
             if (width < 0 || height < 0)
             {
-                throw new System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
+                throw new global::System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
             }
 
             _x    = x;
@@ -144,7 +145,7 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
                 
                 _x = value._x;
@@ -173,7 +174,7 @@ namespace System.Windows
                 {
                     if (IsEmpty)
                     {
-                        throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                        throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                     }
 
                     _width = value._width;
@@ -197,7 +198,7 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 _x = value;
@@ -219,7 +220,7 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 _y = value;
@@ -241,12 +242,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
                                 
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_WidthCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_WidthCannotBeNegative);
                 }
 
                 _width = value;
@@ -268,12 +269,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_HeightCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_HeightCannotBeNegative);
                 }
 
                 _height = value;
@@ -578,7 +579,7 @@ namespace System.Windows
         {
             if (IsEmpty)
             {
-                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x += offsetVector._x;
@@ -593,7 +594,7 @@ namespace System.Windows
         {
             if (IsEmpty)
             {
-                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x += offsetX;
@@ -638,7 +639,7 @@ namespace System.Windows
         {
             if (IsEmpty)
             {
-                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x -= width;

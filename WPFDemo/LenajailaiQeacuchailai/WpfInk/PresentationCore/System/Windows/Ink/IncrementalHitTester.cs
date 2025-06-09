@@ -14,7 +14,7 @@ using MS.Internal.Ink;
 using MS.Utility;
 using MS.Internal;
 using System.Diagnostics;
-
+using WpfInk.PresentationCore.System.Windows;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 

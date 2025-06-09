@@ -21,7 +21,7 @@ using MS.Internal;
 using MS.Internal.Ink;
 using System.Reflection;
 using System.Windows.Input;
-
+using WpfInk.PresentationCore.System.Windows;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 

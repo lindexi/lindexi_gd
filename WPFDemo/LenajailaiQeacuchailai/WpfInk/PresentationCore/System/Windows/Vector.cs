@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Media;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows
 {
     [Serializable]
     [TypeConverter(typeof(VectorConverter))]

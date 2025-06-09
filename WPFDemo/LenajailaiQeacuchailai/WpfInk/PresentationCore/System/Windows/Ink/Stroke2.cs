@@ -20,6 +20,7 @@ using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 using MS.Internal.PresentationCore;
 using MS.Internal.YourAssemblyName;
+using WpfInk.PresentationCore.System.Windows;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 

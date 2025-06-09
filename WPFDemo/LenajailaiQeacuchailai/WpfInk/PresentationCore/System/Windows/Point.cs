@@ -8,15 +8,13 @@
 // Please see MilCodeGen.html for more information.
 //
 
-using MS.Internal;
 using System.ComponentModel;
-using System.Globalization;
-using System.Windows.Markup;
+using System.Windows;
 using System.Windows.Media;
 
 //using System.Windows.Converters;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows
 {
     [Serializable]
     [TypeConverter(typeof(PointConverter))]

@@ -18,6 +18,7 @@ using MS.Internal;
 using MS.Internal.PresentationCore;
 using MS.Internal.YourAssemblyName;
 using WpfInk.API;
+using WpfInk.PresentationCore.System.Windows;
 
 namespace MS.Internal.Ink
 {

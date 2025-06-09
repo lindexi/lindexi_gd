@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.ComponentModel;
+using System.Windows;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows
 {
     [Serializable]
     [TypeConverter(typeof(SizeConverter))]
@@ -20,7 +21,7 @@ namespace System.Windows
         {
             if (width < 0 || height < 0)
             {
-                throw new System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
+                throw new global::System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
             }
 
             _width = width;
@@ -74,12 +75,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
+                    throw new global::System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
                 }
                     
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_WidthCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_WidthCannotBeNegative);
                 }
 
                 _width = value;
@@ -99,12 +100,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
+                    throw new global::System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
                 }
                     
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_HeightCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_HeightCannotBeNegative);
                 }
 
                 _height = value;
