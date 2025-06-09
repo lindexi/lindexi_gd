@@ -53,7 +53,4 @@ public interface ITextParagraph
     /// </summary>
     /// <returns></returns>
     TextReadOnlyListSpan<CharData> GetParagraphCharDataList();
-
-    ///// <inheritdoc cref="GetParagraphCharDataList"/>
-    //IReadOnlyList<CharInfo> GetParagraphCharInfoList();
 }
