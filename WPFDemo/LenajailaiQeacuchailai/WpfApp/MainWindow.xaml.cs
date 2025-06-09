@@ -9,6 +9,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using WpfApp.InkDataModels;
+
 namespace WpfApp;
 
 /// <summary>
@@ -19,5 +21,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ArrayOfArrayOfInkDataModel.ReadFromFile(@"Assets\Ink.xml");
     }
 }
