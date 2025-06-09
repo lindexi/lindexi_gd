@@ -26,7 +26,7 @@ namespace MS.Internal.Ink
     /// An internal utility class that knows how to render a stroke
     /// into an Avalon's DrawingContext.
     /// </summary>
-    internal static class StrokeRenderer
+    public static class StrokeRenderer
     {
         #region Static API
 
@@ -39,7 +39,7 @@ namespace MS.Internal.Ink
         /// strokenodes is very expensive later when MIL renders it, so this method has been optimized
         /// to only add strokenodes when either pressure changes, or the angle of the stroke changes.
         /// </summary>
-        internal static void CalcGeometryAndBoundsWithTransform(StrokeNodeIterator iterator,
+        public static void CalcGeometryAndBoundsWithTransform(StrokeNodeIterator iterator,
                                                                DrawingAttributes drawingAttributes,
                                                                MatrixTypes stylusTipMatrixType,
                                                                bool calculateBounds,
@@ -207,7 +207,7 @@ namespace MS.Internal.Ink
         /// to only add strokenodes when either pressure changes, or the angle of the stroke changes.
         /// </summary>
         [FriendAccessAllowed]
-        internal static void CalcGeometryAndBounds(StrokeNodeIterator iterator,
+        public static void CalcGeometryAndBounds(StrokeNodeIterator iterator,
                                                    DrawingAttributes drawingAttributes,
 #if DEBUG_RENDERING_FEEDBACK
                                                    DrawingContext debugDC,

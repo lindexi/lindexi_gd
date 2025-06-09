@@ -8,7 +8,7 @@ using WpfInk.PresentationCore.System.Windows;
 
 namespace WpfInk.API;
 
-internal interface IStreamGeometryContext
+public interface IStreamGeometryContext
 {
     void BeginFigure(Point startPoint, bool isFilled, bool isClosed);
     void PolyBezierTo(IList<Point> points, bool isStroked, bool isSmoothJoin);

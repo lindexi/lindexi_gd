@@ -27,12 +27,12 @@ namespace MS.Internal.Ink
     /// In either case, the output collection of nodes is represented by a disposable
     /// iterator (i.e. good for a single enumeration only).
     /// </summary>
-    internal class StrokeNodeIterator
+    public class StrokeNodeIterator
     {
         /// <summary>
         /// Helper wrapper
         /// </summary>
-        internal static StrokeNodeIterator GetIterator(Stroke stroke, DrawingAttributes drawingAttributes)
+        public static StrokeNodeIterator GetIterator(Stroke stroke, DrawingAttributes drawingAttributes)
         {
             if (stroke == null)
             {
