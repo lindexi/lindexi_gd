@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+Ôªø// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -88,7 +88,7 @@ namespace System.Windows.Ink
         {
             _drawingAttributes.AttributeChanged += new PropertyDataChangedEventHandler(DrawingAttributes_Changed);
             _stylusPoints.Changed += new EventHandler(StylusPoints_Changed);
-            // –ﬁ∏¥ππΩ®
+            // ‰øÆÂ§çÊûÑÂª∫
             //_stylusPoints.CountGoingToZero += new CancelEventHandler(StylusPoints_CountGoingToZero);
         }
 
@@ -121,7 +121,8 @@ namespace System.Windows.Ink
             //because they will be replaced after we call
             if (_cloneStylusPoints)
             {
-                clone._stylusPoints = _stylusPoints.Clone();
+                //clone._stylusPoints = _stylusPoints.Clone();
+                throw new NotImplementedException();
             }
             clone._drawingAttributes = _drawingAttributes.Clone();
             if (_extendedProperties != null)
@@ -134,7 +135,7 @@ namespace System.Windows.Ink
             //
             // copy state
             //
-            Debug.Assert(_cachedGeometry == null || _cachedGeometry.IsFrozen);
+            //Debug.Assert(_cachedGeometry == null || _cachedGeometry.IsFrozen);
             //we don't need to cache if this is frozen
             //if (null != _cachedGeometry)
             //{
@@ -179,7 +180,7 @@ namespace System.Windows.Ink
             {
                 // we need to force a recaculation of the cached path geometry right after the
                 // DrawingAttributes changed, beforet the events are raised.
-                _cachedGeometry = null;
+                //_cachedGeometry = null;
                 // Set the cached bounds to empty, which will force a re-calculation of the _cachedBounds upon next GetBounds call.
                 _cachedBounds = Rect.Empty;
 
@@ -193,7 +194,7 @@ namespace System.Windows.Ink
 
                 try
                 {
-                    // –ﬁ∏¥ππΩ®
+                    // ‰øÆÂ§çÊûÑÂª∫
                     //_stylusPoints.Transform(new System.Windows.Media.MatrixTransform(transformMatrix));
 
                     if (applyToStylusTip)
@@ -244,7 +245,8 @@ namespace System.Windows.Ink
                                                 DrawingAttributes.FittingError))
             {
                 //construction failed, return a clone of the original points
-                return _stylusPoints.Clone();
+                //return _stylusPoints.Clone();
+                throw new NotImplementedException();
             }
 
             double tolerance = 0.5;
@@ -284,7 +286,7 @@ namespace System.Windows.Ink
             AddInterpolatedBezierPoint( bezierStylusPoints, 
                                         bezierPoints[0], 
                                         new int[0], 
-                                        // –ﬁ∏¥ππΩ®
+                                        // ‰øÆÂ§çÊûÑÂª∫
                                         //_stylusPoints[0].GetAdditionalData(), 
                                         _stylusPoints[0].PressureFactor);
 
@@ -340,7 +342,7 @@ namespace System.Windows.Ink
                         AddInterpolatedBezierPoint(bezierStylusPoints,
                                                     bezierPoints[x],
                                                     new int[0], 
-                                                    // –ﬁ∏¥ππΩ®
+                                                    // ‰øÆÂ§çÊûÑÂª∫
                                                     //prevStylusPoint.GetAdditionalData(),
                                                     interopolatedPressure);
                         break;
@@ -508,7 +510,7 @@ namespace System.Windows.Ink
                 // DrawingAttributes changed, beforet the events are raised.
                 if (false == DrawingAttributes.GeometricallyEqual(previousDa, _drawingAttributes))
                 {
-                    _cachedGeometry = null;
+                    //_cachedGeometry = null;
                     // Set the cached bounds to empty, which will force a re-calculation of the _cachedBounds upon next GetBounds call.
                     _cachedBounds = Rect.Empty;
                 }
@@ -542,7 +544,7 @@ namespace System.Windows.Ink
                 }
 
                 // Force a recaculation of the cached path geometry
-                _cachedGeometry = null;
+                //_cachedGeometry = null;
 
                 // Set the cached bounds to empty, which will force a re-calculation of the _cachedBounds upon next GetBounds call.
                 _cachedBounds = Rect.Empty;
@@ -551,13 +553,13 @@ namespace System.Windows.Ink
                     new StylusPointsReplacedEventArgs(value, _stylusPoints);
 
                 _stylusPoints.Changed -= new EventHandler(StylusPoints_Changed);
-                // –ﬁ∏¥ππΩ®
+                // ‰øÆÂ§çÊûÑÂª∫
                 //_stylusPoints.CountGoingToZero -= new CancelEventHandler(StylusPoints_CountGoingToZero);
 
                 _stylusPoints = value;
 
                 _stylusPoints.Changed += new EventHandler(StylusPoints_Changed);
-                // –ﬁ∏¥ππΩ®
+                // ‰øÆÂ§çÊûÑÂª∫
                 //_stylusPoints.CountGoingToZero += new CancelEventHandler(StylusPoints_CountGoingToZero);
 
                 // fire notification
@@ -1078,7 +1080,7 @@ namespace System.Windows.Ink
             // set Geometry flag to be dirty if the DA change will cause change in geometry
             if (DrawingAttributes.IsGeometricalDaGuid(e.PropertyGuid) == true)
             {
-                _cachedGeometry = null;
+                //_cachedGeometry = null;
                 // Set the cached bounds to empty, which will force a re-calculation of the _cachedBounds upon next GetBounds call.
                 _cachedBounds = Rect.Empty;
             }
@@ -1101,7 +1103,7 @@ namespace System.Windows.Ink
         /// <param name="e">event args</param>
         private void StylusPoints_Changed(object sender, EventArgs e)
         {
-            _cachedGeometry = null;
+            //_cachedGeometry = null;
             _cachedBounds = Rect.Empty;
 
             OnStylusPointsChanged(EventArgs.Empty);

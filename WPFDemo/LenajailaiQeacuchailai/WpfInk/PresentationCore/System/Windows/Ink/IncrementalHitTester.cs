@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -696,14 +696,7 @@ namespace System.Windows.Ink
         /// <summary>Stroke that was hit</summary>
         public Stroke HitStroke { get { return _stroke; } }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <returns></returns>
-        public StrokeCollection GetPointEraseResults()
-        {
-            return _stroke.Erase(_hitFragments);
-        }
+      
 
         private Stroke                  _stroke;
         private StrokeIntersection[]    _hitFragments;
@@ -731,7 +724,7 @@ namespace MS.Internal.Ink
         {
             System.Diagnostics.Debug.Assert(stroke != null);
             _stroke = stroke;
-            _bounds = stroke.GetBounds();
+            //_bounds = stroke.GetBounds();
 
             // Start listening to the stroke events
             _stroke.DrawingAttributesChanged += new PropertyDataChangedEventHandler(OnStrokeDrawingAttributesChanged);
@@ -931,7 +924,7 @@ namespace MS.Internal.Ink
             // The Stroke.GetBounds may be overriden in the 3rd party code.
             // The out-side code could throw exception. If an exception is thrown, _bounds will keep the original value.
             // Re-compute the stroke bounds
-            _bounds = _stroke.GetBounds();
+            //_bounds = _stroke.GetBounds();
         }
         #endregion
 

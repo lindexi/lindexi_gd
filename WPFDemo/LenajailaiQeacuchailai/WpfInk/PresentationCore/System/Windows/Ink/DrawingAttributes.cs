@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -77,12 +77,12 @@ namespace System.Windows.Ink
         {
             get
             {
-                //prevent boxing / unboxing if possible
-                if (!_extendedProperties.Contains(KnownIds.Color))
-                {
-                    Debug.Assert(Colors.Black == (Color)GetDefaultDrawingAttributeValue(KnownIds.Color));
-                    return Colors.Black;
-                }
+                ////prevent boxing / unboxing if possible
+                //if (!_extendedProperties.Contains(KnownIds.Color))
+                //{
+                //    Debug.Assert(Colors.Black == (Color)GetDefaultDrawingAttributeValue(KnownIds.Color));
+                //    return Colors.Black;
+                //}
                 return (Color)GetExtendedPropertyBackedProperty(KnownIds.Color);
             }
             set
@@ -670,7 +670,7 @@ namespace System.Windows.Ink
         {
             if (KnownIds.Color == id)
             {
-                return Colors.Black;
+                //return Colors.Black;
             }
             if (KnownIds.StylusWidth == id)
             {
