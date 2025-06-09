@@ -14,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Lsj.Util.Win32" Version="8.0.0" />
+
     <PackageReference Include="Lsj.Util.Win32.NativeUI" Version="7.2.1" />
     <PackageReference Include="VC-LTL" Version="5.2.1" />
     <PackageReference Include="YY-Thunks" Version="1.1.7" />
