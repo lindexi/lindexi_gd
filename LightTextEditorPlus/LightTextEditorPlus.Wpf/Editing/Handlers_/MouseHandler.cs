@@ -207,7 +207,7 @@ internal class MouseHandler
         {
             cursor = Cursors.IBeam;
         }
-        else if (TextEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian || TextEditor.TextEditorCore.ArrangingType ==  ArrangingType.Vertical)
+        else if (TextEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian || TextEditor.TextEditorCore.ArrangingType == ArrangingType.Vertical)
         {
             cursor = GetVerticalCursor();
         }

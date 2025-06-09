@@ -450,7 +450,7 @@ public partial class TextEditorSettingsControl : UserControl
         var button = (Button) e.Source;
         var textMarker = (string) button.Content;
         FontFamily fontFamily = button.FontFamily;
-       
+
         TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
         {
             Marker = new BulletMarker()

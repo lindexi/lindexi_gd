@@ -78,7 +78,7 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
             TextSize outlineSize = bounds.DocumentOutlineSize;
             // 竖排情况下，相对于横排坐标系需要交换宽高。这里的交换只是为了让逻辑更加顺而已，也刚好是个结构体，交换一下不要钱
             outlineSize = outlineSize.SwapWidthAndHeight();
-           
+
             var x = outlineSize.Width - _y;
             var y = _x;
             return new TextPoint(x, y);

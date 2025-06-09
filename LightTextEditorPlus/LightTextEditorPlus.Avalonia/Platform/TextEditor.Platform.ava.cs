@@ -244,7 +244,7 @@ partial class TextEditor : Control
             //    SetForegroundInternal(bindingBrush.Value);
             //}
             //else
-            if (e.NewValue is IBrush brush && brush.ToSKColor() is {} color)
+            if (e.NewValue is IBrush brush && brush.ToSKColor() is { } color)
             {
                 if (!this.IsInitialized)
                 {
@@ -278,12 +278,12 @@ partial class TextEditor : Control
         }
         else if (e.Property == WidthProperty)
         {
-            if(e.NewValue is double width)
+            if (e.NewValue is double width)
             {
                 TextEditorCore.DocumentManager.DocumentWidth = width;
             }
         }
-        else if(e.Property == HeightProperty)
+        else if (e.Property == HeightProperty)
         {
             if (e.NewValue is double height)
             {

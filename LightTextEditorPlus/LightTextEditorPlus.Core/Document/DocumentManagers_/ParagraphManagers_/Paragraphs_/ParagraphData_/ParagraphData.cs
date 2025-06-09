@@ -19,7 +19,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 段落数据
 /// </summary>
-class ParagraphData : ITextParagraph
+internal sealed class ParagraphData : ITextParagraph
 {
     public ParagraphData(IReadOnlyRunProperty paragraphStartRunProperty, ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
@@ -98,7 +98,7 @@ class ParagraphData : ITextParagraph
         get => _markerRuntimeInfo;
         set
         {
-            _markerRuntimeInfo = value; 
+            _markerRuntimeInfo = value;
             SetDirty();
         }
     }

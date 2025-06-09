@@ -34,7 +34,7 @@ class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
                                可使用 with 关键字从 DefaultRunProperty 属性创建出新的字符属性。
                                当前文本框DebugName='{TextEditor.TextEditorCore.DebugName}';字符属性RunProperty所在资源的文本框DebugName='{runProperty.RunPropertyPlatformManager.TextEditor.TextEditorCore.DebugName}'
                                """;
-                TextEditor. Logger.LogWarning(message);
+                TextEditor.Logger.LogWarning(message);
                 if (TextEditor.IsInDebugMode)
                 {
                     throw new TextEditorDebugException(message);

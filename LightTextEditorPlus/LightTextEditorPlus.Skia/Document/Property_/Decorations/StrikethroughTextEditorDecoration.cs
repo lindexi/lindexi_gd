@@ -44,7 +44,7 @@ public class StrikethroughTextEditorDecoration() : TextEditorDecoration(TextEdit
             paint.Style = SKPaintStyle.Stroke;
             paint.Color = foreground;
 
-            argument.Canvas.DrawLine(startPoint.ToSKPoint(),endPoint.ToSKPoint(), paint);
+            argument.Canvas.DrawLine(startPoint.ToSKPoint(), endPoint.ToSKPoint(), paint);
         }
 
         return new BuildDecorationResult()

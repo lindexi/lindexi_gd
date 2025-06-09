@@ -24,7 +24,6 @@ static class ParagraphLayoutIndentInfoExtension
             throw new TextEditorInnerDebugException($"对 IndentType 的预期和实际值不符。预期：{paragraphProperty.IndentType}，实际：{indentInfo.IndentType}");
         }
 
-
         static void EqualAssets(double expect, double actual, string name)
         {
             TextEditorInnerDebugAsset.AreEquals(expect, actual, name);

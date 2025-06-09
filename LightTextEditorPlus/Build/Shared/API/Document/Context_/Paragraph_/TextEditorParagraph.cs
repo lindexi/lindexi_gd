@@ -57,6 +57,12 @@ public readonly struct TextEditorParagraph : ITextEditorParagraph
     {
         return _textParagraph.GetParagraphCharDataList();
     }
+
+    /// <inheritdoc />
+    public override string? ToString()
+    {
+        return _textParagraph.ToString();
+    }
 }
 
 #endif

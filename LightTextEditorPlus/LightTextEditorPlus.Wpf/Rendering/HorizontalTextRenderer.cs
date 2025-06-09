@@ -307,7 +307,7 @@ class HorizontalTextRenderer : TextRendererBase
                     {
                         break;
                     }
-                    else if(result.TakeCharCount < 1)
+                    else if (result.TakeCharCount < 1)
                     {
                         var message = $"文本装饰渲染时，所需使用的字符数量至少要有一个。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}";
                         if (textEditor.IsInDebugMode)

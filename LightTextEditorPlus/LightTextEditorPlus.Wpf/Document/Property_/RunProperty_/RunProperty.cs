@@ -355,7 +355,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
         {
             return false;
         }
-        
+
         if (!EqualityComparer<ImmutableBrush>.Default.Equals(Background, other.Background))
         {
             return false;

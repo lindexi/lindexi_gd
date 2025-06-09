@@ -15,7 +15,7 @@ internal record MarkerRuntimeInfo
         {
             throw new ArgumentNullException(nameof(text));
         }
-        
+
         Text = text;
         RunProperty = runProperty;
         TextMarker = textMarker;

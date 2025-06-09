@@ -64,7 +64,7 @@ public class EmphasisDotsTextEditorDecoration() : TextEditorDecoration(TextEdito
             skPaint.Color = foreground;
             skPaint.Style = SKPaintStyle.Fill;
 
-            canvas.DrawCircle((float)x,(float)y,(float)size, skPaint);
+            canvas.DrawCircle((float) x, (float) y, (float) size, skPaint);
         }
 
         return new BuildDecorationResult()

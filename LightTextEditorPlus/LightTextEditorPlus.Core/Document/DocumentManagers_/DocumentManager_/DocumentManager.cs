@@ -290,7 +290,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="paragraphIndex">段落序号</param>
         /// <returns></returns>
-        public ITextParagraph GetParagraph(ParagraphIndex paragraphIndex)=> ParagraphManager.GetParagraph(paragraphIndex);
+        public ITextParagraph GetParagraph(ParagraphIndex paragraphIndex) => ParagraphManager.GetParagraph(paragraphIndex);
 
         /// <summary>
         /// 获取段落信息，获取传入光标所在的段落

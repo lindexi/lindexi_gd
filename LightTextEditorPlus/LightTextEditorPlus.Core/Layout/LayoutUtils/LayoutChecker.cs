@@ -67,7 +67,7 @@ internal static class LayoutChecker
 
             indentInfo.DebugVerifyParagraphPropertyIndentInfo(paragraphData.ParagraphProperty);
 
-            double markerIndentation = paragraphData.MarkerRuntimeInfo?.MarkerIndentation??0;
+            double markerIndentation = paragraphData.MarkerRuntimeInfo?.MarkerIndentation ?? 0;
             TextEditorInnerDebugAsset.AreEquals(markerIndentation, indentInfo.MarkerIndentation, "MarkerIndentation");
         }
     }
