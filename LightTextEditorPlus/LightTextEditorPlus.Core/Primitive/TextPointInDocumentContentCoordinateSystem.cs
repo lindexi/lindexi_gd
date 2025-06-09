@@ -55,7 +55,6 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
         return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_layoutManager, other._layoutManager);
     }
 
-
     /// <inheritdoc cref="Equals(TextPointInDocumentContentCoordinateSystem)"/>
     public bool NearlyEquals(in TextPointInDocumentContentCoordinateSystem other)
     {

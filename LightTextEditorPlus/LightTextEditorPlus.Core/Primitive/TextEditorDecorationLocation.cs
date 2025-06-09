@@ -6,7 +6,7 @@ public enum TextEditorDecorationLocation : byte
 {
     /// <summary>The vertical position of an underline. This is the default value.</summary>
     Underline,
-   
+
     /// <summary>The vertical position of an overline.</summary>
     OverLine,
 

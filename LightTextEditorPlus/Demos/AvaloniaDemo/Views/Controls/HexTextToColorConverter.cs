@@ -18,7 +18,7 @@ public static class HexTextToColorConverter
         }
     }
 
-   public static (bool success, byte a, byte r, byte g, byte b) ConvertToColor(string input)
+    public static (bool success, byte a, byte r, byte g, byte b) ConvertToColor(string input)
     {
         bool startWithPoundSign = input.StartsWith('#');
         var colorStringLength = input.Length;

@@ -18,7 +18,7 @@ namespace LightTextEditorPlus.Core.Primitive.Collections;
 public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<TextReadOnlyListSpan<T>>
 {
     /// <inheritdoc cref="TextReadOnlyListSpan{T}"/>
-    public TextReadOnlyListSpan(IReadOnlyList<T> source):this(source,0, source.Count)
+    public TextReadOnlyListSpan(IReadOnlyList<T> source) : this(source, 0, source.Count)
     {
     }
 
@@ -64,7 +64,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
         {
             if (index >= _length)
             {
-               throw new ArgumentOutOfRangeException(nameof(index), index, $"TextReadOnlyListSpan Index out of range. Length={_length} index={index}");
+                throw new ArgumentOutOfRangeException(nameof(index), index, $"TextReadOnlyListSpan Index out of range. Length={_length} index={index}");
             }
             return _source[index + _start];
         }

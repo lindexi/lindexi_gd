@@ -187,7 +187,7 @@ public class TextEditorTest
                     ICharObject charObject = charInfo.CharObject;
                     Utf32CodePoint utf32CodePoint = charObject.CodePoint;
                     Rune rune = utf32CodePoint.Rune;
-                    
+
                     // 在这个单元测试里面，只有一个字符，可以放心使用以下判断
                     Assert.AreEqual(new Rune(expectedChar), rune);
                     Assert.AreEqual(expectedChar.ToString(), charObject.ToText());

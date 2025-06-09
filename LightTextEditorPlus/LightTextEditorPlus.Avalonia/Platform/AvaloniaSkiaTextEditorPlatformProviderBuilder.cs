@@ -3,7 +3,7 @@
 /// <summary>
 /// 文本库的平台提供者创建器
 /// </summary>
-public class AvaloniaSkiaTextEditorPlatformProviderBuilder: IAvaloniaSkiaTextEditorPlatformProviderBuilder
+public class AvaloniaSkiaTextEditorPlatformProviderBuilder : IAvaloniaSkiaTextEditorPlatformProviderBuilder
 {
     /// <inheritdoc />
     public virtual AvaloniaSkiaTextEditorPlatformProvider Build(TextEditor avaloniaTextEditor)

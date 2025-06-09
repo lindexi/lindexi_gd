@@ -19,7 +19,7 @@ public class CaretRenderInfoTest
         "一段两行的文本，光标在末行首字符之前，可获取光标之后的字符信息".Test(() =>
         {
             // Arrange
-            var textEditorCore = TestHelper.GetLayoutTestTextEditor(lineCharCount:2);
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor(lineCharCount: 2);
             // 一段两行的文本
             var text = "abc";
             // 预期布局如下

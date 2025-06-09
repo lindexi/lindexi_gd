@@ -98,7 +98,7 @@ internal sealed class ParagraphData : ITextParagraph
         get => _markerRuntimeInfo;
         set
         {
-            _markerRuntimeInfo = value; 
+            _markerRuntimeInfo = value;
             SetDirty();
         }
     }

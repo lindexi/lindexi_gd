@@ -154,7 +154,7 @@ public partial class TextEditor
     /// </summary>
     /// <param name="config"></param>
     /// <param name="selection"></param>
-    public void ConfigRunProperty(ConfigRunProperty config, Selection? selection = null) 
+    public void ConfigRunProperty(ConfigRunProperty config, Selection? selection = null)
         => SetRunProperty(config, selection);
 
     /// <summary>

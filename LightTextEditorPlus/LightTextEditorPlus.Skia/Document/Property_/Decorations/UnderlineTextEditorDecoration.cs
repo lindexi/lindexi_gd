@@ -26,7 +26,7 @@ public class UnderlineTextEditorDecoration() : TextEditorDecoration(TextEditorDe
         if (argument.ArrangingType.IsHorizontal)
         {
             // todo 后续上下标需要在这里也进行处理
-            TextRect bounds = GetDecorationLocationRecommendedBounds(TextDecorationLocation,  argument.LineRenderInfo.CharList, argument.LineRenderInfo, argument.TextEditor);
+            TextRect bounds = GetDecorationLocationRecommendedBounds(TextDecorationLocation, argument.LineRenderInfo.CharList, argument.LineRenderInfo, argument.TextEditor);
             bounds = bounds with
             {
                 X = argument.RecommendedBounds.X,

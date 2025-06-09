@@ -111,7 +111,7 @@ class LineLayoutData : IParagraphCache, IDisposable
 
             var offsetX = IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
             var offsetY = IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
-            return charStartPoint.Offset(offsetX,offsetY);
+            return charStartPoint.Offset(offsetX, offsetY);
         }
     }
 
@@ -245,7 +245,7 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint.ToCurrentArrangingTypePoint(), 
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint.ToCurrentArrangingTypePoint(),
             GetCharList())
         {
             LineContentSize = LineContentSize,

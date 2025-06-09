@@ -136,18 +136,18 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             while (!TextEditorCore.TryGetRenderInfo(out renderInfoProvider))
             {
                 // 什么时候这个循环会进入两次？当文本刚刚布局完成之后，就被其他业务弄脏了。如有业务监听 LayoutCompleted 事件，在此事件里面修改文本
-               var hasLayout = TextEditorPlatformProvider.EnsureLayoutUpdated();
-               if (!hasLayout)
-               {
-                   // 如果是存在上次异常的情况，可能这次也不能成功
-                   bool isFinishUpdateLayoutWithException = TextEditorCore.IsFinishUpdateLayoutWithException;
+                var hasLayout = TextEditorPlatformProvider.EnsureLayoutUpdated();
+                if (!hasLayout)
+                {
+                    // 如果是存在上次异常的情况，可能这次也不能成功
+                    bool isFinishUpdateLayoutWithException = TextEditorCore.IsFinishUpdateLayoutWithException;
 
-                   // 继续循环也是不行的，需要强行压入布局内容
-                   Logger.Log(new ForceLayoutNotFoundUpdateActionLogInfo(isFinishUpdateLayoutWithException));
+                    // 继续循环也是不行的，需要强行压入布局内容
+                    Logger.Log(new ForceLayoutNotFoundUpdateActionLogInfo(isFinishUpdateLayoutWithException));
 
-                   // 如果没有压入的话，继续循环多少次也没用
-                   TextEditorCore
-                       .RequireReUpdateAllDocumentWhenFinishWithException();
+                    // 如果没有压入的话，继续循环多少次也没用
+                    TextEditorCore
+                        .RequireReUpdateAllDocumentWhenFinishWithException();
 
                     // 压入之后，可以强行跑一次试试看
                     try
@@ -268,7 +268,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             DocumentManager documentManager = TextEditorCore.DocumentManager;
             if (double.IsFinite(Width))
             {
-                Debug.Assert(Width.Equals(documentManager.DocumentWidth),$"在 {nameof(OnPropertyChanged)}(DependencyPropertyChangedEventArgs e) 中必然已经完成了同步，正常不会单独变更 DocumentWidth 使其与 Width 不等");
+                Debug.Assert(Width.Equals(documentManager.DocumentWidth), $"在 {nameof(OnPropertyChanged)}(DependencyPropertyChangedEventArgs e) 中必然已经完成了同步，正常不会单独变更 DocumentWidth 使其与 Width 不等");
                 //documentManager.DocumentWidth = Width;
             }
 
@@ -529,7 +529,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             //emoji包围符
             e.Text == "\ufe0f")
             return;
-        
+
         //如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
         if (RegexPatterns.Utf16SurrogatesPattern.ContainInRange(e.Text))
         {

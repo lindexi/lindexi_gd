@@ -57,7 +57,7 @@ public partial class TextEditorSettingsControl : UserControl
     {
         if (TextEditor.Parent is Grid grid)
         {
-            if (grid.Children.OfType<Border>().FirstOrDefault() is {} border)
+            if (grid.Children.OfType<Border>().FirstOrDefault() is { } border)
             {
                 border.BorderBrush = TextEditor.IsInEditingInputMode ? Brushes.Blue : Brushes.Red;
             }

@@ -53,24 +53,24 @@ public class TestFramework
                 (
                     BorderThickness: Thickness(1),
                     BorderBrush: Brushes.Blue,
-                    Child: 
+                    Child:
                     new TextEditor()
-                        {
-                            Width = 600,
-                            Height = 600,
-                            VerticalAlignment = VerticalAlignment.Top
-                        }
+                    {
+                        Width = 600,
+                        Height = 600,
+                        VerticalAlignment = VerticalAlignment.Top
+                    }
                         .Out(out var textEditor)
                 )
                 .HorizontalAlignment(HorizontalAlignment.Left)
                 .VerticalAlignment(VerticalAlignment.Stretch)
-                .Margin(10,10,10,10)
+                .Margin(10, 10, 10, 10)
                     .UI
                     .Column(0),
                 new TextEditorSettingsControl()
-                    {
-                        TextEditor = textEditor
-                    }
+                {
+                    TextEditor = textEditor
+                }
                     .Column(1)
             ).Margin(10).UI
         };

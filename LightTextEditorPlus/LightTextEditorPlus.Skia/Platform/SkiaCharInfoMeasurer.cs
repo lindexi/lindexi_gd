@@ -152,7 +152,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         // 确保设置了字符的尺寸
         // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
         using CharDataListToCharSpanResult charDataListToCharSpanResult = runList.ToCharSpan();
-        
+
         var charCount = charDataListToCharSpanResult.CharSpan.Length;
 
         // Copy from https://github.com/AvaloniaUI/Avalonia

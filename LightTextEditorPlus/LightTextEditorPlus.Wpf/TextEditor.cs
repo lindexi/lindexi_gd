@@ -19,7 +19,7 @@ public partial class TextEditor
 
     #region Handlers
 
-    
+
 
     #endregion
 }
