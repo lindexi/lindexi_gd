@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Diagnostics;
 using System.Security;
+using WpfInk.PresentationCore.System.Windows;
 #if WINDOWS_BASE
     using MS.Internal.WindowsBase;
 #elif PRESENTATION_CORE

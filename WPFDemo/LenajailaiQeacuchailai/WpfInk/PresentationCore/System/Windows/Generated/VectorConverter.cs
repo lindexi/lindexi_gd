@@ -12,6 +12,8 @@ using MS.Internal;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Markup;
+using WpfInk.PresentationCore.System.Windows;
+
 //using System.Windows.Converters;
 
 namespace System.Windows

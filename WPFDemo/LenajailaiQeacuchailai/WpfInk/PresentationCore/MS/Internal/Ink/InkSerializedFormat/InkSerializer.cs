@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using System.Windows.Ink;
 using MS.Internal.IO.Packaging;
-
+using WpfInk.PresentationCore.System.Windows;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
