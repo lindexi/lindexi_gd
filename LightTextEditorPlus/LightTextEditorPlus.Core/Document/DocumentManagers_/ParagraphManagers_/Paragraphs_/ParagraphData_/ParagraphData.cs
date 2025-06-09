@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
-using System.Xml.Linq;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
-using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
-using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -184,11 +180,6 @@ internal sealed class ParagraphData : ITextParagraph
 
     /// <inheritdoc />
     public TextReadOnlyListSpan<CharData> GetParagraphCharDataList() => ToReadOnlyListSpan(new ParagraphCharOffset(0));
-
-    //IReadOnlyList<CharInfo> ITextParagraph.GetParagraphCharInfoList()
-    //{
-    //    return CharDataExtensions.ToCharInfoList(GetParagraphCharDataList());
-    //}
 
     /// <summary>
     /// 获取字符列表
