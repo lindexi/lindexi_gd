@@ -1,18 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.ComponentModel;
 using System.Diagnostics;
 using MS.Internal;
 using System.Windows.Media;
 
 namespace System.Windows
 {
-    /// <summary>
-    /// Rect - The primitive which represents a rectangle.  Rects are stored as
-    /// X, Y (Location) and Width and Height (Size).  As a result, Rects cannot have negative
-    /// Width or Height.
-    /// </summary>
-    public partial struct Rect
+    [Serializable]
+    [TypeConverter(typeof(RectConverter))]
+    public struct Rect
     {
         #region Constructors
 
@@ -20,7 +18,7 @@ namespace System.Windows
         /// Constructor which sets the initial values to the values of the parameters
         /// </summary>
         public Rect(Point location,
-                    Size size)
+            Size size)
         {
             if (size.IsEmpty)
             {
@@ -40,9 +38,9 @@ namespace System.Windows
         /// Width and Height must be non-negative
         /// </summary>
         public Rect(double x,
-                    double y,
-                    double width,
-                    double height)
+            double y,
+            double width,
+            double height)
         {
             if (width < 0 || height < 0)
             {
@@ -59,7 +57,7 @@ namespace System.Windows
         /// Constructor which sets the initial values to bound the two points provided.
         /// </summary>
         public Rect(Point point1,
-                    Point point2)
+            Point point2)
         {
             _x = Math.Min(point1._x, point2._x);
             _y = Math.Min(point1._y, point2._y);
@@ -74,7 +72,7 @@ namespace System.Windows
         /// which results from point + vector.
         /// </summary>
         public Rect(Point point,
-                    Vector vector): this(point, point+vector)
+            Vector vector): this(point, point+vector)
         {
         }
 
@@ -204,7 +202,7 @@ namespace System.Windows
 
                 _x = value;
             }
-}
+        }
 
         /// <summary>
         /// Y - The Y coordinate of the Location
@@ -480,12 +478,12 @@ namespace System.Windows
             }
             else
             {
-                double left   = Math.Max(Left, rect.Left);
-                double top    = Math.Max(Top, rect.Top);
+                double left   = Math.Max((double)Left, rect.Left);
+                double top    = Math.Max((double)Top, rect.Top);
                 
                 //  Max with 0 to prevent double weirdness from causing us to be (-epsilon..0)
-                _width = Math.Max(Math.Min(Right, rect.Right) - left, 0);
-                _height = Math.Max(Math.Min(Bottom, rect.Bottom) - top, 0);
+                _width = Math.Max(Math.Min((double)Right, rect.Right) - left, 0);
+                _height = Math.Max(Math.Min((double)Bottom, rect.Bottom) - top, 0);
 
                 _x = left;
                 _y = top;
@@ -513,8 +511,8 @@ namespace System.Windows
             }
             else if (!rect.IsEmpty)
             {
-                double left = Math.Min(Left, rect.Left);
-                double top = Math.Min(Top, rect.Top);
+                double left = Math.Min((double)Left, rect.Left);
+                double top = Math.Min((double)Top, rect.Top);
 
                 
                 // We need this check so that the math does not result in NaN
@@ -525,7 +523,7 @@ namespace System.Windows
                 else
                 {
                     //  Max with 0 to prevent double weirdness from causing us to be (-epsilon..0)                    
-                    double maxRight = Math.Max(Right, rect.Right);
+                    double maxRight = Math.Max((double)Right, rect.Right);
                     _width = Math.Max(maxRight - left, 0);
                 }
 
@@ -537,7 +535,7 @@ namespace System.Windows
                 else
                 {
                     //  Max with 0 to prevent double weirdness from causing us to be (-epsilon..0)
-                    double maxBottom = Math.Max(Bottom, rect.Bottom);
+                    double maxBottom = Math.Max((double)Bottom, rect.Bottom);
                     _height = Math.Max(maxBottom - top, 0);
                 }
 
@@ -792,5 +790,352 @@ namespace System.Windows
         private static readonly Rect s_empty = CreateEmptyRect();
 
         #endregion Private Fields
+
+        //------------------------------------------------------
+        //
+        //  Public Methods
+        //
+        //------------------------------------------------------
+
+        #region Public Methods
+
+
+
+
+        /// <summary>
+        /// Compares two Rect instances for exact equality.
+        /// Note that double values can acquire error when operated upon, such that
+        /// an exact comparison between two values which are logically equal may fail.
+        /// Furthermore, using this equality operator, Double.NaN is not equal to itself.
+        /// </summary>
+        /// <returns>
+        /// bool - true if the two Rect instances are exactly equal, false otherwise
+        /// </returns>
+        /// <param name='rect1'>The first Rect to compare</param>
+        /// <param name='rect2'>The second Rect to compare</param>
+        public static bool operator ==(Rect rect1, Rect rect2)
+        {
+            return rect1.X == rect2.X &&
+                   rect1.Y == rect2.Y &&
+                   rect1.Width == rect2.Width &&
+                   rect1.Height == rect2.Height;
+        }
+
+        /// <summary>
+        /// Compares two Rect instances for exact inequality.
+        /// Note that double values can acquire error when operated upon, such that
+        /// an exact comparison between two values which are logically equal may fail.
+        /// Furthermore, using this equality operator, Double.NaN is not equal to itself.
+        /// </summary>
+        /// <returns>
+        /// bool - true if the two Rect instances are exactly unequal, false otherwise
+        /// </returns>
+        /// <param name='rect1'>The first Rect to compare</param>
+        /// <param name='rect2'>The second Rect to compare</param>
+        public static bool operator !=(Rect rect1, Rect rect2)
+        {
+            return !(rect1 == rect2);
+        }
+        /// <summary>
+        /// Compares two Rect instances for object equality.  In this equality
+        /// Double.NaN is equal to itself, unlike in numeric equality.
+        /// Note that double values can acquire error when operated upon, such that
+        /// an exact comparison between two values which
+        /// are logically equal may fail.
+        /// </summary>
+        /// <returns>
+        /// bool - true if the two Rect instances are exactly equal, false otherwise
+        /// </returns>
+        /// <param name='rect1'>The first Rect to compare</param>
+        /// <param name='rect2'>The second Rect to compare</param>
+        public static bool Equals(Rect rect1, Rect rect2)
+        {
+            if (rect1.IsEmpty)
+            {
+                return rect2.IsEmpty;
+            }
+            else
+            {
+                return rect1.X.Equals(rect2.X) &&
+                       rect1.Y.Equals(rect2.Y) &&
+                       rect1.Width.Equals(rect2.Width) &&
+                       rect1.Height.Equals(rect2.Height);
+            }
+        }
+
+        /// <summary>
+        /// Equals - compares this Rect with the passed in object.  In this equality
+        /// Double.NaN is equal to itself, unlike in numeric equality.
+        /// Note that double values can acquire error when operated upon, such that
+        /// an exact comparison between two values which
+        /// are logically equal may fail.
+        /// </summary>
+        /// <returns>
+        /// bool - true if the object is an instance of Rect and if it's equal to "this".
+        /// </returns>
+        /// <param name='o'>The object to compare to "this"</param>
+        public override bool Equals(object o)
+        {
+            if ((null == o) || !(o is Rect))
+            {
+                return false;
+            }
+
+            Rect value = (Rect)o;
+            return Rect.Equals(this,value);
+        }
+
+        /// <summary>
+        /// Equals - compares this Rect with the passed in object.  In this equality
+        /// Double.NaN is equal to itself, unlike in numeric equality.
+        /// Note that double values can acquire error when operated upon, such that
+        /// an exact comparison between two values which
+        /// are logically equal may fail.
+        /// </summary>
+        /// <returns>
+        /// bool - true if "value" is equal to "this".
+        /// </returns>
+        /// <param name='value'>The Rect to compare to "this"</param>
+        public bool Equals(Rect value)
+        {
+            return Rect.Equals(this, value);
+        }
+        /// <summary>
+        /// Returns the HashCode for this Rect
+        /// </summary>
+        /// <returns>
+        /// int - the HashCode for this Rect
+        /// </returns>
+        public override int GetHashCode()
+        {
+            if (IsEmpty)
+            {
+                return 0;
+            }
+            else
+            {
+                // Perform field-by-field XOR of HashCodes
+                return X.GetHashCode() ^
+                       Y.GetHashCode() ^
+                       Width.GetHashCode() ^
+                       Height.GetHashCode();
+            }
+        }
+
+        /// <summary>
+        /// Parse - returns an instance converted from the provided string using
+        /// the culture "en-US"
+        /// <param name="source"> string with Rect data </param>
+        /// </summary>
+        public static Rect Parse(string source)
+        {
+            throw new NotImplementedException();
+            //IFormatProvider formatProvider = System.Windows.Markup.TypeConverterHelper.InvariantEnglishUS;
+
+            //TokenizerHelper th = new TokenizerHelper(source, formatProvider);
+
+            //Rect value;
+
+            //String firstToken = th.NextTokenRequired();
+
+            //// The token will already have had whitespace trimmed so we can do a
+            //// simple string compare.
+            //if (firstToken == "Empty")
+            //{
+            //    value = Empty;
+            //}
+            //else
+            //{
+            //    value = new Rect(
+            //        Convert.ToDouble(firstToken, formatProvider),
+            //        Convert.ToDouble(th.NextTokenRequired(), formatProvider),
+            //        Convert.ToDouble(th.NextTokenRequired(), formatProvider),
+            //        Convert.ToDouble(th.NextTokenRequired(), formatProvider));
+            //}
+
+            //// There should be no more tokens in this string.
+            //th.LastTokenRequired();
+
+            //return value;
+        }
+
+        #endregion Public Methods
+
+        //------------------------------------------------------
+        //
+        //  Public Properties
+        //
+        //------------------------------------------------------
+
+
+
+
+        #region Public Properties
+
+
+
+        #endregion Public Properties
+
+        //------------------------------------------------------
+        //
+        //  Protected Methods
+        //
+        //------------------------------------------------------
+
+        #region Protected Methods
+
+
+
+
+
+        #endregion ProtectedMethods
+
+        //------------------------------------------------------
+        //
+        //  Internal Methods
+        //
+        //------------------------------------------------------
+
+        #region Internal Methods
+
+
+
+
+
+
+
+
+
+        #endregion Internal Methods
+
+        //------------------------------------------------------
+        //
+        //  Internal Properties
+        //
+        //------------------------------------------------------
+
+        #region Internal Properties
+
+
+        /// <summary>
+        /// Creates a string representation of this object based on the current culture.
+        /// </summary>
+        /// <returns>
+        /// A string representation of this object.
+        /// </returns>
+        public override string ToString()
+        {
+
+            // Delegate to the internal method which implements all ToString calls.
+            return ConvertToString(null /* format string */, null /* format provider */);
+        }
+
+        /// <summary>
+        /// Creates a string representation of this object based on the IFormatProvider
+        /// passed in.  If the provider is null, the CurrentCulture is used.
+        /// </summary>
+        /// <returns>
+        /// A string representation of this object.
+        /// </returns>
+        public string ToString(IFormatProvider provider)
+        {
+
+            // Delegate to the internal method which implements all ToString calls.
+            return ConvertToString(null /* format string */, provider);
+        }
+
+        ///// <summary>
+        ///// Creates a string representation of this object based on the format string
+        ///// and IFormatProvider passed in.
+        ///// If the provider is null, the CurrentCulture is used.
+        ///// See the documentation for IFormattable for more information.
+        ///// </summary>
+        ///// <returns>
+        ///// A string representation of this object.
+        ///// </returns>
+        //string IFormattable.ToString(string format, IFormatProvider provider)
+        //{
+
+        //    // Delegate to the internal method which implements all ToString calls.
+        //    return ConvertToString(format, provider);
+        //}
+
+        /// <summary>
+        /// Creates a string representation of this object based on the format string
+        /// and IFormatProvider passed in.
+        /// If the provider is null, the CurrentCulture is used.
+        /// See the documentation for IFormattable for more information.
+        /// </summary>
+        /// <returns>
+        /// A string representation of this object.
+        /// </returns>
+        internal string ConvertToString(string format, IFormatProvider provider)
+        {
+            //if (IsEmpty)
+            //{
+            //    return "Empty";
+            //}
+
+            //// Helper to get the numeric list separator for a given culture.
+            //char separator = MS.Internal.TokenizerHelper.GetNumericListSeparator(provider);
+            //return String.Format(provider,
+            //                     "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}",
+            //                     separator,
+            //                     _x,
+            //                     _y,
+            //                     _width,
+            //                     _height);
+            throw new NotImplementedException();
+        }
+
+
+
+        #endregion Internal Properties
+
+        //------------------------------------------------------
+        //
+        //  Dependency Properties
+        //
+        //------------------------------------------------------
+
+        #region Dependency Properties
+
+
+
+        #endregion Dependency Properties
+
+        //------------------------------------------------------
+        //
+        //  Internal Fields
+        //
+        //------------------------------------------------------
+
+        #region Internal Fields
+
+
+        internal double _x;
+        internal double _y;
+        internal double _width;
+        internal double _height;
+
+
+
+
+        #endregion Internal Fields
+
+
+
+        #region Constructors
+
+        //------------------------------------------------------
+        //
+        //  Constructors
+        //
+        //------------------------------------------------------
+
+
+
+
+        #endregion Constructors
     }
 }
