@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document.Segments;
 
 using System.Text;
@@ -52,8 +52,8 @@ public interface ITextParagraph
     /// 获取段落的字符数据列表
     /// </summary>
     /// <returns></returns>
-    internal TextReadOnlyListSpan<CharData> GetParagraphCharDataList();
+    TextReadOnlyListSpan<CharData> GetParagraphCharDataList();
 
-    /// <inheritdoc cref="GetParagraphCharDataList"/>
-    IReadOnlyList<CharInfo> GetParagraphCharInfoList();
+    ///// <inheritdoc cref="GetParagraphCharDataList"/>
+    //IReadOnlyList<CharInfo> GetParagraphCharInfoList();
 }

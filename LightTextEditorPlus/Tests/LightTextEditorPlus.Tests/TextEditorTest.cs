@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -166,12 +166,12 @@ public class TextEditorTest
 
             textEditor.Text = "a\nb\nc";
 
-            ReadOnlyParagraphList paragraphList = textEditor.ParagraphList;
+            TextEditorParagraphList paragraphList = textEditor.ParagraphList;
 
             Assert.AreEqual(3, paragraphList.Count);
             for (var i = 0; i < paragraphList.Count; i++)
             {
-                ITextParagraph textEditorParagraph = paragraphList[i];
+                TextEditorParagraph textEditorParagraph = paragraphList[i];
                 Assert.AreEqual(i, textEditorParagraph.Index.Index);
 
                 // 获取字符数量
@@ -182,7 +182,7 @@ public class TextEditorTest
                 Assert.AreEqual(expectedChar.ToString(), textEditorParagraph.GetText());
 
                 // 获取字符带字符属性的内容
-                foreach (CharInfo charInfo in textEditorParagraph.GetParagraphCharInfoList())
+                foreach (CharInfo charInfo in textEditorParagraph.GetParagraphCharDataList())
                 {
                     ICharObject charObject = charInfo.CharObject;
                     Utf32CodePoint utf32CodePoint = charObject.CodePoint;

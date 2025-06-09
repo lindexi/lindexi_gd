@@ -133,7 +133,9 @@ namespace LightTextEditorPlus
         #region 段落属性
 
         /// <inheritdoc cref="TextEditorCore.ParagraphList"/>
-        public ReadOnlyParagraphList ParagraphList => TextEditorCore.ParagraphList;
+        public TextEditorParagraphList ParagraphList =>
+            _paragraphList ??= new TextEditorParagraphList(TextEditorCore.ParagraphList);
+        private TextEditorParagraphList? _paragraphList;
 
         /// <summary>
         /// 设置段落属性

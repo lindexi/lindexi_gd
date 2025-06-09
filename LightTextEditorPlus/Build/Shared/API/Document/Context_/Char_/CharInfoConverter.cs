@@ -1,21 +1,27 @@
-﻿using System.Collections;
+﻿#if TopApiTextEditorDefinition
+using System.Collections;
 using System.Collections.Generic;
-
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
-namespace LightTextEditorPlus.Core.Document;
+#if USE_WPF
+#else
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+#endif
+
+namespace LightTextEditorPlus.Document;
 
 /// <summary>
 /// 对 <see cref="CharData"/> 的扩展
 /// </summary>
-public static class CharDataExtensions
+internal static class CharInfoConverter
 {
     /// <summary>
     /// 转换为 <see cref="CharInfo"/> 结构体
     /// </summary>
     /// <param name="charData"></param>
     /// <returns></returns>
-    public static CharInfo ToCharInfo(this CharData charData) => new CharInfo(charData.CharObject, charData.RunProperty);
+    public static CharInfo ToCharInfo(this CharData charData) => new CharInfo(charData.CharObject, charData.RunProperty.AsRunProperty());
 
     internal static IReadOnlyList<CharInfo> ToCharInfoList(in TextReadOnlyListSpan<CharData> list)
     {
@@ -81,3 +87,13 @@ file class CharInfoListEnumerator : IEnumerator<CharInfo>
 
     object IEnumerator.Current => Current;
 }
+
+#if USE_WPF
+#else
+file static class RunPropertyExtension
+{
+    public static RunProperty AsRunProperty(this IReadOnlyRunProperty runProperty) => (RunProperty) runProperty;
+}
+#endif
+
+#endif
