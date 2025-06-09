@@ -2,25 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+﻿
+using MS.Utility;
+using System;
 using System.ComponentModel;
+using System.Collections;
+using System.Collections.Specialized;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using WpfInk.PresentationCore.MS.Internal.Ink;
-using WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat;
-using WpfInk.@ref;
+using System.Windows.Media;
+using System.Windows.Ink;
+using System.Windows.Input;
+using System.Runtime.Serialization;
+using System.IO;
+using System.Reflection;
+using MS.Internal.Ink.InkSerializedFormat;
+using MS.Internal.Ink;
+
+using SR = MS.Internal.PresentationCore.SR;
 using SRID = MS.Internal.PresentationCore.SRID;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace WpfInk.PresentationCore.System.Windows.Ink
+namespace System.Windows.Ink
 {
     /// <summary>
     /// Collection of strokes objects which can be operated on in aggregate.
     /// </summary>
-    [global::System.ComponentModel.TypeConverter(typeof(StrokeCollectionConverter))]
+    [System.ComponentModel.TypeConverter(typeof(StrokeCollectionConverter))]
     public partial class StrokeCollection : Collection<Stroke>, INotifyPropertyChanged, INotifyCollectionChanged
     {
         /// <summary>

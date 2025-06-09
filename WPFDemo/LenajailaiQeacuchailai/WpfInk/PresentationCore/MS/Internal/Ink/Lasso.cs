@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 
-using WpfInk.PresentationCore.System.Windows;
-using WpfInk.@ref;
-using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
+using System;
+using System.Windows;
+using System.Windows.Ink;
+using System.Windows.Media;
+using System.Collections.Generic;
+using System.Globalization;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+namespace MS.Internal.Ink
 {
     #region Lasso
 
@@ -47,7 +50,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         {
             get
             {
-                global::System.Diagnostics.Debug.Assert(_points != null);
+                System.Diagnostics.Debug.Assert(_points != null);
                 // The value is based on the assumption that the lasso is normalized
                 // i.e. it has no duplicate points or collinear sibling segments.
                 return (_points.Count < 3);
@@ -61,7 +64,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         {
             get
             {
-                global::System.Diagnostics.Debug.Assert(_points != null);
+                System.Diagnostics.Debug.Assert(_points != null);
                 return _points.Count;
             }
         }
@@ -75,8 +78,8 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         {
             get
             {
-                global::System.Diagnostics.Debug.Assert(_points != null);
-                global::System.Diagnostics.Debug.Assert((0 <= index) && (index < _points.Count));
+                System.Diagnostics.Debug.Assert(_points != null);
+                System.Diagnostics.Debug.Assert((0 <= index) && (index < _points.Count));
 
                 return _points[index];
             }
@@ -88,7 +91,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <param name="points">new points</param>
         internal void AddPoints(IEnumerable<Point> points)
         {
-            global::System.Diagnostics.Debug.Assert(null != points);
+            System.Diagnostics.Debug.Assert(null != points);
 
             foreach (Point point in points)
             {
@@ -102,7 +105,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <param name="point">new lasso point</param>
         internal void AddPoint(Point point)
         {
-            global::System.Diagnostics.Debug.Assert(_points != null);
+            System.Diagnostics.Debug.Assert(_points != null);
             if (!Filter(point))
             {
                 // The point is not filtered, add it to the lasso
@@ -118,7 +121,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <returns>true if the point is contained within the lasso; false otherwise </returns>
         internal bool Contains(Point point)
         {
-            global::System.Diagnostics.Debug.Assert(_points != null);
+            System.Diagnostics.Debug.Assert(_points != null);
 
             if (false == _bounds.Contains(point))
             {
@@ -129,7 +132,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             int last = _points.Count;
             while (--last >= 0)
             {
-                if (!DoubleUtil.AreClose((double)_points[last].Y,point.Y))
+                if (!DoubleUtil.AreClose(_points[last].Y,point.Y))
                 {
                     isHigher = (point.Y < _points[last].Y);
                     break;
@@ -141,16 +144,16 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             for (int i = 0; i < _points.Count; i++)
             {
                 Point lassoPoint = _points[i];
-                if (DoubleUtil.AreClose((double)lassoPoint.Y, point.Y))
+                if (DoubleUtil.AreClose(lassoPoint.Y, point.Y))
                 {
-                    if (DoubleUtil.AreClose((double)lassoPoint.X, point.X))
+                    if (DoubleUtil.AreClose(lassoPoint.X, point.X))
                     {
                         isInside = true;
                         break;
                     }
-                    if ((0 != i) && DoubleUtil.AreClose((double)prevLassoPoint.Y, point.Y) &&
-                        DoubleUtil.GreaterThanOrClose(point.X, Math.Min((double)prevLassoPoint.X, lassoPoint.X)) &&
-                        DoubleUtil.LessThanOrClose(point.X, Math.Max((double)prevLassoPoint.X, lassoPoint.X)))
+                    if ((0 != i) && DoubleUtil.AreClose(prevLassoPoint.Y, point.Y) &&
+                        DoubleUtil.GreaterThanOrClose(point.X, Math.Min(prevLassoPoint.X, lassoPoint.X)) &&
+                        DoubleUtil.LessThanOrClose(point.X, Math.Max(prevLassoPoint.X, lassoPoint.X)))
                     {
                         isInside = true;
                         break;
@@ -159,17 +162,17 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
                 else if (isHigher != (point.Y < lassoPoint.Y))
                 {
                     isHigher = !isHigher;
-                    if (DoubleUtil.GreaterThanOrClose(point.X, Math.Max((double)prevLassoPoint.X, lassoPoint.X)))
+                    if (DoubleUtil.GreaterThanOrClose(point.X, Math.Max(prevLassoPoint.X, lassoPoint.X)))
                     {
                         // there certainly is an intersection on the left
                         isInside = !isInside;
                     }
-                    else if (DoubleUtil.GreaterThanOrClose(point.X, Math.Min((double)prevLassoPoint.X, lassoPoint.X)))
+                    else if (DoubleUtil.GreaterThanOrClose(point.X, Math.Min(prevLassoPoint.X, lassoPoint.X)))
                     {
                         // The X of the point lies within the x ranges for the segment.
                         // Calculate the x value of the point where the segment intersects with the line.
                         Vector lassoSegment = lassoPoint - prevLassoPoint;
-                        global::System.Diagnostics.Debug.Assert(lassoSegment.Y != 0);
+                        System.Diagnostics.Debug.Assert(lassoSegment.Y != 0);
                         double x = prevLassoPoint.X + (lassoSegment.X / lassoSegment.Y) * (point.Y - prevLassoPoint.Y);
                         if (DoubleUtil.GreaterThanOrClose(point.X, x))
                         {
@@ -184,8 +187,8 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
 
         internal StrokeIntersection[] HitTest(StrokeNodeIterator iterator)
         {
-            global::System.Diagnostics.Debug.Assert(_points != null);
-            global::System.Diagnostics.Debug.Assert(iterator != null);
+            System.Diagnostics.Debug.Assert(_points != null);
+            System.Diagnostics.Debug.Assert(iterator != null);
 
             if (_points.Count < 3)
             {
@@ -333,17 +336,17 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             LassoCrossing mcrossing = LassoCrossing.EmptyCrossing;
             foreach (LassoCrossing crossing in crossingList)
             {
-                global::System.Diagnostics.Debug.Assert(!crossing.IsEmpty && crossing.StartNode.IsValid && crossing.EndNode.IsValid);
+                System.Diagnostics.Debug.Assert(!crossing.IsEmpty && crossing.StartNode.IsValid && crossing.EndNode.IsValid);
                 if (!mcrossing.Merge(crossing))
                 {
-                    global::System.Diagnostics.Debug.Assert(!mcrossing.IsEmpty && mcrossing.StartNode.IsValid && mcrossing.EndNode.IsValid);
+                    System.Diagnostics.Debug.Assert(!mcrossing.IsEmpty && mcrossing.StartNode.IsValid && mcrossing.EndNode.IsValid);
                     mergedList.Add(mcrossing);
                     mcrossing = crossing;
                 }
             }
             if (!mcrossing.IsEmpty)
             {
-                global::System.Diagnostics.Debug.Assert(!mcrossing.IsEmpty && mcrossing.StartNode.IsValid && mcrossing.EndNode.IsValid);
+                System.Diagnostics.Debug.Assert(!mcrossing.IsEmpty && mcrossing.StartNode.IsValid && mcrossing.EndNode.IsValid);
                 mergedList.Add(mcrossing);
             }
             crossingList = mergedList;
@@ -420,7 +423,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
                     // As a result the first InSegment should be empty
                     if (DoubleUtil.AreClose(si.InEnd, StrokeFIndices.BeforeFirst))
                     {
-                        global::System.Diagnostics.Debug.Assert(DoubleUtil.AreClose(si.InBegin, StrokeFIndices.BeforeFirst));
+                        System.Diagnostics.Debug.Assert(DoubleUtil.AreClose(si.InBegin, StrokeFIndices.BeforeFirst));
                         si.InBegin = StrokeFIndices.AfterLast;
                     }
 
@@ -555,8 +558,8 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             /// <param name="strokeNode"></param>
             public LassoCrossing(StrokeFIndices newFIndices, StrokeNode strokeNode)
             {
-                global::System.Diagnostics.Debug.Assert(!newFIndices.IsEmpty);
-                global::System.Diagnostics.Debug.Assert(strokeNode.IsValid);
+                System.Diagnostics.Debug.Assert(!newFIndices.IsEmpty);
+                System.Diagnostics.Debug.Assert(strokeNode.IsValid);
                 FIndices = newFIndices;
                 StartNode = EndNode = strokeNode;
             }
@@ -597,7 +600,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             /// <returns></returns>
             public int CompareTo(object obj)
             {
-                global::System.Diagnostics.Debug.Assert(obj is LassoCrossing);
+                System.Diagnostics.Debug.Assert(obj is LassoCrossing);
                 LassoCrossing crossing = (LassoCrossing)obj;
                 if (crossing.IsEmpty && this.IsEmpty)
                 {
@@ -702,7 +705,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
 
             if (true == GetIntersectionWithExistingLasso(point, ref intersection))
             {
-                global::System.Diagnostics.Debug.Assert(intersection >= 0 && intersection <= points.Count - 2);
+                System.Diagnostics.Debug.Assert(intersection >= 0 && intersection <= points.Count - 2);
 
                 if (intersection == points.Count - 2)
                 {
@@ -805,7 +808,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// </summary>
         private static double FindIntersection(Vector hitBegin, Vector hitEnd, Vector orgBegin, Vector orgEnd)
         {
-            global::System.Diagnostics.Debug.Assert(hitEnd != hitBegin && orgBegin != orgEnd);
+            System.Diagnostics.Debug.Assert(hitEnd != hitBegin && orgBegin != orgEnd);
 
             //----------------------------------------------------------------------
             // Source: http://isc.faqs.org/faqs/graphics/algorithms-faq/
@@ -863,7 +866,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             Vector AB = orgEnd - orgBegin;          // B - A
             Vector CA = orgBegin - hitBegin;        // A - C
             Vector CD = hitEnd - hitBegin;          // D - C
-            double det = System.Windows.Vector.Determinant(AB, CD);
+            double det = Vector.Determinant(AB, CD);
 
             if (DoubleUtil.IsZero(det))
             {
@@ -871,12 +874,12 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
                 return NoIntersection;
             }
 
-            double r = AdjustFIndex(System.Windows.Vector.Determinant(AB, CA) / det);
+            double r = AdjustFIndex(Vector.Determinant(AB, CA) / det);
 
             if (r >= 0 && r <= 1)
             {
                 // The line defined AB does cross the segment CD.
-                double s = AdjustFIndex(System.Windows.Vector.Determinant(CD, CA) / det);
+                double s = AdjustFIndex(Vector.Determinant(CD, CA) / det);
                 if (s >= 0 && s <= 1)
                 {
                     // The crossing point is on the segment AB as well.

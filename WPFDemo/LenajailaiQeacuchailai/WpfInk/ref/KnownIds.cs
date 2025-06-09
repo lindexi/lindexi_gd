@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat;
+using System;
+using System.Collections;
+using System.IO;
+using MS.Internal.Ink.InkSerializedFormat;
 
-namespace WpfInk.@ref
+namespace System.Windows.Ink
 {
     /// <summary>
     ///    <para>DrawingAttributeIds</para>

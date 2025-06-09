@@ -3,7 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 
-namespace WpfInk.@ref
+using System;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Collections.Generic;
+
+namespace System.Windows.Input
 {
     /// <summary>
     /// StylusPointPropertyIds

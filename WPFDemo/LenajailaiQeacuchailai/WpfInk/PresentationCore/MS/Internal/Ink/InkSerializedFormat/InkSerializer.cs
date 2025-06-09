@@ -4,16 +4,27 @@
 
 //#define OLD_ISF
 
+using MS.Utility;
+using System;
 using System.Diagnostics;
-using WpfInk.PresentationCore.System.Windows;
-using WpfInk.PresentationCore.System.Windows.Ink;
-using WpfInk.PresentationCore.System.Windows.Input.Stylus;
-using WpfInk.@ref;
+using System.Security;
+using System.Windows;
+using System.Windows.Media;
 //using System.Windows.Media.Imaging;
-using SRID=MS.Internal.PresentationCore.SRID;
-using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
+using System.IO;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
+using System.Collections;
+using System.Collections.Generic;
+using System.Windows.Input;
+using System.Windows.Ink;
+using MS.Internal.IO.Packaging;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
+using SR=MS.Internal.PresentationCore.SR;
+using SRID=MS.Internal.PresentationCore.SRID;
+
+namespace MS.Internal.Ink.InkSerializedFormat
 {
     internal class StrokeCollectionSerializer
     {
@@ -52,7 +63,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 
         internal PersistenceFormat CurrentPersistenceFormat = PersistenceFormat.InkSerializedFormat;
         internal CompressionMode CurrentCompressionMode = CompressionMode.Compressed;
-        internal global::System.Collections.Generic.List<int> StrokeIds = null;
+        internal System.Collections.Generic.List<int> StrokeIds = null;
         #endregion
 
         #region Decoding
@@ -91,7 +102,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
                     //
                     int isfBase64PrefixLength = Base64HeaderBytes.Length;
                     // the previous call to ExamineStreamHeader guarantees that inkData.Length > isfBase64PrefixLength
-                    global::System.Diagnostics.Debug.Assert(inkData.Length > isfBase64PrefixLength);
+                    System.Diagnostics.Debug.Assert(inkData.Length > isfBase64PrefixLength);
 
                     inkData.Position = (long)isfBase64PrefixLength;
                     List<char> charData = new List<char>((int)inkData.Length);
@@ -134,32 +145,32 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
             catch (ArgumentException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (InvalidOperationException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (IndexOutOfRangeException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (NullReferenceException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (EndOfStreamException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (OverflowException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
             }
 #else
             catch (ArgumentException)
@@ -318,10 +329,10 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
             StylusPointDescription currentStylusPointDescription = null;
             Matrix currentTabletToInkTransform = Matrix.Identity;
 
-            _strokeDescriptorTable = new global::System.Collections.Generic.List<StrokeDescriptor>();
-            _drawingAttributesTable = new global::System.Collections.Generic.List<DrawingAttributes>();
-            _transformTable = new global::System.Collections.Generic.List<TransformDescriptor>();
-            _metricTable = new global::System.Collections.Generic.List<MetricBlock>();
+            _strokeDescriptorTable = new System.Collections.Generic.List<StrokeDescriptor>();
+            _drawingAttributesTable = new System.Collections.Generic.List<DrawingAttributes>();
+            _transformTable = new System.Collections.Generic.List<TransformDescriptor>();
+            _metricTable = new System.Collections.Generic.List<MetricBlock>();
 
             // First make sure this ink is empty
             if (0 != _coreStrokes.Count || _coreStrokes.ExtendedProperties.Count != 0)
@@ -344,7 +355,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
             uint uiTag;
             uint localBytesDecoded = SerializationHelper.Decode(inputStream, out uiTag);
             if (0x00 != uiTag)
-                throw new ArgumentException(@ref.SR.Get(SRID.InvalidStream));
+                throw new ArgumentException(SR.Get(SRID.InvalidStream));
 
             // Now read the size of the stream
             localBytesDecoded = SerializationHelper.Decode(inputStream, out remainingBytesInStream);
@@ -1566,12 +1577,12 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
             int packetPropertyCount = 0;
             uint buttonCount = 0;
             Guid[] buttonguids = null;
-            global::System.Collections.Generic.List<KnownTagCache.KnownTagIndex> tags = null;
+            System.Collections.Generic.List<KnownTagCache.KnownTagIndex> tags = null;
 
             // if strd is null, it means there is only default descriptor with X & Y
             if (null != strd)
             {
-                tags = new global::System.Collections.Generic.List<KnownTagCache.KnownTagIndex>();
+                tags = new System.Collections.Generic.List<KnownTagCache.KnownTagIndex>();
                 while (cTags < strd.Template.Count)
                 {
                     KnownTagCache.KnownTagIndex tag = (KnownTagCache.KnownTagIndex)strd.Template[cTags];
@@ -1679,7 +1690,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
         internal void EncodeISF(Stream outputStream)
         {
             _strokeLookupTable =
-                new global::System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry>(_coreStrokes.Count);
+                new System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry>(_coreStrokes.Count);
 
             // Next go through all the strokes
             for (int i = 0; i < _coreStrokes.Count; i++)
@@ -2676,10 +2687,10 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 
         #region Debugging Methods
 
-        [global::System.Diagnostics.Conditional("DEBUG_ISF")]
+        [System.Diagnostics.Conditional("DEBUG_ISF")]
         static void ISFDebugTrace(string message)
         {
-            global::System.Diagnostics.Debug.WriteLine(message);
+            System.Diagnostics.Debug.WriteLine(message);
         }
         #endregion
 
@@ -2696,10 +2707,10 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
         #region Private Fields
 
         StrokeCollection _coreStrokes;
-        private global::System.Collections.Generic.List<StrokeDescriptor> _strokeDescriptorTable = null;
-        private global::System.Collections.Generic.List<TransformDescriptor> _transformTable = null;
-        private global::System.Collections.Generic.List<DrawingAttributes> _drawingAttributesTable = null;
-        private global::System.Collections.Generic.List<MetricBlock> _metricTable = null;
+        private System.Collections.Generic.List<StrokeDescriptor> _strokeDescriptorTable = null;
+        private System.Collections.Generic.List<TransformDescriptor> _transformTable = null;
+        private System.Collections.Generic.List<DrawingAttributes> _drawingAttributesTable = null;
+        private System.Collections.Generic.List<MetricBlock> _metricTable = null;
         private Vector _himetricSize = new Vector(0.0f, 0.0f);
 
 
@@ -2708,7 +2719,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
             //      rectangle
         private Rect _inkSpaceRectangle = new Rect();
 
-        global::System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry> _strokeLookupTable = null;
+        System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry> _strokeLookupTable = null;
 
         #endregion
     }
@@ -2725,7 +2736,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
         /// <returns></returns>
         internal static int[] GetStrokeIds(StrokeCollection strokes)
         {
-            global::System.Diagnostics.Debug.Assert(strokes != null);
+            System.Diagnostics.Debug.Assert(strokes != null);
 
             int[] strokeIds = new int[strokes.Count];
             for (int x = 0; x < strokeIds.Length; x++)

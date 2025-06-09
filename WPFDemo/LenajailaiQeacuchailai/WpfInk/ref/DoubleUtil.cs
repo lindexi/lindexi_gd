@@ -14,6 +14,10 @@
 //
 //
 
+using System;
+using System.Windows;
+using System.Runtime.InteropServices;
+
 #if WINDOWS_BASE
     using MS.Internal.WindowsBase;
 #elif PRESENTATION_CORE
@@ -24,12 +28,10 @@
     using MS.Internal.Drt;
 #else
 //#error Attempt to use FriendAccessAllowedAttribute from an unknown assembly.
+using MS.Internal.YourAssemblyName;
 #endif
-using System.Runtime.InteropServices;
-using WpfInk.PresentationCore.System.Windows;
-using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 
-namespace WpfInk.@ref
+namespace MS.Internal
 {
     [FriendAccessAllowed]
     internal static class DoubleUtil
@@ -187,8 +189,8 @@ namespace WpfInk.@ref
         /// <returns>Whether or not the two points are equal</returns>
         public static bool AreClose(Point point1, Point point2)
         {
-            return DoubleUtil.AreClose((double)point1.X, point2.X) && 
-            DoubleUtil.AreClose((double)point1.Y, point2.Y);
+            return DoubleUtil.AreClose(point1.X, point2.X) && 
+            DoubleUtil.AreClose(point1.Y, point2.Y);
         }
 
         /// <summary>
@@ -213,7 +215,7 @@ namespace WpfInk.@ref
         /// <param name='vector1'>The first Vector to compare</param>
         /// <param name='vector2'>The second Vector to compare</param>
         /// <returns>Whether or not the two Vector instances are equal</returns>
-        public static bool AreClose(Vector vector1, Vector vector2)
+        public static bool AreClose(System.Windows.Vector vector1, System.Windows.Vector vector2)
         { 
             return DoubleUtil.AreClose(vector1.X, vector2.X) && 
                    DoubleUtil.AreClose(vector1.Y, vector2.Y);

@@ -3,9 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 
-using WpfInk.PresentationCore.System.Windows;
+using System;
+using System.Windows;
+using System.Windows.Media;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using MS.Utility;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+using SR=MS.Internal.PresentationCore.SR;
+using SRID=MS.Internal.PresentationCore.SRID;
+
+namespace MS.Internal.Ink
 {
     /// <summary>
     /// A helper structure used in StrokeNode and StrokeNodeOperation implementations

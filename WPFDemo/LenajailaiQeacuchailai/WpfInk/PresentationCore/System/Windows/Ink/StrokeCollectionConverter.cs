@@ -3,12 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
+using System.IO;
+using System.Windows.Ink;
+using System.Runtime.Serialization.Formatters;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using Microsoft.Win32;
+using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using System.Reflection;
+using System.Threading;
+using System.Security;
+using MS.Utility;
 
-namespace WpfInk.PresentationCore.System.Windows.Ink
+using SR=MS.Internal.PresentationCore.SR;
+using SRID=MS.Internal.PresentationCore.SRID;
+
+namespace System.Windows
 {
     /// <summary>
     ///      StrokeCollectionConverter is a class that can be used to convert StrokeCollection objects

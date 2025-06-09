@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using WpfInk.@ref;
+using System;
+using System.Collections;
+using System.IO;
+using System.Windows.Ink;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
+namespace MS.Internal.Ink.InkSerializedFormat
 {
     /// <summary>
     ///    <para>[To be supplied.]</para>

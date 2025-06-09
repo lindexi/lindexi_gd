@@ -3,15 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 
+using MS.Utility;
+using System;
 using System.ComponentModel;
+using System.Windows;
+using System.Windows.Media;
+using System.Collections.Specialized;
+using System.Collections.Generic;
+using System.Collections;
 using System.Diagnostics;
-using WpfInk.PresentationCore.MS.Internal.Ink;
-using WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat;
-using WpfInk.PresentationCore.System.Windows.Media;
-using WpfInk.@ref;
+using MS.Internal;
+using MS.Internal.Ink;
+using MS.Internal.Ink.InkSerializedFormat;
+
+using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace WpfInk.PresentationCore.System.Windows.Ink
+namespace System.Windows.Ink
 {
     /// <summary>
     /// DrawingAttributes is the list of attributes applied to an ink stroke
@@ -42,7 +50,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <param name="extendedProperties"></param>
         internal DrawingAttributes(ExtendedPropertyCollection extendedProperties)
         {
-            global::System.Diagnostics.Debug.Assert(extendedProperties != null);
+            System.Diagnostics.Debug.Assert(extendedProperties != null);
             _extendedProperties = extendedProperties;
 
             Initialize();
@@ -53,7 +61,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// </summary>
         private void Initialize()
         {
-            global::System.Diagnostics.Debug.Assert(_extendedProperties != null);
+            System.Diagnostics.Debug.Assert(_extendedProperties != null);
             _extendedProperties.Changed +=
                 new ExtendedPropertiesChangedEventHandler(this.ExtendedPropertiesChanged_EventForwarder);
         }
@@ -767,7 +775,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         internal static bool IsGeometricalDaGuid(Guid guid)
         {
             // Assert it is a DA guid
-            global::System.Diagnostics.Debug.Assert(null != DrawingAttributes.GetDefaultDrawingAttributeValue(guid));
+            System.Diagnostics.Debug.Assert(null != DrawingAttributes.GetDefaultDrawingAttributeValue(guid));
 
             if (guid == KnownIds.StylusHeight || guid == KnownIds.StylusWidth ||
                 guid == KnownIds.StylusTipTransform || guid == KnownIds.StylusTip ||
@@ -789,8 +797,8 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <param name="args">The custom attributes that changed</param>
         private void ExtendedPropertiesChanged_EventForwarder(object sender, ExtendedPropertiesChangedEventArgs args)
         {
-            global::System.Diagnostics.Debug.Assert(sender != null);
-            global::System.Diagnostics.Debug.Assert(args != null);
+            System.Diagnostics.Debug.Assert(sender != null);
+            System.Diagnostics.Debug.Assert(args != null);
 
             //see if the EP that changed is a drawingattribute
             if (args.NewProperty == null)

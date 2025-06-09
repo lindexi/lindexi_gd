@@ -3,9 +3,8 @@
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using WpfInk.@ref;
 
-namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
+namespace System.Windows.Input
 {
     /// <summary>
     /// StylusPointDescription describes the properties that a StylusPoint supports.

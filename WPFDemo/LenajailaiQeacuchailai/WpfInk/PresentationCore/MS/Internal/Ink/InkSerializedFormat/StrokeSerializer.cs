@@ -4,13 +4,20 @@
 
 //#define OLD_ISF
 
-using System.Collections.ObjectModel;
+using System;
+using System.IO;
+using System.Security;
 using System.Diagnostics;
-using WpfInk.PresentationCore.System.Windows.Ink;
-using WpfInk.PresentationCore.System.Windows.Input.Stylus;
-using WpfInk.@ref;
+using System.Windows;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Windows.Media;
+using System.Windows.Input;
+using System.Windows.Ink;
+using MS.Internal.Ink;
+using MS.Internal.IO.Packaging;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
+namespace MS.Internal.Ink.InkSerializedFormat
 {
     internal static class StrokeSerializer
     {
@@ -75,8 +82,8 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
             if (cb != size)
             {
                 throw new ArgumentException(StrokeCollectionSerializer.ISFDebugMessage("Stroke size (" +
-                    cb.ToString(global::System.Globalization.CultureInfo.InvariantCulture) + ") != expected (" + 
-                    size.ToString(global::System.Globalization.CultureInfo.InvariantCulture) + ")"));
+                    cb.ToString(System.Globalization.CultureInfo.InvariantCulture) + ") != expected (" + 
+                    size.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")"));
             }
 
             stroke = new Stroke(stylusPoints, drawingAttributes, extendedProperties);
@@ -169,7 +176,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 
                 switch (tag)
                 {
-                    case global::WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.StrokePropertyList:
+                    case MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.StrokePropertyList:
                         {
                             // we've found the stroke extended properties. Load them now.
                             while (iTag < strokeDescriptor.Template.Count && remainingBytesInStrokeBlock > 0)
@@ -201,7 +208,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
                         }
                         break;
 
-                    case global::WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.Buttons:
+                    case MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.Buttons:
                         {
                             // Next tag is count of buttons and the tags for the button guids
                             iTag += (int)((uint)strokeDescriptor.Template[iTag]) + 1;
@@ -212,7 +219,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
                     //      version of the ISF decoder doesn't understand
                     default:
                         {
-                            global::System.Diagnostics.Trace.WriteLine("Ignoring unhandled stroke tag in ISF stroke descriptor");
+                            System.Diagnostics.Trace.WriteLine("Ignoring unhandled stroke tag in ISF stroke descriptor");
                         }
                         break;
                 }
@@ -235,7 +242,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
                 // if it is a point property block
                 switch (tag)
                 {
-                    case global::WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.PointProperty:
+                    case MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.PointProperty:
                         {
                             // First load the totalBytesInStrokeBlockOfIsfStream of the point property block
                             uint cbsize;
@@ -289,7 +296,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 
                                 byte[] out_buffer = Compressor.DecompressPropertyData(in_buffer);
 
-                                global::System.Diagnostics.Debug.Assert(false, "ExtendedProperties for points are not supported");
+                                System.Diagnostics.Debug.Assert(false, "ExtendedProperties for points are not supported");
 
                                 // skip the bytes in both success & failure cases
                                 // Note: Point ExtendedProperties are discarded

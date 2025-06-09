@@ -8,11 +8,13 @@
 // Please see MilCodeGen.html for more information.
 //
 
+using MS.Internal;
 using System.ComponentModel;
-
+using System.Globalization;
+using System.Windows.Markup;
 //using System.Windows.Converters;
 
-namespace WpfInk.PresentationCore.System.Windows.Generated
+namespace System.Windows
 {
 
     [Serializable]
@@ -42,7 +44,7 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// </returns>
         /// <param name='rect1'>The first Rect to compare</param>
         /// <param name='rect2'>The second Rect to compare</param>
-        public static bool operator ==(Windows.Rect rect1, Windows.Rect rect2)
+        public static bool operator ==(Rect rect1, Rect rect2)
         {
             return rect1.X == rect2.X &&
                    rect1.Y == rect2.Y &&
@@ -61,7 +63,7 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// </returns>
         /// <param name='rect1'>The first Rect to compare</param>
         /// <param name='rect2'>The second Rect to compare</param>
-        public static bool operator !=(Windows.Rect rect1, Windows.Rect rect2)
+        public static bool operator !=(Rect rect1, Rect rect2)
         {
             return !(rect1 == rect2);
         }
@@ -77,7 +79,7 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// </returns>
         /// <param name='rect1'>The first Rect to compare</param>
         /// <param name='rect2'>The second Rect to compare</param>
-        public static bool Equals(Windows.Rect rect1, Windows.Rect rect2)
+        public static bool Equals(Rect rect1, Rect rect2)
         {
             if (rect1.IsEmpty)
             {
@@ -105,13 +107,13 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// <param name='o'>The object to compare to "this"</param>
         public override bool Equals(object o)
         {
-            if ((null == o) || !(o is Windows.Rect))
+            if ((null == o) || !(o is Rect))
             {
                 return false;
             }
 
-            Windows.Rect value = (Windows.Rect)o;
-            return Windows.Rect.Equals(this,value);
+            Rect value = (Rect)o;
+            return Rect.Equals(this,value);
         }
 
         /// <summary>
@@ -125,9 +127,9 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// bool - true if "value" is equal to "this".
         /// </returns>
         /// <param name='value'>The Rect to compare to "this"</param>
-        public bool Equals(Windows.Rect value)
+        public bool Equals(Rect value)
         {
-            return Windows.Rect.Equals(this, value);
+            return Rect.Equals(this, value);
         }
         /// <summary>
         /// Returns the HashCode for this Rect
@@ -156,7 +158,7 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// the culture "en-US"
         /// <param name="source"> string with Rect data </param>
         /// </summary>
-        public static Windows.Rect Parse(string source)
+        public static Rect Parse(string source)
         {
             throw new NotImplementedException();
             //IFormatProvider formatProvider = System.Windows.Markup.TypeConverterHelper.InvariantEnglishUS;

@@ -3,9 +3,9 @@
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using WpfInk.@ref;
+using System.Drawing;
 
-namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
+namespace System.Windows.Input
 {
     /// <summary>
     /// Represents a single sampling point from a stylus input device

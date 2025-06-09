@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Globalization;
-using WpfInk.@ref;
 
-namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
+namespace System.Windows.Input
 {
     /// <summary>
     /// StylusPointProperty

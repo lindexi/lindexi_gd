@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace WpfInk.PresentationCore.System.Windows
+namespace System.Windows
 {
     /// <summary>
     /// Int32Rect - The primitive which represents an integer rectangle.
@@ -61,10 +61,10 @@ namespace WpfInk.PresentationCore.System.Windows
         // concerns prevent this until a side-by-side release.
         internal void ValidateForDirtyRect(string paramName, int width, int height)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative<int>(_x, paramName);
-            ArgumentOutOfRangeException.ThrowIfNegative<int>(_y, paramName);
-            ArgumentOutOfRangeException.ThrowIfNegative<int>(_width, paramName);
-            ArgumentOutOfRangeException.ThrowIfNegative<int>(_height, paramName);
+            ArgumentOutOfRangeException.ThrowIfNegative(_x, paramName);
+            ArgumentOutOfRangeException.ThrowIfNegative(_y, paramName);
+            ArgumentOutOfRangeException.ThrowIfNegative(_width, paramName);
+            ArgumentOutOfRangeException.ThrowIfNegative(_height, paramName);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(_width, width, paramName);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(_height, height, paramName);
         }

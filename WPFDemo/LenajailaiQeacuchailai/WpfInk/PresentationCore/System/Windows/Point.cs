@@ -1,9 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using WpfInk.@ref;
+using System.Windows.Media;
 
-namespace WpfInk.PresentationCore.System.Windows
+namespace System.Windows
 {
     /// <summary>
     /// Point - Defaults to 0,0
@@ -46,7 +46,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="point"> The Point to be added to the Vector </param>
         /// <param name="vector"> The Vectr to be added to the Point </param>
-        public static Point operator + (Point point, Generated.Vector vector)
+        public static Point operator + (Point point, Vector vector)
         {
              return new Point(point._x + vector._x, point._y + vector._y);
         }
@@ -59,7 +59,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="point"> The Point to be added to the Vector </param>
         /// <param name="vector"> The Vector to be added to the Point </param>
-        public static Point Add(Point point, Generated.Vector vector)
+        public static Point Add(Point point, Vector vector)
         {
             return new Point(point._x + vector._x, point._y + vector._y);
         }
@@ -72,7 +72,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="point"> The Point from which the Vector is subtracted </param>
         /// <param name="vector"> The Vector which is subtracted from the Point </param>
-        public static Point operator - (Point point, Generated.Vector vector)
+        public static Point operator - (Point point, Vector vector)
         {
             return new Point(point._x - vector._x, point._y - vector._y);
         }
@@ -85,7 +85,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="point"> The Point from which the Vector is subtracted </param>
         /// <param name="vector"> The Vector which is subtracted from the Point </param>
-        public static Point Subtract(Point point, Generated.Vector vector)
+        public static Point Subtract(Point point, Vector vector)
         {
             return new Point(point._x - vector._x, point._y - vector._y);
         }
@@ -98,9 +98,9 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="point1"> The Point from which point2 is subtracted </param>
         /// <param name="point2"> The Point subtracted from point1 </param>
-        public static Generated.Vector operator - (Point point1, Point point2)
+        public static Vector operator - (Point point1, Point point2)
         {
-            return new Generated.Vector(point1._x - point2._x, point1._y - point2._y);
+            return new Vector(point1._x - point2._x, point1._y - point2._y);
         }
 
         /// <summary>
@@ -111,9 +111,9 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="point1"> The Point from which point2 is subtracted </param>
         /// <param name="point2"> The Point subtracted from point1 </param>
-        public static Generated.Vector Subtract(Point point1, Point point2)
+        public static Vector Subtract(Point point1, Point point2)
         {
-            return new Generated.Vector(point1._x - point2._x, point1._y - point2._y);
+            return new Vector(point1._x - point2._x, point1._y - point2._y);
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <param name="point"> Point - the Point to convert to a Size </param>
         public static explicit operator Size(Point point)
         {
-            return new Size(Math.Abs((double)point._x), Math.Abs((double)point._y));
+            return new Size(Math.Abs(point._x), Math.Abs(point._y));
         }
 
         /// <summary>
@@ -152,9 +152,9 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Vector - A Vector equal to this Point
         /// </returns>
         /// <param name="point"> Point - the Point to convert to a Vector </param>
-        public static explicit operator Generated.Vector(Point point)
+        public static explicit operator Vector(Point point)
         {
-            return new Generated.Vector(point._x, point._y);
+            return new Vector(point._x, point._y);
         }
 
         #endregion Public Methods

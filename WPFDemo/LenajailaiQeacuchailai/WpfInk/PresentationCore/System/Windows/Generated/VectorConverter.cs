@@ -8,12 +8,13 @@
 // Please see MilCodeGen.html for more information.
 //
 
+using MS.Internal;
 using System.ComponentModel;
 using System.Globalization;
-
+using System.Windows.Markup;
 //using System.Windows.Converters;
 
-namespace WpfInk.PresentationCore.System.Windows.Generated
+namespace System.Windows
 {
     /// <summary>
     /// VectorConverter - Converter class for converting instances of other types to and from Vector instances

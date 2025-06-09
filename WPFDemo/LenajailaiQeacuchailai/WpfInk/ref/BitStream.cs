@@ -1,11 +1,19 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using MS.Utility;
+using System;
+using System.IO;
+using System.Collections;
+using System.Collections.Generic;
+using System.Windows;
 using System.Diagnostics;
+
+using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace WpfInk.@ref
+namespace MS.Internal.Ink
 {
     /// <summary>
     /// A stream-style reader for retrieving packed bits from a byte array

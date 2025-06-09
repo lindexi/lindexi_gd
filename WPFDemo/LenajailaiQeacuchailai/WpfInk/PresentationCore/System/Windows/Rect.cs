@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
-using WpfInk.@ref;
+using MS.Internal;
+using System.Windows.Media;
 
-namespace WpfInk.PresentationCore.System.Windows
+namespace System.Windows
 {
     /// <summary>
     /// Rect - The primitive which represents a rectangle.  Rects are stored as
@@ -45,7 +46,7 @@ namespace WpfInk.PresentationCore.System.Windows
         {
             if (width < 0 || height < 0)
             {
-                throw new global::System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
+                throw new System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
             }
 
             _x    = x;
@@ -60,12 +61,12 @@ namespace WpfInk.PresentationCore.System.Windows
         public Rect(Point point1,
                     Point point2)
         {
-            _x = Math.Min((double)point1._x, point2._x);
-            _y = Math.Min((double)point1._y, point2._y);
+            _x = Math.Min(point1._x, point2._x);
+            _y = Math.Min(point1._y, point2._y);
 
             //  Max with 0 to prevent double weirdness from causing us to be (-epsilon..0)
-            _width = Math.Max(Math.Max((double)point1._x, point2._x) - _x, 0);
-            _height = Math.Max(Math.Max((double)point1._y, point2._y) - _y, 0);
+            _width = Math.Max(Math.Max(point1._x, point2._x) - _x, 0);
+            _height = Math.Max(Math.Max(point1._y, point2._y) - _y, 0);
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// which results from point + vector.
         /// </summary>
         public Rect(Point point,
-                    Generated.Vector vector): this(point, point+vector)
+                    Vector vector): this(point, point+vector)
         {
         }
 
@@ -145,7 +146,7 @@ namespace WpfInk.PresentationCore.System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
                 
                 _x = value._x;
@@ -174,7 +175,7 @@ namespace WpfInk.PresentationCore.System.Windows
                 {
                     if (IsEmpty)
                     {
-                        throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                        throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                     }
 
                     _width = value._width;
@@ -198,7 +199,7 @@ namespace WpfInk.PresentationCore.System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 _x = value;
@@ -220,7 +221,7 @@ namespace WpfInk.PresentationCore.System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 _y = value;
@@ -242,12 +243,12 @@ namespace WpfInk.PresentationCore.System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
                                 
                 if (value < 0)
                 {
-                    throw new global::System.ArgumentException(SR.Size_WidthCannotBeNegative);
+                    throw new System.ArgumentException(SR.Size_WidthCannotBeNegative);
                 }
 
                 _width = value;
@@ -269,12 +270,12 @@ namespace WpfInk.PresentationCore.System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 if (value < 0)
                 {
-                    throw new global::System.ArgumentException(SR.Size_HeightCannotBeNegative);
+                    throw new System.ArgumentException(SR.Size_HeightCannotBeNegative);
                 }
 
                 _height = value;
@@ -575,11 +576,11 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Offset - translate the Location by the offset provided.
         /// If this is Empty, this method is illegal.
         /// </summary>
-        public void Offset(Generated.Vector offsetVector)
+        public void Offset(Vector offsetVector)
         {
             if (IsEmpty)
             {
-                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x += offsetVector._x;
@@ -594,7 +595,7 @@ namespace WpfInk.PresentationCore.System.Windows
         {
             if (IsEmpty)
             {
-                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x += offsetX;
@@ -605,7 +606,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Offset - return the result of offsetting rect by the offset provided
         /// If this is Empty, this method is illegal.
         /// </summary>
-        public static Rect Offset(Rect rect, Generated.Vector offsetVector)
+        public static Rect Offset(Rect rect, Vector offsetVector)
         {
             rect.Offset(offsetVector.X, offsetVector.Y);
             return rect;
@@ -627,7 +628,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </summary>
         public void Inflate(Size size)
         {
-            this.Inflate(size._width, size._height);
+            Inflate(size._width, size._height);
         }
 
         /// <summary>
@@ -639,7 +640,7 @@ namespace WpfInk.PresentationCore.System.Windows
         {
             if (IsEmpty)
             {
-                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x -= width;

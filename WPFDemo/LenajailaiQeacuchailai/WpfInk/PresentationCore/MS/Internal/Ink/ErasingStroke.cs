@@ -4,12 +4,14 @@
 
 //#define POINTS_FILTER_TRACE
 
-using WpfInk.PresentationCore.System.Windows;
-using WpfInk.PresentationCore.System.Windows.Ink;
-using WpfInk.@ref;
-using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
+using System;
+using System.Windows;
+using System.Windows.Ink;
+using System.Windows.Media;
+using System.Collections.Generic;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+
+namespace MS.Internal.Ink
 {
     #region ErasingStroke
 
@@ -28,7 +30,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <param name="erasingShape">The shape of the eraser's tip</param>
         internal ErasingStroke(StylusShape erasingShape)
         {
-            global::System.Diagnostics.Debug.Assert(erasingShape != null);
+            System.Diagnostics.Debug.Assert(erasingShape != null);
             _nodeIterator = new StrokeNodeIterator(erasingShape);
         }
 
@@ -54,7 +56,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <param name="path"></param>
         internal void MoveTo(IEnumerable<Point> path)
         {
-            global::System.Diagnostics.Debug.Assert((path != null) && (IEnumerablePointHelper.GetCount(path) != 0));
+            System.Diagnostics.Debug.Assert((path != null) && (IEnumerablePointHelper.GetCount(path) != 0));
             Point[] points = IEnumerablePointHelper.GetPointArray(path);
 
             if (_erasingStrokeNodes == null)
@@ -95,7 +97,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <returns>true if the strokes intersect, false otherwise</returns>
         internal bool HitTest(StrokeNodeIterator iterator)
         {
-            global::System.Diagnostics.Debug.Assert(iterator != null);
+            System.Diagnostics.Debug.Assert(iterator != null);
 
             if ((_erasingStrokeNodes == null) || (_erasingStrokeNodes.Count == 0))
             {
@@ -134,8 +136,8 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <returns></returns>
         internal bool EraseTest(StrokeNodeIterator iterator, List<StrokeIntersection> intersections)
         {
-            global::System.Diagnostics.Debug.Assert(iterator != null);
-            global::System.Diagnostics.Debug.Assert(intersections != null);
+            System.Diagnostics.Debug.Assert(iterator != null);
+            System.Diagnostics.Debug.Assert(intersections != null);
             intersections.Clear();
 
             List<StrokeFIndices> eraseAt = new List<StrokeFIndices>();
@@ -257,7 +259,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         #region private API
         private Point[] FilterPoints(Point[] path)
         {
-            global::System.Diagnostics.Debug.Assert(path.Length > 1);
+            System.Diagnostics.Debug.Assert(path.Length > 1);
             Point back2, back1;
             int i;
             List<Point> newPath = new List<Point>();

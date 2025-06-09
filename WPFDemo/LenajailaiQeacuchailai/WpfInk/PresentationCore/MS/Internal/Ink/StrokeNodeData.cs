@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Input;
 using System.Diagnostics;
-using WpfInk.PresentationCore.System.Windows;
-using WpfInk.@ref;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+namespace MS.Internal.Ink
 {
     #region StrokeNodeData
 
@@ -44,7 +47,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <param name="pressure">pressure scaling factor at the node</param>
         internal StrokeNodeData(Point position, float pressure)
         {
-            global::System.Diagnostics.Debug.Assert(DoubleUtil.GreaterThan((double)pressure, 0d));
+            System.Diagnostics.Debug.Assert(DoubleUtil.GreaterThan((double)pressure, 0d));
 
             _position = position;
             _pressure = pressure;

@@ -8,11 +8,13 @@
 // Please see MilCodeGen.html for more information.
 //
 
+using MS.Internal;
 using System.ComponentModel;
-
+using System.Globalization;
+using System.Windows.Markup;
 //using System.Windows.Converters;
 
-namespace WpfInk.PresentationCore.System.Windows.Generated
+namespace System.Windows
 {
 
     [Serializable]
@@ -42,7 +44,7 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// </returns>
         /// <param name='int32Rect1'>The first Int32Rect to compare</param>
         /// <param name='int32Rect2'>The second Int32Rect to compare</param>
-        public static bool operator ==(Windows.Int32Rect int32Rect1, Windows.Int32Rect int32Rect2)
+        public static bool operator ==(Int32Rect int32Rect1, Int32Rect int32Rect2)
         {
             return int32Rect1.X == int32Rect2.X &&
                    int32Rect1.Y == int32Rect2.Y &&
@@ -61,7 +63,7 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// </returns>
         /// <param name='int32Rect1'>The first Int32Rect to compare</param>
         /// <param name='int32Rect2'>The second Int32Rect to compare</param>
-        public static bool operator !=(Windows.Int32Rect int32Rect1, Windows.Int32Rect int32Rect2)
+        public static bool operator !=(Int32Rect int32Rect1, Int32Rect int32Rect2)
         {
             return !(int32Rect1 == int32Rect2);
         }
@@ -77,7 +79,7 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// </returns>
         /// <param name='int32Rect1'>The first Int32Rect to compare</param>
         /// <param name='int32Rect2'>The second Int32Rect to compare</param>
-        public static bool Equals(Windows.Int32Rect int32Rect1, Windows.Int32Rect int32Rect2)
+        public static bool Equals(Int32Rect int32Rect1, Int32Rect int32Rect2)
         {
             if (int32Rect1.IsEmpty)
             {
@@ -105,13 +107,13 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// <param name='o'>The object to compare to "this"</param>
         public override bool Equals(object o)
         {
-            if ((null == o) || !(o is Windows.Int32Rect))
+            if ((null == o) || !(o is Int32Rect))
             {
                 return false;
             }
 
-            Windows.Int32Rect value = (Windows.Int32Rect)o;
-            return Windows.Int32Rect.Equals(this,value);
+            Int32Rect value = (Int32Rect)o;
+            return Int32Rect.Equals(this,value);
         }
 
         /// <summary>
@@ -125,9 +127,9 @@ namespace WpfInk.PresentationCore.System.Windows.Generated
         /// bool - true if "value" is equal to "this".
         /// </returns>
         /// <param name='value'>The Int32Rect to compare to "this"</param>
-        public bool Equals(Windows.Int32Rect value)
+        public bool Equals(Int32Rect value)
         {
-            return Windows.Int32Rect.Equals(this, value);
+            return Int32Rect.Equals(this, value);
         }
         /// <summary>
         /// Returns the HashCode for this Int32Rect

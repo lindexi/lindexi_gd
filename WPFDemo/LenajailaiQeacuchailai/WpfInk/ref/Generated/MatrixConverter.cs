@@ -9,13 +9,24 @@
 // Please see MilCodeGen.html for more information.
 //
 
+using MS.Internal;
+using MS.Internal.WindowsBase;
+using System;
+using System.Collections;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.ComponentModel.Design.Serialization;
+using System.Windows.Markup;
 //using System.Windows.Media.Converters;
+using System.Windows;
+using System.Windows.Media;
 
 #pragma warning disable 1634, 1691  // suppressing PreSharp warnings
 
-namespace WpfInk.@ref.Generated
+namespace System.Windows.Media
 {
     /// <summary>
     /// MatrixConverter - Converter class for converting instances of other types to and from Matrix instances
@@ -104,9 +115,9 @@ namespace WpfInk.@ref.Generated
         /// <param name="destinationType"> The type to which this will convert the Matrix instance. </param>
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            if (destinationType != null && value is @ref.Matrix)
+            if (destinationType != null && value is Matrix)
             {
-                @ref.Matrix instance = (@ref.Matrix)value;
+                Matrix instance = (Matrix)value;
 
                 if (destinationType == typeof(string))
                 {

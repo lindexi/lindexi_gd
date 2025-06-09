@@ -13,7 +13,7 @@
 //
 //---------------------------------------------------------------------------
 
-namespace WpfInk.@ref
+namespace MS.Internal
 {
     internal static class FloatUtil
     {

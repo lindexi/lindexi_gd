@@ -2,12 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+﻿
+using MS.Utility;
+using System;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Ink;
+using System.Windows.Media;
+using System.Windows.Input;
+using MS.Internal.Ink;
 
-using WpfInk.PresentationCore.System.Windows;
-using WpfInk.PresentationCore.System.Windows.Ink;
-using WpfInk.PresentationCore.System.Windows.Input.Stylus;
+using SR=MS.Internal.PresentationCore.SR;
+using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+namespace MS.Internal.Ink
 {
     /// <summary>
     /// This class serves as a unified tool for enumerating through stroke nodes
@@ -28,11 +36,11 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         {
             if (stroke == null)
             {
-                throw new global::System.ArgumentNullException("stroke");
+                throw new System.ArgumentNullException("stroke");
             }
             if (drawingAttributes == null)
             {
-                throw new global::System.ArgumentNullException("drawingAttributes");
+                throw new System.ArgumentNullException("drawingAttributes");
             }
 
             StylusPointCollection stylusPoints =
@@ -49,11 +57,11 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         {
             if (stylusPoints == null)
             {
-                throw new global::System.ArgumentNullException("stylusPoints");
+                throw new System.ArgumentNullException("stylusPoints");
             }
             if (drawingAttributes == null)
             {
-                throw new global::System.ArgumentNullException("drawingAttributes");
+                throw new System.ArgumentNullException("drawingAttributes");
             }
 
             StrokeNodeOperations operations =
@@ -131,7 +139,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         {
             if (stylusPoints == null)
             {
-                throw new global::System.ArgumentNullException("stylusPoints");
+                throw new System.ArgumentNullException("stylusPoints");
             }
 
             if (_stylusPoints != null && _stylusPoints.Count > 0 && stylusPoints.Count > 0)
@@ -163,7 +171,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         {   
             if (points == null)
             {
-                throw new global::System.ArgumentNullException("points");
+                throw new System.ArgumentNullException("points");
             }
             StylusPointCollection newStylusPoints = new StylusPointCollection(points);
             if (_stylusPoints != null && _stylusPoints.Count > 0)

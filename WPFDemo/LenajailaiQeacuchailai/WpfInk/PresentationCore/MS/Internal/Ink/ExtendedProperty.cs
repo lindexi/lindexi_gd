@@ -3,11 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 
-using WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat;
-using WpfInk.@ref;
+using MS.Utility;
+using System;
+using System.IO;
+using System.Collections;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using MS.Internal.Ink.InkSerializedFormat;
+
+using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+namespace System.Windows.Ink
 {
     /// <summary>
     /// Drawing Attribute Key/Value pair for specifying each attribute
@@ -19,7 +28,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// </summary>
         /// <param name="id">Identifier of attribute</param>
         /// <param name="value">Attribute value - not that the Type for value is tied to the id</param>
-        /// <exception cref="ArgumentException">Value type must be compatible with attribute Id</exception>
+        /// <exception cref="System.ArgumentException">Value type must be compatible with attribute Id</exception>
         internal ExtendedProperty(Guid id, object value)
         {
             if (id == Guid.Empty)
@@ -145,7 +154,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <summary>
         /// Set or retrieve the value for ExtendedProperty key/value pair
         /// </summary>
-        /// <exception cref="ArgumentException">Value type must be compatible with attribute Id</exception>
+        /// <exception cref="System.ArgumentException">Value type must be compatible with attribute Id</exception>
         /// <remarks>Value can be null.</remarks>
         internal object Value
         {

@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Ink;
+using System.Windows.Input;
 using System.Diagnostics;
-using WpfInk.PresentationCore.System.Windows;
-using WpfInk.@ref;
-using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+namespace MS.Internal.Ink
 {
     /// <summary>
     /// StrokeNodeOperations implementation for elliptical nodes
@@ -22,7 +25,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         internal EllipticalNodeOperations(StylusShape nodeShape)
             : base(nodeShape)
         {
-            global::System.Diagnostics.Debug.Assert((nodeShape != null) && nodeShape.IsEllipse);
+            System.Diagnostics.Debug.Assert((nodeShape != null) && nodeShape.IsEllipse);
 
             _radii = new Size(nodeShape.Width * 0.5, nodeShape.Height * 0.5);
 
@@ -169,7 +172,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
         /// <returns></returns>
         internal override IEnumerable<ContourSegment> GetContourSegments(StrokeNodeData node, Quad quad)
         {
-            global::System.Diagnostics.Debug.Assert(node.IsEmpty == false);
+            System.Diagnostics.Debug.Assert(node.IsEmpty == false);
 
             if (quad.IsEmpty)
             {
@@ -572,7 +575,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             {
                 if (isInside == true)
                 {
-                    global::System.Diagnostics.Debug.Assert(result.IsEmpty);
+                    System.Diagnostics.Debug.Assert(result.IsEmpty);
                     result = StrokeFIndices.Full;
                 }
                 else if ((DoubleUtil.AreClose(result.EndFIndex, StrokeFIndices.BeforeFirst)) && (!DoubleUtil.AreClose(result.BeginFIndex, StrokeFIndices.AfterLast)))
@@ -610,7 +613,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             // when the stylus stays at the the location but pressure changes.
             if (DoubleUtil.IsZero(spineVector.X) && DoubleUtil.IsZero(spineVector.Y))
             {
-                global::System.Diagnostics.Debug.Assert(DoubleUtil.AreClose(beginRadius, endRadius) == false);
+                System.Diagnostics.Debug.Assert(DoubleUtil.AreClose(beginRadius, endRadius) == false);
 
                 Vector nearest = GetNearest(hitBegin, hitEnd);
                 double radius;
@@ -638,11 +641,11 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             double findex;
             Vector hitVector = hitEnd - hitBegin;
 
-            if (DoubleUtil.IsZero(System.Windows.Vector.Determinant(spineVector, hitVector)))
+            if (DoubleUtil.IsZero(Vector.Determinant(spineVector, hitVector)))
             {
                 // hitVector and spineVector are parallel
                 findex = ClipTest(spineVector, beginRadius, endRadius, GetNearest(hitBegin, hitEnd));
-                global::System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
+                System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
             }
             else
             {
@@ -651,9 +654,9 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
                 Vector P1Xp = hitBegin + (hitVector * x);
                 if (P1Xp.LengthSquared < (beginRadius * beginRadius))
                 {
-                    global::System.Diagnostics.Debug.Assert(DoubleUtil.IsBetweenZeroAndOne(x) == false);
+                    System.Diagnostics.Debug.Assert(DoubleUtil.IsBetweenZeroAndOne(x) == false);
                     findex = ClipTest(spineVector, beginRadius, endRadius, (0 > x) ? hitBegin : hitEnd);
-                    global::System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
+                    System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
                 }
                 else
                 {
@@ -669,7 +672,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
 
                     // Calculate the findex of the point to split the ink segment at.
                     findex = (P1Xp.Length - beginRadius) / (endRadius - beginRadius + P1P2p.Length);
-                    global::System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
+                    System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
 
                     // Find the projection of the split point to the line of this segment.
                     Vector S = spineVector * findex;
@@ -681,7 +684,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
                     if (false == DoubleUtil.IsBetweenZeroAndOne(r))
                     {
                         findex = ClipTest(spineVector, beginRadius, endRadius, (0 > r) ? hitBegin : hitEnd);
-                        global::System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
+                        System.Diagnostics.Debug.Assert(!double.IsNaN(findex));
                     }
                 }
             }
@@ -773,7 +776,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink
             Vector segVector = segEnd - segBegin;
 
             if ((WhereIsVectorAboutVector(-segBegin, segVector) == HitResult.Left)
-                && !DoubleUtil.IsZero(System.Windows.Vector.Determinant(spine, segVector)))
+                && !DoubleUtil.IsZero(Vector.Determinant(spine, segVector)))
             {
                 whereabout = HitResult.Left;
             }

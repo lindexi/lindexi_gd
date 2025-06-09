@@ -1,9 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using WpfInk.@ref;
+using System.Windows.Media;
 
-namespace WpfInk.PresentationCore.System.Windows
+namespace System.Windows
 {
     /// <summary>
     /// Vector - A value type which defined a vector in terms of X and Y
@@ -56,7 +56,7 @@ namespace WpfInk.PresentationCore.System.Windows
         public void Normalize()
         {
             // Avoid overflow
-            this /= Math.Max(Math.Abs((double)_x),Math.Abs((double)_y));
+            this /= Math.Max(Math.Abs(_x),Math.Abs(_y));
             this /= Length;
         }
 
@@ -68,7 +68,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="vector1"> The first Vector </param>
         /// <param name="vector2"> The second Vector </param>
-        public static double CrossProduct(Generated.Vector vector1, Generated.Vector vector2)
+        public static double CrossProduct(Vector vector1, Vector vector2)
         {
             return vector1._x * vector2._y - vector1._y * vector2._x;
         }
@@ -81,7 +81,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="vector1"> The first Vector </param>
         /// <param name="vector2"> The second Vector </param>
-        public static double AngleBetween(Generated.Vector vector1, Generated.Vector vector2)
+        public static double AngleBetween(Vector vector1, Vector vector2)
         {
             double sin = vector1._x * vector2._y - vector2._x * vector1._y;  
             double cos = vector1._x * vector2._x + vector1._y * vector2._y;
@@ -95,9 +95,9 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Operator -Vector (unary negation)
         /// </summary>
-        public static Generated.Vector operator - (Generated.Vector vector)
+        public static Vector operator - (Vector vector)
         {
-            return new Generated.Vector(-vector._x,-vector._y);
+            return new Vector(-vector._x,-vector._y);
         }
 
         /// <summary>
@@ -112,43 +112,43 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Operator Vector + Vector
         /// </summary>
-        public static Generated.Vector operator + (Generated.Vector vector1, Generated.Vector vector2)
+        public static Vector operator + (Vector vector1, Vector vector2)
         {
-            return new Generated.Vector(vector1._x + vector2._x,
+            return new Vector(vector1._x + vector2._x,
                               vector1._y + vector2._y);
         }
 
         /// <summary>
         /// Add: Vector + Vector
         /// </summary>
-        public static Generated.Vector Add(Generated.Vector vector1, Generated.Vector vector2)
+        public static Vector Add(Vector vector1, Vector vector2)
         {
-            return new Generated.Vector(vector1._x + vector2._x,
+            return new Vector(vector1._x + vector2._x,
                               vector1._y + vector2._y);
         }
 
         /// <summary>
         /// Operator Vector - Vector
         /// </summary>
-        public static Generated.Vector operator - (Generated.Vector vector1, Generated.Vector vector2)
+        public static Vector operator - (Vector vector1, Vector vector2)
         {
-            return new Generated.Vector(vector1._x - vector2._x,
+            return new Vector(vector1._x - vector2._x,
                               vector1._y - vector2._y);
         }
 
         /// <summary>
         /// Subtract: Vector - Vector
         /// </summary>
-        public static Generated.Vector Subtract(Generated.Vector vector1, Generated.Vector vector2)
+        public static Vector Subtract(Vector vector1, Vector vector2)
         {
-            return new Generated.Vector(vector1._x - vector2._x,
+            return new Vector(vector1._x - vector2._x,
                               vector1._y - vector2._y);
         }
 
         /// <summary>
         /// Operator Vector + Point
         /// </summary>
-        public static Point operator + (Generated.Vector vector, Point point)
+        public static Point operator + (Vector vector, Point point)
         {
             return new Point(point._x + vector._x, point._y + vector._y);
         }
@@ -156,7 +156,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Add: Vector + Point
         /// </summary>
-        public static Point Add(Generated.Vector vector, Point point)
+        public static Point Add(Vector vector, Point point)
         {
             return new Point(point._x + vector._x, point._y + vector._y);
         }
@@ -164,43 +164,43 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Operator Vector * double
         /// </summary>
-        public static Generated.Vector operator * (Generated.Vector vector, double scalar)
+        public static Vector operator * (Vector vector, double scalar)
         {
-            return new Generated.Vector(vector._x * scalar,
+            return new Vector(vector._x * scalar,
                               vector._y * scalar);
         }
 
         /// <summary>
         /// Multiply: Vector * double
         /// </summary>
-        public static Generated.Vector Multiply(Generated.Vector vector, double scalar)
+        public static Vector Multiply(Vector vector, double scalar)
         {
-            return new Generated.Vector(vector._x * scalar,
+            return new Vector(vector._x * scalar,
                               vector._y * scalar);
         }
 
         /// <summary>
         /// Operator double * Vector
         /// </summary>
-        public static Generated.Vector operator * (double scalar, Generated.Vector vector)
+        public static Vector operator * (double scalar, Vector vector)
         {
-            return new Generated.Vector(vector._x * scalar,
+            return new Vector(vector._x * scalar,
                               vector._y * scalar);
         }
 
         /// <summary>
         /// Multiply: double * Vector
         /// </summary>
-        public static Generated.Vector Multiply(double scalar, Generated.Vector vector)
+        public static Vector Multiply(double scalar, Vector vector)
         {
-            return new Generated.Vector(vector._x * scalar,
+            return new Vector(vector._x * scalar,
                               vector._y * scalar);
         }
 
         /// <summary>
         /// Operator Vector / double
         /// </summary>
-        public static Generated.Vector operator / (Generated.Vector vector, double scalar)
+        public static Vector operator / (Vector vector, double scalar)
         {
             return vector * (1.0 / scalar);
         }
@@ -208,7 +208,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Multiply: Vector / double
         /// </summary>
-        public static Generated.Vector Divide(Generated.Vector vector, double scalar)
+        public static Vector Divide(Vector vector, double scalar)
         {
             return vector * (1.0 / scalar);
         }
@@ -216,7 +216,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Operator Vector * Matrix
         /// </summary>
-        public static Generated.Vector operator * (Generated.Vector vector, Matrix matrix)
+        public static Vector operator * (Vector vector, Matrix matrix)
         {
             return matrix.Transform(vector);
         }
@@ -224,7 +224,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Multiply: Vector * Matrix
         /// </summary>
-        public static Generated.Vector Multiply(Generated.Vector vector, Matrix matrix)
+        public static Vector Multiply(Vector vector, Matrix matrix)
         {
             return matrix.Transform(vector);
         }
@@ -232,7 +232,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Operator Vector * Vector, interpreted as their dot product
         /// </summary>
-        public static double operator * (Generated.Vector vector1, Generated.Vector vector2)
+        public static double operator * (Vector vector1, Vector vector2)
         {
             return vector1._x * vector2._x + vector1._y * vector2._y;
         }
@@ -245,7 +245,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="vector1"> The first Vector </param>
         /// <param name="vector2"> The second Vector </param>
-        public static double Multiply(Generated.Vector vector1, Generated.Vector vector2)
+        public static double Multiply(Vector vector1, Vector vector2)
         {
             return vector1._x * vector2._x + vector1._y * vector2._y;
         }
@@ -258,7 +258,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         /// <param name="vector1"> The first Vector </param>
         /// <param name="vector2"> The second Vector </param>
-        public static double Determinant(Generated.Vector vector1, Generated.Vector vector2)
+        public static double Determinant(Vector vector1, Vector vector2)
         {
             return vector1._x * vector2._y - vector1._y * vector2._x;
         }
@@ -271,7 +271,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Size - A Size equal to this Vector
         /// </returns>
         /// <param name="vector"> Vector - the Vector to convert to a Size </param>
-        public static explicit operator Size(Generated.Vector vector)
+        public static explicit operator Size(Vector vector)
         {
             return new Size(Math.Abs(vector._x), Math.Abs(vector._y));
         }
@@ -283,7 +283,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Point - A Point equal to this Vector
         /// </returns>
         /// <param name="vector"> Vector - the Vector to convert to a Point </param>
-        public static explicit operator Point(Generated.Vector vector)
+        public static explicit operator Point(Vector vector)
         {
             return new Point(vector._x, vector._y);
         }

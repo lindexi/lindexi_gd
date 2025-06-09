@@ -12,8 +12,10 @@
 // One exception is WM_, which is called WindowMessage here.
 //
 
-namespace WpfInk.@ref
+namespace MS.Internal.Interop
 {
+    using System;
+
     /// <summary>
     /// APPDOCLISTTYPE.  ADLT_*
     /// </summary>

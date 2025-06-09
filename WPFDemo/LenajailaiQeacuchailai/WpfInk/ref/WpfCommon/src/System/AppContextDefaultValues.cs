@@ -10,7 +10,10 @@
 // In order to disable the warning for this type we are disabling this warning for this entire file.
 #pragma warning disable 436
 
-namespace WpfInk.@ref.WpfCommon.src.System
+using System;
+using System.Collections.Generic;
+
+namespace System
 {
     internal static partial class AppContextDefaultValues
     {

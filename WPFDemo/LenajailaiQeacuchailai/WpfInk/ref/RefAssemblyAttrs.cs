@@ -4,10 +4,13 @@
 
 // The C++ version of these definitions is in inc\BuildInfo.hxx.
 
+using System;
+using System.Text;
+
 #if WINDOWS_BASE
 namespace MS.Internal.WindowsBase
 #elif PRESENTATION_CORE||true
-namespace WpfInk.@ref
+namespace MS.Internal.PresentationCore
 #elif PRESENTATIONFRAMEWORK
 namespace MS.Internal.PresentationFramework
 #elif REACHFRAMEWORK

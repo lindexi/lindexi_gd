@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 
-
+using System;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
+namespace MS.Internal.Ink.InkSerializedFormat
 {
     internal class StrokeDescriptor
     {
-        private global::System.Collections.Generic.List<KnownTagCache.KnownTagIndex> _strokeDescriptor = new global::System.Collections.Generic.List<KnownTagCache.KnownTagIndex>();
+        private System.Collections.Generic.List<KnownTagCache.KnownTagIndex> _strokeDescriptor = new System.Collections.Generic.List<KnownTagCache.KnownTagIndex>();
         private uint _Size = 0;
         public uint Size
         {
@@ -24,7 +24,7 @@ namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
                 _Size = value;
             }
         }
-        public global::System.Collections.Generic.List<KnownTagCache.KnownTagIndex> Template
+        public System.Collections.Generic.List<KnownTagCache.KnownTagIndex> Template
         {
             get
             {

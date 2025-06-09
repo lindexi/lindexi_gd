@@ -4,10 +4,20 @@
 
 //
 
+using System;
 using System.Diagnostics;
+using System.ComponentModel;
+using System.ComponentModel.Design.Serialization;
+using System.Reflection;
+using MS.Internal;
 using MS.Internal.WindowsBase;
-using WpfInk.PresentationCore.System.Windows;
-using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
+using System.Text;
+using System.Collections;
+using System.Globalization;
+using System.Windows;
+using System.Windows.Media;
+using System.Runtime.InteropServices;
+using System.Security;
 
 // IMPORTANT
 //
@@ -42,7 +52,7 @@ using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 // windows/wcp/DevTest/Drts/MediaApi/MediaPerf.cs includes the
 // simple test of matrix multiplication speed used for these results.
 
-namespace WpfInk.@ref
+namespace System.Windows.Media
 {
     ///<summary>
     /// Matrix
@@ -449,7 +459,7 @@ namespace WpfInk.@ref
 
             if (DoubleUtil.IsZero(determinant))
             {
-                throw new System.InvalidOperationException(WpfInk.SR.Get(SRID.Transform_NotInvertible));
+                throw new System.InvalidOperationException(SR.Get(SRID.Transform_NotInvertible));
             }
 
             // Inversion does not change the type of a matrix.

@@ -9,7 +9,9 @@
 //
 
 
-namespace WpfInk.PresentationCore.System.Windows.Ink
+using System;
+
+namespace System.Windows.Ink
 {
     /// <summary>
     /// RecognitionConfidence

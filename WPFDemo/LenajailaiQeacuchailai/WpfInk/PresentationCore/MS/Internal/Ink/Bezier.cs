@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
 using System.Diagnostics;
-using WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat;
-using WpfInk.PresentationCore.System.Windows;
-using WpfInk.PresentationCore.System.Windows.Input.Stylus;
-using WpfInk.@ref;
-using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Ink;
+using System.Windows.Input;
+using System.Collections.Generic;
 
-namespace WpfInk.PresentationCore.MS.Internal.Ink
+using MS.Internal.Ink.InkSerializedFormat;
+
+namespace MS.Internal.Ink
 {    
     /// <summary>
     /// Bezier curve generation class
