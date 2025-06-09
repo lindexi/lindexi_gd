@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows
 {
     /// <summary>
     /// Size - A value type which defined a size in terms of non-negative width and height
@@ -19,7 +19,7 @@ namespace System.Windows
         {
             if (width < 0 || height < 0)
             {
-                throw new System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
+                throw new global::System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
             }
 
             _width = width;
@@ -73,12 +73,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
+                    throw new global::System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
                 }
                     
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_WidthCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_WidthCannotBeNegative);
                 }
 
                 _width = value;
@@ -98,12 +98,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
+                    throw new global::System.InvalidOperationException(SR.Size_CannotModifyEmptySize);
                 }
                     
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_HeightCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_HeightCannotBeNegative);
                 }
 
                 _height = value;
@@ -121,9 +121,9 @@ namespace System.Windows
         /// Vector - A Vector equal to this Size
         /// </returns>
         /// <param name="size"> Size - the Size to convert to a Vector </param>
-        public static explicit operator Vector(Size size)
+        public static explicit operator Generated.Vector(Size size)
         {
-            return new Vector(size._width, size._height);
+            return new Generated.Vector(size._width, size._height);
         }
 
         /// <summary>

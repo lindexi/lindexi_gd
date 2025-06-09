@@ -3,13 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Collections.Generic;
+using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 
-namespace System.Windows.Input
+namespace WpfInk.@ref
 {
     internal static class StylusPointPropertyInfoDefaults
     {

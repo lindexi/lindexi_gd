@@ -4,22 +4,14 @@
 
 ﻿//#define DEBUG_RENDERING_FEEDBACK
 
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Ink;
-using System.Windows.Media;
-using System.Windows.Input;
 using System.Diagnostics;
-
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
-using MS.Internal;
-using MS.Internal.PresentationCore;
-using MS.Internal.YourAssemblyName;
 using WpfInk.API;
+using WpfInk.PresentationCore.System.Windows;
+using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.PresentationCore.System.Windows.Media;
+using WpfInk.@ref;
 
-namespace MS.Internal.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     /// <summary>
     /// An internal utility class that knows how to render a stroke
@@ -77,7 +69,7 @@ namespace MS.Internal.Ink
                 for (int index = 0; index < iterator.Count; index++)
                 {
                     StrokeNode strokeNode = iterator[index];
-                    System.Diagnostics.Debug.Assert(true == strokeNode.IsValid);
+                    global::System.Diagnostics.Debug.Assert(true == strokeNode.IsValid);
 
                     //the only code that calls this with !calculateBounds
                     //is dynamic rendering, which already draws enough strokeNodes
@@ -1101,7 +1093,7 @@ namespace MS.Internal.Ink
         /// </summary>
         internal static DrawingAttributes GetHighlighterAttributes(Stroke stroke, DrawingAttributes da)
         {
-            System.Diagnostics.Debug.Assert(da.IsHighlighter = true);
+            global::System.Diagnostics.Debug.Assert(da.IsHighlighter = true);
             if (da.Color.A != SolidStrokeAlpha)
             {
                 DrawingAttributes copy = stroke.DrawingAttributes.Clone();

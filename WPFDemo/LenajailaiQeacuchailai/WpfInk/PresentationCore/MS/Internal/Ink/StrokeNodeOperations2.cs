@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Input;
+using WpfInk.PresentationCore.System.Windows.Generated;
+using WpfInk.@ref;
+using Point = WpfInk.PresentationCore.System.Windows.Point;
 
-namespace MS.Internal.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     /// <summary>
     /// Static methods implementing generic hit-testing operations
@@ -41,7 +39,7 @@ namespace MS.Internal.Ink
         /// <returns>true if hit; false otherwise</returns>
         internal static bool HitTestPolygonSegment(Vector[] vertices, Vector hitBegin, Vector hitEnd)
         {
-            System.Diagnostics.Debug.Assert((null != vertices) && (2 < vertices.Length));
+            global::System.Diagnostics.Debug.Assert((null != vertices) && (2 < vertices.Length));
 
             HitResult hitResult = HitResult.Right, firstResult = HitResult.Right, prevResult = HitResult.Right;
             int count = vertices.Length;
@@ -79,7 +77,7 @@ namespace MS.Internal.Ink
         /// <returns>true if hit, false otherwise</returns>
         internal static bool HitTestQuadSegment(Quad quad, Point hitBegin, Point hitEnd)
         {
-            System.Diagnostics.Debug.Assert(quad.IsEmpty == false);
+            global::System.Diagnostics.Debug.Assert(quad.IsEmpty == false);
 
             HitResult hitResult = HitResult.Right, firstResult = HitResult.Right, prevResult = HitResult.Right;
             int count = 4;
@@ -269,7 +267,7 @@ namespace MS.Internal.Ink
             Vector AB = orgEnd - orgBegin;          // B - A
             Vector CA = orgBegin - hitBegin;        // A - C
             Vector CD = hitEnd - hitBegin;          // D - C
-            double det = Vector.Determinant(AB, CD);
+            double det = System.Windows.Vector.Determinant(AB, CD);
 
             if (DoubleUtil.IsZero(det))
             {
@@ -296,7 +294,7 @@ namespace MS.Internal.Ink
                     }
                 }
                 else */
-                if (DoubleUtil.IsZero(Vector.Determinant(CD, CA)) || DoubleUtil.GreaterThan(Vector.Determinant(AB, CA), 0))
+                if (DoubleUtil.IsZero(System.Windows.Vector.Determinant(CD, CA)) || DoubleUtil.GreaterThan(System.Windows.Vector.Determinant(AB, CA), 0))
                 {
                     // C is on the left from AB, and, since the segments are parallel, D is also on the left.
                     result = HitResult.Left;
@@ -304,12 +302,12 @@ namespace MS.Internal.Ink
             }
             else
             {
-                double r = AdjustFIndex(Vector.Determinant(AB, CA) / det);
+                double r = AdjustFIndex(System.Windows.Vector.Determinant(AB, CA) / det);
 
                 if (r > 0 && r < 1)
                 {
                     // The line defined AB does cross the segment CD.
-                    double s = AdjustFIndex(Vector.Determinant(CD, CA) / det);
+                    double s = AdjustFIndex(System.Windows.Vector.Determinant(CD, CA) / det);
                     if (s > 0 && s < 1)
                     {
                         // The crossing point is on the segment AB as well.
@@ -403,7 +401,7 @@ namespace MS.Internal.Ink
         /// </summary>
         internal static HitResult WhereIsVectorAboutVector(Vector vector1, Vector vector2)
         {
-            double determinant = Vector.Determinant(vector1, vector2);
+            double determinant = System.Windows.Vector.Determinant(vector1, vector2);
             if (DoubleUtil.IsZero(determinant))
             {
                 return HitResult.Hit;   // collinear
@@ -505,7 +503,7 @@ namespace MS.Internal.Ink
             Vector nearestOnSecond = GetProjection(hitPoint, hitPoint + linesVector);
 
             Vector shortest = nearestOnFirst - nearestOnSecond;
-            System.Diagnostics.Debug.Assert((false == DoubleUtil.IsZero(shortest.X)) || (false == DoubleUtil.IsZero(shortest.Y)));
+            global::System.Diagnostics.Debug.Assert((false == DoubleUtil.IsZero(shortest.X)) || (false == DoubleUtil.IsZero(shortest.Y)));
 
             //return DoubleUtil.IsZero(shortest.X) ? (nearestOnFirst.Y / shortest.Y) : (nearestOnFirst.X / shortest.X);
             return Math.Sqrt(nearestOnFirst.LengthSquared / shortest.LengthSquared);

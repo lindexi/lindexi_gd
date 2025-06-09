@@ -3,22 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Utility;
-using System;
-using System.ComponentModel;
-using System.Collections;
-using System.Collections.Specialized;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows.Media;
-using System.Windows.Input;
-using MS.Internal;
-using MS.Internal.Ink;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using WpfInk.PresentationCore.MS.Internal.Ink;
 
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
-
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// The hit-testing API of StrokeCollection.
@@ -357,7 +347,7 @@ namespace System.Windows.Ink
         {
             if (eraserShape == null)
             {
-                throw new System.ArgumentNullException("eraserShape");
+                throw new global::System.ArgumentNullException("eraserShape");
             }
             return new IncrementalStrokeHitTester(this, eraserShape);
         }
@@ -372,7 +362,7 @@ namespace System.Windows.Ink
         {
             if ((percentageWithinLasso < 0) || (percentageWithinLasso > 100))
             {
-                throw new System.ArgumentOutOfRangeException("percentageWithinLasso");
+                throw new global::System.ArgumentOutOfRangeException("percentageWithinLasso");
             }
             return new IncrementalLassoHitTester(this, percentageWithinLasso);
         }
@@ -402,8 +392,8 @@ namespace System.Windows.Ink
 
         private void UpdateStrokeCollection(Stroke original, StrokeCollection toReplace, ref int index)
         {
-            System.Diagnostics.Debug.Assert(original != null && toReplace != null);
-            System.Diagnostics.Debug.Assert(index >= 0 && index < this.Count);
+            global::System.Diagnostics.Debug.Assert(original != null && toReplace != null);
+            global::System.Diagnostics.Debug.Assert(index >= 0 && index < this.Count);
             if (toReplace.Count == 0)
             {
                 Remove(original);

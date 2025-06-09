@@ -12,11 +12,6 @@
 //
 //
 
-using System;
-using System.Windows;
-using System.Windows.Media;
-using System.Diagnostics;
-using System.Security;
 #if WINDOWS_BASE
     using MS.Internal.WindowsBase;
 #elif PRESENTATION_CORE
@@ -27,10 +22,11 @@ using System.Security;
     using MS.Internal.Drt;
 #else
 //#error Attempt to use FriendAccessAllowedAttribute from an unknown assembly.
-using MS.Internal.YourAssemblyName;
 #endif
+using System.Diagnostics;
+using WpfInk.PresentationCore.System.Windows;
 
-namespace MS.Internal
+namespace WpfInk.@ref
 {
     // MatrixTypes
     [System.Flags]
@@ -109,11 +105,11 @@ namespace MS.Internal
                 Point point3 = matrix.Transform(rect.BottomLeft);
 
                 // Width and height is always positive here.
-                rect.X = Math.Min(Math.Min(point0.X, point1.X), Math.Min(point2.X, point3.X));
-                rect.Y = Math.Min(Math.Min(point0.Y, point1.Y), Math.Min(point2.Y, point3.Y));
+                rect.X = Math.Min(Math.Min((double)point0.X, point1.X), Math.Min((double)point2.X, point3.X));
+                rect.Y = Math.Min(Math.Min((double)point0.Y, point1.Y), Math.Min((double)point2.Y, point3.Y));
 
-                rect.Width = Math.Max(Math.Max(point0.X, point1.X), Math.Max(point2.X, point3.X)) - rect.X;
-                rect.Height = Math.Max(Math.Max(point0.Y, point1.Y), Math.Max(point2.Y, point3.Y)) - rect.Y;
+                rect.Width = Math.Max(Math.Max((double)point0.X, point1.X), Math.Max((double)point2.X, point3.X)) - rect.X;
+                rect.Height = Math.Max(Math.Max((double)point0.Y, point1.Y), Math.Max((double)point2.Y, point3.Y)) - rect.Y;
             }
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using WpfInk.PresentationCore.System.Windows;
 
 namespace WpfInk.API;
 

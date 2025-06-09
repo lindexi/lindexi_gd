@@ -3,17 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Ink;
-using System.Windows.Media;
-using System.Windows.Input;
-using System.Diagnostics;
-using MS.Utility;
-using MS.Internal;
+using WpfInk.PresentationCore.System.Windows;
+using WpfInk.@ref;
+using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 
-namespace MS.Internal.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     /// <summary>
     /// The base operations class that implements polygonal node operations by default.
@@ -49,7 +43,7 @@ namespace MS.Internal.Ink
         /// <param name="nodeShape">shape of the nodes</param>
         internal StrokeNodeOperations(StylusShape nodeShape)
         {
-            System.Diagnostics.Debug.Assert(nodeShape != null);
+            global::System.Diagnostics.Debug.Assert(nodeShape != null);
             _vertices = nodeShape.GetVerticesAsVectors();
         }
 
@@ -80,7 +74,7 @@ namespace MS.Internal.Ink
             }
 
             Rect boundingBox = _shapeBounds;
-            System.Diagnostics.Debug.Assert((boundingBox.X <= 0) && (boundingBox.Y <= 0));
+            global::System.Diagnostics.Debug.Assert((boundingBox.X <= 0) && (boundingBox.Y <= 0));
 
             double pressureFactor = node.PressureFactor;
             if (!DoubleUtil.AreClose(pressureFactor,1d))
@@ -126,7 +120,7 @@ namespace MS.Internal.Ink
         /// <returns>contour segments enumerator</returns>
         internal virtual IEnumerable<ContourSegment> GetContourSegments(StrokeNodeData node, Quad quad)
         {
-            System.Diagnostics.Debug.Assert(node.IsEmpty == false);
+            global::System.Diagnostics.Debug.Assert(node.IsEmpty == false);
 
             if (quad.IsEmpty)
             {
@@ -273,7 +267,7 @@ namespace MS.Internal.Ink
             }
             
             if (!foundAB || !foundCD ||   // (2)
-                ((pressureDelta != 0) && Vector.Determinant(quad.B - quad.A, quad.D - quad.A) == 0)) // (1)
+                ((pressureDelta != 0) && System.Windows.Vector.Determinant(quad.B - quad.A, quad.D - quad.A) == 0)) // (1)
             {   
                 //                                          _____        _______
                 // One of the nodes,                    (1) |__  |   (2) | ___  |
@@ -324,7 +318,7 @@ namespace MS.Internal.Ink
                     // Instead of applying pressure to the node, do reverse scaling on
                     // the hitting segment. This allows us use the original array of vertices 
                     // in hit-testing.
-                    System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
                     hitBegin /= pressureFactor;
                     hitEnd /= pressureFactor;
                 }
@@ -375,7 +369,7 @@ namespace MS.Internal.Ink
                         break;
                     }
                 }
-                System.Diagnostics.Debug.Assert(count > 0);
+                global::System.Diagnostics.Debug.Assert(count > 0);
                 // This loop does the iteration thru the edges of the ink segment 
                 // clockwise from quad.D to quad.C. 
                 for (int node = 0; node < 2; node++)
@@ -401,7 +395,7 @@ namespace MS.Internal.Ink
                         vertex = nextVertex;
                         count--;
                     }
-                    System.Diagnostics.Debug.Assert(count > 0);
+                    global::System.Diagnostics.Debug.Assert(count > 0);
 
                     if (node == 0)
                     {
@@ -423,7 +417,7 @@ namespace MS.Internal.Ink
                             i = (i + 1) % _vertices.Length;
                             count--;
                         }
-                        System.Diagnostics.Debug.Assert(count > 0);
+                        global::System.Diagnostics.Debug.Assert(count > 0);
                         i--;
                     }
                 }
@@ -484,7 +478,7 @@ namespace MS.Internal.Ink
                 Vector hitEnd = hitEndPoint - position;
                 if (pressureFactor != 1)
                 {
-                    System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
                     hitBegin /= pressureFactor;
                     hitEnd /= pressureFactor;
                 }
@@ -625,7 +619,7 @@ namespace MS.Internal.Ink
                     double findex = CalculateClipLocation(hitSegment, beginNode, spineVector, pressureDelta);
                     if (findex != StrokeFIndices.BeforeFirst)
                     {
-                        System.Diagnostics.Debug.Assert(findex >= 0 && findex <= 1);
+                        global::System.Diagnostics.Debug.Assert(findex >= 0 && findex <= 1);
                         if (result.BeginFIndex > findex)
                         {
                             result.BeginFIndex = findex;
@@ -639,7 +633,7 @@ namespace MS.Internal.Ink
                     double findex = CalculateClipLocation(hitSegment, endNode, spineVectorReversed, pressureDeltaReversed);
                     if (findex != StrokeFIndices.BeforeFirst)
                     {
-                        System.Diagnostics.Debug.Assert(findex >= 0 && findex <= 1);
+                        global::System.Diagnostics.Debug.Assert(findex >= 0 && findex <= 1);
                         findex = 1 - findex;
                         if (result.EndFIndex < findex)
                         {
@@ -776,15 +770,15 @@ namespace MS.Internal.Ink
                     {
                         // This segment is collinear with the edge connecting the nodes, 
                         // no need to hit-test the other edges.
-                        System.Diagnostics.Debug.Assert(true == DoubleUtil.IsBetweenZeroAndOne(findex));
+                        global::System.Diagnostics.Debug.Assert(true == DoubleUtil.IsBetweenZeroAndOne(findex));
                         break;
                     }
                     // The hitting segment intersects the line of the edge connecting 
                     // the nodes. Find the findex of the intersection point.
-                    double det = -Vector.Determinant(nextNode, hitVector);
+                    double det = -System.Windows.Vector.Determinant(nextNode, hitVector);
                     if (DoubleUtil.IsZero(det) == false)
                     {
-                        double s = Vector.Determinant(hitVector, hitBegin - lastVertex) / det;
+                        double s = System.Windows.Vector.Determinant(hitVector, hitBegin - lastVertex) / det;
                         if ((findex > s) && DoubleUtil.IsBetweenZeroAndOne(s))
                         {
                             findex = s;
@@ -964,7 +958,7 @@ namespace MS.Internal.Ink
                     Vector hitRadius = hitSegment.Radius;
                     if (!DoubleUtil.AreClose(pressureFactor, 1d))
                     {
-                        System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
+                        global::System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
                         hitCenter /= pressureFactor;
                         hitRadius /= pressureFactor;
                     }
@@ -989,7 +983,7 @@ namespace MS.Internal.Ink
                     Vector hitEnd = hitBegin + hitSegment.Vector;
                     if (!DoubleUtil.AreClose(pressureFactor, 1d))
                     {
-                        System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
+                        global::System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
                         hitBegin /= pressureFactor;
                         hitEnd /= pressureFactor;
                     }
@@ -1021,7 +1015,7 @@ namespace MS.Internal.Ink
         private bool HitTestInkContour(
             IEnumerable<ContourSegment> hitContour, Quad quad, in StrokeNodeData beginNode, in StrokeNodeData endNode)
         {
-            System.Diagnostics.Debug.Assert(!quad.IsEmpty);
+            global::System.Diagnostics.Debug.Assert(!quad.IsEmpty);
             bool isHit = false;
 
             // When hit-testing a contour against another contour, like in this case,
@@ -1091,7 +1085,7 @@ namespace MS.Internal.Ink
                         break;
                     }
                 }
-                System.Diagnostics.Debug.Assert(i < count);
+                global::System.Diagnostics.Debug.Assert(i < count);
 
                 int k;
                 for (k = 0; k < 2; k++)
@@ -1131,7 +1125,7 @@ namespace MS.Internal.Ink
                         vertex = nextVertex;
                         count--;
                     }
-                    System.Diagnostics.Debug.Assert(count > 0);
+                    global::System.Diagnostics.Debug.Assert(count > 0);
 
                     if (k == 0)
                     {
@@ -1153,7 +1147,7 @@ namespace MS.Internal.Ink
                             i = (i + 1) % _vertices.Length;
                             count--;
                         }
-                        System.Diagnostics.Debug.Assert(count > 0);
+                        global::System.Diagnostics.Debug.Assert(count > 0);
                         i--;
                     }
                 }
@@ -1226,7 +1220,7 @@ namespace MS.Internal.Ink
 
                 if (pressureFactor != 1)
                 {
-                    System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.IsZero(pressureFactor) == false);
                     hitBegin /= pressureFactor;
                     hitEnd /= pressureFactor;
                 }
@@ -1297,7 +1291,7 @@ namespace MS.Internal.Ink
                 }
                 else
                 {
-                    System.Diagnostics.Debug.Assert(findex >= 0 && findex <= 1);
+                    global::System.Diagnostics.Debug.Assert(findex >= 0 && findex <= 1);
                 }
             }
             return findex;

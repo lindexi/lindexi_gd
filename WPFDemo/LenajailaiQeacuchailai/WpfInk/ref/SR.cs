@@ -2,20 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Resources;
-
-namespace MS.Internal.PresentationCore
+namespace WpfInk.@ref
 {
     internal static partial class SR
     {
         public static string Get(string name)
         {
-            return GetResourceString(name, null);
+            return WpfCommon.src.System.SR.GetResourceString(name, null);
         }
         
         public static string Get(string name, params object[] args)
         {
-            return Format(GetResourceString(name, null), args);
+            return WpfCommon.src.System.SR.Format(WpfCommon.src.System.SR.GetResourceString(name, null), args);
         }
     }
 }

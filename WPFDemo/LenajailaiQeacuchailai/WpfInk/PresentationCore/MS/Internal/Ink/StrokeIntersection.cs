@@ -3,15 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Internal;
-using MS.Internal.Ink;
-using MS.Utility;
-using System;
-using System.Windows;
-using System.Collections.Generic;
-using System.Globalization;
-
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     /// <summary>
     /// A helper struct that represents a fragment of a stroke spine.
@@ -188,13 +180,13 @@ namespace System.Windows.Ink
         /// </summary>
         internal static StrokeFIndices[] GetInSegments(StrokeIntersection[] intersections)
         {
-            System.Diagnostics.Debug.Assert(intersections != null);
-            System.Diagnostics.Debug.Assert(intersections.Length > 0);
+            global::System.Diagnostics.Debug.Assert(intersections != null);
+            global::System.Diagnostics.Debug.Assert(intersections.Length > 0);
 
             List<StrokeFIndices> inFIndices = new List<StrokeFIndices>(intersections.Length);
             for (int j = 0; j < intersections.Length; j++)
             {
-                System.Diagnostics.Debug.Assert(!intersections[j].IsEmpty);
+                global::System.Diagnostics.Debug.Assert(!intersections[j].IsEmpty);
                 if (!intersections[j].InSegment.IsEmpty)
                 {
                     if (inFIndices.Count > 0 &&
@@ -220,13 +212,13 @@ namespace System.Windows.Ink
         /// </summary>
         internal static StrokeFIndices[] GetHitSegments(StrokeIntersection[] intersections)
         {
-            System.Diagnostics.Debug.Assert(intersections != null);
-            System.Diagnostics.Debug.Assert(intersections.Length > 0);
+            global::System.Diagnostics.Debug.Assert(intersections != null);
+            global::System.Diagnostics.Debug.Assert(intersections.Length > 0);
 
             List<StrokeFIndices> hitFIndices = new List<StrokeFIndices>(intersections.Length);
             for (int j = 0; j < intersections.Length; j++)
             {
-                System.Diagnostics.Debug.Assert(!intersections[j].IsEmpty);
+                global::System.Diagnostics.Debug.Assert(!intersections[j].IsEmpty);
                 if (!intersections[j].HitSegment.IsEmpty)
                 {
                     if (hitFIndices.Count > 0 &&

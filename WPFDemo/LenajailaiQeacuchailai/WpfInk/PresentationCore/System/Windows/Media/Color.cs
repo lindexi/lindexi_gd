@@ -4,10 +4,9 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Text;
-using MS.Internal;
+using WpfInk.@ref;
 
-namespace System.Windows.Media
+namespace WpfInk.PresentationCore.System.Windows.Media
 {
     /// <summary>
     /// Color

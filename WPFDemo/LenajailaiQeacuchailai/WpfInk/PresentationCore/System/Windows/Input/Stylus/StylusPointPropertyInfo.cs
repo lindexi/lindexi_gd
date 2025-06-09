@@ -3,8 +3,9 @@
 
 using System.ComponentModel;
 using System.Diagnostics;
+using WpfInk.@ref;
 
-namespace System.Windows.Input
+namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
 {
     /// <summary>
     /// StylusPointPropertyInfo

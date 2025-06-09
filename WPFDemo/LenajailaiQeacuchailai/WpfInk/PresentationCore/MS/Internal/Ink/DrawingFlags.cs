@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     /// <summary>Flag values which can help the renderer decide how to
     /// draw the ink strokes</summary>

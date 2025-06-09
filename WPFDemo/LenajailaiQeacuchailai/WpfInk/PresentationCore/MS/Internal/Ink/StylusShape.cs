@@ -3,18 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Utility;
-using System;
-using System.IO;
-using System.Windows;
-using System.Windows.Media;
-using MS.Internal;
-using MS.Internal.Ink;
+using WpfInk.PresentationCore.System.Windows;
+using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.@ref;
+using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
-
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     ///<summary>
     /// Defines the style of pen tip for rendering.
@@ -162,7 +156,7 @@ namespace System.Windows.Ink
             }
             set
             {
-                System.Diagnostics.Debug.Assert(value.HasInverse);
+                global::System.Diagnostics.Debug.Assert(value.HasInverse);
                 _transform = value;
             }
         }
@@ -232,7 +226,7 @@ namespace System.Windows.Ink
         private void FixCounterClockwiseVertices(Vector[] vertices)
         {
             // The private method should only called for Rectangle case.
-            System.Diagnostics.Debug.Assert(vertices.Length == 4);
+            global::System.Diagnostics.Debug.Assert(vertices.Length == 4);
 
             Point prevVertex = (Point)vertices[vertices.Length - 1];
             int counterClockIndex = 0, clockWiseIndex = 0;
@@ -243,7 +237,7 @@ namespace System.Windows.Ink
                 Vector edge = vertex - prevVertex;
 
                 // Verify that the next vertex is on the right side off the edge vector.
-                double det = Vector.Determinant(edge, (Point)vertices[(i + 1) % vertices.Length] - (Point)vertex);
+                double det = System.Windows.Vector.Determinant(edge, (Point)vertices[(i + 1) % vertices.Length] - (Point)vertex);
                 if (0 > det)
                 {
                     counterClockIndex++;
@@ -257,7 +251,7 @@ namespace System.Windows.Ink
             }
 
             // Assert the transform will make it either clockwise or counter-clockwise.
-            System.Diagnostics.Debug.Assert(clockWiseIndex == vertices.Length || counterClockIndex == vertices.Length);
+            global::System.Diagnostics.Debug.Assert(clockWiseIndex == vertices.Length || counterClockIndex == vertices.Length);
 
             if (counterClockIndex == vertices.Length)
             {
@@ -275,7 +269,7 @@ namespace System.Windows.Ink
 
         private Point[] GetBezierControlPoints()
         {
-            System.Diagnostics.Debug.Assert(m_tip == StylusTip.Ellipse);
+            global::System.Diagnostics.Debug.Assert(m_tip == StylusTip.Ellipse);
 
             // Approximating a 1/4 circle with a Bezier curve (borrowed from Avalon's EllipseGeometry.cs)
             const double ArcAsBezier = 0.5522847498307933984; // =(\/2 - 1)*4/3

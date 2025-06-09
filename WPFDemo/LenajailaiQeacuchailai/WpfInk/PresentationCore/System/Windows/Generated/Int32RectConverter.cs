@@ -8,13 +8,12 @@
 // Please see MilCodeGen.html for more information.
 //
 
-using MS.Internal;
 using System.ComponentModel;
 using System.Globalization;
-using System.Windows.Markup;
+
 //using System.Windows.Converters;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows.Generated
 {
     /// <summary>
     /// Int32RectConverter - Converter class for converting instances of other types to and from Int32Rect instances
@@ -102,9 +101,9 @@ namespace System.Windows
         /// <param name="destinationType"> The type to which this will convert the Int32Rect instance. </param>
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            if (destinationType != null && value is Int32Rect)
+            if (destinationType != null && value is Windows.Int32Rect)
             {
-                Int32Rect instance = (Int32Rect)value;
+                Windows.Int32Rect instance = (Windows.Int32Rect)value;
 
                 if (destinationType == typeof(string))
                 {

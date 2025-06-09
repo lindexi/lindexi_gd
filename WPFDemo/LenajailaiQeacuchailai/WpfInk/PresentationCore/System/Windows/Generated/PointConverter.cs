@@ -8,13 +8,12 @@
 // Please see MilCodeGen.html for more information.
 //
 
-using MS.Internal;
 using System.ComponentModel;
 using System.Globalization;
-using System.Windows.Markup;
+
 //using System.Windows.Converters;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows.Generated
 {
     /// <summary>
     /// PointConverter - Converter class for converting instances of other types to and from Point instances
@@ -102,9 +101,9 @@ namespace System.Windows
         /// <param name="destinationType"> The type to which this will convert the Point instance. </param>
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            if (destinationType != null && value is Point)
+            if (destinationType != null && value is Windows.Point)
             {
-                Point instance = (Point)value;
+                Windows.Point instance = (Windows.Point)value;
 
                 if (destinationType == typeof(string))
                 {

@@ -5,7 +5,9 @@
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace MS.Internal.Ink.InkSerializedFormat
+using WpfInk.@ref;
+
+namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 {
     internal class TransformDescriptor
     {

@@ -4,26 +4,12 @@
 
 //#define DEBUG_RENDERING_FEEDBACK
 
-using MS.Utility;
-using System;
 using System.ComponentModel;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using MS.Internal;
-using MS.Internal.Ink;
-
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
-using MS.Internal.PresentationCore;
-using MS.Internal.YourAssemblyName;
+using WpfInk.@ref;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// The hit-testing API of Stroke

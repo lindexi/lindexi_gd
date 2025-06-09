@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
-using MS.Internal;
-using System.Windows.Media;
+using WpfInk.@ref;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows
 {
     /// <summary>
     /// Rect - The primitive which represents a rectangle.  Rects are stored as
@@ -46,7 +45,7 @@ namespace System.Windows
         {
             if (width < 0 || height < 0)
             {
-                throw new System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
+                throw new global::System.ArgumentException(SR.Size_WidthAndHeightCannotBeNegative);
             }
 
             _x    = x;
@@ -61,12 +60,12 @@ namespace System.Windows
         public Rect(Point point1,
                     Point point2)
         {
-            _x = Math.Min(point1._x, point2._x);
-            _y = Math.Min(point1._y, point2._y);
+            _x = Math.Min((double)point1._x, point2._x);
+            _y = Math.Min((double)point1._y, point2._y);
 
             //  Max with 0 to prevent double weirdness from causing us to be (-epsilon..0)
-            _width = Math.Max(Math.Max(point1._x, point2._x) - _x, 0);
-            _height = Math.Max(Math.Max(point1._y, point2._y) - _y, 0);
+            _width = Math.Max(Math.Max((double)point1._x, point2._x) - _x, 0);
+            _height = Math.Max(Math.Max((double)point1._y, point2._y) - _y, 0);
         }
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace System.Windows
         /// which results from point + vector.
         /// </summary>
         public Rect(Point point,
-                    Vector vector): this(point, point+vector)
+                    Generated.Vector vector): this(point, point+vector)
         {
         }
 
@@ -146,7 +145,7 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
                 
                 _x = value._x;
@@ -175,7 +174,7 @@ namespace System.Windows
                 {
                     if (IsEmpty)
                     {
-                        throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                        throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                     }
 
                     _width = value._width;
@@ -199,7 +198,7 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 _x = value;
@@ -221,7 +220,7 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 _y = value;
@@ -243,12 +242,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
                                 
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_WidthCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_WidthCannotBeNegative);
                 }
 
                 _width = value;
@@ -270,12 +269,12 @@ namespace System.Windows
             {
                 if (IsEmpty)
                 {
-                    throw new System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
+                    throw new global::System.InvalidOperationException(SR.Rect_CannotModifyEmptyRect);
                 }
 
                 if (value < 0)
                 {
-                    throw new System.ArgumentException(SR.Size_HeightCannotBeNegative);
+                    throw new global::System.ArgumentException(SR.Size_HeightCannotBeNegative);
                 }
 
                 _height = value;
@@ -576,11 +575,11 @@ namespace System.Windows
         /// Offset - translate the Location by the offset provided.
         /// If this is Empty, this method is illegal.
         /// </summary>
-        public void Offset(Vector offsetVector)
+        public void Offset(Generated.Vector offsetVector)
         {
             if (IsEmpty)
             {
-                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x += offsetVector._x;
@@ -595,7 +594,7 @@ namespace System.Windows
         {
             if (IsEmpty)
             {
-                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x += offsetX;
@@ -606,7 +605,7 @@ namespace System.Windows
         /// Offset - return the result of offsetting rect by the offset provided
         /// If this is Empty, this method is illegal.
         /// </summary>
-        public static Rect Offset(Rect rect, Vector offsetVector)
+        public static Rect Offset(Rect rect, Generated.Vector offsetVector)
         {
             rect.Offset(offsetVector.X, offsetVector.Y);
             return rect;
@@ -628,7 +627,7 @@ namespace System.Windows
         /// </summary>
         public void Inflate(Size size)
         {
-            Inflate(size._width, size._height);
+            this.Inflate(size._width, size._height);
         }
 
         /// <summary>
@@ -640,7 +639,7 @@ namespace System.Windows
         {
             if (IsEmpty)
             {
-                throw new System.InvalidOperationException(SR.Rect_CannotCallMethod);
+                throw new global::System.InvalidOperationException(SR.Rect_CannotCallMethod);
             }
 
             _x -= width;

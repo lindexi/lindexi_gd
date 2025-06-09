@@ -8,13 +8,11 @@
 // Please see MilCodeGen.html for more information.
 //
 
-using MS.Internal;
 using System.ComponentModel;
-using System.Globalization;
-using System.Windows.Markup;
+
 //using System.Windows.Converters;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows.Generated
 {
 
     [Serializable]
@@ -44,7 +42,7 @@ namespace System.Windows
         /// </returns>
         /// <param name='size1'>The first Size to compare</param>
         /// <param name='size2'>The second Size to compare</param>
-        public static bool operator ==(Size size1, Size size2)
+        public static bool operator ==(Windows.Size size1, Windows.Size size2)
         {
             return size1.Width == size2.Width &&
                    size1.Height == size2.Height;
@@ -61,7 +59,7 @@ namespace System.Windows
         /// </returns>
         /// <param name='size1'>The first Size to compare</param>
         /// <param name='size2'>The second Size to compare</param>
-        public static bool operator !=(Size size1, Size size2)
+        public static bool operator !=(Windows.Size size1, Windows.Size size2)
         {
             return !(size1 == size2);
         }
@@ -77,7 +75,7 @@ namespace System.Windows
         /// </returns>
         /// <param name='size1'>The first Size to compare</param>
         /// <param name='size2'>The second Size to compare</param>
-        public static bool Equals(Size size1, Size size2)
+        public static bool Equals(Windows.Size size1, Windows.Size size2)
         {
             if (size1.IsEmpty)
             {
@@ -103,13 +101,13 @@ namespace System.Windows
         /// <param name='o'>The object to compare to "this"</param>
         public override bool Equals(object o)
         {
-            if ((null == o) || !(o is Size))
+            if ((null == o) || !(o is Windows.Size))
             {
                 return false;
             }
 
-            Size value = (Size)o;
-            return Size.Equals(this,value);
+            Windows.Size value = (Windows.Size)o;
+            return Windows.Size.Equals(this,value);
         }
 
         /// <summary>
@@ -123,9 +121,9 @@ namespace System.Windows
         /// bool - true if "value" is equal to "this".
         /// </returns>
         /// <param name='value'>The Size to compare to "this"</param>
-        public bool Equals(Size value)
+        public bool Equals(Windows.Size value)
         {
-            return Size.Equals(this, value);
+            return Windows.Size.Equals(this, value);
         }
         /// <summary>
         /// Returns the HashCode for this Size
@@ -152,7 +150,7 @@ namespace System.Windows
         /// the culture "en-US"
         /// <param name="source"> string with Size data </param>
         /// </summary>
-        public static Size Parse(string source)
+        public static Windows.Size Parse(string source)
         {
             throw new NotImplementedException();
             //IFormatProvider formatProvider = System.Windows.Markup.TypeConverterHelper.InvariantEnglishUS;

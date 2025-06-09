@@ -1,13 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
-namespace System
+namespace WpfInk.@ref.WpfCommon.src.System
 {
 // error CS0436: When building PresentationFramework, the type 'LocalAppContext' 
 // conflicts with the imported type 'LocalAppContext' in 'PresentationCore

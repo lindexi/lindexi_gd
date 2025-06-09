@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// StylusTip

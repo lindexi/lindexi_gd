@@ -3,17 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Utility;
-using MS.Internal;
-using System;
-using System.Windows;
-using System.Collections.Generic;
 using System.Globalization;
+using WpfInk.@ref;
 
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
-
-namespace MS.Internal.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     #region StrokeFIndices
 
@@ -185,7 +178,7 @@ namespace MS.Internal.Ink
         internal int CompareTo(StrokeFIndices fIndices)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(!double.IsNaN(_beginFIndex) && !double.IsNaN(_endFIndex) && DoubleUtil.LessThan(_beginFIndex, _endFIndex));
+            global::System.Diagnostics.Debug.Assert(!double.IsNaN(_beginFIndex) && !double.IsNaN(_endFIndex) && DoubleUtil.LessThan(_beginFIndex, _endFIndex));
 #endif
             if (DoubleUtil.AreClose(BeginFIndex, fIndices.BeginFIndex))
             {

@@ -4,15 +4,12 @@
 
 //#define DEBUG_RENDERING_FEEDBACK
 
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Ink;
-using System.Windows.Media;
-using System.Windows.Input;
 using System.Diagnostics;
+using WpfInk.PresentationCore.System.Windows;
+using WpfInk.@ref;
+using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 
-namespace MS.Internal.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     #region StrokeNode
 
@@ -39,8 +36,8 @@ namespace MS.Internal.Ink
             in StrokeNodeData lastNodeData,
             bool isLastNode)
         {
-            System.Diagnostics.Debug.Assert(operations != null);
-            System.Diagnostics.Debug.Assert((nodeData.IsEmpty == false) && (index >= 0));
+            global::System.Diagnostics.Debug.Assert(operations != null);
+            global::System.Diagnostics.Debug.Assert((nodeData.IsEmpty == false) && (index >= 0));
           
 
             _operations = operations;
@@ -780,46 +777,46 @@ namespace MS.Internal.Ink
                 double line1XMin, line1XMax, line1YMin, line1YMax, line2XMin, line2XMax, line2YMin, line2YMax;
                 if (line1Start.X < line1End.X)
                 {
-                    line1XMin = Math.Floor(line1Start.X);
-                    line1XMax = Math.Ceiling(line1End.X);
+                    line1XMin = Math.Floor((double)line1Start.X);
+                    line1XMax = Math.Ceiling((double)line1End.X);
                 }
                 else
                 {
-                    line1XMin = Math.Floor(line1End.X);
-                    line1XMax = Math.Ceiling(line1Start.X);
+                    line1XMin = Math.Floor((double)line1End.X);
+                    line1XMax = Math.Ceiling((double)line1Start.X);
                 }
 
                 if (line2Start.X < line2End.X)
                 {
-                    line2XMin = Math.Floor(line2Start.X);
-                    line2XMax = Math.Ceiling(line2End.X);
+                    line2XMin = Math.Floor((double)line2Start.X);
+                    line2XMax = Math.Ceiling((double)line2End.X);
                 }
                 else
                 {
-                    line2XMin = Math.Floor(line2End.X);
-                    line2XMax = Math.Ceiling(line2Start.X);
+                    line2XMin = Math.Floor((double)line2End.X);
+                    line2XMax = Math.Ceiling((double)line2Start.X);
                 }
 
                 if (line1Start.Y < line1End.Y)
                 {
-                    line1YMin = Math.Floor(line1Start.Y);
-                    line1YMax = Math.Ceiling(line1End.Y);
+                    line1YMin = Math.Floor((double)line1Start.Y);
+                    line1YMax = Math.Ceiling((double)line1End.Y);
                 }
                 else
                 {
-                    line1YMin = Math.Floor(line1End.Y);
-                    line1YMax = Math.Ceiling(line1Start.Y);
+                    line1YMin = Math.Floor((double)line1End.Y);
+                    line1YMax = Math.Ceiling((double)line1Start.Y);
                 }
 
                 if (line2Start.Y < line2End.Y)
                 {
-                    line2YMin = Math.Floor(line2Start.Y);
-                    line2YMax = Math.Ceiling(line2End.Y);
+                    line2YMin = Math.Floor((double)line2Start.Y);
+                    line2YMax = Math.Ceiling((double)line2End.Y);
                 }
                 else
                 {
-                    line2YMin = Math.Floor(line2End.Y);
-                    line2YMax = Math.Ceiling(line2Start.Y);
+                    line2YMin = Math.Floor((double)line2End.Y);
+                    line2YMax = Math.Ceiling((double)line2Start.Y);
                 }
 
 
@@ -902,7 +899,7 @@ namespace MS.Internal.Ink
             // this segment should be cut at to let the hitNode's contour through it.
             StrokeFIndices cutAt = _operations.CutTest(_lastNode, _thisNode, ConnectingQuad, begin, end);
 
-            System.Diagnostics.Debug.Assert(!double.IsNaN(cutAt.BeginFIndex) && !double.IsNaN(cutAt.EndFIndex));
+            global::System.Diagnostics.Debug.Assert(!double.IsNaN(cutAt.BeginFIndex) && !double.IsNaN(cutAt.EndFIndex));
 
             // Bind the found findices to the node and return the result
             return BindFIndicesForLassoHitTest(cutAt);
@@ -920,19 +917,19 @@ namespace MS.Internal.Ink
         /// <returns></returns>
         private StrokeFIndices BindFIndices(StrokeFIndices fragment)
         {
-            System.Diagnostics.Debug.Assert(IsValid && (_index >= 0));
+            global::System.Diagnostics.Debug.Assert(IsValid && (_index >= 0));
 
             if (fragment.IsEmpty == false)
             {
                 // Adjust only findices which are on this segment of thew spine (i.e. between 0 and 1)
                 if (!DoubleUtil.AreClose(fragment.BeginFIndex, StrokeFIndices.BeforeFirst))
                 {
-                    System.Diagnostics.Debug.Assert(fragment.BeginFIndex >= 0 && fragment.BeginFIndex <= 1);
+                    global::System.Diagnostics.Debug.Assert(fragment.BeginFIndex >= 0 && fragment.BeginFIndex <= 1);
                     fragment.BeginFIndex += _index - 1;
                 }
                 if (!DoubleUtil.AreClose(fragment.EndFIndex, StrokeFIndices.AfterLast))
                 {
-                    System.Diagnostics.Debug.Assert(fragment.EndFIndex >= 0 && fragment.EndFIndex <= 1);
+                    global::System.Diagnostics.Debug.Assert(fragment.EndFIndex >= 0 && fragment.EndFIndex <= 1);
                     fragment.EndFIndex += _index - 1;
                 }
             }
@@ -951,7 +948,7 @@ namespace MS.Internal.Ink
         /// <returns></returns>
         private StrokeFIndices BindFIndicesForLassoHitTest(StrokeFIndices fragment)
         {
-            System.Diagnostics.Debug.Assert(IsValid);
+            global::System.Diagnostics.Debug.Assert(IsValid);
             if (!fragment.IsEmpty)
             {
                 // Adjust BeginFIndex
@@ -963,9 +960,9 @@ namespace MS.Internal.Ink
                 else
                 {
                     // Adjust findices which are on this segment of the spine (i.e. between 0 and 1)
-                    System.Diagnostics.Debug.Assert(DoubleUtil.GreaterThanOrClose(fragment.BeginFIndex, 0f));
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.GreaterThanOrClose(fragment.BeginFIndex, 0f));
                     
-                    System.Diagnostics.Debug.Assert(DoubleUtil.LessThanOrClose(fragment.BeginFIndex, 1f));
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.LessThanOrClose(fragment.BeginFIndex, 1f));
 
                     // Adjust the value to consider index, say from 0.75 to 3.75 (for _index = 4)
                     fragment.BeginFIndex += _index - 1;
@@ -979,9 +976,9 @@ namespace MS.Internal.Ink
                 }
                 else
                 {
-                    System.Diagnostics.Debug.Assert(DoubleUtil.GreaterThanOrClose(fragment.EndFIndex, 0f));
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.GreaterThanOrClose(fragment.EndFIndex, 0f));
 
-                    System.Diagnostics.Debug.Assert(DoubleUtil.LessThanOrClose(fragment.EndFIndex, 1f));
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.LessThanOrClose(fragment.EndFIndex, 1f));
                     // Ajust the value to consider the index
                     fragment.EndFIndex += _index - 1;
                 }
@@ -1005,7 +1002,7 @@ namespace MS.Internal.Ink
         {
             get
             {
-                System.Diagnostics.Debug.Assert(IsValid);
+                global::System.Diagnostics.Debug.Assert(IsValid);
 
                 if (_isQuadCached == false)
                 {
@@ -1023,7 +1020,7 @@ namespace MS.Internal.Ink
         /// </summary>
         private IEnumerable<ContourSegment> GetContourSegments()
         {
-            System.Diagnostics.Debug.Assert(IsValid);
+            global::System.Diagnostics.Debug.Assert(IsValid);
 
             // Calls thru to the StrokeNodeOperations object
             if (IsEllipse)
@@ -1041,15 +1038,15 @@ namespace MS.Internal.Ink
         /// <returns>Point on the spine</returns>
         internal Point GetPointAt(double findex)
         {
-            System.Diagnostics.Debug.Assert(IsValid);
+            global::System.Diagnostics.Debug.Assert(IsValid);
 
             if (_lastNode.IsEmpty)
             {
-                System.Diagnostics.Debug.Assert(findex == 0);
+                global::System.Diagnostics.Debug.Assert(findex == 0);
                 return _thisNode.Position;
             }
 
-            System.Diagnostics.Debug.Assert((findex >= _index - 1) && (findex <= _index));
+            global::System.Diagnostics.Debug.Assert((findex >= _index - 1) && (findex <= _index));
 
             if (DoubleUtil.AreClose(findex, (double)_index))
             {

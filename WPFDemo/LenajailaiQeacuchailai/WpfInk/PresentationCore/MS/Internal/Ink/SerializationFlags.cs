@@ -4,7 +4,7 @@
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     /// <summary>
     /// Specifies how to persist the ink.

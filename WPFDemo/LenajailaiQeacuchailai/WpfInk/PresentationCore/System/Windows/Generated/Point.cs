@@ -8,13 +8,11 @@
 // Please see MilCodeGen.html for more information.
 //
 
-using MS.Internal;
 using System.ComponentModel;
-using System.Globalization;
-using System.Windows.Markup;
+
 //using System.Windows.Converters;
 
-namespace System.Windows
+namespace WpfInk.PresentationCore.System.Windows.Generated
 {
 
     [Serializable]
@@ -44,7 +42,7 @@ namespace System.Windows
         /// </returns>
         /// <param name='point1'>The first Point to compare</param>
         /// <param name='point2'>The second Point to compare</param>
-        public static bool operator ==(Point point1, Point point2)
+        public static bool operator ==(Windows.Point point1, Windows.Point point2)
         {
             return point1.X == point2.X &&
                    point1.Y == point2.Y;
@@ -61,7 +59,7 @@ namespace System.Windows
         /// </returns>
         /// <param name='point1'>The first Point to compare</param>
         /// <param name='point2'>The second Point to compare</param>
-        public static bool operator !=(Point point1, Point point2)
+        public static bool operator !=(Windows.Point point1, Windows.Point point2)
         {
             return !(point1 == point2);
         }
@@ -77,7 +75,7 @@ namespace System.Windows
         /// </returns>
         /// <param name='point1'>The first Point to compare</param>
         /// <param name='point2'>The second Point to compare</param>
-        public static bool Equals(Point point1, Point point2)
+        public static bool Equals(Windows.Point point1, Windows.Point point2)
         {
             return point1.X.Equals(point2.X) &&
                    point1.Y.Equals(point2.Y);
@@ -96,13 +94,13 @@ namespace System.Windows
         /// <param name='o'>The object to compare to "this"</param>
         public override bool Equals(object o)
         {
-            if ((null == o) || !(o is Point))
+            if ((null == o) || !(o is Windows.Point))
             {
                 return false;
             }
 
-            Point value = (Point)o;
-            return Point.Equals(this,value);
+            Windows.Point value = (Windows.Point)o;
+            return Windows.Point.Equals(this,value);
         }
 
         /// <summary>
@@ -116,9 +114,9 @@ namespace System.Windows
         /// bool - true if "value" is equal to "this".
         /// </returns>
         /// <param name='value'>The Point to compare to "this"</param>
-        public bool Equals(Point value)
+        public bool Equals(Windows.Point value)
         {
-            return Point.Equals(this, value);
+            return Windows.Point.Equals(this, value);
         }
         /// <summary>
         /// Returns the HashCode for this Point
@@ -138,7 +136,7 @@ namespace System.Windows
         /// the culture "en-US"
         /// <param name="source"> string with Point data </param>
         /// </summary>
-        public static Point Parse(string source)
+        public static Windows.Point Parse(string source)
         {
             throw new NotImplementedException();
             //IFormatProvider formatProvider = System.Windows.Markup.TypeConverterHelper.InvariantEnglishUS;

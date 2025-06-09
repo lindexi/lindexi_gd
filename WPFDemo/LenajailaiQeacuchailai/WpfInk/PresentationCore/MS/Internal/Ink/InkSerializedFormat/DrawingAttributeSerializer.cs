@@ -4,19 +4,10 @@
 
 //#define OLD_ISF
 
-using System;
-using System.IO;
-using System.Security;
 using System.Diagnostics;
-using System.Collections;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using MS.Internal.Ink.InkSerializedFormat;
-using System.Windows.Media;
-using System.Windows.Ink;
-using System.Windows;
+using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.PresentationCore.System.Windows.Media;
+using WpfInk.@ref;
 
 //
 //  These are the V1 DrawingAttributes and their respective defaults:
@@ -59,7 +50,7 @@ using System.Windows;
 //
 
 
-namespace MS.Internal.Ink.InkSerializedFormat
+namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 {
     /// <summary>
     /// ExtendedProperty converter for ISF and serialization purposes
@@ -285,12 +276,12 @@ namespace MS.Internal.Ink.InkSerializedFormat
                         object data;
                         cb = ExtendedPropertySerializer.DecodeAsISF(stream, maximumStreamSize, guidList, tag, ref guid, out data);
 
-                        Matrix matrix = Matrix.Parse((string)data);
+                        Matrix matrix = @ref.Generated.Matrix.Parse((string)data);
                         da.StylusTipTransform = matrix;
                     }
                     catch (InvalidOperationException) // Matrix.Parse failed.
                     {
-                        System.Diagnostics.Debug.Assert(false, "Corrupt Matrix in the ExtendedPropertyCollection!");
+                        global::System.Diagnostics.Debug.Assert(false, "Corrupt Matrix in the ExtendedPropertyCollection!");
                     }
                     finally
                     {
@@ -339,7 +330,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
             }
             else
             {
-                System.Diagnostics.Debug.Assert(penTip == PenTip.Rectangle);
+                global::System.Diagnostics.Debug.Assert(penTip == PenTip.Rectangle);
                 if (da.StylusTip == StylusTip.Ellipse)
                 {
                     //
@@ -457,8 +448,8 @@ namespace MS.Internal.Ink.InkSerializedFormat
         internal static uint EncodeAsISF(DrawingAttributes da, Stream stream, GuidList guidList, byte compressionAlgorithm, bool fTag)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(compressionAlgorithm == 0);
-            System.Diagnostics.Debug.Assert(fTag == true);
+            global::System.Diagnostics.Debug.Assert(compressionAlgorithm == 0);
+            global::System.Diagnostics.Debug.Assert(fTag == true);
 #endif
             Debug.Assert(stream != null);
             uint cbData = 0;
@@ -506,7 +497,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
             if (da.ContainsPropertyData(KnownIds.Color))
             {
                 Color daColor = da.Color;
-                System.Diagnostics.Debug.Assert(da.Color != (Color)DrawingAttributes.GetDefaultDrawingAttributeValue(KnownIds.Color), "Color was put in the EPC for the default value!");
+                global::System.Diagnostics.Debug.Assert(da.Color != (Color)DrawingAttributes.GetDefaultDrawingAttributeValue(KnownIds.Color), "Color was put in the EPC for the default value!");
 
                 //Note: we don't store the alpha value of the color (we don't use it)
                 uint r = (uint)daColor.R, g = (uint)daColor.G, b = (uint)(daColor.B);
@@ -578,7 +569,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
                 if (epcClone[x].Id == KnownIds.StylusTipTransform)
                 {
                     Matrix matrix = (Matrix)epcClone[x].Value;
-                    string matrixString = matrix.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    string matrixString = matrix.ToString(global::System.Globalization.CultureInfo.InvariantCulture);
                     epcClone[x].Value = matrixString;
                     continue;
                 }
@@ -607,7 +598,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
             //
             if (da.ContainsPropertyData(KnownIds.StylusTip))
             {
-                System.Diagnostics.Debug.Assert(da.StylusTip != StylusTip.Ellipse, "StylusTip was put in the EPC for the default value!");
+                global::System.Diagnostics.Debug.Assert(da.StylusTip != StylusTip.Ellipse, "StylusTip was put in the EPC for the default value!");
 
                 //
                 // persist PenTip.Rectangle for V1 ISF
@@ -618,8 +609,8 @@ namespace MS.Internal.Ink.InkSerializedFormat
 
                 using (MemoryStream localStream = new MemoryStream(6)) //reasonable default
                 {
-                    Int32 stylusTip = Convert.ToInt32(da.StylusTip, System.Globalization.CultureInfo.InvariantCulture);
-                    System.Runtime.InteropServices.VarEnum type = SerializationHelper.ConvertToVarEnum(PersistenceTypes.StylusTip, true);
+                    Int32 stylusTip = Convert.ToInt32(da.StylusTip, global::System.Globalization.CultureInfo.InvariantCulture);
+                    global::System.Runtime.InteropServices.VarEnum type = SerializationHelper.ConvertToVarEnum(PersistenceTypes.StylusTip, true);
                     ExtendedPropertySerializer.EncodeAttribute(KnownIds.StylusTip, stylusTip, type, localStream);
 
                     cbData += ExtendedPropertySerializer.EncodeAsISF(KnownIds.StylusTip, localStream.ToArray(), stream, guidList, 0, true);
@@ -678,7 +669,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
                         uint cb = Native.SizeOfUShort; // For header NO_COMPRESS
 
                         Debug.Assert(bw != null);
-                        cbData += SerializationHelper.Encode(stream, (uint)MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.Mantissa);
+                        cbData += SerializationHelper.Encode(stream, (uint)global::WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat.KnownTagCache.KnownTagIndex.Mantissa);
                         cbData += SerializationHelper.Encode(stream, cb);
                         bw.Write((byte)0x00);
                         bw.Write((short)sFraction);

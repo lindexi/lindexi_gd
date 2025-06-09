@@ -7,12 +7,7 @@
 // Description: Helper methods for code that uses types from System.Drawing.
 //
 
-using System;
-using System.IO;
-using System.IO.Pipes;
-using System.Security;
-
-namespace MS.Internal
+namespace WpfInk.@ref
 {
     internal static class SystemDrawingHelper
     {

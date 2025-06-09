@@ -8,9 +8,7 @@
 //      The implementation of GestureRecognitionResult class
 
 
-using System;
-
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// GestureRecognitionResult

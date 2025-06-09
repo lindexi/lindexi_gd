@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-using System.Windows;
-using System.Windows.Media;
+using WpfInk.PresentationCore.System.Windows;
+using WpfInk.@ref;
+using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 
-namespace MS.Internal.Ink
+namespace WpfInk.PresentationCore.MS.Internal.Ink
 {
     /// <summary>
     /// A helper structure representing an edge of a contour, where 

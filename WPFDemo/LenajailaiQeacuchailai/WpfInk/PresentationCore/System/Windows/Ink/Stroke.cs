@@ -3,31 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Utility;
-using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows;
-using System.Windows.Media;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Runtime.Serialization;
-using MS.Internal.Ink.InkSerializedFormat;
-using MS.Internal;
-using MS.Internal.Ink;
-using System.Reflection;
-using System.Windows.Input;
-
-using SR=MS.Internal.PresentationCore.SR;
+using WpfInk.PresentationCore.MS.Internal.Ink;
+using WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat;
+using WpfInk.PresentationCore.System.Windows.Input.Stylus;
+using WpfInk.@ref;
 using SRID=MS.Internal.PresentationCore.SRID;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// A Stroke object is the fundamental unit of ink data storage.
@@ -381,7 +367,7 @@ namespace System.Windows.Ink
         /// </summary>
         private double GetDistanceBetweenPoints(Point p1, Point p2)
         {
-            Vector spine = p2 - p1;
+            Generated.Vector spine = p2 - p1;
             return Math.Sqrt(spine.LengthSquared);
         }
 
@@ -753,8 +739,8 @@ namespace System.Windows.Ink
         /// <param name="cutAt">Fragment markers for clipping</param>
         private StrokeCollection Clip(StrokeFIndices[] cutAt)
         {
-            System.Diagnostics.Debug.Assert(cutAt != null);
-            System.Diagnostics.Debug.Assert(cutAt.Length != 0);
+            global::System.Diagnostics.Debug.Assert(cutAt != null);
+            global::System.Diagnostics.Debug.Assert(cutAt.Length != 0);
 
 #if DEBUG
             //
@@ -785,8 +771,8 @@ namespace System.Windows.Ink
             //
             // Assert the findices are NOT out of range with the packets
             //
-            System.Diagnostics.Debug.Assert(false == ((!DoubleUtil.AreClose(cutAt[cutAt.Length - 1].EndFIndex, StrokeFIndices.AfterLast)) &&
-                                        Math.Ceiling(cutAt[cutAt.Length - 1].EndFIndex) > sourceStylusPoints.Count - 1));
+            global::System.Diagnostics.Debug.Assert(false == ((!DoubleUtil.AreClose(cutAt[cutAt.Length - 1].EndFIndex, StrokeFIndices.AfterLast)) &&
+                                                              Math.Ceiling(cutAt[cutAt.Length - 1].EndFIndex) > sourceStylusPoints.Count - 1));
 
             for (int i = 0; i < cutAt.Length; i++)
             {
@@ -795,7 +781,7 @@ namespace System.Windows.Ink
                 {
                     // ISSUE-2004/06/26-vsmirnov - temporary workaround for bugs
                     // in point erasing: drop invalid fragments
-                    System.Diagnostics.Debug.Assert(DoubleUtil.LessThan(fragment.BeginFIndex, fragment.EndFIndex));
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.LessThan(fragment.BeginFIndex, fragment.EndFIndex));
                     continue;
                 }
 
@@ -815,8 +801,8 @@ namespace System.Windows.Ink
         /// <returns>Survived fragments of current Stroke as a StrokeCollection</returns>
         private StrokeCollection Erase(StrokeFIndices[] cutAt)
         {
-            System.Diagnostics.Debug.Assert(cutAt != null);
-            System.Diagnostics.Debug.Assert(cutAt.Length != 0);
+            global::System.Diagnostics.Debug.Assert(cutAt != null);
+            global::System.Diagnostics.Debug.Assert(cutAt.Length != 0);
 
 #if DEBUG
             //
@@ -841,8 +827,8 @@ namespace System.Windows.Ink
             //
             // Assert the findices are NOT out of range with the packets
             //
-            System.Diagnostics.Debug.Assert(false == ((!DoubleUtil.AreClose(cutAt[cutAt.Length - 1].EndFIndex, StrokeFIndices.AfterLast)) &&
-                                        Math.Ceiling(cutAt[cutAt.Length - 1].EndFIndex) > sourceStylusPoints.Count - 1));
+            global::System.Diagnostics.Debug.Assert(false == ((!DoubleUtil.AreClose(cutAt[cutAt.Length - 1].EndFIndex, StrokeFIndices.AfterLast)) &&
+                                                              Math.Ceiling(cutAt[cutAt.Length - 1].EndFIndex) > sourceStylusPoints.Count - 1));
 
 
             int i = 0;
@@ -859,7 +845,7 @@ namespace System.Windows.Ink
                 {
                     // ISSUE-2004/06/26-vsmirnov - temporary workaround for bugs
                     // in point erasing: drop invalid fragments
-                    System.Diagnostics.Debug.Assert(DoubleUtil.LessThan(beginFIndex, fragment.BeginFIndex));
+                    global::System.Diagnostics.Debug.Assert(DoubleUtil.LessThan(beginFIndex, fragment.BeginFIndex));
                     continue;
                 }
 
@@ -901,7 +887,7 @@ namespace System.Windows.Ink
                     ? (sourceStylusPoints.Count - 1) : (int)Math.Ceiling(endFIndex);
 
             int pointCount = endIndex - beginIndex + 1;
-            System.Diagnostics.Debug.Assert(pointCount >= 1);
+            global::System.Diagnostics.Debug.Assert(pointCount >= 1);
 
             StylusPointCollection stylusPoints =
                 new StylusPointCollection(this.StylusPoints.Description, pointCount);
@@ -911,11 +897,11 @@ namespace System.Windows.Ink
             //
             for (int i = 0; i < pointCount; i++)
             {
-                System.Diagnostics.Debug.Assert(sourceStylusPoints.Count > i + beginIndex);
+                global::System.Diagnostics.Debug.Assert(sourceStylusPoints.Count > i + beginIndex);
                 StylusPoint stylusPoint = sourceStylusPoints[i + beginIndex];
                 stylusPoints.Add(stylusPoint);
             }
-            System.Diagnostics.Debug.Assert(stylusPoints.Count == pointCount);
+            global::System.Diagnostics.Debug.Assert(stylusPoints.Count == pointCount);
 
             //
             // at this point, the stroke has been reduced to one with n number of points
@@ -1041,7 +1027,7 @@ namespace System.Windows.Ink
             }
             if (fragments.Length == 1)
             {
-                System.Diagnostics.Debug.Assert(IsValidStrokeFIndices(fragments[0]));
+                global::System.Diagnostics.Debug.Assert(IsValidStrokeFIndices(fragments[0]));
                 return;
             }
             double current = StrokeFIndices.BeforeFirst;
@@ -1052,10 +1038,10 @@ namespace System.Windows.Ink
                     //
                     // when x == 0, we're just starting, any value is valid
                     //
-                    System.Diagnostics.Debug.Assert(x == 0);
+                    global::System.Diagnostics.Debug.Assert(x == 0);
                 }
                 current = fragments[x].BeginFIndex;
-                System.Diagnostics.Debug.Assert(IsValidStrokeFIndices(fragments[x]) && fragments[x].EndFIndex > current);
+                global::System.Diagnostics.Debug.Assert(IsValidStrokeFIndices(fragments[x]) && fragments[x].EndFIndex > current);
                 current = fragments[x].EndFIndex;
             }
         }

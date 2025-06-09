@@ -4,27 +4,16 @@
 
 //#define OLD_ISF
 
-using MS.Utility;
-using System;
 using System.Diagnostics;
-using System.Security;
-using System.Windows;
-using System.Windows.Media;
+using WpfInk.PresentationCore.System.Windows;
+using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.PresentationCore.System.Windows.Input.Stylus;
+using WpfInk.@ref;
 //using System.Windows.Media.Imaging;
-using System.IO;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using System.Collections;
-using System.Collections.Generic;
-using System.Windows.Input;
-using System.Windows.Ink;
-using MS.Internal.IO.Packaging;
-
-using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
+using Vector = WpfInk.PresentationCore.System.Windows.Generated.Vector;
 
-namespace MS.Internal.Ink.InkSerializedFormat
+namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 {
     internal class StrokeCollectionSerializer
     {
@@ -63,7 +52,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
 
         internal PersistenceFormat CurrentPersistenceFormat = PersistenceFormat.InkSerializedFormat;
         internal CompressionMode CurrentCompressionMode = CompressionMode.Compressed;
-        internal System.Collections.Generic.List<int> StrokeIds = null;
+        internal global::System.Collections.Generic.List<int> StrokeIds = null;
         #endregion
 
         #region Decoding
@@ -102,7 +91,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
                     //
                     int isfBase64PrefixLength = Base64HeaderBytes.Length;
                     // the previous call to ExamineStreamHeader guarantees that inkData.Length > isfBase64PrefixLength
-                    System.Diagnostics.Debug.Assert(inkData.Length > isfBase64PrefixLength);
+                    global::System.Diagnostics.Debug.Assert(inkData.Length > isfBase64PrefixLength);
 
                     inkData.Position = (long)isfBase64PrefixLength;
                     List<char> charData = new List<char>((int)inkData.Length);
@@ -145,32 +134,32 @@ namespace MS.Internal.Ink.InkSerializedFormat
             catch (ArgumentException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (InvalidOperationException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (IndexOutOfRangeException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (NullReferenceException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (EndOfStreamException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
             }
             catch (OverflowException ex)
             {
                 //only include an inner exception in debug builds
-                throw new ArgumentException(SR.Get(SRID.IsfOperationFailed), ex);
+                throw new ArgumentException(@ref.SR.Get(SRID.IsfOperationFailed), ex);
             }
 #else
             catch (ArgumentException)
@@ -329,10 +318,10 @@ namespace MS.Internal.Ink.InkSerializedFormat
             StylusPointDescription currentStylusPointDescription = null;
             Matrix currentTabletToInkTransform = Matrix.Identity;
 
-            _strokeDescriptorTable = new System.Collections.Generic.List<StrokeDescriptor>();
-            _drawingAttributesTable = new System.Collections.Generic.List<DrawingAttributes>();
-            _transformTable = new System.Collections.Generic.List<TransformDescriptor>();
-            _metricTable = new System.Collections.Generic.List<MetricBlock>();
+            _strokeDescriptorTable = new global::System.Collections.Generic.List<StrokeDescriptor>();
+            _drawingAttributesTable = new global::System.Collections.Generic.List<DrawingAttributes>();
+            _transformTable = new global::System.Collections.Generic.List<TransformDescriptor>();
+            _metricTable = new global::System.Collections.Generic.List<MetricBlock>();
 
             // First make sure this ink is empty
             if (0 != _coreStrokes.Count || _coreStrokes.ExtendedProperties.Count != 0)
@@ -355,7 +344,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
             uint uiTag;
             uint localBytesDecoded = SerializationHelper.Decode(inputStream, out uiTag);
             if (0x00 != uiTag)
-                throw new ArgumentException(SR.Get(SRID.InvalidStream));
+                throw new ArgumentException(@ref.SR.Get(SRID.InvalidStream));
 
             // Now read the size of the stream
             localBytesDecoded = SerializationHelper.Decode(inputStream, out remainingBytesInStream);
@@ -1577,12 +1566,12 @@ namespace MS.Internal.Ink.InkSerializedFormat
             int packetPropertyCount = 0;
             uint buttonCount = 0;
             Guid[] buttonguids = null;
-            System.Collections.Generic.List<KnownTagCache.KnownTagIndex> tags = null;
+            global::System.Collections.Generic.List<KnownTagCache.KnownTagIndex> tags = null;
 
             // if strd is null, it means there is only default descriptor with X & Y
             if (null != strd)
             {
-                tags = new System.Collections.Generic.List<KnownTagCache.KnownTagIndex>();
+                tags = new global::System.Collections.Generic.List<KnownTagCache.KnownTagIndex>();
                 while (cTags < strd.Template.Count)
                 {
                     KnownTagCache.KnownTagIndex tag = (KnownTagCache.KnownTagIndex)strd.Template[cTags];
@@ -1690,7 +1679,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
         internal void EncodeISF(Stream outputStream)
         {
             _strokeLookupTable =
-                new System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry>(_coreStrokes.Count);
+                new global::System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry>(_coreStrokes.Count);
 
             // Next go through all the strokes
             for (int i = 0; i < _coreStrokes.Count; i++)
@@ -2687,10 +2676,10 @@ namespace MS.Internal.Ink.InkSerializedFormat
 
         #region Debugging Methods
 
-        [System.Diagnostics.Conditional("DEBUG_ISF")]
+        [global::System.Diagnostics.Conditional("DEBUG_ISF")]
         static void ISFDebugTrace(string message)
         {
-            System.Diagnostics.Debug.WriteLine(message);
+            global::System.Diagnostics.Debug.WriteLine(message);
         }
         #endregion
 
@@ -2707,10 +2696,10 @@ namespace MS.Internal.Ink.InkSerializedFormat
         #region Private Fields
 
         StrokeCollection _coreStrokes;
-        private System.Collections.Generic.List<StrokeDescriptor> _strokeDescriptorTable = null;
-        private System.Collections.Generic.List<TransformDescriptor> _transformTable = null;
-        private System.Collections.Generic.List<DrawingAttributes> _drawingAttributesTable = null;
-        private System.Collections.Generic.List<MetricBlock> _metricTable = null;
+        private global::System.Collections.Generic.List<StrokeDescriptor> _strokeDescriptorTable = null;
+        private global::System.Collections.Generic.List<TransformDescriptor> _transformTable = null;
+        private global::System.Collections.Generic.List<DrawingAttributes> _drawingAttributesTable = null;
+        private global::System.Collections.Generic.List<MetricBlock> _metricTable = null;
         private Vector _himetricSize = new Vector(0.0f, 0.0f);
 
 
@@ -2719,7 +2708,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
             //      rectangle
         private Rect _inkSpaceRectangle = new Rect();
 
-        System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry> _strokeLookupTable = null;
+        global::System.Collections.Generic.Dictionary<Stroke, StrokeLookupEntry> _strokeLookupTable = null;
 
         #endregion
     }
@@ -2736,7 +2725,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
         /// <returns></returns>
         internal static int[] GetStrokeIds(StrokeCollection strokes)
         {
-            System.Diagnostics.Debug.Assert(strokes != null);
+            global::System.Diagnostics.Debug.Assert(strokes != null);
 
             int[] strokeIds = new int[strokes.Count];
             for (int x = 0; x < strokeIds.Length; x++)

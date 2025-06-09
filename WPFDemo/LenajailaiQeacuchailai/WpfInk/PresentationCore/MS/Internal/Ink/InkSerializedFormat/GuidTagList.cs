@@ -2,20 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections;
-using System.IO;
-using System.Windows.Ink;
-using MS.Internal.IO.Packaging;
+using WpfInk.@ref;
 
-namespace MS.Internal.Ink.InkSerializedFormat
+namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 {
     /// <summary>
     /// Summary description for GuidTagList.
     /// </summary>
     internal class GuidList
     {
-        private System.Collections.Generic.List<Guid> _CustomGuids = new System.Collections.Generic.List<Guid>();
+        private global::System.Collections.Generic.List<Guid> _CustomGuids = new global::System.Collections.Generic.List<Guid>();
 
 
         public GuidList()

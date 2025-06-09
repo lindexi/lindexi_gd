@@ -11,27 +11,11 @@
 //   -- Put methods in here when a stack walk is innappropriate due to performance concerns
 
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Runtime.ConstrainedExecution;
-using System;
-using MS.Internal;
-using MS.Internal.PresentationCore;
-using System.Security;
-using System.Collections;
-using System.IO;
-using System.Text;
-using System.Windows.Media.Composition;
-using System.Windows.Media;
 //using System.Windows.Media.Imaging;
-using System.Windows;
-using MS.Win32;
-using IComDataObject = System.Runtime.InteropServices.ComTypes.IDataObject;
-
-using DllImport = MS.Internal.PresentationCore.DllImport;
 
 #pragma warning disable 1634, 1691  // suppressing PreSharp warnings
 
-namespace MS.Win32.PresentationCore
+namespace WpfInk.@ref
 {
     internal static partial class UnsafeNativeMethods
     {

@@ -9,26 +9,11 @@
 // Please see MilCodeGen.html for more information.
 //
 
-using MS.Internal;
-using MS.Internal.WindowsBase;
-using System;
-using System.Collections;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.ComponentModel.Design.Serialization;
-using System.Windows.Markup;
 //using System.Windows.Media.Converters;
-using System.Windows;
-using System.Windows.Media;
 // These types are aliased to match the unamanaged names used in interop
-using BOOL = System.UInt32;
-using WORD = System.UInt16;
-using Float = System.Single;
 
-namespace System.Windows.Media
+namespace WpfInk.@ref.Generated
 {
     [Serializable]
     [TypeConverter(typeof(MatrixConverter))]
@@ -57,7 +42,7 @@ namespace System.Windows.Media
         /// </returns>
         /// <param name='matrix1'>The first Matrix to compare</param>
         /// <param name='matrix2'>The second Matrix to compare</param>
-        public static bool operator == (Matrix matrix1, Matrix matrix2)
+        public static bool operator == (@ref.Matrix matrix1, @ref.Matrix matrix2)
         {
             if (matrix1.IsDistinguishedIdentity || matrix2.IsDistinguishedIdentity)
             {
@@ -85,7 +70,7 @@ namespace System.Windows.Media
         /// </returns>
         /// <param name='matrix1'>The first Matrix to compare</param>
         /// <param name='matrix2'>The second Matrix to compare</param>
-        public static bool operator != (Matrix matrix1, Matrix matrix2)
+        public static bool operator != (@ref.Matrix matrix1, @ref.Matrix matrix2)
         {
             return !(matrix1 == matrix2);
         }
@@ -101,7 +86,7 @@ namespace System.Windows.Media
         /// </returns>
         /// <param name='matrix1'>The first Matrix to compare</param>
         /// <param name='matrix2'>The second Matrix to compare</param>
-        public static bool Equals (Matrix matrix1, Matrix matrix2)
+        public static bool Equals (@ref.Matrix matrix1, @ref.Matrix matrix2)
         {
             if (matrix1.IsDistinguishedIdentity || matrix2.IsDistinguishedIdentity)
             {
@@ -131,13 +116,13 @@ namespace System.Windows.Media
         /// <param name='o'>The object to compare to "this"</param>
         public override bool Equals(object o)
         {
-            if ((null == o) || !(o is Matrix))
+            if ((null == o) || !(o is @ref.Matrix))
             {
                 return false;
             }
 
-            Matrix value = (Matrix)o;
-            return Matrix.Equals(this,value);
+            @ref.Matrix value = (@ref.Matrix)o;
+            return @ref.Matrix.Equals(this,value);
         }
 
         /// <summary>
@@ -151,9 +136,9 @@ namespace System.Windows.Media
         /// bool - true if "value" is equal to "this".
         /// </returns>
         /// <param name='value'>The Matrix to compare to "this"</param>
-        public bool Equals(Matrix value)
+        public bool Equals(@ref.Matrix value)
         {
-            return Matrix.Equals(this, value);
+            return @ref.Matrix.Equals(this, value);
         }
         /// <summary>
         /// Returns the HashCode for this Matrix
@@ -165,7 +150,7 @@ namespace System.Windows.Media
         {
             if (IsDistinguishedIdentity)
             {
-                return c_identityHashCode;
+                return @ref.Matrix.c_identityHashCode;
             }
             else
             {
@@ -184,7 +169,7 @@ namespace System.Windows.Media
         /// the culture "en-US"
         /// <param name="source"> string with Matrix data </param>
         /// </summary>
-        public static Matrix Parse(string source)
+        public static @ref.Matrix Parse(string source)
         {
             //IFormatProvider formatProvider = System.Windows.Markup.TypeConverterHelper.InvariantEnglishUS;
 
@@ -215,7 +200,7 @@ namespace System.Windows.Media
             //th.LastTokenRequired();
 
             //return value;
-            return Identity;
+            return @ref.Matrix.Identity;
         }
 
         #endregion Public Methods

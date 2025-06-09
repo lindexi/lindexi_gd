@@ -2,16 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using MS.Utility;
-using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows;
-
-using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace MS.Internal.Ink.InkSerializedFormat
+namespace WpfInk.PresentationCore.MS.Internal.Ink.InkSerializedFormat
 {
     /// <summary>
     /// Summary description for HelperMethods.
@@ -326,7 +320,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
             {
                 if (throwOnError)
                 {
-                    throw new ArgumentException(SR.Get(SRID.InvalidDataTypeForExtendedProperty));
+                    throw new ArgumentException(@ref.SR.Get(SRID.InvalidDataTypeForExtendedProperty));
                 }
                 else
                 {
