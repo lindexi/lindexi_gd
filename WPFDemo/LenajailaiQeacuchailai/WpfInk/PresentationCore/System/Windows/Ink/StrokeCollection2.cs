@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -27,26 +27,6 @@ namespace System.Windows.Ink
     {
         #region Public APIs
 
-        /// <summary>
-        /// Calculates the combined bounds of all strokes in the collection
-        /// </summary>
-        /// <returns></returns>
-        public Rect GetBounds()
-        { 
-            Rect bounds = Rect.Empty;
-            foreach (Stroke stroke in this)
-            {
-                // samgeo - Presharp issue
-                // Presharp gives a warning when get methods might deref a null.  It's complaining
-                // here that 'stroke'' could be null, but StrokeCollection never allows nulls to be added
-                // so this is not possible
-#pragma warning disable 1634, 1691
-#pragma warning suppress 6506
-                bounds.Union(stroke.GetBounds());
-#pragma warning restore 1634, 1691
-            }
-            return bounds;
-        }
 
         // ISSUE-2004/12/13-XIAOTU: In M8.2, the following two tap-hit APIs return the top-hit stroke,
         // giving preference to non-highlighter strokes. We have decided not to treat highlighter and
@@ -56,7 +36,7 @@ namespace System.Windows.Ink
         //     want to?
         //  2. Since we are only returning the top-hit stroke, should we use Stroke as the return type?
         //
-
+#if false
         /// <summary>
         /// Tap-hit. Hit tests all strokes within a point, and returns a StrokeCollection for these strokes.Internally does Stroke.HitTest(Point, 1pxlRectShape).
         /// </summary>
@@ -153,7 +133,6 @@ namespace System.Windows.Ink
             // Return the resulting collection
             return lassoedStrokes;
         }
-
 
         /// <summary>
         /// Hit-testing with rectangle
@@ -297,87 +276,11 @@ namespace System.Windows.Ink
             }
         }
 
-        /// <summary>
-        /// Erases all ink inside a lasso
-        /// </summary>
-        /// <param name="lassoPoints">lasso to erase within</param>
-        public void Erase(IEnumerable<Point> lassoPoints)
-        {
-            // Check the input parameters
-            if (lassoPoints == null)
-            {
-                throw new System.ArgumentNullException("lassoPoints");
-            }
-            int length = IEnumerablePointHelper.GetCount(lassoPoints);
-            if (length == 0)
-            {
-                throw new ArgumentException(SR.Get(SRID.EmptyArray));
-            }
-
-            if (length < 3)
-            {
-                return;
-            }
-
-            Lasso lasso = new SingleLoopLasso();
-            lasso.AddPoints(lassoPoints);
-            for (int i = 0; i < this.Count; i++)
-            {
-                Stroke stroke = this[i];
-
-                StrokeCollection eraseResult = stroke.Erase(stroke.HitTest(lasso));
-                UpdateStrokeCollection(stroke, eraseResult, ref i);
-            }
-        }
+#endif
 
 
-        /// <summary>
-        /// Erases all ink inside a given rectangle
-        /// </summary>
-        /// <param name="bounds">rectangle to erase within</param>
-        public void Erase(Rect bounds)
-        {
-            if (bounds.IsEmpty == false)
-            {
-                Erase(new Point[4] { bounds.TopLeft, bounds.TopRight, bounds.BottomRight, bounds.BottomLeft });
-            }
-        }
-
-
-        /// <summary>
-        /// Erases all ink hit by the contour of an erasing stroke
-        /// </summary>
-        /// <param name="eraserShape">Shape of the eraser</param>
-        /// <param name="eraserPath">a path making the spine of the erasing stroke </param>
-        public void Erase(IEnumerable<Point> eraserPath, StylusShape eraserShape)
-        {
-            // Check the input parameters
-            if (eraserShape == null)
-            {
-                throw new System.ArgumentNullException(SR.Get(SRID.SCEraseShape));
-            }
-            if (eraserPath == null)
-            {
-                throw new System.ArgumentNullException(SR.Get(SRID.SCErasePath));
-            }
-            if (IEnumerablePointHelper.GetCount(eraserPath) == 0)
-            {
-                return;
-            }
-
-            ErasingStroke erasingStroke = new ErasingStroke(eraserShape, eraserPath);
-            for (int i = 0; i < this.Count; i++)
-            {
-                Stroke stroke = this[i];
-
-                List<StrokeIntersection> intersections = new List<StrokeIntersection>();
-                erasingStroke.EraseTest(StrokeNodeIterator.GetIterator(stroke, stroke.DrawingAttributes), intersections);
-                StrokeCollection eraseResult = stroke.Erase(intersections.ToArray());
-
-                UpdateStrokeCollection(stroke, eraseResult, ref i);
-            }
-        }
-
+#if false
+        
         /// <summary>
         /// Render the StrokeCollection under the specified DrawingContext.
         /// </summary>
@@ -438,7 +341,9 @@ namespace System.Windows.Ink
                 stroke.DrawInternal(context, stroke.DrawingAttributes, false/*Don't draw selected stroke as hollow*/);
             }
         }
-        #endregion
+#endif
+
+#endregion
 
         #region Incremental hit-testing
 
@@ -473,6 +378,8 @@ namespace System.Windows.Ink
         }
         #endregion
 
+#if false
+        
         /// <summary>
         /// Return all hit strokes that the StylusShape intersects and returns them in a StrokeCollection
         /// </summary>
@@ -491,6 +398,7 @@ namespace System.Windows.Ink
 
             return hits;
         }
+#endif
 
         private void UpdateStrokeCollection(Stroke original, StrokeCollection toReplace, ref int index)
         {

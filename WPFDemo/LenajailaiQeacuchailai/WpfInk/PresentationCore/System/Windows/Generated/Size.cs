@@ -1,6 +1,5 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
 //
 //
@@ -10,30 +9,18 @@
 //
 
 using MS.Internal;
-using MS.Internal.WindowsBase;
-using System;
-using System.Collections;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.ComponentModel.Design.Serialization;
 using System.Windows.Markup;
-//using System.Windows.Media.Converters;
-using System.Windows;
-using System.Windows.Media;
-// These types are aliased to match the unamanaged names used in interop
-using BOOL = System.UInt32;
-using WORD = System.UInt16;
-using Float = System.Single;
+//using System.Windows.Converters;
 
-namespace System.Windows.Media
+namespace System.Windows
 {
+
     [Serializable]
-    [TypeConverter(typeof(MatrixConverter))]
-    //[ValueSerializer(typeof(MatrixValueSerializer))] // Used by MarkupWriter
-    partial struct Matrix : IFormattable
+    [TypeConverter(typeof(SizeConverter))]
+    //[ValueSerializer(typeof(SizeValueSerializer))] // Used by MarkupWriter
+    public partial struct Size : IFormattable
     {
         //------------------------------------------------------
         //
@@ -47,101 +34,86 @@ namespace System.Windows.Media
 
 
         /// <summary>
-        /// Compares two Matrix instances for exact equality.
+        /// Compares two Size instances for exact equality.
         /// Note that double values can acquire error when operated upon, such that
         /// an exact comparison between two values which are logically equal may fail.
         /// Furthermore, using this equality operator, Double.NaN is not equal to itself.
         /// </summary>
         /// <returns>
-        /// bool - true if the two Matrix instances are exactly equal, false otherwise
+        /// bool - true if the two Size instances are exactly equal, false otherwise
         /// </returns>
-        /// <param name='matrix1'>The first Matrix to compare</param>
-        /// <param name='matrix2'>The second Matrix to compare</param>
-        public static bool operator == (Matrix matrix1, Matrix matrix2)
+        /// <param name='size1'>The first Size to compare</param>
+        /// <param name='size2'>The second Size to compare</param>
+        public static bool operator ==(Size size1, Size size2)
         {
-            if (matrix1.IsDistinguishedIdentity || matrix2.IsDistinguishedIdentity)
-            {
-                return matrix1.IsIdentity == matrix2.IsIdentity;
-            }
-            else
-            {
-                return matrix1.M11 == matrix2.M11 &&
-                       matrix1.M12 == matrix2.M12 &&
-                       matrix1.M21 == matrix2.M21 &&
-                       matrix1.M22 == matrix2.M22 &&
-                       matrix1.OffsetX == matrix2.OffsetX &&
-                       matrix1.OffsetY == matrix2.OffsetY;
-            }
+            return size1.Width == size2.Width &&
+                   size1.Height == size2.Height;
         }
 
         /// <summary>
-        /// Compares two Matrix instances for exact inequality.
+        /// Compares two Size instances for exact inequality.
         /// Note that double values can acquire error when operated upon, such that
         /// an exact comparison between two values which are logically equal may fail.
         /// Furthermore, using this equality operator, Double.NaN is not equal to itself.
         /// </summary>
         /// <returns>
-        /// bool - true if the two Matrix instances are exactly unequal, false otherwise
+        /// bool - true if the two Size instances are exactly unequal, false otherwise
         /// </returns>
-        /// <param name='matrix1'>The first Matrix to compare</param>
-        /// <param name='matrix2'>The second Matrix to compare</param>
-        public static bool operator != (Matrix matrix1, Matrix matrix2)
+        /// <param name='size1'>The first Size to compare</param>
+        /// <param name='size2'>The second Size to compare</param>
+        public static bool operator !=(Size size1, Size size2)
         {
-            return !(matrix1 == matrix2);
+            return !(size1 == size2);
         }
         /// <summary>
-        /// Compares two Matrix instances for object equality.  In this equality
+        /// Compares two Size instances for object equality.  In this equality
         /// Double.NaN is equal to itself, unlike in numeric equality.
         /// Note that double values can acquire error when operated upon, such that
         /// an exact comparison between two values which
         /// are logically equal may fail.
         /// </summary>
         /// <returns>
-        /// bool - true if the two Matrix instances are exactly equal, false otherwise
+        /// bool - true if the two Size instances are exactly equal, false otherwise
         /// </returns>
-        /// <param name='matrix1'>The first Matrix to compare</param>
-        /// <param name='matrix2'>The second Matrix to compare</param>
-        public static bool Equals (Matrix matrix1, Matrix matrix2)
+        /// <param name='size1'>The first Size to compare</param>
+        /// <param name='size2'>The second Size to compare</param>
+        public static bool Equals(Size size1, Size size2)
         {
-            if (matrix1.IsDistinguishedIdentity || matrix2.IsDistinguishedIdentity)
+            if (size1.IsEmpty)
             {
-                return matrix1.IsIdentity == matrix2.IsIdentity;
+                return size2.IsEmpty;
             }
             else
             {
-                return matrix1.M11.Equals(matrix2.M11) &&
-                       matrix1.M12.Equals(matrix2.M12) &&
-                       matrix1.M21.Equals(matrix2.M21) &&
-                       matrix1.M22.Equals(matrix2.M22) &&
-                       matrix1.OffsetX.Equals(matrix2.OffsetX) &&
-                       matrix1.OffsetY.Equals(matrix2.OffsetY);
+                return size1.Width.Equals(size2.Width) &&
+                       size1.Height.Equals(size2.Height);
             }
         }
 
         /// <summary>
-        /// Equals - compares this Matrix with the passed in object.  In this equality
+        /// Equals - compares this Size with the passed in object.  In this equality
         /// Double.NaN is equal to itself, unlike in numeric equality.
         /// Note that double values can acquire error when operated upon, such that
         /// an exact comparison between two values which
         /// are logically equal may fail.
         /// </summary>
         /// <returns>
-        /// bool - true if the object is an instance of Matrix and if it's equal to "this".
+        /// bool - true if the object is an instance of Size and if it's equal to "this".
         /// </returns>
         /// <param name='o'>The object to compare to "this"</param>
         public override bool Equals(object o)
         {
-            if ((null == o) || !(o is Matrix))
+            if ((null == o) || !(o is Size))
             {
                 return false;
             }
 
-            Matrix value = (Matrix)o;
-            return Matrix.Equals(this,value);
+            Size value = (Size)o;
+            return Size.Equals(this,value);
         }
 
         /// <summary>
-        /// Equals - compares this Matrix with the passed in object.  In this equality
+        /// Equals - compares this Size with the passed in object.  In this equality
         /// Double.NaN is equal to itself, unlike in numeric equality.
         /// Note that double values can acquire error when operated upon, such that
         /// an exact comparison between two values which
@@ -150,64 +122,57 @@ namespace System.Windows.Media
         /// <returns>
         /// bool - true if "value" is equal to "this".
         /// </returns>
-        /// <param name='value'>The Matrix to compare to "this"</param>
-        public bool Equals(Matrix value)
+        /// <param name='value'>The Size to compare to "this"</param>
+        public bool Equals(Size value)
         {
-            return Matrix.Equals(this, value);
+            return Size.Equals(this, value);
         }
         /// <summary>
-        /// Returns the HashCode for this Matrix
+        /// Returns the HashCode for this Size
         /// </summary>
         /// <returns>
-        /// int - the HashCode for this Matrix
+        /// int - the HashCode for this Size
         /// </returns>
         public override int GetHashCode()
         {
-            if (IsDistinguishedIdentity)
+            if (IsEmpty)
             {
-                return c_identityHashCode;
+                return 0;
             }
             else
             {
                 // Perform field-by-field XOR of HashCodes
-                return M11.GetHashCode() ^
-                       M12.GetHashCode() ^
-                       M21.GetHashCode() ^
-                       M22.GetHashCode() ^
-                       OffsetX.GetHashCode() ^
-                       OffsetY.GetHashCode();
+                return Width.GetHashCode() ^
+                       Height.GetHashCode();
             }
         }
 
         /// <summary>
         /// Parse - returns an instance converted from the provided string using
         /// the culture "en-US"
-        /// <param name="source"> string with Matrix data </param>
+        /// <param name="source"> string with Size data </param>
         /// </summary>
-        public static Matrix Parse(string source)
+        public static Size Parse(string source)
         {
+            throw new NotImplementedException();
             //IFormatProvider formatProvider = System.Windows.Markup.TypeConverterHelper.InvariantEnglishUS;
 
             //TokenizerHelper th = new TokenizerHelper(source, formatProvider);
 
-            //Matrix value;
+            //Size value;
 
             //String firstToken = th.NextTokenRequired();
 
             //// The token will already have had whitespace trimmed so we can do a
             //// simple string compare.
-            //if (firstToken == "Identity")
+            //if (firstToken == "Empty")
             //{
-            //    value = Identity;
+            //    value = Empty;
             //}
             //else
             //{
-            //    value = new Matrix(
+            //    value = new Size(
             //        Convert.ToDouble(firstToken, formatProvider),
-            //        Convert.ToDouble(th.NextTokenRequired(), formatProvider),
-            //        Convert.ToDouble(th.NextTokenRequired(), formatProvider),
-            //        Convert.ToDouble(th.NextTokenRequired(), formatProvider),
-            //        Convert.ToDouble(th.NextTokenRequired(), formatProvider),
             //        Convert.ToDouble(th.NextTokenRequired(), formatProvider));
             //}
 
@@ -215,7 +180,6 @@ namespace System.Windows.Media
             //th.LastTokenRequired();
 
             //return value;
-            return Identity;
         }
 
         #endregion Public Methods
@@ -284,6 +248,7 @@ namespace System.Windows.Media
         /// </returns>
         public override string ToString()
         {
+
             // Delegate to the internal method which implements all ToString calls.
             return ConvertToString(null /* format string */, null /* format provider */);
         }
@@ -297,6 +262,7 @@ namespace System.Windows.Media
         /// </returns>
         public string ToString(IFormatProvider provider)
         {
+
             // Delegate to the internal method which implements all ToString calls.
             return ConvertToString(null /* format string */, provider);
         }
@@ -312,6 +278,7 @@ namespace System.Windows.Media
         /// </returns>
         string IFormattable.ToString(string format, IFormatProvider provider)
         {
+
             // Delegate to the internal method which implements all ToString calls.
             return ConvertToString(format, provider);
         }
@@ -327,22 +294,19 @@ namespace System.Windows.Media
         /// </returns>
         internal string ConvertToString(string format, IFormatProvider provider)
         {
-            if (IsIdentity)
-            {
-                return "Identity";
-            }
+            throw new NotImplementedException();
+            //if (IsEmpty)
+            //{
+            //    return "Empty";
+            //}
 
-            // Helper to get the numeric list separator for a given culture.
-            char separator = ','; //MS.Internal.TokenizerHelper.GetNumericListSeparator(provider);
-            return String.Format(provider,
-                                 "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}{0}{5:" + format + "}{0}{6:" + format + "}",
-                                 separator,
-                                 _m11,
-                                 _m12,
-                                 _m21,
-                                 _m22,
-                                 _offsetX,
-                                 _offsetY);
+            //// Helper to get the numeric list separator for a given culture.
+            //char separator = MS.Internal.TokenizerHelper.GetNumericListSeparator(provider);
+            //return String.Format(provider,
+            //                     "{1:" + format + "}{0}{2:" + format + "}",
+            //                     separator,
+            //                     _width,
+            //                     _height);
         }
 
         #endregion Internal Properties
@@ -368,7 +332,8 @@ namespace System.Windows.Media
         #region Internal Fields
 
 
-
+        internal double _width;
+        internal double _height;
 
 
 

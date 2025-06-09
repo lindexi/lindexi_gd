@@ -1,6 +1,5 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
 //
 //
@@ -10,28 +9,17 @@
 //
 
 using MS.Internal;
-using MS.Internal.WindowsBase;
-using System;
-using System.Collections;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.ComponentModel.Design.Serialization;
 using System.Windows.Markup;
-//using System.Windows.Media.Converters;
-using System.Windows;
-using System.Windows.Media;
+//using System.Windows.Converters;
 
-#pragma warning disable 1634, 1691  // suppressing PreSharp warnings
-
-namespace System.Windows.Media
+namespace System.Windows
 {
     /// <summary>
-    /// MatrixConverter - Converter class for converting instances of other types to and from Matrix instances
+    /// PointConverter - Converter class for converting instances of other types to and from Point instances
     /// </summary>
-    public sealed class MatrixConverter : TypeConverter
+    public sealed class PointConverter : TypeConverter
     {
         /// <summary>
         /// Returns true if this type converter can convert from a given type.
@@ -70,18 +58,18 @@ namespace System.Windows.Media
         }
 
         /// <summary>
-        /// Attempts to convert to a Matrix from the given object.
+        /// Attempts to convert to a Point from the given object.
         /// </summary>
         /// <returns>
-        /// The Matrix which was constructed.
+        /// The Point which was constructed.
         /// </returns>
         /// <exception cref="NotSupportedException">
         /// A NotSupportedException is thrown if the example object is null or is not a valid type
-        /// which can be converted to a Matrix.
+        /// which can be converted to a Point.
         /// </exception>
         /// <param name="context"> The ITypeDescriptorContext for this call. </param>
         /// <param name="culture"> The requested CultureInfo.  Note that conversion uses "en-US" rather than this parameter. </param>
-        /// <param name="value"> The object to convert to an instance of Matrix. </param>
+        /// <param name="value"> The object to convert to an instance of Point. </param>
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
             if (value == null)
@@ -89,41 +77,38 @@ namespace System.Windows.Media
                 throw GetConvertFromException(value);
             }
 
-            String source = value as string;
 
-            if (source != null)
+            if (value is string source)
             {
-                return Matrix.Parse(source);
+                return Point.Parse(source);
             }
 
             return base.ConvertFrom(context, culture, value);
         }
 
         /// <summary>
-        /// ConvertTo - Attempt to convert an instance of Matrix to the given type
+        /// ConvertTo - Attempt to convert an instance of Point to the given type
         /// </summary>
         /// <returns>
         /// The object which was constructoed.
         /// </returns>
         /// <exception cref="NotSupportedException">
-        /// A NotSupportedException is thrown if "value" is null or not an instance of Matrix,
+        /// A NotSupportedException is thrown if "value" is null or not an instance of Point,
         /// or if the destinationType isn't one of the valid destination types.
         /// </exception>
         /// <param name="context"> The ITypeDescriptorContext for this call. </param>
         /// <param name="culture"> The CultureInfo which is respected when converting. </param>
         /// <param name="value"> The object to convert to an instance of "destinationType". </param>
-        /// <param name="destinationType"> The type to which this will convert the Matrix instance. </param>
+        /// <param name="destinationType"> The type to which this will convert the Point instance. </param>
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
         {
-            if (destinationType != null && value is Matrix)
+            if (destinationType != null && value is Point)
             {
-                Matrix instance = (Matrix)value;
+                Point instance = (Point)value;
 
                 if (destinationType == typeof(string))
                 {
                     // Delegate to the formatting/culture-aware ConvertToString method.
-
-                    #pragma warning suppress 6506 // instance is obviously not null
                     return instance.ConvertToString(null, culture);
                 }
             }

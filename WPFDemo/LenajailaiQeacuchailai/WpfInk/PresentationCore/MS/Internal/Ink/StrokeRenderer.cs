@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,6 +16,8 @@ using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 using MS.Internal;
 using MS.Internal.PresentationCore;
+using MS.Internal.YourAssemblyName;
+using WpfInk.API;
 
 namespace MS.Internal.Ink
 {
@@ -40,17 +42,17 @@ namespace MS.Internal.Ink
                                                                DrawingAttributes drawingAttributes,
                                                                MatrixTypes stylusTipMatrixType,
                                                                bool calculateBounds,
-                                                               out Geometry geometry,
+                                                               IStreamGeometryContext context,
                                                                out Rect bounds)
         {
             Debug.Assert(iterator != null);
             Debug.Assert(drawingAttributes != null);
 
-            StreamGeometry streamGeometry = new StreamGeometry();
-            streamGeometry.FillRule = FillRule.Nonzero;
+            //StreamGeometry streamGeometry = new StreamGeometry();
+            //streamGeometry.FillRule = FillRule.Nonzero;
 
-            StreamGeometryContext context = streamGeometry.Open();
-            geometry = streamGeometry;
+            //StreamGeometryContext context = streamGeometry.Open();
+            //geometry = streamGeometry;
             bounds = Rect.Empty;
             try
             {
@@ -190,8 +192,7 @@ namespace MS.Internal.Ink
             }
             finally
             {
-                context.Close();
-                geometry.Freeze();
+           
             }
         }
 
@@ -213,7 +214,7 @@ namespace MS.Internal.Ink
                                                    bool showFeedback,
 #endif
                                                    bool calculateBounds,
-                                                   out Geometry geometry,
+                                                   IStreamGeometryContext context,
                                                    out Rect bounds)
         {
             Debug.Assert(iterator != null && drawingAttributes != null);
@@ -223,15 +224,15 @@ namespace MS.Internal.Ink
             if (stylusTipTransform != Matrix.Identity && stylusTipTransform._type != MatrixTypes.TRANSFORM_IS_SCALING)
             {
                 //second best optimization
-                CalcGeometryAndBoundsWithTransform(iterator, drawingAttributes, stylusTipTransform._type, calculateBounds, out geometry, out bounds);
+                CalcGeometryAndBoundsWithTransform(iterator, drawingAttributes, stylusTipTransform._type, calculateBounds, context, out bounds);
             }
             else
             {
-                StreamGeometry streamGeometry = new StreamGeometry();
-                streamGeometry.FillRule = FillRule.Nonzero;
+                //StreamGeometry streamGeometry = new StreamGeometry();
+                //streamGeometry.FillRule = FillRule.Nonzero;
 
-                StreamGeometryContext context = streamGeometry.Open();
-                geometry = streamGeometry;
+                //IStreamGeometryContext context = streamGeometry.Open();
+                //geometry = streamGeometry;
                 Rect empty = Rect.Empty;
                 bounds = empty;
                 try
@@ -732,8 +733,8 @@ namespace MS.Internal.Ink
                 }
                 finally
                 {
-                    context.Close();
-                    geometry.Freeze();
+                    //context.Close();
+                    //geometry.Freeze();
                 }
             }
         }
@@ -742,7 +743,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Helper routine to render two distinct stroke nodes
         /// </summary>
-        private static void RenderTwoStrokeNodes(   StreamGeometryContext context,
+        private static void RenderTwoStrokeNodes(   IStreamGeometryContext context,
                                                     StrokeNode strokeNodePrevious,
                                                     Rect strokeNodePreviousBounds,
                                                     StrokeNode strokeNodeCurrent,
@@ -802,7 +803,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// ReverseDCPointsRenderAndClear
         /// </summary>
-        private static void ReverseDCPointsRenderAndClear(StreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints, bool isEllipse, bool clear)
+        private static void ReverseDCPointsRenderAndClear(IStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints, bool isEllipse, bool clear)
         {
             //we need to reverse the cd side points
             Point temp;
@@ -867,7 +868,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddFigureToStreamGeometryContext(StreamGeometryContext context, List<Point> points, bool isBezierFigure)
+        private static void AddFigureToStreamGeometryContext(IStreamGeometryContext context, List<Point> points, bool isBezierFigure)
         {
             Debug.Assert(context != null);
             Debug.Assert(points != null);
@@ -895,7 +896,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddPolylineFigureToStreamGeometryContext(StreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints)
+        private static void AddPolylineFigureToStreamGeometryContext(IStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints)
         {
             Debug.Assert(context != null);
             Debug.Assert(abPoints != null && dcPoints != null);
@@ -917,7 +918,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddArcToFigureToStreamGeometryContext(StreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints)
+        private static void AddArcToFigureToStreamGeometryContext(IStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints)
         {
             Debug.Assert(context != null);
             Debug.Assert(abPoints != null && dcPoints != null);
@@ -963,7 +964,7 @@ namespace MS.Internal.Ink
                                             ellipseSize,
                                             0d,             //rotation
                                             isLargeArc,     //isLargeArc
-                                            SweepDirection.Clockwise,
+                                            sweepDirection: true, // SweepDirection.Clockwise
                                             true,           //isStroked
                                             true);          //isSmoothJoin
                         }

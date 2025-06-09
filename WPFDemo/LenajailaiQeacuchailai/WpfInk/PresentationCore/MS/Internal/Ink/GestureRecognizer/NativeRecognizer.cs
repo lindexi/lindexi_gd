@@ -1,3 +1,5 @@
+﻿#if false
+
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -665,7 +667,7 @@ namespace MS.Internal.Ink.GestureRecognition
                 {
                     if (pRecoAlternates[i] != IntPtr.Zero)
                     {
-                        #pragma warning suppress 6031, 56031 // Return value ignored on purpose.
+#pragma warning suppress 6031, 56031 // Return value ignored on purpose.
                         MS.Win32.Recognizer.UnsafeNativeMethods.DestroyAlternate(pRecoAlternates[i]);
                         pRecoAlternates[i] = IntPtr.Zero;
                     }
@@ -858,3 +860,4 @@ namespace MS.Internal.Ink.GestureRecognition
         private static bool s_GetAlternateListExists;
 }
 }
+#endif
