@@ -16,6 +16,27 @@ public class SimpleInkCanvas : FrameworkElement
     {
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
+
+        MouseMove += SimpleInkCanvas_MouseMove;
+    }
+
+    private void SimpleInkCanvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        Point point = e.GetPosition(this);
+        PointList.Add((point.X, point.Y));
+        InvalidateVisual();
+    }
+
+    private List<(double X, double Y)> PointList { get; } = [];
+
+    protected override GeometryHitTestResult? HitTestCore(GeometryHitTestParameters hitTestParameters)
+    {
+        return new GeometryHitTestResult(this, IntersectionDetail.FullyContains);
+    }
+
+    protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters)
+    {
+        return new PointHitTestResult(this, hitTestParameters.HitPoint);
     }
 
     protected override void OnRender(DrawingContext drawingContext)
@@ -25,11 +46,36 @@ public class SimpleInkCanvas : FrameworkElement
         var arrayOfArrayOfInkDataModel = ArrayOfArrayOfInkDataModel.ReadFromFile(@"Assets\Ink.xml");
         foreach (ArrayOfInkDataModel arrayOfInkDataModel in arrayOfArrayOfInkDataModel)
         {
-            //if (arrayOfInkDataModel.Count < 10)
-            //{
-            //    continue;
-            //}
+            if (arrayOfInkDataModel.Count < 10)
+            {
+                continue;
+            }
 
+            var stylusPointCollection = new StylusPointCollection();
+            foreach (var inkDataModel in arrayOfInkDataModel)
+            {
+                stylusPointCollection.Add(new WpfInk::System.Windows.Input.StylusPoint(inkDataModel.X, inkDataModel.Y));
+            }
+
+            RenderStroke(stylusPointCollection);
+
+            break;
+        }
+
+        if (PointList.Count > 2)
+        {
+            var stylusPointCollection = new StylusPointCollection();
+            foreach (var (x, y) in PointList)
+            {
+                stylusPointCollection.Add(new WpfInk::System.Windows.Input.StylusPoint(x, y));
+            }
+
+            RenderStroke(stylusPointCollection);
+        }
+
+
+        void RenderStroke(WpfInk::System.Windows.Input.StylusPointCollection stylusPointCollection)
+        {
             var streamGeometry = new StreamGeometry()
             {
                 FillRule = FillRule.Nonzero
@@ -41,12 +87,9 @@ public class SimpleInkCanvas : FrameworkElement
             {
                 Width = 10,
                 Height = 10,
+                //StylusTip = StylusTip.Rectangle,
+                //FitToCurve = true,
             };
-            var stylusPointCollection = new StylusPointCollection();
-            foreach (var inkDataModel in arrayOfInkDataModel)
-            {
-                stylusPointCollection.Add(new WpfInk::System.Windows.Input.StylusPoint(inkDataModel.X, inkDataModel.Y));
-            }
 
             WpfInk::System.Windows.Ink.Stroke stroke = new WpfInk::System.Windows.Ink.Stroke(stylusPointCollection, drawingAttributes);
             var strokeNodeIterator = StrokeNodeIterator.GetIterator(stroke, drawingAttributes);
