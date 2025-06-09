@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
-using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -16,7 +13,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// 段落管理
 /// </summary>
 /// 段落的组织，段落的创建删除和查找
-class ParagraphManager
+sealed class ParagraphManager
 {
     public ParagraphManager(TextEditorCore textEditor)
     {
