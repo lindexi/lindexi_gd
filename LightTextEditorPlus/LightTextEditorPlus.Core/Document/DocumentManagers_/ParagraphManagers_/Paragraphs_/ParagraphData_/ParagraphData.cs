@@ -329,15 +329,14 @@ internal sealed class ParagraphData : ITextParagraph
         //                  ParagraphProperty.ParagraphStartRunProperty ?? TextEditor.DocumentManager.CurrentRunProperty;
 
         //TextRunList.Add(run);
+        IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
         for (int i = 0; i < run.Count; i++)
         {
             var charObject = run.GetChar(i).DeepClone();
-            IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
-            IReadOnlyRunProperty platformRunProperty =
-                platformRunPropertyCreator.ToPlatformRunProperty(charObject, runProperty);
 
             // 似乎对每个 Char 都调用也不亏，正常都是相同的 runProperty 对象，除非字体不存在等情况
-            //// 不应该为每个 Char 都调用一次 ToPlatformRunProperty 防止创建出大量相同的字符属性对象
+            IReadOnlyRunProperty platformRunProperty =
+                platformRunPropertyCreator.ToPlatformRunProperty(charObject, runProperty);
 
             var charData = new CharData(charObject, platformRunProperty);
             AppendCharData(charData);
