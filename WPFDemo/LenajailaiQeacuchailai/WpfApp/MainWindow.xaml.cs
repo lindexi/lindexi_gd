@@ -24,3 +24,19 @@ public partial class MainWindow : Window
         ArrayOfArrayOfInkDataModel.ReadFromFile(@"Assets\Ink.xml");
     }
 }
+
+public class SimpleInkCanvas : FrameworkElement
+{
+    public SimpleInkCanvas()
+    {
+        HorizontalAlignment = HorizontalAlignment.Stretch;
+        VerticalAlignment = VerticalAlignment.Stretch;
+    }
+
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+        base.OnRender(drawingContext);
+
+        drawingContext.DrawLine(new Pen(Brushes.Red, 20), new Point(), new Point(200, 200));
+    }
+}
