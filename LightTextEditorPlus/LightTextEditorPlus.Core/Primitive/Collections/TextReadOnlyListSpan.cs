@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -132,7 +132,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
 
     internal TextReadOnlyListSpan<TOther> Cast<TOther>(Func<T, TOther> converter)
     {
-        var list = new ReadOnlyListConverter<T, TOther>(_source, converter);
+        var list = new TextReadOnlyListConverter<T, TOther>(_source, converter);
         return new TextReadOnlyListSpan<TOther>(list, _start, _length);
     }
 
@@ -179,35 +179,5 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
         void IDisposable.Dispose()
         {
         }
-    }
-}
-
-file class ReadOnlyListConverter<TOrigin, TOther> : IReadOnlyList<TOther>
-{
-    public ReadOnlyListConverter(IReadOnlyList<TOrigin> list, Func<TOrigin, TOther> converter)
-    {
-        _list = list;
-        _converter = converter;
-    }
-
-    private readonly IReadOnlyList<TOrigin> _list;
-
-    private readonly Func<TOrigin, TOther> _converter;
-
-    public IEnumerator<TOther> GetEnumerator()
-    {
-        return _list.Select(origin => _converter(origin)).GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
-    public int Count => _list.Count;
-
-    public TOther this[int index]
-    {
-        get => _converter(_list[index]);
     }
 }

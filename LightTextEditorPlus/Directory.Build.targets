@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
 
   <ItemGroup>
     <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
@@ -10,6 +10,10 @@
   </ItemGroup>
 
   <!-- 自动处理不同 UI 框架之间的差异 -->
+  <!-- DefineConstants 的各个定义功能：
+       - DirectTextEditorDefinition： 直接的底层定义。如 Skia 系的，则 Skia 底层项目为 DirectTextEditorDefinition 程序集，其他为 TopApiTextEditorDefinition 顶层的 API 定义
+       - TopApiTextEditorDefinition： 顶层的 API 定义
+  -->
   <Choose>
     <When Condition=" '$(UseUIFramework)' == 'Standard' ">
       <PropertyGroup>
@@ -19,7 +23,7 @@
     </When>
     <When Condition=" '$(UseUIFramework)' == 'Avalonia' ">
       <PropertyGroup>
-        <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
+        <DefineConstants>$(DefineConstants);USE_AVALONIA;TopApiTextEditorDefinition</DefineConstants>
         <IncludeAPIConstraints>true</IncludeAPIConstraints>
       </PropertyGroup>
       <ItemGroup>
@@ -34,7 +38,7 @@
     </When>
     <When Condition=" '$(UseUIFramework)' == 'Uno' ">
       <PropertyGroup>
-        <DefineConstants>$(DefineConstants);USE_UNO</DefineConstants>
+        <DefineConstants>$(DefineConstants);USE_UNO;TopApiTextEditorDefinition</DefineConstants>
         <IncludeAPIConstraints>true</IncludeAPIConstraints>
       </PropertyGroup>
       <ItemGroup>
@@ -47,7 +51,7 @@
     </When>
     <When Condition=" '$(UseUIFramework)' == 'Wpf' ">
       <PropertyGroup>
-        <DefineConstants>$(DefineConstants);USE_WPF;DirectTextEditorDefinition</DefineConstants>
+        <DefineConstants>$(DefineConstants);USE_WPF;DirectTextEditorDefinition;TopApiTextEditorDefinition</DefineConstants>
         <IncludeAPIConstraints>true</IncludeAPIConstraints>
       </PropertyGroup>
       <ItemGroup>
@@ -73,7 +77,7 @@
     </When>
     <When Condition=" '$(UseUIFramework)' == 'MauiGraphics' ">
       <PropertyGroup>
-        <DefineConstants>$(DefineConstants);USE_MauiGraphics</DefineConstants>
+        <DefineConstants>$(DefineConstants);USE_MauiGraphics;TopApiTextEditorDefinition</DefineConstants>
         <IncludeAPIConstraints>true</IncludeAPIConstraints>
       </PropertyGroup>
       <ItemGroup>
