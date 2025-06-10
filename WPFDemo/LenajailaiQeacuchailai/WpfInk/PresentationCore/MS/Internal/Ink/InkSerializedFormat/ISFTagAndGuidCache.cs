@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -58,46 +58,6 @@ namespace MS.Internal.Ink.InkSerializedFormat
         };
 
         // Size of data used by identified by specified Guid/Id
-        public static uint[] OriginalISFIdPersistenceSize = {
-                Native.SizeOfInt,           // X                         0
-                Native.SizeOfInt,           // Y                         1
-                Native.SizeOfInt,           // Z                         2
-                Native.SizeOfInt,           // PACKET_STATUS             3
-                2 * Native.SizeOfUInt,      // FILETIME : TIMER_TICK     4
-                Native.SizeOfUInt,          // SERIAL_NUMBER             5
-                Native.SizeOfUShort,        // NORMAL_PRESSURE           6
-                Native.SizeOfUShort,        // TANGENT_PRESSURE          7
-                Native.SizeOfUShort,        // BUTTON_PRESSURE           8
-                Native.SizeOfFloat,         // X_TILT_ORIENTATION        9
-                Native.SizeOfFloat,         // Y_TILT_ORIENTATION        10
-                Native.SizeOfFloat,         // AZIMUTH_ORIENTATION       11
-                Native.SizeOfInt,           // ALTITUDE_ORIENTATION      12
-                Native.SizeOfInt,           // TWIST_ORIENTATION         13
-                Native.SizeOfUShort,        // PITCH_ROTATION            14
-                Native.SizeOfUShort,        // ROLL_ROTATION             15
-                Native.SizeOfUShort,        // YAW_ROTATION              16
-                Native.SizeOfUShort,        // PEN_STYLE                 17
-                Native.SizeOfUInt,          // COLORREF: COLORREF        18
-                Native.SizeOfUInt,          // PEN_WIDTH                 19
-                Native.SizeOfUInt,          // PEN_HEIGHT                20
-                Native.SizeOfByte,          // PEN_TIP                   21
-                Native.SizeOfUInt,          // DRAWING_FLAGS             22
-                Native.SizeOfUInt,          // CURSORID                  23
-                0,                          // WORD_ALTERNATES           24
-                0,                          // CHAR_ALTERNATES           25
-                5 * Native.SizeOfUInt,      // INKMETRICS                26
-                3 * Native.SizeOfUInt,      // GUIDE_STRUCTURE           27
-                8 * Native.SizeOfUShort,    // SYSTEMTIME TIME_STAMP     28
-                Native.SizeOfUShort,        // LANGUAGE                  29
-                Native.SizeOfByte,          // TRANSPARENCY              30
-                Native.SizeOfUInt,          // CURVE_FITTING_ERROR       31
-                0,                          // RECO_LATTICE              32
-                Native.SizeOfInt,           // CURSORDOWN                33
-                Native.SizeOfInt,           // SECONDARYTIPSWITCH        34
-                Native.SizeOfInt,           // BARRELDOWN                35
-                Native.SizeOfInt,           // TABLETPICK                36
-                Native.SizeOfInt,           // ROP                       37
-            };
 
         public enum OriginalISFIdIndex : uint
         {

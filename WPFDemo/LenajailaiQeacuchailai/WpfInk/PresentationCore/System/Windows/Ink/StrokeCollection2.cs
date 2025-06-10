@@ -345,38 +345,7 @@ namespace System.Windows.Ink
 
 #endregion
 
-        #region Incremental hit-testing
-
-        /// <summary>
-        /// Creates an incremental hit-tester for hit-testing with a shape.
-        /// Scenarios: stroke-erasing and point-erasing
-        /// </summary>
-        /// <param name="eraserShape">shape of the eraser</param>
-        /// <returns>an instance of IncrementalStrokeHitTester</returns>
-        public IncrementalStrokeHitTester GetIncrementalStrokeHitTester(StylusShape eraserShape)
-        {
-            if (eraserShape == null)
-            {
-                throw new System.ArgumentNullException("eraserShape");
-            }
-            return new IncrementalStrokeHitTester(this, eraserShape);
-        }
-
-
-        /// <summary>
-        /// Creates an incremental hit-tester for selecting with lasso.
-        /// </summary>
-        /// <param name="percentageWithinLasso">The percentage of the stroke that must be within the lasso to be considered hit</param>
-        /// <returns>an instance of incremental hit-tester</returns>
-        public IncrementalLassoHitTester GetIncrementalLassoHitTester(int percentageWithinLasso)
-        {
-            if ((percentageWithinLasso < 0) || (percentageWithinLasso > 100))
-            {
-                throw new System.ArgumentOutOfRangeException("percentageWithinLasso");
-            }
-            return new IncrementalLassoHitTester(this, percentageWithinLasso);
-        }
-        #endregion
+      
 
 #if false
         

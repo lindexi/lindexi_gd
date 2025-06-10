@@ -4,8 +4,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Media;
-using MS.Internal;
 
 namespace WpfInk.PresentationCore.System.Windows
 {
@@ -680,32 +678,6 @@ namespace WpfInk.PresentationCore.System.Windows
         {
             rect.Inflate(width, height);
             return rect;
-        }
-
-        /// <summary>
-        /// Returns the bounds of the transformed rectangle.
-        /// The Empty Rect is not affected by this call.
-        /// </summary>
-        /// <returns>
-        /// The rect which results from the transformation.
-        /// </returns>
-        /// <param name="rect"> The Rect to transform. </param>
-        /// <param name="matrix"> The Matrix by which to transform. </param>
-        public static Rect Transform(Rect rect, Matrix matrix)
-        {
-            MatrixUtil.TransformRect(ref rect, ref matrix);
-            return rect;
-        }
-    
-        /// <summary>
-        /// Updates rectangle to be the bounds of the original value transformed
-        /// by the matrix.
-        /// The Empty Rect is not affected by this call.        
-        /// </summary>
-        /// <param name="matrix"> Matrix </param>
-        public void Transform(Matrix matrix)
-        {
-            MatrixUtil.TransformRect(ref this, ref matrix);
         }
 
         /// <summary>
