@@ -16,7 +16,6 @@ using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 using MS.Internal;
 using MS.Internal.PresentationCore;
-using MS.Internal.YourAssemblyName;
 using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
@@ -208,7 +207,6 @@ namespace MS.Internal.Ink
         /// strokenodes is very expensive later when MIL renders it, so this method has been optimized
         /// to only add strokenodes when either pressure changes, or the angle of the stroke changes.
         /// </summary>
-        [FriendAccessAllowed]
         public static void CalcGeometryAndBounds(StrokeNodeIterator iterator,
                                                    DrawingAttributes drawingAttributes,
 #if DEBUG_RENDERING_FEEDBACK
