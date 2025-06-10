@@ -113,9 +113,9 @@ public class SimpleInkCanvas : FrameworkElement
                 RenderToGeometry(stylusPointCollection, context);
             }
 
-            drawingContext.PushOpacity(0.3);
-            drawingContext.DrawGeometry(Brushes.Red, null, streamGeometry);
-            drawingContext.Pop();
+            //drawingContext.PushOpacity(0.3);
+            //drawingContext.DrawGeometry(Brushes.Red, null, streamGeometry);
+            //drawingContext.Pop();
 
             var text = streamGeometry.ToString();
             _ = text;

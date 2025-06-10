@@ -51,7 +51,7 @@ public class SkiaStreamGeometryContext : IStreamGeometryContext
     public void ArcTo(Point point, Size size, double rotationAngle, bool isLargeArc, bool sweepDirection, bool isStroked,
         bool isSmoothJoin)
     {
-        Path.ArcTo((float) size.Width, (float) size.Height, (float) rotationAngle, isLargeArc ? SKPathArcSize.Large : SKPathArcSize.Small, sweepDirection ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise, (float) point.X, (float) point.Y);
+        Path.ArcTo((float) size.Width, (float) size.Height, (float) rotationAngle, isLargeArc ? SKPathArcSize.Large : SKPathArcSize.Small, sweepDirection ? SKPathDirection.Clockwise : SKPathDirection.CounterClockwise, (float) point.X, (float) point.Y);
     }
 }
 
