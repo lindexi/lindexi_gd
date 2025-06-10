@@ -45,18 +45,6 @@ namespace System.Windows.Ink
         }
 
         /// <summary>
-        /// Internal only constructor that initializes a DA with an EPC
-        /// </summary>
-        /// <param name="extendedProperties"></param>
-        internal DrawingAttributes(ExtendedPropertyCollection extendedProperties)
-        {
-            System.Diagnostics.Debug.Assert(extendedProperties != null);
-            _extendedProperties = extendedProperties;
-
-            Initialize();
-        }
-
-        /// <summary>
         /// Common constructor call, also called by Clone
         /// </summary>
         private void Initialize()

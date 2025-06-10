@@ -17,7 +17,6 @@ using System.Windows;
 using System.Windows.Media;
 using System.Diagnostics;
 using System.Security;
-using WpfInk.PresentationCore.System.Windows;
 #if WINDOWS_BASE
     using MS.Internal.WindowsBase;
 #elif PRESENTATION_CORE
@@ -46,78 +45,6 @@ namespace MS.Internal
     [FriendAccessAllowed]
     internal static class MatrixUtil
     {
-        /// <summary>
-        /// TransformRect - Internal helper for perf
-        /// </summary>
-        /// <param name="rect"> The Rect to transform. </param>
-        /// <param name="matrix"> The Matrix with which to transform the Rect. </param>
-        internal static void TransformRect(ref Rect rect, ref Matrix matrix)
-        {
-            if (rect.IsEmpty)
-            {
-                return;
-            }
-
-            MatrixTypes matrixType = matrix._type;
-
-            // If the matrix is identity, don't worry.
-            if (matrixType == MatrixTypes.TRANSFORM_IS_IDENTITY)
-            {
-                return;
-            }
-
-            // Scaling
-            if (0 != (matrixType & MatrixTypes.TRANSFORM_IS_SCALING))
-            {
-                rect.X *= matrix._m11;
-                rect.Y *= matrix._m22;
-                rect.Width *= matrix._m11;
-                rect.Height *= matrix._m22;
-
-                // Ensure the width is always positive.  For example, if there was a reflection about the
-                // y axis followed by a translation into the visual area, the width could be negative.
-                if (rect.Width < 0.0)
-                {
-                    rect.X += rect.Width;
-                    rect.Width = -rect.Width;
-                }
-
-                // Ensure the height is always positive.  For example, if there was a reflection about the
-                // x axis followed by a translation into the visual area, the height could be negative.
-                if (rect.Height < 0.0)
-                {
-                    rect.Y += rect.Height;
-                    rect.Height = -rect.Height;
-                }
-            }
-
-            // Translation
-            if (0 != (matrixType & MatrixTypes.TRANSFORM_IS_TRANSLATION))
-            {
-                // X
-                rect.X += matrix._offsetX;
-
-                // Y
-                rect.Y += matrix._offsetY;
-            }
-
-            if (matrixType == MatrixTypes.TRANSFORM_IS_UNKNOWN)
-            {
-                // Al Bunny implementation.
-                Point point0 = matrix.Transform(rect.TopLeft);
-                Point point1 = matrix.Transform(rect.TopRight);
-                Point point2 = matrix.Transform(rect.BottomRight);
-                Point point3 = matrix.Transform(rect.BottomLeft);
-
-                // Width and height is always positive here.
-                rect.X = Math.Min(Math.Min(point0.X, point1.X), Math.Min(point2.X, point3.X));
-                rect.Y = Math.Min(Math.Min(point0.Y, point1.Y), Math.Min(point2.Y, point3.Y));
-
-                rect.Width = Math.Max(Math.Max(point0.X, point1.X), Math.Max(point2.X, point3.X)) - rect.X;
-                rect.Height = Math.Max(Math.Max(point0.Y, point1.Y), Math.Max(point2.Y, point3.Y)) - rect.Y;
-            }
-        }
-
         /// <summary>
         /// Multiplies two transformations, where the behavior is matrix1 *= matrix2.
         /// This code exists so that we can efficient combine matrices without copying

@@ -258,35 +258,7 @@ namespace System.Windows.Ink
 
         #region Known Id Helpers
         private static System.Reflection.MemberInfo[] PublicMemberInfo = null;
-        internal static string ConvertToString (Guid id)
-        {
 
-            if (null == PublicMemberInfo)
-            {
-                PublicMemberInfo = typeof(KnownIds).FindMembers(System.Reflection.MemberTypes.Field,
-                                                System.Reflection.BindingFlags.Static |
-                                                System.Reflection.BindingFlags.GetField |
-                                                System.Reflection.BindingFlags.Instance |
-                                                System.Reflection.BindingFlags.Public |
-                                                System.Reflection.BindingFlags.Default,
-                                                null, null);
-            }
-            foreach (System.Reflection.MemberInfo info in PublicMemberInfo)
-            {
-                if ( id == (Guid)typeof(KnownIds).InvokeMember(info.Name,
-                                System.Reflection.BindingFlags.Static |
-                                System.Reflection.BindingFlags.GetField |
-                                System.Reflection.BindingFlags.Instance |
-                                System.Reflection.BindingFlags.Public |
-                                System.Reflection.BindingFlags.Default,
-                                null, null, new object[]{},
-                                System.Globalization.CultureInfo.InvariantCulture) )
-                {
-                    return info.Name;
-                }
-            }
-            return id.ToString();
-        }
         #endregion
     }
 }

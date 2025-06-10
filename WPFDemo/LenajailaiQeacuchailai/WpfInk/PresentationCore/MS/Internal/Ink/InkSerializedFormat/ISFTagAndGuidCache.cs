@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -58,46 +58,6 @@ namespace MS.Internal.Ink.InkSerializedFormat
         };
 
         // Size of data used by identified by specified Guid/Id
-        public static uint[] OriginalISFIdPersistenceSize = {
-                Native.SizeOfInt,           // X                         0
-                Native.SizeOfInt,           // Y                         1
-                Native.SizeOfInt,           // Z                         2
-                Native.SizeOfInt,           // PACKET_STATUS             3
-                2 * Native.SizeOfUInt,      // FILETIME : TIMER_TICK     4
-                Native.SizeOfUInt,          // SERIAL_NUMBER             5
-                Native.SizeOfUShort,        // NORMAL_PRESSURE           6
-                Native.SizeOfUShort,        // TANGENT_PRESSURE          7
-                Native.SizeOfUShort,        // BUTTON_PRESSURE           8
-                Native.SizeOfFloat,         // X_TILT_ORIENTATION        9
-                Native.SizeOfFloat,         // Y_TILT_ORIENTATION        10
-                Native.SizeOfFloat,         // AZIMUTH_ORIENTATION       11
-                Native.SizeOfInt,           // ALTITUDE_ORIENTATION      12
-                Native.SizeOfInt,           // TWIST_ORIENTATION         13
-                Native.SizeOfUShort,        // PITCH_ROTATION            14
-                Native.SizeOfUShort,        // ROLL_ROTATION             15
-                Native.SizeOfUShort,        // YAW_ROTATION              16
-                Native.SizeOfUShort,        // PEN_STYLE                 17
-                Native.SizeOfUInt,          // COLORREF: COLORREF        18
-                Native.SizeOfUInt,          // PEN_WIDTH                 19
-                Native.SizeOfUInt,          // PEN_HEIGHT                20
-                Native.SizeOfByte,          // PEN_TIP                   21
-                Native.SizeOfUInt,          // DRAWING_FLAGS             22
-                Native.SizeOfUInt,          // CURSORID                  23
-                0,                          // WORD_ALTERNATES           24
-                0,                          // CHAR_ALTERNATES           25
-                5 * Native.SizeOfUInt,      // INKMETRICS                26
-                3 * Native.SizeOfUInt,      // GUIDE_STRUCTURE           27
-                8 * Native.SizeOfUShort,    // SYSTEMTIME TIME_STAMP     28
-                Native.SizeOfUShort,        // LANGUAGE                  29
-                Native.SizeOfByte,          // TRANSPARENCY              30
-                Native.SizeOfUInt,          // CURVE_FITTING_ERROR       31
-                0,                          // RECO_LATTICE              32
-                Native.SizeOfInt,           // CURSORDOWN                33
-                Native.SizeOfInt,           // SECONDARYTIPSWITCH        34
-                Native.SizeOfInt,           // BARRELDOWN                35
-                Native.SizeOfInt,           // TABLETPICK                36
-                Native.SizeOfInt,           // ROP                       37
-            };
 
         public enum OriginalISFIdIndex : uint
         {
@@ -176,9 +136,7 @@ namespace MS.Internal.Ink.InkSerializedFormat
             MAXIMUM = 7
         }
 
-        static internal KnownTagCache.KnownTagIndex KnownGuidBaseIndex = (KnownTagCache.KnownTagIndex)KnownTagCache.MaximumPossibleKnownTags;
-
-            // The maximum value that can be encoded into a single byte is 127.
+        // The maximum value that can be encoded into a single byte is 127.
             // To improve the chances of storing all of the guids in the ISF guid table
             //      with single-byte lookups, the guids are broken into two ranges
             // 0-50 known tags
@@ -193,66 +151,5 @@ namespace MS.Internal.Ink.InkSerializedFormat
 
         // This id table includes the Guids that have been added to ISF as ExtendedProperties
         //      Note that they are visible to 3rd party applications
-        public static Guid[] ExtendedISFIdTable = {
-                // Highlighter
-                new Guid(0x9b6267b8, 0x3968, 0x4048, 0xab, 0x74, 0xf4, 0x90, 0x40, 0x6a, 0x2d, 0xfa),
-                // Ink properties
-                new Guid(0x7fc30e91, 0xd68d, 0x4f07, 0x8b, 0x62, 0x6, 0xf6, 0xd2, 0x73, 0x1b, 0xed),
-                // Ink Style Bold
-                new Guid(0xe02fb5c1, 0x9693, 0x4312, 0xa4, 0x34, 0x0, 0xde, 0x7f, 0x3a, 0xd4, 0x93),
-                // Ink Style Italics
-                new Guid(0x5253b51, 0x49c6, 0x4a04, 0x89, 0x93, 0x64, 0xdd, 0x9a, 0xbd, 0x84, 0x2a),
-                // Stroke Timestamp
-                new Guid(0x4ea66c4, 0xf33a, 0x461b, 0xb8, 0xfe, 0x68, 0x7, 0xd, 0x9c, 0x75, 0x75),
-                // Stroke Time Id
-                new Guid(0x50b6bc8, 0x3b7d, 0x4816, 0x8c, 0x61, 0xbc, 0x7e, 0x90, 0x5b, 0x21, 0x32),
-                // Stroke Lattice
-                new Guid(0x82871c85, 0xe247, 0x4d8c, 0x8d, 0x71, 0x22, 0xe5, 0xd6, 0xf2, 0x57, 0x76),
-                // Ink Custom Strokes
-                new Guid(0x33cdbbb3, 0x588f, 0x4e94, 0xb1, 0xfe, 0x5d, 0x79, 0xff, 0xe7, 0x6e, 0x76),
-        };
-    }
-    internal static class KnownTagCache
-    {
-        internal enum KnownTagIndex : uint
-        {
-            Unknown = 0,
-            InkSpaceRectangle = 0,
-            GuidTable = 1,
-            DrawingAttributesTable = 2,
-            DrawingAttributesBlock = 3,
-            StrokeDescriptorTable = 4,
-            StrokeDescriptorBlock = 5,
-            Buttons = 6,
-            NoX = 7,
-            NoY = 8,
-            DrawingAttributesTableIndex = 9,
-            Stroke = 10,
-            StrokePropertyList = 11,
-            PointProperty = 12,
-            StrokeDescriptorTableIndex = 13,
-            CompressionHeader = 14,
-            TransformTable = 15,
-            Transform = 16,
-            TransformIsotropicScale = 17,
-            TransformAnisotropicScale = 18,
-            TransformRotate = 19,
-            TransformTranslate = 20,
-            TransformScaleAndTranslate = 21,
-            TransformQuad = 22,
-            TransformTableIndex = 23,
-            MetricTable = 24,
-            MetricBlock = 25,
-            MetricTableIndex = 26,
-            Mantissa = 27,
-            PersistenceFormat = 28,
-            HimetricSize = 29,
-            StrokeIds = 30,
-            ExtendedTransformTable = 31,
-        }
-
-            // See comments for KnownGuidBaseIndex to determine ranges of tags/guids/indices
-        static internal uint MaximumPossibleKnownTags = 50;
-        static internal uint KnownTagCount = (byte)MaximumPossibleKnownTags;
     }
 }

@@ -223,32 +223,6 @@ namespace MS.Internal
         }
 
         /// <summary>
-        /// Compares two rectangles for fuzzy equality.  This function
-        /// helps compensate for the fact that double values can 
-        /// acquire error when operated upon
-        /// </summary>
-        /// <param name='rect1'>The first rectangle to compare</param>
-        /// <param name='rect2'>The second rectangle to compare</param>
-        /// <returns>Whether or not the two rectangles are equal</returns>
-        public static bool AreClose(Rect rect1, Rect rect2)
-        {
-            // If they're both empty, don't bother with the double logic.
-            if (rect1.IsEmpty)
-            {
-                return rect2.IsEmpty;
-            }
-
-            // At this point, rect1 isn't empty, so the first thing we can test is
-            // rect2.IsEmpty, followed by property-wise compares.
-
-            return (!rect2.IsEmpty) &&
-                DoubleUtil.AreClose(rect1.X, rect2.X) &&
-                DoubleUtil.AreClose(rect1.Y, rect2.Y) &&
-                DoubleUtil.AreClose(rect1.Height, rect2.Height) &&
-                DoubleUtil.AreClose(rect1.Width, rect2.Width);
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="val"></param>
@@ -266,24 +240,6 @@ namespace MS.Internal
         public static int DoubleToInt(double val)
         {
             return (0 < val) ? (int)(val + 0.5) : (int)(val - 0.5);
-        }
-
-
-        /// <summary>
-        /// rectHasNaN - this returns true if this rect has X, Y , Height or Width as NaN.
-        /// </summary>
-        /// <param name='r'>The rectangle to test</param>
-        /// <returns>returns whether the Rect has NaN</returns>        
-        public static bool RectHasNaN(Rect r)
-        {
-            if (    DoubleUtil.IsNaN(r.X)
-                 || DoubleUtil.IsNaN(r.Y) 
-                 || DoubleUtil.IsNaN(r.Height)
-                 || DoubleUtil.IsNaN(r.Width) )
-            {
-                return true;
-            }
-            return false;                               
         }
 
 

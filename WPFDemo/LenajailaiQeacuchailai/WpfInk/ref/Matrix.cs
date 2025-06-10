@@ -460,7 +460,7 @@ namespace System.Windows.Media
 
             if (DoubleUtil.IsZero(determinant))
             {
-                throw new System.InvalidOperationException(SR.Get(SRID.Transform_NotInvertible));
+                throw new System.InvalidOperationException();
             }
 
             // Inversion does not change the type of a matrix.
