@@ -4,7 +4,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows.Input;
 using WpfInk.PresentationCore.System.Windows.Ink;
 
 namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
