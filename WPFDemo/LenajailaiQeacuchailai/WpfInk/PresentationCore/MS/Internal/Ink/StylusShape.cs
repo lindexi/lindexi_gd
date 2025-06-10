@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System.Windows.Media;
 using MS.Internal;
-using WpfInk.PresentationCore.System.Windows.Ink;
 using WpfInk.WindowsBase.System.Windows.Media;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
@@ -319,10 +317,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
         #endregion
     }
-}
 
-namespace System.Windows.Ink
-{
     /// <summary>
     /// Class for an elliptical StylusShape
     /// </summary>
@@ -334,7 +329,7 @@ namespace System.Windows.Ink
         /// <param name="width"></param>
         /// <param name="height"></param>
         public EllipseStylusShape(double width, double height)
-                :this(width, height, 0f)
+            :this(width, height, 0f)
         {
         }
 
@@ -345,10 +340,10 @@ namespace System.Windows.Ink
         /// <param name="height"></param>
         /// <param name="rotation"></param>
         public EllipseStylusShape(double width, double height, double rotation)
-                            : base(StylusTip.Ellipse, width, height, rotation)
+            : base(StylusTip.Ellipse, width, height, rotation)
         {
         }
-}
+    }
 
     /// <summary>
     /// Class for a rectangle StylusShape
@@ -361,7 +356,7 @@ namespace System.Windows.Ink
         /// <param name="width"></param>
         /// <param name="height"></param>
         public RectangleStylusShape(double width, double height)
-                                : this(width, height, 0f)
+            : this(width, height, 0f)
         {
         }
 
@@ -372,8 +367,8 @@ namespace System.Windows.Ink
         /// <param name="height"></param>
         /// <param name="rotation"></param>
         public RectangleStylusShape(double width, double height, double rotation)
-                                    : base(StylusTip.Rectangle, width, height, rotation)
+            : base(StylusTip.Rectangle, width, height, rotation)
         {
         }
-}
+    }
 }

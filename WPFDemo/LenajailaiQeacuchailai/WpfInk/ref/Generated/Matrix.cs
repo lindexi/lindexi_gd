@@ -22,7 +22,6 @@ using System.ComponentModel.Design.Serialization;
 using System.Windows.Markup;
 //using System.Windows.Media.Converters;
 using System.Windows;
-using System.Windows.Media;
 // These types are aliased to match the unamanaged names used in interop
 using BOOL = System.UInt32;
 using WORD = System.UInt16;
@@ -30,8 +29,6 @@ using Float = System.Single;
 
 namespace WpfInk.WindowsBase.System.Windows.Media
 {
-    [Serializable]
-    [TypeConverter(typeof(MatrixConverter))]
     //[ValueSerializer(typeof(MatrixValueSerializer))] // Used by MarkupWriter
     partial struct Matrix : IFormattable
     {

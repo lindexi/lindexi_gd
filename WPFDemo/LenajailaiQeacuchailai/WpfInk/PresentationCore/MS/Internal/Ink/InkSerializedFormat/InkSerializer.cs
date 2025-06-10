@@ -15,7 +15,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Collections;
 using System.Collections.Generic;
-using System.Windows.Ink;
 using MS.Internal.IO.Packaging;
 using WpfInk.PresentationCore.System.Windows;
 

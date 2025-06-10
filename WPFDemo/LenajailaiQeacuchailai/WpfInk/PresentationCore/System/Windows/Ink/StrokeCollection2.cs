@@ -11,7 +11,6 @@ using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows.Media;
 using System.Windows.Input;
 using MS.Internal;
 using MS.Internal.Ink;

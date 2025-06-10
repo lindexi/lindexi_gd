@@ -6,7 +6,6 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Collections.Generic;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
