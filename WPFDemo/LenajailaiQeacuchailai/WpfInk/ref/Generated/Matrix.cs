@@ -28,7 +28,7 @@ using BOOL = System.UInt32;
 using WORD = System.UInt16;
 using Float = System.Single;
 
-namespace System.Windows.Media
+namespace WpfInk.WindowsBase.System.Windows.Media
 {
     [Serializable]
     [TypeConverter(typeof(MatrixConverter))]

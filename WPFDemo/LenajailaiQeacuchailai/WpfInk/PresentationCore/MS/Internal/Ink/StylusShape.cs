@@ -3,19 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Utility;
-using System;
-using System.IO;
-using System.Windows;
 using System.Windows.Media;
 using MS.Internal;
-using MS.Internal.Ink;
-using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
+using WpfInk.WindowsBase.System.Windows.Media;
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     ///<summary>
     /// Defines the style of pen tip for rendering.
@@ -132,7 +125,7 @@ namespace System.Windows.Ink
                     // Fix it if this is the case.
                     FixCounterClockwiseVertices(vertices);
                 }
-}
+            }
             else
             {
                 // For ellipse
@@ -163,7 +156,7 @@ namespace System.Windows.Ink
             }
             set
             {
-                System.Diagnostics.Debug.Assert(value.HasInverse);
+                global::System.Diagnostics.Debug.Assert(value.HasInverse);
                 _transform = value;
             }
         }
@@ -217,9 +210,9 @@ namespace System.Windows.Ink
         {
             Point topLeft = new Point(-(m_width * 0.5), -(m_height * 0.5));
             m_vertices = new Point[4] { topLeft,
-                                        topLeft + new Vector(m_width, 0),
-                                        topLeft + new Vector(m_width, m_height),
-                                        topLeft + new Vector(0, m_height)};
+                topLeft + new Vector(m_width, 0),
+                topLeft + new Vector(m_width, m_height),
+                topLeft + new Vector(0, m_height)};
             if (false == DoubleUtil.IsZero(m_rotation))
             {
                 Matrix rotationTransform = Matrix.Identity;
@@ -233,7 +226,7 @@ namespace System.Windows.Ink
         private void FixCounterClockwiseVertices(Vector[] vertices)
         {
             // The private method should only called for Rectangle case.
-            System.Diagnostics.Debug.Assert(vertices.Length == 4);
+            global::System.Diagnostics.Debug.Assert(vertices.Length == 4);
 
             Point prevVertex = (Point)vertices[vertices.Length - 1];
             int counterClockIndex = 0, clockWiseIndex = 0;
@@ -258,7 +251,7 @@ namespace System.Windows.Ink
             }
 
             // Assert the transform will make it either clockwise or counter-clockwise.
-            System.Diagnostics.Debug.Assert(clockWiseIndex == vertices.Length || counterClockIndex == vertices.Length);
+            global::System.Diagnostics.Debug.Assert(clockWiseIndex == vertices.Length || counterClockIndex == vertices.Length);
 
             if (counterClockIndex == vertices.Length)
             {
@@ -276,7 +269,7 @@ namespace System.Windows.Ink
 
         private Point[] GetBezierControlPoints()
         {
-            System.Diagnostics.Debug.Assert(m_tip == StylusTip.Ellipse);
+            global::System.Diagnostics.Debug.Assert(m_tip == StylusTip.Ellipse);
 
             // Approximating a 1/4 circle with a Bezier curve (borrowed from Avalon's EllipseGeometry.cs)
             const double ArcAsBezier = 0.5522847498307933984; // =(\/2 - 1)*4/3
@@ -326,7 +319,10 @@ namespace System.Windows.Ink
 
         #endregion
     }
+}
 
+namespace System.Windows.Ink
+{
     /// <summary>
     /// Class for an elliptical StylusShape
     /// </summary>

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Windows.Input;
+using WpfInk.PresentationCore.System.Windows.Ink;
 
 namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
 {

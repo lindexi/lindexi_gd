@@ -13,6 +13,7 @@ using System.Diagnostics;
 using MS.Utility;
 using MS.Internal;
 using WpfInk.PresentationCore.System.Windows;
+using WpfInk.PresentationCore.System.Windows.Ink;
 
 namespace MS.Internal.Ink
 {

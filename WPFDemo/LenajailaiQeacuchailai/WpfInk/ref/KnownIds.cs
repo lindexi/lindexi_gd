@@ -7,7 +7,7 @@ using System.Collections;
 using System.IO;
 using MS.Internal.Ink.InkSerializedFormat;
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     ///    <para>[To be supplied.]</para>
@@ -257,7 +257,7 @@ namespace System.Windows.Ink
         #endregion
 
         #region Known Id Helpers
-        private static System.Reflection.MemberInfo[] PublicMemberInfo = null;
+        private static global::System.Reflection.MemberInfo[] PublicMemberInfo = null;
 
         #endregion
     }

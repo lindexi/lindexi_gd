@@ -53,7 +53,7 @@ using WpfInk.PresentationCore.System.Windows;
 // windows/wcp/DevTest/Drts/MediaApi/MediaPerf.cs includes the
 // simple test of matrix multiplication speed used for these results.
 
-namespace System.Windows.Media
+namespace WpfInk.WindowsBase.System.Windows.Media
 {
     ///<summary>
     /// Matrix
@@ -460,7 +460,7 @@ namespace System.Windows.Media
 
             if (DoubleUtil.IsZero(determinant))
             {
-                throw new System.InvalidOperationException();
+                throw new global::System.InvalidOperationException();
             }
 
             // Inversion does not change the type of a matrix.
