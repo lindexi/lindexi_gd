@@ -12,7 +12,7 @@ internal class InternalStreamGeometryContext : IInternalStreamGeometryContext
     }
 
     private readonly IStreamGeometryContext _context;
-    private List<InkPoint2D> _cacheList = new List<InkPoint2D>();
+    private readonly List<InkPoint2D> _cacheList = new List<InkPoint2D>();
 
     public void BeginFigure(Point startPoint, bool isFilled, bool isClosed)
     {
@@ -22,7 +22,7 @@ internal class InternalStreamGeometryContext : IInternalStreamGeometryContext
     public void PolyBezierTo(IList<Point> points, bool isStroked, bool isSmoothJoin)
     {
         _cacheList.Clear();
-        _cacheList.AddRange(points.Select(t => Converter.ToPoint(t)));
+        _cacheList.AddRange(points.Select(t => t.ToPoint()));
         _context.PolyBezierTo(_cacheList, isStroked, isSmoothJoin);
     }
 

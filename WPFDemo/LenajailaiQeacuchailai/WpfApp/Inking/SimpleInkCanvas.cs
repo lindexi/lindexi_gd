@@ -7,6 +7,7 @@ using SkiaInk;
 using SkiaSharp;
 
 using WpfApp.InkDataModels;
+
 using WpfInk;
 
 namespace WpfApp.Inking;
@@ -132,11 +133,11 @@ public class SimpleInkCanvas : FrameworkElement
 
     private static void RenderToGeometry(List<InkStylusPoint2D> stylusPointCollection, IStreamGeometryContext context)
     {
-       InkStrokeRenderer.Render(context,new StrokeRendererInfo()
-       {
-           StylusPointCollection = stylusPointCollection,
-           Width = 10,
-           Height = 10,
-       });
+        InkStrokeRenderer.Render(context, new StrokeRendererInfo()
+        {
+            StylusPointCollection = stylusPointCollection,
+            Width = 10,
+            Height = 10,
+        });
     }
 }
