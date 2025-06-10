@@ -24,12 +24,12 @@ using WpfInk.PresentationCore.System.Windows;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// The hit-testing API of Stroke
     /// </summary>
-    public partial class Stroke : INotifyPropertyChanged
+    partial class Stroke : INotifyPropertyChanged
     {
         #region Public APIs
 

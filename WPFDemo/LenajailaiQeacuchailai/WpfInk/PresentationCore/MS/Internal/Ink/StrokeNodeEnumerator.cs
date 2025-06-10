@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Input;
 using MS.Internal.Ink;
 using WpfInk.PresentationCore.System.Windows;
+using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
@@ -27,7 +29,7 @@ namespace MS.Internal.Ink
     /// In either case, the output collection of nodes is represented by a disposable
     /// iterator (i.e. good for a single enumeration only).
     /// </summary>
-    public class StrokeNodeIterator
+    internal class StrokeNodeIterator
     {
         /// <summary>
         /// Helper wrapper

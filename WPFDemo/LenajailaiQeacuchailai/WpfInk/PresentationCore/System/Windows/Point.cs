@@ -15,7 +15,7 @@ using System.Windows.Media;
 
 namespace WpfInk.PresentationCore.System.Windows
 {
-    public struct Point
+    internal struct Point
     {
         //------------------------------------------------------
         //

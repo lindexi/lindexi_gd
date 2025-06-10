@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace WpfInk.PresentationCore.System.Windows
 {
-    public struct Vector
+    internal struct Vector
     {
         #region Constructors
 

@@ -16,7 +16,7 @@ using MS.Internal.Ink.InkSerializedFormat;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// Drawing Attribute Key/Value pair for specifying each attribute

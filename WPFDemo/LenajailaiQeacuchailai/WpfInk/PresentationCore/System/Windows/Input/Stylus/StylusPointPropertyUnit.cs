@@ -1,7 +1,7 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace System.Windows.Input
+namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
 {
     /// <summary>
     /// Stylus data is made up of n number of properties. Each property can contain one or more
@@ -9,7 +9,7 @@ namespace System.Windows.Input
     /// This enum defines the various possible units for the values in the stylus data
     /// </summary>
     /// <ExternalAPI/>
-    public enum StylusPointPropertyUnit
+    internal enum StylusPointPropertyUnit
     {
         /// <summary>Specifies that the units are unknown.</summary>
         /// <ExternalAPI/>

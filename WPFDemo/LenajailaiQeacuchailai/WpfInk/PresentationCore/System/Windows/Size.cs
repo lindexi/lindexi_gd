@@ -3,7 +3,7 @@
 
 namespace WpfInk.PresentationCore.System.Windows
 {
-    public struct Size : IFormattable
+    internal struct Size : IFormattable
     {
         #region Constructors
 

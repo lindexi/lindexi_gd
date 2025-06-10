@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace WpfInk.PresentationCore.System.Windows
 {
-    public struct Rect
+    internal struct Rect
     {
         #region Constructors
 
