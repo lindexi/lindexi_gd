@@ -1095,34 +1095,6 @@ namespace MS.Internal.Ink
             return angle;
         }
 
-        /// <summary>
-        /// Get the DrawingAttributes to use for a highlighter stroke. The return value is a copy of
-        /// the DA passed in if color.A != 255 with color.A overriden to be 255. Otherwise it returns
-        /// the DA passed in.
-        /// </summary>
-        internal static DrawingAttributes GetHighlighterAttributes(Stroke stroke, DrawingAttributes da)
-        {
-            System.Diagnostics.Debug.Assert(da.IsHighlighter = true);
-            if (da.Color.A != SolidStrokeAlpha)
-            {
-                DrawingAttributes copy = stroke.DrawingAttributes.Clone();
-                copy.Color = GetHighlighterColor(copy.Color);
-                return copy;
-            }
-
-            return da;
-        }
-
-        /// <summary>
-        /// Get the color used to draw a highlighter.
-        /// </summary>
-        internal static Color GetHighlighterColor(Color color)
-        {
-            // For a highlighter stroke, the color.A is overriden to be 255
-            color.A = SolidStrokeAlpha;
-            return color;
-        }
-
         // Opacity for highlighter container visuals
         internal static readonly double HighlighterOpacity = 0.5;
         internal static readonly byte SolidStrokeAlpha = 0xFF;
