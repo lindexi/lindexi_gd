@@ -9,8 +9,8 @@ namespace WpfInk;
 
 internal interface IInternalStreamGeometryContext
 {
-    void BeginFigure(Point startPoint, bool isFilled, bool isClosed);
-    void PolyBezierTo(IList<Point> points, bool isStroked, bool isSmoothJoin);
-    void PolyLineTo(IList<Point> points, bool isStroked, bool isSmoothJoin);
-    void ArcTo(Point point, Size size, double rotationAngle, bool isLargeArc, bool sweepDirection, bool isStroked, bool isSmoothJoin);
+    void BeginFigure(InkPoint2D startPoint, bool isFilled, bool isClosed);
+    void PolyBezierTo(IList<InkPoint2D> points, bool isStroked, bool isSmoothJoin);
+    void PolyLineTo(IList<InkPoint2D> points, bool isStroked, bool isSmoothJoin);
+    void ArcTo(InkPoint2D point, Size size, double rotationAngle, bool isLargeArc, bool sweepDirection, bool isStroked, bool isSmoothJoin);
 }
