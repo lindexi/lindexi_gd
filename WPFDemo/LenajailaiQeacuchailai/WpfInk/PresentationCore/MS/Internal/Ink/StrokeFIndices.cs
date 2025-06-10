@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
 using System.Globalization;
 
 namespace MS.Internal.Ink

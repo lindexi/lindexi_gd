@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
+using System.Collections.Generic;
 using WpfInk.PresentationCore.System.Windows;
 
 namespace MS.Internal.Ink

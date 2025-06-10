@@ -11,6 +11,8 @@
 
 //using System.Windows.Converters;
 
+using System;
+
 namespace WpfInk.PresentationCore.System.Windows
 {
     internal struct Point

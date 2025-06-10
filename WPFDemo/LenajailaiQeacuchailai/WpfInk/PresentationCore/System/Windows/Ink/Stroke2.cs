@@ -4,6 +4,7 @@
 
 //#define DEBUG_RENDERING_FEEDBACK
 
+using System;
 using System.ComponentModel;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
