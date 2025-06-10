@@ -1,8 +1,5 @@
-﻿extern alias WpfInk;
-using WpfInk::WpfInk.PresentationCore.System.Windows;
-
-using Point = WpfInk::WpfInk.InkPoint2D;
-using Size = WpfInk::WpfInk.InkSize2D;
+﻿using Point = WpfInk.InkPoint2D;
+using Size = WpfInk.InkSize2D;
 
 namespace WpfApp.Inking;
 

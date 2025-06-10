@@ -9,8 +9,9 @@ using SkiaSharp;
 using WpfInk;
 using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
-using Point=WpfInk.InkPoint2D;
-using Size =WpfInk.InkSize2D;
+
+using Point = WpfInk.InkPoint2D;
+using Size = WpfInk.InkSize2D;
 
 namespace SkiaInk;
 

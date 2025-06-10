@@ -3,28 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Utility;
-using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Runtime.Serialization;
-using MS.Internal.Ink.InkSerializedFormat;
+
 using MS.Internal;
 using MS.Internal.Ink;
-using System.Reflection;
-using System.Windows.Input;
-using WpfInk.PresentationCore.System.Windows;
+using MS.Internal.Ink.InkSerializedFormat;
+
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 using WpfInk.WindowsBase.System.Windows.Media;
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
+
+using SR = MS.Internal.PresentationCore.SR;
+using SRID = MS.Internal.PresentationCore.SRID;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
@@ -95,7 +85,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             // require ReflectionPermission.  One thing to note, all references 
             // are shared, including event delegates, so we need to set those to null
             //
-            Stroke clone = (Stroke)this.MemberwiseClone();
+            Stroke clone = (Stroke) this.MemberwiseClone();
 
             //
             // null the delegates in the cloned strokes
@@ -120,10 +110,10 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             if (_extendedProperties != null)
             {
                 clone._extendedProperties = _extendedProperties.Clone();
-            } 
+            }
             //set up listeners
             clone.Initialize();
-            
+
             //
             // copy state
             //
@@ -160,7 +150,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
             // Construct the Bezier approximation
             Bezier bezier = new Bezier();
-            if (!bezier.ConstructBezierState(   _stylusPoints, 
+            if (!bezier.ConstructBezierState(_stylusPoints,
                                                 DrawingAttributes.FittingError))
             {
                 //construction failed, return a clone of the original points
@@ -201,9 +191,9 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             // add the first point
             //
-            AddInterpolatedBezierPoint( bezierStylusPoints, 
-                                        bezierPoints[0], 
-                                        new int[0], 
+            AddInterpolatedBezierPoint(bezierStylusPoints,
+                                        bezierPoints[0],
+                                        new int[0],
                                         // 修复构建
                                         //_stylusPoints[0].GetAdditionalData(), 
                                         _stylusPoints[0].PressureFactor);
@@ -234,7 +224,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             double bezierLength = 0.0;
             double prevUnbezierLength = 0.0;
-            double unbezierLength = GetDistanceBetweenPoints((Point)_stylusPoints[0], (Point)_stylusPoints[1]);
+            double unbezierLength = GetDistanceBetweenPoints((Point) _stylusPoints[0], (Point) _stylusPoints[1]);
 
             int stylusPointsIndex = 1;
             int stylusPointsCount = _stylusPoints.Count;
@@ -250,21 +240,21 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                         Debug.Assert(stylusPointsCount > stylusPointsIndex);
 
                         StylusPoint prevStylusPoint = _stylusPoints[stylusPointsIndex - 1];
-                        float percentFromPrev = 
-                            ((float)bezierLength - (float)prevUnbezierLength) / 
-                            ((float)unbezierLength - (float)prevUnbezierLength);
+                        float percentFromPrev =
+                            ((float) bezierLength - (float) prevUnbezierLength) /
+                            ((float) unbezierLength - (float) prevUnbezierLength);
                         float pressureAtPrev = prevStylusPoint.PressureFactor;
                         float pressureDelta = _stylusPoints[stylusPointsIndex].PressureFactor - pressureAtPrev;
                         float interopolatedPressure = (percentFromPrev * pressureDelta) + pressureAtPrev;
 
                         AddInterpolatedBezierPoint(bezierStylusPoints,
                                                     bezierPoints[x],
-                                                    new int[0], 
+                                                    new int[0],
                                                     // 修复构建
                                                     //prevStylusPoint.GetAdditionalData(),
                                                     interopolatedPressure);
                         break;
-}
+                    }
                     else
                     {
                         Debug.Assert(bezierLength >= prevUnbezierLength);
@@ -276,8 +266,8 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                         {
                             prevUnbezierLength = unbezierLength;
                             unbezierLength +=
-                                GetDistanceBetweenPoints((Point)_stylusPoints[stylusPointsIndex - 1],
-                                                         (Point)_stylusPoints[stylusPointsIndex]);
+                                GetDistanceBetweenPoints((Point) _stylusPoints[stylusPointsIndex - 1],
+                                                         (Point) _stylusPoints[stylusPointsIndex]);
                         } //else we'll break
                     }
                 }
@@ -286,11 +276,11 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             // add the last point
             //
-            AddInterpolatedBezierPoint( bezierStylusPoints,
+            AddInterpolatedBezierPoint(bezierStylusPoints,
                                         bezierPoints[bezierPoints.Count - 1],
                                         _stylusPoints[stylusPointsCount - 1].GetAdditionalData(),
                                         _stylusPoints[stylusPointsCount - 1].PressureFactor);
-            
+
             return bezierStylusPoints;
         }
 
@@ -306,9 +296,9 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <summary>
         /// Private helper for adding a StylusPoint to the BezierStylusPoints
         /// </summary>
-        private void AddInterpolatedBezierPoint(StylusPointCollection bezierStylusPoints, 
-                                                Point bezierPoint, 
-                                                int[] additionalData, 
+        private void AddInterpolatedBezierPoint(StylusPointCollection bezierStylusPoints,
+                                                Point bezierPoint,
+                                                int[] additionalData,
                                                 float pressure)
         {
             double xVal = bezierPoint.X > StylusPoint.MaxXY ?
@@ -709,7 +699,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             for (int i = 0; i < cutAt.Length; i++)
             {
                 StrokeFIndices fragment = cutAt[i];
-                if(DoubleUtil.GreaterThanOrClose(fragment.BeginFIndex, fragment.EndFIndex))
+                if (DoubleUtil.GreaterThanOrClose(fragment.BeginFIndex, fragment.EndFIndex))
                 {
                     // ISSUE-2004/06/26-vsmirnov - temporary workaround for bugs
                     // in point erasing: drop invalid fragments
@@ -773,7 +763,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             for (; i < cutAt.Length; i++)
             {
                 StrokeFIndices fragment = cutAt[i];
-                if(DoubleUtil.GreaterThanOrClose(beginFIndex, fragment.BeginFIndex))
+                if (DoubleUtil.GreaterThanOrClose(beginFIndex, fragment.BeginFIndex))
                 {
                     // ISSUE-2004/06/26-vsmirnov - temporary workaround for bugs
                     // in point erasing: drop invalid fragments
@@ -812,11 +802,11 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             int beginIndex =
                 (DoubleUtil.AreClose(StrokeFIndices.BeforeFirst, beginFIndex))
-                    ? 0 : (int)Math.Floor(beginFIndex);
+                    ? 0 : (int) Math.Floor(beginFIndex);
 
             int endIndex =
                 (DoubleUtil.AreClose(StrokeFIndices.AfterLast, endFIndex))
-                    ? (sourceStylusPoints.Count - 1) : (int)Math.Ceiling(endFIndex);
+                    ? (sourceStylusPoints.Count - 1) : (int) Math.Ceiling(endFIndex);
 
             int pointCount = endIndex - beginIndex + 1;
             Debug.Assert(pointCount >= 1);
@@ -859,8 +849,8 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
             if (stylusPoints.Count > 1)
             {
-                Point begPoint = (Point)stylusPoints[0];
-                Point endPoint = (Point)stylusPoints[stylusPoints.Count - 1];
+                Point begPoint = (Point) stylusPoints[0];
+                Point endPoint = (Point) stylusPoints[stylusPoints.Count - 1];
 
                 // Adjust the last point to fragment.EndFIndex.
                 if ((!DoubleUtil.AreClose(endFIndex, StrokeFIndices.AfterLast)) && !DoubleUtil.AreClose(endIndex, endFIndex))
@@ -876,7 +866,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                     endPoint = GetIntermediatePoint(stylusPoints[stylusPoints.Count - 1],
                                                     stylusPoints[stylusPoints.Count - 2],
                                                     fraction);
-}
+                }
 
                 // Adjust the first point to fragment.BeginFIndex.
                 if ((!DoubleUtil.AreClose(beginFIndex, StrokeFIndices.BeforeFirst)) && !DoubleUtil.AreClose(beginIndex, beginFIndex))
@@ -884,7 +874,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                     begPoint = GetIntermediatePoint(stylusPoints[0],
                                                     stylusPoints[1],
                                                     beginFIndex);
-}
+                }
 
                 //
                 // now set the end points
@@ -970,7 +960,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                     //
                     // when x == 0, we're just starting, any value is valid
                     //
-                   Debug.Assert(x == 0);
+                    Debug.Assert(x == 0);
                 }
                 current = fragments[x].BeginFIndex;
                 Debug.Assert(IsValidStrokeFIndices(fragments[x]) && fragments[x].EndFIndex > current);
@@ -1049,16 +1039,16 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
 
-            // Custom attributes associated with this stroke
+        // Custom attributes associated with this stroke
         private ExtendedPropertyCollection _extendedProperties = null;
 
-            // Drawing attributes associated with this stroke
+        // Drawing attributes associated with this stroke
         private DrawingAttributes _drawingAttributes = null;
 
         private StylusPointCollection _stylusPoints = null;
-}
+    }
 
-        //internal helper to determine if a matix contains invalid values
+    //internal helper to determine if a matix contains invalid values
     internal static class MatrixHelper
     {
         //returns true if any member is NaN

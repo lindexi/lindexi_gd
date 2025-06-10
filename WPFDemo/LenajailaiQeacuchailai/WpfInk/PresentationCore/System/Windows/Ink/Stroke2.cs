@@ -4,21 +4,7 @@
 
 //#define DEBUG_RENDERING_FEEDBACK
 
-using MS.Utility;
-using System;
 using System.ComponentModel;
-using System.Windows;
-using System.Windows.Input;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using MS.Internal;
-using MS.Internal.Ink;
-
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
-using MS.Internal.PresentationCore;
-using WpfInk.PresentationCore.System.Windows;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 

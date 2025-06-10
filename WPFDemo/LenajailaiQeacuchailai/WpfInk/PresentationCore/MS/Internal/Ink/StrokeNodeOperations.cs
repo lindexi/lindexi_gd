@@ -3,13 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Input;
-using System.Diagnostics;
-using MS.Utility;
-using MS.Internal;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 

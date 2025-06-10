@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SkiaInk\SkiaInk.csproj" />
-    <ProjectReference Include="..\WpfInk\WpfInk.csproj" Aliases="WpfInk" />
+    <ProjectReference Include="..\WpfInk\WpfInk.csproj" />
   </ItemGroup>
 
   <ItemGroup>

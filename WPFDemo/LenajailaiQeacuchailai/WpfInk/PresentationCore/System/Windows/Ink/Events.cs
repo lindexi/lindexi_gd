@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Windows.Input;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 using SR = MS.Internal.PresentationCore.SR;
 using SRID = MS.Internal.PresentationCore.SRID;

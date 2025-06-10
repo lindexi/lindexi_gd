@@ -1,6 +1,6 @@
-﻿extern alias WpfInk;
-using System.Windows.Media;
-using WpfInk::WpfInk;
+﻿using System.Windows.Media;
+using WpfInk;
+using IStreamGeometryContext = WpfInk.IStreamGeometryContext;
 
 namespace WpfApp.Inking;
 

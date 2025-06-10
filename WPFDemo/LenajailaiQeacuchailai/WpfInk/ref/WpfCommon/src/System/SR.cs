@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,27 +6,7 @@ using System;
 using System.Resources;
 using System.Runtime.CompilerServices;
 
-#if WINDOWS_BASE
-namespace MS.Internal.WindowsBase
-#elif PRESENTATION_CORE || true
 namespace MS.Internal.PresentationCore
-#elif PBTCOMPILER
-namespace MS.Utility
-#elif AUTOMATION
-namespace MS.Internal.Automation
-#elif REACHFRAMEWORK
-namespace System.Windows.Xps
-#elif PRESENTATIONFRAMEWORK
-namespace System.Windows
-#elif PRESENTATIONUI
-namespace System.Windows.TrustUI
-#elif WINDOWSFORMSINTEGRATION
-namespace System.Windows
-#elif RIBBON_IN_FRAMEWORK
-namespace Microsoft.Windows.Controls
-#else
-namespace System
-#endif
 {
     internal partial class SR
     {
