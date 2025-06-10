@@ -108,13 +108,13 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// StylusPointCollection
         /// </summary>
         /// <param name="points">points</param>
-        public StylusPointCollection(IEnumerable<InkPoint2D> points)
+        public StylusPointCollection(IEnumerable<Point> points)
             : this()
         {
             ArgumentNullException.ThrowIfNull(points);
 
             List<StylusPoint> stylusPoints = new List<StylusPoint>();
-            foreach (InkPoint2D point in points)
+            foreach (Point point in points)
             {
                 //this can throw (since point.X or Y can be beyond our range)
                 //don't add to our internal collection until after we instance
@@ -325,17 +325,17 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// Explicit cast converter between StylusPointCollection and Point[]
         /// </summary>
         /// <param name="stylusPoints">stylusPoints</param>
-        public static explicit operator InkPoint2D[](StylusPointCollection stylusPoints)
+        public static explicit operator Point[](StylusPointCollection stylusPoints)
         {
             if (stylusPoints == null)
             {
                 return null;
             }
 
-            InkPoint2D[] points = new InkPoint2D[stylusPoints.Count];
+            Point[] points = new Point[stylusPoints.Count];
             for (int i = 0; i < stylusPoints.Count; i++)
             {
-                points[i] = new InkPoint2D(stylusPoints[i].X, stylusPoints[i].Y);
+                points[i] = new Point(stylusPoints[i].X, stylusPoints[i].Y);
             }
             return points;
         }

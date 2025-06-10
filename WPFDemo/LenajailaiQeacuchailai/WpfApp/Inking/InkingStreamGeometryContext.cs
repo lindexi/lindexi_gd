@@ -1,6 +1,6 @@
-﻿using System.Windows.Media;
+﻿using System.Windows;
+using System.Windows.Media;
 using WpfInk;
-using IStreamGeometryContext = WpfInk.IStreamGeometryContext;
 
 namespace WpfApp.Inking;
 
@@ -12,6 +12,7 @@ class InkingStreamGeometryContext : IStreamGeometryContext
     }
 
     private StreamGeometryContext StreamGeometryContext { get; }
+    private readonly List<Point> _cacheList = new List<Point>();
 
     public void BeginFigure(InkPoint2D startPoint, bool isFilled, bool isClosed)
     {
@@ -20,12 +21,16 @@ class InkingStreamGeometryContext : IStreamGeometryContext
 
     public void PolyBezierTo(IList<InkPoint2D> points, bool isStroked, bool isSmoothJoin)
     {
-        StreamGeometryContext.PolyBezierTo(points.Select(t => t.ToPoint()).ToList(), isStroked, isSmoothJoin);
+        _cacheList.Clear();
+        _cacheList.AddRange(points.Select(t => t.ToPoint()));
+        StreamGeometryContext.PolyBezierTo(_cacheList, isStroked, isSmoothJoin);
     }
 
     public void PolyLineTo(IList<InkPoint2D> points, bool isStroked, bool isSmoothJoin)
     {
-        StreamGeometryContext.PolyLineTo(points.Select(t => t.ToPoint()).ToList(), isStroked, isSmoothJoin);
+        _cacheList.Clear();
+        _cacheList.AddRange(points.Select(t => t.ToPoint()));
+        StreamGeometryContext.PolyLineTo(_cacheList, isStroked, isSmoothJoin);
     }
 
     public void ArcTo(InkPoint2D point, InkSize2D size, double rotationAngle, bool isLargeArc, bool sweepDirection, bool isStroked,

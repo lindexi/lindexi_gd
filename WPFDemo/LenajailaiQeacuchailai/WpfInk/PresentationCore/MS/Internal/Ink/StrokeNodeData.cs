@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
-using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 
 namespace MS.Internal.Ink
@@ -35,7 +34,7 @@ namespace MS.Internal.Ink
         /// Constructor for nodes of a pressure insensitive stroke
         /// </summary>
         /// <param name="position">position of the node</param>
-        internal StrokeNodeData(InkPoint2D position)
+        internal StrokeNodeData(Point position)
         {
             _position = position;
             _pressure = 1;
@@ -46,7 +45,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="position">position of the node</param>
         /// <param name="pressure">pressure scaling factor at the node</param>
-        internal StrokeNodeData(InkPoint2D position, float pressure)
+        internal StrokeNodeData(Point position, float pressure)
         {
             System.Diagnostics.Debug.Assert(DoubleUtil.GreaterThan((double)pressure, 0d));
 
@@ -65,7 +64,7 @@ namespace MS.Internal.Ink
         }
         
         /// <summary> Position of the node </summary>
-        internal InkPoint2D Position 
+        internal Point Position 
         { 
             get { return _position; } 
         }
@@ -77,7 +76,7 @@ namespace MS.Internal.Ink
 
         #region Privates
 
-        private readonly InkPoint2D   _position;
+        private readonly Point   _position;
         private readonly float _pressure;
 
         #endregion

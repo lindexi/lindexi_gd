@@ -7,7 +7,6 @@ using System;
 using System.Windows;
 using System.Collections.Generic;
 using System.Globalization;
-using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 
@@ -28,7 +27,7 @@ namespace MS.Internal.Ink
         /// </summary>
         internal Lasso()
         {
-            _points = new List<InkPoint2D>();
+            _points = new List<Point>();
         }
 
         #endregion
@@ -75,7 +74,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="index">index of the point to return</param>
         /// <returns>a point in the lasso</returns>
-        internal InkPoint2D this[int index]
+        internal Point this[int index]
         {
             get
             {
@@ -90,11 +89,11 @@ namespace MS.Internal.Ink
         /// Extends the lasso by appending more points
         /// </summary>
         /// <param name="points">new points</param>
-        internal void AddPoints(IEnumerable<InkPoint2D> points)
+        internal void AddPoints(IEnumerable<Point> points)
         {
             System.Diagnostics.Debug.Assert(null != points);
 
-            foreach (InkPoint2D point in points)
+            foreach (Point point in points)
             {
                 AddPoint(point);
             }
@@ -104,7 +103,7 @@ namespace MS.Internal.Ink
         /// Appends a point to the lasso
         /// </summary>
         /// <param name="point">new lasso point</param>
-        internal void AddPoint(InkPoint2D point)
+        internal void AddPoint(Point point)
         {
             System.Diagnostics.Debug.Assert(_points != null);
             if (!Filter(point))
@@ -120,7 +119,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="point"></param>
         /// <returns>true if the point is contained within the lasso; false otherwise </returns>
-        internal bool Contains(InkPoint2D point)
+        internal bool Contains(Point point)
         {
             System.Diagnostics.Debug.Assert(_points != null);
 
@@ -141,10 +140,10 @@ namespace MS.Internal.Ink
             }
 
             bool isInside = false;
-            InkPoint2D prevLassoPoint = _points[_points.Count - 1];
+            Point prevLassoPoint = _points[_points.Count - 1];
             for (int i = 0; i < _points.Count; i++)
             {
-                InkPoint2D lassoPoint = _points[i];
+                Point lassoPoint = _points[i];
                 if (DoubleUtil.AreClose(lassoPoint.Y, point.Y))
                 {
                     if (DoubleUtil.AreClose(lassoPoint.X, point.X))
@@ -214,8 +213,8 @@ namespace MS.Internal.Ink
             // pair
             //
 
-            InkPoint2D lastNodePosition = new InkPoint2D();
-            InkPoint2D lassoLastPoint = _points[_points.Count - 1];
+            Point lastNodePosition = new Point();
+            Point lassoLastPoint = _points[_points.Count - 1];
             Rect currentStrokeSegmentBounds = Rect.Empty;
 
             // Initilize the current crossing to be an empty one
@@ -238,8 +237,8 @@ namespace MS.Internal.Ink
                     //
                     // Now we need to iterate through the lasso points and find out where they cross
                     //
-                    InkPoint2D lastPoint = lassoLastPoint;
-                    foreach (InkPoint2D point in _points)
+                    Point lastPoint = lassoLastPoint;
+                    foreach (Point point in _points)
                     {
                         //
                         // calculate a segment of the lasso from the last point
@@ -493,7 +492,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Get a reference to the lasso points store
         /// </summary>
-        protected List<InkPoint2D> PointsList
+        protected List<Point> PointsList
         {
             get
             {
@@ -505,7 +504,7 @@ namespace MS.Internal.Ink
         /// Filter out duplicate points (and maybe in the futuer colinear points).
         /// Return true if the point should be filtered
         /// </summary>
-        protected virtual bool Filter(InkPoint2D point)
+        protected virtual bool Filter(Point point)
         {
             // First point should not be filtered
             if (0 == _points.Count)
@@ -514,7 +513,7 @@ namespace MS.Internal.Ink
             }
             // ISSUE-2004/06/14-vsmirnov - If the new segment is collinear with the last one,
             // don't add the point but modify the last point instead.
-            InkPoint2D lastPoint = _points[_points.Count - 1];
+            Point lastPoint = _points[_points.Count - 1];
             Vector vector = point - lastPoint;
 
             // The point will be filtered out, i.e. not added to the list, if the distance to the previous point is
@@ -526,7 +525,7 @@ namespace MS.Internal.Ink
         /// Implemtnation of add point
         /// </summary>
         /// <param name="point"></param>
-        protected virtual void AddPointImpl(InkPoint2D point)
+        protected virtual void AddPointImpl(Point point)
         {
             _points.Add(point);
             _bounds.Union(point);
@@ -535,7 +534,7 @@ namespace MS.Internal.Ink
 
         #region Fields
 
-        private List<InkPoint2D>             _points;
+        private List<Point>             _points;
         private Rect                    _bounds                 = Rect.Empty;
         private bool                    _incrementalLassoDirty  = false;
         private static readonly double  MinDistance             = 1.0;
@@ -680,9 +679,9 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Return true if the point will be filtered out and should NOT be added to the list
         /// </summary>
-        protected override bool Filter(InkPoint2D point)
+        protected override bool Filter(Point point)
         {
-            List<InkPoint2D> points = PointsList;
+            List<Point> points = PointsList;
 
             // First point should not be filtered
             if (0 == points.Count)
@@ -719,7 +718,7 @@ namespace MS.Internal.Ink
                 if (!DoubleUtil.AreClose(i, intersection))
                 {
                     // Move points[i] to the intersection position
-                    InkPoint2D intersectionPoint = new InkPoint2D(0, 0);
+                    Point intersectionPoint = new Point(0, 0);
                     intersectionPoint.X = points[i].X + (intersection - i) * (points[i + 1].X - points[i].X);
                     intersectionPoint.Y = points[i].Y + (intersection - i) * (points[i + 1].Y - points[i].Y);
                     points[i] = intersectionPoint;
@@ -756,7 +755,7 @@ namespace MS.Internal.Ink
             return false;
         }
 
-        protected override void AddPointImpl(InkPoint2D point)
+        protected override void AddPointImpl(Point point)
         {
             _prevBounds = Bounds;
             base.AddPointImpl(point);
@@ -766,9 +765,9 @@ namespace MS.Internal.Ink
         /// If the line _points[Count -1]->point insersect with the existing lasso, return true
         /// and bIndex value is set to a doulbe value representing position of the intersection.
         /// </summary>
-        private bool GetIntersectionWithExistingLasso(InkPoint2D point, ref double bIndex)
+        private bool GetIntersectionWithExistingLasso(Point point, ref double bIndex)
         {
-            List<InkPoint2D> points = PointsList;
+            List<Point> points = PointsList;
             int count = points.Count;
 
             Rect newRect = new Rect(points[count - 1], point);

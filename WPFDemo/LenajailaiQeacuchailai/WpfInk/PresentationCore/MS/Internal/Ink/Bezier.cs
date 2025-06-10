@@ -10,7 +10,6 @@ using System.Windows.Input;
 using System.Collections.Generic;
 
 using MS.Internal.Ink.InkSerializedFormat;
-using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 
@@ -50,13 +49,13 @@ namespace MS.Internal.Ink
         /// Flatten bezier with a given resolution
         /// </summary>
         /// <param name="tolerance">tolerance</param>
-        internal List<InkPoint2D> Flatten(double tolerance)
+        internal List<Point> Flatten(double tolerance)
         {
-            List<InkPoint2D> points = new List<InkPoint2D>();
+            List<Point> points = new List<Point>();
 
             // First point
             Vector vector = GetBezierPoint(0);
-            points.Add(new InkPoint2D(vector.X, vector.Y));
+            points.Add(new Point(vector.X, vector.Y));
 
             int last = this.BezierPointCount - 4;
 
@@ -74,7 +73,7 @@ namespace MS.Internal.Ink
             //convert from himetric to Avalon
             for (int x = 0; x < points.Count; x++)
             {
-                InkPoint2D p = points[x];
+                Point p = points[x];
                 p.X *= StrokeCollectionSerializer.HimetricToAvalonMultiplier;
                 p.Y *= StrokeCollectionSerializer.HimetricToAvalonMultiplier;
                 points[x] = p;
@@ -450,7 +449,7 @@ namespace MS.Internal.Ink
         /// <param name="point">In: The point to add</param>
         private void AddBezierPoint(Vector point)
         {
-            _bezierControlPoints.Add((InkPoint2D)point);
+            _bezierControlPoints.Add((Point)point);
         }
 
 
@@ -461,7 +460,7 @@ namespace MS.Internal.Ink
         /// <param name="index">In: The index of the point to add</param>
         private void AddSegmentPoint(CuspData data, int index)
         {
-            _bezierControlPoints.Add((InkPoint2D)data.XY(index));
+            _bezierControlPoints.Add((Point)data.XY(index));
         }
 
 
@@ -497,7 +496,7 @@ namespace MS.Internal.Ink
         /// <param name="tolerance">tolerance</param>
         /// <param name="points"></param>
         /// <returns></returns>
-        private void FlattenSegment(int iFirst, double tolerance, List<InkPoint2D> points)
+        private void FlattenSegment(int iFirst, double tolerance, List<Point> points)
         {
             // We use forward differencing.  It is much faster than subdivision
             int i, k;
@@ -529,7 +528,7 @@ namespace MS.Internal.Ink
             if (rCurv <= 0.5 * tolerance)  // Flat segment
             {
                 Vector vector = GetBezierPoint(iFirst + 3);
-                points.Add(new InkPoint2D(vector.X, vector.Y));
+                points.Add(new Point(vector.X, vector.Y));
                 return;
             }
 
@@ -546,7 +545,7 @@ namespace MS.Internal.Ink
             for (i = 1; i <= 3; i++)
             {
                 Q[i] = DeCasteljau(iFirst, i * d);
-                points.Add(new InkPoint2D(Q[i].X, Q[i].Y));
+                points.Add(new Point(Q[i].X, Q[i].Y));
             }
 
             // Replace points in the buffer with differences of various levels
@@ -560,7 +559,7 @@ namespace MS.Internal.Ink
                 for (k = 1; k <= 3; k++)
                     Q[k] += Q[k - 1];
 
-                points.Add(new InkPoint2D(Q[3].X, Q[3].Y));
+                points.Add(new Point(Q[3].X, Q[3].Y));
             }
         }
         /// <summary>
@@ -583,6 +582,6 @@ namespace MS.Internal.Ink
         }
 
         // Bezier points
-        private List<InkPoint2D> _bezierControlPoints = new List<InkPoint2D>();
+        private List<Point> _bezierControlPoints = new List<Point>();
     }
 }

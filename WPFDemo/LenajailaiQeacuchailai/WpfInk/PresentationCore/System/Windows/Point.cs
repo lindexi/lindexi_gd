@@ -12,11 +12,10 @@
 //using System.Windows.Converters;
 
 using System;
-using WpfInk.PresentationCore.System.Windows;
 
-namespace WpfInk
+namespace WpfInk.PresentationCore.System.Windows
 {
-    public struct InkPoint2D
+    internal struct Point
     {
         //------------------------------------------------------
         //
@@ -40,7 +39,7 @@ namespace WpfInk
         /// </returns>
         /// <param name='point1'>The first Point to compare</param>
         /// <param name='point2'>The second Point to compare</param>
-        public static bool operator ==(InkPoint2D point1, InkPoint2D point2)
+        public static bool operator ==(Point point1, Point point2)
         {
             return point1.X == point2.X &&
                    point1.Y == point2.Y;
@@ -57,7 +56,7 @@ namespace WpfInk
         /// </returns>
         /// <param name='point1'>The first Point to compare</param>
         /// <param name='point2'>The second Point to compare</param>
-        public static bool operator !=(InkPoint2D point1, InkPoint2D point2)
+        public static bool operator !=(Point point1, Point point2)
         {
             return !(point1 == point2);
         }
@@ -73,7 +72,7 @@ namespace WpfInk
         /// </returns>
         /// <param name='point1'>The first Point to compare</param>
         /// <param name='point2'>The second Point to compare</param>
-        public static bool Equals(InkPoint2D point1, InkPoint2D point2)
+        public static bool Equals(Point point1, Point point2)
         {
             return point1.X.Equals(point2.X) &&
                    point1.Y.Equals(point2.Y);
@@ -92,13 +91,13 @@ namespace WpfInk
         /// <param name='o'>The object to compare to "this"</param>
         public override bool Equals(object o)
         {
-            if ((null == o) || !(o is InkPoint2D))
+            if ((null == o) || !(o is Point))
             {
                 return false;
             }
 
-            InkPoint2D value = (InkPoint2D)o;
-            return InkPoint2D.Equals(this,value);
+            Point value = (Point)o;
+            return Point.Equals(this,value);
         }
 
         /// <summary>
@@ -112,9 +111,9 @@ namespace WpfInk
         /// bool - true if "value" is equal to "this".
         /// </returns>
         /// <param name='value'>The Point to compare to "this"</param>
-        public bool Equals(InkPoint2D value)
+        public bool Equals(Point value)
         {
-            return InkPoint2D.Equals(this, value);
+            return Point.Equals(this, value);
         }
         /// <summary>
         /// Returns the HashCode for this Point
@@ -288,7 +287,7 @@ namespace WpfInk
         /// </summary>
         /// <param name="x">The value for the X coordinate of the new Point</param>
         /// <param name="y">The value for the Y coordinate of the new Point</param>
-        public InkPoint2D(double x, double y)
+        public Point(double x, double y)
         {
             _x = x;
             _y = y;
@@ -317,9 +316,9 @@ namespace WpfInk
         /// </returns>
         /// <param name="point"> The Point to be added to the Vector </param>
         /// <param name="vector"> The Vectr to be added to the Point </param>
-        internal static InkPoint2D operator + (InkPoint2D point, Vector vector)
+        public static Point operator + (Point point, Vector vector)
         {
-            return new InkPoint2D(point._x + vector._x, point._y + vector._y);
+            return new Point(point._x + vector._x, point._y + vector._y);
         }
 
         /// <summary>
@@ -330,9 +329,9 @@ namespace WpfInk
         /// </returns>
         /// <param name="point"> The Point to be added to the Vector </param>
         /// <param name="vector"> The Vector to be added to the Point </param>
-        public static InkPoint2D Add(InkPoint2D point, Vector vector)
+        public static Point Add(Point point, Vector vector)
         {
-            return new InkPoint2D(point._x + vector._x, point._y + vector._y);
+            return new Point(point._x + vector._x, point._y + vector._y);
         }
 
         /// <summary>
@@ -343,9 +342,9 @@ namespace WpfInk
         /// </returns>
         /// <param name="point"> The Point from which the Vector is subtracted </param>
         /// <param name="vector"> The Vector which is subtracted from the Point </param>
-        public static InkPoint2D operator - (InkPoint2D point, Vector vector)
+        public static Point operator - (Point point, Vector vector)
         {
-            return new InkPoint2D(point._x - vector._x, point._y - vector._y);
+            return new Point(point._x - vector._x, point._y - vector._y);
         }
 
         /// <summary>
@@ -356,9 +355,9 @@ namespace WpfInk
         /// </returns>
         /// <param name="point"> The Point from which the Vector is subtracted </param>
         /// <param name="vector"> The Vector which is subtracted from the Point </param>
-        public static InkPoint2D Subtract(InkPoint2D point, Vector vector)
+        public static Point Subtract(Point point, Vector vector)
         {
-            return new InkPoint2D(point._x - vector._x, point._y - vector._y);
+            return new Point(point._x - vector._x, point._y - vector._y);
         }
 
         /// <summary>
@@ -369,7 +368,7 @@ namespace WpfInk
         /// </returns>
         /// <param name="point1"> The Point from which point2 is subtracted </param>
         /// <param name="point2"> The Point subtracted from point1 </param>
-        public static Vector operator - (InkPoint2D point1, InkPoint2D point2)
+        public static Vector operator - (Point point1, Point point2)
         {
             return new Vector(point1._x - point2._x, point1._y - point2._y);
         }
@@ -382,7 +381,7 @@ namespace WpfInk
         /// </returns>
         /// <param name="point1"> The Point from which point2 is subtracted </param>
         /// <param name="point2"> The Point subtracted from point1 </param>
-        public static Vector Subtract(InkPoint2D point1, InkPoint2D point2)
+        public static Vector Subtract(Point point1, Point point2)
         {
             return new Vector(point1._x - point2._x, point1._y - point2._y);
         }
@@ -397,7 +396,7 @@ namespace WpfInk
         /// Size - A Size equal to this Point
         /// </returns>
         /// <param name="point"> Point - the Point to convert to a Size </param>
-        public static explicit operator Size(InkPoint2D point)
+        public static explicit operator Size(Point point)
         {
             return new Size(Math.Abs(point._x), Math.Abs(point._y));
         }
@@ -409,7 +408,7 @@ namespace WpfInk
         /// Vector - A Vector equal to this Point
         /// </returns>
         /// <param name="point"> Point - the Point to convert to a Vector </param>
-        public static explicit operator Vector(InkPoint2D point)
+        public static explicit operator Vector(Point point)
         {
             return new Vector(point._x, point._y);
         }
