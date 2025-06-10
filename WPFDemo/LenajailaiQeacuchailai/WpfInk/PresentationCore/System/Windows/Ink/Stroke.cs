@@ -15,7 +15,6 @@ using MS.Internal.Ink.InkSerializedFormat;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 using WpfInk.WindowsBase.System.Windows.Media;
 
-using SR = MS.Internal.PresentationCore.SR;
 using SRID = MS.Internal.PresentationCore.SRID;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET

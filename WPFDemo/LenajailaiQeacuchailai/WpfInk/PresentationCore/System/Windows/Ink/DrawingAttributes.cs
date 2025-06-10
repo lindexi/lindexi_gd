@@ -10,7 +10,6 @@ using MS.Internal;
 
 using WpfInk.WindowsBase.System.Windows.Media;
 
-using SR = MS.Internal.PresentationCore.SR;
 using SRID = MS.Internal.PresentationCore.SRID;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
