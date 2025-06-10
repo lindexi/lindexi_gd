@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using DotNetCampus.Installer.Boost;
 
 Console.WriteLine($"Hello, World!测试中文 RuntimeIdentifier={RuntimeInformation.RuntimeIdentifier} FrameworkDescription={RuntimeInformation.FrameworkDescription} OSVersion={Environment.OSVersion}");
 
@@ -35,6 +36,9 @@ using (var hModule = PInvoke.LoadLibrary("Kernel32.dll"))
         }
     }
 }
+
+var splashScreen = new SplashScreen(new FileInfo(@"C:\lindexi\SplashScreen.png"));
+splashScreen.Show();
 
 var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("DotNetCampus.Installer.Boost.Assets.zip")!;
 Console.WriteLine(stream.Length);
