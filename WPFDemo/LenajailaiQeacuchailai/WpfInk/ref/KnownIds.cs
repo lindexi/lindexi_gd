@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,41 +9,6 @@ using MS.Internal.Ink.InkSerializedFormat;
 
 namespace System.Windows.Ink
 {
-    /// <summary>
-    ///    <para>DrawingAttributeIds</para>
-    /// </summary>
-    public static class DrawingAttributeIds
-    {
-        /// <summary>
-        ///    <para>[To be supplied.]</para>
-        /// </summary>
-        public static readonly Guid Color = KnownIdCache.OriginalISFIdTable[(int)KnownIdCache.OriginalISFIdIndex.ColorRef];
-        /// <summary>
-        /// Guid identifying the StylusTip
-        /// </summary>
-        public static readonly Guid StylusTip = new Guid(0x3526c731, 0xee79, 0x4988, 0xb9, 0x3e, 0x70, 0xd9, 0x2f, 0x89, 0x7, 0xed);
-        /// <summary>
-        /// Guid identifying the StylusTipTransform
-        /// </summary>
-        public static readonly Guid StylusTipTransform = new Guid(0x4b63bc16, 0x7bc4, 0x4fd2, 0x95, 0xda, 0xac, 0xff, 0x47, 0x75, 0x73, 0x2d);
-        /// <summary>
-        ///    <para>The height of the pen tip which affects the stroke rendering.</para>
-        /// </summary>
-        public static readonly Guid StylusHeight = KnownIdCache.OriginalISFIdTable[(int)KnownIdCache.OriginalISFIdIndex.StylusHeight];
-        /// <summary>
-        ///    <para>The width of the pen tip which affects the stroke rendering.</para>
-        /// </summary>
-        public static readonly Guid StylusWidth = KnownIdCache.OriginalISFIdTable[(int)KnownIdCache.OriginalISFIdIndex.StylusWidth];
-        /// <summary>
-        ///    <para>[To be supplied.]</para>
-        /// </summary>
-        public static readonly Guid DrawingFlags = KnownIdCache.OriginalISFIdTable[(int)KnownIdCache.OriginalISFIdIndex.DrawingFlags];
-        /// <summary>
-        /// Guid identifying IsHighlighter
-        /// </summary>
-        public static readonly Guid IsHighlighter = new Guid(0xce305e1a, 0xe08, 0x45e3, 0x8c, 0xdc, 0xe4, 0xb, 0xb4, 0x50, 0x6f, 0x21);
-    }
-
     /// <summary>
     ///    <para>[To be supplied.]</para>
     /// </summary>

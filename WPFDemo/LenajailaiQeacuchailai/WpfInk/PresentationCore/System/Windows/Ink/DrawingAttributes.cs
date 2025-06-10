@@ -421,23 +421,6 @@ namespace System.Windows.Ink
             }
         }
 
-
-        /// <summary>
-        /// we need to preserve this for round tripping
-        /// </summary>
-        /// <value></value>
-        internal uint RasterOperation
-        {
-            get
-            {
-                return _v1RasterOperation;
-            }
-            set
-            {
-                _v1RasterOperation = value;
-            }
-        }
-
         /// <summary>
         /// When we load ISF from V1 if width is set and height is not
         /// and PenTip is Circle, we need to set height to the same as width
@@ -1001,7 +984,6 @@ namespace System.Windows.Ink
         private PropertyChangedEventHandler             _propertyChanged;
 
         private ExtendedPropertyCollection              _extendedProperties;
-        private uint                                    _v1RasterOperation = DrawingAttributeSerializer.RasterOperationDefaultV1;
         private bool                                    _heightChangedForCompatabity = false;
 
         /// <summary>
