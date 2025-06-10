@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
+using System;
 using MS.Internal;
 using WpfInk.WindowsBase.System.Windows.Media;
 
