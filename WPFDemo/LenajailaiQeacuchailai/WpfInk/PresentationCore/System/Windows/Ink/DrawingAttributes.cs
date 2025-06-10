@@ -90,7 +90,7 @@ namespace System.Windows.Ink
         /// <summary>
         /// The StylusTip used to draw the stroke
         /// </summary>
-        public Matrix StylusTipTransform
+        internal Matrix StylusTipTransform
         {
             get
             {

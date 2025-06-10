@@ -211,22 +211,6 @@ namespace WpfInk.PresentationCore.System.Windows
         }
 
         /// <summary>
-        /// Operator Vector * Matrix
-        /// </summary>
-        public static Vector operator * (Vector vector, Matrix matrix)
-        {
-            return matrix.Transform(vector);
-        }
-
-        /// <summary>
-        /// Multiply: Vector * Matrix
-        /// </summary>
-        public static Vector Multiply(Vector vector, Matrix matrix)
-        {
-            return matrix.Transform(vector);
-        }
-
-        /// <summary>
         /// Operator Vector * Vector, interpreted as their dot product
         /// </summary>
         public static double operator * (Vector vector1, Vector vector2)

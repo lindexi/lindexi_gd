@@ -386,21 +386,7 @@ namespace WpfInk.PresentationCore.System.Windows
             return new Vector(point1._x - point2._x, point1._y - point2._y);
         }
 
-        /// <summary>
-        /// Operator Point * Matrix
-        /// </summary>
-        public static Point operator * (Point point, Matrix matrix)
-        {
-            return matrix.Transform(point);
-        }
 
-        /// <summary>
-        /// Multiply: Point * Matrix
-        /// </summary>
-        public static Point Multiply(Point point, Matrix matrix)
-        {
-            return matrix.Transform(point);
-        }
 
         /// <summary>
         /// Explicit conversion to Size.  Note that since Size cannot contain negative values,

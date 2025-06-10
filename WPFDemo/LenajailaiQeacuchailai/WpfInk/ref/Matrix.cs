@@ -58,7 +58,7 @@ namespace System.Windows.Media
     ///<summary>
     /// Matrix
     ///</summary>
-    public partial struct Matrix: IFormattable
+    internal partial struct Matrix: IFormattable
     {
         // the transform is identity by default
         // Actually fill in the fields - some (internal) code uses the fields directly for perf.
