@@ -1,5 +1,6 @@
 ﻿extern alias WpfInk;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Media;
 
 using SkiaInk;
@@ -11,7 +12,7 @@ using WpfApp.InkDataModels;
 using WpfInk::MS.Internal.Ink;
 using WpfInk::System.Windows.Ink;
 using WpfInk::System.Windows.Input;
-using WpfInk::WpfInk.API;
+using WpfInk::WpfInk;
 using WpfInk::WpfInk.PresentationCore.System.Windows.Ink;
 using WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus;
 
@@ -62,26 +63,27 @@ public class SimpleInkCanvas : FrameworkElement
                 continue;
             }
 
-            var stylusPointCollection = new StylusPointCollection();
+            var list = new List<InkStylusPoint2D>();
+
             foreach (var inkDataModel in arrayOfInkDataModel)
             {
-                stylusPointCollection.Add(new WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus.StylusPoint(inkDataModel.X, inkDataModel.Y));
+                list.Add(new InkStylusPoint2D(inkDataModel.X, inkDataModel.Y));
             }
 
-            RenderStroke(stylusPointCollection);
+            RenderStroke(list);
 
             break;
         }
 
         if (PointList.Count > 2)
         {
-            var stylusPointCollection = new StylusPointCollection();
+            var list = new List<InkStylusPoint2D>();
             foreach (var (x, y) in PointList)
             {
-                stylusPointCollection.Add(new WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus.StylusPoint(x, y));
+                list.Add(new InkStylusPoint2D(x, y));
             }
 
-            RenderStroke(stylusPointCollection);
+            RenderStroke(list);
         }
 
         SkiaCanvas?.Draw(canvas =>
@@ -101,7 +103,7 @@ public class SimpleInkCanvas : FrameworkElement
         });
 
 
-        void RenderStroke(WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus.StylusPointCollection stylusPointCollection)
+        void RenderStroke(List<InkStylusPoint2D> stylusPointCollection)
         {
             var streamGeometry = new StreamGeometry()
             {
@@ -109,7 +111,7 @@ public class SimpleInkCanvas : FrameworkElement
             };
             using (var streamGeometryContext = streamGeometry.Open())
             {
-                WpfInk::WpfInk.API.IStreamGeometryContext context =
+                var context =
                     new InkingStreamGeometryContext(streamGeometryContext);
 
                 RenderToGeometry(stylusPointCollection, context);
@@ -135,20 +137,13 @@ public class SimpleInkCanvas : FrameworkElement
         }
     }
 
-    private static void RenderToGeometry(StylusPointCollection stylusPointCollection, IStreamGeometryContext context)
+    private static void RenderToGeometry(List<InkStylusPoint2D> stylusPointCollection, IStreamGeometryContext context)
     {
-        var drawingAttributes = new DrawingAttributes()
-        {
-            Width = 10,
-            Height = 10,
-            //StylusTip = StylusTip.Rectangle,
-            FitToCurve = true,
-        };
-
-      var stroke =
-            new Stroke(stylusPointCollection, drawingAttributes);
-        var strokeNodeIterator = StrokeNodeIterator.GetIterator(stroke, drawingAttributes);
-        StrokeRenderer.CalcGeometryAndBounds(strokeNodeIterator, drawingAttributes, calculateBounds: false,
-            context, out _);
+       InkStrokeRenderer.Render(context,new StrokeRendererInfo()
+       {
+           StylusPointCollection = stylusPointCollection,
+           Width = 10,
+           Height = 10,
+       });
     }
 }

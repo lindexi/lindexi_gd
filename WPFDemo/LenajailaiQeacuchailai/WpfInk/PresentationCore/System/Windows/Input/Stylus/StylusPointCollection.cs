@@ -12,7 +12,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
     /// <summary>
     /// StylusPointCollection
     /// </summary>
-    public class StylusPointCollection : Collection<StylusPoint>
+    internal class StylusPointCollection : Collection<StylusPoint>
     {
         private StylusPointDescription _stylusPointDescription;
 

@@ -10,7 +10,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
     /// <summary>
     /// StylusPointDescription describes the properties that a StylusPoint supports.
     /// </summary>
-    public class StylusPointDescription
+    internal class StylusPointDescription
     {
         /// <summary>
         /// Internal statics for our magic numbers

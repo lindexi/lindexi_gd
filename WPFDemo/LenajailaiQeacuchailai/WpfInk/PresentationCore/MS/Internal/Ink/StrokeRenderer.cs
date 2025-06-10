@@ -17,7 +17,7 @@ using SRID=MS.Internal.PresentationCore.SRID;
 using MS.Internal;
 using MS.Internal.PresentationCore;
 using MS.Internal.YourAssemblyName;
-using WpfInk.API;
+using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 
@@ -27,7 +27,7 @@ namespace MS.Internal.Ink
     /// An internal utility class that knows how to render a stroke
     /// into an Avalon's DrawingContext.
     /// </summary>
-    public static class StrokeRenderer
+    internal static class StrokeRenderer
     {
         #region Static API
 
@@ -44,7 +44,7 @@ namespace MS.Internal.Ink
                                                                DrawingAttributes drawingAttributes,
                                                                MatrixTypes stylusTipMatrixType,
                                                                bool calculateBounds,
-                                                               IStreamGeometryContext context,
+                                                               IInternalStreamGeometryContext context,
                                                                out Rect bounds)
         {
             Debug.Assert(iterator != null);
@@ -216,7 +216,7 @@ namespace MS.Internal.Ink
                                                    bool showFeedback,
 #endif
                                                    bool calculateBounds,
-                                                   IStreamGeometryContext context,
+                                                   IInternalStreamGeometryContext context,
                                                    out Rect bounds)
         {
             Debug.Assert(iterator != null && drawingAttributes != null);
@@ -745,7 +745,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Helper routine to render two distinct stroke nodes
         /// </summary>
-        private static void RenderTwoStrokeNodes(   IStreamGeometryContext context,
+        private static void RenderTwoStrokeNodes(   IInternalStreamGeometryContext context,
                                                     StrokeNode strokeNodePrevious,
                                                     Rect strokeNodePreviousBounds,
                                                     StrokeNode strokeNodeCurrent,
@@ -805,7 +805,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// ReverseDCPointsRenderAndClear
         /// </summary>
-        private static void ReverseDCPointsRenderAndClear(IStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints, bool isEllipse, bool clear)
+        private static void ReverseDCPointsRenderAndClear(IInternalStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints, bool isEllipse, bool clear)
         {
             //we need to reverse the cd side points
             Point temp;
@@ -870,7 +870,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddFigureToStreamGeometryContext(IStreamGeometryContext context, List<Point> points, bool isBezierFigure)
+        private static void AddFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<Point> points, bool isBezierFigure)
         {
             Debug.Assert(context != null);
             Debug.Assert(points != null);
@@ -898,7 +898,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddPolylineFigureToStreamGeometryContext(IStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints)
+        private static void AddPolylineFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints)
         {
             Debug.Assert(context != null);
             Debug.Assert(abPoints != null && dcPoints != null);
@@ -920,7 +920,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddArcToFigureToStreamGeometryContext(IStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints)
+        private static void AddArcToFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints)
         {
             Debug.Assert(context != null);
             Debug.Assert(abPoints != null && dcPoints != null);

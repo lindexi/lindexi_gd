@@ -31,7 +31,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// Note that when saving the DrawingAttributes, the V1 AntiAlias attribute
     /// is always set, and on load the AntiAlias property is ignored.
     /// </remarks>
-    public class DrawingAttributes : INotifyPropertyChanged
+    internal class DrawingAttributes : INotifyPropertyChanged
     {
         #region Constructors
 

@@ -29,7 +29,7 @@ namespace MS.Internal.Ink
     /// In either case, the output collection of nodes is represented by a disposable
     /// iterator (i.e. good for a single enumeration only).
     /// </summary>
-    public class StrokeNodeIterator
+    internal class StrokeNodeIterator
     {
         /// <summary>
         /// Helper wrapper

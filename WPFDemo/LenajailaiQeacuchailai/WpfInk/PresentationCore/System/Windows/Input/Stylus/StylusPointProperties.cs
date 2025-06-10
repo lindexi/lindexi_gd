@@ -8,7 +8,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
     /// <summary>
     /// StylusPointProperties
     /// </summary>
-    public static class StylusPointProperties
+    internal static class StylusPointProperties
     {
         /// <summary>
         /// X

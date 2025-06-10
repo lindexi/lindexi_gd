@@ -13,18 +13,16 @@ using SRID = MS.Internal.PresentationCore.SRID;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
 {
-    #region Public APIs
-
     // ===========================================================================================
     /// <summary>
     /// delegate used for event handlers that are called when a stroke was was added, removed, or modified inside of a Stroke collection
     /// </summary>
-    public delegate void StrokeCollectionChangedEventHandler(object sender, StrokeCollectionChangedEventArgs e);
+    internal delegate void StrokeCollectionChangedEventHandler(object sender, StrokeCollectionChangedEventArgs e);
 
     /// <summary>
     /// Event arg used when delegate a stroke is was added, removed, or modified inside of a Stroke collection
     /// </summary>
-    public class StrokeCollectionChangedEventArgs : EventArgs
+    internal class StrokeCollectionChangedEventArgs : EventArgs
     {
         private StrokeCollection.ReadOnlyStrokeCollection _added;
         private StrokeCollection.ReadOnlyStrokeCollection _removed;
@@ -40,12 +38,12 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <summary>Constructor</summary>
         public StrokeCollectionChangedEventArgs(StrokeCollection added, StrokeCollection removed)
         {
-            if ( added == null && removed == null )
+            if (added == null && removed == null)
             {
                 throw new ArgumentException(SR.Get(SRID.CannotBothBeNull, "added", "removed"));
             }
-            _added = ( added == null ) ? null : new StrokeCollection.ReadOnlyStrokeCollection(added);
-            _removed = ( removed == null ) ? null : new StrokeCollection.ReadOnlyStrokeCollection(removed);
+            _added = (added == null) ? null : new StrokeCollection.ReadOnlyStrokeCollection(added);
+            _removed = (removed == null) ? null : new StrokeCollection.ReadOnlyStrokeCollection(removed);
         }
 
         /// <summary>Set of strokes that where added, result may be an empty collection</summary>
@@ -53,7 +51,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         {
             get
             {
-                if ( _added == null )
+                if (_added == null)
                 {
                     _added = new StrokeCollection.ReadOnlyStrokeCollection(new StrokeCollection());
                 }
@@ -66,7 +64,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         {
             get
             {
-                if ( _removed == null )
+                if (_removed == null)
                 {
                     _removed = new StrokeCollection.ReadOnlyStrokeCollection(new StrokeCollection());
                 }
@@ -90,12 +88,12 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// delegate used for event handlers that are called when a change to the drawing attributes associated with one or more strokes has occurred.
     /// </summary>
-    public delegate void PropertyDataChangedEventHandler(object sender, PropertyDataChangedEventArgs e);
+    internal delegate void PropertyDataChangedEventHandler(object sender, PropertyDataChangedEventArgs e);
 
     /// <summary>
     /// Event arg used a change to the drawing attributes associated with one or more strokes has occurred.
     /// </summary>
-    public class PropertyDataChangedEventArgs : EventArgs
+    internal class PropertyDataChangedEventArgs : EventArgs
     {
         private Guid _propertyGuid;
         private object _newValue;
@@ -106,7 +104,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                                             object newValue,
                                             object previousValue)
         {
-            if ( newValue == null && previousValue == null )
+            if (newValue == null && previousValue == null)
             {
                 throw new ArgumentException(SR.Get(SRID.CannotBothBeNull, "newValue", "previousValue"));
             }
@@ -161,7 +159,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         internal ExtendedPropertiesChangedEventArgs(ExtendedProperty oldProperty,
                                                     ExtendedProperty newProperty)
         {
-            if ( oldProperty == null && newProperty == null )
+            if (oldProperty == null && newProperty == null)
             {
                 throw new ArgumentNullException("oldProperty");
             }
@@ -191,12 +189,12 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// The delegate to use for the DefaultDrawingAttributesReplaced event
     /// </summary>
-    public delegate void DrawingAttributesReplacedEventHandler(object sender, DrawingAttributesReplacedEventArgs e);
+    internal delegate void DrawingAttributesReplacedEventHandler(object sender, DrawingAttributesReplacedEventArgs e);
 
     /// <summary>
     ///    DrawingAttributesReplacedEventArgs
     /// </summary>
-    public class DrawingAttributesReplacedEventArgs : EventArgs
+    internal class DrawingAttributesReplacedEventArgs : EventArgs
     {
         /// <summary>
         /// DrawingAttributesReplacedEventArgs
@@ -206,11 +204,11 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// </remarks>
         public DrawingAttributesReplacedEventArgs(DrawingAttributes newDrawingAttributes, DrawingAttributes previousDrawingAttributes)
         {
-            if ( newDrawingAttributes == null )
+            if (newDrawingAttributes == null)
             {
                 throw new ArgumentNullException("newDrawingAttributes");
             }
-            if ( previousDrawingAttributes == null )
+            if (previousDrawingAttributes == null)
             {
                 throw new ArgumentNullException("previousDrawingAttributes");
             }
@@ -236,17 +234,17 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
         private DrawingAttributes _newDrawingAttributes;
         private DrawingAttributes _previousDrawingAttributes;
-}
+    }
 
     /// <summary>
     /// The delegate to use for the StylusPointsReplaced event
     /// </summary>
-    public delegate void StylusPointsReplacedEventHandler(object sender, StylusPointsReplacedEventArgs e);
+    internal delegate void StylusPointsReplacedEventHandler(object sender, StylusPointsReplacedEventArgs e);
 
     /// <summary>
     ///    StylusPointsReplacedEventArgs
     /// </summary>
-    public class StylusPointsReplacedEventArgs : EventArgs
+    internal class StylusPointsReplacedEventArgs : EventArgs
     {
         /// <summary>
         /// StylusPointsReplacedEventArgs
@@ -256,11 +254,11 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// </remarks>
         public StylusPointsReplacedEventArgs(StylusPointCollection newStylusPoints, StylusPointCollection previousStylusPoints)
         {
-            if ( newStylusPoints == null )
+            if (newStylusPoints == null)
             {
                 throw new ArgumentNullException("newStylusPoints");
             }
-            if ( previousStylusPoints == null )
+            if (previousStylusPoints == null)
             {
                 throw new ArgumentNullException("previousStylusPoints");
             }
@@ -286,7 +284,5 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
         private StylusPointCollection _newStylusPoints;
         private StylusPointCollection _previousStylusPoints;
-}
-
-    #endregion
+    }
 }

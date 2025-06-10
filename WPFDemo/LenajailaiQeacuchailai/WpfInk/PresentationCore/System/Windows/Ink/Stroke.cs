@@ -34,7 +34,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// A Stroke object is the fundamental unit of ink data storage.
     /// </summary>
-    public partial class Stroke
+    internal partial class Stroke
     {
         /// <summary>Create a stroke from a StylusPointCollection</summary>
         /// <remarks>

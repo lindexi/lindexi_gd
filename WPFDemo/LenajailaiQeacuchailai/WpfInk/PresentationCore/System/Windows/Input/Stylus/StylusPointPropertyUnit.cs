@@ -9,7 +9,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
     /// This enum defines the various possible units for the values in the stylus data
     /// </summary>
     /// <ExternalAPI/>
-    public enum StylusPointPropertyUnit
+    internal enum StylusPointPropertyUnit
     {
         /// <summary>Specifies that the units are unknown.</summary>
         /// <ExternalAPI/>

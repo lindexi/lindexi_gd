@@ -28,7 +28,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// Collection of strokes objects which can be operated on in aggregate.
     /// </summary>
-    public partial class StrokeCollection
+    internal partial class StrokeCollection
     {
         /// <summary>
         /// The string used to designate the native persistence format

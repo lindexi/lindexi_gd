@@ -8,7 +8,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// StylusTip
     /// </summary>
-    public enum StylusTip
+    internal enum StylusTip
     {
         /// <summary>
         /// Rectangle

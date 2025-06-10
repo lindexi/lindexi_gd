@@ -29,7 +29,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// The hit-testing API of Stroke
     /// </summary>
-    public partial class Stroke : INotifyPropertyChanged
+    partial class Stroke : INotifyPropertyChanged
     {
         #region Public APIs
 

@@ -24,7 +24,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// The hit-testing API of StrokeCollection.
     /// </summary>
-    public partial class StrokeCollection : Collection<Stroke>, INotifyPropertyChanged, INotifyCollectionChanged
+    internal partial class StrokeCollection : Collection<Stroke>, INotifyPropertyChanged, INotifyCollectionChanged
     {
         #region Public APIs
 

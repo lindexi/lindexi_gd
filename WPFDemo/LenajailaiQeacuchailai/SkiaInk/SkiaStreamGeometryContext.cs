@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 using SkiaSharp;
 
-using WpfInk.API;
+using WpfInk;
+using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
+using Point=WpfInk.InkPoint2D;
+using Size =WpfInk.InkSize2D;
 
 namespace SkiaInk;
 
