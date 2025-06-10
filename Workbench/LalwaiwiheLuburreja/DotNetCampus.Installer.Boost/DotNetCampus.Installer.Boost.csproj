@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="C:\lindexi\SplashScreen.png" Link="SplashScreen.png" />
     <EmbeddedResource Include="C:\lindexi\Work\Assets.zip" Link="Assets.zip" />
   </ItemGroup>
 

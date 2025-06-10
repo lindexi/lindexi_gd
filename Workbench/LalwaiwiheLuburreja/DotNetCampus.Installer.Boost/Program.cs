@@ -37,7 +37,7 @@ using (var hModule = PInvoke.LoadLibrary("Kernel32.dll"))
     }
 }
 
-var splashScreen = new SplashScreen(new FileInfo(@"C:\lindexi\SplashScreen.png"));
+var splashScreen = new SplashScreen(AssemblyAssetsHelper.GetTempSplashScreenImageFile());
 splashScreen.Show();
 
 var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("DotNetCampus.Installer.Boost.Assets.zip")!;
@@ -45,3 +45,4 @@ Console.WriteLine(stream.Length);
 //var assetsZip = Path.Join(AppContext.BaseDirectory, "Assets.zip");
 //using var fileStream = new FileStream(assetsZip,FileMode.Create,FileAccess.Write);
 //stream.CopyTo(fileStream);
+
