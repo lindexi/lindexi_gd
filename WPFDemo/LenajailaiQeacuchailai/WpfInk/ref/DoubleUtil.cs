@@ -29,12 +29,10 @@ using WpfInk.PresentationCore.System.Windows;
     using MS.Internal.Drt;
 #else
 //#error Attempt to use FriendAccessAllowedAttribute from an unknown assembly.
-using MS.Internal.YourAssemblyName;
 #endif
 
 namespace MS.Internal
 {
-    [FriendAccessAllowed]
     internal static class DoubleUtil
     {
         // Const values come from sdk\inc\crt\float.h

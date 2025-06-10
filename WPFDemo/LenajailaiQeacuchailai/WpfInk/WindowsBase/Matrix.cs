@@ -15,7 +15,6 @@ using System.Text;
 using System.Collections;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Media;
 using System.Runtime.InteropServices;
 using System.Security;
 using WpfInk.PresentationCore.System.Windows;

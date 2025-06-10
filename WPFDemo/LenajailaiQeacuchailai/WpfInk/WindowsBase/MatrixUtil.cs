@@ -14,7 +14,6 @@
 
 using System;
 using System.Windows;
-using System.Windows.Media;
 using System.Diagnostics;
 using System.Security;
 using WpfInk.WindowsBase.System.Windows.Media;
@@ -28,7 +27,6 @@ using WpfInk.WindowsBase.System.Windows.Media;
     using MS.Internal.Drt;
 #else
 //#error Attempt to use FriendAccessAllowedAttribute from an unknown assembly.
-using MS.Internal.YourAssemblyName;
 #endif
 
 namespace MS.Internal
@@ -43,7 +41,6 @@ namespace MS.Internal
         TRANSFORM_IS_UNKNOWN     = 4
     }
 
-    [FriendAccessAllowed]
     internal static class MatrixUtil
     {
         /// <summary>

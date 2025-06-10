@@ -10,8 +10,6 @@ using SkiaSharp;
 using WpfApp.InkDataModels;
 
 using WpfInk::MS.Internal.Ink;
-using WpfInk::System.Windows.Ink;
-using WpfInk::System.Windows.Input;
 using WpfInk::WpfInk;
 using WpfInk::WpfInk.PresentationCore.System.Windows.Ink;
 using WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus;

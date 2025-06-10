@@ -6,8 +6,6 @@
 
 using System;
 using System.Windows;
-using System.Windows.Ink;
-using System.Windows.Media;
 using System.Collections.Generic;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;

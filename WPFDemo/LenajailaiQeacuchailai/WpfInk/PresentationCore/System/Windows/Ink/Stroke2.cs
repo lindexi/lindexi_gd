@@ -9,7 +9,6 @@ using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,7 +18,6 @@ using MS.Internal.Ink;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 using MS.Internal.PresentationCore;
-using MS.Internal.YourAssemblyName;
 using WpfInk.PresentationCore.System.Windows;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
@@ -138,7 +136,6 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <summary>
         /// Used by Inkcanvas to draw selected stroke as hollow.
         /// </summary>
-        [FriendAccessAllowed] // Built into Core, also used by Framework.
         internal bool IsSelected
         {
             get { return _isSelected; }

@@ -13,7 +13,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using MS.Internal.Ink.InkSerializedFormat;
-using System.Windows.Media;
 using System.Reflection;
 
 using SR=MS.Internal.PresentationCore.SR;
