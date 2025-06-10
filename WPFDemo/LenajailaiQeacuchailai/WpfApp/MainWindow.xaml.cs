@@ -8,6 +8,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using WpfApp.Inking;
+
 namespace WpfApp;
 
 /// <summary>
@@ -18,5 +20,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var grid = (Grid)Content;
+        var skiaCanvas = grid.Children.OfType<SkiaCanvas>().First();
+        var simpleInkCanvas = grid.Children.OfType<SimpleInkCanvas>().First();
+
+        simpleInkCanvas.SkiaCanvas = skiaCanvas;
     }
 }
