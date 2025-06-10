@@ -138,7 +138,7 @@ namespace System.Windows.Ink
             {
                 val = Value.ToString();
             }
-            return KnownIds.ConvertToString(Id) + "," + val;
+            return Id + "," + val;
         }
 
         /// <summary>
