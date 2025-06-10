@@ -15,7 +15,6 @@ using MS.Internal.Ink.InkSerializedFormat;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 using WpfInk.WindowsBase.System.Windows.Media;
 
-using SR = MS.Internal.PresentationCore.SR;
 using SRID = MS.Internal.PresentationCore.SRID;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
@@ -175,14 +174,14 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 }
             }
 
-            List<Point> bezierPoints = bezier.Flatten(tolerance);
+            List<InkPoint2D> bezierPoints = bezier.Flatten(tolerance);
             return GetInterpolatedStylusPoints(bezierPoints);
         }
 
         /// <summary>
         /// Interpolate packet / pressure data from _stylusPoints
         /// </summary>
-        private StylusPointCollection GetInterpolatedStylusPoints(List<Point> bezierPoints)
+        private StylusPointCollection GetInterpolatedStylusPoints(List<InkPoint2D> bezierPoints)
         {
             Debug.Assert(bezierPoints != null && bezierPoints.Count > 0);
 
@@ -226,7 +225,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             double bezierLength = 0.0;
             double prevUnbezierLength = 0.0;
-            double unbezierLength = GetDistanceBetweenPoints((Point) _stylusPoints[0], (Point) _stylusPoints[1]);
+            double unbezierLength = GetDistanceBetweenPoints((InkPoint2D) _stylusPoints[0], (InkPoint2D) _stylusPoints[1]);
 
             int stylusPointsIndex = 1;
             int stylusPointsCount = _stylusPoints.Count;
@@ -268,8 +267,8 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                         {
                             prevUnbezierLength = unbezierLength;
                             unbezierLength +=
-                                GetDistanceBetweenPoints((Point) _stylusPoints[stylusPointsIndex - 1],
-                                                         (Point) _stylusPoints[stylusPointsIndex]);
+                                GetDistanceBetweenPoints((InkPoint2D) _stylusPoints[stylusPointsIndex - 1],
+                                                         (InkPoint2D) _stylusPoints[stylusPointsIndex]);
                         } //else we'll break
                     }
                 }
@@ -289,7 +288,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <summary>
         /// Private helper used to get the length between two points
         /// </summary>
-        private double GetDistanceBetweenPoints(Point p1, Point p2)
+        private double GetDistanceBetweenPoints(InkPoint2D p1, InkPoint2D p2)
         {
             Vector spine = p2 - p1;
             return Math.Sqrt(spine.LengthSquared);
@@ -299,7 +298,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// Private helper for adding a StylusPoint to the BezierStylusPoints
         /// </summary>
         private void AddInterpolatedBezierPoint(StylusPointCollection bezierStylusPoints,
-                                                Point bezierPoint,
+                                                InkPoint2D bezierPoint,
                                                 int[] additionalData,
                                                 float pressure)
         {
@@ -851,8 +850,8 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
             if (stylusPoints.Count > 1)
             {
-                Point begPoint = (Point) stylusPoints[0];
-                Point endPoint = (Point) stylusPoints[stylusPoints.Count - 1];
+                InkPoint2D begPoint = (InkPoint2D) stylusPoints[0];
+                InkPoint2D endPoint = (InkPoint2D) stylusPoints[stylusPoints.Count - 1];
 
                 // Adjust the last point to fragment.EndFIndex.
                 if ((!DoubleUtil.AreClose(endFIndex, StrokeFIndices.AfterLast)) && !DoubleUtil.AreClose(endIndex, endFIndex))
@@ -925,7 +924,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <summary>
         /// Private helper that will generate a new point between two points at an findex
         /// </summary>
-        private Point GetIntermediatePoint(StylusPoint p1, StylusPoint p2, double findex)
+        private InkPoint2D GetIntermediatePoint(StylusPoint p1, StylusPoint p2, double findex)
         {
             double xDistance = p2.X - p1.X;
             double yDistance = p2.Y - p1.Y;
@@ -933,7 +932,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             double xFDistance = xDistance * findex;
             double yFDistance = yDistance * findex;
 
-            return new Point(p1.X + xFDistance, p1.Y + yFDistance);
+            return new InkPoint2D(p1.X + xFDistance, p1.Y + yFDistance);
         }
 
 
@@ -1093,16 +1092,16 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// Returns the count of an IEumerable of Points by trying to cast
         /// to an ICollection of Points
         /// </summary>
-        internal static int GetCount(IEnumerable<Point> ienum)
+        internal static int GetCount(IEnumerable<InkPoint2D> ienum)
         {
             Debug.Assert(ienum != null);
-            ICollection<Point> icol = ienum as ICollection<Point>;
+            ICollection<InkPoint2D> icol = ienum as ICollection<InkPoint2D>;
             if (icol != null)
             {
                 return icol.Count;
             }
             int count = 0;
-            foreach (Point point in ienum)
+            foreach (InkPoint2D point in ienum)
             {
                 count++;
             }
@@ -1112,10 +1111,10 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <summary>
         /// Returns a Point[] for a given IEnumerable of Points.
         /// </summary>
-        internal static Point[] GetPointArray(IEnumerable<Point> ienum)
+        internal static InkPoint2D[] GetPointArray(IEnumerable<InkPoint2D> ienum)
         {
             Debug.Assert(ienum != null);
-            Point[] points = ienum as Point[];
+            InkPoint2D[] points = ienum as InkPoint2D[];
             if (points != null)
             {
                 return points;
@@ -1124,9 +1123,9 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             // fall back to creating an array
             //
-            points = new Point[GetCount(ienum)];
+            points = new InkPoint2D[GetCount(ienum)];
             int index = 0;
-            foreach (Point point in ienum)
+            foreach (InkPoint2D point in ienum)
             {
                 points[index++] = point;
             }

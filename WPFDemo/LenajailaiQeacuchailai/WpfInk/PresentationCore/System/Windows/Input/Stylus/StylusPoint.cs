@@ -422,18 +422,18 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// Explicit cast converter between StylusPoint and Point
         /// </summary>
         /// <param name="stylusPoint">stylusPoint</param>
-        public static explicit operator Point(StylusPoint stylusPoint)
+        public static explicit operator InkPoint2D(StylusPoint stylusPoint)
         {
-            return new Point(stylusPoint.X, stylusPoint.Y);
+            return new InkPoint2D(stylusPoint.X, stylusPoint.Y);
         }
 
         /// <summary>
         /// Allows languages that don't support operator overloading
         /// to convert to a point
         /// </summary>
-        public Point ToPoint()
+        public InkPoint2D ToPoint()
         {
-            return new Point(this.X, this.Y);
+            return new InkPoint2D(this.X, this.Y);
         }
 
 

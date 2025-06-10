@@ -10,7 +10,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
 
-using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 using MS.Internal;
 using MS.Internal.PresentationCore;
@@ -56,7 +55,7 @@ namespace MS.Internal.Ink
             bounds = Rect.Empty;
             try
             {
-                List<Point> connectingQuadPoints = new List<Point>(iterator.Count * 4);
+                List<InkPoint2D> connectingQuadPoints = new List<InkPoint2D>(iterator.Count * 4);
 
                 //the index that the cb quad points are copied to
                 int cdIndex = iterator.Count * 2;
@@ -65,10 +64,10 @@ namespace MS.Internal.Ink
                 for (int x = 0; x < cdIndex; x++)
                 {
                     //initialize so we can start copying to cdIndex later
-                    connectingQuadPoints.Add(new Point(0d, 0d));
+                    connectingQuadPoints.Add(new InkPoint2D(0d, 0d));
                 }
 
-                List<Point> strokeNodePoints = new List<Point>();
+                List<InkPoint2D> strokeNodePoints = new List<InkPoint2D>();
                 double lastAngle = 0.0d;
                 bool previousPreviousNodeRendered = false;
 
@@ -179,7 +178,7 @@ namespace MS.Internal.Ink
                             //3) reverse the dc points to make them cd points
                             for (int i = abIndex, j = connectingQuadPoints.Count - 1; i < j; i++, j--)
                             {
-                                Point temp = connectingQuadPoints[i];
+                                InkPoint2D temp = connectingQuadPoints[i];
                                 connectingQuadPoints[i] = connectingQuadPoints[j];
                                 connectingQuadPoints[j] = temp;
                             }
@@ -263,9 +262,9 @@ namespace MS.Internal.Ink
                     // Two List<Point>'s that get reused for adding figures
                     // to the streamgeometry.
                     //
-                    List<Point> pathFigureABSide = new List<Point>();//don't prealloc.  It causes Gen2 collections to rise and doesn't help execution time
-                    List<Point> pathFigureDCSide = new List<Point>();
-                    List<Point> polyLinePoints =  new List<Point>(4);
+                    List<InkPoint2D> pathFigureABSide = new List<InkPoint2D>();//don't prealloc.  It causes Gen2 collections to rise and doesn't help execution time
+                    List<InkPoint2D> pathFigureDCSide = new List<InkPoint2D>();
+                    List<InkPoint2D> polyLinePoints =  new List<InkPoint2D>(4);
 
                     int iteratorCount = iterator.Count;
                     for (int index = 0, previousIndex = -1; index < iteratorCount; )
@@ -747,9 +746,9 @@ namespace MS.Internal.Ink
                                                     Rect strokeNodePreviousBounds,
                                                     StrokeNode strokeNodeCurrent,
                                                     Rect strokeNodeCurrentBounds,
-                                                    List<Point> pointBuffer1,
-                                                    List<Point> pointBuffer2,
-                                                    List<Point> pointBuffer3
+                                                    List<InkPoint2D> pointBuffer1,
+                                                    List<InkPoint2D> pointBuffer2,
+                                                    List<InkPoint2D> pointBuffer3
 #if DEBUG_RENDERING_FEEDBACK
                                                    ,DrawingContext debugDC,
                                                    double feedbackSize,
@@ -802,10 +801,10 @@ namespace MS.Internal.Ink
         /// <summary>
         /// ReverseDCPointsRenderAndClear
         /// </summary>
-        private static void ReverseDCPointsRenderAndClear(IInternalStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints, bool isEllipse, bool clear)
+        private static void ReverseDCPointsRenderAndClear(IInternalStreamGeometryContext context, List<InkPoint2D> abPoints, List<InkPoint2D> dcPoints, List<InkPoint2D> polyLinePoints, bool isEllipse, bool clear)
         {
             //we need to reverse the cd side points
-            Point temp;
+            InkPoint2D temp;
             for (int i = 0, j = dcPoints.Count - 1; i < j; i++, j--)
             {
                 temp = dcPoints[i];
@@ -867,7 +866,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<Point> points, bool isBezierFigure)
+        private static void AddFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<InkPoint2D> points, bool isBezierFigure)
         {
             Debug.Assert(context != null);
             Debug.Assert(points != null);
@@ -895,7 +894,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddPolylineFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints)
+        private static void AddPolylineFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<InkPoint2D> abPoints, List<InkPoint2D> dcPoints)
         {
             Debug.Assert(context != null);
             Debug.Assert(abPoints != null && dcPoints != null);
@@ -917,7 +916,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Private helper to render a path figure to the SGC
         /// </summary>
-        private static void AddArcToFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<Point> abPoints, List<Point> dcPoints, List<Point> polyLinePoints)
+        private static void AddArcToFigureToStreamGeometryContext(IInternalStreamGeometryContext context, List<InkPoint2D> abPoints, List<InkPoint2D> dcPoints, List<InkPoint2D> polyLinePoints)
         {
             Debug.Assert(context != null);
             Debug.Assert(abPoints != null && dcPoints != null);
@@ -934,11 +933,11 @@ namespace MS.Internal.Ink
 
             for (int j = 0; j < 2; j++)
             {
-                List<Point> points = j == 0 ? abPoints : dcPoints;
+                List<InkPoint2D> points = j == 0 ? abPoints : dcPoints;
                 int startIndex = j == 0 ? 1 : 0;
                 for (int i = startIndex; i < points.Count; )
                 {
-                    Point next = points[i];
+                    InkPoint2D next = points[i];
                     if (next == StrokeRenderer.ArcToMarker)
                     {
                         if (polyLinePoints.Count > 0)
@@ -953,9 +952,9 @@ namespace MS.Internal.Ink
                         Debug.Assert(i + 2 < points.Count);
                         if (i + 2 < points.Count)
                         {
-                            Point sizePoint = points[i + 1];
+                            InkPoint2D sizePoint = points[i + 1];
                             Size ellipseSize = new Size(sizePoint.X / 2/*width*/, sizePoint.Y / 2/*height*/);
-                            Point arcToPoint = points[i + 2];
+                            InkPoint2D arcToPoint = points[i + 2];
 
                             bool isLargeArc = false; //>= 180
 
@@ -991,7 +990,7 @@ namespace MS.Internal.Ink
         /// calculates the angle between the previousPosition and the current one and then computes the delta between 
         /// the lastAngle.  lastAngle is also updated
         /// </summary>
-        private static double GetAngleDeltaFromLast(Point previousPosition, Point currentPosition, ref double lastAngle)
+        private static double GetAngleDeltaFromLast(InkPoint2D previousPosition, InkPoint2D currentPosition, ref double lastAngle)
         {
             double delta = 0.0d;
             
@@ -1030,7 +1029,7 @@ namespace MS.Internal.Ink
         /// calculates the angle between the previousPosition and the current one and then computes the delta between 
         /// the lastAngle.  lastAngle is also updated
         /// </summary>
-        private static double GetAngleBetween(Point previousPosition, Point currentPosition)
+        private static double GetAngleBetween(InkPoint2D previousPosition, InkPoint2D currentPosition)
         {
             double angle = 0.0d;
 
@@ -1096,7 +1095,7 @@ namespace MS.Internal.Ink
         // Opacity for highlighter container visuals
         internal static readonly double HighlighterOpacity = 0.5;
         internal static readonly byte SolidStrokeAlpha = 0xFF;
-        internal static readonly Point ArcToMarker = new Point(Double.MinValue, Double.MinValue);
+        internal static readonly InkPoint2D ArcToMarker = new InkPoint2D(Double.MinValue, Double.MinValue);
 
         /// <summary>
         /// Simple helper enum

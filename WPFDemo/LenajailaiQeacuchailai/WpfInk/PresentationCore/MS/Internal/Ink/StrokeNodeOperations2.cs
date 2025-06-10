@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 
 namespace MS.Internal.Ink
@@ -77,7 +78,7 @@ namespace MS.Internal.Ink
         /// <param name="hitBegin">begin point of the hitting segment</param>
         /// <param name="hitEnd">end point of the hitting segment</param>
         /// <returns>true if hit, false otherwise</returns>
-        internal static bool HitTestQuadSegment(Quad quad, Point hitBegin, Point hitEnd)
+        internal static bool HitTestQuadSegment(Quad quad, InkPoint2D hitBegin, InkPoint2D hitEnd)
         {
             System.Diagnostics.Debug.Assert(quad.IsEmpty == false);
 
@@ -159,7 +160,7 @@ namespace MS.Internal.Ink
         /// <param name="center">center of the circle</param>
         /// <param name="radius">radius of the circle </param>
         /// <returns>true if hit; false otherwise</returns>
-        internal static bool HitTestQuadCircle(Quad quad, Point center, Vector radius)
+        internal static bool HitTestQuadCircle(Quad quad, InkPoint2D center, Vector radius)
         {
             // this code is not called, but will be in VNext
             throw new NotImplementedException();

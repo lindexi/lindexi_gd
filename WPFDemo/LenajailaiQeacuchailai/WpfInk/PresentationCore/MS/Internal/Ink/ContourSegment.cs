@@ -5,6 +5,7 @@
 
 using System;
 using System.Windows;
+using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 
 namespace MS.Internal.Ink
@@ -23,7 +24,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="begin">segment's begin point</param>
         /// <param name="end">segment's end point</param>
-        internal ContourSegment(Point begin, Point end)
+        internal ContourSegment(InkPoint2D begin, InkPoint2D end)
         {
             _begin = begin;
             _vector = DoubleUtil.AreClose(begin, end) ? new Vector(0, 0) : (end - begin);
@@ -36,7 +37,7 @@ namespace MS.Internal.Ink
         /// <param name="begin">arc's begin point</param>
         /// <param name="end">arc's end point</param>
         /// <param name="center">arc's center</param>
-        internal ContourSegment(Point begin, Point end, Point center)
+        internal ContourSegment(InkPoint2D begin, InkPoint2D end, InkPoint2D center)
         {
             _begin = begin;
             _vector = end - begin;
@@ -47,10 +48,10 @@ namespace MS.Internal.Ink
         internal bool IsArc { get { return (_radius.X != 0) || (_radius.Y != 0); } }
 
         /// <summary> Returns the begin point of the segment </summary>
-        internal Point  Begin { get { return _begin; } }
+        internal InkPoint2D  Begin { get { return _begin; } }
 
         /// <summary> Returns the end point of the segment </summary>
-        internal Point  End { get { return _begin + _vector; } }
+        internal InkPoint2D  End { get { return _begin + _vector; } }
 
         /// <summary> Returns the vector from Begin to End </summary>
         internal Vector Vector { get { return _vector; } }
@@ -61,7 +62,7 @@ namespace MS.Internal.Ink
 
         #region Fields
 
-        private readonly Point   _begin;
+        private readonly InkPoint2D   _begin;
         private readonly Vector  _vector;
         private readonly Vector  _radius;
 

@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Collections.Generic;
 using MS.Internal.Ink.InkSerializedFormat;
+using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 
@@ -43,7 +44,7 @@ namespace MS.Internal.Ink
             CDataPoint cdp0 = new CDataPoint();
             cdp0.Index = 0;
             //convert from Avalon to Himetric
-            Point point = (Point)stylusPoints[0];
+            InkPoint2D point = (InkPoint2D)stylusPoints[0];
             point.X *= StrokeCollectionSerializer.AvalonToHimetricMultiplier;
             point.Y *= StrokeCollectionSerializer.AvalonToHimetricMultiplier;
             cdp0.Point = point;
@@ -63,7 +64,7 @@ namespace MS.Internal.Ink
                     cdp.Index = index;
 
                     //convert from Avalon to Himetric
-                    Point point2 = (Point)stylusPoints[i];
+                    InkPoint2D point2 = (InkPoint2D)stylusPoints[i];
                     point2.X *= StrokeCollectionSerializer.AvalonToHimetricMultiplier;
                     point2.Y *= StrokeCollectionSerializer.AvalonToHimetricMultiplier;
                     cdp.Point = point2;
@@ -539,7 +540,7 @@ namespace MS.Internal.Ink
     
         struct CDataPoint
         {
-            public Point        Point;       // Point (coordinates are double)
+            public InkPoint2D        Point;       // Point (coordinates are double)
             public int          Index;       // Index into the original array
             public int          TanPrev;    // Previous StylusPoint Index for tangent computation
             public int          TanNext;    // Next StylusPoint Index for tangent computation

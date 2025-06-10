@@ -132,9 +132,9 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Point - A Point equal to this Size
         /// </returns>
         /// <param name="size"> Size - the Size to convert to a Point </param>
-        public static explicit operator Point(Size size)
+        public static explicit operator InkPoint2D(Size size)
         {
-            return new Point(size._width, size._height);
+            return new InkPoint2D(size._width, size._height);
         }
 
         #endregion Public Operators

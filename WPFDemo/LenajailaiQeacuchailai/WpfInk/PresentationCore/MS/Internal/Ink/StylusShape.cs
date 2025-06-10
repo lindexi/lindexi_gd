@@ -25,7 +25,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         private double    m_width;
         private double    m_height;
         private double    m_rotation;
-        private Point[]   m_vertices;
+        private InkPoint2D[]   m_vertices;
         private StylusTip m_tip;
         private Matrix    _transform = Matrix.Identity;
 
@@ -130,7 +130,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 // For ellipse
 
                 // The transform is already applied on these points.
-                Point[] p = GetBezierControlPoints();
+                InkPoint2D[] p = GetBezierControlPoints();
                 vertices = new Vector[p.Length];
                 for (int i = 0; i < vertices.Length; i++)
                 {
@@ -183,7 +183,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 if (this.IsPolygon)
                 {
                     bbox = Rect.Empty;
-                    foreach (Point vertex in m_vertices)
+                    foreach (InkPoint2D vertex in m_vertices)
                     {
                         bbox.Union(vertex);
                     }
@@ -207,8 +207,8 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <summary>TBS</summary>
         private void ComputeRectangleVertices()
         {
-            Point topLeft = new Point(-(m_width * 0.5), -(m_height * 0.5));
-            m_vertices = new Point[4] { topLeft,
+            InkPoint2D topLeft = new InkPoint2D(-(m_width * 0.5), -(m_height * 0.5));
+            m_vertices = new InkPoint2D[4] { topLeft,
                 topLeft + new Vector(m_width, 0),
                 topLeft + new Vector(m_width, m_height),
                 topLeft + new Vector(0, m_height)};
@@ -227,16 +227,16 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             // The private method should only called for Rectangle case.
             global::System.Diagnostics.Debug.Assert(vertices.Length == 4);
 
-            Point prevVertex = (Point)vertices[vertices.Length - 1];
+            InkPoint2D prevVertex = (InkPoint2D)vertices[vertices.Length - 1];
             int counterClockIndex = 0, clockWiseIndex = 0;
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                Point vertex = (Point) vertices[i];
+                InkPoint2D vertex = (InkPoint2D) vertices[i];
                 Vector edge = vertex - prevVertex;
 
                 // Verify that the next vertex is on the right side off the edge vector.
-                double det = Vector.Determinant(edge, (Point)vertices[(i + 1) % vertices.Length] - (Point)vertex);
+                double det = Vector.Determinant(edge, (InkPoint2D)vertices[(i + 1) % vertices.Length] - (InkPoint2D)vertex);
                 if (0 > det)
                 {
                     counterClockIndex++;
@@ -266,7 +266,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         }
 
 
-        private Point[] GetBezierControlPoints()
+        private InkPoint2D[] GetBezierControlPoints()
         {
             global::System.Diagnostics.Debug.Assert(m_tip == StylusTip.Ellipse);
 
@@ -278,19 +278,19 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             double borderMagicX = radiusX * ArcAsBezier;
             double borderMagicY = radiusY * ArcAsBezier;
 
-            Point[] controlPoints = new Point[] {
-                new Point(    -radiusX, -borderMagicY),
-                new Point(-borderMagicX,     -radiusY),
-                new Point(            0,     -radiusY),
-                new Point( borderMagicX,     -radiusY),
-                new Point(     radiusX, -borderMagicY),
-                new Point(     radiusX,             0),
-                new Point(     radiusX,  borderMagicY),
-                new Point( borderMagicX,      radiusY),
-                new Point(            0,      radiusY),
-                new Point(-borderMagicX,      radiusY),
-                new Point(    -radiusX,  borderMagicY),
-                new Point(    -radiusX,             0)};
+            InkPoint2D[] controlPoints = new InkPoint2D[] {
+                new InkPoint2D(    -radiusX, -borderMagicY),
+                new InkPoint2D(-borderMagicX,     -radiusY),
+                new InkPoint2D(            0,     -radiusY),
+                new InkPoint2D( borderMagicX,     -radiusY),
+                new InkPoint2D(     radiusX, -borderMagicY),
+                new InkPoint2D(     radiusX,             0),
+                new InkPoint2D(     radiusX,  borderMagicY),
+                new InkPoint2D( borderMagicX,      radiusY),
+                new InkPoint2D(            0,      radiusY),
+                new InkPoint2D(-borderMagicX,      radiusY),
+                new InkPoint2D(    -radiusX,  borderMagicY),
+                new InkPoint2D(    -radiusX,             0)};
 
             // Future enhancement: Apply the transform to the vertices
             // Apply rotation and the shape transform to the control points

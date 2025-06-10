@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
+using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 
 namespace MS.Internal.Ink
@@ -59,13 +60,13 @@ namespace MS.Internal.Ink
         /// Position of the node on the stroke spine.
         /// </summary>
         /// <value></value>
-        internal Point Position { get { return _thisNode.Position; } }
+        internal InkPoint2D Position { get { return _thisNode.Position; } }
 
         /// <summary>
         /// Position of the previous StrokeNode
         /// </summary>
         /// <value></value>
-        internal Point PreviousPosition { get { return _lastNode.Position; } }
+        internal InkPoint2D PreviousPosition { get { return _lastNode.Position; } }
 
         /// <summary>
         /// PressureFactor of the node on the stroke spine.
@@ -113,7 +114,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Returns the points that make up the stroke node shape (minus the connecting quad)
         /// </summary>
-        internal void GetContourPoints(List<Point> pointBuffer)
+        internal void GetContourPoints(List<InkPoint2D> pointBuffer)
         {
             if (IsValid)
             {
@@ -124,7 +125,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Returns the points that make up the stroke node shape (minus the connecting quad)
         /// </summary>
-        internal void GetPreviousContourPoints(List<Point> pointBuffer)
+        internal void GetPreviousContourPoints(List<InkPoint2D> pointBuffer)
         {
             if (IsValid)
             {
@@ -188,8 +189,8 @@ namespace MS.Internal.Ink
         /// <summary>
         /// GetPointsAtStartOfSegment
         /// </summary>
-        internal void GetPointsAtStartOfSegment(List<Point> abPoints, 
-                                                List<Point> dcPoints
+        internal void GetPointsAtStartOfSegment(List<InkPoint2D> abPoints, 
+                                                List<InkPoint2D> dcPoints
 #if DEBUG_RENDERING_FEEDBACK
                                                 , DrawingContext debugDC, double feedbackSize, bool showFeedback
 #endif
@@ -205,7 +206,7 @@ namespace MS.Internal.Ink
                     //add instructions to arc from D to A
                     abPoints.Add(quad.D);
                     abPoints.Add(StrokeRenderer.ArcToMarker);
-                    abPoints.Add(new Point(startNodeBounds.Width, startNodeBounds.Height));
+                    abPoints.Add(new InkPoint2D(startNodeBounds.Width, startNodeBounds.Height));
                     abPoints.Add(quad.A);
 
                     //simply start at D
@@ -240,7 +241,7 @@ namespace MS.Internal.Ink
                     for (; i < maxCount; i++)
                     {
                         //look for the d point first
-                        Point point = _lastNode.Position + (vertices[i % vertices.Length] * pressureFactor);
+                        InkPoint2D point = _lastNode.Position + (vertices[i % vertices.Length] * pressureFactor);
                         if (point == quad.D)
                         {
                             //ab always starts with the D position (only add if it's not in endNode's bounds)
@@ -274,7 +275,7 @@ namespace MS.Internal.Ink
                     for (int j = 0; i < maxCount && j < vertices.Length; i++, j++)
                     {
                         //look for the A point now
-                        Point point = _lastNode.Position + (vertices[i % vertices.Length] * pressureFactor);
+                        InkPoint2D point = _lastNode.Position + (vertices[i % vertices.Length] * pressureFactor);
                         //add everything in between to ab as long as it's not already in endNode's bounds
                         if (!endNodeRect.Contains(point))
                         {
@@ -313,8 +314,8 @@ namespace MS.Internal.Ink
         /// <summary>
         /// GetPointsAtEndOfSegment
         /// </summary>
-        internal void GetPointsAtEndOfSegment(  List<Point> abPoints, 
-                                                List<Point> dcPoints
+        internal void GetPointsAtEndOfSegment(  List<InkPoint2D> abPoints, 
+                                                List<InkPoint2D> dcPoints
 #if DEBUG_RENDERING_FEEDBACK
                                                 , DrawingContext debugDC, double feedbackSize, bool showFeedback
 #endif
@@ -329,7 +330,7 @@ namespace MS.Internal.Ink
                     //add instructions to arc from D to A
                     abPoints.Add(quad.B);
                     abPoints.Add(StrokeRenderer.ArcToMarker);
-                    abPoints.Add(new Point(bounds.Width, bounds.Height));
+                    abPoints.Add(new InkPoint2D(bounds.Width, bounds.Height));
                     abPoints.Add(quad.C);
 
                     //don't add to the dc points
@@ -359,7 +360,7 @@ namespace MS.Internal.Ink
                     for (; i < maxCount; i++)
                     {
                         //look for the d point first
-                        Point point = _thisNode.Position + (vertices[i % vertices.Length] * pressureFactor);
+                        InkPoint2D point = _thisNode.Position + (vertices[i % vertices.Length] * pressureFactor);
                         if (point == quad.B)
                         {
                             abPoints.Add(quad.B);
@@ -386,7 +387,7 @@ namespace MS.Internal.Ink
                     for (int j = 0; i < maxCount && j < vertices.Length; i++, j++)
                     {
                         //look for the c point last
-                        Point point = _thisNode.Position + (vertices[i % vertices.Length] * pressureFactor);
+                        InkPoint2D point = _thisNode.Position + (vertices[i % vertices.Length] * pressureFactor);
                         if (point == quad.C)
                         {
                             break;
@@ -419,8 +420,8 @@ namespace MS.Internal.Ink
         /// </summary>
         internal void GetPointsAtMiddleSegment( StrokeNode previous, 
                                                 double angleBetweenNodes, 
-                                                List<Point> abPoints, 
-                                                List<Point> dcPoints,
+                                                List<InkPoint2D> abPoints, 
+                                                List<InkPoint2D> dcPoints,
                                                 out bool missingIntersection
 #if DEBUG_RENDERING_FEEDBACK
                                                 , DrawingContext debugDC, double feedbackSize, bool showFeedback
@@ -476,7 +477,7 @@ namespace MS.Internal.Ink
                                 }
                                 else
                                 {
-                                    Point intersection = GetIntersection(quad1.A, quad1.B, quad2.A, quad2.B);
+                                    InkPoint2D intersection = GetIntersection(quad1.A, quad1.B, quad2.A, quad2.B);
                                     Rect union = Rect.Union(node1Bounds, node2Bounds);
                                     union.Inflate(1.0, 1.0);
                                     //make sure we're not off in space
@@ -522,7 +523,7 @@ namespace MS.Internal.Ink
                                 {
                                     //add instructions to arc from quad1.C to quad2.D in reverse order (since we walk this array backwards to render)
                                     dcPoints.Add(quad1.C);
-                                    dcPoints.Add(new Point(node2Bounds.Width, node2Bounds.Height));
+                                    dcPoints.Add(new InkPoint2D(node2Bounds.Width, node2Bounds.Height));
                                     dcPoints.Add(StrokeRenderer.ArcToMarker);
                                     dcPoints.Add(quad2.D);
 #if DEBUG_RENDERING_FEEDBACK
@@ -550,7 +551,7 @@ namespace MS.Internal.Ink
                                 }
                                 else
                                 {
-                                    Point intersection = GetIntersection(quad1.D, quad1.C, quad2.D, quad2.C);
+                                    InkPoint2D intersection = GetIntersection(quad1.D, quad1.C, quad2.D, quad2.C);
                                     Rect union = Rect.Union(node1Bounds, node2Bounds);
                                     union.Inflate(1.0, 1.0);
                                     //make sure we're not off in space
@@ -598,7 +599,7 @@ namespace MS.Internal.Ink
                                     //we need to arc between quad1.B and quad2.A along node2
                                     abPoints.Add(quad1.B);
                                     abPoints.Add(StrokeRenderer.ArcToMarker);
-                                    abPoints.Add(new Point(node2Bounds.Width, node2Bounds.Height));
+                                    abPoints.Add(new InkPoint2D(node2Bounds.Width, node2Bounds.Height));
                                     abPoints.Add(quad2.A);
 #if DEBUG_RENDERING_FEEDBACK
                                     if (showFeedback)
@@ -622,7 +623,7 @@ namespace MS.Internal.Ink
                             double pressureFactor = _lastNode.PressureFactor;
                             for (int i = 0; i < vertices.Length; i++)
                             {
-                                Point point = _lastNode.Position + (vertices[i % vertices.Length] * pressureFactor);
+                                InkPoint2D point = _lastNode.Position + (vertices[i % vertices.Length] * pressureFactor);
                                 if (point == quad2.A)
                                 {
                                     indexA = i;
@@ -682,7 +683,7 @@ namespace MS.Internal.Ink
                             }
                             else
                             {
-                                Point intersection = GetIntersection(quad1.A, quad1.B, quad2.A, quad2.B);
+                                InkPoint2D intersection = GetIntersection(quad1.A, quad1.B, quad2.A, quad2.B);
                                 Rect node12 = Rect.Union(_operations.GetNodeBounds(previous._lastNode), _operations.GetNodeBounds(_lastNode));
                                 node12.Inflate(1.0, 1.0);
                                 //make sure we're not off in space
@@ -727,7 +728,7 @@ namespace MS.Internal.Ink
                             }
                             else
                             {
-                                Point intersection = GetIntersection(quad1.D, quad1.C, quad2.D, quad2.C);
+                                InkPoint2D intersection = GetIntersection(quad1.D, quad1.C, quad2.D, quad2.C);
                                 Rect node12 = Rect.Union(_operations.GetNodeBounds(previous._lastNode), _operations.GetNodeBounds(_lastNode));
                                 node12.Inflate(1.0, 1.0);
                                 //make sure we're not off in space
@@ -760,7 +761,7 @@ namespace MS.Internal.Ink
         /// and should only be called if that assumption is valid
         /// </summary>
         /// <returns></returns>
-        internal static Point GetIntersection(Point line1Start, Point line1End, Point line2Start, Point line2End)
+        internal static InkPoint2D GetIntersection(InkPoint2D line1Start, InkPoint2D line1End, InkPoint2D line2Start, InkPoint2D line2End)
         {
             double a1 = line1End.Y - line1Start.Y;
             double b1 = line1Start.X - line1End.X;
@@ -829,17 +830,17 @@ namespace MS.Internal.Ink
                     (line2XMin <= x && x <= line2XMax) &&
                     (line2YMin <= y && y <= line2YMax))
                 {
-                    return new Point(x, y);
+                    return new InkPoint2D(x, y);
                 }
             }
 
             if ((long)line1End.X == (long)line2Start.X &&
                 (long)line1End.Y == (long)line2Start.Y)
             {
-                return new Point(line1End.X, line1End.Y);
+                return new InkPoint2D(line1End.X, line1End.Y);
             }
 
-            return new Point(Double.NaN, Double.NaN);
+            return new InkPoint2D(Double.NaN, Double.NaN);
         }
 
         /// <summary>
@@ -890,7 +891,7 @@ namespace MS.Internal.Ink
         /// <param name="begin"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        internal StrokeFIndices CutTest(Point begin, Point end)
+        internal StrokeFIndices CutTest(InkPoint2D begin, InkPoint2D end)
         {
             if (IsValid == false)
             {
@@ -1038,7 +1039,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="findex">A local findex between the previous index and this one (ex: between 2.0 and 3.0)</param>
         /// <returns>Point on the spine</returns>
-        internal Point GetPointAt(double findex)
+        internal InkPoint2D GetPointAt(double findex)
         {
             System.Diagnostics.Debug.Assert(IsValid);
 
@@ -1073,7 +1074,7 @@ namespace MS.Internal.Ink
             //
             // return the previous point plus the delta's
             //
-            return new Point(   _lastNode.Position.X + xDiff,
+            return new InkPoint2D(   _lastNode.Position.X + xDiff,
                                 _lastNode.Position.Y + yDiff);
         }
 

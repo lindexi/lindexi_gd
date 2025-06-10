@@ -17,6 +17,7 @@
 using System;
 using System.Windows;
 using System.Runtime.InteropServices;
+using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 
 #if WINDOWS_BASE
@@ -186,7 +187,7 @@ namespace MS.Internal
         /// <param name='point1'>The first point to compare</param>
         /// <param name='point2'>The second point to compare</param>
         /// <returns>Whether or not the two points are equal</returns>
-        public static bool AreClose(Point point1, Point point2)
+        public static bool AreClose(InkPoint2D point1, InkPoint2D point2)
         {
             return DoubleUtil.AreClose(point1.X, point2.X) && 
             DoubleUtil.AreClose(point1.Y, point2.Y);
