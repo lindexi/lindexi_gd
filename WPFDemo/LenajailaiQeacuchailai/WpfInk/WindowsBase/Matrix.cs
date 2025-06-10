@@ -346,20 +346,20 @@ namespace WpfInk.WindowsBase.System.Windows.Media
         /// The transformed point
         /// </returns>
         /// <param name="point"> The Point to transform </param>
-        public InkPoint2D Transform(InkPoint2D point)
+        public Point Transform(Point point)
         {
-            InkPoint2D newPoint = point;
+            Point newPoint = point;
             var x = newPoint.X;
             var y = newPoint.Y;
             MultiplyPoint(ref x, ref y);
-            return new InkPoint2D(x,y);
+            return new Point(x,y);
         }
 
         /// <summary>
         /// Transform - Transforms each point in the array by this matrix
         /// </summary>
         /// <param name="points"> The Point array to transform </param>
-        public void Transform(InkPoint2D[] points)
+        public void Transform(Point[] points)
         {
             if (points != null)
             {
@@ -369,7 +369,7 @@ namespace WpfInk.WindowsBase.System.Windows.Media
                     var x = point.X;
                     var y = point.Y;
                     MultiplyPoint(ref x, ref y);
-                    points[i]=new InkPoint2D(x,y);
+                    points[i]=new Point(x,y);
                 }
             }
         }

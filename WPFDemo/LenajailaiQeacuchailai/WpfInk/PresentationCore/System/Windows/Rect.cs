@@ -13,7 +13,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Constructor which sets the initial values to the values of the parameters
         /// </summary>
-        public Rect(InkPoint2D location,
+        public Rect(Point location,
             Size size)
         {
             if (size.IsEmpty)
@@ -52,8 +52,8 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Constructor which sets the initial values to bound the two points provided.
         /// </summary>
-        public Rect(InkPoint2D point1,
-            InkPoint2D point2)
+        public Rect(Point point1,
+            Point point2)
         {
             _x = Math.Min(point1._x, point2._x);
             _y = Math.Min(point1._y, point2._y);
@@ -67,7 +67,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Constructor which sets the initial values to bound the point provided and the point
         /// which results from point + vector.
         /// </summary>
-        public Rect(InkPoint2D point,
+        public Rect(Point point,
             Vector vector): this(point, point+vector)
         {
         }
@@ -130,11 +130,11 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Location - The Point representing the origin of the Rectangle
         /// </summary>
-        public InkPoint2D Location
+        public Point Location
         {
             get
             {
-                return new InkPoint2D(_x, _y);
+                return new Point(_x, _y);
             }
             set
             {
@@ -338,11 +338,11 @@ namespace WpfInk.PresentationCore.System.Windows
         /// TopLeft Property - This is a read-only alias for the Point which is at X, Y
         /// If this is the empty rectangle, the value will be positive infinity, positive infinity.
         /// </summary>
-        public InkPoint2D TopLeft
+        public Point TopLeft
         {
             get
             {
-                return new InkPoint2D(Left, Top);
+                return new Point(Left, Top);
             }
         }
 
@@ -350,11 +350,11 @@ namespace WpfInk.PresentationCore.System.Windows
         /// TopRight Property - This is a read-only alias for the Point which is at X + Width, Y
         /// If this is the empty rectangle, the value will be negative infinity, positive infinity.
         /// </summary>
-        public InkPoint2D TopRight
+        public Point TopRight
         {
             get
             {
-                return new InkPoint2D(Right, Top);
+                return new Point(Right, Top);
             }
         }
 
@@ -362,11 +362,11 @@ namespace WpfInk.PresentationCore.System.Windows
         /// BottomLeft Property - This is a read-only alias for the Point which is at X, Y + Height
         /// If this is the empty rectangle, the value will be positive infinity, negative infinity.
         /// </summary>
-        public InkPoint2D BottomLeft
+        public Point BottomLeft
         {
             get
             {
-                return new InkPoint2D(Left, Bottom);
+                return new Point(Left, Bottom);
             }
         }
 
@@ -374,11 +374,11 @@ namespace WpfInk.PresentationCore.System.Windows
         /// BottomRight Property - This is a read-only alias for the Point which is at X + Width, Y + Height
         /// If this is the empty rectangle, the value will be negative infinity, negative infinity.
         /// </summary>
-        public InkPoint2D BottomRight
+        public Point BottomRight
         {
             get
             {
-                return new InkPoint2D(Right, Bottom);
+                return new Point(Right, Bottom);
             }
         }
         #endregion Public Properties
@@ -394,7 +394,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Returns true if the Point is within the rectangle.
         /// Returns false otherwise
         /// </returns>
-        public bool Contains(InkPoint2D point)
+        public bool Contains(Point point)
         {
             return Contains(point._x, point._y);
         }
@@ -552,7 +552,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Union - Update this rectangle to be the union of this and point.
         /// </summary>
-        public void Union(InkPoint2D point)
+        public void Union(Point point)
         {
             Union(new Rect(point, point));
         }
@@ -560,7 +560,7 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Union - Return the result of the union of rect and point.
         /// </summary>
-        public static Rect Union(Rect rect, InkPoint2D point)
+        public static Rect Union(Rect rect, Point point)
         {
             rect.Union(new Rect(point, point));
             return rect;

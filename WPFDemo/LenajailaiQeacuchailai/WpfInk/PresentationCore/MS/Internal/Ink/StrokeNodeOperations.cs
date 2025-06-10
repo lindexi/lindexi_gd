@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 
@@ -67,11 +66,11 @@ namespace MS.Internal.Ink
                 int i;
                 for (i = 0; (i + 1) < _vertices.Length; i += 2)
                 {
-                    _shapeBounds.Union(new Rect((InkPoint2D)_vertices[i], (InkPoint2D)_vertices[i + 1]));
+                    _shapeBounds.Union(new Rect((Point)_vertices[i], (Point)_vertices[i + 1]));
                 }
                 if (i < _vertices.Length)
                 {
-                    _shapeBounds.Union((InkPoint2D)_vertices[i]);
+                    _shapeBounds.Union((Point)_vertices[i]);
                 }
             }
 
@@ -93,7 +92,7 @@ namespace MS.Internal.Ink
             return boundingBox;
         }
 
-        internal void GetNodeContourPoints(in StrokeNodeData node, List<InkPoint2D> pointBuffer)
+        internal void GetNodeContourPoints(in StrokeNodeData node, List<Point> pointBuffer)
         {
             double pressureFactor = node.PressureFactor;
             if (DoubleUtil.AreClose(pressureFactor, 1d))
@@ -126,10 +125,10 @@ namespace MS.Internal.Ink
 
             if (quad.IsEmpty)
             {
-                InkPoint2D vertex = node.Position + (_vertices[_vertices.Length - 1] * node.PressureFactor);
+                Point vertex = node.Position + (_vertices[_vertices.Length - 1] * node.PressureFactor);
                 for (int i = 0; i < _vertices.Length; i++)
                 {
-                    InkPoint2D nextVertex = node.Position + (_vertices[i] * node.PressureFactor);
+                    Point nextVertex = node.Position + (_vertices[i] * node.PressureFactor);
                     yield return new ContourSegment(vertex, nextVertex);
                     vertex = nextVertex;
                 }
@@ -140,13 +139,13 @@ namespace MS.Internal.Ink
 
                 for (int i = 0, count = _vertices.Length; i < count; i++)
                 {
-                    InkPoint2D vertex = node.Position + (_vertices[i] * node.PressureFactor);
+                    Point vertex = node.Position + (_vertices[i] * node.PressureFactor);
                     if (vertex == quad.B)
                     {
                         for (int j = 0; (j < count) && (vertex != quad.C); j++)
                         {
                             i = (i + 1) % count;
-                            InkPoint2D nextVertex = node.Position + (_vertices[i] * node.PressureFactor);
+                            Point nextVertex = node.Position + (_vertices[i] * node.PressureFactor);
                             yield return new ContourSegment(vertex, nextVertex);
                             vertex = nextVertex;
                         }
@@ -292,7 +291,7 @@ namespace MS.Internal.Ink
         /// <param name="hitEndPoint">End point of the hitting segment</param>
         /// <returns>true if there's intersection, false otherwise</returns>
         internal virtual bool HitTest(
-           in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, InkPoint2D hitBeginPoint, InkPoint2D hitEndPoint)
+           in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, Point hitBeginPoint, Point hitEndPoint)
         {
             // Check for special cases when the endNode is the very first one (beginNode.IsEmpty) 
             // or one node is completely inside the other. In either case the connecting quad 
@@ -300,7 +299,7 @@ namespace MS.Internal.Ink
             // the greater PressureFactor)
             if (quad.IsEmpty)
             {
-                InkPoint2D position;
+                Point position;
                 double pressureFactor;
                 if (beginNode.IsEmpty || (endNode.PressureFactor > beginNode.PressureFactor))
                 {
@@ -376,8 +375,8 @@ namespace MS.Internal.Ink
                 // clockwise from quad.D to quad.C. 
                 for (int node = 0; node < 2; node++)
                 {
-                    InkPoint2D nodePosition = (node == 0) ? beginNode.Position : endNode.Position;
-                    InkPoint2D end = (node == 0) ? quad.A : quad.C;
+                    Point nodePosition = (node == 0) ? beginNode.Position : endNode.Position;
+                    Point end = (node == 0) ? quad.A : quad.C;
 
                     count = _vertices.Length;
                     while (((nodePosition + vertex) != end) && (count != 0))
@@ -465,14 +464,14 @@ namespace MS.Internal.Ink
         /// <param name="hitEndPoint">End point of the hitting segment</param>
         /// <returns>Exact location to cut at represented by StrokeFIndices</returns>
         internal virtual StrokeFIndices CutTest(
-            in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, InkPoint2D hitBeginPoint, InkPoint2D hitEndPoint)
+            in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, Point hitBeginPoint, Point hitEndPoint)
         {
             StrokeFIndices result = StrokeFIndices.Empty;
 
             // First, find out if the hitting segment intersects with either of the ink nodes
             for (int node = (beginNode.IsEmpty ? 1 : 0); node < 2; node++)
             {
-                InkPoint2D position = (node == 0) ? beginNode.Position : endNode.Position;
+                Point position = (node == 0) ? beginNode.Position : endNode.Position;
                 double pressureFactor = (node == 0) ? beginNode.PressureFactor : endNode.PressureFactor;
 
                 // Adjust the segment for the node's pressure factor
@@ -936,7 +935,7 @@ namespace MS.Internal.Ink
             // until it's false.
             bool isInside = true;
 
-            InkPoint2D position;
+            Point position;
             double pressureFactor;
             if (beginNode.IsEmpty || endNode.PressureFactor > beginNode.PressureFactor)
             {
@@ -1093,8 +1092,8 @@ namespace MS.Internal.Ink
                 for (k = 0; k < 2; k++)
                 {
                     count = _vertices.Length;
-                    InkPoint2D nodePosition = (k == 0) ? beginNode.Position : endNode.Position;
-                    InkPoint2D end = (k == 0) ? quad.A : quad.C;
+                    Point nodePosition = (k == 0) ? beginNode.Position : endNode.Position;
+                    Point end = (k == 0) ? quad.A : quad.C;
 
                     // Iterate over the vertices on 
                     //          beginNode(k=0)from quad.D to quad.A 
@@ -1185,7 +1184,7 @@ namespace MS.Internal.Ink
             bool isHit = false;
             for (int node = 0; node < 2; node++)
             {
-                InkPoint2D position;
+                Point position;
                 double pressureFactor;
                 if (node == 0)
                 {

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
-using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 using WpfInk.WindowsBase.System.Windows.Media;
@@ -178,7 +177,7 @@ namespace MS.Internal.Ink
 
             if (quad.IsEmpty)
             {
-                InkPoint2D point = node.Position;
+                Point point = node.Position;
                 point.X += _radius;
                 yield return new ContourSegment(point, point, node.Position);
             }
@@ -215,7 +214,7 @@ namespace MS.Internal.Ink
         /// <param name="hitEndPoint">an end point of the hitting linear segment</param>
         /// <returns>true if the hitting segment intersect the contour comprised of the two stroke nodes</returns>
         internal override bool HitTest(
-           in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, InkPoint2D hitBeginPoint, InkPoint2D hitEndPoint)
+           in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, Point hitBeginPoint, Point hitEndPoint)
         {
             StrokeNodeData bigNode, smallNode;
             if (beginNode.IsEmpty || (quad.IsEmpty && (endNode.PressureFactor > beginNode.PressureFactor)))
@@ -386,7 +385,7 @@ namespace MS.Internal.Ink
         /// <param name="hitEndPoint">End point of the hitting segment</param>
         /// <returns>Exact location to cut at represented by StrokeFIndices</returns>
         internal override StrokeFIndices CutTest(
-            in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, InkPoint2D hitBeginPoint, InkPoint2D hitEndPoint)
+            in StrokeNodeData beginNode, in StrokeNodeData endNode, Quad quad, Point hitBeginPoint, Point hitEndPoint)
         {
             // Compute the positions of the involved points relative to the endNode.
             Vector spineVector = beginNode.IsEmpty ? new Vector(0, 0) : (beginNode.Position - endNode.Position);

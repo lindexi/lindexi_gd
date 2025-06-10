@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
@@ -160,7 +159,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="points">an array of points representing a stroke increment</param>
         /// <returns>yields StrokeNode objects one by one</returns>
-        internal StrokeNodeIterator GetIteratorForNextSegment(InkPoint2D[] points)
+        internal StrokeNodeIterator GetIteratorForNextSegment(Point[] points)
         {   
             if (points == null)
             {
@@ -230,11 +229,11 @@ namespace MS.Internal.Ink
                     previousPressureFactor = StrokeNodeIterator.GetNormalizedPressureFactor(previousStylusPoint.PressureFactor);
                 }
 
-                StrokeNodeData nodeData = new StrokeNodeData((InkPoint2D)stylusPoint, pressureFactor);
+                StrokeNodeData nodeData = new StrokeNodeData((Point)stylusPoint, pressureFactor);
                 StrokeNodeData lastNodeData = StrokeNodeData.Empty;
                 if (previousIndex != -1)
                 {
-                    lastNodeData = new StrokeNodeData((InkPoint2D)previousStylusPoint, previousPressureFactor);
+                    lastNodeData = new StrokeNodeData((Point)previousStylusPoint, previousPressureFactor);
                 }
 
                 //we use previousIndex+1 because index can skip ahead

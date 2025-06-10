@@ -7,7 +7,6 @@
 using System;
 using System.Windows;
 using System.Collections.Generic;
-using WpfInk;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 
@@ -40,7 +39,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="erasingShape">The shape of the eraser's tip</param>
         /// <param name="path">the spine of the erasing stroke</param>
-        internal ErasingStroke(StylusShape erasingShape, IEnumerable<InkPoint2D> path)
+        internal ErasingStroke(StylusShape erasingShape, IEnumerable<Point> path)
             : this(erasingShape)
         {
             MoveTo(path);
@@ -55,10 +54,10 @@ namespace MS.Internal.Ink
         /// Drops any previously genererated nodes.
         /// </summary>
         /// <param name="path"></param>
-        internal void MoveTo(IEnumerable<InkPoint2D> path)
+        internal void MoveTo(IEnumerable<Point> path)
         {
             System.Diagnostics.Debug.Assert((path != null) && (IEnumerablePointHelper.GetCount(path) != 0));
-            InkPoint2D[] points = IEnumerablePointHelper.GetPointArray(path);
+            Point[] points = IEnumerablePointHelper.GetPointArray(path);
 
             if (_erasingStrokeNodes == null)
             {
@@ -258,12 +257,12 @@ namespace MS.Internal.Ink
         #endregion
 
         #region private API
-        private InkPoint2D[] FilterPoints(InkPoint2D[] path)
+        private Point[] FilterPoints(Point[] path)
         {
             System.Diagnostics.Debug.Assert(path.Length > 1);
-            InkPoint2D back2, back1;
+            Point back2, back1;
             int i;
-            List<InkPoint2D> newPath = new List<InkPoint2D>();
+            List<Point> newPath = new List<Point>();
             if (_nodeIterator.Count == 0)
             {
                 newPath.Add(path[0]);

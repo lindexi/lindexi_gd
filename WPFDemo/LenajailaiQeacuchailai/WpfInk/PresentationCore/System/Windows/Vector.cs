@@ -145,17 +145,17 @@ namespace WpfInk.PresentationCore.System.Windows
         /// <summary>
         /// Operator Vector + Point
         /// </summary>
-        public static InkPoint2D operator + (Vector vector, InkPoint2D point)
+        public static Point operator + (Vector vector, Point point)
         {
-            return new InkPoint2D(point._x + vector._x, point._y + vector._y);
+            return new Point(point._x + vector._x, point._y + vector._y);
         }
 
         /// <summary>
         /// Add: Vector + Point
         /// </summary>
-        public static InkPoint2D Add(Vector vector, InkPoint2D point)
+        public static Point Add(Vector vector, Point point)
         {
-            return new InkPoint2D(point._x + vector._x, point._y + vector._y);
+            return new Point(point._x + vector._x, point._y + vector._y);
         }
 
         /// <summary>
@@ -264,9 +264,9 @@ namespace WpfInk.PresentationCore.System.Windows
         /// Point - A Point equal to this Vector
         /// </returns>
         /// <param name="vector"> Vector - the Vector to convert to a Point </param>
-        public static explicit operator InkPoint2D(Vector vector)
+        public static explicit operator Point(Vector vector)
         {
-            return new InkPoint2D(vector._x, vector._y);
+            return new Point(vector._x, vector._y);
         }
         #endregion Public Operators
 
