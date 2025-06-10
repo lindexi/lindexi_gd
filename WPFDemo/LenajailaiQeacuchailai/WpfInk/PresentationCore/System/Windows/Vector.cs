@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.ComponentModel;
-using System.Windows;
 using System.Windows.Media;
 
 namespace WpfInk.PresentationCore.System.Windows
@@ -210,22 +208,6 @@ namespace WpfInk.PresentationCore.System.Windows
         public static Vector Divide(Vector vector, double scalar)
         {
             return vector * (1.0 / scalar);
-        }
-
-        /// <summary>
-        /// Operator Vector * Matrix
-        /// </summary>
-        public static Vector operator * (Vector vector, Matrix matrix)
-        {
-            return matrix.Transform(vector);
-        }
-
-        /// <summary>
-        /// Multiply: Vector * Matrix
-        /// </summary>
-        public static Vector Multiply(Vector vector, Matrix matrix)
-        {
-            return matrix.Transform(vector);
         }
 
         /// <summary>
@@ -523,63 +505,8 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         public override string ToString()
         {
-
-            // Delegate to the internal method which implements all ToString calls.
-            return ConvertToString(null /* format string */, null /* format provider */);
+            return $"({_x},{_y})";
         }
-
-        /// <summary>
-        /// Creates a string representation of this object based on the IFormatProvider
-        /// passed in.  If the provider is null, the CurrentCulture is used.
-        /// </summary>
-        /// <returns>
-        /// A string representation of this object.
-        /// </returns>
-        public string ToString(IFormatProvider provider)
-        {
-
-            // Delegate to the internal method which implements all ToString calls.
-            return ConvertToString(null /* format string */, provider);
-        }
-
-        ///// <summary>
-        ///// Creates a string representation of this object based on the format string
-        ///// and IFormatProvider passed in.
-        ///// If the provider is null, the CurrentCulture is used.
-        ///// See the documentation for IFormattable for more information.
-        ///// </summary>
-        ///// <returns>
-        ///// A string representation of this object.
-        ///// </returns>
-        //string IFormattable.ToString(string format, IFormatProvider provider)
-        //{
-
-        //    // Delegate to the internal method which implements all ToString calls.
-        //    return ConvertToString(format, provider);
-        //}
-
-        /// <summary>
-        /// Creates a string representation of this object based on the format string
-        /// and IFormatProvider passed in.
-        /// If the provider is null, the CurrentCulture is used.
-        /// See the documentation for IFormattable for more information.
-        /// </summary>
-        /// <returns>
-        /// A string representation of this object.
-        /// </returns>
-        internal string ConvertToString(string format, IFormatProvider provider)
-        {
-            throw new NotImplementedException();
-            //// Helper to get the numeric list separator for a given culture.
-            //char separator = MS.Internal.TokenizerHelper.GetNumericListSeparator(provider);
-            //return String.Format(provider,
-            //                     "{1:" + format + "}{0}{2:" + format + "}",
-            //                     separator,
-            //                     _x,
-            //                     _y);
-        }
-
-
 
         #endregion Internal Properties
 

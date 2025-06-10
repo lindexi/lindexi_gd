@@ -8,16 +8,14 @@
 // Please see MilCodeGen.html for more information.
 //
 
-using System.ComponentModel;
-using System.Windows;
-using System.Windows.Media;
 
 //using System.Windows.Converters;
 
+using System.Windows.Media;
+
 namespace WpfInk.PresentationCore.System.Windows
 {
-    [Serializable]
-    public struct Point : IFormattable
+    public struct Point
     {
         //------------------------------------------------------
         //
@@ -130,31 +128,7 @@ namespace WpfInk.PresentationCore.System.Windows
                    Y.GetHashCode();
         }
 
-        /// <summary>
-        /// Parse - returns an instance converted from the provided string using
-        /// the culture "en-US"
-        /// <param name="source"> string with Point data </param>
-        /// </summary>
-        public static Point Parse(string source)
-        {
-            throw new NotImplementedException();
-            //IFormatProvider formatProvider = System.Windows.Markup.TypeConverterHelper.InvariantEnglishUS;
-
-            //TokenizerHelper th = new TokenizerHelper(source, formatProvider);
-
-            //Point value;
-
-            //String firstToken = th.NextTokenRequired();
-
-            //value = new Point(
-            //    Convert.ToDouble(firstToken, formatProvider),
-            //    Convert.ToDouble(th.NextTokenRequired(), formatProvider));
-
-            //// There should be no more tokens in this string.
-            //th.LastTokenRequired();
-
-            //return value;
-        }
+      
 
         #endregion Public Methods
 
@@ -254,62 +228,10 @@ namespace WpfInk.PresentationCore.System.Windows
         /// </returns>
         public override string ToString()
         {
-
-            // Delegate to the internal method which implements all ToString calls.
-            return ConvertToString(null /* format string */, null /* format provider */);
+            return $"({X},{Y})";
         }
 
-        /// <summary>
-        /// Creates a string representation of this object based on the IFormatProvider
-        /// passed in.  If the provider is null, the CurrentCulture is used.
-        /// </summary>
-        /// <returns>
-        /// A string representation of this object.
-        /// </returns>
-        public string ToString(IFormatProvider provider)
-        {
-
-            // Delegate to the internal method which implements all ToString calls.
-            return ConvertToString(null /* format string */, provider);
-        }
-
-        /// <summary>
-        /// Creates a string representation of this object based on the format string
-        /// and IFormatProvider passed in.
-        /// If the provider is null, the CurrentCulture is used.
-        /// See the documentation for IFormattable for more information.
-        /// </summary>
-        /// <returns>
-        /// A string representation of this object.
-        /// </returns>
-        string IFormattable.ToString(string format, IFormatProvider provider)
-        {
-
-            // Delegate to the internal method which implements all ToString calls.
-            return ConvertToString(format, provider);
-        }
-
-        /// <summary>
-        /// Creates a string representation of this object based on the format string
-        /// and IFormatProvider passed in.
-        /// If the provider is null, the CurrentCulture is used.
-        /// See the documentation for IFormattable for more information.
-        /// </summary>
-        /// <returns>
-        /// A string representation of this object.
-        /// </returns>
-        internal string ConvertToString(string format, IFormatProvider provider)
-        {
-            throw new NotImplementedException();
-            //// Helper to get the numeric list separator for a given culture.
-            //char separator = MS.Internal.TokenizerHelper.GetNumericListSeparator(provider);
-            //return String.Format(provider,
-            //                     "{1:" + format + "}{0}{2:" + format + "}",
-            //                     separator,
-            //                     _x,
-            //                     _y);
-        }
-
+      
 
 
         #endregion Internal Properties
@@ -464,21 +386,7 @@ namespace WpfInk.PresentationCore.System.Windows
             return new Vector(point1._x - point2._x, point1._y - point2._y);
         }
 
-        /// <summary>
-        /// Operator Point * Matrix
-        /// </summary>
-        public static Point operator * (Point point, Matrix matrix)
-        {
-            return matrix.Transform(point);
-        }
 
-        /// <summary>
-        /// Multiply: Point * Matrix
-        /// </summary>
-        public static Point Multiply(Point point, Matrix matrix)
-        {
-            return matrix.Transform(point);
-        }
 
         /// <summary>
         /// Explicit conversion to Size.  Note that since Size cannot contain negative values,
