@@ -117,19 +117,19 @@ public class SimpleInkCanvas : FrameworkElement
             //drawingContext.DrawGeometry(Brushes.Red, null, streamGeometry);
             //drawingContext.Pop();
 
-            var text = streamGeometry.ToString();
-            _ = text;
+            //var text = streamGeometry.ToString();
+            //_ = text;
 
             var skPath = new SKPath();
             var skiaStreamGeometryContext = new SkiaStreamGeometryContext(skPath);
             RenderToGeometry(stylusPointCollection, skiaStreamGeometryContext);
             pathList.Add(skPath);
-            var svgPathData = skPath.ToSvgPathData();
-            _ = svgPathData;
-            if (text.Contains(svgPathData))
-            {
+            //var svgPathData = skPath.ToSvgPathData();
+            //_ = svgPathData;
+            //if (text.Contains(svgPathData))
+            //{
 
-            }
+            //}
         }
     }
 
@@ -140,7 +140,7 @@ public class SimpleInkCanvas : FrameworkElement
             Width = 10,
             Height = 10,
             //StylusTip = StylusTip.Rectangle,
-            //FitToCurve = true,
+            FitToCurve = true,
         };
 
         WpfInk::System.Windows.Ink.Stroke stroke =

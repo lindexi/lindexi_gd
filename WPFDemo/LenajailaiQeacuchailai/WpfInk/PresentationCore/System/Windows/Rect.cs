@@ -9,8 +9,6 @@ using MS.Internal;
 
 namespace WpfInk.PresentationCore.System.Windows
 {
-    [Serializable]
-    [TypeConverter(typeof(RectConverter))]
     public struct Rect
     {
         #region Constructors

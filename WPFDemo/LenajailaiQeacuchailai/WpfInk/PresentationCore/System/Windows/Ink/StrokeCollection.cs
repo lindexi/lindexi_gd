@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -30,8 +30,7 @@ namespace System.Windows.Ink
     /// <summary>
     /// Collection of strokes objects which can be operated on in aggregate.
     /// </summary>
-    [System.ComponentModel.TypeConverter(typeof(StrokeCollectionConverter))]
-    public partial class StrokeCollection : Collection<Stroke>, INotifyPropertyChanged, INotifyCollectionChanged
+    public partial class StrokeCollection
     {
         /// <summary>
         /// The string used to designate the native persistence format
@@ -107,13 +106,6 @@ namespace System.Windows.Ink
                 throw new ArgumentException(SR.Get(SRID.Image_StreamWrite), "stream");
             }
             SaveIsf(stream, compress);
-        }
-
-        /// <summary>Save the collection of strokes uncompressed, including any custom attributes to a stream</summary>
-        /// <param name="stream">The stream to save Ink Serialized Format to</param>
-        public void Save(Stream stream)
-        {
-            Save(stream, true);
         }
 
         /// <summary>

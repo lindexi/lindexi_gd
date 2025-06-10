@@ -17,7 +17,6 @@ using System.Windows.Media;
 namespace WpfInk.PresentationCore.System.Windows
 {
     [Serializable]
-    [TypeConverter(typeof(PointConverter))]
     public struct Point : IFormattable
     {
         //------------------------------------------------------
