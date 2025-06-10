@@ -71,31 +71,6 @@ namespace System.Windows.Ink
         #region Public Properties
 
         /// <summary>
-        /// The color of the Stroke
-        /// </summary>
-        public Color Color
-        {
-            get
-            {
-                ////prevent boxing / unboxing if possible
-                //if (!_extendedProperties.Contains(KnownIds.Color))
-                //{
-                //    Debug.Assert(Colors.Black == (Color)GetDefaultDrawingAttributeValue(KnownIds.Color));
-                //    return Colors.Black;
-                //}
-                //return (Color)GetExtendedPropertyBackedProperty(KnownIds.Color);
-                return default(Color);
-            }
-            set
-            {
-                //no need to raise change events, they will bubble up from the EPC
-                //underneath us
-                // Validation of value is done in EPC
-                //SetExtendedPropertyBackedProperty(KnownIds.Color, value);
-            }
-        }
-
-        /// <summary>
         /// The StylusTip used to draw the stroke
         /// </summary>
         public StylusTip StylusTip
@@ -418,23 +393,6 @@ namespace System.Windows.Ink
                 //no need to raise change events, they will bubble up from the EPC
                 //underneath us
                 SetExtendedPropertyBackedProperty(KnownIds.DrawingFlags, value);
-            }
-        }
-
-
-        /// <summary>
-        /// we need to preserve this for round tripping
-        /// </summary>
-        /// <value></value>
-        internal uint RasterOperation
-        {
-            get
-            {
-                return _v1RasterOperation;
-            }
-            set
-            {
-                _v1RasterOperation = value;
             }
         }
 
@@ -1001,7 +959,6 @@ namespace System.Windows.Ink
         private PropertyChangedEventHandler             _propertyChanged;
 
         private ExtendedPropertyCollection              _extendedProperties;
-        private uint                                    _v1RasterOperation = DrawingAttributeSerializer.RasterOperationDefaultV1;
         private bool                                    _heightChangedForCompatabity = false;
 
         /// <summary>
