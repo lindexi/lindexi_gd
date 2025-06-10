@@ -19,8 +19,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         private double _x;
         private double _y;
         private float _pressureFactor;
-        private int[] _additionalValues;
-        private StylusPointDescription _stylusPointDescription;
 
         #region Constructors
         /// <summary>
@@ -92,8 +90,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             //
             _x = GetClampedXYValue(x);
             _y = GetClampedXYValue(y);
-            _stylusPointDescription = stylusPointDescription;
-            _additionalValues = additionalValues;
             _pressureFactor = pressureFactor;
 
             if (validateAdditionalData)
@@ -111,34 +107,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
                     ArgumentNullException.ThrowIfNull(additionalValues);
                 }
 
-                if (additionalValues != null)
-                {
-                    ReadOnlyCollection<StylusPointPropertyInfo> properties
-                        = stylusPointDescription.GetStylusPointProperties();
-
-                    int expectedAdditionalValues = properties.Count - StylusPointDescription.RequiredCountOfProperties; //for x, y, pressure
-                    if (additionalValues.Length != expectedAdditionalValues)
-                    {
-                        throw new ArgumentException(SR.InvalidAdditionalDataForStylusPoint, nameof(additionalValues));
-                    }
-
-                    //
-                    // any buttons passed in must each be in their own int.  We need to 
-                    // pack them all into one int here
-                    //
-                    int[] newAdditionalValues =
-                        new int[stylusPointDescription.GetExpectedAdditionalDataCount()];
-
-                    _additionalValues = newAdditionalValues;
-                    for (int i = StylusPointDescription.RequiredCountOfProperties, j = 0; i < properties.Count; i++, j++)
-                    {
-                        //
-                        // use SetPropertyValue, it validates buttons, but does not copy the 
-                        // int[] on writes (since we pass the bool flag)
-                        //
-                        SetPropertyValue(properties[i], additionalValues[j], copyBeforeWrite: false);
-                    }
-                }
             }
         }
 
@@ -227,42 +195,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             }
         }
 
-        /// <summary>
-        /// Describes the properties this StylusPoint contains
-        /// </summary>
-        public StylusPointDescription Description
-        {
-            get
-            {
-                if (null == _stylusPointDescription)
-                {
-                    // this can happen when you call new StylusPoint() 
-                    // a few of the ctor's lazy init this as well
-                    _stylusPointDescription = new StylusPointDescription();
-                }
-                return _stylusPointDescription;
-            }
-            internal set
-            {
-                //
-                // called by StylusPointCollection.Add / Set
-                // to replace the StylusPoint.Description with the collections.
-                //
-                Debug.Assert(value != null &&
-                    StylusPointDescription.AreCompatible(value, this.Description));
-
-                _stylusPointDescription = value;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if this StylusPoint supports the specified property
-        /// </summary>
-        /// <param name="stylusPointProperty">The StylusPointProperty to see if this StylusPoint supports</param>
-        public bool HasProperty(StylusPointProperty stylusPointProperty)
-        {
-            return this.Description.HasProperty(stylusPointProperty);
-        }
 
         /// <summary>
         /// Provides read access to all stylus properties
@@ -281,140 +213,15 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             }
             else if (stylusPointProperty.Id == StylusPointPropertyIds.NormalPressure)
             {
-                StylusPointPropertyInfo info =
-                    this.Description.GetPropertyInfo(StylusPointProperties.NormalPressure);
+                //StylusPointPropertyInfo info =
+                //    this.Description.GetPropertyInfo(StylusPointProperties.NormalPressure);
 
-                int max = info.Maximum;
-                return (int) (_pressureFactor * (float) max);
+                //int max = info.Maximum;
+                return (int) _pressureFactor * 1024;
             }
             else
             {
-                int propertyIndex = this.Description.GetPropertyIndex(stylusPointProperty.Id);
-                if (-1 == propertyIndex)
-                {
-                    throw new ArgumentException(SR.InvalidStylusPointProperty, nameof(stylusPointProperty));
-                }
-                if (stylusPointProperty.IsButton)
-                {
-                    //
-                    // we get button data from a single int in the array
-                    //
-                    int buttonData = _additionalValues[_additionalValues.Length - 1];
-                    int buttonBitPosition = this.Description.GetButtonBitPosition(stylusPointProperty);
-                    int bit = 1 << buttonBitPosition;
-                    if ((buttonData & bit) != 0)
-                    {
-                        return 1;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
-                }
-                else
-                {
-                    return _additionalValues[propertyIndex - 3];
-                }
-            }
-        }
-
-        /// <summary>
-        /// Allows supported properties to be set
-        /// </summary>
-        /// <param name="stylusPointProperty">The property to set, it must exist on this StylusPoint</param>
-        /// <param name="value">value</param>
-        public void SetPropertyValue(StylusPointProperty stylusPointProperty, int value)
-        {
-            SetPropertyValue(stylusPointProperty, value, true);
-        }
-        /// <summary>
-        /// Optimization that lets the ctor call setvalue repeatly without causing a copy of the int[]
-        /// </summary>
-        /// <param name="stylusPointProperty">stylusPointProperty</param>
-        /// <param name="value">value</param>
-        /// <param name="copyBeforeWrite"></param>
-        internal void SetPropertyValue(StylusPointProperty stylusPointProperty, int value, bool copyBeforeWrite)
-        {
-            ArgumentNullException.ThrowIfNull(stylusPointProperty);
-            if (stylusPointProperty.Id == StylusPointPropertyIds.X)
-            {
-                double dVal = (double) value;
-                //
-                // only accept values between MaxXY and MinXY
-                // we don't throw when passed a value outside of that range, we just silently trunctate
-                //
-                _x = GetClampedXYValue(dVal);
-            }
-            else if (stylusPointProperty.Id == StylusPointPropertyIds.Y)
-            {
-                double dVal = (double) value;
-                //
-                // only accept values between MaxXY and MinXY
-                // we don't throw when passed a value outside of that range, we just silently trunctate
-                //
-                _y = GetClampedXYValue(dVal);
-            }
-            else if (stylusPointProperty.Id == StylusPointPropertyIds.NormalPressure)
-            {
-                StylusPointPropertyInfo info =
-                    this.Description.GetPropertyInfo(StylusPointProperties.NormalPressure);
-
-                int min = info.Minimum;
-                int max = info.Maximum;
-                if (max == 0)
-                {
-                    _pressureFactor = 0.0f;
-                }
-                else
-                {
-                    _pressureFactor = (float) (Convert.ToSingle(min + value) / Convert.ToSingle(max));
-                }
-            }
-            else
-            {
-                int propertyIndex = this.Description.GetPropertyIndex(stylusPointProperty.Id);
-                if (-1 == propertyIndex)
-                {
-                    throw new ArgumentException(SR.InvalidStylusPointProperty, "propertyId");
-                }
-                if (stylusPointProperty.IsButton)
-                {
-                    if (value < 0 || value > 1)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(value), SR.InvalidMinMaxForButton);
-                    }
-
-                    if (copyBeforeWrite)
-                    {
-                        CopyAdditionalData();
-                    }
-
-                    //
-                    // we get button data from a single int in the array
-                    //
-                    int buttonData = _additionalValues[_additionalValues.Length - 1];
-                    int buttonBitPosition = this.Description.GetButtonBitPosition(stylusPointProperty);
-                    int bit = 1 << buttonBitPosition;
-                    if (value == 0)
-                    {
-                        //turn the bit off
-                        buttonData &= ~bit;
-                    }
-                    else
-                    {
-                        //turn the bit on
-                        buttonData |= bit;
-                    }
-                    _additionalValues[_additionalValues.Length - 1] = buttonData;
-                }
-                else
-                {
-                    if (copyBeforeWrite)
-                    {
-                        CopyAdditionalData();
-                    }
-                    _additionalValues[propertyIndex - 3] = value;
-                }
+                throw new ArgumentException(SR.InvalidStylusPointProperty, nameof(stylusPointProperty));
             }
         }
 
@@ -497,41 +304,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
                 return false;
             }
 
-            //
-            // before we go checking the descriptions... check to see if both additionalData's are null
-            // we can infer that the SPD's are just X,Y,P and that they are compatible.
-            //
-            if (stylusPoint1._additionalValues == null &&
-                stylusPoint2._additionalValues == null)
-            {
-                Debug.Assert(StylusPointDescription.AreCompatible(stylusPoint1.Description, stylusPoint2.Description));
-                return true;
-            }
-
-            //
-            // ok, the members are equal.  compare the description and then additional data
-            //
-            if (object.ReferenceEquals(stylusPoint1.Description, stylusPoint2.Description) ||
-                StylusPointDescription.AreCompatible(stylusPoint1.Description, stylusPoint2.Description))
-            {
-                //
-                // descriptions match and there are equal numbers of additional values
-                // let's check the values
-                //
-                for (int x = 0; x < stylusPoint1._additionalValues.Length; x++)
-                {
-                    if (stylusPoint1._additionalValues[x] != stylusPoint2._additionalValues[x])
-                    {
-                        return false;
-                    }
-                }
-
-                //
-                // Ok, ok already, we're equal
-                //
-                return true;
-            }
-
             return false;
         }
 
@@ -585,31 +357,9 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
                 _y.GetHashCode() ^
                 _pressureFactor.GetHashCode();
 
-            if (_stylusPointDescription != null)
-            {
-                hash ^= _stylusPointDescription.GetHashCode();
-            }
-
-            if (_additionalValues != null)
-            {
-                for (int x = 0; x < _additionalValues.Length; x++)
-                {
-                    hash ^= _additionalValues[x]; //don't call GetHashCode on integers, it just returns the int
-                }
-            }
-
             return hash;
         }
 
-        /// <summary>
-        /// Used by the StylusPointCollection.ToHimetricArray method
-        /// </summary>
-        /// <returns></returns>
-        internal int[] GetAdditionalData()
-        {
-            //return a direct ref
-            return _additionalValues;
-        }
 
         /// <summary>
         /// Internal helper used by SPC.Reformat to preserve the pressureFactor
@@ -617,39 +367,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         internal float GetUntruncatedPressureFactor()
         {
             return _pressureFactor;
-        }
-
-        /// <summary>
-        /// GetPacketData - returns avalon space packet data with true pressure if it exists
-        /// </summary>
-        internal int[] GetPacketData()
-        {
-            int count = 2; //x, y
-            if (_additionalValues != null)
-            {
-                count += _additionalValues.Length;
-            }
-            if (this.Description.ContainsTruePressure)
-            {
-                count++;
-            }
-            int[] data = new int[count];
-            data[0] = (int) _x;
-            data[1] = (int) _y;
-            int startIndex = 2;
-            if (this.Description.ContainsTruePressure)
-            {
-                startIndex = 3;
-                data[2] = GetPropertyValue(StylusPointProperties.NormalPressure);
-            }
-            if (_additionalValues != null)
-            {
-                for (int x = 0; x < _additionalValues.Length; x++)
-                {
-                    data[x + startIndex] = _additionalValues[x];
-                }
-            }
-            return data;
         }
 
         /// <summary>
@@ -662,19 +379,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             {
                 return (_pressureFactor == DefaultPressure);
             }
-        }
-
-        /// <summary>
-        /// Used by the SetPropertyData to make a copy of the data
-        /// before modifying it.  This is required so that we don't 
-        /// have two StylusPoint's sharing the same int[]
-        /// which can happen when you call: StylusPoint p = otherStylusPoint
-        /// because the CLR just does a memberwise copy
-        /// </summary>
-        /// <returns></returns>        
-        private void CopyAdditionalData()
-        {
-            _additionalValues = (int[]) _additionalValues?.Clone();
         }
 
         /// <summary>

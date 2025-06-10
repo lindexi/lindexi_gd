@@ -43,6 +43,8 @@ public class SimpleInkCanvas : FrameworkElement
         return new PointHitTestResult(this, hitTestParameters.HitPoint);
     }
 
+    private readonly List<InkStylusPoint2D> _cacheList = new List<InkStylusPoint2D>();
+
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
@@ -57,7 +59,8 @@ public class SimpleInkCanvas : FrameworkElement
                 continue;
             }
 
-            var list = new List<InkStylusPoint2D>();
+            _cacheList.Clear();
+            var list = _cacheList;
 
             foreach (var inkDataModel in arrayOfInkDataModel)
             {
@@ -71,7 +74,9 @@ public class SimpleInkCanvas : FrameworkElement
 
         if (PointList.Count > 2)
         {
-            var list = new List<InkStylusPoint2D>();
+            _cacheList.Clear();
+            var list = _cacheList;
+
             foreach (var (x, y) in PointList)
             {
                 list.Add(new InkStylusPoint2D(x, y));

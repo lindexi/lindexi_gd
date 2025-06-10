@@ -7,8 +7,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Input;
-using MS.Internal.Ink.InkSerializedFormat;
-using WpfInk.PresentationCore.System.Windows.Ink;
 
 namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
 {
@@ -17,24 +15,21 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
     /// </summary>
     internal class StylusPointCollection : Collection<StylusPoint>
     {
-        private StylusPointDescription _stylusPointDescription;
-
         /// <summary>
         /// Changed event, anytime the data in this collection changes, this event is raised
         /// </summary>
-        public event EventHandler Changed;
+        public event EventHandler? Changed;
 
         /// <summary>
         /// Internal only changed event used by Stroke to prevent zero count strokes
         /// </summary>
-        internal event CancelEventHandler CountGoingToZero;
+        internal event CancelEventHandler? CountGoingToZero;
 
         /// <summary>
         /// StylusPointCollection
         /// </summary>
         public StylusPointCollection()
         {
-            _stylusPointDescription = new StylusPointDescription();
         }
 
         /// <summary>
@@ -51,15 +46,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             ((List<StylusPoint>) this.Items).Capacity = initialCapacity;
         }
 
-        /// <summary>
-        /// StylusPointCollection
-        /// </summary>
-        /// <param name="stylusPointDescription">stylusPointDescription</param>
-        public StylusPointCollection(StylusPointDescription stylusPointDescription)
-        {
-            ArgumentNullException.ThrowIfNull(stylusPointDescription);
-            _stylusPointDescription = stylusPointDescription;
-        }
 
         /// <summary>
         /// StylusPointCollection
@@ -67,7 +53,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// <param name="stylusPointDescription">stylusPointDescription</param>
         /// <param name="initialCapacity">initialCapacity</param>
         public StylusPointCollection(StylusPointDescription stylusPointDescription, int initialCapacity)
-            : this(stylusPointDescription)
+            : this()
         {
             if (initialCapacity < 0)
             {
@@ -76,33 +62,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             ((List<StylusPoint>) this.Items).Capacity = initialCapacity;
         }
 
-
-        /// <summary>
-        /// StylusPointCollection
-        /// </summary>
-        /// <param name="stylusPoints">stylusPoints</param>
-        public StylusPointCollection(IEnumerable<StylusPoint> stylusPoints)
-        //: this() //don't call the base ctor, we want to use the first sp
-        {
-            ArgumentNullException.ThrowIfNull(stylusPoints);
-
-            List<StylusPoint> points = new List<StylusPoint>(stylusPoints);
-            if (points.Count == 0)
-            {
-                throw new ArgumentException(SR.InvalidStylusPointConstructionZeroLengthCollection, nameof(stylusPoints));
-            }
-
-            //
-            // set our packet description to the first in the array
-            //
-            _stylusPointDescription = points[0].Description;
-
-            ((List<StylusPoint>) this.Items).Capacity = points.Count;
-            for (int x = 0; x < points.Count; x++)
-            {
-                this.Add(points[x]);
-            }
-        }
 
         /// <summary>
         /// StylusPointCollection
@@ -205,11 +164,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         {
             //note that we don't raise an exception if stylusPoints.Count == 0
             ArgumentNullException.ThrowIfNull(stylusPoints);
-            if (!StylusPointDescription.AreCompatible(stylusPoints.Description,
-                                                        _stylusPointDescription))
-            {
-                throw new ArgumentException(SR.IncompatibleStylusPointDescriptions, nameof(stylusPoints));
-            }
+         
 
             // cache count outside of the loop, so if this SPC is ever passed
             // we don't loop forever
@@ -217,7 +172,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             for (int x = 0; x < count; x++)
             {
                 StylusPoint stylusPoint = stylusPoints[x];
-                stylusPoint.Description = _stylusPointDescription;
                 //this does not go through our protected virtuals
                 ((List<StylusPoint>) this.Items).Add(stylusPoint);
             }
@@ -225,21 +179,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             if (stylusPoints.Count > 0)
             {
                 OnChanged(EventArgs.Empty);
-            }
-        }
-
-        /// <summary>
-        /// Read only access to the StylusPointDescription shared by the StylusPoints in this collection
-        /// </summary>
-        public StylusPointDescription Description
-        {
-            get
-            {
-                if (null == _stylusPointDescription)
-                {
-                    _stylusPointDescription = new StylusPointDescription();
-                }
-                return _stylusPointDescription;
             }
         }
 
@@ -283,13 +222,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// </summary>
         protected sealed override void InsertItem(int index, StylusPoint stylusPoint)
         {
-            if (!StylusPointDescription.AreCompatible(stylusPoint.Description,
-                                                    _stylusPointDescription))
-            {
-                throw new ArgumentException(SR.IncompatibleStylusPointDescriptions, nameof(stylusPoint));
-            }
-
-            stylusPoint.Description = _stylusPointDescription;
             base.InsertItem(index, stylusPoint);
 
             OnChanged(EventArgs.Empty);
@@ -301,13 +233,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// </summary>
         protected sealed override void SetItem(int index, StylusPoint stylusPoint)
         {
-            if (!StylusPointDescription.AreCompatible(stylusPoint.Description,
-                                                    _stylusPointDescription))
-            {
-                throw new ArgumentException(SR.IncompatibleStylusPointDescriptions, nameof(stylusPoint));
-            }
-
-            stylusPoint.Description = _stylusPointDescription;
             base.SetItem(index, stylusPoint);
 
             OnChanged(EventArgs.Empty);
@@ -318,7 +243,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// </summary>
         public StylusPointCollection Clone()
         {
-            return this.Clone(/*System.Windows.Media.Transform.Identity,*/ this.Description, this.Count);
+            return this.Clone(/*System.Windows.Media.Transform.Identity,*/ /*this.Description,*/ this.Count);
         }
 
         /// <summary>
@@ -367,7 +292,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         /// <summary>
         /// Private clone implementation
         /// </summary>
-        private StylusPointCollection Clone(/*GeneralTransform transform,*/ StylusPointDescription descriptionToUse, int count)
+        private StylusPointCollection Clone(/*GeneralTransform transform,*/ /*StylusPointDescription descriptionToUse,*/ int count)
         {
             Debug.Assert(count <= this.Count);
             //
@@ -375,7 +300,7 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
             // and we don't need to copy our StylusPoints, because they are structs.
             //
             StylusPointCollection newCollection =
-                new StylusPointCollection(descriptionToUse, count);
+                new StylusPointCollection(count);
 
             bool isIdentity = //(transform is Transform) ? ((Transform) transform).IsIdentity : false;
                 true;
@@ -521,115 +446,6 @@ namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
         }
 #endif
 
-        /// <summary>
-        /// Returns this StylusPointCollection as a flat integer array in the himetric coordiate space
-        /// </summary>
-        /// <returns></returns>
-        public int[] ToHiMetricArray()
-        {
-            //
-            // X and Y are in Avalon units, we need to convert to HIMETRIC
-            //
-            int lengthPerPoint = this.Description.GetOutputArrayLengthPerPoint();
-            int[] output = new int[lengthPerPoint * this.Count];
-            for (int i = 0, x = 0; i < this.Count; i++, x += lengthPerPoint)
-            {
-                StylusPoint stylusPoint = this[i];
-                output[x] = (int) Math.Round(stylusPoint.X * StrokeCollectionSerializer.AvalonToHimetricMultiplier);
-                output[x + 1] = (int) Math.Round(stylusPoint.Y * StrokeCollectionSerializer.AvalonToHimetricMultiplier);
-                output[x + 2] = stylusPoint.GetPropertyValue(StylusPointProperties.NormalPressure);
-
-                if (lengthPerPoint > StylusPointDescription.RequiredCountOfProperties/*3*/)
-                {
-                    int[] additionalData = stylusPoint.GetAdditionalData();
-                    int countToCopy = lengthPerPoint - StylusPointDescription.RequiredCountOfProperties;/*3*/
-                    Debug.Assert(additionalData.Length == countToCopy);
-
-                    for (int y = 0; y < countToCopy; y++)
-                    {
-                        output[x + y + 3] = additionalData[y];
-                    }
-                }
-            }
-            return output;
-        }
-        /// <summary>
-        /// ToISFReadyArrays - Returns an array of arrays of packet values:
-        /// 
-        /// int[]
-        ///     - int[x,x,x,x,x,x]
-        ///     - int[y,y,y,y,y,y]
-        ///     - int[p,p,p,p,p,p]
-        /// 
-        /// For ISF serialization
-        /// 
-        /// Also returns if any non-default pressures were found or the metric for
-        /// pressure was non-default
-        /// 
-        /// </summary>
-        internal void ToISFReadyArrays(out int[][] output, out bool shouldPersistPressure)
-        {
-            Debug.Assert(this.Count != 0, "Why are we serializing an empty StylusPointCollection???");
-            //
-            // X and Y are in Avalon units, we need to convert to HIMETRIC
-            //
-
-            //
-            // 
-            // We could optimize for the case where all of the point values are 
-            // convertible to ints (see StylusPackets), but this is rare when using input...
-            int lengthPerPoint = this.Description.GetOutputArrayLengthPerPoint();
-            if (this.Description.ButtonCount > 0)
-            {
-                //don't serialize button data.
-                lengthPerPoint--;
-            }
-
-            output = new int[lengthPerPoint][];
-            for (int x = 0; x < lengthPerPoint; x++)
-            {
-                output[x] = new int[this.Count];
-            }
-
-            //
-            // we serialize pressure if
-            // 1) The StylusPointPropertyInfo for pressure is not the default
-            // 2) There is at least one non-default pressure value in this SPC
-            //
-            StylusPointPropertyInfo pressureInfo =
-                this.Description.GetPropertyInfo(StylusPointPropertyIds.NormalPressure);
-            shouldPersistPressure =
-                !StylusPointPropertyInfo.AreCompatible(pressureInfo, StylusPointPropertyInfoDefaults.NormalPressure);
-
-            for (int b = 0; b < this.Count; b++)
-            {
-                StylusPoint stylusPoint = this[b];
-                output[0][b] = (int) Math.Round(stylusPoint.X * StrokeCollectionSerializer.AvalonToHimetricMultiplier);
-                output[1][b] = (int) Math.Round(stylusPoint.Y * StrokeCollectionSerializer.AvalonToHimetricMultiplier);
-                output[2][b] = stylusPoint.GetPropertyValue(StylusPointProperties.NormalPressure);
-                //
-                // it's not necessary to check HasDefaultPressure if 
-                // allDefaultPressures is already set
-                //
-                if (!shouldPersistPressure && !stylusPoint.HasDefaultPressure)
-                {
-                    shouldPersistPressure = true;
-                }
-                if (lengthPerPoint > StylusPointDescription.RequiredCountOfProperties)
-                {
-                    int[] additionalData = stylusPoint.GetAdditionalData();
-                    int countToCopy = lengthPerPoint - StylusPointDescription.RequiredCountOfProperties;/*3*/
-                    Debug.Assert(this.Description.ButtonCount > 0 ?
-                                    additionalData.Length - 1 == countToCopy :
-                                    additionalData.Length == countToCopy);
-
-                    for (int y = 0; y < countToCopy; y++)
-                    {
-                        output[y + 3][b] = additionalData[y];
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Private helper use to consult with any listening strokes if it is safe to go to zero count
