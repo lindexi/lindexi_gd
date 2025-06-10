@@ -1,7 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace System.Windows.Input
+using System.Windows.Input;
+
+namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
 {
     /// <summary>
     /// StylusPointProperties

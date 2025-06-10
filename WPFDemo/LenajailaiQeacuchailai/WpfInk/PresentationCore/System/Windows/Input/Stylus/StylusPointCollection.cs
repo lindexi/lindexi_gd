@@ -1,15 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.ComponentModel;
-using MS.Internal.Ink.InkSerializedFormat;
-using System.Windows.Media;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
-using Point = WpfInk.PresentationCore.System.Windows.Point;
+using System.Windows.Input;
+using MS.Internal.Ink.InkSerializedFormat;
 
-namespace System.Windows.Input
+namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
 {
     /// <summary>
     /// StylusPointCollection

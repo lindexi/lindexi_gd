@@ -12,6 +12,8 @@ using WpfInk::MS.Internal.Ink;
 using WpfInk::System.Windows.Ink;
 using WpfInk::System.Windows.Input;
 using WpfInk::WpfInk.API;
+using WpfInk::WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus;
 
 namespace WpfApp.Inking;
 
@@ -63,7 +65,7 @@ public class SimpleInkCanvas : FrameworkElement
             var stylusPointCollection = new StylusPointCollection();
             foreach (var inkDataModel in arrayOfInkDataModel)
             {
-                stylusPointCollection.Add(new WpfInk::System.Windows.Input.StylusPoint(inkDataModel.X, inkDataModel.Y));
+                stylusPointCollection.Add(new WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus.StylusPoint(inkDataModel.X, inkDataModel.Y));
             }
 
             RenderStroke(stylusPointCollection);
@@ -76,7 +78,7 @@ public class SimpleInkCanvas : FrameworkElement
             var stylusPointCollection = new StylusPointCollection();
             foreach (var (x, y) in PointList)
             {
-                stylusPointCollection.Add(new WpfInk::System.Windows.Input.StylusPoint(x, y));
+                stylusPointCollection.Add(new WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus.StylusPoint(x, y));
             }
 
             RenderStroke(stylusPointCollection);
@@ -99,7 +101,7 @@ public class SimpleInkCanvas : FrameworkElement
         });
 
 
-        void RenderStroke(WpfInk::System.Windows.Input.StylusPointCollection stylusPointCollection)
+        void RenderStroke(WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus.StylusPointCollection stylusPointCollection)
         {
             var streamGeometry = new StreamGeometry()
             {
@@ -135,7 +137,7 @@ public class SimpleInkCanvas : FrameworkElement
 
     private static void RenderToGeometry(StylusPointCollection stylusPointCollection, IStreamGeometryContext context)
     {
-        var drawingAttributes = new WpfInk::System.Windows.Ink.DrawingAttributes()
+        var drawingAttributes = new DrawingAttributes()
         {
             Width = 10,
             Height = 10,
@@ -143,8 +145,8 @@ public class SimpleInkCanvas : FrameworkElement
             FitToCurve = true,
         };
 
-        WpfInk::System.Windows.Ink.Stroke stroke =
-            new WpfInk::System.Windows.Ink.Stroke(stylusPointCollection, drawingAttributes);
+      var stroke =
+            new Stroke(stylusPointCollection, drawingAttributes);
         var strokeNodeIterator = StrokeNodeIterator.GetIterator(stroke, drawingAttributes);
         StrokeRenderer.CalcGeometryAndBounds(strokeNodeIterator, drawingAttributes, calculateBounds: false,
             context, out _);

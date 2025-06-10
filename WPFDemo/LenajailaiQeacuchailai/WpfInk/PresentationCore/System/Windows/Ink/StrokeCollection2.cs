@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Input;
 using MS.Internal;
@@ -18,7 +19,7 @@ using MS.Internal.Ink;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// The hit-testing API of StrokeCollection.
@@ -371,8 +372,8 @@ namespace System.Windows.Ink
 
         private void UpdateStrokeCollection(Stroke original, StrokeCollection toReplace, ref int index)
         {
-            System.Diagnostics.Debug.Assert(original != null && toReplace != null);
-            System.Diagnostics.Debug.Assert(index >= 0 && index < this.Count);
+            Debug.Assert(original != null && toReplace != null);
+            Debug.Assert(index >= 0 && index < this.Count);
             if (toReplace.Count == 0)
             {
                 Remove(original);

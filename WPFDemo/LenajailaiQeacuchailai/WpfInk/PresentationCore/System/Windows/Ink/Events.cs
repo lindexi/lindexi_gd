@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -7,11 +7,11 @@ using System.Windows.Input;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-
+using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 using SR = MS.Internal.PresentationCore.SR;
 using SRID = MS.Internal.PresentationCore.SRID;
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     #region Public APIs
 

@@ -23,7 +23,7 @@ using SRID = MS.Internal.PresentationCore.SRID;
 
 // Primary root namespace for TabletPC/Ink/Handwriting/Recognition in .NET
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// Collection of strokes objects which can be operated on in aggregate.

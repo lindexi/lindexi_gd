@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Collections.Generic;
 using MS.Internal.Ink.InkSerializedFormat;
 using WpfInk.PresentationCore.System.Windows;
+using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 
 namespace MS.Internal.Ink
 {

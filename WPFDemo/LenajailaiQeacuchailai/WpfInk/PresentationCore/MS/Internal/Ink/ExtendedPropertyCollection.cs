@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -7,6 +7,7 @@ using System;
 using System.ComponentModel;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
@@ -18,7 +19,7 @@ using System.Reflection;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
-namespace System.Windows.Ink
+namespace WpfInk.PresentationCore.System.Windows.Ink
 {
     /// <summary>
     /// A collection of name/value pairs, called ExtendedProperties, can be stored
@@ -186,7 +187,7 @@ namespace System.Windows.Ink
             }
 
             ExtendedProperty propertyToRemove = GetExtendedPropertyById(id);
-            System.Diagnostics.Debug.Assert(propertyToRemove != null);
+            Debug.Assert(propertyToRemove != null);
 
             _extendedProperties.Remove(propertyToRemove);
 
@@ -206,7 +207,7 @@ namespace System.Windows.Ink
 
         /// <value>
         ///     Retrieve the Guid array of ExtendedProperty Ids  in the collection.
-        ///     <paramref>Guid[]</paramref> is of type <see cref="System.Int32"/>.
+        ///     <paramref>Guid[]</paramref> is of type <see cref="int"/>.
         ///     <seealso cref="System.Collections.ICollection.Count"/>
         /// </value>
         internal Guid[] GetGuidArray()
@@ -231,7 +232,7 @@ namespace System.Windows.Ink
         /// </summary>
         /// <param name="attributeId">Attribue Id to find</param>
         /// <returns>Value for attribute specified by Id</returns>
-        /// <exception cref="System.ArgumentException">Specified identifier was not found</exception>
+        /// <exception cref="ArgumentException">Specified identifier was not found</exception>
         /// <remarks>
         /// Note that you can access extended properties via this indexer.
         /// </remarks>
@@ -290,7 +291,7 @@ namespace System.Windows.Ink
         /// </summary>
         /// <param name="index">index into masking collection to retrieve</param>
         /// <returns>ExtendedProperty specified at index</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">Index was not found</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Index was not found</exception>
         /// <remarks>
         /// Note that you can access extended properties via this indexer.
         /// </remarks>
@@ -304,7 +305,7 @@ namespace System.Windows.Ink
 
         /// <value>
         ///     Retrieve the number of ExtendedProperty objects in the collection.
-        ///     <paramref>Count</paramref> is of type <see cref="System.Int32"/>.
+        ///     <paramref>Count</paramref> is of type <see cref="int"/>.
         ///     <seealso cref="System.Collections.ICollection.Count"/>
         /// </value>
         internal int Count
@@ -326,7 +327,7 @@ namespace System.Windows.Ink
         /// </summary>
         private void Add(ExtendedProperty extendedProperty)
         {
-            System.Diagnostics.Debug.Assert(!this.Contains(extendedProperty.Id), "ExtendedProperty already belongs to the collection");
+            Debug.Assert(!this.Contains(extendedProperty.Id), "ExtendedProperty already belongs to the collection");
 
             _extendedProperties.Add(extendedProperty);
 
