@@ -6,7 +6,6 @@ using System.ComponentModel;
 namespace System.Windows
 {
     [Serializable]
-    [TypeConverter(typeof(Int32RectConverter))]
     public struct Int32Rect
     {
         /// <summary>

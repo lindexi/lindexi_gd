@@ -32,17 +32,8 @@ namespace System.Windows.Ink
     /// <summary>
     /// A Stroke object is the fundamental unit of ink data storage.
     /// </summary>
-    public partial class Stroke : INotifyPropertyChanged
+    public partial class Stroke
     {
-        /// <summary>Create a stroke from a StylusPointCollection</summary>
-        /// <remarks>
-        /// </remarks>
-        /// <param name="stylusPoints">StylusPointCollection that makes up the stroke</param>
-        public Stroke(StylusPointCollection stylusPoints)
-            : this (stylusPoints, new DrawingAttributes(), null)
-        {
-        }
-
         /// <summary>Create a stroke from a StylusPointCollection</summary>
         /// <remarks>
         /// </remarks>

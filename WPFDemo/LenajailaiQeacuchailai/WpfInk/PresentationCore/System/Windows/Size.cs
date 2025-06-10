@@ -6,8 +6,6 @@ using System.Windows;
 
 namespace WpfInk.PresentationCore.System.Windows
 {
-    [Serializable]
-    [TypeConverter(typeof(SizeConverter))]
     public struct Size : IFormattable
     {
         #region Constructors

@@ -140,7 +140,7 @@ public class SimpleInkCanvas : FrameworkElement
             Width = 10,
             Height = 10,
             //StylusTip = StylusTip.Rectangle,
-            //FitToCurve = true,
+            FitToCurve = true,
         };
 
         WpfInk::System.Windows.Ink.Stroke stroke =

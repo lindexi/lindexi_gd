@@ -7,8 +7,6 @@ using System.Windows.Media;
 
 namespace WpfInk.PresentationCore.System.Windows
 {
-    [Serializable]
-    [TypeConverter(typeof(VectorConverter))]
     public struct Vector
     {
         #region Constructors
