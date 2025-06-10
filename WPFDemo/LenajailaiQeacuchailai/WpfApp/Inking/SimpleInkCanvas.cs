@@ -20,6 +20,9 @@ public class SimpleInkCanvas : FrameworkElement
         VerticalAlignment = VerticalAlignment.Stretch;
 
         MouseMove += SimpleInkCanvas_MouseMove;
+
+        var arrayOfArrayOfInkDataModel = ArrayOfArrayOfInkDataModel.ReadFromFile(@"Assets\Ink.xml");
+        _arrayOfArrayOfInkDataModel = arrayOfArrayOfInkDataModel;
     }
 
     public SkiaCanvas? SkiaCanvas { get; set; }
@@ -43,21 +46,24 @@ public class SimpleInkCanvas : FrameworkElement
         return new PointHitTestResult(this, hitTestParameters.HitPoint);
     }
 
+    private readonly List<InkStylusPoint2D> _cacheList = new List<InkStylusPoint2D>();
+    private readonly ArrayOfArrayOfInkDataModel _arrayOfArrayOfInkDataModel;
+
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
 
         var pathList = new List<SKPath>();
-
-        var arrayOfArrayOfInkDataModel = ArrayOfArrayOfInkDataModel.ReadFromFile(@"Assets\Ink.xml");
-        foreach (ArrayOfInkDataModel arrayOfInkDataModel in arrayOfArrayOfInkDataModel)
+       
+        foreach (ArrayOfInkDataModel arrayOfInkDataModel in _arrayOfArrayOfInkDataModel)
         {
             if (arrayOfInkDataModel.Count < 20)
             {
                 continue;
             }
 
-            var list = new List<InkStylusPoint2D>();
+            _cacheList.Clear();
+            var list = _cacheList;
 
             foreach (var inkDataModel in arrayOfInkDataModel)
             {
@@ -71,7 +77,9 @@ public class SimpleInkCanvas : FrameworkElement
 
         if (PointList.Count > 2)
         {
-            var list = new List<InkStylusPoint2D>();
+            _cacheList.Clear();
+            var list = _cacheList;
+
             foreach (var (x, y) in PointList)
             {
                 list.Add(new InkStylusPoint2D(x, y));

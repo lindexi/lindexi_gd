@@ -187,16 +187,13 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
             //new points need the same description
             StylusPointCollection bezierStylusPoints =
-                new StylusPointCollection(_stylusPoints.Description, bezierPoints.Count);
+                new StylusPointCollection(bezierPoints.Count);
 
             //
             // add the first point
             //
             AddInterpolatedBezierPoint(bezierStylusPoints,
                                         bezierPoints[0],
-                                        new int[0],
-                                        // 修复构建
-                                        //_stylusPoints[0].GetAdditionalData(), 
                                         _stylusPoints[0].PressureFactor);
 
             if (bezierPoints.Count == 1)
@@ -250,9 +247,6 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
                         AddInterpolatedBezierPoint(bezierStylusPoints,
                                                     bezierPoints[x],
-                                                    new int[0],
-                                                    // 修复构建
-                                                    //prevStylusPoint.GetAdditionalData(),
                                                     interopolatedPressure);
                         break;
                     }
@@ -279,7 +273,6 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             AddInterpolatedBezierPoint(bezierStylusPoints,
                                         bezierPoints[bezierPoints.Count - 1],
-                                        _stylusPoints[stylusPointsCount - 1].GetAdditionalData(),
                                         _stylusPoints[stylusPointsCount - 1].PressureFactor);
 
             return bezierStylusPoints;
@@ -299,7 +292,6 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// </summary>
         private void AddInterpolatedBezierPoint(StylusPointCollection bezierStylusPoints,
                                                 Point bezierPoint,
-                                                int[] additionalData,
                                                 float pressure)
         {
             double xVal = bezierPoint.X > StylusPoint.MaxXY ?
@@ -312,7 +304,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
 
             StylusPoint newBezierPoint =
-                new StylusPoint(xVal, yVal, pressure, bezierStylusPoints.Description, additionalData/*, false, false*/);
+                new StylusPoint(xVal, yVal, pressure);
 
 
             bezierStylusPoints.Add(newBezierPoint);
@@ -813,7 +805,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             Debug.Assert(pointCount >= 1);
 
             StylusPointCollection stylusPoints =
-                new StylusPointCollection(this.StylusPoints.Description, pointCount);
+                new StylusPointCollection(pointCount);
 
             //
             // copy the data from the floor of beginIndex to the ceiling

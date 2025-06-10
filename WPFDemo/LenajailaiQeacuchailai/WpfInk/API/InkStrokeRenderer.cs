@@ -14,7 +14,7 @@ public static class InkStrokeRenderer
             Height = info.Height,
         };
 
-        var stylusPointCollection = new StylusPointCollection();
+        var stylusPointCollection = new StylusPointCollection(info.StylusPointCollection.Count);
 
         foreach (InkStylusPoint2D inkStylusPoint2D in info.StylusPointCollection)
         {
