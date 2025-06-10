@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Diagnostics;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.WindowsBase.System.Windows.Media;
 
 namespace MS.Internal.Ink
 {

@@ -23,6 +23,7 @@ using System.Windows.Markup;
 //using System.Windows.Media.Converters;
 using System.Windows;
 using System.Windows.Media;
+using WpfInk.WindowsBase.System.Windows.Media;
 
 #pragma warning disable 1634, 1691  // suppressing PreSharp warnings
 

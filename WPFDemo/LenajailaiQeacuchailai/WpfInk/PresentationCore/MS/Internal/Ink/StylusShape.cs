@@ -6,6 +6,7 @@
 using System.Windows.Media;
 using MS.Internal;
 using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.WindowsBase.System.Windows.Media;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
 {

@@ -24,6 +24,7 @@ using System.Windows.Ink;
 using System.Windows.Input;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
+using WpfInk.WindowsBase.System.Windows.Media;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 

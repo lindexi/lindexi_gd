@@ -17,6 +17,7 @@ using MS.Internal;
 using MS.Internal.Ink;
 using MS.Internal.Ink.InkSerializedFormat;
 using WpfInk.PresentationCore.System.Windows.Ink;
+using WpfInk.WindowsBase.System.Windows.Media;
 using SR=MS.Internal.PresentationCore.SR;
 using SRID=MS.Internal.PresentationCore.SRID;
 
