@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Input;
 using MS.Internal.Ink.InkSerializedFormat;
+using WpfInk.PresentationCore.System.Windows.Ink;
 
 namespace WpfInk.PresentationCore.System.Windows.Input.Stylus
 {

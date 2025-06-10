@@ -11,6 +11,7 @@ using System.Windows.Ink;
 using System.Windows.Input;
 using System.Diagnostics;
 using WpfInk.PresentationCore.System.Windows;
+using WpfInk.PresentationCore.System.Windows.Ink;
 
 namespace MS.Internal.Ink
 {
