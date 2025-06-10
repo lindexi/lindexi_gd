@@ -236,8 +236,7 @@ namespace System.Windows.Ink
                                                 DrawingAttributes.FittingError))
             {
                 //construction failed, return a clone of the original points
-                //return _stylusPoints.Clone();
-                throw new NotImplementedException();
+                return _stylusPoints.Clone();
             }
 
             double tolerance = 0.5;

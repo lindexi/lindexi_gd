@@ -3,9 +3,7 @@
 
 using System.ComponentModel;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Text;
-using MS.Internal;
 
 namespace System.Windows.Media
 {
@@ -14,7 +12,7 @@ namespace System.Windows.Media
     /// The Color structure, composed of a private, synchronized ScRgb (IEC 61966-2-2) value
     /// a color context, composed of an ICC profile and the native color values.
     /// </summary>
-    [TypeConverter(typeof(ColorConverter))]
+    //[TypeConverter(typeof(ColorConverter))]
     //[Localizability(LocalizationCategory.None, Readability = Readability.Unreadable)]
     public struct Color : IFormattable, IEquatable<Color>
     {
@@ -25,143 +23,6 @@ namespace System.Windows.Media
         //------------------------------------------------------
 
         #region Constructors
-
-
-        ///<summary>
-        /// Color constructor based on ICC or Ashland profile context name. The returned value
-        /// is opaque black.
-        ///</summary>
-        private static Color FromProfile(Uri profileUri)
-        {
-            throw new NotImplementedException();
-            //Color c1 = new Color
-            //{
-            //    //context = new ColorContext(profileUri)
-            //};
-            //c1.scRgbColor.a = 1.0f;
-            //c1.scRgbColor.r = 0.0f;
-            //c1.scRgbColor.g = 0.0f;
-            //c1.scRgbColor.b = 0.0f;
-            //c1.sRgbColor.a = 255;
-            //c1.sRgbColor.r = 0;
-            //c1.sRgbColor.g = 0;
-            //c1.sRgbColor.b = 0;
-            //if (c1.context != null)
-            //{
-            //    c1.nativeColorValue = new float[c1.context.NumChannels];
-            //    for (int i = 0; i < c1.nativeColorValue.Length; i++)
-            //    {
-            //        c1.nativeColorValue[i] = 0.0f;
-            //    }
-            //}
-
-            //c1.isFromScRgb = false;
-
-            //return c1;
-        }
-
-        ///<summary>
-        /// FromAValues - general constructor for multichannel color values with explicit alpha channel and color context, i.e. spectral colors
-        ///</summary>
-        public static Color FromAValues(float a, float[] values, Uri profileUri)
-        {
-            Color c1 = Color.FromProfile(profileUri);
-
-            if (values == null)
-            {
-                throw new ArgumentException(SR.Format(SR.Color_DimensionMismatch, null));
-            }
-
-            if (values.Length != c1.nativeColorValue.Length)
-            {
-                throw new ArgumentException(SR.Format(SR.Color_DimensionMismatch, null));
-            }
-
-            for (int numChannels = 0; numChannels < values.Length; numChannels++)
-            {
-                c1.nativeColorValue[numChannels] = values[numChannels];
-            }
-            c1.ComputeScRgbValues();
-            c1.scRgbColor.a = a;
-            if (a < 0.0f)
-            {
-                a = 0.0f;
-            }
-            else if (a > 1.0f)
-            {
-                a = 1.0f;
-            }
-
-            c1.sRgbColor.a = (byte)((a * 255.0f) + 0.5f);
-            c1.sRgbColor.r = ScRgbTosRgb(c1.scRgbColor.r);
-            c1.sRgbColor.g = ScRgbTosRgb(c1.scRgbColor.g);
-            c1.sRgbColor.b = ScRgbTosRgb(c1.scRgbColor.b);
-
-            return c1;
-        }
-
-        ///<summary>
-        /// FromValues - general color constructor for multichannel color values with opaque alpha channel and explicit color context, i.e. spectral colors
-        ///</summary>
-        public static Color FromValues(float[] values, Uri profileUri)
-        {
-            Color c1 = Color.FromAValues(1.0f, values, profileUri);
-
-            return c1;
-        }
-
-        ///<summary>
-        /// Color - sRgb legacy interface, assumes Rgb values are sRgb
-        ///</summary>
-        internal static Color FromUInt32(uint argb)// internal legacy sRGB interface
-        {
-            Color c1 = new Color();
-
-            c1.sRgbColor.a = (byte)((argb & 0xff000000) >> 24);
-            c1.sRgbColor.r = (byte)((argb & 0x00ff0000) >> 16);
-            c1.sRgbColor.g = (byte)((argb & 0x0000ff00) >> 8);
-            c1.sRgbColor.b = (byte)(argb & 0x000000ff);
-            c1.scRgbColor.a = (float)c1.sRgbColor.a / 255.0f;
-            c1.scRgbColor.r = sRgbToScRgb(c1.sRgbColor.r);  // note that context is undefined and thus unloaded
-            c1.scRgbColor.g = sRgbToScRgb(c1.sRgbColor.g);
-            c1.scRgbColor.b = sRgbToScRgb(c1.sRgbColor.b);
-            c1.context = null;
-
-            c1.isFromScRgb = false;
-
-            return c1;
-        }
-
-        ///<summary>
-        /// FromScRgb
-        ///</summary>
-        public static Color FromScRgb(float a, float r, float g, float b)
-        {
-            Color c1 = new Color();
-
-            c1.scRgbColor.r = r;
-            c1.scRgbColor.g = g;
-            c1.scRgbColor.b = b;
-            c1.scRgbColor.a = a;
-            if (a < 0.0f)
-            {
-                a = 0.0f;
-            }
-            else if (a > 1.0f)
-            {
-                a = 1.0f;
-            }
-
-            c1.sRgbColor.a = (byte)((a * 255.0f) + 0.5f);
-            c1.sRgbColor.r = ScRgbTosRgb(c1.scRgbColor.r);
-            c1.sRgbColor.g = ScRgbTosRgb(c1.scRgbColor.g);
-            c1.sRgbColor.b = ScRgbTosRgb(c1.scRgbColor.b);
-            c1.context = null;
-
-            c1.isFromScRgb = true;
-
-            return c1;
-        }
 
         ///<summary>
         /// Color - sRgb legacy interface, assumes Rgb values are sRgb, alpha channel is linear 1.0 gamma
@@ -174,7 +35,6 @@ namespace System.Windows.Media
             c1.scRgbColor.r = sRgbToScRgb(r);  // note that context is undefined and thus unloaded
             c1.scRgbColor.g = sRgbToScRgb(g);
             c1.scRgbColor.b = sRgbToScRgb(b);
-            c1.context = null;
             c1.sRgbColor.a = a;
             c1.sRgbColor.r = ScRgbTosRgb(c1.scRgbColor.r);
             c1.sRgbColor.g = ScRgbTosRgb(c1.scRgbColor.g);
@@ -223,22 +83,6 @@ namespace System.Windows.Media
             string format = isFromScRgb ? c_scRgbFormat : null;
 
             return ConvertToString(format, null);
-        }
-
-        /// <summary>
-        /// Creates a string representation of this object based on the IFormatProvider
-        /// passed in.  If the provider is null, the CurrentCulture is used.
-        /// </summary>
-        /// <returns>
-        /// A string representation of this object.
-        /// </returns>
-        public string ToString(IFormatProvider provider)
-        {
-            // Delegate to the internal method which implements all ToString calls.
-
-            string format = isFromScRgb ? c_scRgbFormat : null;
-
-            return ConvertToString(format, provider);
         }
 
         /// <summary>
@@ -310,79 +154,6 @@ namespace System.Windows.Media
             //}
         }
 
-        /// <summary>
-        /// Compares two colors for fuzzy equality.  This function
-        /// helps compensate for the fact that float values can
-        /// acquire error when operated upon
-        /// </summary>
-        /// <param name='color1'>The first color to compare</param>
-        /// <param name='color2'>The second color to compare</param>
-        /// <returns>Whether or not the two colors are equal</returns>
-        public static bool AreClose(Color color1, Color color2)
-        {
-            return color1.IsClose(color2);
-        }
-
-        /// <summary>
-        /// Compares two colors for fuzzy equality.  This function
-        /// helps compensate for the fact that float values can
-        /// acquire error when operated upon
-        /// </summary>
-        /// <param name='color'>The color to compare to this</param>
-        /// <returns>Whether or not the two colors are equal</returns>
-        private bool IsClose(Color color)
-        {
-            // Alpha is the least likely channel to differ
-            bool result = true;
-
-            if (context == null || color.nativeColorValue == null)
-            {
-                result = result && FloatUtil.AreClose(scRgbColor.r, color.scRgbColor.r);
-                result = result && FloatUtil.AreClose(scRgbColor.g, color.scRgbColor.g);
-                result = result && FloatUtil.AreClose(scRgbColor.b, color.scRgbColor.b);
-            }
-            else
-            {
-                for (int i = 0; i < color.nativeColorValue.Length; i++)
-                    result = result && FloatUtil.AreClose(nativeColorValue[i], color.nativeColorValue[i]);
-            }
-
-            return result && FloatUtil.AreClose(scRgbColor.a, color.scRgbColor.a);
-        }
-
-        ///<summary>
-        /// Clamp - the color channels to the gamut [0..1].  If a channel is out
-        /// of gamut, it will be set to 1, which represents full saturation.
-        /// We need to sync up context values if they exist
-        ///</summary>
-        public void Clamp()
-        {
-            scRgbColor.r = (scRgbColor.r < 0) ? 0 : (scRgbColor.r > 1.0f) ? 1.0f : scRgbColor.r;
-            scRgbColor.g = (scRgbColor.g < 0) ? 0 : (scRgbColor.g > 1.0f) ? 1.0f : scRgbColor.g;
-            scRgbColor.b = (scRgbColor.b < 0) ? 0 : (scRgbColor.b > 1.0f) ? 1.0f : scRgbColor.b;
-            scRgbColor.a = (scRgbColor.a < 0) ? 0 : (scRgbColor.a > 1.0f) ? 1.0f : scRgbColor.a;
-            sRgbColor.a = (byte)(scRgbColor.a * 255f);
-            sRgbColor.r = ScRgbTosRgb(scRgbColor.r);
-            sRgbColor.g = ScRgbTosRgb(scRgbColor.g);
-            sRgbColor.b = ScRgbTosRgb(scRgbColor.b);
-
-            //add code to check if context is null and if not null then clamp native values
-        }
-
-        ///<summary>
-        /// GetNativeColorValues - return color values from color context
-        ///</summary>
-        public float[] GetNativeColorValues()
-        {
-            if (context != null)
-            {
-                return (float[])nativeColorValue.Clone();
-            }
-            else
-            {
-                throw new InvalidOperationException(SR.Format(SR.Color_NullColorContext, null));
-            }
-        }
         #endregion Public Methods
 
         //------------------------------------------------------
@@ -494,15 +265,6 @@ namespace System.Windows.Media
             //}
         }
 
-        ///<summary>
-        /// Addition method - Adds each channel of the second color to each channel of the
-        /// first and returns the result
-        ///</summary>
-        public static Color Add(Color color1, Color color2)
-        {
-            return (color1 + color2);
-        }
-
         /// <summary>
         /// Subtract operator - substracts each channel of the second color from each channel of the
         /// first and returns the result
@@ -612,15 +374,6 @@ namespace System.Windows.Media
             //}
         }
 
-        ///<summary>
-        /// Subtract method - subtracts each channel of the second color from each channel of the
-        /// first and returns the result
-        ///</summary>
-        public static Color Subtract(Color color1, Color color2)
-        {
-            return (color1 - color2);
-        }
-
         /// <summary>
         /// Multiplication operator - Multiplies each channel of the color by a coefficient and returns the result
         /// </summary>
@@ -644,22 +397,6 @@ namespace System.Windows.Media
             //}
 
             //return c1;
-        }
-
-        ///<summary>
-        /// Multiplication method - Multiplies each channel of the color by a coefficient and returns the result
-        ///</summary>
-        public static Color Multiply(Color color, float coefficient)
-        {
-            return (color * coefficient);
-        }
-
-        ///<summary>
-        /// Equality method for two colors - return true of colors are equal, otherwise returns false
-        ///</summary>
-        public static bool Equals(Color color1, Color color2)
-        {
-            return (color1 == color2);
         }
 
         /// <summary>
@@ -741,17 +478,6 @@ namespace System.Windows.Media
         #region Public Properties
 
         ///<summary>
-        /// ColorContext
-        ///</summary>
-        public ColorContext ColorContext
-        {
-            get
-            {
-                return context;
-            }
-        }
-
-        ///<summary>
         /// A
         ///</summary>
         public byte A
@@ -816,89 +542,6 @@ namespace System.Windows.Media
             {
                 scRgbColor.b = sRgbToScRgb(value);
                 sRgbColor.b = value;
-            }
-        }
-
-        ///<value>The Alpha channel as a float whose range is [0..1].
-        /// the value is allowed to be out of range</value><summary>
-        /// ScA
-        ///</summary>
-        public float ScA
-        {
-            get
-            {
-                return scRgbColor.a;
-            }
-            set
-            {
-                scRgbColor.a = value;
-                if (value < 0.0f)
-                {
-                    sRgbColor.a = 0;
-                }
-                else if (value > 1.0f)
-                {
-                    sRgbColor.a = (byte)255;
-                }
-                else
-                {
-                    sRgbColor.a = (byte)(value * 255f);
-                }
-            }
-        }
-
-        ///<value>The Red channel as a float whose range is [0..1].
-        /// the value is allowed to be out of range</value>
-        ///<summary>
-        /// ScR
-        ///</summary>
-        public float ScR
-        {
-            get
-            {
-                return scRgbColor.r;
-                // throw new ArgumentException(SR.Format(SR.Color_ColorContextNotsRgb_or_ScRgb, null));
-            }
-            set
-            {
-                scRgbColor.r = value;
-                sRgbColor.r = ScRgbTosRgb(value);
-            }
-        }
-
-        ///<value>The Green channel as a float whose range is [0..1].
-        /// the value is allowed to be out of range</value><summary>
-        /// ScG
-        ///</summary>
-        public float ScG
-        {
-            get
-            {
-                return scRgbColor.g;
-                // throw new ArgumentException(SR.Format(SR.Color_ColorContextNotsRgb_or_ScRgb, null));
-            }
-            set
-            {
-                scRgbColor.g = value;
-                sRgbColor.g = ScRgbTosRgb(value);
-            }
-        }
-
-        ///<value>The Blue channel as a float whose range is [0..1].
-        /// the value is allowed to be out of range</value><summary>
-        /// ScB
-        ///</summary>
-        public float ScB
-        {
-            get
-            {
-                return scRgbColor.b;
-                // throw new ArgumentException(SR.Format(SR.Color_ColorContextNotsRgb_or_ScRgb, null));
-            }
-            set
-            {
-                scRgbColor.b = value;
-                sRgbColor.b = ScRgbTosRgb(value);
             }
         }
 
@@ -991,29 +634,6 @@ namespace System.Windows.Media
             }
         }
 
-        ///<summary>
-        /// private helper function to set context values from a color value with a set context and ScRgb values
-        ///</summary>
-        ///
-        private void ComputeScRgbValues()
-        {
-            //if (this.context != null)
-            //{
-            //    Color c2 = Color.FromRgb(0, 0, 0);
-
-            //    c2.context = new ColorContext(PixelFormats.Bgra32);
-
-            //    ColorTransform colorTransform = new ColorTransform(this.context, c2.context);
-            //    Span<float> scRGBValue = stackalloc float[3];
-
-            //    colorTransform.Translate(this.nativeColorValue, scRGBValue);
-
-            //    this.scRgbColor.r = sRgbToScRgb((byte)((255.0f * scRGBValue[0]) + 0.5f));
-            //    this.scRgbColor.g = sRgbToScRgb((byte)((255.0f * scRGBValue[1]) + 0.5f));
-            //    this.scRgbColor.b = sRgbToScRgb((byte)((255.0f * scRGBValue[2]) + 0.5f));
-            //}
-        }
-
         //private void ComputeNativeValues(int numChannels)
         //{
         //    this.nativeColorValue = new float[numChannels];
@@ -1046,9 +666,6 @@ namespace System.Windows.Media
 
         #region Private Fields
 
-        [MarshalAs(UnmanagedType.Interface)]
-        private ColorContext context;
-
         private struct MILColorF // this structure is the "milrendertypes.h" structure and should be identical for performance
         {
             public float a, r, g, b;
@@ -1080,6 +697,4 @@ namespace System.Windows.Media
 
         #endregion Private Fields
     }
-
-    public class ColorContext{}
 }

@@ -83,14 +83,15 @@ namespace System.Windows.Ink
                 //    Debug.Assert(Colors.Black == (Color)GetDefaultDrawingAttributeValue(KnownIds.Color));
                 //    return Colors.Black;
                 //}
-                return (Color)GetExtendedPropertyBackedProperty(KnownIds.Color);
+                //return (Color)GetExtendedPropertyBackedProperty(KnownIds.Color);
+                return default(Color);
             }
             set
             {
                 //no need to raise change events, they will bubble up from the EPC
                 //underneath us
                 // Validation of value is done in EPC
-                SetExtendedPropertyBackedProperty(KnownIds.Color, value);
+                //SetExtendedPropertyBackedProperty(KnownIds.Color, value);
             }
         }
 
@@ -275,35 +276,11 @@ namespace System.Windows.Ink
         {
             get
             {
-                //prevent boxing / unboxing if possible
-                if (!_extendedProperties.Contains(KnownIds.IsHighlighter))
-                {
-                    Debug.Assert(false == (bool)GetDefaultDrawingAttributeValue(KnownIds.IsHighlighter));
-                    return false;
-                }
-                else
-                {
-                    Debug.Assert(true == (bool)GetExtendedPropertyBackedProperty(KnownIds.IsHighlighter));
-                    return true;
-                }
+                return false;
             }
             set
             {
-                //no need to raise change events, they will bubble up from the EPC
-                //underneath us
-                SetExtendedPropertyBackedProperty(KnownIds.IsHighlighter, value);
-
-                //
-                // set RasterOp for V1 interop
-                //
-                if (value)
-                {
-                    _v1RasterOperation = DrawingAttributeSerializer.RasterOperationMaskPen;
-                }
-                else
-                {
-                    _v1RasterOperation = DrawingAttributeSerializer.RasterOperationDefaultV1;
-                }
+              
             }
         }
 

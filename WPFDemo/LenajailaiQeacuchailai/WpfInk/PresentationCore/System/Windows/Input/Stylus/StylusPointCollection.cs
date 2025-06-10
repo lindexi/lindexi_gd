@@ -312,15 +312,14 @@ namespace System.Windows.Input
             OnChanged(EventArgs.Empty);
         }
 
-#if false
         /// <summary>
         /// Clone
         /// </summary>
         public StylusPointCollection Clone()
         {
-            return this.Clone(System.Windows.Media.Transform.Identity, this.Description, this.Count);
+            return this.Clone(/*System.Windows.Media.Transform.Identity,*/ this.Description, this.Count);
         }
-#endif
+
         /// <summary>
         /// Explicit cast converter between StylusPointCollection and Point[]
         /// </summary>
@@ -361,12 +360,13 @@ namespace System.Windows.Input
         {
             return this.Clone(transform, descriptionToUse, this.Count);
         }
+#endif
 
 
         /// <summary>
         /// Private clone implementation
         /// </summary>
-        private StylusPointCollection Clone(GeneralTransform transform, StylusPointDescription descriptionToUse, int count)
+        private StylusPointCollection Clone(/*GeneralTransform transform,*/ StylusPointDescription descriptionToUse, int count)
         {
             Debug.Assert(count <= this.Count);
             //
@@ -376,7 +376,8 @@ namespace System.Windows.Input
             StylusPointCollection newCollection =
                 new StylusPointCollection(descriptionToUse, count);
 
-            bool isIdentity = (transform is Transform) ? ((Transform) transform).IsIdentity : false;
+            bool isIdentity = //(transform is Transform) ? ((Transform) transform).IsIdentity : false;
+                true;
             for (int x = 0; x < count; x++)
             {
                 if (isIdentity)
@@ -385,6 +386,7 @@ namespace System.Windows.Input
                 }
                 else
                 {
+#if false
                     Point point = new Point();
                     StylusPoint stylusPoint = this[x];
                     point.X = stylusPoint.X;
@@ -393,11 +395,13 @@ namespace System.Windows.Input
                     stylusPoint.X = point.X;
                     stylusPoint.Y = point.Y;
                     ((List<StylusPoint>) newCollection.Items).Add(stylusPoint);
+#endif
+                    throw new NotImplementedException();
                 }
             }
             return newCollection;
         }
-#endif
+
         /// <summary>
         /// Protected virtual for raising changed notification
         /// </summary>
