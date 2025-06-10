@@ -2,21 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using MS.Utility;
-using System;
-using System.ComponentModel;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using MS.Internal.Ink.InkSerializedFormat;
-using System.Reflection;
 
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
+using SR = MS.Internal.PresentationCore.SR;
+using SRID = MS.Internal.PresentationCore.SRID;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
 {
@@ -46,7 +35,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             //
             // compare counts
             //
-            ExtendedPropertyCollection that = (ExtendedPropertyCollection)o;
+            ExtendedPropertyCollection that = (ExtendedPropertyCollection) o;
             if (that.Count != this.Count)
             {
                 return false;
@@ -80,13 +69,13 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         public static bool operator ==(ExtendedPropertyCollection first, ExtendedPropertyCollection second)
         {
             // compare the GC ptrs for the obvious reference equality
-            if (((object)first == null && (object)second == null) ||
-                ((object)first == (object)second))
+            if (((object) first == null && (object) second == null) ||
+                ((object) first == (object) second))
             {
                 return true;
             }
             // otherwise, if one of the ptrs are null, but not the other then return false
-            else if ((object)first == null || (object)second == null)
+            else if ((object) first == null || (object) second == null)
             {
                 return false;
             }
@@ -99,7 +88,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
         /// <summary>Overload of the not equals operator to determine if two
         /// ExtendedPropertyCollections have different key/value pairs</summary>
-        public static bool operator!=(ExtendedPropertyCollection first, ExtendedPropertyCollection second)
+        public static bool operator !=(ExtendedPropertyCollection first, ExtendedPropertyCollection second)
         {
             return !(first == second);
         }
@@ -360,7 +349,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 return _extendedProperties[_optimisticIndex];
             }
 
-                //we didn't find the ep optimistically, perform linear lookup
+            //we didn't find the ep optimistically, perform linear lookup
             for (int i = 0; i < _extendedProperties.Count; i++)
             {
                 if (_extendedProperties[i].Id == id)
@@ -371,11 +360,11 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
 
             return null;
         }
-        
+
         // the set of ExtendedProperties stored in this collection
         private List<ExtendedProperty> _extendedProperties = new List<ExtendedProperty>();
 
-        
+
         //used to optimize across Contains / Index calls
         private int _optimisticIndex = -1;
     }

@@ -1,5 +1,4 @@
-﻿extern alias WpfInk;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 
@@ -8,11 +7,7 @@ using SkiaInk;
 using SkiaSharp;
 
 using WpfApp.InkDataModels;
-
-using WpfInk::MS.Internal.Ink;
-using WpfInk::WpfInk;
-using WpfInk::WpfInk.PresentationCore.System.Windows.Ink;
-using WpfInk::WpfInk.PresentationCore.System.Windows.Input.Stylus;
+using WpfInk;
 
 namespace WpfApp.Inking;
 

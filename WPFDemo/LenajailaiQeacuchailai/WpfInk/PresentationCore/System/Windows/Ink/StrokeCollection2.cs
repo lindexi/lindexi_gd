@@ -3,20 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 
-using MS.Utility;
-using System;
-using System.ComponentModel;
-using System.Collections;
-using System.Collections.Specialized;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows.Input;
-using MS.Internal;
-using MS.Internal.Ink;
-
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
 {
@@ -343,9 +333,9 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         }
 #endif
 
-#endregion
+        #endregion
 
-      
+
 
 #if false
         

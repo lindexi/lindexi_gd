@@ -3,15 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 
-using System;
-using System.Windows;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using MS.Utility;
 using WpfInk.PresentationCore.System.Windows;
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
 
 namespace MS.Internal.Ink
 {

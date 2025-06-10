@@ -2,18 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-﻿
-using MS.Utility;
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Input;
-using MS.Internal.Ink;
 using WpfInk.PresentationCore.System.Windows;
 using WpfInk.PresentationCore.System.Windows.Ink;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
 
 namespace MS.Internal.Ink
 {

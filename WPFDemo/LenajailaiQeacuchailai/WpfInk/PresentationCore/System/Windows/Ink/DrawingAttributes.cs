@@ -2,22 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
-using MS.Utility;
 using System;
 using System.ComponentModel;
-using System.Windows;
-using System.Collections.Specialized;
-using System.Collections.Generic;
-using System.Collections;
 using System.Diagnostics;
+
 using MS.Internal;
-using MS.Internal.Ink;
-using MS.Internal.Ink.InkSerializedFormat;
-using WpfInk.PresentationCore.System.Windows.Ink;
+
 using WpfInk.WindowsBase.System.Windows.Media;
-using SR=MS.Internal.PresentationCore.SR;
-using SRID=MS.Internal.PresentationCore.SRID;
+
+using SR = MS.Internal.PresentationCore.SR;
+using SRID = MS.Internal.PresentationCore.SRID;
 
 namespace WpfInk.PresentationCore.System.Windows.Ink
 {
@@ -68,13 +62,13 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 //prevent boxing / unboxing if possible
                 if (!_extendedProperties.Contains(KnownIds.StylusTip))
                 {
-                    Debug.Assert(StylusTip.Ellipse == (StylusTip)GetDefaultDrawingAttributeValue(KnownIds.StylusTip));
+                    Debug.Assert(StylusTip.Ellipse == (StylusTip) GetDefaultDrawingAttributeValue(KnownIds.StylusTip));
                     return StylusTip.Ellipse;
                 }
                 else
                 {
                     //if we ever add to StylusTip enumeration, we need to just return GetExtendedPropertyBackedProperty
-                    Debug.Assert(StylusTip.Rectangle == (StylusTip)GetExtendedPropertyBackedProperty(KnownIds.StylusTip));
+                    Debug.Assert(StylusTip.Rectangle == (StylusTip) GetExtendedPropertyBackedProperty(KnownIds.StylusTip));
                     return StylusTip.Rectangle;
                 }
             }
@@ -97,10 +91,10 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 //prevent boxing / unboxing if possible
                 if (!_extendedProperties.Contains(KnownIds.StylusTipTransform))
                 {
-                    Debug.Assert(Matrix.Identity == (Matrix)GetDefaultDrawingAttributeValue(KnownIds.StylusTipTransform));
+                    Debug.Assert(Matrix.Identity == (Matrix) GetDefaultDrawingAttributeValue(KnownIds.StylusTipTransform));
                     return Matrix.Identity;
                 }
-                return (Matrix)GetExtendedPropertyBackedProperty(KnownIds.StylusTipTransform);
+                return (Matrix) GetExtendedPropertyBackedProperty(KnownIds.StylusTipTransform);
             }
             set
             {
@@ -126,10 +120,10 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 //prevent boxing / unboxing if possible
                 if (!_extendedProperties.Contains(KnownIds.StylusHeight))
                 {
-                    Debug.Assert(DrawingAttributes.DefaultHeight == (double)GetDefaultDrawingAttributeValue(KnownIds.StylusHeight));
+                    Debug.Assert(DrawingAttributes.DefaultHeight == (double) GetDefaultDrawingAttributeValue(KnownIds.StylusHeight));
                     return DrawingAttributes.DefaultHeight;
                 }
-                return (double)GetExtendedPropertyBackedProperty(KnownIds.StylusHeight);
+                return (double) GetExtendedPropertyBackedProperty(KnownIds.StylusHeight);
             }
             set
             {
@@ -153,10 +147,10 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 //prevent boxing / unboxing if possible
                 if (!_extendedProperties.Contains(KnownIds.StylusWidth))
                 {
-                    Debug.Assert(DrawingAttributes.DefaultWidth == (double)GetDefaultDrawingAttributeValue(KnownIds.StylusWidth));
+                    Debug.Assert(DrawingAttributes.DefaultWidth == (double) GetDefaultDrawingAttributeValue(KnownIds.StylusWidth));
                     return DrawingAttributes.DefaultWidth;
                 }
-                return (double)GetExtendedPropertyBackedProperty(KnownIds.StylusWidth);
+                return (double) GetExtendedPropertyBackedProperty(KnownIds.StylusWidth);
             }
             set
             {
@@ -180,14 +174,14 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         {
             get
             {
-                DrawingFlags flags = (DrawingFlags)GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
+                DrawingFlags flags = (DrawingFlags) GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
                 return (0 != (flags & DrawingFlags.FitToCurve));
             }
             set
             {
                 //no need to raise change events, they will bubble up from the EPC
                 //underneath us
-                DrawingFlags flags = (DrawingFlags)GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
+                DrawingFlags flags = (DrawingFlags) GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
                 if (value)
                 {
                     //turn on the bit
@@ -210,14 +204,14 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         {
             get
             {
-                DrawingFlags flags = (DrawingFlags)GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
+                DrawingFlags flags = (DrawingFlags) GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
                 return (0 != (flags & DrawingFlags.IgnorePressure));
             }
             set
             {
                 //no need to raise change events, they will bubble up from the EPC
                 //underneath us
-                DrawingFlags flags = (DrawingFlags)GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
+                DrawingFlags flags = (DrawingFlags) GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
                 if (value)
                 {
                     //turn on the bit
@@ -243,7 +237,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             }
             set
             {
-              
+
             }
         }
 
@@ -333,7 +327,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 StylusShape s;
                 if (this.StylusTip == StylusTip.Rectangle)
                 {
-                    s =  new RectangleStylusShape(this.Width, this.Height);
+                    s = new RectangleStylusShape(this.Width, this.Height);
                 }
                 else
                 {
@@ -358,7 +352,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 }
                 else
                 {
-                    return (int)_extendedProperties[KnownIds.CurveFittingError];
+                    return (int) _extendedProperties[KnownIds.CurveFittingError];
                 }
             }
             set
@@ -374,7 +368,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         {
             get
             {
-                return (DrawingFlags)GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
+                return (DrawingFlags) GetExtendedPropertyBackedProperty(KnownIds.DrawingFlags);
             }
             set
             {
@@ -442,7 +436,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             DrawingAttributes that = o as DrawingAttributes;
             if (that == null)
             {
-                return false; 
+                return false;
             }
 
             return (this._extendedProperties == that._extendedProperties);
@@ -453,13 +447,13 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         public static bool operator ==(DrawingAttributes first, DrawingAttributes second)
         {
             // compare the GC ptrs for the obvious reference equality
-            if (((object)first == null && (object)second == null) ||
-                ((object)first == (object)second))
+            if (((object) first == null && (object) second == null) ||
+                ((object) first == (object) second))
             {
                 return true;
             }
-                // otherwise, if one of the ptrs are null, but not the other then return false
-            else if ((object)first == null || (object)second == null)
+            // otherwise, if one of the ptrs are null, but not the other then return false
+            else if ((object) first == null || (object) second == null)
             {
                 return false;
             }
@@ -488,8 +482,8 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             // require ReflectionPermission.  One thing to note, all references 
             // are shared, including event delegates, so we need to set those to null
             //
-            DrawingAttributes clone = (DrawingAttributes)this.MemberwiseClone();
-            
+            DrawingAttributes clone = (DrawingAttributes) this.MemberwiseClone();
+
             //
             // null the delegates in the cloned DrawingAttributes
             //
@@ -532,14 +526,14 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
             }
             finally
             {
-                if ( this.AttributeChanged != null )
+                if (this.AttributeChanged != null)
                 {
                     this.AttributeChanged(this, e);
                 }
             }
         }
 
-         /// <summary>
+        /// <summary>
         /// Event fired whenever a DrawingAttribute is modified
         /// </summary>
         public event PropertyDataChangedEventHandler PropertyDataChanged;
@@ -572,7 +566,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <param name="e">The EventArgs specifying the name of the changed property.</param>
         protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
         {
-            if ( _propertyChanged != null )
+            if (_propertyChanged != null)
             {
                 _propertyChanged(this, e);
             }
@@ -662,7 +656,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 KnownIds.StylusWidth == id ||
                 KnownIds.DrawingFlags == id ||
                 KnownIds.StylusHeight == id ||
-                KnownIds.CurveFittingError == id )
+                KnownIds.CurveFittingError == id)
             {
                 return true;
             }
@@ -732,11 +726,11 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 if (defaultValueIfDrawingAttribute != null)
                 {
                     ExtendedProperty newProperty =
-                        new ExtendedProperty(   args.OldProperty.Id,
+                        new ExtendedProperty(args.OldProperty.Id,
                                                 defaultValueIfDrawingAttribute);
                     //this is a da guid
                     PropertyDataChangedEventArgs dargs =
-                        new PropertyDataChangedEventArgs(  args.OldProperty.Id,
+                        new PropertyDataChangedEventArgs(args.OldProperty.Id,
                                                                 newProperty.Value,      //the property
                                                                 args.OldProperty.Value);//previous value
 
@@ -745,12 +739,12 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                 else
                 {
                     PropertyDataChangedEventArgs dargs =
-                        new PropertyDataChangedEventArgs(  args.OldProperty.Id,
+                        new PropertyDataChangedEventArgs(args.OldProperty.Id,
                                                                 null,      //the property
                                                                 args.OldProperty.Value);//previous value
 
                     this.OnPropertyDataChanged(dargs);
-}
+                }
             }
             else if (args.OldProperty == null)
             {
@@ -763,7 +757,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                     {
                         //this is a da guid
                         PropertyDataChangedEventArgs dargs =
-                            new PropertyDataChangedEventArgs(  args.NewProperty.Id,
+                            new PropertyDataChangedEventArgs(args.NewProperty.Id,
                                                                     args.NewProperty.Value,   //the property
                                                                     defaultValueIfDrawingAttribute);     //previous value
 
@@ -777,7 +771,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                                                          args.NewProperty.Value,   //the property
                                                          null);     //previous value
                     this.OnPropertyDataChanged(dargs);
-}
+                }
             }
             else
             {
@@ -793,7 +787,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                     {
                         //this is a da guid
                         PropertyDataChangedEventArgs dargs =
-                            new PropertyDataChangedEventArgs(  args.NewProperty.Id,
+                            new PropertyDataChangedEventArgs(args.NewProperty.Id,
                                                                     args.NewProperty.Value,       //the da
                                                                     args.OldProperty.Value);//old value
 
@@ -805,7 +799,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
                     if (!args.NewProperty.Value.Equals(args.OldProperty.Value))
                     {
                         PropertyDataChangedEventArgs dargs =
-                            new PropertyDataChangedEventArgs(  args.NewProperty.Id,
+                            new PropertyDataChangedEventArgs(args.NewProperty.Id,
                                                                     args.NewProperty.Value,
                                                                     args.OldProperty.Value);//old value
 
@@ -892,43 +886,43 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// <param name="e"></param>
         private void PrivateNotifyPropertyChanged(PropertyDataChangedEventArgs e)
         {
-            if ( e.PropertyGuid == KnownIds.Color)
+            if (e.PropertyGuid == KnownIds.Color)
             {
                 OnPropertyChanged("Color");
             }
-            else if ( e.PropertyGuid == KnownIds.StylusTip)
+            else if (e.PropertyGuid == KnownIds.StylusTip)
             {
                 OnPropertyChanged("StylusTip");
             }
-            else if ( e.PropertyGuid == KnownIds.StylusTipTransform)
+            else if (e.PropertyGuid == KnownIds.StylusTipTransform)
             {
                 OnPropertyChanged("StylusTipTransform");
             }
-            else if ( e.PropertyGuid == KnownIds.StylusHeight)
+            else if (e.PropertyGuid == KnownIds.StylusHeight)
             {
                 OnPropertyChanged("Height");
             }
-            else if ( e.PropertyGuid == KnownIds.StylusWidth)
+            else if (e.PropertyGuid == KnownIds.StylusWidth)
             {
                 OnPropertyChanged("Width");
             }
-            else if ( e.PropertyGuid == KnownIds.IsHighlighter)
+            else if (e.PropertyGuid == KnownIds.IsHighlighter)
             {
                 OnPropertyChanged("IsHighlighter");
             }
-            else if ( e.PropertyGuid == KnownIds.DrawingFlags )
+            else if (e.PropertyGuid == KnownIds.DrawingFlags)
             {
-                DrawingFlags changedBits = ( ( (DrawingFlags)e.PreviousValue ) ^ ( (DrawingFlags)e.NewValue ) );
+                DrawingFlags changedBits = (((DrawingFlags) e.PreviousValue) ^ ((DrawingFlags) e.NewValue));
 
                 // NOTICE-2006/01/20-WAYNEZEN,
                 // If someone changes FitToCurve and IgnorePressure simultaneously via AddPropertyData/RemovePropertyData,
                 // we will fire both OnPropertyChangeds in advance the order of the values.
-                if ( (changedBits & DrawingFlags.FitToCurve) != 0 )
+                if ((changedBits & DrawingFlags.FitToCurve) != 0)
                 {
                     OnPropertyChanged("FitToCurve");
                 }
 
-                if ( (changedBits & DrawingFlags.IgnorePressure) != 0 )
+                if ((changedBits & DrawingFlags.IgnorePressure) != 0)
                 {
                     OnPropertyChanged("IgnorePressure");
                 }
@@ -944,10 +938,10 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         #region Private Fields
 
         // The private PropertyChanged event
-        private PropertyChangedEventHandler             _propertyChanged;
+        private PropertyChangedEventHandler _propertyChanged;
 
-        private ExtendedPropertyCollection              _extendedProperties;
-        private bool                                    _heightChangedForCompatabity = false;
+        private ExtendedPropertyCollection _extendedProperties;
+        private bool _heightChangedForCompatabity = false;
 
         /// <summary>
         /// Statics
@@ -969,14 +963,14 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
         /// Minimum acceptable stylus tip width
         /// </summary>
         /// <remarks>corresponds to 0.001 in V1  (0.001 / (2540/96))</remarks>
-        public static readonly double MinWidth =  0.00003779527559055120;
+        public static readonly double MinWidth = 0.00003779527559055120;
 
         /// <summary>
         /// Maximum acceptable stylus tip height.
         /// </summary>
         /// <remarks>corresponds to 4294967 in V1 (4294967 / (2540/96))</remarks>
         public static readonly double MaxHeight = 162329.4614173230;
-                          
+
 
         /// <summary>
         /// Maximum acceptable stylus tip width.
