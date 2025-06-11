@@ -17,24 +17,6 @@ public class SimpleInkCanvas : FrameworkElement
 {
     public SimpleInkCanvas()
     {
-        foreach (var t in typeof(WpfInk.InkSize2D).Assembly.GetExportedTypes())
-        {
-            Debug.WriteLine($"当前导出的类型： {t}");
-        }
-
-/*
-   当前导出的类型： MS.Internal.MatrixTypes
-   当前导出的类型： WpfInk.InkPoint2D
-   当前导出的类型： WpfInk.InkSize2D
-   当前导出的类型： WpfInk.InkStrokeRenderer
-   当前导出的类型： WpfInk.InkStylusPoint2D
-   当前导出的类型： WpfInk.IStreamGeometryContext
-   当前导出的类型： WpfInk.StrokeRendererInfo
-   当前导出的类型： WpfInk.PresentationCore.System.Windows.Ink.StylusShape
-   当前导出的类型： WpfInk.PresentationCore.System.Windows.Ink.EllipseStylusShape
-   当前导出的类型： WpfInk.PresentationCore.System.Windows.Ink.RectangleStylusShape
-*/
-
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
 
