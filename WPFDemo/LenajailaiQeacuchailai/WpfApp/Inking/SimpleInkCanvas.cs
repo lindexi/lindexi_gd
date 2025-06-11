@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Sockets;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -17,6 +19,33 @@ public class SimpleInkCanvas : FrameworkElement
 {
     public SimpleInkCanvas()
     {
+        var socketsHttpHandler = new SocketsHttpHandler();
+        socketsHttpHandler.ConnectCallback = async (context, cancellationToken) =>
+        {
+            var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+
+            try
+            {
+                socket.NoDelay = true;
+
+                if (context.DnsEndPoint.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    // it is the ipv4
+                }
+                await socket.ConnectAsync(context.DnsEndPoint, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+
+            return new NetworkStream(socket, ownsSocket: true);
+        };
+
+        var httpClient = new HttpClient(socketsHttpHandler);
+
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
 
