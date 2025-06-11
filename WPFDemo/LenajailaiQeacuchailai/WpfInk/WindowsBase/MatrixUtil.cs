@@ -33,7 +33,7 @@ namespace MS.Internal
 {
     // MatrixTypes
     [System.Flags]
-    public enum MatrixTypes
+    internal enum MatrixTypes
     {
         TRANSFORM_IS_IDENTITY = 0,
         TRANSFORM_IS_TRANSLATION = 1,
