@@ -18,7 +18,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// There are 2540 himetric units per inch.
     /// This means that 53 high metric units is equivalent to 53/2540*96 in avalon.
     /// </remarks>
-    public abstract class StylusShape
+    internal abstract class StylusShape
     {
         #region Fields
 
@@ -322,7 +322,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// Class for an elliptical StylusShape
     /// </summary>
-    public sealed class EllipseStylusShape : StylusShape
+    internal sealed class EllipseStylusShape : StylusShape
     {
         /// <summary>
         /// Constructor for an elliptical StylusShape
@@ -349,7 +349,7 @@ namespace WpfInk.PresentationCore.System.Windows.Ink
     /// <summary>
     /// Class for a rectangle StylusShape
     /// </summary>
-    public sealed class RectangleStylusShape : StylusShape
+    internal sealed class RectangleStylusShape : StylusShape
     {
         /// <summary>
         /// Constructor
