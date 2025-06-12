@@ -9,6 +9,9 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-
+        <StackPanel>
+            <TextBlock Text="Hello World"></TextBlock>
+            <Button Content="按钮"></Button>
+        </StackPanel>
     </Grid>
 </Page>
