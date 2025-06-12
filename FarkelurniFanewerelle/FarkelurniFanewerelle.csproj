@@ -7,6 +7,9 @@
     <UseUwpTools>true</UseUwpTools>
     <Platforms>x86;x64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
+    <DisableRuntimeMashalling>true</DisableRuntimeMashalling>
     <EnableMsixTooling>true</EnableMsixTooling>
+    <DefaultLanguage>zh-CN</DefaultLanguage>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 </Project>
