@@ -1,8 +1,7 @@
-{
+﻿{
   "profiles": {
     "FarkelurniFanewerelle": {
-      "commandName": "Project",
-      "nativeDebugging": true
+      "commandName": "Project"
     }
   }
 }

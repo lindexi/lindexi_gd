@@ -28,6 +28,12 @@ namespace FarkelurniFanewerelle
         /// </summary>
         public App()
         {
+            // 如无法启动，可将 AppxManifest.xml 手动复制出去到 FarkelurniFanewerelle.exe 文件夹
+            // 然后使用 PowerShell 命令执行如下命令
+            // Add-AppxPackage -Path .\AppxManifest.xml -Register
+            // 执行以上命令时，需要将 PowerShell 定位到 FarkelurniFanewerelle.exe 所在文件夹
+            // 运行方法不是直接双击 exe 运行，而是从开始菜单找到应用程序，从开始菜单点击运行
+
             this.InitializeComponent();
             this.Suspending += OnSuspending;
         }
