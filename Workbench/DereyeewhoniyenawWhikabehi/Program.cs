@@ -17,3 +17,15 @@ foreach (var ipAddress in ipAddresses)
 Console.WriteLine("Hello, World!");
 
 // 这就意味着如果做 CDN 网络通讯的话，访问的 IP 的顺序是不保证的，也许程序底层自己做，也许靠 ipconfig /flushdns 刷新，都可以
+
+var socketsHttpHandler = new SocketsHttpHandler()
+{
+    EnableMultipleHttp2Connections = true,
+    ConnectCallback = (context, token) =>
+    {
+        throw null;
+    }
+};
+
+var httpClient = new HttpClient(socketsHttpHandler);
+await httpClient.GetAsync("https://foo.lindexi.com");
