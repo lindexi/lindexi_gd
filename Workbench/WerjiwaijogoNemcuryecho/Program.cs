@@ -4,7 +4,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 
-var file = @"ntdll.dll";
+var file = @"C:\Windows\System32\wmp.dll";
 
 using var fileStream = File.OpenRead(file);
 
@@ -28,6 +28,8 @@ foreach (var debugDirectoryEntry in debugDirectoryEntries)
 
     var downloadUrl = $"http://msdl.microsoft.com/download/symbols/{pdbName}/{(guid.ToString("N").ToUpperInvariant() + age.ToString())}/{pdbName}";
     using var httpResponseMessage = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+
+    httpResponseMessage.EnsureSuccessStatusCode();
 
     var pdbFile = Path.GetFullPath(pdbName);
     await using var downloadFileStream = File.Create(pdbFile);
