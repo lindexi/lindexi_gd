@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <MediaElement x:Name="MediaElement"></MediaElement>
+        <MediaElement x:Name="MediaElement" LoadedBehavior="Manual" MediaFailed="MediaElement_OnMediaFailed"></MediaElement>
         <Button HorizontalAlignment="Center" VerticalAlignment="Center" Content="点击" Click="Button_OnClick"></Button>
     </Grid>
 </Window>
