@@ -31,16 +31,11 @@ public partial class MainWindow : Window
 
     private async void Button_OnClick(object sender, RoutedEventArgs e)
     {
-    //    var originVideoUrl = new Uri("http://127.0.0.1:51779/Video.mkv");
-    //    var urlVideoProxy = new UrlVideoProxy(originVideoUrl);
-    //    var downloadUrl = await urlVideoProxy.StartAsync();
+        var originVideoUrl = new Uri("http://127.0.0.1:51779/Video.mkv");
+        var urlVideoProxy = new UrlVideoProxy(originVideoUrl);
+        var downloadUrl = await urlVideoProxy.StartAsync();
 
-        MediaElement.Source = new Uri("http://127.0.0.1:56620/Video.mp4");
-    }
-
-    private void MediaElement_OnMediaFailed(object? sender, ExceptionRoutedEventArgs e)
-    {
-        
+        MediaElement.Source = new Uri(downloadUrl);
     }
 }
 
