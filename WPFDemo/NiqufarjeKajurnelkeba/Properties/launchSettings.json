@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NiqufarjeKajurnelkeba": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
