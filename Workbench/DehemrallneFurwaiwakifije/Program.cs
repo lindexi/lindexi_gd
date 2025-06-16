@@ -3,19 +3,21 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 var stopwatch = new Stopwatch();
+var totalTimeStopwatch = Stopwatch.StartNew();
 
-while (true)
+int count = 0;
+while (count < int.MaxValue - 1)
 {
     stopwatch.Restart();
     var hResult = DwmFlush();
     stopwatch.Stop();
+    count++;
 
-    Console.WriteLine($"Elapsed={stopwatch.ElapsedMilliseconds}ms HResult={hResult}");
+    Console.WriteLine($"Elapsed={stopwatch.Elapsed.TotalMilliseconds:0.00}ms Ave={totalTimeStopwatch.Elapsed.TotalMilliseconds / count:0.00}ms HResult={hResult}");
 
     if (hResult != 0)
     {
-        // Fail
-        break;
+        throw new Win32Exception();
     }
 }
 
