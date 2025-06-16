@@ -35,6 +35,7 @@ public partial class MainWindow : Window
         var downloadUrl = foo.Start();
 
         MediaElement.Source = new Uri(downloadUrl);
+        //MediaElement.Source = originVideoUrl;
         MediaElement.LoadedBehavior = MediaState.Manual;
         MediaElement.Play();
     }
@@ -101,16 +102,11 @@ public partial class MainWindow : Window
                                     HTTP/1.1 200 OK
                                     Content-Length: {contentLength}
                                     Content-Type: video/mp4
-                                    Date: Fri, 13 Jun 2025 08:05:06 GMT
-                                    ETag: "1d97660a4ebe020"
-                                    Last-Modified: Mon, 24 Apr 2023 03:55:44 GMT
-                                    Server: Kestrel
-
-
-                                    """;
+                                    """.Replace("\r\n", "\n") + "\r\n\r\n";
                 var responseBytes = Encoding.ASCII.GetBytes(responseText);
 
                 await networkStream.WriteAsync(responseBytes);
+                await networkStream.FlushAsync();
 
                 using var stream = await httpResponseMessage.Content.ReadAsStreamAsync();
                 while (true)
