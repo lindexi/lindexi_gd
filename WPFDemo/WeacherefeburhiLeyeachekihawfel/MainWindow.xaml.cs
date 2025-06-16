@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private void Button_OnClick(object sender, RoutedEventArgs e)
     {
         var originVideoUrl = new Uri("http://172.20.114.23:51779/Video.mp4");
+        originVideoUrl = new Uri("https://file-examples.com/wp-content/storage/2017/04/file_example_MP4_480_1_5MG.mp4");
 
         var foo = new Foo(originVideoUrl);
         var downloadUrl = foo.Start();
