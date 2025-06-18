@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Installer.Boost.Microsoft.DotNet.Archive.DirectoryArchives;
+﻿namespace DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
 
 class DirectoryArchiveProxyInputStream : Stream
 {

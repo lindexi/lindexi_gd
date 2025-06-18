@@ -1,10 +1,9 @@
-﻿using Microsoft.DotNet.Archive;
+﻿using System.Diagnostics;
+using Microsoft.DotNet.Archive;
 
-using System.Diagnostics;
+namespace DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
 
-namespace DotNetCampus.Installer.Boost.Microsoft.DotNet.Archive.DirectoryArchives;
-
-internal static class DirectoryArchive
+public static class DirectoryArchive
 {
     public static void Compress(DirectoryInfo inputDirectoryInfo, FileInfo outputFileInfo)
     {
