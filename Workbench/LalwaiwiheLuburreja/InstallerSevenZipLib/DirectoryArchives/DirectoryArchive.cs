@@ -77,7 +77,7 @@ public static class DirectoryArchive
                 currentFileStream = fileStream;
                 args.UpdateInputStream(fileStream);
 
-                Console.WriteLine($"压缩文件中 {currentIndex}/{fileArray.Length} 文件：{fileInfo}");
+                Console.WriteLine($"读取文件中 {currentIndex}/{fileArray.Length} 文件：{fileInfo}");
 
                 currentIndex++;
             }

@@ -12,11 +12,12 @@ if (args.Length == 0)
                       
                       InstallerSevenZipTool -f <输入文件夹> -o <输出文件>
                       """);
+    return;
 }
 
 var options = CommandLine.Parse(args).As<Options>();
-Console.WriteLine($"开始制作安装包资产文件。输入文件夹： '{options.InputDirectory}' 输出文件： '{options.OutputFile}'");
+Console.WriteLine($"开始制作安装包资产文件。输入文件夹： '{Path.GetFullPath(options.InputDirectory)}' 输出文件： '{Path.GetFullPath(options.OutputFile)}'");
 
 DirectoryArchive.Compress(new DirectoryInfo(options.InputDirectory), new FileInfo(options.OutputFile));
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine($"安装包资产文件创建成功： {Path.GetFullPath(options.OutputFile)}");
