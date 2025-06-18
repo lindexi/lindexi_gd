@@ -93,7 +93,9 @@ static void Install(SplashScreenShowedEventArgs eventArgs)
 
     var testInputZipFolder = @"C:\lindexi\Work\TestZipFolder\";
     var temp7zFile = @"C:\lindexi\Input.7z";
-    DirectoryArchive.Compress(new DirectoryInfo(testInputZipFolder), new FileInfo(temp7zFile));
+    //DirectoryArchive.Compress(new DirectoryInfo(testInputZipFolder), new FileInfo(temp7zFile));
+    var zipOutputFolder = Directory.CreateDirectory(Path.Join(workingFolder, "ZipOutput"));
+    DirectoryArchive.Decompress(new FileInfo(temp7zFile), zipOutputFolder);
 
     //using (var testInputZipFileStream = File.OpenRead(testInputZipFile))
     //using (var temp7zFileStream = new FileStream(temp7zFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
