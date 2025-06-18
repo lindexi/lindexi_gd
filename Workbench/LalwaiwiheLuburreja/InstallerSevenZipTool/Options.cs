@@ -14,4 +14,7 @@ internal class Options
 
     [Option('o', "OutputFile")]
     public required string OutputFile { get; init; }
+
+    [Option("Ignore-Checksum")]
+    public bool? IgnoreChecksum { get; init; }
 }
