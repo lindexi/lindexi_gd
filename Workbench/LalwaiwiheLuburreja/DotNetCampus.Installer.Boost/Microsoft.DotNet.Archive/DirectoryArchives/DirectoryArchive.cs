@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+
 using Microsoft.DotNet.Archive;
 
 namespace DotNetCampus.Installer.Boost.Microsoft.DotNet.Archive.DirectoryArchives;
@@ -47,14 +48,30 @@ internal static class DirectoryArchive
         var directoryArchiveProxyInputStream = new DirectoryArchiveProxyInputStream(headStream, totalFileLength);
         directoryArchiveProxyInputStream.ReadNext += (_, args) =>
         {
+            // ReSharper disable AccessToDisposedClosure
+            if (currentFileStream is not null && !ReferenceEquals(currentFileStream, args.CurrentInputStream))
+            {
+                throw new Exception();
+            }
+
+            while (currentIndex < fileArray.Length)
+            {
+                FileInfo fileInfo = fileArray[currentIndex];
+                if (fileInfo.Length == 0)
+                {
+                    // 跳过空文件
+                    currentIndex++;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             if (currentIndex < fileArray.Length)
             {
                 args.CurrentInputStream.Dispose();
-
-                if (currentFileStream is not null && !ReferenceEquals(currentFileStream, args.CurrentInputStream))
-                {
-                    throw new Exception();
-                }
 
                 FileInfo fileInfo = fileArray[currentIndex];
                 var fileStream = fileInfo.OpenRead();
@@ -65,7 +82,12 @@ internal static class DirectoryArchive
             }
         };
 
+        var stopwatch = Stopwatch.StartNew();
+
         CompressionUtility.Compress(directoryArchiveProxyInputStream, outputFileStream, new Progress<ProgressReport>());
+
+        stopwatch.Stop();
+        Console.WriteLine($"TotalLength={totalFileLength};Elapsed={stopwatch.Elapsed.Minutes}m,{stopwatch.Elapsed.Seconds}s,{stopwatch.Elapsed.Milliseconds}ms");
 
         if (currentFileStream is not null)
         {
@@ -110,6 +132,11 @@ class DirectoryArchiveProxyInputStream : Stream
             ReadNext?.Invoke(this, new ReadNextEventArgs(this));
 
             readCount = _inputStream.Read(buffer, offset, count);
+        }
+
+        if (readCount == 0)
+        {
+
         }
 
         Position += readCount;
