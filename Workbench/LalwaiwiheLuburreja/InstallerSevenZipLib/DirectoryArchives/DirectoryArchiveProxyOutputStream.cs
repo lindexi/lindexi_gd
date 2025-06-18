@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
-namespace DotNetCampus.Installer.Boost.Microsoft.DotNet.Archive.DirectoryArchives;
+namespace DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
 
 class DirectoryArchiveProxyOutputStream : Stream
 {

@@ -1,10 +1,9 @@
-﻿using Microsoft.DotNet.Archive;
+﻿using System.Diagnostics;
+using Microsoft.DotNet.Archive;
 
-using System.Diagnostics;
+namespace DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
 
-namespace DotNetCampus.Installer.Boost.Microsoft.DotNet.Archive.DirectoryArchives;
-
-internal static class DirectoryArchive
+public static class DirectoryArchive
 {
     public static void Compress(DirectoryInfo inputDirectoryInfo, FileInfo outputFileInfo)
     {
@@ -78,13 +77,15 @@ internal static class DirectoryArchive
                 currentFileStream = fileStream;
                 args.UpdateInputStream(fileStream);
 
+                Console.WriteLine($"压缩文件中 {currentIndex}/{fileArray.Length} 文件：{fileInfo}");
+
                 currentIndex++;
             }
         };
 
         var stopwatch = Stopwatch.StartNew();
 
-        CompressionUtility.Compress(directoryArchiveProxyInputStream, outputFileStream, new Progress<ProgressReport>());
+        CompressionUtility.Compress(directoryArchiveProxyInputStream, outputFileStream, new ConsoleProgressReport());
 
         stopwatch.Stop();
         Console.WriteLine($"TotalLength={totalFileLength};Elapsed={stopwatch.Elapsed.Minutes}m,{stopwatch.Elapsed.Seconds}s,{stopwatch.Elapsed.Milliseconds}ms");
