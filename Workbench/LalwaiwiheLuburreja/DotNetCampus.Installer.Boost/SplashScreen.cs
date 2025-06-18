@@ -134,6 +134,11 @@ internal class SplashScreen
         _requestClose = true;
     }
 
+    private void WriteLog(string message)
+    {
+        Console.WriteLine($"[SplashScreen] {message}");
+    }
+
     #region 原生 Win32 实现
 
     /// <summary>
@@ -285,6 +290,8 @@ internal class SplashScreen
                                 _imageWidth = 1;
                             }
                         }
+
+                        WriteLog($"ImageWidth={_imageWidth} ImageHeight={_imageHeight}");
 
                         // 设置窗口的位置和尺寸，使之居中于主屏屏幕显示。
                         SetPositionAndSize();
@@ -475,7 +482,7 @@ internal class SplashScreen
 
         //尝试获取显示器的信息
         var monitor = MonitorFromWindow(_window, Win32.MonitorFlag.MONITOR_DEFAULTTONULL);
-        if (monitor != null)
+        if (monitor != 0)
         {
             var info = new Win32.MonitorInfo();
             info.Size = (uint) Marshal.SizeOf(info);
@@ -485,6 +492,8 @@ internal class SplashScreen
                 screenTop = info.MonitorRect.Top;
                 screenWidth = info.MonitorRect.Right - info.MonitorRect.Left;
                 screenHeight = info.MonitorRect.Bottom - info.MonitorRect.Top;
+
+                WriteLog($"MonitorRect LT={info.MonitorRect.Left},{info.MonitorRect.Top} RB={info.MonitorRect.Right},{info.MonitorRect.Bottom}");
             }
         }
 
@@ -511,7 +520,12 @@ internal class SplashScreen
         Win32.HwndZOrder zOrder = _topmost ? HwndZOrder.HWND_TOPMOST : HwndZOrder.HWND_NOTOPMOST;
 
         // 设置窗口的位置。
-        SetWindowPos(_window, (IntPtr) zOrder, (screenWidth - windowWidth) / 2 + screenLeft, (screenHeight - windowHeight) / 2 + screenTop, windowWidth, windowHeight, 0);
+        var x = (screenWidth - windowWidth) / 2 + screenLeft;
+        var y = (screenHeight - windowHeight) / 2 + screenTop;
+
+        WriteLog($"screen LT={screenLeft},{screenTop};WH={screenWidth},{screenHeight} DPI={dpi} WindowWH={windowWidth},{windowHeight} WindowXY={x},{y}");
+
+        SetWindowPos(_window, (IntPtr) zOrder, x, y, windowWidth, windowHeight, 0);
 
         // 获取窗口设置完位置之后的实际位置。
         GetWindowRect(_window, out _windowRectangle);
