@@ -266,6 +266,17 @@ internal class SplashScreen
                     if (GdiplusStartup(out _gdipToken, ref startupInput, out _) == GpStatus.Ok
                         && GdipLoadImageFromFile(_splashFile, out _splashImage) == GpStatus.Ok)
                     {
+                        if (_imageWidth == 0)
+                        {
+                            if (GdipGetImageWidth(_splashImage, out var width) == GpStatus.Ok)
+                            {
+                                _imageWidth = (int) width;
+                            }
+                            else
+                            {
+                                _imageWidth = 1;
+                            }
+                        }
 
                         if (_imageHeight == 0)
                         {
@@ -276,18 +287,6 @@ internal class SplashScreen
                             else
                             {
                                 _imageHeight = 1;
-                            }
-                        }
-
-                        if (_imageWidth == 0)
-                        {
-                            if (GdipGetImageWidth(_splashImage, out var width) == GpStatus.Ok)
-                            {
-                                _imageWidth = (int) width;
-                            }
-                            else
-                            {
-                                _imageWidth = 1;
                             }
                         }
 
@@ -303,13 +302,21 @@ internal class SplashScreen
                         // 注意此时还没有启动消息循环，我们需要在窗口可见之前绘制完成。
                         DrawImage();
 
+                        OnShowed();
+
                         //设置一个Timer，每200豪秒产生一个WM_TIMER消息，防止长时间不进入GetMessage
                         //这个Timer会在窗口销毁时被销毁
                         _timer = SetTimer(_window, IntPtr.Zero, 200, null);
-
+                       
                         // 开启消息循环，然后处理消息。消息处理详见后面的 WindowProc 方法。
                         while (GetMessage(out var msg, IntPtr.Zero, 0, 0) != 0)
                         {
+                            if (msg.Value == (uint)WM.CLOSE)
+                            {
+                                DestroyWindow(_window);
+                                break;
+                            }
+
                             if (!_requestClose)
                             {
                                 TranslateMessage(ref msg);
@@ -538,9 +545,20 @@ internal class SplashScreen
         };
     }
 
+    private void OnShowed()
+    {
+        Showed?.Invoke(this, new SplashScreenShowedEventArgs(_window));
+    }
+
+    public event EventHandler<SplashScreenShowedEventArgs>? Showed;
+
     #endregion
 }
 
+public class SplashScreenShowedEventArgs(IntPtr windowHandler) : EventArgs
+{
+    public IntPtr SplashScreenWindowHandler => windowHandler;
+}
 
 /// <summary>
 /// <para>以 Unicode 编码将字符串包装到非托管内存。</para>
