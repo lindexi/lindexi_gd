@@ -77,13 +77,15 @@ public static class DirectoryArchive
                 currentFileStream = fileStream;
                 args.UpdateInputStream(fileStream);
 
+                Console.WriteLine($"压缩文件中 {currentIndex}/{fileArray.Length} 文件：{fileInfo}");
+
                 currentIndex++;
             }
         };
 
         var stopwatch = Stopwatch.StartNew();
 
-        CompressionUtility.Compress(directoryArchiveProxyInputStream, outputFileStream, new Progress<ProgressReport>());
+        CompressionUtility.Compress(directoryArchiveProxyInputStream, outputFileStream, new ConsoleProgressReport());
 
         stopwatch.Stop();
         Console.WriteLine($"TotalLength={totalFileLength};Elapsed={stopwatch.Elapsed.Minutes}m,{stopwatch.Elapsed.Seconds}s,{stopwatch.Elapsed.Milliseconds}ms");
