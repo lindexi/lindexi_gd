@@ -96,13 +96,56 @@ static void Install(SplashScreenShowedEventArgs eventArgs)
     using (var testInputZipFileStream = File.OpenRead(testInputZipFile))
     using (var temp7zFileStream = new FileStream(temp7zFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
     {
-        CompressionUtility.Compress(testInputZipFileStream, new Fxx(), new Progress<ProgressReport>());
+        var proxyInputStream = new ProxyInputStream(testInputZipFileStream);
+
+        CompressionUtility.Compress(proxyInputStream, temp7zFileStream, new Progress<ProgressReport>());
     }
 
     var outputStream = new MemoryStream();
     CompressionUtility.Decompress(assetsStream, outputStream,new Progress<ProgressReport>());
 
     Console.WriteLine(assetsStream.Length);
+}
+
+class ProxyInputStream : Stream
+{
+    public ProxyInputStream(Stream inputStream)
+    {
+        _inputStream = inputStream;
+    }
+
+    private readonly Stream _inputStream;
+
+    public override void Flush()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        return _inputStream.Read(buffer,offset, 1);
+    }
+
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void SetLength(long value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool CanRead => true;
+    public override bool CanSeek { get; }
+    public override bool CanWrite { get; }
+    public override long Length { get; }
+    public override long Position { get; set; }
 }
 
 class Fxx : Stream
