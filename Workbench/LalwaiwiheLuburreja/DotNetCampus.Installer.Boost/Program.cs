@@ -90,7 +90,7 @@ static void Install(SplashScreenShowedEventArgs eventArgs)
         throw new ArgumentException($"传入的 manifestResourceName={manifestResourceName} 找不到资源。可能是忘记嵌入资源，也可能是改了名字忘记改这里");
     }
 
-    var testInputZipFile = @"C:\lindexi\Input.zip";
+    var testInputZipFile = @"C:\lindexi\sdfsadfsdfsdf.zip";
     var temp7zFile = @"C:\lindexi\Input.7z";
 
     using (var testInputZipFileStream = File.OpenRead(testInputZipFile))
