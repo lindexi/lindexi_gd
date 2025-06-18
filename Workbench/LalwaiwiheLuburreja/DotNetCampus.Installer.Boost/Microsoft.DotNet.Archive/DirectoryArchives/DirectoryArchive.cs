@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using Microsoft.DotNet.Archive;
+﻿using Microsoft.DotNet.Archive;
+
+using System.Diagnostics;
 
 namespace DotNetCampus.Installer.Boost.Microsoft.DotNet.Archive.DirectoryArchives;
 
@@ -14,7 +15,7 @@ internal static class DirectoryArchive
         var headStream = new MemoryStream();
         long totalFileLength = 0;
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < sizeof(long); i++)
         {
             // 预留的内容，用来后续填充长度信息
             headStream.WriteByte(0xFF);
@@ -35,7 +36,7 @@ internal static class DirectoryArchive
         totalFileLength += headLength;
 
         headStream.Position = 0;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < sizeof(long); i++)
         {
             headStream.WriteByte((byte) (headLength >> (8 * i)));
         }
@@ -47,14 +48,30 @@ internal static class DirectoryArchive
         var directoryArchiveProxyInputStream = new DirectoryArchiveProxyInputStream(headStream, totalFileLength);
         directoryArchiveProxyInputStream.ReadNext += (_, args) =>
         {
+            // ReSharper disable AccessToDisposedClosure
+            if (currentFileStream is not null && !ReferenceEquals(currentFileStream, args.CurrentInputStream))
+            {
+                throw new Exception();
+            }
+
+            while (currentIndex < fileArray.Length)
+            {
+                FileInfo fileInfo = fileArray[currentIndex];
+                if (fileInfo.Length == 0)
+                {
+                    // 跳过空文件
+                    currentIndex++;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             if (currentIndex < fileArray.Length)
             {
                 args.CurrentInputStream.Dispose();
-
-                if (currentFileStream is not null && !ReferenceEquals(currentFileStream, args.CurrentInputStream))
-                {
-                    throw new Exception();
-                }
 
                 FileInfo fileInfo = fileArray[currentIndex];
                 var fileStream = fileInfo.OpenRead();
@@ -65,7 +82,12 @@ internal static class DirectoryArchive
             }
         };
 
+        var stopwatch = Stopwatch.StartNew();
+
         CompressionUtility.Compress(directoryArchiveProxyInputStream, outputFileStream, new Progress<ProgressReport>());
+
+        stopwatch.Stop();
+        Console.WriteLine($"TotalLength={totalFileLength};Elapsed={stopwatch.Elapsed.Minutes}m,{stopwatch.Elapsed.Seconds}s,{stopwatch.Elapsed.Milliseconds}ms");
 
         if (currentFileStream is not null)
         {
@@ -73,67 +95,14 @@ internal static class DirectoryArchive
         }
     }
 
-    public static async Task DecompressAsync()
+    public static void Decompress(FileInfo archiveFileInfo, DirectoryInfo outputFolder)
     {
-        await Task.CompletedTask;
+        using var archiveFileStream = archiveFileInfo.OpenRead();
+        using var directoryArchiveProxyOutputStream = new DirectoryArchiveProxyOutputStream(outputFolder);
+
+        // 解压缩 130MB 只需 5 秒
+        var stopwatch = Stopwatch.StartNew();
+        CompressionUtility.Decompress(archiveFileStream, directoryArchiveProxyOutputStream, new Progress<ProgressReport>());
+        Console.WriteLine($"Elapsed={stopwatch.Elapsed.Minutes}m,{stopwatch.Elapsed.Seconds}s,{stopwatch.Elapsed.Milliseconds}ms");
     }
-}
-
-class DirectoryArchiveProxyInputStream : Stream
-{
-    public DirectoryArchiveProxyInputStream(Stream inputStream, long totalLength)
-    {
-        _inputStream = inputStream;
-        Length = totalLength;
-    }
-
-    private Stream _inputStream;
-
-    public event EventHandler<ReadNextEventArgs>? ReadNext;
-
-    public readonly record struct ReadNextEventArgs(DirectoryArchiveProxyInputStream Stream)
-    {
-        public Stream CurrentInputStream => Stream._inputStream;
-        public void UpdateInputStream(Stream stream) => Stream._inputStream = stream;
-    }
-
-    public override void Flush()
-    {
-    }
-
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        var readCount = _inputStream.Read(buffer, offset, count);
-        if (readCount == 0)
-        {
-            // 读取不到了，继续抛出事件
-            ReadNext?.Invoke(this, new ReadNextEventArgs(this));
-
-            readCount = _inputStream.Read(buffer, offset, count);
-        }
-
-        Position += readCount;
-        return readCount;
-    }
-
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void SetLength(long value)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override void Write(byte[] buffer, int offset, int count)
-    {
-        throw new NotSupportedException();
-    }
-
-    public override bool CanRead => true;
-    public override bool CanSeek => false;
-    public override bool CanWrite => false;
-    public override long Length { get; }
-    public override long Position { get; set; }
 }
