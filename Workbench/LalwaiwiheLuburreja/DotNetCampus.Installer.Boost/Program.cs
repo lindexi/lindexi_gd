@@ -96,11 +96,44 @@ static void Install(SplashScreenShowedEventArgs eventArgs)
     using (var testInputZipFileStream = File.OpenRead(testInputZipFile))
     using (var temp7zFileStream = new FileStream(temp7zFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
     {
-        CompressionUtility.Compress(testInputZipFileStream, temp7zFileStream, new Progress<ProgressReport>());
+        CompressionUtility.Compress(testInputZipFileStream, new Fxx(), new Progress<ProgressReport>());
     }
 
     var outputStream = new MemoryStream();
     CompressionUtility.Decompress(assetsStream, outputStream,new Progress<ProgressReport>());
 
     Console.WriteLine(assetsStream.Length);
+}
+
+class Fxx : Stream
+{
+    public override void Flush()
+    {
+        
+    }
+
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void SetLength(long value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+    }
+
+    public override bool CanRead { get; }
+    public override bool CanSeek => false;
+    public override bool CanWrite => true;
+    public override long Length { get; }
+    public override long Position { get; set; }
 }
