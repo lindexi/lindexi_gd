@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+﻿using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace DotNetCampus.Installer.Boost;
+namespace DotNetCampus.Installer.Lib.Native;
 
 partial class Win32
 {
