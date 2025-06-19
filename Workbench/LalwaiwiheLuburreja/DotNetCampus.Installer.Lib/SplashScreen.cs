@@ -24,7 +24,7 @@ namespace DotNetCampus.Installer.Boost;
 /// 提供基于原生 Win32 窗口的启动图显示
 /// </summary>
 /// Copy From https://github.com/kkwpsv/SplashImage
-internal class SplashScreen
+public class SplashScreen
 {
     private readonly string _splashFile;
     private readonly string _windowClass;
