@@ -64,6 +64,6 @@ var process = Process.Start("dotnet",
 ]);
 process.WaitForExit();
 
-var option = CommandLine.Parse(args).As<Option>();
+var option = CommandLine.Parse(args).As<Options>();
 // DotNetCampus.Installer.Sample\bin\Release\net9.0-windows\publish\win-x86
 Console.WriteLine("Hello, World!");

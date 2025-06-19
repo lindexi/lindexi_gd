@@ -7,7 +7,7 @@ using DotNetCampus.Cli.Compiler;
 
 namespace InstallerCreateTool;
 
-internal class Option
+internal class Options
 {
     [Option()]
     public required string PackingFolder { get; init; }
