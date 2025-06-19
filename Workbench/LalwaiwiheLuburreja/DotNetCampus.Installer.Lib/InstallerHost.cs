@@ -1,6 +1,7 @@
 ﻿using DotNetCampus.Installer.Lib.EnvironmentCheckers;
 using DotNetCampus.Installer.Lib.Hosts;
 using DotNetCampus.Installer.Lib.SplashScreens;
+using DotNetCampus.Installer.Lib.Utils;
 using DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
 
 using System;
@@ -140,6 +141,10 @@ public class InstallerHost
 
         var process = Process.Start(installerApplicationFile, argumentList);
         process.WaitForExit();
+
+        // 尝试清理工作文件夹
+        FolderDeleteHelper.DeleteFolder(workingFolder.FullName);
+
         Environment.Exit(process.ExitCode);
     }
 }
