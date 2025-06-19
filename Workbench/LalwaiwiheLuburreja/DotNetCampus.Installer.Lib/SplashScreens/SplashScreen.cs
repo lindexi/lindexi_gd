@@ -16,10 +16,9 @@ using static DotNetCampus.Installer.Lib.Native.Win32.WindowStyles;
 using WindowsMessages = DotNetCampus.Installer.Lib.Native.Win32.WM;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using SIZE = DotNetCampus.Installer.Lib.Native.Win32.Size;
 
-namespace DotNetCampus.Installer.Lib;
+namespace DotNetCampus.Installer.Lib.SplashScreens;
 
 /// <summary>
 /// 提供基于原生 Win32 窗口的启动图显示
@@ -568,11 +567,6 @@ public class SplashScreen
     {
         SendMessage(splashScreenWindowHandler, (uint) WindowsMessages.CLOSE, IntPtr.Zero, IntPtr.Zero);
     }
-}
-
-public class SplashScreenShowedEventArgs(IntPtr windowHandler) : EventArgs
-{
-    public IntPtr SplashScreenWindowHandler => windowHandler;
 }
 
 /// <summary>

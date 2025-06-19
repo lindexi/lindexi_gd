@@ -6,42 +6,32 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 using DotNetCampus.Installer.Lib;
-
-//Console.WriteLine($"Hello, World!测试中文 RuntimeIdentifier={RuntimeInformation.RuntimeIdentifier} FrameworkDescription={RuntimeInformation.FrameworkDescription} OSVersion={Environment.OSVersion}");
+using DotNetCampus.Installer.Lib.EnvironmentCheckers;
+using DotNetCampus.Installer.Lib.SplashScreens;
 
 if (!OperatingSystem.IsWindows())
 {
     return;
 }
 
-using (var hModule = PInvoke.LoadLibrary("Kernel32.dll"))
+var environmentCheckResult = EnvironmentChecker.CheckEnvironment();
+switch (environmentCheckResult.ResultType)
 {
-    if (!hModule.IsInvalid)
-    {
-        IntPtr hFarProc = PInvoke.GetProcAddress(hModule, "AddDllDirectory");
-        if (hFarProc != IntPtr.Zero)
-        {
-            // 正常的 dotnet core 依赖环境正常
-            Console.WriteLine("Success. Either running on Win8+, or KB2533623 is installed");
-        }
-        else
-        {
-            Console.WriteLine("Likely running on Win7 or older OS, and KB2533623 is not installed");
-
-            // [操作系统版本 - Win32 apps Microsoft Learn](https://learn.microsoft.com/zh-cn/windows/win32/sysinfo/operating-system-version )
-            if (Environment.OSVersion.Version < new Version(6, 1))
-            {
-                PInvoke.MessageBox(HWND.Null, $"不支持 Win7 以下系统，当前系统版本 {Environment.OSVersion}", "系统版本过低", MESSAGEBOX_STYLE.MB_OK);
-
-                return;
-            }
-            else
-            {
-                // 后续可以决定在这里帮助安装补丁。当前还没做，就直接退出
-                return;
-            }
-        }
-    }
+    case EnvironmentCheckResultType.Passed:
+        // 正常的 dotnet core 依赖环境正常
+        break;
+    case EnvironmentCheckResultType.FailWithOsTooOld:
+        PInvoke.MessageBox(HWND.Null, $"不支持 Win7 以下系统，当前系统版本 {Environment.OSVersion}", "系统版本过低", MESSAGEBOX_STYLE.MB_OK);
+        return;
+    case EnvironmentCheckResultType.FailWithMissingPatch:
+        // 后续可以考虑在这里帮助安装补丁
+        PInvoke.MessageBox(HWND.Null, $"系统环境异常，缺少 KB2533623 补丁", "系统环境异常", MESSAGEBOX_STYLE.MB_OK);
+        return;
+    case EnvironmentCheckResultType.FailWithUnknownError:
+        PInvoke.MessageBox(HWND.Null, $"环境检测出现未知错误", "安装失败", MESSAGEBOX_STYLE.MB_OK);
+        return;
+    default:
+        throw new ArgumentOutOfRangeException();
 }
 
 var splashScreen = new SplashScreen(AssemblyAssetsHelper.GetTempSplashScreenImageFile());
