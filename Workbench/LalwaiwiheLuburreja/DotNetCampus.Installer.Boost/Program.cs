@@ -110,6 +110,4 @@ static void Install(SplashScreenShowedEventArgs eventArgs)
 
     //var outputStream = new MemoryStream();
     //CompressionUtility.Decompress(assetsStream, outputStream,new Progress<ProgressReport>());
-
-    Console.WriteLine(assetsStream.Length);
 }
