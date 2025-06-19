@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Installer.Lib.EnvironmentCheckers;
+﻿using DotNetCampus.Installer.Lib.Commandlines;
+using DotNetCampus.Installer.Lib.EnvironmentCheckers;
 using DotNetCampus.Installer.Lib.Hosts;
 using DotNetCampus.Installer.Lib.SplashScreens;
 using DotNetCampus.Installer.Lib.Utils;
@@ -127,17 +128,17 @@ public class InstallerHost
 
         List<string> argumentList =
         [
-            "install",// verb
+            InstallOptions.VerbName,// verb
 
             // 传入当前安装包启动器的 PID 也许安装包界面程序有用
-            "--BoostPid",
+            InstallOptions.BoostPidOptionName,
             Environment.ProcessId.ToString(),
         ];
 
         if (splashScreenWindowHandler != IntPtr.Zero)
         {
             // 传入欢迎界面的句柄，安装包会在安装界面开始时欢迎界面
-            argumentList.Add("--SplashScreenWindowHandler");
+            argumentList.Add(InstallOptions.SplashScreenWindowHandlerOptionName);
             argumentList.Add(splashScreenWindowHandler.ToInt64().ToString());
         }
 
