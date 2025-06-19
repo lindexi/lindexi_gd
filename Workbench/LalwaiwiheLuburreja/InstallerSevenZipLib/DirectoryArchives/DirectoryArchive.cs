@@ -99,6 +99,11 @@ public static class DirectoryArchive
     public static void Decompress(FileInfo archiveFileInfo, DirectoryInfo outputFolder)
     {
         using var archiveFileStream = archiveFileInfo.OpenRead();
+        Decompress(archiveFileStream, outputFolder);
+    }
+
+    public static void Decompress(Stream archiveFileStream, DirectoryInfo outputFolder)
+    {
         using var directoryArchiveProxyOutputStream = new DirectoryArchiveProxyOutputStream(outputFolder);
 
         // 解压缩 130MB 只需 5 秒

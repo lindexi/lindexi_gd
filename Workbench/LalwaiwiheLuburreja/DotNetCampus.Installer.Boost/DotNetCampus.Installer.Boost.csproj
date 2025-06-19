@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="C:\lindexi\SplashScreen.png" Link="SplashScreen.png" />
-    <EmbeddedResource Include="C:\lindexi\Work\Assets.7z" Link="Assets.7z" />
+    <EmbeddedResource Include="C:\lindexi\Work\Resource.assets" Link="Resource.assets" />
   </ItemGroup>
 
   <ItemGroup>

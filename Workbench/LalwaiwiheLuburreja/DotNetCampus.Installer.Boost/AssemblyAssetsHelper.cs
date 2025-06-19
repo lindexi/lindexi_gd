@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -26,5 +28,20 @@ internal static class AssemblyAssetsHelper
     {
         Stream? manifestResourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
         return manifestResourceStream!;
+    }
+
+    public static DirectoryInfo ExtractInstallerAssetsToDirectory(string assetsFileName, DirectoryInfo workingFolder)
+    {
+        var manifestResourceName = $"DotNetCampus.Installer.Boost.{assetsFileName}";
+        using var assetsStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(manifestResourceName);
+
+        if (assetsStream is null)
+        {
+            throw new ArgumentException($"传入的 manifestResourceName={manifestResourceName} 找不到资源。可能是忘记嵌入资源，也可能是改了名字忘记改这里");
+        }
+
+        var zipOutputFolder = Directory.CreateDirectory(Path.Join(workingFolder.FullName, assetsFileName));
+        DirectoryArchive.Decompress(assetsStream, zipOutputFolder);
+        return zipOutputFolder;
     }
 }
