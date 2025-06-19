@@ -559,6 +559,15 @@ public class SplashScreen
     public event EventHandler<SplashScreenShowedEventArgs>? Showed;
 
     #endregion
+
+    /// <summary>
+    /// 关闭启动图窗口
+    /// </summary>
+    /// <param name="splashScreenWindowHandler"></param>
+    public static void CloseSplashScreenWindow(IntPtr splashScreenWindowHandler)
+    {
+        SendMessage(splashScreenWindowHandler, (uint) WindowsMessages.CLOSE, IntPtr.Zero, IntPtr.Zero);
+    }
 }
 
 public class SplashScreenShowedEventArgs(IntPtr windowHandler) : EventArgs
