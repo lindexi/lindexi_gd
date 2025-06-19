@@ -44,13 +44,13 @@ if (options.IgnoreChecksum is not true)
             return;
         }
 
+        var buffer1 = new byte[4096];
+        var buffer2 = new byte[4096];
+
         CompareFile();
 
         void CompareFile()
         {
-            var buffer1 = new byte[4096];
-            var buffer2 = new byte[4096];
-
             using var file1Stream = File.OpenRead(originFile);
             using var file2Stream = File.OpenRead(unzipFile);
 

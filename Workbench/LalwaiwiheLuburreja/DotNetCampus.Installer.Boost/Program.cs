@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.IO.Compression;
 using DotNetCampus.Installer.Boost;
 
 using Microsoft.DotNet.Archive;
@@ -77,25 +78,27 @@ splashScreen.Show();
 static void Install(SplashScreenShowedEventArgs eventArgs)
 {
     // 准备解压缩资源文件
-    var workingFolder = Path.Join(Path.GetTempPath(), $"Installer_{Path.GetRandomFileName()}");
-    Directory.CreateDirectory(workingFolder);
+    var workingFolder = 
+    Directory.CreateDirectory(Path.Join(Path.GetTempPath(), $"Installer_{Path.GetRandomFileName()}"));
 
     Console.WriteLine($"Working folder: {workingFolder}");
 
-    const string assetsFileName = "Assets.7z";
-    var manifestResourceName = $"DotNetCampus.Installer.Boost.{assetsFileName}";
-    var assetsStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(manifestResourceName);
+    var resourceAssetsFolder = AssemblyAssetsHelper.ExtractInstallerAssetsToDirectory("Resource.assets", workingFolder);
 
-    if (assetsStream is null)
-    {
-        throw new ArgumentException($"传入的 manifestResourceName={manifestResourceName} 找不到资源。可能是忘记嵌入资源，也可能是改了名字忘记改这里");
-    }
+    //const string assetsFileName = "Assets.7z";
+    //var manifestResourceName = $"DotNetCampus.Installer.Boost.{assetsFileName}";
+    //var assetsStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(manifestResourceName);
 
-    var testInputZipFolder = @"C:\lindexi\Work\TestZipFolder\";
-    var temp7zFile = @"C:\lindexi\Input.7z";
-    //DirectoryArchive.Compress(new DirectoryInfo(testInputZipFolder), new FileInfo(temp7zFile));
-    var zipOutputFolder = Directory.CreateDirectory(Path.Join(workingFolder, "ZipOutput"));
-    DirectoryArchive.Decompress(new FileInfo(temp7zFile), zipOutputFolder);
+    //if (assetsStream is null)
+    //{
+    //    throw new ArgumentException($"传入的 manifestResourceName={manifestResourceName} 找不到资源。可能是忘记嵌入资源，也可能是改了名字忘记改这里");
+    //}
+
+    //var testInputZipFolder = @"C:\lindexi\Work\TestZipFolder\";
+    //var temp7zFile = @"C:\lindexi\Input.7z";
+    ////DirectoryArchive.Compress(new DirectoryInfo(testInputZipFolder), new FileInfo(temp7zFile));
+    //var zipOutputFolder = Directory.CreateDirectory(Path.Join(workingFolder, "ZipOutput"));
+    //DirectoryArchive.Decompress(new FileInfo(temp7zFile), zipOutputFolder);
 
     //using (var testInputZipFileStream = File.OpenRead(testInputZipFile))
     //using (var temp7zFileStream = new FileStream(temp7zFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
@@ -109,78 +112,4 @@ static void Install(SplashScreenShowedEventArgs eventArgs)
     //CompressionUtility.Decompress(assetsStream, outputStream,new Progress<ProgressReport>());
 
     Console.WriteLine(assetsStream.Length);
-}
-
-class ProxyInputStream : Stream
-{
-    public ProxyInputStream(Stream inputStream)
-    {
-        _inputStream = inputStream;
-    }
-
-    private readonly Stream _inputStream;
-
-    public override void Flush()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        return _inputStream.Read(buffer,offset, 1);
-    }
-
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void SetLength(long value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void Write(byte[] buffer, int offset, int count)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override bool CanRead => true;
-    public override bool CanSeek { get; }
-    public override bool CanWrite { get; }
-    public override long Length { get; }
-    public override long Position { get; set; }
-}
-
-class Fxx : Stream
-{
-    public override void Flush()
-    {
-        
-    }
-
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void SetLength(long value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void Write(byte[] buffer, int offset, int count)
-    {
-    }
-
-    public override bool CanRead { get; }
-    public override bool CanSeek => false;
-    public override bool CanWrite => true;
-    public override long Length { get; }
-    public override long Position { get; set; }
 }

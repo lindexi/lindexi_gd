@@ -89,7 +89,11 @@ class DirectoryArchiveProxyOutputStream : Stream
             offset += (int) headLength;
             count -= (int) headLength;
 
-            UpdateNextFile(_headInfo);
+            var result = UpdateNextFile(_headInfo);
+            if (!result)
+            {
+                return;
+            }
         }
 
         if (_currentFileStream is null || _headInfo is null)
@@ -102,26 +106,30 @@ class DirectoryArchiveProxyOutputStream : Stream
             var position = _currentFileStream.Position;
             var remindLength = _currentFileLength - position;
 
-            if (remindLength == 0)
+            var writeCount = Math.Min(count, (int) remindLength);
+            _currentFileStream.Write(buffer, offset, writeCount);
+
+            if (writeCount == remindLength)
             {
                 _currentFileStream.Dispose();
                 _currentFileStream = null;
-                UpdateNextFile(_headInfo);
-                continue;
+                var result = UpdateNextFile(_headInfo);
+                if (!result)
+                {
+                    return;
+                }
             }
-
-            var writeCount = Math.Min(count, (int) remindLength);
-            _currentFileStream.Write(buffer, offset, writeCount);
 
             count -= writeCount;
             offset += writeCount;
         }
     }
 
-    [MemberNotNull(nameof(_currentFileStream))]
-    private void UpdateNextFile(HeadInfo headInfo)
+    
+    [MemberNotNullWhen(true, nameof(_currentFileStream))]
+    private bool UpdateNextFile(HeadInfo headInfo)
     {
-        while (true)
+        while (headInfo.CurrentFileIndex < headInfo.FileInfos.Count)
         {
             var (relativePath, length) = headInfo.FileInfos[headInfo.CurrentFileIndex];
             headInfo.CurrentFileIndex++;
@@ -142,9 +150,11 @@ class DirectoryArchiveProxyOutputStream : Stream
             }
             else
             {
-                break;
+                return true;
             }
         }
+
+        return false;
     }
 
     public override bool CanRead => false;
