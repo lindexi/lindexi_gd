@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Installer.Lib.EnvironmentCheckers;
+﻿using DotNetCampus.Installer.Lib.Commandlines;
+using DotNetCampus.Installer.Lib.EnvironmentCheckers;
 using DotNetCampus.Installer.Lib.Hosts;
 using DotNetCampus.Installer.Lib.SplashScreens;
 using DotNetCampus.Installer.Lib.Utils;
@@ -109,6 +110,50 @@ public class InstallerHost
     private void Install(IntPtr splashScreenWindowHandler)
     {
         var workingFolder = _configuration.WorkingFolder;
+        string installerApplicationFile;
+
+#if DEBUG
+        var debugInstallerFile =
+            @"..\..\..\..\DotNetCampus.Installer.Sample\bin\Debug\net9.0-windows\DotNetCampus.Installer.Sample.exe";
+        debugInstallerFile = Path.GetFullPath(debugInstallerFile);
+        if (File.Exists(debugInstallerFile))
+        {
+            installerApplicationFile = debugInstallerFile;
+        }
+        else
+#endif
+        {
+            installerApplicationFile = ExtractInstallerAssets();
+        }
+
+        List<string> argumentList =
+        [
+            InstallOptions.VerbName,// verb
+
+            // 传入当前安装包启动器的 PID 也许安装包界面程序有用
+            InstallOptions.BoostPidOptionName,
+            Environment.ProcessId.ToString(),
+        ];
+
+        if (splashScreenWindowHandler != IntPtr.Zero)
+        {
+            // 传入欢迎界面的句柄，安装包会在安装界面开始时欢迎界面
+            argumentList.Add(InstallOptions.SplashScreenWindowHandlerOptionName);
+            argumentList.Add(splashScreenWindowHandler.ToInt64().ToString());
+        }
+
+        var process = Process.Start(installerApplicationFile, argumentList);
+        process.WaitForExit();
+
+        // 尝试清理工作文件夹
+        FolderDeleteHelper.DeleteFolder(workingFolder.FullName);
+
+        Environment.Exit(process.ExitCode);
+    }
+
+    private string ExtractInstallerAssets()
+    {
+        var workingFolder = _configuration.WorkingFolder;
         var installerResourceAssetsInfo = _configuration.InstallerResourceAssetsInfo;
         using var assetsStream = installerResourceAssetsInfo.GetManifestResourceStream();
         var resourceAssetsFolder = Directory.CreateDirectory(Path.Join(workingFolder.FullName, installerResourceAssetsInfo.ManifestResourceName));
@@ -123,28 +168,6 @@ public class InstallerHost
                 $"无法找到 {installerResourceAssetsInfo.ManifestResourceName} 里的 {_configuration.InstallerRelativePath} 安装器文件", installerApplicationFile);
         }
 
-        List<string> argumentList =
-        [
-            "install",// verb
-
-            // 传入当前安装包启动器的 PID 也许安装包界面程序有用
-            "--BoostPid",
-            Environment.ProcessId.ToString(),
-        ];
-
-        if (splashScreenWindowHandler != IntPtr.Zero)
-        {
-            // 传入欢迎界面的句柄，安装包会在安装界面开始时欢迎界面
-            argumentList.Add("--SplashScreenWindowHandler");
-            argumentList.Add(splashScreenWindowHandler.ToInt64().ToString());
-        }
-
-        var process = Process.Start(installerApplicationFile, argumentList);
-        process.WaitForExit();
-
-        // 尝试清理工作文件夹
-        FolderDeleteHelper.DeleteFolder(workingFolder.FullName);
-
-        Environment.Exit(process.ExitCode);
+        return installerApplicationFile;
     }
 }
