@@ -14,6 +14,7 @@ using static DotNetCampus.Installer.Boost.Win32.WindowExStyles;
 using static DotNetCampus.Installer.Boost.Win32.WindowStyles;
 using WindowsMessages = DotNetCampus.Installer.Boost.Win32.WM;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using SIZE = DotNetCampus.Installer.Boost.Win32.Size;
 
@@ -134,6 +135,7 @@ internal class SplashScreen
         _requestClose = true;
     }
 
+    [Conditional("DEBUG")]
     private void WriteLog(string message)
     {
         Console.WriteLine($"[SplashScreen] {message}");
@@ -313,6 +315,7 @@ internal class SplashScreen
                         {
                             if (msg.Value == (uint)WM.CLOSE)
                             {
+                                WriteLog($"收到 WM_CLOSE 消息");
                                 DestroyWindow(_window);
                                 break;
                             }
@@ -328,6 +331,8 @@ internal class SplashScreen
                                 DestroyWindow(_window);
                             }
                         }
+
+                        WriteLog($"循环退出");
                     }
                     else
                     {

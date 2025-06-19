@@ -1,18 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
     <SupportedOSPlatformVersion>5.1</SupportedOSPlatformVersion>
     <ApplicationManifest>App.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="C:\lindexi\SplashScreen.png" Link="SplashScreen.png" />
-    <EmbeddedResource Include="C:\lindexi\Work\Resource.assets" Link="Resource.assets" />
+    <EmbeddedResource Include="Assets\SplashScreen.png" Link="SplashScreen.png" />
+    <EmbeddedResource Include="Assets\Resource.assets" Link="Resource.assets" />
   </ItemGroup>
 
   <ItemGroup>

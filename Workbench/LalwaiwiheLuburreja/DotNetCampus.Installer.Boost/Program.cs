@@ -1,17 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.IO.Compression;
+using System.Diagnostics;
 using DotNetCampus.Installer.Boost;
-
-using Microsoft.DotNet.Archive;
-
-using System.Reflection;
-using System.Runtime.InteropServices;
-
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
-using DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
 
 //Console.WriteLine($"Hello, World!测试中文 RuntimeIdentifier={RuntimeInformation.RuntimeIdentifier} FrameworkDescription={RuntimeInformation.FrameworkDescription} OSVersion={Environment.OSVersion}");
 
@@ -78,36 +71,30 @@ splashScreen.Show();
 static void Install(SplashScreenShowedEventArgs eventArgs)
 {
     // 准备解压缩资源文件
-    var workingFolder = 
+    var workingFolder =
     Directory.CreateDirectory(Path.Join(Path.GetTempPath(), $"Installer_{Path.GetRandomFileName()}"));
 
     Console.WriteLine($"Working folder: {workingFolder}");
 
     var resourceAssetsFolder = AssemblyAssetsHelper.ExtractInstallerAssetsToDirectory("Resource.assets", workingFolder);
 
-    //const string assetsFileName = "Assets.7z";
-    //var manifestResourceName = $"DotNetCampus.Installer.Boost.{assetsFileName}";
-    //var assetsStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(manifestResourceName);
+    // 带界面的安装包界面程序
+    var installerApplicationFile = Path.Join(resourceAssetsFolder.FullName, "Installer.exe");
 
-    //if (assetsStream is null)
-    //{
-    //    throw new ArgumentException($"传入的 manifestResourceName={manifestResourceName} 找不到资源。可能是忘记嵌入资源，也可能是改了名字忘记改这里");
-    //}
+    string[] argumentList =
+    [
+        "install",// verb
 
-    //var testInputZipFolder = @"C:\lindexi\Work\TestZipFolder\";
-    //var temp7zFile = @"C:\lindexi\Input.7z";
-    ////DirectoryArchive.Compress(new DirectoryInfo(testInputZipFolder), new FileInfo(temp7zFile));
-    //var zipOutputFolder = Directory.CreateDirectory(Path.Join(workingFolder, "ZipOutput"));
-    //DirectoryArchive.Decompress(new FileInfo(temp7zFile), zipOutputFolder);
+        // 传入欢迎界面的句柄，安装包会在安装界面开始时欢迎界面
+        "--SplashScreenWindowHandler",
+        eventArgs.SplashScreenWindowHandler.ToInt64().ToString(),
 
-    //using (var testInputZipFileStream = File.OpenRead(testInputZipFile))
-    //using (var temp7zFileStream = new FileStream(temp7zFile, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
-    //{
-    //    var proxyInputStream = new ProxyInputStream(testInputZipFileStream);
+        // 传入当前安装包启动器的 PID 也许安装包界面程序有用
+        "--BoostPid",
+        Environment.ProcessId.ToString(),
+    ];
 
-    //    CompressionUtility.Compress(proxyInputStream, temp7zFileStream, new Progress<ProgressReport>());
-    //}
-
-    //var outputStream = new MemoryStream();
-    //CompressionUtility.Decompress(assetsStream, outputStream,new Progress<ProgressReport>());
+    var process = Process.Start(installerApplicationFile, argumentList);
+    process.WaitForExit();
+    Environment.Exit(process.ExitCode);
 }
