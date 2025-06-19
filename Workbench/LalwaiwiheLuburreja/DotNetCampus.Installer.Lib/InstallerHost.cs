@@ -109,18 +109,20 @@ public class InstallerHost
     private void Install(IntPtr splashScreenWindowHandler)
     {
         var workingFolder = _configuration.WorkingFolder;
-        var installerResourceAssetsInfo = _configuration.InstallerResourceAssetsInfo;
-        using var assetsStream = installerResourceAssetsInfo.GetManifestResourceStream();
-        var resourceAssetsFolder = Directory.CreateDirectory(Path.Join(workingFolder.FullName, installerResourceAssetsInfo.ManifestResourceName));
-        DirectoryArchive.Decompress(assetsStream, resourceAssetsFolder);
+        string installerApplicationFile;
 
-        // 带界面的安装包界面程序
-        var installerApplicationFile = Path.Join(resourceAssetsFolder.FullName, _configuration.InstallerRelativePath);
-
-        if (!File.Exists(installerApplicationFile))
+#if DEBUG
+        var debugInstallerFile =
+            @"..\..\..\..\DotNetCampus.Installer.Sample\bin\Debug\net9.0-windows\DotNetCampus.Installer.Sample.exe";
+        debugInstallerFile = Path.GetFullPath(debugInstallerFile);
+        if (File.Exists(debugInstallerFile))
         {
-            throw new FileNotFoundException(
-                $"无法找到 {installerResourceAssetsInfo.ManifestResourceName} 里的 {_configuration.InstallerRelativePath} 安装器文件", installerApplicationFile);
+            installerApplicationFile = debugInstallerFile;
+        }
+        else
+#endif
+        {
+            installerApplicationFile = ExtractInstallerAssets();
         }
 
         List<string> argumentList =
@@ -146,5 +148,25 @@ public class InstallerHost
         FolderDeleteHelper.DeleteFolder(workingFolder.FullName);
 
         Environment.Exit(process.ExitCode);
+    }
+
+    private string ExtractInstallerAssets()
+    {
+        var workingFolder = _configuration.WorkingFolder;
+        var installerResourceAssetsInfo = _configuration.InstallerResourceAssetsInfo;
+        using var assetsStream = installerResourceAssetsInfo.GetManifestResourceStream();
+        var resourceAssetsFolder = Directory.CreateDirectory(Path.Join(workingFolder.FullName, installerResourceAssetsInfo.ManifestResourceName));
+        DirectoryArchive.Decompress(assetsStream, resourceAssetsFolder);
+
+        // 带界面的安装包界面程序
+        var installerApplicationFile = Path.Join(resourceAssetsFolder.FullName, _configuration.InstallerRelativePath);
+
+        if (!File.Exists(installerApplicationFile))
+        {
+            throw new FileNotFoundException(
+                $"无法找到 {installerResourceAssetsInfo.ManifestResourceName} 里的 {_configuration.InstallerRelativePath} 安装器文件", installerApplicationFile);
+        }
+
+        return installerApplicationFile;
     }
 }
