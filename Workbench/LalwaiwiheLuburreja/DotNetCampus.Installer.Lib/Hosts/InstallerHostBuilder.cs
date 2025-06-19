@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -24,11 +25,7 @@ public class InstallerHostBuilder
         FileInfo? splashScreenFile = _splashScreenConfiguration?.SplashScreenFile;
         if (splashScreenFile is null && _splashScreenConfiguration?.ResourceInfo is { } resourceInfo)
         {
-            using Stream? assetsStream = resourceInfo.Assembly.GetManifestResourceStream(resourceInfo.ManifestResourceName);
-            if (assetsStream is null)
-            {
-                throw new ArgumentException($"传入的 ManifestResourceName={resourceInfo.ManifestResourceName} 找不到资源。可能是忘记嵌入资源，也可能是改了名字忘记改这里，也可能传错程序集。 Assembly={resourceInfo.Assembly.FullName}");
-            }
+            using Stream assetsStream = resourceInfo.GetManifestResourceStream();
 
             var tempFile = Path.Join(workingFolder.FullName, $"{resourceInfo.ManifestResourceName}");
             using (var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
@@ -39,10 +36,18 @@ public class InstallerHostBuilder
             splashScreenFile = new FileInfo(tempFile);
         }
 
+        var assemblyManifestResourceInfo = _installerResourceAssetsInfo;
+        if (assemblyManifestResourceInfo is null)
+        {
+            throw new InvalidOperationException();
+        }
+
         var configuration = new InstallerHostConfiguration()
         {
             WorkingFolder = workingFolder,
-            SplashScreenFile = splashScreenFile
+            SplashScreenFile = splashScreenFile,
+            InstallerResourceAssetsInfo = assemblyManifestResourceInfo.Value,
+            InstallerRelativePath = _installerRelativePath,
         };
 
         return new InstallerHost(configuration);
@@ -71,4 +76,20 @@ public class InstallerHostBuilder
     }
 
     private InstallerHostSplashScreenConfiguration? _splashScreenConfiguration;
+
+    public InstallerHostBuilder ConfigInstallerResourceAssets(Assembly assembly, string manifestResourceName)
+    {
+        _installerResourceAssetsInfo = new AssemblyManifestResourceInfo(assembly, manifestResourceName);
+        return this;
+    }
+
+    private AssemblyManifestResourceInfo? _installerResourceAssetsInfo;
+
+    public InstallerHostBuilder ConfigInstallerFilePathInResourceAssets(string relativePath)
+    {
+        _installerRelativePath = relativePath;
+        return this;
+    }
+
+    private string _installerRelativePath = "Installer.exe";
 }
