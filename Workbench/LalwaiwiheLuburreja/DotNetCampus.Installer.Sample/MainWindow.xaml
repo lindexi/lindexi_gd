@@ -1,0 +1,20 @@
+﻿<Window x:Class="DotNetCampus.Installer.Sample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DotNetCampus.Installer.Sample"
+        mc:Ignorable="d"
+        Title="软件安装包" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Text="欢迎使用 DotNetCampus.Installer" Margin="10" FontSize="24" FontWeight="Bold" />
+        <Button x:Name="InstallButton" Grid.Row="1" Content="开始安装" Margin="10" HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="200" Height="50"
+                Click="InstallButton_Click" />
+    </Grid>
+</Window>
