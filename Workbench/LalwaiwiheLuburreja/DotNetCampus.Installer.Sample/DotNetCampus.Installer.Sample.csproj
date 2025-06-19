@@ -9,6 +9,9 @@
 
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunComposite>true</PublishReadyToRunComposite>
+
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
   </PropertyGroup>
 
   <ItemGroup>
