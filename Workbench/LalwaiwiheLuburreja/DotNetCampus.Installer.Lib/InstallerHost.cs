@@ -131,14 +131,14 @@ public class InstallerHost
             InstallOptions.VerbName,// verb
 
             // 传入当前安装包启动器的 PID 也许安装包界面程序有用
-            InstallOptions.BoostPidOptionName,
+            $"--{InstallOptions.BoostPidOptionName}",
             Environment.ProcessId.ToString(),
         ];
 
         if (splashScreenWindowHandler != IntPtr.Zero)
         {
             // 传入欢迎界面的句柄，安装包会在安装界面开始时欢迎界面
-            argumentList.Add(InstallOptions.SplashScreenWindowHandlerOptionName);
+            argumentList.Add($"--{InstallOptions.SplashScreenWindowHandlerOptionName}");
             argumentList.Add(splashScreenWindowHandler.ToInt64().ToString());
         }
 

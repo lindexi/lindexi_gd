@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <AdditionalFiles Include="NativeMethods.txt" />
+
+    <!-- https://github.com/dotnet-campus/DotNetCampus.CommandLine/issues/50 -->
+    <InternalsVisibleTo Include="DotNetCampus.Installer.Sample" />
   </ItemGroup>
 
   <ItemGroup>
