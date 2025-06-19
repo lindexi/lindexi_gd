@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DotNetCampus.Installer.Lib.Commandlines;
+using SplashScreen = DotNetCampus.Installer.Lib.SplashScreens.SplashScreen;
 
 namespace DotNetCampus.Installer.Sample;
 
@@ -22,9 +23,12 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        Debugger.Launch();
-
+        // 安装窗口显示出来之后，关闭启动画面窗口
         var installOptions = Cli.CommandLine.Parse(Environment.GetCommandLineArgs()).As<InstallOptions>();
+        if (installOptions.SplashScreenWindowHandler is {} handler)
+        {
+            SplashScreen.CloseSplashScreenWindow(new IntPtr(handler));
+        }
     }
 
     private void InstallButton_Click(object sender, RoutedEventArgs e)
