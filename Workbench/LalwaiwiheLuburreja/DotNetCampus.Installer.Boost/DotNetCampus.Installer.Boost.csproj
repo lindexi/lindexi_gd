@@ -8,12 +8,12 @@
     <PublishAot>true</PublishAot>
     <SupportedOSPlatformVersion>5.1</SupportedOSPlatformVersion>
     <ApplicationManifest>App.manifest</ApplicationManifest>
-    <ApplicationIcon>..\..\Assets\icon.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\Assets\SplashScreen.png" Link="SplashScreen.png" />
-    <EmbeddedResource Include="..\..\Assets\Resource.assets" Link="Resource.assets" />
+    <EmbeddedResource Include="Assets\SplashScreen.png" Link="SplashScreen.png" />
+    <EmbeddedResource Include="Assets\Resource.assets" Link="Resource.assets" />
   </ItemGroup>
 
   <ItemGroup>
