@@ -11,6 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallerSevenZipLib", "Ins
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallerSevenZipTool", "InstallerSevenZipTool\InstallerSevenZipTool.csproj", "{79D7AD7B-5900-3F0D-D793-1E9CEDEB7DB5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{3A8DF596-E814-FECC-DD4B-D8EF8AAC1A0D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tool", "Tool", "{C2B7AC55-755F-98EC-7131-AA75D4EC5C29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.Installer.Lib", "DotNetCampus.Installer.Lib\DotNetCampus.Installer.Lib.csproj", "{778BE5AE-FD70-8B08-1A02-0423C9149D1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,9 +75,26 @@ Global
 		{79D7AD7B-5900-3F0D-D793-1E9CEDEB7DB5}.Release|x64.Build.0 = Release|Any CPU
 		{79D7AD7B-5900-3F0D-D793-1E9CEDEB7DB5}.Release|x86.ActiveCfg = Release|Any CPU
 		{79D7AD7B-5900-3F0D-D793-1E9CEDEB7DB5}.Release|x86.Build.0 = Release|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Debug|x64.Build.0 = Debug|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Debug|x86.Build.0 = Debug|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Release|x64.ActiveCfg = Release|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Release|x64.Build.0 = Release|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Release|x86.ActiveCfg = Release|Any CPU
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B4036FF3-E193-D6C9-87A8-42D180A88415} = {3A8DF596-E814-FECC-DD4B-D8EF8AAC1A0D}
+		{79D7AD7B-5900-3F0D-D793-1E9CEDEB7DB5} = {C2B7AC55-755F-98EC-7131-AA75D4EC5C29}
+		{778BE5AE-FD70-8B08-1A02-0423C9149D1B} = {3A8DF596-E814-FECC-DD4B-D8EF8AAC1A0D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {196220B1-88A7-481D-9A27-00E9B03AE4A2}
