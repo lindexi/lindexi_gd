@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -48,6 +49,7 @@ public class InstallerHostBuilder
             SplashScreenFile = splashScreenFile,
             InstallerResourceAssetsInfo = assemblyManifestResourceInfo.Value,
             InstallerRelativePath = _installerRelativePath,
+            InstallerProcessStartConfigAction = _installerProcessStartConfigAction,
         };
 
         return new InstallerHost(configuration);
@@ -92,4 +94,12 @@ public class InstallerHostBuilder
     }
 
     private string _installerRelativePath = "Installer.exe";
+
+    public InstallerHostBuilder ConfigInstallerProcessStart(Action<ProcessStartInfo> config)
+    {
+        _installerProcessStartConfigAction = config;
+        return this;
+    }
+
+    private Action<ProcessStartInfo>? _installerProcessStartConfigAction;
 }
