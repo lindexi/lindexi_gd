@@ -142,7 +142,11 @@ public class InstallerHost
             argumentList.Add(splashScreenWindowHandler.ToInt64().ToString());
         }
 
-        var process = Process.Start(installerApplicationFile, argumentList);
+        var processStartInfo = new ProcessStartInfo(installerApplicationFile, argumentList);
+
+        _configuration.InstallerProcessStartConfigAction?.Invoke(processStartInfo);
+
+        var process = Process.Start(processStartInfo)!;
         process.WaitForExit();
 
         // 尝试清理工作文件夹
