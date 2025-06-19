@@ -11,9 +11,14 @@
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ResourceAssetsPath>C:\lindexi\Work\Resource.assets</ResourceAssetsPath>
+    <ResourceAssetsPath Condition="!Exists('$(ResourceAssetsPath)')">Assets\Resource.assets</ResourceAssetsPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="Assets\SplashScreen.png" Link="SplashScreen.png" />
-    <EmbeddedResource Include="Assets\Resource.assets" Link="Resource.assets" />
+    <EmbeddedResource Include="$(ResourceAssetsPath)" Link="Resource.assets" />
   </ItemGroup>
 
   <ItemGroup>
