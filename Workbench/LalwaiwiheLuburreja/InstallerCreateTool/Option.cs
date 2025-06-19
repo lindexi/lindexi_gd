@@ -13,7 +13,7 @@ internal class Option
     public required string PackingFolder { get; init; }
 
     [Option()]
-    public string? InstallerOutputFile { get; init; }
+    public string? InstallerOutputFolder { get; init; }
 
     [Option()]
     public required string InstallerBoostProjectPath { get; init; }

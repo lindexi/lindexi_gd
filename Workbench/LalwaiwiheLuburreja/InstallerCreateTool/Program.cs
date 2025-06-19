@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
+
 using DotNetCampus.Cli;
 using DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
 
@@ -22,18 +24,17 @@ if (File.Exists(sampleFilePath))
     File.Move(sampleFilePath, installerFilePath, overwrite: true);
 }
 
-var installerOutputFile = "SampleInstaller.exe";
+var installerOutputFolder = "SampleInstallerFolder";
 
 var installerBoostProjectFolder = Path.GetFullPath(@"..\..\..\..\DotNetCampus.Installer.Boost\");
 var installerBoostProjectName = "DotNetCampus.Installer.Boost.csproj";
 var installerBoostProjectPath = Path.Join(installerBoostProjectFolder, installerBoostProjectName);
 
-Console.WriteLine($"开始制作安装包资产文件");
 
 var installerIconFilePath = "不存在的图标.ico";
 if (File.Exists(installerIconFilePath))
 {
-    File.Copy(installerIconFilePath,Path.Join(installerBoostProjectFolder, "Assets", "icon.ico"));
+    File.Copy(installerIconFilePath, Path.Join(installerBoostProjectFolder, "Assets", "icon.ico"));
 }
 
 var splashScreenFilePath = "不存在的欢迎界面.png";
@@ -42,10 +43,26 @@ if (File.Exists(splashScreenFilePath))
     File.Copy(splashScreenFilePath, Path.Join(installerBoostProjectFolder, "Assets", "SplashScreen.png"));
 }
 
+Console.WriteLine($"开始制作安装包资产文件");
+
 var resourceAssetsName = "Resource.assets";
 var resourceAssetsFile = Path.Join(installerBoostProjectFolder, "Assets", resourceAssetsName);
 
 DirectoryArchive.Compress(new DirectoryInfo(packingFolder), new FileInfo(resourceAssetsFile));
+
+Console.WriteLine($"完成制作安装包资产文件");
+
+Console.WriteLine($"开始发布安装包 Boost 项目 {installerBoostProjectPath}");
+
+var process = Process.Start("dotnet", 
+[
+    "publish",
+    "-r", "win-x86",
+    "-o", installerOutputFolder,
+    "-tl:off",
+    installerBoostProjectPath,
+]);
+process.WaitForExit();
 
 var option = CommandLine.Parse(args).As<Option>();
 // DotNetCampus.Installer.Sample\bin\Release\net9.0-windows\publish\win-x86
