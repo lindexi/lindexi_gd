@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
-using Rectangle = DotNetCampus.Installer.Boost.Win32.RECT;
-using Point = DotNetCampus.Installer.Boost.Win32.POINT;
+using Rectangle = DotNetCampus.Installer.Lib.Native.Win32.RECT;
+using Point = DotNetCampus.Installer.Lib.Native.Win32.POINT;
 
-namespace DotNetCampus.Installer.Boost;
+namespace DotNetCampus.Installer.Lib.Native;
 
 public partial class Win32
 {
@@ -248,7 +245,7 @@ public partial class Win32
 
         [DllImport(LibraryName, ExactSpelling = true)]
         public static extern bool UpdateLayeredWindow(IntPtr hWnd, IntPtr hdcDst,
-            [In] ref Point pptDst, [In] ref Size psize, IntPtr hdcSrc, [In] ref Point pptSrc, uint crKey,
+            [In] ref Point pptDst, [In] ref Win32.Size psize, IntPtr hdcSrc, [In] ref Point pptSrc, uint crKey,
             [In] ref BlendFunction pblend, uint dwFlags);
 
         [DllImport(LibraryName, ExactSpelling = true)]
