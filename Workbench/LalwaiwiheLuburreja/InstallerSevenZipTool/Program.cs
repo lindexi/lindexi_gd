@@ -31,8 +31,8 @@ if (options.IgnoreChecksum is not true)
     var workingFolder = Path.Join(Path.GetTempPath(), $"Installer_{Path.GetRandomFileName()}");
 
     DirectoryArchive.Decompress(new FileInfo(outputFile), Directory.CreateDirectory(workingFolder));
-    // 解压缩完成之后，执行文件对比
 
+    // 解压缩完成之后，执行文件对比
     foreach (var originFile in Directory.GetFiles(inputDirectory, "*", SearchOption.AllDirectories))
     {
         var relativePath = Path.GetRelativePath(inputDirectory, originFile);
