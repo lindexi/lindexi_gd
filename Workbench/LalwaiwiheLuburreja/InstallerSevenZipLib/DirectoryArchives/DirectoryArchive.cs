@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+
 using Microsoft.DotNet.Archive;
 
 namespace DotNetCampus.InstallerSevenZipLib.DirectoryArchives;
@@ -77,7 +78,7 @@ public static class DirectoryArchive
                 currentFileStream = fileStream;
                 args.UpdateInputStream(fileStream);
 
-                Console.WriteLine($"读取文件中 {currentIndex}/{fileArray.Length} 文件：{fileInfo}");
+                Console.WriteLine($"读取文件中 {currentIndex + 1}/{fileArray.Length} 文件：{fileInfo}");
 
                 currentIndex++;
             }
