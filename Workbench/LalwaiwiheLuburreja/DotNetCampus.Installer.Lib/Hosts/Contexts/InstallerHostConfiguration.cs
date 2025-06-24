@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace DotNetCampus.Installer.Lib.Hosts;
+﻿namespace DotNetCampus.Installer.Lib.Hosts.Contexts;
 
 public readonly record struct InstallerHostConfiguration
 {
@@ -10,5 +8,5 @@ public readonly record struct InstallerHostConfiguration
     public required AssemblyManifestResourceInfo InstallerResourceAssetsInfo { get; init; }
     public required string InstallerRelativePath { get; init; }
 
-    public Action<ProcessStartInfo>? InstallerProcessStartConfigAction { get; init; }
+    public Action<ProcessStartInfoConfigurationContext>? InstallerProcessStartConfigAction { get; init; }
 }

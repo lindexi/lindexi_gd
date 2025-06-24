@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using DotNetCampus.Installer.Lib.Hosts.Contexts;
 
 namespace DotNetCampus.Installer.Lib.Hosts;
 
@@ -95,11 +96,11 @@ public class InstallerHostBuilder
 
     private string _installerRelativePath = "Installer.exe";
 
-    public InstallerHostBuilder ConfigInstallerProcessStart(Action<ProcessStartInfo> config)
+    public InstallerHostBuilder ConfigInstallerProcessStart(Action<ProcessStartInfoConfigurationContext> config)
     {
         _installerProcessStartConfigAction = config;
         return this;
     }
 
-    private Action<ProcessStartInfo>? _installerProcessStartConfigAction;
+    private Action<ProcessStartInfoConfigurationContext>? _installerProcessStartConfigAction;
 }

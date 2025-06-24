@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using DotNetCampus.Installer.Lib.Hosts.Contexts;
 
 namespace DotNetCampus.Installer.Lib;
 
@@ -145,8 +146,13 @@ public class InstallerHost
         }
 
         var processStartInfo = new ProcessStartInfo(installerApplicationFile, argumentList);
-
-        _configuration.InstallerProcessStartConfigAction?.Invoke(processStartInfo);
+        var context = new ProcessStartInfoConfigurationContext()
+        {
+            ProcessStartInfo = processStartInfo,
+            WorkingFolder = workingFolder,
+            SplashScreenWindowHandler = splashScreenWindowHandler
+        };
+        _configuration.InstallerProcessStartConfigAction?.Invoke(context);
 
         var process = Process.Start(processStartInfo)!;
         process.WaitForExit();
@@ -177,3 +183,4 @@ public class InstallerHost
         return installerApplicationFile;
     }
 }
+

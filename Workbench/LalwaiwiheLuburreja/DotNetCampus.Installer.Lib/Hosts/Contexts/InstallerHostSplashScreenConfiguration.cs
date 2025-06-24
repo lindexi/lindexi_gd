@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
-namespace DotNetCampus.Installer.Lib.Hosts;
+namespace DotNetCampus.Installer.Lib.Hosts.Contexts;
 
 public class InstallerHostSplashScreenConfiguration
 {

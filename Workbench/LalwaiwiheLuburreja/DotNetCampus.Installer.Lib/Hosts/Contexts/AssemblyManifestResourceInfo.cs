@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace DotNetCampus.Installer.Lib.Hosts;
+namespace DotNetCampus.Installer.Lib.Hosts.Contexts;
 
 public readonly record struct AssemblyManifestResourceInfo(Assembly Assembly, string ManifestResourceName)
 {
