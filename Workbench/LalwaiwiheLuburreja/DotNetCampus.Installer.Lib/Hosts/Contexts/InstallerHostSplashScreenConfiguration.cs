@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
-namespace DotNetCampus.Installer.Lib.Hosts;
+namespace DotNetCampus.Installer.Lib.Hosts.Contexts;
 
+/// <summary>
+/// 欢迎界面的配置
+/// </summary>
 public class InstallerHostSplashScreenConfiguration
 {
     public void FromAssemblyManifestResource(Assembly assembly, string manifestResourceName)

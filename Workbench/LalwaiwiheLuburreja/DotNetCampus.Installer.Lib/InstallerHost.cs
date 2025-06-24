@@ -16,11 +16,15 @@ using System.Threading.Tasks;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using DotNetCampus.Installer.Lib.Hosts.Contexts;
 
 namespace DotNetCampus.Installer.Lib;
 
 #pragma warning disable CA1416 // 执行版本有 YY-Thunks 保底，不适用文档描述的要求版本号
 
+/// <summary>
+/// 安装器主机
+/// </summary>
 public class InstallerHost
 {
     public static InstallerHostBuilder CreateBuilder()
@@ -145,8 +149,13 @@ public class InstallerHost
         }
 
         var processStartInfo = new ProcessStartInfo(installerApplicationFile, argumentList);
-
-        _configuration.InstallerProcessStartConfigAction?.Invoke(processStartInfo);
+        var context = new ProcessStartInfoConfigurationContext()
+        {
+            ProcessStartInfo = processStartInfo,
+            WorkingFolder = workingFolder,
+            SplashScreenWindowHandler = splashScreenWindowHandler
+        };
+        _configuration.InstallerProcessStartConfigAction?.Invoke(context);
 
         var process = Process.Start(processStartInfo)!;
         process.WaitForExit();
@@ -177,3 +186,4 @@ public class InstallerHost
         return installerApplicationFile;
     }
 }
+
