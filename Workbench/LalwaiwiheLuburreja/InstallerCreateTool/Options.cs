@@ -9,6 +9,12 @@ namespace InstallerCreateTool;
 
 internal class Options
 {
+    /// <summary>
+    /// 是否强行使用 UTF-8 编码作为控制台输出
+    /// </summary>
+    [Option()]
+    public bool? ForceUtf8ConsoleOutput { get; init; }
+
     [Option()]
     public required string PackingFolder { get; init; }
 

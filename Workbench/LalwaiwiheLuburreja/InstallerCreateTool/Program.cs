@@ -45,13 +45,17 @@ else
     option = CommandLine.Parse(args).As<Options>();
 }
 
+if (option.ForceUtf8ConsoleOutput is true)
+{
+    Console.OutputEncoding = System.Text.Encoding.UTF8;
+}
+
 var installerOutputFolder = option.InstallerOutputFolder;
 
 var installerBoostProjectFolder = option.InstallerBoostProjectFolderPath;
 var installerBoostProjectName = option.InstallerBoostProjectName;
 
 var installerBoostProjectPath = Path.Join(installerBoostProjectFolder, installerBoostProjectName);
-
 
 var installerIconFilePath = option.InstallerIconFilePath;
 if (File.Exists(installerIconFilePath))
