@@ -53,6 +53,8 @@ public class InstallerHost
                 return -1;
             case EnvironmentCheckResultType.FailWithMissingPatch:
                 // 后续可以考虑在这里帮助安装补丁
+                // 安装完成之后需要重启，重启最好写入到注册表的 RunOnce 里面，这样大部分杀毒软件都不会拦截安装包在重启之后重新运行
+                // 注册表的 RunOnce 路径是 HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\RunOnce
                 PInvoke.MessageBox(HWND.Null, $"系统环境异常，缺少 KB2533623 补丁", "系统环境异常", MESSAGEBOX_STYLE.MB_OK);
                 return -1;
             case EnvironmentCheckResultType.FailWithUnknownError:
