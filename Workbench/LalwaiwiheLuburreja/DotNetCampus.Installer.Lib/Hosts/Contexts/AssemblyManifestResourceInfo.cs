@@ -2,6 +2,11 @@
 
 namespace DotNetCampus.Installer.Lib.Hosts.Contexts;
 
+/// <summary>
+/// 表示嵌入程序集的资源信息
+/// </summary>
+/// <param name="Assembly"></param>
+/// <param name="ManifestResourceName"></param>
 public readonly record struct AssemblyManifestResourceInfo(Assembly Assembly, string ManifestResourceName)
 {
     public Stream GetManifestResourceStream()

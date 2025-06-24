@@ -17,6 +17,10 @@ namespace DotNetCampus.Installer.Lib.EnvironmentCheckers;
 [SupportedOSPlatform("windows5.1.2600")]
 public static class EnvironmentChecker
 {
+    /// <summary>
+    /// 检测环境
+    /// </summary>
+    /// <returns></returns>
     public static EnvironmentCheckResult CheckEnvironment()
     {
         EnvironmentCheckResultType type = EnvironmentCheckResultType.FailWithUnknownError;

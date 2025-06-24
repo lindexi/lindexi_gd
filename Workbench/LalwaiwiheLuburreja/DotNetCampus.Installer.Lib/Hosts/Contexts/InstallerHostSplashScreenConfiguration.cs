@@ -2,6 +2,9 @@
 
 namespace DotNetCampus.Installer.Lib.Hosts.Contexts;
 
+/// <summary>
+/// 欢迎界面的配置
+/// </summary>
 public class InstallerHostSplashScreenConfiguration
 {
     public void FromAssemblyManifestResource(Assembly assembly, string manifestResourceName)

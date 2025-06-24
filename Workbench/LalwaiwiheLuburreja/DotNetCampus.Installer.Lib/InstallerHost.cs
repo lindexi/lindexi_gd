@@ -22,6 +22,9 @@ namespace DotNetCampus.Installer.Lib;
 
 #pragma warning disable CA1416 // 执行版本有 YY-Thunks 保底，不适用文档描述的要求版本号
 
+/// <summary>
+/// 安装器主机
+/// </summary>
 public class InstallerHost
 {
     public static InstallerHostBuilder CreateBuilder()

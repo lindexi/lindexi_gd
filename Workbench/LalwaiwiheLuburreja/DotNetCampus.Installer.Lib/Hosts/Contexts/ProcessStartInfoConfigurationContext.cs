@@ -2,7 +2,10 @@
 
 namespace DotNetCampus.Installer.Lib.Hosts.Contexts;
 
-public readonly record struct ProcessStartInfoConfigurationContext()
+/// <summary>
+/// 启动里层带界面的进程时的配置信息
+/// </summary>
+public readonly record struct ProcessStartInfoConfigurationContext
 {
     public required ProcessStartInfo ProcessStartInfo { get; init; }
     public required IntPtr SplashScreenWindowHandler { get; init; }
