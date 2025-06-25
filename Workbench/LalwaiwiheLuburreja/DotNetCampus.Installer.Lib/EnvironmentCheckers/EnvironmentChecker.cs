@@ -23,7 +23,7 @@ public static class EnvironmentChecker
     /// <returns></returns>
     public static EnvironmentCheckResult CheckEnvironment()
     {
-        EnvironmentCheckResultType type = EnvironmentCheckResultType.FailWithUnknownError;
+        EnvironmentCheckResultType type = EnvironmentCheckResultType.FailedWithUnknownError;
         using var hModule = PInvoke.LoadLibrary("Kernel32.dll");
         if (hModule.IsInvalid)
         {
@@ -47,12 +47,12 @@ public static class EnvironmentChecker
             {
                 //PInvoke.MessageBox(HWND.Null, $"不支持 Win7 以下系统，当前系统版本 {Environment.OSVersion}", "系统版本过低", MESSAGEBOX_STYLE.MB_OK);
                 // 系统版本过低，无法继续安装，不需要挣扎
-                type = EnvironmentCheckResultType.FailWithOsTooOld;
+                type = EnvironmentCheckResultType.FailedWithObsoleteOs;
             }
             else
             {
                 // 后续可以决定在这里帮助安装补丁
-                type = EnvironmentCheckResultType.FailWithMissingPatch;
+                type = EnvironmentCheckResultType.FailedWithMissingPatch;
             }
         }
 
