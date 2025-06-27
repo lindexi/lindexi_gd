@@ -23,21 +23,28 @@ public partial class MainWindow : Window
 
     private void Button1_OnClick(object sender, RoutedEventArgs e)
     {
-        _asyncLocal.Value = new Foo()
+
+        Task.Run(() =>
         {
-            Name = "Hello, World!"
-        };
+            _asyncLocal.Value = new Foo()
+            {
+                Name = "Hello, World!"
+            };
+
+            Dispatcher.InvokeAsync(() =>
+            {
+                var foo = _asyncLocal.Value;
+                MessageBox.Show(foo?.Name);
+            });
+        });
+
+      
     }
 
     private void Button2_OnClick(object sender, RoutedEventArgs e)
     {
         var foo = _asyncLocal.Value;
-        //MessageBox.Show(foo?.Name);
-
-        Task.Run(() =>
-        {
-            F1();
-        });
+        MessageBox.Show(foo?.Name);
 
         _asyncLocal.Value = new Foo()
         {
