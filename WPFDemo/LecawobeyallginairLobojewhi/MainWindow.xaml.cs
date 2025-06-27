@@ -31,32 +31,25 @@ public partial class MainWindow : Window
                 Name = "Hello, World!"
             };
 
-            Dispatcher.InvokeAsync(() =>
+            _list.Add(() =>
             {
                 var foo = _asyncLocal.Value;
                 MessageBox.Show(foo?.Name);
             });
         });
-
-      
     }
+
+    private readonly List<Action> _list = [];
 
     private void Button2_OnClick(object sender, RoutedEventArgs e)
     {
         var foo = _asyncLocal.Value;
         MessageBox.Show(foo?.Name);
 
-        _asyncLocal.Value = new Foo()
+        foreach (var action in _list)
         {
-            Name = "lindexi"
-        };
-    }
-
-    private void F1()
-    {
-        var foo = _asyncLocal.Value;
-        MessageBox.Show($"F1 {foo?.Name}");
-        _asyncLocal.Value = null;
+            action();
+        }
     }
 
     private readonly AsyncLocal<Foo> _asyncLocal = new AsyncLocal<Foo>();
