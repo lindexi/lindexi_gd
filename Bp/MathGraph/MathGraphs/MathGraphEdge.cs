@@ -1,4 +1,4 @@
-﻿namespace MathGraph;
+﻿namespace MathGraphs;
 
 /// <summary>
 /// 表示图的边，包含两个元素，A和B。A和B可以是同一个元素，但不能是null。

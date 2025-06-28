@@ -1,4 +1,4 @@
-﻿namespace MathGraph.Serialization;
+﻿namespace MathGraphs.Serialization;
 
 public interface ISerializableElement
 {

@@ -1,4 +1,4 @@
-﻿namespace MathGraph;
+﻿namespace MathGraphs;
 
 /// <summary>
 /// 双向边

@@ -1,4 +1,4 @@
-﻿namespace MathGraph;
+﻿namespace MathGraphs;
 
 static class MathGraphElementIdGenerator
 {

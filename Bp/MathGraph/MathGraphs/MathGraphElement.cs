@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace MathGraph;
+namespace MathGraphs;
 
 /// <summary>
 /// 表示图里的一个元素
