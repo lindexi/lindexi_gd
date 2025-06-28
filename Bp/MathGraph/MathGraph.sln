@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathGraphs", "MathGraphs\MathGraphs.csproj", "{F579E76A-560C-440F-B4DF-8D6415384D38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathGraphsTests", "MathGraphsTests\MathGraphsTests.csproj", "{F6C921FC-EE9F-40F9-8DA8-923344870015}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{F579E76A-560C-440F-B4DF-8D6415384D38}.Release|x64.Build.0 = Release|Any CPU
 		{F579E76A-560C-440F-B4DF-8D6415384D38}.Release|x86.ActiveCfg = Release|Any CPU
 		{F579E76A-560C-440F-B4DF-8D6415384D38}.Release|x86.Build.0 = Release|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Debug|x64.Build.0 = Debug|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Debug|x86.Build.0 = Debug|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Release|x64.ActiveCfg = Release|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Release|x64.Build.0 = Release|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Release|x86.ActiveCfg = Release|Any CPU
+		{F6C921FC-EE9F-40F9-8DA8-923344870015}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
