@@ -1,4 +1,4 @@
-﻿namespace MathGraph;
+﻿namespace MathGraphs;
 
 public interface IMathGraphElementSensitive<TElementInfo, TEdgeInfo>
 {

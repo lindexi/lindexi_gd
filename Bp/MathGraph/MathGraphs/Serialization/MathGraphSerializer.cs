@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 
-namespace MathGraph.Serialization;
+namespace MathGraphs.Serialization;
 
 public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 {
