@@ -1,9 +1,3 @@
-[submodule "D2dControl"]
-	path = D2dControl
-	url = https://github.com/dalance/D2dControl.git
-[submodule "WmTouchDevice"]
-	path = WmTouchDevice
-	url = https://github.com/jaytwo/WmTouchDevice.git
 [submodule "Json实体类驼峰名称转化器/JsonModelConvert"]
 	path = Json实体类驼峰名称转化器/JsonModelConvert
 	url = https://github.com/yinghualuowu/JsonModelConvert.git
@@ -34,6 +28,3 @@
 [submodule "CloudFileUriTool"]
 	path = CloudFileUriTool
 	url = https://github.com/Kybs0/CloudFileUriTool.git
-[submodule "wizard-cinema"]
-	path = wizard-cinema
-	url = https://github.com/ElderJames/wizard-cinema.git
