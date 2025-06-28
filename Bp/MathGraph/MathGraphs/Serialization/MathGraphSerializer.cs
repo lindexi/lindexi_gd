@@ -3,6 +3,11 @@ using System.Text.Json;
 
 namespace MathGraphs.Serialization;
 
+/// <summary>
+/// 图的序列化器，提供图的序列化和反序列化功能
+/// </summary>
+/// <typeparam name="TElementInfo"></typeparam>
+/// <typeparam name="TEdgeInfo"></typeparam>
 public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 {
     public MathGraphSerializer(MathGraph<TElementInfo, TEdgeInfo> mathGraph,
@@ -23,7 +28,8 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
         int Index,
         List<int> InList,
         List<int> OutList,
-        List<EdgeSerializationContext> EdgeList);
+        List<EdgeSerializationContext> EdgeList
+    );
 
     public readonly record struct EdgeSerializationContext
     (

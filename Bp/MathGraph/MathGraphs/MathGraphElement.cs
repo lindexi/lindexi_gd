@@ -94,6 +94,10 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
         otherElement._edgeList.Add(edge);
     }
 
+    /// <summary>
+    /// 添加出度的元素关系，即从当前元素出发的边指向的元素
+    /// </summary>
+    /// <param name="element"></param>
     public void AddOutElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
@@ -107,6 +111,10 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
         element._inElementList.Add(this);
     }
 
+    /// <summary>
+    /// 删除出度的元素关系，即从当前元素出发的边指向的元素
+    /// </summary>
+    /// <param name="element"></param>
     public void RemoveOutElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
@@ -120,6 +128,10 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
         element._inElementList.Remove(this);
     }
 
+    /// <summary>
+    /// 添加入度的元素关系，即指向当前元素的边的起点元素
+    /// </summary>
+    /// <param name="element"></param>
     public void AddInElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
@@ -133,6 +145,10 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
         element._outElementList.Add(this);
     }
 
+    /// <summary>
+    /// 删除入度的元素关系，即指向当前元素的边的起点元素
+    /// </summary>
+    /// <param name="element"></param>
     public void RemoveInElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);

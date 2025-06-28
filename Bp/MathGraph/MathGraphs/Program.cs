@@ -21,8 +21,12 @@ internal class Program
         Serialize();
     }
 
+    /// <summary>
+    /// 添加超点
+    /// </summary>
     private static void AddSuperPoint()
     {
+        // 对于超点来说，就是点里面包含其他的点，点就是图
         var mathGraph = new MathGraph<MathGraph<string, string>, int>();
         var ap = new MathGraph<string, string>();
         ap.CreateAndAddElement("aaa");
