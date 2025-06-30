@@ -25,7 +25,7 @@ public partial class MainWindow : Window
     {
         var manualResetEvent = new ManualResetEvent(false);
 
-        Dispatcher.InvokeAsync(() =>
+        Task.Run(() =>
         {
             _asyncLocal.Value = new Foo()
             {
@@ -37,7 +37,7 @@ public partial class MainWindow : Window
 
         await Task.Delay(1000);
 
-        Dispatcher.InvokeAsync(() =>
+        Task.Run(() =>
         {
             var foo = _asyncLocal.Value;
             MessageBox.Show(foo?.Name);
