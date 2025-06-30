@@ -19,6 +19,19 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        _asyncLocal = new AsyncLocal<Foo>(args =>
+        {
+            if (args.CurrentValue is null)
+            {
+                _asyncLocal.Value = args.PreviousValue;
+            }
+
+            if (args.ThreadContextChanged)
+            {
+
+            }
+        });
     }
 
     private async void Button1_OnClick(object sender, RoutedEventArgs e)
@@ -34,7 +47,6 @@ public partial class MainWindow : Window
 
             taskCompletionSource.SetResult();
         });
-
         await taskCompletionSource.Task;
 
         Dispatcher.InvokeAsync(() =>
@@ -57,13 +69,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private readonly AsyncLocal<Foo> _asyncLocal = new AsyncLocal<Foo>(args =>
-    {
-        if (args.ThreadContextChanged)
-        {
-            
-        }
-    });
+    private readonly AsyncLocal<Foo> _asyncLocal;
 }
 
 public record Foo
