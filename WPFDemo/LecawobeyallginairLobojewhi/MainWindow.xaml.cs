@@ -23,21 +23,21 @@ public partial class MainWindow : Window
 
     private async void Button1_OnClick(object sender, RoutedEventArgs e)
     {
-        var manualResetEvent = new ManualResetEvent(false);
+        var taskCompletionSource = new TaskCompletionSource();
 
-        Task.Run(() =>
+        Dispatcher.InvokeAsync(() =>
         {
             _asyncLocal.Value = new Foo()
             {
                 Name = "Hello, World!"
             };
 
-            manualResetEvent.Set();
+            taskCompletionSource.SetResult();
         });
 
-        await Task.Delay(1000);
+        await taskCompletionSource.Task;
 
-        Task.Run(() =>
+        Dispatcher.InvokeAsync(() =>
         {
             var foo = _asyncLocal.Value;
             MessageBox.Show(foo?.Name);
