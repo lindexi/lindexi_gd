@@ -57,7 +57,13 @@ public partial class MainWindow : Window
         }
     }
 
-    private readonly AsyncLocal<Foo> _asyncLocal = new AsyncLocal<Foo>();
+    private readonly AsyncLocal<Foo> _asyncLocal = new AsyncLocal<Foo>(args =>
+    {
+        if (args.ThreadContextChanged)
+        {
+            
+        }
+    });
 }
 
 public record Foo
