@@ -21,20 +21,26 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private void Button1_OnClick(object sender, RoutedEventArgs e)
+    private async void Button1_OnClick(object sender, RoutedEventArgs e)
     {
-        Task.Run(() =>
+        var manualResetEvent = new ManualResetEvent(false);
+
+        Dispatcher.InvokeAsync(() =>
         {
             _asyncLocal.Value = new Foo()
             {
                 Name = "Hello, World!"
             };
 
-            _list.Add(() =>
-            {
-                var foo = _asyncLocal.Value;
-                MessageBox.Show(foo?.Name);
-            });
+            manualResetEvent.Set();
+        });
+
+        await Task.Delay(1000);
+
+        Dispatcher.InvokeAsync(() =>
+        {
+            var foo = _asyncLocal.Value;
+            MessageBox.Show(foo?.Name);
         });
     }
 
