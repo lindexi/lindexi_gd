@@ -5,7 +5,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
-using Image<Rgba32> image = new Image<Rgba32>(20000, 20000);
+using Image<Rgba32> image = new Image<Rgba32>(20000, 50000);
 
 var stopwatch = new Stopwatch();
 stopwatch.Start();
@@ -26,6 +26,6 @@ Parallel.For(0, image.Height, rowIndex =>
     }
 });
 stopwatch.Stop();
-image.SaveAsPng("1.png");
+//image.SaveAsPng("1.png");
 
 Console.WriteLine("Hello, World!");
