@@ -1,11 +1,14 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
-using Image<Rgba32> image = new Image<Rgba32>(200, 200);
+using Image<Rgba32> image = new Image<Rgba32>(20000, 20000);
 
+var stopwatch = new Stopwatch();
+stopwatch.Start();
 Parallel.For(0, image.Height, rowIndex =>
 {
     // ReSharper disable once AccessToDisposedClosure
@@ -22,7 +25,7 @@ Parallel.For(0, image.Height, rowIndex =>
         pixel.B = (byte) (rowIndex + 2);
     }
 });
-
+stopwatch.Stop();
 image.SaveAsPng("1.png");
 
 Console.WriteLine("Hello, World!");
