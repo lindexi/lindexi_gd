@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RLMatrix" Version="0.5.1" />
-    <PackageReference Include="RLMatrix.Toolkit" Version="0.5.1">
+    <PackageReference Include="RLMatrix" Version="0.5.2" />
+    <PackageReference Include="RLMatrix.Toolkit" Version="0.4.3.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
