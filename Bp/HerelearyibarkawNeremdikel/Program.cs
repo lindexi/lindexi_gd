@@ -1,4 +1,6 @@
 ﻿// Set up how our AI will learn
+
+using System.Diagnostics;
 using PatternMatchingExample;
 
 using RLMatrix;
@@ -24,19 +26,51 @@ var env = new List<IEnvironmentAsync<float[]>> {
 var agent = new LocalDiscreteRolloutAgent<float[]>(learningSetup, env);
 
 // Let it learn!
-for (int i = 0; i < 1000; i++)
+for (int i = 0; i < 10000; i++)
 {
     await agent.Step();
 
-    if ((i + 1) % 50 == 0)
+    if ((i + 1) % 500 == 0)
     {
-        Console.WriteLine($"Step {i + 1}/1000 - Last 50 steps accuracy: {environment.RecentAccuracy:F1}%");
+        Console.WriteLine($"Step {i + 1}/10000 - Last 500 steps accuracy: {environment.RecentAccuracy:F1}%");
+
+        if (environment.RecentAccuracy > 95)
+        {
+            break;
+        }
+
         environment.ResetStats();
 
-        Console.WriteLine("Press Enter to continue...");
-        Console.ReadLine();
+        //Console.WriteLine("Press Enter to continue...");
+        //Console.ReadLine();
     }
 }
 
 Console.WriteLine("Training complete!");
+
+var correctCount = 0;
+for (int i = 0; i < 1000; i++)
+{
+    var a = Random.Shared.Next(3);
+    var b = Random.Shared.Next(3);
+    Console.WriteLine($"Input a and b. a={a} b={b}");
+  
+    environment.EnterManualMode(a, b);
+
+    await agent.Step(isTraining: false);
+
+    var excepted = a + b;
+    Debug.Assert(a == environment.SeePattern());
+    Debug.Assert(b == environment.SeePattern2());
+
+    Console.WriteLine($"Choice={environment.Choice} Excepted={excepted} Right={environment.Choice == excepted}");
+
+    if (environment.Choice == excepted)
+    {
+        correctCount++;
+    }
+}
+
+Console.WriteLine($"{correctCount}/1000");
+
 Console.ReadLine();
