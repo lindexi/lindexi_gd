@@ -1,4 +1,6 @@
 ﻿// Set up how our AI will learn
+
+using System.Diagnostics;
 using PatternMatchingExample;
 
 using RLMatrix;
@@ -33,10 +35,41 @@ for (int i = 0; i < 1000; i++)
         Console.WriteLine($"Step {i + 1}/1000 - Last 50 steps accuracy: {environment.RecentAccuracy:F1}%");
         environment.ResetStats();
 
-        Console.WriteLine("Press Enter to continue...");
-        Console.ReadLine();
+        //Console.WriteLine("Press Enter to continue...");
+        //Console.ReadLine();
     }
 }
 
 Console.WriteLine("Training complete!");
+
+for (int i = 0; i < 1000; i++)
+{
+    Console.WriteLine($"Input a and b");
+    var line = Console.ReadLine();
+
+    if (line == null)
+    {
+        continue;
+    }
+
+    var split = line.Split(' ');
+    if (split.Length != 2)
+    {
+        continue;
+    }
+
+    if (int.TryParse(split[0], out var a) && int.TryParse(split[1], out var b))
+    {
+        environment.EnterManualMode(a, b);
+
+        await agent.Step(isTraining: false);
+
+        var excepted = a + b;
+        Debug.Assert(a == environment.SeePattern());
+        Debug.Assert(b == environment.SeePattern2());
+
+        Console.WriteLine($"Choice={environment.Choice} Excepted={excepted} Right={environment.Choice == excepted}");
+    }
+}
+
 Console.ReadLine();
