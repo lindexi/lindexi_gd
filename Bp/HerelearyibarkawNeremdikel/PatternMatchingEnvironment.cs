@@ -37,9 +37,7 @@ public partial class PatternMatchingEnvironment
     }
 
     [RLMatrixReward]
-    public float GiveReward() => _manualMode ?
-        0 
-        : IsRight() ? 1.0f : -1.0f;
+    public float GiveReward() => IsRight() ? 1.0f : -1.0f;
 
     private bool IsRight() => aiChoice == pattern + _pattern2;
 
