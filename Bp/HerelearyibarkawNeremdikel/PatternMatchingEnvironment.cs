@@ -5,7 +5,7 @@ namespace PatternMatchingExample;
 [RLMatrixEnvironment]
 public partial class PatternMatchingEnvironment
 {
-    public int Choice => aiChoice;
+    public int Choice { get; private set; }
 
     private int pattern = 0;
     private int aiChoice = 0;
@@ -29,12 +29,15 @@ public partial class PatternMatchingEnvironment
     public void MakeChoice(int choice)
     {
         aiChoice = choice;
+        Choice = choice;
         roundFinished = true;
 
         // Update counters
         total++;
         if (IsRight()) correct++;
     }
+
+
 
     [RLMatrixReward]
     public float GiveReward() => IsRight() ? 1.0f : -1.0f;
@@ -51,20 +54,28 @@ public partial class PatternMatchingEnvironment
         {
             pattern = Random.Shared.Next(3);
             _pattern2 = Random.Shared.Next(3);
-            aiChoice = 0;
+        }
+        else
+        {
+            pattern = _a;
+            _pattern2 = _b;
         }
 
+        aiChoice = 0;
         roundFinished = false;
     }
 
-    public void EnterManualMode(int a,int b)
+    public void EnterManualMode(int a, int b)
     {
         _manualMode = true;
         aiChoice = 0;
 
-        pattern = a;
-        _pattern2 = b;
+        _a = a;
+        _b = b;
     }
+
+    private int _a;
+    private int _b;
 
     private bool _manualMode = false;
 

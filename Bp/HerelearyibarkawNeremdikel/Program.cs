@@ -57,6 +57,7 @@ for (int i = 0; i < 1000; i++)
   
     environment.EnterManualMode(a, b);
 
+    await agent.Step(isTraining: false); // 读取上一次的
     await agent.Step(isTraining: false);
 
     var excepted = a + b;
