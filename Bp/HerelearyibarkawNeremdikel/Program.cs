@@ -48,29 +48,14 @@ for (int i = 0; i < 10000; i++)
 
 Console.WriteLine("Training complete!");
 
-var correctCount = 0;
 for (int i = 0; i < 1000; i++)
 {
-    var a = Random.Shared.Next(3);
-    var b = Random.Shared.Next(3);
-    Console.WriteLine($"Input a and b. a={a} b={b}");
-  
-    environment.EnterManualMode(a, b);
-
     await agent.Step(isTraining: false);
 
-    var excepted = a + b;
-    Debug.Assert(a == environment.SeePattern());
-    Debug.Assert(b == environment.SeePattern2());
-
-    Console.WriteLine($"Choice={environment.Choice} Excepted={excepted} Right={environment.Choice == excepted}");
-
-    if (environment.Choice == excepted)
+    if ((i + 1) % 100 == 0)
     {
-        correctCount++;
+        Console.WriteLine(environment.RecentAccuracy);
     }
 }
-
-Console.WriteLine($"{correctCount}/1000");
 
 Console.ReadLine();
