@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetCampus.MediaConverter.Tool.win-x86" Version="3.0.1-alpha02" />
+    <PackageReference Include="DotNetCampus.MediaConverter.Tool.win-x64" Version="3.0.1-alpha02" />
+  </ItemGroup>
+</Project>
