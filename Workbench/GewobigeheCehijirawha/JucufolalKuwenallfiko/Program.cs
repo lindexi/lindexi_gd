@@ -3,30 +3,48 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
+#if DEBUG
+var configuration = "Debug";
+#else
+var configuration = "Release";
+#endif
+
 var dllFile = Path.Join(AppContext.BaseDirectory,
-    @"..\..\KarnadikemnemkaCallcilowhijinem\debug\KarnadikemnemkaCallcilowhijinem.dll");
+    @$"..\..\KarnadikemnemkaCallcilowhijinem\{configuration}\KarnadikemnemkaCallcilowhijinem.dll");
 dllFile = Path.GetFullPath(dllFile);
+
+Console.WriteLine($"测试加载 {dllFile}");
 
 if (!File.Exists(dllFile))
 {
 }
 
-LoadAndUnloadAssembly();
+var t = LoadAndUnloadAssembly();
 
-for (int i = 0; i < 5; i++)
+for (int i = 0; t.IsAlive; i++)
 {
     GC.Collect();
     GC.WaitForFullGCComplete();
     GC.Collect();
+
+    Thread.Sleep(1000);
+
+    if (i > 100)
+    {
+        Console.WriteLine($"等不到释放");
+        return;
+    }
 }
+
+Thread.Sleep(1000);
 
 File.Delete(dllFile);
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine($"成功删除文件 {dllFile}");
 
-void LoadAndUnloadAssembly()
+WeakReference LoadAndUnloadAssembly()
 {
-    var assemblyLoadContext = new TestAssemblyLoadContext();
+    var assemblyLoadContext = new AssemblyLoadContext("Test", isCollectible: true);
     Assembly assembly = assemblyLoadContext.LoadFromAssemblyPath(dllFile);
     var fooType = assembly.GetType("KarnadikemnemkaCallcilowhijinem.Foo")!;
     var foo = Activator.CreateInstance(fooType);
@@ -35,21 +53,12 @@ void LoadAndUnloadAssembly()
     try
     {
         File.Delete(dllFile);
+        Console.WriteLine($"立刻删除程序集文件成功");
     }
     catch (UnauthorizedAccessException e)
     {
 
     }
     assemblyLoadContext.Unload();
-}
-
-class TestAssemblyLoadContext : AssemblyLoadContext
-{
-    public TestAssemblyLoadContext() : base(true)
-    {
-    }
-    protected override Assembly? Load(AssemblyName name)
-    {
-        return null;
-    }
+    return new WeakReference(assemblyLoadContext);
 }
