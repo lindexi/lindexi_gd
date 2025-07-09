@@ -21,7 +21,11 @@ public partial class StorageXmlSerializerTests
     {
         var testFile = TestFileProvider.GetTestFile("Slide_1_S4509.7082muxhueq.wc3.xml");
         var storageXmlSerializer = new StorageXmlSerializer();
-        await storageXmlSerializer.DeserializeAsync(testFile);
+        var storageNode = await storageXmlSerializer.DeserializeAsync(testFile);
+
+        var outputFile = new FileInfo(Path.GetTempFileName());
+        await storageXmlSerializer.SerializeAsync(storageNode, outputFile);
+        outputFile.Delete();
     }
 }
 
@@ -36,7 +40,7 @@ public partial class StorageXmlSerializerTests
         var testFile = @"C:\lindexi\slide1.xml";
 
         using var fileStream = File.OpenRead(testFile);
-        var document = await XDocument.LoadAsync(fileStream, LoadOptions.None,CancellationToken.None);
+        var document = await XDocument.LoadAsync(fileStream, LoadOptions.None, CancellationToken.None);
 
         //XmlReader xmlReader = XmlReader.Create(fileStream);
         // XML 文档内容：
@@ -71,7 +75,7 @@ public partial class StorageXmlSerializerTests
         XElement root = document.Root!;
         foreach (XAttribute attribute in root.Attributes())
         {
-            
+
         }
     }
 
