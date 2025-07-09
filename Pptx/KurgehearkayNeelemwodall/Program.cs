@@ -74,16 +74,42 @@ foreach (var slideId in slideIdList.OfType<SlideId>())
 
         if (background.BackgroundStyleReference is { } backgroundStyleReference)
         {
-            var index = (int) backgroundStyleReference.Index.Value;
-            // GetPlaceHoldColor
-            if (backgroundStyleReference.SchemeColor is {} color)
+            GetSlideBackground();
+
+            void GetSlideBackground()
             {
-                var aRgbColor = ColorHelper.ToColor(color, colorScheme, colorMap, null);
-                Console.WriteLine($"SlideBackground={aRgbColor}");
+                if (backgroundStyleReference.SchemeColor is { } color)
+                {
+                    var schemeColorValues = color.Val.Value;
+                    /*
+                    Unhandled exception. System.TypeInitializationException: A type initializer threw an exception. To determine which type, inspect the InnerException's StackTrace property.
+                     ---> System.NotSupportedException: 'DocumentFormat.OpenXml.Drawing.SchemeColorValues[]' is missing native code or metadata. This can happen for code that is not compatible with trimming or AOT. Inspect and fix trimming and AOT related warnings that were generated when the app was published. For more information see https://aka.ms/nativeaot-compatibility
+                       at System.Reflection.Runtime.General.TypeUnifier.WithVerifiedTypeHandle(RuntimeArrayTypeInfo, RuntimeTypeInfo) + 0x51
+                       at System.Array.InternalCreate(RuntimeType, Int32, Int32*, Int32*) + 0x15c
+                       at System.Array.CreateInstance(Type, Int32) + 0x3e
+                       at System.RuntimeType.GetEnumValues() + 0x5e
+                       at System.Enum.GetValues(Type) + 0xf
+                       at DocumentFormat.OpenXml.EnumInfoLookup`1.EnumStringLookupImpl..ctor() + 0x4a
+                       at DocumentFormat.OpenXml.EnumInfoLookup`1..cctor() + 0x14
+                       at System.Runtime.CompilerServices.ClassConstructorRunner.EnsureClassConstructorRun(StaticClassConstructionContext*) + 0x8b
+                       --- End of inner exception stack trace ---
+                       at System.Runtime.CompilerServices.ClassConstructorRunner.EnsureClassConstructorRun(StaticClassConstructionContext*) + 0xf3
+                       at System.Runtime.CompilerServices.ClassConstructorRunner.CheckStaticClassConstructionReturnGCStaticBase(StaticClassConstructionContext*, Object) + 0x8
+                       at DocumentFormat.OpenXml.EnumValue`1.Parse(String) + 0x3d
+                       at DocumentFormat.OpenXml.OpenXmlSimpleValue`1.get_Value() + 0x35
+                       at Program.<<Main>$>g__GetSlideBackground|0_3(Program.<>c__DisplayClass0_0&) + 0x4d
+                       at Program.<Main>$(String[] args) + 0x6ab
+                     */
+
+                    var aRgbColor = ColorHelper.ToColor(color, colorScheme, colorMap, null);
+                    Console.WriteLine($"SlideBackground={aRgbColor} Value={schemeColorValues}");
+                }
             }
         }
     }
 }
+
+
 
 static (SlidePart? slidePart, SlideLayoutPart? slideLayoutPart, SlideMasterPart? slideMasterPart) GetParts(OpenXmlPartRootElement root)
 {
