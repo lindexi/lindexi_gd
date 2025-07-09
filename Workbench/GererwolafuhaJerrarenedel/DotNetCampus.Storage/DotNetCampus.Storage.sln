@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.Storage.Lib", "DotNetCampus.Storage.Lib\DotNetCampus.Storage.Lib.csproj", "{A7D9E7F2-483C-45E7-B1E3-AF853D292593}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.Storage.Tests", "DotNetCampus.Storage.Tests\DotNetCampus.Storage.Tests.csproj", "{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{A7D9E7F2-483C-45E7-B1E3-AF853D292593}.Release|x64.Build.0 = Release|Any CPU
 		{A7D9E7F2-483C-45E7-B1E3-AF853D292593}.Release|x86.ActiveCfg = Release|Any CPU
 		{A7D9E7F2-483C-45E7-B1E3-AF853D292593}.Release|x86.Build.0 = Release|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Debug|x64.Build.0 = Debug|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Debug|x86.Build.0 = Debug|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Release|x64.ActiveCfg = Release|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Release|x64.Build.0 = Release|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Release|x86.ActiveCfg = Release|Any CPU
+		{1B7B70F9-2A0D-5504-06CD-4415B9B6A0F5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,42 @@
+﻿<!-- file: UnitTestProject1.csproj -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+
+    <OutputType>exe</OutputType>
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 
+      Experimental MSTest Engine & source generator, 
+      close sourced, licensed the same as our extensions 
+      with Microsoft Testing Platform Tools license.
+    -->
+    <PackageReference Include="MSTest.Engine" Version="1.0.0-alpha.25317.1" />
+    <PackageReference Include="MSTest.SourceGeneration" Version="1.0.0-alpha.25317.1" />
+
+    <PackageReference Include="Microsoft.CodeCoverage.MSBuild" Version="17.14.2" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
+
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.7.3" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="1.7.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.9.3" />
+    <PackageReference Include="MSTest.Analyzers" Version="3.9.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetCampus.Storage.Lib\DotNetCampus.Storage.Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+</Project>
