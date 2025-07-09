@@ -18,4 +18,5 @@ public class StorageNode
     public StorageTextSpan Value { get; set; } = StorageTextSpan.NullValue;
 
     public List<StorageNode>? Children { get; set; }
+
 }
