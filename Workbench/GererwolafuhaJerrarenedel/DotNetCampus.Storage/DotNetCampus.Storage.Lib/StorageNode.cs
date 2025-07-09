@@ -9,25 +9,8 @@ namespace DotNetCampus.Storage.Lib;
 public class StorageNode
 {
     public StorageNodeType StorageNodeType { get; set; }
-}
 
-/// <summary>
-/// 存储类型
-/// </summary>
-public enum StorageNodeType
-{
-    /// <summary>
-    /// 属性
-    /// </summary>
-    Property,
+    public StorageTextSpan Name { get; set; }
 
-    /// <summary>
-    /// 元素，独立的对象
-    /// </summary>
-    Element,
-
-    /// <summary>
-    /// 列表
-    /// </summary>
-    List,
+    public StorageTextSpan Value { get; set; } = StorageTextSpan.NullValue;
 }
