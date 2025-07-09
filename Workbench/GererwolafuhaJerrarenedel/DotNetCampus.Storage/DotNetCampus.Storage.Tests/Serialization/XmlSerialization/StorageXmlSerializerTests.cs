@@ -10,15 +10,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using DotNetCampus.Storage.Tests.Assets;
 
 namespace DotNetCampus.Storage.Lib.Tests;
 
+public partial class StorageXmlSerializerTests
+{
+    [TestMethod()]
+    public async Task DeserializeAsync()
+    {
+        var testFile = TestFileProvider.GetTestFile("Slide_1_S4509.7082muxhueq.wc3.xml");
+        var storageXmlSerializer = new StorageXmlSerializer();
+        await storageXmlSerializer.DeserializeAsync(testFile);
+    }
+}
+
 [TestClass()]
-public class StorageXmlSerializerTests
+public partial class StorageXmlSerializerTests
 {
     [TestMethod()]
     public async Task ParseTest()
     {
+        // 这里的 slide1.xml 是一份超级大的文档
+        // 可见全部都加载成了对象，这是很大的损耗
         var testFile = @"C:\lindexi\slide1.xml";
 
         using var fileStream = File.OpenRead(testFile);
