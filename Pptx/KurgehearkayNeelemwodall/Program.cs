@@ -80,6 +80,7 @@ foreach (var slideId in slideIdList.OfType<SlideId>())
             {
                 if (backgroundStyleReference.SchemeColor is { } color)
                 {
+                    // https://github.com/dotnet/Open-XML-SDK/issues/1953
                     var schemeColorValues = color.Val.Value;
                     /*
                     Unhandled exception. System.TypeInitializationException: A type initializer threw an exception. To determine which type, inspect the InnerException's StackTrace property.
