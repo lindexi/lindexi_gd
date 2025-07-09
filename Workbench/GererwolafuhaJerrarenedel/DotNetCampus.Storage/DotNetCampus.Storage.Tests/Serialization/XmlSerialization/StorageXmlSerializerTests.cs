@@ -38,7 +38,7 @@ public class StorageXmlSerializerTests
         // lang=xml
         var xmlDocument =
             """
-            <Document a:Type="Element" xmlns:a="http://schemas.lindexi.com/QarkeahekoYuhawharembaw">
+            <Document a:Type="Element" xmlns:a="Test">
               <ElementList a:Type="Property">
                 <Picture a:Type="Element" X="100" Y="100">
                   <Fill a:Type="Property">

@@ -14,9 +14,4 @@ public enum StorageNodeType
     /// 元素，独立的对象
     /// </summary>
     Element,
-
-    /// <summary>
-    /// 列表
-    /// </summary>
-    List,
 }
