@@ -7,5 +7,5 @@ public class StorageFileItem : IStorageItem
 {
     public required string RelativePath { get; init; }
 
-    public required StorageNode RootStorageNode { get; init; }
+    public required StorableNode RootStorableNode { get; init; }
 }
