@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -21,4 +22,24 @@ public class StorageNode
     public StorageTextSpan Value { get; set; } = StorageTextSpan.NullValue;
 
     public List<StorageNode>? Children { get; set; }
+
+    public override string ToString()
+    {
+        if (Children is null)
+        {
+            if (Value.IsNull)
+            {
+                return Name.ToString();
+            }
+            else
+            {
+                return $"{Name}: {Value}";
+            }
+        }
+        else
+        {
+            Debug.Assert(Value.IsNull);
+            return $"{Name} Count:{Children.Count}";
+        }
+    }
 }

@@ -20,4 +20,6 @@ public readonly record struct StorageTextSpan(string Text, int Start, int Length
     public static StorageTextSpan NullValue => new StorageTextSpan(string.Empty, -1, -1);
 
     public bool IsNull => Start == -1 && Length == -1;
+
+    public static implicit operator StorageTextSpan(string text) => new StorageTextSpan(text);
 }
