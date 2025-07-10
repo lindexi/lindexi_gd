@@ -35,6 +35,8 @@ public class StorageXmlSerializer
         var element = new XElement(node.Name.Text);
         if (!node.Value.IsNull)
         {
+            // 考虑 xml 合法字符 [dotnet OpenXML 已知问题 设置 0x0001 等 XML 不合法字符给到标题将在保存时抛出异常 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18730520 )
+            // 考虑 QainurbeweLekaynula 的实现代码
             element.Value = node.Value.ToText();
         }
 
@@ -44,6 +46,11 @@ public class StorageXmlSerializer
             {
                 element.Add(RecursiveSerializeNode(child));
             }
+        }
+
+        if (node.StorageNodeType != StorageNodeType.Unknown)
+        {
+            element.SetAttributeValue(TypeName, node.StorageNodeType.ToString());
         }
 
         return element;
