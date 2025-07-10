@@ -4,6 +4,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 
 using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
@@ -21,6 +22,13 @@ public partial class MainView : UserControl
 
     private void MainView_Loaded(object? sender, RoutedEventArgs e)
     {
-        var theButtonBounds = TheButton.Bounds;
+        var mainView = this;
+
+        var renderTargetBitmap =
+            new RenderTargetBitmap(new PixelSize((int) mainView.Bounds.Width, (int) mainView.Bounds.Height), new Vector(96, 96));
+        renderTargetBitmap.Render(mainView);
+
+        var file = Path.Join(AppContext.BaseDirectory, "1.png");
+        renderTargetBitmap.Save(file, 100);
     }
 }
