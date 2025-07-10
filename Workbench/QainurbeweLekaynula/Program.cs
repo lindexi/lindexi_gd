@@ -11,12 +11,16 @@ string encodeName = XmlConvert.EncodeName(text);
 var element = new XElement(encodeName)
 {
 };
-var xmlDocument = new XmlDocument();
-var xmlElement = xmlDocument.CreateElement("Root");
-xmlElement.InnerText = text;
-var escapeText = xmlElement.InnerXml;
 
-element.Value = escapeText;
+// System.ArgumentException:“'', hexadecimal value 0x01, is an invalid character.”
+element.Add(new XText(text));
+
+//var xmlDocument = new XmlDocument();
+//var xmlElement = xmlDocument.CreateElement("Root");
+//xmlElement.InnerText = text;
+//var escapeText = xmlElement.InnerXml;
+
+//element.Value = escapeText;
 
 var stringWriter = new StringWriter();
 using (var xmlWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings()
