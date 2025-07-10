@@ -23,9 +23,12 @@ public partial class MainView : UserControl
     {
         var mainView = this;
 
+        var originMode = RenderOptions.GetTextRenderingMode(mainView);
+        RenderOptions.SetTextRenderingMode(mainView, TextRenderingMode.Antialias);
         var renderTargetBitmap =
             new RenderTargetBitmap(new PixelSize((int) mainView.Bounds.Width, (int) mainView.Bounds.Height), new Vector(96, 96));
         renderTargetBitmap.Render(mainView);
+        RenderOptions.SetTextRenderingMode(mainView, originMode);
 
         var file = Path.Join(AppContext.BaseDirectory, "1.png");
         renderTargetBitmap.Save(file, 100);
