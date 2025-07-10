@@ -3,7 +3,7 @@
 using System.Xml;
 using System.Xml.Linq;
 
-string text = "\x0001";
+string text = "\x0001正常内容123🌟";
 
 string encodeName = XmlConvert.EncodeName(text);
 
