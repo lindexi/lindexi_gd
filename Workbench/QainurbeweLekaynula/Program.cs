@@ -12,8 +12,10 @@ var element = new XElement(encodeName)
 {
 };
 
+var xText = new XText(text);
 // System.ArgumentException:“'', hexadecimal value 0x01, is an invalid character.”
-element.Add(new XText(text));
+var xTextString = xText.ToString();
+element.Value = xTextString;
 
 //var xmlDocument = new XmlDocument();
 //var xmlElement = xmlDocument.CreateElement("Root");
