@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Embedding;
 using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
-
+using Avalonia.Threading;
 using KarhelearkuDemkunalhaw.Views;
 using Path = System.IO.Path;
 
@@ -35,11 +36,16 @@ public partial class App : Application
             embeddableControlRoot.Content = mainView;
             mainView.Loaded += (sender, args) =>
             {
-                var renderTargetBitmap = new RenderTargetBitmap(new PixelSize((int) mainView.Bounds.Width, (int) mainView.Bounds.Height));
-                renderTargetBitmap.Render(mainView);
+                Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    await Task.Delay(1000); // 等待1秒钟，确保控件已完全加载
+                    var renderTargetBitmap =
+                        new RenderTargetBitmap(new PixelSize((int)mainView.Bounds.Width, (int)mainView.Bounds.Height));
+                    renderTargetBitmap.Render(mainView);
 
-                var file = Path.Join(AppContext.BaseDirectory, "1.png");
-                renderTargetBitmap.Save(file);
+                    var file = Path.Join(AppContext.BaseDirectory, "1.png");
+                    renderTargetBitmap.Save(file);
+                }, DispatcherPriority.Render);
             };
             embeddableControlRoot.Prepare(); // 调用此方法会触发 Loaded 事件
             embeddableControlRoot.StartRendering();
