@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Embedding;
 using Avalonia.Markup.Xaml;
 
 using KarhelearkuDemkunalhaw.Views;
@@ -21,6 +22,17 @@ public partial class App : Application
             desktop.MainWindow = new MainWindow
             {
             };
+
+            var embeddableControlRoot = new EmbeddableControlRoot();
+            var mainView = new MainView
+            {
+            };
+            embeddableControlRoot.Content = mainView;
+            mainView.Loaded += (sender, args) =>
+            {
+
+            };
+            embeddableControlRoot.Prepare(); // 调用此方法会触发 Loaded 事件
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {

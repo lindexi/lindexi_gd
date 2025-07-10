@@ -6,5 +6,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="KarhelearkuDemkunalhaw.Views.MainView">
   <Grid>
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Hello World"></TextBlock>
   </Grid>
 </UserControl>
