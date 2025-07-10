@@ -5,7 +5,14 @@
              xmlns:bunaylenerkeLailurlairfea="clr-namespace:KarhelearkuDemkunalhaw"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="KarhelearkuDemkunalhaw.Views.MainView">
-  <Grid>
+  <Grid x:Name="RootGrid">
       <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Hello World"></TextBlock>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,300,10,10">
+          <Button x:Name="TakeSnapshotButton" Click="TakeSnapshotButton_OnClick"
+                  ToolTip.Tip="Take Snapshot to 1.png file. And you can find the blur text.">Take Snapshot</Button>
+          <Button x:Name="TakeSnapshotWithFixButton" Margin="10,0,10,0" Click="TakeSnapshotWithFixButton_OnClick"
+                  ToolTip.Tip="Take Snapshot to 2.png file. And you can find the clear text.">Take Snapshot with fix</Button>
+      </StackPanel>
   </Grid>
 </UserControl>

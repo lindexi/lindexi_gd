@@ -8,7 +8,7 @@ using System.IO;
 using Avalonia;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
-using Avalonia.Rendering.Composition;
+using Avalonia.Threading;
 
 namespace KarhelearkuDemkunalhaw.Views;
 
@@ -17,10 +17,9 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
-        Loaded += MainView_Loaded;
     }
 
-    private void MainView_Loaded(object? sender, RoutedEventArgs e)
+    private void TakeSnapshotButton_OnClick(object? sender, RoutedEventArgs e)
     {
         var mainView = this;
 
@@ -30,5 +29,23 @@ public partial class MainView : UserControl
 
         var file = Path.Join(AppContext.BaseDirectory, "1.png");
         renderTargetBitmap.Save(file, 100);
+    }
+
+    private void TakeSnapshotWithFixButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        RootGrid.Background = Brushes.White;
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var mainView = this;
+
+            var renderTargetBitmap =
+                new RenderTargetBitmap(new PixelSize((int) mainView.Bounds.Width, (int) mainView.Bounds.Height), new Vector(96, 96));
+            renderTargetBitmap.Render(mainView);
+
+            var file = Path.Join(AppContext.BaseDirectory, "2.png");
+            renderTargetBitmap.Save(file, 100);
+
+            RootGrid.Background = Brushes.Transparent;
+        });
     }
 }
