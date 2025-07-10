@@ -1,10 +1,13 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Embedding;
+using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 
 using KarhelearkuDemkunalhaw.Views;
+using Path = System.IO.Path;
 
 namespace KarhelearkuDemkunalhaw;
 
@@ -36,7 +39,8 @@ public partial class App : Application
                 var renderTargetBitmap = new RenderTargetBitmap(new PixelSize((int) mainView.Bounds.Width, (int) mainView.Bounds.Height));
                 renderTargetBitmap.Render(mainView);
 
-                renderTargetBitmap.Save("1.png");
+                var file = Path.Join(AppContext.BaseDirectory, "1.png");
+                renderTargetBitmap.Save(file);
             };
             embeddableControlRoot.Prepare(); // 调用此方法会触发 Loaded 事件
             embeddableControlRoot.StartRendering();
