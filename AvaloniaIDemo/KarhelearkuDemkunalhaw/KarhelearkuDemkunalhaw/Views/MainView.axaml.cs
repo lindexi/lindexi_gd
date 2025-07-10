@@ -21,5 +21,6 @@ public partial class MainView : UserControl
 
     private void MainView_Loaded(object? sender, RoutedEventArgs e)
     {
+        var theButtonBounds = TheButton.Bounds;
     }
 }

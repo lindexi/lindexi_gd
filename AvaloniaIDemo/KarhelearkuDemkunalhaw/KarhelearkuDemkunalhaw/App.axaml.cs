@@ -22,7 +22,6 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.ShowMainWindowAtStartup = false;
             desktop.MainWindow = new MainWindow
             {
             };
