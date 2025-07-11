@@ -53,17 +53,6 @@ public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
     {
         if (data is [ContractTestCase contractTestCase])
         {
-            if (ContractTest.Method.TestMethodDictionary.TryGetValue(methodInfo, out var collection))
-            {
-                foreach (var testCase in collection)
-                {
-                    if (ReferenceEquals(testCase, contractTestCase))
-                    {
-                        return testCase.Contract;
-                    }
-                }
-            }
-
             return contractTestCase.Contract;
         }
 
