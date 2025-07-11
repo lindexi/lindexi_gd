@@ -14,5 +14,10 @@ public sealed class Test1
         {
 
         });
+
+        "这是单元测试内容2".Test(() =>
+        {
+
+        });
     }
 }
