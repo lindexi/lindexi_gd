@@ -7,7 +7,7 @@ namespace FukokayrawobelbayNadojearchehi;
 [TestClass]
 public sealed class Test1
 {
-    [FooAttribute]
+    [ContractTestCase]
     public void TestMethod1()
     {
         "这是单元测试内容".Test(() =>

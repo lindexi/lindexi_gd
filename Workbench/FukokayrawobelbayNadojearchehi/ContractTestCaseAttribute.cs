@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace FukokayrawobelbayNadojearchehi;
 
-public class FooAttribute : TestMethodAttribute, ITestDataSource
+public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
 {
     public override TestResult[] Execute(ITestMethod testMethod)
     {
@@ -21,30 +21,9 @@ public class FooAttribute : TestMethodAttribute, ITestDataSource
             };
         }
 
-        var testCaseCollection = new TestCaseCollection();
-        ContractTest.TestCaseCollection.Value = testCaseCollection;
+        var result = testMethod.Invoke(testMethod.Arguments!);
 
-        testMethod.Invoke([]);
-
-        ContractTest.TestCaseCollection.Value = null;
-
-        TestResult[] resultList = new TestResult[testCaseCollection.Count];
-
-        for (var i = 0; i < testCaseCollection.Count; i++)
-        {
-            var testCase = testCaseCollection[i];
-
-            testCase.TestCase();
-
-            resultList[i] = new TestResult()
-            {
-                DisplayName = testCase.Contract,
-                Outcome = UnitTestOutcome.Passed,
-                //DatarowIndex = i,
-            };
-        }
-
-        return resultList;
+        return [result];
     }
 
     public IEnumerable<object?[]> GetData(MethodInfo methodInfo)
