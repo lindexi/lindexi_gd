@@ -4,18 +4,34 @@ using System.Reflection;
 
 namespace FukokayrawobelbayNadojearchehi;
 
-public class FooAttribute : TestMethodAttribute, ITestDataSource
+public class FooAttribute : TestMethodAttribute //, ITestDataSource
 {
     public override TestResult[] Execute(ITestMethod testMethod)
     {
+        var testCaseCollection = new TestCaseCollection();
+        ContractTest.TestCaseCollection.Value = testCaseCollection;
+
         testMethod.Invoke([]);
 
-        var testResult = new TestResult()
+        ContractTest.TestCaseCollection.Value = null;
+
+        TestResult[] resultList = new TestResult[testCaseCollection.Count];
+
+        for (var i = 0; i < testCaseCollection.Count; i++)
         {
-            DisplayName = "这是单元测试内容",
-            Outcome = UnitTestOutcome.Passed,
-        };
-        return [testResult];
+            var testCase = testCaseCollection[i];
+
+            testCase.TestCase();
+
+            resultList[i] = new TestResult()
+            {
+                DisplayName = testCase.Contract,
+                Outcome = UnitTestOutcome.Passed,
+                DatarowIndex = i,
+            };
+        }
+
+        return resultList;
     }
 
     public IEnumerable<object?[]> GetData(MethodInfo methodInfo)
