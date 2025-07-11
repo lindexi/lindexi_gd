@@ -11,4 +11,4 @@ internal class TestCaseCollection:List<ContractTestCase>
     }
 }
 
-public record ContractTestCase(string Contract, Action TestCase);
+public record ContractTestCase(string Contract, Func<Task> TestCase);
