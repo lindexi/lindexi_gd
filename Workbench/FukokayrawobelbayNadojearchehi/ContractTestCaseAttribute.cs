@@ -8,7 +8,7 @@ public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
 {
     public override TestResult[] Execute(ITestMethod testMethod)
     {
-        if (testMethod.Arguments is {Length:1} t && t[0] is ContractTestCase contractTestCase)
+        if (testMethod.Arguments is [ContractTestCase contractTestCase])
         {
             contractTestCase.TestCase();
             return new[]
@@ -51,10 +51,7 @@ public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
 
     public string? GetDisplayName(MethodInfo methodInfo, object?[]? data)
     {
-        if (data is
-            {
-                Length: 1
-            } t && t[0] is ContractTestCase contractTestCase)
+        if (data is [ContractTestCase contractTestCase])
         {
             if (ContractTest.Method.TestMethodDictionary.TryGetValue(methodInfo, out var collection))
             {
@@ -70,6 +67,6 @@ public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
             return contractTestCase.Contract;
         }
 
-        return "Fxx";
+        return methodInfo.Name;
     }
 }
