@@ -1,6 +1,7 @@
 ﻿namespace FukokayrawobelbayNadojearchehi;
 
-public class TestCaseCollection
+internal class TestCaseCollection:List<ContractTestCase>
 {
-
 }
+
+public record ContractTestCase(string Contract, Action TestCase);
