@@ -1,14 +1,18 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.Common.Hosting;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Engine;
 
 namespace FukokayrawobelbayNadojearchehi;
 
 [TestClass]
 public sealed class Test1
 {
-    [TestMethod]
     [FooAttribute]
-    public void TestMethod1(int n)
+    public void TestMethod1()
     {
-        
+        "这是单元测试内容".Test(() =>
+        {
+
+        });
     }
 }
