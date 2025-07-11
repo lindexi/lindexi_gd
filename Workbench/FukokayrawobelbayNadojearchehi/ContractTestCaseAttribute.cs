@@ -21,9 +21,6 @@ public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
             };
         }
 
-        var testCaseCollection = new TestCaseCollection();
-        ContractTest.TestCaseCollection.Value = testCaseCollection;
-
         var result = testMethod.Invoke(testMethod.Arguments!);
 
         return [result];
