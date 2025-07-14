@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace FukokayrawobelbayNadojearchehi;
 
@@ -10,15 +8,32 @@ public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
     {
         if (testMethod.Arguments is [ContractTestCase contractTestCase])
         {
-            contractTestCase.TestCase();
-            return new[]
+            try
             {
-                new TestResult()
-                {
-                    DisplayName = contractTestCase.Contract,
-                    Outcome = UnitTestOutcome.Passed,
-                }
-            };
+                var task = contractTestCase.TestCase();
+                task.Wait();
+
+                return
+                [
+                    new TestResult()
+                    {
+                        DisplayName = contractTestCase.Contract,
+                        Outcome = UnitTestOutcome.Passed,
+                    }
+                ];
+            }
+            catch (Exception e)
+            {
+                return
+                [
+                    new TestResult()
+                    {
+                        DisplayName = contractTestCase.Contract,
+                        Outcome = UnitTestOutcome.Failed,
+                        TestFailureException = e,
+                    }
+                ];
+            }
         }
 
         var result = testMethod.Invoke(testMethod.Arguments!);
@@ -30,12 +45,12 @@ public class ContractTestCaseAttribute : TestMethodAttribute, ITestDataSource
     {
         if (!ContractTest.Method.TestMethodDictionary.TryGetValue(methodInfo,out var testCaseCollection))
         {
-            var type = methodInfo.DeclaringType;
+            var type = methodInfo.DeclaringType!;
             var testInstance = Activator.CreateInstance(type);
 
             testCaseCollection = new TestCaseCollection();
             ContractTest.TestCaseCollection.Value = testCaseCollection;
-            methodInfo.Invoke(testInstance, []);
+            methodInfo.Invoke(testInstance, null);
             ContractTest.TestCaseCollection.Value = null;
 
             testCaseCollection = new TestCaseCollection(testCaseCollection);
