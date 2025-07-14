@@ -29,6 +29,8 @@ public static partial class ContractTest
         }
     }
 
+
+
     internal static AsyncLocal<TestCaseCollection?> TestCaseCollection { get; } = new AsyncLocal<TestCaseCollection?>();
 
     internal static TestCaseIndexer Method { get; } = new TestCaseIndexer();
