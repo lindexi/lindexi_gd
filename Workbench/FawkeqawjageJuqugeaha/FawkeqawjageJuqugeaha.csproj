@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTestEnhancer" Version="2.2.2-alpha03" />
+    <PackageReference Include="MSTest" Version="3.9.3" />
+  </ItemGroup>
+
+</Project>
