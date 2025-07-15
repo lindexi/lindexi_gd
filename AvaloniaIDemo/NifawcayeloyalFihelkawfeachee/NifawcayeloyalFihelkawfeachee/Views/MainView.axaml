@@ -1,0 +1,24 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:bunaylenerkeLailurlairfea="clr-namespace:NifawcayeloyalFihelkawfeachee"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="NifawcayeloyalFihelkawfeachee.Views.MainView">
+  <Grid x:Name="RootGrid">
+    <Grid.Resources>
+      <Animation x:Key="FooAnimation" x:SetterTargetType="Button"
+                 Duration="0:0:5" >
+        <KeyFrame Cue="0%">
+          <Setter Property="Height" Value="0" />
+        </KeyFrame>
+
+        <KeyFrame Cue="100%">
+          <Setter Property="Height" Value="100"  />
+        </KeyFrame>
+      </Animation>
+    </Grid.Resources>
+
+    <Button Width="200" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Loaded="Button_OnLoaded"></Button>
+  </Grid>
+</UserControl>
