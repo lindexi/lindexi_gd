@@ -1,11 +1,11 @@
-// See https://aka.ms/new-console-template for more information
+ï»¿// See https://aka.ms/new-console-template for more information
 
 using System.Collections;
 using System.Diagnostics;
 
 using LibGit2Sharp;
 
-AppendLog($"½ø³ÌÆô¶¯ {Environment.ProcessId} ¹¤×÷Â·¾¶ {Environment.CurrentDirectory}");
+AppendLog($"è¿›ç¨‹å¯åŠ¨ {Environment.ProcessId} å·¥ä½œè·¯å¾„ {Environment.CurrentDirectory}");
 //foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
 //{
 //    AppendLog($"{environmentVariable.Key}={environmentVariable.Value}");
@@ -15,7 +15,7 @@ var codeFolder = new DirectoryInfo(@"C:\lindexi\Code");
 
 var folder = @$"{codeFolder.EnumerateDirectories().First(t => t.Name.Contains("lindexi")).FullName}\lindexi\.git\";
 
-AppendLog($"²Ö¿âµØÖ· {folder}");
+AppendLog($"ä»“åº“åœ°å€ {folder}");
 
 var repository = new Repository(folder);
 
@@ -33,7 +33,7 @@ foreach (var worktree in repository.Worktrees)
             lastCommit = File.ReadAllText(lastCommitFile);
         }
 
-        AppendLog($"µ±Ç° {last.Sha}¡£ÎÄ¼ş {lastCommit}");
+        AppendLog($"å½“å‰ {last.Sha}ã€‚æ–‡ä»¶ {lastCommit}");
 
         if (lastCommit != last.Sha)
         {
@@ -58,7 +58,7 @@ static void Update(string message)
 
         if (worktree.Name.Contains("Text"))
         {
-            Process.Start(new ProcessStartInfo(@"C:\lindexi\Application\Í¬²½ÎÄµµ´úÂë.lnk")
+            Process.Start(new ProcessStartInfo(@"C:\lindexi\Application\åŒæ­¥æ–‡æ¡£ä»£ç .lnk")
             {
                 UseShellExecute = true
             })!.WaitForExit();
@@ -76,12 +76,15 @@ static void Update(string message)
                 },
                 WorkingDirectory = sourceFolder,
             };
-            // ÕâÊÇÔÚ git ÀïÃæµ÷ÓÃµÄ£¬»á±»×¢Èë git µÄ»·¾³±äÁ¿£¬´Ó¶ø±»Í¶¶¾£¬Èç GIT_INDEX_FILE GIT_DIR µÈ£¬µ¼ÖÂ¼ÓÈëµÄÎÄ¼ş²»ÊÇÔÚÒªÇóµÄÂ·¾¶
+            // è¿™æ˜¯åœ¨ git é‡Œé¢è°ƒç”¨çš„ï¼Œä¼šè¢«æ³¨å…¥ git çš„ç¯å¢ƒå˜é‡ï¼Œä»è€Œè¢«æŠ•æ¯’ï¼Œå¦‚ GIT_INDEX_FILE GIT_DIR ç­‰ï¼Œå¯¼è‡´åŠ å…¥çš„æ–‡ä»¶ä¸æ˜¯åœ¨è¦æ±‚çš„è·¯å¾„
             processStartInfo.Environment.Clear();
 
             Process.Start(processStartInfo)!.WaitForExit();
 
-            var signature = new Signature("lindexi", "lindexi_gd@163.com", DateTimeOffset.Now.AddMinutes(20));
+            var second = TimeSpan.FromMinutes(15).TotalSeconds;
+            var minute = TimeSpan.FromSeconds(Random.Shared.Next((int) second));
+
+            var signature = new Signature("lindexi", "lindexi_gd@163.com", DateTimeOffset.Now.AddMinutes(15).Add(minute));
             worktreeRepository.Commit(message, signature, signature);
 
             return;
