@@ -85,7 +85,7 @@ file struct Renderer : IDisposable
 
             foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
-                DrawLine(in lineRenderInfo);
+                RenderTextLine(in lineRenderInfo);
             }
         }
 
@@ -95,7 +95,11 @@ file struct Renderer : IDisposable
         };
     }
 
-    private void DrawLine(in ParagraphLineRenderInfo lineRenderInfo)
+    /// <summary>
+    /// 渲染一行文本
+    /// </summary>
+    /// <param name="lineRenderInfo"></param>
+    private void RenderTextLine(in ParagraphLineRenderInfo lineRenderInfo)
     {
         if (lineRenderInfo.IsIncludeMarker)
         {
