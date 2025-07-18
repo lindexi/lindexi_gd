@@ -25,8 +25,14 @@ public class SkiaCanvas : FrameworkElement
         DrawInner();
     }
 
+    private float _x;
+    private float _y;
+
     private void DrawInner()
     {
+        _x++;
+        _y++;
+
         if (_writeableBitmap is null)
         {
             var writeableBitmap = new WriteableBitmap((int) ActualWidth, (int) ActualHeight, 96, 96, PixelFormats.Bgra32,
@@ -64,7 +70,7 @@ public class SkiaCanvas : FrameworkElement
 
             linearGradientSkiaTextBrush.Apply(paint);
 
-            skCanvas.DrawRect(0, 0, 200, 100, paint);
+            skCanvas.DrawRect(_x, _y, 200, 100, paint);
         }
 
         _writeableBitmap.Lock();
