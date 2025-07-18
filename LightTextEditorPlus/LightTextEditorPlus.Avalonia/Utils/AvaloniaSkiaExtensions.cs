@@ -1,11 +1,16 @@
-﻿using System;
-using System.Diagnostics;
+﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Skia;
+
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Primitive;
+
 using SkiaSharp;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace LightTextEditorPlus.Utils;
 
@@ -21,27 +26,11 @@ static class AvaloniaSkiaExtensions
         return Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue);
     }
 
-    public static SKColor? ToSKColor(this IBrush? brush)
-    {
-        if (brush is SolidColorBrush solidColorBrush)
-        {
-            return solidColorBrush.Color.ToSKColor();
-        }
-        else if (brush is IImmutableSolidColorBrush immutableSolidColorBrush)
-        {
-            return immutableSolidColorBrush.Color.ToSKColor();
-        }
-
-        return null;
-    }
-
     public static SkiaTextBrush? ToSkiaTextBrush(this IBrush? brush)
     {
         if (brush is ISolidColorBrush solidColorBrush)
         {
-            var color = solidColorBrush.Color.ToSKColor();
-            color = color.WithAlpha((byte) (color.Alpha * solidColorBrush.Opacity));
-            return color;
+            return solidColorBrush.ToSkiaTextBrush();
         }
         else if (brush is IImmutableSolidColorBrush immutableSolidColorBrush)
         {
@@ -50,8 +39,57 @@ static class AvaloniaSkiaExtensions
             color = color.WithAlpha((byte) (color.Alpha * immutableSolidColorBrush.Opacity));
             return color;
         }
+        else if (brush is ILinearGradientBrush linearGradientBrush)
+        {
+            return linearGradientBrush.ToSkiaTextBrush();
+        }
 
         return null;
+    }
+
+    internal static SkiaTextBrush ToSkiaTextBrush(this ISolidColorBrush solidColorBrush)
+    {
+        var color = solidColorBrush.Color.ToSKColor();
+        color = color.WithAlpha((byte) (color.Alpha * solidColorBrush.Opacity));
+        return color;
+    }
+
+    internal static SkiaTextBrush ToSkiaTextBrush(this ILinearGradientBrush linearGradientBrush)
+    {
+        var linearGradientSkiaTextBrush = new LinearGradientSkiaTextBrush()
+        {
+            StartPoint = linearGradientBrush.StartPoint.ToTextRelativePoint(),
+            EndPoint = linearGradientBrush.EndPoint.ToTextRelativePoint(),
+            GradientStops = linearGradientBrush.GradientStops.ToTextGradientStopCollection(),
+            Opacity = linearGradientBrush.Opacity
+        };
+
+        return linearGradientSkiaTextBrush;
+    }
+
+    private static SkiaTextGradientStopCollection ToTextGradientStopCollection
+        (this IReadOnlyList<IGradientStop> gradientStopList)
+    {
+        SkiaTextGradientStop[] stopList = new SkiaTextGradientStop[gradientStopList.Count];
+        for (var i = 0; i < gradientStopList.Count; i++)
+        {
+            IGradientStop gradientStop = gradientStopList[i];
+            var skiaTextGradientStop = new SkiaTextGradientStop(gradientStop.Color.ToSKColor(), (float) gradientStop.Offset);
+            stopList[i] = skiaTextGradientStop;
+        }
+
+        return new SkiaTextGradientStopCollection(stopList);
+    }
+
+    private static GradientSkiaTextBrushRelativePoint ToTextRelativePoint(this RelativePoint relativePoint)
+    {
+        return new GradientSkiaTextBrushRelativePoint((float) relativePoint.Point.X, (float) relativePoint.Point.Y,
+            relativePoint.Unit switch
+            {
+                RelativeUnit.Relative => GradientSkiaTextBrushRelativePoint.RelativeUnit.Relative,
+                RelativeUnit.Absolute => GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute,
+                _ => throw new ArgumentOutOfRangeException()
+            });
     }
 
     public static SKFontStyleSlant ToSKFontStyleSlant(this FontStyle fontStyle)

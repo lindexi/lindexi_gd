@@ -11,12 +11,13 @@ public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
     /// <summary>
     /// 起始点
     /// </summary>
-    public GradientSkiaTextBrushRelativePoint StartPoint { get; init; }
+    public required GradientSkiaTextBrushRelativePoint StartPoint { get; init; }
 
     /// <summary>
     /// 结束点
     /// </summary>
-    public GradientSkiaTextBrushRelativePoint EndPoint { get; init; }
+    public required GradientSkiaTextBrushRelativePoint EndPoint { get; init; }
+
     /// <summary>
     /// 不透明度
     /// </summary>
@@ -25,7 +26,7 @@ public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
     /// <summary>
     /// 渐变刻度
     /// </summary>
-    public SkiaTextGradientStopCollection GradientStops { get; init; } = [];
+    public required SkiaTextGradientStopCollection GradientStops { get; init; }
 
     /// <inheritdoc />
     protected internal override void Apply(in SkiaTextBrushRenderContext context)
@@ -39,7 +40,7 @@ public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
         double opacity = context.Opacity * Opacity;
         opacity = Math.Min(opacity, 1);
 
-        var (colorList, offsetList) = GradientStops.GetList(opacity);
+        var (colorList, offsetList) = GradientStops.GetCacheList(opacity);
 
         var linearGradient = SKShader.CreateLinearGradient(startPoint, endPoint, colorList, offsetList, SKShaderTileMode.Clamp);
 

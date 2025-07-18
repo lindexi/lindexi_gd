@@ -399,12 +399,12 @@ partial class RichTextCaseProvider
                    StartPoint = new GradientSkiaTextBrushRelativePoint(0, 0),
                    EndPoint = new GradientSkiaTextBrushRelativePoint(1, 1),
 
-                   GradientStops =
+                   GradientStops = new(
                    [
                        new SkiaTextGradientStop(new SKColor(0xFF, 0, 0), 0),
                        new SkiaTextGradientStop(new SKColor(0xFF, 0xFF, 0), 0.5f),
                        new SkiaTextGradientStop(new SKColor(0x00, 0x00, 0xFF), 1)
-                   ]
+                   ])
                }
            });
             editor.AppendText("文本前景色是渐变色 abc x gf");

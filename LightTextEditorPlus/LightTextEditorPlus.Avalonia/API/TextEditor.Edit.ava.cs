@@ -254,23 +254,23 @@ namespace LightTextEditorPlus
             SetRunProperty(p => p with { FontVariant = fontVariants }, PropertyType.FontVariants, selection);
         }
 
-        /// <summary>
-        /// 设置前景色
-        /// </summary>
-        /// <param name="foreground"></param>
-        /// <param name="selection"></param>
-        public void SetForeground(SolidColorBrush foreground, Selection? selection = null)
-        {
-            SetForeground(foreground.Color.ToSKColor(), selection);
-        }
-
         /// <inheritdoc cref="SetForeground(SKColor,Selection?)"/>
-        public void SetForeground(IImmutableSolidColorBrush foreground, Selection? selection = null)
+        public void SetForeground(ISolidColorBrush foreground, Selection? selection = null)
         {
-            SKColor brush = foreground.Color.ToSKColor();
-            brush = brush.WithAlpha((byte) (brush.Alpha * foreground.Opacity));
+            var brush = foreground.ToSkiaTextBrush();
 
             SetForeground(brush, selection);
+        }
+
+        public void SetForeground(IBrush foreground, Selection? selection = null)
+        {
+            SkiaTextBrush? skiaTextBrush = foreground.ToSkiaTextBrush();
+            if (skiaTextBrush is null)
+            {
+                throw new NotSupportedException();
+            }
+
+            SetForeground(skiaTextBrush, selection);
         }
 
         /// <summary>
