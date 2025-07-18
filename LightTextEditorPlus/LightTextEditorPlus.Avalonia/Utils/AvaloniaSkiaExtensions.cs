@@ -1,7 +1,10 @@
-using System;
+﻿using System;
+using System.Diagnostics;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Skia;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Utils;
@@ -27,6 +30,25 @@ static class AvaloniaSkiaExtensions
         else if (brush is IImmutableSolidColorBrush immutableSolidColorBrush)
         {
             return immutableSolidColorBrush.Color.ToSKColor();
+        }
+
+        return null;
+    }
+
+    public static SkiaTextBrush? ToSkiaTextBrush(this IBrush? brush)
+    {
+        if (brush is ISolidColorBrush solidColorBrush)
+        {
+            var color = solidColorBrush.Color.ToSKColor();
+            color = color.WithAlpha((byte) (color.Alpha * solidColorBrush.Opacity));
+            return color;
+        }
+        else if (brush is IImmutableSolidColorBrush immutableSolidColorBrush)
+        {
+            Debug.Fail("由于 IImmutableSolidColorBrush 继承 ISolidColorBrush 接口，除非 Avalonia 修改，否则不能进入此分支");
+            var color = immutableSolidColorBrush.Color.ToSKColor();
+            color = color.WithAlpha((byte) (color.Alpha * immutableSolidColorBrush.Opacity));
+            return color;
         }
 
         return null;

@@ -24,14 +24,14 @@ public readonly record struct GradientSkiaTextBrushRelativePoint
 
         if (unit != RelativeUnit.Relative)
         {
-            if (X is < 0 or > 1)
+            if (x is < 0 or > 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(X), $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
+                throw new ArgumentOutOfRangeException(nameof(x), x, $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
             }
 
-            if (Y is < 0 or > 1)
+            if (y is < 0 or > 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(Y), $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
+                throw new ArgumentOutOfRangeException(nameof(y), y, $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
             }
         }
     }
