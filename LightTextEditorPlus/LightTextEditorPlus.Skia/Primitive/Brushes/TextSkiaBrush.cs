@@ -27,6 +27,10 @@ public abstract class SkiaTextBrush
     {
         return new SolidColorSkiaTextBrush(color);
     }
+
+    public abstract SKColor AsSolidColor();
+
+    public static SkiaTextBrush DefaultBlackSolidColorBrush { get; } = SKColors.Black;
 }
 
-public readonly record struct SkiaTextBrushRenderContext(SKPaint Paint, SKCanvas Canvas, SKRect RenderBounds);
+public readonly record struct SkiaTextBrushRenderContext(SKPaint Paint, SKCanvas Canvas, SKRect RenderBounds, double Opacity);

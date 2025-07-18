@@ -192,13 +192,14 @@ public class SkiaPlatformResourceManager :
         SKPaint skPaint = new SKPaint(renderSkFont);
         // skPaint 已经用上 SKFont 的字号属性，不需要再设置 TextSize 属性
         //skPaint.TextSize = runProperty.FontSize;
-        skPaint.Color = runProperty.Foreground;
 
-        if (runProperty.Opacity < 1)
-        {
-            // 处理透明度
-            skPaint.Color = skPaint.Color.WithAlpha((byte) (skPaint.Color.Alpha * runProperty.Opacity));
-        }
+        // 由于现在文本前景色支持其他画刷，不能在此过程中直接设置。如渐变色需要知道渲染范围才能设置，因此在更后面处理过程中，再设置颜色
+        //skPaint.Color = runProperty.Foreground;
+        //if (runProperty.Opacity < 1)
+        //{
+        //    // 处理透明度
+        //    skPaint.Color = skPaint.Color.WithAlpha((byte) (skPaint.Color.Alpha * runProperty.Opacity));
+        //}
 
         skPaint.IsAntialias = true;
 

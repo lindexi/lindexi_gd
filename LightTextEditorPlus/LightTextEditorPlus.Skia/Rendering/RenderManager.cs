@@ -50,7 +50,7 @@ class RenderManager
 
             SKColor caretColor = TextEditor.CaretConfiguration.CaretBrush
                                  // 获取当前前景色作为光标颜色
-                                 ?? skiaTextRunProperty?.Foreground
+                                 ?? skiaTextRunProperty?.Foreground.AsSolidColor()
                                  ?? SKColors.Black;
             _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
         }

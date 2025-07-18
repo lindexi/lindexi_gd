@@ -1,8 +1,8 @@
-﻿using System;
+﻿using SkiaSharp;
 
-using SkiaSharp;
-
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 
 namespace LightTextEditorPlus.Primitive;
@@ -21,15 +21,25 @@ public sealed class SolidColorSkiaTextBrush(SKColor color) : SkiaTextBrush
     /// <inheritdoc />
     protected internal override void Apply(in SkiaTextBrushRenderContext context)
     {
-        context.Paint.Color = color;
+        SKPaint skPaint = context.Paint;
+
+        skPaint.Color = color;
+
+        if (context.Opacity < 1)
+        {
+            // 处理透明度
+            skPaint.Color = skPaint.Color.WithAlpha((byte) (skPaint.Color.Alpha * context.Opacity));
+        }
     }
+
+    public override SKColor AsSolidColor() => Color;
 }
 
 public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
 {
     public GradientSkiaTextBrushRelativePoint StartPoint { get; init; }
     public GradientSkiaTextBrushRelativePoint EndPoint { get; init; }
-    //public double Opacity { get; init; }
+    public double Opacity { get; init; } = 1;
     public SkiaTextGradientStopCollection GradientStops { get; init; } = [];
 
     /// <inheritdoc />
@@ -41,14 +51,53 @@ public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
         SKPoint startPoint = StartPoint.ToSKPoint(renderBounds);
         SKPoint endPoint = EndPoint.ToSKPoint(renderBounds);
 
-        var (colorList, offsetList) = GradientStops.GetList();
+        double opacity = context.Opacity * Opacity;
+        opacity = Math.Min(opacity, 1);
+
+        var (colorList, offsetList) = GradientStops.GetList(opacity);
+
         var linearGradient = SKShader.CreateLinearGradient(startPoint, endPoint, colorList, offsetList, SKShaderTileMode.Clamp);
+
         paint.Shader = linearGradient;
+    }
+
+    public override SKColor AsSolidColor()
+    {
+        if (GradientStops.Count > 0)
+        {
+            SKColor skColor = GradientStops[0].Color;
+            return skColor.WithAlpha((byte) (skColor.Alpha * Opacity));
+        }
+        else
+        {
+            // 没有渐变色时返回默认黑色
+            return SKColors.Black;
+        }
     }
 }
 
-public readonly record struct GradientSkiaTextBrushRelativePoint(float X, float Y, GradientSkiaTextBrushRelativePoint.RelativeUnit Unit)
+public readonly record struct GradientSkiaTextBrushRelativePoint
 {
+    public GradientSkiaTextBrushRelativePoint(float x, float y, GradientSkiaTextBrushRelativePoint.RelativeUnit unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Relative)
+    {
+        X = x;
+        Y = y;
+        Unit = unit;
+
+        if (unit != RelativeUnit.Relative)
+        {
+            if (X is < 0 or > 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(X), $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
+            }
+
+            if (Y is < 0 or > 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(Y), $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
+            }
+        }
+    }
+
     public SKPoint ToSKPoint(SKRect bounds)
     {
         return Unit switch
@@ -64,11 +113,22 @@ public readonly record struct GradientSkiaTextBrushRelativePoint(float X, float 
         Relative,
         Absolute,
     }
+
+    public float X { get; init; }
+    public float Y { get; init; }
+    public GradientSkiaTextBrushRelativePoint.RelativeUnit Unit { get; init; }
+
+    public void Deconstruct(out float X, out float Y, out GradientSkiaTextBrushRelativePoint.RelativeUnit Unit)
+    {
+        X = this.X;
+        Y = this.Y;
+        Unit = this.Unit;
+    }
 }
 
 public class SkiaTextGradientStopCollection : List<SkiaTextGradientStop>
 {
-    internal (SKColor[] ColorList, float[] OffsetList) GetList()
+    internal (SKColor[] ColorList, float[] OffsetList) GetList(double opacity)
     {
         SKColor[] colorList = new SKColor[this.Count];
         float[] offsetList = new float[this.Count];
@@ -76,7 +136,7 @@ public class SkiaTextGradientStopCollection : List<SkiaTextGradientStop>
         for (var i = 0; i < this.Count; i++)
         {
             var (skColor, offset) = this[i];
-            colorList[i] = skColor;
+            colorList[i] = skColor.WithAlpha((byte) (skColor.Alpha * opacity));
             offsetList[i] = offset;
         }
 

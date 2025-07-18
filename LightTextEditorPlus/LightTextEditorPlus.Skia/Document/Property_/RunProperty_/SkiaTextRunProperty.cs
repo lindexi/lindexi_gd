@@ -1,10 +1,13 @@
-﻿using System;
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Platform;
+using LightTextEditorPlus.Primitive;
+
 using SkiaSharp;
+
+using System;
 
 namespace LightTextEditorPlus.Document;
 
@@ -72,7 +75,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// <summary>
     /// 前景色
     /// </summary>
-    public SKColor Foreground { get; init; } = SKColors.Black;
+    public SkiaTextBrush Foreground { get; init; } = SkiaTextBrush.DefaultBlackSolidColorBrush;
 
     /// <summary>
     /// 背景色

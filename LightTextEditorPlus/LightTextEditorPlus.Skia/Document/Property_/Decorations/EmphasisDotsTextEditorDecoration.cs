@@ -37,7 +37,7 @@ public class EmphasisDotsTextEditorDecoration() : TextEditorDecoration(TextEdito
     /// <inheritdoc />
     public override BuildDecorationResult BuildDecoration(in BuildDecorationArgument argument)
     {
-        SKColor foregroundBrush = argument.RunProperty.Foreground;
+        SKColor foregroundBrush = argument.RunProperty.Foreground.AsSolidColor();
         var foreground = foregroundBrush;
 
         SKCanvas canvas = argument.Canvas;
