@@ -19,7 +19,7 @@ public class StrikethroughTextEditorDecoration() : TextEditorDecoration(TextEdit
     /// <inheritdoc />
     public override BuildDecorationResult BuildDecoration(in BuildDecorationArgument argument)
     {
-        var foregroundBrush = argument.RunProperty.Foreground;
+        var foregroundBrush = argument.RunProperty.Foreground.AsSolidColor();
         SKColor foreground = foregroundBrush;
 
         // 文本的下划线应该取当前行的最大字符所在的底部，而不是每个字符自己的底部。取最大字符的才能连接到一起

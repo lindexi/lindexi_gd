@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Primitive;
@@ -15,8 +16,8 @@ public abstract class SkiaTextBrush
     /// <summary>
     /// 应用画刷到指定的 <see cref="SKPaint"/> 对象上
     /// </summary>
-    /// <param name="paint"></param>
-    protected internal abstract void Apply(SKPaint paint);
+    /// <param name="context"></param>
+    protected internal abstract void Apply(in SkiaTextBrushRenderContext context);
 
     /// <summary>
     /// 转换纯色画刷
@@ -26,4 +27,10 @@ public abstract class SkiaTextBrush
     {
         return new SolidColorSkiaTextBrush(color);
     }
+
+    public abstract SKColor AsSolidColor();
+
+    public static SkiaTextBrush DefaultBlackSolidColorBrush { get; } = SKColors.Black;
 }
+
+public readonly record struct SkiaTextBrushRenderContext(SKPaint Paint, SKCanvas Canvas, SKRect RenderBounds, double Opacity);

@@ -11,6 +11,7 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
+using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
@@ -235,6 +236,18 @@ file struct Renderer : IDisposable
         y += baselineY;
         using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan, skFont);
         SKRect skTextBlobBounds = skTextBlob.Bounds;
+        _ = skTextBlobBounds;
+
+        // 所有都完成之后，再来决定前景色。后续可以考虑相同的前景色统一起来，这样才能做比较大范围的渐变色。否则中间有一个字符稍微改了字号，就会打断渐变色
+        SkiaTextBrush foreground = skiaTextRunProperty.Foreground;
+        SkiaTextBrushRenderContext brushRenderContext = new SkiaTextBrushRenderContext()
+        {
+            Canvas = Canvas,
+            Opacity = skiaTextRunProperty.Opacity,
+            Paint = textRenderSKPaint,
+            RenderBounds = charSpanBounds,
+        };
+        foreground.Apply(brushRenderContext);
 
         Canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
     }

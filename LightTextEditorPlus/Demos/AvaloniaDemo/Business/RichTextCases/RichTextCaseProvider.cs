@@ -11,7 +11,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
-
+using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
 // ReSharper disable once CheckNamespace
@@ -381,5 +381,27 @@ partial class RichTextCaseProvider
                 FontVariant = TextFontVariant.Subscript
             }));
         }, "文本带下标");
+
+        Add(editor =>
+        {
+           editor.SetFontSize(60);
+
+           editor.SetCurrentCaretRunProperty(property => property with
+           {
+               Foreground = new LinearGradientSkiaTextBrush()
+               {
+                   StartPoint = new GradientSkiaTextBrushRelativePoint(0, 0),
+                   EndPoint = new GradientSkiaTextBrushRelativePoint(1, 1),
+
+                   GradientStops =
+                   [
+                       new SkiaTextGradientStop(new SKColor(0xFF, 0, 0), 0),
+                       new SkiaTextGradientStop(new SKColor(0xFF, 0xFF, 0), 0.5f),
+                       new SkiaTextGradientStop(new SKColor(0x00, 0x00, 0xFF), 1)
+                   ]
+               }
+           });
+            editor.AppendText("文本前景色是渐变色 abc x gf");
+        }, "文本前景色是渐变色");
     }
 }
