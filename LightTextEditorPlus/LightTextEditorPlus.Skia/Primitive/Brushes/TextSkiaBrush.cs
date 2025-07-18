@@ -28,9 +28,14 @@ public abstract class SkiaTextBrush
         return new SolidColorSkiaTextBrush(color);
     }
 
+    /// <summary>
+    /// 当成纯色画刷
+    /// </summary>
+    /// <returns></returns>
     public abstract SKColor AsSolidColor();
 
+    /// <summary>
+    /// 默认的黑色纯色画刷
+    /// </summary>
     public static SkiaTextBrush DefaultBlackSolidColorBrush { get; } = SKColors.Black;
 }
-
-public readonly record struct SkiaTextBrushRenderContext(SKPaint Paint, SKCanvas Canvas, SKRect RenderBounds, double Opacity);

@@ -27,5 +27,6 @@ public sealed class SolidColorSkiaTextBrush(SKColor color) : SkiaTextBrush
         }
     }
 
+    /// <inheritdoc />
     public override SKColor AsSolidColor() => Color;
 }

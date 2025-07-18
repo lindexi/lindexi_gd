@@ -1,11 +1,22 @@
 ﻿using System;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Primitive;
 
+/// <summary>
+/// 渐变色的相对点
+/// </summary>
 public readonly record struct GradientSkiaTextBrushRelativePoint
 {
-    public GradientSkiaTextBrushRelativePoint(float x, float y, GradientSkiaTextBrushRelativePoint.RelativeUnit unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Relative)
+    /// <summary>
+    /// 创建渐变色的相对点
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="unit"></param>
+    /// <exception cref="ArgumentOutOfRangeException">如果选择相对，则要求 X 和 Y 在 [0-1] 范围内</exception>
+    public GradientSkiaTextBrushRelativePoint(float x, float y, RelativeUnit unit = RelativeUnit.Relative)
     {
         X = x;
         Y = y;
@@ -25,7 +36,7 @@ public readonly record struct GradientSkiaTextBrushRelativePoint
         }
     }
 
-    public SKPoint ToSKPoint(SKRect bounds)
+    internal SKPoint ToSKPoint(SKRect bounds)
     {
         return Unit switch
         {
@@ -35,20 +46,33 @@ public readonly record struct GradientSkiaTextBrushRelativePoint
         };
     }
 
+    /// <summary>
+    /// X 坐标
+    /// </summary>
+    public float X { get; init; }
+
+    /// <summary>
+    /// Y 坐标
+    /// </summary>
+    public float Y { get; init; }
+
+    /// <summary>
+    /// 相对的单位
+    /// </summary>
+    public RelativeUnit Unit { get; init; }
+
+    /// <summary>
+    /// 相对单位枚举
+    /// </summary>
     public enum RelativeUnit : byte
     {
+        /// <summary>
+        /// 相对值
+        /// </summary>
         Relative,
+        /// <summary>
+        /// 绝对值
+        /// </summary>
         Absolute,
-    }
-
-    public float X { get; init; }
-    public float Y { get; init; }
-    public GradientSkiaTextBrushRelativePoint.RelativeUnit Unit { get; init; }
-
-    public void Deconstruct(out float X, out float Y, out GradientSkiaTextBrushRelativePoint.RelativeUnit Unit)
-    {
-        X = this.X;
-        Y = this.Y;
-        Unit = this.Unit;
     }
 }
