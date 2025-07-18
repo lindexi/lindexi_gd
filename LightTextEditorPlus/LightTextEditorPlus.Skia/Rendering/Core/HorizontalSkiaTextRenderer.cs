@@ -234,6 +234,8 @@ file struct Renderer : IDisposable
         // 由于 Skia 的 DrawText 传入的 Point 是文本的基线，因此需要调整 Y 值
         y += baselineY;
         using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan, skFont);
+        SKRect skTextBlobBounds = skTextBlob.Bounds;
+
         Canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
     }
 

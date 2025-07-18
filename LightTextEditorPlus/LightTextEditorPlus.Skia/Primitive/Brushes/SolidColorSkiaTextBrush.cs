@@ -1,4 +1,10 @@
-﻿using SkiaSharp;
+﻿using LightTextEditorPlus.Core.Primitive;
+
+using SkiaSharp;
+
+using System.Collections.Generic;
+
+using static LightTextEditorPlus.Primitive.GradientSkiaTextBrushRelativePoint;
 
 namespace LightTextEditorPlus.Primitive;
 
@@ -18,4 +24,35 @@ public sealed class SolidColorSkiaTextBrush(SKColor color) : SkiaTextBrush
     {
         paint.Color = Color;
     }
+}
+
+public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
+{
+    public GradientSkiaTextBrushRelativePoint StartPoint { get; set; }
+    public GradientSkiaTextBrushRelativePoint EndPoint { get; set; }
+    public double Opacity { get; set; }
+    public SkiaTextGradientStopCollection GradientStops { get; set; } = [];
+
+    /// <inheritdoc />
+    protected internal override void Apply(SKPaint paint)
+    {
+    }
+}
+
+public struct GradientSkiaTextBrushRelativePoint(float X, float Y, RelativeUnit Unit)
+{
+
+    public enum RelativeUnit : byte
+    {
+        Relative,
+        Absolute,
+    }
+}
+
+public class SkiaTextGradientStopCollection : List<SkiaTextGradientStop>
+{
+}
+
+public readonly record struct SkiaTextGradientStop(SKColor Color, double Offset)
+{
 }
