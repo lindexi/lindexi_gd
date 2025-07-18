@@ -1,7 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -15,9 +12,13 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Events;
+using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
+
+using System;
+using System.ComponentModel;
 
 // ReSharper disable RedundantDefaultMemberInitializer
 // ReSharper disable RedundantBoolCompare
@@ -275,6 +276,15 @@ namespace LightTextEditorPlus
         /// <param name="foreground"></param>
         /// <param name="selection"></param>
         public void SetForeground(SKColor foreground, Selection? selection = null)
+        {
+            SkiaTextBrush brush = foreground;
+            SetForeground(brush, selection);
+        }
+
+        /// <summary>
+        /// 设置前景色
+        /// </summary>
+        public void SetForeground(SkiaTextBrush foreground, Selection? selection = null)
         {
             SetRunProperty(p => p with { Foreground = foreground }, PropertyType.Foreground, selection);
         }
