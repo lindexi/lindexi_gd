@@ -244,7 +244,7 @@ partial class TextEditor : Control
             //    SetForegroundInternal(bindingBrush.Value);
             //}
             //else
-            if (e.NewValue is IBrush brush && brush.ToSKColor() is { } color)
+            if (e.NewValue is IBrush brush && brush.ToSkiaTextBrush() is { } skiaTextBrush)
             {
                 if (!this.IsInitialized)
                 {
@@ -257,7 +257,7 @@ partial class TextEditor : Control
 
                         SetStyleTextRunProperty(property => property with
                         {
-                            Foreground = color
+                            Foreground = skiaTextBrush
                         });
                     }
                     else
@@ -272,7 +272,7 @@ partial class TextEditor : Control
                 {
                     Logger.LogDebug("TextEditor Platform OnPropertyChanged Foreground changed. IsInitialized=False. SetForeground");
 
-                    SetForeground(color);
+                    SetForeground(skiaTextBrush);
                 }
             }
         }

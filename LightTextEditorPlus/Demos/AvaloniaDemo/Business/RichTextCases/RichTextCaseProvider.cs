@@ -5,7 +5,7 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
-
+using Avalonia.Media.Immutable;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -270,7 +270,13 @@ partial class RichTextCaseProvider
         {
             TextElement.SetForeground(editor, Brushes.Coral);
             editor.AppendText("123123123123123123123123123");
-        }, "设置前景色时，可设置到文本前景色");
+        }, "通过 TextElement.SetForeground 设置前景色时，可设置到文本前景色");
+
+        Add(editor =>
+        {
+            editor.SetForeground(Brushes.Coral);
+            editor.AppendText("123123123123123123123123123");
+        }, "通过 TextEditor.SetForeground 设置前景色时，可设置到文本前景色");
 
         //Add(editor =>
         //{

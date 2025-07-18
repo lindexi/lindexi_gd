@@ -3,6 +3,9 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Primitive;
 
+/// <summary>
+/// 渐变色刻度集合
+/// </summary>
 public class SkiaTextGradientStopCollection : List<SkiaTextGradientStop>
 {
     internal (SKColor[] ColorList, float[] OffsetList) GetList(double opacity)

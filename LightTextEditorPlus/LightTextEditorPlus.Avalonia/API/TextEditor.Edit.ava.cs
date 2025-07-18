@@ -267,7 +267,10 @@ namespace LightTextEditorPlus
         /// <inheritdoc cref="SetForeground(SKColor,Selection?)"/>
         public void SetForeground(IImmutableSolidColorBrush foreground, Selection? selection = null)
         {
-            SetForeground(foreground.Color.ToSKColor(), selection);
+            SKColor brush = foreground.Color.ToSKColor();
+            brush = brush.WithAlpha((byte) (brush.Alpha * foreground.Opacity));
+
+            SetForeground(brush, selection);
         }
 
         /// <summary>

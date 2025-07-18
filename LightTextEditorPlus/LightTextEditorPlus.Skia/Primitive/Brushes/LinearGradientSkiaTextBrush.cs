@@ -3,11 +3,28 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Primitive;
 
+/// <summary>
+/// 线性渐变的 Skia 文本画刷
+/// </summary>
 public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
 {
+    /// <summary>
+    /// 起始点
+    /// </summary>
     public GradientSkiaTextBrushRelativePoint StartPoint { get; init; }
+
+    /// <summary>
+    /// 结束点
+    /// </summary>
     public GradientSkiaTextBrushRelativePoint EndPoint { get; init; }
+    /// <summary>
+    /// 不透明度
+    /// </summary>
     public double Opacity { get; init; } = 1;
+
+    /// <summary>
+    /// 渐变刻度
+    /// </summary>
     public SkiaTextGradientStopCollection GradientStops { get; init; } = [];
 
     /// <inheritdoc />
@@ -29,6 +46,7 @@ public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush
         paint.Shader = linearGradient;
     }
 
+    /// <inheritdoc />
     public override SKColor AsSolidColor()
     {
         if (GradientStops.Count > 0)
