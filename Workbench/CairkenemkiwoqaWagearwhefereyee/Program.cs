@@ -84,7 +84,16 @@ static void Update(string message)
             var second = TimeSpan.FromMinutes(15).TotalSeconds;
             var minute = TimeSpan.FromSeconds(Random.Shared.Next((int) second));
 
-            var signature = new Signature("lindexi", "lindexi_gd@163.com", DateTimeOffset.Now.AddMinutes(15).Add(minute));
+            var when = DateTimeOffset.Now.AddMinutes(15).Add(minute);
+
+            var commit = worktreeRepository.Commits.First();
+            if (commit.Committer.When > when)
+            {
+                when = commit.Committer.When
+                    .Add(minute);
+            }
+
+            var signature = new Signature("lindexi", "lindexi_gd@163.com", when);
             worktreeRepository.Commit(message, signature, signature);
 
             return;
