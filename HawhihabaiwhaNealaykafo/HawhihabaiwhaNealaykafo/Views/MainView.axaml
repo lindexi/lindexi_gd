@@ -6,6 +6,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="HawhihabaiwhaNealaykafo.Views.MainView">
   <Grid>
-      <Image Source="../Assets/file0000.svg"></Image>
+      <Image Source="{SvgImage ../Assets/file0000.svg}"></Image>
   </Grid>
 </UserControl>
