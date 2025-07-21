@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
@@ -401,13 +401,30 @@ partial class RichTextCaseProvider
 
                    GradientStops = new(
                    [
-                       new SkiaTextGradientStop(new SKColor(0xFF, 0, 0), 0),
-                       new SkiaTextGradientStop(new SKColor(0xFF, 0xFF, 0), 0.5f),
+                       new SkiaTextGradientStop(new SKColor(0xFF, 0x00, 0x00), 0),
+                       new SkiaTextGradientStop(new SKColor(0xFF, 0xFF, 0x00), 0.5f),
                        new SkiaTextGradientStop(new SKColor(0x00, 0x00, 0xFF), 1)
                    ])
                }
            });
             editor.AppendText("文本前景色是渐变色 abc x gf");
         }, "文本前景色是渐变色");
+
+        Add(editor =>
+        {
+            TextElement.SetForeground(editor, new LinearGradientBrush()
+            {
+                StartPoint = new RelativePoint(0,0,RelativeUnit.Relative),
+                EndPoint = new RelativePoint(1,1,RelativeUnit.Relative),
+                GradientStops = new GradientStops()
+                {
+                    new GradientStop(new Color(0xFF, 0xFF, 0x00, 0x00), 0),
+                    new GradientStop(new Color(0xFF, 0xFF, 0xFF, 0x00), 0.5),
+                    new GradientStop(new Color(0xFF, 0x00, 0x00, 0xFF), 1),
+                }
+            });
+
+            editor.AppendText("123123123123123123123123123");
+        }, "通过 TextElement.SetForeground 设置渐变色前景色时，可设置到文本前景色");
     }
 }
