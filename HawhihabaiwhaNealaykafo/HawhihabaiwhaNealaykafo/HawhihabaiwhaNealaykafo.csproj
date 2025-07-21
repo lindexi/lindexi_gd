@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -16,12 +16,10 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.0.1" />
+    <PackageReference Include="Svg.Skia" Version="3.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Update="Assets\file0000.svg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </AvaloniaResource>
+    <None Include="Assets\file0000.svg" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
