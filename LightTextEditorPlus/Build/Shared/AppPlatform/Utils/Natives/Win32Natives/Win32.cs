@@ -1,11 +1,14 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 
 namespace LightTextEditorPlus.Utils
 {
+    [SupportedOSPlatform("Windows")]
     internal class Win32
     {
         public class User32
