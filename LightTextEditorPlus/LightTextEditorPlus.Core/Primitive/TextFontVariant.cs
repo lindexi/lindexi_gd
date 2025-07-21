@@ -78,11 +78,29 @@ public readonly record struct TextFontVariant()
 
         return HashCode.Combine((int) FontVariants, BaselineProportion);
     }
+
+    /// <summary>
+    /// 从 <see cref="TextFontVariants"/> 转换为 <see cref="TextFontVariant"/>。
+    /// </summary>
+    /// <param name="textFontVariants"></param>
+    public static implicit operator TextFontVariant(TextFontVariants textFontVariants)
+    {
+        return textFontVariants switch
+        {
+            TextFontVariants.Normal => Normal,
+            TextFontVariants.Superscript => Superscript,
+            TextFontVariants.Subscript => Subscript,
+            _ => throw new ArgumentOutOfRangeException(nameof(textFontVariants), textFontVariants, null)
+        };
+    }
 }
 
 /// <summary>
 /// 文本字体变体，上下标
 /// </summary>
+/// <remarks>
+/// 文本字符属性里面用的是 <see cref="TextFontVariant"/> （名字上不带 s 的结构体）作为上下标属性。核心差别是在枚举基础上添加了 <see cref="TextFontVariant.BaselineProportion"/> 属性，允许设置基线比例
+/// </remarks>
 public enum TextFontVariants : byte
 {
     /// <summary>
