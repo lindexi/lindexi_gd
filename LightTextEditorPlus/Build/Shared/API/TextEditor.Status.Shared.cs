@@ -5,8 +5,7 @@ using System;
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
-using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Core.Rendering;
 
 namespace LightTextEditorPlus;
 
@@ -94,7 +93,18 @@ partial class TextEditor
 
     #region 渲染布局状态
 
-    
+#if USE_WPF || USE_AVALONIA
+
+    /// <summary>
+    /// 立即地获取渲染信息。等同于调用 <see cref="ForceLayout"/> 方法
+    /// </summary>
+    /// 不直接开放，防止业务方大量调用造成性能问题
+    /// <returns></returns>
+    internal RenderInfoProvider GetRenderInfoImmediately() 
+        => ForceLayout();
+
+    private partial RenderInfoProvider ForceLayout();
+#endif
 
     #endregion
 

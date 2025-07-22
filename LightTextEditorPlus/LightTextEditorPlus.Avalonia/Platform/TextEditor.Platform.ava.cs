@@ -299,7 +299,7 @@ partial class TextEditor : Control
     /// <summary>
     /// 立刻布局，获取布局结果信息
     /// </summary>
-    private RenderInfoProvider ForceLayout()
+    private partial RenderInfoProvider ForceLayout()
     {
         _isInForceLayout = true;
 
