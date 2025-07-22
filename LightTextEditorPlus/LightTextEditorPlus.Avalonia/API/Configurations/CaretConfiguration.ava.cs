@@ -3,7 +3,7 @@ using Avalonia.Skia;
 using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Utils;
 
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Configurations;
 
 [APIConstraint("CaretConfiguration.txt", true)]
 public class CaretConfiguration : SkiaCaretConfiguration
