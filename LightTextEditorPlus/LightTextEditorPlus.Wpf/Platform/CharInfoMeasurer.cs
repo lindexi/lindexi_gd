@@ -6,8 +6,7 @@ using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
-// ReSharper disable once CheckNamespace
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Platform;
 
 class CharInfoMeasurer : ICharInfoMeasurer
 {

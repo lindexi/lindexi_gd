@@ -143,14 +143,14 @@ public partial class TextEditor
         SetRunProperty(config, PropertyType.RunProperty, selection);
     }
 
-    /// <inheritdoc cref="SetRunProperty(LightTextEditorPlus.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/>
+    /// <inheritdoc cref="SetRunProperty(Document.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/>
     public void SetRunProperty(RunProperty runProperty, Selection? selection = null)
     {
         SetRunProperty(_ => runProperty, PropertyType.RunProperty, selection);
     }
 
     /// <summary>  
-    /// 设置文本字符属性。此方法完全等价于 <see cref="SetRunProperty(LightTextEditorPlus.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/> 方法  
+    /// 设置文本字符属性。此方法完全等价于 <see cref="SetRunProperty(Document.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/> 方法  
     /// </summary>
     /// <param name="config"></param>
     /// <param name="selection"></param>
@@ -623,10 +623,3 @@ public partial class TextEditor
 
     #endregion
 }
-
-/// <summary>
-/// 创建一个新的 RunProperty 对象的委托
-/// </summary>
-/// <param name="styleRunProperty"></param>
-/// <returns></returns>
-public delegate RunProperty CreateRunPropertyDelegate(RunProperty styleRunProperty);

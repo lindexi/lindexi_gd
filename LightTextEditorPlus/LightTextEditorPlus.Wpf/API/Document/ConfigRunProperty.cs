@@ -1,6 +1,4 @@
-using LightTextEditorPlus.Document;
-
-namespace LightTextEditorPlus;
+﻿namespace LightTextEditorPlus.Document;
 
 /// <summary>
 /// 字符属性的配置委托
