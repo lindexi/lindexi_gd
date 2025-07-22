@@ -1,0 +1,3 @@
+﻿namespace LightTextEditorPlus.Document;
+
+public delegate SkiaTextRunProperty ConfigRunProperty(SkiaTextRunProperty runProperty);
