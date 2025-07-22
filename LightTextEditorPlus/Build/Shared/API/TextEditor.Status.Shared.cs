@@ -1,4 +1,4 @@
-#if !USE_SKIA || USE_AllInOne
+﻿#if !USE_SKIA || USE_AllInOne
 
 using System;
 
@@ -89,6 +89,12 @@ partial class TextEditor
     /// <inheritdoc cref="P:LightTextEditorPlus.Core.TextEditorCore.SetAllInDebugMode"/>
     [TextEditorPublicAPI]
     public static void SetAllInDebugMode() => LightTextEditorPlus.Core.TextEditorCore.SetAllInDebugMode();
+
+    #endregion
+
+    #region 渲染布局状态
+
+    
 
     #endregion
 
