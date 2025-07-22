@@ -2,12 +2,12 @@
 using LightTextEditorPlus.Core.Primitive;
 using SkiaSharp;
 
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Rendering;
 
 /// <summary>
 /// 文本的 Skia 渲染器
 /// </summary>
-public interface ITextEditorSkiaRender : IDisposable
+public interface ITextEditorSkiaRenderer : IDisposable
 {
     /// <summary>
     /// 渲染
@@ -29,7 +29,7 @@ public interface ITextEditorSkiaRender : IDisposable
 /// <summary>
 /// 文本编辑器的 Skia 渲染内容
 /// </summary>
-public interface ITextEditorContentSkiaRender : ITextEditorSkiaRender
+public interface ITextEditorContentSkiaRenderer : ITextEditorSkiaRenderer
 {
     /// <summary>
     /// 渲染范围
@@ -50,6 +50,6 @@ public interface ITextEditorContentSkiaRender : ITextEditorSkiaRender
 /// <summary>
 /// 光标和选择的 Skia 渲染内容
 /// </summary>
-public interface ITextEditorCaretAndSelectionRenderSkiaRender : ITextEditorSkiaRender
+public interface ITextEditorCaretAndSelectionRenderSkiaRenderer : ITextEditorSkiaRenderer
 {
 }

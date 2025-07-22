@@ -64,14 +64,14 @@ class RenderManager
         }
     }
 
-    private ITextEditorCaretAndSelectionRenderSkiaRender? _currentCaretAndSelectionRender;
+    private ITextEditorCaretAndSelectionRenderSkiaRenderer? _currentCaretAndSelectionRender;
 
     /// <summary>
     /// 光标是否是覆盖模式、替换模式
     /// </summary>
     private bool IsOvertypeModeCaret { get; set; }
 
-    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
+    public ITextEditorCaretAndSelectionRenderSkiaRenderer GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
     {
         if (IsOvertypeModeCaret != renderContext.IsOvertypeModeCaret)
         {
@@ -91,7 +91,7 @@ class RenderManager
     // 在 Skia 里面的 SKPicture 就和 DX 的 Command 地位差不多，都是预先记录的绘制命令，而不是立刻进行绘制
     private TextEditorSkiaRender? _currentRender;
 
-    public ITextEditorContentSkiaRender GetCurrentTextRender()
+    public ITextEditorContentSkiaRenderer GetCurrentTextRender()
     {
         //Debug.Assert(_currentRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
         if (_currentRender is null)
