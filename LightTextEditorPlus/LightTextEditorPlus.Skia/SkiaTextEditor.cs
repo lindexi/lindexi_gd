@@ -147,7 +147,7 @@ public partial class SkiaTextEditor : IRenderManager
     /// 获取当前的文本渲染内容
     /// </summary>
     /// <returns></returns>
-    public ITextEditorContentSkiaRender GetCurrentTextRender()
+    public ITextEditorContentSkiaRenderer GetCurrentTextRender()
     {
         return RenderManager.GetCurrentTextRender();
     }
@@ -157,7 +157,7 @@ public partial class SkiaTextEditor : IRenderManager
     /// </summary>
     /// <param name="renderContext"></param>
     /// <returns></returns>
-    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
+    public ITextEditorCaretAndSelectionRenderSkiaRenderer GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
     {
         return RenderManager.GetCurrentCaretAndSelectionRender(renderContext);
     }
@@ -207,12 +207,12 @@ public partial class SkiaTextEditor : IRenderManager
     /// <param name="filePath"></param>
     public void SaveAsImageFile(string filePath)
     {
-        ITextEditorContentSkiaRender textRender = GetCurrentTextRender();
-        TextRect bounds = textRender.RenderBounds;
+        ITextEditorContentSkiaRenderer textRenderer = GetCurrentTextRender();
+        TextRect bounds = textRenderer.RenderBounds;
         using var skBitmap = new SKBitmap((int) bounds.Width, (int) bounds.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
         using SKCanvas skCanvas = new SKCanvas(skBitmap);
 
-        textRender.Render(skCanvas);
+        textRenderer.Render(skCanvas);
 
         using FileStream fileStream = File.OpenWrite(filePath);
         skBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);

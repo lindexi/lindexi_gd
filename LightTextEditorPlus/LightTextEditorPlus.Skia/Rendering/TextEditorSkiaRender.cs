@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering;
 
-class TextEditorSkiaRender : ITextEditorContentSkiaRender
+class TextEditorSkiaRender : ITextEditorContentSkiaRenderer
 {
     public TextEditorSkiaRender(SkiaTextEditor textEditor, SKPicture picture, TextRect renderBounds)
     {
@@ -96,7 +96,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
 /// </summary>
 /// <param name="SelectionBoundsList"></param>
 /// <param name="SelectionColor"></param>
-record TextEditorSelectionSkiaRender(IReadOnlyList<TextRect> SelectionBoundsList, SKColor SelectionColor) : ITextEditorCaretAndSelectionRenderSkiaRender
+record TextEditorSelectionSkiaRender(IReadOnlyList<TextRect> SelectionBoundsList, SKColor SelectionColor) : ITextEditorCaretAndSelectionRenderSkiaRenderer
 {
     public void Render(SKCanvas canvas)
     {
@@ -122,7 +122,7 @@ record TextEditorSelectionSkiaRender(IReadOnlyList<TextRect> SelectionBoundsList
     }
 }
 
-record TextEditorCaretSkiaRender(SKRect CaretBounds, SKColor CaretColor) : ITextEditorCaretAndSelectionRenderSkiaRender
+record TextEditorCaretSkiaRender(SKRect CaretBounds, SKColor CaretColor) : ITextEditorCaretAndSelectionRenderSkiaRenderer
 {
     public void Render(SKCanvas canvas)
     {
