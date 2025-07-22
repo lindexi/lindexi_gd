@@ -496,8 +496,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     System.Windows.Point IIMETextEditor.GetCaretLeftTop()
     {
-        TextEditorPlatformProvider.EnsureLayoutUpdated();
-        var renderInfoProvider = TextEditorCore.GetRenderInfo();
+        var renderInfoProvider = ForceLayout();
         var caretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
         var caretBounds = caretRenderInfo.GetCaretBounds(CaretConfiguration.DefaultCaretThickness);
         return caretBounds.ToWpfRect().TopLeft;
