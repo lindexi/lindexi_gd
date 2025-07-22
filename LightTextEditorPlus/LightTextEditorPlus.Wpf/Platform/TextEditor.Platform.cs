@@ -31,6 +31,7 @@ using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Layers;
+using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Rendering;
 using LightTextEditorPlus.Utils;
 

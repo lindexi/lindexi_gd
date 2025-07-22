@@ -8,8 +8,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Utils.Threading;
 
-// ReSharper disable once CheckNamespace
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Platform;
 
 /// <summary>
 /// 文本库的平台提供者
