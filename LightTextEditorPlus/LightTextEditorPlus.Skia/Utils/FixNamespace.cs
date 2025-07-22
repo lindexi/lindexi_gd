@@ -7,11 +7,3 @@ namespace System.Windows
 
     }
 }
-
-namespace Fxx
-{
-    file class UnUse
-    {
-
-    }
-}

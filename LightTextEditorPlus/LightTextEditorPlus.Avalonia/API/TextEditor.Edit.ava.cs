@@ -666,7 +666,3 @@ namespace LightTextEditorPlus
         #endregion
     }
 }
-
-public delegate SkiaTextRunProperty ConfigRunProperty(SkiaTextRunProperty runProperty);
-
-public delegate SkiaTextRunProperty CreateRunProperty(SkiaTextRunProperty styleRunProperty);
