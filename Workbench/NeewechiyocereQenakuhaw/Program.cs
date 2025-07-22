@@ -1,10 +1,14 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using ImageMagick;
 
-var file = @"C:\lindexi\sample.wmf";
-var outputFile = Path.GetFullPath(@"sample.png");
+foreach (var file in Directory.EnumerateFiles(@"C:\lindexi\wmf公式\","*.wmf"))
+{
+    var fileName = Path.GetFileNameWithoutExtension(file);
 
-using var image = new MagickImage(file);
-image.Write(new FileInfo(outputFile), MagickFormat.Png32);
+    var outputFile = Path.GetFullPath($"{fileName}.png");
+
+    using var image = new MagickImage(file);
+    image.Write(new FileInfo(outputFile), MagickFormat.Png32);
+}
 
 Console.WriteLine("Hello, World!");
