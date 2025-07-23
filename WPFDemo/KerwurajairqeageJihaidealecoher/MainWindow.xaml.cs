@@ -31,8 +31,12 @@ public partial class MainWindow : Window
             SKTypeface? skTypeface = SKFontManager.Default.MatchFamily(fontFamilyName);
             var skFont = new SKFont(skTypeface, 100);
             var h = (-skFont.Metrics.Ascent + skFont.Metrics.Descent) / skFont.Size;
-            bool isNearlyEqual = Math.Abs(lineSpacing - h) < 0.01;
-            Debug.WriteLine($"{fontFamilyName} 是否相近 {isNearlyEqual} {Math.Abs(lineSpacing - h):0.00000}");
+            var h2 = (-skFont.Metrics.Ascent + skFont.Metrics.Descent + skFont.Metrics.Leading) / skFont.Size;
+
+            var d = Math.Abs(lineSpacing - h2);
+
+            bool isNearlyEqual = d < 0.01;
+            Debug.WriteLine($"{fontFamilyName} 是否相近 {isNearlyEqual} {d:0.00000}");
 
             if (!isNearlyEqual)
             {
