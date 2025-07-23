@@ -24,6 +24,7 @@ unsafe
     {
         factory.Handle->CreateFontFileReference(pFontFile, null, &dWriteFontFile);
     }
+
     // isSupported, &fileType, &fontFaceType, &numberOfFonts
     int isSupported = 0;
     FontFileType fileType = FontFileType.Unknown;
@@ -35,13 +36,19 @@ unsafe
     IDWriteFontSetBuilder* fontSetBuilder;
     factory.Handle->CreateFontSetBuilder(&fontSetBuilder);
 
-    IDWriteFontFace* fontFace;
-    hr = factory.Handle->CreateFontFace(fontFaceType, numberOfFonts, &dWriteFontFile, 0, FontSimulations.None,
-        &fontFace);
-    hr.Throw();
+    //IDWriteFontFace* fontFace;
+    //hr = factory.Handle->CreateFontFace(fontFaceType, numberOfFonts, &dWriteFontFile, 0, FontSimulations.None,
+    //    &fontFace);
+    //hr.Throw();
 
     IDWriteFontFaceReference* fontFaceReference;
-    factory.Handle->CreateFontFaceReference(fontFile, null, (uint) 0, FontSimulations.None, &fontFaceReference);
+
+    fixed (char* pFontFile = fontFile)
+    {
+        hr = factory.Handle->CreateFontFaceReference(pFontFile, null, (uint)0, FontSimulations.None,
+            &fontFaceReference);
+        hr.Throw();
+    }
 
     fontSetBuilder->AddFontFaceReference(fontFaceReference);
 
@@ -51,5 +58,59 @@ unsafe
     FontMetrics fontMetrics = default;
     fontFace3->GetMetrics(&fontMetrics);
 
-    var ascent = fontMetrics.Ascent;
+    IDWriteLocalizedStrings* dWriteLocalizedStrings;
+    //fontFace3->GetFaceNames(&dWriteLocalizedStrings);
+    //PrintLocalizedStrings(dWriteLocalizedStrings);
+
+    fontFace3->GetFamilyNames(&dWriteLocalizedStrings);
+    PrintLocalizedStrings(dWriteLocalizedStrings);
+
+    Console.WriteLine($"Ascent: {fontMetrics.Ascent}");
+    Console.WriteLine($"Descent: {fontMetrics.Descent}");
+    Console.WriteLine($"LineGap: {fontMetrics.LineGap}");
+    Console.WriteLine($"CapHeight: {fontMetrics.CapHeight}");
+    Console.WriteLine($"XHeight: {fontMetrics.XHeight}");
+    Console.WriteLine($"DesignUnitsPerEm: {fontMetrics.DesignUnitsPerEm}");
+
+    var lineSpacing = fontMetrics.Ascent + fontMetrics.Descent + fontMetrics.LineGap;
+    Console.WriteLine($"LineSpacing: {lineSpacing} {lineSpacing / (double)fontMetrics.DesignUnitsPerEm}");
+}
+
+unsafe void PrintLocalizedStrings(IDWriteLocalizedStrings* dWriteLocalizedStrings)
+{
+    uint count = dWriteLocalizedStrings->GetCount();
+    List<(string LocaleName, string Name)> list = new((int)count);
+
+    for (uint i = 0; i < count; i++)
+    {
+        uint length = 0;
+        dWriteLocalizedStrings->GetLocaleNameLength(i, &length);
+
+        // 加一解决 \0 的问题
+        length += 1;
+        char* localeNameBuffer = stackalloc char[(int)length];
+        dWriteLocalizedStrings->GetLocaleName(i, localeNameBuffer, length);
+
+        // zh-cn 等输出
+        string localeName = new string(localeNameBuffer, 0, (int)length - 1);
+
+        dWriteLocalizedStrings->GetStringLength(i, &length);
+        length += 1;
+        char* nameBuffer = stackalloc char[(int)length];
+        dWriteLocalizedStrings->GetString(i, nameBuffer, length);
+        string name = new string(nameBuffer, 0, (int)length - 1);
+
+        list.Add((localeName, name));
+    }
+
+    foreach (var (localeName, name) in list)
+    {
+        if (localeName == "zh-cn")
+        {
+            Console.WriteLine($"FontName: {name}");
+            return;
+        }
+    }
+
+    Console.WriteLine(list.FirstOrDefault().Name);
 }
