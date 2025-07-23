@@ -24,11 +24,18 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
     /// <returns></returns>
     public override double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
     {
-        // 兼容获取的方法
-        // 详细请参阅 cb389420514f0eb9cdb6ed79378e5e4508c2e2c4
+        // 兼容获取行距的方法
+        // 从 Skia 里面拿到的属性含义是不正确的，如 [dotnet 简单聊聊 Skia 里的 SKFontMetrics 的各项属性作用 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18621674 )
+        // 重新按照 DirectWrite 的 [DWRITE_FONT_METRICS 文档](https://learn.microsoft.com/en-us/windows/win32/api/dwrite/ns-dwrite-dwrite_font_metrics) 进行计算
+        // > LineGap: The line gap in font design units. Recommended additional white space to add between lines to improve legibility. The recommended line spacing (baseline-to-baseline distance) is the sum of ascent, descent, and lineGap. The line gap is usually positive or zero but can be negative, in which case the recommended line spacing is less than the height of the character alignment box.
+        // 可以知道，其数值上应该是 
+        // FontMetrics fontMetrics = xx;
+        // var lineSpacing = (fontMetrics.Ascent + fontMetrics.Descent + fontMetrics.LineGap) / (double) fontMetrics.DesignUnitsPerEm;
+        // 在 Skia 里面，不存在 LineGap 的概念，但与其数值相同的是 Leading 属性，只好取来计算
+        // 详细请参阅 684937f058c75134f7af925bb88350b25149bc39
         RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.AsSkiaRunProperty().GetRenderingRunPropertyInfo();
         SKFont skFont = renderingRunPropertyInfo.Font;
-        return (-skFont.Metrics.Ascent + skFont.Metrics.Descent) / skFont.Size;
+        return (-skFont.Metrics.Ascent + skFont.Metrics.Descent + skFont.Metrics.Leading) / skFont.Size;
     }
 
     private SkiaPlatformResourceManager? _skiaPlatformFontManager;
