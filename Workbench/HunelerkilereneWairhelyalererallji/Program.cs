@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Reflection;
+using System.Xml.Linq;
 using SkiaSharp;
 
 using Svg;
@@ -10,8 +11,23 @@ internal class Program
 {
     static void Main(string[] args)
     {
+        //var stream = Assembly.GetExecutingAssembly().GetFile("1.svg");
+        //Console.WriteLine($"GetFile={stream is not null}");
+
+        //foreach (var manifestResourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+        //{
+        //    Console.WriteLine($"ManifestResourceName={manifestResourceName}");
+        //}
+
+        Console.WriteLine(AppContext.BaseDirectory);
+
         var file = "1.svg";
         file = Path.GetFullPath(file);
+
+        if (!File.Exists(file))
+        {
+            file = Path.Join(AppContext.BaseDirectory, "1.svg");
+        }
 
         var fileStream = File.OpenRead(file);
         var streamReader = new StreamReader(fileStream);
