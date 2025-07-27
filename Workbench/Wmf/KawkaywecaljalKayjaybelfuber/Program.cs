@@ -8,7 +8,7 @@ using System.Text;
 using Oxage.Wmf.Records;
 using SkiaSharp;
 
-var file = @"C:\lindexi\wmf公式\image17.wmf";
+var file = @"C:\lindexi\wmf公式\image16.wmf";
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var image = Image.FromFile(file);
@@ -244,6 +244,12 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     }
                     else
                     {
+                        if (dxLength % sizeof(UInt16) == 1)
+                        {
+                           var r = binaryReader.ReadByte();
+                           _ = r;
+                        }
+
                         var currentXOffset = currentX + tx;
                         UInt16[] dxArray = new UInt16[dxLength / sizeof(UInt16)];
                         for (var t = 0; t < dxArray.Length; t++)
@@ -261,6 +267,10 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                             canvas.DrawText(text[textIndex].ToString(), currentXOffset, currentY + ty, skFont, paint);
 
                             currentXOffset += dxArray[textIndex];
+                            if (currentXOffset > width)
+                            {
+                                currentXOffset = currentXOffset % width;
+                            }
                         }
                     }
 
