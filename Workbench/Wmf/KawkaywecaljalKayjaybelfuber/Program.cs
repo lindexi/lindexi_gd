@@ -91,6 +91,8 @@ Encoding CharacterSetToEncoding(CharacterSet characterSet)
     return Encoding.GetEncoding(codePageId);
 }
 
+float lastTextOffset = 0;
+
 for (var i = 0; i < wmfDocument.Records.Count; i++)
 {
     var wmfDocumentRecord = wmfDocument.Records[i];
@@ -127,6 +129,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
         {
             currentX = moveToRecord.X;
             currentY = moveToRecord.Y;
+            lastTextOffset = 0;
             break;
         }
         // -		[12]	{== WmfLineToRecord ==
@@ -238,13 +241,15 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     skFont.Typeface = SKTypeface.FromFamilyName(currentFontName);
                     paint.Style = SKPaintStyle.Fill;
 
+                    lastTextOffset = lastTextOffset % width;
+
+                    var currentXOffset = currentX + tx + lastTextOffset;
                     if (dxLength == 0)
                     {
-                        canvas.DrawText(text, currentX + tx, currentY + ty, skFont, paint);
+                        canvas.DrawText(text, currentXOffset, currentY + ty, skFont, paint);
                     }
                     else
                     {
-                        var currentXOffset = currentX + tx;
                         UInt16[] dxArray = new UInt16[dxLength / sizeof(UInt16)];
                         for (var t = 0; t < dxArray.Length; t++)
                         {
@@ -262,6 +267,8 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
 
                             currentXOffset += dxArray[textIndex];
                         }
+
+                        lastTextOffset = currentXOffset;
                     }
 
                     break;
