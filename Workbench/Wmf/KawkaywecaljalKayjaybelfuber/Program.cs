@@ -9,6 +9,7 @@ var file = @"C:\lindexi\wmf公式\sample.wmf";
 var image = Image.FromFile(file);
 var imageWidth = image.Width;
 var imageHeight = image.Height;
+var imagePhysicalDimension = image.PhysicalDimension;
 
 using var fileStream = File.OpenRead(file);
 var wmfDocument = new WmfDocument();
