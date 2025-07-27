@@ -244,6 +244,12 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     }
                     else
                     {
+                        if (dxLength % sizeof(UInt16) == 1)
+                        {
+                           var r = binaryReader.ReadByte();
+                           _ = r;
+                        }
+
                         var currentXOffset = currentX + tx;
                         UInt16[] dxArray = new UInt16[dxLength / sizeof(UInt16)];
                         for (var t = 0; t < dxArray.Length; t++)
