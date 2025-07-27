@@ -237,25 +237,29 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     skFont.Typeface = SKTypeface.FromFamilyName(currentFontName);
                     paint.Style = SKPaintStyle.Fill;
 
-                    if (text.StartsWith("k"))
-                    {
-                    }
-
                     if (dxLength == 0)
                     {
                         canvas.DrawText(text, currentX + tx, currentY + ty, skFont, paint);
                     }
                     else
                     {
-                        var textIndex = 0;
                         var currentXOffset = currentX + tx;
-                        while (dxLength > 0 && textIndex < text.Length)
+                        UInt16[] dxArray = new UInt16[dxLength / sizeof(UInt16)];
+                        for (var t = 0; t < dxArray.Length; t++)
                         {
-                            dxLength -= sizeof(UInt16);
-                            var distance = binaryReader.ReadUInt16();
-                            currentXOffset += distance;
+                            dxArray[t] = binaryReader.ReadUInt16();
+                        }
+
+                        if (dxArray.Length != text.Length)
+                        {
+                            continue;
+                        }
+
+                        for (var textIndex = 0; textIndex < text.Length; textIndex++)
+                        {
                             canvas.DrawText(text[textIndex].ToString(), currentXOffset, currentY + ty, skFont, paint);
-                            textIndex++;
+
+                            currentXOffset += dxArray[textIndex];
                         }
                     }
 
