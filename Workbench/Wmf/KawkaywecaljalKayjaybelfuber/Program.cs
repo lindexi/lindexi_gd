@@ -1,13 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using Oxage.Wmf;
-
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using Oxage.Wmf.Records;
 using SkiaSharp;
 
-var file = @"C:\lindexi\wmf公式\sample.wmf";
+var file = @"C:\lindexi\wmf公式\image17.wmf";
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var image = Image.FromFile(file);
@@ -37,34 +37,204 @@ var width = Math.Abs(format.Right - format.Left);
 var height = Math.Abs(format.Bottom - format.Top);
 
 var inchUnit = format.Unit;
-var pixelWidth = (double)width / inchUnit * 96;
-var pixelHeight = (double)height / inchUnit * 96;
-
-var sx = (double) width / imageWidth;
-var sy = (double) height / imageHeight;
-
-var aw = 607d;
-var ah = 512d;
-
-var t = width / 1440;
-var t2 = height / 1440;
-
-var formatUnit = format.Unit;
-
-// mnUnitsPerInch 
-
-var inch = wmfDocument.Width / 1440;
-var pixel = inch * 96;
-
-var wmfDocumentHeader = wmfDocument.Header;
+var pixelWidth = (double) width / inchUnit * 96;
+var pixelHeight = (double) height / inchUnit * 96;
 
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 SKCanvas canvas = new SKCanvas(skBitmap);
 
+var currentPenColor = SKColors.Empty;
+var currentPenThickness = 0;
+
+float currentX = x;
+float currentY = y;
+
+var currentTextColor = SKColors.Black;
+
+using var paint = new SKPaint();
+paint.IsAntialias = true;
+
+using var skFont = new SKFont();
+float currentFontSize = 0;
+
+string? currentFontName = null;
+CharacterSet currentCharacterSet = CharacterSet.ANSI_CHARSET;
+Encoding currentEncoding = Encoding.GetEncoding(1252);
+
+Encoding CharacterSetToEncoding(CharacterSet characterSet)
+{
+    var codePageId = characterSet switch
+    {
+        CharacterSet.ANSI_CHARSET => 1252,
+        CharacterSet.OEM_CHARSET => 437,
+        CharacterSet.SHIFTJIS_CHARSET => 932,
+        CharacterSet.HANGUL_CHARSET => 949,
+        CharacterSet.JOHAB_CHARSET => 1361,
+        CharacterSet.GB2312_CHARSET => 936,
+        CharacterSet.CHINESEBIG5_CHARSET => 950,
+        CharacterSet.HEBREW_CHARSET => 1255,
+        CharacterSet.ARABIC_CHARSET => 1256,
+        CharacterSet.GREEK_CHARSET => 1253,
+        CharacterSet.TURKISH_CHARSET => 1254,
+        CharacterSet.BALTIC_CHARSET => 1257,
+        CharacterSet.EASTEUROPE_CHARSET => 1250,
+        CharacterSet.RUSSIAN_CHARSET => 1251,
+        CharacterSet.THAI_CHARSET => 874,
+        CharacterSet.VIETNAMESE_CHARSET => 1258,
+        CharacterSet.SYMBOL_CHARSET => 42, // Symbol font is not a code page, but 42 is often used for Symbol font
+        CharacterSet.DEFAULT_CHARSET => 1252,
+        _ => 1252,
+    };
+
+    return Encoding.GetEncoding(codePageId);
+}
 
 foreach (var wmfDocumentRecord in wmfDocument.Records)
 {
+    switch (wmfDocumentRecord)
+    {
+        // The META_SETBKMODE Record defines the background raster operation mix mode in the playback device context. The background mix mode is the mode for combining pens, text, hatched brushes, and interiors of filled objects with background colors on the output surface.
+        case WmfSetBkModeRecord setBkModeRecord:
+            {
+                // RecordFunction (2 bytes): A 16-bit unsigned integer that defines this WMF record type. The lower byte MUST match the lower byte of the RecordType Enumeration (section 2.1.1.1) table value META_SETBKMODE.
+                // BkMode (2 bytes): A 16-bit unsigned integer that defines background mix mode. This MUST be one of the values in the MixMode Enumeration (section 2.1.1.20).
 
+                break;
+            }
+        case WmfSetTextAlignRecord setTextAlignRecord:
+            {
+                // RecordFunction (2 bytes): A 16-bit unsigned integer that defines this WMF record type. The lower byte MUST match the lower byte of the RecordType Enumeration (section 2.1.1.1) table value META_SETTEXTALIGN.
+                // TextAlignmentMode (2 bytes): A 16-bit unsigned integer that defines text alignment. This value MUST be a combination of one or more TextAlignmentMode Flags (section 2.1.2.3) for text with a horizontal baseline, and VerticalTextAlignmentMode Flags (section 2.1.2.4) for text with a vertical baseline.
+
+                break;
+            }
+        case WmfCreatePenIndirectRecord createPenIndirectRecord:
+            {
+                Color color = createPenIndirectRecord.Color;
+                currentPenColor = new SKColor(color.R, color.G, color.B, color.A);
+                currentPenThickness = Math.Max(createPenIndirectRecord.Width.X, createPenIndirectRecord.Width.Y);
+                break;
+            }
+        // -		[11]	{== WmfMoveToRecord ==
+        // RecordSize: 5 words = 10 bytes
+        // RecordType: 0x0214 (RecordType.META_MOVETO)
+        // X: 1372Y: 865}	Oxage.Wmf.IBinaryRecord {Oxage.Wmf.Records.WmfMoveToRecord}
+        // 
+        case WmfMoveToRecord moveToRecord:
+            {
+                currentX = moveToRecord.X;
+                currentY = moveToRecord.Y;
+                break;
+            }
+        // -		[12]	{== WmfLineToRecord ==
+        // RecordSize: 5 words = 10 bytes
+        // RecordType: 0x0213 (RecordType.META_LINETO)
+        // X: 1840Y: 865}	Oxage.Wmf.IBinaryRecord {Oxage.Wmf.Records.WmfLineToRecord}
+        // 
+        case WmfLineToRecord lineToRecord:
+            {
+                paint.IsStroke = true;
+                paint.Color = currentPenColor;
+                paint.StrokeWidth = currentPenThickness;
+
+                canvas.DrawLine(currentX, currentY, lineToRecord.X, lineToRecord.Y, paint);
+
+                break;
+            }
+        // -		[13]	{== WmfSetTextColorRecord ==
+        // RecordSize: 5 words = 10 bytes
+        // RecordType: 0x0209 (RecordType.META_SETTEXTCOLOR)
+        // ColorRef: Color [A=255, R=0, G=0, B=0]
+        // }	Oxage.Wmf.IBinaryRecord {Oxage.Wmf.Records.WmfSetTextColorRecord}
+        // 
+        case WmfSetTextColorRecord setTextColorRecord:
+            {
+                currentPenColor = ToSKColor(setTextColorRecord.Color);
+
+                break;
+            }
+        // -		[15]	{== WmfCreateFontIndirectRecord ==
+        // RecordSize: 28 words = 56 bytes
+        // RecordType: 0x02fb (RecordType.META_CREATEFONTINDIRECT)
+        // Height: -636
+        // Width: 0
+        // Escapement: 0
+        // Orientation: 0
+        // Weight: 400
+        // Italic: False
+        // Underline: False
+        // StrikeOut: False
+        // CharSet: 0x0000 (CharacterSet.ANSI_CHARSET)
+        // OutPrecision: 0x00 (OutPrecision.OUT_DEFAULT_PRECIS)
+        // ClipPrecision: 0x02 (ClipPrecision.CLIP_STROKE_PRECIS)
+        // Quality: 0x00 (FontQuality.DEFAULT_QUALITY)
+        // Pitch: 0x00 (PitchFont.DEFAULT_PITCH)
+        // Family: 0x00 (FamilyFont.FF_DONTCARE)
+        // Facename: Times New Roman	Oxage.Wmf.IBinaryRecord {Oxage.Wmf.Records.WmfCreateFontIndirectRecord}
+        // 
+        case WmfCreateFontIndirectRecord createFontIndirectRecord:
+            {
+                // 	"Times New Roman\0è±ñwñ±ñw @ów³\u0011fÁ"
+                currentFontName = createFontIndirectRecord.FaceName.ToString();
+                currentCharacterSet = createFontIndirectRecord.CharSet;
+                currentEncoding = CharacterSetToEncoding(currentCharacterSet);
+
+                // Width (2 bytes): A 16-bit signed integer that defines the average width, in logical units, of characters in the font. If Width is 0x0000, the aspect ratio of the device SHOULD be matched against the digitization aspect ratio of the available fonts to find the closest match, determined by the absolute value of the difference.
+                var fontWidth = createFontIndirectRecord.Width;
+
+                // Height (2 bytes): A 16-bit signed integer that specifies the height, in logical units, of the font's character cell. The character height is computed as the character cell height minus the internal leading. The font mapper SHOULD interpret the height as follows.
+                // value < 0x0000 The font mapper SHOULD transform this value into device units and match its absolute value against the character height of available fonts.
+                // 0x0000 A default height value MUST be used when creating a physical font.
+                // 0x0000 < value The font mapper SHOULD transform this value into device units and match it against the cell height of available fonts.
+                // For all height comparisons, the font mapper SHOULD find the largest physical font that does not exceed the requested size.<40>
+                // <40> Section 2.2.1.2: All Windows versions: mapping the logical font size to the available physical fonts occurs the first time the logical font needs to be used in a drawing operation.
+                // For the MM_TEXT mapping mode, the following formula can be used to compute the height of a font with a specified point size.
+                // 	Height = -MulDiv(PointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+                // 
+                var fontHeight = createFontIndirectRecord.Height;
+
+                fontWidth = Math.Abs(fontWidth);
+                fontHeight = Math.Abs(fontHeight);
+
+                currentFontSize = Math.Max(fontWidth, fontHeight);
+
+                break;
+            }
+        case WmfUnknownRecord unknownRecord:
+            {
+                switch (unknownRecord.RecordType)
+                {
+                    case RecordType.META_EXTTEXTOUT:
+                        {
+                            // 测试 17 项
+                            var memoryStream = new MemoryStream(unknownRecord.Data);
+                            var binaryReader = new BinaryReader(memoryStream);
+                            var ty = binaryReader.ReadUInt16();
+                            var tx = binaryReader.ReadUInt16();
+                            var stringLength = binaryReader.ReadUInt16();
+                            var fwOpts = (ExtTextOutOptions) binaryReader.ReadUInt16();
+                            // Rectangle (8 bytes): An optional 8-byte Rect Object (section 2.2.2.18).) When either ETO_CLIPPED, ETO_OPAQUE, or both are specified, the rectangle defines the dimensions, in logical coordinates, used for clipping, opaquing, or both. When neither ETO_CLIPPED nor ETO_OPAQUE is specified, the coordinates in Rectangle are ignored.
+                            if (fwOpts is ExtTextOutOptions.ETO_CLIPPED or ExtTextOutOptions.ETO_OPAQUE)
+                            {
+                                // 此时才有 Rectangle 的值
+                                binaryReader.ReadBytes(8);
+                            }
+
+                            var stringBuffer = binaryReader.ReadBytes(stringLength);
+                            var text = currentEncoding.GetString(stringBuffer);
+
+                            skFont.Size = currentFontSize;
+                            skFont.Typeface = SKTypeface.FromFamilyName(currentFontName);
+                            paint.Style = SKPaintStyle.Fill;
+                            canvas.DrawText(text, currentX + tx, currentY + ty, skFont, paint);
+
+                            break;
+                        }
+                }
+
+                break;
+            }
+    }
 }
 
 var outputFile = "1.png";
@@ -74,3 +244,8 @@ using (var outputStream = File.OpenWrite(outputFile))
 }
 
 Console.WriteLine("Hello, World!");
+
+SKColor ToSKColor(Color color)
+{
+    return new SKColor(color.R, color.G, color.B, color.A);
+}
