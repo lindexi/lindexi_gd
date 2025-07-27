@@ -1,10 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Drawing;
-using System.Drawing.Imaging;
 using Oxage.Wmf;
 
-var file = @"C:\lindexi\wmf公式\sample.wmf";
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Text;
+
+var file = @"C:\lindexi\wmf公式\image17.wmf";
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var image = Image.FromFile(file);
 var imageWidth = image.Width;
