@@ -7,7 +7,7 @@ using System.Drawing.Imaging;
 using System.Text;
 using SkiaSharp;
 
-var file = @"C:\lindexi\wmf公式\sample.wmf";
+var file = @"C:\lindexi\wmf公式\image17.wmf";
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var image = Image.FromFile(file);
