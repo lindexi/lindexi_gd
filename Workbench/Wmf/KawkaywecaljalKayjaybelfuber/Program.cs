@@ -66,7 +66,9 @@ Encoding CharacterSetToEncoding(CharacterSet characterSet)
 {
     var codePageId = characterSet switch
     {
-        CharacterSet.ANSI_CHARSET => 1252,
+        CharacterSet.ANSI_CHARSET
+            // DEFAULT_CHARSET: Specifies a character set based on the current system locale; for example, when the system locale is United States English, the default character set is ANSI_CHARSET.
+            or CharacterSet.DEFAULT_CHARSET => 1252,
         CharacterSet.OEM_CHARSET => 437,
         CharacterSet.SHIFTJIS_CHARSET => 932,
         CharacterSet.HANGUL_CHARSET => 949,
@@ -83,7 +85,6 @@ Encoding CharacterSetToEncoding(CharacterSet characterSet)
         CharacterSet.THAI_CHARSET => 874,
         CharacterSet.VIETNAMESE_CHARSET => 1258,
         CharacterSet.SYMBOL_CHARSET => 42, // Symbol font is not a code page, but 42 is often used for Symbol font
-        CharacterSet.DEFAULT_CHARSET => 1252,
         _ => 1252,
     };
 
