@@ -91,7 +91,7 @@ Encoding CharacterSetToEncoding(CharacterSet characterSet)
     return Encoding.GetEncoding(codePageId);
 }
 
-float lastXOffset = 0;
+float lastDxOffset = 0;
 
 for (var i = 0; i < wmfDocument.Records.Count; i++)
 {
@@ -129,7 +129,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
         {
             currentX = moveToRecord.X;
             currentY = moveToRecord.Y;
-            lastXOffset = 0;
+            lastDxOffset = 0;
             break;
         }
         // -		[12]	{== WmfLineToRecord ==
@@ -212,6 +212,11 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
             {
                 case RecordType.META_EXTTEXTOUT:
                 {
+                    // 关于字间距的规则： 
+                    // 1. 如果两个 META_EXTTEXTOUT 相邻，中间没有 MoveTo 之类
+                    // 则第二个 META_EXTTEXTOUT 将需要使用前一个 META_EXTTEXTOUT 的 dx 末项
+                    // 2. 可选的 dx 是存放在字符串末尾的可选项，从文档 2.3.3.5 上可见 dx 是顶格写的，这就意味着这个值是一定对齐整数倍的。由于 dx 是放在数据末尾，可通过减法算出 dx 长度，即数据总长度减去所有已知字段的长度加上字符串长度，剩余的就是 dx 长度。如果计算返回的 dx 长度是奇数，则首个 byte 是需要跳过的，如此就能确保在 16bit 下的 wmf 格式里面，读取的 dx 是从整数倍开始读取
+
                     // 测试 17 项
                     var memoryStream = new MemoryStream(unknownRecord.Data);
                     var binaryReader = new BinaryReader(memoryStream);
@@ -242,7 +247,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     paint.Style = SKPaintStyle.Fill;
                     paint.Color = currentTextColor;
 
-                    var currentXOffset = currentX + tx + lastXOffset;
+                    var currentXOffset = currentX + tx + lastDxOffset;
 
                     if (dxLength == 0)
                     {
@@ -275,7 +280,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                             currentXOffset += dxArray[textIndex];
                         }
 
-                        lastXOffset = dxArray[^1];
+                        lastDxOffset = dxArray[^1];
                     }
 
                     break;
