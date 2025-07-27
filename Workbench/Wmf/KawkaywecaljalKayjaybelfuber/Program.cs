@@ -29,6 +29,10 @@ Console.WriteLine(format.Dump());
 
 var width = Math.Abs(format.Left - format.Right);
 var height = Math.Abs(format.Top - format.Bottom);
+
+var sx = (double) width / imageWidth;
+var sy = (double) height / imageHeight;
+
 var aw = 607d;
 var ah = 512d;
 
