@@ -267,10 +267,6 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                             canvas.DrawText(text[textIndex].ToString(), currentXOffset, currentY + ty, skFont, paint);
 
                             currentXOffset += dxArray[textIndex];
-                            if (currentXOffset > width)
-                            {
-                                currentXOffset = currentXOffset % width;
-                            }
                         }
                     }
 
