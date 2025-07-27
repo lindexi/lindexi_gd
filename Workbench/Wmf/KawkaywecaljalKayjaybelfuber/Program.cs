@@ -155,7 +155,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
         // 
         case WmfSetTextColorRecord setTextColorRecord:
         {
-            currentPenColor = ToSKColor(setTextColorRecord.Color);
+            currentTextColor = ToSKColor(setTextColorRecord.Color);
 
             break;
         }
@@ -240,6 +240,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     skFont.Size = currentFontSize;
                     skFont.Typeface = SKTypeface.FromFamilyName(currentFontName);
                     paint.Style = SKPaintStyle.Fill;
+                    paint.Color = currentTextColor;
 
                     var currentXOffset = currentX + tx + lastXOffset;
 
@@ -250,7 +251,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     else
                     {
                         // 如果这里计算出来不是偶数，则首个需要跳过。这是经过测试验证的。但没有相关说明内容。且跳过的 byte 是有内容的
-                        if (dxLength % sizeof(UInt16) == 1)
+                        if (dxLength > ((dxLength / sizeof(UInt16)) * sizeof(UInt16)))
                         {
                             var r = binaryReader.ReadByte();
                             _ = r;
