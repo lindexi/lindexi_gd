@@ -91,6 +91,8 @@ Encoding CharacterSetToEncoding(CharacterSet characterSet)
     return Encoding.GetEncoding(codePageId);
 }
 
+float lastXOffset = 0;
+
 for (var i = 0; i < wmfDocument.Records.Count; i++)
 {
     var wmfDocumentRecord = wmfDocument.Records[i];
@@ -127,6 +129,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
         {
             currentX = moveToRecord.X;
             currentY = moveToRecord.Y;
+            lastXOffset = 0;
             break;
         }
         // -		[12]	{== WmfLineToRecord ==
@@ -152,7 +155,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
         // 
         case WmfSetTextColorRecord setTextColorRecord:
         {
-            currentPenColor = ToSKColor(setTextColorRecord.Color);
+            currentTextColor = ToSKColor(setTextColorRecord.Color);
 
             break;
         }
@@ -237,8 +240,9 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     skFont.Size = currentFontSize;
                     skFont.Typeface = SKTypeface.FromFamilyName(currentFontName);
                     paint.Style = SKPaintStyle.Fill;
+                    paint.Color = currentTextColor;
 
-                    var currentXOffset = currentX + tx;
+                    var currentXOffset = currentX + tx + lastXOffset;
 
                     if (dxLength == 0)
                     {
@@ -246,7 +250,8 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     }
                     else
                     {
-                        if (dxLength % sizeof(UInt16) == 1)
+                        // 如果这里计算出来不是偶数，则首个需要跳过。这是经过测试验证的。但没有相关说明内容。且跳过的 byte 是有内容的
+                        if (dxLength > ((dxLength / sizeof(UInt16)) * sizeof(UInt16)))
                         {
                             var r = binaryReader.ReadByte();
                             _ = r;
@@ -269,6 +274,8 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
 
                             currentXOffset += dxArray[textIndex];
                         }
+
+                        lastXOffset = dxArray[^1];
                     }
 
                     break;
