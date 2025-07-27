@@ -91,6 +91,8 @@ Encoding CharacterSetToEncoding(CharacterSet characterSet)
     return Encoding.GetEncoding(codePageId);
 }
 
+float lastXOffset = 0;
+
 for (var i = 0; i < wmfDocument.Records.Count; i++)
 {
     var wmfDocumentRecord = wmfDocument.Records[i];
@@ -127,6 +129,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
         {
             currentX = moveToRecord.X;
             currentY = moveToRecord.Y;
+            lastXOffset = 0;
             break;
         }
         // -		[12]	{== WmfLineToRecord ==
@@ -238,7 +241,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     skFont.Typeface = SKTypeface.FromFamilyName(currentFontName);
                     paint.Style = SKPaintStyle.Fill;
 
-                    var currentXOffset = currentX + tx;
+                    var currentXOffset = currentX + tx + lastXOffset;
 
                     if (dxLength == 0)
                     {
@@ -246,6 +249,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     }
                     else
                     {
+                        // 如果这里计算出来不是偶数，则首个需要跳过。这是经过测试验证的。但没有相关说明内容。且跳过的 byte 是有内容的
                         if (dxLength % sizeof(UInt16) == 1)
                         {
                             var r = binaryReader.ReadByte();
@@ -269,6 +273,8 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
 
                             currentXOffset += dxArray[textIndex];
                         }
+
+                        lastXOffset = dxArray[^1];
                     }
 
                     break;
