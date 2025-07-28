@@ -1,14 +1,7 @@
-﻿using Oxage.Wmf;
+﻿using System.Diagnostics.CodeAnalysis;
+using Oxage.Wmf;
 
 using SkiaSharp;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace SkiaWmfRenderer;
 
@@ -50,29 +43,5 @@ public static class SkiaWmfRenderHelper
         };
 
         return wmfRenderer.TryRender(out skBitmap);
-    }
-}
-
-class WmfRenderer
-{
-    public required WmfDocument WmfDocument { get; init; }
-    public required int RequestWidth { get; init; }
-    public required int RequestHeight { get; init; }
-
-    public bool TryRender([NotNullWhen(true)] out SKBitmap? skBitmap)
-    {
-        skBitmap = null;
-
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-        var format = WmfDocument.Format;
-
-        var x = Math.Min(format.Left, format.Right);
-        var y = Math.Min(format.Top, format.Bottom);
-
-        var width = Math.Abs(format.Right - format.Left);
-        var height = Math.Abs(format.Bottom - format.Top);
-
-        return skBitmap == null;
     }
 }
