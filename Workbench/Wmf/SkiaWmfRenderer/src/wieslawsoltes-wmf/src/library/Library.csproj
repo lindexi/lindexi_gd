@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net6.0;net7.0;net461</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Oxage.Wmf</RootNamespace>
+    <AssemblyName>Oxage.Wmf</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>0.6.1</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+    <Authors>Oxage</Authors>
+    <Company>Oxage</Company>
+    <Copyright>Copyright © Oxage 2012</Copyright>
+    <Description>WMF Reader and Writer</Description>
+    <PackageId>Oxage.Wmf</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/wieslawsoltes/wmf</PackageProjectUrl>
+    <PackageTags>wmf;emf;windows;metafile;reader;writer;gdi;drawing</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
