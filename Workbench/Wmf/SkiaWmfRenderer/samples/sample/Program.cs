@@ -66,21 +66,21 @@ void ConvertImageFile(string file)
 
     markdownText.AppendLine
     (
-        $"""
-         ## {fileNameWithoutExtension}
+        $$"""
+          ## {{fileNameWithoutExtension}}
 
-         **GDI:**
+          **GDI:**
 
-         ![](./{gdiFileName})
+          ![](./{{gdiFileName}}){width=250 height=120}
 
-         **WMF:**
+          **WMF:**
 
-         """
+          """
     );
 
     if (success)
     {
-        markdownText.AppendLine($"![](./{wmfFileName})");
+        markdownText.AppendLine($"![](./{wmfFileName})"+ "{width=250 height=120}");
     }
     else
     {
