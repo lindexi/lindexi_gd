@@ -1,5 +1,7 @@
 ﻿using System.Text;
+
 using Oxage.Wmf;
+
 using SkiaSharp;
 
 namespace SkiaWmfRenderer.Rendering;
@@ -16,6 +18,8 @@ class WmfRenderStatus : IDisposable
 
     public SKColor CurrentPenColor { get; set; } = SKColors.Empty;
     public float CurrentPenThickness { get; set; } = 0;
+
+    public SKColor CurrentFillColor { get; set; } = SKColor.Empty;
 
     public float CurrentFontSize { get; set; }
 
@@ -68,6 +72,12 @@ class WmfRenderStatus : IDisposable
         Paint.Color = CurrentPenColor;
         Paint.StrokeWidth = CurrentPenThickness;
         Paint.Style = SKPaintStyle.Stroke;
+    }
+
+    public void UpdateSkiaFillStatus()
+    {
+        Paint.Style = SKPaintStyle.Fill;
+        Paint.Color = CurrentFillColor;
     }
 
     public void Dispose()
