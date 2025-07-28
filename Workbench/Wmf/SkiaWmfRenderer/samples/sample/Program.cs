@@ -12,16 +12,19 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
 
-var folder = @"C:\lindexi\wmf公式\";
+var markdownText = new StringBuilder();
 var outputFolder = Path.Join(AppContext.BaseDirectory, $"Output_{Path.GetRandomFileName()}");
 Directory.CreateDirectory(outputFolder);
 
-var markdownText = new StringBuilder();
+var testFile = @"C:\lindexi\wmf公式\image64.wmf";
+ConvertImageFile(testFile);
 
-foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
-{
-    ConvertImageFile(file);
-}
+//var folder = @"C:\lindexi\wmf公式\";
+
+//foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
+//{
+//    ConvertImageFile(file);
+//}
 
 var markdownFile = Path.Join(outputFolder, "README.md");
 File.WriteAllText(markdownFile, markdownText.ToString());

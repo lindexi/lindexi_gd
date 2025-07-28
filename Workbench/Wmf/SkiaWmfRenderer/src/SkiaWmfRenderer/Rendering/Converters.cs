@@ -1,5 +1,9 @@
-﻿using System.Text;
-using Oxage.Wmf;
+﻿using Oxage.Wmf;
+
+using SkiaSharp;
+
+using System.Text;
+using Oxage.Wmf.Primitive;
 
 namespace SkiaWmfRenderer.Rendering;
 
@@ -32,5 +36,10 @@ static class Converters
         };
 
         return Encoding.GetEncoding(codePageId);
+    }
+
+    public static SKColor ToSKColor(this WmfColor color)
+    {
+        return new SKColor(color.R, color.G, color.B, color.A);
     }
 }

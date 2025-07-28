@@ -89,7 +89,7 @@ class WmfRenderer
                 }
                 case WmfCreatePenIndirectRecord createPenIndirectRecord:
                 {
-                    renderStatus.CurrentPenColor = ToSKColor(createPenIndirectRecord.Color);
+                    renderStatus.CurrentPenColor = createPenIndirectRecord.Color.ToSKColor();
                     renderStatus.CurrentPenThickness =
                         Math.Max(createPenIndirectRecord.Width.X, createPenIndirectRecord.Width.Y);
                     break;
@@ -121,7 +121,10 @@ class WmfRenderer
                     canvas.DrawLine(renderStatus.CurrentX, renderStatus.CurrentY, lineToRecord.X, lineToRecord.Y,
                         renderStatus.Paint);
 
-                    break;
+                    renderStatus.CurrentX = lineToRecord.X;
+                    renderStatus.CurrentY = lineToRecord.Y;
+
+                        break;
                 }
                 // -		[13]	{== WmfSetTextColorRecord ==
                 // RecordSize: 5 words = 10 bytes
@@ -131,7 +134,7 @@ class WmfRenderer
                 // 
                 case WmfSetTextColorRecord setTextColorRecord:
                 {
-                    renderStatus.CurrentTextColor = ToSKColor(setTextColorRecord.Color);
+                    renderStatus.CurrentTextColor = setTextColorRecord.Color.ToSKColor();
 
                     break;
                 }
@@ -277,8 +280,5 @@ class WmfRenderer
         return true;
     }
 
-    private static SKColor ToSKColor(WmfColor color)
-    {
-        return new SKColor(color.R, color.G, color.B, color.A);
-    }
+   
 }
