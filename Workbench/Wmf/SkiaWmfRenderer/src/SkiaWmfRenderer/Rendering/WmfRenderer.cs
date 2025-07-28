@@ -83,8 +83,7 @@ class WmfRenderer
                 }
                 case WmfCreatePenIndirectRecord createPenIndirectRecord:
                 {
-                    Color color = createPenIndirectRecord.Color;
-                    renderStatus.CurrentPenColor = new SKColor(color.R, color.G, color.B, color.A);
+                    renderStatus.CurrentPenColor = ToSKColor(createPenIndirectRecord.Color);
                     renderStatus.CurrentPenThickness =
                         Math.Max(createPenIndirectRecord.Width.X, createPenIndirectRecord.Width.Y);
                     break;
