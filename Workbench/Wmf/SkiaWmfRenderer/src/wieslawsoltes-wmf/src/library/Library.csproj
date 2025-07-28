@@ -24,6 +24,10 @@
 
   <ItemGroup>
     <PackageReference Include="dotnetCampus.LatestCSharpFeatures" Version="12.0.1" />
+    <PackageReference Include="dotnetCampus.Telescope.SourceGeneratorAnalyzers" Version="0.10.7-alpha21">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
