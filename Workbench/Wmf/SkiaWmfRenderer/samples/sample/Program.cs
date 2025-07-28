@@ -50,6 +50,8 @@ Console.WriteLine("Hello, World!");
 
 void ConvertImageFile(string file)
 {
+    Console.WriteLine($"Start convert '{file}'");
+
     var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
     var gdiFileName = $"GDI_{fileNameWithoutExtension}.png";
     var gdiFile = Path.Join(outputFolder, gdiFileName);
@@ -62,7 +64,12 @@ void ConvertImageFile(string file)
 
     var wmfFileName = $"WMF_{fileNameWithoutExtension}.png";
     var testOutputFile = Path.Join(outputFolder, wmfFileName);
+    var stopwatch = Stopwatch.StartNew();
+
     var success = SkiaWmfRenderHelper.TryConvertToPng(new FileInfo(file), new FileInfo(testOutputFile));
+    stopwatch.Stop();
+
+    Console.WriteLine($"SkiaWmfRenderHelper.TryConvertToPng success={success}");
 
     markdownText.AppendLine
     (
@@ -87,5 +94,6 @@ void ConvertImageFile(string file)
         markdownText.AppendLine("Rendering failed.");
     }
 
-    markdownText.AppendLine("");
+    markdownText.AppendLine();
+    markdownText.AppendLine($"Rendering time: {stopwatch.ElapsedMilliseconds} ms");
 }

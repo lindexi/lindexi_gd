@@ -64,6 +64,8 @@ class WmfRenderer
         catch (Exception e)
         {
             skBitmap.Dispose();
+            Console.WriteLine($"[WmfRenderer] TryRender Fail. {e}");
+
             return false;
         }
     }
