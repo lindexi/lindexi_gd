@@ -145,6 +145,7 @@ class WmfRenderer
        
         canvas.Scale(scaleX, scaleY);
         //canvas.Translate(offsetX, offsetY);
+        canvas.Save();
 
         return (skBitmap, canvas);
     }
@@ -175,6 +176,19 @@ class WmfRenderer
         {
             // RecordFunction (2 bytes): A 16-bit unsigned integer that defines this WMF record type. The lower byte MUST match the lower byte of the RecordType Enumeration (section 2.1.1.1) table value META_SETBKMODE.
             // BkMode (2 bytes): A 16-bit unsigned integer that defines background mix mode. This MUST be one of the values in the MixMode Enumeration (section 2.1.1.20).
+        }
+        else if (wmfDocumentRecord is WmfSetWindowExtRecord setWindow)
+        {
+            canvas.Restore();
+            canvas.Save();
+
+            if (setWindow.X > 0 && setWindow.Y > 0)
+            {
+                var scaleX = renderStatus.Width / (float) setWindow.X;
+                var scaleY = renderStatus.Height / (float)setWindow.Y;
+
+                canvas.Scale(scaleX, scaleY);
+            }
         }
         else if (wmfDocumentRecord is WmfSetTextAlignRecord setTextAlignRecord)
         {
