@@ -37,6 +37,7 @@ public static class SkiaWmfRenderHelper
         }
         catch (WmfException e)
         {
+            Console.WriteLine($"[SkiaWmfRenderHelper] TryRender Fail. {e}");
             return false;
         }
 
