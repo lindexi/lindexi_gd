@@ -89,7 +89,7 @@ class WmfRenderer
                 }
                 case WmfCreatePenIndirectRecord createPenIndirectRecord:
                 {
-                    renderStatus.CurrentPenColor = ToSKColor(createPenIndirectRecord.Color);
+                    renderStatus.CurrentPenColor = createPenIndirectRecord.Color.ToSKColor();
                     renderStatus.CurrentPenThickness =
                         Math.Max(createPenIndirectRecord.Width.X, createPenIndirectRecord.Width.Y);
                     break;
@@ -134,7 +134,7 @@ class WmfRenderer
                 // 
                 case WmfSetTextColorRecord setTextColorRecord:
                 {
-                    renderStatus.CurrentTextColor = ToSKColor(setTextColorRecord.Color);
+                    renderStatus.CurrentTextColor = setTextColorRecord.Color.ToSKColor();
 
                     break;
                 }
@@ -280,8 +280,5 @@ class WmfRenderer
         return true;
     }
 
-    private static SKColor ToSKColor(WmfColor color)
-    {
-        return new SKColor(color.R, color.G, color.B, color.A);
-    }
+   
 }
