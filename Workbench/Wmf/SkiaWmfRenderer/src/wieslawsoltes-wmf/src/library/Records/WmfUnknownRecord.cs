@@ -11,9 +11,10 @@ namespace Oxage.Wmf.Records
 		}
 
 		public override void Read(BinaryReader reader)
-		{
-			int length = (int)base.RecordSizeBytes - 6; //Size without RecordSize and RecordType field
-			if (length > 0)
+        {
+            int length = (int)RecordDataSizeBytes;
+
+            if (length > 0)
 			{
 				this.Data = reader.ReadBytes(length);
 			}

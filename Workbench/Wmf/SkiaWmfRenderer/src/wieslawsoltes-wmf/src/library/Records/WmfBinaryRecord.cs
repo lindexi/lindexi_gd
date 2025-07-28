@@ -33,10 +33,15 @@ namespace Oxage.Wmf.Records
 			set;
 		}
 
-		/// <summary>
-		/// Gets or sets record length in bytes.
-		/// </summary>
-		public uint RecordSizeBytes
+        public uint RecordDataSizeBytes => RecordSizeBytes - SizeofRecordSizeAndRecordTypeBytes; //Size without RecordSize and RecordType field
+
+        public const uint
+            SizeofRecordSizeAndRecordTypeBytes = sizeof(UInt32) /*RecordSize*/ + sizeof(UInt16) /*RecordType*/;
+
+        /// <summary>
+        /// Gets or sets record length in bytes.
+        /// </summary>
+        public uint RecordSizeBytes
 		{
 			get
 			{
@@ -56,10 +61,16 @@ namespace Oxage.Wmf.Records
 			get;
 			set;
 		}
-		#endregion
 
-		#region Public methods
-		public override string ToString()
+        /// <summary>
+        /// Same as <see cref="RecordType"/>
+        /// </summary>
+        public RecordType RecordFunction => RecordType;
+
+        #endregion
+
+        #region Public methods
+        public override string ToString()
 		{
 			return Dump() ?? this.RecordType.ToString();
 		}
@@ -76,7 +87,7 @@ namespace Oxage.Wmf.Records
 			//RecordSize and RecordType should already be set by WmfReader
 
 			//Skip record if not overridden
-			var length = this.RecordSizeBytes - 6; //Size without RecordSize and RecordType field
+			var length = this.RecordSizeBytes - SizeofRecordSizeAndRecordTypeBytes; //Size without RecordSize and RecordType field
 			if (length > 0)
 			{
 				reader.BaseStream.Seek(0, SeekOrigin.Current);
