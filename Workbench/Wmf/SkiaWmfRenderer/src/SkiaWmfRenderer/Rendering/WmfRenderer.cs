@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+
 using Oxage.Wmf;
 using Oxage.Wmf.Records;
+
 using SkiaSharp;
 
 namespace SkiaWmfRenderer.Rendering;
@@ -173,7 +175,7 @@ class WmfRenderer
         // }	Oxage.Wmf.IBinaryRecord {Oxage.Wmf.Records.WmfPolygonRecord}
         else if (wmfDocumentRecord is WmfPolygonRecord polygonRecord)
         {
-            SKPoint[] skPointArray = polygonRecord.Points.Select(t=>new SKPoint(t.X,t.Y)).ToArray();
+            SKPoint[] skPointArray = polygonRecord.Points.Select(t => t.ToSKPoint()).ToArray();
 
             using var skPath = new SKPath();
             skPath.AddPoly(skPointArray);

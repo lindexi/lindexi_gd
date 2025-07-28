@@ -42,4 +42,9 @@ static class Converters
     {
         return new SKColor(color.R, color.G, color.B, color.A);
     }
+
+    public static SKPoint ToSKPoint(this WmfPoint point)
+    {
+        return new SKPoint(point.X, point.Y);
+    }
 }
