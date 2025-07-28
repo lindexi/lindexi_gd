@@ -144,7 +144,7 @@ class WmfRenderer
         SKCanvas canvas = new SKCanvas(skBitmap);
        
         canvas.Scale(scaleX, scaleY);
-        canvas.Translate(offsetX, offsetY);
+        //canvas.Translate(offsetX, offsetY);
 
         return (skBitmap, canvas);
     }
