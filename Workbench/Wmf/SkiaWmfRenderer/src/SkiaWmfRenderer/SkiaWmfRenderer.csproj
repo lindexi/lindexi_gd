@@ -10,4 +10,9 @@
     <ProjectReference Include="..\wieslawsoltes-wmf\src\library\Library.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.7" />
+  </ItemGroup>
+
 </Project>
