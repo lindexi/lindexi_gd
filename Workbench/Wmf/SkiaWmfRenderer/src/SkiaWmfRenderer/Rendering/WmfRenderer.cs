@@ -13,16 +13,21 @@ class WmfRenderer
     public required int RequestWidth { get; init; }
     public required int RequestHeight { get; init; }
 
+    /// <summary>
+    /// 图片压缩的最大宽度
+    /// </summary>
+    private const int MaxWidth = 3840;
+
+    /// <summary>
+    /// 图片压缩的最大高度
+    /// </summary>
+    private const int MaxHeight = 2160;
+
     public bool TryRender([NotNullWhen(true)] out SKBitmap? skBitmap)
     {
         skBitmap = null;
 
         var format = WmfDocument.Format;
-
-        if (format.Left > format.Right || format.Top > format.Bottom)
-        {
-            return false;
-        }
 
         var x = Math.Min(format.Left, format.Right);
         var y = Math.Min(format.Top, format.Bottom);
@@ -38,10 +43,11 @@ class WmfRenderer
             Height = height
         };
 
+        var (bitmap, skCanvas) = CreateSKBitmapAndSKCanvas();
 
-        skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+        skBitmap = bitmap;
 
-        using SKCanvas canvas = new SKCanvas(skBitmap);
+        using SKCanvas canvas = skCanvas;
 
         try
         {
@@ -62,6 +68,84 @@ class WmfRenderer
             skBitmap.Dispose();
             return false;
         }
+    }
+
+    private (SKBitmap Bitmap, SKCanvas Canvas) CreateSKBitmapAndSKCanvas()
+    {
+        var format = WmfDocument.Format;
+        var offsetX = format.Right > format.Left
+                      ? -format.Left
+                      : -format.Right;
+        var offsetY = format.Bottom > format.Top
+                      ? -format.Top
+                      : -format.Bottom;
+
+        var width = Math.Abs(format.Right - format.Left);
+        var height = Math.Abs(format.Bottom - format.Top);
+
+        var renderWidth = width;
+        var renderHeight = height;
+
+        var requestWidth = RequestWidth;
+        if (requestWidth == 0)
+        {
+            if (renderWidth > MaxWidth)
+            {
+                // 约束宽度为最大宽度
+                var sx = MaxWidth / (float) renderWidth;
+                renderWidth = MaxWidth;
+                renderHeight = (int) Math.Round(renderHeight * sx);
+            }
+            else
+            {
+                // 保持不动
+            }
+        }
+        else
+        {
+            var sx = requestWidth / (float) renderWidth;
+            renderWidth = requestWidth;
+            renderHeight = (int) Math.Round(renderHeight * sx);
+        }
+
+        var requestHeight = RequestHeight;
+        if (requestHeight == 0)
+        {
+            if (renderHeight > MaxHeight)
+            {
+                var sy = MaxHeight / (float) renderHeight;
+                renderHeight = MaxHeight;
+                renderWidth = (int) Math.Round(renderWidth * sy);
+            }
+            else
+            {
+                // 保持不动
+            }
+        }
+        else
+        {
+            if (requestWidth != 0 && renderHeight <= requestHeight)
+            {
+                // 如果已经有宽度约束了，且高度没有超过要求的高度，则不需要缩放高度
+            }
+            else
+            {
+                var sy = requestHeight / (float) renderHeight;
+                renderHeight = requestHeight;
+                renderWidth = (int) Math.Round(renderWidth * sy);
+            }
+        }
+
+        var scaleX = (float) renderWidth / width;
+        var scaleY = (float) renderHeight / height;
+
+        var skBitmap = new SKBitmap(renderWidth, renderHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
+
+        SKCanvas canvas = new SKCanvas(skBitmap);
+        //canvas.Translate(offsetX, offsetY);
+        canvas.Scale(scaleX, scaleY);
+
+        return (skBitmap, canvas);
     }
 
     private bool TryRenderInner(SKCanvas canvas, WmfRenderStatus renderStatus)
@@ -183,6 +267,50 @@ class WmfRenderer
             renderStatus.UpdateSkiaFillStatus();
 
             canvas.DrawPath(skPath, renderStatus.Paint);
+        }
+        // +		[16]	{== WmfPolyPolygonRecord ==
+        // RecordSize: 5717 words = 11434 bytes
+        // RecordType: 0x0538 (RecordType.META_POLYPOLYGON)
+        // NumberOfPolygons: 5
+        // PointsPerPolygon:
+        // 2497
+        // 17
+        // 17
+        // 161
+        // 162
+        // Points:
+        // 7949, 13486
+        // 7817, 13485
+        // 7677, 13485
+        // ...
+        else if (wmfDocumentRecord is WmfPolyPolygonRecord polyPolygonRecord)
+        {
+            // The META_POLYPOLYGON Record paints a series of closed polygons. Each polygon is outlined by using the pen and filled by using the brush and polygon fill mode; these are defined in the playback device context. The polygons drawn by this function can overlap.
+
+            if (polyPolygonRecord.Points.Count < polyPolygonRecord.GetPointsCount())
+            {
+                return false;
+            }
+
+            var currentPointIndex = 0;
+            using var skPath = new SKPath();
+            foreach (var pointCount in polyPolygonRecord.PointsPerPolygon)
+            {
+                skPath.Reset();
+                var skPointArray = polyPolygonRecord.Points
+                    .Skip(currentPointIndex)
+                    .Take(pointCount)
+                    .Select(t => t.ToSKPoint())
+                    .ToArray();
+                skPath.AddPoly(skPointArray);
+
+                renderStatus.UpdateSkiaFillStatus();
+                canvas.DrawPath(skPath, renderStatus.Paint);
+                renderStatus.UpdateSkiaStrokeStatus();
+                canvas.DrawPath(skPath, renderStatus.Paint);
+
+                currentPointIndex += pointCount;
+            }
         }
 
         // 文本
