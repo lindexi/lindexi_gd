@@ -16,7 +16,7 @@ var markdownText = new StringBuilder();
 var outputFolder = Path.Join(AppContext.BaseDirectory, $"Output_{Path.GetRandomFileName()}");
 Directory.CreateDirectory(outputFolder);
 
-var testFile = @"C:\lindexi\wmf公式\image64.wmf";
+var testFile = @"C:\lindexi\wmf公式\sample.wmf";
 ConvertImageFile(testFile);
 
 //var folder = @"C:\lindexi\wmf公式\";
