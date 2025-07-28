@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-
 using Oxage.Wmf;
 using Oxage.Wmf.Records;
-
 using SkiaSharp;
 
 namespace SkiaWmfRenderer.Rendering;
@@ -74,11 +72,11 @@ class WmfRenderer
     {
         var format = WmfDocument.Format;
         var offsetX = format.Right > format.Left
-                      ? -format.Left
-                      : -format.Right;
+            ? -format.Left
+            : -format.Right;
         var offsetY = format.Bottom > format.Top
-                      ? -format.Top
-                      : -format.Bottom;
+            ? -format.Top
+            : -format.Bottom;
 
         var width = Math.Abs(format.Right - format.Left);
         var height = Math.Abs(format.Bottom - format.Top);
@@ -92,9 +90,9 @@ class WmfRenderer
             if (renderWidth > MaxWidth)
             {
                 // 约束宽度为最大宽度
-                var sx = MaxWidth / (float) renderWidth;
+                var sx = MaxWidth / (float)renderWidth;
                 renderWidth = MaxWidth;
-                renderHeight = (int) Math.Round(renderHeight * sx);
+                renderHeight = (int)Math.Round(renderHeight * sx);
             }
             else
             {
@@ -103,9 +101,9 @@ class WmfRenderer
         }
         else
         {
-            var sx = requestWidth / (float) renderWidth;
+            var sx = requestWidth / (float)renderWidth;
             renderWidth = requestWidth;
-            renderHeight = (int) Math.Round(renderHeight * sx);
+            renderHeight = (int)Math.Round(renderHeight * sx);
         }
 
         var requestHeight = RequestHeight;
@@ -113,9 +111,9 @@ class WmfRenderer
         {
             if (renderHeight > MaxHeight)
             {
-                var sy = MaxHeight / (float) renderHeight;
+                var sy = MaxHeight / (float)renderHeight;
                 renderHeight = MaxHeight;
-                renderWidth = (int) Math.Round(renderWidth * sy);
+                renderWidth = (int)Math.Round(renderWidth * sy);
             }
             else
             {
@@ -130,21 +128,22 @@ class WmfRenderer
             }
             else
             {
-                var sy = requestHeight / (float) renderHeight;
+                var sy = requestHeight / (float)renderHeight;
                 renderHeight = requestHeight;
-                renderWidth = (int) Math.Round(renderWidth * sy);
+                renderWidth = (int)Math.Round(renderWidth * sy);
             }
         }
 
-        var scaleX = (float) renderWidth / width;
-        var scaleY = (float) renderHeight / height;
+        var scaleX = (float)renderWidth / width;
+        var scaleY = (float)renderHeight / height;
 
         var skBitmap = new SKBitmap(renderWidth, renderHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
 
         SKCanvas canvas = new SKCanvas(skBitmap);
-       
+
         canvas.Scale(scaleX, scaleY);
         //canvas.Translate(offsetX, offsetY);
+        canvas.Save();
 
         return (skBitmap, canvas);
     }
@@ -175,6 +174,19 @@ class WmfRenderer
         {
             // RecordFunction (2 bytes): A 16-bit unsigned integer that defines this WMF record type. The lower byte MUST match the lower byte of the RecordType Enumeration (section 2.1.1.1) table value META_SETBKMODE.
             // BkMode (2 bytes): A 16-bit unsigned integer that defines background mix mode. This MUST be one of the values in the MixMode Enumeration (section 2.1.1.20).
+        }
+        else if (wmfDocumentRecord is WmfSetWindowExtRecord setWindow)
+        {
+            canvas.Restore();
+            canvas.Save();
+
+            if (setWindow.X > 0 && setWindow.Y > 0)
+            {
+                var scaleX = renderStatus.Width / (float)setWindow.X;
+                var scaleY = renderStatus.Height / (float)setWindow.Y;
+
+                canvas.Scale(scaleX, scaleY);
+            }
         }
         else if (wmfDocumentRecord is WmfSetTextAlignRecord setTextAlignRecord)
         {
@@ -377,86 +389,103 @@ class WmfRenderer
             switch (unknownRecord.RecordType)
             {
                 case RecordType.META_EXTTEXTOUT:
+                {
+                    renderStatus.IsIncludeText = true;
+
+                    // 关于字间距的规则： 
+                    // 1. 如果两个 META_EXTTEXTOUT 相邻，中间没有 MoveTo 之类
+                    // 则第二个 META_EXTTEXTOUT 将需要使用前一个 META_EXTTEXTOUT 的 dx 末项
+                    // 2. 可选的 dx 是存放在字符串末尾的可选项，从文档 2.3.3.5 上可见 dx 是顶格写的，这就意味着这个值是一定对齐整数倍的。由于 dx 是放在数据末尾，可通过减法算出 dx 长度，即数据总长度减去所有已知字段的长度加上字符串长度，剩余的就是 dx 长度。如果计算返回的 dx 长度是奇数，则首个 byte 是需要跳过的，如此就能确保在 16bit 下的 wmf 格式里面，读取的 dx 是从整数倍开始读取
+                    // 参考 https://learn.microsoft.com/zh-cn/windows/win32/api/wingdi/nf-wingdi-exttextoutw
+                    // 测试 17 项
+                    var memoryStream = new MemoryStream(unknownRecord.Data);
+                    var binaryReader = new BinaryReader(memoryStream);
+                    var ty = binaryReader.ReadUInt16();
+                    var tx = binaryReader.ReadUInt16();
+                    var stringLength = binaryReader.ReadUInt16();
+                    var fwOpts = (ExtTextOutOptions)binaryReader.ReadUInt16();
+                    // Rectangle (8 bytes): An optional 8-byte Rect Object (section 2.2.2.18).) When either ETO_CLIPPED, ETO_OPAQUE, or both are specified, the rectangle defines the dimensions, in logical coordinates, used for clipping, opaquing, or both. When neither ETO_CLIPPED nor ETO_OPAQUE is specified, the coordinates in Rectangle are ignored.
+                    var st = 8; /*2byte ofr ty tx stringLength fwOpts*/
+                    if (fwOpts is ExtTextOutOptions.ETO_CLIPPED or ExtTextOutOptions.ETO_OPAQUE)
                     {
-                        // 关于字间距的规则： 
-                        // 1. 如果两个 META_EXTTEXTOUT 相邻，中间没有 MoveTo 之类
-                        // 则第二个 META_EXTTEXTOUT 将需要使用前一个 META_EXTTEXTOUT 的 dx 末项
-                        // 2. 可选的 dx 是存放在字符串末尾的可选项，从文档 2.3.3.5 上可见 dx 是顶格写的，这就意味着这个值是一定对齐整数倍的。由于 dx 是放在数据末尾，可通过减法算出 dx 长度，即数据总长度减去所有已知字段的长度加上字符串长度，剩余的就是 dx 长度。如果计算返回的 dx 长度是奇数，则首个 byte 是需要跳过的，如此就能确保在 16bit 下的 wmf 格式里面，读取的 dx 是从整数倍开始读取
-                        // 参考 https://learn.microsoft.com/zh-cn/windows/win32/api/wingdi/nf-wingdi-exttextoutw
-                        // 测试 17 项
-                        var memoryStream = new MemoryStream(unknownRecord.Data);
-                        var binaryReader = new BinaryReader(memoryStream);
-                        var ty = binaryReader.ReadUInt16();
-                        var tx = binaryReader.ReadUInt16();
-                        var stringLength = binaryReader.ReadUInt16();
-                        var fwOpts = (ExtTextOutOptions) binaryReader.ReadUInt16();
-                        // Rectangle (8 bytes): An optional 8-byte Rect Object (section 2.2.2.18).) When either ETO_CLIPPED, ETO_OPAQUE, or both are specified, the rectangle defines the dimensions, in logical coordinates, used for clipping, opaquing, or both. When neither ETO_CLIPPED nor ETO_OPAQUE is specified, the coordinates in Rectangle are ignored.
-                        var st = 8; /*2byte ofr ty tx stringLength fwOpts*/
-                        if (fwOpts is ExtTextOutOptions.ETO_CLIPPED or ExtTextOutOptions.ETO_OPAQUE)
-                        {
-                            // 此时才有 Rectangle 的值
-                            binaryReader.ReadBytes(8);
-                            st += 8;
-                        }
-
-                        st += stringLength;
-
-                        // String (variable): A variable-length string that specifies the text to be drawn. The string does not need to be null-terminated, because StringLength specifies the length of the string. If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary. The string will be decoded based on the font object currently selected into the playback device context. If a font matching the font object’s specification is not found, the decoding is undefined. If a matching font is found that matches the charset specified in the font object, the string should be decoded with the codepages in the following table.
-                        var stringBuffer = binaryReader.ReadBytes(stringLength);
-                        var text = renderStatus.CurrentEncoding.GetString(stringBuffer);
-
-                        // Dx (variable): An optional array of 16-bit signed integers that indicate the distance between origins of adjacent character cells. For example, Dx[i] logical units separate the origins of character cell i and character cell i + 1. If this field is present, there MUST be the same number of values as there are characters in the string.
-                        //Debug.Assert(st == unknownRecord.RecordSize);
-                        var dxLength = unknownRecord.Data.Length - st;
-
-                        renderStatus.UpdateSkiaTextStatus();
-
-                        var currentXOffset = renderStatus.CurrentX + tx + renderStatus.LastDxOffset;
-
-                        if (dxLength == 0)
-                        {
-                            canvas.DrawText(text, currentXOffset, renderStatus.CurrentY + ty, renderStatus.SKFont,
-                                renderStatus.Paint);
-                        }
-                        else
-                        {
-                            // 如果这里计算出来不是偶数，则首个需要跳过。这是经过测试验证的。~~但没有相关说明内容。且跳过的 byte 是有内容的~~ String (variable): If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary.
-                            // 如果字符串的长度是奇数，则在字符串后面放置一个额外的字节，以便下一个成员（可选的 Dx）对齐到 16 位边界。
-                            if (dxLength > ((dxLength / sizeof(UInt16)) * sizeof(UInt16)))
-                            {
-                                // 读取掉这个额外的字节，以便 Dx 对齐到 16 位边界
-                                var r = binaryReader.ReadByte();
-                                _ = r;
-                            }
-
-                            UInt16[] dxArray = new UInt16[dxLength / sizeof(UInt16)];
-                            for (var t = 0; t < dxArray.Length; t++)
-                            {
-                                dxArray[t] = binaryReader.ReadUInt16();
-                            }
-
-                            if (dxArray.Length != text.Length)
-                            {
-                                return false;
-                            }
-
-                            for (var textIndex = 0; textIndex < text.Length; textIndex++)
-                            {
-                                canvas.DrawText(text[textIndex].ToString(), currentXOffset,
-                                    renderStatus.CurrentY + ty, renderStatus.SKFont,
-                                    renderStatus.Paint);
-
-                                currentXOffset += dxArray[textIndex];
-                            }
-
-                            renderStatus.LastDxOffset = dxArray[^1];
-                        }
-
-                        break;
+                        // 此时才有 Rectangle 的值
+                        binaryReader.ReadBytes(8);
+                        st += 8;
                     }
+
+                    st += stringLength;
+
+                    // String (variable): A variable-length string that specifies the text to be drawn. The string does not need to be null-terminated, because StringLength specifies the length of the string. If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary. The string will be decoded based on the font object currently selected into the playback device context. If a font matching the font object’s specification is not found, the decoding is undefined. If a matching font is found that matches the charset specified in the font object, the string should be decoded with the codepages in the following table.
+                    var stringBuffer = binaryReader.ReadBytes(stringLength);
+                    var text = renderStatus.CurrentEncoding.GetString(stringBuffer);
+
+                    // 是否包含了其他编码
+                    var isIncludeOtherEncoding = renderStatus.CurrentCharacterSet != CharacterSet.DEFAULT_CHARSET;
+                    renderStatus.IsIncludeOtherEncoding |=
+                        isIncludeOtherEncoding;
+
+                    // Dx (variable): An optional array of 16-bit signed integers that indicate the distance between origins of adjacent character cells. For example, Dx[i] logical units separate the origins of character cell i and character cell i + 1. If this field is present, there MUST be the same number of values as there are characters in the string.
+                    //Debug.Assert(st == unknownRecord.RecordSize);
+                    var dxLength = unknownRecord.Data.Length - st;
+
+                    renderStatus.UpdateSkiaTextStatus();
+
+                    var currentXOffset = renderStatus.CurrentX + tx + renderStatus.LastDxOffset;
+
+                    var isIncludeTextWithDx = renderStatus.LastDxOffset > 0;
+                    renderStatus.IsIncludeTextWithDx |=
+                        isIncludeTextWithDx;
+
+                    if (dxLength == 0)
+                    {
+                        canvas.DrawText(text, currentXOffset, renderStatus.CurrentY + ty, renderStatus.SKFont,
+                            renderStatus.Paint);
+                    }
+                    else
+                    {
+                        // 如果这里计算出来不是偶数，则首个需要跳过。这是经过测试验证的。~~但没有相关说明内容。且跳过的 byte 是有内容的~~ String (variable): If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary.
+                        // 如果字符串的长度是奇数，则在字符串后面放置一个额外的字节，以便下一个成员（可选的 Dx）对齐到 16 位边界。
+                        if (dxLength > ((dxLength / sizeof(UInt16)) * sizeof(UInt16)))
+                        {
+                            // 读取掉这个额外的字节，以便 Dx 对齐到 16 位边界
+                            var r = binaryReader.ReadByte();
+                            _ = r;
+                        }
+
+                        UInt16[] dxArray = new UInt16[dxLength / sizeof(UInt16)];
+                        for (var t = 0; t < dxArray.Length; t++)
+                        {
+                            dxArray[t] = binaryReader.ReadUInt16();
+                        }
+
+                        if (dxArray.Length != text.Length)
+                        {
+                            return false;
+                        }
+
+                        for (var textIndex = 0; textIndex < text.Length; textIndex++)
+                        {
+                            canvas.DrawText(text[textIndex].ToString(), currentXOffset,
+                                renderStatus.CurrentY + ty, renderStatus.SKFont,
+                                renderStatus.Paint);
+
+                            currentXOffset += dxArray[textIndex];
+                        }
+
+                        renderStatus.LastDxOffset = dxArray[^1];
+                    }
+
+                    break;
+                }
             }
         }
 
-        return true;
+        // 如果包含有文本，且此时有其他编码或带 DX 就表示可以转换，效果不会比 libwmf 更差
+        if (renderStatus.IsIncludeText && (renderStatus.IsIncludeOtherEncoding ||renderStatus.IsIncludeTextWithDx))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

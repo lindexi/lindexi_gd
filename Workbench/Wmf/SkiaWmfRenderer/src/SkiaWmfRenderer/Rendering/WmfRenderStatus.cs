@@ -80,6 +80,10 @@ class WmfRenderStatus : IDisposable
         Paint.Color = CurrentFillColor;
     }
 
+    public bool IsIncludeText { get; set; } = false;
+    public bool IsIncludeOtherEncoding { get; set; } = false;
+    public bool IsIncludeTextWithDx { get; set; } = false;
+
     public void Dispose()
     {
         Paint.Dispose();
