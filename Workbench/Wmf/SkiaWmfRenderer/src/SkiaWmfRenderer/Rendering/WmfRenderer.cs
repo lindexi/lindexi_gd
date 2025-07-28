@@ -142,8 +142,9 @@ class WmfRenderer
         var skBitmap = new SKBitmap(renderWidth, renderHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
 
         SKCanvas canvas = new SKCanvas(skBitmap);
-        //canvas.Translate(offsetX, offsetY);
+       
         canvas.Scale(scaleX, scaleY);
+        canvas.Translate(offsetX, offsetY);
 
         return (skBitmap, canvas);
     }
