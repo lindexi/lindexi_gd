@@ -142,7 +142,7 @@ class WmfRenderer
         var skBitmap = new SKBitmap(renderWidth, renderHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
 
         SKCanvas canvas = new SKCanvas(skBitmap);
-        canvas.Translate(offsetX, offsetY);
+        //canvas.Translate(offsetX, offsetY);
         canvas.Scale(scaleX, scaleY);
 
         return (skBitmap, canvas);
@@ -267,6 +267,50 @@ class WmfRenderer
             renderStatus.UpdateSkiaFillStatus();
 
             canvas.DrawPath(skPath, renderStatus.Paint);
+        }
+        // +		[16]	{== WmfPolyPolygonRecord ==
+        // RecordSize: 5717 words = 11434 bytes
+        // RecordType: 0x0538 (RecordType.META_POLYPOLYGON)
+        // NumberOfPolygons: 5
+        // PointsPerPolygon:
+        // 2497
+        // 17
+        // 17
+        // 161
+        // 162
+        // Points:
+        // 7949, 13486
+        // 7817, 13485
+        // 7677, 13485
+        // ...
+        else if (wmfDocumentRecord is WmfPolyPolygonRecord polyPolygonRecord)
+        {
+            // The META_POLYPOLYGON Record paints a series of closed polygons. Each polygon is outlined by using the pen and filled by using the brush and polygon fill mode; these are defined in the playback device context. The polygons drawn by this function can overlap.
+
+            if (polyPolygonRecord.Points.Count < polyPolygonRecord.GetPointsCount())
+            {
+                return false;
+            }
+
+            var currentPointIndex = 0;
+            using var skPath = new SKPath();
+            foreach (var pointCount in polyPolygonRecord.PointsPerPolygon)
+            {
+                skPath.Reset();
+                var skPointArray = polyPolygonRecord.Points
+                    .Skip(currentPointIndex)
+                    .Take(pointCount)
+                    .Select(t => t.ToSKPoint())
+                    .ToArray();
+                skPath.AddPoly(skPointArray);
+
+                renderStatus.UpdateSkiaFillStatus();
+                canvas.DrawPath(skPath, renderStatus.Paint);
+                renderStatus.UpdateSkiaStrokeStatus();
+                canvas.DrawPath(skPath, renderStatus.Paint);
+
+                currentPointIndex += pointCount;
+            }
         }
 
         // 文本
