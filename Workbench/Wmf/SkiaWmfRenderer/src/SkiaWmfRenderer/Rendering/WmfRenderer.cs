@@ -1,7 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Oxage.Wmf;
+﻿using Oxage.Wmf;
 using Oxage.Wmf.Records;
 using SkiaSharp;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SkiaWmfRenderer.Rendering;
 
@@ -392,6 +393,56 @@ class WmfRenderer
             renderStatus.IsItalic = createFontIndirectRecord.Italic;
             renderStatus.FontWeight = createFontIndirectRecord.Weight;
         }
+        else if (wmfDocumentRecord is WmfExtTextoutRecord extTextoutRecord)
+        {
+            renderStatus.IsIncludeText = true;
+
+            // 是否包含了其他编码
+            var isIncludeOtherEncoding = renderStatus.CurrentCharacterSet != CharacterSet.DEFAULT_CHARSET;
+            renderStatus.IsIncludeOtherEncoding |=
+                isIncludeOtherEncoding;
+
+            var isIncludeTextWithDx = renderStatus.LastDxOffset > 0;
+            renderStatus.IsIncludeTextWithDx |=
+                isIncludeTextWithDx;
+
+            var text = extTextoutRecord.GetText(renderStatus.CurrentEncoding);
+
+            var currentXOffset = renderStatus.CurrentX + extTextoutRecord.X + renderStatus.LastDxOffset;
+
+            renderStatus.UpdateSkiaTextStatus();
+
+            if (extTextoutRecord.Dx is null)
+            {
+                canvas.DrawText(text, currentXOffset, renderStatus.CurrentY + extTextoutRecord.Y, renderStatus.SKFont,
+                    renderStatus.Paint);
+            }
+            else
+            {
+                // 关于字间距的规则： 
+                // 1. 如果两个 META_EXTTEXTOUT 相邻，中间没有 MoveTo 之类
+                // 则第二个 META_EXTTEXTOUT 将需要使用前一个 META_EXTTEXTOUT 的 dx 末项
+                // 2. 可选的 dx 是存放在字符串末尾的可选项，从文档 2.3.3.5 上可见 dx 是顶格写的，这就意味着这个值是一定对齐整数倍的。由于 dx 是放在数据末尾，可通过减法算出 dx 长度，即数据总长度减去所有已知字段的长度加上字符串长度，剩余的就是 dx 长度。如果计算返回的 dx 长度是奇数，则首个 byte 是需要跳过的，如此就能确保在 16bit 下的 wmf 格式里面，读取的 dx 是从整数倍开始读取
+                // 参考 https://learn.microsoft.com/zh-cn/windows/win32/api/wingdi/nf-wingdi-exttextoutw
+                // 测试 17 项
+
+                if (extTextoutRecord.Dx.Length != text.Length)
+                {
+                    return false;
+                }
+
+                for (var textIndex = 0; textIndex < text.Length; textIndex++)
+                {
+                    canvas.DrawText(text[textIndex].ToString(), currentXOffset,
+                        renderStatus.CurrentY + extTextoutRecord.Y, renderStatus.SKFont,
+                        renderStatus.Paint);
+
+                    currentXOffset += extTextoutRecord.Dx[textIndex];
+                }
+
+                renderStatus.LastDxOffset = extTextoutRecord.Dx[^1];
+            }
+        }
         else if (wmfDocumentRecord is WmfUnknownRecord unknownRecord)
         {
             switch (unknownRecord.RecordType)
@@ -406,14 +457,14 @@ class WmfRenderer
                     // 2. 可选的 dx 是存放在字符串末尾的可选项，从文档 2.3.3.5 上可见 dx 是顶格写的，这就意味着这个值是一定对齐整数倍的。由于 dx 是放在数据末尾，可通过减法算出 dx 长度，即数据总长度减去所有已知字段的长度加上字符串长度，剩余的就是 dx 长度。如果计算返回的 dx 长度是奇数，则首个 byte 是需要跳过的，如此就能确保在 16bit 下的 wmf 格式里面，读取的 dx 是从整数倍开始读取
                     // 参考 https://learn.microsoft.com/zh-cn/windows/win32/api/wingdi/nf-wingdi-exttextoutw
                     // 测试 17 项
-                    var memoryStream = new MemoryStream(unknownRecord.Data);
+                        var memoryStream = new MemoryStream(unknownRecord.Data);
                     var binaryReader = new BinaryReader(memoryStream);
                     var ty = binaryReader.ReadUInt16();
                     var tx = binaryReader.ReadUInt16();
                     var stringLength = binaryReader.ReadUInt16();
                     var fwOpts = (ExtTextOutOptions)binaryReader.ReadUInt16();
                     // Rectangle (8 bytes): An optional 8-byte Rect Object (section 2.2.2.18).) When either ETO_CLIPPED, ETO_OPAQUE, or both are specified, the rectangle defines the dimensions, in logical coordinates, used for clipping, opaquing, or both. When neither ETO_CLIPPED nor ETO_OPAQUE is specified, the coordinates in Rectangle are ignored.
-                    var st = 8; /*2byte ofr ty tx stringLength fwOpts*/
+                    var st = 8; /*2byte of ty tx stringLength fwOpts*/
                     if (fwOpts is ExtTextOutOptions.ETO_CLIPPED or ExtTextOutOptions.ETO_OPAQUE)
                     {
                         // 此时才有 Rectangle 的值

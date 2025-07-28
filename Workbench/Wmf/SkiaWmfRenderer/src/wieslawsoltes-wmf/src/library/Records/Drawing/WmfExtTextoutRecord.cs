@@ -1,122 +1,210 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
+using Oxage.Wmf.Extensions;
 using Oxage.Wmf.Objects;
 
 namespace Oxage.Wmf.Records
 {
-	//NOTE: The attribute is commented because the records is not fully implemented and thus wont be present while parsing WMF document
-	//[WmfRecord(Type = RecordType.META_EXTTEXTOUT, SizeIsVariable = true)]
-	public class WmfExtTextoutRecord : WmfBinaryRecord
-	{
-		public WmfExtTextoutRecord() : base()
-		{
-		}
+    //NOTE: The attribute is commented because the records is not fully implemented and thus wont be present while parsing WMF document
+    [WmfRecord(Type = RecordType.META_EXTTEXTOUT, SizeIsVariable = true)]
+    public class WmfExtTextoutRecord : WmfBinaryRecord
+    {
+        public WmfExtTextoutRecord() : base()
+        {
+        }
 
-		public short Y
-		{
-			get;
-			set;
-		}
+        public short Y
+        {
+            get;
+            set;
+        }
 
-		public short X
-		{
-			get;
-			set;
-		}
+        public short X
+        {
+            get;
+            set;
+        }
 
-		public short StringLength
-		{
-			get;
-			set;
-		}
+        public short StringLength
+        {
+            get;
+            set;
+        }
 
-		public ExtTextOutOptions fwOpts
-		{
-			get;
-			set;
-		}
+        public ExtTextOutOptions FwOpts
+        {
+            get;
+            set;
+        }
 
-		public Rect Rectangle
-		{
-			get;
-			set;
-		}
+        public Rect? Rectangle
+        {
+            get;
+            set;
+        }
 
-		public string StringValue
-		{
-			get;
-			set;
-		}
+        public byte[] TextByteArray
+        {
+            get => _textByteArray;
+            set
+            {
+                _textByteArray = value;
+                StringLength = (short) value.Length;
+            }
+        }
 
-		public byte[] Dx
-		{
-			get;
-			set;
-		}
+        private byte[] _textByteArray;
 
-		protected Encoding StringEncoding
-		{
-			get
-			{
-				return WmfHelper.GetAnsiEncoding();
-			}
-		}
+        //public string StringValue
+        //{
+        //	get;
+        //	set;
+        //}
 
-		public override void Read(BinaryReader reader)
-		{
-			this.Y = reader.ReadInt16();
-			this.X = reader.ReadInt16();
-			this.StringLength = reader.ReadInt16();
-			this.fwOpts = (ExtTextOutOptions)reader.ReadUInt16();
+        public UInt16[]? Dx
+        {
+            get;
+            set;
+        }
 
-			//TODO: Rectangle is optional, what if empty?!
-			this.Rectangle = new Rect();
-			this.Rectangle.Read(reader);
+        //protected Encoding StringEncoding
+        //{
+        //	get
+        //	{
+        //		return WmfHelper.GetAnsiEncoding();
+        //	}
+        //}
 
-			if (this.StringLength > 0)
-			{
-				byte[] ansi = reader.ReadBytes(this.StringLength);
-				this.StringValue = StringEncoding.GetString(ansi);
-			}
+        public string GetText(Encoding encoding)
+        {
+            var text = encoding.GetString(TextByteArray);
+            if (Dx != null && Dx.Length!=text.Length)
+            {
+                throw new WmfException($"Dx length mush equals text length.");
+            }
 
-			//this.Dx = reader.ReadBytes(); //TODO: Number of bytes left
-		}
+            return text;
+        }
 
-		public override void Write(BinaryWriter writer)
-		{
-			int dxLength = (this.Dx != null ? this.Dx.Length : 0);
-			byte[] ansi = StringEncoding.GetBytes(this.StringValue ?? "");
+        public string GetText(CharacterSet characterSet) => GetText(characterSet.ToEncoding());
 
-			base.RecordSizeBytes = (uint)(6 /* RecordSize and RecordFunction */ + 16 + ansi.Length + dxLength);
-			base.Write(writer);
+        public override void Read(BinaryReader reader)
+        {
+            this.Y = reader.ReadInt16();
+            this.X = reader.ReadInt16();
+            this.StringLength = reader.ReadInt16();
+            this.FwOpts = (ExtTextOutOptions) reader.ReadUInt16();
 
-			writer.Write(this.Y);
-			writer.Write(this.X);
-			writer.Write(this.StringLength > 0 ? this.StringLength : (short)ansi.Length);
-			writer.Write((ushort)this.fwOpts);
-			this.Rectangle.Write(writer); //TODO: Rectangle is optional, what if empty?!
-			writer.Write(ansi); //String (variable)
+            // Rectangle (8 bytes): An optional 8-byte Rect Object (section 2.2.2.18).) When either ETO_CLIPPED, ETO_OPAQUE, or both are specified, the rectangle defines the dimensions, in logical coordinates, used for clipping, opaquing, or both. When neither ETO_CLIPPED nor ETO_OPAQUE is specified, the coordinates in Rectangle are ignored.
+            if (FwOpts is ExtTextOutOptions.ETO_CLIPPED or ExtTextOutOptions.ETO_OPAQUE)
+            {
+                this.Rectangle = new Rect();
+                this.Rectangle.Read(reader);
+            }
 
-			//Dx is optional
-			if (dxLength > 0)
-			{
-				writer.Write(this.Dx);
-			}
-		}
+            // String (variable): A variable-length string that specifies the text to be drawn. The string does not need to be null-terminated, because StringLength specifies the length of the string. If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary. The string will be decoded based on the font object currently selected into the playback device context. If a font matching the font object’s specification is not found, the decoding is undefined. If a matching font is found that matches the charset specified in the font object, the string should be decoded with the codepages in the following table.
+            byte[] textByteArray = reader.ReadBytes(this.StringLength);
+            TextByteArray = textByteArray;
 
-		protected override void Dump(StringBuilder builder)
-		{
-			base.Dump(builder);
-			builder.AppendLine("Y: " + this.Y);
-			builder.AppendLine("X: " + this.X);
-			builder.AppendLine("StringLength: " + this.StringLength);
-			builder.AppendLine("fwOpts: " + this.fwOpts);
+            var currentTakeByteCount = sizeof(UInt16) * (1/*Y*/ + 1/*X*/+ 1/*StringLength*/+ 1/*fwOpts*/)
+                + (this.Rectangle != null ? 8/*Sizeof(Rect)*/ : 0)
+                + StringLength;
 
-			builder.AppendLine("Rectangle: ");
-			this.Rectangle.Dump(builder);
+            // Dx (variable): An optional array of 16-bit signed integers that indicate the distance between origins of adjacent character cells. For example, Dx[i] logical units separate the origins of character cell i and character cell i + 1. If this field is present, there MUST be the same number of values as there are characters in the string.
 
-			builder.AppendLine("StringValue: " + this.StringValue);
-			//builder.AppendLine("Dx: " + this.Dx);
-		}
-	}
+            var dxLength = RecordDataSizeBytes - currentTakeByteCount;
+            // > String (variable): If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary.
+            var isOdd = dxLength > ((dxLength / sizeof(UInt16)) * sizeof(UInt16));
+            if (isOdd)
+            {
+                // 读取掉这个额外的字节，以便 Dx 对齐到 16 位边界
+                var r = reader.ReadByte();
+                _ = r;
+                dxLength--;
+            }
+
+            UInt16[] dxArray = new UInt16[dxLength / sizeof(UInt16)];
+            for (var i = 0; i < dxArray.Length; i++)
+            {
+                dxArray[i] = reader.ReadUInt16();
+            }
+            Dx = dxArray;
+        }
+
+        public override void Write(BinaryWriter writer)
+        {
+            int dxLength = (this.Dx != null ? this.Dx.Length * sizeof(UInt16) : 0);
+
+            byte[] textByteArray = TextByteArray;
+
+            var recordSizeBytes = (uint) (SizeofRecordSizeAndRecordTypeBytes /* RecordSize and RecordFunction */ + sizeof(UInt16) * (1/*Y*/ + 1/*X*/+ 1/*StringLength*/+ 1/*fwOpts*/)
+                + (this.Rectangle != null ? 8/*Sizeof(Rect)*/ : 0) + textByteArray.Length + dxLength);
+            var isOdd = recordSizeBytes % 2 == 1;
+            if (isOdd)
+            {
+                // If the record size is odd, we need to add an extra byte to make it even
+                // If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary.
+                recordSizeBytes++;
+            }
+
+            base.RecordSizeBytes = recordSizeBytes;
+
+            base.Write(writer);
+
+            writer.Write(this.Y);
+            writer.Write(this.X);
+            writer.Write(this.StringLength > 0 ? this.StringLength : (short) textByteArray.Length);
+            writer.Write((ushort) this.FwOpts);
+
+            if (Rectangle is not null)
+            {
+                this.Rectangle.Write(writer);
+            }
+
+            writer.Write(textByteArray); //String (variable)
+
+            //Dx is optional
+            if (dxLength > 0)
+            {
+                if (isOdd)
+                {
+                    writer.Write(0x00);
+                }
+                Debug.Assert(Dx != null);
+
+                foreach (var dx in Dx)
+                {
+                    writer.Write(dx);
+                }
+            }
+        }
+
+        protected override void Dump(StringBuilder builder)
+        {
+            base.Dump(builder);
+            builder.AppendLine("Y: " + this.Y);
+            builder.AppendLine("X: " + this.X);
+            builder.AppendLine("StringLength: " + this.StringLength);
+            builder.AppendLine("fwOpts: " + this.FwOpts);
+
+            builder.AppendLine("Rectangle: ");
+            this.Rectangle?.Dump(builder);
+
+            builder.AppendLine("TextByteArray: " + string.Join(',', TextByteArray.Select(t => t.ToString("X2"))));
+            builder.AppendLine("GuessText:" + WmfHelper.GetAnsiEncoding().GetString(TextByteArray));
+
+            builder.Append("Dx:");
+            if (Dx is null)
+            {
+                builder.AppendLine("null");
+            }
+            else
+            {
+                builder.AppendLine(string.Join(',', Dx.Select(d => d.ToString("X4"))));
+            }
+        }
+    }
 }
