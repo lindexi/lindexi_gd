@@ -83,6 +83,9 @@ class WmfRenderer
         var width = Math.Abs(format.Right - format.Left);
         var height = Math.Abs(format.Bottom - format.Top);
 
+        width = format.Right;
+        height = format.Bottom;
+
         var renderWidth = width;
         var renderHeight = height;
 
