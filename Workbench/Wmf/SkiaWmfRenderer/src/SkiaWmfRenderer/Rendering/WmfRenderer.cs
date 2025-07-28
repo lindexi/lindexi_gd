@@ -163,7 +163,13 @@ class WmfRenderer
             }
         }
 
-        return true;
+        // 如果包含有文本，且此时有其他编码或带 DX 就表示可以转换，效果不会比 libwmf 更差
+        if (renderStatus.IsIncludeText && (renderStatus.IsIncludeOtherEncoding || renderStatus.IsIncludeTextWithDx))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static bool RenderRecord(SKCanvas canvas, WmfRenderStatus renderStatus, IBinaryRecord wmfDocumentRecord)
@@ -480,12 +486,6 @@ class WmfRenderer
             }
         }
 
-        // 如果包含有文本，且此时有其他编码或带 DX 就表示可以转换，效果不会比 libwmf 更差
-        if (renderStatus.IsIncludeText && (renderStatus.IsIncludeOtherEncoding ||renderStatus.IsIncludeTextWithDx))
-        {
-            return true;
-        }
-
-        return false;
+        return true;
     }
 }
