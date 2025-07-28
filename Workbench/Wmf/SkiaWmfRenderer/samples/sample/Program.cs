@@ -12,8 +12,52 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
 
-var file = @"C:\lindexi\wmf公式\image17.wmf";
+var folder = @"C:\lindexi\wmf公式\";
+var outputFolder = Path.Join(AppContext.BaseDirectory, $"Output_{Path.GetRandomFileName()}");
+Directory.CreateDirectory(outputFolder);
 
-SkiaWmfRenderHelper.TryConvertToPng(new FileInfo(file), new FileInfo("foo.png"));
+var markdownText = new StringBuilder();
+
+foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
+{
+    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+    var gdiFileName = $"GDI_{fileNameWithoutExtension}.png";
+    var gdiFile = Path.Join(outputFolder, gdiFileName);
+
+    var image = Image.FromFile(file);
+    image.Save(gdiFile, ImageFormat.Png);
+
+    var wmfFileName = $"WMF_{fileNameWithoutExtension}.png";
+    var testOutputFile = Path.Join(outputFolder, wmfFileName);
+    var success = SkiaWmfRenderHelper.TryConvertToPng(new FileInfo(file), new FileInfo(testOutputFile));
+
+    markdownText.AppendLine
+    (
+        $"""
+         ## {fileNameWithoutExtension}
+         
+         **GDI:**
+         
+         ![](./{gdiFileName})
+         
+         **WMF:**
+         
+         """
+    );
+
+    if(success)
+    {
+        markdownText.AppendLine($"![](./{wmfFileName})");
+    }
+    else
+    {
+        markdownText.AppendLine("Rendering failed.");
+    }
+
+    markdownText.AppendLine("");
+}
+
+var markdownFile = Path.Join(outputFolder, "README.md");
+File.WriteAllText(markdownFile, markdownText.ToString());
 
 Console.WriteLine("Hello, World!");
