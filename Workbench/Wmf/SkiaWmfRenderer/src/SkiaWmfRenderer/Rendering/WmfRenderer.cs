@@ -121,7 +121,10 @@ class WmfRenderer
                     canvas.DrawLine(renderStatus.CurrentX, renderStatus.CurrentY, lineToRecord.X, lineToRecord.Y,
                         renderStatus.Paint);
 
-                    break;
+                    renderStatus.CurrentX = lineToRecord.X;
+                    renderStatus.CurrentY = lineToRecord.Y;
+
+                        break;
                 }
                 // -		[13]	{== WmfSetTextColorRecord ==
                 // RecordSize: 5 words = 10 bytes
