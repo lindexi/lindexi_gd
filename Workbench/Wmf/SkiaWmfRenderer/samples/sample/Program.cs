@@ -20,12 +20,25 @@ var markdownText = new StringBuilder();
 
 foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
 {
+    ConvertImageFile(file);
+}
+
+var markdownFile = Path.Join(outputFolder, "README.md");
+File.WriteAllText(markdownFile, markdownText.ToString());
+
+Console.WriteLine("Hello, World!");
+
+void ConvertImageFile(string file)
+{
     var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
     var gdiFileName = $"GDI_{fileNameWithoutExtension}.png";
     var gdiFile = Path.Join(outputFolder, gdiFileName);
 
-    var image = Image.FromFile(file);
-    image.Save(gdiFile, ImageFormat.Png);
+    if (OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+    {
+        var image = Image.FromFile(file);
+        image.Save(gdiFile, ImageFormat.Png);
+    }
 
     var wmfFileName = $"WMF_{fileNameWithoutExtension}.png";
     var testOutputFile = Path.Join(outputFolder, wmfFileName);
@@ -35,17 +48,17 @@ foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
     (
         $"""
          ## {fileNameWithoutExtension}
-         
+
          **GDI:**
-         
+
          ![](./{gdiFileName})
-         
+
          **WMF:**
-         
+
          """
     );
 
-    if(success)
+    if (success)
     {
         markdownText.AppendLine($"![](./{wmfFileName})");
     }
@@ -56,8 +69,3 @@ foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
 
     markdownText.AppendLine("");
 }
-
-var markdownFile = Path.Join(outputFolder, "README.md");
-File.WriteAllText(markdownFile, markdownText.ToString());
-
-Console.WriteLine("Hello, World!");
