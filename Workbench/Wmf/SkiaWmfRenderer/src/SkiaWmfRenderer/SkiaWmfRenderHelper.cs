@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Oxage.Wmf;
 
 using SkiaSharp;
+using SkiaWmfRenderer.Rendering;
 
 namespace SkiaWmfRenderer;
 
@@ -22,6 +24,8 @@ public static class SkiaWmfRenderHelper
 
     public static bool TryRender(FileInfo wmfFile, int requestWidth, int requestHeight, [NotNullWhen(true)] out SKBitmap? skBitmap)
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
         skBitmap = null;
 
         using var fileStream = wmfFile.OpenRead();
