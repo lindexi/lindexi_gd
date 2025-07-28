@@ -93,6 +93,9 @@ Encoding CharacterSetToEncoding(CharacterSet characterSet)
 
 float lastDxOffset = 0;
 
+bool isItalic = false;
+int fontWeight = 400;
+
 for (var i = 0; i < wmfDocument.Records.Count; i++)
 {
     var wmfDocumentRecord = wmfDocument.Records[i];
@@ -204,6 +207,9 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
 
             currentFontSize = Math.Max(fontWidth, fontHeight);
 
+            isItalic = createFontIndirectRecord.Italic;
+            fontWeight = createFontIndirectRecord.Weight;
+
             break;
         }
         case WmfUnknownRecord unknownRecord:
@@ -216,6 +222,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     // 1. 如果两个 META_EXTTEXTOUT 相邻，中间没有 MoveTo 之类
                     // 则第二个 META_EXTTEXTOUT 将需要使用前一个 META_EXTTEXTOUT 的 dx 末项
                     // 2. 可选的 dx 是存放在字符串末尾的可选项，从文档 2.3.3.5 上可见 dx 是顶格写的，这就意味着这个值是一定对齐整数倍的。由于 dx 是放在数据末尾，可通过减法算出 dx 长度，即数据总长度减去所有已知字段的长度加上字符串长度，剩余的就是 dx 长度。如果计算返回的 dx 长度是奇数，则首个 byte 是需要跳过的，如此就能确保在 16bit 下的 wmf 格式里面，读取的 dx 是从整数倍开始读取
+                    // 参考 https://learn.microsoft.com/zh-cn/windows/win32/api/wingdi/nf-wingdi-exttextoutw
 
                     // 测试 17 项
                     var memoryStream = new MemoryStream(unknownRecord.Data);
@@ -235,6 +242,7 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
 
                     st += stringLength;
 
+                    // String (variable): A variable-length string that specifies the text to be drawn. The string does not need to be null-terminated, because StringLength specifies the length of the string. If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary. The string will be decoded based on the font object currently selected into the playback device context. If a font matching the font object’s specification is not found, the decoding is undefined. If a matching font is found that matches the charset specified in the font object, the string should be decoded with the codepages in the following table.
                     var stringBuffer = binaryReader.ReadBytes(stringLength);
                     var text = currentEncoding.GetString(stringBuffer);
 
@@ -243,7 +251,9 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     var dxLength = unknownRecord.Data.Length - st;
 
                     skFont.Size = currentFontSize;
-                    skFont.Typeface = SKTypeface.FromFamilyName(currentFontName);
+                    skFont.Typeface = SKTypeface.FromFamilyName(currentFontName, (SKFontStyleWeight)fontWeight,
+                        SKFontStyleWidth.Normal, isItalic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
+
                     paint.Style = SKPaintStyle.Fill;
                     paint.Color = currentTextColor;
 
@@ -255,9 +265,11 @@ for (var i = 0; i < wmfDocument.Records.Count; i++)
                     }
                     else
                     {
-                        // 如果这里计算出来不是偶数，则首个需要跳过。这是经过测试验证的。但没有相关说明内容。且跳过的 byte 是有内容的
+                        // 如果这里计算出来不是偶数，则首个需要跳过。这是经过测试验证的。~~但没有相关说明内容。且跳过的 byte 是有内容的~~ String (variable): If the length is odd, an extra byte is placed after it so that the following member (optional Dx) is aligned on a 16-bit boundary.
+                        // 如果字符串的长度是奇数，则在字符串后面放置一个额外的字节，以便下一个成员（可选的 Dx）对齐到 16 位边界。
                         if (dxLength > ((dxLength / sizeof(UInt16)) * sizeof(UInt16)))
                         {
+                            // 读取掉这个额外的字节，以便 Dx 对齐到 16 位边界
                             var r = binaryReader.ReadByte();
                             _ = r;
                         }
