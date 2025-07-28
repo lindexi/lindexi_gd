@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Oxage.Wmf.Primitive;
 using Oxage.Wmf.Records;
+
+using Color = Oxage.Wmf.Primitive.WmfColor;
+using Point = Oxage.Wmf.Primitive.WmfPoint;
 
 namespace Oxage.Wmf
 {
@@ -250,15 +253,15 @@ namespace Oxage.Wmf
 
 		public IBinaryRecord AddRectangle(int x, int y, int width, int height, int cornerRadius = 0)
 		{
-			return AddRectangle(new Rectangle(x, y, width, height), cornerRadius);
+			return AddRectangle(new WmfRectangle(x, y, width, height), cornerRadius);
 		}
 
-		public IBinaryRecord AddRectangle(Point corner, Size size, int cornerRadius = 0)
+		public IBinaryRecord AddRectangle(Point corner, WmfSize size, int cornerRadius = 0)
 		{
-			return AddRectangle(new Rectangle(corner.X, corner.Y, size.Width, size.Height), cornerRadius);
+			return AddRectangle(new WmfRectangle(corner.X, corner.Y, size.Width, size.Height), cornerRadius);
 		}
 
-		public IBinaryRecord AddRectangle(Rectangle rect, int cornerRadius = 0)
+		public IBinaryRecord AddRectangle(WmfRectangle rect, int cornerRadius = 0)
 		{
 			if (cornerRadius > 0)
 			{
@@ -288,7 +291,7 @@ namespace Oxage.Wmf
 		public WmfEllipseRecord AddEllipse(int x, int y, int width, int height)
 		{
 			var record = new WmfEllipseRecord();
-			record.SetRectangle(new Rectangle(x, y, width, height));
+			record.SetRectangle(new WmfRectangle(x, y, width, height));
 			this.Records.Add(record);
 			return record;
 		}
@@ -332,7 +335,7 @@ namespace Oxage.Wmf
 		/// <param name="rectangle"></param>
 		/// <param name="start"></param>
 		/// <param name="end"></param>
-		public WmfArcRecord AddArc(Rectangle rectangle, Point start, Point end)
+		public WmfArcRecord AddArc(WmfRectangle rectangle, Point start, Point end)
 		{
 			var record = new WmfArcRecord();
 			record.SetArc(rectangle, start, end);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Oxage.Wmf.Records;
 
@@ -38,7 +39,8 @@ namespace Oxage.Wmf
 
 			//Read whole WmfHeader record
 			byte[] buffer = new byte[18];
-			stream.Read(buffer, 0, 18);
+		 	var readLength = stream.Read(buffer, 0, 18);
+            Debug.Assert(readLength == buffer.Length);
 
 			//Create new header record
 			var header = new WmfHeader();

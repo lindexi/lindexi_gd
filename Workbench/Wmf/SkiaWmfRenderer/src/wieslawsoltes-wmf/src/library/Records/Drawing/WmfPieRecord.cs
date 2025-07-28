@@ -1,6 +1,8 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using System.Text;
+using Oxage.Wmf.Primitive;
+using Color = Oxage.Wmf.Primitive.WmfColor;
+using Point = Oxage.Wmf.Primitive.WmfPoint;
 
 namespace Oxage.Wmf.Records
 {
@@ -59,7 +61,7 @@ namespace Oxage.Wmf.Records
 			set;
 		}
 
-		public void SetPie(Rectangle rectangle, Point firstRadial, Point secondRadial)
+		public void SetPie(WmfRectangle rectangle, Point firstRadial, Point secondRadial)
 		{
 			this.YRadial2 = (short)(secondRadial.Y);
 			this.XRadial2 = (short)(secondRadial.X);
