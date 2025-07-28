@@ -1,86 +1,10 @@
-﻿using Oxage.Wmf;
-using SkiaSharp;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Text;
-using System.Xml;
+using Oxage.Wmf;
 using Oxage.Wmf.Records;
-using static System.Net.Mime.MediaTypeNames;
+using SkiaSharp;
 
 namespace SkiaWmfRenderer.Rendering;
-
-class WmfRenderStatus : IDisposable
-{
-    public required float CurrentX { get; set; }
-    public required float CurrentY { get; set; }
-
-    public required int Width { get; set; }
-    public required int Height { get; set; }
-
-    public int CurrentRecordsIndex { get; set; }
-
-    public SKColor CurrentPenColor { get; set; } = SKColors.Empty;
-    public float CurrentPenThickness { get; set; } = 0;
-
-    public float CurrentFontSize { get; set; }
-
-    public string? CurrentFontName { get; set; } = null;
-
-    public bool IsItalic { get; set; } = false;
-    public int FontWeight { get; set; } = 400;
-
-    public CharacterSet CurrentCharacterSet
-    {
-        get => _currentCharacterSet;
-        set
-        {
-            _currentCharacterSet = value;
-            CurrentEncoding = _currentCharacterSet.CharacterSetToEncoding();
-        }
-    }
-
-    private CharacterSet _currentCharacterSet = CharacterSet.DEFAULT_CHARSET;
-
-    public Encoding CurrentEncoding { get; private set; } = CharacterSet.DEFAULT_CHARSET.CharacterSetToEncoding();
-
-    public float LastDxOffset { get; set; } = 0;
-
-    public SKColor CurrentTextColor { get; set; } =
-        SKColors.Black;
-
-    public SKPaint Paint { get; } = new SKPaint()
-    {
-        IsAntialias = true
-    };
-
-    public SKFont SKFont { get; } = new SKFont();
-
-
-    public void UpdateSkiaTextStatus()
-    {
-        var skFont = SKFont;
-        skFont.Size = CurrentFontSize;
-        skFont.Typeface = SKTypeface.FromFamilyName(CurrentFontName, (SKFontStyleWeight) FontWeight,
-            SKFontStyleWidth.Normal, IsItalic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright);
-
-        Paint.Style = SKPaintStyle.Fill;
-        Paint.Color = CurrentTextColor;
-    }
-
-    public void UpdateSkiaStrokeStatus()
-    {
-        Paint.IsStroke = true;
-        Paint.Color = CurrentPenColor;
-        Paint.StrokeWidth = CurrentPenThickness;
-        Paint.Style = SKPaintStyle.Stroke;
-    }
-
-    public void Dispose()
-    {
-        Paint.Dispose();
-        SKFont.Dispose();
-    }
-}
 
 class WmfRenderer
 {
@@ -161,7 +85,8 @@ class WmfRenderer
                 {
                     Color color = createPenIndirectRecord.Color;
                     renderStatus.CurrentPenColor = new SKColor(color.R, color.G, color.B, color.A);
-                    renderStatus. CurrentPenThickness = Math.Max(createPenIndirectRecord.Width.X, createPenIndirectRecord.Width.Y);
+                    renderStatus.CurrentPenThickness =
+                        Math.Max(createPenIndirectRecord.Width.X, createPenIndirectRecord.Width.Y);
                     break;
                 }
                 // -		[11]	{== WmfMoveToRecord ==
@@ -188,7 +113,8 @@ class WmfRenderer
                     //paint.Color = currentPenColor;
                     //paint.StrokeWidth = currentPenThickness;
 
-                    canvas.DrawLine(renderStatus.CurrentX, renderStatus.CurrentY, lineToRecord.X, lineToRecord.Y, renderStatus.Paint);
+                    canvas.DrawLine(renderStatus.CurrentX, renderStatus.CurrentY, lineToRecord.X, lineToRecord.Y,
+                        renderStatus.Paint);
 
                     break;
                 }
@@ -226,8 +152,8 @@ class WmfRenderer
                 case WmfCreateFontIndirectRecord createFontIndirectRecord:
                 {
                     // 	"Times New Roman\0è±ñwñ±ñw @ów³\u0011fÁ"
-                   renderStatus.CurrentFontName = createFontIndirectRecord.FaceName.ToString();
-                   renderStatus.CurrentCharacterSet = createFontIndirectRecord.CharSet;
+                    renderStatus.CurrentFontName = createFontIndirectRecord.FaceName.ToString();
+                    renderStatus.CurrentCharacterSet = createFontIndirectRecord.CharSet;
 
                     // Width (2 bytes): A 16-bit signed integer that defines the average width, in logical units, of characters in the font. If Width is 0x0000, the aspect ratio of the device SHOULD be matched against the digitization aspect ratio of the available fonts to find the closest match, determined by the absolute value of the difference.
                     var fontWidth = createFontIndirectRecord.Width;
@@ -297,7 +223,8 @@ class WmfRenderer
 
                             if (dxLength == 0)
                             {
-                                canvas.DrawText(text, currentXOffset, renderStatus.CurrentY + ty, renderStatus.SKFont, renderStatus.Paint);
+                                canvas.DrawText(text, currentXOffset, renderStatus.CurrentY + ty, renderStatus.SKFont,
+                                    renderStatus.Paint);
                             }
                             else
                             {
@@ -323,7 +250,8 @@ class WmfRenderer
 
                                 for (var textIndex = 0; textIndex < text.Length; textIndex++)
                                 {
-                                    canvas.DrawText(text[textIndex].ToString(), currentXOffset, renderStatus.CurrentY + ty, renderStatus.SKFont,
+                                    canvas.DrawText(text[textIndex].ToString(), currentXOffset,
+                                        renderStatus.CurrentY + ty, renderStatus.SKFont,
                                         renderStatus.Paint);
 
                                     currentXOffset += dxArray[textIndex];
@@ -344,7 +272,7 @@ class WmfRenderer
         return true;
     }
 
-   private static SKColor ToSKColor(Color color)
+    private static SKColor ToSKColor(Color color)
     {
         return new SKColor(color.R, color.G, color.B, color.A);
     }

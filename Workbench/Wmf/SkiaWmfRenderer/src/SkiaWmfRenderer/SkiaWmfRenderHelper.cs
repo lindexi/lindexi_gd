@@ -30,6 +30,7 @@ public static class SkiaWmfRenderHelper
 
         using var fileStream = wmfFile.OpenRead();
         var wmfDocument = new WmfDocument();
+
         try
         {
             wmfDocument.Load(fileStream);
