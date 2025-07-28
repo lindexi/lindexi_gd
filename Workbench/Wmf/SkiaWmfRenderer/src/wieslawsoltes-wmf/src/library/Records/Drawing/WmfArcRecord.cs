@@ -1,6 +1,9 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using System.Text;
+
+using Color = Oxage.Wmf.Primitive.WmfColor;
+using Point = Oxage.Wmf.Primitive.WmfPoint;
+using Oxage.Wmf.Primitive;
 
 namespace Oxage.Wmf.Records
 {
@@ -59,7 +62,7 @@ namespace Oxage.Wmf.Records
 			set;
 		}
 
-		public void SetArc(Rectangle rectangle, Point start, Point end)
+		public void SetArc(WmfRectangle rectangle, Point start, Point end)
 		{
 			this.YEndArc = (short)(end.Y);
 			this.XEndArc = (short)(end.X);

@@ -1,7 +1,10 @@
 ﻿using System;
-using System.Drawing;
 using System.Text;
 using Oxage.Wmf.Records;
+
+using Color = Oxage.Wmf.Primitive.WmfColor;
+using Point = Oxage.Wmf.Primitive.WmfPoint;
+using Oxage.Wmf.Primitive;
 
 namespace Oxage.Wmf
 {

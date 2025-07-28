@@ -1,6 +1,7 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using System.Text;
+
+using Oxage.Wmf.Primitive;
 
 namespace Oxage.Wmf.Records
 {
@@ -35,7 +36,7 @@ namespace Oxage.Wmf.Records
 			set;
 		}
 
-		public void SetRectangle(Rectangle rect)
+		public void SetRectangle(WmfRectangle rect)
 		{
 			this.TopRect = (short)rect.Top;
 			this.LeftRect = (short)rect.Left;
@@ -43,9 +44,9 @@ namespace Oxage.Wmf.Records
 			this.RightRect = (short)rect.Right;
 		}
 
-		public Rectangle GetRectangle()
+		public WmfRectangle GetRectangle()
 		{
-			return new Rectangle(this.LeftRect, this.TopRect, this.RightRect - this.LeftRect, this.BottomRect - this.TopRect);
+			return new WmfRectangle(this.LeftRect, this.TopRect, this.RightRect - this.LeftRect, this.BottomRect - this.TopRect);
 		}
 
 		public override void Read(BinaryReader reader)

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using Oxage.Wmf;
+using Oxage.Wmf.Primitive;
 using Oxage.Wmf.Records;
 using SkiaSharp;
 
@@ -83,8 +84,7 @@ class WmfRenderer
                 }
                 case WmfCreatePenIndirectRecord createPenIndirectRecord:
                 {
-                    Color color = createPenIndirectRecord.Color;
-                    renderStatus.CurrentPenColor = new SKColor(color.R, color.G, color.B, color.A);
+                    renderStatus.CurrentPenColor = ToSKColor(createPenIndirectRecord.Color);
                     renderStatus.CurrentPenThickness =
                         Math.Max(createPenIndirectRecord.Width.X, createPenIndirectRecord.Width.Y);
                     break;
@@ -272,7 +272,7 @@ class WmfRenderer
         return true;
     }
 
-    private static SKColor ToSKColor(Color color)
+    private static SKColor ToSKColor(WmfColor color)
     {
         return new SKColor(color.R, color.G, color.B, color.A);
     }

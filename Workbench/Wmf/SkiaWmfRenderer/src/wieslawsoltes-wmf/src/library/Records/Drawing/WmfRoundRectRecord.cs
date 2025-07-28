@@ -1,6 +1,6 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using System.Text;
+using Oxage.Wmf.Primitive;
 
 namespace Oxage.Wmf.Records
 {
@@ -47,7 +47,7 @@ namespace Oxage.Wmf.Records
 			set;
 		}
 
-		public void SetRectangle(Rectangle rect, int cornerRadius = 0)
+		public void SetRectangle(WmfRectangle rect, int cornerRadius = 0)
 		{
 			this.Width = (short)cornerRadius;
 			this.Height = (short)cornerRadius;
@@ -57,9 +57,9 @@ namespace Oxage.Wmf.Records
 			this.RightRect = (short)rect.Right;
 		}
 
-		public Rectangle GetRectangle()
+		public WmfRectangle GetRectangle()
 		{
-			return new Rectangle(this.LeftRect, this.TopRect, this.RightRect - this.LeftRect, this.BottomRect - this.TopRect);
+			return new WmfRectangle(this.LeftRect, this.TopRect, this.RightRect - this.LeftRect, this.BottomRect - this.TopRect);
 		}
 
 		/// <summary>

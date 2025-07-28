@@ -1,6 +1,9 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using System.Text;
+
+using Color = Oxage.Wmf.Primitive.WmfColor;
+using Point = Oxage.Wmf.Primitive.WmfPoint;
+using Oxage.Wmf.Primitive;
 
 namespace Oxage.Wmf.Records
 {
@@ -40,13 +43,13 @@ namespace Oxage.Wmf.Records
 
 		public void SetEllipse(Point center, Point radius)
 		{
-			this.SetRectangle(new Rectangle(
+			this.SetRectangle(new WmfRectangle(
 					new Point(center.X - radius.X, center.Y - radius.Y),
-					new Size(radius.X + radius.X, radius.Y + radius.Y)
+					new WmfSize(radius.X + radius.X, radius.Y + radius.Y)
 					));
 		}
 
-		public void SetRectangle(Rectangle rect)
+		public void SetRectangle(WmfRectangle rect)
 		{
 			this.TopRect = (short)rect.Top;
 			this.LeftRect = (short)rect.Left;
@@ -54,9 +57,9 @@ namespace Oxage.Wmf.Records
 			this.RightRect = (short)rect.Right;
 		}
 
-		public Rectangle GetRectangle()
+		public WmfRectangle GetRectangle()
 		{
-			return new Rectangle(this.LeftRect, this.TopRect, this.RightRect - this.LeftRect, this.BottomRect - this.TopRect);
+			return new WmfRectangle(this.LeftRect, this.TopRect, this.RightRect - this.LeftRect, this.BottomRect - this.TopRect);
 		}
 
 		public override void Read(BinaryReader reader)
