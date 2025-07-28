@@ -1,5 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using DocSharp.Markdown;
+
+using Markdig;
+
 using Oxage.Wmf;
 using Oxage.Wmf.Records;
 
@@ -11,23 +15,36 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
+using DocSharp;
+using Markdig.Extensions.Figures;
+using Markdig.Syntax;
 
 var markdownText = new StringBuilder();
 var outputFolder = Path.Join(AppContext.BaseDirectory, $"Output_{Path.GetRandomFileName()}");
 Directory.CreateDirectory(outputFolder);
 
-var testFile = @"C:\lindexi\wmf公式\sample.wmf";
-ConvertImageFile(testFile);
+//var testFile = @"C:\lindexi\wmf公式\sample.wmf";
+//ConvertImageFile(testFile);
 
-//var folder = @"C:\lindexi\wmf公式\";
+var folder = @"C:\lindexi\wmf公式\";
 
-//foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
-//{
-//    ConvertImageFile(file);
-//}
+foreach (var file in Directory.EnumerateFiles(folder, "*.wmf"))
+{
+    ConvertImageFile(file);
+}
 
 var markdownFile = Path.Join(outputFolder, "README.md");
-File.WriteAllText(markdownFile, markdownText.ToString());
+var markdown = markdownText.ToString();
+File.WriteAllText(markdownFile, markdown);
+
+var docxFile = Path.Join(outputFolder, "README.docx");
+var markdownConverter = new MarkdownConverter
+{
+    ImagesBaseUri = outputFolder
+};
+
+MarkdownSource markdownSource = MarkdownSource.FromMarkdownString(markdown);
+markdownConverter.ToDocx(markdownSource, docxFile);
 
 Console.WriteLine("Hello, World!");
 

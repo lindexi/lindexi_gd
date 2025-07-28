@@ -15,6 +15,7 @@
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.7" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.7" />
+    <PackageReference Include="DocSharp.Markdown" Version="0.8.5" />
   </ItemGroup>
 
 </Project>
