@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Oxage.Wmf.Records;
 
@@ -10,6 +11,10 @@ namespace Oxage.Wmf
 {
 	public class WmfHelper
 	{
+#if NET9_0_OR_GREATER
+        [RequiresDynamicCode("")]
+        [RequiresUnreferencedCode("xxx")]
+#endif
 		public static IBinaryRecord GetRecordByType(RecordType rt)
 		{
 			var types = typeof(WmfHelper).Assembly.GetTypes();

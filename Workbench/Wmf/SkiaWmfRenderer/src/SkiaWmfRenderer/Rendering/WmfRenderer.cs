@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using Oxage.Wmf;
 using Oxage.Wmf.Primitive;
 using Oxage.Wmf.Records;
@@ -19,6 +18,11 @@ class WmfRenderer
 
         var format = WmfDocument.Format;
 
+        if (format.Left > format.Right || format.Top > format.Bottom)
+        {
+            return false;
+        }
+
         var x = Math.Min(format.Left, format.Right);
         var y = Math.Min(format.Top, format.Bottom);
 
@@ -32,6 +36,7 @@ class WmfRenderer
             Width = width,
             Height = height
         };
+
 
         skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
