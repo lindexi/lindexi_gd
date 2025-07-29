@@ -46,6 +46,10 @@ namespace Oxage.Wmf
 
         readonly record struct RecordCreator(Type Type, WmfRecordAttribute Attribute, Func<IBinaryRecord> Creator);
 
+        /// <summary>
+        /// This method is used to export all binary records that are defined in the library. PowerBy Telescope, the source generator.
+        /// </summary>
+        /// <returns></returns>
         [dotnetCampus.Telescope.TelescopeExportAttribute()]
         private static partial IEnumerable<(Type type, WmfRecordAttribute attribute, Func<IBinaryRecord> creator)> ExportBinaryRecordEnumerable();
 
@@ -115,7 +119,7 @@ namespace Oxage.Wmf
 			wmf.Records.Add(new WmfTextoutRecord()
 			{
 				StringLength = 0x000C,
-				StringValue = "Hello People",
+				TextByteArray = WmfHelper.GetAnsiEncoding().GetBytes("Hello People"),
 				YStart = 0x000A,
 				XStart = 0x000A
 			});

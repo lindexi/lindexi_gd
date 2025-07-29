@@ -81,7 +81,7 @@ namespace Oxage.Wmf.Records
         public string GetText(Encoding encoding)
         {
             var text = encoding.GetString(TextByteArray);
-            if (Dx != null && Dx.Length!=text.Length)
+            if (Dx != null && Dx.Length != text.Length)
             {
                 throw new WmfException($"Dx length mush equals text length.");
             }
