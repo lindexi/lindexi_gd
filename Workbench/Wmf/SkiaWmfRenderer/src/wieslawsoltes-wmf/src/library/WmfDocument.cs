@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using Oxage.Wmf.Extensions;
 using Oxage.Wmf.Primitive;
 using Oxage.Wmf.Records;
 
@@ -309,12 +310,13 @@ namespace Oxage.Wmf
 			return record;
 		}
 
-		/// <summary>
-		/// Add a circle (equi-radius ellipse) by specifying its center and radius
-		/// </summary>
-		/// <param name="center"></param>
-		/// <param name="radius"></param>
-		public WmfEllipseRecord AddCircle(int x, int y, int radius)
+        /// <summary>
+        /// Add a circle (equi-radius ellipse) by specifying its center and radius
+        /// </summary>
+        /// <param name="x">Center X</param>
+        /// <param name="y">Center Y</param>
+        /// <param name="radius"></param>
+        public WmfEllipseRecord AddCircle(int x, int y, int radius)
 		{
 			return AddEllipse(new Point(x, y), new Point(radius, radius));
 		}
@@ -407,9 +409,22 @@ namespace Oxage.Wmf
 
 		public WmfTextoutRecord AddText(string text, int x = 0, int y = 0)
 		{
-			var record = new WmfTextoutRecord()
+            byte[] textByteArray;
+            if(string.IsNullOrEmpty(text))
+            {
+                textByteArray = [];
+            }
+            else
+            {
+                // Find the encoding form CharacterSet in Records
+                var lastWmfCreateFontIndirectRecord = Records.OfType<WmfCreateFontIndirectRecord>().LastOrDefault();
+                var encoding = lastWmfCreateFontIndirectRecord?.CharSet.ToEncoding() ?? WmfHelper.GetAnsiEncoding();
+                textByteArray = encoding.GetBytes(text);
+            }
+      
+            var record = new WmfTextoutRecord()
 			{
-				StringValue = text,
+				TextByteArray = textByteArray,
 				XStart = (short)x,
 				YStart = (short)y
 			};

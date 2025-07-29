@@ -40,7 +40,7 @@ namespace Oxage.Wmf.Records
             set;
         }
 
-        public Rect? Rectangle
+        public WmfRect? Rectangle
         {
             get;
             set;
@@ -81,7 +81,7 @@ namespace Oxage.Wmf.Records
         public string GetText(Encoding encoding)
         {
             var text = encoding.GetString(TextByteArray);
-            if (Dx != null && Dx.Length!=text.Length)
+            if (Dx != null && Dx.Length != text.Length)
             {
                 throw new WmfException($"Dx length mush equals text length.");
             }
@@ -101,7 +101,7 @@ namespace Oxage.Wmf.Records
             // Rectangle (8 bytes): An optional 8-byte Rect Object (section 2.2.2.18).) When either ETO_CLIPPED, ETO_OPAQUE, or both are specified, the rectangle defines the dimensions, in logical coordinates, used for clipping, opaquing, or both. When neither ETO_CLIPPED nor ETO_OPAQUE is specified, the coordinates in Rectangle are ignored.
             if (FwOpts is ExtTextOutOptions.ETO_CLIPPED or ExtTextOutOptions.ETO_OPAQUE)
             {
-                this.Rectangle = new Rect();
+                this.Rectangle = new WmfRect();
                 this.Rectangle.Read(reader);
             }
 
