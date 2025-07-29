@@ -4,9 +4,9 @@ using System.Text;
 namespace Oxage.Wmf.Objects
 {
 	[WmfObject(Size = 8)]
-	public class Rect : WmfBinaryObject
+	public class WmfRect : WmfBinaryObject
 	{
-		public Rect() : base()
+		public WmfRect() : base()
 		{
 		}
 

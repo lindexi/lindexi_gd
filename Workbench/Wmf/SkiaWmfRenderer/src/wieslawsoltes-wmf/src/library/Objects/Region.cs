@@ -49,7 +49,7 @@ namespace Oxage.Wmf.Objects
 			set;
 		}
 
-		public Rect BoundingRectangle
+		public WmfRect BoundingRectangle
 		{
 			get;
 			set;
@@ -81,7 +81,7 @@ namespace Oxage.Wmf.Objects
 			this.ScanCount = reader.ReadInt16();
 			this.MaxScan = reader.ReadInt16();
 
-			this.BoundingRectangle = reader.ReadWmfObject<Rect>();
+			this.BoundingRectangle = reader.ReadWmfObject<WmfRect>();
 
 			this.Scans = new Scan[this.ScanCount];
 			for (int i = 0; i < this.ScanCount; i++)
