@@ -209,12 +209,22 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             {
                 var sourceInfo = glyphInfos[i];
 
-                // 这里其实是 Codepoint 的值，而不是 GlyphIndex 的值
+                // ~~这里其实是 Codepoint 的值，而不是 GlyphIndex 的值~~
+                // 经过进一步实验测试，发现这里的 Codepoint 就是 GlyphIndex 的值
+                // 如 edd88c25d3b92b231df2ed5c7fc0ce9297b98d96 的实验，只要在 HarfBuzzSharp.Font 的 Shape 方法之后，那么获取的 Codepoint 就是 GlyphIndex 的值
+                // 如其控制台输出的如下内容：
+                // Typeface=Standard Symbols PS GlyphCount=191
+                // ContainsGlyph('p')=True 81
+                // TryGetGlyph=True 81
+                // (int) 'p' == 112
+                // Before HarfBuzzSharp.Font.Shape Codepoint=112
+                // After HarfBuzzSharp.Font.Shape Codepoint=81
+                // 可见在 StandardSymbolsPS.ttf 字体下，在 Shape 之前，获取到的 Codepoint 就是字符的 Codepoint 值，而不是 GlyphIndex 的值。在 Shape 之后，获取到的 Codepoint 就是 GlyphIndex 的值。以下代码是正确的
+
                 var glyphIndex = (ushort) sourceInfo.Codepoint;
                 // todo 根据 e5db7d3b8763c1029b67193962b3ac2f73390702 的测试
                 // Skia 的字体选取比较残对于 Symbol.ttf 等字体选取将会绘制出方框
                 // 解决方法是通过 HarfBuzz 获取 GlyphIndex 带上 SKTextEncoding.GlyphId 进行渲染才能正确
-                // 以上逻辑中，错误将 Codepoint 当成 GlyphIndex 了，需要更改
 
                 var glyphCluster = (int) sourceInfo.Cluster;
 
