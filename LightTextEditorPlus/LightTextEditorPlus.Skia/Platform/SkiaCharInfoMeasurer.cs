@@ -209,7 +209,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             {
                 var sourceInfo = glyphInfos[i];
 
+                // 这里其实是 Codepoint 的值，而不是 GlyphIndex 的值
                 var glyphIndex = (ushort) sourceInfo.Codepoint;
+                // todo 根据 e5db7d3b8763c1029b67193962b3ac2f73390702 的测试
+                // Skia 的字体选取比较残对于 Symbol.ttf 等字体选取将会绘制出方框
+                // 解决方法是通过 HarfBuzz 获取 GlyphIndex 带上 SKTextEncoding.GlyphId 进行渲染才能正确
+                // 以上逻辑中，错误将 Codepoint 当成 GlyphIndex 了，需要更改
 
                 var glyphCluster = (int) sourceInfo.Cluster;
 
@@ -234,6 +239,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             var glyphInfo = glyphInfoList[i];
             var offset = glyphInfo.GlyphOffset;
 
+            // 这里的 GlyphIndex 是 HarfBuzzSharp.Buffer 中的 Codepoint 的值，而不是 GlyphIndex 的值
             glyphIndices[i] = glyphInfo.GlyphIndex;
 
             renderGlyphPositions[i] = new SKPoint((float) (currentX + offset.OffsetX), (float) offset.OffsetY);

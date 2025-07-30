@@ -8,6 +8,7 @@ public readonly record struct SkiaTextEditorRenderConfiguration()
     /// <summary>
     /// 使用逐字渲染方法。渲染效率慢，但可以遵循布局结果
     /// </summary>
+    /// 如需要实现类似控制台文本控制强行等宽效果，则需要开启此选项
     public bool UseRenderCharByCharMode { get; init; } = false;
 
     /// <summary>
