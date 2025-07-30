@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 using SkiaSharp;
 
+// 换成 C:\windows\Fonts\symbol.ttf 也是一样的
 var symbolFontFile = Path.Join(AppContext.BaseDirectory, "StandardSymbolsPS.ttf");
 
 using var skTypeface =
