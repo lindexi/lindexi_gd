@@ -20,7 +20,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        TheTextBlock.Text = new string([..Enumerable.Repeat('a', 2000)]);
+
         Loaded += MainWindow_Loaded;
+    }
+
+    protected override void OnManipulationBoundaryFeedback(ManipulationBoundaryFeedbackEventArgs e)
+    {
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
