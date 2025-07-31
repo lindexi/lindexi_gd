@@ -13,26 +13,7 @@
                       VerticalScrollBarVisibility="Auto" Height="100">
             <StackPanel>
                 <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
-                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock x:Name="TheTextBlock" Text="Xxxxxx" TextWrapping="Wrap"></TextBlock>
             </StackPanel>
         </ScrollViewer>
     </Grid>
