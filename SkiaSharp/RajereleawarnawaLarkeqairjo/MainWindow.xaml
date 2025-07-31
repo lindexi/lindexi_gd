@@ -7,6 +7,33 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <ScrollViewer Background="White" 
+                      IsManipulationEnabled="True"
+                      PanningMode="VerticalOnly"
+                      VerticalScrollBarVisibility="Auto" Height="100">
+            <StackPanel>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+                <TextBlock Text="Xxxxxx"></TextBlock>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>
