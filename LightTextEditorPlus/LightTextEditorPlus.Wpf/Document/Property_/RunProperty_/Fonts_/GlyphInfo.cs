@@ -1,4 +1,4 @@
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document
@@ -49,6 +49,9 @@ namespace LightTextEditorPlus.Document
         /// <summary>
         /// 渲染字符的目标<see cref="GlyphIndex"/>
         /// </summary>
+        /// OpenType® Specification Version 1.9.1 https://learn.microsoft.com/en-us/typography/opentype/spec/
+        /// [字体65,535的限制什么时候能修正？ - 知乎](https://www.zhihu.com/question/526308089 )
+        /// 规范中规定了 GlyphIndex 是 UInt16 类型，因此最大值为 65535 个
         public ushort GlyphIndex { get; }
     }
 }
