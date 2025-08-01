@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.HostModel" Version="3.1.16" />
+  </ItemGroup>
+
+  <Target Name="RaihebefujelaHeanairnerfe" AfterTargets="_CreateAppHostForPublish">
+    <CreateAppHost AppHostSourcePath="C:\lindexi\Microsoft.NETCore.App.Host.linux-loongarch64.9.0.5" AppHostDestinationPath="C:\lindexi\Xilium.CefGlue.BrowserProcess" AppBinaryName="Xilium.CefGlue.BrowserProcess.dll" 
+                   IntermediateAssembly="@(IntermediateAssembly->'%(FullPath)')"  Retries="3" RetryDelayMilliseconds="1000" EnableMacOSCodeSign="false" DisableCetCompat="true" DotNetSearchLocations="AppRelative;EnvironmentVariable;Global;" AppRelativeDotNet="./dotnet" />
+  </Target>
+
+</Project>
