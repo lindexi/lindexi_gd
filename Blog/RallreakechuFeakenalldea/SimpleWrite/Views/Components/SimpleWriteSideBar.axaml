@@ -4,4 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleWrite.Views.Components.SimpleWriteSideBar">
+    <Border Background="#1E1E1E" BorderThickness="0,0,1,0" BorderBrush="#3D3D3D">
+
+    </Border>
 </UserControl>

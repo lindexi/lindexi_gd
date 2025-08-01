@@ -7,9 +7,10 @@
              x:Class="SimpleWrite.Views.SimpleWriteMainView">
   <Grid ColumnDefinitions="Auto,*">
 
-    <components:SimpleWriteSideBar/>
+    <components:SimpleWriteSideBar Width="200"/>
 
     <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*">
+      <components:TabBar Grid.Row="0" Height="20"/>
       <components:MainEditorView Grid.Row="1"/>
     </Grid>
   </Grid>
