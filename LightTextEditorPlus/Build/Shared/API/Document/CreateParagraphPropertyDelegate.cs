@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿#if !USE_SKIA || USE_AllInOne
+using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Document;
 
@@ -8,3 +9,4 @@ namespace LightTextEditorPlus.Document;
 /// <param name="styleRunProperty"></param>
 /// <returns></returns>
 public delegate ParagraphProperty CreateParagraphPropertyDelegate(ParagraphProperty styleRunProperty);
+#endif
