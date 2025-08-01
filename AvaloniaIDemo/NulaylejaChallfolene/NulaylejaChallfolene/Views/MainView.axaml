@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="NulaylejaChallfolene.Views.MainView">
   <UserControl.Resources>
-    <FontFamily x:Key="CustomKaiTi">avares://NulaylejaChallfolene/Assets/KaiTi_GB2312.ttf#KaiTi_GB2312</FontFamily>
+    <FontFamily x:Key="CustomKaiTi">avares://NulaylejaChallfolene/Assets/ChineseCharacterSpecialFont.ttf#KaiTi_GB2312</FontFamily>
   </UserControl.Resources>
   <Grid>
     <StackPanel>
