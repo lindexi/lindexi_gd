@@ -1,0 +1,17 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:components="clr-namespace:SimpleWrite.Views.Components"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SimpleWrite.Views.SimpleWriteMainView">
+  <Grid ColumnDefinitions="Auto,*">
+
+    <components:SimpleWriteSideBar Width="200"/>
+
+    <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*">
+      <components:TabBar Grid.Row="0" Height="20"/>
+      <components:MainEditorView Grid.Row="1"/>
+    </Grid>
+  </Grid>
+</UserControl>
