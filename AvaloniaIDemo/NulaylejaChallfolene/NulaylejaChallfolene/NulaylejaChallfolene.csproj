@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="C:\lindexi\ChineseCharacterSpecialFont.ttf" Link="Assets\ChineseCharacterSpecialFont.ttf" />
+    <AvaloniaResource Include="C:\lindexi\KaiTi_GB2312.ttf" Link="Assets\KaiTi_GB2312.ttf" />
   </ItemGroup>
 
   <ItemGroup>

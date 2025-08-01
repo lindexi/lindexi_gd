@@ -5,10 +5,14 @@
              xmlns:bunaylenerkeLailurlairfea="clr-namespace:NulaylejaChallfolene"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="NulaylejaChallfolene.Views.MainView">
-    <UserControl.Resources>
-        <FontFamily x:Key="CustomKaiTi">avares://NulaylejaChallfolene/Assets/ChineseCharacterSpecialFont.ttf#KaiTi_GB2312</FontFamily>
-    </UserControl.Resources>
-    <Grid>
-        <TextBlock Margin="10,10,10,10" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource CustomKaiTi}" Text="早"></TextBlock>
-    </Grid>
+  <UserControl.Resources>
+    <FontFamily x:Key="CustomKaiTi">avares://NulaylejaChallfolene/Assets/KaiTi_GB2312.ttf#KaiTi_GB2312</FontFamily>
+  </UserControl.Resources>
+  <Grid>
+    <StackPanel>
+      <TextBlock Margin="10,10,10,10" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource CustomKaiTi}" Text="早"></TextBlock>
+      <TextBlock Margin="10,10,10,10" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource CustomKaiTi}" Text="早"></TextBlock>
+      <TextBlock Margin="10,10,10,10" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="微软雅黑" Text="早"></TextBlock>
+    </StackPanel>
+  </Grid>
 </UserControl>
