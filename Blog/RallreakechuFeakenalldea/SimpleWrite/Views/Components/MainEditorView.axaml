@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleWrite.Views.Components.MainEditorView">
-    <Border Background="#1E1E1E">
-
+    <Border x:Name="TextEditorBorder" Background="#1E1E1E">
     </Border>
 </UserControl>
