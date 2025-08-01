@@ -1,0 +1,62 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KairkolereballyoJearkelhefaige", "KairkolereballyoJearkelhefaige\KairkolereballyoJearkelhefaige.csproj", "{96E7210E-7119-454B-8690-6E55AAA8F9FC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KairkolereballyoJearkelhefaige.Desktop", "KairkolereballyoJearkelhefaige.Desktop\KairkolereballyoJearkelhefaige.Desktop.csproj", "{6BA2DD9D-975C-4D57-8702-3AB802EB9878}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LightTextEditorPlus", "LightTextEditorPlus", "{3D707768-4819-FEEE-C7CB-19A0D2006F3C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Avalonia", "..\..\LightTextEditorPlus\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj", "{5F33E570-A326-F663-0AC3-85E293D0C5E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Skia", "..\..\LightTextEditorPlus\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj", "{73FF72B1-7150-D3F8-E733-3E5F0D29A0DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextEditorInternalAnalyzer", "..\..\LightTextEditorPlus\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj", "{EE79132F-5FB7-C5B2-5876-48EF3B880446}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core", "..\..\LightTextEditorPlus\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj", "{EF900426-65A8-F0D1-392F-0379DC655B51}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{96E7210E-7119-454B-8690-6E55AAA8F9FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96E7210E-7119-454B-8690-6E55AAA8F9FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96E7210E-7119-454B-8690-6E55AAA8F9FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96E7210E-7119-454B-8690-6E55AAA8F9FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BA2DD9D-975C-4D57-8702-3AB802EB9878}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BA2DD9D-975C-4D57-8702-3AB802EB9878}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BA2DD9D-975C-4D57-8702-3AB802EB9878}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BA2DD9D-975C-4D57-8702-3AB802EB9878}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F33E570-A326-F663-0AC3-85E293D0C5E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F33E570-A326-F663-0AC3-85E293D0C5E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F33E570-A326-F663-0AC3-85E293D0C5E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F33E570-A326-F663-0AC3-85E293D0C5E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73FF72B1-7150-D3F8-E733-3E5F0D29A0DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73FF72B1-7150-D3F8-E733-3E5F0D29A0DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73FF72B1-7150-D3F8-E733-3E5F0D29A0DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73FF72B1-7150-D3F8-E733-3E5F0D29A0DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE79132F-5FB7-C5B2-5876-48EF3B880446}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE79132F-5FB7-C5B2-5876-48EF3B880446}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE79132F-5FB7-C5B2-5876-48EF3B880446}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE79132F-5FB7-C5B2-5876-48EF3B880446}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF900426-65A8-F0D1-392F-0379DC655B51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF900426-65A8-F0D1-392F-0379DC655B51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF900426-65A8-F0D1-392F-0379DC655B51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF900426-65A8-F0D1-392F-0379DC655B51}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5F33E570-A326-F663-0AC3-85E293D0C5E7} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
+		{73FF72B1-7150-D3F8-E733-3E5F0D29A0DA} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
+		{EE79132F-5FB7-C5B2-5876-48EF3B880446} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
+		{EF900426-65A8-F0D1-392F-0379DC655B51} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {641F0F5E-844D-463D-B96C-A178B61BBD0A}
+	EndGlobalSection
+EndGlobal
