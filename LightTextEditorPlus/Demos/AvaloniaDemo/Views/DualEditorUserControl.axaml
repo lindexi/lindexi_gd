@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:lightTextEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LightTextEditorPlus.AvaloniaDemo.Views.DualEditorUserControl">
+
+  <ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
+    <Grid ColumnDefinitions="*,Auto,*" ShowGridLines="True">
+      <Border Grid.Row="0" Margin="5 0 5 0" BorderBrush="Blue" BorderThickness="1">
+        <lightTextEditorPlus:TextEditor x:Name="LeftTextEditor"  SizeToContent="Height" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+      </Border>
+      <GridSplitter Grid.Column="1" Margin="5 0 5 0"></GridSplitter>
+      <Border Grid.Column="2" Margin="5 0 5 0" BorderBrush="Blue" BorderThickness="1">
+        <lightTextEditorPlus:TextEditor x:Name="RightTextEditor"  SizeToContent="Height" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+      </Border>
+    </Grid>
+  </ScrollViewer>
+
+</UserControl>

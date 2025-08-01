@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0-windows</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 单元测试肯定会有很多判断空逻辑，关闭可空 -->
+    <Nullable>disable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <RootNamespace>LightTextEditorPlus.Tests</RootNamespace>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="coverlet.collector" Version="3.1.2" />
+    <PackageReference Include="MSTestEnhancer" Version="2.2.1-alpha01" />
+    <PackageReference Include="Moq" Version="4.18.2" />
+    <PackageReference Include="dotnetCampus.UITest.WPF" Version="2.2.1-alpha01" />
+    <PackageReference Include="CSharpMarkup.WPF" Version="0.8.3-dev.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Demos\LightTextEditorPlus.Demo\LightTextEditorPlus.Demo.csproj" />
+    <ProjectReference Include="..\..\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj" />
+    <ProjectReference Include="..\TextVisionComparer\TextVisionComparer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\TestImage\**\*.png" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
+</Project>

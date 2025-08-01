@@ -1,0 +1,52 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="Exists($([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../')))"/>
+
+  <PropertyGroup>
+    <!-- 语言属性 -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <!-- 忽略异常： -->
+    <!--
+    - NU1903： 具有已知的 高 严重性漏洞
+    - NU1803： 使用 HTTP 的源
+    - NU1603： 忽略找不到匹配版本。因为使用了内部的 Avalonia 版本，不在这里警告
+    - CS0162： 未使用的代码，不可达代码警告。有些代码就是特意写不可达的，只是用来作为设计说明
+    -->
+    <NoWarn>NU1903;NU1803;NU1603;CS0162</NoWarn>
+
+    <CodeRootPath>$(MSBuildThisFileDirectory)</CodeRootPath>
+
+    <AvaloniaVersion>11.2.0-hotfix02</AvaloniaVersion>
+
+    <Authors>林德熙</Authors>
+    <!-- 不要在 debug 开启 EmbedAllSources 或 EmbedUntrackedSources：
+         1. NuGet 包会提示包含未追踪的源，但实际列出的未追踪的源是空的（所以其实都已经追踪了？）
+         2. 如果采用此属性将源嵌入，会导致 JetBrians Rider 调试时使用嵌入的源而不是仓库中的源，这会导致无法使用断点等一系列依赖于 pdb 源的功能。-->
+    <EmbedAllSources Condition="'$(Configuration)' != 'Debug'">true</EmbedAllSources>
+
+    <!-- 输出符号文件 -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>富文本布局库，提供高控制的文本库</Description>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <ThisYear>$([System.DateTime]::Now.ToString(`yyyy`))</ThisYear>
+    <!-- 这个库是从 2023 开始的 -->
+    <Copyright>Copyright © 2023-$(ThisYear) dotnet campus All Rights Reserved.</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\.editorconfig" Link=".editorconfig" Visible="false"/>
+    <SourceRoot Include="$(MSBuildThisFileDirectory)"/>
+  </ItemGroup>
+
+  <!-- 以下是打 NuGet 包相关辅助方法 -->
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 嵌入 README 文件 -->
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false"/>
+  </ItemGroup>
+</Project>

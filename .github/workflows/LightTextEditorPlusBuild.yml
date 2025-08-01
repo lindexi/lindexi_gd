@@ -1,0 +1,49 @@
+name: .NET Build
+
+on: push
+
+jobs:
+  BuildInWindows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          3.1.x
+          6.0.x
+          8.0.x
+          9.0.x
+
+    - name: Build
+      run: "dotnet build --configuration release LightTextEditorPlus"
+    - name: Test
+      run: dotnet test --configuration release -v:n --tl:off --logger:"console;verbosity=detailed" --no-build LightTextEditorPlus
+    - name: BuildWithAot
+      run: dotnet publish -r win-x86 -p:ValidateExecutableReferencesMatchSelfContained=false .\LightTextEditorPlus\Demos\AvaloniaDemo\LightTextEditorPlus.AvaloniaDemo.csproj
+
+  BuildInLinux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          3.1.x
+          6.0.x
+          8.0.x
+          9.0.x
+
+    - name: Build LightTextEditorPlus.Core
+      run: dotnet build --configuration release LightTextEditorPlus/LightTextEditorPlus.Core/LightTextEditorPlus.Core.csproj
+    - name: Build LightTextEditorPlus.AvaloniaDemo
+      run: dotnet build --configuration release LightTextEditorPlus/Demos/AvaloniaDemo/LightTextEditorPlus.AvaloniaDemo.csproj
+    - name: BuildWithAot
+      run: dotnet publish -r linux-x64 -p:ValidateExecutableReferencesMatchSelfContained=false LightTextEditorPlus/Demos/AvaloniaDemo/LightTextEditorPlus.AvaloniaDemo.csproj
+    - name: Test
+      run: dotnet test --configuration release -v:n --tl:off --logger:"console;verbosity=detailed" LightTextEditorPlus/Tests/LightTextEditorPlus.Core.Tests/LightTextEditorPlus.Core.Tests.csproj

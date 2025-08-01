@@ -1,0 +1,106 @@
+﻿<Project>
+
+  <ItemGroup>
+    <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
+                                  Link="Properties\%(Filename)%(Extension)" />
+    <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\API\**\*.cs" LinkBase="API"/>
+    <LightTextEditorPlusAPIConstraints Include="$(MSBuildThisFileDirectory)Build\Shared\API\Constraints\*.txt" LinkBase="API\Constraints"/>
+
+    <LightTextEditorPlusAppPlatformSharedUtils Include="$(MSBuildThisFileDirectory)Build\Shared\AppPlatform\Utils\**\*.cs" LinkBase="Utils"/>
+  </ItemGroup>
+
+  <!-- 自动处理不同 UI 框架之间的差异 -->
+  <!-- DefineConstants 的各个定义功能：
+       - DirectTextEditorDefinition： 直接的底层定义。如 Skia 系的，则 Skia 底层项目为 DirectTextEditorDefinition 程序集，其他为 TopApiTextEditorDefinition 顶层的 API 定义
+       - TopApiTextEditorDefinition： 顶层的 API 定义
+  -->
+  <Choose>
+    <When Condition=" '$(UseUIFramework)' == 'Standard' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_Standard</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Avalonia' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_AVALONIA;TopApiTextEditorDefinition</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <Compile Include="@(LightTextEditorPlusAppPlatformSharedUtils)"/>
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.uno.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Uno' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_UNO;TopApiTextEditorDefinition</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Wpf' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_WPF;DirectTextEditorDefinition;TopApiTextEditorDefinition</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <Compile Include="@(LightTextEditorPlusAppPlatformSharedUtils)"/>
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.uno.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Skia' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_SKIA;DirectTextEditorDefinition</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'MauiGraphics' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_MauiGraphics;TopApiTextEditorDefinition</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Test' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_TEST</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.uno.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <ItemGroup Condition="$(IncludeAPIConstraints) == true">
+    <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+    <AdditionalFiles Include="@(LightTextEditorPlusAPIConstraints)" APIConstraint="True"/>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="APIConstraint" />
+  </ItemGroup>
+</Project>

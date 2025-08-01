@@ -1,0 +1,16 @@
+CurrentCaretOffset
+CurrentSelection
+// 光标事件
+CurrentCaretOffsetChanging
+CurrentCaretOffsetChanged
+CurrentSelectionChanging
+CurrentSelectionChanged
+// 文本状态
+IsDirty
+IsUpdatingLayout
+// 调试
+IsInDebugMode
+SetInDebugMode
+SetAllInDebugMode
+// 调试名
+DebugName

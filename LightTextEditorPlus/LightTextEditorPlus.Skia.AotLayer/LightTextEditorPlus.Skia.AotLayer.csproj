@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- [dotnet 9 已知问题 默认开启 CET 导致进程崩溃 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18700406 ) -->
+    <CetCompat>false</CetCompat>
+
+    <PublishAot>true</PublishAot>
+    <NativeLib>Shared</NativeLib>
+
+    <RootNamespace>LightTextEditorPlus</RootNamespace>
+    <AssemblyName>LightTextEditorPlus</AssemblyName>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj" />
+  </ItemGroup>
+
+</Project>

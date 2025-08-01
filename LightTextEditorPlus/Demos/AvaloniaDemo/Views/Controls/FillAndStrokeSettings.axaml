@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LightTextEditorPlus.AvaloniaDemo.Views.Controls.FillAndStrokeSettings"
+             x:Name="Root">
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Padding" Value="5 2 5 2"></Setter>
+            <Setter Property="MinHeight" Value="0"></Setter>
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        </Style>
+    </UserControl.Styles>
+    <UserControl.Resources>
+        <controls:StringToColorBrushValueConverter x:Key="StringToColorBrushValueConverter"/>
+    </UserControl.Resources>
+    <StackPanel>
+        <CheckBox x:Name="IsSettingEnableCheckBox" IsChecked="True">
+            <TextBlock FontSize="20" FontWeight="Bold" Text="{Binding #Root.HeaderText}"></TextBlock>
+        </CheckBox>
+       
+        <Grid Margin="0,5,0,0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
+            <TextBlock Text="边框颜色："></TextBlock>
+            <Border Grid.Column="1" Width="10" Height="10" Background="{Binding #Root.StrokeColor,Converter={StaticResource StringToColorBrushValueConverter}}" VerticalAlignment="Center"></Border>
+            <TextBox Grid.Column="2" Margin="5,0,0,0" Text="{Binding #Root.StrokeColor}"></TextBox>
+
+            <TextBlock Grid.Column="3" Margin="20,0,0,0" Text="边框厚度："></TextBlock>
+            <TextBox Grid.Column="4" Margin="0,0,0,0" Text="{Binding #Root.StrokeThickness}"></TextBox>
+        </Grid>
+
+        <Grid Margin="0,5,0,0" ColumnDefinitions="Auto,Auto,Auto">
+            <TextBlock Text="填充颜色："></TextBlock>
+            <Border Grid.Column="1" Width="10" Height="10" Background="{Binding #Root.FillColor,Converter={StaticResource StringToColorBrushValueConverter}}" VerticalAlignment="Center"></Border>
+            <TextBox Grid.Column="2" Margin="5,0,0,0" Text="{Binding #Root.FillColor}"></TextBox>
+        </Grid>
+    </StackPanel>
+</UserControl>

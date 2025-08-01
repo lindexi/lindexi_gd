@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>x86</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LightTextEditorPlus.Skia.AotLayer\bin\Release\net9.0\win-x86\publish\*.dll" LinkBase="" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\LightTextEditorPlus.Skia.AotLayer\NativeTextEditors\**\*.cs" LinkBase="NativeTextEditors" />
+  </ItemGroup>
+
+</Project>

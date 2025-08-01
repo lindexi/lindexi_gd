@@ -1,0 +1,38 @@
+﻿CurrentCaretRunProperty
+StyleRunProperty
+CreateRunProperty
+SetStyleTextRunProperty
+SetCurrentCaretRunProperty
+// 设置样式
+// RunProperty
+SetFontName
+SetFontSize
+// RunProperty-上下标
+ToggleSuperscript
+ToggleSubscript
+SetFontVariants
+// RunProperty-前景色
+SetForeground
+// RunProperty-加粗斜体
+ToggleItalic
+SetFontStyle
+ToggleBold
+SetFontWeight
+// RunProperty-文本装饰
+ToggleUnderline
+ToggleStrikethrough
+ToggleDeleteLine
+ToggleEmphasisDots
+ToggleTextDecoration
+SetTextDecoration
+AddTextDecoration
+RemoveTextDecoration
+ClearTextDecoration
+// 文本属性
+VerticalTextAlignment
+VerticalContentAlignment
+SizeToContent
+ArrangingType
+// 事件
+StyleChanging
+StyleChanged

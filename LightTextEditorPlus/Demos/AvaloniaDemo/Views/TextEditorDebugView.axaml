@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:lightTextEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Avalonia"
+             xmlns:views="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views"
+             mc:Ignorable="d" Height="600"
+             x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorDebugView">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="600"></ColumnDefinition>
+      <ColumnDefinition Width="Auto"></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+    <Grid Grid.Column="0">
+      <Grid.RowDefinitions>
+        <RowDefinition></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+      </Grid.RowDefinitions>
+      <Border Margin="10,10,10,10" HorizontalAlignment="Left"
+              VerticalAlignment="Top">
+        <Grid x:Name="TextEditorGrid">
+          <Border x:Name="TextEditorBorder" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"></Border>
+          <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
+            <!-- 用来绘制调试内容 -->
+          </Canvas>
+        </Grid>
+      </Border>
+      <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">
+        <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+        <Button x:Name="ReadOnlyModeButton" Margin="5,0,0,0" Click="ReadOnlyModeButton_OnClick">进入只读模式</Button>
+        <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
+        <ToggleButton x:Name="ShowHandwritingPaperDebugInfoButton" Margin="5,0,0,0" Click="ShowHandwritingPaperDebugInfoButton_OnClick">显示四线三格</ToggleButton>
+      </StackPanel>
+
+    </Grid>
+
+    <Grid Grid.Column="1">
+      <TabControl>
+        <TabItem Header="属性设置">
+          <views:TextEditorSettingsControl x:Name="TextEditorSettingsControl"/>
+        </TabItem>
+          <TabItem Header="调试范围着色设置">
+            <views:TextEditorDebugBoundsSettingsControl x:Name="TextEditorDebugBoundsSettingsControl" />
+          </TabItem>
+      </TabControl>
+    </Grid>
+  </Grid>
+</UserControl>
