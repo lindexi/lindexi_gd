@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Markup;
@@ -29,7 +29,7 @@ namespace LightTextEditorPlus.Document
             ushort glyphIndex = default;
             info = null;
 
-            if (typeface.TryGetGlyphTypeface(out var glyph))
+            if (typeface.TryGetGlyphTypeface(out GlyphTypeface? glyph))
             {
                 if (glyph.CharacterToGlyphMap.TryGetValue(unicodeChar.Value, out glyphIndex))
                 {
