@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -110,6 +110,10 @@ public readonly struct CaretRenderInfo
     /// </summary>
     public bool IsEmptyParagraph => ParagraphData.IsEmptyParagraph;
 
+    /// <summary>
+    /// 命中的段落
+    /// </summary>
+    public ITextParagraph HitParagraph => ParagraphData;
     internal ParagraphData ParagraphData => LineLayoutData.CurrentParagraph;
     internal ParagraphCaretOffset HitOffset { get; }
 
