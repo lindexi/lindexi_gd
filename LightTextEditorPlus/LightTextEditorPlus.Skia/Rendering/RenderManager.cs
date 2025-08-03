@@ -30,9 +30,6 @@ class RenderManager
     }
 
     public SkiaTextEditor TextEditor { get; }
-
-    private SkiaTextRunProperty StyleRunProperty => TextEditor.TextEditorCore.DocumentManager.StyleRunProperty.AsSkiaRunProperty();
-
     #region 光标渲染
 
     /// <summary>
@@ -54,8 +51,12 @@ class RenderManager
             SKColor caretColor = TextEditor.CaretConfiguration.CaretBrush
                                  // 获取当前前景色作为光标颜色
                                  ?? skiaTextRunProperty?.Foreground.AsSolidColor()
+                                 // 如果当前光标所在的字符没有样式，则取段落样式的前景色
+                                 ?? currentCaretRenderInfo.HitParagraph.ParagraphStartRunProperty.AsSkiaRunProperty()
+                                     .Foreground.AsSolidColor()
+                ;
                                  // 如果当前没有文本，则取样式的前景色
-                                 ?? StyleRunProperty.Foreground.AsSolidColor();
+                                 //?? StyleRunProperty.Foreground.AsSolidColor();
             _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
         }
         else
