@@ -46,18 +46,17 @@ class RenderManager
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
             TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(TextEditor.CaretConfiguration.CaretThickness, IsOvertypeModeCaret);
 
-            SkiaTextRunProperty? skiaTextRunProperty = currentCaretRenderInfo.CharData?.RunProperty.AsSkiaRunProperty();
+            SKColor? caretColor = TextEditor.CaretConfiguration.CaretBrush;
+            if (caretColor == null)
+            {
+                // 如果没有设置光标颜色，则使用当前光标的前景色
+                IReadOnlyRunProperty currentCaretRunProperty = TextEditor.TextEditorCore.DocumentManager.CurrentCaretRunProperty;
+                caretColor = currentCaretRunProperty.AsSkiaRunProperty().Foreground.AsSolidColor();
+            }
 
-            SKColor caretColor = TextEditor.CaretConfiguration.CaretBrush
-                                 // 获取当前前景色作为光标颜色
-                                 ?? skiaTextRunProperty?.Foreground.AsSolidColor()
-                                 // 如果当前光标所在的字符没有样式，则取段落样式的前景色
-                                 ?? currentCaretRenderInfo.HitParagraph.ParagraphStartRunProperty.AsSkiaRunProperty()
-                                     .Foreground.AsSolidColor()
-                ;
-                                 // 如果当前没有文本，则取样式的前景色
-                                 //?? StyleRunProperty.Foreground.AsSolidColor();
-            _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
+            // 如果当前没有文本，则取样式的前景色
+            //?? StyleRunProperty.Foreground.AsSolidColor();
+            _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor.Value);
         }
         else
         {
