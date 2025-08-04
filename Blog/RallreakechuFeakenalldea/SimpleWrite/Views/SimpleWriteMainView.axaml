@@ -4,14 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:components="clr-namespace:SimpleWrite.Views.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.SimpleWriteMainView">
+             x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="#FF1E1E1E">
   <Grid ColumnDefinitions="Auto,*">
 
     <components:SimpleWriteSideBar Width="200"/>
 
-    <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*">
+    <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*,Auto">
       <components:TabBar Grid.Row="0" Height="20"/>
       <components:MainEditorView Grid.Row="1"/>
+      <components:StatusBar Grid.Row="2" Height="20"></components:StatusBar>
     </Grid>
   </Grid>
 </UserControl>
