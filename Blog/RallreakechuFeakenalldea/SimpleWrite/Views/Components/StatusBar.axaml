@@ -2,8 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="25"
-             x:Class="SimpleWrite.Views.Components.StatusBar">
+             x:Class="SimpleWrite.Views.Components.StatusBar"
+             x:DataType="viewModels:StatusViewModel">
   <UserControl.Styles>
     <Style Selector="Button">
       <Setter Property="Foreground" Value="White"></Setter>
@@ -13,7 +15,6 @@
       <Style Selector="^:pointerover /template/ ContentPresenter">
         <Setter Property="TextBlock.Foreground" Value="#FFADADAD"></Setter>
       </Style>
-
     </Style>
 
     <Style Selector="TextBlock">
@@ -25,7 +26,7 @@
   <Border BorderThickness="0,1,0,0" BorderBrush="#FF3D3D3D">
     <Grid ColumnDefinitions="*,Auto">
       <StackPanel Orientation="Horizontal">
-        <TextBlock x:Name="StatusBarTextBlock">内容</TextBlock>
+        <TextBlock x:Name="StatusBarTextBlock" Text="{Binding StatusText}"/>
       </StackPanel>
       <Button x:Name="DebugButton" Grid.Column="1" Margin="5,0,5,0" Click="DebugButton_OnClick">调试</Button>
     </Grid>

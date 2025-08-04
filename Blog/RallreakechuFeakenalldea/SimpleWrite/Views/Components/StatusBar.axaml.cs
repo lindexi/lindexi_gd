@@ -1,9 +1,13 @@
-﻿using Avalonia.Controls;
+﻿using System;
+
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
+
+using SimpleWrite.ViewModels;
 
 namespace SimpleWrite.Views.Components;
 
@@ -12,37 +16,54 @@ public partial class StatusBar : UserControl
     public StatusBar()
     {
         InitializeComponent();
+        this.DataContextChanged += StatusBar_DataContextChanged;
+    }
+
+    public StatusViewModel ViewModel => (DataContext as StatusViewModel)
+        ?? throw new InvalidOperationException("StatusBar's DataContext must be of type StatusViewModel");
+
+    private void StatusBar_DataContextChanged(object? sender, EventArgs e)
+    {
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
+        _ = ViewModel;
         base.OnLoaded(e);
 
         var textEditor = TextEditorInfo.GetTextEditorInfo(this).CurrentTextEditor;
         _currentTextEditor = textEditor;
 
         _currentTextEditor.CurrentSelectionChanged += CurrentTextEditor_CurrentSelectionChanged;
+        SetCurrentCaretInfoText(textEditor.CurrentSelection);
     }
 
     private void CurrentTextEditor_CurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
     {
-        if (e.NewValue.IsEmpty)
+        var selection = e.NewValue;
+        SetCurrentCaretInfoText(in selection);
+    }
+
+    private void SetCurrentCaretInfoText(in Selection selection)
+    {
+        if (selection.IsEmpty)
         {
-            var caretOffset = e.NewValue.StartOffset;
+            CaretOffset caretOffset = selection.StartOffset;
             if (caretOffset.IsAtLineStart)
             {
-                StatusBarTextBlock.Text = $"光标位置: {caretOffset.Offset} 处于行首";
+                ViewModel.SetCurrentCaretInfoText($"光标位置: {caretOffset.Offset} 处于行首");
             }
             else
             {
-                StatusBarTextBlock.Text = $"光标位置: {caretOffset.Offset}";
+                ViewModel.SetCurrentCaretInfoText($"光标位置: {caretOffset.Offset}");
             }
         }
         else
         {
-            StatusBarTextBlock.Text = "选择范围: " +
-                                      $"{e.NewValue.StartOffset.Offset} - {e.NewValue.EndOffset.Offset} " +
-                                      $"长度: {e.NewValue.Length}";
+            ViewModel.SetCurrentCaretInfoText
+            (
+                $"选择范围: {selection.StartOffset.Offset} - {selection.EndOffset.Offset} 长度: {selection.Length}"
+            );
         }
     }
 
