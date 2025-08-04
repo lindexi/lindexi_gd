@@ -84,8 +84,10 @@ partial class TextEditor
 
 #if DEBUG
             var count = _debugAllContentSkiaRenderList?.Count(t => !t.IsDisposed);
-            _ = count;
-            Debug.WriteLine($"Avalonia 渲染测试 当前未释放数量： {count}/{_debugAllContentSkiaRenderList?.Count}");
+            if (textEditor.IsInDebugMode)
+            {
+                Debug.WriteLine($"Avalonia 渲染测试 当前未释放数量： {count}/{_debugAllContentSkiaRenderList?.Count}");
+            }
 #endif
             #endregion
 
