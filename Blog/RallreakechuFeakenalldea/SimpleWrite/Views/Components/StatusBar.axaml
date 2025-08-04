@@ -10,9 +10,10 @@
       <Setter Property="Padding" Value="0,0,0,0"></Setter>
       <Setter Property="Margin" Value="5,0,0,0"></Setter>
 
-      <Style Selector="^:pointerover">
-        <Setter Property="Foreground" Value="#FFADADAD"></Setter>
+      <Style Selector="^:pointerover /template/ ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="#FFADADAD"></Setter>
       </Style>
+
     </Style>
 
     <Style Selector="TextBlock">
