@@ -22,9 +22,11 @@
     </Style>
   </UserControl.Styles>
   <Border BorderThickness="0,1,0,0" BorderBrush="#FF3D3D3D">
-    <StackPanel Orientation="Horizontal">
-      <TextBlock x:Name="StatusBarTextBlock">内容</TextBlock>
-      <Button x:Name="DebugButton" Click="DebugButton_OnClick">调试</Button>
-    </StackPanel>
+    <Grid ColumnDefinitions="*,Auto">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock x:Name="StatusBarTextBlock">内容</TextBlock>
+      </StackPanel>
+      <Button x:Name="DebugButton" Grid.Column="1" Margin="5,0,5,0" Click="DebugButton_OnClick">调试</Button>
+    </Grid>
   </Border>
 </UserControl>
