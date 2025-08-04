@@ -3,16 +3,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:components="clr-namespace:SimpleWrite.Views.Components"
+             xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="#FF1E1E1E">
+             x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="#FF1E1E1E"  x:DataType="viewModels:SimpleWriteMainViewModel">
+  <UserControl.DataContext>
+    <viewModels:SimpleWriteMainViewModel />
+  </UserControl.DataContext>
+
   <Grid ColumnDefinitions="Auto,*">
 
     <components:SimpleWriteSideBar Width="200"/>
 
     <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*,Auto">
       <components:TabBar Grid.Row="0" Height="20"/>
-      <components:MainEditorView x:Name="MainEditorView" Grid.Row="1"/>
-      <components:StatusBar Grid.Row="2" Height="20"></components:StatusBar>
+      <components:MainEditorView x:Name="MainEditorView" Grid.Row="1"
+                                 DataContext="{Binding Path=EditorViewModel}"/>
+      <components:StatusBar Grid.Row="2" Height="20" DataContext="{Binding Path=StatusViewModel}"/>
     </Grid>
   </Grid>
 </UserControl>
