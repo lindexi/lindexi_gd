@@ -12,6 +12,8 @@ public partial class MainEditorView : UserControl
     {
         InitializeComponent();
         var textEditor = new LightTextEditorPlus.TextEditor();
+        textEditor.TextEditorCore.SetExitDebugMode();
+
         // 优先采用 SetForeground 设置颜色
         TextElement.SetForeground(textEditor, Brushes.Azure);
         textEditor.SetStyleTextRunProperty(runProperty => runProperty with
