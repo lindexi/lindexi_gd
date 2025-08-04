@@ -4,10 +4,27 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="25"
              x:Class="SimpleWrite.Views.Components.StatusBar">
-    <Border BorderThickness="0,1,0,0" BorderBrush="#FF3D3D3D">
-        <StackPanel Orientation="Horizontal">
-            <TextBlock >内容</TextBlock>
-            <Button x:Name="DebugButton" >调试</Button>
-        </StackPanel>
-    </Border>
+  <UserControl.Styles>
+    <Style Selector="Button">
+      <Setter Property="Foreground" Value="White"></Setter>
+      <Setter Property="Padding" Value="0,0,0,0"></Setter>
+      <Setter Property="Margin" Value="5,0,0,0"></Setter>
+
+      <Style Selector="^:pointerover">
+        <Setter Property="Foreground" Value="#FFADADAD"></Setter>
+      </Style>
+    </Style>
+
+    <Style Selector="TextBlock">
+      <Setter Property="FontSize" Value="15"></Setter>
+      <Setter Property="Foreground" Value="White"></Setter>
+      <Setter Property="Margin" Value="5,0,0,0"></Setter>
+    </Style>
+  </UserControl.Styles>
+  <Border BorderThickness="0,1,0,0" BorderBrush="#FF3D3D3D">
+    <StackPanel Orientation="Horizontal">
+      <TextBlock x:Name="StatusBarTextBlock">内容</TextBlock>
+      <Button x:Name="DebugButton" Click="DebugButton_OnClick">调试</Button>
+    </StackPanel>
+  </Border>
 </UserControl>
