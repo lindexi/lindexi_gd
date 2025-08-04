@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
+using LightTextEditorPlus;
 using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
@@ -12,6 +13,8 @@ public partial class MainEditorView : UserControl
     {
         InitializeComponent();
         var textEditor = new LightTextEditorPlus.TextEditor();
+        textEditor.TextEditorCore.SetExitDebugMode();
+
         // 优先采用 SetForeground 设置颜色
         TextElement.SetForeground(textEditor, Brushes.Azure);
         textEditor.SetStyleTextRunProperty(runProperty => runProperty with
@@ -20,5 +23,9 @@ public partial class MainEditorView : UserControl
             Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
         });
         TextEditorBorder.Child = textEditor;
+
+        CurrentTextEditor = textEditor;
     }
+
+    public TextEditor CurrentTextEditor { get; }
 }
