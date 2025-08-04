@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -53,6 +53,9 @@ partial class TextEditorCore
 
     /// <inheritdoc cref="TextEditorDebugConfiguration.SetInDebugMode"/>
     public void SetInDebugMode() => DebugConfiguration.SetInDebugMode();
+
+    /// <inheritdoc cref="TextEditorDebugConfiguration.SetExitDebugMode"/>
+    public void SetExitDebugMode() => DebugConfiguration.SetExitDebugMode();
 
     /// <inheritdoc cref="TextEditorDebugConfiguration.SetAllInDebugMode"/>
     public static void SetAllInDebugMode() => TextEditorDebugConfiguration.SetAllInDebugMode();
