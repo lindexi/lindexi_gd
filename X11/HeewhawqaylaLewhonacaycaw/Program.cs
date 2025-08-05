@@ -75,6 +75,7 @@ XSelectInput(display, handle, mask);
 var gc = XCreateGC(display, handle, 0, 0);
 
 XMapWindow(display, handle);
+XFlush(display);
 
 using var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
@@ -101,6 +102,8 @@ while (true)
     {
         var window = @event.ExposeEvent.window;
         Debug.Assert(window == handle);
+
+        xImage = CreateImage(skBitmap);
 
         skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
         skCanvas.Flush();
