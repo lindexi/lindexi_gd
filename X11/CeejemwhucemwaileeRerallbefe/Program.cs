@@ -44,10 +44,10 @@ var xDisplayHeight = XDisplayHeight(display, screen);
 Console.WriteLine($"XDisplayWidth={xDisplayWidth}");
 Console.WriteLine($"XDisplayHeight={xDisplayHeight}");
 
-var width = xDisplayWidth /2;
+var width = xDisplayWidth;
 var height = xDisplayHeight/2;
 
-var handle = XCreateWindow(display, rootWindow, -290, 0, width, height, 5,
+var handle = XCreateWindow(display, rootWindow, -190, 0, width, height, 5,
     32,
     (int) CreateWindowArgs.InputOutput,
     visual,
@@ -124,6 +124,10 @@ while (true)
             stopwatch.Stop();
             Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
         }
+    }
+    else
+    {
+        Console.WriteLine($"Event={@event}");
     }
 }
 
