@@ -54,8 +54,6 @@ class RenderManager
                 caretColor = currentCaretRunProperty.AsSkiaRunProperty().Foreground.AsSolidColor();
             }
 
-            // 如果当前没有文本，则取样式的前景色
-            //?? StyleRunProperty.Foreground.AsSolidColor();
             _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor.Value);
         }
         else
