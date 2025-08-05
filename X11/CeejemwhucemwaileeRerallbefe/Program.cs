@@ -44,10 +44,10 @@ var xDisplayHeight = XDisplayHeight(display, screen);
 Console.WriteLine($"XDisplayWidth={xDisplayWidth}");
 Console.WriteLine($"XDisplayHeight={xDisplayHeight}");
 
-var width = xDisplayWidth;
-var height = xDisplayHeight;
+var width = xDisplayWidth /2;
+var height = xDisplayHeight/2;
 
-var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
+var handle = XCreateWindow(display, rootWindow, -290, 0, width, height, 5,
     32,
     (int) CreateWindowArgs.InputOutput,
     visual,
