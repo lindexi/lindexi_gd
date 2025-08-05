@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using BujeeberehemnaNurgacolarje;
+
 using CPF.Linux;
 
 using SkiaSharp;
@@ -12,6 +14,8 @@ XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
+
+Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxx");
 
 var randr15ScreensImpl = new Randr15ScreensImpl(display, rootWindow);
 var monitorInfos = randr15ScreensImpl.GetMonitorInfos();
@@ -51,14 +55,29 @@ var xDisplayHeight = XDisplayHeight(display, screen);
 Console.WriteLine($"XDisplayWidth={xDisplayWidth}");
 Console.WriteLine($"XDisplayHeight={xDisplayHeight}");
 
-var width = xDisplayWidth;
-var height = xDisplayHeight/2;
+var width = xDisplayWidth / 2;
+var height = xDisplayHeight / 2;
 
-var handle = XCreateWindow(display, rootWindow, -190, 0, width, height, 5,
+var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
     (int) CreateWindowArgs.InputOutput,
     visual,
     (nuint) valueMask, ref xSetWindowAttributes);
+
+// 在 XMapWindow 之前固定在某个屏幕上
+var hints = new XSizeHints
+{
+    min_width = width,
+    min_height = height,
+    max_width = width,
+    max_height = height,
+
+    x = 0,
+    y = 0,
+};
+var flags = XSizeHintsFlags.PMinSize | XSizeHintsFlags.PResizeInc | XSizeHintsFlags.PPosition | XSizeHintsFlags.USPosition;
+hints.flags = (IntPtr) flags;
+XSetWMNormalHints(display, handle, ref hints);
 
 XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                          XEventMask.PointerMotionHintMask;
@@ -78,21 +97,6 @@ var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Pre
 var skCanvas = new SKCanvas(skBitmap);
 
 var xImage = CreateImage(skBitmap);
-
-
-
-IntPtr mapCache = IntPtr.Zero;
-
-//{
-//    var stopwatch = Stopwatch.StartNew();
-//    var length = 1000;
-//    for (var i = 0; i < length; i++)
-//    {
-//        ReplacePixels(skBitmap2, skBitmap);
-//    }
-//    stopwatch.Stop();
-//    Console.WriteLine($"拷贝耗时：{stopwatch.ElapsedMilliseconds * 1.0 / length}");
-//}
 
 skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
 skCanvas.Flush();
@@ -132,16 +136,27 @@ while (true)
             Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
         }
     }
+    else if (@event.type == XEventName.PropertyNotify)
+    {
+        var atom = @event.PropertyEvent.atom;
+        var atomNamePtr = XGetAtomName(display, atom);
+        var atomName = Marshal.PtrToStringAnsi(atomNamePtr);
+        XFree(atomNamePtr);
+        Console.WriteLine($"PropertyNotify {atomName}({atom}) State={@event.PropertyEvent.state}");
+    }
+    else if (@event.type is XEventName.KeymapNotify)
+    {
+        // 忽略
+    }
+    else if (@event.type is XEventName.ConfigureNotify)
+    {
+
+    }
     else
     {
         Console.WriteLine($"Event={@event}");
     }
 }
-
-[DllImport("libc", SetLastError = true)]
-static extern IntPtr mmap(IntPtr addr, IntPtr length, int prot, int flags, int fd, IntPtr offset);
-[DllImport("libc", SetLastError = true)]
-static extern int munmap(IntPtr addr, IntPtr length);
 
 
 
