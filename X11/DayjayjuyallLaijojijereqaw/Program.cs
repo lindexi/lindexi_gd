@@ -40,16 +40,16 @@ testX11Window1.Draw();
 
 Console.WriteLine($"X11Window1={testX11Window1.X11Window}");
 
-var testX11Window2 = new TestX11Window(1920, 0, width, height, display, rootWindow, screen);
-testX11Window2.MapWindow();
-testX11Window2.Draw();
+//var testX11Window2 = new TestX11Window(1920, 0, width, height, display, rootWindow, screen);
+//testX11Window2.MapWindow();
+//testX11Window2.Draw();
 
-Console.WriteLine($"X11Window2={testX11Window2.X11Window}");
+//Console.WriteLine($"X11Window2={testX11Window2.X11Window}");
 
 var dictionary = new Dictionary<IntPtr, TestX11Window>
 {
     [testX11Window1.X11Window] = testX11Window1,
-    [testX11Window2.X11Window] = testX11Window2
+    //[testX11Window2.X11Window] = testX11Window2
 };
 
 
