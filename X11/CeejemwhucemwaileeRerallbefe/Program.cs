@@ -1,12 +1,14 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using BujeeberehemnaNurgacolarje;
 
-using BujeeberehemnaNurgacolarje;
+using CeejemwhucemwaileeRerallbefe;
 
 using CPF.Linux;
 
 using SkiaSharp;
+
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using static CPF.Linux.XLib;
 
@@ -24,84 +26,34 @@ for (var i = 0; i < monitorInfos.Length; i++)
     Console.WriteLine($"屏幕{i} {monitorInfos[i]}");
 }
 
-XMatchVisualInfo(display, screen, 32, 4, out var info);
-var visual = info.visual;
-
-var valueMask =
-        //SetWindowValuemask.BackPixmap
-        0
-        | SetWindowValuemask.BackPixel
-        | SetWindowValuemask.BorderPixel
-        | SetWindowValuemask.BitGravity
-        | SetWindowValuemask.WinGravity
-        | SetWindowValuemask.BackingStore
-        | SetWindowValuemask.ColorMap
-    //| SetWindowValuemask.OverrideRedirect
-    ;
-var xSetWindowAttributes = new XSetWindowAttributes
-{
-    backing_store = 1,
-    bit_gravity = Gravity.NorthWestGravity,
-    win_gravity = Gravity.NorthWestGravity,
-    //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
-    colormap = XCreateColormap(display, rootWindow, visual, 0),
-    border_pixel = 0,
-    background_pixel = 0,
-};
-
 var xDisplayWidth = XDisplayWidth(display, screen);
 var xDisplayHeight = XDisplayHeight(display, screen);
 
 Console.WriteLine($"XDisplayWidth={xDisplayWidth}");
 Console.WriteLine($"XDisplayHeight={xDisplayHeight}");
 
-var width = xDisplayWidth / 2;
+var width = xDisplayWidth;
 var height = xDisplayHeight / 2;
 
-var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-    32,
-    (int) CreateWindowArgs.InputOutput,
-    visual,
-    (nuint) valueMask, ref xSetWindowAttributes);
+var dictionary = new Dictionary<IntPtr, TestX11Window>();
 
-// 在 XMapWindow 之前固定在某个屏幕上
-var hints = new XSizeHints
-{
-    min_width = width,
-    min_height = height,
-    max_width = width,
-    max_height = height,
+var testX11Window1 = new TestX11Window(0, 0, width, height, display, rootWindow, screen);
 
-    x = 0,
-    y = 0,
-};
-var flags = XSizeHintsFlags.PMinSize | XSizeHintsFlags.PResizeInc | XSizeHintsFlags.PPosition | XSizeHintsFlags.USPosition;
-hints.flags = (IntPtr) flags;
-XSetWMNormalHints(display, handle, ref hints);
+testX11Window1.MapWindow();
+testX11Window1.Draw();
 
-XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
-                         XEventMask.PointerMotionHintMask;
-var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
-XSelectInput(display, handle, mask);
+Console.WriteLine($"X11Window1={testX11Window1.X11Window}");
 
-XMapWindow(display, handle);
-XFlush(display);
+dictionary[testX11Window1.X11Window] = testX11Window1;
 
-var gc = XCreateGC(display, handle, 0, 0);
+//var testX11Window2 = new TestX11Window(1920, 0, width, height, display, rootWindow, screen);
+//testX11Window2.MapWindow();
+//testX11Window2.Draw();
 
-var mapLength = width * 4 * height;
-Console.WriteLine($"Length = {mapLength}");
+//Console.WriteLine($"X11Window2={testX11Window2.X11Window}");
 
-var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+//dictionary[testX11Window2.X11Window] = testX11Window2;
 
-var skCanvas = new SKCanvas(skBitmap);
-
-var xImage = CreateImage(skBitmap);
-
-skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
-skCanvas.Flush();
-XPutImage(display, handle, gc, ref xImage, 0, 0, 0, 0, (uint) skBitmap.Width,
-    (uint) skBitmap.Height);
 
 IntPtr invokeMessageId = new IntPtr(123123123);
 
@@ -116,24 +68,17 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
-        skCanvas.Flush();
-
-        XPutImage(display, handle, gc, ref xImage, 0, 0, 0, 0, (uint) skBitmap.Width,
-            (uint) skBitmap.Height);
+        var window = @event.ExposeEvent.window;
+        if (dictionary.TryGetValue(window, out var x11Window))
+        {
+            x11Window.Draw();
+        }
     }
     else if (@event.type == XEventName.ClientMessage)
     {
         if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
-            skCanvas.Clear(new SKColor((uint) Random.Shared.Next()));
-            skCanvas.Flush();
 
-            var stopwatch = Stopwatch.StartNew();
-            XPutImage(display, handle, gc, ref xImage, 0, 0, 0, 0, (uint) skBitmap.Width,
-                (uint) skBitmap.Height);
-            stopwatch.Stop();
-            Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
         }
     }
     else if (@event.type == XEventName.PropertyNotify)
@@ -142,7 +87,7 @@ while (true)
         var atomNamePtr = XGetAtomName(display, atom);
         var atomName = Marshal.PtrToStringAnsi(atomNamePtr);
         XFree(atomNamePtr);
-        Console.WriteLine($"PropertyNotify {atomName}({atom}) State={@event.PropertyEvent.state}");
+        //Console.WriteLine($"PropertyNotify {atomName}({atom}) State={@event.PropertyEvent.state}");
     }
     else if (@event.type is XEventName.KeymapNotify)
     {
@@ -150,39 +95,14 @@ while (true)
     }
     else if (@event.type is XEventName.ConfigureNotify)
     {
-
+        Console.WriteLine($"ConfigureNotify {@event}");
     }
     else
     {
-        Console.WriteLine($"Event={@event}");
+        //Console.WriteLine($"Event={@event}");
     }
 }
 
 
 
-static XImage CreateImage(SKBitmap skBitmap)
-{
-    const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
-    var bitPerByte = 8;
-
-    var bitmapWidth = skBitmap.Width;
-    var bitmapHeight = skBitmap.Height;
-
-    var img = new XImage();
-    int bitsPerPixel = bytePerPixelCount * bitPerByte;
-    img.width = bitmapWidth;
-    img.height = bitmapHeight;
-    img.format = 2; //ZPixmap;
-    img.data = skBitmap.GetPixels();
-    img.byte_order = 0; // LSBFirst;
-    img.bitmap_unit = bitsPerPixel;
-    img.bitmap_bit_order = 0; // LSBFirst;
-    img.bitmap_pad = bitsPerPixel;
-    img.depth = bitsPerPixel;
-    img.bytes_per_line = bitmapWidth * bytePerPixelCount;
-    img.bits_per_pixel = bitsPerPixel;
-    XInitImage(ref img);
-
-    return img;
-}
 
