@@ -32,27 +32,27 @@ var xDisplayHeight = XDisplayHeight(display, screen);
 Console.WriteLine($"XDisplayWidth={xDisplayWidth}");
 Console.WriteLine($"XDisplayHeight={xDisplayHeight}");
 
-var width = xDisplayWidth;
+var width = xDisplayWidth / 2;
 var height = xDisplayHeight / 2;
 
-var dictionary = new Dictionary<IntPtr, TestX11Window>();
-
-var testX11Window1 = new TestX11Window(0, 0, width, height, display, rootWindow, screen);
+var testX11Window1 = new TestX11Window(0,0,width, height, display, rootWindow, screen);
 
 testX11Window1.MapWindow();
 testX11Window1.Draw();
 
 Console.WriteLine($"X11Window1={testX11Window1.X11Window}");
 
-dictionary[testX11Window1.X11Window] = testX11Window1;
+var testX11Window2 = new TestX11Window(1920, 0 , width, height, display, rootWindow, screen);
+testX11Window2.MapWindow();
+testX11Window2.Draw();
 
-//var testX11Window2 = new TestX11Window(1920, 0, width, height, display, rootWindow, screen);
-//testX11Window2.MapWindow();
-//testX11Window2.Draw();
+Console.WriteLine($"X11Window2={testX11Window2.X11Window}");
 
-//Console.WriteLine($"X11Window2={testX11Window2.X11Window}");
-
-//dictionary[testX11Window2.X11Window] = testX11Window2;
+var dictionary = new Dictionary<IntPtr, TestX11Window>
+{
+    [testX11Window1.X11Window] = testX11Window1,
+    [testX11Window2.X11Window] = testX11Window2
+};
 
 
 IntPtr invokeMessageId = new IntPtr(123123123);
@@ -69,7 +69,7 @@ while (true)
     if (@event.type == XEventName.Expose)
     {
         var window = @event.ExposeEvent.window;
-        if (dictionary.TryGetValue(window, out var x11Window))
+        if (dictionary.TryGetValue(window,out var x11Window))
         {
             x11Window.Draw();
         }
@@ -78,7 +78,7 @@ while (true)
     {
         if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
-
+          
         }
     }
     else if (@event.type == XEventName.PropertyNotify)
