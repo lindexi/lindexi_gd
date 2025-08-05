@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
+using BujeeberehemnaNurgacolarje;
 using CPF.Linux;
 
 using SkiaSharp;
@@ -12,6 +12,13 @@ XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
+
+var randr15ScreensImpl = new Randr15ScreensImpl(display, rootWindow);
+var monitorInfos = randr15ScreensImpl.GetMonitorInfos();
+for (var i = 0; i < monitorInfos.Length; i++)
+{
+    Console.WriteLine($"屏幕{i} {monitorInfos[i]}");
+}
 
 XMatchVisualInfo(display, screen, 32, 4, out var info);
 var visual = info.visual;
@@ -163,3 +170,4 @@ static XImage CreateImage(SKBitmap skBitmap)
 
     return img;
 }
+
