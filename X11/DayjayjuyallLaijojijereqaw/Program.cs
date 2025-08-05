@@ -1,6 +1,6 @@
 ﻿using BujeeberehemnaNurgacolarje;
 
-using CeejemwhucemwaileeRerallbefe;
+using DayjayjuyallLaijojijereqaw;
 
 using CPF.Linux;
 
@@ -16,8 +16,6 @@ XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
-
-Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxx");
 
 var randr15ScreensImpl = new Randr15ScreensImpl(display, rootWindow);
 var monitorInfos = randr15ScreensImpl.GetMonitorInfos();

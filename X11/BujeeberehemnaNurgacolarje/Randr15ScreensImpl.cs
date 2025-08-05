@@ -73,20 +73,9 @@ public unsafe struct MonitorInfo
 
     public override string ToString()
     {
-        //string? name;
-        //if (Name == 0)
-        //{
-        //    name = "Unknown";
-        //}
-        //else
-        //{
-        //    name = Marshal.PtrToStringAuto(Name);
-        //}
-
         var namePtr = XGetAtomName(Display, Name);
             var name = Marshal.PtrToStringAnsi(namePtr);
         XFree(namePtr);
-
 
         return $"{name}({Name}) IsPrimary={IsPrimary} XY={X},{Y} WH={Width},{Height}";
     }
