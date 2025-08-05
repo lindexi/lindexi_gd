@@ -212,8 +212,6 @@ class RenderManager
         {
             throw new ArgumentOutOfRangeException();
         }
-
-        throw new NotSupportedException();
     }
 
     private BaseSkiaTextRenderer? _textRender;
