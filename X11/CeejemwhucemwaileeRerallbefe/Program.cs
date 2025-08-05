@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
+using BujeeberehemnaNurgacolarje;
 using CPF.Linux;
 
 using SkiaSharp;
@@ -12,6 +12,13 @@ XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
+
+var randr15ScreensImpl = new Randr15ScreensImpl(display, rootWindow);
+var monitorInfos = randr15ScreensImpl.GetMonitorInfos();
+for (var i = 0; i < monitorInfos.Length; i++)
+{
+    Console.WriteLine($"屏幕{i} {monitorInfos[i]}");
+}
 
 XMatchVisualInfo(display, screen, 32, 4, out var info);
 var visual = info.visual;
@@ -44,10 +51,10 @@ var xDisplayHeight = XDisplayHeight(display, screen);
 Console.WriteLine($"XDisplayWidth={xDisplayWidth}");
 Console.WriteLine($"XDisplayHeight={xDisplayHeight}");
 
-var width = xDisplayWidth /2;
+var width = xDisplayWidth;
 var height = xDisplayHeight/2;
 
-var handle = XCreateWindow(display, rootWindow, -290, 0, width, height, 5,
+var handle = XCreateWindow(display, rootWindow, -190, 0, width, height, 5,
     32,
     (int) CreateWindowArgs.InputOutput,
     visual,
@@ -125,6 +132,10 @@ while (true)
             Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
         }
     }
+    else
+    {
+        Console.WriteLine($"Event={@event}");
+    }
 }
 
 [DllImport("libc", SetLastError = true)]
@@ -159,3 +170,4 @@ static XImage CreateImage(SKBitmap skBitmap)
 
     return img;
 }
+
