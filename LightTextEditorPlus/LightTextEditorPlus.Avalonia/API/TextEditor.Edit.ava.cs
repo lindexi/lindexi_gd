@@ -165,9 +165,6 @@ namespace LightTextEditorPlus
             createRunProperty(StyleRunProperty);
 
         /// <inheritdoc cref="DocumentManager.SetStyleTextRunProperty{T}"/>
-        /// <remarks>
-        /// 设置前景色会受到 <see cref="Avalonia.Controls.Documents.TextElement.SetForeground"/> 的影响，如需设置前景色，推荐使用 <see cref="Avalonia.Controls.Documents.TextElement.SetForeground"/> 方法
-        /// </remarks>
         public void SetStyleTextRunProperty(ConfigRunProperty config)
         {
             TextEditorCore.DocumentManager.SetStyleTextRunProperty((SkiaTextRunProperty property) => config(property));
