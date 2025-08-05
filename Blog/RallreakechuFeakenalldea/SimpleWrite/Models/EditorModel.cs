@@ -8,4 +8,5 @@ namespace SimpleWrite.Models;
 
 public class EditorModel
 {
+
 }
