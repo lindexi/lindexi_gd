@@ -39,7 +39,7 @@ for (var i = 0; i < monitorInfos.Length; i++)
     testX11Window.MapWindow();
 
     //await Task.Delay(TimeSpan.FromSeconds(1));
-    //testX11Window.SetFullScreen();
+    testX11Window.SetFullScreen();
     testX11Window.SetFullScreenMonitor(i);
 
     testX11Window.Draw();
