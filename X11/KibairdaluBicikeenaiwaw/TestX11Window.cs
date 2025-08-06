@@ -71,6 +71,77 @@ internal class TestX11Window
         //}
     }
 
+    public void SetFullScreen()
+    {
+        var hiddenAtom = XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true);
+        var fullScreenAtom = XInternAtom(Display, "_NET_WM_STATE_FULLSCREEN", true);
+
+        ChangeWMAtoms(false, hiddenAtom);
+        ChangeWMAtoms(true, fullScreenAtom);
+        //ChangeWMAtoms(false, _x11.Atoms._NET_WM_STATE_MAXIMIZED_VERT,
+        //    _x11.Atoms._NET_WM_STATE_MAXIMIZED_HORZ);
+    }
+
+    private void ChangeWMAtoms(bool enable, params IntPtr[] atoms)
+    {
+        if (atoms.Length != 1 && atoms.Length != 2)
+        {
+            throw new ArgumentException();
+        }
+
+        //if (!_mapped)
+        //{
+        //    XGetWindowProperty(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE, IntPtr.Zero, new IntPtr(256),
+        //        false, (IntPtr) Atom.XA_ATOM, out _, out _, out var nitems, out _,
+        //        out var prop);
+        //    var ptr = (IntPtr*) prop.ToPointer();
+        //    var newAtoms = new HashSet<IntPtr>();
+        //    for (var c = 0; c < nitems.ToInt64(); c++)
+        //        newAtoms.Add(*ptr);
+        //    XFree(prop);
+        //    foreach (var atom in atoms)
+        //        if (enable)
+        //            newAtoms.Add(atom);
+        //        else
+        //            newAtoms.Remove(atom);
+
+        //    XChangeProperty(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE, (IntPtr) Atom.XA_ATOM, 32,
+        //        PropertyMode.Replace, newAtoms.ToArray(), newAtoms.Count);
+        //}
+        var wmState = XInternAtom(Display, "_NET_WM_STATE", true);
+
+        SendNetWMMessage(wmState,
+            (IntPtr) (enable ? 1 : 0),
+            atoms[0],
+            atoms.Length > 1 ? atoms[1] : IntPtr.Zero,
+            atoms.Length > 2 ? atoms[2] : IntPtr.Zero,
+            atoms.Length > 3 ? atoms[3] : IntPtr.Zero
+         );
+    }
+
+    private void SendNetWMMessage(IntPtr message_type, IntPtr l0,
+        IntPtr? l1 = null, IntPtr? l2 = null, IntPtr? l3 = null, IntPtr? l4 = null)
+    {
+        var xev = new XEvent
+        {
+            ClientMessageEvent =
+            {
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = X11Window,
+                message_type = message_type,
+                format = 32,
+                ptr1 = l0,
+                ptr2 = l1 ?? IntPtr.Zero,
+                ptr3 = l2 ?? IntPtr.Zero,
+                ptr4 = l3 ?? IntPtr.Zero
+            }
+        };
+        xev.ClientMessageEvent.ptr4 = l4 ?? IntPtr.Zero;
+        XSendEvent(Display, RootWindow, false,
+            new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
+    }
+
     public void SetFullScreenMonitor()
     {
         // [Window Manager Protocols | Extended Window Manager Hints](https://specifications.freedesktop.org/wm-spec/1.5/ar01s06.html )
