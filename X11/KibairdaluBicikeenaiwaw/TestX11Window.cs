@@ -81,6 +81,26 @@ internal class TestX11Window
             int[] monitorEdges = [top, bottom, left, right];
             XChangeProperty(display, handle, wmState, (IntPtr)Atom.XA_ATOM, format: 32, PropertyMode.Replace,
                 monitorEdges, monitorEdges.Length);
+
+            // A Client wishing to change this list MUST send a _NET_WM_FULLSCREEN_MONITORS client message to the root window. The Window Manager MUST keep this list updated to reflect the current state of the window.
+            var xev = new XEvent
+            {
+                ClientMessageEvent =
+                {
+                    type = XEventName.ClientMessage,
+                    send_event = true,
+                    window = handle,
+                    message_type = wmState,
+                    format = 32,
+                    ptr1 = top,
+                    ptr2 = bottom,
+                    ptr3 = left,
+                    ptr4 = right,
+                }
+            };
+
+            XSendEvent(display, rootWindow, false,
+                new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
         }
     }
 
