@@ -79,6 +79,7 @@ internal class TestX11Window
         var wmState = XInternAtom(Display, "_NET_WM_FULLSCREEN_MONITORS", true);
         Console.WriteLine($"_NET_WM_FULLSCREEN_MONITORS={wmState}");
 
+        // _NET_WM_FULLSCREEN_MONITORS, CARDINAL[4]/32
         /*
          data.l[0] = the monitor whose top edge defines the top edge of the fullscreen window
          data.l[1] = the monitor whose bottom edge defines the bottom edge of the fullscreen window
@@ -90,8 +91,10 @@ internal class TestX11Window
         var right = X + Width;
         var bottom = Y + Height;
 
+        Console.WriteLine($"Left={left} Top={top} Right={right} Bottom={bottom}");
+
         int[] monitorEdges = [top, bottom, left, right];
-        XChangeProperty(Display, X11Window, wmState, (IntPtr) Atom.XA_ATOM, format: 32, PropertyMode.Replace,
+        XChangeProperty(Display, X11Window, wmState, (IntPtr) Atom.XA_CARDINAL, format: 32, PropertyMode.Replace,
             monitorEdges, monitorEdges.Length);
 
         // A Client wishing to change this list MUST send a _NET_WM_FULLSCREEN_MONITORS client message to the root window. The Window Manager MUST keep this list updated to reflect the current state of the window.
