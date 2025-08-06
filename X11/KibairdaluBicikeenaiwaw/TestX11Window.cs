@@ -162,6 +162,11 @@ internal class TestX11Window
         var right = X + Width;
         var bottom = Y + Height;
 
+        left = 0;
+        top = 0;
+        right = 0;
+        bottom = 0;
+
         Console.WriteLine($"Left={left} Top={top} Right={right} Bottom={bottom}");
 
         //int[] monitorEdges = [top, bottom, left, right];
