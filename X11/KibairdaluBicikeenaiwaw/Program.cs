@@ -34,15 +34,15 @@ for (var i = 0; i < monitorInfos.Length; i++)
     var width = monitorInfo.Width;
     var height = monitorInfo.Height;
 
-    var testX11Window = new TestX11Window(x, y, width, height, display, rootWindow, screen, isFullScreen: true);
+    var testX11Window = new TestX11Window($"Window{i}", x, y, width, height, display, rootWindow, screen, isFullScreen: true);
 
     testX11Window.MapWindow();
-    testX11Window.Draw();
 
     //await Task.Delay(TimeSpan.FromSeconds(1));
     testX11Window.SetFullScreen();
-    await Task.Delay(TimeSpan.FromMilliseconds(100));
     testX11Window.SetFullScreenMonitor(i);
+
+    testX11Window.Draw();
 
     dictionary[testX11Window.X11Window] = testX11Window;
 
@@ -89,7 +89,14 @@ while (true)
     }
     else if (@event.type is XEventName.ConfigureNotify)
     {
-        Console.WriteLine($"ConfigureNotify {@event}");
+        // ConfigureNotify XConfigureEvent (type=ConfigureNotify, serial=95, send_event=False, display=94855163599664, xevent=134217734, window=134217734, x=0, y=0, width=1920, height=1040, border_width=0, above=0, override_redirect=False)
+
+        XConfigureEvent configureEvent = @event.ConfigureEvent;
+        var window = configureEvent.window;
+        if (dictionary.TryGetValue(window, out var x11Window))
+        {
+            Console.WriteLine($"ConfigureNotify '{x11Window.Name}' XY={configureEvent.x},{configureEvent.y} WH={configureEvent.width},{configureEvent.height}");
+        }
     }
     else
     {

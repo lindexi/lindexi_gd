@@ -11,9 +11,10 @@ namespace KibairdaluBicikeenaiwaw;
 
 internal class TestX11Window
 {
-    public TestX11Window(int x, int y, int width, int height, nint display, nint rootWindow, int screen,
+    public TestX11Window(string name, int x, int y, int width, int height, nint display, nint rootWindow, int screen,
         bool isFullScreen)
     {
+        Name = name;
         Display = display;
 
         XMatchVisualInfo(display, screen, 32, 4, out var info);
@@ -70,6 +71,8 @@ internal class TestX11Window
         //    SetFullScreenMonitor();
         //}
     }
+
+    public string Name { get; }
 
     public void SetFullScreen()
     {
