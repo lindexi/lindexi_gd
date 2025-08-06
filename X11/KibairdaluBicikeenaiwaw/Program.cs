@@ -39,9 +39,12 @@ for (var i = 0; i < monitorInfos.Length; i++)
     testX11Window.MapWindow();
     testX11Window.Draw();
 
+    await Task.Delay(TimeSpan.FromSeconds(1));
+    testX11Window.SetFullScreenMonitor();
+
     dictionary[testX11Window.X11Window] = testX11Window;
 
-    Console.WriteLine($"X11Window1={testX11Window.X11Window}");
+    Console.WriteLine($"X11Window{i}={testX11Window.X11Window}");
 }
 
 IntPtr invokeMessageId = new IntPtr(123123123);
