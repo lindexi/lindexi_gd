@@ -77,6 +77,7 @@ internal class TestX11Window
         // 6.3 _NET_WM_FULLSCREEN_MONITORS
 
         var wmState = XInternAtom(Display, "_NET_WM_FULLSCREEN_MONITORS", true);
+        Console.WriteLine($"_NET_WM_FULLSCREEN_MONITORS={wmState}");
 
         /*
          data.l[0] = the monitor whose top edge defines the top edge of the fullscreen window
