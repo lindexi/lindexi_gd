@@ -41,6 +41,7 @@ for (var i = 0; i < monitorInfos.Length; i++)
 
     //await Task.Delay(TimeSpan.FromSeconds(1));
     testX11Window.SetFullScreen();
+    await Task.Delay(TimeSpan.FromMilliseconds(100));
     testX11Window.SetFullScreenMonitor();
 
     dictionary[testX11Window.X11Window] = testX11Window;
