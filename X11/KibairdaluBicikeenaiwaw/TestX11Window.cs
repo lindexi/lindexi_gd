@@ -164,9 +164,9 @@ internal class TestX11Window
 
         Console.WriteLine($"Left={left} Top={top} Right={right} Bottom={bottom}");
 
-        int[] monitorEdges = [top, bottom, left, right];
-        XChangeProperty(Display, X11Window, wmState, (IntPtr) Atom.XA_CARDINAL, format: 32, PropertyMode.Replace,
-            monitorEdges, monitorEdges.Length);
+        //int[] monitorEdges = [top, bottom, left, right];
+        //XChangeProperty(Display, X11Window, wmState, (IntPtr) Atom.XA_CARDINAL, format: 32, PropertyMode.Replace,
+        //    monitorEdges, monitorEdges.Length);
 
         // A Client wishing to change this list MUST send a _NET_WM_FULLSCREEN_MONITORS client message to the root window. The Window Manager MUST keep this list updated to reflect the current state of the window.
         var xev = new XEvent
