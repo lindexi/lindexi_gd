@@ -142,13 +142,18 @@ internal class TestX11Window
             new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
     }
 
-    public void SetFullScreenMonitor()
+    public void SetFullScreenMonitor(int monitorIndex)
     {
         // [Window Manager Protocols | Extended Window Manager Hints](https://specifications.freedesktop.org/wm-spec/1.5/ar01s06.html )
         // 6.3 _NET_WM_FULLSCREEN_MONITORS
+        // A read-only list of 4 monitor indices indicating the top, bottom, left, and right edges of the window when the fullscreen state is enabled. The indices are from the set returned by the Xinerama extension.
+        // Windows transient for the window with _NET_WM_FULLSCREEN_MONITORS set, such as those with type _NEW_WM_WINDOW_TYPE_DIALOG, are generally expected to be positioned (e.g. centered) with respect to only one of the monitors. This might be the monitor containing the mouse pointer or the monitor containing the non-full-screen window.
+        // A Client wishing to change this list MUST send a _NET_WM_FULLSCREEN_MONITORS client message to the root window. The Window Manager MUST keep this list updated to reflect the current state of the window.
 
         var wmState = XInternAtom(Display, "_NET_WM_FULLSCREEN_MONITORS", true);
         Console.WriteLine($"_NET_WM_FULLSCREEN_MONITORS={wmState}");
+
+        // 如 https://github.com/underdoeg/ofxFenster/blob/6ecd5bd9b8412f98e1c4e73433e2aade2b5902c4/src/ofxFenster.cpp#L691 的代码所示。这里传入的 Left、Top、Right、Bottom 不是像素的值，而是屏幕的索引值
 
         // _NET_WM_FULLSCREEN_MONITORS, CARDINAL[4]/32
         /*
@@ -157,15 +162,16 @@ internal class TestX11Window
          data.l[2] = the monitor whose left edge defines the left edge of the fullscreen window
          data.l[3] = the monitor whose right edge defines the right edge of the fullscreen window
         */
+        // 这里的 Left、Top、Right、Bottom 是屏幕的索引值，而不是像素的值
         var left = X;
         var top = Y;
         var right = X + Width;
         var bottom = Y + Height;
 
-        left = 0;
-        top = 0;
-        right = 0;
-        bottom = 0;
+        left = monitorIndex;
+        top = monitorIndex;
+        right = monitorIndex;
+        bottom = monitorIndex;
 
         Console.WriteLine($"Left={left} Top={top} Right={right} Bottom={bottom}");
 
