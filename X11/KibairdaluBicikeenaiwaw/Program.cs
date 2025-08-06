@@ -39,6 +39,8 @@ for (var i = 0; i < monitorInfos.Length; i++)
     testX11Window.MapWindow();
     testX11Window.Draw();
 
+    testX11Window.SetFullScreenMonitor();
+
     dictionary[testX11Window.X11Window] = testX11Window;
 
     Console.WriteLine($"X11Window1={testX11Window.X11Window}");

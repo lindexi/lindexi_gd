@@ -57,59 +57,75 @@ internal class TestX11Window
         var gc = XCreateGC(display, handle, 0, 0);
         GC = gc;
 
+        X = x;
+        Y = y;
+
         Width = width;
         Height = height;
 
-        if (isFullScreen)
+        RootWindow = rootWindow;
+
+        //if (isFullScreen)
+        //{
+        //    SetFullScreenMonitor();
+        //}
+    }
+
+    public void SetFullScreenMonitor()
+    {
+        // [Window Manager Protocols | Extended Window Manager Hints](https://specifications.freedesktop.org/wm-spec/1.5/ar01s06.html )
+        // 6.3 _NET_WM_FULLSCREEN_MONITORS
+
+        var wmState = XInternAtom(Display, "_NET_WM_FULLSCREEN_MONITORS", true);
+
+        /*
+         data.l[0] = the monitor whose top edge defines the top edge of the fullscreen window
+         data.l[1] = the monitor whose bottom edge defines the bottom edge of the fullscreen window
+         data.l[2] = the monitor whose left edge defines the left edge of the fullscreen window
+         data.l[3] = the monitor whose right edge defines the right edge of the fullscreen window
+        */
+        var left = X;
+        var top = Y;
+        var right = X + Width;
+        var bottom = Y + Height;
+
+        int[] monitorEdges = [top, bottom, left, right];
+        XChangeProperty(Display, X11Window, wmState, (IntPtr) Atom.XA_ATOM, format: 32, PropertyMode.Replace,
+            monitorEdges, monitorEdges.Length);
+
+        // A Client wishing to change this list MUST send a _NET_WM_FULLSCREEN_MONITORS client message to the root window. The Window Manager MUST keep this list updated to reflect the current state of the window.
+        var xev = new XEvent
         {
-            // [Window Manager Protocols | Extended Window Manager Hints](https://specifications.freedesktop.org/wm-spec/1.5/ar01s06.html )
-            // 6.3 _NET_WM_FULLSCREEN_MONITORS
-
-            var wmState = XInternAtom(Display, "_NET_WM_FULLSCREEN_MONITORS", true);
-
-            /*
-             data.l[0] = the monitor whose top edge defines the top edge of the fullscreen window
-             data.l[1] = the monitor whose bottom edge defines the bottom edge of the fullscreen window
-             data.l[2] = the monitor whose left edge defines the left edge of the fullscreen window
-             data.l[3] = the monitor whose right edge defines the right edge of the fullscreen window
-            */
-            var left = x;
-            var top = y;
-            var right = x + width;
-            var bottom = y + height;
-
-            int[] monitorEdges = [top, bottom, left, right];
-            XChangeProperty(display, handle, wmState, (IntPtr)Atom.XA_ATOM, format: 32, PropertyMode.Replace,
-                monitorEdges, monitorEdges.Length);
-
-            // A Client wishing to change this list MUST send a _NET_WM_FULLSCREEN_MONITORS client message to the root window. The Window Manager MUST keep this list updated to reflect the current state of the window.
-            var xev = new XEvent
+            ClientMessageEvent =
             {
-                ClientMessageEvent =
-                {
-                    type = XEventName.ClientMessage,
-                    send_event = true,
-                    window = handle,
-                    message_type = wmState,
-                    format = 32,
-                    ptr1 = top,
-                    ptr2 = bottom,
-                    ptr3 = left,
-                    ptr4 = right,
-                }
-            };
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = X11Window,
+                message_type = wmState,
+                format = 32,
+                ptr1 = top,
+                ptr2 = bottom,
+                ptr3 = left,
+                ptr4 = right,
+            }
+        };
 
-            XSendEvent(display, rootWindow, false,
-                new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
-        }
+        XSendEvent(Display, RootWindow, false,
+            new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
     }
 
     public IntPtr X11Window { get; }
 
     public IntPtr Display { get; }
-    public IntPtr GC { get; set; }
-    public int Width { get; set; }
-    public int Height { get; set; }
+    public IntPtr GC { get; }
+
+    public int X { get; }
+    public int Y { get; }
+
+    public int Width { get; }
+    public int Height { get; }
+
+    public IntPtr RootWindow { get; }
 
     public void MapWindow()
     {
