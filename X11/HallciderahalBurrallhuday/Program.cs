@@ -60,6 +60,8 @@ while (true)
         break;
     }
 
+    Console.WriteLine($"Event={@event}");
+
     if (@event.type == XEventName.Expose)
     {
         var window = @event.ExposeEvent.window;
@@ -100,7 +102,6 @@ while (true)
     }
     else
     {
-        //Console.WriteLine($"Event={@event}");
     }
 }
 
