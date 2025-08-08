@@ -15,41 +15,43 @@ var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
 
+var eventWindow = CreateEventWindow(display, rootWindow);
+
 IntPtr invokeMessageId = new IntPtr(123123123);
 
-//Task.Run(() =>
-//{
-//    var newDisplay = XOpenDisplay(IntPtr.Zero);
+Task.Run(() =>
+{
+    var newDisplay = XOpenDisplay(IntPtr.Zero);
 
-//    while (true)
-//    {
-//        Console.ReadLine();
+    while (true)
+    {
+        Console.ReadLine();
 
-//        var handle = dictionary.First().Value.X11Window;
+        //var handle = dictionary.First().Value.X11Window;
 
-//        var xEvent = new XEvent
-//        {
-//            ClientMessageEvent = 
-//            {
-//                type = XEventName.ClientMessage,
-//                send_event = true,
-//                window = handle,
-//                display = newDisplay,
-//                message_type = 0,
-//                format = 32,
-//                ptr1 = invokeMessageId
-//            }
-//        };
-//        // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-//        XLib.XSendEvent(newDisplay, handle, propagate: false,
-//            0,
-//            ref xEvent);
+        var xEvent = new XEvent
+        {
+            ClientMessageEvent =
+            {
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = eventWindow,
+                display = newDisplay,
+                message_type = 0,
+                format = 32,
+                ptr1 = invokeMessageId
+            }
+        };
+        // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+        XLib.XSendEvent(newDisplay, eventWindow, propagate: false,
+            0,
+            ref xEvent);
 
-//        XFlush(newDisplay);
-//    }
+        XFlush(newDisplay);
+    }
 
-//    XCloseDisplay(newDisplay);
-//});
+    XCloseDisplay(newDisplay);
+});
 
 while (true)
 {
@@ -74,7 +76,7 @@ while (true)
     {
         if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
-            Console.WriteLine($"设置全屏");
+            Console.WriteLine($"收到消息");
             //foreach (var testX11Window in dictionary.Values)
             //{
             //    testX11Window.SetFullScreen();
