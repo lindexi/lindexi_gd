@@ -16,7 +16,7 @@ public class X11Window : X11WindowNativeInterop
         SetNetWmWindowTypeNormal();
     }
 
-    public X11Window(X11Application application, IntPtr x11WindowIntPtr) : base(application.X11Info,
+    internal X11Window(X11Application application, IntPtr x11WindowIntPtr) : base(application.X11Info,
         x11WindowIntPtr)
     {
         Application = application;
@@ -88,5 +88,15 @@ public class X11Window : X11WindowNativeInterop
         Log.Info($"[InkCore][X11Apps][X11Window] 完成创建窗口 X11Window={x11Window}");
 
         return x11Window;
+    }
+
+    internal void DispatchEvent(XEvent @event)
+    {
+        OnDispatchEvent(@event);
+    }
+
+    protected virtual unsafe void OnDispatchEvent(XEvent @event)
+    {
+        OnReceiveEvent(&@event);
     }
 }
