@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 using X11ApplicationFramework.Natives;
 
+using static X11ApplicationFramework.Natives.XLib;
+
 namespace X11ApplicationFramework.Apps;
 
 /// <summary>
@@ -356,7 +358,7 @@ public class X11WindowNativeInterop
     {
         // The type of `_NET_WM_PID` is `CARDINAL` which is 32-bit unsigned integer, see https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html
         var _NET_WM_PID = XLib.XInternAtom(Display, "_NET_WM_PID", true);
-        IntPtr XA_CARDINAL = (IntPtr) 6;
+        IntPtr XA_CARDINAL = X11Atoms.XA_CARDINAL;
         var pid = (uint) Environment.ProcessId;
         XLib.XChangeProperty(Display, X11WindowIntPtr,
             _NET_WM_PID, XA_CARDINAL, 32,
@@ -403,99 +405,4 @@ public class X11WindowNativeInterop
     protected virtual unsafe void OnUnmapped(XUnmapEvent* xUnmapEvent)
     {
     }
-}
-
-[SupportedOSPlatform("Linux")]
-public class X11Window : X11WindowNativeInterop
-{
-    public X11Window(X11Application application, X11WindowCreateInfo createInfo) : this(application, CreateX11Window(application, createInfo))
-    {
-        AppendPid();
-        SetNetWmWindowTypeNormal();
-    }
-
-    public X11Window(X11Application application, IntPtr x11WindowIntPtr) : base(application.X11Info,
-        x11WindowIntPtr)
-    {
-        //Application = application;
-        //application.RegisterWindow(this);
-    }
-
-    private static IntPtr CreateX11Window(X11Application application, X11WindowCreateInfo createInfo)
-    {
-        var x11Info = application.X11Info;
-        var display = x11Info.Display;
-        var rootWindow = x11Info.RootWindow;
-        var screen = x11Info.Screen;
-
-        var width = createInfo.Width;
-        var height = createInfo.Height;
-
-        if (createInfo.IsFullScreen)
-        {
-            width = x11Info.XDisplayWidth;
-            height = x11Info.XDisplayHeight;
-        }
-
-        //StaticDebugLogger.WriteLine($"创建窗口 {width},{height}");
-
-        XLib.XMatchVisualInfo(display, screen, 32, 4, out var info);
-        var visual = info.visual;
-
-        var valueMask =
-                //SetWindowValuemask.BackPixmap
-                0
-                | SetWindowValuemask.BackPixel
-                | SetWindowValuemask.BorderPixel
-                | SetWindowValuemask.BitGravity
-                | SetWindowValuemask.WinGravity
-                | SetWindowValuemask.BackingStore
-                | SetWindowValuemask.ColorMap
-            //| SetWindowValuemask.OverrideRedirect
-            ;
-        var xSetWindowAttributes = new XSetWindowAttributes
-        {
-            backing_store = 1,
-            bit_gravity = Gravity.NorthWestGravity,
-            win_gravity = Gravity.NorthWestGravity,
-            //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
-            colormap = XLib.XCreateColormap(display, rootWindow, visual, 0),
-            border_pixel = 0,
-            background_pixel = IntPtr.Zero,
-        };
-
-        var x11Window = XLib.XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-            32,
-            (int) CreateWindowArgs.InputOutput,
-            visual,
-            (nuint) valueMask, ref xSetWindowAttributes);
-
-        Log.Info($"[InkCore][X11Apps][X11Window] 创建窗口 Visual={visual} WH={width},{height} XID={x11Window}");
-
-        XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
-                                 XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
-        XLib.XSelectInput(display, x11Window, mask);
-
-        Log.Info($"[InkCore][X11Apps][X11Window] 完成创建窗口 X11Window={x11Window}");
-
-        return x11Window;
-    }
-}
-
-public readonly record struct X11WindowCreateInfo
-{
-    public X11WindowCreateInfo()
-    {
-    }
-
-    public bool IsFullScreen { get; init; } = true;
-
-    public int Width { get; init; } = 1280;
-    public int Height { get; init; } = 720;
-
-    ///// <summary>
-    ///// 这个属性存在时，啥都不做
-    ///// </summary>
-    //public IntPtr? X11WindowIntPtr { get; set; }
 }
