@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace CPF.Linux
+namespace X11ApplicationFramework.Natives
 {
 
     public enum Status

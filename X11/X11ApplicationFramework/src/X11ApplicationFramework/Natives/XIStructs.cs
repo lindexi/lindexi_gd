@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Bool = System.Boolean;
-using Atom = System.IntPtr;
 
-namespace CPF.Linux
+namespace X11ApplicationFramework.Natives
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct XScreenSaverInfo
