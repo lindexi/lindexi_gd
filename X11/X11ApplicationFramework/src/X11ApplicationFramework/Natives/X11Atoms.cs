@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 
-namespace CPF.Linux
+namespace X11ApplicationFramework.Natives
 {
     public class X11Atoms
     {

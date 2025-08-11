@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using X11ApplicationFramework.Primitive;
 
-namespace CPF.Linux
+namespace X11ApplicationFramework.Natives
 {
     public unsafe static class XLib
     {

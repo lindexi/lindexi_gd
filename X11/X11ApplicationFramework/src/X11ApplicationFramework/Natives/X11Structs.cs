@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace CPF.Linux
+namespace X11ApplicationFramework.Natives
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct XIMValuesList
