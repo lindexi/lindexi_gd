@@ -71,11 +71,17 @@ public unsafe struct MonitorInfo
     public IntPtr[] Outputs;
     public IntPtr Display { get; init; }
 
-    public override string ToString()
+    public string? GetNameText()
     {
         var namePtr = XGetAtomName(Display, Name);
-            var name = Marshal.PtrToStringAnsi(namePtr);
+        var name = Marshal.PtrToStringAnsi(namePtr);
         XFree(namePtr);
+        return name;
+    }
+
+    public override string ToString()
+    {
+        var name = GetNameText();
 
         return $"{name}({Name}) IsPrimary={IsPrimary} XY={X},{Y} WH={Width},{Height}";
     }
