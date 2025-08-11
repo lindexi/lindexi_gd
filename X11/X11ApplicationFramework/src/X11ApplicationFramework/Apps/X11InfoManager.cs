@@ -1,8 +1,9 @@
 ﻿using System;
+using static X11ApplicationFramework.Natives.XLib;
 
-namespace X11ApplicationFramework.Natives;
+namespace X11ApplicationFramework.Apps;
 
-record X11InfoManager
+public record X11InfoManager
 {
     public X11InfoManager(IntPtr display, int screen, IntPtr rootWindow)
     {
@@ -11,9 +12,24 @@ record X11InfoManager
         RootWindow = rootWindow;
     }
 
+    public X11InfoManager(IntPtr display)
+    {
+        Display = display;
+        var screen = XDefaultScreen(display);
+        Screen = screen;
+        var rootWindow = XDefaultRootWindow(display);
+        RootWindow = rootWindow;
+    }
+
     public IntPtr Display { get; init; }
     public int Screen { get; init; }
     public IntPtr RootWindow { get; init; }
+
+    public int XDisplayWidth => _xDisplayWidth ??= XDisplayWidth(Display, Screen);
+    private int? _xDisplayWidth;
+
+    public int XDisplayHeight => _xDisplayHeight ??= XDisplayHeight(Display, Screen);
+    private int? _xDisplayHeight;
 
     //public X11InfoManager(IntPtr display)
     //{

@@ -6,7 +6,7 @@ using X11ApplicationFramework.Primitive;
 
 namespace X11ApplicationFramework.Natives
 {
-    public unsafe static class XLib
+    public static unsafe class XLib
     {
         const string libX11 = "libX11.so.6";
         const string libX11Randr = "libXrandr.so.2";
