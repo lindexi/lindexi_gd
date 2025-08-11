@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Globalization;
 using System.Linq;
 
-namespace CPF
+namespace X11ApplicationFramework.Primitive
 {
     /// <summary>
     /// Represents a size in device pixels.
