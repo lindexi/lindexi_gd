@@ -5,13 +5,21 @@ using CPF.Linux;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using WhonurqaikarjurceLallchelceeqalbear;
+
 using static CPF.Linux.XLib;
 
 XInitThreads();
+
+Console.WriteLine("XInitThreads");
+
 var display = XOpenDisplay(IntPtr.Zero);
+Console.WriteLine("XOpenDisplay");
 var screen = XDefaultScreen(display);
+Console.WriteLine("XDefaultScreen");
 var rootWindow = XDefaultRootWindow(display);
+Console.WriteLine("XDefaultRootWindow");
 
 var randr15ScreensImpl = new Randr15ScreensImpl(display, rootWindow);
 MonitorInfo[] monitorInfos = randr15ScreensImpl.GetMonitorInfos();
@@ -81,7 +89,7 @@ unsafe void OutputEdidInfo(MonitorInfo monitorInfo)
                 continue;
             }
 
-            Span<byte> edid = new Span<byte>((void*)prop, (int)bytesAfter);
+            Span<byte> edid = new Span<byte>((void*) prop, (int) bytesAfter);
             //Marshal.Copy(prop, edid, 0, (int) bytesAfter);
 
             ReadEdidInfoResult edidInfoResult = EdidInfo.ReadEdid(edid);
