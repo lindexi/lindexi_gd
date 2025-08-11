@@ -15,6 +15,10 @@ record X11InfoManager
         RootWindow = rootWindow;
     }
 
+    public IntPtr Display { get; init; }
+    public int Screen { get; init; }
+    public IntPtr RootWindow { get; init; }
+
     //public X11InfoManager(IntPtr display)
     //{
     //    Display = display;
@@ -45,12 +49,6 @@ record X11InfoManager
 
     //public IntPtr WMStateAtom => GetAtom(ref _wmStateAtom, "_NET_WM_STATE");
     //private IntPtr _wmStateAtom;
-
-    public IntPtr Display { get; init; }
-    public int Screen { get; init; }
-    public IntPtr RootWindow { get; init; }
-
-
 
     //private IntPtr GetAtom(ref IntPtr atom, string atomName)
     //{
