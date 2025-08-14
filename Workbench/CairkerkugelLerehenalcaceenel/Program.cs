@@ -1,4 +1,6 @@
-﻿namespace CairkerkugelLerehenalcaceenel
+﻿using System.Diagnostics;
+
+namespace CairkerkugelLerehenalcaceenel
 {
     public class Program
     {
@@ -11,6 +13,22 @@
             builder.Services.AddControllers();
 
             var app = builder.Build();
+            app.UseExceptionHandler(new ExceptionHandlerOptions()
+            {
+                StatusCodeSelector = exception =>
+                {
+                    Debugger.Break();
+                    Debugger.Log(0,"Exception", exception.ToString());
+
+                    return 501;
+                },
+                ExceptionHandler = async context =>
+                {
+                    Debugger.Break();
+
+                    await Task.CompletedTask;
+                }
+            });
 
             // Configure the HTTP request pipeline.
 
