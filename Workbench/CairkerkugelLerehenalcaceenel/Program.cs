@@ -1,4 +1,4 @@
-namespace CairkerkugelLerehenalcaceenel
+﻿namespace CairkerkugelLerehenalcaceenel
 {
     public class Program
     {
@@ -16,6 +16,7 @@ namespace CairkerkugelLerehenalcaceenel
 
             app.UseAuthorization();
 
+            app.Urls.Add("http://127.0.0.1:5123");
 
             app.MapControllers();
 

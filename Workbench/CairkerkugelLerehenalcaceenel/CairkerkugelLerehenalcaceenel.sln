@@ -5,6 +5,10 @@ VisualStudioVersion = 17.14.36301.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CairkerkugelLerehenalcaceenel", "CairkerkugelLerehenalcaceenel.csproj", "{ED27E04A-56DB-49D3-88BE-5356100AA18D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallbanahurDerkalkurkahay", "..\CallbanahurDerkalkurkahay\CallbanahurDerkalkurkahay.csproj", "{DD5D2D72-69E5-C49F-0826-EAC26DBE1D87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheejairkafeCayfelnoyikilur", "..\CheejairkafeCayfelnoyikilur\CheejairkafeCayfelnoyikilur.csproj", "{BF1DCEA5-0902-D29B-D492-D29E49F2123B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{ED27E04A-56DB-49D3-88BE-5356100AA18D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED27E04A-56DB-49D3-88BE-5356100AA18D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED27E04A-56DB-49D3-88BE-5356100AA18D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD5D2D72-69E5-C49F-0826-EAC26DBE1D87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD5D2D72-69E5-C49F-0826-EAC26DBE1D87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD5D2D72-69E5-C49F-0826-EAC26DBE1D87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD5D2D72-69E5-C49F-0826-EAC26DBE1D87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF1DCEA5-0902-D29B-D492-D29E49F2123B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF1DCEA5-0902-D29B-D492-D29E49F2123B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF1DCEA5-0902-D29B-D492-D29E49F2123B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF1DCEA5-0902-D29B-D492-D29E49F2123B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

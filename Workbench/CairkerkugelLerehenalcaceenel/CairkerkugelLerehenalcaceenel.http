@@ -1,6 +1,9 @@
-@CairkerkugelLerehenalcaceenel_HostAddress = http://localhost:5123
+﻿@CairkerkugelLerehenalcaceenel_HostAddress = http://localhost:5123
 
 GET {{CairkerkugelLerehenalcaceenel_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+GET {{CairkerkugelLerehenalcaceenel_HostAddress}}/
+Accept: application/json
