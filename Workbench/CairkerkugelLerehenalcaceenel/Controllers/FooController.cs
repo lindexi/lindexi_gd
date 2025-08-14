@@ -8,6 +8,7 @@ namespace CairkerkugelLerehenalcaceenel.Controllers;
 public class FooController : ControllerBase
 {
     [HttpGet(template: "/")]
+    [Route("/")]
     public string Get()
     {
         return TestService.Greet;
