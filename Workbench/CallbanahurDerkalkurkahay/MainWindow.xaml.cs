@@ -38,8 +38,18 @@ public partial class MainWindow : Window
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         var dllFile = Path.Join(AppContext.BaseDirectory, "CairkerkugelLerehenalcaceenel.dll");
+        AssemblyLoadContext.Default.Resolving += (context, name) =>
+        {
+            var dllFile = Path.Join(AppContext.BaseDirectory, $"{name.Name}.dll");
+            if (File.Exists(dllFile))
+            {
+                return context.LoadFromAssemblyPath(dllFile);
+            }
+
+            return null;
+        };
         Assembly assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(dllFile);
-        assembly.EntryPoint?.Invoke(null, null);
+        assembly.EntryPoint?.Invoke(null, [Array.Empty<string>()]);
     }
 
     private void UpdateButton_OnClick(object sender, RoutedEventArgs e)
