@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using CheejairkafeCayfelnoyikilur;
 
 namespace CairkerkugelLerehenalcaceenel
 {
@@ -13,21 +14,36 @@ namespace CairkerkugelLerehenalcaceenel
             builder.Services.AddControllers();
 
             var app = builder.Build();
-            app.UseExceptionHandler(new ExceptionHandlerOptions()
+            app.Map("/", () => TestService.Greet);
+            app.MapGet("/weatherforecast", () => "Hello from Foo");
+
+            //app.UseExceptionHandler(new ExceptionHandlerOptions()
+            //{
+            //    StatusCodeSelector = exception =>
+            //    {
+            //        Debugger.Break();
+            //        Debugger.Log(0,"Exception", exception.ToString());
+
+            //        return 501;
+            //    },
+            //    ExceptionHandler = async context =>
+            //    {
+            //        Debugger.Break();
+
+            //        await Task.CompletedTask;
+            //    }
+            //});
+            app.UseExceptionHandler(exceptionHandlerApp =>
             {
-                StatusCodeSelector = exception =>
+                Debugger.Break();
+                exceptionHandlerApp.Run( context =>
                 {
-                    Debugger.Break();
-                    Debugger.Log(0,"Exception", exception.ToString());
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-                    return 501;
-                },
-                ExceptionHandler = async context =>
-                {
                     Debugger.Break();
 
-                    await Task.CompletedTask;
-                }
+                    return Task.CompletedTask;
+                });
             });
 
             // Configure the HTTP request pipeline.
@@ -36,7 +52,7 @@ namespace CairkerkugelLerehenalcaceenel
 
             app.Urls.Add("http://127.0.0.1:5123");
 
-            app.MapControllers();
+            //app.MapControllers();
 
             app.Run();
         }
