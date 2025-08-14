@@ -10,6 +10,8 @@ namespace CairkerkugelLerehenalcaceenel
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine("asdfasdasdasd");
+
             Debugger.Break();
 
             var builder = WebApplication.CreateBuilder(args);
