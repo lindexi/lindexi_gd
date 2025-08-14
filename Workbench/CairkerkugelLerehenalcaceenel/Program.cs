@@ -14,7 +14,7 @@
 
             // Configure the HTTP request pipeline.
 
-            app.UseAuthorization();
+            //app.UseAuthorization();
 
             app.Urls.Add("http://127.0.0.1:5123");
 
