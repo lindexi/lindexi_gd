@@ -85,6 +85,7 @@ public static partial class ShellHelper
     public static void ToggleDesktop()
     {
         var comObject = new ShellComObject();
-        var shellDispatch4 = comObject.As<IShellDispatch4>();
+        var shellDispatch4 = comObject.As<IShellDispatch4>()!;
+        shellDispatch4.ToggleDesktop();
     }
 }
