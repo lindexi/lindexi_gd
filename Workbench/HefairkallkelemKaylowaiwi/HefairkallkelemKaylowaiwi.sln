@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HefairkallkelemKaylowaiwi", "HefairkallkelemKaylowaiwi.csproj", "{F43DFD72-D0BD-487C-9D63-6F70D6421DB7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KehehejallBerkawdejurwo", "..\KehehejallBerkawdejurwo\KehehejallBerkawdejurwo.csproj", "{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{F43DFD72-D0BD-487C-9D63-6F70D6421DB7}.Release|x64.Build.0 = Release|Any CPU
 		{F43DFD72-D0BD-487C-9D63-6F70D6421DB7}.Release|x86.ActiveCfg = Release|Any CPU
 		{F43DFD72-D0BD-487C-9D63-6F70D6421DB7}.Release|x86.Build.0 = Release|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Debug|x64.Build.0 = Debug|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Debug|x86.Build.0 = Debug|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Release|x64.ActiveCfg = Release|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Release|x64.Build.0 = Release|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Release|x86.ActiveCfg = Release|Any CPU
+		{E33D73A2-31CB-A617-8855-4C0B8AF87D5D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
