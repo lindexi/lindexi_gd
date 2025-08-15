@@ -6,22 +6,20 @@ using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace FafurbaliHerekaylarnerecerne;
 
-internal static partial class ShellHelper
+public unsafe class ShellLinkComObject
 {
-    const uint CLSCTX_ALL = 23;
-    const int STGM_READ = 0x00000000;
-
-    public static unsafe string GetLinkTargetPath(FileInfo linkFile)
+    public ShellLinkComObject()
     {
         Guid classIdShellLink = new Guid("00021401-0000-0000-C000-000000000046");
         var riIdIShellLinkW = typeof(IShellLinkW).GUID;
 
-        var hr = CoCreateInstance(
+        var hr = PInvoke.CoCreateInstance(
             in classIdShellLink,
             IntPtr.Zero,
-            CLSCTX_ALL,
+            PInvoke.CLSCTX_ALL,
             in riIdIShellLinkW,
             out var ppv);
 
@@ -30,9 +28,43 @@ internal static partial class ShellHelper
             Marshal.ThrowExceptionForHR(hr);
         }
 
-        IShellLinkW shellLink = ComInterfaceMarshaller<IShellLinkW>.ConvertToManaged((void*)ppv)!;
+        Ppv = ppv;
+    }
 
-        IPersistFile persistFile = ComInterfaceMarshaller<IPersistFile>.ConvertToManaged((void*)ppv)!;
+    public IntPtr Ppv { get; }
+
+    public IShellLinkW AsIShellLinkW()=>As<IShellLinkW>()!;
+    public IPersistFile AsIPersistFile() => As<IPersistFile>()!;
+
+    public T? As<T>() => ComInterfaceMarshaller<T>.ConvertToManaged((void*) Ppv);
+}
+
+internal static class PInvoke
+{
+    public const uint CLSCTX_ALL = 23;
+
+    public const int STGM_READ = 0x00000000;
+
+    [DllImport("ole32.dll")]
+    internal static extern int CoCreateInstance(
+        in Guid rclsid,
+        nint pUnkOuter,
+        uint dwClsContext,
+        in Guid riid,
+        out nint ppv);
+}
+
+public static partial class ShellHelper
+{
+    const int STGM_READ = 0x00000000;
+
+    public static unsafe string GetLinkTargetPath(FileInfo linkFile)
+    {
+        var shellLinkComObject = new ShellLinkComObject();
+
+        IShellLinkW shellLink = shellLinkComObject.AsIShellLinkW();
+
+        IPersistFile persistFile = shellLinkComObject.AsIPersistFile();
 
         persistFile.Load(linkFile.FullName, STGM_READ);
 
@@ -46,12 +78,4 @@ internal static partial class ShellHelper
 
         return new string(buffer);
     }
-
-    [DllImport("ole32.dll")]
-    static extern int CoCreateInstance(
-        in Guid rclsid,
-        nint pUnkOuter,
-        uint dwClsContext,
-        in Guid riid,
-        out nint ppv);
 }

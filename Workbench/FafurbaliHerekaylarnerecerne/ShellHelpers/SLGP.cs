@@ -1,7 +1,7 @@
 ﻿namespace FafurbaliHerekaylarnerecerne;
 
 [Flags]
-internal enum SLGP
+public enum SLGP
 {
     SHORTPATH = 1,
     UNCPRIORITY = 2,

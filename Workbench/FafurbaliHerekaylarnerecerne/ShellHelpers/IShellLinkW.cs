@@ -7,7 +7,7 @@ namespace FafurbaliHerekaylarnerecerne;
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 [Guid("000214F9-0000-0000-C000-000000000046")]
 [ComImport]
-internal unsafe partial interface IShellLinkW
+public unsafe partial interface IShellLinkW
 {
     void GetPath(char* pszFile, int cchMaxPath, WIN32_FIND_DATAW* pfd, SLGP fFlags);
 

@@ -4,7 +4,7 @@ namespace FafurbaliHerekaylarnerecerne;
 
 [BestFitMapping(false)]
 [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-internal unsafe struct WIN32_FIND_DATAW
+public unsafe struct WIN32_FIND_DATAW
 {
     public FileAttributes dwFileAttributes;
     public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;
