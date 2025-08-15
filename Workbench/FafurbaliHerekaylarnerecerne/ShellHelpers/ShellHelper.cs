@@ -9,18 +9,15 @@ using System.Threading.Tasks;
 
 namespace FafurbaliHerekaylarnerecerne;
 
-public unsafe class ShellLinkComObject
+public unsafe class TheComObject
 {
-    public ShellLinkComObject()
+    public TheComObject(Guid classId, Guid riId)
     {
-        Guid classIdShellLink = new Guid("00021401-0000-0000-C000-000000000046");
-        var riIdIShellLinkW = typeof(IShellLinkW).GUID;
-
         var hr = PInvoke.CoCreateInstance(
-            in classIdShellLink,
+            in classId,
             IntPtr.Zero,
             PInvoke.CLSCTX_ALL,
-            in riIdIShellLinkW,
+            in riId,
             out var ppv);
 
         if (hr != 0)
@@ -32,11 +29,17 @@ public unsafe class ShellLinkComObject
     }
 
     public IntPtr Ppv { get; }
-
-    public IShellLinkW AsIShellLinkW()=>As<IShellLinkW>()!;
-    public IPersistFile AsIPersistFile() => As<IPersistFile>()!;
-
     public T? As<T>() => ComInterfaceMarshaller<T>.ConvertToManaged((void*) Ppv);
+}
+
+public unsafe class ShellLinkComObject : TheComObject
+{
+    public ShellLinkComObject() : base(new Guid("00021401-0000-0000-C000-000000000046"), typeof(IShellLinkW).GUID)
+    {
+    }
+
+    public IShellLinkW AsIShellLinkW() => As<IShellLinkW>()!;
+    public IPersistFile AsIPersistFile() => As<IPersistFile>()!;
 }
 
 internal static class PInvoke
@@ -77,5 +80,11 @@ public static partial class ShellHelper
         }
 
         return new string(buffer);
+    }
+
+    public static void ToggleDesktop()
+    {
+        var comObject = new ShellComObject();
+        var shellDispatch4 = comObject.As<IShellDispatch4>();
     }
 }
