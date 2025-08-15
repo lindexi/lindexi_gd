@@ -7,7 +7,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <PublishAot>true</PublishAot>
     <OutputType>Library</OutputType>
-    <EventSourceSupport>false</EventSourceSupport>
   </PropertyGroup>
 
 </Project>
