@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 var result = Start();
 Console.WriteLine("Hello, World!");
+Console.ReadLine();
 
 [DllImport("Lib1.dll")]
 static extern int Start();
