@@ -2,11 +2,8 @@
 
 using System.Runtime.InteropServices;
 
-Start();
+Run();
 Console.WriteLine("Hello, World!");
 
 [DllImport("Lib1.dll")]
 static extern int Run();
-
-[DllImport("HefairkallkelemKaylowaiwi.dll")]
-static extern int Start();
