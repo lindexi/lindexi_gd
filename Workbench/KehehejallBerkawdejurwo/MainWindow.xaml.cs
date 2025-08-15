@@ -33,11 +33,22 @@ public partial class MainWindow : Window
         Loaded += MainWindow_Loaded;
     }
 
+    [DllImport("HefairkallkelemKaylowaiwi.dll")]
+    private static extern int Start();
+
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        Task.Run(() =>
+        var thread = new Thread(() =>
         {
+            var result = Start();
+
         });
+        thread.Start();
+
+        //Task.Run(() =>
+        //{
+        //    Start();
+        //});
         //var dllFile = Path.Join(AppContext.BaseDirectory, "CairkerkugelLerehenalcaceenel.dll");
         //AssemblyLoadContext.Default.Resolving += (context, name) =>
         //{
