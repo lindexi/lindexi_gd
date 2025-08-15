@@ -5,8 +5,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <PublishAot>true</PublishAot>
-    <OptimizationPreference>Size</OptimizationPreference>
   </PropertyGroup>
 
 </Project>
