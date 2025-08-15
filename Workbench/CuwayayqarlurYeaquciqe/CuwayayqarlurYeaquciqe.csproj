@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishAot>true</PublishAot>
+    <OptimizationPreference>Size</OptimizationPreference>
   </PropertyGroup>
 
 </Project>
