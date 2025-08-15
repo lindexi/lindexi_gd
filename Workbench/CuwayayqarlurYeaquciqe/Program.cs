@@ -21,8 +21,8 @@ namespace CuwayayqarlurYeaquciqe
             builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
             var app = builder.Build();
-            app.Map("/", () => "Hello");
-            app.MapGet("/weatherforecast", () => "Hello from Foo");
+            //app.Map("/", () => "Hello");
+            //app.MapGet("/weatherforecast", () => "Hello from Foo");
 
 
             //app.UseExceptionHandler(new ExceptionHandlerOptions()
@@ -60,7 +60,7 @@ namespace CuwayayqarlurYeaquciqe
 
             app.Urls.Add("http://127.0.0.1:5123");
 
-            //app.MapControllers();
+            app.MapControllers();
 
             app.Run();
         }
