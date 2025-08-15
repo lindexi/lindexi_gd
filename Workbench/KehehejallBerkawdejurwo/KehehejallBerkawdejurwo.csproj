@@ -9,11 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="dotnetCampus.Configurations" Version="1.9.0" />
+    <None Include="..\HefairkallkelemKaylowaiwi\bin\Release\net9.0\publish\HefairkallkelemKaylowaiwi.dll" Link="HefairkallkelemKaylowaiwi.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HefairkallkelemKaylowaiwi\HefairkallkelemKaylowaiwi.csproj" />
+    <PackageReference Include="dotnetCampus.Configurations" Version="1.9.0" />
   </ItemGroup>
 
 </Project>
