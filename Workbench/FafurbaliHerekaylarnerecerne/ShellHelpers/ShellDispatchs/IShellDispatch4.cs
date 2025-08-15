@@ -15,11 +15,10 @@ public partial interface IShellDispatch4
 [GeneratedComInterface(Options = ComInterfaceOptions.ComObjectWrapper)]
 [Guid("D8F015C0-C278-11CE-A49E-444553540000")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-[ComImport]
-public unsafe partial interface IShellDispatch
+public unsafe partial interface IShellDispatch : IDispatch
 {
-    HRESULT Application(IDispatch** ppid);
-    HRESULT Parent(IDispatch** ppid);
+    HRESULT Application(TodoArguments todo);
+    HRESULT Parent(TodoArguments todo);
 
     HRESULT NameSpace(TodoArguments todo);
     HRESULT BrowseForFolder(TodoArguments todo);
@@ -29,7 +28,7 @@ public unsafe partial interface IShellDispatch
     HRESULT Explore(TodoArguments todo);
 
     [helpstring("Minimize all windows")]
-    HRESULT MinimizeAll();
+    void MinimizeAll();
 
     [helpstring("Undo Minimize All")]
     HRESULT UndoMinimizeALL();
