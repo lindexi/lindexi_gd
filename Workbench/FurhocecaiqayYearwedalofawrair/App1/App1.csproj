@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <Project Sdk="Microsoft.NET.Sdk">
+=======
+﻿<Project Sdk="Microsoft.NET.Sdk">
+>>>>>>> ede2d237c50b121b9ad36e03f7578f9b9e674bf7
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,7 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <None Include="$(ArtifactsPath)\publish\Lib1\release\win-x64\Lib1.dll" Link="Lib1.dll">
+=======
+    <None Include="$(ArtifactsPath)\publish\Lib1\release_win-x64\Lib1.dll" Link="Lib1.dll">
+>>>>>>> ede2d237c50b121b9ad36e03f7578f9b9e674bf7
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
