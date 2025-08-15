@@ -1,0 +1,9 @@
+@CuwayayqarlurYeaquciqe_HostAddress = http://127.0.0.1:5123
+
+GET {{CuwayayqarlurYeaquciqe_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{CuwayayqarlurYeaquciqe_HostAddress}}/
+Accept: application/json
