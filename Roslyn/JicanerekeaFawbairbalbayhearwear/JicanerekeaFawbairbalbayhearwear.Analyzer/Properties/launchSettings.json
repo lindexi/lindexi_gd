@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "JicanerekeaFawbairbalbayhearwear.Analyzer": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\JicanerekeaFawbairbalbayhearwear\\JicanerekeaFawbairbalbayhearwear.csproj"
+    }
+  }
+}
