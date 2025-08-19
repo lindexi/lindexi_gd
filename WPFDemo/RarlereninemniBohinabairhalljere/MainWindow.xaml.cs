@@ -70,6 +70,12 @@ public partial class MainWindow : Window
             Stroke = Brushes.Red,
             StrokeThickness = 2
         });
+
+        var eraseResult = stroke.GetEraseResult(new Rect(x,y, rectangleStylusShape.Width, rectangleStylusShape.Height));
+        if (eraseResult.Count > 0)
+        {
+            // It can get the correct result from GetEraseResult
+        }
     }
 
     private static StylusPointCollection GetTestData()
@@ -234,10 +240,6 @@ public partial class MainWindow : Window
 
         return stylusPointCollection;
     }
-
-    // 684,446.44199735085795
-    // 684.9383585999957,445.44199735085795
-    // {X=906,Y=420,P=0.8703685998916626},;
 
     [GeneratedRegex(@"\{X=(?<X>-?\d+(?:\.\d+)?),\s*Y=(?<Y>-?\d+(?:\.\d+)?),\s*P=(?<P>-?\d+(?:\.\d+)?)}\,?")]
     private static partial Regex GetPointInfoRegex();
