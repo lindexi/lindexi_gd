@@ -187,6 +187,8 @@ public partial class MainWindow : Window
             }
         }
 
+
+
         if (new Rect(440, 450, 48, 72).Contains(new Point(468.66666666666663, 456.66666666666663)))
         {
 
@@ -202,14 +204,15 @@ public partial class MainWindow : Window
         var minY = bounds.Top;
         var maxY = bounds.Bottom;
 
-        //  684.9383585999957,445.44199735085795
+        minX = 684;
+        minY = 446;
 
         for (var x = minX; x < maxX; x++)
         {
             for (var y = minY; y < maxY; y++)
             {
                 var strokeCollection = new StrokeCollection([stroke]);
-                var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(48, 72));
+                var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
                 var point = new Point(x, y);
 
                 incrementalStrokeHitTester.StrokeHit += (o, args) =>
@@ -228,6 +231,7 @@ public partial class MainWindow : Window
         }
     }
 
+    // 684,446
     // 684.9383585999957,445.44199735085795
     // {X=906,Y=420,P=0.8703685998916626},;
 
