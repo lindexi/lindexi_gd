@@ -204,36 +204,28 @@ public partial class MainWindow : Window
         var minY = bounds.Top;
         var maxY = bounds.Bottom;
 
-        minX = 684;
-        minY = 446;
-
-        for (var x = minX; x < maxX; x++)
         {
-            for (var y = minY; y < maxY; y++)
+            var x = 684.9383585999957;
+            var y = 445.44199735085795;
+
+            var strokeCollection = new StrokeCollection([stroke]);
+            var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
+            var point = new Point(x, y);
+
+            incrementalStrokeHitTester.StrokeHit += (o, args) =>
             {
-                var strokeCollection = new StrokeCollection([stroke]);
-                var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
-                var point = new Point(x, y);
-
-                incrementalStrokeHitTester.StrokeHit += (o, args) =>
+                var pointEraseResults = args.GetPointEraseResults();
+                if (pointEraseResults.Count == 0)
                 {
-                    var pointEraseResults = args.GetPointEraseResults();
-                    if (pointEraseResults.Count == 0)
-                    {
-                        Debugger.Break();
+                    Debugger.Break();
 
-                        GC.KeepAlive(point);
-                    }
-                };
+                    GC.KeepAlive(point);
+                }
+            };
 
-                incrementalStrokeHitTester.AddPoints([point]);
-            }
+            incrementalStrokeHitTester.AddPoints([point]);
         }
     }
-
-    // 684,446
-    // 684.9383585999957,445.44199735085795
-    // {X=906,Y=420,P=0.8703685998916626},;
 
     [GeneratedRegex(@"\{X=(?<X>-?\d+(?:\.\d+)?),\s*Y=(?<Y>-?\d+(?:\.\d+)?),\s*P=(?<P>-?\d+(?:\.\d+)?)}\,?")]
     private static partial Regex GetPointInfoRegex();
