@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -194,17 +195,40 @@ public partial class MainWindow : Window
         var stroke = new Stroke(stylusPointCollection);
         //var result = stroke.GetEraseResult(new Rect(440, 450, 48, 72));
 
-        var strokeCollection = new StrokeCollection([stroke]);
+        var bounds = stroke.GetBounds();
 
-        var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(48,72));
-        incrementalStrokeHitTester.StrokeHit += (o, args) =>
+        var minX = bounds.Left;
+        var maxX = bounds.Right;
+        var minY = bounds.Top;
+        var maxY = bounds.Bottom;
+
+        //  684.9383585999957,445.44199735085795
+
+        for (var x = minX; x < maxX; x++)
         {
-            var pointEraseResults = args.GetPointEraseResults();
-        };
+            for (var y = minY; y < maxY; y++)
+            {
+                var strokeCollection = new StrokeCollection([stroke]);
+                var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(48, 72));
+                var point = new Point(x, y);
 
-        incrementalStrokeHitTester.AddPoints([new Point(520, 450)]);
+                incrementalStrokeHitTester.StrokeHit += (o, args) =>
+                {
+                    var pointEraseResults = args.GetPointEraseResults();
+                    if (pointEraseResults.Count == 0)
+                    {
+                        Debugger.Break();
+
+                        GC.KeepAlive(point);
+                    }
+                };
+
+                incrementalStrokeHitTester.AddPoints([point]);
+            }
+        }
     }
 
+    // 684.9383585999957,445.44199735085795
     // {X=906,Y=420,P=0.8703685998916626},;
 
     [GeneratedRegex(@"\{X=(?<X>-?\d+(?:\.\d+)?),\s*Y=(?<Y>-?\d+(?:\.\d+)?),\s*P=(?<P>-?\d+(?:\.\d+)?)}\,?")]
