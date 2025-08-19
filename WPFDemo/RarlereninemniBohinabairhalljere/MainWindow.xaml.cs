@@ -186,8 +186,23 @@ public partial class MainWindow : Window
             }
         }
 
+        if (new Rect(440, 450, 48, 72).Contains(new Point(468.66666666666663, 456.66666666666663)))
+        {
+
+        }
+
         var stroke = new Stroke(stylusPointCollection);
-        var result = stroke.GetEraseResult(new Rect(440, 450, 48, 72));
+        //var result = stroke.GetEraseResult(new Rect(440, 450, 48, 72));
+
+        var strokeCollection = new StrokeCollection([stroke]);
+
+        var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(48,72));
+        incrementalStrokeHitTester.StrokeHit += (o, args) =>
+        {
+            var pointEraseResults = args.GetPointEraseResults();
+        };
+
+        incrementalStrokeHitTester.AddPoints([new Point(520, 450)]);
     }
 
     // {X=906,Y=420,P=0.8703685998916626},;
