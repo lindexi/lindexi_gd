@@ -29,6 +29,34 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        var stylusPointCollection = GetTestData();
+
+        var stroke = new Stroke(stylusPointCollection);
+     
+        var x = 684.9383585999957;
+        var y = 446.44199735085795;
+
+        var strokeCollection = new StrokeCollection([stroke]);
+        var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
+
+        var point = new Point(x, y);
+
+        incrementalStrokeHitTester.StrokeHit += (o, args) =>
+        {
+            var pointEraseResults = args.GetPointEraseResults();
+            if (pointEraseResults.Count == 0)
+            {
+                Debugger.Break();
+
+                GC.KeepAlive(point);
+            }
+        };
+
+        incrementalStrokeHitTester.AddPoint(point);
+    }
+
+    private static StylusPointCollection GetTestData()
+    {
         var test =
             """
             {X=445.3333333333333,Y=456,P=0.7618542313575745},
@@ -187,45 +215,12 @@ public partial class MainWindow : Window
             }
         }
 
-
-
-        if (new Rect(440, 450, 48, 72).Contains(new Point(468.66666666666663, 456.66666666666663)))
-        {
-
-        }
-
-        var stroke = new Stroke(stylusPointCollection);
-        //var result = stroke.GetEraseResult(new Rect(440, 450, 48, 72));
-
-        var bounds = stroke.GetBounds();
-
-        var minX = bounds.Left;
-        var maxX = bounds.Right;
-        var minY = bounds.Top;
-        var maxY = bounds.Bottom;
-
-        {
-            var x = 684.9383585999957;
-            var y = 445.44199735085795;
-
-            var strokeCollection = new StrokeCollection([stroke]);
-            var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
-            var point = new Point(x, y);
-
-            incrementalStrokeHitTester.StrokeHit += (o, args) =>
-            {
-                var pointEraseResults = args.GetPointEraseResults();
-                if (pointEraseResults.Count == 0)
-                {
-                    Debugger.Break();
-
-                    GC.KeepAlive(point);
-                }
-            };
-
-            incrementalStrokeHitTester.AddPoints([point]);
-        }
+        return stylusPointCollection;
     }
+
+    // 684,446.44199735085795
+    // 684.9383585999957,445.44199735085795
+    // {X=906,Y=420,P=0.8703685998916626},;
 
     [GeneratedRegex(@"\{X=(?<X>-?\d+(?:\.\d+)?),\s*Y=(?<Y>-?\d+(?:\.\d+)?),\s*P=(?<P>-?\d+(?:\.\d+)?)}\,?")]
     private static partial Regex GetPointInfoRegex();
