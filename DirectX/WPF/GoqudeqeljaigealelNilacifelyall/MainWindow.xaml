@@ -1,0 +1,22 @@
+﻿<Window
+    x:Class="GoqudeqeljaigealelNilacifelyall.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:interop="clr-namespace:System.Windows.Interop;assembly=PresentationCore"
+    xmlns:local="clr-namespace:GoqudeqeljaigealelNilacifelyall"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MainWindow"
+    Width="600"
+    Height="600"
+    mc:Ignorable="d">
+    <Grid>
+        <Border Margin="10,10,10,10" BorderBrush="Black" BorderThickness="1">
+            <Image x:Name="Image" Width="600" Height="500" Stretch="Fill">
+                <Image.Source>
+                    <interop:D3DImage x:Name="D3DImage" />
+                </Image.Source>
+            </Image>
+        </Border>
+    </Grid>
+</Window>
