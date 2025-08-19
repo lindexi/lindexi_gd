@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RarlereninemniBohinabairhalljere"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="700" Width="1000">
     <Grid>
+        <Canvas x:Name="Canvas">
 
+        </Canvas>
     </Grid>
 </Window>

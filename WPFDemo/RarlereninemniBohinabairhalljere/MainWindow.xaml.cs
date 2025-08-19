@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.Windows.Shapes.Path;
 
 namespace RarlereninemniBohinabairhalljere;
 
@@ -37,7 +38,8 @@ public partial class MainWindow : Window
         var y = 446.44199735085795;
 
         var strokeCollection = new StrokeCollection([stroke]);
-        var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
+        var rectangleStylusShape = new RectangleStylusShape(50, 70);
+        var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(rectangleStylusShape);
 
         var point = new Point(x, y);
 
@@ -53,6 +55,27 @@ public partial class MainWindow : Window
         };
 
         incrementalStrokeHitTester.AddPoint(point);
+
+        var geometry = stroke.GetGeometry();
+        Canvas.Children.Add(new Path()
+        {
+            Data = geometry,
+            Fill = Brushes.Black
+        });
+        Canvas.Children.Add(new Rectangle()
+        {
+            Margin = new Thickness(x, y, 0, 0),
+            Width = rectangleStylusShape.Width,
+            Height = rectangleStylusShape.Height,
+            Stroke = Brushes.Red,
+            StrokeThickness = 2
+        });
+
+        var eraseResult = stroke.GetEraseResult(new Rect(x,y, rectangleStylusShape.Width, rectangleStylusShape.Height));
+        if (eraseResult.Count > 0)
+        {
+            // It can get the correct result from GetEraseResult
+        }
     }
 
     private static StylusPointCollection GetTestData()
@@ -217,10 +240,6 @@ public partial class MainWindow : Window
 
         return stylusPointCollection;
     }
-
-    // 684,446.44199735085795
-    // 684.9383585999957,445.44199735085795
-    // {X=906,Y=420,P=0.8703685998916626},;
 
     [GeneratedRegex(@"\{X=(?<X>-?\d+(?:\.\d+)?),\s*Y=(?<Y>-?\d+(?:\.\d+)?),\s*P=(?<P>-?\d+(?:\.\d+)?)}\,?")]
     private static partial Regex GetPointInfoRegex();
