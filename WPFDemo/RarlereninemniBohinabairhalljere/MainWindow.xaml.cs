@@ -209,7 +209,7 @@ public partial class MainWindow : Window
             for (var y = minY; y < maxY; y++)
             {
                 var strokeCollection = new StrokeCollection([stroke]);
-                var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(48, 72));
+                var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
                 var point = new Point(x, y);
 
                 incrementalStrokeHitTester.StrokeHit += (o, args) =>
@@ -228,6 +228,7 @@ public partial class MainWindow : Window
         }
     }
 
+    // 684.9383585999957,446.44199735085795
     // 684.9383585999957,445.44199735085795
     // {X=906,Y=420,P=0.8703685998916626},;
 
