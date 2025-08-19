@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.Windows.Shapes.Path;
 
 namespace RarlereninemniBohinabairhalljere;
 
@@ -37,7 +38,8 @@ public partial class MainWindow : Window
         var y = 446.44199735085795;
 
         var strokeCollection = new StrokeCollection([stroke]);
-        var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(new RectangleStylusShape(50, 70));
+        var rectangleStylusShape = new RectangleStylusShape(50, 70);
+        var incrementalStrokeHitTester = strokeCollection.GetIncrementalStrokeHitTester(rectangleStylusShape);
 
         var point = new Point(x, y);
 
@@ -53,6 +55,21 @@ public partial class MainWindow : Window
         };
 
         incrementalStrokeHitTester.AddPoint(point);
+
+        var geometry = stroke.GetGeometry();
+        Canvas.Children.Add(new Path()
+        {
+            Data = geometry,
+            Fill = Brushes.Black
+        });
+        Canvas.Children.Add(new Rectangle()
+        {
+            Margin = new Thickness(x, y, 0, 0),
+            Width = rectangleStylusShape.Width,
+            Height = rectangleStylusShape.Height,
+            Stroke = Brushes.Red,
+            StrokeThickness = 2
+        });
     }
 
     private static StylusPointCollection GetTestData()
