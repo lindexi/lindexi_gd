@@ -35,6 +35,6 @@ public partial class MainWindow : Window
     }
 
 
-    [GeneratedRegex(@"\d{8}_\d{6},(\d+)")]
+    [GeneratedRegex(@"\d+_\d+,(\d+)")]
     private static partial Regex GetLogFolderProcessRegex();
 }
