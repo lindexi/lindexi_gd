@@ -28,7 +28,7 @@ TempDirectory.ClearTempDirectories(tempDirectory, 0);
 
 Console.WriteLine("Hello, World!");
 
-public class TempDirectory
+public partial class TempDirectory
 {
     public TempDirectory(string applicationDataFolder)
     {
@@ -40,10 +40,24 @@ public class TempDirectory
         _applicationsTempFolder = Path.Join(applicationDataFolder, "Temp");
 
         // 临时文件夹的命名影响临时文件夹的清理，如果需要修改请同时修改
-        var tempFolder = Path.Combine(_applicationsTempFolder,
-            // 加上 FormattableString 防止多语言创建的文件夹离谱
-            FormattableString.Invariant($"{Environment.ProcessId}-{DateTime.Now:yy.MM.dd,HH-mm-ss,fffffff}"));
+        var tempFolderName = GetTempFolderName();
+        var tempFolder = Path.Combine(_applicationsTempFolder, tempFolderName);
         _tempDirectoryInfo = Directory.CreateDirectory(tempFolder);
+    }
+
+    private static string GetTempFolderName()
+    {
+        // 命名规则： 年月日_小时分钟秒,进程ID
+        // 20250724_171139,63912
+        var now = DateTime.Now;
+        var processId = Environment.ProcessId;
+        return GetTempFolderName(now, processId);
+    }
+
+    private static string GetTempFolderName(DateTime now, int processId)
+    {
+        // 加上 FormattableString 防止多语言创建的文件夹离谱
+        return FormattableString.Invariant($"{now:yyyyMMdd_HHmmss},{processId}");
     }
 
     /// <summary>
@@ -195,6 +209,7 @@ public class TempDirectory
             var tempFolderRoot = tempDirectory._applicationsTempFolder;
             // 只有找不到使用临时文件夹的进程并且超过7天才删除
             // 进程号可能重复，也就是原来的 100 进程创建的临时文件夹，在原来的 100 进程关闭之后经过10天，再次清理发现还是存在一个进程号是 100 的进程，这时不再清理这个临时文件夹，等下一次清理时再寻找。连续存在两次启动的过程发现相同的进程号的概率是很小的，不需要担心没有清理
+            // 有手动标记 ThisFolderCanSafeDelete 文件的临时文件夹可以安全删除，无视进程是否存在
             IEnumerable<DirectoryInfo> deleteFolderList = GetToDeleteFolderList(processList, tempFolderRoot, keepDays);
             foreach (var folder in deleteFolderList)
             {
@@ -289,7 +304,8 @@ public class TempDirectory
     /// <returns></returns>
     private static bool TryParseTempDirectoryProcessId(string folderName, out int processId)
     {
-        var match = Regex.Match(folderName, @"(\d+)\-\d{2}\.");
+        var regex = GetLogFolderProcessRegex();
+        var match = regex.Match(folderName);
         if (match.Groups.Count > 1)
         {
             if (int.TryParse(match.Groups[1].Value, out processId))
@@ -302,4 +318,7 @@ public class TempDirectory
 
         return false;
     }
+
+    [GeneratedRegex(@"\d+_\d+,(\d+)")]
+    private static partial Regex GetLogFolderProcessRegex();
 }
