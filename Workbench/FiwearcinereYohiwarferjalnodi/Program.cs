@@ -26,14 +26,16 @@ var foo = new Foo()
 
 /*
 {
-     "Component": [
-       {
+     "Component": {
+       "1": {
+         "$type": "c1",
          "F1": "F1"
        },
-       {
+       "0": {
+         "$type": "c2",
          "F2": "F2"
        }
-     ]
+     }
    }
  */
 var json = JsonSerializer.Serialize(foo, typeof(Foo), FiwearcinereYohiwarferjalnodi.AppJsonSerializerContext.Default);
