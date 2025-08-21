@@ -48,5 +48,10 @@ var json = JsonSerializer.Serialize(foo, typeof(Foo), FiwearcinereYohiwarferjaln
 // System.NotSupportedException:“Deserialization of interface or abstract types is not supported. Type 'IComponent'. Path: $.Component[0] | LineNumber: 2 | BytePositionInLine: 5.”
 var foo2 = JsonSerializer.Deserialize(json, typeof(Foo), FiwearcinereYohiwarferjalnodi.AppJsonSerializerContext.Default);
 
+foreach (var component in (foo2 as Foo)?.Component ?? [])
+{
+    Console.WriteLine($"序列化 {component.GetType()}");
+}
+
 Console.WriteLine("Hello, World!");
 
