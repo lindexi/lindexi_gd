@@ -2,6 +2,5 @@
 
 class Foo
 {
-    public IComponent? C1 { get; set; }
-    public List<IComponent>? Component { get; set; }
+    public IReadOnlyDictionary<string, IComponent>? Component { get; set; }
 }
