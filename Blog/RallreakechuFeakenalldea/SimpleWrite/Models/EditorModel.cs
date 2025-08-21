@@ -1,12 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus;
 
 namespace SimpleWrite.Models;
 
-public class EditorModel
+public class EditorModel : INotifyPropertyChanged
 {
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (value == _title) return;
+            _title = value;
+            OnPropertyChanged();
+        }
+    }
 
+    private string _title = "无标题";
+
+    [MaybeNull]
+    public FileInfo FileInfo
+    {
+        get => _fileInfo;
+        set
+        {
+            if (Equals(value, _fileInfo)) return;
+            _fileInfo = value;
+            Title = value.Name;
+            OnPropertyChanged();
+        }
+    }
+    private FileInfo? _fileInfo;
+
+    public TextEditor? TextEditor { get; set; }
+
+    public SaveStatus SaveStatus
+    {
+        get => _saveStatus;
+        set
+        {
+            if (value == _saveStatus) return;
+            _saveStatus = value;
+            OnPropertyChanged();
+        }
+    }
+    private SaveStatus _saveStatus;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
 }
