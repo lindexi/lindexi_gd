@@ -131,6 +131,11 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     private AvaloniaTextEditorResourceManager? _avaloniaTextEditorResourceManager;
 
     #endregion
+
+    public virtual TextEditorHandler GetHandler()
+    {
+        return new TextEditorHandler(AvaloniaTextEditor);
+    }
 }
 
 class AvaloniaTextEditorDispatcherRequiring

@@ -103,7 +103,7 @@ partial class TextEditor
     internal RenderInfoProvider GetRenderInfoImmediately() 
         => ForceLayout();
 
-    private partial RenderInfoProvider ForceLayout();
+    internal partial RenderInfoProvider ForceLayout();
 #endif
 
     #endregion
