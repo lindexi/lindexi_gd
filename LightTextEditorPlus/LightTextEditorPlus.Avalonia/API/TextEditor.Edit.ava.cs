@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Skia;
@@ -122,6 +123,11 @@ namespace LightTextEditorPlus
                 if (value)
                 {
                     Focus();
+                    EnterEditingCursor();
+                }
+                else
+                {
+                    LeaveEditingCursor();
                 }
 
                 IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);
@@ -142,6 +148,16 @@ namespace LightTextEditorPlus
         /// 是否自动根据是否获取焦点设置是否进入编辑模式
         /// </summary>
         public bool IsAutoEditingModeByFocus { get; set; } = true;
+
+        private void EnterEditingCursor()
+        {
+            Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam);
+        }
+
+        private void LeaveEditingCursor()
+        {
+            Cursor = null;
+        }
 
         #endregion
 

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Avalonia;
 using Avalonia.Input;
 using LightTextEditorPlus.Core;
@@ -11,10 +11,6 @@ internal class MouseHandler
 {
     public MouseHandler(TextEditor textEditor)
     {
-        textEditor.PointerPressed += TextEditor_PointerPressed;
-        textEditor.PointerMoved += TextEditor_PointerMoved;
-        textEditor.PointerReleased += TextEditor_PointerReleased;
-
         TextEditor = textEditor;
     }
 
@@ -28,7 +24,7 @@ internal class MouseHandler
     /// </summary>
     private bool _isHitSelection;
 
-    private void TextEditor_PointerPressed(object? sender, PointerPressedEventArgs e)
+    public void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
         {
@@ -96,7 +92,7 @@ internal class MouseHandler
         }
     }
 
-    private void TextEditor_PointerMoved(object? sender, PointerEventArgs e)
+    public void OnPointerMoved(object? sender, PointerEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
         {
@@ -146,7 +142,7 @@ internal class MouseHandler
         }
     }
 
-    private void TextEditor_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    public void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
         {

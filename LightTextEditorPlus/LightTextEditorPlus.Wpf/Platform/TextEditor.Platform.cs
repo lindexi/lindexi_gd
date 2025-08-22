@@ -125,7 +125,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// <summary>
     /// 立刻布局，获取布局结果信息
     /// </summary>
-    private partial RenderInfoProvider ForceLayout()
+    internal partial RenderInfoProvider ForceLayout()
     {
         _isInForceLayout = true;
 

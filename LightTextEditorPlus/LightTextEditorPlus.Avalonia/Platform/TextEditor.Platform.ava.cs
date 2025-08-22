@@ -21,6 +21,7 @@ using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
@@ -67,8 +68,6 @@ partial class TextEditor : Control
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
 
-        MouseHandler = new MouseHandler(this);
-
         //#if DEBUG
         //        WidthProperty.Changed.AddClassHandler((TextEditor o, AvaloniaPropertyChangedEventArgs args) =>
         //        {
@@ -78,7 +77,7 @@ partial class TextEditor : Control
 
         IMESupporter.AddIMESupport(this);
 
-        Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam);
+        TextEditorHandler = new TextEditorHandler(this);
     }
 
     internal AvaloniaSkiaTextEditorPlatformProvider TextEditorPlatformProvider { get; }
@@ -95,116 +94,40 @@ partial class TextEditor : Control
 
     #region 交互
 
-    private MouseHandler MouseHandler { get; }
+    public TextEditorHandler TextEditorHandler { get; set; }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        TextEditorHandler.OnPointerPressed(e);
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        TextEditorHandler.OnPointerMoved(e);
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        TextEditorHandler.OnPointerReleased(e);
+    }
 
     protected override void OnTextInput(TextInputEventArgs e)
     {
-        if (e.Handled ||
-            string.IsNullOrEmpty(e.Text) ||
-            e.Text == "\x1b" ||
-            // 退格键 \b 键
-            e.Text == "\b" ||
-            //emoji包围符
-            e.Text == "\ufe0f")
-            return;
-
-        //如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
-        if (RegexPatterns.Utf16SurrogatesPattern.ContainInRange(e.Text))
-        {
-            if (string.IsNullOrEmpty(_emojiCache))
-            {
-                _emojiCache += e.Text;
-            }
-            else
-            {
-                _emojiCache += e.Text;
-
-                PerformInput(_emojiCache);
-                _emojiCache = string.Empty;
-            }
-        }
-        else
-        {
-            _emojiCache = string.Empty;
-            PerformInput(e.Text);
-        }
+        TextEditorHandler.OnTextInput(e);
 
         base.OnTextInput(e);
-
-        void PerformInput(string text)
-        {
-            Selection? selection = null;
-            if (IsOvertypeMode)
-            {
-                selection = TextEditorCore.GetCurrentOvertypeModeSelection(text.Length);
-            }
-
-            TextEditorCore.EditAndReplace(text, selection);
-        }
     }
 
-    /// <summary>
-    /// 如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
-    /// 用于接收第一个字符
-    /// </summary>
-    private string _emojiCache = string.Empty;
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        if (e.Key == Key.Delete)
-        {
-            TextEditorCore.Delete();
-            return;
-        }
-        else if (e.Key == Key.Back)
-        {
-            TextEditorCore.Backspace();
-            return;
-        }
-        else if (e.Key == Key.Enter)
-        {
-            TextEditorCore.EditAndReplace("\n");
-            return;
-        }
-        else if (e.Key == Key.Insert)
-        {
-            IsOvertypeMode = !IsOvertypeMode;
-            return;
-        }
-
-        if (TextEditorCore.IsDirty)
-        {
-            // 如果有明确布局的话，可以在这里加上明确布局
-            ForceLayout();
-        }
-
-        if (e.Key == Key.Up)
-        {
-            TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
-        }
-        else if (e.Key == Key.Down)
-        {
-            TextEditorCore.MoveCaret(CaretMoveType.DownByLine);
-        }
-        else if (e.Key == Key.Left)
-        {
-            TextEditorCore.MoveCaret(CaretMoveType.LeftByCharacter);
-        }
-        else if (e.Key == Key.Right)
-        {
-            TextEditorCore.MoveCaret(CaretMoveType.RightByCharacter);
-        }
+        TextEditorHandler.OnKeyDown(e);
     }
 
     protected override void OnKeyUp(KeyEventArgs e)
     {
+        TextEditorHandler.OnKeyUp(e);
         base.OnKeyUp(e);
-
-        if (!IsInEditingInputMode)
-        {
-            // 没有进入编辑模式，不处理键盘事件
-            return;
-        }
     }
 
     #endregion
@@ -302,7 +225,7 @@ partial class TextEditor : Control
     /// <summary>
     /// 立刻布局，获取布局结果信息
     /// </summary>
-    private partial RenderInfoProvider ForceLayout()
+    internal partial RenderInfoProvider ForceLayout()
     {
         _isInForceLayout = true;
 
