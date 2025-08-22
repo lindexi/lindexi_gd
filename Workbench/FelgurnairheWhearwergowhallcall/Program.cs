@@ -14,6 +14,7 @@ _ = Task.Run(async () =>
     buffer2.AsSpan().Fill(0x02);
     await socket2.ConnectAsync(unixDomainSocketEndPoint);
     Console.WriteLine($"连接成功");
+    await Task.Delay(1000);
     // 尝试发送 150 长度过去，看能否做两次读取
     await socket2.SendAsync(buffer2);
 
@@ -32,6 +33,7 @@ var buffer = new byte[100];
 
 socket.Listen();
 var acceptSocket = await socket.AcceptAsync();
+Console.WriteLine($"收到连接");
 var length = await acceptSocket.ReceiveAsync(buffer);
 
 Console.WriteLine($"读取到的长度 {length} {buffer[0]:X2}");
