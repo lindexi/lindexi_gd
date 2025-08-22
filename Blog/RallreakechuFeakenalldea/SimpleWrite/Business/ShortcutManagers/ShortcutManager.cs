@@ -30,6 +30,7 @@ internal class ShortcutManager
         if (command == null) throw new ArgumentNullException(nameof(command));
         _commands.Add(command);
     }
+
     /// <summary>
     /// 获取所有的快捷方式命令
     /// </summary>
@@ -37,6 +38,11 @@ internal class ShortcutManager
     public IEnumerable<ShortcutCommand> GetCommands()
     {
         return _commands.AsReadOnly();
+    }
+
+    public ShortcutCommand? GetCommand(string name)
+    {
+        return _commands.FirstOrDefault(t => t.Name == name);
     }
 }
 
