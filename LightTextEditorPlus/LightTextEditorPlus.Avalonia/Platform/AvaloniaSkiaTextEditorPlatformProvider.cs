@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Editing;
 
 namespace LightTextEditorPlus.Platform;
 

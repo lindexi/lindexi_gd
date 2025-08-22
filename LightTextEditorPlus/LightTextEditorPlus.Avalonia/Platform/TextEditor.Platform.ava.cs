@@ -77,9 +77,6 @@ partial class TextEditor : Control
 
         IMESupporter.AddIMESupport(this);
 
-        // todo 光标只有在进入编辑的时候才会显示
-        Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam);
-
         TextEditorHandler = new TextEditorHandler(this);
     }
 
