@@ -27,20 +27,13 @@ var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unsp
 socket.Bind(unixDomainSocketEndPoint);
 
 var buffer = new byte[100];
-// 开始接收时，炸掉
-/*
-Unhandled exception. System.Net.Sockets.SocketException (22): Invalid argument
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)
-   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ReceiveAsync(Socket socket, CancellationToken cancellationToken)
-   at System.Net.Sockets.Socket.ReceiveAsync(Memory`1 buffer, SocketFlags socketFlags, Boolean fromNetworkStream, CancellationToken cancellationToken)
-   at System.Net.Sockets.Socket.ReceiveAsync(ArraySegment`1 buffer, SocketFlags socketFlags, Boolean fromNetworkStream)
- */
-var length = await socket.ReceiveAsync(buffer);
+
+socket.Listen();
+var acceptSocket = await socket.AcceptAsync();
+var length = await acceptSocket.ReceiveAsync(buffer);
 
 Console.WriteLine($"读取到的长度 {length} {buffer[0]:X2}");
-
-// 测试 Dgram 是否真的是一收一发的，再次读取看能否读取到数据
-length = await socket.ReceiveAsync(buffer);
+length = await acceptSocket.ReceiveAsync(buffer);
 Console.WriteLine($"二次读取的内容 {length} {buffer[0]:X2}");
 
 Console.WriteLine("Hello, World!");
