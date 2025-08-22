@@ -12,8 +12,10 @@ _ = Task.Run(async () =>
     var socket2 = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
     var buffer2 = new byte[150];
     buffer2.AsSpan().Fill(0x02);
+    await socket2.ConnectAsync(unixDomainSocketEndPoint);
+    Console.WriteLine($"连接成功");
     // 尝试发送 150 长度过去，看能否做两次读取
-    await socket2.SendToAsync(buffer2, unixDomainSocketEndPoint);
+    await socket2.SendAsync(buffer2);
 
     await Task.Delay(1000); // 等待一段时间，确保数据发送完成
     Console.WriteLine($"第一段发送完成，按下回车开始发送第二段内容");
