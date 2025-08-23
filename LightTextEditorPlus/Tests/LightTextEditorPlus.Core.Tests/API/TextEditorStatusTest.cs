@@ -148,7 +148,12 @@ public class TextEditorStatusTest
             var point = new TextPoint(50, 10);
             bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
             Assert.AreEqual(true, result);
-
+            // 命中到首段
+            Assert.AreEqual(0, hitTestResult.HitParagraphIndex.Index);
+            // 命中到首段末
+            Assert.AreEqual("1".Length, hitTestResult.HitCaretOffset.Offset);
+            // 命中到空白
+            Assert.AreEqual(true, hitTestResult.IsHitSpace);
         });
     }
 
