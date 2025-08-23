@@ -7,6 +7,8 @@ using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
 
@@ -52,7 +54,7 @@ class LayoutHitTestProvider
 
     private TextHitTestResult HitTestInner(in TextPoint point, in TextEditorDebugLogContext logContext)
     {
-        var renderInfoProvider = TextEditor.GetRenderInfo();
+        RenderInfoProvider renderInfoProvider = TextEditor.GetRenderInfo();
 
         // 先判断是否命中到文档
         // 命中到文档，那就继续判断段落命中
@@ -60,19 +62,19 @@ class LayoutHitTestProvider
         var paragraphManager = documentManager.ParagraphManager;
 
         DocumentLayoutBounds documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
-        TextRect documentHitBounds = documentLayoutBounds.DocumentContentBounds;
+        TextRect documentContentHitBounds = documentLayoutBounds.DocumentContentBounds;
 
         logContext.RecordDebugMessage($"开始测试文档范围是否命中");
 
-        var contains = documentHitBounds.Contains(point);
+        var contains = documentContentHitBounds.Contains(point);
         // 如果没有点到文档范围内，则处理超过范围逻辑
         if (!contains)
         {
-            logContext.RecordDebugMessage($"没有命中到文档范围。文档范围 {documentHitBounds}");
-            return GetOverBoundsHitTestResult(point, documentHitBounds);
+            logContext.RecordDebugMessage($"没有命中到文档范围。文档范围 {documentContentHitBounds}");
+            return GetOverBoundsHitTestResult(point, renderInfoProvider, in documentLayoutBounds);
         }
 
-        logContext.RecordDebugMessage($"命中到文档范围。文档范围 {documentHitBounds}，继续进行段落命中");
+        logContext.RecordDebugMessage($"命中到文档范围。文档范围 {documentContentHitBounds}，继续进行段落命中");
         logContext.RecordDebugMessage($"开始段落命中测试");
 
         IReadOnlyList<ParagraphData> list = paragraphManager.GetParagraphList();
@@ -118,24 +120,100 @@ class LayoutHitTestProvider
     /// 获取超过文档范围的命中测试结果
     /// </summary>
     /// <param name="point"></param>
-    /// <param name="documentHitBounds"></param>
+    /// <param name="renderInfoProvider"></param>
+    /// <param name="documentLayoutBounds"></param>
     /// <returns></returns>
-    private TextHitTestResult GetOverBoundsHitTestResult(TextPoint point, TextRect documentHitBounds)
+    private TextHitTestResult GetOverBoundsHitTestResult(TextPoint point, RenderInfoProvider renderInfoProvider, in DocumentLayoutBounds documentLayoutBounds)
     {
-        var documentManager = TextEditor.DocumentManager;
-        var paragraphManager = documentManager.ParagraphManager;
-
         // 是否超过文本字符范围了
         const bool isOutOfTextCharacterBounds = true;
         // 是否在文档末尾
         const bool isEndOfTextCharacterBounds = false;
+        ParagraphData paragraphData;
+        CaretOffset hitCaretOffset;
+
+        TextRect outlineBounds = documentLayoutBounds.DocumentOutlineBounds;
+        if (outlineBounds.Contains(point))
+        {
+            // 在文档的外接范围内，但不在内容范围内
+            foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
+            {
+                foreach (LineLayoutData lineLayoutData in paragraphRenderInfo.ParagraphData.LineLayoutDataList)
+                {
+                    if (TryHitLine(lineLayoutData, in paragraphRenderInfo, out var result))
+                    {
+                        return result;
+                    }
+                }
+            }
+        }
+
+        bool TryHitLine(LineLayoutData lineLayoutData, in ParagraphRenderInfo paragraphRenderInfo, out TextHitTestResult result)
+        {
+            result = default;
+
+            TextRect lineOutlineBounds = lineLayoutData.OutlineBounds;
+            if (!lineOutlineBounds.Contains(point))
+            {
+                return false;
+            }
+
+            // 在当前行的范围内，对于横排来说，应该再次判断是行的左边还是右边
+            TextRect lineContentBounds = lineLayoutData.GetLineContentBounds();
+            var isLeft = point.X <= lineContentBounds.Left;
+            var isRight = point.X >= lineContentBounds.Right;
+            var lineCharList = lineLayoutData.GetCharList();
+
+            CharData? hitCharData = null;
+            if (isLeft)
+            {
+                Debug.Assert(isRight == false, "命中到左边，就一定不在右边");
+                // 那就取行首
+                if (lineCharList.Count > 0)
+                {
+                    hitCharData = lineCharList[0];
+                }
+
+                hitCaretOffset = lineLayoutData.ToCaretOffset(new LineCaretOffset(0));
+            }
+            else if (isRight)
+            {
+                Debug.Assert(isLeft == false, "命中到右边，就一定不在左边");
+                // 那就取行末
+                if (lineCharList.Count > 0)
+                {
+                    hitCharData = lineCharList[^1];
+                }
+                hitCaretOffset = lineLayoutData.ToCaretOffset(new LineCaretOffset(lineLayoutData.CharCount));
+            }
+            else
+            {
+                Debug.Fail("不可能非左边或非右边的情况");
+                return false;
+            }
+
+            result = new TextHitTestResult(paragraphRenderInfo.ParagraphData, isOutOfTextCharacterBounds,
+                isEndOfTextCharacterBounds,
+                IsInLineBoundsNotHitChar: true,
+                hitCaretOffset,
+                hitCharData, paragraphRenderInfo.Index)
+            {
+                // 没在文档内，那一定是命中到空白
+                IsHitSpace = true,
+                LineLayoutData = lineLayoutData,
+            };
+            return true;
+        }
+
+        var documentManager = TextEditor.DocumentManager;
+        var paragraphManager = documentManager.ParagraphManager;
+   
         // 是否在段落最后一行上
         const bool isInLastLineBounds = false;
 
         // 对于水平布局，顶端对齐来说，应该是只判断上下
-        var isInTop = point.Y < documentHitBounds.Top;
-        ParagraphData paragraphData;
-        CaretOffset hitCaretOffset;
+        var isInTop = point.Y < documentLayoutBounds.DocumentContentBounds.Top;
+    
         if (isInTop)
         {
             // 在文档的上方，则取首个字符
@@ -292,6 +370,8 @@ class LayoutHitTestProvider
                 var isRight = point.X >= lineContentBounds.Right;
                 var isTop = point.Y <= lineContentBounds.Top;
                 var isBottom = point.Y >= lineContentBounds.Bottom;
+                _ = isTop;
+                _ = isBottom;
                 CaretOffset hitCaretOffset;
                 if (isLeft)
                 {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -204,7 +204,13 @@ class LineLayoutData : IParagraphCache, IDisposable
     public CaretOffset ToCaretOffset(LineCaretOffset lineCaretOffset)
     {
         var paragraphCaretOffset = ToParagraphCaretOffset(lineCaretOffset);
-        return CurrentParagraph.ToCaretOffset(paragraphCaretOffset);
+        var caretOffset = CurrentParagraph.ToCaretOffset(paragraphCaretOffset);
+        if (lineCaretOffset.Offset == 0)
+        {
+            // 在行首
+            caretOffset = new CaretOffset(caretOffset.Offset, isAtLineStart: true);
+        }
+        return caretOffset;
     }
 
     #region 绘制渲染

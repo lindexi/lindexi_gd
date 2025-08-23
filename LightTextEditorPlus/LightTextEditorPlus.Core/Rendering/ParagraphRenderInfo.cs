@@ -14,7 +14,7 @@ public readonly struct ParagraphRenderInfo
     internal ParagraphRenderInfo(ParagraphIndex index, ParagraphData paragraphData, RenderInfoProvider renderInfoProvider)
     {
         Index = index;
-        _paragraphData = paragraphData;
+        ParagraphData = paragraphData;
         _renderInfoProvider = renderInfoProvider;
     }
 
@@ -22,23 +22,28 @@ public readonly struct ParagraphRenderInfo
     /// 段落序号，这是文档里的第几段，从0开始
     /// </summary>
     public ParagraphIndex Index { get; }
-    private readonly ParagraphData _paragraphData;
+
     private readonly RenderInfoProvider _renderInfoProvider;
 
     /// <summary>
     /// 段落的布局数据
     /// </summary>
-    public IParagraphLayoutData ParagraphLayoutData => _paragraphData.ParagraphLayoutData;
+    public IParagraphLayoutData ParagraphLayoutData => ParagraphData.ParagraphLayoutData;
 
     /// <summary>
     /// 段落属性
     /// </summary>
-    public ParagraphProperty ParagraphProperty => _paragraphData.ParagraphProperty;
+    public ParagraphProperty ParagraphProperty => ParagraphData.ParagraphProperty;
 
     /// <summary>
     /// 段落
     /// </summary>
-    public ITextParagraph Paragraph => _paragraphData;
+    public ITextParagraph Paragraph => ParagraphData;
+
+    /// <summary>
+    /// 段落
+    /// </summary>
+    internal ParagraphData ParagraphData { get; }
 
     /// <summary>
     /// 获取此段落内的行的渲染信息
@@ -59,14 +64,14 @@ public readonly struct ParagraphRenderInfo
     {
         internal ParagraphLineRenderInfo ToParagraphLineRenderInfo(int lineIndex)
         {
-            LineLayoutData lineLayoutData = ParagraphRenderInfo._paragraphData.LineLayoutDataList[lineIndex];
+            LineLayoutData lineLayoutData = ParagraphRenderInfo.ParagraphData.LineLayoutDataList[lineIndex];
 
             var argument = lineLayoutData.GetLineDrawingArgument();
 
             ParagraphRenderInfo._renderInfoProvider.VerifyNotDirty();
 
             return new ParagraphLineRenderInfo(lineIndex: lineIndex, paragraphIndex: ParagraphRenderInfo.Index,
-                argument, lineLayoutData, ParagraphRenderInfo._paragraphData.ParagraphStartRunProperty,
+                argument, lineLayoutData, ParagraphRenderInfo.ParagraphData.ParagraphStartRunProperty,
                 ParagraphRenderInfo._renderInfoProvider);
         }
 
@@ -90,7 +95,7 @@ public readonly struct ParagraphRenderInfo
         }
 
         /// <inheritdoc />
-        public int Count => ParagraphRenderInfo._paragraphData.LineLayoutDataList.Count;
+        public int Count => ParagraphRenderInfo.ParagraphData.LineLayoutDataList.Count;
 
         /// <inheritdoc />
         public ParagraphLineRenderInfo this[int index]

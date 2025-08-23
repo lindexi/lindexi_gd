@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Layout;
@@ -117,6 +117,43 @@ public class TextEditorStatusTest
             // Assert
             Assert.AreEqual(true, result);
             Assert.AreEqual(0, hitTestResult.HitParagraphIndex.Index, "可以命中到首段");
+        });
+    }
+
+    /// <summary>
+    /// 测试命中测试，命中到文档内容之后的空白
+    /// </summary>
+    [ContractTestCase]
+    public void TestTryHitTest_HitDocumentContentOut()
+    {
+        "对包含两段文本进行命中测试，命中到第一段文档内容之后的空白，可以命中到第一段末尾".Test(() =>
+        {
+            // Arrange
+            const double fontSize = 20;
+            const int lineCharCount = 5;
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor(lineCharCount, fontSize: fontSize);
+
+            // 再添加两段用来测试
+            // 一行能布局 5 个字符，特意写一段包含 9 个字符，确保有两行
+            textEditorCore.AppendText("1\n23");
+
+            string dumpBreakLineRenderInfo = textEditorCore.GetRenderInfo().DumpBreakLineRenderInfo();
+            GC.KeepAlive(dumpBreakLineRenderInfo); // 仅用于调试
+
+            // Action
+            // 尝试命中到第一段文档内容之后的空白
+            // 预期此时的文档内容范围是 W=2x20=40, H=2x20=40，这是因为最长的一段是 "23"，布局成一行，每个字符宽度 20，因此宽度是 40；高度是两行，每行高度 20，因此高度是 40
+            // 文档范围（非内容范围）为 lineCharCount x fontSize = 5 x 20 = 100 宽度，2 x fontSize = 2 x 20 = 40 高度
+            // 因此取 X=50， Y=10 ，确保命中到第一段文档内容之后的空白
+            var point = new TextPoint(50, 10);
+            bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
+            Assert.AreEqual(true, result);
+            // 命中到首段
+            Assert.AreEqual(0, hitTestResult.HitParagraphIndex.Index);
+            // 命中到首段末
+            Assert.AreEqual("1".Length, hitTestResult.HitCaretOffset.Offset);
+            // 命中到空白
+            Assert.AreEqual(true, hitTestResult.IsHitSpace);
         });
     }
 
