@@ -60,19 +60,19 @@ class LayoutHitTestProvider
         var paragraphManager = documentManager.ParagraphManager;
 
         DocumentLayoutBounds documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
-        TextRect documentHitBounds = documentLayoutBounds.DocumentContentBounds;
+        TextRect documentContentHitBounds = documentLayoutBounds.DocumentContentBounds;
 
         logContext.RecordDebugMessage($"开始测试文档范围是否命中");
 
-        var contains = documentHitBounds.Contains(point);
+        var contains = documentContentHitBounds.Contains(point);
         // 如果没有点到文档范围内，则处理超过范围逻辑
         if (!contains)
         {
-            logContext.RecordDebugMessage($"没有命中到文档范围。文档范围 {documentHitBounds}");
-            return GetOverBoundsHitTestResult(point, documentHitBounds);
+            logContext.RecordDebugMessage($"没有命中到文档范围。文档范围 {documentContentHitBounds}");
+            return GetOverBoundsHitTestResult(point, in documentLayoutBounds);
         }
 
-        logContext.RecordDebugMessage($"命中到文档范围。文档范围 {documentHitBounds}，继续进行段落命中");
+        logContext.RecordDebugMessage($"命中到文档范围。文档范围 {documentContentHitBounds}，继续进行段落命中");
         logContext.RecordDebugMessage($"开始段落命中测试");
 
         IReadOnlyList<ParagraphData> list = paragraphManager.GetParagraphList();
@@ -118,10 +118,17 @@ class LayoutHitTestProvider
     /// 获取超过文档范围的命中测试结果
     /// </summary>
     /// <param name="point"></param>
-    /// <param name="documentHitBounds"></param>
+    /// <param name="documentLayoutBounds"></param>
     /// <returns></returns>
-    private TextHitTestResult GetOverBoundsHitTestResult(TextPoint point, TextRect documentHitBounds)
+    private TextHitTestResult GetOverBoundsHitTestResult(TextPoint point, in DocumentLayoutBounds documentLayoutBounds)
     {
+        TextRect outlineBounds = documentLayoutBounds.DocumentOutlineBounds;
+        if (outlineBounds.Contains(point))
+        {
+            // 在文档的外接范围内，但不在内容范围内
+            // 此时需要分各个段落来判断，预期此时做段落命中即可，不需要做行命中。因为不大可能命中到行内
+        }
+
         var documentManager = TextEditor.DocumentManager;
         var paragraphManager = documentManager.ParagraphManager;
 
@@ -133,7 +140,7 @@ class LayoutHitTestProvider
         const bool isInLastLineBounds = false;
 
         // 对于水平布局，顶端对齐来说，应该是只判断上下
-        var isInTop = point.Y < documentHitBounds.Top;
+        var isInTop = point.Y < documentLayoutBounds.DocumentContentBounds.Top;
         ParagraphData paragraphData;
         CaretOffset hitCaretOffset;
         if (isInTop)
