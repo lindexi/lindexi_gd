@@ -73,20 +73,29 @@ public partial class MainEditorView : UserControl
         {
             // 此时标题未定
             var paragraphList = textEditor.ParagraphList;
-            if (paragraphList.Count > 0)
+            // 至少有两段的时候，才能按照第一段作为标题
+            if (paragraphList.Count > 1)
             {
                 var title = paragraphList[0].GetText();
-                if (title.Length > 5)
+                if (!string.IsNullOrWhiteSpace(title))
                 {
-                    // 如果标题过长，截断，执行中间截断。规则是：
-                    // 保留前 5 后 3 个字符，中间用省略号代替
-                    title = title[..5] + "..." + title[^3..];
+                    var trimTitle = title.Trim();
+                    if (trimTitle.Length > 5)
+                    {
+                        // 如果标题过长，截断，执行中间截断。规则是：
+                        // 保留前 5 后 3 个字符，中间用省略号代替
+                        trimTitle = trimTitle[..5] + "..." + trimTitle[^3..];
+                    }
+                    editorModel.Title = trimTitle;
                 }
-                editorModel.Title = title;
+                else
+                {
+                    editorModel.Title = EditorModel.DefaultTitle;
+                }
             }
             else
             {
-                editorModel.Title = "无标题";
+                editorModel.Title = EditorModel.DefaultTitle;
             }
         }
     }

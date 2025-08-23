@@ -24,7 +24,9 @@ public class EditorModel : INotifyPropertyChanged
         }
     }
 
-    private string _title = "无标题";
+    private string _title = DefaultTitle;
+
+    public const string DefaultTitle = "无标题";
 
     [MaybeNull]
     public FileInfo FileInfo
