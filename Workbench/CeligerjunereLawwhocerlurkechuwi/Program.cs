@@ -56,8 +56,21 @@ while (true)
 
     var code =
         $$"""
-        // {{text}}动画
-        new {{type}}Animation(),
+        /// <summary>
+        /// {{text}}
+        /// </summary>
+        class {{type}}Animation : ElementAnimationSaveInfoConverter
+        {
+            public override string Type => "{{type}}";
+            protected override ElementAnimation ToElementAnimationInner(AnimationInfo animationInfo, ElementSaveInfoLoadContext context)
+            {
+                AnimationSaveInfo animationSaveInfo = animationInfo.AnimationSaveInfo;
+        
+                // todo 还没实现{{text}}动画
+                var animation = new 进入动画.淡入(animationInfo.Element);
+                return SetCommonInfo(animation, animationSaveInfo);
+            }
+        }
         
         """;
     result += code;
