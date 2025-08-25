@@ -50,14 +50,49 @@ while (true)
     var line = stringReader.ReadLine();
     if (line == null) break;
 
-    var match = Regex.Match(line, @"Type=(\w+) Text=(\w+) ");
+    var match = Regex.Match(line, @"Type=(\w+) Text=(\w+) Category=(\w+)");
     var type = match.Groups[1].Value;
     var text = match.Groups[2].Value;
+    var category = match.Groups[3].Value;
+
+    if (!match.Success)
+    {
+        continue;
+    }
+
+    var 动画类型 = category switch
+    {
+        "Appearance" => "进入",
+        "Emphasis" => "强调",
+        "Disappearance" => "退出",
+        _ => throw new Exception("未知动画类型")
+    };
+
+    var 动画实现代码 = category switch
+    {
+        "Appearance" => "进入动画.淡入",
+        "Emphasis" => "强调动画.缩放",
+        "Disappearance" => "退出动画.淡出",
+        _ => throw new Exception("未知动画类型")
+    };
 
     var code =
         $$"""
-        // {{text}}动画
-        new {{type}}Animation(),
+        /// <summary>
+        /// {{text}} - {{动画类型}}动画
+        /// </summary>
+        class {{type}}Animation : ElementAnimationSaveInfoConverter
+        {
+            public override string Type => "{{type}}";
+            protected override ElementAnimation ToElementAnimationInner(AnimationInfo animationInfo, ElementSaveInfoLoadContext context)
+            {
+                AnimationSaveInfo animationSaveInfo = animationInfo.AnimationSaveInfo;
+        
+                // todo 还没实现{{text}}动画
+                var animation = new {{动画实现代码}}(animationInfo.Element);
+                return SetCommonInfo(animation, animationSaveInfo);
+            }
+        }
         
         """;
     result += code;
