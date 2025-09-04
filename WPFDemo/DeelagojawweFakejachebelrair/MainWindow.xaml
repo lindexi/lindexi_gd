@@ -7,10 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" >
-            <Button Margin="10,10,10,10" Content="The Button" Click="Button_OnClick"></Button>
-            <Button x:Name="Button2" Margin="10,10,10,10" Content="The Button 2" Click="Button2_OnClick"></Button>
-        </StackPanel>
-       
+        <Button HorizontalAlignment="Center" VerticalAlignment="Center" Content="The Button" Click="Button_OnClick"></Button>
     </Grid>
 </Window>
