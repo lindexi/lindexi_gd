@@ -22,29 +22,27 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private Window? _window1;
-
     private void Button_OnClick(object sender, RoutedEventArgs e)
     {
-        _window1 = new Window()
+        var window1 = new Window()
         {
             Title = "Windows1"
         };
-        _window1.Show();
-    }
+        window1.Show();
 
-    private void Button2_OnClick(object sender, RoutedEventArgs e)
-    {
-        Window window2 = new Window();
-        window2.Owner = _window1;
+        Window window2 = new Window
+        {
+            Title = "Windows2",
+            Owner = window1,
+        };
 
-        Task.Run(async () => 
+        Task.Run(async () =>
         {
             await Task.Delay(1000);
             await Dispatcher.InvokeAsync(() =>
             {
-                Debug.Assert(_window1 != null, nameof(_window1) + " != null");
-                _window1.Close();  //Causes other window events to invalid
+                Debug.Assert(window1 != null, nameof(window1) + " != null");
+                window1.Close();  //Causes other window events to invalid
             });
         });
 
