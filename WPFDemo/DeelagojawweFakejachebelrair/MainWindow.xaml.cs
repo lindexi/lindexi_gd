@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -21,18 +22,32 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    private Window? _window1;
+
     private void Button_OnClick(object sender, RoutedEventArgs e)
     {
-        var mainWindow = new MainWindow()
+        _window1 = new Window()
         {
-            Title = "Windows2"
+            Title = "Windows1"
         };
-        mainWindow.Owner = this;
-        Task.Run(async () =>
+        _window1.Show();
+    }
+
+    private void Button2_OnClick(object sender, RoutedEventArgs e)
+    {
+        Window window2 = new Window();
+        window2.Owner = _window1;
+
+        Task.Run(async () => 
         {
-            await Task.Delay(2000);
-            Dispatcher.Invoke(() => this.Close());
+            await Task.Delay(1000);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                Debug.Assert(_window1 != null, nameof(_window1) + " != null");
+                _window1.Close();  //Causes other window events to invalid
+            });
         });
-        mainWindow.ShowDialog();
+
+        window2.ShowDialog();
     }
 }
