@@ -97,8 +97,9 @@ while (true)
     //var dc_dw22 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * b;
 
     var l2Delta = dc_dz2;
+    // 由于 layer2 是 1x2 的矩阵，所以 l1Error 也是 1x2 的矩阵
     Matrix<double> l1Error = l2Delta * layer2; // 反向传播
-    var l1Delta = l1Error.PointwiseMultiply(y1MatrixD.Transpose()); // 点乘
+    var l1Delta = l1Error.Transpose().PointwiseMultiply(y1MatrixD); // 点乘
     // l1Delta 就是
     // | dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] |
     // | dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] |
@@ -116,7 +117,7 @@ while (true)
     ]);
 
     // input 是 2x1 的，这里需要构成 1x2 的
-    var dL1 = input * l1Delta;
+    var dL1 = l1Delta * input.Transpose();
     if (dL1.Equals(dLayer1Matrix))
     {
 
@@ -135,7 +136,7 @@ while (true)
     //w21 = w21 - dc_dw21;
     //w22 = w22 - dc_dw22;
 
-    layer1 = layer1 - dLayer1Matrix;
+    layer1 = layer1 - dL1;
 
     count++;
 }
