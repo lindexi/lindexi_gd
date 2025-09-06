@@ -96,8 +96,8 @@ while (true)
     //var dc_dw21 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * a;
     //var dc_dw22 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * b;
 
-    var l2Error = dc_dz2;
-    Matrix<double> l1Error = l2Error * layer2; // 反向传播
+    var l2Delta = dc_dz2;
+    Matrix<double> l1Error = l2Delta * layer2; // 反向传播
     var l1Delta = l1Error.PointwiseMultiply(y1MatrixD.Transpose()); // 点乘
     // l1Delta 就是
     // | dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] |
@@ -116,7 +116,7 @@ while (true)
     ]);
 
     // input 是 2x1 的，这里需要构成 1x2 的
-    var dL1 = l1Delta * input.Transpose();
+    var dL1 = input * l1Delta;
     if (dL1.Equals(dLayer1Matrix))
     {
 
