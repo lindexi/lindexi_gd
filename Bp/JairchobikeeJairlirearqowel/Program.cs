@@ -99,9 +99,7 @@ while (true)
     var l2Delta = dc_dz2;
     // 由于 layer2 是 1x2 的矩阵，所以 l1Error 也是 1x2 的矩阵
     Matrix<double> l1Error = l2Delta * layer2; // 反向传播
-    var l1Delta = l1Error.PointwiseMultiply(y1MatrixD.Transpose()) // 点乘
-    // 这里需要转置一下，因为 l1Error 是 1x2 的，而 y1MatrixD 是 2x1 的，经过转置得 1x2 矩阵，得到结果还是 1x2 的
-        .Transpose(); 
+    var l1Delta = l1Error.Transpose().PointwiseMultiply(y1MatrixD); // 点乘
     // l1Delta 就是
     // | dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] |
     // | dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] |
