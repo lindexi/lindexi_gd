@@ -28,7 +28,7 @@ var input = Matrix.Build.SparseOfRowArrays
 ]);
 
 
-var layer1 = Matrix.Build.SparseOfRows(nodeCount, weightCount,
+var layer1Weight = Matrix.Build.SparseOfRows(nodeCount, weightCount,
 [
     [w11, w12],
     [w21, w22],
@@ -38,7 +38,7 @@ var w31 = 0.3;
 var w32 = 0.9;
 
 var layer2NodeCount = 1;
-var layer2 = Matrix.Build.SparseOfRows(layer2NodeCount, weightCount,
+var layer2Weight = Matrix.Build.SparseOfRows(layer2NodeCount, weightCount,
 [
     [w31, w32],
 ]);
@@ -53,23 +53,27 @@ while (true)
     // layer1 2x2
     // input 2x1
     // z1Matrix 2x1
-    Matrix<double> z1Matrix = layer1.Multiply(input);
+    // 这里的 z1Matrix 表示 z0 和 z1 组成的矩阵
+    Matrix<double> z1Matrix = layer1Weight.Multiply(input);
 
     //var y0 = F(z0);
     //var y1 = F(z1);
 
     // y1Matrix 2x1
+    // 这里的 y1Matrix 表示 y0 和 y1 组成的矩阵，即 z0 和 z1 组成的 z1Matrix 矩阵经过了激活函数 F 之后的结果
     Matrix<double> y1Matrix = FMatrix(z1Matrix);
 
     //var z2 = w31 * y0 + w32 * y1;
     // layer2 1x2
     // z2Matrix 1x1
-    var z2Matrix = layer2.Multiply(y1Matrix);
+    // 这里的 z2Matrix 就是 z2 的值，因为是一个 1x1 的矩阵
+    var z2Matrix = layer2Weight.Multiply(y1Matrix);
     //if (z2Matrix.RowCount == 1 && z2Matrix.ColumnCount == 1)
     //{
     //    z2 = z2Matrix[0, 0];
     //}
 
+    // y2 就是神经网络的输出
     var y2 = F(z2Matrix[0, 0]);
 
     var c = C(y2);
@@ -79,16 +83,17 @@ while (true)
         break;
     }
 
-    double dc_dz2 = (y2 - y_out) * (y2 * (1 - y2)); // l2 delta
+    double dc_dz2 = (y2 - y_out) * (y2 * (1 - y2)); // dc/dy2 * dy2/dz2
 
     //var dc_dw31 = dc_dz2 * y0;
     //var dc_dw32 = dc_dz2 * y1;
 
     // 为了能够让 dc_dw3132Matrix 叠加到 layer2 1x2 矩阵上，需要先将 y1Matrix 转置为 1x2 矩阵，再与 dc_dz2 相乘
-    var dc_dw3132Matrix = y1Matrix.Transpose().Multiply(dc_dz2);
+    var dc_dw31w32Matrix = dc_dz2 * y1Matrix.Transpose(); // dc/dy2 * dy2/dz2 * dy2/|dw31,32| = dc/|dw31,dw32|
+    Matrix<double> layer2Delta = dc_dw31w32Matrix; // 1x2 矩阵
 
     // 2x1
-    var y1MatrixD = y1Matrix.Map(x => x * (1 - x));
+    var y1MatrixDerivative = y1Matrix.Map(x => x * (1 - x)); // y1 的导数矩阵
 
     //var dc_dw11 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * a;
     //var dc_dw12 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * b;
@@ -96,19 +101,23 @@ while (true)
     //var dc_dw21 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * a;
     //var dc_dw22 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * b;
 
-    var l2Delta = dc_dz2;
-    // 由于 layer2 是 1x2 的矩阵，所以 l1Error 也是 1x2 的矩阵
-    Matrix<double> l1Error = l2Delta * layer2; // 反向传播
-    var l1Delta = l1Error.Transpose().PointwiseMultiply(y1MatrixD); // 点乘
-    // l1Delta 就是
+    // 由于 layer2 是 1x2 的矩阵，所以 layer1Error 也是 1x2 的矩阵
+    // dc/dy2 * dy2/dz2 * dz2/|dy0,dy1| = dc/|dy0,dy1|
+    Matrix<double> dc_dy0y1Matrix = dc_dz2 * layer2Weight; // 反向传播
+    // dc/dy2 * dy2/dz2 * dz2/|dy0,dy1|* |dy0,dy1|/|dz0,dz1| = dc/|dz0,dz1|
+    var dc_dz0z1Matrix = dc_dy0y1Matrix.Transpose().PointwiseMultiply(y1MatrixDerivative); // 点乘
+    // layer1Delta 就是
     // | dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] |
     // | dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] |
+    // =
+    // | (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) |
+    // | (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) |
 
-    var dc_dw11 = dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] * input[0, 0];
-    var dc_dw12 = dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] * input[1, 0];
+    var dc_dw11 = dc_dz2 * layer2Weight[0, 0] * y1MatrixDerivative[0, 0] * input[0, 0];
+    var dc_dw12 = dc_dz2 * layer2Weight[0, 0] * y1MatrixDerivative[0, 0] * input[1, 0];
 
-    var dc_dw21 = dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] * input[0, 0];
-    var dc_dw22 = dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] * input[1, 0];
+    var dc_dw21 = dc_dz2 * layer2Weight[0, 1] * y1MatrixDerivative[1, 0] * input[0, 0];
+    var dc_dw22 = dc_dz2 * layer2Weight[0, 1] * y1MatrixDerivative[1, 0] * input[1, 0];
 
     var dLayer1Matrix = Matrix.Build.SparseOfRows(nodeCount, weightCount,
     [
@@ -116,19 +125,19 @@ while (true)
         [dc_dw21, dc_dw22],
     ]);
 
-    // input 是 2x1 的，这里需要构成 1x2 的
-    var dL1 = l1Delta * input.Transpose();
-    if (dL1.Equals(dLayer1Matrix))
+    // dc/|dz0,dz1| * |dz0,dz1|/|dw11,w12| = dc/|dw11,w12|
+    // input 是 2x1 的，这里需要构成 1x2 的，才能和 dc_dz0z1Matrix 这个 2x1 的矩阵相乘，得到 2x2 的矩阵
+    var dc_dw11d12Matrix = dc_dz0z1Matrix * input.Transpose();
+    if (dc_dw11d12Matrix.Equals(dLayer1Matrix))
     {
-
+        // 证明和上面手动计算的结果是一样的
     }
-
-    // 已知 e = a x c, f = b x d 。其中 a b 为 2x1 的矩阵 M1，c d 为 1x2 的矩阵 M2。请将 e f 作为矩阵 M3 表示出来，且写出 e f 所在的矩阵 M3 与 M1 M2 的关系。
+    var layer1Delta = dc_dw11d12Matrix; // 2x2 矩阵
 
     //w31 = w31 - dc_dw31;
     //w32 = w32 - dc_dw32;
 
-    layer2 = layer2 - dc_dw3132Matrix;
+    layer2Weight = layer2Weight - layer2Delta;
 
     //w11 = w11 - dc_dw11;
     //w12 = w12 - dc_dw12;
@@ -136,7 +145,7 @@ while (true)
     //w21 = w21 - dc_dw21;
     //w22 = w22 - dc_dw22;
 
-    layer1 = layer1 - dL1;
+    layer1Weight = layer1Weight - layer1Delta;
 
     count++;
 }
