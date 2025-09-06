@@ -3,18 +3,6 @@
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
-var matrix1 = Matrix.Build.SparseOfRows(1, 2,
-[
-    [2,2],
-]);
-
-var matrix2 = Matrix.Build.SparseOfRows(2, 1,
-[
-    [2],
-    [3]
-]);
-var matrix3 = matrix1.Multiply(matrix2);
-
 const double x0 = 0.35;
 const double x1 = 0.9;
 
