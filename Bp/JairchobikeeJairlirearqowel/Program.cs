@@ -2,15 +2,15 @@
 
 using MathNet.Numerics.LinearAlgebra.Double;
 
-var matrix1 = Matrix.Build.SparseOfRows(2, 1,
+var matrix1 = Matrix.Build.SparseOfRows(1, 2,
 [
-    [2],
-    [2]
+    [2,2],
 ]);
 
-var matrix2 = Matrix.Build.SparseOfRows(1, 2,
+var matrix2 = Matrix.Build.SparseOfRows(2, 1,
 [
-    [3, 3]
+    [2],
+    [3]
 ]);
 var matrix3 = matrix1.Multiply(matrix2);
 
