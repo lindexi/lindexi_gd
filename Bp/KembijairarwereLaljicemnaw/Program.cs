@@ -27,7 +27,7 @@ var input = Matrix.Build.SparseOfRowArrays
     [x1],
 ]);
 
-
+// w1 layer
 var layer1Weight = Matrix.Build.SparseOfRows(nodeCount, weightCount,
 [
     [w11, w12],
@@ -37,6 +37,7 @@ var layer1Weight = Matrix.Build.SparseOfRows(nodeCount, weightCount,
 var w31 = 0.3;
 var w32 = 0.9;
 
+// w2 layer
 var layer2NodeCount = 1;
 var layer2Weight = Matrix.Build.SparseOfRows(layer2NodeCount, weightCount,
 [
@@ -53,27 +54,27 @@ while (true)
     // layer1 2x2
     // input 2x1
     // z1Matrix 2x1
-    // ÕâÀïµÄ z1Matrix ±íÊ¾ z0 ºÍ z1 ×é³ÉµÄ¾ØÕó
+    // è¿™é‡Œçš„ z1Matrix è¡¨ç¤º z0 å’Œ z1 ç»„æˆçš„çŸ©é˜µ
     Matrix<double> z1Matrix = layer1Weight.Multiply(input);
 
     //var y0 = F(z0);
     //var y1 = F(z1);
 
     // y1Matrix 2x1
-    // ÕâÀïµÄ y1Matrix ±íÊ¾ y0 ºÍ y1 ×é³ÉµÄ¾ØÕó£¬¼´ z0 ºÍ z1 ×é³ÉµÄ z1Matrix ¾ØÕó¾­¹ıÁË¼¤»îº¯Êı F Ö®ºóµÄ½á¹û
+    // è¿™é‡Œçš„ y1Matrix è¡¨ç¤º y0 å’Œ y1 ç»„æˆçš„çŸ©é˜µï¼Œå³ z0 å’Œ z1 ç»„æˆçš„ z1Matrix çŸ©é˜µç»è¿‡äº†æ¿€æ´»å‡½æ•° F ä¹‹åçš„ç»“æœ
     Matrix<double> y1Matrix = FMatrix(z1Matrix);
 
     //var z2 = w31 * y0 + w32 * y1;
     // layer2 1x2
     // z2Matrix 1x1
-    // ÕâÀïµÄ z2Matrix ¾ÍÊÇ z2 µÄÖµ£¬ÒòÎªÊÇÒ»¸ö 1x1 µÄ¾ØÕó
+    // è¿™é‡Œçš„ z2Matrix å°±æ˜¯ z2 çš„å€¼ï¼Œå› ä¸ºæ˜¯ä¸€ä¸ª 1x1 çš„çŸ©é˜µ
     var z2Matrix = layer2Weight.Multiply(y1Matrix);
     //if (z2Matrix.RowCount == 1 && z2Matrix.ColumnCount == 1)
     //{
     //    z2 = z2Matrix[0, 0];
     //}
 
-    // y2 ¾ÍÊÇÉñ¾­ÍøÂçµÄÊä³ö
+    // y2 å°±æ˜¯ç¥ç»ç½‘ç»œçš„è¾“å‡º
     var y2 = F(z2Matrix[0, 0]);
 
     var c = C(y2);
@@ -88,12 +89,12 @@ while (true)
     //var dc_dw31 = dc_dz2 * y0;
     //var dc_dw32 = dc_dz2 * y1;
 
-    // ÎªÁËÄÜ¹»ÈÃ dc_dw3132Matrix µş¼Óµ½ layer2 1x2 ¾ØÕóÉÏ£¬ĞèÒªÏÈ½« y1Matrix ×ªÖÃÎª 1x2 ¾ØÕó£¬ÔÙÓë dc_dz2 Ïà³Ë
-    var dc_dw31w32Matrix = dc_dz2 * y1Matrix.Transpose(); // dc/dy2 * dy2/dz2 * dy2/|dw31,32| = dc/|dw31,dw32|
-    Matrix<double> layer2Delta = dc_dw31w32Matrix; // 1x2 ¾ØÕó
+    // ä¸ºäº†èƒ½å¤Ÿè®© dc_dw2Matrix å åŠ åˆ° layer2 1x2 çŸ©é˜µä¸Šï¼Œéœ€è¦å…ˆå°† y1Matrix è½¬ç½®ä¸º 1x2 çŸ©é˜µï¼Œå†ä¸ dc_dz2 ç›¸ä¹˜
+    var dc_dw2Matrix = dc_dz2 * y1Matrix.Transpose(); // dc/dy2 * dy2/dz2 * dy2/d|w2| = dc/d|w2|
+    Matrix<double> layer2Delta = dc_dw2Matrix; // 1x2 çŸ©é˜µ
 
     // 2x1
-    var y1MatrixDerivative = y1Matrix.Map(x => x * (1 - x)); // y1 µÄµ¼Êı¾ØÕó
+    var y1MatrixDerivative = y1Matrix.Map(x => x * (1 - x)); // y1 çš„å¯¼æ•°çŸ©é˜µ
 
     //var dc_dw11 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * a;
     //var dc_dw12 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * b;
@@ -101,12 +102,12 @@ while (true)
     //var dc_dw21 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * a;
     //var dc_dw22 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * b;
 
-    // ÓÉÓÚ layer2 ÊÇ 1x2 µÄ¾ØÕó£¬ËùÒÔ layer1Error Ò²ÊÇ 1x2 µÄ¾ØÕó
-    // dc/dy2 * dy2/dz2 * dz2/|dy0,dy1| = dc/|dy0,dy1|
-    Matrix<double> dc_dy0y1Matrix = dc_dz2 * layer2Weight; // ·´Ïò´«²¥
-    // dc/dy2 * dy2/dz2 * dz2/|dy0,dy1|* |dy0,dy1|/|dz0,dz1| = dc/|dz0,dz1|
-    var dc_dz0z1Matrix = dc_dy0y1Matrix.Transpose().PointwiseMultiply(y1MatrixDerivative); // µã³Ë
-    // layer1Delta ¾ÍÊÇ
+    // ç”±äº layer2 æ˜¯ 1x2 çš„çŸ©é˜µï¼Œæ‰€ä»¥ layer1Error ä¹Ÿæ˜¯ 1x2 çš„çŸ©é˜µ
+    // dc/dy2 * dy2/dz2 * dz2/d|y1| = dc/|y1|
+    Matrix<double> dc_dy1Matrix = dc_dz2 * layer2Weight; // åå‘ä¼ æ’­
+    // dc/dy2 * dy2/dz2 * dz2/d|y1|* d|y1|/d|z1| = dc/d|z1|
+    var dc_dz1Matrix = dc_dy1Matrix.Transpose().PointwiseMultiply(y1MatrixDerivative); // ç‚¹ä¹˜
+    // dc_dz1Matrix å°±æ˜¯
     // | dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] |
     // | dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] |
     // =
@@ -125,14 +126,14 @@ while (true)
         [dc_dw21, dc_dw22],
     ]);
 
-    // dc/|dz0,dz1| * |dz0,dz1|/|dw11,w12| = dc/|dw11,w12|
-    // input ÊÇ 2x1 µÄ£¬ÕâÀïĞèÒª¹¹³É 1x2 µÄ£¬²ÅÄÜºÍ dc_dz0z1Matrix Õâ¸ö 2x1 µÄ¾ØÕóÏà³Ë£¬µÃµ½ 2x2 µÄ¾ØÕó
-    var dc_dw11d12Matrix = dc_dz0z1Matrix * input.Transpose();
-    if (dc_dw11d12Matrix.Equals(dLayer1Matrix))
+    // dc/d|z1| * d|z1|/d|w1| = dc/d|w1|
+    // input æ˜¯ 2x1 çš„ï¼Œè¿™é‡Œéœ€è¦æ„æˆ 1x2 çš„ï¼Œæ‰èƒ½å’Œ dc_dz0z1Matrix è¿™ä¸ª 2x1 çš„çŸ©é˜µç›¸ä¹˜ï¼Œå¾—åˆ° 2x2 çš„çŸ©é˜µ
+    var dc_dw1Matrix = dc_dz1Matrix * input.Transpose();
+    if (dc_dw1Matrix.Equals(dLayer1Matrix))
     {
-        // Ö¤Ã÷ºÍÉÏÃæÊÖ¶¯¼ÆËãµÄ½á¹ûÊÇÒ»ÑùµÄ
+        // è¯æ˜å’Œä¸Šé¢æ‰‹åŠ¨è®¡ç®—çš„ç»“æœæ˜¯ä¸€æ ·çš„
     }
-    var layer1Delta = dc_dw11d12Matrix; // 2x2 ¾ØÕó
+    var layer1Delta = dc_dw1Matrix; // 2x2 çŸ©é˜µ
 
     //w31 = w31 - dc_dw31;
     //w32 = w32 - dc_dw32;
