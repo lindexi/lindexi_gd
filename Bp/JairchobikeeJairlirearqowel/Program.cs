@@ -79,7 +79,7 @@ while (true)
         break;
     }
 
-    double dc_dz2 = (y2 - y_out) * (y2 * (1 - y2));
+    double dc_dz2 = (y2 - y_out) * (y2 * (1 - y2)); // l2 delta
 
     //var dc_dw31 = dc_dz2 * y0;
     //var dc_dw32 = dc_dz2 * y1;
@@ -90,7 +90,20 @@ while (true)
     // 2x1
     var y1MatrixD = y1Matrix.Map(x => x * (1 - x));
 
-    var dc_dw11 = dc_dz2 * layer2[0,0] * y1MatrixD[0,0] * input[0,0];
+    //var dc_dw11 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * a;
+    //var dc_dw12 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * b;
+
+    //var dc_dw21 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * a;
+    //var dc_dw22 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * b;
+
+    var l2Delta = dc_dz2;
+    Matrix<double> l1Error = l2Delta * layer2; // 反向传播
+    var l1Delta = l1Error.PointwiseMultiply(y1MatrixD.Transpose()); // 点乘
+    // l1Delta 就是
+    // | dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] |
+    // | dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] |
+
+    var dc_dw11 = dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] * input[0, 0];
     var dc_dw12 = dc_dz2 * layer2[0, 0] * y1MatrixD[0, 0] * input[1, 0];
 
     var dc_dw21 = dc_dz2 * layer2[0, 1] * y1MatrixD[1, 0] * input[0, 0];
@@ -101,6 +114,13 @@ while (true)
         [dc_dw11, dc_dw12],
         [dc_dw21, dc_dw22],
     ]);
+
+    // input 是 2x1 的，这里需要构成 1x2 的
+    var dL1 = input * l1Delta;
+    if (dL1.Equals(dLayer1Matrix))
+    {
+
+    }
 
     // 已知 e = a x c, f = b x d 。其中 a b 为 2x1 的矩阵 M1，c d 为 1x2 的矩阵 M2。请将 e f 作为矩阵 M3 表示出来，且写出 e f 所在的矩阵 M3 与 M1 M2 的关系。
 
@@ -114,7 +134,7 @@ while (true)
 
     //w21 = w21 - dc_dw21;
     //w22 = w22 - dc_dw22;
-    
+
     layer1 = layer1 - dLayer1Matrix;
 
     count++;
