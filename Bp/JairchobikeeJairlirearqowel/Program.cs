@@ -47,30 +47,30 @@ var count = 0;
 
 while (true)
 {
-    var z0 = w11 * a + w12 * b;
-    var z1 = w21 * a + w22 * b;
+    //var z0 = w11 * a + w12 * b;
+    //var z1 = w21 * a + w22 * b;
 
     // layer1 2x2
     // input 2x1
     // z1Matrix 2x1
     Matrix<double> z1Matrix = layer1.Multiply(input);
 
-    var y0 = F(z0);
-    var y1 = F(z1);
+    //var y0 = F(z0);
+    //var y1 = F(z1);
 
     // y1Matrix 2x1
     Matrix<double> y1Matrix = FMatrix(z1Matrix);
 
-    var z2 = w31 * y0 + w32 * y1;
+    //var z2 = w31 * y0 + w32 * y1;
     // layer2 1x2
     // z2Matrix 1x1
     var z2Matrix = layer2.Multiply(y1Matrix);
-    if (z2Matrix.RowCount == 1 && z2Matrix.ColumnCount == 1)
-    {
-        z2 = z2Matrix[0, 0];
-    }
+    //if (z2Matrix.RowCount == 1 && z2Matrix.ColumnCount == 1)
+    //{
+    //    z2 = z2Matrix[0, 0];
+    //}
 
-    var y2 = F(z2);
+    var y2 = F(z2Matrix[0, 0]);
 
     var c = C(y2);
 
@@ -81,8 +81,8 @@ while (true)
 
     double dc_dz2 = (y2 - y_out) * (y2 * (1 - y2));
 
-    var dc_dw31 = dc_dz2 * y0;
-    var dc_dw32 = dc_dz2 * y1;
+    //var dc_dw31 = dc_dz2 * y0;
+    //var dc_dw32 = dc_dz2 * y1;
 
     // 为了能够让 dc_dw3132Matrix 叠加到 layer2 1x2 矩阵上，需要先将 y1Matrix 转置为 1x2 矩阵，再与 dc_dz2 相乘
     var dc_dw3132Matrix = y1Matrix.Transpose().Multiply(dc_dz2);
@@ -104,16 +104,16 @@ while (true)
 
     // 已知 e = a x c, f = b x d 。其中 a b 为 2x1 的矩阵 M1，c d 为 1x2 的矩阵 M2。请将 e f 作为矩阵 M3 表示出来，且写出 e f 所在的矩阵 M3 与 M1 M2 的关系。
 
-    w31 = w31 - dc_dw31;
-    w32 = w32 - dc_dw32;
+    //w31 = w31 - dc_dw31;
+    //w32 = w32 - dc_dw32;
 
     layer2 = layer2 - dc_dw3132Matrix;
 
-    w11 = w11 - dc_dw11;
-    w12 = w12 - dc_dw12;
+    //w11 = w11 - dc_dw11;
+    //w12 = w12 - dc_dw12;
 
-    w21 = w21 - dc_dw21;
-    w22 = w22 - dc_dw22;
+    //w21 = w21 - dc_dw21;
+    //w22 = w22 - dc_dw22;
     
     layer1 = layer1 - dLayer1Matrix;
 
