@@ -98,20 +98,12 @@ while (true)
 
     // 2x1
     var y1MatrixDerivative = y1Matrix.Map(x => x * (1 - x)); // y1 的导数矩阵
-    double y0, y1;
-    y0 = 0;
-    y1 = 1;
 
-    var dc_dw11 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * a;
-    var dc_dw12 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * b;
+    //var dc_dw11 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * a;
+    //var dc_dw12 = (y2 - y_out) * (y2 * (1 - y2)) * w31 * (y0 * (1 - y0)) * b;
 
-    var dc_dw21 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * a;
-    var dc_dw22 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * b;
-
-    _ = dc_dw11;
-    _ = dc_dw12;
-    _ = dc_dw21;
-    _ = dc_dw22;
+    //var dc_dw21 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * a;
+    //var dc_dw22 = (y2 - y_out) * (y2 * (1 - y2)) * w32 * (y1 * (1 - y1)) * b;
 
     // 由于 layer2 是 1x2 的矩阵，所以 layer1Error 也是 1x2 的矩阵
     // dc/dy2 * dy2/dz2 * dz2/d|y1| = dc/|y1|
