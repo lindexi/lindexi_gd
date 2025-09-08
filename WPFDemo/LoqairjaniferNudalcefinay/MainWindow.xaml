@@ -6,7 +6,11 @@
         xmlns:local="clr-namespace:LoqairjaniferNudalcefinay"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="1000">
-    <Grid Background="Transparent" ColumnDefinitions="*,*">
+    <Grid Background="Transparent">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <TextBlock x:Name="StylusPlugInLogTextBlock" IsHitTestVisible="False" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
 
         <TextBlock x:Name="MainLogTextBlock" Grid.Column="1" IsHitTestVisible="False" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
