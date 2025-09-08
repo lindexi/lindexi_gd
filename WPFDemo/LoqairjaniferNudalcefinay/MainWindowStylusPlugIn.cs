@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Input.StylusPlugIns;
 
@@ -20,10 +21,11 @@ class MainWindowStylusPlugIn : StylusPlugIn
     protected override void OnStylusDown(RawStylusInput rawStylusInput)
     {
         int id = rawStylusInput.StylusDeviceId;
+        Debug.WriteLine($"Down {id}");
 
         if (_dictionary.TryGetValue(id, out var info))
         {
-            _currentWarnMessage = $"重复 Down Id={id}";
+            _currentWarnMessage = $"重复 Down Id={id} 移动距离{info.MoveCount}";
         }
 
         _dictionary[id] = new TouchInfo(rawStylusInput);
@@ -36,17 +38,17 @@ class MainWindowStylusPlugIn : StylusPlugIn
     {
         int id = rawStylusInput.StylusDeviceId;
 
-        var currentTouchInfo = new TouchInfo(rawStylusInput);
-
         if (!_dictionary.TryGetValue(id, out var info))
         {
             _currentWarnMessage = $"未找到 Move Id={id}";
-
-            _dictionary[id] = currentTouchInfo;
+            Debug.WriteLine(_currentWarnMessage);
         }
         else
         {
-            _dictionary[id] = new TouchInfo(rawStylusInput);
+            _dictionary[id] = new TouchInfo(rawStylusInput)
+            {
+                MoveCount = info.MoveCount + 1
+            };
         }
         LogMessage();
 
@@ -62,6 +64,8 @@ class MainWindowStylusPlugIn : StylusPlugIn
             // 鼠标
             return;
         }
+
+        Debug.WriteLine($"Up {id}");
 
         if (!_dictionary.TryGetValue(id, out var info))
         {
@@ -139,6 +143,8 @@ record TouchInfo
     public int Id { get; init; }
     public double X { get; init; }
     public double Y { get; init; }
+
+    public int MoveCount { get; init; } = 0;
 
     public Point AsPoint() => new Point(X, Y);
 }
