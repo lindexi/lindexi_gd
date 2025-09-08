@@ -30,6 +30,11 @@ class MainWindowStylusPlugIn : StylusPlugIn
             if (info.IsUp)
             {
                 _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 先 Up 后 Down 的情况 Id={id} 移动距离{info.MoveCount}";
+
+                if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
+                {
+                    _currentWarnMessage += $"\r\n{new StackTrace()}";
+                }
             }
             else
             {
