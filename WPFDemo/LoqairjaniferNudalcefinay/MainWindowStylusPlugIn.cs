@@ -108,6 +108,11 @@ class MainWindowStylusPlugIn : StylusPlugIn
             message += $"Id={item.Id}, X={item.X:0.000}, Y={item.Y:0.000}" + Environment.NewLine;
         }
 
+        if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
+        {
+            message += $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] {new StackTrace()}";
+        }
+
         _mainWindow.LogStylusPlugInMessage(message.TrimEnd());
     }
 }
