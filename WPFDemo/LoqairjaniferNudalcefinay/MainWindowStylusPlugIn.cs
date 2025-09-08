@@ -24,7 +24,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
         int id = rawStylusInput.StylusDeviceId;
         Debug.WriteLine($"Down {id}");
 
-        Thread.Sleep(15);
+        //Thread.Sleep(15);
 
         if (_dictionary.TryGetValue(id, out var info))
         {
@@ -49,7 +49,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
     {
         int id = rawStylusInput.StylusDeviceId;
 
-        Thread.Sleep(15);
+        //Thread.Sleep(15);
         if (!_dictionary.TryGetValue(id, out var info))
         {
             //_currentWarnMessage = $"未找到 Move Id={id}";
@@ -71,7 +71,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
     {
         int id = rawStylusInput.StylusDeviceId;
 
-        Thread.Sleep(15);
+        //Thread.Sleep(15);
         if (id == 0)
         {
             // 鼠标
