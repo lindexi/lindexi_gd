@@ -1,4 +1,6 @@
-﻿using System.Windows.Input.StylusPlugIns;
+﻿using System.Windows;
+using System.Windows.Input;
+using System.Windows.Input.StylusPlugIns;
 
 namespace LoqairjaniferNudalcefinay;
 
@@ -34,10 +36,13 @@ class MainWindowStylusPlugIn : StylusPlugIn
     {
         int id = rawStylusInput.StylusDeviceId;
 
+        var currentTouchInfo = new TouchInfo(rawStylusInput);
+
         if (!_dictionary.TryGetValue(id, out var info))
         {
             _currentWarnMessage = $"未找到 Move Id={id}";
-            _dictionary[id] = new TouchInfo(rawStylusInput);
+
+            _dictionary[id] = currentTouchInfo;
         }
         else
         {
@@ -51,6 +56,12 @@ class MainWindowStylusPlugIn : StylusPlugIn
     protected override void OnStylusUp(RawStylusInput rawStylusInput)
     {
         int id = rawStylusInput.StylusDeviceId;
+
+        if (id == 0)
+        {
+            // 鼠标
+            return;
+        }
 
         if (!_dictionary.TryGetValue(id, out var info))
         {
@@ -67,7 +78,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
     private void LogMessage()
     {
-        var message =string.Empty;
+        var message = string.Empty;
         if (!string.IsNullOrEmpty(_currentWarnMessage))
         {
             message += $"Warning: {_currentWarnMessage}" + Environment.NewLine;
@@ -78,7 +89,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
             message += $"Id={item.Id}, X={item.X:0.000}, Y={item.Y:0.000}" + Environment.NewLine;
         }
 
-        _mainWindow.LogMessage(message.TrimEnd());
+        _mainWindow.LogStylusPlugInMessage(message.TrimEnd());
     }
 }
 
@@ -88,7 +99,7 @@ record TouchInfo
     {
         Id = rawStylusInput.StylusDeviceId;
         var collection = rawStylusInput.GetStylusPoints();
-        if (collection.Count>0)
+        if (collection.Count > 0)
         {
             var point = collection[0];
             X = point.X;
@@ -101,7 +112,33 @@ record TouchInfo
         }
     }
 
+    public TouchInfo(StylusEventArgs stylusEventArgs)
+    {
+        Id = stylusEventArgs.StylusDevice.Id;
+        var collection = stylusEventArgs.GetStylusPoints(null);
+        if (collection.Count > 0)
+        {
+            var point = collection[0];
+            X = point.X;
+            Y = point.Y;
+        }
+        else
+        {
+            X = double.NaN;
+            Y = double.NaN;
+        }
+    }
+
+    public TouchInfo(int id, double x, double y)
+    {
+        Id = id;
+        X = x;
+        Y = y;
+    }
+
     public int Id { get; init; }
     public double X { get; init; }
     public double Y { get; init; }
+
+    public Point AsPoint() => new Point(X, Y);
 }

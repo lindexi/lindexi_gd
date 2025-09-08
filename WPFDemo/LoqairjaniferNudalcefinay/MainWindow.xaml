@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LoqairjaniferNudalcefinay"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid Background="Transparent">
-        <local:MultiTouchInkCanvas/>
-        <TextBlock x:Name="LogTextBlock" IsHitTestVisible="False" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+        Title="MainWindow" Height="450" Width="1000">
+    <Grid Background="Transparent" ColumnDefinitions="*,*">
+        <TextBlock x:Name="StylusPlugInLogTextBlock" IsHitTestVisible="False" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+
+        <TextBlock x:Name="MainLogTextBlock" Grid.Column="1" IsHitTestVisible="False" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
     </Grid>
 </Window>

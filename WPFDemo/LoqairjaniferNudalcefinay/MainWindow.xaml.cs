@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Input.StylusPlugIns;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -58,7 +59,7 @@ public partial class MainWindow : Window
             {
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    LogTextBlock.Text = lastMessage;
+                    StylusPlugInLogTextBlock.Text = lastMessage;
                 }, DispatcherPriority.Background);
             }
         }
@@ -66,8 +67,76 @@ public partial class MainWindow : Window
 
     private readonly Channel<string> _channel;
 
-    public void LogMessage(string message)
+    public void LogStylusPlugInMessage(string message)
     {
         _channel.Writer.TryWrite(message);
+    }
+
+    private string? _currentWarnMessage;
+
+    protected override void OnStylusDown(StylusDownEventArgs e)
+    {
+        var id = e.StylusDevice.Id;
+        if (_dictionary.TryGetValue(id, out var info))
+        {
+            _currentWarnMessage = $"重复 Down Id={id}";
+        }
+        _dictionary[id] = new TouchInfo(e);
+
+        LogMessage();
+        base.OnStylusDown(e);
+    }
+
+    protected override void OnStylusMove(StylusEventArgs e)
+    {
+        var id = e.StylusDevice.Id;
+        var currentTouchInfo = new TouchInfo(e);
+        if (!_dictionary.TryGetValue(id, out var info))
+        {
+            _currentWarnMessage = $"未找到 Move Id={id}";
+
+            _dictionary[id] = currentTouchInfo;
+        }
+        else
+        {
+            _dictionary[id] = new TouchInfo(e);
+        }
+        LogMessage();
+
+        base.OnStylusMove(e);
+    }
+
+    protected override void OnStylusUp(StylusEventArgs e)
+    {
+        var id = e.StylusDevice.Id;
+        if (!_dictionary.TryGetValue(id, out var info))
+        {
+            _currentWarnMessage = $"未找到 Up Id={id}";
+        }
+        else
+        {
+            _dictionary.Remove(id);
+        }
+        LogMessage();
+
+        base.OnStylusUp(e);
+    }
+
+    private readonly Dictionary<int, TouchInfo> _dictionary = [];
+
+    private void LogMessage()
+    {
+        var message = "主线程触摸信息" + Environment.NewLine;
+        if (!string.IsNullOrEmpty(_currentWarnMessage))
+        {
+            message += $"Warning: {_currentWarnMessage}" + Environment.NewLine;
+        }
+        message += $"Touch Count: {_dictionary.Count}" + Environment.NewLine;
+        foreach (var item in _dictionary.Values)
+        {
+            message += $"Id={item.Id}, X={item.X:0.000}, Y={item.Y:0.000}" + Environment.NewLine;
+        }
+
+        MainLogTextBlock.Text = message;
     }
 }
