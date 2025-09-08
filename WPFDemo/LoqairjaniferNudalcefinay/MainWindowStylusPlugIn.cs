@@ -28,7 +28,6 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
         if (_dictionary.TryGetValue(id, out var info))
         {
-            AddError();
             if (info.IsUp)
             {
                 _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 先 Up 后 Down 的情况 Id={id} 移动距离{info.MoveCount}";
@@ -37,6 +36,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
             {
                 _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 重复 Down Id={id} 移动距离{info.MoveCount}";
             }
+            AddError(id, _currentWarnMessage);
         }
 
         _dictionary[id] = new TouchInfo(rawStylusInput);
@@ -83,7 +83,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
         if (!_dictionary.TryGetValue(id, out var info))
         {
             _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 未找到 Up Id={id}";
-            AddError();
+            AddError(id, _currentWarnMessage);
             _dictionary.Add(id, new TouchInfo(rawStylusInput)
             {
                 IsUp = true
@@ -98,11 +98,11 @@ class MainWindowStylusPlugIn : StylusPlugIn
         base.OnStylusUp(rawStylusInput);
     }
 
-    private void AddError()
+    private void AddError(int id, string message)
     {
         if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
         {
-            _message += $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] {new StackTrace()}";
+            _message = $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] Id={id} Message={message} {new StackTrace()}";
         }
     }
 
