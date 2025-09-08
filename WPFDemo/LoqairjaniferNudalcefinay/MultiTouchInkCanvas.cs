@@ -114,7 +114,7 @@ public class StrokeVisual : DrawingVisual
     /// <summary>
     ///     设置或获取显示的笔迹
     /// </summary>
-    public Stroke Stroke { set; get; }
+    public Stroke? Stroke { set; get; }
 
     /// <summary>
     ///     在笔迹中添加点
@@ -139,7 +139,7 @@ public class StrokeVisual : DrawingVisual
     public void Redraw()
     {
         using var dc = RenderOpen();
-        Stroke.Draw(dc);
+        Stroke?.Draw(dc);
     }
 }
 

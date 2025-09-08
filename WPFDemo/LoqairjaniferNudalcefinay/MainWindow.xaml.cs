@@ -71,8 +71,3 @@ public partial class MainWindow : Window
         _channel.Writer.TryWrite(message);
     }
 }
-
-record TouchInfo
-{
-
-}
