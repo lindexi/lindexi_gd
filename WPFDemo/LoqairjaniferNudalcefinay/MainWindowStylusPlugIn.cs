@@ -23,6 +23,8 @@ class MainWindowStylusPlugIn : StylusPlugIn
         int id = rawStylusInput.StylusDeviceId;
         Debug.WriteLine($"Down {id}");
 
+        Thread.Sleep(15);
+
         if (_dictionary.TryGetValue(id, out var info))
         {
             _currentWarnMessage = $"重复 Down Id={id} 移动距离{info.MoveCount}";
@@ -38,10 +40,11 @@ class MainWindowStylusPlugIn : StylusPlugIn
     {
         int id = rawStylusInput.StylusDeviceId;
 
+        Thread.Sleep(15);
         if (!_dictionary.TryGetValue(id, out var info))
         {
-            _currentWarnMessage = $"未找到 Move Id={id}";
-            Debug.WriteLine(_currentWarnMessage);
+            //_currentWarnMessage = $"未找到 Move Id={id}";
+            //Debug.WriteLine(_currentWarnMessage);
         }
         else
         {
@@ -59,6 +62,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
     {
         int id = rawStylusInput.StylusDeviceId;
 
+        Thread.Sleep(15);
         if (id == 0)
         {
             // 鼠标
