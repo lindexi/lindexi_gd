@@ -29,11 +29,11 @@ class MainWindowStylusPlugIn : StylusPlugIn
         {
             if (info.IsUp)
             {
-                _currentWarnMessage = $"[{Thread.CurrentThread.Name}]先 Up 后 Down 的情况 Id={id} 移动距离{info.MoveCount}";
+                _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 先 Up 后 Down 的情况 Id={id} 移动距离{info.MoveCount}";
             }
             else
             {
-                _currentWarnMessage = $"重复 Down Id={id} 移动距离{info.MoveCount}";
+                _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 重复 Down Id={id} 移动距离{info.MoveCount}";
             }
         }
 
@@ -80,7 +80,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
         if (!_dictionary.TryGetValue(id, out var info))
         {
-            _currentWarnMessage = $"[{Thread.CurrentThread.Name}] 未找到 Up Id={id}";
+            _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 未找到 Up Id={id}";
             _dictionary.Add(id, new TouchInfo(rawStylusInput)
             {
                 IsUp = true

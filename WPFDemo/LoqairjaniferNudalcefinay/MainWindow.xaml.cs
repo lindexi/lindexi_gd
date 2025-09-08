@@ -66,7 +66,7 @@ public partial class MainWindow : Window
                 await Dispatcher.InvokeAsync(() =>
                 {
                     StylusPlugInLogTextBlock.Text = lastMessage;
-                }, DispatcherPriority.Background);
+                }, DispatcherPriority.Render);
             }
         }
     }
