@@ -17,6 +17,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
     private readonly Dictionary<int, TouchInfo> _dictionary = [];
 
     private string? _currentWarnMessage;
+    private string? _message;
 
     protected override void OnStylusDown(RawStylusInput rawStylusInput)
     {
@@ -27,6 +28,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
         if (_dictionary.TryGetValue(id, out var info))
         {
+            AddError();
             if (info.IsUp)
             {
                 _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 先 Up 后 Down 的情况 Id={id} 移动距离{info.MoveCount}";
@@ -81,6 +83,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
         if (!_dictionary.TryGetValue(id, out var info))
         {
             _currentWarnMessage = $"[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] 未找到 Up Id={id}";
+            AddError();
             _dictionary.Add(id, new TouchInfo(rawStylusInput)
             {
                 IsUp = true
@@ -95,6 +98,14 @@ class MainWindowStylusPlugIn : StylusPlugIn
         base.OnStylusUp(rawStylusInput);
     }
 
+    private void AddError()
+    {
+        if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
+        {
+            _message += $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] {new StackTrace()}";
+        }
+    }
+
     private void LogMessage()
     {
         var message = string.Empty;
@@ -102,17 +113,15 @@ class MainWindowStylusPlugIn : StylusPlugIn
         {
             message += $"Warning: {_currentWarnMessage}" + Environment.NewLine;
         }
+
+        message += $"{_message}\r\n";
+
         message += $"Touch Count: {_dictionary.Count}" + Environment.NewLine;
         foreach (var item in _dictionary.Values)
         {
             message += $"Id={item.Id}, X={item.X:0.000}, Y={item.Y:0.000}" + Environment.NewLine;
         }
-
-        if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
-        {
-            message += $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] {new StackTrace()}";
-        }
-
+       
         _mainWindow.LogStylusPlugInMessage(message.TrimEnd());
     }
 }
