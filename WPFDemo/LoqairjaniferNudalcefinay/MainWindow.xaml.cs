@@ -25,9 +25,8 @@ public partial class MainWindow : Window
 
         this.StylusPlugIns.Add(new MainWindowStylusPlugIn(this));
 
-        var channel = Channel.CreateBounded<string>(new BoundedChannelOptions(10)
+        var channel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions()
         {
-            FullMode = BoundedChannelFullMode.DropOldest,
             // 一定要求调度线程，因为一边是触摸、一边是UI线程，两个都不能卡
             AllowSynchronousContinuations = false,
             // 单写读性能更好
