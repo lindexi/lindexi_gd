@@ -49,9 +49,16 @@ public partial class MainWindow : Window
             }
 
             var lastMessage = string.Empty;
+            int count = 0;
             while (_channel.Reader.TryRead(out var message))
             {
+                count++;
                 lastMessage = message;
+                if (count > 10)
+                {
+                    lastMessage += "\r\n读取超过10个";
+                    break;
+                }
             }
 
             if (!string.IsNullOrEmpty(lastMessage))
