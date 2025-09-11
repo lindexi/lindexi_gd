@@ -47,9 +47,14 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
     protected override void OnStylusMove(RawStylusInput rawStylusInput)
     {
+        if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
+        {
+
+        }
+
         int id = rawStylusInput.StylusDeviceId;
 
-        Thread.Sleep(15);
+        Thread.Sleep(35);
         if (!_dictionary.TryGetValue(id, out var info))
         {
             //_currentWarnMessage = $"未找到 Move Id={id}";
@@ -69,9 +74,14 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
     protected override void OnStylusUp(RawStylusInput rawStylusInput)
     {
+        if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
+        {
+
+        }
+
         int id = rawStylusInput.StylusDeviceId;
 
-        Thread.Sleep(15);
+        Thread.Sleep(35);
         if (id == 0)
         {
             // 鼠标
