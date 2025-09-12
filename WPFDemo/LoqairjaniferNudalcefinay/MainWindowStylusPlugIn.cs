@@ -22,7 +22,11 @@ class MainWindowStylusPlugIn : StylusPlugIn
     protected override void OnStylusDown(RawStylusInput rawStylusInput)
     {
         int id = rawStylusInput.StylusDeviceId;
-        Debug.WriteLine($"Down {id}");
+
+        if (string.IsNullOrEmpty(Thread.CurrentThread.Name) && id != 0)
+        {
+            _message = $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] Id={id} {new StackTrace()}";
+        }
 
         Thread.Sleep(15);
 
@@ -47,14 +51,14 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
     protected override void OnStylusMove(RawStylusInput rawStylusInput)
     {
-        if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
-        {
-
-        }
-
         int id = rawStylusInput.StylusDeviceId;
 
-        Thread.Sleep(35);
+        if (string.IsNullOrEmpty(Thread.CurrentThread.Name) && id != 0)
+        {
+            _message = $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] Id={id} {new StackTrace()}";
+        }
+
+        Thread.Sleep(15);
         if (!_dictionary.TryGetValue(id, out var info))
         {
             //_currentWarnMessage = $"未找到 Move Id={id}";
@@ -74,12 +78,12 @@ class MainWindowStylusPlugIn : StylusPlugIn
 
     protected override void OnStylusUp(RawStylusInput rawStylusInput)
     {
-        if (string.IsNullOrEmpty(Thread.CurrentThread.Name))
-        {
-
-        }
-
         int id = rawStylusInput.StylusDeviceId;
+
+        if (string.IsNullOrEmpty(Thread.CurrentThread.Name) && id != 0)
+        {
+            _message = $"\r\n[{Thread.CurrentThread.Name}({Thread.CurrentThread.ManagedThreadId})] Id={id} {new StackTrace()}";
+        }
 
         Thread.Sleep(35);
         if (id == 0)
@@ -131,7 +135,7 @@ class MainWindowStylusPlugIn : StylusPlugIn
         {
             message += $"Id={item.Id}, X={item.X:0.000}, Y={item.Y:0.000}" + Environment.NewLine;
         }
-       
+
         _mainWindow.LogStylusPlugInMessage(message.TrimEnd());
     }
 }
