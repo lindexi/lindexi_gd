@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-
+﻿using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Exceptions;
@@ -11,6 +8,10 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 
 using SkiaSharp;
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace LightTextEditorPlus.Platform;
 
@@ -120,7 +121,10 @@ public class SkiaPlatformResourceManager :
                     RenderFontName = matchCharacterTypeface.FamilyName,
                 };
 
-                SkiaTextEditor.Logger.LogWarning($"当前字体 '{skiaTextRunProperty.FontName}' 不支持字符 '{charObject.ToText()}'，回滚为 '{normalRunProperty.RenderFontName}' 字体");
+                var fontFallbackLogInfo = new FontFallbackLogInfo(skiaTextRunProperty.FontName.UserFontName, charObject, normalRunProperty.RenderFontName);
+                SkiaTextEditor.Logger.Log(fontFallbackLogInfo);
+
+                //SkiaTextEditor.Logger.LogWarning($"当前字体 '{skiaTextRunProperty.FontName}' 不支持字符 '{charObject.ToText()}'，回滚为 '{normalRunProperty.RenderFontName}' 字体");
 
                 matchCharacterTypeface.Dispose();
             }
