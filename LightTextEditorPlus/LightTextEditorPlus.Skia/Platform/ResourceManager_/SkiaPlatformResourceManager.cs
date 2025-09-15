@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Platform;
@@ -114,6 +116,11 @@ public class SkiaPlatformResourceManager :
                     skFontStyle, bcp47, codePoint.Value);
             }
 
+            if (matchCharacterTypeface is null)
+            {
+                matchCharacterTypeface = SKFontManager.Default.MatchCharacter(codePoint.Value);
+            }
+
             if (matchCharacterTypeface != null)
             {
                 normalRunProperty = normalRunProperty with
@@ -128,6 +135,7 @@ public class SkiaPlatformResourceManager :
             else
             {
                 // 暂时不知道咋做，但应该不会遇到
+                // 当前就遇到了，传入字符为 \u2001 就在 Skia 3.119.0 版本找不到回滚
             }
         }
 
