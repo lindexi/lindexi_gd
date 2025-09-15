@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 字符的布局信息，包括字符所在的段落和所在的行，字符所在的相对于文本框的坐标
 /// </summary>
-class CharLayoutData : IParagraphCache
+record struct CharLayoutData : IParagraphCache
 {
     public CharLayoutData(CharData charData, ParagraphData paragraph)
     {

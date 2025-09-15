@@ -117,7 +117,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
             foreach (CharData charData in list)
             {
-                charData.CharLayoutData!.UpdateVersion();
+                charData.CharLayoutData!.Value.UpdateVersion();
             }
 
             lineLayoutData.UpdateVersion();
@@ -357,7 +357,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         foreach (CharData charData in markerRuntimeInfo.CharDataList)
         {
-            charData.CharLayoutData!.UpdateVersion();
+            charData.CharLayoutData!.Value.UpdateVersion();
         }
     }
 
