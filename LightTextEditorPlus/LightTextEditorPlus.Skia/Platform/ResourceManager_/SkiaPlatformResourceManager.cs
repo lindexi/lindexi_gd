@@ -156,6 +156,13 @@ public class SkiaPlatformResourceManager :
 
     private SKTypeface? TryMatchCharacterTypeface(SkiaTextRunProperty normalRunProperty, Utf32CodePoint codePoint)
     {
+#if DEBUG
+        if (codePoint.Value == '\u2001')
+        {
+            return null;
+        }
+#endif
+
         // 字体不支持此字符。尝试进入字符回滚策略。核心调用的是 MatchCharacter 方法
         using SKFontStyle skFontStyle = normalRunProperty.ToSKFontStyle();
 
