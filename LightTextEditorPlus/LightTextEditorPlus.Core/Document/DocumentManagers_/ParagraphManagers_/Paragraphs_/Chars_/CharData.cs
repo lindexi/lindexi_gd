@@ -72,7 +72,7 @@ public sealed class CharData
         ClearCharDataInfo();
     }
 
-    internal CharLayoutData? CharLayoutData { set; get; }
+    internal CharLayoutData? CharLayoutData { set; get; } // todo 考虑将 CharLayoutData 作为结构体，直接存放在类里面，避免多余地创建
 
     /// <summary>
     /// 获取当前字符的左上角坐标，坐标相对于文本框。此属性必须是在布局完成之后才能获取
@@ -86,19 +86,17 @@ public sealed class CharData
             throw new InvalidOperationException($"禁止在加入到段落之前获取");
         }
 
-        CharLayoutData charLayoutData = CharLayoutData.Value;
-
-        if (charLayoutData.CurrentLine is null)
+        if (CharLayoutData.CurrentLine is null)
         {
             throw new InvalidOperationException($"禁止在开始布局之前获取");
         }
 
-        if (charLayoutData.IsInvalidVersion())
+        if (CharLayoutData.IsInvalidVersion())
         {
             throw new InvalidOperationException($"字符数据已失效");
         }
 
-        var textPoint = charLayoutData.CharLineStartPoint.ToDocumentPoint(charLayoutData.CurrentLine);
+        var textPoint = CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);
 
         return textPoint.ToCurrentArrangingTypePoint();
     }
@@ -117,7 +115,7 @@ public sealed class CharData
             throw new InvalidOperationException("禁止在加入到段落之前设置字符的起始点信息");
         }
 
-        CharLayoutData.Value.CharLineStartPoint = point;
+        CharLayoutData.CharLineStartPoint = point;
         //CharLayoutData.BaselineStartPoint = baselineStartPoint;
 
         IsSetStartPointInDebugMode = true;
