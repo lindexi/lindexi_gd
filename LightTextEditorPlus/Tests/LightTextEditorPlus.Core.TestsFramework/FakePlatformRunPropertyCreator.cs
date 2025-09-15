@@ -1,7 +1,8 @@
-﻿using System;
-
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Utils;
+
+using System;
 
 namespace LightTextEditorPlus.Core.TestsFramework;
 
@@ -50,4 +51,11 @@ public class FakePlatformRunPropertyCreator : IPlatformRunPropertyCreator
 
         return styleRunProperty;
     }
+
+    public virtual ICharObject CreateInvalidRunPropertyCharObject()
+    {
+        return _charObject ??= new SingleCharObject(TextContext.UnknownChar);
+    }
+
+    private ICharObject? _charObject;
 }
