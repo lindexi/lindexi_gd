@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -16,10 +18,28 @@ public sealed class CharData
     /// </summary>
     /// <param name="charObject"></param>
     /// <param name="runProperty"></param>
-    public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty)
+    /// <param name="renderCharObject">渲染的字符</param>
+    public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty, ICharObject? renderCharObject = null)
     {
         CharObject = charObject;
         RunProperty = runProperty;
+
+        if (renderCharObject is null)
+        {
+            if (runProperty.IsInvalidRunProperty)
+            {
+                // 表示无效的字符属性，直接使用未知字符
+                renderCharObject = new SingleCharObject(TextContext.UnknownChar);
+            }
+            else
+            {
+                renderCharObject = charObject;
+            }
+        }
+
+        Debug.Assert(renderCharObject != null);
+
+        RenderCharObject = renderCharObject;
     }
 
     /// <summary>
@@ -31,6 +51,11 @@ public sealed class CharData
     /// 字符对象
     /// </summary>
     public ICharObject CharObject { get; }
+
+    /// <summary>
+    /// 用来渲染的字符对象
+    /// </summary>
+    public ICharObject RenderCharObject { get; }
 
     /// <summary>
     /// 文本字符属性

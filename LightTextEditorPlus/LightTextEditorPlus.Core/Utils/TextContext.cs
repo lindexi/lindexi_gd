@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Platform;
+﻿using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Utils;
@@ -34,9 +34,14 @@ public static class TextContext
     public const double Epsilon = 0.00001;
 
     /// <summary>
-    /// 表示无法识别的文本字符
+    /// 表示无法识别的文本字符，渲染出来是 � 这样子的符号
     /// </summary>
     public const char UnknownChar = '\uFFFD';
+
+    /// <summary>
+    /// 表示一个空格字符
+    /// </summary>
+    public const char SpaceChar = ' ';
 
     /// <summary>
     /// 文本库统一写入的换行符，此换行符和平台无关，所有平台写入相同的值

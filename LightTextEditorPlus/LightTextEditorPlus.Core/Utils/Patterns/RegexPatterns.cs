@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace LightTextEditorPlus.Core.Utils.Patterns;
 
@@ -30,6 +30,8 @@ public static class RegexPatterns
     /// 蒙古文匹配
     /// </summary>
     public static readonly TextRangePattern MongolianPattern = new TextRangePattern('\u1800', '\u18AF');
+
+    // todo 处理蒙科立编码
 
     /// <summary>
     /// 阿拉伯数字

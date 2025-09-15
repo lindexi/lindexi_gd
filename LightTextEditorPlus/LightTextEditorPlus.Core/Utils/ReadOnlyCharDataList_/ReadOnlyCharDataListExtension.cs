@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
@@ -73,7 +73,7 @@ public static class ReadOnlyCharDataListExtension
     /// <param name="list"></param>
     /// <param name="arrayPool"></param>
     /// <returns></returns>
-    public static CharDataListToCharSpanResult ToCharSpan(this TextReadOnlyListSpan<CharData> list, ArrayPool<char>? arrayPool = null)
+    public static CharDataListToCharSpanResult ToRenderCharSpan(this TextReadOnlyListSpan<CharData> list, ArrayPool<char>? arrayPool = null)
     {
         arrayPool ??= ArrayPool<char>.Shared;
 
@@ -86,7 +86,7 @@ public static class ReadOnlyCharDataListExtension
             var index = length;
             Span<char> currentSpan = buffer.AsSpan(index);
 
-            Rune rune = charData.CharObject.CodePoint.Rune;
+            Rune rune = charData.RenderCharObject.CodePoint.Rune;
             int writtenLength = rune.EncodeToUtf16(currentSpan);
             length += writtenLength;
         }

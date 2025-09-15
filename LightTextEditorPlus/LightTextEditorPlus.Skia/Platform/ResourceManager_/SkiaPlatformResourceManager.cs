@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Utils;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Platform;
@@ -66,6 +70,15 @@ public class SkiaPlatformResourceManager :
         // 1. 先确定字体是否存在或装上
         // 2. 确定字体是否支持字符
         var normalRunProperty = skiaTextRunProperty;
+
+        if (normalRunProperty.IsMissRenderFont)
+        {
+            normalRunProperty = normalRunProperty with
+            {
+                IsMissRenderFont = false
+            };
+        }
+
         // 使用 TryResolveFont 方法，允许重写，注入程序集的字体
         SKTypeface? skTypeface = TryResolveFont(normalRunProperty);
         bool shouldDisposeSkTypeface = false; // 如果能从 TryResolveFont 找到字体，则此字体不在缓存里面，需要在此上下文内直接释放，减少软泄露
@@ -98,21 +111,7 @@ public class SkiaPlatformResourceManager :
 
         if (!skTypeface.ContainsGlyph(codePoint.Value))
         {
-            // 字体不支持此字符。尝试进入字符回滚策略。核心调用的是 MatchCharacter 方法
-            using SKFontStyle skFontStyle = normalRunProperty.ToSKFontStyle();
-
-            // 先测试带 bcp47 的 MatchCharacter 方法
-            string[]? bcp47 = new string[] { SkiaTextEditor.TextEditorCore.CurrentCulture.Name };
-
-            SKTypeface? matchCharacterTypeface = SKFontManager.Default.MatchCharacter(normalRunProperty.RenderFontName,
-                skFontStyle, bcp47, codePoint.Value);
-
-            if (matchCharacterTypeface is null)
-            {
-                bcp47 = null;
-                matchCharacterTypeface = SKFontManager.Default.MatchCharacter(normalRunProperty.RenderFontName,
-                    skFontStyle, bcp47, codePoint.Value);
-            }
+            SKTypeface? matchCharacterTypeface = TryMatchCharacterTypeface(normalRunProperty, codePoint);
 
             if (matchCharacterTypeface != null)
             {
@@ -128,6 +127,22 @@ public class SkiaPlatformResourceManager :
             else
             {
                 // 暂时不知道咋做，但应该不会遇到
+                // 当前就遇到了，传入字符为 \u2001 就在 Skia 3.119.0 版本找不到回滚
+                SkiaTextEditor.Logger.LogWarning($"无法找到任何字体能够支持字符： '{charObject.ToText()}'，只好设置为错误状态");
+
+                Utf32CodePoint unknownChar = new Utf32CodePoint(TextContext.UnknownChar);
+                // 预期不会是空的情况
+                matchCharacterTypeface = TryMatchCharacterTypeface(normalRunProperty, unknownChar);
+                if (matchCharacterTypeface is null)
+                {
+                    throw new TextEditorInnerException($"无法找到 '{TextContext.UnknownChar}' 字符的可渲染字体，可能当前设备未安装任何一款字体");
+                }
+
+                normalRunProperty = normalRunProperty with
+                {
+                    RenderFontName = matchCharacterTypeface.FamilyName,
+                    IsMissRenderFont = true,
+                };
             }
         }
 
@@ -137,6 +152,46 @@ public class SkiaPlatformResourceManager :
         }
 
         return normalRunProperty;
+    }
+
+    private SKTypeface? TryMatchCharacterTypeface(SkiaTextRunProperty normalRunProperty, Utf32CodePoint codePoint)
+    {
+        // 字体不支持此字符。尝试进入字符回滚策略。核心调用的是 MatchCharacter 方法
+        using SKFontStyle skFontStyle = normalRunProperty.ToSKFontStyle();
+
+        // 先测试带 bcp47 的 MatchCharacter 方法
+        string[]? bcp47 = new string[] { SkiaTextEditor.TextEditorCore.CurrentCulture.Name };
+
+        SKTypeface? matchCharacterTypeface = SKFontManager.Default.MatchCharacter(normalRunProperty.RenderFontName,
+            skFontStyle, bcp47, codePoint.Value);
+
+        if (matchCharacterTypeface is null)
+        {
+            bcp47 = null;
+            matchCharacterTypeface = SKFontManager.Default.MatchCharacter(normalRunProperty.RenderFontName,
+                skFontStyle, bcp47, codePoint.Value);
+        }
+
+        if (matchCharacterTypeface is null)
+        {
+            matchCharacterTypeface = SKFontManager.Default.MatchCharacter(codePoint.Value);
+        }
+
+        if (matchCharacterTypeface is null)
+        {
+            foreach (string fontFamily in SKFontManager.Default.FontFamilies)
+            {
+                using SKTypeface matchFamily = SKFontManager.Default.MatchFamily(fontFamily);
+                if (matchFamily.ContainsGlyph(codePoint.Value))
+                {
+                    matchCharacterTypeface = matchFamily;
+                    break;
+                }
+            }
+
+        }
+
+            return matchCharacterTypeface;
     }
 
     /// <summary>
@@ -239,6 +294,11 @@ public class SkiaPlatformResourceManager :
         return typeface;
     }
 
+    /// <summary>
+    /// 尝试根据字体名解析字体。如果找不到字体，返回 null 空值
+    /// </summary>
+    /// <param name="runProperty"></param>
+    /// <returns>返回空等于字体没有安装</returns>
     private SKTypeface? TryResolveFont(SkiaTextRunProperty runProperty)
     {
         string fontName = runProperty.RenderFontName;

@@ -100,7 +100,7 @@ class HorizontalTextRenderer : TextRendererBase
         var currentRunProperty = runProperty.AsRunProperty();
         // 获取一个字符，用来进行回滚。即使获取不到，也可以用
         var firstChar = TextContext.DefaultChar;
-        var firstText = firstCharData.CharObject.ToText();
+        var firstText = firstCharData.RenderCharObject.ToText();
         if (firstText.Length > 0)
         {
             firstChar = firstText[0];
@@ -114,7 +114,7 @@ class HorizontalTextRenderer : TextRendererBase
 
         foreach (CharData charData in charList)
         {
-            Utf32CodePoint codePoint = charData.CharObject.CodePoint;
+            Utf32CodePoint codePoint = charData.RenderCharObject.CodePoint;
             // 这里额外处理的情况是，用户设置的字体实际上无法被应用在此字符上。于是就需要执行回滚逻辑
             if (glyphTypeface.CharacterToGlyphMap.TryGetValue(codePoint.Value, out var glyphIndex))
             {
