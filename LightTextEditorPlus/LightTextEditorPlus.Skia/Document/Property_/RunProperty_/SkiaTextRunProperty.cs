@@ -42,10 +42,10 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// <summary>
     /// 是否没有找到合适的渲染字体，而使用了回滚字符
     /// </summary>
-    internal bool IsMissRenderFont { get; init; }
+    internal bool IsMissRenderFont { get; init; } = false;
 
     /// <inheritdoc />
-    public override bool IsInvalidRunProperty => !IsMissRenderFont;
+    public override bool IsInvalidRunProperty => IsMissRenderFont;
 
     /// <summary>
     /// 获取渲染字体名称
