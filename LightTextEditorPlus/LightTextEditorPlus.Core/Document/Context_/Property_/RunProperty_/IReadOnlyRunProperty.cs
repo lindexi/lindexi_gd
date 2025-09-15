@@ -33,6 +33,11 @@ public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
     /// </summary>
     TextFontVariant FontVariant { get; }
 
+    /// <summary>
+    /// 表示无效的文本属性，例如无法对当前字符找到正确的字体等情况。将导致渲染出 � 符号
+    /// </summary>
+    bool IsInvalidRunProperty { get; }
+
     ///// <summary>
     ///// 尝试获取属性
     ///// </summary>

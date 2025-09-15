@@ -65,6 +65,9 @@ namespace LightTextEditorPlus.Core.Document
         public TextFontVariant FontVariant { get; init; } = TextFontVariant.Normal;
 
         /// <inheritdoc />
+        public virtual bool IsInvalidRunProperty => false;
+
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return HashCode.Combine(FontSize, FontName, FontVariant.GetHashCode());
@@ -84,6 +87,7 @@ namespace LightTextEditorPlus.Core.Document
                 FontSize.Equals(other.FontSize)
                 && FontName.Equals(other.FontName)
                 && FontVariant.Equals(other.FontVariant)
+                && IsInvalidRunProperty == other.IsInvalidRunProperty
             )
             {
                 return true;

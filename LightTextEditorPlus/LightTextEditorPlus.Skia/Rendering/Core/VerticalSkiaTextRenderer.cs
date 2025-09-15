@@ -99,11 +99,11 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
             CharData firstCharData = charList[0];
             SkiaTextRunProperty skiaTextRunProperty = firstCharData.RunProperty.AsSkiaRunProperty();
             // 不需要在这里处理字体回滚，在输入的过程中已经处理过了
-            RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(firstCharData.CharObject.CodePoint);
+            RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(firstCharData.RenderCharObject.CodePoint);
             SKFont skFont = renderingRunPropertyInfo.Font;
             SKPaint textRenderSKPaint = renderingRunPropertyInfo.Paint;
 
-            using CharDataListToCharSpanResult charSpanResult = charList.ToCharSpan();
+            using CharDataListToCharSpanResult charSpanResult = charList.ToRenderCharSpan();
             ReadOnlySpan<char> charSpan = charSpanResult.CharSpan;
 
             SKPoint[] positionList = new SKPoint[charList.Count];

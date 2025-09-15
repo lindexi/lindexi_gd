@@ -144,14 +144,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
-        RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.GetRenderingRunPropertyInfo(currentCharData.CharObject.CodePoint);
+        RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.GetRenderingRunPropertyInfo(currentCharData.RenderCharObject.CodePoint);
 
         SKTypeface skTypeface = renderingRunPropertyInfo.Typeface;
         SKFont skFont = renderingRunPropertyInfo.Font;
 
         // 确保设置了字符的尺寸
         // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
-        using CharDataListToCharSpanResult charDataListToCharSpanResult = runList.ToCharSpan();
+        using CharDataListToCharSpanResult charDataListToCharSpanResult = runList.ToRenderCharSpan();
 
         var charCount = charDataListToCharSpanResult.CharSpan.Length;
 

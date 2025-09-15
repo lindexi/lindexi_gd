@@ -40,6 +40,14 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     }
 
     /// <summary>
+    /// 是否没有找到合适的渲染字体，而使用了回滚字符
+    /// </summary>
+    internal bool IsMissRenderFont { get; init; }
+
+    /// <inheritdoc />
+    public override bool IsInvalidRunProperty => !IsMissRenderFont;
+
+    /// <summary>
     /// 获取渲染字体名称
     /// </summary>
     internal string RenderFontName
@@ -47,6 +55,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         get => _renderFontName ?? FontName.UserFontName;
         init => _renderFontName = value;
     }
+
 
     private readonly string? _renderFontName;
 
@@ -143,6 +152,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// 文本的装饰集合
     /// </summary>
     public TextEditorImmutableDecorationCollection DecorationCollection { get; init; }
+
 
     private void InvalidateFont()
     {
