@@ -426,5 +426,11 @@ partial class RichTextCaseProvider
 
             editor.AppendText("123123123123123123123123123");
         }, "通过 TextElement.SetForeground 设置渐变色前景色时，可设置到文本前景色");
+
+        Add(editor =>
+        {
+            editor.SetFontName("Times New Roman");
+            editor.Text = "\u2001";
+        }, "测试传入 Linux 不存在的字体渲染不匹配字体的字符");
     }
 }
