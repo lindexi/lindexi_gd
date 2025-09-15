@@ -430,7 +430,7 @@ partial class RichTextCaseProvider
         Add(editor =>
         {
             editor.SetFontName("Times New Roman");
-            editor.Text = "α";
+            editor.Text = "\u2001";
         }, "测试传入 Linux 不存在的字体渲染不匹配字体的字符");
     }
 }
