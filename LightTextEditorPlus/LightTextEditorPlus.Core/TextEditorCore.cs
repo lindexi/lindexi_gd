@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -109,7 +109,7 @@ public partial class TextEditorCore
 
     #region 平台相关
 
-    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Platform.IPlatformProvider"/>
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Platform.ITextEditorPlatformProvider"/>
     public ITextEditorPlatformProvider PlatformProvider { get; }
 
     #region 字体回滚
