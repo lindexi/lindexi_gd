@@ -150,7 +150,7 @@ public class FontNameManager : IFontNameManager
         {
             if (info.IsFallback)
             {
-                textEditor.Logger.LogDebug($"[FontNameManager] 触发字体回滚。原字体='{desiredFontName}'，回滚字体='info.FallbackFontName'，回滚失败={info.IsFallbackFailed}");
+                textEditor.Logger.LogDebug($"[FontNameManager] 触发字体回滚。原字体='{desiredFontName}'，回滚字体='{info.FallbackFontName}'，回滚失败={info.IsFallbackFailed}");
             }
         }
 
