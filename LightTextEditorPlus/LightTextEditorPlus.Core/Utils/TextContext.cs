@@ -39,11 +39,6 @@ public static class TextContext
     public const char UnknownChar = '\uFFFD';
 
     /// <summary>
-    /// 表示一个空格字符
-    /// </summary>
-    public const char SpaceChar = ' ';
-
-    /// <summary>
     /// 文本库统一写入的换行符，此换行符和平台无关，所有平台写入相同的值
     /// </summary>
     public const string NewLine = "\n";

@@ -130,12 +130,17 @@ public class SkiaPlatformResourceManager :
                 // 当前就遇到了，传入字符为 \u2001 就在 Skia 3.119.0 版本找不到回滚
                 SkiaTextEditor.Logger.LogWarning($"无法找到任何字体能够支持字符： '{charObject.ToText()}'，只好设置为错误状态");
 
-                Utf32CodePoint unknownChar = new Utf32CodePoint(TextContext.UnknownChar);
+                // 获取一个表示未知字符的码点。这里的获取稍微耦合一下 IPlatformRunPropertyCreator 的内容，属于很边界的逻辑，有点耦合可以减少其他模块的复杂逻辑
+                Utf32CodePoint unknownChar = SkiaTextEditor.SkiaTextEditorPlatformProvider
+                    .GetPlatformRunPropertyCreator()
+                    .CreateInvalidRunPropertyCharObject()
+                    .CodePoint;
+
                 // 预期不会是空的情况
                 matchCharacterTypeface = TryMatchCharacterTypeface(normalRunProperty, unknownChar);
                 if (matchCharacterTypeface is null)
                 {
-                    throw new TextEditorInnerException($"无法找到 '{TextContext.UnknownChar}' 字符的可渲染字体，可能当前设备未安装任何一款字体");
+                    throw new NotFoundMatchCharacterFontException(unknownChar);
                 }
 
                 normalRunProperty = normalRunProperty with
@@ -198,7 +203,7 @@ public class SkiaPlatformResourceManager :
 
         }
 
-            return matchCharacterTypeface;
+        return matchCharacterTypeface;
     }
 
     /// <summary>
