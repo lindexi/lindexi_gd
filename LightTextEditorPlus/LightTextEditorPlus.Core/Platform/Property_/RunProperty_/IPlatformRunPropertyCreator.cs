@@ -31,4 +31,10 @@ public interface IPlatformRunPropertyCreator
     /// <param name="styleRunProperty"></param>
     /// <returns></returns>
     IReadOnlyRunProperty UpdateMarkerRunProperty(IReadOnlyRunProperty? markerRunProperty, IReadOnlyRunProperty styleRunProperty);
+
+    /// <summary>
+    /// 获取无效的字符对象。默认返回 � 字符
+    /// </summary>
+    /// <returns></returns>
+    ICharObject CreateInvalidRunPropertyCharObject();
 }

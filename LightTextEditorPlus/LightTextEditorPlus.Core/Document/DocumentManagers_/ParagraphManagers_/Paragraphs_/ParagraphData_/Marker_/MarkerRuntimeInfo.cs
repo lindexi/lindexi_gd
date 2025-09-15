@@ -51,6 +51,7 @@ internal record MarkerRuntimeInfo
         var array = new CharData[textRun.Count];
         for (int i = 0; i < textRun.Count; i++)
         {
+            // todo 考虑字体无法适配项目符号的情况
             CharData charData = new CharData(textRun.GetChar(i), RunProperty);
             charData.CharLayoutData = new CharLayoutData(charData, ParagraphData);
             array[i] = charData;
