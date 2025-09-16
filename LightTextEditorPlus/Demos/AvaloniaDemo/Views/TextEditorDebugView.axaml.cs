@@ -12,8 +12,6 @@ using LightTextEditorPlus.Demo.Business.RichTextCases;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.FontManagers;
 
-using SkiaSharp;
-
 namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
 public partial class TextEditorDebugView : UserControl
@@ -27,7 +25,7 @@ public partial class TextEditorDebugView : UserControl
         TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子", new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf")));
         CreateAndReplaceTextEditor();
 
-        TextContext.FontNameManager.UseDefaultFontFallbackRules();
+        TextContext.GlobalFontNameManager.UseDefaultFontFallbackRules();
 
         _richTextCaseProvider = new RichTextCaseProvider(() => TextEditor);
         // 调试代码

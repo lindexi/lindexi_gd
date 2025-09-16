@@ -20,7 +20,7 @@ public class StaticConfiguration
     public FontFamily DefaultNotDefineFontFamily
     {
         get => _defaultNotDefineFontFamily ??
-               (_defaultFontFamily ??= new FontFamily("微软雅黑"));
+               (_defaultFontFamily ??= new FontFamily(PlatformFontNameManager.GetFallbackDefaultFontName()));
         set
         {
             if (_defaultNotDefineFontFamily is not null)

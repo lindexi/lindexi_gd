@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
@@ -25,6 +25,12 @@ public interface ITextEditorPlatformProvider
     /// </summary>
     /// <returns></returns>
     IPlatformRunPropertyCreator GetPlatformRunPropertyCreator();
+
+    /// <summary>
+    /// 获取平台字体名称管理器
+    /// </summary>
+    /// <returns></returns>
+    IPlatformFontNameManager GetPlatformFontNameManager();
 
     /// <summary>
     ///     加入调度更新布局请求
@@ -110,12 +116,6 @@ public interface ITextEditorPlatformProvider
     /// </summary>
     /// <returns></returns>
     ILineSpacingCalculator? GetLineSpacingCalculator();
-
-    /// <summary>
-    /// 获取平台字体名称管理器
-    /// </summary>
-    /// <returns></returns>
-    IPlatformFontNameManager GetPlatformFontNameManager();
 
     /// <summary>
     /// 获取单词分隔器，分词器

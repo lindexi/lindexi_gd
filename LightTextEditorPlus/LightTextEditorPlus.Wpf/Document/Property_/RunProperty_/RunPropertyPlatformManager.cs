@@ -1,7 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 
@@ -73,8 +74,10 @@ class RunPropertyPlatformManager
     public bool TryGetFallbackFontInfoByCustom(RunProperty runProperty, Typeface typeface,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
+        IPlatformFontNameManager platformFontNameManager = _textEditor.TextEditorPlatformProvider.GetPlatformFontNameManager();
+
         var fallbackFontName =
-            _textEditor.TextEditorCore.FontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName, _textEditor.TextEditorCore);
+            platformFontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName);
         if (string.IsNullOrEmpty(fallbackFontName))
         {
             glyphTypeface = null;
