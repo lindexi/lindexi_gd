@@ -288,7 +288,6 @@ internal sealed class ParagraphData : ITextParagraph
     /// <param name="offset"></param>
     public IList<CharData>? SplitRemoveByParagraphOffset(ParagraphCaretOffset offset)
     {
-        // todo 设置LineVisualData是脏的
         if (offset.Offset == CharCount)
         {
             // 如果插入在最后，那就啥都不需要做
