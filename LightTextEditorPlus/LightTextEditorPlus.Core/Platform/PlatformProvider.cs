@@ -1,4 +1,5 @@
 ﻿using System;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
@@ -112,8 +113,10 @@ public abstract class PlatformProvider : ITextEditorPlatformProvider
     /// <inheritdoc />
     public virtual IPlatformFontNameManager GetPlatformFontNameManager()
     {
-        return new DefaultPlatformFontNameManager();
+        return _platformFontNameManager ??= new DefaultPlatformFontNameManager();
     }
+
+    private IPlatformFontNameManager? _platformFontNameManager;
 
     /// <inheritdoc />
     public virtual IWordDivider GetWordDivider()

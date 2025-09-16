@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.CompilerServices;
 
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
@@ -112,20 +110,21 @@ public partial class TextEditorCore
     /// <inheritdoc cref="T:LightTextEditorPlus.Core.Platform.ITextEditorPlatformProvider"/>
     public ITextEditorPlatformProvider PlatformProvider { get; }
 
-    #region 字体回滚
+    // 字体回滚也定义为平台字体的部分，不再独立为属性
+    //#region 字体回滚
 
-    /// <summary>
-    /// 提供字体回滚和字体名称管理
-    /// </summary>
-    public IFontNameManager FontNameManager
-    {
-        get => _fontNameManager ?? TextContext.FontNameManager;
-        set => _fontNameManager = value;
-    }
+    ///// <summary>
+    ///// 提供字体回滚和字体名称管理
+    ///// </summary>
+    //public IFontNameManager FontNameManager
+    //{
+    //    get => _fontNameManager ?? TextContext.FontNameManager;
+    //    set => _fontNameManager = value;
+    //}
 
-    private IFontNameManager? _fontNameManager;
+    //private IFontNameManager? _fontNameManager;
 
-    #endregion
+    //#endregion
 
     #endregion
 

@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Core.Platform;
 /// 管理文本使用的字体名称和字体回退策略。
 /// </summary>
 /// 默认回滚可参阅： https://github.com/dotnet/wpf/blob/main/src/Microsoft.DotNet.Wpf/src/PresentationCore/Fonts/GlobalUserInterface.CompositeFont
-public class FontNameManager : IFontNameManager
+public class FontNameManager //: IFontNameManager
 {
     ///// <summary>
     ///// 默认渲染字体Arial，用于缺失字体的渲染恢复，与微软机制一致
@@ -22,14 +22,6 @@ public class FontNameManager : IFontNameManager
     private readonly ConcurrentDictionary<string, string> _fallbackMapping = new();
     private readonly ConcurrentDictionary<string, string> _fuzzyFallbackMapping = new();
     private readonly ConcurrentDictionary<string/*FontName*/, FontFallbackInfo> _fallbackCache = new();
-
-    /// <summary>
-    /// 字体回退信息
-    /// </summary>
-    /// <param name="FallbackFontName">字体名</param>
-    /// <param name="IsFallback">这个字体是否是回退的。False: 字体本身不需要回退</param>
-    /// <param name="IsFallbackFailed">是否回退失败</param>
-    readonly record struct FontFallbackInfo(string FallbackFontName, bool IsFallback, bool IsFallbackFailed);
 
     ///// <summary>
     ///// 获取默认的字体名。
@@ -113,13 +105,34 @@ public class FontNameManager : IFontNameManager
     /// 获取字体回退策略
     /// </summary>
     /// <param name="desiredFontName"></param>
-    /// <param name="textEditor"></param>
+    /// <param name="platformFontNameManager"></param>
     /// <returns></returns>
-    public string GetFallbackFontName(string desiredFontName, TextEditorCore textEditor)
+    public string GetFallbackFontName(string desiredFontName, IPlatformFontNameManager platformFontNameManager)
     {
-        IPlatformFontNameManager platformFontNameManager = textEditor.PlatformProvider.GetPlatformFontNameManager();
+        //IPlatformFontNameManager platformFontNameManager = textEditor.PlatformProvider.GetPlatformFontNameManager();
 
-        var info = _fallbackCache.GetOrAdd(desiredFontName, k =>
+        var info = GetFallbackFontInfo(desiredFontName, platformFontNameManager);
+
+        //if (textEditor.IsInDebugMode)
+        //{
+        //    if (info.IsFallback)
+        //    {
+        //        textEditor.Logger.LogDebug($"[FontNameManager] 触发字体回滚。原字体='{desiredFontName}'，回滚字体='{info.FallbackFontName}'，回滚失败={info.IsFallbackFailed}");
+        //    }
+        //}
+
+        return info.FallbackFontName;
+    }
+
+    /// <summary>
+    /// 获取字体回退策略
+    /// </summary>
+    /// <param name="desiredFontName"></param>
+    /// <param name="platformFontNameManager"></param>
+    /// <returns></returns>
+    public FontFallbackInfo GetFallbackFontInfo(string desiredFontName, IPlatformFontNameManager platformFontNameManager)
+    {
+        FontFallbackInfo info = _fallbackCache.GetOrAdd(desiredFontName, k =>
         {
             var exactFontName = ExactSearch(k, platformFontNameManager);
             if (exactFontName is not null)
@@ -145,16 +158,7 @@ public class FontNameManager : IFontNameManager
             string defaultFontName = platformFontNameManager.GetFallbackDefaultFontName();
             return new FontFallbackInfo(defaultFontName, IsFallback: true, IsFallbackFailed: true);
         });
-
-        if (textEditor.IsInDebugMode)
-        {
-            if (info.IsFallback)
-            {
-                textEditor.Logger.LogDebug($"[FontNameManager] 触发字体回滚。原字体='{desiredFontName}'，回滚字体='{info.FallbackFontName}'，回滚失败={info.IsFallbackFailed}");
-            }
-        }
-
-        return info.FallbackFontName;
+        return info;
     }
 
     /// <summary>
@@ -330,3 +334,11 @@ public class FontNameManager : IFontNameManager
         //{ "", "微软雅黑" },
     };
 }
+
+/// <summary>
+/// 字体回退信息
+/// </summary>
+/// <param name="FallbackFontName">字体名</param>
+/// <param name="IsFallback">这个字体是否是回退的。False: 字体本身不需要回退</param>
+/// <param name="IsFallbackFailed">是否回退失败</param>
+public readonly record struct FontFallbackInfo(string FallbackFontName, bool IsFallback, bool IsFallbackFailed);

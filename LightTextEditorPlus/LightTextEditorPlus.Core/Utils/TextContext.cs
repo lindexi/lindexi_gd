@@ -76,7 +76,7 @@ public static class TextContext
     /// <summary>
     /// 字体名管理。
     /// </summary>
-    public static readonly FontNameManager FontNameManager = new FontNameManager();
+    public static readonly FontNameManager GlobalFontNameManager = new FontNameManager();
 
     /// <summary>
     /// 行高的比例，字符上半部分增加4/5，下半部分增加1/5

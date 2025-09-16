@@ -1,3 +1,5 @@
+﻿using LightTextEditorPlus.Core.Diagnostics.LogInfos;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 
@@ -8,7 +10,6 @@ using System.Drawing.Text; // todo 后续干掉 WinForms 的获取字体
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
-using LightTextEditorPlus.Core.Platform;
 
 namespace LightTextEditorPlus.Document;
 
@@ -19,17 +20,17 @@ public class PlatformFontNameManager : IPlatformFontNameManager
 {
     /// <inheritdoc cref="FontNameManager.RegisterFontFallback(string, string)"/>
     public void RegisterFontFallback(string fontName, string fallbackFontName)
-        => TextContext.FontNameManager.RegisterFontFallback(fontName, fallbackFontName);
+        => TextContext.GlobalFontNameManager.RegisterFontFallback(fontName, fallbackFontName);
 
     /// <inheritdoc cref="FontNameManager.RegisterFontFallback(IDictionary{string, string})"/>
-    public void RegisterFontFallback(IDictionary<string, string> mapping) => TextContext.FontNameManager.RegisterFontFallback(mapping);
+    public void RegisterFontFallback(IDictionary<string, string> mapping) => TextContext.GlobalFontNameManager.RegisterFontFallback(mapping);
 
     /// <inheritdoc cref="FontNameManager.RegisterFuzzyFontFallback(string, string)"/>
     public void RegisterFuzzyFontFallback(string fuzzyFontName, string fallbackFontName)
-        => TextContext.FontNameManager.RegisterFuzzyFontFallback(fuzzyFontName, fallbackFontName);
+        => TextContext.GlobalFontNameManager.RegisterFuzzyFontFallback(fuzzyFontName, fallbackFontName);
 
     /// <inheritdoc cref="FontNameManager.RegisterFuzzyFontFallback(IDictionary{string, string})"/>
-    public void RegisterFuzzyFontFallback(IDictionary<string, string> mapping) => TextContext.FontNameManager.RegisterFuzzyFontFallback(mapping);
+    public void RegisterFuzzyFontFallback(IDictionary<string, string> mapping) => TextContext.GlobalFontNameManager.RegisterFuzzyFontFallback(mapping);
 
     /// <summary>
     /// 默认渲染字体Arial，用于缺失字体的渲染恢复，与微软机制一致
@@ -47,6 +48,19 @@ public class PlatformFontNameManager : IPlatformFontNameManager
 
     /// <inheritdoc />
     public string GetFallbackDefaultFontName() => FallbackDefaultFontName;
+
+    /// <inheritdoc />
+    public string GetFallbackFontName(string desiredFontName)
+    {
+        FontFallbackInfo info = TextContext.GlobalFontNameManager.GetFallbackFontInfo(desiredFontName, this);
+
+        //if (info.IsFallback || info.IsFallbackFailed)
+        //{
+        //    SkiaTextEditor.Logger.Log(new FontNameFallbackLogInfo(desiredFontName, info));
+        //}
+
+        return info.FallbackFontName;
+    }
 
     /// <summary>
     /// 判断字体是否已经安装，里面使用 HASH 方法，性能比较好
