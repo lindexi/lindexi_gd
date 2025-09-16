@@ -53,7 +53,13 @@ public partial class MainWindow : Window
         var source = new BitmapImage(new Uri(filePath));
         SourceImage.Source = source;
 
-        var sourceBitmap = new WriteableBitmap(source);
+        var formatConvertedBitmap = new FormatConvertedBitmap();
+        formatConvertedBitmap.BeginInit();
+        formatConvertedBitmap.Source = source;
+        formatConvertedBitmap.DestinationFormat = PixelFormats.Bgra32;
+        formatConvertedBitmap.EndInit();
+
+        var sourceBitmap = new WriteableBitmap(formatConvertedBitmap);
         var targetBitmap = new WriteableBitmap(sourceBitmap.PixelWidth, sourceBitmap.PixelHeight, sourceBitmap.DpiX,
             sourceBitmap.DpiY, sourceBitmap.Format, sourceBitmap.Palette);
 
