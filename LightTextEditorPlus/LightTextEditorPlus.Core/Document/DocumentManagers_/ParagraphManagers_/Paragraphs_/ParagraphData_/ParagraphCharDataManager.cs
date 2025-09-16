@@ -47,8 +47,6 @@ class ParagraphCharDataManager
             return;
         }
 
-        CharDataList.EnsureCapacity(CharDataList.Count + charDataList.Count);
-
         foreach (var charData in charDataList)
         {
             UpdateCharLayoutData(charData);
@@ -56,7 +54,7 @@ class ParagraphCharDataManager
             //CharDataList.Add(charData);
         }
 
-        // List 底层没有判断 IReadOnlyCollection 接口，只判断 ICollection 接口才做数组拷贝，相对来说效率更低
+        // List 底层没有判断 IReadOnlyCollection 接口，只判断 ICollection 接口才做数组拷贝，相对来说效率更低。好在基本上此方法传入的对象都是 List 类型
         CharDataList.AddRange(charDataList);
 
         Debug.Assert(CharDataList.Count > 0, "由于已经判断 charDataList.Count 大于 0 因此必定可以更新首个字符属性");
