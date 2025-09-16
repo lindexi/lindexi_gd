@@ -3,12 +3,12 @@
 namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
 /// <summary>
-/// 字体回滚的日志信息
+/// 针对字符的字体回滚的日志信息
 /// </summary>
 /// <param name="OriginFontName"></param>
 /// <param name="NotSupportCharObject"></param>
 /// <param name="FallbackFontName"></param>
-public readonly record struct FontFallbackLogInfo(string OriginFontName, ICharObject NotSupportCharObject, string FallbackFontName)
+public readonly record struct CharObjectFontFallbackLogInfo(string OriginFontName, ICharObject NotSupportCharObject, string FallbackFontName)
 {
     /// <inheritdoc />
     public override string ToString()
