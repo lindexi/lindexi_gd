@@ -4,7 +4,6 @@ using System.Diagnostics;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Layout;
-using LightTextEditorPlus.Core.Layout.HitTests;
 
 namespace LightTextEditorPlus.Core.Primitive;
 
@@ -94,7 +93,7 @@ internal class EmptyTextLogger : ITextLogger
             TextFeatures textFeatures = textFeaturesBeDisabledLogInfo.Features;
             RecordMessage($"[TextFeatures] 操作无效，因为 {textFeatures} 被禁止");
         }
-        else if (info is FontFallbackLogInfo fontFallbackLogInfo)
+        else if (info is CharObjectFontFallbackLogInfo fontFallbackLogInfo)
         {
             LogWarning(fontFallbackLogInfo.ToString());
         }

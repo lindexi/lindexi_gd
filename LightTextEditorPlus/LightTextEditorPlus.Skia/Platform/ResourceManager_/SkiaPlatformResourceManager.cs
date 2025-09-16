@@ -121,7 +121,7 @@ public class SkiaPlatformResourceManager :
                     RenderFontName = matchCharacterTypeface.FamilyName,
                 };
 
-                var fontFallbackLogInfo = new FontFallbackLogInfo(skiaTextRunProperty.FontName.UserFontName, charObject, normalRunProperty.RenderFontName);
+                var fontFallbackLogInfo = new CharObjectFontFallbackLogInfo(skiaTextRunProperty.FontName.UserFontName, charObject, normalRunProperty.RenderFontName);
                 SkiaTextEditor.Logger.Log(fontFallbackLogInfo);
 
                 //SkiaTextEditor.Logger.LogWarning($"当前字体 '{skiaTextRunProperty.FontName}' 不支持字符 '{charObject.ToText()}'，回滚为 '{normalRunProperty.RenderFontName}' 字体");
