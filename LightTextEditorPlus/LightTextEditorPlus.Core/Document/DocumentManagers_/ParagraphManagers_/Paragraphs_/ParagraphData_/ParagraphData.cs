@@ -286,7 +286,7 @@ internal sealed class ParagraphData : ITextParagraph
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
     /// </summary>
     /// <param name="offset"></param>
-    public IList<CharData>? SplitRemoveByParagraphOffset(ParagraphCaretOffset offset)
+    public IReadOnlyList<CharData>? SplitRemoveByParagraphOffset(ParagraphCaretOffset offset)
     {
         if (offset.Offset == CharCount)
         {
@@ -313,6 +313,7 @@ internal sealed class ParagraphData : ITextParagraph
                 var lineVisualData = charData.CharLayoutData?.CurrentLine;
                 lineVisualData?.SetDirty();
 
+                // 为什么要设置为空呢？因为 CharData 不能被加入到多个段落。拆分之后，可能加入到别的段落
                 charData.CharLayoutData = null;
             }
 
@@ -382,7 +383,7 @@ internal sealed class ParagraphData : ITextParagraph
         CharDataManager.Add(charData);
     }
 
-    internal void AppendCharData(IEnumerable<CharData> charDataList)
+    internal void AppendCharData(IReadOnlyList<CharData> charDataList)
     {
         CharDataManager.AddRange(charDataList);
     }

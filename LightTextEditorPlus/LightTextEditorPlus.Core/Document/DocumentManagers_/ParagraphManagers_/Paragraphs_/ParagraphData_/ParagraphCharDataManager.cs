@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -39,19 +39,28 @@ class ParagraphCharDataManager
         }
     }
 
-    public void AddRange(IEnumerable<CharData> charDataList)
+    public void AddRange(IReadOnlyList<CharData> charDataList)
     {
-        foreach (var charData in charDataList)
+        if (charDataList.Count == 0)
         {
-            Add(charData);
+            return;
         }
 
-        //CharDataList.AddRange(charDataList);
+        CharDataList.EnsureCapacity(CharDataList.Count + charDataList.Count);
+
+        foreach (var charData in charDataList)
+        {
+            charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
+        }
+
+        CharDataList.AddRange(charDataList);
+        Debug.Assert(CharDataList.Count > 0, "由于已经判断 charDataList.Count 大于 0 因此必定可以更新首个字符属性");
+        _paragraph.UpdateStartRunProperty();
     }
 
     public void RemoveRange(int index, int count) => CharDataList.RemoveRange(index, count);
 
-    public IList<CharData> GetRange(int index, int count) => CharDataList.GetRange(index, count);
+    public IReadOnlyList<CharData> GetRange(int index, int count) => CharDataList.GetRange(index, count);
 
     public TextReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
         ToReadOnlyListSpan(start, CharDataList.Count - start);
