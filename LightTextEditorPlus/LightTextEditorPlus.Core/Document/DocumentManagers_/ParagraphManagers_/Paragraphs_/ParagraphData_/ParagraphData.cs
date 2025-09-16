@@ -301,7 +301,7 @@ internal sealed class ParagraphData : ITextParagraph
         }
         else
         {
-            Version++;
+            SetDirty();
             var count = CharCount - offset.Offset;
             var charDataList = CharDataManager.GetRange(offset.Offset, count);
             CharDataManager.RemoveRange(offset.Offset, count);
