@@ -28,7 +28,8 @@ class ParagraphCharDataManager
     public void Add(CharData charData)
     {
         Debug.Assert(charData.CharLayoutData is null, "一个 CharData 不会被加入两次");
-        charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
+        UpdateCharLayoutData(charData);
+
         CharDataList.Add(charData);
 
         if (CharDataList.Count == 1)
@@ -50,12 +51,35 @@ class ParagraphCharDataManager
 
         foreach (var charData in charDataList)
         {
-            charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
+            UpdateCharLayoutData(charData);
+            // 分开为两个步骤，不要逐个调用 Add 方法，而是一起调用 AddRange 方法。这样的性能才足够好
+            //CharDataList.Add(charData);
         }
 
+        // List 底层没有判断 IReadOnlyCollection 接口，只判断 ICollection 接口才做数组拷贝，相对来说效率更低
         CharDataList.AddRange(charDataList);
+
         Debug.Assert(CharDataList.Count > 0, "由于已经判断 charDataList.Count 大于 0 因此必定可以更新首个字符属性");
         _paragraph.UpdateStartRunProperty();
+    }
+
+    private void UpdateCharLayoutData(CharData charData)
+    {
+        if (charData.CharLayoutData is null)
+        {
+            charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
+        }
+        else
+        {
+            if (ReferenceEquals(charData.CharLayoutData.Paragraph, _paragraph))
+            {
+                // 正常情况
+            }
+            else
+            {
+                CharDataBeAddedToMultiParagraphException.Throw(charData, _paragraph);
+            }
+        }
     }
 
     public void RemoveRange(int index, int count) => CharDataList.RemoveRange(index, count);
