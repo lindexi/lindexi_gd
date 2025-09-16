@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
@@ -273,7 +273,7 @@ internal class DocumentRunEditProvider
 
             // 如果是在一段的中间删除，那就删除段落中间，需要先拿到段落删除中间之后的后面字符
             var paragraphEndOffset = new ParagraphCaretOffset(paragraphStartOffset.Offset + removeLength);
-            IList<CharData>? lastCharDataList = null;
+            IReadOnlyList<CharData>? lastCharDataList = null;
             if (paragraphData.CharCount > paragraphEndOffset.Offset)
             {
                 // 如果不是删除到全段，那就需要将段落删除之后剩下的部分重新加入
