@@ -20,7 +20,7 @@ public class StaticConfiguration
     public FontFamily DefaultNotDefineFontFamily
     {
         get => _defaultNotDefineFontFamily ??
-               (_defaultFontFamily ??= new FontFamily(PlatformFontNameManager.GetFallbackDefaultFontName()));
+               (_defaultFontFamily ??= new FontFamily("Microsoft YaHei")); // 默认未定义使用微软雅黑，这是都会带的字体
         set
         {
             if (_defaultNotDefineFontFamily is not null)
