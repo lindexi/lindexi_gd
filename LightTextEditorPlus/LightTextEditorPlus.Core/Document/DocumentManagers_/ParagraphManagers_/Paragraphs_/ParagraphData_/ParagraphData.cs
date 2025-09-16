@@ -309,12 +309,10 @@ internal sealed class ParagraphData : ITextParagraph
 
             foreach (var charData in charDataList)
             {
-                // 这里也许可以考虑一下设置脏的
+                // 设置每个字符行是脏的
+                // 正常情况下，会自动因为段落是脏的而让行是脏的。这里只是保险起见
                 var lineVisualData = charData.CharLayoutData?.CurrentLine;
-                //if (lineVisualData != null)
-                //{
-                //    lineVisualData.IsDirty = true;
-                //}
+                lineVisualData?.SetDirty();
 
                 charData.CharLayoutData = null;
             }
