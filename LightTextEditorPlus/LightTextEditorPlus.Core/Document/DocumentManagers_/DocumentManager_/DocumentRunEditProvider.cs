@@ -167,6 +167,16 @@ internal class DocumentRunEditProvider
 
         if (lastParagraphRunList != null)
         {
+            if (!ReferenceEquals(currentParagraph, paragraphData))
+            {
+                // 段落变更了，此时需要更新字符信息
+                foreach (CharData charData in lastParagraphRunList)
+                {
+                    // 断开字符和段落的关联
+                    charData.CharLayoutData = null;
+                }
+            }
+
             // 如果是从一段的中间插入的，需要将这一段在插入点后面的内容继续放入到当前的段落
             currentParagraph.AppendCharData(lastParagraphRunList);
         }
