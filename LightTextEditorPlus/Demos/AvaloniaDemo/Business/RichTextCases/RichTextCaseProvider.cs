@@ -432,5 +432,11 @@ partial class RichTextCaseProvider
             editor.SetFontName("Times New Roman");
             editor.Text = "\u2001";
         }, "测试传入 Linux 不存在的字体渲染不匹配字体的字符");
+
+        Add(editor =>
+        {
+            editor.SetFontName("Calibri");
+            editor.Text = "tia";
+        }, "测试字体连续渲染导致字符数量不匹配");
     }
 }
