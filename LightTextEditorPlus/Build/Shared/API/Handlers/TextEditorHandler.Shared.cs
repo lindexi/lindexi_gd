@@ -119,8 +119,10 @@ public partial class TextEditorHandler
 
     #region 剪贴板
 
-    
+
 
     #endregion
+
+    public virtual partial void MoveCaret(CaretMoveType type);
 }
 #endif

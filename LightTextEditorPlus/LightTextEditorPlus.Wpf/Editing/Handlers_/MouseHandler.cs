@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Primitive;
+﻿using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Rendering;
 
@@ -207,7 +207,7 @@ internal class MouseHandler
         {
             cursor = Cursors.IBeam;
         }
-        else if (TextEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian || TextEditor.TextEditorCore.ArrangingType == ArrangingType.Vertical)
+        else if (TextEditor.TextEditorCore.ArrangingType.IsVertical)
         {
             cursor = GetVerticalCursor();
         }
