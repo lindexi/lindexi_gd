@@ -2,7 +2,9 @@
 
 var t =
     """
+    asd
         
+    123
     """;
 var count = t.Length;
 Console.WriteLine("Hello, World!");
