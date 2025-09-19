@@ -60,6 +60,14 @@ public partial class TextEditorHandler
     #region 文本输入
 
     /// <summary>
+    /// 换行
+    /// </summary>
+    protected virtual void BreakLine()
+    {
+        RawTextInput("\n");
+    }
+
+    /// <summary>
     /// 收到原始文本输入，可能此时需要考虑处理 Emoji 等情况。可考虑只重写 <see cref="PerformInput"/> 方法，获取更上层的支持
     /// </summary>
     /// <param name="text"></param>

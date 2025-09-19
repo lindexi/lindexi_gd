@@ -17,6 +17,13 @@ public partial class TextEditorHandler
         {
             SwitchOvertypeMode();
             e.Handled = true;
+            return;
+        }
+        else if (e.Key == Key.Enter)
+        {
+            BreakLine();
+            e.Handled = true;
+            return;
         }
     }
 

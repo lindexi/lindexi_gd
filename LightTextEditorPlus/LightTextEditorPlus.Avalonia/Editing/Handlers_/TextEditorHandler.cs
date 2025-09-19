@@ -60,7 +60,7 @@ public partial class TextEditorHandler
         }
         else if (e.Key == Key.Enter)
         {
-            TextEditorCore.EditAndReplace("\n");
+            BreakLine();
             return;
         }
         else if (e.Key == Key.Insert)
