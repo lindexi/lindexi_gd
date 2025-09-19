@@ -14,6 +14,8 @@ namespace LightTextEditorPlus.Editing;
 /// <summary>
 /// 文本编辑器的交互处理器
 /// </summary>
+/// 这个类型的作用在于方便业务端重写，用于控制一些交互行为
+/// 例如：鼠标、键盘、文本输入、剪贴板等
 // todo 考虑命名为 interaction 交互处理器
 public partial class TextEditorHandler
 {
@@ -35,6 +37,10 @@ public partial class TextEditorHandler
     #endregion
 
     #region 键盘相关
+
+    public virtual void Delete() => TextEditorCore.Delete();
+
+    public virtual void Backspace() => TextEditorCore.Backspace();
 
     /// <summary>
     /// 输入 Insert 键的处理，切换插入/覆盖模式

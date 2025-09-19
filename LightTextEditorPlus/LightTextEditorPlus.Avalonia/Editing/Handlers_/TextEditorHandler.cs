@@ -50,12 +50,12 @@ public partial class TextEditorHandler
     {
         if (e.Key == Key.Delete)
         {
-            TextEditorCore.Delete();
+            Delete();
             return;
         }
         else if (e.Key == Key.Back)
         {
-            TextEditorCore.Backspace();
+            Backspace();
             return;
         }
         else if (e.Key == Key.Enter)

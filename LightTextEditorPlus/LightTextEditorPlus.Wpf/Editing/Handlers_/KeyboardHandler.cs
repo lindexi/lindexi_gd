@@ -46,9 +46,11 @@ internal class KeyboardHandler
         textEditor.KeyDown += TextEditor_KeyDown;
     }
 
+    private TextEditorHandler TextEditorHandler => TextEditor.TextEditorHandler;
+
     private void TextEditor_KeyDown(object sender, KeyEventArgs e)
     {
-        TextEditor.TextEditorHandler.OnKeyDown(e);
+        TextEditorHandler.OnKeyDown(e);
     }
 
     #region 删除
@@ -56,13 +58,13 @@ internal class KeyboardHandler
     private static void OnDelete(object sender, ExecutedRoutedEventArgs e)
     {
         var textEditor = (TextEditor) e.Source;
-        textEditor.TextEditorCore.Delete();
+        textEditor.TextEditorHandler.Delete();
     }
 
     private static void OnBackspace(object sender, ExecutedRoutedEventArgs e)
     {
         var textEditor = (TextEditor) e.Source;
-        textEditor.TextEditorCore.Backspace();
+        textEditor.TextEditorHandler.Backspace();
     }
 
     #endregion
