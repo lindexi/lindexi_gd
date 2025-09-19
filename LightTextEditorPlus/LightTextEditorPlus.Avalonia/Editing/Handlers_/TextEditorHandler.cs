@@ -50,12 +50,12 @@ public partial class TextEditorHandler
     {
         if (e.Key == Key.Delete)
         {
-            TextEditorCore.Delete();
+            Delete();
             return;
         }
         else if (e.Key == Key.Back)
         {
-            TextEditorCore.Backspace();
+            Backspace();
             return;
         }
         else if (e.Key == Key.Enter)
@@ -65,7 +65,7 @@ public partial class TextEditorHandler
         }
         else if (e.Key == Key.Insert)
         {
-           TextEditor. IsOvertypeMode = !TextEditor.IsOvertypeMode;
+            SwitchOvertypeMode();
             return;
         }
 

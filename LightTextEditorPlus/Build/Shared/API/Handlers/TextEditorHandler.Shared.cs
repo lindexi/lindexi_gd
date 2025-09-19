@@ -1,18 +1,21 @@
 ﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
+using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
 using System;
-using LightTextEditorPlus.Core;
 
 namespace LightTextEditorPlus.Editing;
 
 /// <summary>
 /// 文本编辑器的交互处理器
 /// </summary>
+/// 这个类型的作用在于方便业务端重写，用于控制一些交互行为
+/// 例如：鼠标、键盘、文本输入、剪贴板等
 // todo 考虑命名为 interaction 交互处理器
 public partial class TextEditorHandler
 {
@@ -27,6 +30,32 @@ public partial class TextEditorHandler
 
     private TextEditor TextEditor { get; }
     private TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
+
+    #region 鼠标相关
+
+
+    #endregion
+
+    #region 键盘相关
+
+    public virtual void Delete() => TextEditorCore.Delete();
+
+    public virtual void Backspace() => TextEditorCore.Backspace();
+
+    /// <summary>
+    /// 输入 Insert 键的处理，切换插入/覆盖模式
+    /// </summary>
+    protected virtual void SwitchOvertypeMode()
+    {
+        if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
+        {
+            return;
+        }
+
+        TextEditor.IsOvertypeMode = !TextEditor.IsOvertypeMode;
+    }
+
+    #endregion
 
     #region 文本输入
 
@@ -78,6 +107,12 @@ public partial class TextEditorHandler
     /// 用于接收第一个字符
     /// </summary>
     private string _emojiCache = string.Empty;
+    #endregion
+
+    #region 剪贴板
+
+    
+
     #endregion
 }
 #endif

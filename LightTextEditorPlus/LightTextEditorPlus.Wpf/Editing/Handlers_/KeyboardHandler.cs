@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -46,18 +46,11 @@ internal class KeyboardHandler
         textEditor.KeyDown += TextEditor_KeyDown;
     }
 
+    private TextEditorHandler TextEditorHandler => TextEditor.TextEditorHandler;
+
     private void TextEditor_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Insert)
-        {
-            if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
-            {
-                return;
-            }
-
-            TextEditor.IsOvertypeMode = !TextEditor.IsOvertypeMode;
-            e.Handled = true;
-        }
+        TextEditorHandler.OnKeyDown(e);
     }
 
     #region 删除
@@ -65,13 +58,13 @@ internal class KeyboardHandler
     private static void OnDelete(object sender, ExecutedRoutedEventArgs e)
     {
         var textEditor = (TextEditor) e.Source;
-        textEditor.TextEditorCore.Delete();
+        textEditor.TextEditorHandler.Delete();
     }
 
     private static void OnBackspace(object sender, ExecutedRoutedEventArgs e)
     {
         var textEditor = (TextEditor) e.Source;
-        textEditor.TextEditorCore.Backspace();
+        textEditor.TextEditorHandler.Backspace();
     }
 
     #endregion
