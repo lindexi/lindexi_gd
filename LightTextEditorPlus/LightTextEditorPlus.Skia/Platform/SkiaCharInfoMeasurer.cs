@@ -321,78 +321,76 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     {
         var glyphInfoList = new List<TextGlyphInfo>();
         SKTypeface skTypeface = skFont.Typeface;
-        using (var buffer = new Buffer())
+        using var buffer = new Buffer();
+        buffer.AddUtf16(text);
+        buffer.GuessSegmentProperties();
+
+        buffer.Language = new Language(updateLayoutContext.TextEditor.CurrentCulture);
+
+        using var face = new HarfBuzzSharp.Face(GetTable);
+
+        Blob? GetTable(Face f, Tag tag)
         {
-            buffer.AddUtf16(text);
-            buffer.GuessSegmentProperties();
-
-            buffer.Language = new Language(updateLayoutContext.TextEditor.CurrentCulture);
-
-            var face = new HarfBuzzSharp.Face(GetTable);
-
-            Blob? GetTable(Face f, Tag tag)
+            var size = skTypeface.GetTableSize(tag);
+            var data = Marshal.AllocCoTaskMem(size);
+            if (skTypeface.TryGetTableData(tag, 0, size, data))
             {
-                var size = skTypeface.GetTableSize(tag);
-                var data = Marshal.AllocCoTaskMem(size);
-                if (skTypeface.TryGetTableData(tag, 0, size, data))
-                {
-                    return new Blob(data, size, MemoryMode.ReadOnly, () => Marshal.FreeCoTaskMem(data));
-                }
-                else
-                {
-                    return null;
-                }
+                return new Blob(data, size, MemoryMode.ReadOnly, () => Marshal.FreeCoTaskMem(data));
             }
-
-            var font = new HarfBuzzSharp.Font(face);
-            font.SetFunctionsOpenType();
-
-            font.Shape(buffer);
-
-            font.GetScale(out var scaleX, out _);
-
-            var fontRenderingEmSize = skFont.Size;
-            var textScale = fontRenderingEmSize / (float) scaleX;
-
-            var bufferLength = buffer.Length;
-
-            var glyphInfos = buffer.GetGlyphInfoSpan();
-
-            var glyphPositions = buffer.GetGlyphPositionSpan();
-
-            for (var i = 0; i < bufferLength; i++)
+            else
             {
-                var sourceInfo = glyphInfos[i];
-
-                // ~~这里其实是 Codepoint 的值，而不是 GlyphIndex 的值~~
-                // 经过进一步实验测试，发现这里的 Codepoint 就是 GlyphIndex 的值
-                // 如 edd88c25d3b92b231df2ed5c7fc0ce9297b98d96 的实验，只要在 HarfBuzzSharp.Font 的 Shape 方法之后，那么获取的 Codepoint 就是 GlyphIndex 的值
-                // 如其控制台输出的如下内容：
-                // Typeface=Standard Symbols PS GlyphCount=191
-                // ContainsGlyph('p')=True 81
-                // TryGetGlyph=True 81
-                // (int) 'p' == 112
-                // Before HarfBuzzSharp.Font.Shape Codepoint=112
-                // After HarfBuzzSharp.Font.Shape Codepoint=81
-                // 可见在 StandardSymbolsPS.ttf 字体下，在 Shape 之前，获取到的 Codepoint 就是字符的 Codepoint 值，而不是 GlyphIndex 的值。在 Shape 之后，获取到的 Codepoint 就是 GlyphIndex 的值。以下代码是正确的
-
-                var glyphIndex = (ushort) sourceInfo.Codepoint;
-                // todo 根据 e5db7d3b8763c1029b67193962b3ac2f73390702 的测试
-                // Skia 的字体选取比较残对于 Symbol.ttf 等字体选取将会绘制出方框
-                // 解决方法是通过 HarfBuzz 获取 GlyphIndex 带上 SKTextEncoding.GlyphId 进行渲染才能正确
-
-                var glyphCluster = (int) sourceInfo.Cluster;
-
-                var position = glyphPositions[i];
-
-                var glyphAdvance = position.XAdvance * textScale;
-
-                var offsetX = position.XOffset * textScale;
-
-                var offsetY = -position.YOffset * textScale;
-
-                glyphInfoList.Add(new TextGlyphInfo(glyphIndex, glyphCluster, glyphAdvance, (offsetX, offsetY)));
+                return null;
             }
+        }
+
+        using var font = new HarfBuzzSharp.Font(face);
+        font.SetFunctionsOpenType();
+
+        font.Shape(buffer);
+
+        font.GetScale(out var scaleX, out _);
+
+        var fontRenderingEmSize = skFont.Size;
+        var textScale = fontRenderingEmSize / (float) scaleX;
+
+        var bufferLength = buffer.Length;
+
+        var glyphInfos = buffer.GetGlyphInfoSpan();
+
+        var glyphPositions = buffer.GetGlyphPositionSpan();
+
+        for (var i = 0; i < bufferLength; i++)
+        {
+            var sourceInfo = glyphInfos[i];
+
+            // ~~这里其实是 Codepoint 的值，而不是 GlyphIndex 的值~~
+            // 经过进一步实验测试，发现这里的 Codepoint 就是 GlyphIndex 的值
+            // 如 edd88c25d3b92b231df2ed5c7fc0ce9297b98d96 的实验，只要在 HarfBuzzSharp.Font 的 Shape 方法之后，那么获取的 Codepoint 就是 GlyphIndex 的值
+            // 如其控制台输出的如下内容：
+            // Typeface=Standard Symbols PS GlyphCount=191
+            // ContainsGlyph('p')=True 81
+            // TryGetGlyph=True 81
+            // (int) 'p' == 112
+            // Before HarfBuzzSharp.Font.Shape Codepoint=112
+            // After HarfBuzzSharp.Font.Shape Codepoint=81
+            // 可见在 StandardSymbolsPS.ttf 字体下，在 Shape 之前，获取到的 Codepoint 就是字符的 Codepoint 值，而不是 GlyphIndex 的值。在 Shape 之后，获取到的 Codepoint 就是 GlyphIndex 的值。以下代码是正确的
+
+            var glyphIndex = (ushort) sourceInfo.Codepoint;
+            // todo 根据 e5db7d3b8763c1029b67193962b3ac2f73390702 的测试
+            // Skia 的字体选取比较残对于 Symbol.ttf 等字体选取将会绘制出方框
+            // 解决方法是通过 HarfBuzz 获取 GlyphIndex 带上 SKTextEncoding.GlyphId 进行渲染才能正确
+
+            var glyphCluster = (int) sourceInfo.Cluster;
+
+            var position = glyphPositions[i];
+
+            var glyphAdvance = position.XAdvance * textScale;
+
+            var offsetX = position.XOffset * textScale;
+
+            var offsetY = -position.YOffset * textScale;
+
+            glyphInfoList.Add(new TextGlyphInfo(glyphIndex, glyphCluster, glyphAdvance, (offsetX, offsetY)));
         }
 
         return glyphInfoList;
