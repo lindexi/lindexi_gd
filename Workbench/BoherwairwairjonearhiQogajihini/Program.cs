@@ -1,0 +1,10 @@
+﻿// See https://aka.ms/new-console-template for more information
+
+var t =
+    """
+    asd
+        
+    123
+    """;
+var count = t.Length;
+Console.WriteLine("Hello, World!");
