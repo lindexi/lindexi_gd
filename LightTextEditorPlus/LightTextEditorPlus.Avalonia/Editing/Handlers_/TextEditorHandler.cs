@@ -60,7 +60,7 @@ public partial class TextEditorHandler
         }
         else if (e.Key == Key.Enter)
         {
-            TextEditorCore.EditAndReplace("\n");
+            BreakLine();
             return;
         }
         else if (e.Key == Key.Insert)
@@ -79,19 +79,19 @@ public partial class TextEditorHandler
         {
             if (e.Key == Key.Up)
             {
-                TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
+                MoveCaret(CaretMoveType.UpByLine);
             }
             else if (e.Key == Key.Down)
             {
-                TextEditorCore.MoveCaret(CaretMoveType.DownByLine);
+                MoveCaret(CaretMoveType.DownByLine);
             }
             else if (e.Key == Key.Left)
             {
-                TextEditorCore.MoveCaret(CaretMoveType.LeftByCharacter);
+                MoveCaret(CaretMoveType.LeftByCharacter);
             }
             else if (e.Key == Key.Right)
             {
-                TextEditorCore.MoveCaret(CaretMoveType.RightByCharacter);
+                MoveCaret(CaretMoveType.RightByCharacter);
             }
         }
     }
@@ -103,6 +103,15 @@ public partial class TextEditorHandler
             // 没有进入编辑模式，不处理键盘事件
             return;
         }
+    }
+
+    #endregion
+
+    #region 方向键
+
+    public virtual partial void MoveCaret(CaretMoveType type)
+    {
+        TextEditor.TextEditorCore.MoveCaret(type);
     }
 
     #endregion
