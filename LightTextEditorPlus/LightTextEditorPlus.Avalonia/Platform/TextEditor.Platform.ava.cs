@@ -94,8 +94,6 @@ partial class TextEditor : Control
 
     #region 交互
 
-    public TextEditorHandler TextEditorHandler { get; set; }
-
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         TextEditorHandler.OnPointerPressed(e);
@@ -117,7 +115,6 @@ partial class TextEditor : Control
 
         base.OnTextInput(e);
     }
-
 
     protected override void OnKeyDown(KeyEventArgs e)
     {

@@ -1,12 +1,14 @@
-﻿using System;
-using System.Diagnostics;
-using System.Windows.Threading;
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Utils.Threading;
+
+using System;
+using System.Diagnostics;
+using System.Windows.Threading;
 
 namespace LightTextEditorPlus.Platform;
 
@@ -137,5 +139,10 @@ public class TextEditorPlatformProvider : PlatformProvider
     public override IPlatformFontNameManager GetPlatformFontNameManager()
     {
         return TextEditor.StaticConfiguration.PlatformFontNameManager;
+    }
+
+    public virtual TextEditorHandler GetHandler()
+    {
+        return new TextEditorHandler(TextEditor);
     }
 }
