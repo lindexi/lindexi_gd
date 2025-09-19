@@ -235,6 +235,9 @@ namespace LightTextEditorPlus
 
         #endregion
 
+        /// <summary>
+        /// 设置或获取文本编辑器的交互处理器
+        /// </summary>
         public TextEditorHandler TextEditorHandler { get; set; }
     }
 }

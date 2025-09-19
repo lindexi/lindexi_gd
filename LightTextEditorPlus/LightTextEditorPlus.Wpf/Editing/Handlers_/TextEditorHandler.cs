@@ -9,7 +9,7 @@ namespace LightTextEditorPlus.Editing;
 
 public partial class TextEditorHandler
 {
-    public void OnTextInput(TextCompositionEventArgs e)
+    internal void OnTextInput(TextCompositionEventArgs e)
     {
         if (e.Handled ||
             string.IsNullOrEmpty(e.Text) ||

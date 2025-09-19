@@ -133,6 +133,10 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
 
     #endregion
 
+    /// <summary>
+    /// 获取文本编辑器的交互处理器
+    /// </summary>
+    /// <returns></returns>
     public virtual TextEditorHandler GetHandler()
     {
         return new TextEditorHandler(AvaloniaTextEditor);
