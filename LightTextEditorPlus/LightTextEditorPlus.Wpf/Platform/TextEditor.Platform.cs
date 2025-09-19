@@ -93,6 +93,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         AddVisualChild(TextView);
         AddLogicalChild(TextView);
 
+        TextEditorHandler = textEditorPlatformProvider.GetHandler();
+
         MouseHandler = new MouseHandler(this);
 
         // 挂上 IME 输入法的支持
@@ -388,6 +390,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// 视觉呈现容器
     /// </summary>
     private TextView TextView { get; }
+
     private MouseHandler MouseHandler { get; }
     private KeyboardHandler? _keyboardHandler;
 

@@ -11,6 +11,7 @@ using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Editing;
 
 namespace LightTextEditorPlus
 {
@@ -233,6 +234,8 @@ namespace LightTextEditorPlus
         }
 
         #endregion
+
+        public TextEditorHandler TextEditorHandler { get; set; }
     }
 }
 #endif

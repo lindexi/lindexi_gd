@@ -6,16 +6,8 @@ using LightTextEditorPlus.Core.Utils.Patterns;
 
 namespace LightTextEditorPlus.Editing;
 
-public class TextEditorHandler
+public partial class TextEditorHandler
 {
-    public TextEditorHandler(TextEditor textEditor)
-    {
-        TextEditor = textEditor;
-    }
-
-    private TextEditor TextEditor { get; }
-    private TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
-
     private MouseHandler MouseHandler => _mouseHandler ??= new MouseHandler(TextEditor);
     private MouseHandler? _mouseHandler;
 
@@ -51,44 +43,8 @@ public class TextEditorHandler
             e.Text == "\ufe0f")
             return;
 
-        //如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
-        if (RegexPatterns.Utf16SurrogatesPattern.ContainInRange(e.Text))
-        {
-            if (string.IsNullOrEmpty(_emojiCache))
-            {
-                _emojiCache += e.Text;
-            }
-            else
-            {
-                _emojiCache += e.Text;
-
-                PerformInput(_emojiCache);
-                _emojiCache = string.Empty;
-            }
-        }
-        else
-        {
-            _emojiCache = string.Empty;
-            PerformInput(e.Text);
-        }
+        RawTextInput(e.Text);
     }
-
-    protected virtual void PerformInput(string text)
-    {
-        Selection? selection = null;
-        if (TextEditor.IsOvertypeMode)
-        {
-            selection = TextEditorCore.GetCurrentOvertypeModeSelection(text.Length);
-        }
-
-        TextEditorCore.EditAndReplace(text, selection);
-    }
-
-    /// <summary>
-    /// 如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
-    /// 用于接收第一个字符
-    /// </summary>
-    private string _emojiCache = string.Empty;
 
     public virtual void OnKeyDown(KeyEventArgs e)
     {
