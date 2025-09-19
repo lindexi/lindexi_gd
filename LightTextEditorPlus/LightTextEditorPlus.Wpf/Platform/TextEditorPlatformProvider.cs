@@ -141,6 +141,10 @@ public class TextEditorPlatformProvider : PlatformProvider
         return TextEditor.StaticConfiguration.PlatformFontNameManager;
     }
 
+    /// <summary>
+    /// 获取文本编辑器的交互处理器
+    /// </summary>
+    /// <returns></returns>
     public virtual TextEditorHandler GetHandler()
     {
         return new TextEditorHandler(TextEditor);
