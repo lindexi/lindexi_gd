@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -48,16 +48,7 @@ internal class KeyboardHandler
 
     private void TextEditor_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Insert)
-        {
-            if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
-            {
-                return;
-            }
-
-            TextEditor.IsOvertypeMode = !TextEditor.IsOvertypeMode;
-            e.Handled = true;
-        }
+        TextEditor.TextEditorHandler.OnKeyDown(e);
     }
 
     #region 删除

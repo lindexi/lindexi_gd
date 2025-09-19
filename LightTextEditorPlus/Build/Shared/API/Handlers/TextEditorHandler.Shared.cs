@@ -1,12 +1,13 @@
 ﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
+using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
 using System;
-using LightTextEditorPlus.Core;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -27,6 +28,28 @@ public partial class TextEditorHandler
 
     private TextEditor TextEditor { get; }
     private TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
+
+    #region 鼠标相关
+
+
+    #endregion
+
+    #region 键盘相关
+
+    /// <summary>
+    /// 输入 Insert 键的处理，切换插入/覆盖模式
+    /// </summary>
+    protected virtual void SwitchOvertypeMode()
+    {
+        if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
+        {
+            return;
+        }
+
+        TextEditor.IsOvertypeMode = !TextEditor.IsOvertypeMode;
+    }
+
+    #endregion
 
     #region 文本输入
 
@@ -78,6 +101,12 @@ public partial class TextEditorHandler
     /// 用于接收第一个字符
     /// </summary>
     private string _emojiCache = string.Empty;
+    #endregion
+
+    #region 剪贴板
+
+    
+
     #endregion
 }
 #endif

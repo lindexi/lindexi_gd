@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LightTextEditorPlus.Core.Editing;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +11,16 @@ namespace LightTextEditorPlus.Editing;
 
 public partial class TextEditorHandler
 {
-    internal void OnTextInput(TextCompositionEventArgs e)
+    public virtual void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Insert)
+        {
+            SwitchOvertypeMode();
+            e.Handled = true;
+        }
+    }
+
+    public virtual void OnTextInput(TextCompositionEventArgs e)
     {
         if (e.Handled ||
             string.IsNullOrEmpty(e.Text) ||

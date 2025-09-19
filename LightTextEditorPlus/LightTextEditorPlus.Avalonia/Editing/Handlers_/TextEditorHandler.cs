@@ -65,7 +65,7 @@ public partial class TextEditorHandler
         }
         else if (e.Key == Key.Insert)
         {
-           TextEditor. IsOvertypeMode = !TextEditor.IsOvertypeMode;
+            SwitchOvertypeMode();
             return;
         }
 

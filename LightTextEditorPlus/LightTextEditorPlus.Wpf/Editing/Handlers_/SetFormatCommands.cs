@@ -1,12 +1,13 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace LightTextEditorPlus.Editing;
 
+// 当前还没实现
 /// <summary>
 /// 设置格式的命令，用于接受界面命令
 /// </summary>
 /// todo 改名
-public static class SetFormatCommands
+internal static class SetFormatCommands
 {
     /// <summary>
     /// 设置字号命令
