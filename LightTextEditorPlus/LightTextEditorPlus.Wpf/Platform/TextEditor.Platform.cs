@@ -516,62 +516,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             return;
         }
 
-        //TextInputManager
-        PerformTextInput(e);
+        TextEditorHandler.OnTextInput(e);
 
         e.Handled = true;
     }
 
-    private void PerformTextInput(TextCompositionEventArgs e)
-    {
-        if (e.Handled ||
-            string.IsNullOrEmpty(e.Text) ||
-            e.Text == "\x1b" ||
-            // 退格键 \b 键
-            e.Text == "\b" ||
-            //emoji包围符
-            e.Text == "\ufe0f")
-            return;
-
-        //如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
-        if (RegexPatterns.Utf16SurrogatesPattern.ContainInRange(e.Text))
-        {
-            if (string.IsNullOrEmpty(_emojiCache))
-            {
-                _emojiCache += e.Text;
-            }
-            else
-            {
-                _emojiCache += e.Text;
-
-                PerformInput(_emojiCache);
-                _emojiCache = string.Empty;
-            }
-        }
-        else
-        {
-            _emojiCache = string.Empty;
-            PerformInput(e.Text);
-        }
-
-        void PerformInput(string text)
-        {
-            Selection? selection = null;
-            if (IsOvertypeMode)
-            {
-                selection = TextEditorCore.GetCurrentOvertypeModeSelection(text.Length);
-            }
-
-            TextEditorCore.EditAndReplace(text, selection);
-        }
-    }
-
-    /// <summary>
-    /// 如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
-    /// 用于接收第一个字符
-    /// </summary>
-    // ReSharper disable once IdentifierTypo
-    private string _emojiCache = string.Empty;
     #endregion
 
     #region NotifyPropertyChanged
