@@ -3,20 +3,21 @@
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
+// 这是输入层的输入值。可以认为是随机的输入值
 const double x0 = 0.35;
 const double x1 = 0.9;
 const double x2 = 0.5;
 
 const double y_out = 0.3;
 
-var a = x0;
-var b = x1;
-
+// 这是一些随意的权重值，实际应用中这些权重值通过随机数先随意创建的
 var w11 = 0.1;
 var w12 = 0.8;
+var w13 = 0.2;
 
 var w21 = 0.4;
 var w22 = 0.6;
+var w23 = 0.2;
 
 // 输入参数数量
 var inputArgumentCount = 3;
@@ -36,8 +37,8 @@ var input = Matrix.Build.SparseOfRowArrays
 // w1 layer
 var layer1Weight = Matrix.Build.SparseOfRows(layer1NodeCount, layer1WeightCount,
 [
-    [w11, w12, 0.2],
-    [w21, w22, 0.2],
+    [w11, w12, w13],
+    [w21, w22, w23],
 ]);
 
 var w31 = 0.3;
