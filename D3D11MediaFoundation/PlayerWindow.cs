@@ -1,5 +1,4 @@
-﻿using Lsj.Util.IL;
-using Lsj.Util.Win32;
+﻿using Lsj.Util.Win32;
 using Lsj.Util.Win32.BaseTypes;
 using Lsj.Util.Win32.ComInterfaces;
 using Lsj.Util.Win32.DirectX.ComInterfaces;
@@ -10,11 +9,10 @@ using Lsj.Util.Win32.Extensions.Winmm;
 using Lsj.Util.Win32.MediaFoundation.ComInterfaces;
 using Lsj.Util.Win32.NativeUI.DirectX;
 using Lsj.Util.Win32.Structs;
-using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using static Lsj.Util.Win32.Constants;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VIDEO_FRAME_FORMAT;
+using static Lsj.Util.Win32.DirectX.Enums.D3D11_VIDEO_PROCESSOR_FILTER;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VIDEO_USAGE;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VPIV_DIMENSION;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VPOV_DIMENSION;
@@ -123,6 +121,11 @@ namespace D3D11MediaFoundation
 
             D3D11VideoDevice = D3D11Device.AsIUnknown().ToInterface<ID3D11VideoDevice>(IIDs.IID_ID3D11VideoDevice);
             D3D11VideoContext = D3D11DeviceContext.AsIUnknown().ToInterface<ID3D11VideoContext>(IIDs.IID_ID3D11VideoContext);
+            D3D11VideoContext.Value.VideoProcessorSetStreamAutoProcessingMode(D3D11VideoProcessor, 0, false);
+            //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_BRIGHTNESS, false, 0);
+            //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_CONTRAST, false, 0);
+            //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_HUE, false, 0);
+            //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_SATURATION, false, 0);
 
             User32.GetWindowRect(hWnd, out var rect);
             CreateVideoProcessor(rect.right - rect.left, rect.bottom - rect.top);
@@ -228,14 +231,16 @@ namespace D3D11MediaFoundation
             if (sample != NULL)
             {
                 result = sample.Value.ConvertToContiguousBuffer(out var buffer);
+
                 if (result)
                 {
                     var dxgiBuffer = buffer.AsIUnknown().ToInterface<IMFDXGIBuffer>(IIDs.IID_IMFDXGIBuffer, true, true);
                     dxgiBuffer.Value.GetResource(IIDs.IID_ID3D11Texture2D, out var texturePtr);
                     dxgiBuffer.Value.GetSubresourceIndex(out var index);
+                    dxgiBuffer.AsIUnknown().Value.Release();
 
                     P<ID3D11Texture2D> texture = (nint)texturePtr;
-                    texture.Value.GetDesc(out var desc);
+                    //texture.Value.GetDesc(out var desc);
 
                     var inputDesc = new D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC
                     {
@@ -250,6 +255,9 @@ namespace D3D11MediaFoundation
                     D3D11VideoDevice.Value.CreateVideoProcessorInputView(texture.AsP<ID3D11Resource>(), D3D11VideoProcessorEnumerator, inputDesc, out var inputView);
 
                     DXGISwapChain.Value.GetBuffer(0, IIDs.IID_ID3D11Texture2D, out var backBufferPtr);
+                    P<ID3D11Texture2D> backBuffer = backBufferPtr;
+                    backBuffer.Value.GetDesc(out var backDesc);
+                    //Console.WriteLine($"BackBuffer {backDesc.Width}x{backDesc.Height}");
 
                     var outputDesc = new D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC
                     {
@@ -259,7 +267,7 @@ namespace D3D11MediaFoundation
                             MipSlice = 0,
                         }
                     };
-                    D3D11VideoDevice.Value.CreateVideoProcessorOutputView(P<ID3D11Resource>.FromPtr(backBufferPtr), D3D11VideoProcessorEnumerator, outputDesc, out var outputView);
+                    D3D11VideoDevice.Value.CreateVideoProcessorOutputView(backBuffer.AsP<ID3D11Resource>(), D3D11VideoProcessorEnumerator, outputDesc, out var outputView);
 
                     var stream = new D3D11_VIDEO_PROCESSOR_STREAM
                     {
@@ -267,10 +275,14 @@ namespace D3D11MediaFoundation
                         pInputSurface = inputView,
                     };
 
+
                     D3D11VideoContext.Value.VideoProcessorBlt(D3D11VideoProcessor, outputView, 0, 1, [stream]);
                     DXGISwapChain.Value.Present(1, 0);
 
-                    dxgiBuffer.AsIUnknown().Value.Release();
+                    texture.AsIUnknown().Value.Release();
+                    backBuffer.AsIUnknown().Value.Release();
+                    inputView.AsIUnknown().Value.Release();
+                    outputView.AsIUnknown().Value.Release();
                 }
 
                 sample.AsIUnknown().Value.Release();
@@ -303,11 +315,31 @@ namespace D3D11MediaFoundation
                 OutputHeight = (uint)height,
                 Usage = D3D11_VIDEO_USAGE_PLAYBACK_NORMAL,
             };
+            Console.WriteLine($"Input {VideoWidth}x{VideoHeight} Ouput {width}x{height}");
             D3D11VideoDevice.Value.CreateVideoProcessorEnumerator(desc, out var enumerator);
             D3D11VideoProcessorEnumerator = enumerator;
 
             D3D11VideoDevice.Value.CreateVideoProcessor(D3D11VideoProcessorEnumerator, 0, out var processor);
             D3D11VideoProcessor = processor;
+
+            var sourceRect = new RECT
+            {
+                left = 0,
+                top = 0,
+                right = (int)VideoWidth,
+                bottom = (int)VideoHeight,
+            };
+            D3D11VideoContext.Value.VideoProcessorSetStreamSourceRect(D3D11VideoProcessor, 0, true, sourceRect);
+
+            var destRect = new RECT
+            {
+                left = 0,
+                top = 0,
+                right = width,
+                bottom = height,
+            };
+            D3D11VideoContext.Value.VideoProcessorSetStreamDestRect(D3D11VideoProcessor, 0, true, destRect);
+            D3D11VideoContext.Value.VideoProcessorSetOutputTargetRect(D3D11VideoProcessor, true, destRect);
         }
     }
 }
