@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../lsjutil/Src/Lsj.Util.Win32.Extensions/Lsj.Util.Win32.Extensions.csproj" />
+  <Project Path="../lsjutil/Src/Lsj.Util.Win32.NativeUI/Lsj.Util.Win32.NativeUI.csproj" />
+  <Project Path="../lsjutil/Src/Lsj.Util.Win32/Lsj.Util.Win32.csproj" />
+  <Project Path="D3D11MediaFoundation/D3D11MediaFoundation.csproj" />
+</Solution>
