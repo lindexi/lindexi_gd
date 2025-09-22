@@ -3,6 +3,76 @@ using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Document;
 
+struct CharDataLayoutInfo
+{
+    public CharDataLayoutInfo(CharData charData, ParagraphData paragraph)
+    {
+        CharData = charData;
+        Paragraph = paragraph;
+    }
+
+    /// <summary>
+    /// 是否无效的字符信息
+    /// </summary>
+    public bool IsInvalid => CharData is null || Paragraph is null;
+
+    public CharData CharData { get; }
+
+    public uint CurrentParagraphVersion { get; set; }
+
+    internal ParagraphData Paragraph { get; }
+
+    /// <summary>
+    /// 字符数据是否失效
+    /// </summary>
+    /// <remarks>如果字符数据版本和段落版本不同步，则字符数据没有被布局更新，证明数据失效</remarks>
+    /// <returns></returns>
+    public bool IsInvalidVersion() => CurrentParagraphVersion != Paragraph.Version;
+
+    /// <summary>
+    /// 从段落更新缓存版本信息
+    /// </summary>
+    public void UpdateVersion() => CurrentParagraphVersion = Paragraph.Version;
+
+    /// <summary>
+    /// 字符在行内的起始点，坐标相对于行
+    /// </summary>
+    /// 可用来辅助布局上下标
+    public TextPointInLineCoordinateSystem CharLineStartPoint { set; get; }
+
+    /// <summary>
+    /// 字符是当前段落 <see cref="Paragraph"/> 的第几个字符
+    /// </summary>
+    /// 调试作用
+    public ParagraphCharOffset CharIndex { set; get; }
+
+    /// <summary>
+    /// 字符是当前行的第几个字
+    /// </summary>
+    public int CharIndexInLine
+    {
+        get
+        {
+            if (CurrentLine is null)
+            {
+                return -1;
+            }
+
+            return CharIndex.Offset - CurrentLine.CharStartParagraphIndex;
+        }
+    }
+
+    /// <summary>
+    /// 当前所在的行
+    /// </summary>
+    public LineLayoutData? CurrentLine { get; set; }
+
+    public override string ToString()
+    {
+        return $"'{CharData.CharObject}' 第{Paragraph.Index}段，第{CurrentLine?.LineInParagraphIndex}行，段内第{CharIndex.Offset}个字符，行内第{CharIndexInLine}个字符";
+    }
+}
+
 /// <summary>
 /// 字符的布局信息，包括字符所在的段落和所在的行，字符所在的相对于文本框的坐标
 /// </summary>

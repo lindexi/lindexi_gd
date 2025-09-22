@@ -173,7 +173,7 @@ internal class DocumentRunEditProvider
                 foreach (CharData charData in lastParagraphRunList)
                 {
                     // 断开字符和段落的关联
-                    charData.CharLayoutData = null;
+                    charData.ClearLayoutInfo();
                 }
             }
 
@@ -354,7 +354,7 @@ internal class DocumentRunEditProvider
             var lastParagraphCharDataList = paragraphData.GetParagraphCharDataList();
             foreach (var charData in lastParagraphCharDataList)
             {
-                charData.CharLayoutData = null;
+                charData.ClearLayoutInfo();
                 firstParagraph.AppendCharData(charData);
             }
 

@@ -538,7 +538,7 @@ namespace LightTextEditorPlus.Core.Document
                 // todo 这里应该是走直接替换逻辑，不应该是重新构建 Run 再替换。因为如此替换会导致原本的段落被删除
                 foreach (var charData in GetCharDataRange(selection.Value))
                 {
-                    Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
+                    Debug.Assert(!charData.LayoutInfo.IsInvalid, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
 
                     IReadOnlyRunProperty currentRunProperty;
 

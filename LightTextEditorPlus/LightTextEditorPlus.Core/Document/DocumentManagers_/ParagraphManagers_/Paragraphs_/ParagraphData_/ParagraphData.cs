@@ -505,10 +505,10 @@ internal sealed class ParagraphData : ITextParagraph
     /// <summary>
     /// 段落的更改版本
     /// </summary>
-    private uint Version
+    internal uint Version
     {
         get => _version;
-        set
+        private set
         {
             if (value == 0)
             {

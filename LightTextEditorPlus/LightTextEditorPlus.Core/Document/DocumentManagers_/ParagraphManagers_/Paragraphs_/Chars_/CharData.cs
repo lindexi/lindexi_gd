@@ -72,6 +72,10 @@ public sealed class CharData
         ClearCharDataInfo();
     }
 
+    internal CharDataLayoutInfo LayoutInfo => _layoutInfo;
+    private CharDataLayoutInfo _layoutInfo = default;
+    internal void ClearLayoutInfo() => _layoutInfo = default;
+
     internal CharLayoutData? CharLayoutData { set; get; } // todo 考虑将 CharLayoutData 作为结构体，直接存放在类里面，避免多余地创建
 
     /// <summary>
@@ -81,22 +85,22 @@ public sealed class CharData
     /// <exception cref="InvalidOperationException"></exception>
     public TextPoint GetStartPoint()
     {
-        if (CharLayoutData is null)
+        if (LayoutInfo.IsInvalid)
         {
             throw new InvalidOperationException($"禁止在加入到段落之前获取");
         }
 
-        if (CharLayoutData.CurrentLine is null)
+        if (LayoutInfo.CurrentLine is null)
         {
             throw new InvalidOperationException($"禁止在开始布局之前获取");
         }
 
-        if (CharLayoutData.IsInvalidVersion())
+        if (LayoutInfo.IsInvalidVersion())
         {
             throw new InvalidOperationException($"字符数据已失效");
         }
 
-        var textPoint = CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);
+        var textPoint = LayoutInfo.CharLineStartPoint.ToDocumentPoint(LayoutInfo.CurrentLine);
 
         return textPoint.ToCurrentArrangingTypePoint();
     }
@@ -110,12 +114,12 @@ public sealed class CharData
     [MemberNotNull(nameof(CharLayoutData))]
     internal void SetLayoutCharLineStartPoint(TextPointInLineCoordinateSystem point/*, TextPoint baselineStartPoint*/)
     {
-        if (CharLayoutData is null)
+        if (LayoutInfo.IsInvalid)
         {
             throw new InvalidOperationException("禁止在加入到段落之前设置字符的起始点信息");
         }
 
-        CharLayoutData.CharLineStartPoint = point;
+        _layoutInfo.CharLineStartPoint = point;
         //CharLayoutData.BaselineStartPoint = baselineStartPoint;
 
         IsSetStartPointInDebugMode = true;
