@@ -123,6 +123,10 @@ public partial class TextEditorHandler
 
     #endregion
 
+    /// <summary>
+    /// 移动光标
+    /// </summary>
+    /// <param name="type"></param>
     public virtual partial void MoveCaret(CaretMoveType type);
 }
 #endif
