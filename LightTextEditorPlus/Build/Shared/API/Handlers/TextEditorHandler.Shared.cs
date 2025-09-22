@@ -76,6 +76,41 @@ public partial class TextEditorHandler
         return true;
     }
 
+    /// <summary>
+    /// 处理拖拽选择
+    /// </summary>
+    /// <param name="textPoint"></param>
+    /// <returns></returns>
+    public virtual bool HandleDragSelect(in TextPoint textPoint)
+    {
+        if (_inputGesture.ClickCount % 2 == 0)
+        {
+            // 双击不处理拖动
+            return false;
+        }
+
+        var startOffset = TextEditorCore.CurrentSelection.StartOffset;
+        if (TextEditorCore.TryHitTest(textPoint, out var result))
+        {
+            if (result.IsOutOfTextCharacterBounds)
+            {
+                // 如果拖动过程超过文本了，那应该忽略，而不是获取文档末尾的 HitCaretOffset 值
+            }
+            else
+            {
+                var endOffset = result.HitCaretOffset;
+                TextEditorCore.CurrentSelection = new Selection(startOffset, endOffset);
+            }
+
+            return true;
+        }
+        else
+        {
+            Debug.Fail("理论上一定能命中成功");
+            return false;
+        }
+    }
+
     private bool _isMouseDown;
 
     /// <summary>

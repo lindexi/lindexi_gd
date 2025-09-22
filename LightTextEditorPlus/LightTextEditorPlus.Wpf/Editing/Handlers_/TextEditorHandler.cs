@@ -72,31 +72,10 @@ public partial class TextEditorHandler
             else
             {
                 //拖拽选择
-                // HandleDragSelect
-                if (_inputGesture.ClickCount % 2 == 0)
-                {
-                    // 双击不处理拖动
-                    return;
-                }
-
-                var startOffset = TextEditorCore.CurrentSelection.StartOffset;
                 var position = e.GetPosition(TextEditor);
-                if (TextEditorCore.TryHitTest(position.ToTextPoint(), out var result))
-                {
-                    if (result.IsOutOfTextCharacterBounds)
-                    {
-                        // 如果拖动过程超过文本了，那应该忽略，而不是获取文档末尾的 HitCaretOffset 值
-                    }
-                    else
-                    {
-                        var endOffset = result.HitCaretOffset;
-                        TextEditorCore.CurrentSelection = new Selection(startOffset, endOffset);
-                    }
-                }
-                else
-                {
-                    Debug.Fail("理论上一定能命中成功");
-                }
+                TextPoint textPoint = position.ToTextPoint();
+
+                HandleDragSelect(in textPoint);
             }
         }
         else
