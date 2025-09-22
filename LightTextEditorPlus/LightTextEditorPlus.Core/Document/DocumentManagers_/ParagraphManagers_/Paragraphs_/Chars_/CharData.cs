@@ -11,7 +11,23 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 表示一个 人类语言文化 的字符信息，包括字符和对应的字符属性
 /// </summary>
-public sealed class CharData
+public interface ICharData
+{
+    /// <summary>
+    /// 字符对象
+    /// </summary>
+    ICharObject CharObject { get; }
+
+    /// <summary>
+    /// 文本字符属性
+    /// </summary>
+    IReadOnlyRunProperty RunProperty { get; }
+}
+
+/// <summary>
+/// 表示一个 人类语言文化 的字符信息，包括字符和对应的字符属性
+/// </summary>
+internal sealed class CharData : ICharData
 {
     /// <summary>
     /// 创建字符信息
