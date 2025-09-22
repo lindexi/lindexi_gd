@@ -65,16 +65,17 @@ public partial class TextEditorHandler
     {
         if (_isMouseDown)
         {
+            var position = e.GetPosition(TextEditor);
+            TextPoint textPoint = position.ToTextPoint();
+
             if (_isHitSelection)
             {
-                // todo HandleDragText(); 拖拽文本支持
+                HandleDragText(in textPoint);
             }
             else
             {
                 //拖拽选择
-                var position = e.GetPosition(TextEditor);
-                TextPoint textPoint = position.ToTextPoint();
-
+            
                 HandleDragSelect(in textPoint);
             }
         }
