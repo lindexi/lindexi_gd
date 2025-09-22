@@ -50,17 +50,8 @@ public partial class TextEditorHandler
                     return;
                 }
 
-                // HandleSingleClick
-                if (TextEditorCore.TryHitTest(clickPoint, out var result))
+                if (HandleSingleClick(clickPoint))
                 {
-                    _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty && TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
-
-                    if (!_isHitSelection)
-                    {
-                        // 没有命中到选择，那就设置当前光标
-                        TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
-                    }
-
                     // 获取焦点的同时捕获鼠标，这样既可以收到输入法，也可以用来后续拖动鼠标选中内容
                     TextEditor.Focus(NavigationMethod.Directional);
                     //Keyboard.Focus(TextEditor);
@@ -68,10 +59,6 @@ public partial class TextEditorHandler
                     //Mouse.Capture(TextEditor, CaptureMode.SubTree);
 
                     e.Handled = true;
-                }
-                else
-                {
-                    Debug.Fail("理论上一定能命中成功");
                 }
             }
         }
