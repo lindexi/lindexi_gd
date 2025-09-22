@@ -5,7 +5,6 @@ using LightTextEditorPlus.Utils;
 using System;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace LightTextEditorPlus.Editing;
@@ -14,8 +13,10 @@ public partial class TextEditorHandler
 {
     #region 鼠标相关
 
-    private bool _isMouseDown;
-
+    /// <summary>
+    /// 鼠标按下
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnMouseDown(MouseButtonEventArgs e)
     {
         _isMouseDown = true;
@@ -50,6 +51,10 @@ public partial class TextEditorHandler
         }
     }
 
+    /// <summary>
+    /// 鼠标移动
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnMouseMove(MouseEventArgs e)
     {
         if (_isMouseDown)
@@ -94,6 +99,10 @@ public partial class TextEditorHandler
         }
     }
 
+    /// <summary>
+    /// 鼠标抬起
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnMouseUp(MouseButtonEventArgs e)
     {
         if (_isMouseDown)
@@ -111,19 +120,6 @@ public partial class TextEditorHandler
         _isMouseDown = false;
         Mouse.Capture(TextEditor, CaptureMode.None);
     }
-
-
-
-    /// <summary>
-    /// 是不是点到选择范围
-    /// </summary>
-    private bool _isHitSelection;
-
-    #region InputGestureInfo
-
-    private readonly InputGestureInfo _inputGesture = new InputGestureInfo();
-
-    #endregion
 
     /// <summary>
     /// 处理单击事件
@@ -160,12 +156,20 @@ public partial class TextEditorHandler
         }
     }
 
+    /// <summary>
+    /// 鼠标进入
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnMouseEnter(MouseEventArgs e)
     {
         //Debug.WriteLine("TextEditor_MouseEnter");
         UpdateCursorView();
     }
 
+    /// <summary>
+    /// 失去焦点
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnLostMouseCapture(MouseEventArgs e)
     {
         //Debug.WriteLine("TextEditor_LostMouseCapture");

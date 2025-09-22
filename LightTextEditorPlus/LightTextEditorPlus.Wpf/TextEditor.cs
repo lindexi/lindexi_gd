@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core;
+﻿using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus;
@@ -16,10 +16,4 @@ public partial class TextEditor
     /// 文本核心
     /// </summary>
     public TextEditorCore TextEditorCore { get; }
-
-    #region Handlers
-
-
-
-    #endregion
 }
