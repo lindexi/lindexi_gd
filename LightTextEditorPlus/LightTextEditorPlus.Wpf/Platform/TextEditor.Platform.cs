@@ -455,6 +455,40 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #endregion
 
+    #region 交互
+
+    /// <inheritdoc />
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+        TextEditorHandler.OnMouseDown(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        TextEditorHandler.OnMouseMove(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnMouseUp(MouseButtonEventArgs e)
+    {
+        TextEditorHandler.OnMouseUp(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnMouseEnter(MouseEventArgs e)
+    {
+        TextEditorHandler.OnMouseEnter(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnLostMouseCapture(MouseEventArgs e)
+    {
+        TextEditorHandler.OnLostMouseCapture(e);
+    }
+
+    #endregion
+
     #region IME 支持
 
     /// <inheritdoc />
