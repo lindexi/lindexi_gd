@@ -1,20 +1,17 @@
-﻿using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Editing;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System;
 using System.Windows.Input;
-using System.Windows.Media;
+
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus.Editing;
 
 public partial class TextEditorHandler
 {
+    /// <summary>
+    /// 键盘按下事件
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.Insert)
@@ -31,6 +28,10 @@ public partial class TextEditorHandler
         }
     }
 
+    /// <summary>
+    /// 框架内触发的文本输入事件
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnTextInput(TextCompositionEventArgs e)
     {
         if (e.Handled ||

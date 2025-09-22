@@ -2,12 +2,8 @@
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Editing;
-using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Patterns;
-
-using System;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -38,8 +34,10 @@ public partial class TextEditorHandler
 
     #region 键盘相关
 
+    /// <inheritdoc cref="TextEditorCore.Delete"/>
     public virtual void Delete() => TextEditorCore.Delete();
 
+    /// <inheritdoc cref="TextEditorCore.Backspace"/>
     public virtual void Backspace() => TextEditorCore.Backspace();
 
     /// <summary>
