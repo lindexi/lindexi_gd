@@ -72,7 +72,7 @@ public sealed class CharData
         ClearCharDataInfo();
     }
 
-    internal CharLayoutData? CharLayoutData { set; get; } // todo 考虑将 CharLayoutData 作为结构体，直接存放在类里面，避免多余地创建
+    internal CharLayoutData? CharLayoutData { set; get; } // ~~考虑将 CharLayoutData 作为结构体，直接存放在类里面，避免多余地创建~~ 尝试的 COMMIT: 4e4c9b2f1531afbe9d11abdd2de87b07c0319fbd 失败原因是 尝试将 CharLayoutData 替换为结构体，但是实际测试过程中会存在许多次结构体拷贝动作，会拖慢性能。换成结构体的 CharDataLayoutInfo 有 6 个属性，频繁只获取某个属性时，会导致 6 个属性都需要拷贝，其性能确实比较差
 
     /// <summary>
     /// 获取当前字符的左上角坐标，坐标相对于文本框。此属性必须是在布局完成之后才能获取
