@@ -5,14 +5,15 @@ using Lsj.Util.Win32.DirectX.ComInterfaces;
 using Lsj.Util.Win32.DirectX.Structs;
 using Lsj.Util.Win32.Enums;
 using Lsj.Util.Win32.Extensions.COM;
+using Lsj.Util.Win32.Extensions.DirectX.Direct3D11;
 using Lsj.Util.Win32.Extensions.Winmm;
 using Lsj.Util.Win32.MediaFoundation.ComInterfaces;
 using Lsj.Util.Win32.NativeUI.DirectX;
 using Lsj.Util.Win32.Structs;
 using System.Diagnostics;
 using static Lsj.Util.Win32.Constants;
+using static Lsj.Util.Win32.DirectX.Enums.D3D11_CREATE_DEVICE_FLAG;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VIDEO_FRAME_FORMAT;
-using static Lsj.Util.Win32.DirectX.Enums.D3D11_VIDEO_PROCESSOR_FILTER;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VIDEO_USAGE;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VPIV_DIMENSION;
 using static Lsj.Util.Win32.DirectX.Enums.D3D11_VPOV_DIMENSION;
@@ -127,6 +128,10 @@ namespace D3D11MediaFoundation
             //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_HUE, false, 0);
             //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_SATURATION, false, 0);
 
+            var multhread = D3D11VideoContext.AsIUnknown().ToInterface<ID3D11Multithread>(IIDs.IID_ID3D11Multithread);
+            multhread.Value.SetMultithreadProtected(true);
+            multhread.AsIUnknown().Value.Release();
+
             User32.GetWindowRect(hWnd, out var rect);
             CreateVideoProcessor(rect.right - rect.left, rect.bottom - rect.top);
             AudioPlayer = new WaveOutPlayer(2, 44100, 16);
@@ -216,7 +221,7 @@ namespace D3D11MediaFoundation
                 propVariant.lVal = 0;
                 _sentAudioTimeNs = 0;
                 AudioPlayer?.Reset();
-                Reader.Value.SetCurrentPosition(new GUID(), propVariant);
+                result = Reader.Value.SetCurrentPosition(new GUID(), propVariant);
                 PlayerStopwatch.Restart();
                 _offsetTimeNs = 0;
                 return;
@@ -300,7 +305,10 @@ namespace D3D11MediaFoundation
         protected override LRESULT OnResize(HWND hWnd, WPARAM wParam, LPARAM lParam, WindowSizingTypes sizingType, int width, int height)
         {
             base.OnResize(hWnd, wParam, lParam, sizingType, width, height);
-            CreateVideoProcessor(width, height);
+            if (sizingType != WindowSizingTypes.SIZE_MINIMIZED)
+            {
+                CreateVideoProcessor(width, height);
+            }
             return 0;
         }
 
@@ -340,6 +348,15 @@ namespace D3D11MediaFoundation
             };
             D3D11VideoContext.Value.VideoProcessorSetStreamDestRect(D3D11VideoProcessor, 0, true, destRect);
             D3D11VideoContext.Value.VideoProcessorSetOutputTargetRect(D3D11VideoProcessor, true, destRect);
+        }
+
+        protected override P<ID3D11Device> CreateD3D11Device()
+        {
+#if DEBUG
+            DeviceHelper.CreateDevice(out var device, out NullRef<P<ID3D11DeviceContext>>(), D3D11_CREATE_DEVICE_DEBUG);
+            return device;
+#endif
+            return base.CreateD3D11Device();
         }
     }
 }
