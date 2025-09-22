@@ -27,6 +27,8 @@ internal class MouseHandler
         textEditor.LostMouseCapture += TextEditor_LostMouseCapture;
     }
 
+    private TextEditorHandler TextEditorHandler => TextEditor.TextEditorHandler;
+
     private bool _isMouseDown;
 
     /// <summary>

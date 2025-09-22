@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using System;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
