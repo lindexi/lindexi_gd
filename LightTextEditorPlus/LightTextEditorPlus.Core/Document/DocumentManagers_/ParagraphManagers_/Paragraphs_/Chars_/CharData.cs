@@ -1,17 +1,65 @@
-﻿using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
-using LightTextEditorPlus.Core.Exceptions;
+﻿using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
+
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 表示一个 人类语言文化 的字符信息，包括字符和对应的字符属性
 /// </summary>
-public sealed class CharData
+/// 还没考虑好，先不立刻开放出来
+file interface ICharData
+{
+    /// <summary>
+    /// 字符对象
+    /// </summary>
+    ICharObject CharObject { get; }
+
+    /// <summary>
+    /// 文本字符属性
+    /// </summary>
+    IReadOnlyRunProperty RunProperty { get; }
+}
+
+/// <summary>
+/// 布局过程中的字符数据
+/// </summary>
+/// 还没考虑好，先不立刻开放出来
+file interface ILayoutCharData : ICharData
+{
+    /// <summary>
+    /// 用来渲染的字符对象
+    /// </summary>
+    ICharObject RenderCharObject { get; }
+
+    /// <summary>
+    /// 字符信息，包括尺寸等信息
+    /// </summary>
+    CharDataInfo CharDataInfo { get; }
+
+
+    /// <summary>
+    /// 获取当前字符的左上角坐标，坐标相对于文本框。此属性必须是在布局完成之后才能获取
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    TextPoint GetStartPoint();
+
+    /// <summary>
+    /// 获取字符的布局范围
+    /// </summary>
+    /// <returns></returns>
+    TextRect GetBounds();
+}
+
+/// <summary>
+/// 表示一个 人类语言文化 的字符信息，包括字符和对应的字符属性
+/// </summary>
+public sealed class CharData : ICharData, ILayoutCharData
 {
     /// <summary>
     /// 创建字符信息
