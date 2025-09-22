@@ -7,6 +7,8 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Utils;
 
+using System.Diagnostics;
+
 namespace LightTextEditorPlus.Editing;
 
 /// <summary>
@@ -30,6 +32,34 @@ public partial class TextEditorHandler
     private TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
 
     #region 鼠标相关
+
+    /// <summary>
+    /// 处理单击事件
+    /// </summary>
+    /// <param name="clickPoint"></param>
+    /// <returns></returns>
+    public virtual bool HandleSingleClick(in TextPoint clickPoint)
+    {
+        TextEditor
+            .TextEditorPlatformProvider
+            .EnsureLayoutUpdated();
+        if (TextEditorCore.TryHitTest(in clickPoint, out var result))
+        {
+            _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty && TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
+
+            if (!_isHitSelection)
+            {
+                // 没有命中到选择，那就设置当前光标
+                TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
+            }
+            return true;
+        }
+        else
+        {
+            Debug.Fail("理论上一定能命中成功");
+            return false;
+        }
+    }
 
     /// <summary>
     /// 处理双击事件

@@ -45,6 +45,12 @@ public partial class TextEditorHandler
 
                 if (HandleSingleClick(in textPoint))
                 {
+                    // 获取焦点的同时捕获鼠标，这样既可以收到输入法，也可以用来后续拖动鼠标选中内容
+                    TextEditor.Focus();
+                    //Keyboard.Focus(TextEditor);
+                    //FocusManager.SetFocusedElement(TextEditor, TextEditor);
+
+                    Mouse.Capture(TextEditor, CaptureMode.SubTree);
                     e.Handled = true;
                 }
             }
@@ -121,40 +127,7 @@ public partial class TextEditorHandler
         Mouse.Capture(TextEditor, CaptureMode.None);
     }
 
-    /// <summary>
-    /// 处理单击事件
-    /// </summary>
-    /// <param name="clickPoint"></param>
-    /// <returns></returns>
-    public virtual bool HandleSingleClick(in TextPoint clickPoint)
-    {
-        TextEditor
-            .TextEditorPlatformProvider
-            .EnsureLayoutUpdated();
-        if (TextEditorCore.TryHitTest(in clickPoint, out var result))
-        {
-            _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty && TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
-
-            if (!_isHitSelection)
-            {
-                // 没有命中到选择，那就设置当前光标
-                TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
-            }
-
-            // 获取焦点的同时捕获鼠标，这样既可以收到输入法，也可以用来后续拖动鼠标选中内容
-            TextEditor.Focus();
-            //Keyboard.Focus(TextEditor);
-            //FocusManager.SetFocusedElement(TextEditor, TextEditor);
-
-            Mouse.Capture(TextEditor, CaptureMode.SubTree);
-            return true;
-        }
-        else
-        {
-            Debug.Fail("理论上一定能命中成功");
-            return false;
-        }
-    }
+  
 
     /// <summary>
     /// 鼠标进入
