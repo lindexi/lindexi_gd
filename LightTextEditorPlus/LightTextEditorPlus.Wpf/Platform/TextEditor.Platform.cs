@@ -1,4 +1,22 @@
-﻿using System;
+﻿using LightTextEditorPlus.Configurations;
+using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Diagnostics.LogInfos;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.Patterns;
+using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Editing;
+using LightTextEditorPlus.Layers;
+using LightTextEditorPlus.Platform;
+using LightTextEditorPlus.Rendering;
+using LightTextEditorPlus.Utils;
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -17,23 +35,6 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
-using LightTextEditorPlus.Configurations;
-using LightTextEditorPlus.Core;
-using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Diagnostics.LogInfos;
-using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Events;
-using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Rendering;
-using LightTextEditorPlus.Core.Utils;
-using LightTextEditorPlus.Core.Utils.Patterns;
-using LightTextEditorPlus.Document;
-using LightTextEditorPlus.Editing;
-using LightTextEditorPlus.Layers;
-using LightTextEditorPlus.Platform;
-using LightTextEditorPlus.Rendering;
-using LightTextEditorPlus.Utils;
 
 using FrameworkElement = System.Windows.FrameworkElement;
 
@@ -80,6 +81,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
         TextEditorCore.TextChanged += TextEditorCore_TextChanged;
         TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+        TextEditorCore.ArrangingTypeChanged += TextEditorCore_ArrangingTypeChanged;
 
         // 在 WPF 框架里面，默认就应该使用 WPF 的行间距样式
         TextEditorCore.UseWpfLineSpacingStyle();
@@ -94,8 +96,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         AddLogicalChild(TextView);
 
         TextEditorHandler = textEditorPlatformProvider.GetHandler();
-
-        MouseHandler = new MouseHandler(this);
 
         // 挂上 IME 输入法的支持
         _ = new IMESupporter<TextEditor>(this);
@@ -391,7 +391,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// </summary>
     private TextView TextView { get; }
 
-    private MouseHandler MouseHandler { get; }
     private KeyboardHandler? _keyboardHandler;
 
     /// <inheritdoc />
@@ -432,7 +431,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     #region 命中测试
 
     /// <inheritdoc />
-    protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters)
+    protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
     {
         return new PointHitTestResult(this, hitTestParameters.HitPoint);
     }
@@ -451,7 +450,46 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
 
+    private void TextEditorCore_ArrangingTypeChanged(object? sender, TextEditorValueChangeEventArgs<ArrangingType> e)
+    {
+        TextEditorHandler.UpdateCursorView();
+    }
+
     #endregion
+
+    #endregion
+
+    #region 交互
+
+    /// <inheritdoc />
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+        TextEditorHandler.OnMouseDown(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        TextEditorHandler.OnMouseMove(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnMouseUp(MouseButtonEventArgs e)
+    {
+        TextEditorHandler.OnMouseUp(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnMouseEnter(MouseEventArgs e)
+    {
+        TextEditorHandler.OnMouseEnter(e);
+    }
+
+    /// <inheritdoc />
+    protected override void OnLostMouseCapture(MouseEventArgs e)
+    {
+        TextEditorHandler.OnLostMouseCapture(e);
+    }
 
     #endregion
 
