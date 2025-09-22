@@ -17,31 +17,31 @@ internal class KeyboardHandler
 {
     public KeyboardHandler(TextEditor textEditor)
     {
-        _textArea = textEditor;
+        TextEditor = textEditor;
 
         //光标移动
-        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveLeftByCharacter,
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveLeftByCharacter,
             MoveCaret(CaretMoveType.LeftByCharacter)));
-        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveLeftByCharacter, Key.Left, ModifierKeys.None));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveLeftByCharacter, Key.Left, ModifierKeys.None));
 
-        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveRightByCharacter,
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveRightByCharacter,
             MoveCaret(CaretMoveType.RightByCharacter)));
-        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveRightByCharacter, Key.Right, ModifierKeys.None));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveRightByCharacter, Key.Right, ModifierKeys.None));
 
-        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveUpByLine,
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveUpByLine,
             MoveCaret(CaretMoveType.UpByLine)));
-        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveUpByLine, Key.Up, ModifierKeys.None));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveUpByLine, Key.Up, ModifierKeys.None));
 
-        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveDownByLine,
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveDownByLine,
             MoveCaret(CaretMoveType.DownByLine)));
-        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveDownByLine, Key.Down, ModifierKeys.None));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveDownByLine, Key.Down, ModifierKeys.None));
 
         //编辑
-        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Backspace, OnBackspace));
-        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.Backspace, Key.Back, ModifierKeys.None));
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Backspace, OnBackspace));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Backspace, Key.Back, ModifierKeys.None));
 
-        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
-        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.Delete, Key.Delete, ModifierKeys.None));
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Delete, Key.Delete, ModifierKeys.None));
 
         textEditor.KeyDown += TextEditor_KeyDown;
     }
@@ -82,11 +82,5 @@ internal class KeyboardHandler
    
     #endregion
 
-    private TextEditor TextEditor => _textArea;
-
-    /// <summary>
-    /// 文本交互范围
-    /// </summary>
-    /// 只是为了方便抄代码，后续可以干掉
-    private readonly TextEditor _textArea;
+    private TextEditor TextEditor { get; }
 }
