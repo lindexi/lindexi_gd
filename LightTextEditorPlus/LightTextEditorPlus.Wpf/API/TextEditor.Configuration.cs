@@ -28,6 +28,7 @@ partial class TextEditor
         set
         {
             _cursorStyles = value;
+            TextEditorHandler.UpdateCursorView();
             CursorStylesChanged?.Invoke(this, EventArgs.Empty);
         }
         get => _cursorStyles;
