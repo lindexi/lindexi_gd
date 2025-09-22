@@ -45,6 +45,7 @@ public partial class TextEditorHandler
             .EnsureLayoutUpdated();
         if (TextEditorCore.TryHitTest(in clickPoint, out var result))
         {
+            // 是否命中到选择。条件： 当前有选择（!TextEditorCore.CurrentSelection.IsEmpty），且选择内容包含命中的光标（TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset)）
             _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty && TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
 
             if (!_isHitSelection)
@@ -74,6 +75,52 @@ public partial class TextEditorHandler
         // [UWP WinRT 使用系统自带的分词库对字符串文本进行分词](https://blog.lindexi.com/post/UWP-WinRT-%E4%BD%BF%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%87%AA%E5%B8%A6%E7%9A%84%E5%88%86%E8%AF%8D%E5%BA%93%E5%AF%B9%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%96%87%E6%9C%AC%E8%BF%9B%E8%A1%8C%E5%88%86%E8%AF%8D.html )
         // [dotnet 简单使用 ICU 库进行分词和分行 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18622917 )
         return true;
+    }
+
+    /// <summary>
+    /// 处理拖拽文本。拖动当前选择的文本到别处
+    /// </summary>
+    /// <param name="textPoint"></param>
+    /// <returns></returns>
+    public virtual bool HandleDragText(in TextPoint textPoint)
+    {
+        // todo HandleDragText(); 拖拽文本支持
+        return false;
+    }
+
+    /// <summary>
+    /// 处理拖拽选择
+    /// </summary>
+    /// <param name="textPoint"></param>
+    /// <returns></returns>
+    public virtual bool HandleDragSelect(in TextPoint textPoint)
+    {
+        if (_inputGesture.ClickCount % 2 == 0)
+        {
+            // 双击不处理拖动
+            return false;
+        }
+
+        var startOffset = TextEditorCore.CurrentSelection.StartOffset;
+        if (TextEditorCore.TryHitTest(textPoint, out var result))
+        {
+            if (result.IsOutOfTextCharacterBounds)
+            {
+                // 如果拖动过程超过文本了，那应该忽略，而不是获取文档末尾的 HitCaretOffset 值
+            }
+            else
+            {
+                var endOffset = result.HitCaretOffset;
+                TextEditorCore.CurrentSelection = new Selection(startOffset, endOffset);
+            }
+
+            return true;
+        }
+        else
+        {
+            Debug.Fail("理论上一定能命中成功");
+            return false;
+        }
     }
 
     private bool _isMouseDown;
