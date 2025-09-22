@@ -5,6 +5,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Patterns;
+using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -44,6 +45,19 @@ public partial class TextEditorHandler
         // [dotnet 简单使用 ICU 库进行分词和分行 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18622917 )
         return true;
     }
+
+    private bool _isMouseDown;
+
+    /// <summary>
+    /// 是不是点到选择范围
+    /// </summary>
+    private bool _isHitSelection;
+
+    #region InputGestureInfo
+
+    private readonly InputGestureInfo _inputGesture = new InputGestureInfo();
+
+    #endregion
 
     #endregion
 

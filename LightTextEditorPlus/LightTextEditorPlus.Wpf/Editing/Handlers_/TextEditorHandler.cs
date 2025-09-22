@@ -14,8 +14,6 @@ public partial class TextEditorHandler
 {
     #region 鼠标相关
 
-    private bool _isMouseDown;
-
     public virtual void OnMouseDown(MouseButtonEventArgs e)
     {
         _isMouseDown = true;
@@ -111,19 +109,6 @@ public partial class TextEditorHandler
         _isMouseDown = false;
         Mouse.Capture(TextEditor, CaptureMode.None);
     }
-
-
-
-    /// <summary>
-    /// 是不是点到选择范围
-    /// </summary>
-    private bool _isHitSelection;
-
-    #region InputGestureInfo
-
-    private readonly InputGestureInfo _inputGesture = new InputGestureInfo();
-
-    #endregion
 
     /// <summary>
     /// 处理单击事件

@@ -29,7 +29,6 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
-using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Utils;
@@ -475,7 +474,7 @@ partial class TextEditor : Control
     {
         if (IsDebugging)
         {
-
+            // 可在这里下断点
         }
 
         _isRendering = true;
