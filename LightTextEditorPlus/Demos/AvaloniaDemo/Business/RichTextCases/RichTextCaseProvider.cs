@@ -437,6 +437,6 @@ partial class RichTextCaseProvider
         {
             editor.SetFontName("Calibri");
             editor.Text = "tia";
-        }, "测试字体连续渲染导致字符数量不匹配");
+        }, "测试字体连续渲染 StandardLigatures 导致字符数量不匹配");
     }
 }

@@ -346,7 +346,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
 
-        font.Shape(buffer);
+        font.Shape(buffer, new Feature(new Tag('l', 'i', 'g', 'a'), 0));
 
         font.GetScale(out var scaleX, out _);
 
@@ -358,10 +358,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var glyphInfos = buffer.GetGlyphInfoSpan();
 
         var glyphPositions = buffer.GetGlyphPositionSpan();
+        
 
         for (var i = 0; i < bufferLength; i++)
         {
             var sourceInfo = glyphInfos[i];
+            // cluster 字段是一个整数，你可以使用它来帮助识别当字形重排、拆分或组合码点时的情况
+            // The cluster field is an integer that you can use to help identify when shaping has reordered, split, or combined code points; we will say more about that in the next chapter.
+            uint cluster = sourceInfo.Cluster;
 
             // ~~这里其实是 Codepoint 的值，而不是 GlyphIndex 的值~~
             // 经过进一步实验测试，发现这里的 Codepoint 就是 GlyphIndex 的值
@@ -380,8 +384,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             // Skia 的字体选取比较残对于 Symbol.ttf 等字体选取将会绘制出方框
             // 解决方法是通过 HarfBuzz 获取 GlyphIndex 带上 SKTextEncoding.GlyphId 进行渲染才能正确
 
-            var glyphCluster = (int) sourceInfo.Cluster;
-
             var position = glyphPositions[i];
 
             var glyphAdvance = position.XAdvance * textScale;
@@ -390,7 +392,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
             var offsetY = -position.YOffset * textScale;
 
-            glyphInfoList.Add(new TextGlyphInfo(glyphIndex, glyphCluster, glyphAdvance, (offsetX, offsetY)));
+            glyphInfoList.Add(new TextGlyphInfo(glyphIndex, cluster, glyphAdvance, (offsetX, offsetY)));
         }
 
         return glyphInfoList;
@@ -398,7 +400,17 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
     private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";
 
-    readonly record struct TextGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
+    /// <summary>
+    /// 文本的字形信息
+    /// </summary>
+    /// <param name="GlyphIndex"></param>
+    /// <param name="GlyphCluster">
+    /// cluster 字段是一个整数，你可以使用它来帮助识别当字形重排、拆分或组合码点时的情况
+    /// See https://harfbuzz.github.io/shaping-and-shape-plans.html
+    /// </param>
+    /// <param name="GlyphAdvance"></param>
+    /// <param name="GlyphOffset"></param>
+    readonly record struct TextGlyphInfo(ushort GlyphIndex, uint GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
 
     /// <summary>
     /// 字符尺寸信息
