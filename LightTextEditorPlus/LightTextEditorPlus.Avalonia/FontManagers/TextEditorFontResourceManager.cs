@@ -1,9 +1,12 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace LightTextEditorPlus.FontManagers;
 
+/// <summary>
+/// 文本资源管理器
+/// </summary>
 public class TextEditorFontResourceManager
 {
     //private static void RegisterFontNameToResource(string fontName, FontFamily fontFamily)
@@ -44,6 +47,12 @@ public class TextEditorFontResourceManager
         }
     }
 
+    /// <summary>
+    /// 尝试获取字体文件
+    /// </summary>
+    /// <param name="fontName"></param>
+    /// <param name="fontFile"></param>
+    /// <returns></returns>
     public static bool TryGetFontFile(string fontName, [NotNullWhen(true)] out FileInfo? fontFile)
     {
         return FontFileDictionary.TryGetValue(fontName, out fontFile);

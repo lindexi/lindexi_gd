@@ -16,8 +16,6 @@ using System.Windows;
 // Copy from https://github.com/dotnet/wpf \src\Microsoft.DotNet.Wpf\src\PresentationCore\MS\Internal\FontFace\Tags.cs
 namespace MS.Internal
 {
-
-
 // Script tags
 
     internal enum ScriptTags
@@ -102,7 +100,6 @@ namespace MS.Internal
         UgariticCuneiform                        = 0x75676172, // 'ugar'
         Yi                                       = 0x79692020, // 'yi  '
     }
-
 
 // Language tags
 
@@ -491,7 +488,6 @@ namespace MS.Internal
         Zulu                                     = 0x5a554c20, // 'ZUL '
     }
 
-
 // Feature tags
 
     internal enum FeatureTags
@@ -628,5 +624,4 @@ namespace MS.Internal
         VerticalRotation                         = 0x76727432, // 'vrt2'
         SlashedZero                              = 0x7a65726f, // 'zero'
     }
-
 }

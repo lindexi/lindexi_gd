@@ -7,6 +7,9 @@ namespace LightTextEditorPlus;
 [APIConstraint("TextEditor.Configuration.txt")]
 partial class TextEditor
 {
+    /// <summary>
+    /// 光标的配置
+    /// </summary>
     public CaretConfiguration CaretConfiguration
     {
         get

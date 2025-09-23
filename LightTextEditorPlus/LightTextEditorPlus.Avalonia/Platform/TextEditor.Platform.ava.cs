@@ -39,10 +39,17 @@ namespace LightTextEditorPlus;
 // 这里存放和 Avalonia 相关的代码
 partial class TextEditor : Control
 {
+    /// <summary>
+    /// 创建文本编辑器
+    /// </summary>
     public TextEditor() : this(builder: null)
     {
     }
 
+    /// <summary>
+    /// 创建文本编辑器
+    /// </summary>
+    /// <param name="builder">平台构建器的提供器</param>
     public TextEditor(IAvaloniaSkiaTextEditorPlatformProviderBuilder? builder)
     {
         // 属性初始化
@@ -93,21 +100,25 @@ partial class TextEditor : Control
 
     #region 交互
 
+    /// <inheritdoc />
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         TextEditorHandler.OnPointerPressed(e);
     }
 
+    /// <inheritdoc />
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         TextEditorHandler.OnPointerMoved(e);
     }
 
+    /// <inheritdoc />
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         TextEditorHandler.OnPointerReleased(e);
     }
 
+    /// <inheritdoc />
     protected override void OnTextInput(TextInputEventArgs e)
     {
         TextEditorHandler.OnTextInput(e);
@@ -115,11 +126,13 @@ partial class TextEditor : Control
         base.OnTextInput(e);
     }
 
+    /// <inheritdoc />
     protected override void OnKeyDown(KeyEventArgs e)
     {
         TextEditorHandler.OnKeyDown(e);
     }
 
+    /// <inheritdoc />
     protected override void OnKeyUp(KeyEventArgs e)
     {
         TextEditorHandler.OnKeyUp(e);
@@ -130,6 +143,7 @@ partial class TextEditor : Control
 
     #region 状态同步
 
+    /// <inheritdoc />
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
         if (IsAutoEditingModeByFocus)
@@ -141,6 +155,7 @@ partial class TextEditor : Control
         base.OnGotFocus(e);
     }
 
+    /// <inheritdoc />
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         if (IsAutoEditingModeByFocus)
@@ -368,6 +383,7 @@ partial class TextEditor : Control
 
     private bool _isMeasuring;
 
+    /// <inheritdoc />
     protected override Size MeasureOverride(Size availableSize)
     {
         if (IsDebugging)
@@ -443,6 +459,7 @@ partial class TextEditor : Control
             $"AvailableSize={availableSize.Width:0.00},{availableSize.Height:0.00};Width={Width:0.00},Height={Height:0.00}";
     }
 
+    /// <inheritdoc />
     protected override Size ArrangeOverride(Size finalSize)
     {
         // 实际布局多大就使用多大

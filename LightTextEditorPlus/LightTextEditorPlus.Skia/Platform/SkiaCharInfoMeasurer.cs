@@ -125,7 +125,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     //        return new CharInfoMeasureResult(bounds, baselineY);
     //    }
 
-
     /// <inheritdoc />
     /// Copy from https://github.com/AvaloniaUI/Avalonia
     /// src\Skia\Avalonia.Skia\TextShaperImpl.cs

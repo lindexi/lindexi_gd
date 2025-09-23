@@ -278,6 +278,7 @@ namespace LightTextEditorPlus
             SetForeground(brush, selection);
         }
 
+        /// <inheritdoc cref="SetForeground(SKColor,Selection?)"/>
         public void SetForeground(IBrush foreground, Selection? selection = null)
         {
             SkiaTextBrush? skiaTextBrush = foreground.ToSkiaTextBrush();

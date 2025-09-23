@@ -5,9 +5,15 @@ using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus.Configurations;
 
+/// <summary>
+/// 光标的配置
+/// </summary>
 [APIConstraint("CaretConfiguration.txt", true)]
 public class CaretConfiguration : SkiaCaretConfiguration
 {
+    /// <summary>
+    /// 创建光标的配置
+    /// </summary>
     public CaretConfiguration()
     {
     }
@@ -21,12 +27,18 @@ public class CaretConfiguration : SkiaCaretConfiguration
         ShowSelectionWhenNotInEditingInputMode = configuration.ShowSelectionWhenNotInEditingInputMode;
     }
 
+    /// <summary>
+    /// 光标的颜色
+    /// </summary>
     public new Color? CaretBrush
     {
         get => base.CaretBrush.ToAvaloniaColor();
         set => base.CaretBrush = value?.ToSKColor();
     }
 
+    /// <summary>
+    /// 选择的颜色
+    /// </summary>
     public new Color SelectionBrush
     {
         get => base.SelectionBrush.ToAvaloniaColor();

@@ -15,6 +15,10 @@ public partial class TextEditorHandler
 {
     #region 鼠标
 
+    /// <summary>
+    /// 指针按下
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnPointerPressed(PointerPressedEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
@@ -64,6 +68,10 @@ public partial class TextEditorHandler
         }
     }
 
+    /// <summary>
+    /// 指针移动
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnPointerMoved(PointerEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
@@ -93,6 +101,10 @@ public partial class TextEditorHandler
         }
     }
 
+    /// <summary>
+    /// 指针抬起
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnPointerReleased(PointerReleasedEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
@@ -121,6 +133,10 @@ public partial class TextEditorHandler
 
     #region 键盘
 
+    /// <summary>
+    /// 当文本输入
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnTextInput(TextInputEventArgs e)
     {
         if (e.Handled ||
@@ -135,6 +151,10 @@ public partial class TextEditorHandler
         RawTextInput(e.Text);
     }
 
+    /// <summary>
+    /// 键盘按下
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.Delete)
@@ -185,6 +205,10 @@ public partial class TextEditorHandler
         }
     }
 
+    /// <summary>
+    /// 键盘抬起
+    /// </summary>
+    /// <param name="e"></param>
     public virtual void OnKeyUp(KeyEventArgs e)
     {
         if (!TextEditor.IsInEditingInputMode)
@@ -198,6 +222,10 @@ public partial class TextEditorHandler
 
     #region 方向键
 
+    /// <summary>
+    /// 移动光标方向
+    /// </summary>
+    /// <param name="type"></param>
     public virtual partial void MoveCaret(CaretMoveType type)
     {
         TextEditor.TextEditorCore.MoveCaret(type);
@@ -206,7 +234,6 @@ public partial class TextEditorHandler
     #endregion
 
     #region 剪贴板
-
 
     #endregion
 }

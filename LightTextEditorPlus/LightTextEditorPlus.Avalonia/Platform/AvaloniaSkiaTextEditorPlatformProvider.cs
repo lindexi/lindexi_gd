@@ -4,18 +4,27 @@ using System.Diagnostics;
 using Avalonia.Threading;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
 
 namespace LightTextEditorPlus.Platform;
 
+/// <summary>
+/// Avalonia 平台的基于 Skia 的文本编辑器平台提供器
+/// </summary>
 public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProvider
 {
+    /// <summary>
+    /// 创建 Avalonia 平台的基于 Skia 的文本编辑器平台提供器
+    /// </summary>
+    /// <param name="avaloniaTextEditor"></param>
     public AvaloniaSkiaTextEditorPlatformProvider(TextEditor avaloniaTextEditor)
     {
         AvaloniaTextEditor = avaloniaTextEditor;
     }
 
+    /// <summary>
+    /// 文本编辑器
+    /// </summary>
     public TextEditor AvaloniaTextEditor { get; }
 
     #region 可基类重写方法
@@ -28,6 +37,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
         return AvaloniaTextEditor.BuildCustomTextEditorUndoRedoProvider() ?? base.BuildTextEditorUndoRedoProvider();
     }
 
+    /// <inheritdoc />
     public override ITextLogger? BuildTextLogger()
     {
         return AvaloniaTextEditor.BuildCustomTextLogger() ?? base.BuildTextLogger();
@@ -53,6 +63,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     private AvaloniaTextEditorDispatcherRequiring? _layoutDispatcherRequiring;
     private Action? _layoutUpdateAction;
 
+    /// <inheritdoc />
     public override void RequireDispatchUpdateLayout(Action updateLayoutAction)
     {
         if (_updatingLayout && AvaloniaTextEditor.TextEditorCore.IsInDebugMode)
@@ -64,6 +75,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
         LayoutDispatcherRequiring.Require();
     }
 
+    /// <inheritdoc />
     public override void InvokeDispatchUpdateLayout(Action updateLayoutAction)
     {
         if (_updatingLayout && AvaloniaTextEditor.TextEditorCore.IsInDebugMode)
@@ -123,6 +135,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
 
     #region 字体管理
 
+    /// <inheritdoc />
     protected override SkiaPlatformResourceManager GetSkiaPlatformResourceManager()
     {
         return _avaloniaTextEditorResourceManager ??=

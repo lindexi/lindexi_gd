@@ -41,7 +41,6 @@ file interface ILayoutCharData : ICharData
     /// </summary>
     CharDataInfo CharDataInfo { get; }
 
-
     /// <summary>
     /// 获取当前字符的左上角坐标，坐标相对于文本框。此属性必须是在布局完成之后才能获取
     /// </summary>
