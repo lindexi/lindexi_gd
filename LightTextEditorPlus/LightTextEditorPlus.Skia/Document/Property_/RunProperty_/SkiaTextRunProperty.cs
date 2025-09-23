@@ -8,11 +8,21 @@ using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
 using System;
+using LightTextEditorPlus.Core;
 
 namespace LightTextEditorPlus.Document;
 
 /// <summary>
 /// 字符属性。创建字符属性时，应该基于所在文本框的某个现有的 <see cref="SkiaTextRunProperty"/> 使用 <see langword="with"/> 关键字进行修改和创建新的属性
+/// 正确做法应该是使用如下示例代码方式创建
+/// <code>
+/// SkiaTextRunProperty runProperty = textEditor.StyleRunProperty with
+/// {
+///     FontName = xxx,
+///     FontSize = xxx,
+///     Foreground = xxx,
+/// };
+/// </code>
 /// </summary>
 [APIConstraint("RunProperty.txt")]
 public record SkiaTextRunProperty : LayoutOnlyRunProperty
@@ -55,7 +65,6 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         get => _renderFontName ?? FontName.UserFontName;
         init => _renderFontName = value;
     }
-
 
     private readonly string? _renderFontName;
 
@@ -153,6 +162,45 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// </summary>
     public TextEditorImmutableDecorationCollection DecorationCollection { get; init; }
 
+    /// <summary>
+    /// 从文本编辑器的当前设置创建一个新的 <see cref="SkiaTextRunProperty"/>，应该基于所在文本框的某个现有的 <see cref="SkiaTextRunProperty"/> 使用 <see langword="with"/> 关键字进行修改和创建新的属性。本方法只是一个提示作用
+    /// 正确做法应该是使用如下示例代码方式创建
+    /// <code>
+    /// SkiaTextRunProperty runProperty = textEditor.StyleRunProperty with
+    /// {
+    ///     FontName = xxx,
+    ///     FontSize = xxx,
+    ///     Foreground = xxx,
+    /// };
+    /// </code>
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
+    public static SkiaTextRunProperty FromTextEditor(TextEditorCore textEditor)
+    {
+        return textEditor.DocumentManager.StyleRunProperty.AsSkiaRunProperty();
+    }
+
+#if USE_AllInOne && USE_AVALONIA
+    /// <summary>
+    /// 从文本编辑器的当前设置创建一个新的 <see cref="SkiaTextRunProperty"/>，应该基于所在文本框的某个现有的 <see cref="SkiaTextRunProperty"/> 使用 <see langword="with"/> 关键字进行修改和创建新的属性。本方法只是一个提示作用
+    /// 正确做法应该是使用如下示例代码方式创建
+    /// <code>
+    /// SkiaTextRunProperty runProperty = textEditor.StyleRunProperty with
+    /// {
+    ///     FontName = xxx,
+    ///     FontSize = xxx,
+    ///     Foreground = xxx,
+    /// };
+    /// </code>
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
+    public static SkiaTextRunProperty FromTextEditor(TextEditor textEditor)
+    {
+        return textEditor.StyleRunProperty;
+    }
+#endif
 
     private void InvalidateFont()
     {
