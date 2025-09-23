@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="Exists($([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../')))"/>
 
   <PropertyGroup>
@@ -11,8 +11,10 @@
     - NU1803： 使用 HTTP 的源
     - NU1603： 忽略找不到匹配版本。因为使用了内部的 Avalonia 版本，不在这里警告
     - CS0162： 未使用的代码，不可达代码警告。有些代码就是特意写不可达的，只是用来作为设计说明
+    - NETSDK1138： 目标框架已到达其生命周期终点，现在文本库项目依然保持低版本框架以支持更多项目
+    - NETSDK1057： 允许使用预览版 SDK 构建，不要警告
     -->
-    <NoWarn>NU1903;NU1803;NU1603;CS0162</NoWarn>
+    <NoWarn>NU1903;NU1803;NU1603;CS0162;NETSDK1138;NETSDK1057</NoWarn>
 
     <CodeRootPath>$(MSBuildThisFileDirectory)</CodeRootPath>
 

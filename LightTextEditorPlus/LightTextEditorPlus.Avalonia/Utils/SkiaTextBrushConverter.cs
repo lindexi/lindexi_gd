@@ -10,8 +10,16 @@ using System.Diagnostics;
 
 namespace LightTextEditorPlus.Utils;
 
+/// <summary>
+/// 从 Skia 的文本库的画刷进行转换的工具类
+/// </summary>
 public static class SkiaTextBrushConverter
 {
+    /// <summary>
+    /// 转换为 Skia 文本画刷
+    /// </summary>
+    /// <param name="brush"></param>
+    /// <returns></returns>
     public static SkiaTextBrush? ToSkiaTextBrush(IBrush? brush)
     {
         if (brush is ISolidColorBrush solidColorBrush)
@@ -33,6 +41,11 @@ public static class SkiaTextBrushConverter
         return null;
     }
 
+    /// <summary>
+    /// 转换为 Skia 文本画刷
+    /// </summary>
+    /// <param name="solidColorBrush"></param>
+    /// <returns></returns>
     public static SkiaTextBrush ToSkiaTextBrush(ISolidColorBrush solidColorBrush)
     {
         var color = solidColorBrush.Color.ToSKColor();
@@ -40,6 +53,11 @@ public static class SkiaTextBrushConverter
         return color;
     }
 
+    /// <summary>
+    /// 转换为 Skia 文本画刷
+    /// </summary>
+    /// <param name="linearGradientBrush"></param>
+    /// <returns></returns>
     public static SkiaTextBrush ToSkiaTextBrush(ILinearGradientBrush linearGradientBrush)
     {
         var linearGradientSkiaTextBrush = new LinearGradientSkiaTextBrush()

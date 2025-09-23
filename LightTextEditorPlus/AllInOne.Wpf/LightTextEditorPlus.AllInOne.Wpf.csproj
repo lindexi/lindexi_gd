@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
@@ -10,7 +10,6 @@
     <!-- 为什么命名上会带一个 AllInOne 标识？ 因为还有不带 AllInOne 的版本，分开多个包的版本 -->
     <PackageId>LightTextEditorPlus.AllInOne.Wpf</PackageId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
