@@ -5,11 +5,22 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 字符固有信息。字符固有信息必定是和具体的字符属性相关的，即包括字符、字体、字号等属性相关联
 /// </summary>
-/// <param name="FrameSize">FrameSize 尺寸，即字外框尺寸。文字外框尺寸</param>
-/// <param name="FaceSize">Character Face Size 字面尺寸，字墨尺寸，字墨大小，字墨量。文字的字身框中，字图实际分布的空间的尺寸。小于等于 <see cref="FrameSize"/> 尺寸</param>
-/// <param name="Baseline">基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</param>
-public readonly record struct CharDataInfo(TextSize FrameSize, TextSize FaceSize, double Baseline)
+public readonly record struct CharDataInfo
 {
+    /// <summary>
+    /// 字符固有信息。字符固有信息必定是和具体的字符属性相关的，即包括字符、字体、字号等属性相关联
+    /// </summary>
+    /// <param name="frameSize">FrameSize 尺寸，即字外框尺寸。文字外框尺寸</param>
+    /// <param name="faceSize">Character Face Size 字面尺寸，字墨尺寸，字墨大小，字墨量。文字的字身框中，字图实际分布的空间的尺寸。小于等于 <see cref="FrameSize"/> 尺寸</param>
+    /// <param name="baseline">基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</param>
+    public CharDataInfo(TextSize frameSize, TextSize faceSize, double baseline)
+    {
+        FrameSize = frameSize;
+        FaceSize = faceSize;
+        Baseline = baseline;
+        Status = CharDataInfoStatus.Normal;
+    }
+
     /// <summary>
     /// 渲染字符在对应的字体的字形索引
     /// </summary>
@@ -31,7 +42,17 @@ public readonly record struct CharDataInfo(TextSize FrameSize, TextSize FaceSize
     /// - Glyph ID=2 , Glyph name="CR" , Unicode value=null(U+000D) , Description="non-marking return" 非标记回车
     /// - Glyph ID=3 , Glyph name="space" , Unicode value=space(U+0020) , Description="space" 空格
     /// 尽管写的是建议，但是实际上绝大多数字体都遵循了这个规范
-    public ushort GlyphIndex { get; init; }
+    public required ushort GlyphIndex { get; init; }
+
+    /// <summary>
+    /// 表示未定义字形
+    /// </summary>
+    public const ushort UndefinedGlyphIndex = 0;
+
+    /// <summary>
+    /// 字符固有信息的状态
+    /// </summary>
+    public CharDataInfoStatus Status { get; init; }
 
     /// <summary>
     /// 字符的尺寸。字符意义上的字符尺寸。等同于 <see cref="FrameSize"/> 的值
@@ -45,11 +66,53 @@ public readonly record struct CharDataInfo(TextSize FrameSize, TextSize FaceSize
     {
         FrameSize = TextSize.Invalid,
         FaceSize = TextSize.Invalid,
-        Baseline = double.NaN
+        Baseline = double.NaN,
+        Status = CharDataInfoStatus.Invalid,
+        GlyphIndex = 0,
     };
 
     /// <summary>
     /// 是否无效的字符信息
     /// </summary>
     public bool IsInvalid => FrameSize.IsInvalid || FaceSize.IsInvalid || double.IsNaN(Baseline);
+
+    /// <summary>FrameSize 尺寸，即字外框尺寸。文字外框尺寸</summary>
+    public TextSize FrameSize { get; init; }
+
+    /// <summary>Character Face Size 字面尺寸，字墨尺寸，字墨大小，字墨量。文字的字身框中，字图实际分布的空间的尺寸。小于等于 <see cref="FrameSize"/> 尺寸</summary>
+    public TextSize FaceSize { get; init; }
+
+    /// <summary>基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</summary>
+    public double Baseline { get; init; }
+}
+
+/// <summary>
+/// 字符固有信息的状态
+/// </summary>
+public enum CharDataInfoStatus : byte
+{
+    /// <summary>
+    /// 无效的
+    /// </summary>
+    Invalid = 0,
+
+    /// <summary>
+    /// 正常
+    /// </summary>
+    Normal,
+
+    /// <summary>
+    /// 没有从字体里面获取到定义的信息
+    /// </summary>
+    Undefined,
+
+    /// <summary>
+    /// 连字符
+    /// </summary>
+    LigatureStart,
+
+    /// <summary>
+    /// 连字符的中间部分
+    /// </summary>
+    LigatureContinue,
 }

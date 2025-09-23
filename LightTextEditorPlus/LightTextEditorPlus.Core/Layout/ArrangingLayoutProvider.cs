@@ -743,7 +743,14 @@ abstract class ArrangingLayoutProvider
         // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
         TextSize textFaceSize = size;
 
-        setter.SetCharDataInfo(charData, new CharDataInfo(textFrameSize, textFaceSize, baseline));
+        var charDataInfo = new CharDataInfo(textFrameSize, textFaceSize, baseline)
+        {
+            // 直接赋值肯定逻辑上是不正确的，但是在没有 UI 框架的情况下，先这样处理
+            GlyphIndex = charData.CharObject.CodePoint.Value < ushort.MaxValue
+                 ? (ushort) charData.CharObject.CodePoint.Value
+                 : (ushort) 0,
+        };
+        setter.SetCharDataInfo(charData, charDataInfo);
     }
 
     ///// <summary>

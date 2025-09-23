@@ -32,17 +32,16 @@ class CharInfoMeasurer : ICharInfoMeasurer
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
         var fontSize = runProperty.GetRenderFontSize();
 
-        // 字外框。文字外框，字外框尺寸
-        TextSize textFrameSize;
-        // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
-        TextSize textFaceSize;
+        var baseline = glyphTypeface.Baseline * fontSize;
+     
+        CharDataInfo charDataInfo;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
             Utf32CodePoint codePoint = currentCharData.RenderCharObject.CodePoint;
-            (textFrameSize, textFaceSize) = MeasureChar(codePoint);
+            charDataInfo = MeasureChar(codePoint);
 
-            (TextSize textFrameSize, TextSize faceSize) MeasureChar(Utf32CodePoint c)
+            CharDataInfo MeasureChar(Utf32CodePoint c)
             {
                 var currentGlyphTypeface = glyphTypeface;
                 if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c.Value, out var glyphIndex))
@@ -53,7 +52,11 @@ class CharInfoMeasurer : ICharInfoMeasurer
                         // 如果连回滚的都没有，那就返回默认方块空格
                         var size = new TextSize(fontSize, fontSize);
                         // 此时只好是字外框和字墨量尺寸相同
-                        return (size, size);
+                        return new CharDataInfo(size, size, baseline)
+                        {
+                            GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
+                            Status = CharDataInfoStatus.Undefined
+                        };
                     }
                 }
 
@@ -148,9 +151,16 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 // 在以上这些数据上，似乎只有 glyphTypefaceHeight 最正确
                 // 但是在 Javanese Text 字体里面，glyphTypefaceHeight=136 显著大于 height=60 导致字符上浮，超过文本框
                 //return (bounds.Width, bounds.Height);
+               
+                // 字外框。文字外框，字外框尺寸
                 var frameSize = new TextSize(width, glyphTypefaceHeight);
+                // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
                 var faceSize = new TextSize(width, height);
-                return (frameSize, faceSize);
+                return new CharDataInfo(frameSize, faceSize,baseline)
+                {
+                    GlyphIndex = glyphIndex,
+                    Status = CharDataInfoStatus.Normal,
+                };
             }
         }
         else
@@ -158,7 +168,6 @@ class CharInfoMeasurer : ICharInfoMeasurer
             throw new NotImplementedException("还没有实现竖排的文本测量");
         }
 
-        var baseline = glyphTypeface.Baseline * fontSize;
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, new CharDataInfo(textFrameSize, textFaceSize, baseline));
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, charDataInfo);
     }
 }
