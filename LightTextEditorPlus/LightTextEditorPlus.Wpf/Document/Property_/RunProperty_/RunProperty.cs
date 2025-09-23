@@ -13,6 +13,15 @@ namespace LightTextEditorPlus.Document;
 /// <summary>
 /// 文本字符属性
 /// </summary>
+/// 正确做法应该是使用如下示例代码方式创建
+/// <code>
+/// RunProperty runProperty = textEditor.StyleRunProperty with
+/// {
+///     FontName = xxx,
+///     FontSize = xxx,
+///     Foreground = xxx,
+/// };
+/// </code>
 [APIConstraint("RunProperty.txt")]
 public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 {
@@ -370,4 +379,23 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
     }
 
     #endregion
+
+    /// <summary>
+    /// 从文本编辑器的当前设置创建一个新的 <see cref="RunProperty"/>，应该基于所在文本框的某个现有的 <see cref="RunProperty"/> 使用 <see langword="with"/> 关键字进行修改和创建新的属性。本方法只是一个提示作用
+    /// 正确做法应该是使用如下示例代码方式创建
+    /// <code>
+    /// RunProperty runProperty = textEditor.StyleRunProperty with
+    /// {
+    ///     FontName = xxx,
+    ///     FontSize = xxx,
+    ///     Foreground = xxx,
+    /// };
+    /// </code>
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
+    public static RunProperty FromTextEditor(TextEditor textEditor)
+    {
+        return textEditor.StyleRunProperty;
+    }
 }
