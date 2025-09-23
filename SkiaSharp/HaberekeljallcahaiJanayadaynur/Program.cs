@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Runtime.InteropServices;
 using SkiaSharp;
 
 using var skTypeface =
@@ -15,7 +16,9 @@ using var skPaint = new SKPaint();
 skPaint.Color = SKColors.Black;
 skPaint.IsAntialias = true;
 
-var skTextBlob = SKTextBlob.Create([0x00, 0x00], SKTextEncoding.GlyphId, skFont, new SKPoint(50, 100));
+Span<ushort> glyphs = [0x00, 0x00];
+
+var skTextBlob = SKTextBlob.Create(MemoryMarshal.AsBytes(glyphs), SKTextEncoding.GlyphId, skFont);
 
 skCanvas.DrawText(skTextBlob, 50, 100, skPaint);
 
