@@ -67,7 +67,7 @@ namespace D3D11MediaFoundation
                 return false;
             }
 
-            if (!deviceManager.Value.ResetDevice(D3D11Device.AsIUnknown(), resetToken))
+            if (!deviceManager.Value.ResetDevice(Device.AsIUnknown(), resetToken))
             {
                 deviceManager.AsIUnknown().Value.Release();
                 return false;
@@ -120,8 +120,8 @@ namespace D3D11MediaFoundation
             VideoWidth = width;
             VideoHeight = height;
 
-            D3D11VideoDevice = D3D11Device.AsIUnknown().ToInterface<ID3D11VideoDevice>(IIDs.IID_ID3D11VideoDevice);
-            D3D11VideoContext = D3D11DeviceContext.AsIUnknown().ToInterface<ID3D11VideoContext>(IIDs.IID_ID3D11VideoContext);
+            D3D11VideoDevice = Device.AsIUnknown().ToInterface<ID3D11VideoDevice>(IIDs.IID_ID3D11VideoDevice);
+            D3D11VideoContext = DeviceContext.AsIUnknown().ToInterface<ID3D11VideoContext>(IIDs.IID_ID3D11VideoContext);
             D3D11VideoContext.Value.VideoProcessorSetStreamAutoProcessingMode(D3D11VideoProcessor, 0, false);
             //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_BRIGHTNESS, false, 0);
             //D3D11VideoContext.Value.VideoProcessorSetStreamFilter(D3D11VideoProcessor, 0, D3D11_VIDEO_PROCESSOR_FILTER_CONTRAST, false, 0);
@@ -259,7 +259,7 @@ namespace D3D11MediaFoundation
 
                     D3D11VideoDevice.Value.CreateVideoProcessorInputView(texture.AsP<ID3D11Resource>(), D3D11VideoProcessorEnumerator, inputDesc, out var inputView);
 
-                    DXGISwapChain.Value.GetBuffer(0, IIDs.IID_ID3D11Texture2D, out var backBufferPtr);
+                    SwapChain.Value.GetBuffer(0, IIDs.IID_ID3D11Texture2D, out var backBufferPtr);
                     P<ID3D11Texture2D> backBuffer = backBufferPtr;
                     backBuffer.Value.GetDesc(out var backDesc);
                     //Console.WriteLine($"BackBuffer {backDesc.Width}x{backDesc.Height}");
@@ -282,7 +282,7 @@ namespace D3D11MediaFoundation
 
 
                     D3D11VideoContext.Value.VideoProcessorBlt(D3D11VideoProcessor, outputView, 0, 1, [stream]);
-                    DXGISwapChain.Value.Present(1, 0);
+                    SwapChain.Value.Present(1, 0);
 
                     texture.AsIUnknown().Value.Release();
                     backBuffer.AsIUnknown().Value.Release();
