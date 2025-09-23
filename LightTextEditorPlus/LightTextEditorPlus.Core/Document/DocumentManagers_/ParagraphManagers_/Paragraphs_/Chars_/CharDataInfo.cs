@@ -74,7 +74,7 @@ public readonly record struct CharDataInfo
     /// <summary>
     /// 是否无效的字符信息
     /// </summary>
-    public bool IsInvalid => FrameSize.IsInvalid || FaceSize.IsInvalid || double.IsNaN(Baseline);
+    public bool IsInvalid => FrameSize.IsInvalid || FaceSize.IsInvalid || double.IsNaN(Baseline) || Status == CharDataInfoStatus.Invalid;
 
     /// <summary>FrameSize 尺寸，即字外框尺寸。文字外框尺寸</summary>
     public TextSize FrameSize { get; init; }
