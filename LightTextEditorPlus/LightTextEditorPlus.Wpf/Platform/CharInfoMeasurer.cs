@@ -38,7 +38,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            Utf32CodePoint codePoint = currentCharData.RenderCharObject.CodePoint;
+            Utf32CodePoint codePoint = currentCharData.CharObject.CodePoint;
             charDataInfo = MeasureChar(codePoint);
 
             CharDataInfo MeasureChar(Utf32CodePoint c)

@@ -337,14 +337,7 @@ internal sealed class ParagraphData : ITextParagraph
             IReadOnlyRunProperty platformRunProperty =
                 platformRunPropertyCreator.ToPlatformRunProperty(charObject, runProperty);
 
-            ICharObject renderCharObject = charObject;
-            if (platformRunProperty.IsInvalidRunProperty)
-            {
-                // 表示无效的字符属性，直接使用未知字符
-                renderCharObject = platformRunPropertyCreator.CreateInvalidRunPropertyCharObject();
-            }
-
-            var charData = new CharData(charObject, platformRunProperty, renderCharObject);
+            var charData = new CharData(charObject, platformRunProperty);
             AppendCharData(charData);
         }
 
