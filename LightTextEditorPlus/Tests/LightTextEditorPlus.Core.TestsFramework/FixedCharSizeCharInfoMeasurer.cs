@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -32,6 +32,12 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
         // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
         TextSize textFaceSize = size;
 
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, new CharDataInfo(textFrameSize, textFaceSize, baseline));
+        var charDataInfo = new CharDataInfo(textFrameSize, textFaceSize, baseline)
+        {
+            GlyphIndex = currentCharData.CharObject.CodePoint.Value < ushort.MaxValue
+                ? (ushort) currentCharData.CharObject.CodePoint.Value
+                : (ushort) 0,
+        };
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, charDataInfo);
     }
 }

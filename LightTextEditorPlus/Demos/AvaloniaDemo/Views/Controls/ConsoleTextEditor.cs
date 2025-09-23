@@ -118,7 +118,13 @@ file class CharInfoMeasurer : ICharInfoMeasurer
 
         var faceSize = new TextSize(charFaceWidth, cacheInfo.CharHeight);
 
-        argument.UpdateLayoutContext.SetCharDataInfo(currentCharData, new CharDataInfo(frameSize, faceSize, cacheInfo.Baseline));
+        ushort glyphIndex = cacheInfo.Font.GetGlyph(rune.Value);
+
+        CharDataInfo charDataInfo = new CharDataInfo(frameSize, faceSize, cacheInfo.Baseline)
+        {
+            GlyphIndex = glyphIndex,
+        };
+        argument.UpdateLayoutContext.SetCharDataInfo(currentCharData, charDataInfo);
     }
 
     private CacheInfo GetOrCreateCacheInfo(SkiaTextRunProperty runProperty)

@@ -253,7 +253,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 frameSize.Height);
 
             runBounds.Union(glyphRunBounds);
-            charSizeInfoList[i] = new CharSizeInfo(faceSize, glyphRunBounds);
+            charSizeInfoList[i] = new CharSizeInfo(glyphRunBounds)
+            {
+                CharDataInfo = new CharDataInfo(glyphRunBounds.TextSize,faceSize,baselineY)
+                {
+                    GlyphIndex = glyphInfo.GlyphIndex,
+                    Status = CharDataInfoStatus.Normal,
+                }
+            };
 
             currentX = nextX;
         }
@@ -275,10 +282,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             {
                 // 确保赋值给每个字符的尺寸
                 CharSizeInfo charSizeInfo = charSizeInfoList[charSizeInfoListIndex];
-                TextSize textFrameSize = charSizeInfo.TextFrameSize;
-                TextSize textFaceSize = charSizeInfo.TextFaceSize;
 
-                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new CharDataInfo(textFrameSize, textFaceSize, baselineY));
+                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, charSizeInfo.CharDataInfo);
             }
 
             // 实际上不会存在不匹配问题，上面计算也是采用 utf16 的方式，兼容处理了高低代理。核心处理在 HarfBuzzSharp.Buffer 里面
@@ -357,7 +362,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var glyphInfos = buffer.GetGlyphInfoSpan();
 
         var glyphPositions = buffer.GetGlyphPositionSpan();
-        
 
         for (var i = 0; i < bufferLength; i++)
         {
@@ -415,9 +419,15 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// 字符尺寸信息
     /// </summary>
     /// <param name="GlyphRunBounds">字符的外框，字外框</param>
-    /// <param name="TextFaceSize">字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸</param>
-    readonly record struct CharSizeInfo(TextSize TextFaceSize, TextRect GlyphRunBounds)
+    readonly record struct CharSizeInfo(TextRect GlyphRunBounds)
     {
+        /// <summary>
+        /// 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
+        /// </summary>
+        public TextSize TextFaceSize => CharDataInfo.FaceSize;
+
+        public required CharDataInfo CharDataInfo { get; init; }
+
         /// <summary>
         /// 文字外框，字外框尺寸
         /// </summary>
