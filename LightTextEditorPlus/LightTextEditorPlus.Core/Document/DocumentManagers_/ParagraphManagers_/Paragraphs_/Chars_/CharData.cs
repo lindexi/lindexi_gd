@@ -32,11 +32,6 @@ file interface ICharData
 file interface ILayoutCharData : ICharData
 {
     /// <summary>
-    /// 用来渲染的字符对象
-    /// </summary>
-    ICharObject RenderCharObject { get; }
-
-    /// <summary>
     /// 字符信息，包括尺寸等信息
     /// </summary>
     CharDataInfo CharDataInfo { get; }
@@ -65,28 +60,10 @@ public sealed class CharData : ICharData, ILayoutCharData
     /// </summary>
     /// <param name="charObject"></param>
     /// <param name="runProperty"></param>
-    /// <param name="renderCharObject">渲染的字符</param>
-    public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty, ICharObject? renderCharObject = null)
+    public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty)
     {
         CharObject = charObject;
         RunProperty = runProperty;
-
-        if (renderCharObject is null)
-        {
-            if (runProperty.IsInvalidRunProperty)
-            {
-                // 表示无效的字符属性，直接使用未知字符
-                renderCharObject = new SingleCharObject(TextContext.UnknownChar);
-            }
-            else
-            {
-                renderCharObject = charObject;
-            }
-        }
-
-        Debug.Assert(renderCharObject != null);
-
-        RenderCharObject = renderCharObject;
     }
 
     /// <summary>
@@ -98,18 +75,6 @@ public sealed class CharData : ICharData, ILayoutCharData
     /// 字符对象
     /// </summary>
     public ICharObject CharObject { get; }
-
-    /// <summary>
-    /// 用来渲染的字符对象
-    /// </summary>
-    /// 准备废弃用来渲染的字符对象
-    /// 准备替换为使用 GlyphIndex 的第 0 号字形，正常为 □ 方框符号。正确来说，这是 ".notdef" 字形
-    /// 参阅：
-    /// - Skia 系实验： https://github.com/lindexi/lindexi_gd/tree/e8bb42f77302527286179c8877d903465436ba18/SkiaSharp/HaberekeljallcahaiJanayadaynur
-    /// - WPF DX 系文档： https://learn.microsoft.com/en-us/windows/win32/api/dwrite/nf-dwrite-idwritefontface-getglyphindices
-    /// - OpenType 规范： https://learn.microsoft.com/en-us/typography/opentype/otspec170/recom#shape-of-notdef-glyph
-    /// > When characters are not present in the font this method returns the index 0, which is the undefined glyph or ".notdef" glyph.
-    public ICharObject RenderCharObject { get; }
 
     /// <summary>
     /// 文本字符属性

@@ -15,9 +15,46 @@ internal static class LayoutChecker
     /// </summary>
     public static void DebugCheckLayoutBeCorrected(UpdateLayoutContext updateLayoutContext)
     {
+        EnsureCharDataInfo(updateLayoutContext);
         EnsureNextStartPoint(updateLayoutContext);
         EnsureParagraphIndent(updateLayoutContext);
         EnsureMarker(updateLayoutContext);
+    }
+
+    /// <summary>
+    /// 确保字符数据正确
+    /// </summary>
+    /// <param name="updateLayoutContext"></param>
+    private static void EnsureCharDataInfo(UpdateLayoutContext updateLayoutContext)
+    {
+        var paragraphList = updateLayoutContext.ParagraphList;
+        foreach (ITextParagraph paragraphData in paragraphList)
+        {
+            TextReadOnlyListSpan<CharData> list = paragraphData.GetParagraphCharDataList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                CharData charData = list[i];
+                CharDataInfo charDataInfo = charData.CharDataInfo;
+                if (charDataInfo.IsInvalid)
+                {
+                    throw new TextEditorInnerDebugException(
+                        $"存在未测量尺寸的字符，段落索引 {paragraphData.Index}，段内第 {i} 个字符，字符内容 '{charData.CharObject}'");
+                }
+
+                if (charData.RunProperty.IsInvalidRunProperty)
+                {
+                    if (charDataInfo.Status == CharDataInfoStatus.Undefined)
+                    {
+                        // 符合预期，此时就应该是未定义的字符
+                    }
+                    else
+                    {
+                        throw new TextEditorInnerDebugException(
+                            $"存在未定义属性的字符，但其字形状态不是未定义，段落索引 {paragraphData.Index}，段内第 {i} 个字符，字符内容 '{charData.CharObject}'");
+                    }
+                }
+            }
+        }
     }
 
     private static void EnsureNextStartPoint(UpdateLayoutContext updateLayoutContext)

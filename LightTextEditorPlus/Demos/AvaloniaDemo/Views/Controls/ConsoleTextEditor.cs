@@ -84,7 +84,7 @@ file class CharInfoMeasurer : ICharInfoMeasurer
         CacheInfo cacheInfo = GetOrCreateCacheInfo(runProperty);
 
         Span<char> destination = stackalloc char[2];
-        Rune rune = currentCharData.RenderCharObject.CodePoint.Rune;
+        Rune rune = currentCharData.CharObject.CodePoint.Rune;
         int length = rune.EncodeToUtf16(destination);
         if (length > 1)
         {

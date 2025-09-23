@@ -86,7 +86,7 @@ public static class ReadOnlyCharDataListExtension
             var index = length;
             Span<char> currentSpan = buffer.AsSpan(index);
 
-            Rune rune = charData.RenderCharObject.CodePoint.Rune;
+            Rune rune = charData.CharObject.CodePoint.Rune;
             int writtenLength = rune.EncodeToUtf16(currentSpan);
             length += writtenLength;
         }

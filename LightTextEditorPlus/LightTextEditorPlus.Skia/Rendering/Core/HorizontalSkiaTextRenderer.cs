@@ -164,7 +164,7 @@ file struct Renderer : IDisposable
 
         // 不需要在这里处理字体回滚，在输入的过程中已经处理过了
         ////  考虑字体回滚问题
-        RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(firstCharData.RenderCharObject.CodePoint);
+        RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(firstCharData.CharObject.CodePoint);
 
         SKFont skFont = renderingRunPropertyInfo.Font;
 

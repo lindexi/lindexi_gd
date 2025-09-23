@@ -65,12 +65,4 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     /// <param name="runProperty"></param>
     /// <exception cref="NotSupportedException"></exception>
     private static NotSupportedException CreateRunPropertyTypeNotSupportedException(IReadOnlyRunProperty? runProperty) => new NotSupportedException($"传入了非当前平台所能支持的字符属性。当前平台属性类型： {typeof(T).FullName}；传入的字符属性类型：{runProperty?.GetType().FullName ?? "<null>"}");
-
-    /// <inheritdoc />
-    public virtual ICharObject CreateInvalidRunPropertyCharObject()
-    {
-        return _charObject ??= new SingleCharObject(TextContext.UnknownChar);
-    }
-
-    private ICharObject? _charObject;
 }
