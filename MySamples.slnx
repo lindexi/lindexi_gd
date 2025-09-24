@@ -4,4 +4,5 @@
   <Project Path="../lsjutil/Src/Lsj.Util.Win32/Lsj.Util.Win32.csproj" />
   <Project Path="D3D11MediaFoundation/D3D11MediaFoundation.csproj" />
   <Project Path="D3D9MediaFoundation/D3D9MediaFoundation.csproj" />
+  <Project Path="WPFMediaFoundation/WPFMediaFoundation.csproj" Id="928de436-7e89-4df8-aad9-0fd8bf0f3707" />
 </Solution>
