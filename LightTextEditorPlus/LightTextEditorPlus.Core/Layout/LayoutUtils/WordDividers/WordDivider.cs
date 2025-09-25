@@ -18,9 +18,9 @@ internal class WordDivider : IWordDivider
         {
             currentIndex++;
         }
-
+        
         var totalCount = currentIndex;
-        var charCount = WordCharHelper.ReadWordCharCount(currentRunList, currentIndex);
+        var charCount = WordCharHelper.ReadWordCharCount(currentRunList, currentIndex, argument.UpdateLayoutContext);
         totalCount += charCount;
 
         // 不能放在行首的符号
@@ -40,6 +40,11 @@ internal class WordDivider : IWordDivider
         return new DivideWordResult(totalCount);
     }
 
+    /// <summary>
+    /// 不能放在行尾的标点符号
+    /// </summary>
+    /// <param name="codePoint"></param>
+    /// <returns></returns>
     private static bool IsPunctuationNotInLineEnd(Utf32CodePoint codePoint)
     {
         UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);

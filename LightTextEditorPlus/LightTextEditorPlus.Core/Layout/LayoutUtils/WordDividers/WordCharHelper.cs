@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using LightTextEditorPlus.Core.Document;
@@ -34,7 +34,8 @@ internal static class WordCharHelper
         }
     }
 
-    public static int ReadWordCharCount(TextReadOnlyListSpan<CharData> runList, int currentIndex)
+    public static int ReadWordCharCount
+        (TextReadOnlyListSpan<CharData> runList, int currentIndex, UpdateLayoutContext? context = null)
     {
         if (currentIndex >= runList.Count)
         {
@@ -50,6 +51,16 @@ internal static class WordCharHelper
             || TryReadWordCharCount(CheckMongolian, out count))
         {
             return count;
+        }
+
+        if (context != null && context.TextEditor.ArrangingType == ArrangingType.Mongolian)
+        {
+            // 如果是蒙文排版模式，则读取蒙科立蒙古文字符。这是由于蒙科立编码是在自定义编码区，只有猜，不能有明确的范围
+            // 只有使用特殊的蒙古文字体才能正确显示
+            if (TryReadWordCharCount(CheckMenksoftMongolian, out count))
+            {
+                return count;
+            }
         }
 
         // 至少能够读取出当前的一个字符
@@ -83,6 +94,21 @@ internal static class WordCharHelper
         }
     }
 
+    /// <summary>
+    /// 判断是否蒙科立蒙古文字符
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <returns></returns>
+    private static bool CheckMenksoftMongolian(CharData charData)
+    {
+        return RegexPatterns.MenksoftMongolian.IsInRange(charData);
+    }
+
+    /// <summary>
+    /// 判断是否蒙古文字符
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <returns></returns>
     private static bool CheckMongolian(CharData charData)
     {
         return RegexPatterns.MongolianPattern.IsInRange(charData);

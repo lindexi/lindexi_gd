@@ -31,7 +31,11 @@ public static class RegexPatterns
     /// </summary>
     public static readonly TextRangePattern MongolianPattern = new TextRangePattern('\u1800', '\u18AF');
 
-    // todo 处理蒙科立编码
+    /// <summary>
+    /// 蒙科立蒙古文字符
+    /// </summary>
+    /// [蒙科立输入法 - Menksoft](http://www.menksoft.com/ )
+    public static readonly TextRangePattern MenksoftMongolian = new TextRangePattern('\uE230', '\uE34F');
 
     /// <summary>
     /// 阿拉伯数字
