@@ -1,23 +1,27 @@
-﻿using System;
+﻿using HarfBuzzSharp;
+
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Layout;
-using LightTextEditorPlus.Core.Platform;
-
-using HarfBuzzSharp;
-using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Document;
-using LightTextEditorPlus.Utils;
-using SkiaSharp;
-
-using Buffer = HarfBuzzSharp.Buffer;
-using Font = HarfBuzzSharp.Font;
-using System.Text;
 using LightTextEditorPlus.Core.Exceptions;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
+using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
+using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Utils;
+
+using SkiaSharp;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Text;
+using LightTextEditorPlus.Core.Primitive.Collections;
+using Buffer = HarfBuzzSharp.Buffer;
+using Font = HarfBuzzSharp.Font;
 
 namespace LightTextEditorPlus.Platform;
 
@@ -132,6 +136,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     public void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
+        ICharDataLayoutInfoSetter charDataLayoutInfoSetter = argument.CharDataLayoutInfoSetter;
+
         CharData currentCharData = argument.CurrentCharData;
         bool isHorizontal = updateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
 
@@ -189,11 +195,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         // 以下代码仅仅只是为了调试而已，等稳定了就可以删除
         _ = renderGlyphPositions;
+        skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
 
         // 当前的 run 的边界。这个变量现在没有用到，只有调试用途
         var runBounds = new TextRect();
 
-        skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
 
         var baselineY = -skFont.Metrics.Ascent;
 
@@ -203,10 +209,10 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
         // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
+        using TextPoolArrayContext<CharSizeInfo> charSizeInfoArrayContext = updateLayoutContext.Rent<CharSizeInfo>(glyphInfoListCount);
+        Span<CharSizeInfo> charSizeInfoSpan = charSizeInfoArrayContext.Span;
 
-        // runListIndex 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
-        // 为什么有 i 还不够，还需要 runListIndex 变量？原因是存在 StandardLigatures （liga） 连写的情况，可能实际的 glyph 数量会小于字符数量，这是符合预期的
-        for (int i = 0, runListIndex = 0; i < glyphInfoListCount; i++, runListIndex++)
+        for (int i = 0; i < glyphInfoListCount; i++)
         {
             var renderBounds = glyphBounds[i];
             TextGlyphInfo glyphInfo = glyphInfoList[i];
@@ -262,48 +268,15 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
             runBounds = runBounds.Union(glyphRunBounds);
 
-            if (runListIndex < glyphInfo.GlyphCluster)
+            charSizeInfoSpan[i] = new CharSizeInfo(glyphRunBounds)
             {
-                // 证明有跳过的情况
-                // 可能是 liga 连写的情况
-                Debug.Assert(runListIndex != 0);
-                var lastCharData = charDataList[runListIndex - 1];
-                Debug.Assert(!lastCharData.IsInvalidCharDataInfo, "上一个字符必定已经设置过字符信息");
-                for (int t = runListIndex; t < glyphInfo.GlyphCluster; t++)
+                CharDataInfo = new CharDataInfo(frameSize, faceSize, baselineY)
                 {
-                    CharData tCharData = charDataList[t];
-                    argument.CharDataLayoutInfoSetter.SetCharDataInfo(tCharData, new CharDataInfo(TextSize.Zero, TextSize.Zero, baselineY)
-                    {
-                        GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
-                        Status = CharDataInfoStatus.LigatureContinue,
-                    });
-                }
-
-                runListIndex = (int) glyphInfo.GlyphCluster;
-            }
-
-            CharData charData = charDataList[runListIndex];
-            Debug.Assert(charData.IsInvalidCharDataInfo);
-
-            CharDataInfoStatus charDataInfoStatus = CharDataInfoStatus.Normal;
-
-            // 可能存在 liga 连写的情况
-            if (i != glyphInfoListCount - 1)
-            {
-                TextGlyphInfo nextGlyphInfo = glyphInfoList[i + 1];
-                if (nextGlyphInfo.GlyphCluster > runListIndex + 1)
-                {
-                    // 证明下一个字形的 cluster 是超过当前字符的下一个字符的
-                    // 说明当前字符是 liga 连写的开始
-                    charDataInfoStatus = CharDataInfoStatus.LigatureStart;
-                }
-            }
-
-            argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new CharDataInfo(frameSize, faceSize, baselineY)
-            {
-                GlyphIndex = glyphInfo.GlyphIndex,
-                Status = charDataInfoStatus,
-            });
+                    GlyphIndex = glyphInfo.GlyphIndex,
+                    Status = CharDataInfoStatus.Normal,
+                },
+                GlyphCluster = glyphInfo.GlyphCluster,
+            };
 
             currentX = nextX;
         }
@@ -315,6 +288,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         runBounds = runBounds.Offset(baselineOrigin.X, 0);
         _ = runBounds;// 当前 runBounds 只有调试作用
+
+        SetCharDataInfo(charSizeInfoSpan, charDataList, in argument);
 
         if (currentCharData.IsInvalidCharDataInfo)
         {
@@ -403,6 +378,88 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         return glyphInfoList;
     }
 
+    private static void SetCharDataInfo
+    (
+        Span<CharSizeInfo> charSizeInfoSpan,
+        TextReadOnlyListSpan<CharData> charDataList,
+        in FillSizeOfCharDataListArgument argument
+    )
+    {
+        ICharDataLayoutInfoSetter charDataLayoutInfoSetter = argument.CharDataLayoutInfoSetter;
+        Debug.Assert(charSizeInfoSpan.Length>0);
+        CharDataInfo ligatureCharDataInfo = charSizeInfoSpan[0].CharDataInfo with
+        {
+            FrameSize = TextSize.Zero,
+            FaceSize = TextSize.Zero,
+            GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
+            Status = CharDataInfoStatus.LigatureContinue,
+        };
+
+        // runListIndex 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
+        // 为什么有 i 还不够，还需要 runListIndex 变量？原因是存在 StandardLigatures （liga） 连写的情况，可能实际的 glyph 数量会小于字符数量，这是符合预期的
+        int runListIndex = 0;
+        for (int i = 0; i < charSizeInfoSpan.Length; i++)
+        {
+            CharSizeInfo charSizeInfo = charSizeInfoSpan[i];
+            CharDataInfo charDataInfo = charSizeInfo.CharDataInfo;
+
+            CharData charData = charDataList[runListIndex];
+
+            // 可能存在 liga 连写的情况
+            if (i != charSizeInfoSpan.Length - 1)
+            {
+                CharSizeInfo nextInfo = charSizeInfoSpan[i + 1];
+                if (nextInfo.GlyphCluster > runListIndex + 1)
+                {
+                    // 证明下一个字形的 cluster 是超过当前字符的下一个字符的
+                    // 说明当前字符是 liga 连写的开始
+                    for (runListIndex = runListIndex + 1; runListIndex < nextInfo.GlyphCluster; runListIndex++)
+                    {
+                        SetLigatureContinue(runListIndex);
+                    }
+                    // 因为循环自带加一的效果，需要冲掉
+                    runListIndex--;
+
+                    charDataInfo = charDataInfo with
+                    {
+                        // 应当设置当前字符为连字开始
+                        Status = CharDataInfoStatus.LigatureStart,
+                    };
+                }
+            }
+            else
+            {
+                // 最后一个字符了，如果末尾没有了，则证明最后一个是连字符
+                if (runListIndex + 1 < charDataList.Count)
+                {
+                    for (runListIndex = runListIndex + 1; runListIndex < charDataList.Count; runListIndex++)
+                    {
+                        SetLigatureContinue(runListIndex);
+                    }
+
+                    // 因为循环自带加一的效果，需要冲掉。虽然这是多余的，因为立刻就退出循环了
+                    runListIndex--;
+
+                    charDataInfo = charDataInfo with
+                    {
+                        // 应当设置当前字符为连字开始
+                        Status = CharDataInfoStatus.LigatureStart,
+                    };
+                }
+            }
+
+            charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
+            runListIndex++;
+        }
+
+        void SetLigatureContinue(int charIndex)
+        {
+            CharData ligatureCharData = charDataList[charIndex];
+            // 连写的字符，均设置为 LigatureContinue 状态。且无宽度高度值
+            charDataLayoutInfoSetter.SetCharDataInfo(ligatureCharData, ligatureCharDataInfo);
+        }
+    }
+
     /// <summary>
     /// 文本的字形信息
     /// </summary>
@@ -415,4 +472,28 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// <param name="GlyphOffset"></param>
     readonly record struct TextGlyphInfo(ushort GlyphIndex, uint GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
 
+    /// <summary>
+    /// 字符尺寸信息
+    /// </summary>
+    /// <param name="GlyphRunBounds">字符的外框，字外框</param>
+    readonly record struct CharSizeInfo(TextRect GlyphRunBounds)
+    {
+        /// <summary>
+        /// cluster 属性是一个整数，你可以使用它来帮助识别当字形重排、拆分或组合码点时的情况
+        /// See https://harfbuzz.github.io/shaping-and-shape-plans.html
+        /// </summary>
+        public required uint GlyphCluster { get; init; }
+
+        /// <summary>
+        /// 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
+        /// </summary>
+        public TextSize TextFaceSize => CharDataInfo.FaceSize;
+
+        public required CharDataInfo CharDataInfo { get; init; }
+
+        /// <summary>
+        /// 文字外框，字外框尺寸
+        /// </summary>
+        public TextSize TextFrameSize => GlyphRunBounds.TextSize;
+    }
 }
