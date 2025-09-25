@@ -838,7 +838,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             if (charData.IsInvalidCharDataInfo)
             {
-                var fillSizeOfRunArgument = new FillSizeOfRunArgument(currentRunList.Slice(i), updateLayoutContext);
+                var fillSizeOfRunArgument = new FillSizeOfCharDataListArgument(currentRunList.Slice(i), updateLayoutContext);
                 Debug.Assert(ReferenceEquals(charData, fillSizeOfRunArgument.CurrentCharData));
 
                 MeasureAndFillSizeOfRun(fillSizeOfRunArgument);

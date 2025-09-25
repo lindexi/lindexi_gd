@@ -129,7 +129,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// Copy from https://github.com/AvaloniaUI/Avalonia
     /// src\Skia\Avalonia.Skia\TextShaperImpl.cs
     /// src\Skia\Avalonia.Skia\GlyphRunImpl.cs
-    public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
+    public void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         CharData currentCharData = argument.CurrentCharData;
@@ -141,10 +141,10 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             return;
         }
 
-        var runList = argument.RunList;
+        var charDataList = argument.ToMeasureCharDataList;
 
         // 获取当前相同的字符属性的段，作为当前一次性测量的段。如此可以提高性能
-        runList = runList.GetFirstCharSpanContinuous();
+        charDataList = charDataList.GetFirstCharSpanContinuous();
 
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
@@ -152,14 +152,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         // 确保设置了字符的尺寸
         // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
-        using CharDataListToCharSpanResult charDataListToCharSpanResult = runList.ToRenderCharSpan();
+        using CharDataListToCharSpanResult charDataListToCharSpanResult = charDataList.ToRenderCharSpan();
 
         SKFont skFont = renderingRunPropertyInfo.Font;
         ReadOnlySpan<char> text = charDataListToCharSpanResult.CharSpan;
         List<TextGlyphInfo> glyphInfoList = ShapeByHarfBuzz(text, skFont, updateLayoutContext);
 
         var charCount = charDataListToCharSpanResult.CharSpan.Length;
-        Debug.Assert(charCount == runList.Count, "字符数量应该匹配");
+        Debug.Assert(charCount == charDataList.Count, "字符数量应该匹配");
 
         var glyphInfoListCount = glyphInfoList.Count;
         // 为什么是小于等于？因为存在 liga 连写的情况，可能实际的 glyph 数量会小于字符数量
@@ -267,11 +267,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 // 证明有跳过的情况
                 // 可能是 liga 连写的情况
                 Debug.Assert(runListIndex != 0);
-                var lastCharData = runList[runListIndex - 1];
+                var lastCharData = charDataList[runListIndex - 1];
                 Debug.Assert(!lastCharData.IsInvalidCharDataInfo, "上一个字符必定已经设置过字符信息");
                 for (int t = runListIndex; t < glyphInfo.GlyphCluster; t++)
                 {
-                    CharData tCharData = runList[t];
+                    CharData tCharData = charDataList[t];
                     argument.CharDataLayoutInfoSetter.SetCharDataInfo(tCharData, new CharDataInfo(TextSize.Zero, TextSize.Zero, baselineY)
                     {
                         GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
@@ -282,7 +282,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 runListIndex = (int) glyphInfo.GlyphCluster;
             }
 
-            CharData charData = runList[runListIndex];
+            CharData charData = charDataList[runListIndex];
             Debug.Assert(charData.IsInvalidCharDataInfo);
 
             CharDataInfoStatus charDataInfoStatus = CharDataInfoStatus.Normal;
@@ -403,8 +403,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         return glyphInfoList;
     }
 
-    private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";
-
     /// <summary>
     /// 文本的字形信息
     /// </summary>
@@ -417,22 +415,4 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// <param name="GlyphOffset"></param>
     readonly record struct TextGlyphInfo(ushort GlyphIndex, uint GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
 
-    /// <summary>
-    /// 字符尺寸信息
-    /// </summary>
-    /// <param name="GlyphRunBounds">字符的外框，字外框</param>
-    readonly record struct CharSizeInfo(TextRect GlyphRunBounds)
-    {
-        /// <summary>
-        /// 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
-        /// </summary>
-        public TextSize TextFaceSize => CharDataInfo.FaceSize;
-
-        public required CharDataInfo CharDataInfo { get; init; }
-
-        /// <summary>
-        /// 文字外框，字外框尺寸
-        /// </summary>
-        public TextSize TextFrameSize => GlyphRunBounds.TextSize;
-    }
 }

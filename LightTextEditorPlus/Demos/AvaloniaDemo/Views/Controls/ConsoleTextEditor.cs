@@ -63,7 +63,7 @@ file class Provider : AvaloniaSkiaTextEditorPlatformProvider
 
 file class CharInfoMeasurer : ICharInfoMeasurer
 {
-    public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
+    public void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         CharData currentCharData = argument.CurrentCharData;
