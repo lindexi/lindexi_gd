@@ -1,4 +1,8 @@
-﻿using HarfBuzzSharp;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+using HarfBuzzSharp;
 
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -6,22 +10,14 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Document;
-using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Text;
-using LightTextEditorPlus.Core.Primitive.Collections;
 using Buffer = HarfBuzzSharp.Buffer;
-using Font = HarfBuzzSharp.Font;
 
 namespace LightTextEditorPlus.Platform;
 
@@ -170,7 +166,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var glyphInfoListCount = glyphInfoSpan.Length;
         // 为什么是小于等于？因为存在 liga 连写的情况，可能实际的 glyph 数量会小于字符数量
         Debug.Assert(glyphInfoListCount <= charCount);
-        Debug.Assert(glyphInfoListCount > 0,"必定能找到至少一个字符");
+        Debug.Assert(glyphInfoListCount > 0, "必定能找到至少一个字符");
 
         using TextPoolArrayContext<ushort> glyphIndexContext = updateLayoutContext.Rent<ushort>(glyphInfoListCount);
         using TextPoolArrayContext<SKRect> glyphBoundsContext = updateLayoutContext.Rent<SKRect>(glyphInfoListCount);
@@ -374,13 +370,20 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             var offsetX = position.XOffset * textScale;
 
             var offsetY = -position.YOffset * textScale;
-            
+
             glyphInfoSpan[i] = new TextGlyphInfo(glyphIndex, cluster, glyphAdvance, (offsetX, offsetY));
         }
 
         return textGlyphInfoContext;
     }
 
+    /// <summary>
+    /// 设置字符信息
+    /// </summary>
+    /// <param name="charSizeInfoSpan"></param>
+    /// <param name="charDataList"></param>
+    /// <param name="argument"></param>
+    /// 设置的时候的一个重点是处理 StandardLigatures 'liga' 连写的情况，根据 GlyphCluster 数据决定哪些字符属于连写，需要跳过的情况
     private static void SetCharDataInfo
     (
         Span<CharSizeInfo> charSizeInfoSpan,
@@ -389,7 +392,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     )
     {
         ICharDataLayoutInfoSetter charDataLayoutInfoSetter = argument.CharDataLayoutInfoSetter;
-        Debug.Assert(charSizeInfoSpan.Length>0);
+        Debug.Assert(charSizeInfoSpan.Length > 0);
         CharDataInfo ligatureCharDataInfo = charSizeInfoSpan[0].CharDataInfo with
         {
             FrameSize = TextSize.Zero,
@@ -398,30 +401,30 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             Status = CharDataInfoStatus.LigatureContinue,
         };
 
-        // runListIndex 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
-        // 为什么有 i 还不够，还需要 runListIndex 变量？原因是存在 StandardLigatures （liga） 连写的情况，可能实际的 glyph 数量会小于字符数量，这是符合预期的
-        int runListIndex = 0;
+        // charDataListIndex 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
+        // 为什么有 i 还不够，还需要 charDataListIndex 变量？原因是存在 StandardLigatures （liga） 连写的情况，可能实际的 glyph 数量会小于字符数量，这是符合预期的
+        int charDataListIndex = 0;
         for (int i = 0; i < charSizeInfoSpan.Length; i++)
         {
             CharSizeInfo charSizeInfo = charSizeInfoSpan[i];
             CharDataInfo charDataInfo = charSizeInfo.CharDataInfo;
 
-            CharData charData = charDataList[runListIndex];
+            CharData charData = charDataList[charDataListIndex];
 
             // 可能存在 liga 连写的情况
             if (i != charSizeInfoSpan.Length - 1)
             {
                 CharSizeInfo nextInfo = charSizeInfoSpan[i + 1];
-                if (nextInfo.GlyphCluster > runListIndex + 1)
+                if (nextInfo.GlyphCluster > charDataListIndex + 1)
                 {
                     // 证明下一个字形的 cluster 是超过当前字符的下一个字符的
                     // 说明当前字符是 liga 连写的开始
-                    for (runListIndex = runListIndex + 1; runListIndex < nextInfo.GlyphCluster; runListIndex++)
+                    for (charDataListIndex = charDataListIndex + 1; charDataListIndex < nextInfo.GlyphCluster; charDataListIndex++)
                     {
-                        SetLigatureContinue(runListIndex);
+                        SetLigatureContinue(charDataListIndex);
                     }
                     // 因为循环自带加一的效果，需要冲掉
-                    runListIndex--;
+                    charDataListIndex--;
 
                     charDataInfo = charDataInfo with
                     {
@@ -433,15 +436,15 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             else
             {
                 // 最后一个字符了，如果末尾没有了，则证明最后一个是连字符
-                if (runListIndex + 1 < charDataList.Count)
+                if (charDataListIndex + 1 < charDataList.Count)
                 {
-                    for (runListIndex = runListIndex + 1; runListIndex < charDataList.Count; runListIndex++)
+                    for (charDataListIndex = charDataListIndex + 1; charDataListIndex < charDataList.Count; charDataListIndex++)
                     {
-                        SetLigatureContinue(runListIndex);
+                        SetLigatureContinue(charDataListIndex);
                     }
 
                     // 因为循环自带加一的效果，需要冲掉。虽然这是多余的，因为立刻就退出循环了
-                    runListIndex--;
+                    charDataListIndex--;
 
                     charDataInfo = charDataInfo with
                     {
@@ -452,7 +455,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             }
 
             charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
-            runListIndex++;
+            charDataListIndex++;
         }
 
         void SetLigatureContinue(int charIndex)
