@@ -821,14 +821,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextReadOnlyListSpan<CharData> currentRunList = argument.SliceFromCurrentRunList();
         Debug.Assert(currentRunList.Count > 0);
         // 如果字符还没测量，则立刻执行测量，这是因为在 IWordDivider 时就需要开始判断连写字了
-        if (currentRunList[0].IsInvalidCharDataInfo)
-        {
-            var sizeOfCharDataListArgument = new FillSizeOfCharDataListArgument(currentRunList, updateLayoutContext);
-            MeasureAndFillSizeOfCharDataList(sizeOfCharDataListArgument);
-
-            // 不用扔调试异常了，在 MeasureAndFillSizeOfCharDataList 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfCharDataList 方法的判断而已
-            Debug.Assert(!currentRunList[0].IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfCharDataList)} 方法可确保 CurrentCharData 的 Size 一定不空");
-        }
+        EnsureMeasureAndFillSizeOfCharDataList(in currentRunList, updateLayoutContext);
 
 #if DEBUG
         var currentCharData = argument.CurrentCharData;
