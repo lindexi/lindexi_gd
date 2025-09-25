@@ -18,7 +18,7 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
 
     private readonly double _baselineRatio;
 
-    public void MeasureAndFillSizeOfCharDataList(in FillSizeOfCharDataListArgument argument)
+    public void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
     {
         CharData currentCharData = argument.CurrentCharData;
 

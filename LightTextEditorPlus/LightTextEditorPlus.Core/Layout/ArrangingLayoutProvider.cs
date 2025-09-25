@@ -360,18 +360,7 @@ abstract class ArrangingLayoutProvider
             TextReadOnlyListSpan<CharData> charDataList = markerRuntimeInfo.CharDataList;
             DebugAssert(charDataList.Count > 0, "能够有项目符号运行时数据时，必定存在字符列表");
 
-            for (var i = 0; i < charDataList.Count; i++)
-            {
-                // 循环进行字符测量。在 MeasureAndFillSizeOfRun 方法里面，不会测量整个字符列表，只会测量连续的部分
-                CharData charData = charDataList[i];
-                if (charData.IsInvalidCharDataInfo)
-                {
-                    TextReadOnlyListSpan<CharData> toMeasureCharDataList = charDataList.Slice(i);
-
-                    var fillSizeOfRunArgument = new FillSizeOfCharDataListArgument(toMeasureCharDataList, argument.UpdateLayoutContext);
-                    MeasureAndFillSizeOfCharDataList(fillSizeOfRunArgument);
-                }
-            }
+            EnsureMeasureAndFillSizeOfCharDataList(in charDataList, argument.UpdateLayoutContext);
 
             foreach (CharData charData in charDataList)
             {
@@ -584,7 +573,8 @@ abstract class ArrangingLayoutProvider
         var listSpan = virtualCharDataList.ToListSpan();
         CharData virtualCharData = virtualCharDataList.CurrentObject;
 
-        MeasureAndFillSizeOfCharDataList(new FillSizeOfCharDataListArgument(listSpan, context));
+        // 虽然通过调用 MeasureAndFillSizeOfCharDataList 也是可以的，尽管 MeasureAndFillSizeOfCharDataList 只承诺首个字符必定布局，但这里只有一个字符
+        EnsureMeasureAndFillSizeOfCharDataList(in listSpan, context);
         Debug.Assert(!virtualCharData.IsInvalidCharDataInfo);
         // 尽管 virtualCharData 是瞬时的，但是从中取出 CharDataInfo 结构体是安全的
         return virtualCharData.CharDataInfo;
@@ -684,17 +674,40 @@ abstract class ArrangingLayoutProvider
     #region 通用辅助方法
 
     /// <summary>
+    /// 确保传入的 <paramref name="toMeasureCharDataList"/> 里面的字符信息都已经测量并且填充了尺寸
+    /// </summary>
+    /// <param name="toMeasureCharDataList"></param>
+    /// <param name="updateLayoutContext"></param>
+    protected void EnsureMeasureAndFillSizeOfCharDataList(in TextReadOnlyListSpan<CharData> toMeasureCharDataList, UpdateLayoutContext updateLayoutContext)
+    {
+        // 循环进行字符测量。在 MeasureAndFillSizeOfRun 方法里面，不会测量整个字符列表，只会测量连续的部分
+        for (int i = 0; i < toMeasureCharDataList.Count; i++)
+        {
+            CharData charData = toMeasureCharDataList[i];
+            if (charData.IsInvalidCharDataInfo)
+            {
+                TextReadOnlyListSpan<CharData> charList = toMeasureCharDataList.Slice(i);
+                var argument = new FillSizeOfCharDataArgument(charList, updateLayoutContext);
+                MeasureAndFillSizeOfCharData(in argument);
+
+                // 不用扔调试异常了，在 MeasureAndFillSizeOfCharDataList 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfCharDataList 方法的判断而已
+                Debug.Assert(!charData.IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfCharData)} 方法可确保 CurrentCharData 的 Size 一定不空");
+            }
+        }
+    }
+
+    /// <summary>
     /// 测量字符信息。确保 argument.CurrentCharData.Size 一定不为空
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected void MeasureAndFillSizeOfCharDataList(in FillSizeOfCharDataListArgument argument)
+    protected void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
     {
         // 通过平台提供者获取字符信息测量器
         ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
         if (charInfoMeasurer != null)
         {
-            charInfoMeasurer.MeasureAndFillSizeOfCharDataList(argument);
+            charInfoMeasurer.MeasureAndFillSizeOfCharData(argument);
 
             if (argument.CurrentCharData.IsInvalidCharDataInfo)
             {
@@ -719,7 +732,7 @@ abstract class ArrangingLayoutProvider
         }
 
         // 默认的字符信息测量器
-        MeasureAndFillCharInfo(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
+        MeasureAndFillCurrentCharData(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
     }
 
     /// <summary>
@@ -728,7 +741,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="charData"></param>
     /// <param name="setter"></param>
     /// <returns></returns>
-    private static void MeasureAndFillCharInfo(CharData charData, ICharDataLayoutInfoSetter setter)
+    private static void MeasureAndFillCurrentCharData(CharData charData, ICharDataLayoutInfoSetter setter)
     {
         double fontSize = charData.RunProperty.FontSize;
         // 默认是方块字符

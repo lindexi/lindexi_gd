@@ -9,7 +9,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 /// <param name="ToMeasureCharDataList"></param>
 /// <param name="UpdateLayoutContext"></param>
-public readonly record struct FillSizeOfCharDataListArgument(TextReadOnlyListSpan<CharData> ToMeasureCharDataList, UpdateLayoutContext UpdateLayoutContext)
+public readonly record struct FillSizeOfCharDataArgument(TextReadOnlyListSpan<CharData> ToMeasureCharDataList, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
     /// 当前的字符
