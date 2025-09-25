@@ -350,7 +350,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
 
-        font.Shape(buffer, new Feature(new Tag('l', 'i', 'g', 'a'), 0));
+        font.Shape(buffer);
 
         font.GetScale(out var scaleX, out _);
 
