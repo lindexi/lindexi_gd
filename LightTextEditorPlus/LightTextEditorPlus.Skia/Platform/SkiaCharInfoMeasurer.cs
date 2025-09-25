@@ -521,7 +521,16 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 }
             }
 
-            charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
+            if (charData.IsInvalidCharDataInfo)
+            {
+                charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
+            }
+            else if (charDataInfo.Status == CharDataInfoStatus.LigatureStart)
+            {
+                // 如果是属于连写的开始，则需要更新状态。比如说有 'fi' 连写。分为两次输入，第一次输入 'f'，第二次输入 'i'。第一次输入 'f' 时，可能已经测量过了，并且状态是 Normal 值。此时当输入 'i' 时，才发现 'fi' 是连写的开始，则需要更新 'f' 的状态为 LigatureStart 值
+                charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
+            }
+
             charDataListIndex++;
         }
 

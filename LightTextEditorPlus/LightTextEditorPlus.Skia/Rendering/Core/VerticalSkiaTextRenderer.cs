@@ -103,9 +103,6 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
             SKFont skFont = renderingRunPropertyInfo.Font;
             SKPaint textRenderSKPaint = renderingRunPropertyInfo.Paint;
 
-            using CharDataListToCharSpanResult charSpanResult = charList.ToRenderCharSpan();
-            ReadOnlySpan<char> charSpan = charSpanResult.CharSpan;
-
             SKPoint[] positionList = new SKPoint[charList.Count];
             for (int i = 0; i < charList.Count; i++)
             {
@@ -136,7 +133,7 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
                 positionList[i] = new SKPoint((float) x, (float) y);
             }
 
-            using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(charSpan, skFont, positionList.AsSpan());
+            using SKTextBlob skTextBlob = BaseSkiaTextRenderer.ToSKTextBlob(in charList, skFont);
             canvas.DrawText(skTextBlob, 0, 0, textRenderSKPaint);
             return renderBounds;
         }

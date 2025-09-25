@@ -159,7 +159,10 @@ public sealed class CharData : ICharData, ILayoutCharData
             throw new ArgumentException("禁止传入无效的字符信息", nameof(charDataInfo));
         }
 
-        if (!CharDataInfo.IsInvalid)
+        // 已经设置过值，且更新的不是连写字则抛出异常
+        if (!CharDataInfo.IsInvalid
+            // 为什么连写字允许重复更新？比如说有 'fi' 连写。分为两次输入，第一次输入 'f'，第二次输入 'i'。第一次输入 'f' 时，可能已经测量过了，并且状态是 Normal 值。此时当输入 'i' 时，才发现 'fi' 是连写的开始，则需要更新 'f' 的状态为 LigatureStart 值
+            && charDataInfo.Status is not (CharDataInfoStatus.LigatureStart or CharDataInfoStatus.LigatureContinue))
         {
             throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
         }
