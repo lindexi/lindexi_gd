@@ -1,11 +1,13 @@
-﻿using System;
-using System.Diagnostics;
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils;
+
+using System;
+using System.Diagnostics;
 
 namespace LightTextEditorPlus.Core.Rendering;
 
@@ -153,7 +155,13 @@ public readonly struct CaretRenderInfo
         TextSize textSize;
         if (charData != null && !charData.IsInvalidCharDataInfo)
         {
-            textSize = charData.Size;
+            if (charData.CharDataInfo.Status == CharDataInfoStatus.LigatureContinue)
+            {
+                // 如果是连写字的后续字符，那就取连写字的尺寸
+                charData = LigatureHelper.FindLigatureStartCharData(LineCharDataList, HitLineCharOffset.Offset);
+            }
+
+            textSize = charData.CharDataInfo.FrameSize;
         }
         else
         {

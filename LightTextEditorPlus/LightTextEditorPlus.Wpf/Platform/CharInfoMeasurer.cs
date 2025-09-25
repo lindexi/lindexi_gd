@@ -17,7 +17,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
     private readonly TextEditor _textEditor;
 
-    public void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument)
+    public void MeasureAndFillSizeOfCharDataList(in FillSizeOfCharDataListArgument argument)
     {
         CharData currentCharData = argument.CurrentCharData;
 
