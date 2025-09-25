@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-
+using System.Runtime.InteropServices;
 using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
@@ -117,6 +118,11 @@ file struct Renderer : IDisposable
             for (var i = 0; i < argument.CharList.Count; i++)
             {
                 TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i, 1);
+                if (charList[0].CharDataInfo.Status == CharDataInfoStatus.LigatureContinue)
+                {
+                    // 逐个渲染时，需要考虑连写字的情况，跳过连写字的中间部分
+                    continue;
+                }
                 RenderCharList(in charList, in lineRenderInfo);
             }
         }
@@ -199,9 +205,6 @@ file struct Renderer : IDisposable
 
         x += marginLeft;
 
-        using CharDataListToCharSpanResult charSpanResult = charList.ToRenderCharSpan();
-        ReadOnlySpan<char> charSpan = charSpanResult.CharSpan;
-
         foreach (CharData charData in charList)
         {
             DrawDebugBounds(charData.GetBounds().ToSKRect(), Config.DebugDrawCharBoundsInfo);
@@ -212,12 +215,6 @@ file struct Renderer : IDisposable
         SKRect charSpanBounds = SKRect.Create(x, y, width, height);
         DrawDebugBounds(charSpanBounds, Config.DebugDrawCharSpanBoundsInfo);
         RenderBounds = RenderBounds.Union(charSpanBounds.ToTextRect());
-
-        if (!skFont.ContainsGlyphs(charSpan))
-        {
-            // 预计不会出现这样的问题，在渲染之前已经处理过了
-            throw new TextEditorInnerException($"文本框架内应该确保进入渲染层时，不会出现字体不能包含字符的情况");
-        }
 
         // 绘制四线三格的调试信息
         if (Config.ShowHandwritingPaperDebugInfo)
@@ -234,9 +231,10 @@ file struct Renderer : IDisposable
 
         // 由于 Skia 的 DrawText 传入的 Point 是文本的基线，因此需要调整 Y 值
         y += baselineY;
-        using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan, skFont);
-        SKRect skTextBlobBounds = skTextBlob.Bounds;
-        _ = skTextBlobBounds;
+
+        using SKTextBlob skTextBlob = BaseSkiaTextRenderer.ToSKTextBlob(in charList, skFont);
+        //SKRect skTextBlobBounds = skTextBlob.Bounds;
+        //_ = skTextBlobBounds;
 
         // 所有都完成之后，再来决定前景色。后续可以考虑相同的前景色统一起来，这样才能做比较大范围的渐变色。否则中间有一个字符稍微改了字号，就会打断渐变色
         SkiaTextBrush foreground = skiaTextRunProperty.Foreground;

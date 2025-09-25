@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils.TextArrayPools;
 
 namespace LightTextEditorPlus.Core.Utils;
 
@@ -92,6 +94,32 @@ public static class ReadOnlyCharDataListExtension
         }
 
         return new CharDataListToCharSpanResult(buffer, length, arrayPool);
+    }
+
+    /// <summary>
+    /// 获取渲染用的字形信息列表
+    /// </summary>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    public static TextPoolArrayContext<ushort> ToRenderGlyphIndexSpanContext(this TextReadOnlyListSpan<CharData> list)
+    {
+        TextPoolArrayContext<ushort> glyphIndexContext = TextArrayPool.Rent<ushort>(list.Count);
+        Span<ushort> glyphIndexSpan = glyphIndexContext.Span;
+        var length = 0;
+        foreach (CharData charData in list)
+        {
+            Debug.Assert(!charData.IsInvalidCharDataInfo);
+            CharDataInfo charDataInfo = charData.CharDataInfo;
+            if (charDataInfo.Status == CharDataInfoStatus.LigatureContinue)
+            {
+                continue;
+            }
+
+            glyphIndexSpan[length] = charDataInfo.GlyphIndex;
+            length++;
+        }
+
+        return glyphIndexContext.Slice(0, length);
     }
 
     /// <summary>
