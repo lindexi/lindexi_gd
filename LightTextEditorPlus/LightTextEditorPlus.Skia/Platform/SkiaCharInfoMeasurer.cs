@@ -136,7 +136,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     public void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
-        ICharDataLayoutInfoSetter charDataLayoutInfoSetter = argument.CharDataLayoutInfoSetter;
 
         CharData currentCharData = argument.CurrentCharData;
         bool isHorizontal = updateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
@@ -162,14 +161,16 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         SKFont skFont = renderingRunPropertyInfo.Font;
         ReadOnlySpan<char> text = charDataListToCharSpanResult.CharSpan;
-        List<TextGlyphInfo> glyphInfoList = ShapeByHarfBuzz(text, skFont, updateLayoutContext);
+        using TextPoolArrayContext<TextGlyphInfo> textGlyphInfoContext = ShapeByHarfBuzz(text, skFont, updateLayoutContext);
+        Span<TextGlyphInfo> glyphInfoSpan = textGlyphInfoContext.Span;
 
         var charCount = charDataListToCharSpanResult.CharSpan.Length;
         Debug.Assert(charCount == charDataList.Count, "字符数量应该匹配");
 
-        var glyphInfoListCount = glyphInfoList.Count;
+        var glyphInfoListCount = glyphInfoSpan.Length;
         // 为什么是小于等于？因为存在 liga 连写的情况，可能实际的 glyph 数量会小于字符数量
         Debug.Assert(glyphInfoListCount <= charCount);
+        Debug.Assert(glyphInfoListCount > 0,"必定能找到至少一个字符");
 
         using TextPoolArrayContext<ushort> glyphIndexContext = updateLayoutContext.Rent<ushort>(glyphInfoListCount);
         using TextPoolArrayContext<SKRect> glyphBoundsContext = updateLayoutContext.Rent<SKRect>(glyphInfoListCount);
@@ -182,7 +183,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var currentX = 0.0;
         for (int i = 0; i < glyphInfoListCount; i++)
         {
-            TextGlyphInfo glyphInfo = glyphInfoList[i];
+            TextGlyphInfo glyphInfo = glyphInfoSpan[i];
             var offset = glyphInfo.GlyphOffset;
 
             // 这里的 GlyphIndex 是 HarfBuzzSharp.Buffer 中的 Codepoint 的值，而不是 GlyphIndex 的值
@@ -190,7 +191,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
             renderGlyphPositions[i] = new SKPoint((float) (currentX + offset.OffsetX), (float) offset.OffsetY);
 
-            currentX += glyphInfoList[i].GlyphAdvance;
+            currentX += glyphInfoSpan[i].GlyphAdvance;
         }
 
         // 以下代码仅仅只是为了调试而已，等稳定了就可以删除
@@ -199,7 +200,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         // 当前的 run 的边界。这个变量现在没有用到，只有调试用途
         var runBounds = new TextRect();
-
 
         var baselineY = -skFont.Metrics.Ascent;
 
@@ -215,7 +215,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         for (int i = 0; i < glyphInfoListCount; i++)
         {
             var renderBounds = glyphBounds[i];
-            TextGlyphInfo glyphInfo = glyphInfoList[i];
+            TextGlyphInfo glyphInfo = glyphInfoSpan[i];
             var advance = glyphInfo.GlyphAdvance;
 
             // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
@@ -234,7 +234,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             {
                 // 计算方法请参阅
                 // [WPF 探索 Skia 的竖排文本渲染的字符高度 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18815810 )
-                // 何为 space 属性等，请参阅文档： 《Skia 垂直直排竖排文本字符尺寸间距.enbx》
+                // 何为 space 变量等，请参阅文档： 《Skia 垂直直排竖排文本字符尺寸间距.enbx》
                 float top = renderBounds.Top;
                 var space = baselineY + top;
                 var renderCharHeight = renderBounds.Height + space;
@@ -261,7 +261,9 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             //height = /*skFont.Metrics.Leading + 有些字体的 Leading 是不参与排版的，越过的，属于上加。不能将其加入计算 */ baselineY + skFont.Metrics.Descent + enhance;
             //// 同理 skFont.Metrics.Bottom 也是不应该使用的，可能下加是超过格子的
 
-            var glyphRunBounds = new TextRect((currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, frameSize.Width,
+            double glyphX = currentX + renderBounds.Left;
+            double glyphY = baselineOrigin.Y + renderBounds.Top;
+            var glyphRunBounds = new TextRect(glyphX, glyphY, frameSize.Width,
                 frameSize.Height);
 
             Debug.Assert(frameSize == glyphRunBounds.TextSize);
@@ -297,7 +299,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         }
     }
 
-    private static List<TextGlyphInfo> ShapeByHarfBuzz(ReadOnlySpan<char> text, SKFont skFont, UpdateLayoutContext updateLayoutContext)
+    private static TextPoolArrayContext<TextGlyphInfo> ShapeByHarfBuzz(ReadOnlySpan<char> text, SKFont skFont, UpdateLayoutContext updateLayoutContext)
     {
         SKTypeface skTypeface = skFont.Typeface;
         using var buffer = new Buffer();
@@ -338,7 +340,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         var glyphPositions = buffer.GetGlyphPositionSpan();
 
-        var glyphInfoList = new List<TextGlyphInfo>(bufferLength);
+        TextPoolArrayContext<TextGlyphInfo> textGlyphInfoContext = updateLayoutContext.Rent<TextGlyphInfo>(bufferLength);
+        Span<TextGlyphInfo> glyphInfoSpan = textGlyphInfoContext.Span;
 
         for (var i = 0; i < bufferLength; i++)
         {
@@ -371,11 +374,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             var offsetX = position.XOffset * textScale;
 
             var offsetY = -position.YOffset * textScale;
-
-            glyphInfoList.Add(new TextGlyphInfo(glyphIndex, cluster, glyphAdvance, (offsetX, offsetY)));
+            
+            glyphInfoSpan[i] = new TextGlyphInfo(glyphIndex, cluster, glyphAdvance, (offsetX, offsetY));
         }
 
-        return glyphInfoList;
+        return textGlyphInfoContext;
     }
 
     private static void SetCharDataInfo
