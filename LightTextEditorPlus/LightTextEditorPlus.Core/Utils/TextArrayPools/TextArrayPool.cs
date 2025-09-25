@@ -12,7 +12,7 @@ internal static class TextArrayPool
     {
         ArrayPool<T> arrayPool = ArrayPool<T>.Shared;
         T[] buffer = arrayPool.Rent(minimumLength);
-        var textPoolArrayContext = new TextPoolArrayContext<T>(buffer, minimumLength, arrayPool);
+        var textPoolArrayContext = new TextPoolArrayContext<T>(buffer, 0, minimumLength, arrayPool);
         return textPoolArrayContext;
     }
 }

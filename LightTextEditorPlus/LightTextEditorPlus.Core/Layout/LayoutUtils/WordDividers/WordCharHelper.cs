@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
@@ -10,12 +11,12 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 internal static class WordCharHelper
 {
-    public static IEnumerable<string> TraversalSplit(TextReadOnlyListSpan<CharData> runList, int currentIndex = 0)
+    public static IEnumerable<string> TraversalSplit(TextReadOnlyListSpan<CharData> charDataList, int currentIndex = 0)
     {
-        foreach ((int start, int count) in Traversal(runList, currentIndex))
+        foreach ((int start, int count) in Traversal(charDataList, currentIndex))
         {
             var stringBuilder = new StringBuilder();
-            foreach (CharData charData in runList.Slice(start, count))
+            foreach (CharData charData in charDataList.Slice(start, count))
             {
                 stringBuilder.Append(charData.CharObject.ToText());
             }
@@ -24,27 +25,29 @@ internal static class WordCharHelper
         }
     }
 
-    public static IEnumerable<(int Start, int Count)> Traversal(TextReadOnlyListSpan<CharData> runList, int currentIndex = 0)
+    public static IEnumerable<(int Start, int Count)> Traversal(TextReadOnlyListSpan<CharData> charDataList, int currentIndex = 0)
     {
-        while (currentIndex < runList.Count)
+        while (currentIndex < charDataList.Count)
         {
-            var count = ReadWordCharCount(runList, currentIndex);
+            var count = ReadWordCharCount(charDataList, currentIndex);
             yield return (currentIndex, count);
             currentIndex += count;
         }
     }
 
     public static int ReadWordCharCount
-        (TextReadOnlyListSpan<CharData> runList, int currentIndex, UpdateLayoutContext? context = null)
+        (TextReadOnlyListSpan<CharData> charDataList, int currentIndex, UpdateLayoutContext? context = null)
     {
-        if (currentIndex >= runList.Count)
+        if (currentIndex >= charDataList.Count)
         {
             // 读到不能继续读取了，返回 0 个字符
             return 0;
         }
 
+        int count;
+
         // 读取当前的字符所在的单词的字符数量
-        if (TryReadWordCharCount(CheckSpace, out var count)
+        if (TryReadWordCharCount(CheckSpace, out count)
             || TryReadWordCharCount(CheckEnglish, out count)
             || TryReadWordCharCount(CheckNumber, out count)
             || TryReadWordCharCount(CheckTibetan, out count)
@@ -63,12 +66,18 @@ internal static class WordCharHelper
             }
         }
 
+        // 判断连写字
+        if (TryReadLigatures(charDataList, currentIndex, out count))
+        {
+            return count;
+        }
+
         // 至少能够读取出当前的一个字符
         return 1;
 
         bool TryReadWordCharCount(Predicate<CharData> match, out int charCount)
         {
-            CharData currentCharData = runList[currentIndex];
+            CharData currentCharData = charDataList[currentIndex];
             if (!match(currentCharData))
             {
                 charCount = 0;
@@ -79,9 +88,9 @@ internal static class WordCharHelper
 
             var index = currentIndex + 1;// 跳过当前，继续读取
 
-            for (; index < runList.Count; index++)
+            for (; index < charDataList.Count; index++)
             {
-                currentCharData = runList[index];
+                currentCharData = charDataList[index];
                 if (!match(currentCharData))
                 {
                     break;
@@ -91,6 +100,45 @@ internal static class WordCharHelper
             charCount = index - currentIndex;
 
             return true;
+        }
+    }
+
+    /// <summary>
+    /// 尝试读取连写字
+    /// </summary>
+    /// <param name="charDataList"></param>
+    /// <param name="currentIndex"></param>
+    /// <param name="charCount"></param>
+    /// <returns></returns>
+    private static bool TryReadLigatures(TextReadOnlyListSpan<CharData> charDataList, int currentIndex, out int charCount)
+    {
+        CharData firstCharData = charDataList[currentIndex];
+        Debug.Assert(!firstCharData.IsInvalidCharDataInfo);
+
+        if (firstCharData.CharDataInfo.Status == CharDataInfoStatus.LigatureStart)
+        {
+            int i = currentIndex + 1;
+            for (; i < charDataList.Count; i++)
+            {
+                CharData currentCharData = charDataList[i];
+                if (currentCharData.CharDataInfo.Status == CharDataInfoStatus.LigatureContinue)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            charCount = i;
+            // 超过一个字符的情况下，才算成功获取。只有一个字符时，不算连写，或此时连写带不来任何变化
+            return charCount > 1;
+        }
+        else
+        {
+            charCount = 0;
+            return false;
         }
     }
 
