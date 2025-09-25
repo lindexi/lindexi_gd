@@ -6,7 +6,7 @@
 public interface IWordDivider
 {
     /// <summary>
-    /// 分割单词
+    /// 分割单词。需要额外考虑连字符的情况
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>

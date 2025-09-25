@@ -369,7 +369,7 @@ abstract class ArrangingLayoutProvider
                     TextReadOnlyListSpan<CharData> toMeasureCharDataList = charDataList.Slice(i);
 
                     var fillSizeOfRunArgument = new FillSizeOfCharDataListArgument(toMeasureCharDataList, argument.UpdateLayoutContext);
-                    MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
+                    MeasureAndFillSizeOfCharDataList(fillSizeOfRunArgument);
                 }
             }
 
@@ -584,7 +584,7 @@ abstract class ArrangingLayoutProvider
         var listSpan = virtualCharDataList.ToListSpan();
         CharData virtualCharData = virtualCharDataList.CurrentObject;
 
-        MeasureAndFillSizeOfRun(new FillSizeOfCharDataListArgument(listSpan, context));
+        MeasureAndFillSizeOfCharDataList(new FillSizeOfCharDataListArgument(listSpan, context));
         Debug.Assert(!virtualCharData.IsInvalidCharDataInfo);
         // 尽管 virtualCharData 是瞬时的，但是从中取出 CharDataInfo 结构体是安全的
         return virtualCharData.CharDataInfo;
@@ -688,7 +688,7 @@ abstract class ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument)
+    protected void MeasureAndFillSizeOfCharDataList(in FillSizeOfCharDataListArgument argument)
     {
         // 通过平台提供者获取字符信息测量器
         ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
