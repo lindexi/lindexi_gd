@@ -232,7 +232,7 @@ file struct Renderer : IDisposable
         // 由于 Skia 的 DrawText 传入的 Point 是文本的基线，因此需要调整 Y 值
         y += baselineY;
 
-        using SKTextBlob skTextBlob = BaseSkiaTextRenderer.ToSKTextBlob(in charList, skFont);
+        using SKTextBlob skTextBlob = ToSKTextBlob(in charList, skFont);
         //SKRect skTextBlobBounds = skTextBlob.Bounds;
         //_ = skTextBlobBounds;
 
@@ -344,6 +344,16 @@ file struct Renderer : IDisposable
     }
 
     private SKPaint? _cachePaint;
+
+    private static SKTextBlob ToSKTextBlob(in TextReadOnlyListSpan<CharData> charList, SKFont skFont)
+    {
+        using TextPoolArrayContext<ushort> glyphIndexContext = charList.ToRenderGlyphIndexSpanContext();
+        Span<ushort> glyphIndexSpan = glyphIndexContext.Span;
+        Span<byte> glyphIndexByteSpan = MemoryMarshal.AsBytes(glyphIndexSpan);
+
+        SKTextBlob skTextBlob = SKTextBlob.Create(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont);
+        return skTextBlob;
+    }
 
     public void Dispose()
     {

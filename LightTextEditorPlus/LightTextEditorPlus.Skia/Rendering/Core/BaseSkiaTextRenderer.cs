@@ -90,14 +90,4 @@ abstract class BaseSkiaTextRenderer : IDisposable
     {
         _debugSKPaint?.Dispose();
     }
-
-    public static SKTextBlob ToSKTextBlob(in TextReadOnlyListSpan<CharData> charList, SKFont skFont)
-    {
-        using TextPoolArrayContext<ushort> glyphIndexContext = charList.ToRenderGlyphIndexSpanContext();
-        Span<ushort> glyphIndexSpan = glyphIndexContext.Span;
-        Span<byte> glyphIndexByteSpan = MemoryMarshal.AsBytes(glyphIndexSpan);
-
-        SKTextBlob skTextBlob = SKTextBlob.Create(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont);
-        return skTextBlob;
-    }
 }
