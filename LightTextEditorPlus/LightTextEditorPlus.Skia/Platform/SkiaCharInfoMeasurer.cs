@@ -125,7 +125,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// Copy from https://github.com/AvaloniaUI/Avalonia
     /// src\Skia\Avalonia.Skia\TextShaperImpl.cs
     /// src\Skia\Avalonia.Skia\GlyphRunImpl.cs
-    public void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument)
+    public void MeasureAndFillSizeOfCharDataList(in FillSizeOfCharDataListArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
 

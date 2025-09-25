@@ -694,7 +694,7 @@ abstract class ArrangingLayoutProvider
         ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
         if (charInfoMeasurer != null)
         {
-            charInfoMeasurer.MeasureAndFillSizeOfRun(argument);
+            charInfoMeasurer.MeasureAndFillSizeOfCharDataList(argument);
 
             if (argument.CurrentCharData.IsInvalidCharDataInfo)
             {
