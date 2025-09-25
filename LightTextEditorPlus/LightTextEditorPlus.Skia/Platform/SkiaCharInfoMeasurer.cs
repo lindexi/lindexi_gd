@@ -159,20 +159,24 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         List<TextGlyphInfo> glyphInfoList = ShapeByHarfBuzz(text, skFont, updateLayoutContext);
 
         var charCount = charDataListToCharSpanResult.CharSpan.Length;
+        Debug.Assert(charCount == runList.Count, "字符数量应该匹配");
 
-        using TextPoolArrayContext<ushort> glyphIndexContext = updateLayoutContext.Rent<ushort>(charCount);
-        using TextPoolArrayContext<SKRect> glyphBoundsContext = updateLayoutContext.Rent<SKRect>(charCount);
+        var glyphInfoListCount = glyphInfoList.Count;
+        // 为什么是小于等于？因为存在 liga 连写的情况，可能实际的 glyph 数量会小于字符数量
+        Debug.Assert(glyphInfoListCount <= charCount);
+
+        using TextPoolArrayContext<ushort> glyphIndexContext = updateLayoutContext.Rent<ushort>(glyphInfoListCount);
+        using TextPoolArrayContext<SKRect> glyphBoundsContext = updateLayoutContext.Rent<SKRect>(glyphInfoListCount);
 
         Span<ushort> glyphIndices = glyphIndexContext.Span;
         Span<SKRect> glyphBounds = glyphBoundsContext.Span;
 
-        var count = glyphInfoList.Count;
-        using TextPoolArrayContext<SKPoint> renderGlyphPositionsContext = updateLayoutContext.Rent<SKPoint>(count);
+        using TextPoolArrayContext<SKPoint> renderGlyphPositionsContext = updateLayoutContext.Rent<SKPoint>(glyphInfoListCount);
         var renderGlyphPositions = renderGlyphPositionsContext.Span; // 没有真的用到
         var currentX = 0.0;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < glyphInfoListCount; i++)
         {
-            var glyphInfo = glyphInfoList[i];
+            TextGlyphInfo glyphInfo = glyphInfoList[i];
             var offset = glyphInfo.GlyphOffset;
 
             // 这里的 GlyphIndex 是 HarfBuzzSharp.Buffer 中的 Codepoint 的值，而不是 GlyphIndex 的值
@@ -198,11 +202,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
-        using TextPoolArrayContext<CharSizeInfo> charSizeInfoListContext = updateLayoutContext.Rent<CharSizeInfo>(count);
-        var charSizeInfoList = charSizeInfoListContext.Span;
-
         // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
-        for (var i = 0; i < count; i++)
+
+        // runListIndex 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
+        // 为什么有 i 还不够，还需要 runListIndex 变量？原因是存在 StandardLigatures （liga） 连写的情况，可能实际的 glyph 数量会小于字符数量，这是符合预期的
+        for (int i = 0, runListIndex = 0; i < glyphInfoListCount; i++, runListIndex++)
         {
             var renderBounds = glyphBounds[i];
             TextGlyphInfo glyphInfo = glyphInfoList[i];
@@ -213,8 +217,10 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
             var width = advance;// renderBounds.Width;
             float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
-            TextSize frameSize = new TextSize(width,
-                height);
+
+            // 字外框尺寸
+            TextSize frameSize = new TextSize(width, height);
+            // 字墨尺寸
             TextSize faceSize = new TextSize(renderBounds.Width, renderBounds.Height);
             var nextX = currentX + advance;
 
@@ -252,68 +258,63 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             var glyphRunBounds = new TextRect((currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, frameSize.Width,
                 frameSize.Height);
 
-            runBounds.Union(glyphRunBounds);
-            charSizeInfoList[i] = new CharSizeInfo(glyphRunBounds)
+            Debug.Assert(frameSize == glyphRunBounds.TextSize);
+
+            runBounds = runBounds.Union(glyphRunBounds);
+
+            if (runListIndex < glyphInfo.GlyphCluster)
             {
-                CharDataInfo = new CharDataInfo(glyphRunBounds.TextSize,faceSize,baselineY)
+                // 证明有跳过的情况
+                // 可能是 liga 连写的情况
+                Debug.Assert(runListIndex != 0);
+                var lastCharData = runList[runListIndex - 1];
+                Debug.Assert(!lastCharData.IsInvalidCharDataInfo, "上一个字符必定已经设置过字符信息");
+                for (int t = runListIndex; t < glyphInfo.GlyphCluster; t++)
                 {
-                    GlyphIndex = glyphInfo.GlyphIndex,
-                    Status = CharDataInfoStatus.Normal,
+                    CharData tCharData = runList[t];
+                    argument.CharDataLayoutInfoSetter.SetCharDataInfo(tCharData, new CharDataInfo(TextSize.Zero, TextSize.Zero, baselineY)
+                    {
+                        GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
+                        Status = CharDataInfoStatus.LigatureContinue,
+                    });
                 }
-            };
+
+                runListIndex = (int) glyphInfo.GlyphCluster;
+            }
+
+            CharData charData = runList[runListIndex];
+            Debug.Assert(charData.IsInvalidCharDataInfo);
+
+            CharDataInfoStatus charDataInfoStatus = CharDataInfoStatus.Normal;
+
+            // 可能存在 liga 连写的情况
+            if (i != glyphInfoListCount - 1)
+            {
+                TextGlyphInfo nextGlyphInfo = glyphInfoList[i + 1];
+                if (nextGlyphInfo.GlyphCluster > runListIndex + 1)
+                {
+                    // 证明下一个字形的 cluster 是超过当前字符的下一个字符的
+                    // 说明当前字符是 liga 连写的开始
+                    charDataInfoStatus = CharDataInfoStatus.LigatureStart;
+                }
+            }
+
+            argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new CharDataInfo(frameSize, faceSize, baselineY)
+            {
+                GlyphIndex = glyphInfo.GlyphIndex,
+                Status = charDataInfoStatus,
+            });
 
             currentX = nextX;
         }
 
         if (runBounds.Left < 0)
         {
-            runBounds.Offset(-runBounds.Left, 0);
+            runBounds = runBounds.Offset(-runBounds.Left, 0);
         }
 
-        runBounds.Offset(baselineOrigin.X, 0);
-
-        // 赋值给每个字符的尺寸
-        var charSizeInfoListIndex = 0;
-        // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
-        for (var i = 0; i < runList.Count; i++)
-        {
-            CharData charData = runList[i];
-            if (charData.IsInvalidCharDataInfo)
-            {
-                // 确保赋值给每个字符的尺寸
-                CharSizeInfo charSizeInfo = charSizeInfoList[charSizeInfoListIndex];
-
-                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, charSizeInfo.CharDataInfo);
-            }
-
-            // 实际上不会存在不匹配问题，上面计算也是采用 utf16 的方式，兼容处理了高低代理。核心处理在 HarfBuzzSharp.Buffer 里面
-            //// 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
-            //charSizeInfoListIndex += charData.CharObject.CodePoint.CharLength;
-            Debug.Assert(charSizeInfoListIndex == i);
-            charSizeInfoListIndex++;
-
-            // 预期不会出现超出的情况
-            if (charSizeInfoListIndex >= charSizeInfoList.Length)
-            {
-                if (i == runList.Count - 1 && charSizeInfoListIndex == charSizeInfoList.Length)
-                {
-                    // 非最后一个。最后一个预期是相等的
-                    // 进入这个分支是符合预期的。刚刚好最后一个 CharData 对应的字符刚好是最后一个字符
-                    break;
-                }
-
-                if (updateLayoutContext.IsInDebugMode)
-                {
-                    throw new TextEditorInnerDebugException(Message);
-                }
-                else
-                {
-                    updateLayoutContext.Logger.LogWarning(Message);
-                    // 不能继续循环，否则会出现越界
-                    break;
-                }
-            }
-        }
+        runBounds = runBounds.Offset(baselineOrigin.X, 0);
+        _ = runBounds;// 当前 runBounds 只有调试作用
 
         if (currentCharData.IsInvalidCharDataInfo)
         {
@@ -323,7 +324,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
     private static List<TextGlyphInfo> ShapeByHarfBuzz(ReadOnlySpan<char> text, SKFont skFont, UpdateLayoutContext updateLayoutContext)
     {
-        var glyphInfoList = new List<TextGlyphInfo>();
         SKTypeface skTypeface = skFont.Typeface;
         using var buffer = new Buffer();
         buffer.AddUtf16(text);
@@ -362,6 +362,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var glyphInfos = buffer.GetGlyphInfoSpan();
 
         var glyphPositions = buffer.GetGlyphPositionSpan();
+
+        var glyphInfoList = new List<TextGlyphInfo>(bufferLength);
 
         for (var i = 0; i < bufferLength; i++)
         {
