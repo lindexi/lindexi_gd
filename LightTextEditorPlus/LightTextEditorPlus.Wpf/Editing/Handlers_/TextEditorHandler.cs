@@ -213,7 +213,7 @@ public partial class TextEditorHandler
     {
         if (e.Handled ||
             string.IsNullOrEmpty(e.Text) ||
-            e.Text == "\x1b" ||
+            e.Text == "\e" ||
             // 退格键 \b 键
             e.Text == "\b" ||
             //emoji包围符
