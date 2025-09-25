@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -13,5 +13,5 @@ public interface ICharInfoMeasurer
     /// </summary>
     /// 这是因为在一些平台里面，一口气测量一大段的文本字符的性能会明显优于一个个进行测量
     /// <param name="argument"></param>
-    void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument);
+    void MeasureAndFillSizeOfRun(in FillSizeOfCharDataListArgument argument);
 }

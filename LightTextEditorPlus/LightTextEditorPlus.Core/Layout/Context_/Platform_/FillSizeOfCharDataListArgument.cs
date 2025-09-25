@@ -7,15 +7,14 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <summary>
 /// 填充 Run 的尺寸参数
 /// </summary>
-/// <param name="RunList"></param>
+/// <param name="ToMeasureCharDataList"></param>
 /// <param name="UpdateLayoutContext"></param>
-/// todo 将 RunList 改名为 toMeasureCharDataList
-public readonly record struct FillSizeOfRunArgument(TextReadOnlyListSpan<CharData> RunList, UpdateLayoutContext UpdateLayoutContext)
+public readonly record struct FillSizeOfCharDataListArgument(TextReadOnlyListSpan<CharData> ToMeasureCharDataList, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
     /// 当前的字符
     /// </summary>
-    public CharData CurrentCharData => RunList[0];
+    public CharData CurrentCharData => ToMeasureCharDataList[0];
 
     /// <summary>
     /// 设置字符布局信息辅助工具
