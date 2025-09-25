@@ -838,13 +838,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             if (charData.IsInvalidCharDataInfo)
             {
-                var fillSizeOfRunArgument = new FillSizeOfCharDataListArgument(currentRunList.Slice(i), updateLayoutContext);
-                Debug.Assert(ReferenceEquals(charData, fillSizeOfRunArgument.CurrentCharData));
+                var sizeOfCharDataListArgument = new FillSizeOfCharDataListArgument(currentRunList.Slice(i), updateLayoutContext);
+                Debug.Assert(ReferenceEquals(charData, sizeOfCharDataListArgument.CurrentCharData));
 
-                MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
+                MeasureAndFillSizeOfCharDataList(sizeOfCharDataListArgument);
 
                 // 不用扔调试异常了，在 MeasureAndFillSizeOfRun 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfRun 方法的判断而已
-                Debug.Assert(!charData.IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
+                Debug.Assert(!charData.IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfCharDataList)} 方法可确保 CurrentCharData 的 Size 一定不空");
             }
 
             // todo 考虑字间距的情况
