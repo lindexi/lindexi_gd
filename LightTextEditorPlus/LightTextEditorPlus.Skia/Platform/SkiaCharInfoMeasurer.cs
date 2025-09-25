@@ -134,7 +134,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
 
         CharData currentCharData = argument.CurrentCharData;
-        bool isHorizontal = updateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
 
         if (!currentCharData.IsInvalidCharDataInfo)
         {
@@ -146,6 +145,24 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         // 获取当前相同的字符属性的段，作为当前一次性测量的段。如此可以提高性能
         charDataList = charDataList.GetFirstCharSpanContinuous();
+
+        using TextPoolArrayContext<CharSizeInfo> charSizeInfoArrayContext = GetCharSizeInfo(charDataList, updateLayoutContext);
+        Span<CharSizeInfo> charSizeInfoSpan = charSizeInfoArrayContext.Span;
+
+        SetCharDataInfo(charSizeInfoSpan, charDataList, in argument);
+
+        if (currentCharData.IsInvalidCharDataInfo)
+        {
+            throw new TextEditorInnerException($"测量之后，必然能够获取当前字符的尺寸");
+        }
+    }
+
+    private static TextPoolArrayContext<CharSizeInfo> GetCharSizeInfo
+        (TextReadOnlyListSpan<CharData> charDataList, UpdateLayoutContext updateLayoutContext)
+    {
+        CharData currentCharData = charDataList[0];
+
+        bool isHorizontal = updateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
 
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
@@ -182,7 +199,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             TextGlyphInfo glyphInfo = glyphInfoSpan[i];
             var offset = glyphInfo.GlyphOffset;
 
-            // 这里的 GlyphIndex 是 HarfBuzzSharp.Buffer 中的 Codepoint 的值，而不是 GlyphIndex 的值
             glyphIndices[i] = glyphInfo.GlyphIndex;
 
             renderGlyphPositions[i] = new SKPoint((float) (currentX + offset.OffsetX), (float) offset.OffsetY);
@@ -192,6 +208,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         // 以下代码仅仅只是为了调试而已，等稳定了就可以删除
         _ = renderGlyphPositions;
+        _ = currentX;
         skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
 
         // 当前的 run 的边界。这个变量现在没有用到，只有调试用途
@@ -205,7 +222,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
         // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
-        using TextPoolArrayContext<CharSizeInfo> charSizeInfoArrayContext = updateLayoutContext.Rent<CharSizeInfo>(glyphInfoListCount);
+        /*using 要返回的参数，不能在这里 using 掉*/
+        TextPoolArrayContext<CharSizeInfo> charSizeInfoArrayContext = updateLayoutContext.Rent<CharSizeInfo>(glyphInfoListCount);
         Span<CharSizeInfo> charSizeInfoSpan = charSizeInfoArrayContext.Span;
 
         for (int i = 0; i < glyphInfoListCount; i++)
@@ -287,12 +305,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         runBounds = runBounds.Offset(baselineOrigin.X, 0);
         _ = runBounds;// 当前 runBounds 只有调试作用
 
-        SetCharDataInfo(charSizeInfoSpan, charDataList, in argument);
-
-        if (currentCharData.IsInvalidCharDataInfo)
-        {
-            throw new TextEditorInnerException($"测量之后，必然能够获取当前字符的尺寸");
-        }
+        return charSizeInfoArrayContext;
     }
 
     private static TextPoolArrayContext<TextGlyphInfo> ShapeByHarfBuzz(ReadOnlySpan<char> text, SKFont skFont, UpdateLayoutContext updateLayoutContext)
