@@ -9,6 +9,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 /// <param name="RunList"></param>
 /// <param name="UpdateLayoutContext"></param>
+/// todo 将 RunList 改名为 toMeasureCharDataList
 public readonly record struct FillSizeOfRunArgument(TextReadOnlyListSpan<CharData> RunList, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
