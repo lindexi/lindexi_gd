@@ -19,7 +19,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
-
+using LightTextEditorPlus.Core.Primitive.Collections;
 using Buffer = HarfBuzzSharp.Buffer;
 using Font = HarfBuzzSharp.Font;
 
@@ -289,73 +289,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         runBounds = runBounds.Offset(baselineOrigin.X, 0);
         _ = runBounds;// 当前 runBounds 只有调试作用
 
-        // runListIndex 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
-        // 为什么有 i 还不够，还需要 runListIndex 变量？原因是存在 StandardLigatures （liga） 连写的情况，可能实际的 glyph 数量会小于字符数量，这是符合预期的
-        int runListIndex = 0;
-        for (int i = 0; i < charSizeInfoSpan.Length; i++)
-        {
-            CharSizeInfo charSizeInfo = charSizeInfoSpan[i];
-            CharDataInfo charDataInfo = charSizeInfo.CharDataInfo;
-
-            CharData charData = charDataList[runListIndex];
-
-            // 可能存在 liga 连写的情况
-            if (i != glyphInfoListCount - 1)
-            {
-                CharSizeInfo nextInfo = charSizeInfoSpan[i + 1];
-                if (nextInfo.GlyphCluster > runListIndex + 1)
-                {
-                    // 证明下一个字形的 cluster 是超过当前字符的下一个字符的
-                    // 说明当前字符是 liga 连写的开始
-                    for (runListIndex = runListIndex + 1; runListIndex < nextInfo.GlyphCluster; runListIndex++)
-                    {
-                        SetLigatureContinue(runListIndex);
-                    }
-                    // 因为循环自带加一的效果，需要冲掉
-                    runListIndex--;
-
-                    charDataInfo = charDataInfo with
-                    {
-                        // 应当设置当前字符为连字开始
-                        Status = CharDataInfoStatus.LigatureStart,
-                    };
-                }
-            }
-            else
-            {
-                // 最后一个字符了，如果末尾没有了，则证明最后一个是连字符
-                if (runListIndex + 1 < charDataList.Count)
-                {
-                    for (runListIndex = runListIndex + 1; runListIndex < charDataList.Count; runListIndex++)
-                    {
-                        SetLigatureContinue(runListIndex);
-                    }
-
-                    // 因为循环自带加一的效果，需要冲掉。虽然这是多余的，因为立刻就退出循环了
-                    runListIndex--;
-
-                    charDataInfo = charDataInfo with
-                    {
-                        // 应当设置当前字符为连字开始
-                        Status = CharDataInfoStatus.LigatureStart,
-                    };
-                }
-            }
-
-            charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
-            runListIndex++;
-        }
-
-        void SetLigatureContinue(int charIndex)
-        {
-            CharData ligatureCharData = charDataList[charIndex];
-            // 连写的字符，均设置为 LigatureContinue 状态。且无宽度高度值
-            charDataLayoutInfoSetter.SetCharDataInfo(ligatureCharData, new CharDataInfo(TextSize.Zero, TextSize.Zero, baselineY)
-            {
-                GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
-                Status = CharDataInfoStatus.LigatureContinue,
-            });
-        }
+        SetCharDataInfo(charSizeInfoSpan, charDataList, in argument);
 
         if (currentCharData.IsInvalidCharDataInfo)
         {
@@ -442,6 +376,88 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         }
 
         return glyphInfoList;
+    }
+
+    private static void SetCharDataInfo
+    (
+        Span<CharSizeInfo> charSizeInfoSpan,
+        TextReadOnlyListSpan<CharData> charDataList,
+        in FillSizeOfCharDataListArgument argument
+    )
+    {
+        ICharDataLayoutInfoSetter charDataLayoutInfoSetter = argument.CharDataLayoutInfoSetter;
+        Debug.Assert(charSizeInfoSpan.Length>0);
+        CharDataInfo ligatureCharDataInfo = charSizeInfoSpan[0].CharDataInfo with
+        {
+            FrameSize = TextSize.Zero,
+            FaceSize = TextSize.Zero,
+            GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
+            Status = CharDataInfoStatus.LigatureContinue,
+        };
+
+        // runListIndex 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
+        // 为什么有 i 还不够，还需要 runListIndex 变量？原因是存在 StandardLigatures （liga） 连写的情况，可能实际的 glyph 数量会小于字符数量，这是符合预期的
+        int runListIndex = 0;
+        for (int i = 0; i < charSizeInfoSpan.Length; i++)
+        {
+            CharSizeInfo charSizeInfo = charSizeInfoSpan[i];
+            CharDataInfo charDataInfo = charSizeInfo.CharDataInfo;
+
+            CharData charData = charDataList[runListIndex];
+
+            // 可能存在 liga 连写的情况
+            if (i != charSizeInfoSpan.Length - 1)
+            {
+                CharSizeInfo nextInfo = charSizeInfoSpan[i + 1];
+                if (nextInfo.GlyphCluster > runListIndex + 1)
+                {
+                    // 证明下一个字形的 cluster 是超过当前字符的下一个字符的
+                    // 说明当前字符是 liga 连写的开始
+                    for (runListIndex = runListIndex + 1; runListIndex < nextInfo.GlyphCluster; runListIndex++)
+                    {
+                        SetLigatureContinue(runListIndex);
+                    }
+                    // 因为循环自带加一的效果，需要冲掉
+                    runListIndex--;
+
+                    charDataInfo = charDataInfo with
+                    {
+                        // 应当设置当前字符为连字开始
+                        Status = CharDataInfoStatus.LigatureStart,
+                    };
+                }
+            }
+            else
+            {
+                // 最后一个字符了，如果末尾没有了，则证明最后一个是连字符
+                if (runListIndex + 1 < charDataList.Count)
+                {
+                    for (runListIndex = runListIndex + 1; runListIndex < charDataList.Count; runListIndex++)
+                    {
+                        SetLigatureContinue(runListIndex);
+                    }
+
+                    // 因为循环自带加一的效果，需要冲掉。虽然这是多余的，因为立刻就退出循环了
+                    runListIndex--;
+
+                    charDataInfo = charDataInfo with
+                    {
+                        // 应当设置当前字符为连字开始
+                        Status = CharDataInfoStatus.LigatureStart,
+                    };
+                }
+            }
+
+            charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
+            runListIndex++;
+        }
+
+        void SetLigatureContinue(int charIndex)
+        {
+            CharData ligatureCharData = charDataList[charIndex];
+            // 连写的字符，均设置为 LigatureContinue 状态。且无宽度高度值
+            charDataLayoutInfoSetter.SetCharDataInfo(ligatureCharData, ligatureCharDataInfo);
+        }
     }
 
     /// <summary>
