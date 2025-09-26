@@ -47,7 +47,13 @@ public class IntegrationTest
             var assertImageFilePath = Path.Join(AppContext.BaseDirectory, "Assets", "TestImage", fileName);
 
             // 忽略的列表
-            Span<string> ignoreList = ["随意的字符属性"];
+            Span<string> ignoreList = 
+            [
+                // 随意的，每次都不同，不能加入测试
+                "随意的字符属性",
+                // 测试服务器不一定有这个字体
+                "测试华文仿宋字体",
+            ];
 
             if (File.Exists(assertImageFilePath) &&!ignoreList.Contains(testName))
             {
@@ -73,6 +79,15 @@ public class IntegrationTest
         get
         {
             RichTextCaseProvider richTextCaseProvider = new RichTextCaseProvider(() => null!);
+            HashSet<string> testNameHash = new HashSet<string>();
+            foreach (IRichTextCase richTextCase in richTextCaseProvider.RichTextCases)
+            {
+                if (!testNameHash.Add(richTextCase.Name))
+                {
+                    throw new ArgumentException($"存在重复的测试名");
+                }
+            }
+
             return richTextCaseProvider.RichTextCases.Select(t => new object[]
             {
                 t.Name,
