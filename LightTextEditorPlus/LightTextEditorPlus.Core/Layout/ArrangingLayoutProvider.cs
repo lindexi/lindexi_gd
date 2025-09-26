@@ -689,6 +689,17 @@ abstract class ArrangingLayoutProvider
         if (charInfoMeasurer is not null)
         {
             charInfoMeasurer.FillCharDataInfoList(new FillCharDataInfoListArgument(toMeasureCharDataList, updateLayoutContext));
+
+            for (var i = 0; i < toMeasureCharDataList.Count; i++)
+            {
+                var charData = toMeasureCharDataList[i];
+                if (charData.IsInvalidCharDataInfo)
+                {
+                    // $"测量布局之后，字符依然没有尺寸。第 {Index} 个字符：'{CharData.CharObject.ToText()}'"
+                    throw new TextEditorMeasurerInvalidCharDataInfoException(toMeasureCharDataList, i);
+                }
+            }
+
             return;
         }
         else
@@ -705,50 +716,11 @@ abstract class ArrangingLayoutProvider
 
                     //// 不用扔调试异常了，在 MeasureAndFillSizeOfCharDataList 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfCharDataList 方法的判断而已
                     //Debug.Assert(!charData.IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfCharData)} 方法可确保 CurrentCharData 的 Size 一定不空");
-                    MeasureAndFillCurrentCharData(charData, updateLayoutContext);
+                    MeasureAndFillCharData(charData, updateLayoutContext);
                 }
             }
         }
     }
-
-    ///// <summary>
-    ///// 测量字符信息。确保 argument.CurrentCharData.Size 一定不为空
-    ///// </summary>
-    ///// <param name="argument"></param>
-    ///// <returns></returns>
-    //protected void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
-    //{
-    //    // 通过平台提供者获取字符信息测量器
-    //    ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-    //    if (charInfoMeasurer != null)
-    //    {
-    //        charInfoMeasurer.MeasureAndFillSizeOfCharData(argument);
-
-    //        if (argument.CurrentCharData.IsInvalidCharDataInfo)
-    //        {
-    //            if (IsInDebugMode)
-    //            {
-    //                throw new TextEditorDebugException($"测量布局之后，当前字符依然没有尺寸");
-    //            }
-    //            else
-    //            {
-    //                // 非调试下
-    //                // 如果测量之后依然没有尺寸，那么就使用默认的测量方式
-    //                // 继续往下执行
-    //                argument.UpdateLayoutContext.Logger.LogWarning($"测量布局之后，当前字符依然没有尺寸，字符测量器： {charInfoMeasurer.GetType().FullName}；当前字符 Char={argument.CurrentCharData.CharObject.ToText()} Font={argument.CurrentCharData.RunProperty.FontName}");
-    //            }
-    //        }
-    //    }
-
-    //    if (!argument.CurrentCharData.IsInvalidCharDataInfo)
-    //    {
-    //        // 如果字符信息有效，则无须继续测量
-    //        return;
-    //    }
-
-    //    // 默认的字符信息测量器
-    //    MeasureAndFillCurrentCharData(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
-    //}
 
     /// <summary>
     /// 通用的测量字符信息的方法，直接就是设置宽度高度为字号大小
@@ -756,7 +728,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="charData"></param>
     /// <param name="setter"></param>
     /// <returns></returns>
-    private static void MeasureAndFillCurrentCharData(CharData charData, ICharDataLayoutInfoSetter setter)
+    private static void MeasureAndFillCharData(CharData charData, ICharDataLayoutInfoSetter setter)
     {
         double fontSize = charData.RunProperty.FontSize;
         // 默认是方块字符
