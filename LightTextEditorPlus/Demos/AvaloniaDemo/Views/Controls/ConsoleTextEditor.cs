@@ -63,6 +63,23 @@ file class Provider : AvaloniaSkiaTextEditorPlatformProvider
 
 file class CharInfoMeasurer : ICharInfoMeasurer
 {
+    public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
+    {
+        for (var i = 0; i < argument.ToFillCharDataList.Count; i++)
+        {
+            CharData currentCharData = argument.ToFillCharDataList[i];
+            if (!currentCharData.IsInvalidCharDataInfo)
+            {
+                // 如果有字符属性了，就不需要再执行测量了
+                continue;
+            }
+
+            var toFillCharDataList = argument.ToFillCharDataList.Slice(i);
+            MeasureAndFillSizeOfCharData(new FillSizeOfCharDataArgument(toFillCharDataList,
+                argument.UpdateLayoutContext));
+        }
+    }
+
     public void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;

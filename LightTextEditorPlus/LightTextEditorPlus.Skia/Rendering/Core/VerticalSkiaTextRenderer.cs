@@ -1,4 +1,8 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
@@ -9,11 +13,6 @@ using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace LightTextEditorPlus.Rendering.Core;
 
@@ -135,7 +134,8 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
                 y += charData.Baseline - space / 2;
                 if (charData.CharDataInfo.Status == CharDataInfoStatus.LigatureContinue)
                 {
-                    
+                    // 对于连写字的续写字符，位置和前一个字符保持一致，不参与具体的渲染。不能加入到 positionList 里面。最终也不在 charList 里面体现
+                    // 连写字的续写字符，将和连写字的起始字符合并共用一个 GlyphIndex 值。此时也需要让 positionList 数量上和 glyphIndexSpan 数量保持一致。于是就不能在此对 positionList 添加对象
                 }
                 else
                 {

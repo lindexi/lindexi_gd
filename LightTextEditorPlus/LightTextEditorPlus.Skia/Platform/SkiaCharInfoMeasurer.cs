@@ -121,7 +121,15 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     //        return new CharInfoMeasureResult(bounds, baselineY);
     //    }
 
-    /// <inheritdoc />
+    public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
+    {
+        var charDataList = argument.ToFillCharDataList;
+        foreach (TextReadOnlyListSpan<CharData> textReadOnlyListSpan in charDataList.GetCharSpanContinuous())
+        {
+            MeasureAndFillSizeOfCharData(new FillSizeOfCharDataArgument(textReadOnlyListSpan, argument.UpdateLayoutContext));
+        }
+    }
+
     /// Copy from https://github.com/AvaloniaUI/Avalonia
     /// src\Skia\Avalonia.Skia\TextShaperImpl.cs
     /// src\Skia\Avalonia.Skia\GlyphRunImpl.cs
@@ -131,11 +139,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         CharData currentCharData = argument.CurrentCharData;
 
-        if (!currentCharData.IsInvalidCharDataInfo)
-        {
-            // 已有缓存的尺寸，直接返回即可
-            return;
-        }
+        // 虽然已有缓存的尺寸，但可能收到连写字的影响，需要重新测量
+        //if (!currentCharData.IsInvalidCharDataInfo)
+        //{
+        //    // 已有缓存的尺寸，直接返回即可
+        //    return;
+        //}
 
         var charDataList = argument.ToMeasureCharDataList;
 

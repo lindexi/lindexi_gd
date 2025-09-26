@@ -4,8 +4,18 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout;
 
+public readonly record struct FillCharDataInfoListArgument(
+    TextReadOnlyListSpan<CharData> ToFillCharDataList,
+    UpdateLayoutContext UpdateLayoutContext)
+{
+    /// <summary>
+    /// 设置字符布局信息辅助工具
+    /// </summary>
+    public ICharDataLayoutInfoSetter CharDataLayoutInfoSetter => UpdateLayoutContext;
+}
+
 /// <summary>
-/// 填充 Run 的尺寸参数
+/// 填充 字符 的尺寸参数
 /// </summary>
 /// <param name="ToMeasureCharDataList"></param>
 /// <param name="UpdateLayoutContext"></param>

@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Avalonia.Threading;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -439,5 +440,19 @@ partial class RichTextCaseProvider
             editor.Text = "tia";
             // StandardLigatures 'liga' 连写字是什么？请参阅 术语表.md 文档
         }, "测试字体包含 StandardLigatures 连写字导致字符数量不匹配");
+
+        Add(editor =>
+        {
+            // StandardLigatures 'liga' 连写字是什么？请参阅 术语表.md 文档
+            editor.SetFontName("Calibri");
+            editor.SetFontSize(60);
+
+            editor.AppendText("f");
+            // 由于文本库会延迟布局，因此想要拆分为两次输入，就需要使用 Dispatcher 进行异步调用
+            _ = Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                editor.AppendText("i");
+            }, DispatcherPriority.Background);
+        }, "分开两次输入 StandardLigatures 连写字的字符");
     }
 }

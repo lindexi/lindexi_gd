@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Windows.Media;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus.Platform;
@@ -16,6 +18,23 @@ class CharInfoMeasurer : ICharInfoMeasurer
     }
 
     private readonly TextEditor _textEditor;
+
+    public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
+    {
+        for (var i = 0; i < argument.ToFillCharDataList.Count; i++)
+        {
+            CharData currentCharData = argument.ToFillCharDataList[i];
+            if (!currentCharData.IsInvalidCharDataInfo)
+            {
+                // 如果有字符属性了，就不需要再执行测量了
+                continue;
+            }
+
+            var toFillCharDataList = argument.ToFillCharDataList.Slice(i);
+            MeasureAndFillSizeOfCharData(new FillSizeOfCharDataArgument(toFillCharDataList,
+                 argument.UpdateLayoutContext));
+        }
+    }
 
     public void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
     {
@@ -33,7 +52,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
         var fontSize = runProperty.GetRenderFontSize();
 
         var baseline = glyphTypeface.Baseline * fontSize;
-     
+
         CharDataInfo charDataInfo;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
@@ -151,12 +170,12 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 // 在以上这些数据上，似乎只有 glyphTypefaceHeight 最正确
                 // 但是在 Javanese Text 字体里面，glyphTypefaceHeight=136 显著大于 height=60 导致字符上浮，超过文本框
                 //return (bounds.Width, bounds.Height);
-               
+
                 // 字外框。文字外框，字外框尺寸
                 var frameSize = new TextSize(width, glyphTypefaceHeight);
                 // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
                 var faceSize = new TextSize(width, height);
-                return new CharDataInfo(frameSize, faceSize,baseline)
+                return new CharDataInfo(frameSize, faceSize, baseline)
                 {
                     GlyphIndex = glyphIndex,
                     Status = CharDataInfoStatus.Normal,

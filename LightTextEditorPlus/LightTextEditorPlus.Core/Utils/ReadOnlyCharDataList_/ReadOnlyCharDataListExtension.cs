@@ -152,7 +152,12 @@ public static class ReadOnlyCharDataListExtension
         return text.LimitTrim(limitCharCount, replaceText, saveStartAndEnd);
     }
 
-    /// <inheritdoc cref="GetFirstCharSpanContinuous"/>
+    /// <summary>
+    /// 获取连续的字符数据枚举器。从传入的 <paramref name="charList"/> 里获取连续的字符数据
+    /// </summary>
+    /// <param name="charList"></param>
+    /// <param name="checker"></param>
+    /// <returns></returns>
     public static CharSpanContinuousEnumerable GetCharSpanContinuous(this TextReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
     {
         return new CharSpanContinuousEnumerable(charList, checker);

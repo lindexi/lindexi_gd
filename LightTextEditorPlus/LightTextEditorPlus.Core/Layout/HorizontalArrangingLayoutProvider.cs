@@ -820,8 +820,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         TextReadOnlyListSpan<CharData> currentRunList = argument.SliceFromCurrentRunList();
         Debug.Assert(currentRunList.Count > 0);
-        // 如果字符还没测量，则立刻执行测量，这是因为在 IWordDivider 时就需要开始判断连写字了
-        EnsureMeasureAndFillSizeOfCharDataList(in currentRunList, updateLayoutContext);
 
 #if DEBUG
         var currentCharData = argument.CurrentCharData;
