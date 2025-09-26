@@ -107,6 +107,14 @@ internal class TestFramework
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace()
+            .With(new X11PlatformOptions()
+            {
+                RenderingMode = new List<X11RenderingMode>() { X11RenderingMode.Software }
+            })
+            .With(new Win32PlatformOptions()
+            {
+                RenderingMode = [Win32RenderingMode.Software]
+            })
             .UseReactiveUI();
 }
 
