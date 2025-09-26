@@ -25,7 +25,15 @@ internal class TestFramework
     [AssemblyInitialize]
     public static void InitializeApplication(TestContext testContext)
     {
-        OutputDirectory = Directory.CreateDirectory(Path.Join(testContext.TestRunDirectory, "Output"));
+        OutputDirectory = Directory.CreateDirectory(Path.Join(testContext.ResultsDirectory, "Output"));
+
+#if DEBUG
+        var folder = @"F:\temp";
+        if (Directory.Exists(folder))
+        {
+            OutputDirectory = Directory.CreateDirectory(Path.Join(folder, "LightTextEditorPlus", Path.GetRandomFileName()));
+        }
+#endif
 
         ManualResetEvent manualResetEvent = new ManualResetEvent(false);
         Thread thread = new Thread(() =>
@@ -91,11 +99,7 @@ internal class TestFramework
 
     public static bool IsDebug()
     {
-#if DEBUG
-        return Debugger.IsAttached;
-#else
         return false;
-#endif
     }
 
     private static AppBuilder BuildAvaloniaApp()
