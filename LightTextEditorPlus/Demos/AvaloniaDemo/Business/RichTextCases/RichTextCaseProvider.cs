@@ -448,5 +448,12 @@ partial class RichTextCaseProvider
                 editor.AppendText("i");
             }, DispatcherPriority.Background);
         }, "分开两次输入 StandardLigatures 连写字的字符");
+
+        Add(editor =>
+        {
+            editor.SetFontName("Calibri");
+            editor.SetFontSize(60);
+            editor.Text = "ti";
+        }, "输入一个连写字单词，测试光标坐标");
     }
 }
