@@ -53,6 +53,8 @@ public class IntegrationTest
                 "随意的字符属性",
                 // 测试服务器不一定有这个字体
                 "测试华文仿宋字体",
+                // 依赖 Wingdings 2 字体，服务器不一定存在
+                "无序项目符号",
             ];
 
             if (File.Exists(assertImageFilePath) &&!ignoreList.Contains(testName))
