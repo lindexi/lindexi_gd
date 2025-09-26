@@ -9,6 +9,16 @@ namespace LightTextEditorPlus.Core.Utils.TextArrayPools;
 /// <typeparam name="T"></typeparam>
 public readonly struct TextPoolArrayContext<T> : IDisposable
 {
+    /// <summary>
+    /// 租用一个指定最小长度的数组
+    /// </summary>
+    /// <param name="minimumLength"></param>
+    /// <returns></returns>
+    public static TextPoolArrayContext<T> Rent(int minimumLength)
+    {
+        return TextArrayPool.Rent<T>(minimumLength);
+    }
+
     internal TextPoolArrayContext(T[] buffer, int start, int length, ArrayPool<T> arrayPool)
     {
         _buffer = buffer;
