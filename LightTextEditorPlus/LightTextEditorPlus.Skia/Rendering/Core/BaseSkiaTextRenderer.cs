@@ -9,7 +9,6 @@ using LightTextEditorPlus.Diagnostics;
 using SkiaSharp;
 
 using System;
-using System.Runtime.InteropServices;
 
 namespace LightTextEditorPlus.Rendering.Core;
 

@@ -437,6 +437,7 @@ partial class RichTextCaseProvider
         {
             editor.SetFontName("Calibri");
             editor.Text = "tia";
-        }, "测试字体连续渲染 StandardLigatures 导致字符数量不匹配");
+            // StandardLigatures 'liga' 连写字是什么？请参阅 术语表.md 文档
+        }, "测试字体包含 StandardLigatures 连写字导致字符数量不匹配");
     }
 }
