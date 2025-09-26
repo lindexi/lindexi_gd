@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\LightTextEditorPlus.Tests\IntegrationTests\VisionCompareResultException.cs" Link="IntegrationTests\VisionCompareResultException.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" Version="3.10.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Demos\AvaloniaDemo\LightTextEditorPlus.AvaloniaDemo.csproj" />
+    <ProjectReference Include="..\TextVisionComparer\TextVisionComparer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\TestImage\**\*" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
+</Project>

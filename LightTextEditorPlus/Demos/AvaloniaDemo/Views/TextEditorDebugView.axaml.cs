@@ -16,20 +16,24 @@ namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
 public partial class TextEditorDebugView : UserControl
 {
-    public TextEditorDebugView()
+    public TextEditorDebugView(bool runDebug = true)
     {
         InitializeComponent();
-
-        //var fontFamily = (FontFamily) Application.Current!.Resources["TestMeatballFontFamily"]!;
-        //TextEditorFontManager.RegisterFontNameToResource("仓耳小丸子", fontFamily);
-        TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子", new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf")));
+        
         CreateAndReplaceTextEditor();
+        RichTextCaseProvider = new RichTextCaseProvider(() => TextEditor);
 
-        TextContext.GlobalFontNameManager.UseDefaultFontFallbackRules();
+        if (runDebug)
+        {
+            //var fontFamily = (FontFamily) Application.Current!.Resources["TestMeatballFontFamily"]!;
+            //TextEditorFontManager.RegisterFontNameToResource("仓耳小丸子", fontFamily);
+            TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子", new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf")));
 
-        _richTextCaseProvider = new RichTextCaseProvider(() => TextEditor);
-        // 调试代码
-        _richTextCaseProvider.Debug();
+            TextContext.GlobalFontNameManager.UseDefaultFontFallbackRules();
+
+            // 调试代码
+            RichTextCaseProvider.Debug();
+        }
     }
 
     [MemberNotNull(nameof(TextEditor), nameof(_textEditor))]
@@ -85,11 +89,11 @@ public partial class TextEditorDebugView : UserControl
 
     private TextEditor _textEditor;
 
-    private readonly RichTextCaseProvider _richTextCaseProvider;
+    public RichTextCaseProvider RichTextCaseProvider { get; }
 
     private void DebugButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        _ = _richTextCaseProvider;
+        _ = RichTextCaseProvider;
         TextEditor.TextEditorCore.DebugRequireReUpdateAllDocumentLayout();
 
         //_richTextCaseProvider.Debug();

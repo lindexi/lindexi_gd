@@ -1,20 +1,15 @@
 ﻿#nullable enable
+
 using System.Diagnostics;
-using System.Text;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-
 using dotnetCampus.UITest.WPF;
-
 using LightTextEditorPlus.Demo.Business.RichTextCases;
-
-using MSTest.Extensions.AssertExtensions;
 using MSTest.Extensions.Contracts;
-
 using TextVisionComparer;
 
-namespace LightTextEditorPlus.Tests;
+namespace LightTextEditorPlus.Tests.IntegrationTests;
 
 [TestClass]
 public class IntegrationTest
@@ -163,69 +158,5 @@ public class IntegrationTest
         double similarityValue = result.SimilarityValue;
         Assert.IsTrue(similarityValue < 1);
         Assert.IsFalse(result.IsSimilar());
-    }
-}
-
-public class VisionCompareResultException(string name, VisionCompareResult result, string assertImageFilePath, string imageFilePath) : Exception
-{
-    public override string ToString()
-    {
-        var debugReason = result.Success ? "" : $"\r\n对比的调试原因:{result.DebugReason}";
-
-        var maxSize = 0;
-        foreach (VisionCompareRect visionCompareRect in result.CompareRectList)
-        {
-            var size = visionCompareRect.Width * visionCompareRect.Height;
-            maxSize = Math.Max(size, maxSize);
-        }
-
-        return $"""
-                图片视觉对比失败
-                测试用例: {name}
-                对比成功: {result.Success}{debugReason}
-                视觉相似:{result.IsSimilar()}
-                视觉相似度:{result.SimilarityValue}
-                不相似的像素数量:{result.DissimilarPixelCount}
-                最大不相似区域大小:{maxSize}
-                像素数量:{result.PixelCount}
-                预设图片:{assertImageFilePath}
-                当前状态截图:{imageFilePath}
-                """;
-    }
-}
-
-public class IntegrationTestException : AggregateException
-{
-    public IntegrationTestException(List<(string Name, Exception Exception)> exceptionList) : base(exceptionList.Select(t => t.Exception))
-    {
-        _exceptionList = exceptionList;
-    }
-
-    private readonly List<(string Name, Exception Exception)> _exceptionList;
-
-    public override string Message => ToText();
-
-    public override string ToString()
-    {
-        return ToText();
-    }
-
-    private string ToText()
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("IntegrationTest Fail!");
-        stringBuilder.AppendLine($"Current Image Output Folder: {IntegrationTest.CurrentTestFolder}");
-
-        stringBuilder.AppendLine("==========");
-
-        foreach ((string name, Exception exception) in _exceptionList)
-        {
-            stringBuilder.AppendLine($"[IntegrationTest] Fail {name}")
-                .AppendLine(exception.ToString());
-
-            stringBuilder.AppendLine("==========");
-        }
-
-        return stringBuilder.ToString();
     }
 }

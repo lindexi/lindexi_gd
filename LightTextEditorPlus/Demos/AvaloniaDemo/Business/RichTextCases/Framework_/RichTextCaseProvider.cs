@@ -11,7 +11,7 @@ using LightTextEditorPlus.Core.Primitive;
 // ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus.Demo.Business.RichTextCases;
 
-internal partial class RichTextCaseProvider
+public partial class RichTextCaseProvider
 {
     public RichTextCaseProvider(Func<TextEditor> getTextEditor) : this(new DelegateTextEditorProvider(getTextEditor))
     {

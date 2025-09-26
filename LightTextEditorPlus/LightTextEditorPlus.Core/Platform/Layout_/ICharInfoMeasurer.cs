@@ -1,4 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -9,7 +10,7 @@ namespace LightTextEditorPlus.Core.Platform;
 public interface ICharInfoMeasurer
 {
     /// <summary>
-    /// 测量和填充字符的尺寸信息
+    /// 测量和填充字符的尺寸信息。比如确保传入的每个字符都测量了尺寸。否则将被抛出 <see cref="TextEditorMeasurerInvalidCharDataInfoException"/> 异常
     /// </summary>
     /// <param name="argument"></param>
     /// 这是因为在一些平台里面，一口气测量一大段的文本字符的性能会明显优于一个个进行测量
