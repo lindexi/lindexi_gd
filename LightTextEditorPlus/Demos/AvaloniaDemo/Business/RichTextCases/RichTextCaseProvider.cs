@@ -346,7 +346,7 @@ partial class RichTextCaseProvider
                 {
                     MarkerText = "é",
                     ShouldFollowParagraphFirstCharRunProperty = true,
-                    RunProperty = TextEditor.CreateRunProperty(styleRunProperty => styleRunProperty with
+                    RunProperty = editor.CreateRunProperty(styleRunProperty => styleRunProperty with
                     {
                         FontName = new FontName("Wingdings 2")
                     })

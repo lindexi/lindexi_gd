@@ -51,7 +51,6 @@ public class IntegrationTest
 
             if (File.Exists(assertImageFilePath) &&!ignoreList.Contains(testName))
             {
-
                 VisionComparer visionComparer = new VisionComparer();
                 VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath), new FileInfo(imageFilePath));
 
