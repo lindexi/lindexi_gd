@@ -107,12 +107,12 @@ public enum CharDataInfoStatus : byte
     Undefined,
 
     /// <summary>
-    /// 连字符
+    /// 连写字的起始字符
     /// </summary>
     LigatureStart,
 
     /// <summary>
-    /// 连字符的中间部分
+    /// 连写字的后续字符
     /// </summary>
     LigatureContinue,
 }

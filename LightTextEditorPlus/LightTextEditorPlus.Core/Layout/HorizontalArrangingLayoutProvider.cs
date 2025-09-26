@@ -751,10 +751,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 计算出最大字符的基线坐标
         maxFontYOffset += maxFontSizeCharData.Baseline;
 
-        foreach (CharData charData in lineCharList)
+        for (int i = 0; i < lineCharList.Count; i++)
         {
+            CharData charData = lineCharList[i];
             // 计算和更新每个字符的相对文本框的坐标
-            DebugAssert(!charData.IsInvalidCharDataInfo, "charData.LineCharSize != null");
+            DebugAssert(!charData.IsInvalidCharDataInfo, $"字符已存在尺寸");
+
             var charDataSize = charData.Size;
 
             double xOffset;
@@ -802,6 +804,31 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
 
             currentX += charDataSize.Width;
+
+            // 如果当前字符是连写字起始字符，则需要将连写字的后续字符赋值
+            if (charData.CharDataInfo.Status == CharDataInfoStatus.LigatureStart)
+            {
+                for (i = i + 1; i < lineCharList.Count; i++)
+                {
+                    var nextCharData = lineCharList[i];
+                    if (nextCharData.CharDataInfo.Status == CharDataInfoStatus.LigatureContinue)
+                    {
+                        // 对于连写字的后续字符，应该设置为和连写字起始字符相同的坐标
+                        nextCharData.SetLayoutCharLineStartPoint(charData.CharLayoutData.CharLineStartPoint);
+                        if (needUpdateCharLayoutDataVersion)
+                        {
+                            nextCharData.CharLayoutData.UpdateVersion();
+                        }
+                    }
+                    else
+                    {
+                        // 其他情况不在此赋值
+                        break;
+                    }
+                }
+                // 循环里面会自动加一，应该需要冲掉
+                i--;
+            }
         }
     }
 
@@ -825,11 +852,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var currentCharData = argument.CurrentCharData;
         Debug.Assert(ReferenceEquals(currentCharData, currentRunList[0]));
 #endif
+        // 目前连写字在 IWordDivider 里面处理
         IWordDivider wordDivider = updateLayoutContext.PlatformProvider.GetWordDivider();
         DivideWordResult divideWordResult = wordDivider.DivideWord(new DivideWordArgument(currentRunList, updateLayoutContext));
 
         // todo 后续连字符的情况也要考虑
-        // 目前连字符在 IWordDivider 里面处理
 
         int takeCount = divideWordResult.TakeCount;
         // 测量 takeCount 下的字符宽度
