@@ -16,6 +16,7 @@ using MS.Internal;
 using SkiaSharp;
 
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -156,7 +157,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
     static bool ContainFeature(SKTypeface typeface, ReadOnlySpan<byte> tableName)
     {
-        uint tag = (uint) tableName[0] << 24 | (uint) tableName[1] << 16 | (uint) tableName[2] << 8 | tableName[3];
+        uint tag = BinaryPrimitives.ReadUInt32BigEndian(tableName);
         return ContainFeature(typeface, tag);
     }
 
