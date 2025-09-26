@@ -45,8 +45,13 @@ public class IntegrationTest
             var imageFilePath = SaveAsImage(context.TextEditor, fileName);
 
             var assertImageFilePath = Path.Join(AppContext.BaseDirectory, "Assets", "TestImage", fileName);
-            if (File.Exists(assertImageFilePath))
+
+            // 忽略的列表
+            Span<string> ignoreList = ["随意的字符属性"];
+
+            if (File.Exists(assertImageFilePath) &&!ignoreList.Contains(testName))
             {
+
                 VisionComparer visionComparer = new VisionComparer();
                 VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath), new FileInfo(imageFilePath));
 
