@@ -825,11 +825,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var currentCharData = argument.CurrentCharData;
         Debug.Assert(ReferenceEquals(currentCharData, currentRunList[0]));
 #endif
+        // 目前连写字在 IWordDivider 里面处理
         IWordDivider wordDivider = updateLayoutContext.PlatformProvider.GetWordDivider();
         DivideWordResult divideWordResult = wordDivider.DivideWord(new DivideWordArgument(currentRunList, updateLayoutContext));
 
         // todo 后续连字符的情况也要考虑
-        // 目前连字符在 IWordDivider 里面处理
 
         int takeCount = divideWordResult.TakeCount;
         // 测量 takeCount 下的字符宽度
