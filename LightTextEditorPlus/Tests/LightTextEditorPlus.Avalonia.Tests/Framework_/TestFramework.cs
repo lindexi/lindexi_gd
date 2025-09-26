@@ -139,7 +139,10 @@ public record TextEditTestContext(Window TestWindow, TextEditor TextEditor) : ID
             return;
         }
 
-        TestWindow.Close();
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            TestWindow.Close();
+        });
     }
 }
 
