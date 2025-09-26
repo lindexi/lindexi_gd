@@ -473,8 +473,11 @@ abstract class ArrangingLayoutProvider
         //paragraph.GetRunRange(dirtyParagraphOffset);
 
         // 确保整个段落的字符都经过测量
-        // 原本这个步骤是在行内执行的。但是由于有连写字的存在，可能会导致下一行的变更影响上一行。比如在第二行的行首添加 'i' 字符时，刚好第一行的行末存在 'f' 字符，刚好构成 'fi' 连写字。此时尽管第一行非脏，但由于第二行的变更，导致第一行的 'f' 字符需要重新测量
-        EnsureMeasureAndFillSizeOfCharDataList(paragraph.GetParagraphCharDataList(), context);
+        if (!paragraph.IsEmptyParagraph)
+        {
+            // 原本这个步骤是在行内执行的。但是由于有连写字的存在，可能会导致下一行的变更影响上一行。比如在第二行的行首添加 'i' 字符时，刚好第一行的行末存在 'f' 字符，刚好构成 'fi' 连写字。此时尽管第一行非脏，但由于第二行的变更，导致第一行的 'f' 字符需要重新测量
+            EnsureMeasureAndFillSizeOfCharDataList(paragraph.GetParagraphCharDataList(), context);
+        }
 
         var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
