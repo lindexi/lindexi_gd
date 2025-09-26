@@ -472,6 +472,10 @@ abstract class ArrangingLayoutProvider
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
 
+        // 确保整个段落的字符都经过测量
+        // 原本这个步骤是在行内执行的。但是由于有连写字的存在，可能会导致下一行的变更影响上一行。比如在第二行的行首添加 'i' 字符时，刚好第一行的行末存在 'f' 字符，刚好构成 'fi' 连写字。此时尽管第一行非脏，但由于第二行的变更，导致第一行的 'f' 字符需要重新测量
+        EnsureMeasureAndFillSizeOfCharDataList(paragraph.GetParagraphCharDataList(), context);
+
         var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
         var result = UpdateParagraphLayoutCore(argument, startParagraphOffset);
@@ -680,60 +684,71 @@ abstract class ArrangingLayoutProvider
     /// <param name="updateLayoutContext"></param>
     protected void EnsureMeasureAndFillSizeOfCharDataList(in TextReadOnlyListSpan<CharData> toMeasureCharDataList, UpdateLayoutContext updateLayoutContext)
     {
-        // 循环进行字符测量。在 MeasureAndFillSizeOfRun 方法里面，不会测量整个字符列表，只会测量连续的部分
-        for (int i = 0; i < toMeasureCharDataList.Count; i++)
-        {
-            CharData charData = toMeasureCharDataList[i];
-            if (charData.IsInvalidCharDataInfo)
-            {
-                TextReadOnlyListSpan<CharData> charList = toMeasureCharDataList.Slice(i);
-                var argument = new FillSizeOfCharDataArgument(charList, updateLayoutContext);
-                MeasureAndFillSizeOfCharData(in argument);
-
-                // 不用扔调试异常了，在 MeasureAndFillSizeOfCharDataList 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfCharDataList 方法的判断而已
-                Debug.Assert(!charData.IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfCharData)} 方法可确保 CurrentCharData 的 Size 一定不空");
-            }
-        }
-    }
-
-    /// <summary>
-    /// 测量字符信息。确保 argument.CurrentCharData.Size 一定不为空
-    /// </summary>
-    /// <param name="argument"></param>
-    /// <returns></returns>
-    protected void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
-    {
         // 通过平台提供者获取字符信息测量器
         ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-        if (charInfoMeasurer != null)
+        if (charInfoMeasurer is not null)
         {
-            charInfoMeasurer.MeasureAndFillSizeOfCharData(argument);
-
-            if (argument.CurrentCharData.IsInvalidCharDataInfo)
+            charInfoMeasurer.FillCharDataInfoList(new FillCharDataInfoListArgument(toMeasureCharDataList, updateLayoutContext));
+            return;
+        }
+        else
+        {
+            //// 循环进行字符测量。在 MeasureAndFillSizeOfRun 方法里面，不会测量整个字符列表，只会测量连续的部分
+            for (int i = 0; i < toMeasureCharDataList.Count; i++)
             {
-                if (IsInDebugMode)
+                CharData charData = toMeasureCharDataList[i];
+                if (charData.IsInvalidCharDataInfo)
                 {
-                    throw new TextEditorDebugException($"测量布局之后，当前字符依然没有尺寸");
-                }
-                else
-                {
-                    // 非调试下
-                    // 如果测量之后依然没有尺寸，那么就使用默认的测量方式
-                    // 继续往下执行
-                    argument.UpdateLayoutContext.Logger.LogWarning($"测量布局之后，当前字符依然没有尺寸，字符测量器： {charInfoMeasurer.GetType().FullName}；当前字符 Char={argument.CurrentCharData.CharObject.ToText()} Font={argument.CurrentCharData.RunProperty.FontName}");
+                    //TextReadOnlyListSpan<CharData> charList = toMeasureCharDataList.Slice(i);
+                    //var argument = new FillSizeOfCharDataArgument(charList, updateLayoutContext);
+                    //MeasureAndFillSizeOfCharData(in argument);
+
+                    //// 不用扔调试异常了，在 MeasureAndFillSizeOfCharDataList 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfCharDataList 方法的判断而已
+                    //Debug.Assert(!charData.IsInvalidCharDataInfo, $"经过 {nameof(MeasureAndFillSizeOfCharData)} 方法可确保 CurrentCharData 的 Size 一定不空");
+                    MeasureAndFillCurrentCharData(charData, updateLayoutContext);
                 }
             }
         }
-
-        if (!argument.CurrentCharData.IsInvalidCharDataInfo)
-        {
-            // 如果字符信息有效，则无须继续测量
-            return;
-        }
-
-        // 默认的字符信息测量器
-        MeasureAndFillCurrentCharData(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
     }
+
+    ///// <summary>
+    ///// 测量字符信息。确保 argument.CurrentCharData.Size 一定不为空
+    ///// </summary>
+    ///// <param name="argument"></param>
+    ///// <returns></returns>
+    //protected void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
+    //{
+    //    // 通过平台提供者获取字符信息测量器
+    //    ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+    //    if (charInfoMeasurer != null)
+    //    {
+    //        charInfoMeasurer.MeasureAndFillSizeOfCharData(argument);
+
+    //        if (argument.CurrentCharData.IsInvalidCharDataInfo)
+    //        {
+    //            if (IsInDebugMode)
+    //            {
+    //                throw new TextEditorDebugException($"测量布局之后，当前字符依然没有尺寸");
+    //            }
+    //            else
+    //            {
+    //                // 非调试下
+    //                // 如果测量之后依然没有尺寸，那么就使用默认的测量方式
+    //                // 继续往下执行
+    //                argument.UpdateLayoutContext.Logger.LogWarning($"测量布局之后，当前字符依然没有尺寸，字符测量器： {charInfoMeasurer.GetType().FullName}；当前字符 Char={argument.CurrentCharData.CharObject.ToText()} Font={argument.CurrentCharData.RunProperty.FontName}");
+    //            }
+    //        }
+    //    }
+
+    //    if (!argument.CurrentCharData.IsInvalidCharDataInfo)
+    //    {
+    //        // 如果字符信息有效，则无须继续测量
+    //        return;
+    //    }
+
+    //    // 默认的字符信息测量器
+    //    MeasureAndFillCurrentCharData(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
+    //}
 
     /// <summary>
     /// 通用的测量字符信息的方法，直接就是设置宽度高度为字号大小

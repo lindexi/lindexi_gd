@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using HarfBuzzSharp;
+﻿using HarfBuzzSharp;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
@@ -12,7 +10,16 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Document;
+
+using MS.Internal;
+
 using SkiaSharp;
+
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+
 using Buffer = HarfBuzzSharp.Buffer;
 
 namespace LightTextEditorPlus.Platform;
@@ -121,7 +128,44 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     //        return new CharInfoMeasureResult(bounds, baselineY);
     //    }
 
-    /// <inheritdoc />
+    public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
+    {
+        var charDataList = argument.ToFillCharDataList;
+        foreach (TextReadOnlyListSpan<CharData> textReadOnlyListSpan in charDataList.GetCharSpanContinuous())
+        {
+            bool allMeasured = textReadOnlyListSpan.All(static t=>!t.IsInvalidCharDataInfo);
+            if (allMeasured)
+            {
+                // 全部都测量了，且当前字体不支持连写的情况，直接快速分支，立刻跳过，不需要重复测量
+                CharData charData = textReadOnlyListSpan[0];
+                SkiaTextRunProperty skiaTextRunProperty = charData.RunProperty.AsSkiaRunProperty();
+                RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(charData.CharObject.CodePoint);
+
+                // 字形替换（GSUB）表为连字提供字形替换数据
+                // [GSUB — Glyph Substitution Table (OpenType 1.9.1) - Typography | Microsoft Learn](https://learn.microsoft.com/en-us/typography/opentype/spec/gsub )
+                SKTypeface skTypeface = renderingRunPropertyInfo.Typeface;
+                if (!ContainFeature(skTypeface, "GSUB"u8))
+                {
+                    continue;
+                }
+            }
+
+            MeasureAndFillSizeOfCharData(new FillSizeOfCharDataArgument(textReadOnlyListSpan, argument.UpdateLayoutContext));
+        }
+    }
+
+    static bool ContainFeature(SKTypeface typeface, ReadOnlySpan<byte> tableName)
+    {
+        uint tag = (uint) tableName[0] << 24 | (uint) tableName[1] << 16 | (uint) tableName[2] << 8 | tableName[3];
+        return ContainFeature(typeface, tag);
+    }
+
+    static bool ContainFeature(SKTypeface typeface, uint featureTag)
+    {
+        int tableSize = typeface.GetTableSize(featureTag);
+        return tableSize != 0;
+    }
+
     /// Copy from https://github.com/AvaloniaUI/Avalonia
     /// src\Skia\Avalonia.Skia\TextShaperImpl.cs
     /// src\Skia\Avalonia.Skia\GlyphRunImpl.cs
@@ -131,11 +175,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         CharData currentCharData = argument.CurrentCharData;
 
-        if (!currentCharData.IsInvalidCharDataInfo)
-        {
-            // 已有缓存的尺寸，直接返回即可
-            return;
-        }
+        // 虽然已有缓存的尺寸，但可能收到连写字的影响，需要重新测量
+        //if (!currentCharData.IsInvalidCharDataInfo)
+        //{
+        //    // 已有缓存的尺寸，直接返回即可
+        //    return;
+        //}
 
         var charDataList = argument.ToMeasureCharDataList;
 
@@ -317,7 +362,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         Blob? GetTable(Face f, Tag tag)
         {
-            var size = skTypeface.GetTableSize(tag);
+            uint tagValue = tag;
+            var size = skTypeface.GetTableSize(tagValue);
             var data = Marshal.AllocCoTaskMem(size);
             if (skTypeface.TryGetTableData(tag, 0, size, data))
             {

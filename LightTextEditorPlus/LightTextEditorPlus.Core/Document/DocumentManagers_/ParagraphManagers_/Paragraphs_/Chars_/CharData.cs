@@ -175,6 +175,12 @@ public sealed class CharData : ICharData, ILayoutCharData
                 //{
                 //    throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
                 //}
+
+                if (charDataInfo != CharDataInfo)
+                {
+                    // 由于连写字的更新，需要设置当前行是脏的
+                    CharLayoutData?.CurrentLine?.SetDirty();
+                }
             }
             else
             {
