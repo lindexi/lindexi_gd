@@ -233,12 +233,13 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             ShapeByHarfBuzz(text, skFont, updateLayoutContext);
         Span<TextGlyphInfo> glyphInfoSpan = textGlyphInfoContext.Span;
 
-        var charCount = charDataListToCharSpanResult.CharSpan.Length;
-        Debug.Assert(charCount == charDataList.Count, "字符数量应该匹配");
+        // 对于 emoji 来说，字符数量可能更多
+        //var charCount = charDataListToCharSpanResult.CharSpan.Length;
+        //Debug.Assert(charCount == charDataList.Count, "字符数量应该匹配");
 
         var glyphInfoListCount = glyphInfoSpan.Length;
         // 为什么是小于等于？因为存在 liga 连写的情况，可能实际的 glyph 数量会小于字符数量
-        Debug.Assert(glyphInfoListCount <= charCount);
+        Debug.Assert(glyphInfoListCount <= charDataList.Count);
         Debug.Assert(glyphInfoListCount > 0, "必定能找到至少一个字符");
 
         // 2. 通过 Skia 获取 Glyph 的渲染尺寸

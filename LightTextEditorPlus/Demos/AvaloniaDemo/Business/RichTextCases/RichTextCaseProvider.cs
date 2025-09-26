@@ -26,12 +26,6 @@ partial class RichTextCaseProvider
 
         Add(editor =>
         {
-            // 追加文本
-            editor.AppendText("追加的文本");
-        }, "追加文本");
-
-        Add(editor =>
-        {
             editor.SetFontSize(76); // 76pixel = 57pound
             editor.SetFontName("微软雅黑");
             editor.AppendText("第一段afg\r\n第二段afg");
