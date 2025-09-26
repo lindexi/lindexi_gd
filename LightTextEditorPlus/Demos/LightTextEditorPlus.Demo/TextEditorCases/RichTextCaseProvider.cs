@@ -16,7 +16,7 @@ using LightTextEditorPlus.Document.Decorations;
 // ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus.Demo.Business.RichTextCases;
 
-internal partial class RichTextCaseProvider
+partial class RichTextCaseProvider
 {
     private partial void OnInit()
     {

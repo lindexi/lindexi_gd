@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextVisionComparer", "Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Skia.AotLayer", "LightTextEditorPlus.Skia.AotLayer\LightTextEditorPlus.Skia.AotLayer.csproj", "{7366EB10-7710-B13F-AAAD-FE96C1131002}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Avalonia.Tests", "Tests\LightTextEditorPlus.Avalonia.Tests\LightTextEditorPlus.Avalonia.Tests.csproj", "{EDC2A4EF-2069-EF13-243F-B7E351B69E41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -133,6 +135,10 @@ Global
 		{7366EB10-7710-B13F-AAAD-FE96C1131002}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7366EB10-7710-B13F-AAAD-FE96C1131002}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7366EB10-7710-B13F-AAAD-FE96C1131002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDC2A4EF-2069-EF13-243F-B7E351B69E41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDC2A4EF-2069-EF13-243F-B7E351B69E41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDC2A4EF-2069-EF13-243F-B7E351B69E41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDC2A4EF-2069-EF13-243F-B7E351B69E41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -154,6 +160,7 @@ Global
 		{1D08CEC5-24F1-4B5D-AEE9-57E1FB7E5A44} = {6F64D075-2A75-401D-B913-38F31A30CEF2}
 		{B03D5E62-5022-4FD0-9B8F-EEAF97FDF556} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
 		{7366EB10-7710-B13F-AAAD-FE96C1131002} = {5792F586-DEF6-42DD-9B69-F87CBDCB502F}
+		{EDC2A4EF-2069-EF13-243F-B7E351B69E41} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E48340DD-252E-4F4F-8FD7-DA0F41E2557E}

@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -18,8 +18,11 @@
       </Grid.RowDefinitions>
       <Border Margin="10,10,10,10" HorizontalAlignment="Left"
               VerticalAlignment="Top">
-        <Grid x:Name="TextEditorGrid">
+        <Grid>
           <Border x:Name="TextEditorBorder" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"></Border>
+          <Grid x:Name="TextEditorGrid">
+
+          </Grid>
           <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
             <!-- 用来绘制调试内容 -->
           </Canvas>

@@ -2,7 +2,7 @@
 
 namespace LightTextEditorPlus.Demo.Business.RichTextCases;
 
-interface IRichTextCase
+public interface IRichTextCase
 {
     string Name { get; }
     void Exec(TextEditor textEditor);

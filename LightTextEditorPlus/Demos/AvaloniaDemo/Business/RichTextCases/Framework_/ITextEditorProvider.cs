@@ -1,6 +1,6 @@
-namespace LightTextEditorPlus.Demo.Business.RichTextCases;
+﻿namespace LightTextEditorPlus.Demo.Business.RichTextCases;
 
-interface ITextEditorProvider
+public interface ITextEditorProvider
 {
     TextEditor GetTextEditor();
 }
