@@ -167,13 +167,14 @@ public sealed class CharData : ICharData, ILayoutCharData
             {
                 // 为什么连写字允许重复更新？比如说有 'fi' 连写。分为两次输入，第一次输入 'f'，第二次输入 'i'。第一次输入 'f' 时，可能已经测量过了，并且状态是 Normal 值。此时当输入 'i' 时，才发现 'fi' 是连写的开始，则需要更新 'f' 的状态为 LigatureStart 值
 
-                // 额外判断是否也更新了其他属性，其他属性是不允许更新的
-                if (!CharDataInfo.FrameSize.Equals(charDataInfo.FrameSize)
-                    || !CharDataInfo.FaceSize.Equals(charDataInfo.FaceSize)
-                    || !Nearly.Equals(CharDataInfo.Baseline, charDataInfo.Baseline))
-                {
-                    throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
-                }
+                // 从非连写字，更新为连写字时，可能会更改其他属性，比如将 FrameSize 和 FaceSize 都设置为 0 的值，此时是符合预期的
+                //// 额外判断是否也更新了其他属性，其他属性是不允许更新的
+                //if (!CharDataInfo.FrameSize.Equals(charDataInfo.FrameSize)
+                //    || !CharDataInfo.FaceSize.Equals(charDataInfo.FaceSize)
+                //    || !Nearly.Equals(CharDataInfo.Baseline, charDataInfo.Baseline))
+                //{
+                //    throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
+                //}
             }
             else
             {
