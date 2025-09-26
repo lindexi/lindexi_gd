@@ -9,7 +9,6 @@ using LightTextEditorPlus.Diagnostics;
 using SkiaSharp;
 
 using System;
-using System.Runtime.InteropServices;
 
 namespace LightTextEditorPlus.Rendering.Core;
 
@@ -89,15 +88,5 @@ abstract class BaseSkiaTextRenderer : IDisposable
     public void Dispose()
     {
         _debugSKPaint?.Dispose();
-    }
-
-    public static SKTextBlob ToSKTextBlob(in TextReadOnlyListSpan<CharData> charList, SKFont skFont)
-    {
-        using TextPoolArrayContext<ushort> glyphIndexContext = charList.ToRenderGlyphIndexSpanContext();
-        Span<ushort> glyphIndexSpan = glyphIndexContext.Span;
-        Span<byte> glyphIndexByteSpan = MemoryMarshal.AsBytes(glyphIndexSpan);
-
-        SKTextBlob skTextBlob = SKTextBlob.Create(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont);
-        return skTextBlob;
     }
 }

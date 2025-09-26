@@ -5,6 +5,7 @@ using LightTextEditorPlus.Core.Utils;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -160,11 +161,24 @@ public sealed class CharData : ICharData, ILayoutCharData
         }
 
         // 已经设置过值，且更新的不是连写字则抛出异常
-        if (!CharDataInfo.IsInvalid
-            // 为什么连写字允许重复更新？比如说有 'fi' 连写。分为两次输入，第一次输入 'f'，第二次输入 'i'。第一次输入 'f' 时，可能已经测量过了，并且状态是 Normal 值。此时当输入 'i' 时，才发现 'fi' 是连写的开始，则需要更新 'f' 的状态为 LigatureStart 值
-            && charDataInfo.Status is not (CharDataInfoStatus.LigatureStart or CharDataInfoStatus.LigatureContinue))
+        if (!CharDataInfo.IsInvalid)
         {
-            throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
+            if (charDataInfo.Status is CharDataInfoStatus.LigatureStart or CharDataInfoStatus.LigatureContinue)
+            {
+                // 为什么连写字允许重复更新？比如说有 'fi' 连写。分为两次输入，第一次输入 'f'，第二次输入 'i'。第一次输入 'f' 时，可能已经测量过了，并且状态是 Normal 值。此时当输入 'i' 时，才发现 'fi' 是连写的开始，则需要更新 'f' 的状态为 LigatureStart 值
+
+                // 额外判断是否也更新了其他属性，其他属性是不允许更新的
+                if (!CharDataInfo.FrameSize.Equals(charDataInfo.FrameSize)
+                    || !CharDataInfo.FaceSize.Equals(charDataInfo.FaceSize)
+                    || !Nearly.Equals(CharDataInfo.Baseline, charDataInfo.Baseline))
+                {
+                    throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
+            }
         }
 
         CharDataInfo = charDataInfo;

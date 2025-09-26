@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.Runtime.InteropServices;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -103,7 +104,7 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
             SKFont skFont = renderingRunPropertyInfo.Font;
             SKPaint textRenderSKPaint = renderingRunPropertyInfo.Paint;
 
-            SKPoint[] positionList = new SKPoint[charList.Count];
+            var positionList = new List<SKPoint>(charList.Count);
             for (int i = 0; i < charList.Count; i++)
             {
                 CharData charData = charList[i];
@@ -130,10 +131,20 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
                 renderBounds = renderBounds.Union(charBounds);
 
                 y += charData.Baseline - space / 2;
-                positionList[i] = new SKPoint((float) x, (float) y);
+                if (charData.CharDataInfo.Status == CharDataInfoStatus.LigatureContinue)
+                {
+                    
+                }
+                else
+                {
+                    positionList.Add(new SKPoint((float) x, (float) y));
+                }
             }
 
-            using SKTextBlob skTextBlob = BaseSkiaTextRenderer.ToSKTextBlob(in charList, skFont);
+            using var glyphIndexSpanContext = charList.ToRenderGlyphIndexSpanContext();
+            Span<ushort> glyphIndexSpan = glyphIndexSpanContext.Span;
+            Span<byte> glyphIndexByteSpan = MemoryMarshal.AsBytes(glyphIndexSpan);
+            using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont, positionList.ToArray());
             canvas.DrawText(skTextBlob, 0, 0, textRenderSKPaint);
             return renderBounds;
         }
