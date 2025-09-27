@@ -238,7 +238,12 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 设置或获取文本编辑器的交互处理器
         /// </summary>
-        public TextEditorHandler TextEditorHandler { get; set; }
+        public TextEditorHandler TextEditorHandler
+        {
+            get => _textEditorHandler ??= TextEditorPlatformProvider.GetHandler();
+            set => _textEditorHandler = value;
+        }
+        private TextEditorHandler? _textEditorHandler;
     }
 }
 #endif
