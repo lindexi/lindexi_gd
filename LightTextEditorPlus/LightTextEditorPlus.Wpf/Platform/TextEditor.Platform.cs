@@ -95,8 +95,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         AddVisualChild(TextView);
         AddLogicalChild(TextView);
 
-        TextEditorHandler = textEditorPlatformProvider.GetHandler();
-
         // 挂上 IME 输入法的支持
         _ = new IMESupporter<TextEditor>(this);
     }

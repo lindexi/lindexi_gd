@@ -82,8 +82,6 @@ partial class TextEditor : Control
         //#endif
 
         IMESupporter.AddIMESupport(this);
-
-        TextEditorHandler = TextEditorPlatformProvider.GetHandler();
     }
 
     internal AvaloniaSkiaTextEditorPlatformProvider TextEditorPlatformProvider { get; }

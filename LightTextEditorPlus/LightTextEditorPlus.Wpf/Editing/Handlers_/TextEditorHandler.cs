@@ -107,8 +107,6 @@ public partial class TextEditorHandler
         Mouse.Capture(TextEditor, CaptureMode.None);
     }
 
-  
-
     /// <summary>
     /// 鼠标进入
     /// </summary>
