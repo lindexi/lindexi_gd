@@ -45,12 +45,16 @@ internal class KeyboardHandler
             MoveCaret(CaretMoveType.LineEnd)));
         TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveToLineEnd, Key.End, ModifierKeys.None));
 
-        //编辑
+        // 编辑
         TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Backspace, OnBackspace));
         TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Backspace, Key.Back, ModifierKeys.None));
 
         TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
         TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Delete, Key.Delete, ModifierKeys.None));
+
+        // 输入状态
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleInsert, OnToggleInsert));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.ToggleInsert, Key.Insert, ModifierKeys.None));
 
         // 默认命令。默认命令都不用绑定快捷键，因为系统（框架）已经绑定好了
         // 剪贴板
@@ -105,6 +109,11 @@ internal class KeyboardHandler
     }
 
     #endregion
+
+    private void OnToggleInsert(object sender, ExecutedRoutedEventArgs e)
+    {
+        TextEditorHandler.ToggleInsert();
+    }
 
     #region 方向键
 

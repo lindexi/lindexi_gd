@@ -1,20 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using LightTextEditorPlus.Core.Document;
 
-namespace LightTextEditorPlus.Document;
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 不可变的文本列表
 /// </summary>
-public abstract class TextEditorImmutableRunListBase<T> : IImmutableRunList
+public abstract class ImmutableRunListBase<T> : IImmutableRunList
     where T: IImmutableRun
 {
     /// <summary>
     /// 创建不可变的文本列表
     /// </summary>
-    protected TextEditorImmutableRunListBase(IEnumerable<T> runs)
+    protected ImmutableRunListBase(IEnumerable<T> runs)
     {
         _runs = runs.ToImmutableArray();
     }
