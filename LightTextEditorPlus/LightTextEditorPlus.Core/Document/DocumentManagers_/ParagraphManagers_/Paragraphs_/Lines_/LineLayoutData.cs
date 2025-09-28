@@ -53,6 +53,11 @@ class LineLayoutData : IParagraphCache, IDisposable
     public int CharCount => CharEndParagraphIndex - CharStartParagraphIndex;
 
     /// <summary>
+    /// 此行包含的字符所在文档的起始点
+    /// </summary>
+    public DocumentOffset CharStartDocumentOffset => CurrentParagraph.ToDocumentOffset(new ParagraphCharOffset(CharStartParagraphIndex));
+
+    /// <summary>
     /// 这一行的起始的点，相对于文本框
     /// </summary>
     /// 左侧贴边，上侧为文档坐标。依靠各个 Thickness 属性来计算具体的位置
@@ -191,12 +196,12 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <remarks>这个方法调用接近不用钱，随便调用</remarks>
     /// <returns></returns>
     public TextReadOnlyListSpan<CharData> GetCharList() =>
-        CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharEndParagraphIndex - CharStartParagraphIndex);
+        CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharCount);
 
     /// <summary>
     /// 转换为段落的光标位置
     /// </summary>
-    /// <param name="lineCaretOffset"></param>
+    /// <param name="lineCaretOffset">超过当前行的最大坐标，会被自动约束为当前行最大的光标坐标</param>
     /// <returns></returns>
     public ParagraphCaretOffset ToParagraphCaretOffset(LineCaretOffset lineCaretOffset)
     {
