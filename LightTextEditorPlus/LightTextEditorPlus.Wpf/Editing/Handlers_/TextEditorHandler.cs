@@ -189,13 +189,7 @@ public partial class TextEditorHandler
     /// <param name="e"></param>
     protected internal virtual void OnKeyDown(KeyEventArgs e)
     {
-        if (e.Key == Key.Insert)
-        {
-            SwitchOvertypeMode();
-            e.Handled = true;
-            return;
-        }
-        else if (e.Key == Key.Enter)
+        if (e.Key == Key.Enter)
         {
             BreakLine();
             e.Handled = true;

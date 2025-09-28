@@ -147,10 +147,15 @@ public partial class TextEditorHandler
     /// <inheritdoc cref="TextEditorCore.Backspace"/>
     protected internal virtual void Backspace() => TextEditorCore.Backspace();
 
+    /// <inheritdoc cref="SwitchOvertypeMode"/>
+    /// <remarks>完全等同于 <see cref="SwitchOvertypeMode"/> 方法</remarks>
+    protected internal virtual void ToggleInsert() => SwitchOvertypeMode();
+
     /// <summary>
     /// 输入 Insert 键的处理，切换插入/覆盖模式
     /// </summary>
-    protected virtual void SwitchOvertypeMode()
+    /// <remarks>完全等同于 <see cref="ToggleInsert"/> 方法</remarks>
+    protected internal virtual void SwitchOvertypeMode()
     {
         if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
         {
