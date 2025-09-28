@@ -1,5 +1,6 @@
 ﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
+using System;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Editing;
@@ -168,7 +169,25 @@ public partial class TextEditorHandler
     /// </summary>
     protected virtual void BreakLine()
     {
-        RawTextInput("\n");
+        PerformInput("\n");
+    }
+
+    /// <summary>
+    /// 换行
+    /// </summary>
+    [Obsolete($"这个方法的存在是用来告诉你，正确的调用方式应该是调用 {nameof(BreakLine)} 方法", true)]
+    public void AddNewLine()
+    {
+        BreakLine();
+    }
+
+    /// <summary>
+    /// 换行
+    /// </summary>
+    [Obsolete($"这个方法的存在是用来告诉你，正确的调用方式应该是调用 {nameof(BreakLine)} 方法", true)]
+    public void InsertNewLine()
+    {
+        BreakLine();
     }
 
     /// <summary>
