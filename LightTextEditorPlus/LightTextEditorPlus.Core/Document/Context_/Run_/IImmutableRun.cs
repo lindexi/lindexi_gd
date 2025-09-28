@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
@@ -29,4 +31,16 @@ public interface IImmutableRun
     /// <param name="index"></param>
     /// <returns></returns>
     (IImmutableRun FirstRun, IImmutableRun SecondRun) SplitAt(int index);
+
+    /// <summary>
+    /// 当成可枚举对象处理
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<ICharObject> AsEnumerable()
+    {
+        for (int i = 0; i < Count; i++)
+        {
+            yield return GetChar(i);
+        }
+    }
 }

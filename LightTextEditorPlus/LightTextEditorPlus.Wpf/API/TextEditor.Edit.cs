@@ -1,5 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
@@ -55,6 +55,18 @@ public partial class TextEditor
             _cacheText = null;
             OnPropertyChanged(nameof(Text));
         }
+    }
+
+    /// <summary>
+    /// 获取给定选择范围内的文本内容
+    /// </summary>
+    /// <param name="selection"></param>
+    /// <returns></returns>
+    public ImmutableRunList GetRunList(in Selection selection)
+    {
+        IImmutableRunList immutableRunList = TextEditorCore.GetRunList(in selection);
+        return new ImmutableRunList(immutableRunList.AsEnumerable()
+            .Select(t => new ImmutableRun(t.RunProperty!.AsRunProperty(), t.AsEnumerable())));
     }
 
     #endregion Text
@@ -580,13 +592,13 @@ public partial class TextEditor
     public void AppendText(string text) => TextEditorCore.AppendText(text);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.AppendRun"/>
-    public void AppendRun(ImmutableRun run) => TextEditorCore.AppendRun(run);
+    public void AppendRun(ImmutableTextRun run) => TextEditorCore.AppendRun(run);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplace"/>
     public void EditAndReplace(string text, Selection? selection = null) => TextEditorCore.EditAndReplace(text, selection);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplaceRun"/>
-    public void EditAndReplaceRun(ImmutableRun run, Selection? selection = null) => TextEditorCore.EditAndReplaceRun(run, selection);
+    public void EditAndReplaceRun(ImmutableTextRun run, Selection? selection = null) => TextEditorCore.EditAndReplaceRun(run, selection);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.Backspace"/>
     public void Backspace() => TextEditorCore.Backspace();
