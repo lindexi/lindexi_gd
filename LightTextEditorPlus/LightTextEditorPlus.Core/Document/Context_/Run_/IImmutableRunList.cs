@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
@@ -21,4 +23,16 @@ public interface IImmutableRunList
     /// <param name="index"></param>
     /// <returns></returns>
     IImmutableRun GetRun(int index);
+
+    /// <summary>
+    /// 当成可枚举对象处理
+    /// </summary>
+    /// <returns></returns>
+    IEnumerable<IImmutableRun> AsEnumerable()
+    {
+        for (int i = 0; i < RunCount; i++)
+        {
+            yield return GetRun(i);
+        }
+    }
 }

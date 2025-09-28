@@ -26,7 +26,7 @@ partial class RichTextCaseProvider
         Add(editor =>
         {
             TextEditor textEditor = editor;
-            textEditor.AppendRun(new ImmutableRun("abc", textEditor.CreateRunProperty(property => property with
+            textEditor.AppendRun(new ImmutableTextRun("abc", textEditor.CreateRunProperty(property => property with
             {
                 FontSize = 90,
                 FontName = new FontName("Times New Roman"),
@@ -46,7 +46,7 @@ partial class RichTextCaseProvider
                 FontSize = 90,
                 Foreground = new ImmutableBrush(Brushes.Red)
             });
-            textEditor.EditAndReplaceRun(new ImmutableRun("b", newRunProperty), selection);
+            textEditor.EditAndReplaceRun(new ImmutableTextRun("b", newRunProperty), selection);
         }, "替换带格式文本内容");
 
         Add(editor =>
@@ -64,15 +64,15 @@ partial class RichTextCaseProvider
             TextEditor textEditor = editor;
 
             RunProperty styleRunProperty = textEditor.StyleRunProperty;
-            textEditor.AppendRun(new ImmutableRun("a", styleRunProperty with
+            textEditor.AppendRun(new ImmutableTextRun("a", styleRunProperty with
             {
                 Foreground = new ImmutableBrush(Brushes.Red)
             }));
-            textEditor.AppendRun(new ImmutableRun("b", styleRunProperty with
+            textEditor.AppendRun(new ImmutableTextRun("b", styleRunProperty with
             {
                 Foreground = new ImmutableBrush(Brushes.Green)
             }));
-            textEditor.AppendRun(new ImmutableRun("c", styleRunProperty with
+            textEditor.AppendRun(new ImmutableTextRun("c", styleRunProperty with
             {
                 Foreground = new ImmutableBrush(Brushes.Blue)
             }));
@@ -92,15 +92,15 @@ partial class RichTextCaseProvider
             TextEditor textEditor = editor;
 
             RunProperty styleRunProperty = textEditor.StyleRunProperty;
-            textEditor.AppendRun(new ImmutableRun("a", styleRunProperty with
+            textEditor.AppendRun(new ImmutableTextRun("a", styleRunProperty with
             {
                 Foreground = new ImmutableBrush(Brushes.Red)
             }));
-            textEditor.AppendRun(new ImmutableRun("b", styleRunProperty with
+            textEditor.AppendRun(new ImmutableTextRun("b", styleRunProperty with
             {
                 Foreground = new ImmutableBrush(Brushes.Green)
             }));
-            textEditor.AppendRun(new ImmutableRun("c", styleRunProperty with
+            textEditor.AppendRun(new ImmutableTextRun("c", styleRunProperty with
             {
                 Foreground = new ImmutableBrush(Brushes.Blue)
             }));

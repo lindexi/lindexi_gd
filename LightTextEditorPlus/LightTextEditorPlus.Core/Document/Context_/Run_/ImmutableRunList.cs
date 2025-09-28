@@ -1,23 +1,31 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace LightTextEditorPlus.Core.Document;
 
-class ImmutableRunList : List<IImmutableRun>, IImmutableRunList
+/// <summary>
+/// 表示一个 <see cref="IImmutableRun"/> 列表
+/// </summary>
+internal class ImmutableRunList : IImmutableRunList
 {
-    public ImmutableRunList()
+    /// <summary>
+    /// 创建不可变的文本列表
+    /// </summary>
+    /// <param name="collection"></param>
+    public ImmutableRunList(IEnumerable<IImmutableRun> collection)
     {
+        _runs = collection.ToImmutableArray();
     }
 
-    public ImmutableRunList(IEnumerable<IImmutableRun> collection) : base(collection)
-    {
-    }
+    /// <inheritdoc />
+    public int CharCount => _runs.Sum(t => t.Count);
 
-    public ImmutableRunList(int capacity) : base(capacity)
-    {
-    }
+    /// <inheritdoc />
+    public int RunCount => _runs.Length;
 
-    public int CharCount => this.Sum(t => t.Count);
-    public int RunCount => Count;
-    public IImmutableRun GetRun(int index) => this[index];
+    /// <inheritdoc />
+    public IImmutableRun GetRun(int index) => _runs[index];
+
+    private readonly ImmutableArray<IImmutableRun> _runs;
 }

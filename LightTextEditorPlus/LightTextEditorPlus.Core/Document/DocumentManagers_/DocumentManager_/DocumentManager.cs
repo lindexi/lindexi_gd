@@ -533,7 +533,7 @@ namespace LightTextEditorPlus.Core.Document
                 IReadOnlyRunProperty? lastChangedRunProperty = null;
                 CharData? lastCharData = null;
 
-                var runList = new ImmutableRunList();
+                var runList = new MutableRunList();
 
                 // todo 这里应该是走直接替换逻辑，不应该是重新构建 Run 再替换。因为如此替换会导致原本的段落被删除
                 foreach (var charData in GetCharDataRange(selection.Value))
@@ -696,7 +696,7 @@ namespace LightTextEditorPlus.Core.Document
         public IImmutableRunList GetImmutableRunList(in Selection selection)
         {
             IEnumerable<IImmutableRun> enumerateImmutableRunRange = EnumerateImmutableRunRange(selection);
-            return new ImmutableRunList(enumerateImmutableRunRange);
+            return new MutableRunList(enumerateImmutableRunRange);
         }
 
         /// <summary>
