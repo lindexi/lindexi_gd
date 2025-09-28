@@ -193,6 +193,11 @@ class LineLayoutData : IParagraphCache, IDisposable
     public TextReadOnlyListSpan<CharData> GetCharList() =>
         CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharEndParagraphIndex - CharStartParagraphIndex);
 
+    /// <summary>
+    /// 转换为段落的光标位置
+    /// </summary>
+    /// <param name="lineCaretOffset"></param>
+    /// <returns></returns>
     public ParagraphCaretOffset ToParagraphCaretOffset(LineCaretOffset lineCaretOffset)
     {
         // 需要自动设置为不超过行的坐标
@@ -201,6 +206,11 @@ class LineLayoutData : IParagraphCache, IDisposable
         return new ParagraphCaretOffset(CharStartParagraphIndex + offset);
     }
 
+    /// <summary>
+    /// 转换为文档的光标位置
+    /// </summary>
+    /// <param name="lineCaretOffset"></param>
+    /// <returns></returns>
     public CaretOffset ToCaretOffset(LineCaretOffset lineCaretOffset)
     {
         var paragraphCaretOffset = ToParagraphCaretOffset(lineCaretOffset);
