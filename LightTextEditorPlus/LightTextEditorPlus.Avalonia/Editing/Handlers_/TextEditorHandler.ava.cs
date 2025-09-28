@@ -19,7 +19,7 @@ public partial class TextEditorHandler
     /// 指针按下
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnPointerPressed(PointerPressedEventArgs e)
+    protected internal virtual void OnPointerPressed(PointerPressedEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
         {
@@ -72,7 +72,7 @@ public partial class TextEditorHandler
     /// 指针移动
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnPointerMoved(PointerEventArgs e)
+    protected internal virtual void OnPointerMoved(PointerEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
         {
@@ -105,7 +105,7 @@ public partial class TextEditorHandler
     /// 指针抬起
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnPointerReleased(PointerReleasedEventArgs e)
+    protected internal virtual void OnPointerReleased(PointerReleasedEventArgs e)
     {
         if (!e.Pointer.IsPrimary)
         {
@@ -137,7 +137,7 @@ public partial class TextEditorHandler
     /// 当文本输入
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnTextInput(TextInputEventArgs e)
+    protected internal virtual void OnTextInput(TextInputEventArgs e)
     {
         if (e.Handled ||
             string.IsNullOrEmpty(e.Text) ||
@@ -155,7 +155,7 @@ public partial class TextEditorHandler
     /// 键盘按下
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnKeyDown(KeyEventArgs e)
+    protected internal virtual void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.Delete)
         {
@@ -202,6 +202,14 @@ public partial class TextEditorHandler
             {
                 MoveCaret(CaretMoveType.RightByCharacter);
             }
+            else if (e.Key == Key.Home)
+            {
+                MoveCaret(CaretMoveType.LineStart);
+            }
+            else if (e.Key == Key.End)
+            {
+                MoveCaret(CaretMoveType.LineEnd);
+            }
         }
     }
 
@@ -209,7 +217,7 @@ public partial class TextEditorHandler
     /// 键盘抬起
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnKeyUp(KeyEventArgs e)
+    protected internal virtual void OnKeyUp(KeyEventArgs e)
     {
         if (!TextEditor.IsInEditingInputMode)
         {
@@ -226,7 +234,7 @@ public partial class TextEditorHandler
     /// 移动光标方向
     /// </summary>
     /// <param name="type"></param>
-    public virtual partial void MoveCaret(CaretMoveType type)
+    protected internal virtual partial void MoveCaret(CaretMoveType type)
     {
         TextEditor.TextEditorCore.MoveCaret(type);
     }

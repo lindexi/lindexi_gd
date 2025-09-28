@@ -31,7 +31,6 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Platform;
-using LightTextEditorPlus.Utils;
 
 // ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus;

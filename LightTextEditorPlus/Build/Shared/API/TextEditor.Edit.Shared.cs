@@ -1,7 +1,7 @@
 ﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
 using System;
-
+using System.Text;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -19,6 +19,39 @@ namespace LightTextEditorPlus
     [APIConstraint("TextEditor.Edit.Shared.txt")]
     partial class TextEditor
     {
+        #region Text
+
+        /// <summary>
+        /// 获取当前选中的文本
+        /// </summary>
+        /// <returns></returns>
+        public string GetSelectedText()
+        {
+            return TextEditorCore.GetText(TextEditorCore.CurrentSelection);
+        }
+
+        /// <summary>
+        /// 获取文本
+        /// </summary>
+        /// <returns></returns>
+        public string GetText(in Selection selection)
+        {
+            return TextEditorCore.GetText(in selection);
+        }
+
+        /// <summary>
+        /// 获取文本
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <param name="stringBuilder"></param>
+        /// <returns></returns>
+        public StringBuilder GetText(in Selection selection, StringBuilder stringBuilder)
+        {
+            return TextEditorCore.GetText(stringBuilder, in selection);
+        }
+
+        #endregion
+
         #region 编辑模式
 
         /// <summary>
