@@ -3,6 +3,7 @@
 using System;
 using System.Text;
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -25,6 +26,7 @@ namespace LightTextEditorPlus
         /// 获取当前选中的文本
         /// </summary>
         /// <returns></returns>
+        [TextEditorPublicAPI]
         public string GetSelectedText()
         {
             return TextEditorCore.GetText(TextEditorCore.CurrentSelection);
@@ -34,6 +36,7 @@ namespace LightTextEditorPlus
         /// 获取文本
         /// </summary>
         /// <returns></returns>
+         [TextEditorPublicAPI]
         public string GetText(in Selection selection)
         {
             return TextEditorCore.GetText(in selection);
@@ -45,6 +48,7 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         /// <param name="stringBuilder"></param>
         /// <returns></returns>
+        [TextEditorPublicAPI]
         public StringBuilder GetText(in Selection selection, StringBuilder stringBuilder)
         {
             return TextEditorCore.GetText(stringBuilder, in selection);
@@ -97,6 +101,7 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 进入编辑模式
         /// </summary>
+        [TextEditorPublicAPI]
         public void EnterEditMode()
         {
             if (!IsEditable)
@@ -110,6 +115,7 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 退出编辑模式
         /// </summary>
+        [TextEditorPublicAPI]
         public void QuitEditMode()
         {
             IsInEditingInputMode = false;
