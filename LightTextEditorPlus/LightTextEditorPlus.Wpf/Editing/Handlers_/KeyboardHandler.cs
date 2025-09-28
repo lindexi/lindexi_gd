@@ -52,6 +52,34 @@ internal class KeyboardHandler
         TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
         TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Delete, Key.Delete, ModifierKeys.None));
 
+        // 默认命令。默认命令都不用绑定快捷键，因为系统（框架）已经绑定好了
+        // 剪贴板
+        TextEditor.CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy, OnCopy));
+        TextEditor.CommandBindings.Add(new CommandBinding(ApplicationCommands.Cut, OnCut));
+        TextEditor.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, OnPaste));
+
+        // 样式变更-无默认快捷键绑定
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleItalic, (s, e) =>
+        {
+            TextEditor.ToggleItalic();
+        }));
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleBold, (s, e) =>
+        {
+            TextEditor.ToggleBold();
+        }));
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleUnderline, (s, e) =>
+        {
+            TextEditor.ToggleUnderline();
+        }));
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleSuperscript, (s, e) =>
+        {
+            TextEditor.ToggleSuperscript();
+        }));
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleSubscript, (s, e) =>
+        {
+            TextEditor.ToggleSubscript();
+        }));
+
         textEditor.KeyDown += TextEditor_KeyDown;
     }
 
@@ -92,4 +120,23 @@ internal class KeyboardHandler
     #endregion
 
     private TextEditor TextEditor { get; }
+
+    #region 剪贴板
+
+    private void OnCopy(object sender, ExecutedRoutedEventArgs e)
+    {
+        TextEditorHandler.OnCopy(sender, e);
+    }
+
+    private void OnCut(object sender, ExecutedRoutedEventArgs e)
+    {
+        TextEditorHandler.OnCut(sender, e);
+    }
+
+    private void OnPaste(object sender, ExecutedRoutedEventArgs e)
+    {
+        TextEditorHandler.OnPaste(sender, e);
+    }
+
+    #endregion
 }

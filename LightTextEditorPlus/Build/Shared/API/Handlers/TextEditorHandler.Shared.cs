@@ -38,7 +38,7 @@ public partial class TextEditorHandler
     /// </summary>
     /// <param name="clickPoint"></param>
     /// <returns></returns>
-    public virtual bool HandleSingleClick(in TextPoint clickPoint)
+    protected virtual bool HandleSingleClick(in TextPoint clickPoint)
     {
         TextEditor
             .TextEditorPlatformProvider
@@ -67,7 +67,7 @@ public partial class TextEditorHandler
     /// </summary>
     /// <param name="clickPoint"></param>
     /// <returns></returns>
-    public virtual bool HandleDoubleClick(in TextPoint clickPoint)
+    protected virtual bool HandleDoubleClick(in TextPoint clickPoint)
     {
         // 默认行为是双击全选，你想选词？那就不好玩了哦
         TextEditor.TextEditorCore.SelectAll();
@@ -82,7 +82,7 @@ public partial class TextEditorHandler
     /// </summary>
     /// <param name="textPoint"></param>
     /// <returns></returns>
-    public virtual bool HandleDragText(in TextPoint textPoint)
+    protected virtual bool HandleDragText(in TextPoint textPoint)
     {
         // todo HandleDragText(); 拖拽文本支持
         return false;
@@ -93,7 +93,7 @@ public partial class TextEditorHandler
     /// </summary>
     /// <param name="textPoint"></param>
     /// <returns></returns>
-    public virtual bool HandleDragSelect(in TextPoint textPoint)
+    protected virtual bool HandleDragSelect(in TextPoint textPoint)
     {
         if (_inputGesture.ClickCount % 2 == 0)
         {
@@ -141,10 +141,10 @@ public partial class TextEditorHandler
     #region 键盘相关
 
     /// <inheritdoc cref="TextEditorCore.Delete"/>
-    public virtual void Delete() => TextEditorCore.Delete();
+    protected internal virtual void Delete() => TextEditorCore.Delete();
 
     /// <inheritdoc cref="TextEditorCore.Backspace"/>
-    public virtual void Backspace() => TextEditorCore.Backspace();
+    protected internal virtual void Backspace() => TextEditorCore.Backspace();
 
     /// <summary>
     /// 输入 Insert 键的处理，切换插入/覆盖模式
@@ -223,7 +223,14 @@ public partial class TextEditorHandler
 
     #region 剪贴板
 
-
+    /// <summary>
+    /// 当粘贴纯文本
+    /// </summary>
+    /// <param name="text"></param>
+    protected void OnPastePlainText(string text)
+    {
+        PerformInput(text);
+    }
 
     #endregion
 
@@ -231,6 +238,6 @@ public partial class TextEditorHandler
     /// 移动光标
     /// </summary>
     /// <param name="type"></param>
-    public virtual partial void MoveCaret(CaretMoveType type);
+    protected internal virtual partial void MoveCaret(CaretMoveType type);
 }
 #endif

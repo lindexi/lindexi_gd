@@ -17,7 +17,7 @@ public partial class TextEditorHandler
     /// 鼠标按下
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnMouseDown(MouseButtonEventArgs e)
+    protected internal virtual void OnMouseDown(MouseButtonEventArgs e)
     {
         _isMouseDown = true;
         if (e.RightButton == MouseButtonState.Pressed)
@@ -61,7 +61,7 @@ public partial class TextEditorHandler
     /// 鼠标移动
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnMouseMove(MouseEventArgs e)
+    protected internal virtual void OnMouseMove(MouseEventArgs e)
     {
         if (_isMouseDown)
         {
@@ -89,7 +89,7 @@ public partial class TextEditorHandler
     /// 鼠标抬起
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnMouseUp(MouseButtonEventArgs e)
+    protected internal virtual void OnMouseUp(MouseButtonEventArgs e)
     {
         if (_isMouseDown)
         {
@@ -111,7 +111,7 @@ public partial class TextEditorHandler
     /// 鼠标进入
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnMouseEnter(MouseEventArgs e)
+    protected internal virtual void OnMouseEnter(MouseEventArgs e)
     {
         //Debug.WriteLine("TextEditor_MouseEnter");
         UpdateCursorView();
@@ -121,7 +121,7 @@ public partial class TextEditorHandler
     /// 失去焦点
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnLostMouseCapture(MouseEventArgs e)
+    protected internal virtual void OnLostMouseCapture(MouseEventArgs e)
     {
         //Debug.WriteLine("TextEditor_LostMouseCapture");
         if (_isMouseDown)
@@ -187,7 +187,7 @@ public partial class TextEditorHandler
     /// 键盘按下事件
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnKeyDown(KeyEventArgs e)
+    protected internal virtual void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.Insert)
         {
@@ -207,7 +207,7 @@ public partial class TextEditorHandler
     /// 框架内触发的文本输入事件
     /// </summary>
     /// <param name="e"></param>
-    public virtual void OnTextInput(TextCompositionEventArgs e)
+    protected internal virtual void OnTextInput(TextCompositionEventArgs e)
     {
         if (e.Handled ||
             string.IsNullOrEmpty(e.Text) ||
@@ -223,7 +223,7 @@ public partial class TextEditorHandler
 
     #region 方向键
 
-    public virtual partial void MoveCaret(CaretMoveType type)
+    protected internal virtual partial void MoveCaret(CaretMoveType type)
     {
         type = TransformCaretMove(type);
         TextEditor.TextEditorCore.MoveCaret(type);
@@ -240,6 +240,65 @@ public partial class TextEditorHandler
         CaretMoveType returnValue = (CaretMoveType) CaretTransformDirectionHelper.TransformDirection((int) type, TextEditor);
 
         return returnValue;
+    }
+
+    #endregion
+
+    #region 剪贴板
+
+    /// <summary>
+    /// 当拷贝时
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected internal virtual void OnCopy(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (TextEditor.CurrentSelection.IsEmpty)
+        {
+            return;
+        }
+
+        string text = TextEditor.GetSelectedText();
+        Clipboard.SetText(text);
+    }
+
+    /// <summary>
+    /// 当剪切时
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected internal virtual void OnCut(object sender, ExecutedRoutedEventArgs e)
+    {
+        Selection currentSelection = TextEditor.CurrentSelection;
+        if (currentSelection.IsEmpty)
+        {
+            return;
+        }
+
+        string text = TextEditor.GetText(in currentSelection);
+        Clipboard.SetText(text);
+        TextEditor.Remove(in currentSelection);
+    }
+
+    /// <summary>
+    /// 当粘贴时
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected internal virtual void OnPaste(object sender, ExecutedRoutedEventArgs e)
+    {
+        IDataObject? dataObject = Clipboard.GetDataObject();
+        if (dataObject is null)
+        {
+            return;
+        }
+
+        if (dataObject.GetData(DataFormats.Text) is string)
+        {
+            // 不能用 dataObject.GetData(DataFormats.Text) 的结果，因为会出现中文变问号的情况
+            var text = Clipboard.GetText();
+            OnPastePlainText(text);
+        }
     }
 
     #endregion
