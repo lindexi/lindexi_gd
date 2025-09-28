@@ -35,8 +35,9 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 获取文本
         /// </summary>
+        /// <remarks>如需获取富文本，请使用 <see cref="GetRunList(in Selection)"/> 方法</remarks>
         /// <returns></returns>
-         [TextEditorPublicAPI]
+        [TextEditorPublicAPI]
         public string GetText(in Selection selection)
         {
             return TextEditorCore.GetText(in selection);
@@ -45,6 +46,7 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 获取文本
         /// </summary>
+        /// <remarks>如需获取富文本，请使用 <see cref="GetRunList(in Selection)"/> 方法</remarks>
         /// <param name="selection"></param>
         /// <param name="stringBuilder"></param>
         /// <returns></returns>

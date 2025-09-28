@@ -20,6 +20,7 @@ using SkiaSharp;
 
 using System;
 using System.ComponentModel;
+using System.Linq;
 
 // ReSharper disable RedundantDefaultMemberInitializer
 // ReSharper disable RedundantBoolCompare
@@ -89,6 +90,18 @@ namespace LightTextEditorPlus
                     SetAndRaise(TextProperty, ref _cacheText!, TextEditorCore.GetText());
                 }
             }
+        }
+
+        /// <summary>
+        /// 获取给定选择范围内的文本内容
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        public SkiaImmutableRunList GetRunList(in Selection selection)
+        {
+            IImmutableRunList immutableRunList = TextEditorCore.GetRunList(in selection);
+            return new SkiaImmutableRunList(immutableRunList.AsEnumerable()
+                .Select(t => new SkiaImmutableRun((SkiaTextRunProperty) t.RunProperty!, t.AsEnumerable())));
         }
 
         #endregion
