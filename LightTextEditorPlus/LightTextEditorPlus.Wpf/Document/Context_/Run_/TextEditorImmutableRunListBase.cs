@@ -8,13 +8,13 @@ namespace LightTextEditorPlus.Document;
 /// <summary>
 /// 不可变的文本列表
 /// </summary>
-public abstract class ImmutableRunListBase<T> : IImmutableRunList
+public abstract class TextEditorImmutableRunListBase<T> : IImmutableRunList
     where T: IImmutableRun
 {
     /// <summary>
     /// 创建不可变的文本列表
     /// </summary>
-    protected ImmutableRunListBase(IEnumerable<T> runs)
+    protected TextEditorImmutableRunListBase(IEnumerable<T> runs)
     {
         _runs = runs.ToImmutableArray();
     }

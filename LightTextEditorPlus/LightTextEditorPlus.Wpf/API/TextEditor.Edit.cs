@@ -62,10 +62,10 @@ public partial class TextEditor
     /// </summary>
     /// <param name="selection"></param>
     /// <returns></returns>
-    public LightTextEditorPlus.Document.ImmutableRunList GetRunList(in Selection selection)
+    public LightTextEditorPlus.Document.TextEditorImmutableRunList GetRunList(in Selection selection)
     {
         IImmutableRunList immutableRunList = TextEditorCore.GetRunList(in selection);
-        return new LightTextEditorPlus.Document.ImmutableRunList(immutableRunList.AsEnumerable()
+        return new LightTextEditorPlus.Document.TextEditorImmutableRunList(immutableRunList.AsEnumerable()
             .Select(t => new ImmutableRun(t.RunProperty!.AsRunProperty(), t.AsEnumerable())));
     }
 
