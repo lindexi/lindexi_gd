@@ -379,7 +379,13 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         if (_isInitEdit) return;
         _isInitEdit = true;
 
-        _keyboardHandler ??= new KeyboardHandler(this);
+        if (_keyboardHandler != null)
+        {
+            _keyboardHandler = new KeyboardHandler(this);
+            KeyboardBindingInitializedInner?.Invoke(this,EventArgs.Empty);
+            // 一次性的事件，触发之后就释放掉
+            KeyboardBindingInitializedInner = null;
+        }
     }
 
     private bool _isInitEdit;
@@ -390,6 +396,27 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     private TextView TextView { get; }
 
     private KeyboardHandler? _keyboardHandler;
+
+    /// <summary>
+    /// 键盘绑定已经初始化完成事件
+    /// </summary>
+    /// 可在此事件之后，改写键盘绑定快捷键
+    public event EventHandler? KeyboardBindingInitialized
+    {
+        add
+        {
+            if (_keyboardHandler is not null)
+            {
+                value?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            KeyboardBindingInitializedInner += value; 
+        }
+        remove => KeyboardBindingInitializedInner -= value;
+    }
+
+    private event EventHandler? KeyboardBindingInitializedInner;
 
     /// <inheritdoc />
     protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
