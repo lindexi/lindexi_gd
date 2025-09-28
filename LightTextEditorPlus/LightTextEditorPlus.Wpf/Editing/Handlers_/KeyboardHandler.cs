@@ -37,6 +37,14 @@ internal class KeyboardHandler
             MoveCaret(CaretMoveType.DownByLine)));
         TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveDownByLine, Key.Down, ModifierKeys.None));
 
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveToLineStart,
+            MoveCaret(CaretMoveType.LineStart)));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveToLineStart, Key.Home, ModifierKeys.None));
+
+        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveToLineEnd,
+            MoveCaret(CaretMoveType.LineEnd)));
+        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveToLineEnd, Key.End, ModifierKeys.None));
+
         //编辑
         TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Backspace, OnBackspace));
         TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Backspace, Key.Back, ModifierKeys.None));

@@ -1,8 +1,9 @@
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
 
 using System;
 using System.Linq;
+using LightTextEditorPlus.Core.Document.Segments;
 
 namespace LightTextEditorPlus.Core.Carets;
 
@@ -77,14 +78,35 @@ internal static class KeyboardCaretNavigationHelper
         throw new NotImplementedException();
     }
 
-    private static CaretOffset GetLineEndCaretOffset(TextEditorCore textEditorCore)
-    {
-        throw new NotImplementedException();
-    }
-
+    /// <summary>
+    /// 方向键：Home 获取行首的光标位置
+    /// </summary>
+    /// <param name="textEditorCore"></param>
+    /// <returns></returns>
     private static CaretOffset GetLineStartCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        var currentCaretOffset = textEditorCore.CaretManager.CurrentCaretOffset;
+        var renderInfoProvider = textEditorCore.GetRenderInfo();
+        var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
+
+        CaretOffset caretOffset = caretRenderInfo.LineLayoutData.ToCaretOffset(new LineCaretOffset(0));
+        return caretOffset;
+    }
+
+    /// <summary>
+    /// 方向键：End 获取行末的光标位置
+    /// </summary>
+    /// <param name="textEditorCore"></param>
+    /// <returns></returns>
+    private static CaretOffset GetLineEndCaretOffset(TextEditorCore textEditorCore)
+    {
+        var currentCaretOffset = textEditorCore.CaretManager.CurrentCaretOffset;
+        var renderInfoProvider = textEditorCore.GetRenderInfo();
+        var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
+
+        LineLayoutData lineLayoutData = caretRenderInfo.LineLayoutData;
+        CaretOffset caretOffset = lineLayoutData.ToCaretOffset(new LineCaretOffset(lineLayoutData.CharCount));
+        return caretOffset;
     }
 
     /// <summary>
