@@ -1,13 +1,26 @@
-using System;
+﻿using System;
 
 namespace LightTextEditorPlus.Core.Document.Segments;
 
 /// <summary>
 /// 表示段落的索引，表示文档里面的第几个段落
 /// </summary>
-/// <param name="Index">从0开始</param>
-public readonly record struct ParagraphIndex(int Index) : IEquatable<int>
+public readonly record struct ParagraphIndex : IEquatable<int>
 {
+    /// <summary>
+    /// 表示段落的索引，表示文档里面的第几个段落
+    /// </summary>
+    /// <param name="index">从0开始</param>
+    public ParagraphIndex(int index)
+    {
+        if (index < 0)
+        {
+            throw new ArgumentException($"段落的索引不允许负数", nameof(index));
+        }
+
+        Index = index;
+    }
+
     /// <summary>
     /// 计算下一个段落的索引
     /// </summary>
@@ -103,6 +116,9 @@ public readonly record struct ParagraphIndex(int Index) : IEquatable<int>
     {
         return left.Index <= right;
     }
+
+    /// <summary>从0开始</summary>
+    public int Index { get; init; }
 
     /// <inheritdoc />
     public bool Equals(int other)

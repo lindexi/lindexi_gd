@@ -223,12 +223,17 @@ sealed class ParagraphManager
         }
 
         // 没有找到段落，证明段落被删除
-        throw new InvalidOperationException("传入的段落没有从段落列表找到，段落被删除。被删除的段落不能传入本方法");
+        throw new TextEditorParagraphNotFoundException(TextEditor, paragraphData);
     }
 
     public ParagraphIndex GetParagraphIndex(ParagraphData paragraphData)
     {
         var index = ParagraphList.FindIndex(data => ReferenceEquals(data, paragraphData));
+        if (index < 0)
+        {
+            throw new TextEditorParagraphNotFoundException(TextEditor, paragraphData);
+        }
+
         return new ParagraphIndex(index);
     }
 
