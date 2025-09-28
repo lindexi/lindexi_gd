@@ -202,6 +202,14 @@ public partial class TextEditorHandler
             {
                 MoveCaret(CaretMoveType.RightByCharacter);
             }
+            else if (e.Key == Key.Home)
+            {
+                MoveCaret(CaretMoveType.LineStart);
+            }
+            else if (e.Key == Key.End)
+            {
+                MoveCaret(CaretMoveType.LineEnd);
+            }
         }
     }
 
