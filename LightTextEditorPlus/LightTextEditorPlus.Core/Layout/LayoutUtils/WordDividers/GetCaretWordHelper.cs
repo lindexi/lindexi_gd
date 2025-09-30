@@ -66,6 +66,11 @@ static class GetCaretWordHelper
         static bool IsPunctuation(CharData charData)
         {
             Utf32CodePoint codePoint = charData.CharObject.CodePoint;
+            if (codePoint.Value == ' ')
+            {
+                return true;
+            }
+
             UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
             return ((int) unicodeCategory & 0b0001_0000) > 0;
         }
@@ -88,18 +93,15 @@ static class GetCaretWordHelper
         }
 
         int leftWordCharCount = 0;
-        if (currentCharIndex > 0)
+        for (int i = currentCharIndex - 1; i >= 0; i--)
         {
-            for (int i = currentCharIndex - 1; i >= 0; i--)
+            if (predicate(charDataList[i]))
             {
-                if (predicate(charDataList[i]))
-                {
-                    leftWordCharCount++;
-                }
-                else
-                {
-                    break;
-                }
+                leftWordCharCount++;
+            }
+            else
+            {
+                break;
             }
         }
 
