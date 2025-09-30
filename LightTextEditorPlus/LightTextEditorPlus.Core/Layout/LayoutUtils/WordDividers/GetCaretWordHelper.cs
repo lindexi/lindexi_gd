@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-
+using System.Text.RegularExpressions;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -71,8 +71,19 @@ static class GetCaretWordHelper
                 return true;
             }
 
-            UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
-            return ((int) unicodeCategory & 0b0001_0000) > 0;
+            Span<char> buffer = stackalloc char[2];
+            int length = codePoint.Rune.EncodeToUtf16(buffer);
+            if (length == 1)
+            {
+                // 如果是单字符的，直接用 char 的方法判断
+                return char.IsPunctuation(buffer[0]);
+            }
+            else
+            {
+                // 多字符的，就用 UnicodeCategory 判断
+                UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
+                return ((int) unicodeCategory & 0b0001_0000) > 0;
+            }
         }
     }
 
