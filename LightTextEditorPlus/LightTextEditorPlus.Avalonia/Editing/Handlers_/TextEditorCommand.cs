@@ -3,12 +3,6 @@ using System.Windows.Input;
 
 namespace LightTextEditorPlus.Editing;
 
-//public static class TextEditorCommands
-//{
-//    public static ICommand Copy { get; } = new RoutedCommand();
-//}
-
-//file
 class TextEditorCommand : ICommand
 {
     public TextEditorCommand(Action execute)
