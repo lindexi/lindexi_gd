@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -17,7 +17,8 @@ public sealed class LineBreakRun : IImmutableRun
     }
 
     /// <inheritdoc />
-    public int Count => 0;
+    public int Count => ParagraphData.DelimiterLength;
+
     /// <inheritdoc />
     public ICharObject GetChar(int index)
     {
@@ -26,6 +27,7 @@ public sealed class LineBreakRun : IImmutableRun
 
     /// <inheritdoc />
     public IReadOnlyRunProperty? RunProperty { get; }
+
     /// <inheritdoc />
     public (IImmutableRun FirstRun, IImmutableRun SecondRun) SplitAt(int index)
     {
