@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Skia;
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
@@ -108,66 +107,16 @@ namespace LightTextEditorPlus
 
         #region 编辑模式
 
-        /// <summary>
-        /// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
-        /// </summary>
-        public bool IsInEditingInputMode
+        private partial void EnsureEditInit()
         {
-            set
-            {
-                if (_isInEditingInputMode == value)
-                {
-                    return;
-                }
-
-                if (value is true && IsEditable is false)
-                {
-                    Logger.LogDebug("设置进入用户编辑模式，但当前文本禁用编辑，设置进入用户编辑模式失效");
-
-                    value = false;
-                }
-
-                //EnsureEditInit();
-
-                Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
-
-                _isInEditingInputMode = value;
-
-                if (value)
-                {
-                    Focus();
-                    EnterEditingCursor();
-                }
-                else
-                {
-                    LeaveEditingCursor();
-                }
-
-                IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);
-
-                InvalidateVisual();
-            }
-            get => _isInEditingInputMode;
         }
 
-        private bool _isInEditingInputMode = false;
-
-        /// <summary>
-        /// 是否进入编辑的模式变更完成事件
-        /// </summary>
-        public event EventHandler? IsInEditingInputModeChanged;
-
-        /// <summary>
-        /// 是否自动根据是否获取焦点设置是否进入编辑模式
-        /// </summary>
-        public bool IsAutoEditingModeByFocus { get; set; } = true;
-
-        private void EnterEditingCursor()
+        private partial void EnterEditingCursor()
         {
             Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam);
         }
 
-        private void LeaveEditingCursor()
+        private partial void LeaveEditingCursor()
         {
             Cursor = null;
         }

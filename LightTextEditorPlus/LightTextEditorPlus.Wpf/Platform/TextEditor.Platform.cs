@@ -374,7 +374,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// <summary>
     /// 确保编辑功能初始化完成
     /// </summary>
-    private void EnsureEditInit()
+    private partial void EnsureEditInit()
     {
         if (_isInitEdit) return;
         _isInitEdit = true;

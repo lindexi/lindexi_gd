@@ -1,8 +1,13 @@
-// 编辑模式
+﻿// 编辑模式
+// 编辑模式-是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
+IsInEditingInputMode
+IsInEditingInputModeChanged
+IsAutoEditingModeByFocus
+// 编辑模式-是否可编辑
 IsEditable
 IsEditableChanged
 IsReadOnly
-// 进入和退出编辑模式
+// 编辑模式-进入和退出编辑模式
 EnterEditMode
 QuitEditMode
 // 段落属性
