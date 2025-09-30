@@ -70,12 +70,12 @@ internal static class KeyboardCaretNavigationHelper
 
     private static CaretOffset GetDocumentEndCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return textEditorCore.GetDocumentEndCaretOffset();
     }
 
     private static CaretOffset GetDocumentStartCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return textEditorCore.GetDocumentStartCaretOffset();
     }
 
     /// <summary>
