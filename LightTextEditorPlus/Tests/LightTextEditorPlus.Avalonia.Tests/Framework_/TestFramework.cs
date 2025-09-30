@@ -18,7 +18,7 @@ using Avalonia.Threading;
 namespace LightTextEditorPlus.Avalonia.Tests;
 
 [TestClass]
-internal class TestFramework
+public class TestFramework
 {
     public static DirectoryInfo OutputDirectory { get; private set; } = null!;
 
