@@ -204,7 +204,9 @@ internal class DocumentRunEditProvider
         bool isFirstSubRun = true;
         foreach (var subRun in runParagraphSplitter.Split(run))
         {
-            if (subRun is LineBreakRun || !isFirstSubRun)
+            bool isLineBreakRun = subRun is LineBreakRun;
+
+            if (isLineBreakRun || !isFirstSubRun)
             {
                 // 如果有明确的分段，那就给定一个段落的字符属性
                 var paragraphStartRunProperty = runProperty;
@@ -228,7 +230,10 @@ internal class DocumentRunEditProvider
                 isFirstSubRun = false;
             }
 
-            currentParagraph.AppendRun(subRun, runProperty);
+            if (!isLineBreakRun)
+            {
+                currentParagraph.AppendRun(subRun, runProperty);
+            }
         }
 
         return currentParagraph;

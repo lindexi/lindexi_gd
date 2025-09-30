@@ -17,7 +17,7 @@ public sealed class LineBreakRun : IImmutableRun
     }
 
     /// <inheritdoc />
-    public int Count => ParagraphData.DelimiterLength;
+    public int Count => 0;
 
     /// <inheritdoc />
     public ICharObject GetChar(int index)
