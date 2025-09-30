@@ -14,6 +14,7 @@ namespace LightTextEditorPlus.Editing;
 
 public partial class TextEditorHandler
 {
+
     #region 鼠标
 
     /// <summary>
@@ -190,28 +191,36 @@ public partial class TextEditorHandler
             if (e.Key == Key.Up)
             {
                 MoveCaret(CaretMoveType.UpByLine);
+                return;
             }
             else if (e.Key == Key.Down)
             {
                 MoveCaret(CaretMoveType.DownByLine);
+                return;
             }
             else if (e.Key == Key.Left)
             {
                 MoveCaret(CaretMoveType.LeftByCharacter);
+                return;
             }
             else if (e.Key == Key.Right)
             {
                 MoveCaret(CaretMoveType.RightByCharacter);
+                return;
             }
             else if (e.Key == Key.Home)
             {
                 MoveCaret(CaretMoveType.LineStart);
+                return;
             }
             else if (e.Key == Key.End)
             {
                 MoveCaret(CaretMoveType.LineEnd);
+                return;
             }
         }
+
+        
     }
 
     /// <summary>
@@ -227,7 +236,52 @@ public partial class TextEditorHandler
         }
     }
 
-    #endregion
+    #region 快捷键
+
+    ///// <summary>
+    ///// 尝试执行快捷键
+    ///// </summary>
+    ///// <param name="e"></param>
+    ///// <returns></returns>
+    //protected bool TryExecuteShortCut(KeyEventArgs e)
+    //{
+    //    TextEditor.KeyBindings.Add(new KeyBinding()
+    //    {
+            
+    //    });
+
+        
+
+    //    ShortCutManager.FindCommandBinding(new TextEditorKeyGesture(e.Key, e.KeyModifiers))
+    //}
+
+    /// <summary>
+    /// 创建文本编辑器的键盘快捷键以及它们对应的命令处理程序管理器
+    /// </summary>
+    public TextEditorShortCutManager ShortCutManager
+    {
+        get
+        {
+            if (_shortCutManager == null)
+            {
+                _shortCutManager = new TextEditorShortCutManager();
+                InitDefaultShortCutBindings();
+            }
+
+            return _shortCutManager;
+        }
+    }
+
+    private TextEditorShortCutManager? _shortCutManager;
+
+    private void InitDefaultShortCutBindings()
+    {
+
+    }
+
+    #endregion 快捷键
+
+    #endregion 键盘
 
     #region 方向键
 
@@ -240,9 +294,9 @@ public partial class TextEditorHandler
         TextEditor.TextEditorCore.MoveCaret(type);
     }
 
-    #endregion
+    #endregion 方向键
 
     #region 剪贴板
 
-    #endregion
+    #endregion 剪贴板
 }
