@@ -114,7 +114,7 @@ namespace LightTextEditorPlus
 
         private partial void LeaveEditingCursor()
         {
-            Cursor = null;
+            ClearValue(CursorProperty);
         }
 
         #endregion
