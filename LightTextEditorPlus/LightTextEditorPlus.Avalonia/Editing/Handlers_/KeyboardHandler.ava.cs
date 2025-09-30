@@ -24,6 +24,9 @@ internal class KeyboardHandler
         AddShortCut(new KeyGesture(Key.Home, KeyModifiers.None), MoveToLineStart);
         AddShortCut(new KeyGesture(Key.End, KeyModifiers.None), MoveToLineEnd);
 
+        AddShortCut(new KeyGesture(Key.Home, KeyModifiers.Control), MoveToDocumentStart);
+        AddShortCut(new KeyGesture(Key.End, KeyModifiers.Control), MoveToDocumentEnd);
+
         // 剪贴板
         AddShortCut(new KeyGesture(Key.C, KeyModifiers.Control), TextEditorHandler.OnCopy);
         AddShortCut(new KeyGesture(Key.X, KeyModifiers.Control), TextEditorHandler.OnCut);
@@ -38,6 +41,18 @@ internal class KeyboardHandler
                 Command = new TextEditorCommand(command)
             });
         }
+    }
+
+    private void MoveToDocumentStart()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.MoveCaret(CaretMoveType.DocumentStart);
+    }
+
+    private void MoveToDocumentEnd()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.MoveCaret(CaretMoveType.DocumentEnd);
     }
 
     private void MoveToLineStart()
