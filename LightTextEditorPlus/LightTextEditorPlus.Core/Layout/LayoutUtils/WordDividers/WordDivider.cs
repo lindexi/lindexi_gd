@@ -40,6 +40,8 @@ internal class WordDivider : IWordDivider
         return new DivideWordResult(totalCount);
     }
 
+    /// <inheritdoc />
+    /// 不带语言文化的分词
     public GetCaretWordResult GetCaretWord(in GetCaretWordArgument argument)
     {
         return GetCaretWordHelper.GetCaretWord(in argument);
