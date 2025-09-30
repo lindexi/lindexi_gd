@@ -10,6 +10,9 @@ using SimpleWrite.ViewModels;
 using SkiaSharp;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using Avalonia.Input;
+using LightTextEditorPlus.Editing;
 using SimpleWrite.Models;
 
 namespace SimpleWrite.Views.Components;
@@ -44,25 +47,31 @@ public partial class MainEditorView : UserControl
     {
         if (editorModel.TextEditor is null)
         {
-            TextEditor textEditor = new TextEditor();
-            textEditor.TextEditorCore.SetExitDebugMode();
-
-            textEditor.SetStyleTextRunProperty(runProperty => runProperty with
-            {
-                FontSize = 25,
-                Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
-            });
-
+            TextEditor textEditor = CreateTextEditor(editorModel);
             editorModel.TextEditor = textEditor;
-
-            textEditor.TextEditorCore.DocumentChanged += (sender, args) =>
-            {
-                UpdateEditorModel(textEditor, editorModel);
-            };
         }
 
         TextEditorBorder.Child = editorModel.TextEditor;
         CurrentTextEditor = editorModel.TextEditor;
+    }
+
+    private TextEditor CreateTextEditor(EditorModel editorModel)
+    {
+        TextEditor textEditor = new TextEditor();
+        textEditor.TextEditorCore.SetExitDebugMode();
+
+        textEditor.SetStyleTextRunProperty(runProperty => runProperty with
+        {
+            FontSize = 25,
+            Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
+        });
+
+        textEditor.TextEditorCore.DocumentChanged += (sender, args) =>
+        {
+            UpdateEditorModel(textEditor, editorModel);
+        };
+        textEditor.TextEditorHandler = new SimpleWriteTextEditorHandler(textEditor);
+        return textEditor;
     }
 
     private void UpdateEditorModel(TextEditor textEditor, EditorModel editorModel)
@@ -103,3 +112,9 @@ public partial class MainEditorView : UserControl
     public TextEditor CurrentTextEditor { get; private set; } = null!;
 }
 
+class SimpleWriteTextEditorHandler : TextEditorHandler
+{
+    public SimpleWriteTextEditorHandler(TextEditor textEditor) : base(textEditor)
+    {
+    }
+}
