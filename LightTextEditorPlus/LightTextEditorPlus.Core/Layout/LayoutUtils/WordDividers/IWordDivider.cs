@@ -1,4 +1,6 @@
-﻿namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
+﻿using LightTextEditorPlus.Core.Carets;
+
+namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 /// <summary>
 /// 单词分隔器，分词器
@@ -11,4 +13,10 @@ public interface IWordDivider
     /// <param name="argument"></param>
     /// <returns></returns>
     DivideWordResult DivideWord(in DivideWordArgument argument);
+
+    /// <summary>
+    /// 获取传入光标所在的单词选择范围
+    /// </summary>
+    /// <returns></returns>
+    GetCaretWordResult GetCaretWord(in GetCaretWordArgument argument);
 }

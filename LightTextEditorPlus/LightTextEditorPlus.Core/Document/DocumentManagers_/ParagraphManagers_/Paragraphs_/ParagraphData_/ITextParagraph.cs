@@ -53,4 +53,10 @@ public interface ITextParagraph
     /// </summary>
     /// <returns></returns>
     TextReadOnlyListSpan<CharData> GetParagraphCharDataList();
+
+    /// <summary>
+    /// 获取本文本行的起始位置在文档中的偏移量
+    /// </summary>
+    /// <returns></returns>
+    DocumentOffset GetParagraphStartOffset();
 }

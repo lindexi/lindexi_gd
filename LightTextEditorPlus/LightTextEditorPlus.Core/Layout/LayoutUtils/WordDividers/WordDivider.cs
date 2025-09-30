@@ -18,7 +18,7 @@ internal class WordDivider : IWordDivider
         {
             currentIndex++;
         }
-        
+
         var totalCount = currentIndex;
         var charCount = WordCharHelper.ReadWordCharCount(currentRunList, currentIndex, argument.UpdateLayoutContext);
         totalCount += charCount;
@@ -38,6 +38,11 @@ internal class WordDivider : IWordDivider
         }
 
         return new DivideWordResult(totalCount);
+    }
+
+    public GetCaretWordResult GetCaretWord(in GetCaretWordArgument argument)
+    {
+        return GetCaretWordHelper.GetCaretWord(in argument);
     }
 
     /// <summary>

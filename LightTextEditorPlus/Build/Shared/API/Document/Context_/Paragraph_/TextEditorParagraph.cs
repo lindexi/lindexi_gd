@@ -53,6 +53,12 @@ public readonly struct TextEditorParagraph : ITextEditorParagraph
         return CharInfoConverter.ToCharInfoList(_textParagraph.GetParagraphCharDataList());
     }
 
+    /// <inheritdoc />
+    public DocumentOffset GetParagraphStartOffset()
+    {
+        return _textParagraph.GetParagraphStartOffset();
+    }
+
     TextReadOnlyListSpan<CharData> ITextParagraph.GetParagraphCharDataList()
     {
         return _textParagraph.GetParagraphCharDataList();
