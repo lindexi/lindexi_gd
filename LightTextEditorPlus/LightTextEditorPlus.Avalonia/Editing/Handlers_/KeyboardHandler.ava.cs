@@ -1,5 +1,8 @@
 ﻿using System;
+
 using Avalonia.Input;
+
+using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -17,6 +20,11 @@ internal class KeyboardHandler
     {
         TextEditor = textEditor;
 
+        // 光标移动
+        AddShortCut(new KeyGesture(Key.Home, KeyModifiers.None), MoveToLineStart);
+        AddShortCut(new KeyGesture(Key.End, KeyModifiers.None), MoveToLineEnd);
+
+        // 剪贴板
         AddShortCut(new KeyGesture(Key.C, KeyModifiers.Control), TextEditorHandler.OnCopy);
         AddShortCut(new KeyGesture(Key.X, KeyModifiers.Control), TextEditorHandler.OnCut);
         AddShortCut(new KeyGesture(Key.V, KeyModifiers.Control), TextEditorHandler.OnPaste);
@@ -30,6 +38,18 @@ internal class KeyboardHandler
                 Command = new TextEditorCommand(command)
             });
         }
+    }
+
+    private void MoveToLineStart()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.MoveCaret(CaretMoveType.LineStart);
+    }
+
+    private void MoveToLineEnd()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.MoveCaret(CaretMoveType.LineEnd);
     }
 
     private TextEditorHandler TextEditorHandler => TextEditor.TextEditorHandler;

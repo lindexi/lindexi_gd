@@ -182,11 +182,7 @@ public partial class TextEditorHandler
             return;
         }
 
-        if (TextEditorCore.IsDirty)
-        {
-            // 如果有明确布局的话，可以在这里加上明确布局
-            TextEditor.ForceLayout();
-        }
+        InputEnsureLayout();
 
         if (e.KeyModifiers == KeyModifiers.None)
         {
@@ -233,6 +229,15 @@ public partial class TextEditorHandler
         {
             // 没有进入编辑模式，不处理键盘事件
             return;
+        }
+    }
+
+    internal void InputEnsureLayout()
+    {
+        if (TextEditorCore.IsDirty)
+        {
+            // 如果有明确布局的话，可以在这里加上明确布局
+            TextEditor.ForceLayout();
         }
     }
 
