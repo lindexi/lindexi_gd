@@ -527,7 +527,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         if (IsAutoEditingModeByFocus)
         {
-            IsInEditingInputMode = IsEditable && true;
+            IsInEditingInputMode = IsEditable;
         }
 
         base.OnGotKeyboardFocus(e);

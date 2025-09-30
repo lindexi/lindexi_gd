@@ -85,6 +85,13 @@ public partial class TextEditor
                 return;
             }
 
+            if (value is true && IsEditable is false)
+            {
+                Logger.LogDebug("设置进入用户编辑模式，但当前文本禁用编辑，设置进入用户编辑模式失效");
+
+                value = false;
+            }
+
             EnsureEditInit();
 
             Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
@@ -111,7 +118,20 @@ public partial class TextEditor
     /// <summary>
     /// 是否自动根据是否获取焦点设置是否进入编辑模式
     /// </summary>
-    public bool IsAutoEditingModeByFocus { get; set; } = true;
+    public bool IsAutoEditingModeByFocus
+    {
+        get => _isAutoEditingModeByFocus && IsEditable;
+        set
+        {
+            if (!IsEditable && value)
+            {
+                Logger.LogWarning($"由于当前文本禁用编辑，设置自动编辑模式失效 Set IsAutoEditingModeByFocus Fail. IsEditable=False");
+            }
+            _isAutoEditingModeByFocus = value;
+        }
+    }
+
+    private bool _isAutoEditingModeByFocus = true;
 
     #endregion
 
