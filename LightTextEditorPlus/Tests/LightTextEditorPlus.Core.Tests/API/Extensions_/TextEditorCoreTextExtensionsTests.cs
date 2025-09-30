@@ -12,7 +12,7 @@ public class TextEditorCoreTextExtensionsTests
     [ContractTestCase]
     public void GetRunList()
     {
-        "对包含换行的统一样式的文本调用 GetRunList 方法，可以返回一个包含一个 Run 内容的列表".Test(() =>
+        "对包含换行的统一样式的文本调用 GetRunList 方法，可以返回一个包含三个 Run 内容的列表".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
@@ -23,7 +23,11 @@ public class TextEditorCoreTextExtensionsTests
 
             // Assert
             // 可以返回一个包含空内容的列表
-            Assert.AreEqual(1, immutableRunList.RunCount);
+            // 一共三个 Run 内容，分别是：
+            // 1. 123
+            // 2. \n
+            // 3. abc
+            Assert.AreEqual(3, immutableRunList.RunCount);
             Assert.AreEqual("123\nabc".Length, immutableRunList.CharCount);
         });
 

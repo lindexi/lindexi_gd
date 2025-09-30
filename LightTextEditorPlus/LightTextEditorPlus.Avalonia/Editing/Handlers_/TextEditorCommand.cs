@@ -23,4 +23,9 @@ class TextEditorCommand : ICommand
     }
 
     public event EventHandler? CanExecuteChanged;
+
+    protected virtual void OnCanExecuteChanged()
+    {
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    }
 }

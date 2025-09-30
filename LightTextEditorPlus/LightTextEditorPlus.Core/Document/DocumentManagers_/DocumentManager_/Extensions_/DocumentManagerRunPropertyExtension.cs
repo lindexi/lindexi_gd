@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -82,16 +82,18 @@ internal static class DocumentManagerRunPropertyExtension
 
         IImmutableRun? GetImmutableRun()
         {
+            IImmutableRun? result = null;
+
             if (currentCharObjectList is not null && lastChangedRunProperty is not null)
             {
-                return new CharObjectSpanTextRun(
+                result = new CharObjectSpanTextRun(
                     new TextReadOnlyListSpan<ICharObject>(currentCharObjectList, 0, currentCharObjectList.Count),
                     lastChangedRunProperty);
             }
 
             currentCharObjectList = null;
             lastChangedRunProperty = null;
-            return null;
+            return result;
         }
     }
 }
