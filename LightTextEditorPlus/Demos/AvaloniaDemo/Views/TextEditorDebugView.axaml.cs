@@ -16,10 +16,15 @@ namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
 public partial class TextEditorDebugView : UserControl
 {
-    public TextEditorDebugView(bool runDebug = true)
+    public TextEditorDebugView() : this(runDebug: true)
+    {
+        // 不使用构造函数默认参数是因为试图解决 Avalonia warning AVLN3001: XAML resource "avares://LightTextEditorPlus.AvaloniaDemo/Views/TextEditorDebugView.axaml" won't be reachable via runtime loader, as no public constructor was found 
+    }
+
+    public TextEditorDebugView(bool runDebug)
     {
         InitializeComponent();
-        
+
         CreateAndReplaceTextEditor();
         RichTextCaseProvider = new RichTextCaseProvider(() => TextEditor);
 
@@ -27,7 +32,8 @@ public partial class TextEditorDebugView : UserControl
         {
             //var fontFamily = (FontFamily) Application.Current!.Resources["TestMeatballFontFamily"]!;
             //TextEditorFontManager.RegisterFontNameToResource("仓耳小丸子", fontFamily);
-            TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子", new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf")));
+            TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子",
+                new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf")));
 
             TextContext.GlobalFontNameManager.UseDefaultFontFallbackRules();
 
