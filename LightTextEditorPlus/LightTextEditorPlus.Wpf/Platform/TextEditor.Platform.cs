@@ -378,7 +378,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     /// <inheritdoc />
     protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
- 
+
     /// <inheritdoc />
     protected override Visual GetVisualChild(int index) => TextView;
 

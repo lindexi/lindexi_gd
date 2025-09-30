@@ -192,7 +192,6 @@ public class SkiaPlatformResourceManager :
                     break;
                 }
             }
-
         }
 
         return matchCharacterTypeface;

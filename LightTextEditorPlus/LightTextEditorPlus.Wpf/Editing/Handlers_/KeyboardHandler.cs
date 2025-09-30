@@ -128,7 +128,7 @@ internal class KeyboardHandler
             TextEditorHandler.MoveCaret(moveType);
         };
     }
-   
+
     #endregion
 
     private TextEditor TextEditor { get; }

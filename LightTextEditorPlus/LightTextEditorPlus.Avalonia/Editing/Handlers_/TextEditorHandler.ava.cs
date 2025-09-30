@@ -252,10 +252,8 @@ public partial class TextEditorHandler
     //{
     //    TextEditor.KeyBindings.Add(new KeyBinding()
     //    {
-            
-    //    });
 
-        
+    //    });
 
     //    ShortCutManager.FindCommandBinding(new TextEditorKeyGesture(e.Key, e.KeyModifiers))
     //}
@@ -290,7 +288,7 @@ public partial class TextEditorHandler
         }
 
         string text = TextEditor.GetSelectedText();
-         _ = GetClipboard()?.SetTextAsync(text);
+        _ = GetClipboard()?.SetTextAsync(text);
     }
 
     /// <summary>
@@ -305,7 +303,7 @@ public partial class TextEditorHandler
         }
 
         string text = TextEditor.GetText(in currentSelection);
-         _ = GetClipboard()?.SetTextAsync(text);
+        _ = GetClipboard()?.SetTextAsync(text);
         TextEditor.Remove(in currentSelection);
     }
 
@@ -332,7 +330,7 @@ public partial class TextEditorHandler
 
     private IClipboard? GetClipboard()
     {
-        if (TopLevel.GetTopLevel(TextEditor) is {} topLevel)
+        if (TopLevel.GetTopLevel(TextEditor) is { } topLevel)
         {
             return topLevel.Clipboard;
         }
