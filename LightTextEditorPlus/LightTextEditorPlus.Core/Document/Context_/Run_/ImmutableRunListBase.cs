@@ -21,7 +21,8 @@ public abstract class ImmutableRunListBase<T> : IImmutableRunList
     private readonly ImmutableArray<T> _runs;
 
     /// <inheritdoc />
-    public int CharCount => _runs.Sum(t => t.Count);
+    public int CharCount
+        => _runs.Cast<IImmutableRun>().GetCharCount();
 
     /// <inheritdoc />
     public int RunCount => _runs.Length;

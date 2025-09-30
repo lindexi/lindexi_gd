@@ -21,7 +21,8 @@ class MutableRunList : List<IImmutableRun>, IImmutableRunList
     {
     }
 
-    public int CharCount => this.Sum(t => t.Count);
+    public int CharCount => this.GetCharCount();
+
     public int RunCount => Count;
     public IImmutableRun GetRun(int index) => this[index];
 }
