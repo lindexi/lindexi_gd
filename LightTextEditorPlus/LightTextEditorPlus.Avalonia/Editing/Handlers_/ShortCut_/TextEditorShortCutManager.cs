@@ -1,17 +1,14 @@
-﻿using Avalonia.Input;
-
-using System;
-using System.Collections.Generic;
-
-namespace LightTextEditorPlus.Editing;
+﻿namespace LightTextEditorPlus.Editing;
 
 /// <summary>
+/// 管理文本编辑器的键盘快捷键以及它们对应的命令处理程序。
 /// Manages keyboard shortcuts (key bindings) and their associated command handlers
 /// for the text editor.
 /// </summary>
 public class TextEditorShortCutManager
 {
     /// <summary>
+    /// 将命令及其按键手势与处理程序一起添加到管理器中。
     /// Adds a command with its key gesture and handler to the manager.
     /// </summary>
     /// <param name="commandName">The name of the command to add.</param>
@@ -24,6 +21,7 @@ public class TextEditorShortCutManager
     }
 
     /// <summary>
+    /// 添加已构造好的按键绑定到管理器中。
     /// Adds a pre-constructed key binding to the manager.
     /// </summary>
     /// <param name="keyBinding">The key binding to add.</param>
@@ -33,6 +31,7 @@ public class TextEditorShortCutManager
     }
 
     /// <summary>
+    /// 根据命令名和按键手势添加按键绑定。
     /// Adds a key binding defined by command name and key gesture.
     /// </summary>
     /// <param name="commandName">The name of the command to bind.</param>
@@ -43,6 +42,7 @@ public class TextEditorShortCutManager
     }
 
     /// <summary>
+    /// 添加已构造好的命令绑定到管理器中。
     /// Adds a pre-constructed command binding to the manager.
     /// </summary>
     /// <param name="commandBinding">The command binding to add.</param>
@@ -52,6 +52,7 @@ public class TextEditorShortCutManager
     }
 
     /// <summary>
+    /// 根据命令名和处理程序添加命令绑定。
     /// Adds a command binding defined by command name and handler.
     /// </summary>
     /// <param name="commandName">The name of the command.</param>
@@ -62,16 +63,19 @@ public class TextEditorShortCutManager
     }
 
     /// <summary>
+    /// 获取此实例管理的命令绑定集合。
     /// Gets the collection of command bindings managed by this instance.
     /// </summary>
     public TextEditorShortCutCommandBindingCollection CommandBindings { get; } = new();
 
     /// <summary>
+    /// 获取此实例管理的按键绑定集合。
     /// Gets the collection of key bindings managed by this instance.
     /// </summary>
     public TextEditorShortCutKeyBindingCollection KeyBindings { get; } = new();
 
     /// <summary>
+    /// 查找与指定按键手势匹配的最后添加的按键绑定；如果未找到则返回 null。
     /// Finds the last-added key binding that matches the specified key gesture.
     /// Returns null if no matching binding is found.
     /// </summary>
@@ -92,6 +96,7 @@ public class TextEditorShortCutManager
     }
 
     /// <summary>
+    /// 查找与给定按键手势关联的命令绑定；如果存在对应的按键绑定则返回相应的命令绑定，否则返回 null。
     /// Finds the command binding associated with the given key gesture.
     /// If a key binding is found for the gesture, this method returns the
     /// corresponding command binding; otherwise returns <c>null</c>.
@@ -117,55 +122,3 @@ public class TextEditorShortCutManager
         return null;
     }
 }
-
-/// <summary>
-/// A collection of command bindings for the text editor shortcuts.
-/// </summary>
-public class TextEditorShortCutCommandBindingCollection : List<TextEditorShortCutCommandBinding>
-{
-}
-
-/// <summary>
-/// A collection of key bindings for the text editor shortcuts.
-/// </summary>
-public class TextEditorShortCutKeyBindingCollection : List<TextEditorShortCutKeyBinding>
-{
-}
-
-/// <summary>
-/// Represents a keyboard gesture consisting of a key and modifier keys.
-/// </summary>
-/// <param name="Key">The primary key of the gesture.</param>
-/// <param name="Modifiers">Modifier keys (Ctrl, Alt, Shift, etc.).</param>
-public readonly record struct TextEditorKeyGesture(Key Key, KeyModifiers Modifiers);
-
-/// <summary>
-/// Associates a command name with its handler.
-/// </summary>
-/// <param name="CommandName">The name of the command.</param>
-/// <param name="Handler">The handler to execute for the command.</param>
-public readonly record struct TextEditorShortCutCommandBinding(TextEditorCommandName CommandName, TextEditorCommandHandler Handler)
-{
-}
-
-/// <summary>
-/// Associates a command name with a key gesture.
-/// </summary>
-/// <param name="CommandName">The name of the command.</param>
-/// <param name="KeyGesture">The key gesture that triggers the command.</param>
-public readonly record struct TextEditorShortCutKeyBinding(TextEditorCommandName CommandName, TextEditorKeyGesture KeyGesture)
-{
-}
-
-/// <summary>
-/// Represents the identity of a command used by the text editor.
-/// </summary>
-/// <param name="Name">The string identifier of the command.</param>
-public readonly record struct TextEditorCommandName(string Name);
-
-/// <summary>
-/// Delegate type for command handlers used by the text editor shortcuts.
-/// </summary>
-/// <param name="sender">The sender of the command invocation.</param>
-/// <param name="e">Event arguments for the invocation.</param>
-public delegate void TextEditorCommandHandler(object sender, EventArgs e);
