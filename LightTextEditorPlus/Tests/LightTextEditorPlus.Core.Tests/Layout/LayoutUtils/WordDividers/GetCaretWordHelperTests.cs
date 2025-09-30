@@ -12,6 +12,70 @@ public class GetCaretWordHelperTests
     [ContractTestCase()]
     public void GetCaretWordTest()
     {
+        "[GetCaretWord] 传入 '!| 中文，汉字 ' 状态，可以获取 '!' 一个感叹号".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("! 中文，汉字 ");
+
+            // Action
+            // 设置光标在开头
+            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("!".Length), textEditor));
+
+            // Assert
+            string text = textEditor.GetText(result.WordSelection);
+            Assert.AreEqual("!", text);
+            Assert.AreEqual(true, result.HitPunctuationOrSpace);
+        });
+
+        "[GetCaretWord] 传入 '!|!中文，汉字 ' 状态，可以获取 '!!' 两个感叹号".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("!!中文，汉字 ");
+
+            // Action
+            // 设置光标在开头
+            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("!".Length), textEditor));
+
+            // Assert
+            string text = textEditor.GetText(result.WordSelection);
+            Assert.AreEqual("!!", text);
+            Assert.AreEqual(true, result.HitPunctuationOrSpace);
+        });
+
+        "[GetCaretWord] 传入 '！|！中文，汉字 ' 状态，可以获取 '！！' 两个感叹号".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("！！中文，汉字 ");
+
+            // Action
+            // 设置光标在开头
+            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("！".Length), textEditor));
+
+            // Assert
+            string text = textEditor.GetText(result.WordSelection);
+            Assert.AreEqual("！！", text);
+            Assert.AreEqual(true, result.HitPunctuationOrSpace);
+        });
+
+        "[GetCaretWord] 传入 ' | 中文，汉字 ' 状态，可以获取 '  ' 两个空格".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("  中文，汉字 ");
+
+            // Action
+            // 设置光标在开头
+            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset(" ".Length), textEditor));
+
+            // Assert
+            string text = textEditor.GetText(result.WordSelection);
+            Assert.AreEqual("  ", text);
+            Assert.AreEqual(true, result.HitPunctuationOrSpace);
+        });
+
         "[GetCaretWord] 传入 '中文，|汉字 ' 状态，可以获取 '汉字' 单词".Test(() =>
         {
             // Arrange
@@ -25,6 +89,7 @@ public class GetCaretWordHelperTests
             // Assert
             string text = textEditor.GetText(result.WordSelection);
             Assert.AreEqual("汉字", text);
+            Assert.AreEqual(false, result.HitPunctuationOrSpace);
         });
 
         "[GetCaretWord] 传入 '中文|，汉字 ' 状态，可以获取 '中文' 单词".Test(() =>
@@ -40,6 +105,7 @@ public class GetCaretWordHelperTests
             // Assert
             string text = textEditor.GetText(result.WordSelection);
             Assert.AreEqual("中文", text);
+            Assert.AreEqual(false, result.HitPunctuationOrSpace);
         });
 
         "[GetCaretWord] 传入 '123|,abc ' 状态，可以获取 '123' 单词".Test(() =>
@@ -55,6 +121,7 @@ public class GetCaretWordHelperTests
             // Assert
             string text = textEditor.GetText(result.WordSelection);
             Assert.AreEqual("123", text);
+            Assert.AreEqual(false, result.HitPunctuationOrSpace);
         });
 
         "[GetCaretWord] 传入 '123,|abc ' 状态，可以获取 'abc' 单词".Test(() =>
