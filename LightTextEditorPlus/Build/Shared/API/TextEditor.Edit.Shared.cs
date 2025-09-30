@@ -134,7 +134,45 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 确保编辑功能初始化完成
         /// </summary>
-        private partial void EnsureEditInit();
+        private void EnsureEditInit()
+        {
+            if (_isInitEdit) return;
+            _isInitEdit = true;
+
+            if (_keyboardHandler == null)
+            {
+                _keyboardHandler = new KeyboardHandler(this);
+                KeyboardBindingInitializedInner?.Invoke(this, EventArgs.Empty);
+                // 一次性的事件，触发之后就释放掉
+                KeyboardBindingInitializedInner = null;
+            }
+        }
+
+        private bool _isInitEdit;
+
+        private KeyboardHandler? _keyboardHandler;
+
+        /// <summary>
+        /// 键盘绑定已经初始化完成事件
+        /// </summary>
+        /// 可在此事件之后，改写键盘绑定快捷键
+        public event EventHandler? KeyboardBindingInitialized
+        {
+            add
+            {
+                if (_keyboardHandler is not null)
+                {
+                    value?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
+                KeyboardBindingInitializedInner += value;
+            }
+            remove => KeyboardBindingInitializedInner -= value;
+        }
+
+        private event EventHandler? KeyboardBindingInitializedInner;
+
         private partial void EnterEditingCursor();
         private partial void LeaveEditingCursor();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
@@ -75,12 +76,14 @@ public partial class TextEditor
 
     private partial void EnterEditingCursor()
     {
-
+        // 进入编辑模式，设置光标
+        Cursor = Cursors.IBeam;
     }
 
     private partial void LeaveEditingCursor()
     {
-
+        // 离开编辑模式，恢复光标，这里直接清理光标属性
+        ClearValue(CursorProperty);
     }
 
     #endregion 编辑模式

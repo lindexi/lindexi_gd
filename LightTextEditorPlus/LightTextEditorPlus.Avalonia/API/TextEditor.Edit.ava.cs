@@ -107,10 +107,6 @@ namespace LightTextEditorPlus
 
         #region 编辑模式
 
-        private partial void EnsureEditInit()
-        {
-        }
-
         private partial void EnterEditingCursor()
         {
             Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam);

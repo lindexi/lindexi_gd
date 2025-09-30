@@ -5,8 +5,10 @@ using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
-using System.Diagnostics;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input.Platform;
+using Avalonia.Threading;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
 
@@ -219,8 +221,6 @@ public partial class TextEditorHandler
                 return;
             }
         }
-
-        
     }
 
     /// <summary>
@@ -255,30 +255,6 @@ public partial class TextEditorHandler
     //    ShortCutManager.FindCommandBinding(new TextEditorKeyGesture(e.Key, e.KeyModifiers))
     //}
 
-    /// <summary>
-    /// 创建文本编辑器的键盘快捷键以及它们对应的命令处理程序管理器
-    /// </summary>
-    public TextEditorShortCutManager ShortCutManager
-    {
-        get
-        {
-            if (_shortCutManager == null)
-            {
-                _shortCutManager = new TextEditorShortCutManager();
-                InitDefaultShortCutBindings();
-            }
-
-            return _shortCutManager;
-        }
-    }
-
-    private TextEditorShortCutManager? _shortCutManager;
-
-    private void InitDefaultShortCutBindings()
-    {
-
-    }
-
     #endregion 快捷键
 
     #endregion 键盘
@@ -297,6 +273,67 @@ public partial class TextEditorHandler
     #endregion 方向键
 
     #region 剪贴板
+
+    /// <summary>
+    /// 当拷贝时
+    /// </summary>
+    protected internal virtual void OnCopy()
+    {
+        if (TextEditor.CurrentSelection.IsEmpty)
+        {
+            return;
+        }
+
+        string text = TextEditor.GetSelectedText();
+         _ = GetClipboard()?.SetTextAsync(text);
+    }
+
+    /// <summary>
+    /// 当剪切时
+    /// </summary>
+    protected internal virtual void OnCut()
+    {
+        Selection currentSelection = TextEditor.CurrentSelection;
+        if (currentSelection.IsEmpty)
+        {
+            return;
+        }
+
+        string text = TextEditor.GetText(in currentSelection);
+         _ = GetClipboard()?.SetTextAsync(text);
+        TextEditor.Remove(in currentSelection);
+    }
+
+    /// <summary>
+    /// 当粘贴时
+    /// </summary>
+    protected internal virtual void OnPaste()
+    {
+        if (GetClipboard() is not { } clipboard)
+        {
+            return;
+        }
+
+        // 切换异步调用的同时规避 async void 不安全写法
+        _ = Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            string? text = await clipboard.GetTextAsync();
+            if (!string.IsNullOrEmpty(text))
+            {
+                OnPastePlainText(text);
+            }
+        });
+    }
+
+    private IClipboard? GetClipboard()
+    {
+        if (TopLevel.GetTopLevel(TextEditor) is {} topLevel)
+        {
+            return topLevel.Clipboard;
+        }
+
+        return null;
+    }
 
     #endregion 剪贴板
 }
