@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-
+using System.Text.RegularExpressions;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -32,11 +32,11 @@ static class GetCaretWordHelper
 
         DocumentOffset paragraphStartOffset = textParagraph.GetParagraphStartOffset();
 
-        var currentCharIndex = caretOffset.Offset - paragraphStartOffset.Offset;
+        var currentCharCaret = caretOffset.Offset - paragraphStartOffset.Offset;
         // 找当前光标的单词
-        Debug.Assert(currentCharIndex >= 0);
+        Debug.Assert(currentCharCaret >= 0);
 
-        ReadWordCountResult wordResult = ReadWordCount(currentCharIndex, charDataList, IsNotPunctuation);
+        ReadWordCountResult wordResult = ReadWordCount(currentCharCaret, charDataList, IsNotPunctuation);
         Selection wordSelection = wordResult.ToSelection(paragraphStartOffset);
         if (!wordSelection.IsEmpty)
         {
@@ -48,14 +48,22 @@ static class GetCaretWordHelper
 
         // 没有命中到任何单词，那就选中一些符号
         // 当前是一些符号，连续的符号就一起选择，如连续的空格
+        var currentCharIndex = currentCharCaret;
+        if (currentCharIndex > 0)
+        {
+            // 光标在字符后面，应该找前一个字符
+            // 如 "a|b"，光标在 a 后面，应该找 a 字符
+            // 如 "|ab"，光标在 a 前面，应该找前一个字符，前面没有字符就不动
+            currentCharIndex -= 1;
+        }
         var currentCharData = charDataList[currentCharIndex];
         Utf32CodePoint currentCharDataCodePoint = currentCharData.CharObject.CodePoint;
-        ReadWordCountResult punctuationResult = ReadWordCount(currentCharIndex, charDataList,
+        ReadWordCountResult punctuationResult = ReadWordCount(currentCharCaret, charDataList,
             charData => charData.CharObject.CodePoint == currentCharDataCodePoint);
         return new GetCaretWordResult()
         {
             WordSelection = punctuationResult.ToSelection(paragraphStartOffset),
-            HitPunctuation = true
+            HitPunctuationOrSpace = true
         };
 
         static bool IsNotPunctuation(CharData charData)
@@ -71,16 +79,27 @@ static class GetCaretWordHelper
                 return true;
             }
 
-            UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
-            return ((int) unicodeCategory & 0b0001_0000) > 0;
+            Span<char> buffer = stackalloc char[2];
+            int length = codePoint.Rune.EncodeToUtf16(buffer);
+            if (length == 1)
+            {
+                // 如果是单字符的，直接用 char 的方法判断
+                return char.IsPunctuation(buffer[0]);
+            }
+            else
+            {
+                // 多字符的，就用 UnicodeCategory 判断
+                UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
+                return ((int) unicodeCategory & 0b0001_0000) > 0;
+            }
         }
     }
 
     private static ReadWordCountResult ReadWordCount
-        (int currentCharIndex, TextReadOnlyListSpan<CharData> charDataList, Predicate<CharData> predicate)
+        (int currentCharCaret, TextReadOnlyListSpan<CharData> charDataList, Predicate<CharData> predicate)
     {
         int rightWordCharCount = 0;
-        for (int i = currentCharIndex; i < charDataList.Count; i++)
+        for (int i = currentCharCaret; i < charDataList.Count; i++)
         {
             if (predicate(charDataList[i]))
             {
@@ -93,7 +112,7 @@ static class GetCaretWordHelper
         }
 
         int leftWordCharCount = 0;
-        for (int i = currentCharIndex - 1; i >= 0; i--)
+        for (int i = currentCharCaret - 1; i >= 0; i--)
         {
             if (predicate(charDataList[i]))
             {
@@ -105,7 +124,7 @@ static class GetCaretWordHelper
             }
         }
 
-        return new ReadWordCountResult(leftWordCharCount, rightWordCharCount, currentCharIndex);
+        return new ReadWordCountResult(leftWordCharCount, rightWordCharCount, currentCharCaret);
     }
 
     readonly record struct ReadWordCountResult(int LeftCount, int RightCount, int CurrentCharIndex)

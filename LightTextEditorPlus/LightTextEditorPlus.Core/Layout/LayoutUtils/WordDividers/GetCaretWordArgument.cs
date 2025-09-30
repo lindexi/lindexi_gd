@@ -22,5 +22,5 @@ public readonly record struct GetCaretWordResult()
     /// <summary>
     /// 是否命中到标点符号。空格也算标点符号
     /// </summary>
-    public bool HitPunctuation { get; init; } = false;
+    public bool HitPunctuationOrSpace { get; init; } = false;
 }
