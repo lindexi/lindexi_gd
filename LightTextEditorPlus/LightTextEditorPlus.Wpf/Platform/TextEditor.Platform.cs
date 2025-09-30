@@ -379,7 +379,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         if (_isInitEdit) return;
         _isInitEdit = true;
 
-        if (_keyboardHandler != null)
+        if (_keyboardHandler == null)
         {
             _keyboardHandler = new KeyboardHandler(this);
             KeyboardBindingInitializedInner?.Invoke(this,EventArgs.Empty);
