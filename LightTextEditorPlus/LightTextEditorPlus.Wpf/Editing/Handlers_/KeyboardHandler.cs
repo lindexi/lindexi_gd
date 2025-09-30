@@ -20,81 +20,74 @@ internal class KeyboardHandler
     {
         TextEditor = textEditor;
 
-        //光标移动
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveLeftByCharacter,
-            MoveCaret(CaretMoveType.LeftByCharacter)));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveLeftByCharacter, Key.Left, ModifierKeys.None));
+        // 光标移动
+        Add(Key.Left, EditingCommands.MoveLeftByCharacter, MoveCaret(CaretMoveType.LeftByCharacter));
+        Add(Key.Right, EditingCommands.MoveRightByCharacter, MoveCaret(CaretMoveType.RightByCharacter));
+        Add(Key.Up, EditingCommands.MoveUpByLine, MoveCaret(CaretMoveType.UpByLine));
+        Add(Key.Down, EditingCommands.MoveDownByLine, MoveCaret(CaretMoveType.DownByLine));
 
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveRightByCharacter,
-            MoveCaret(CaretMoveType.RightByCharacter)));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveRightByCharacter, Key.Right, ModifierKeys.None));
+        Add(Key.Home, EditingCommands.MoveToLineStart, MoveCaret(CaretMoveType.LineStart));
+        Add(Key.End, EditingCommands.MoveToLineEnd, MoveCaret(CaretMoveType.LineEnd));
 
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveUpByLine,
-            MoveCaret(CaretMoveType.UpByLine)));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveUpByLine, Key.Up, ModifierKeys.None));
-
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveDownByLine,
-            MoveCaret(CaretMoveType.DownByLine)));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveDownByLine, Key.Down, ModifierKeys.None));
-
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveToLineStart,
-            MoveCaret(CaretMoveType.LineStart)));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveToLineStart, Key.Home, ModifierKeys.None));
-
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.MoveToLineEnd,
-            MoveCaret(CaretMoveType.LineEnd)));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.MoveToLineEnd, Key.End, ModifierKeys.None));
-
-        Add(Key.Home,ModifierKeys.Control, EditingCommands.MoveToDocumentStart, MoveCaret(CaretMoveType.DocumentStart));
+        Add(Key.Home, ModifierKeys.Control, EditingCommands.MoveToDocumentStart, MoveCaret(CaretMoveType.DocumentStart));
         Add(Key.End, ModifierKeys.Control, EditingCommands.MoveToDocumentEnd, MoveCaret(CaretMoveType.DocumentEnd));
 
         // 编辑
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Backspace, OnBackspace));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Backspace, Key.Back, ModifierKeys.None));
-
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.Delete, Key.Delete, ModifierKeys.None));
+        Add(Key.Back, EditingCommands.Backspace, OnBackspace);
+        Add(Key.Delete, EditingCommands.Delete, OnDelete);
 
         // 输入状态
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleInsert, OnToggleInsert));
-        TextEditor.InputBindings.Add(new KeyBinding(EditingCommands.ToggleInsert, Key.Insert, ModifierKeys.None));
+        Add(Key.Insert, EditingCommands.ToggleInsert, OnToggleInsert);
 
         // 默认命令。默认命令都不用绑定快捷键，因为系统（框架）已经绑定好了
         // 剪贴板
-        TextEditor.CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy, OnCopy));
-        TextEditor.CommandBindings.Add(new CommandBinding(ApplicationCommands.Cut, OnCut));
-        TextEditor.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, OnPaste));
+        Add(ApplicationCommands.Copy, OnCopy);
+        Add(ApplicationCommands.Cut, OnCut);
+        Add(ApplicationCommands.Paste, OnPaste);
 
         // 样式变更-无默认快捷键绑定
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleItalic, (s, e) =>
+        Add(EditingCommands.ToggleItalic, (s, e) =>
         {
             TextEditor.ToggleItalic();
-        }));
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleBold, (s, e) =>
+        });
+        Add(EditingCommands.ToggleBold, (s, e) =>
         {
             TextEditor.ToggleBold();
-        }));
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleUnderline, (s, e) =>
+        });
+        Add(EditingCommands.ToggleUnderline, (s, e) =>
         {
             TextEditor.ToggleUnderline();
-        }));
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleSuperscript, (s, e) =>
+        });
+        Add(EditingCommands.ToggleSuperscript, (s, e) =>
         {
             TextEditor.ToggleSuperscript();
-        }));
-        TextEditor.CommandBindings.Add(new CommandBinding(EditingCommands.ToggleSubscript, (s, e) =>
+        });
+        Add(EditingCommands.ToggleSubscript, (s, e) =>
         {
             TextEditor.ToggleSubscript();
-        }));
+        });
 
         textEditor.KeyDown += TextEditor_KeyDown;
     }
-    
+
+    private void Add(Key key, ICommand command, ExecutedRoutedEventHandler handler)
+    {
+        TextEditor.CommandBindings.Add(new CommandBinding(command,
+            handler));
+        TextEditor.InputBindings.Add(new KeyBinding(command, key, ModifierKeys.None));
+    }
+
     private void Add(Key key, ModifierKeys modifierKeys, ICommand command, ExecutedRoutedEventHandler handler)
     {
         TextEditor.CommandBindings.Add(new CommandBinding(command,
             handler));
         TextEditor.InputBindings.Add(new KeyBinding(command, key, modifierKeys));
+    }
+
+    private void Add(ICommand command, ExecutedRoutedEventHandler handler)
+    {
+        TextEditor.CommandBindings.Add(new CommandBinding(command,
+            handler));
     }
 
     private TextEditorHandler TextEditorHandler => TextEditor.TextEditorHandler;
