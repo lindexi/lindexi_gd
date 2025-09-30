@@ -61,6 +61,84 @@ namespace LightTextEditorPlus
         #region 编辑模式
 
         /// <summary>
+        /// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
+        /// </summary>
+        public bool IsInEditingInputMode
+        {
+            set
+            {
+                if (_isInEditingInputMode == value)
+                {
+                    return;
+                }
+
+                if (value is true && IsEditable is false)
+                {
+                    Logger.LogDebug("设置进入用户编辑模式，但当前文本禁用编辑，设置进入用户编辑模式失效");
+
+                    value = false;
+                }
+
+                if (value)
+                {
+                    EnsureEditInit();
+                }
+
+                Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
+
+                _isInEditingInputMode = value;
+
+                if (value)
+                {
+                    Focus();
+                    EnterEditingCursor();
+                }
+                else
+                {
+                    LeaveEditingCursor();
+                }
+
+                IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);
+
+                // 让光标有得刷新
+                InvalidateVisual();
+            }
+            get => _isInEditingInputMode;
+        }
+
+        private bool _isInEditingInputMode = false;
+
+        /// <summary>
+        /// 是否进入编辑的模式变更完成事件
+        /// </summary>
+        public event EventHandler? IsInEditingInputModeChanged;
+
+        /// <summary>
+        /// 是否自动根据是否获取焦点设置是否进入编辑模式
+        /// </summary>
+        public bool IsAutoEditingModeByFocus
+        {
+            get => _isAutoEditingModeByFocus && IsEditable;
+            set
+            {
+                if (!IsEditable && value)
+                {
+                    Logger.LogWarning($"由于当前文本禁用编辑，设置自动编辑模式失效 Set IsAutoEditingModeByFocus Fail. IsEditable=False");
+                }
+                _isAutoEditingModeByFocus = value;
+            }
+        }
+
+        private bool _isAutoEditingModeByFocus = true;
+
+        /// <summary>
+        /// 确保编辑功能初始化完成
+        /// </summary>
+        private partial void EnsureEditInit();
+        private partial void EnterEditingCursor();
+        private partial void LeaveEditingCursor();
+
+        /// <summary>
         /// 是否可编辑。可编辑 <see cref="IsEditable"/> 和 <see cref="IsInEditingInputMode"/> 不同点在于，可编辑 <see cref="IsEditable"/>  是指是否开放用户编辑，不可编辑时用户无法编辑文本。而 <see cref="IsInEditingInputMode"/> 指的是当前的状态是否是用户编辑状态
         /// <br/>
         /// 即 可编辑 <see cref="IsEditable"/> 决定能否进入编辑状态，而 <see cref="IsInEditingInputMode"/> 表示现在是否处于编辑状态

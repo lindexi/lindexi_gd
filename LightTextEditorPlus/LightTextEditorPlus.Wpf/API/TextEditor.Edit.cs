@@ -73,47 +73,17 @@ public partial class TextEditor
 
     #region 编辑模式
 
-    /// <summary>
-    /// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
-    /// </summary>
-    public bool IsInEditingInputMode
+    private partial void EnterEditingCursor()
     {
-        set
-        {
-            if (_isInEditingInputMode == value)
-            {
-                return;
-            }
 
-            EnsureEditInit();
-
-            Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
-
-            _isInEditingInputMode = value;
-
-            if (value)
-            {
-                Focus();
-            }
-
-            IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);
-        }
-        get => _isInEditingInputMode;
     }
 
-    private bool _isInEditingInputMode = false;
+    private partial void LeaveEditingCursor()
+    {
 
-    /// <summary>
-    /// 是否进入编辑的模式变更完成事件
-    /// </summary>
-    public event EventHandler? IsInEditingInputModeChanged;
+    }
 
-    /// <summary>
-    /// 是否自动根据是否获取焦点设置是否进入编辑模式
-    /// </summary>
-    public bool IsAutoEditingModeByFocus { get; set; } = true;
-
-    #endregion
+    #endregion 编辑模式
 
     #region Style
 
