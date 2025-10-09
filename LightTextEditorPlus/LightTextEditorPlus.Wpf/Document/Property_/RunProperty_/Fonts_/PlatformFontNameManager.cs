@@ -44,7 +44,7 @@ public class PlatformFontNameManager : IPlatformFontNameManager
     /// 已安装的字体列表
     /// </summary>
     public static List<string> InstalledFontFamiliesEx =>
-        _installedFontFamiliesEx ??= GetInstalledFamiliesEx();
+        field ??= GetInstalledFamiliesEx();
 
     /// <inheritdoc />
     public string GetFallbackDefaultFontName() => FallbackDefaultFontName;
@@ -72,11 +72,7 @@ public class PlatformFontNameManager : IPlatformFontNameManager
         return InstalledFontFamiliesHashSet.Contains(fontFamilySource);
     }
 
-    private static List<string>? _installedFontFamiliesEx;
-
-    private static HashSet<string> InstalledFontFamiliesHashSet => _installedFontFamiliesHashSet ??= new HashSet<string>(InstalledFontFamiliesEx);
-
-    private static HashSet<string>? _installedFontFamiliesHashSet;
+    private static HashSet<string> InstalledFontFamiliesHashSet { get => field ??= new HashSet<string>(InstalledFontFamiliesEx); set; }
 
     #region 静态
 

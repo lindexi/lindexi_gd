@@ -27,17 +27,16 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     {
         _source = source;
         _start = start;
-        _length = length;
+        Count = length;
     }
 
     private readonly IReadOnlyList<T> _source;
     private readonly int _start;
-    private readonly int _length;
 
     /// <inheritdoc />
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
-        return _source.Skip(_start).Take(_length).GetEnumerator();
+        return _source.Skip(_start).Take(Count).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -55,16 +54,16 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     }
 
     /// <inheritdoc />
-    public int Count => _length;
+    public int Count { get; }
 
     /// <inheritdoc />
     public T this[int index]
     {
         get
         {
-            if (index >= _length)
+            if (index >= Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), index, $"TextReadOnlyListSpan Index out of range. Length={_length} index={index}");
+                throw new ArgumentOutOfRangeException(nameof(index), index, $"TextReadOnlyListSpan Index out of range. Length={Count} index={index}");
             }
             return _source[index + _start];
         }
@@ -77,14 +76,14 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     /// <returns></returns>
     public TextReadOnlyListSpan<T> Slice(int start)
     {
-        var length = _length - start;
+        var length = Count - start;
         return Slice(start, length);
     }
 
     /// <inheritdoc cref="Slice(int)"/>
     public TextReadOnlyListSpan<T> Slice(int start, int length)
     {
-        if (length + start > _length)
+        if (length + start > Count)
         {
             throw new ArgumentOutOfRangeException(nameof(length));
         }
@@ -95,7 +94,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     /// <inheritdoc />
     public bool Equals(TextReadOnlyListSpan<T> other)
     {
-        return ReferenceEquals(_source, other._source) && _start == other._start && _length == other._length;
+        return ReferenceEquals(_source, other._source) && _start == other._start && Count == other.Count;
     }
 
     /// <inheritdoc />
@@ -107,7 +106,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     /// <inheritdoc />
     public override int GetHashCode()
     {
-        return HashCode.Combine(_source, _start, _length);
+        return HashCode.Combine(_source, _start, Count);
     }
 
     /// <inheritdoc />
@@ -133,7 +132,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     internal TextReadOnlyListSpan<TOther> Cast<TOther>(Func<T, TOther> converter)
     {
         var list = new TextReadOnlyListConverter<T, TOther>(_source, converter);
-        return new TextReadOnlyListSpan<TOther>(list, _start, _length);
+        return new TextReadOnlyListSpan<TOther>(list, _start, Count);
     }
 
     /// <summary>Enumerates the elements of a <see cref="TextReadOnlyListSpan{T}"/>.</summary>
@@ -153,7 +152,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
         public bool MoveNext()
         {
             int index = _index + 1;
-            if (index < _list._length)
+            if (index < _list.Count)
             {
                 _index = index;
                 return true;

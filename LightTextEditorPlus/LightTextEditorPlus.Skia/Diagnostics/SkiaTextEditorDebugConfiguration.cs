@@ -114,10 +114,9 @@ namespace LightTextEditorPlus.Diagnostics
         /// </summary>
         public bool ShowHandwritingPaperDebugInfo
         {
-            get => _showHandwritingPaperDebugInfo && IsInDebugMode;
-            set => _showHandwritingPaperDebugInfo = value;
+            get => field && IsInDebugMode;
+            set;
         }
-        private bool _showHandwritingPaperDebugInfo;
 
         /// <summary>
         /// 四线格的调试绘制信息

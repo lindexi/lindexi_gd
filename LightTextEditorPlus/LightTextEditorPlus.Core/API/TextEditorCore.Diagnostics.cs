@@ -26,19 +26,17 @@ partial class TextEditorCore
     /// </summary>
     public string? DebugName
     {
-        set => _debugName = value;
+        set;
         get
         {
-            if (_debugName is null)
+            if (field is null)
             {
                 return "\"" + this.GetText().LimitTrim(15) + "\"";
             }
 
-            return _debugName;
+            return field;
         }
     }
-
-    private string? _debugName;
 
     /// <inheritdoc />
     public override string ToString() => $"[{nameof(TextEditorCore)}] {DebugName}";

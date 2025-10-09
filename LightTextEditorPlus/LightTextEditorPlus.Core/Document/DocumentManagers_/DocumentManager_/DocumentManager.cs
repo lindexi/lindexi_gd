@@ -48,19 +48,17 @@ namespace LightTextEditorPlus.Core.Document
         {
             set
             {
-                if (Nearly.Equals(_documentWidth, value))
+                if (Nearly.Equals(field, value))
                 {
                     return;
                 }
 
-                _documentWidth = value;
+                field = value;
 
                 TextEditor.RequireDispatchReUpdateAllDocumentLayout("DocumentWidthChanged");
             }
-            get => _documentWidth;
-        }
-
-        private double _documentWidth = double.PositiveInfinity;
+            get;
+        } = double.PositiveInfinity;
 
         /// <summary>
         /// 文档的高度。受 <see cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/> 影响
@@ -70,20 +68,18 @@ namespace LightTextEditorPlus.Core.Document
         {
             set
             {
-                if (Nearly.Equals(_documentHeight, value))
+                if (Nearly.Equals(field, value))
                 {
                     return;
                 }
 
-                _documentHeight = value;
+                field = value;
 
                 // todo 对于横排文本来说，仅高度变更，是不用重新布局每个段落的。文档内容不变，最多只变更 Outline 和空白高度。调用 RequireDispatchReLayoutAllDocument 有点伤
                 TextEditor.RequireDispatchReUpdateAllDocumentLayout("DocumentHeightChanged");
             }
-            get => _documentHeight;
-        }
-
-        private double _documentHeight = double.PositiveInfinity;
+            get;
+        } = double.PositiveInfinity;
 
         // todo 考虑添加最大文档宽度高度的支持
         //private double MaxDocumentWidth { get; set; }

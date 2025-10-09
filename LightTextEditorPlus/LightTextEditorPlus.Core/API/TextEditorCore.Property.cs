@@ -21,7 +21,7 @@ partial class TextEditorCore
     /// </summary>
     public VerticalTextAlignment VerticalTextAlignment
     {
-        get => _verticalTextAlignment;
+        get;
         set
         {
             if (CheckFeaturesDisableWithLog(TextFeatures.AlignVertical))
@@ -44,14 +44,12 @@ partial class TextEditorCore
                 return;
             }
 
-            _verticalTextAlignment = value;
+            field = value;
 
             // 实际上可以不布局的，只是修改文档左上角坐标即可
             RequireDispatchReUpdateAllDocumentLayout("VerticalTextAlignment Changed");
         }
     }
-
-    private VerticalTextAlignment _verticalTextAlignment;
 
     /// <summary>
     /// 获取或设置文本的垂直对齐方式。此属性只是为了告诉大家，更加正确的是使用 <see cref="VerticalTextAlignment"/> 属性
@@ -83,21 +81,19 @@ partial class TextEditorCore
                 return;
             }
 
-            if (_sizeToContent == value) return;
-            _sizeToContent = value;
+            if (field == value) return;
+            field = value;
             RequireDispatchReUpdateAllDocumentLayout("SizeToContent Changed");
         }
-        get => _sizeToContent;
-    }
-
-    private TextSizeToContent _sizeToContent = TextSizeToContent.Manual;
+        get;
+    } = TextSizeToContent.Manual;
 
     /// <summary>
     /// 行距的配置
     /// </summary>
     public DocumentLineSpacingConfiguration LineSpacingConfiguration
     {
-        get => _lineSpacingConfiguration;
+        get;
         set
         {
             if (CheckFeaturesDisableWithLog(TextFeatures.SetLineSpacing))
@@ -105,12 +101,10 @@ partial class TextEditorCore
                 return;
             }
 
-            _lineSpacingConfiguration = value;
+            field = value;
             RequireDispatchReUpdateAllDocumentLayout("LineSpacingConfiguration Changed");
         }
-    }
-
-    private DocumentLineSpacingConfiguration _lineSpacingConfiguration = new();
+    } = new();
 
     /// <summary>
     /// 设置当前多倍行距呈现策略
@@ -160,9 +154,9 @@ partial class TextEditorCore
                 return;
             }
 
-            if (_arrangingType == value) return;
-            var oldArrangingType = _arrangingType;
-            _arrangingType = value;
+            if (field == value) return;
+            var oldArrangingType = field;
+            field = value;
 
             ArrangingTypeChanged?.Invoke(this,
                 new TextEditorValueChangeEventArgs<ArrangingType>(oldArrangingType, value));
@@ -175,17 +169,15 @@ partial class TextEditorCore
 
             RequireDispatchReUpdateAllDocumentLayout("ArrangingType Changed");
         }
-        get => _arrangingType;
+        get;
     }
-
-    private ArrangingType _arrangingType;
 
     /// <summary>
     /// 文本的当前语言文化，此属性会影响文本的排版或渲染
     /// </summary>
     public CultureInfo CurrentCulture
     {
-        get => _cultureInfo ?? CultureInfo.CurrentCulture;
+        get => field ?? CultureInfo.CurrentCulture;
         set
         {
             if (value.Equals(CurrentCulture))
@@ -193,13 +185,11 @@ partial class TextEditorCore
                 return;
             }
 
-            _cultureInfo = value;
+            field = value;
             // 变更语言文化，需要重新布局
             RequireDispatchReUpdateAllDocumentLayout("CurrentCultureChanged");
         }
     }
-
-    private CultureInfo? _cultureInfo;
 
     #endregion
 
@@ -223,10 +213,10 @@ partial class TextEditorCore
     // ReSharper disable once RedundantDefaultMemberInitializer
     public bool IsDirty
     {
-        get => _isDirty;
+        get;
         private set
         {
-            _isDirty = value;
+            field = value;
 
             if (_renderInfoProvider != null)
             {
@@ -234,14 +224,7 @@ partial class TextEditorCore
                 _renderInfoProvider = null;
             }
         }
-    }
-
-    /// <summary>
-    /// 文本是不是脏的
-    /// </summary>
-    /// 创建出来的文本就是脏的，需要等待布局完成才能获取到布局信息
-    /// 根据 README.md 文档约定： “默认创建出来的文本是脏的，需要布局完成之后，才不是脏的”
-    private bool _isDirty = true;
+    } = true;
 
     #endregion
 
@@ -327,8 +310,7 @@ partial class TextEditorCore
     /// </summary>
     public ReadOnlyParagraphList ParagraphList =>
         // 正常情况，框架内不会调用到这里，不会创建出 ReadOnlyParagraphList 对象的
-        _paragraphList ??= new ReadOnlyParagraphList(this);
-    private ReadOnlyParagraphList? _paragraphList;
+        field ??= new ReadOnlyParagraphList(this);
 
     #endregion
 
@@ -341,21 +323,19 @@ partial class TextEditorCore
     /// </summary>
     public TextFeatures Features
     {
-        get => _features;
+        get;
         set
         {
-            if (value == _features)
+            if (value == field)
             {
                 return;
             }
 
-            var oldValue = _features;
-            _features = value;
+            var oldValue = field;
+            field = value;
             FeaturesChanged?.Invoke(this, new TextEditorValueChangeEventArgs<TextFeatures>(oldValue, value));
         }
-    }
-
-    private TextFeatures _features = TextFeatures.All;
+    } = TextFeatures.All;
 
     /// <summary>
     /// 功能特性变更事件
