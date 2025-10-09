@@ -1,4 +1,4 @@
-namespace CodeSignServerMaster
+﻿namespace CodeSignServerMaster
 {
     public class Program
     {
@@ -14,8 +14,32 @@ namespace CodeSignServerMaster
 
             // Configure the HTTP request pipeline.
 
-            app.UseAuthorization();
+            app.UseWebSockets(new WebSocketOptions()
+            {
+                
+            });
 
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/sign")
+                {
+                    if (context.WebSockets.IsWebSocketRequest)
+                    {
+                        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                        var arraySegment = new ArraySegment<byte>(new byte[1024]);
+                        await webSocket.ReceiveAsync(arraySegment, CancellationToken.None);
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    }
+                }
+                else
+                {
+                    await next(context);
+                }
+
+            });
 
             app.MapControllers();
 

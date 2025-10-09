@@ -12,4 +12,6 @@ await clientWebSocket.ConnectAsync(new Uri("ws://127.0.0.1:5073/sign"),Cancellat
 ReadOnlyMemory<byte> t = new byte[] { 0x12, 0x13 };
 await clientWebSocket.SendAsync(t, WebSocketMessageType.Binary, true, CancellationToken.None);
 
+Console.ReadLine();
+
 Console.WriteLine("Hello, World!");
