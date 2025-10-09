@@ -207,13 +207,13 @@ class LayoutHitTestProvider
 
         var documentManager = TextEditor.DocumentManager;
         var paragraphManager = documentManager.ParagraphManager;
-
+   
         // 是否在段落最后一行上
         const bool isInLastLineBounds = false;
 
         // 对于水平布局，顶端对齐来说，应该是只判断上下
         var isInTop = point.Y < documentLayoutBounds.DocumentContentBounds.Top;
-
+    
         if (isInTop)
         {
             // 在文档的上方，则取首个字符

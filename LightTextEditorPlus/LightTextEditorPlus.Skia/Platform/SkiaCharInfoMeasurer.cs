@@ -134,7 +134,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var charDataList = argument.ToFillCharDataList;
         foreach (TextReadOnlyListSpan<CharData> textReadOnlyListSpan in charDataList.GetCharSpanContinuous())
         {
-            bool allMeasured = textReadOnlyListSpan.All(static t => !t.IsInvalidCharDataInfo);
+            bool allMeasured = textReadOnlyListSpan.All(static t=>!t.IsInvalidCharDataInfo);
             if (allMeasured)
             {
                 // 全部都测量了，且当前字体不支持连写的情况，直接快速分支，立刻跳过，不需要重复测量

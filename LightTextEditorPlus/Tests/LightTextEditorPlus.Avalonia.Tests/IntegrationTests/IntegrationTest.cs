@@ -47,7 +47,7 @@ public class IntegrationTest
             var assertImageFilePath = Path.Join(AppContext.BaseDirectory, "Assets", "TestImage", fileName);
 
             // 忽略的列表
-            Span<string> ignoreList =
+            Span<string> ignoreList = 
             [
                 // 随意的，每次都不同，不能加入测试
                 "随意的字符属性",
@@ -57,7 +57,7 @@ public class IntegrationTest
                 "无序项目符号",
             ];
 
-            if (File.Exists(assertImageFilePath) && !ignoreList.Contains(testName))
+            if (File.Exists(assertImageFilePath) &&!ignoreList.Contains(testName))
             {
                 VisionComparer visionComparer = new VisionComparer();
                 VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath), new FileInfo(imageFilePath));

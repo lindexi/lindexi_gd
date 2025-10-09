@@ -10,7 +10,7 @@ static class CharCountHelper
         int charCount = 0;
         foreach (IImmutableRun immutableRun in runs)
         {
-            if (immutableRun is LineBreakRun)
+            if(immutableRun is LineBreakRun)
             {
                 charCount += ParagraphData.DelimiterLength;
             }
