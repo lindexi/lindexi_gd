@@ -12,6 +12,20 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 static class GetCaretWordHelper
 {
+    /// <summary>
+    /// 获取光标的前一个单词，向左一个单词
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    public static GetCaretWordResult GetCaretPreviousWord(in GetCaretWordArgument argument)
+    {
+        // 无语言文化的分词查找
+        var textEditor = argument.TextEditor;
+        var caretOffset = argument.CaretOffset;
+
+
+    }
+
     public static GetCaretWordResult GetCaretCurrentWord(in GetCaretWordArgument argument)
     {
         // 无语言文化的分词查找
