@@ -1,0 +1,6 @@
+@CodeSignServerMaster_HostAddress = http://localhost:5073
+
+GET {{CodeSignServerMaster_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
