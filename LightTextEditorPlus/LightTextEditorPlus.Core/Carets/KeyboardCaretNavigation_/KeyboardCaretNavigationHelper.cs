@@ -235,7 +235,7 @@ internal static class KeyboardCaretNavigationHelper
         var wordSelection = GetCaretWord(currentCaretOffset, textEditorCore);
         if (wordSelection.Contains(in currentCaretOffset)
             // 不能在单词开头，如果在单词开头，则需要跳到前一个单词
-            && wordSelection.FrontOffset != currentCaretOffset)
+            && wordSelection.FrontOffset.Offset != currentCaretOffset.Offset)
         {
             // 如果命中到了在单词内，则尝试跳到单词前面
             return ToResult(textEditorCore,wordSelection.FrontOffset);
@@ -289,7 +289,7 @@ internal static class KeyboardCaretNavigationHelper
         var wordSelection = GetCaretWord(currentCaretOffset, textEditorCore);
         if (wordSelection.Contains(in currentCaretOffset)
             // 不能在单词末尾，如果在单词末尾，则需要跳到下一个单词
-            && wordSelection.BehindOffset != currentCaretOffset)
+            && wordSelection.BehindOffset.Offset != currentCaretOffset.Offset)
         {
             // 如果命中到了在单词内，则尝试跳到单词末尾
             return ToResult(textEditorCore, wordSelection.BehindOffset);
