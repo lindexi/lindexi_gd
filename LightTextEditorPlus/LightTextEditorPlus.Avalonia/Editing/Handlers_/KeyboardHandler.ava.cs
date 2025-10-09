@@ -21,6 +21,9 @@ internal class KeyboardHandler
         TextEditor = textEditor;
 
         // 光标移动
+        AddShortCut(new KeyGesture(Key.Left, KeyModifiers.Control), MoveLeftByWord);
+        AddShortCut(new KeyGesture(Key.Right, KeyModifiers.Control), MoveRightByWord);
+
         AddShortCut(new KeyGesture(Key.Home, KeyModifiers.None), MoveToLineStart);
         AddShortCut(new KeyGesture(Key.End, KeyModifiers.None), MoveToLineEnd);
 
@@ -40,6 +43,18 @@ internal class KeyboardHandler
                 Command = new TextEditorCommand(command)
             });
         }
+    }
+
+    private void MoveLeftByWord()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.MoveCaret(CaretMoveType.LeftByWord);
+    }
+
+    private void MoveRightByWord()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.MoveCaret(CaretMoveType.RightByWord);
     }
 
     private void MoveToDocumentStart()
