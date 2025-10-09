@@ -375,7 +375,7 @@ public partial class RichTextCaseProvider
     public void Debug()
     {
         //RichTextCases[2].Exec(textEditor);
-        //Run("一行包含不同的字号的文本");
-        Run(_richTextCases.Last());
+        Run("文本带下标单倍行距");
+        //Run(_richTextCases.Last());
     }
 }

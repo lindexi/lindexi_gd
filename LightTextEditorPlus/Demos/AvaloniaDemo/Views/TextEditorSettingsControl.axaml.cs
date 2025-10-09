@@ -408,12 +408,12 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void ToggleFontSuperscriptButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        TextEditor.ToggleSuperscript();
+        TextEditor.ToggleSuperscript(TextEditor.CurrentSelection);
     }
 
     private void ToggleFontSubscriptButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        TextEditor.ToggleSubscript();
+        TextEditor.ToggleSubscript(TextEditor.CurrentSelection);
     }
 
     #endregion

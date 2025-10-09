@@ -385,7 +385,24 @@ partial class RichTextCaseProvider
 
         Add(editor =>
         {
+<<<<<<< HEAD
             editor.SetFontSize(60);
+=======
+            editor.UseWpfLineSpacingStyle();
+            editor.SetFontSize(60);
+            editor.AppendText("x");
+            editor.AppendRun(new SkiaTextRun("2", editor.StyleRunProperty with
+            {
+                // 在当前文本库算法里面，上下标是 1/2 的字号。而 PPT 里面是 2/3 的字号。想要对齐 PPT 的行为，就需要进行以下计算 `字号/ 1/2 * 2/3`
+                FontSize = 60d / (1d / 2d) * (2d / 3d),
+                FontVariant = TextFontVariant.Subscript
+            }));
+        }, "文本带下标单倍行距");
+
+        Add(editor =>
+        {
+           editor.SetFontSize(60);
+>>>>>>> 1db4ea5c46b161d905151ce13626c78601896a66
 
             editor.SetCurrentCaretRunProperty(property => property with
             {

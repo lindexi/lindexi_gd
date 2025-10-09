@@ -1,15 +1,13 @@
-﻿using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Document.Segments;
-using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
-using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Rendering;
-
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Rendering;
 
 namespace LightTextEditorPlus.Core.Carets;
 
@@ -238,7 +236,7 @@ internal static class KeyboardCaretNavigationHelper
             && wordSelection.FrontOffset.Offset != currentCaretOffset.Offset)
         {
             // 如果命中到了在单词内，则尝试跳到单词前面
-            return ToResult(textEditorCore,wordSelection.FrontOffset);
+            return ToResult(textEditorCore, wordSelection.FrontOffset);
         }
 
         // 判断是否在段落的首部。如果是，则仅做段落跳跃
@@ -301,7 +299,7 @@ internal static class KeyboardCaretNavigationHelper
         var currentParagraphCharCaret = currentCaretOffset.Offset - paragraphStartOffset.Offset;
         if (currentParagraphCharCaret >= textParagraph.CharCount)
         {
-            Debug.Assert(currentParagraphCharCaret== textParagraph.CharCount,"不可能超过当前段落的字符数量");
+            Debug.Assert(currentParagraphCharCaret == textParagraph.CharCount, "不可能超过当前段落的字符数量");
             // 已经在段末了，不能再往后跳了。直接去到下一段的开头好了
             return GetNextCharacterCaretOffset(textEditorCore);
         }
@@ -399,32 +397,32 @@ internal static class KeyboardCaretNavigationHelper
 
     private static CaretOffset GetCtrlRightCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return GetNextWordCaretOffset(textEditorCore);
     }
 
     private static CaretOffset GetCtrlLeftCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return GetPreviousWordCaretOffset(textEditorCore);
     }
 
     private static CaretOffset GetDownCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return GetNextLineCaretOffset(textEditorCore);
     }
 
     private static CaretOffset GetUpCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return GetPreviousLineCaretOffset(textEditorCore);
     }
 
     private static CaretOffset GetRightCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return GetNextCharacterCaretOffset(textEditorCore);
     }
 
     private static CaretOffset GetLeftCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        return GetPreviousCharacterCaretOffset(textEditorCore);
     }
 
     #region 辅助方法
