@@ -13,9 +13,9 @@ partial class TextEditorCore
     #region UndoRedo
 
     /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.UndoRedo.ITextEditorUndoRedoProvider"/>
-    public ITextEditorUndoRedoProvider UndoRedoProvider { get =>
-        field ??= PlatformProvider.BuildTextEditorUndoRedoProvider(); private set;
-    }
+    public ITextEditorUndoRedoProvider UndoRedoProvider =>
+        _undoRedoProvider ??= PlatformProvider.BuildTextEditorUndoRedoProvider();
+    private ITextEditorUndoRedoProvider? _undoRedoProvider;
 
     /// <summary>
     /// 进入撤销恢复模式

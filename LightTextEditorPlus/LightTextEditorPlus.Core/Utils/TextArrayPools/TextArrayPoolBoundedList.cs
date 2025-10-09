@@ -37,7 +37,7 @@ public struct TextArrayPoolBoundedList<T> : IDisposable
     /// <summary>
     /// 数量
     /// </summary>
-    public int Count { get; private set; }
+    public int Count => _count;
 
     /// <summary>
     /// Gets the capacity of this list.
@@ -53,7 +53,7 @@ public struct TextArrayPoolBoundedList<T> : IDisposable
     {
         get
         {
-            if (index >= Count)
+            if (index >= _count)
             {
                 throw new IndexOutOfRangeException();
             }
@@ -61,7 +61,7 @@ public struct TextArrayPoolBoundedList<T> : IDisposable
         }
         set
         {
-            if (index >= Count)
+            if (index >= _count)
             {
                 throw new IndexOutOfRangeException();
             }
@@ -76,16 +76,17 @@ public struct TextArrayPoolBoundedList<T> : IDisposable
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public void Add(T item)
     {
-        var currentCount = Count + 1;
+        var currentCount = _count + 1;
         if (currentCount > _buffer.Length)
         {
             throw new ArgumentOutOfRangeException();
         }
 
-        _buffer[Count] = item;
-        Count = currentCount;
+        _buffer[_count] = item;
+        _count = currentCount;
     }
 
+    private int _count;
     private readonly T[] _buffer;
     private readonly ArrayPool<T> _arrayPool;
 
@@ -93,7 +94,7 @@ public struct TextArrayPoolBoundedList<T> : IDisposable
     /// 转换出 Span 对象，只能表示当前的状态
     /// </summary>
     /// <returns></returns>
-    public Span<T> ToSpan() => _buffer.AsSpan(0, Count);
+    public Span<T> ToSpan() => _buffer.AsSpan(0, _count);
 
     /// <inheritdoc />
     public void Dispose()

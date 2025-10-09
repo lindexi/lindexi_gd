@@ -51,18 +51,16 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     {
         get
         {
-            if (field is null)
+            if (_layoutDispatcherRequiring is null)
             {
-                field =
+                _layoutDispatcherRequiring =
                     new AvaloniaTextEditorDispatcherRequiring(UpdateLayout, Dispatcher.UIThread);
             }
 
-            return field;
+            return _layoutDispatcherRequiring;
         }
-
-        set;
     }
-
+    private AvaloniaTextEditorDispatcherRequiring? _layoutDispatcherRequiring;
     private Action? _layoutUpdateAction;
 
     /// <inheritdoc />

@@ -247,7 +247,10 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// <summary>
     /// 布局过程的默认 CharObject 对象
     /// </summary>
-    public ICharObject LayoutDefaultCharData { get => field ??= new SingleCharObject(TextContext.DefaultChar); private set; }
+    public ICharObject LayoutDefaultCharData
+        => _layoutDefaultCharData ??= new SingleCharObject(TextContext.DefaultChar);
+
+    private ICharObject? _layoutDefaultCharData;
 
     #region 框架内的不安全的缓存对象
 
