@@ -217,7 +217,54 @@ internal static class KeyboardCaretNavigationHelper
     /// <exception cref="NotImplementedException"></exception>
     private static CaretOffset GetPreviousWordCaretOffset(TextEditorCore textEditorCore)
     {
-        
+        var currentSelection = textEditorCore.CaretManager.CurrentSelection;
+        if (!currentSelection.IsEmpty)
+        {
+            return currentSelection.FrontOffset;
+        }
+
+        var currentCaretOffset = currentSelection.FrontOffset;
+        if (currentCaretOffset.Offset == 0)
+        {
+            // 文档开头，不能再往前跳了
+            return currentCaretOffset;
+        }
+
+        var wordSelection = GetCaretWord(currentCaretOffset, textEditorCore);
+        if (wordSelection.Contains(in currentCaretOffset)
+            // 不能在单词开头，如果在单词开头，则需要跳到前一个单词
+            && wordSelection.FrontOffset != currentCaretOffset)
+        {
+            // 如果命中到了在单词内，则尝试跳到单词前面
+            return ToResult(wordSelection.FrontOffset);
+        }
+
+        ITextParagraph textParagraph = textEditorCore.DocumentManager.GetParagraph(in currentCaretOffset);
+        DocumentOffset paragraphStartOffset = textParagraph.GetParagraphStartOffset();
+        var currentCharCaret = currentCaretOffset.Offset - paragraphStartOffset.Offset;
+        if (currentCharCaret == 0)
+        {
+            // 已经在段首了，不能再往前跳了。直接去到上一段的末尾好了
+            return ToResult(new CaretOffset(currentCaretOffset.Offset - 1));
+        }
+
+        var currentCharIndex = currentCharCaret;
+        TextReadOnlyListSpan<CharData> charDataList = textParagraph.GetParagraphCharDataList();
+        if (GetCaretWordHelper.IsPunctuation(charDataList[currentCharIndex]))
+        {
+            return ToResult(new CaretOffset(currentCaretOffset.Offset - 1));
+        }
+        else
+        {
+            // 不知道什么情况
+            return GetPreviousCharacterCaretOffset(textEditorCore);
+        }
+
+        CaretOffset ToResult(in CaretOffset newOffset)
+        {
+            bool atLineStart = IsAtLineStart(textEditorCore, newOffset.Offset);
+            return new CaretOffset(newOffset.Offset, atLineStart);
+        }
     }
 
     /// <summary>
