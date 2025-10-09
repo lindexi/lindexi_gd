@@ -53,7 +53,7 @@ internal static class KeyboardCaretNavigationHelper
             case CaretMoveType.LeftByWord:
                 return GetPreviousWordCaretOffset(textEditor);
             case CaretMoveType.RightByWord:
-                return GetNextCharacterCaretOffset(textEditor);
+                return GetNextWordCaretOffset(textEditor);
             case CaretMoveType.UpByLine:
                 return GetPreviousLineCaretOffset(textEditor);
             case CaretMoveType.DownByLine:
@@ -250,7 +250,7 @@ internal static class KeyboardCaretNavigationHelper
 
         var currentCharIndex = currentCharCaret;
         TextReadOnlyListSpan<CharData> charDataList = textParagraph.GetParagraphCharDataList();
-        if (IsPunctuation(charDataList[currentCharIndex]))
+        if (GetCaretWordHelper.IsPunctuation(charDataList[currentCharIndex]))
         {
             return ToResult(new CaretOffset(currentCaretOffset.Offset - 1));
         }
@@ -265,29 +265,16 @@ internal static class KeyboardCaretNavigationHelper
             bool atLineStart = IsAtLineStart(textEditorCore, newOffset.Offset);
             return new CaretOffset(newOffset.Offset, atLineStart);
         }
+    }
 
-        static bool IsPunctuation(CharData charData)
-        {
-            Utf32CodePoint codePoint = charData.CharObject.CodePoint;
-            if (codePoint.Value == ' ')
-            {
-                return true;
-            }
-
-            Span<char> buffer = stackalloc char[2];
-            int length = codePoint.Rune.EncodeToUtf16(buffer);
-            if (length == 1)
-            {
-                // 如果是单字符的，直接用 char 的方法判断
-                return char.IsPunctuation(buffer[0]);
-            }
-            else
-            {
-                // 多字符的，就用 UnicodeCategory 判断
-                UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
-                return ((int) unicodeCategory & 0b0001_0000) > 0;
-            }
-        }
+    /// <summary>
+    /// 向右一个单词
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
+    private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditor)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>
