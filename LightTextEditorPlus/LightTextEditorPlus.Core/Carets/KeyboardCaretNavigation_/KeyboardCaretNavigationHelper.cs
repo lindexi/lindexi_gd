@@ -1,9 +1,13 @@
 ﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 
 using System;
+using System.Globalization;
 using System.Linq;
-using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Carets;
 
@@ -49,7 +53,7 @@ internal static class KeyboardCaretNavigationHelper
             case CaretMoveType.LeftByWord:
                 return GetPreviousWordCaretOffset(textEditor);
             case CaretMoveType.RightByWord:
-                return GetNextCharacterCaretOffset(textEditor);
+                return GetNextWordCaretOffset(textEditor);
             case CaretMoveType.UpByLine:
                 return GetPreviousLineCaretOffset(textEditor);
             case CaretMoveType.DownByLine:
@@ -205,7 +209,23 @@ internal static class KeyboardCaretNavigationHelper
         }
     }
 
+    /// <summary>
+    /// 向左一个单词
+    /// </summary>
+    /// <param name="textEditorCore"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
     private static CaretOffset GetPreviousWordCaretOffset(TextEditorCore textEditorCore)
+    {
+        
+    }
+
+    /// <summary>
+    /// 向右一个单词
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
+    private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditor)
     {
         throw new NotImplementedException();
     }
@@ -337,6 +357,17 @@ internal static class KeyboardCaretNavigationHelper
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// 获取传入光标所在的单词选择范围
+    /// </summary>
+    /// <returns></returns>
+    private static Selection GetCaretWord(in CaretOffset caretOffset, TextEditorCore textEditorCore)
+    {
+        IWordDivider wordDivider = textEditorCore.PlatformProvider.GetWordDivider();
+        var result = wordDivider.GetCaretWord(new GetCaretWordArgument(caretOffset, textEditorCore));
+        return result.WordSelection;
     }
 
     #endregion

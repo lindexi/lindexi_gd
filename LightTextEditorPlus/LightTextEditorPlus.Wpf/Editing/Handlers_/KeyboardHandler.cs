@@ -26,6 +26,8 @@ internal class KeyboardHandler
         Add(Key.Up, EditingCommands.MoveUpByLine, MoveCaret(CaretMoveType.UpByLine));
         Add(Key.Down, EditingCommands.MoveDownByLine, MoveCaret(CaretMoveType.DownByLine));
 
+        Add(Key.Left, ModifierKeys.Control, EditingCommands.MoveLeftByWord, MoveCaret(CaretMoveType.LeftByWord));
+
         Add(Key.Home, EditingCommands.MoveToLineStart, MoveCaret(CaretMoveType.LineStart));
         Add(Key.End, EditingCommands.MoveToLineEnd, MoveCaret(CaretMoveType.LineEnd));
 
