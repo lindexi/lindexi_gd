@@ -32,7 +32,6 @@ internal class KeyboardHandler
         AddShortCut(new KeyGesture(Key.X, KeyModifiers.Control), TextEditorHandler.OnCut);
         AddShortCut(new KeyGesture(Key.V, KeyModifiers.Control), TextEditorHandler.OnPaste);
 
-
         void AddShortCut(KeyGesture gesture, Action command)
         {
             TextEditor.KeyBindings.Add(new KeyBinding()
