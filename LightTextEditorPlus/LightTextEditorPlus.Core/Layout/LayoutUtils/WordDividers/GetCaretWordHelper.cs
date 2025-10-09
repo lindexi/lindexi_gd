@@ -12,7 +12,7 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 static class GetCaretWordHelper
 {
-    public static GetCaretWordResult GetCaretWord(in GetCaretWordArgument argument)
+    public static GetCaretWordResult GetCaretCurrentWord(in GetCaretWordArgument argument)
     {
         // 无语言文化的分词查找
         // 先找段落，再从段落里面找字符

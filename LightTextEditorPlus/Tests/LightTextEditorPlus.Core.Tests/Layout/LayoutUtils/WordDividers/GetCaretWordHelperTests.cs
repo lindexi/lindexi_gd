@@ -20,7 +20,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("!".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("!".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -36,7 +36,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("!".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("!".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -52,7 +52,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("！".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("！".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -68,7 +68,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset(" ".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset(" ".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -84,7 +84,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("中文，".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("中文，".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -100,7 +100,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("中文".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("中文".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -116,7 +116,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("123".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("123".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -132,7 +132,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("123 ".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("123 ".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -147,7 +147,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("123".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("123".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -162,7 +162,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset("123 ".Length), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset("123 ".Length), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -177,7 +177,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset(1), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset(1), textEditor));
 
             // Assert
             string text = textEditor.GetText(result.WordSelection);
@@ -192,7 +192,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset(0), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset(0), textEditor));
 
             // Assert
             Assert.AreEqual(new Selection(new CaretOffset(0), "abc".Length), result.WordSelection);
@@ -206,7 +206,7 @@ public class GetCaretWordHelperTests
 
             // Action
             // 设置光标在开头
-            var result = GetCaretWordHelper.GetCaretWord(new GetCaretWordArgument(new CaretOffset(0), textEditor));
+            var result = GetCaretWordHelper.GetCaretCurrentWord(new GetCaretWordArgument(new CaretOffset(0), textEditor));
 
             // Assert
             Assert.AreEqual(new Selection(new CaretOffset(0), "abc".Length), result.WordSelection);
