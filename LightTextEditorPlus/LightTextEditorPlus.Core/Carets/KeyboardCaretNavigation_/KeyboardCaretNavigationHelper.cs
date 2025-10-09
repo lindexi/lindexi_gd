@@ -5,8 +5,10 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Carets;
@@ -236,45 +238,88 @@ internal static class KeyboardCaretNavigationHelper
             && wordSelection.FrontOffset != currentCaretOffset)
         {
             // 如果命中到了在单词内，则尝试跳到单词前面
-            return ToResult(wordSelection.FrontOffset);
+            return ToResult(textEditorCore,wordSelection.FrontOffset);
         }
 
+        // 判断是否在段落的首部。如果是，则仅做段落跳跃
         ITextParagraph textParagraph = textEditorCore.DocumentManager.GetParagraph(in currentCaretOffset);
         DocumentOffset paragraphStartOffset = textParagraph.GetParagraphStartOffset();
-        var currentCharCaret = currentCaretOffset.Offset - paragraphStartOffset.Offset;
-        if (currentCharCaret == 0)
+        var currentParagraphCharCaret = currentCaretOffset.Offset - paragraphStartOffset.Offset;
+        if (currentParagraphCharCaret == 0)
         {
             // 已经在段首了，不能再往前跳了。直接去到上一段的末尾好了
-            return ToResult(new CaretOffset(currentCaretOffset.Offset - 1));
+            return ToResult(textEditorCore, new CaretOffset(currentCaretOffset.Offset - 1));
         }
 
-        var currentCharIndex = currentCharCaret;
+        var currentCharIndex = currentParagraphCharCaret;
         TextReadOnlyListSpan<CharData> charDataList = textParagraph.GetParagraphCharDataList();
         if (GetCaretWordHelper.IsPunctuation(charDataList[currentCharIndex]))
         {
-            return ToResult(new CaretOffset(currentCaretOffset.Offset - 1));
+            return ToResult(textEditorCore, new CaretOffset(currentCaretOffset.Offset - 1));
         }
         else
         {
             // 不知道什么情况
             return GetPreviousCharacterCaretOffset(textEditorCore);
         }
-
-        CaretOffset ToResult(in CaretOffset newOffset)
-        {
-            bool atLineStart = IsAtLineStart(textEditorCore, newOffset.Offset);
-            return new CaretOffset(newOffset.Offset, atLineStart);
-        }
     }
 
     /// <summary>
     /// 向右一个单词
     /// </summary>
-    /// <param name="textEditor"></param>
+    /// <param name="textEditorCore"></param>
     /// <returns></returns>
-    private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditor)
+    private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditorCore)
     {
-        throw new NotImplementedException();
+        var currentSelection = textEditorCore.CaretManager.CurrentSelection;
+        if (!currentSelection.IsEmpty)
+        {
+            return currentSelection.BehindOffset;
+        }
+
+        // 这里 BehindOffset 和 FrontOffset 是一样的。只是取 BehindOffset 更符合逻辑
+        var currentCaretOffset = currentSelection.BehindOffset;
+
+        if (currentCaretOffset.Offset >= textEditorCore.DocumentManager.CharCount)
+        {
+            // 文档末尾，不能再往后跳了
+            return currentCaretOffset;
+        }
+
+        var wordSelection = GetCaretWord(currentCaretOffset, textEditorCore);
+        if (wordSelection.Contains(in currentCaretOffset)
+            // 不能在单词末尾，如果在单词末尾，则需要跳到下一个单词
+            && wordSelection.BehindOffset != currentCaretOffset)
+        {
+            // 如果命中到了在单词内，则尝试跳到单词末尾
+            return ToResult(textEditorCore, wordSelection.BehindOffset);
+        }
+
+        // 判断是否在段落的末尾。如果是，则仅做段落跳跃
+        ITextParagraph textParagraph = textEditorCore.DocumentManager.GetParagraph(in currentCaretOffset);
+        DocumentOffset paragraphStartOffset = textParagraph.GetParagraphStartOffset();
+        var currentParagraphCharCaret = currentCaretOffset.Offset - paragraphStartOffset.Offset;
+        if (currentParagraphCharCaret >= textParagraph.CharCount)
+        {
+            Debug.Assert(currentParagraphCharCaret== textParagraph.CharCount,"不可能超过当前段落的字符数量");
+            // 已经在段末了，不能再往后跳了。直接去到下一段的开头好了
+            return GetNextCharacterCaretOffset(textEditorCore);
+        }
+
+        // 取出这一段的字符列表
+        var currentCharIndex = currentParagraphCharCaret;
+        TextReadOnlyListSpan<CharData> charDataList = textParagraph.GetParagraphCharDataList();
+
+        if (GetCaretWordHelper.IsPunctuation(charDataList[currentCharIndex]))
+        {
+            // 如果当前是标点符号，则直接跳过这个符号
+            return ToResult(textEditorCore, new CaretOffset(currentCaretOffset.Offset + 1));
+        }
+        else
+        {
+            // 不知道什么情况。理论上不应该遇到下一个单词才对
+            return GetPreviousCharacterCaretOffset(textEditorCore);
+        }
     }
 
     /// <summary>
@@ -383,6 +428,13 @@ internal static class KeyboardCaretNavigationHelper
     }
 
     #region 辅助方法
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static CaretOffset ToResult(TextEditorCore textEditor, in CaretOffset newOffset)
+    {
+        bool atLineStart = IsAtLineStart(textEditor, newOffset.Offset);
+        return new CaretOffset(newOffset.Offset, atLineStart);
+    }
 
     private static bool IsAtLineStart(TextEditorCore textEditor, int caretOffset)
     {
