@@ -19,18 +19,19 @@ public class StaticConfiguration
     /// </summary>
     public FontFamily DefaultNotDefineFontFamily
     {
-        get => field ??
+        get => _defaultNotDefineFontFamily ??
                (_defaultFontFamily ??= new FontFamily("Microsoft YaHei")); // 默认未定义使用微软雅黑，这是都会带的字体
         set
         {
-            if (field is not null)
+            if (_defaultNotDefineFontFamily is not null)
             {
                 StaticConfigurationPropertyMultipleSettingsException.Throw(nameof(DefaultNotDefineFontFamily));
             }
 
-            field = value;
+            _defaultNotDefineFontFamily = value;
         }
     }
 
     private FontFamily? _defaultFontFamily;
+    private FontFamily? _defaultNotDefineFontFamily;
 }

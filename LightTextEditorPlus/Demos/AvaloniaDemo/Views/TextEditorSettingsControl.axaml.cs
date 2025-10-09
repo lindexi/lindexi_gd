@@ -22,6 +22,8 @@ namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
 public partial class TextEditorSettingsControl : UserControl
 {
+    private TextEditor _textEditor = null!;
+
     public TextEditorSettingsControl()
     {
         InitializeComponent();
@@ -64,16 +66,16 @@ public partial class TextEditorSettingsControl : UserControl
 
     public TextEditor TextEditor
     {
-        get;
+        get => _textEditor;
         set
         {
-            field = value;
+            _textEditor = value;
 
-            field.CurrentCaretOffsetChanged += TextEditorCore_CurrentCaretOffsetChanged;
-            field.IsInEditingInputModeChanged += TextEditor_IsInEditingInputModeChanged;
+            _textEditor.CurrentCaretOffsetChanged += TextEditorCore_CurrentCaretOffsetChanged;
+            _textEditor.IsInEditingInputModeChanged += TextEditor_IsInEditingInputModeChanged;
             SetFeedback();
         }
-    } = null!;
+    }
 
     private void FontNameComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {

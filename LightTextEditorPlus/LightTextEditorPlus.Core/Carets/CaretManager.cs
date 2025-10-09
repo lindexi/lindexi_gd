@@ -52,7 +52,7 @@ class CaretManager
     {
         set
         {
-            if ((field.Offset == value.Offset && field.IsAtLineStart == value.IsAtLineStart)
+            if ((_currentCaretOffset.Offset == value.Offset && _currentCaretOffset.IsAtLineStart == value.IsAtLineStart)
                 // 如果在选择下修改了光标，那就需要执行后续步骤，用来清理选择
                 // 因此只有在无选择的情况下，如果光标未变更，才啥都不执行
                 && CurrentSelection.IsEmpty)
@@ -60,7 +60,7 @@ class CaretManager
                 return;
             }
 
-            var oldValue = field;
+            var oldValue = _currentCaretOffset;
             _isCurrentCaretOffsetChanging = true;
 
             // todo 完成光标系统
@@ -71,7 +71,7 @@ class CaretManager
             CurrentCaretRunProperty = null;
 
             // todo 处理越界
-            field = value;
+            _currentCaretOffset = value;
 
             // 如果当前的进入不是由选择范围触发的，那么更新选择范围
             if (_isCurrentSelectionChanging is false)
@@ -82,8 +82,10 @@ class CaretManager
             _isCurrentCaretOffsetChanging = false;
             InternalCurrentCaretOffsetChanged?.Invoke(this, args);
         }
-        get;
-    } = new CaretOffset(0);
+        get { return _currentCaretOffset; }
+    }
+
+    private CaretOffset _currentCaretOffset = new CaretOffset(0);
 
     /// <summary>
     /// 设置选择范围
@@ -108,13 +110,13 @@ class CaretManager
         // 设置为私有，只允许内部设置。方便打断点，解决 SetSelection 接收对外调用
         private set
         {
-            var oldValue = field;
+            var oldValue = _currentSelection;
 
             var args = new TextEditorValueChangeEventArgs<Selection>(oldValue, value);
             _isCurrentSelectionChanging = true;
             InternalCurrentSelectionChanging?.Invoke(this, args);
 
-            field = value;
+            _currentSelection = value;
 
             // 如果当前的进入不是由光标触发的，那么更新光标
             if (_isCurrentCaretOffsetChanging is false)
@@ -126,8 +128,10 @@ class CaretManager
             _isCurrentSelectionChanging = false;
             InternalCurrentSelectionChanged?.Invoke(this, args);
         }
-        get;
-    } = new Selection(new CaretOffset(0), 0);
+        get { return _currentSelection; }
+    }
+
+    private Selection _currentSelection = new Selection(new CaretOffset(0), 0);
 
     private bool _isCurrentSelectionChanging;
     private bool _isCurrentCaretOffsetChanging;

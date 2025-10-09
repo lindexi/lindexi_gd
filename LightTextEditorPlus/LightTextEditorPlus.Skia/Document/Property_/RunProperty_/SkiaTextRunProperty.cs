@@ -107,13 +107,15 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// </summary>
     public SKFontStyleWidth Stretch
     {
-        get;
+        get => _stretch;
         init
         {
-            field = value;
+            _stretch = value;
             InvalidateFont();
         }
-    } = SKFontStyleWidth.Normal;
+    }
+
+    private readonly SKFontStyleWidth _stretch = SKFontStyleWidth.Normal;
 
     /// <summary>
     /// 字的粗细度，默认值为Normal
@@ -130,26 +132,30 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// 900	Black (Heavy)
     public SKFontStyleWeight FontWeight
     {
-        get;
+        get => _fontWeight;
         init
         {
-            field = value;
+            _fontWeight = value;
             InvalidateFont();
         }
-    } = SKFontStyleWeight.Normal;
+    }
+
+    private readonly SKFontStyleWeight _fontWeight = SKFontStyleWeight.Normal;
 
     /// <summary>
     /// 斜体
     /// </summary>
     public SKFontStyleSlant FontStyle
     {
-        get;
+        get => _fontStyle;
         init
         {
-            field = value;
+            _fontStyle = value;
             InvalidateFont();
         }
-    } = SKFontStyleSlant.Upright;
+    }
+
+    private readonly SKFontStyleSlant _fontStyle = SKFontStyleSlant.Upright;
 
     /// <summary>
     /// 文本的装饰集合

@@ -66,17 +66,19 @@ public class CaretConfiguration
     /// </summary>
     public Brush SelectionBrush
     {
-        set;
+        set => _selectionBrush = value;
         get
         {
-            if (field is null)
+            if (_selectionBrush is null)
             {
                 var brush = new SolidColorBrush(SystemColors.HighlightColor) { Opacity = 0.5 };
                 brush.Freeze();
-                field = brush;
+                _selectionBrush = brush;
             }
 
-            return field;
+            return _selectionBrush;
         }
     }
+
+    private Brush? _selectionBrush;
 }

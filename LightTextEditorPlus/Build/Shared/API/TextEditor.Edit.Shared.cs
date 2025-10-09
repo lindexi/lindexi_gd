@@ -67,7 +67,7 @@ namespace LightTextEditorPlus
         {
             set
             {
-                if (field == value)
+                if (_isInEditingInputMode == value)
                 {
                     return;
                 }
@@ -86,7 +86,7 @@ namespace LightTextEditorPlus
 
                 Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
 
-                field = value;
+                _isInEditingInputMode = value;
 
                 if (value)
                 {
@@ -103,8 +103,10 @@ namespace LightTextEditorPlus
                 // 让光标有得刷新
                 InvalidateVisual();
             }
-            get;
-        } = false;
+            get => _isInEditingInputMode;
+        }
+
+        private bool _isInEditingInputMode = false;
 
         /// <summary>
         /// 是否进入编辑的模式变更完成事件
@@ -116,16 +118,18 @@ namespace LightTextEditorPlus
         /// </summary>
         public bool IsAutoEditingModeByFocus
         {
-            get => field && IsEditable;
+            get => _isAutoEditingModeByFocus && IsEditable;
             set
             {
                 if (!IsEditable && value)
                 {
                     Logger.LogWarning($"由于当前文本禁用编辑，设置自动编辑模式失效 Set IsAutoEditingModeByFocus Fail. IsEditable=False");
                 }
-                field = value;
+                _isAutoEditingModeByFocus = value;
             }
-        } = true;
+        }
+
+        private bool _isAutoEditingModeByFocus = true;
 
         /// <summary>
         /// 确保编辑功能初始化完成
@@ -184,21 +188,23 @@ namespace LightTextEditorPlus
         /// </remarks>
         public bool IsEditable
         {
-            get;
+            get => _isEditable;
             set
             {
-                if (value == field)
+                if (value == _isEditable)
                 {
                     return;
                 }
-                var oldValue = field;
+                var oldValue = _isEditable;
 
-                field = value;
+                _isEditable = value;
                 IsInEditingInputMode = false;
 
                 IsEditableChanged?.Invoke(this, new TextEditorValueChangeEventArgs<bool>(oldValue, value));
             }
-        } = true;
+        }
+
+        private bool _isEditable = true;
 
         /// <summary>
         /// 是否可编辑变更事件
@@ -242,7 +248,7 @@ namespace LightTextEditorPlus
         /// 覆盖模式： 按下 Insert 键，光标会变成下划横线，输入的字符会替换光标所在位置后面的字符
         public bool IsOvertypeMode
         {
-            get;
+            get => _isOvertypeMode;
             set
             {
                 if (value && TextEditorCore.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
@@ -250,13 +256,13 @@ namespace LightTextEditorPlus
                     return;
                 }
 
-                if (value == field)
+                if (value == _isOvertypeMode)
                 {
                     return;
                 }
 
-                var oldValue = field;
-                field = value;
+                var oldValue = _isOvertypeMode;
+                _isOvertypeMode = value;
 
                 if (value)
                 {
@@ -273,6 +279,8 @@ namespace LightTextEditorPlus
             }
         }
 
+        private bool _isOvertypeMode;
+
         /// <summary>
         /// 是否处于覆盖模式变更事件
         /// </summary>
@@ -284,7 +292,8 @@ namespace LightTextEditorPlus
 
         /// <inheritdoc cref="TextEditorCore.ParagraphList"/>
         public TextEditorParagraphList ParagraphList =>
-            field ??= new TextEditorParagraphList(TextEditorCore.ParagraphList);
+            _paragraphList ??= new TextEditorParagraphList(TextEditorCore.ParagraphList);
+        private TextEditorParagraphList? _paragraphList;
 
         /// <summary>
         /// 设置段落属性
@@ -388,9 +397,10 @@ namespace LightTextEditorPlus
         /// </summary>
         public TextEditorHandler TextEditorHandler
         {
-            get => field ??= TextEditorPlatformProvider.GetHandler();
-            set;
+            get => _textEditorHandler ??= TextEditorPlatformProvider.GetHandler();
+            set => _textEditorHandler = value;
         }
+        private TextEditorHandler? _textEditorHandler;
     }
 }
 #endif
