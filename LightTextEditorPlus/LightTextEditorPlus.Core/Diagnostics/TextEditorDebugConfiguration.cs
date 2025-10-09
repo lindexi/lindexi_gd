@@ -23,11 +23,9 @@ public class TextEditorDebugConfiguration
     /// 文本库将使用 Release 构建进行分发，但是依然提供调试方法，开启调试模式之后会有更多输出和判断逻辑，以及抛出调试异常。不应该在正式发布时，设置进入调试模式
     public bool IsInDebugMode
     {
-        private set => _isInDebugMode = value;
-        get => _isInDebugMode || IsAllInDebugMode;
+        private set;
+        get => field || IsAllInDebugMode;
     }
-
-    private bool _isInDebugMode;
 
     /// <summary>
     /// 设置当前的文本进入调试模式

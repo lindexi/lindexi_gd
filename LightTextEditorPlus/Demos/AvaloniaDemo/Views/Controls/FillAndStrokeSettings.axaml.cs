@@ -54,9 +54,9 @@ public partial class FillAndStrokeSettings : UserControl
 
     public string StrokeColor
     {
-        get => _strokeColor;
-        set { SetAndRaise(StrokeColorProperty, ref _strokeColor, value); }
-    }
+        get;
+        set { SetAndRaise(StrokeColorProperty, ref field, value); }
+    } = "";
 
     public static readonly DirectProperty<FillAndStrokeSettings, string>
         StrokeColorProperty = AvaloniaProperty.RegisterDirect<FillAndStrokeSettings, string>
@@ -69,10 +69,10 @@ public partial class FillAndStrokeSettings : UserControl
 
     public double StrokeThickness
     {
-        get => _strokeThickness;
+        get;
         set
         {
-            SetAndRaise(StrokeThicknessProperty, ref _strokeThickness, value);
+            SetAndRaise(StrokeThicknessProperty, ref field, value);
         }
     }
 
@@ -87,12 +87,12 @@ public partial class FillAndStrokeSettings : UserControl
 
     public string FillColor
     {
-        get => _fillColor;
+        get;
         set
         {
-            SetAndRaise(FillColorProperty, ref _fillColor, value);
+            SetAndRaise(FillColorProperty, ref field, value);
         }
-    }
+    } = "";
 
     public static readonly DirectProperty<FillAndStrokeSettings, string>
         FillColorProperty = AvaloniaProperty.RegisterDirect<FillAndStrokeSettings, string>
@@ -104,9 +104,6 @@ public partial class FillAndStrokeSettings : UserControl
             );
 
     private string _headerText = "";
-    private double _strokeThickness;
-    private string _fillColor = "";
-    private string _strokeColor = "";
     //private bool _isSettingEnable = true;
 }
 

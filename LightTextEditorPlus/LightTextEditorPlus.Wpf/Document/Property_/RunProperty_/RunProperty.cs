@@ -74,16 +74,14 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
     /// </summary>
     public ImmutableBrush? Background
     {
-        init => _background = value;
-        get => _background ?? DefaultBackground;
+        init;
+        get => field ?? DefaultBackground;
     }
 
     /// <summary>
     /// 默认背景色
     /// </summary>
     public static ImmutableBrush? DefaultBackground => null;
-
-    private readonly ImmutableBrush? _background;
 
     #endregion
 

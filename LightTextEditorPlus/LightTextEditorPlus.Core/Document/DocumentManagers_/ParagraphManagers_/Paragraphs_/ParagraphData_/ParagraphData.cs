@@ -91,15 +91,13 @@ internal sealed class ParagraphData : ITextParagraph
     /// </summary>
     internal MarkerRuntimeInfo? MarkerRuntimeInfo
     {
-        get => _markerRuntimeInfo;
+        get;
         set
         {
-            _markerRuntimeInfo = value;
+            field = value;
             SetDirty();
         }
     }
-
-    private MarkerRuntimeInfo? _markerRuntimeInfo;
 
     /// <inheritdoc />
     public IReadOnlyRunProperty ParagraphStartRunProperty { get; private set; }
@@ -500,7 +498,7 @@ internal sealed class ParagraphData : ITextParagraph
     /// </summary>
     private uint Version
     {
-        get => _version;
+        get;
         set
         {
             if (value == 0)
@@ -508,11 +506,9 @@ internal sealed class ParagraphData : ITextParagraph
                 value = 1;
             }
 
-            _version = value;
+            field = value;
         }
-    }
-
-    private uint _version = 1;
+    } = 1;
 
     #endregion
 

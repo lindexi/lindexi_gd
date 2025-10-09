@@ -13,14 +13,13 @@ namespace LightTextEditorPlus.Document
     internal class FontFamilyMapItem
     {
         internal const int LastUnicodeScalar = 0x10ffff;
-        private Range[] _ranges;
 
         private FontFamilyMap Map { get; }
 
         public FontFamilyMapItem(FontFamilyMap map)
         {
             Map = map;
-            _ranges = ParseUnicodeRanges(Map.Unicode);
+            Ranges = ParseUnicodeRanges(Map.Unicode);
         }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace LightTextEditorPlus.Document
             set
             {
                 Map.Unicode = value;
-                _ranges = ParseUnicodeRanges(Map.Unicode);
+                Ranges = ParseUnicodeRanges(Map.Unicode);
             }
 
             get => Map.Unicode;
@@ -67,7 +66,7 @@ namespace LightTextEditorPlus.Document
             set => Map.Target = value;
         }
 
-        internal Range[] Ranges => _ranges;
+        internal Range[] Ranges { get; private set; }
 
         private static void ThrowInvalidUnicodeRange()
         {
@@ -176,7 +175,7 @@ namespace LightTextEditorPlus.Document
 
         internal bool InRange(int ch)
         {
-            foreach (var r in _ranges)
+            foreach (var r in Ranges)
             {
                 if (r.InRange(ch))
                     return true;

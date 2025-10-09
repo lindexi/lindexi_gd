@@ -27,13 +27,12 @@ partial class TextEditor
     {
         set
         {
-            _cursorStyles = value;
+            field = value;
             TextEditorHandler.UpdateCursorView();
             CursorStylesChanged?.Invoke(this, EventArgs.Empty);
         }
-        get => _cursorStyles;
+        get;
     }
 
-    private CursorStyles? _cursorStyles;
     internal event EventHandler? CursorStylesChanged;
 }

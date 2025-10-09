@@ -90,13 +90,11 @@ class ParagraphLayoutData : IParagraphLayoutData
         get
         {
             // 在预布局过程中，就已经计算了边距，这个赋值十分快，理论上不会出现拿不到的情况，除非拿错段落
-            Debug.Assert(_textContentThickness != TextThickness.Invalid);
-            return _textContentThickness;
+            Debug.Assert(field != TextThickness.Invalid);
+            return field;
         }
-        set => _textContentThickness = value;
-    }
-
-    private TextThickness _textContentThickness = TextThickness.Invalid;
+        set;
+    } = TextThickness.Invalid;
 
     /// <summary>
     /// 外接的尺寸，包含段前和段后和左右边距，大于 <see cref="ContentSize"/> 内容尺寸
@@ -105,13 +103,11 @@ class ParagraphLayoutData : IParagraphLayoutData
     {
         get
         {
-            Debug.Assert(_outlineSize != TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
-            return _outlineSize;
+            Debug.Assert(field != TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
+            return field;
         }
-        set => _outlineSize = value;
-    }
-
-    private TextSize _outlineSize = TextSize.Invalid;
+        set;
+    } = TextSize.Invalid;
 
     /// <summary>
     /// 外接边界，包含对齐的空白

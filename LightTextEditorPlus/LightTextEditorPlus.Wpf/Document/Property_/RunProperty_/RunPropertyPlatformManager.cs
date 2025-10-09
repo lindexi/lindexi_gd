@@ -14,11 +14,10 @@ class RunPropertyPlatformManager
 {
     public RunPropertyPlatformManager(TextEditor textEditor)
     {
-        _textEditor = textEditor;
+        TextEditor = textEditor;
     }
 
-    private readonly TextEditor _textEditor;
-    public TextEditor TextEditor => _textEditor;
+    public TextEditor TextEditor { get; }
 
     public RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(RunProperty runProperty, Utf32CodePoint unicodeChar)
     {
@@ -73,7 +72,7 @@ class RunPropertyPlatformManager
     public bool TryGetFallbackFontInfoByCustom(RunProperty runProperty, Typeface typeface,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
-        IPlatformFontNameManager platformFontNameManager = _textEditor.TextEditorPlatformProvider.GetPlatformFontNameManager();
+        IPlatformFontNameManager platformFontNameManager = TextEditor.TextEditorPlatformProvider.GetPlatformFontNameManager();
 
         var fallbackFontName =
             platformFontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName);

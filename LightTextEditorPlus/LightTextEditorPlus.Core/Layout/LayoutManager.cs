@@ -75,15 +75,15 @@ class LayoutManager
     {
         get
         {
-            if (_arrangingLayoutProvider?.ArrangingType != TextEditor.ArrangingType)
+            if (field?.ArrangingType != TextEditor.ArrangingType)
             {
                 if (TextEditor.ArrangingType.IsHorizontal)
                 {
-                    _arrangingLayoutProvider = new HorizontalArrangingLayoutProvider(this);
+                    field = new HorizontalArrangingLayoutProvider(this);
                 }
                 else if (TextEditor.ArrangingType.IsVertical)
                 {
-                    _arrangingLayoutProvider = new VerticalArrangingLayoutProvider(this);
+                    field = new VerticalArrangingLayoutProvider(this);
                 }
                 else
                 {
@@ -91,11 +91,11 @@ class LayoutManager
                 }
             }
 
-            return _arrangingLayoutProvider;
+            return field;
         }
-    }
 
-    private ArrangingLayoutProvider? _arrangingLayoutProvider;
+        set;
+    }
 
     public DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem DocumentLayoutBounds { get; private set; }
 }
