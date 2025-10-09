@@ -53,7 +53,7 @@ internal static class KeyboardCaretNavigationHelper
             case CaretMoveType.LeftByWord:
                 return GetPreviousWordCaretOffset(textEditor);
             case CaretMoveType.RightByWord:
-                return GetNextCharacterCaretOffset(textEditor);
+                return GetNextWordCaretOffset(textEditor);
             case CaretMoveType.UpByLine:
                 return GetPreviousLineCaretOffset(textEditor);
             case CaretMoveType.DownByLine:
@@ -217,77 +217,17 @@ internal static class KeyboardCaretNavigationHelper
     /// <exception cref="NotImplementedException"></exception>
     private static CaretOffset GetPreviousWordCaretOffset(TextEditorCore textEditorCore)
     {
-        var currentSelection = textEditorCore.CaretManager.CurrentSelection;
-        if (!currentSelection.IsEmpty)
-        {
-            return currentSelection.FrontOffset;
-        }
+        
+    }
 
-        var currentCaretOffset = currentSelection.FrontOffset;
-        if (currentCaretOffset.Offset == 0)
-        {
-            // 文档开头，不能再往前跳了
-            return currentCaretOffset;
-        }
-
-        var wordSelection = GetCaretWord(currentCaretOffset, textEditorCore);
-        if (wordSelection.Contains(in currentCaretOffset)
-            // 不能在单词开头，如果在单词开头，则需要跳到前一个单词
-            && wordSelection.FrontOffset != currentCaretOffset)
-        {
-            // 如果命中到了在单词内，则尝试跳到单词前面
-            return ToResult(wordSelection.FrontOffset);
-        }
-
-        ITextParagraph textParagraph = textEditorCore.DocumentManager.GetParagraph(in currentCaretOffset);
-        DocumentOffset paragraphStartOffset = textParagraph.GetParagraphStartOffset();
-        var currentCharCaret = currentCaretOffset.Offset - paragraphStartOffset.Offset;
-        if (currentCharCaret == 0)
-        {
-            // 已经在段首了，不能再往前跳了。直接去到上一段的末尾好了
-            return ToResult(new CaretOffset(currentCaretOffset.Offset - 1));
-        }
-
-        var currentCharIndex = currentCharCaret;
-        TextReadOnlyListSpan<CharData> charDataList = textParagraph.GetParagraphCharDataList();
-        if (IsPunctuation(charDataList[currentCharIndex]))
-        {
-            return ToResult(new CaretOffset(currentCaretOffset.Offset - 1));
-        }
-        else
-        {
-            // 不知道什么情况
-            return GetPreviousCharacterCaretOffset(textEditorCore);
-        }
-
-        CaretOffset ToResult(in CaretOffset newOffset)
-        {
-            bool atLineStart = IsAtLineStart(textEditorCore, newOffset.Offset);
-            return new CaretOffset(newOffset.Offset, atLineStart);
-        }
-
-        static bool IsPunctuation(CharData charData)
-        {
-            Utf32CodePoint codePoint = charData.CharObject.CodePoint;
-            if (codePoint.Value == ' ')
-            {
-                return true;
-            }
-
-            Span<char> buffer = stackalloc char[2];
-            int length = codePoint.Rune.EncodeToUtf16(buffer);
-            if (length == 1)
-            {
-                // 如果是单字符的，直接用 char 的方法判断
-                return char.IsPunctuation(buffer[0]);
-            }
-            else
-            {
-                // 多字符的，就用 UnicodeCategory 判断
-                UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
-                return ((int) unicodeCategory & 0b0001_0000) > 0;
-            }
-        }
+    /// <summary>
+    /// 向右一个单词
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
+    private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditor)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>
