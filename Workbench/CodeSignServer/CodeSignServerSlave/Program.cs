@@ -6,9 +6,16 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using CodeSignServerMaster.Contexts;
 
+var manualResetEventSlim = new ManualResetEventSlim(false);
+
 Task.Run(async () =>
 {
-    var httpClient = new HttpClient();
+    manualResetEventSlim.Wait();
+
+    using var httpClient = new HttpClient()
+    {
+        Timeout = TimeSpan.FromMinutes(100)
+    };
     var file = @"C:\lindexi\文本库编辑保存卡住 devenv.DMP";
     using var fileStream = File.OpenRead(file);
     var httpRequestMessage = new HttpRequestMessage()
@@ -39,6 +46,8 @@ var clientWebSocket = new ClientWebSocket();
 clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(1);
 await clientWebSocket.ConnectAsync(new Uri("ws://127.0.0.1:5073/task"), CancellationToken.None);
 
+manualResetEventSlim.Set();
+
 byte[] t = "Hello, World!"u8.ToArray();
 await clientWebSocket.SendAsync(t, WebSocketMessageType.Binary, true, CancellationToken.None);
 
@@ -66,8 +75,10 @@ try
 
             await clientWebSocket.SendAsync(memory, WebSocketMessageType.Binary, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
         }
+        else if (messageType.Type == 2)
+        {
 
-        break;
+        }
     }
 }
 finally
