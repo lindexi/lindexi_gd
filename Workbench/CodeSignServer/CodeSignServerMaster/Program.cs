@@ -76,6 +76,8 @@ namespace CodeSignServerMaster
                                     {
                                         ValueWebSocketReceiveResult result2 =
                                             await webSocket.ReceiveAsync(memory, cancellationTokenSource.Token);
+                                        var responseMessageType = MemoryMarshal.Read<MessageType>(memory.Span.Slice(0, result2.Count));
+                                        Debug.Assert(responseMessageType.Type == 3);
                                     }
                                     catch (OperationCanceledException e)
                                     {

@@ -3,6 +3,8 @@
 using System.Buffers;
 using System.Net.WebSockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using CodeSignServerMaster.Contexts;
 
 Task.Run(async () =>
 {
@@ -48,9 +50,23 @@ try
     {
         var webSocketReceiveResult = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
         var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
-        
+        var messageType = MemoryMarshal.Read<MessageType>(content);
 
-        await clientWebSocket.SendAsync(buffer,WebSocketMessageType.Binary,WebSocketMessageFlags.EndOfMessage,CancellationToken.None);
+        if (messageType.Type == 1)
+        {
+            // 心跳消息
+            MessageType responseMessageType = new MessageType()
+            {
+                Type = 3,
+            };
+
+            var memory = buffer.AsMemory(0, responseMessageType.HeadLength);
+            memory.Span.Clear();
+            MemoryMarshal.Write(memory.Span, in responseMessageType);
+
+            await clientWebSocket.SendAsync(memory, WebSocketMessageType.Binary, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
+        }
+
         break;
     }
 }
