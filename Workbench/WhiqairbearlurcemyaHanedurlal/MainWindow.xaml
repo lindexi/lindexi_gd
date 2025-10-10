@@ -1,0 +1,21 @@
+﻿<Window x:Class="WhiqairbearlurcemyaHanedurlal.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WhiqairbearlurcemyaHanedurlal"
+        mc:Ignorable="d"
+        Title="IFPD Demo" Height="450" Width="800">
+    <Grid RowDefinitions="*,Auto,Auto">
+        <InkCanvas x:Name="InkCanvas" Margin="10,10,10,10" EditingMode="Select">
+
+        </InkCanvas>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button x:Name="SelectionModeButton" Margin="10,10,10,10" Click="SelectionModeButton_OnClick">选择模式</Button>
+            <Button x:Name="PenModeButton" Margin="10,10,10,10" Click="PenModeButton_OnClick">笔模式</Button>
+        </StackPanel>
+
+        <TextBlock x:Name="LogTextBlock" Grid.Row="2" Margin="10,0,10,2"></TextBlock>
+    </Grid>
+</Window>
