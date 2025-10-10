@@ -51,7 +51,7 @@ manualResetEventSlim.Set();
 byte[] t = "Hello, World!"u8.ToArray();
 await clientWebSocket.SendAsync(t, WebSocketMessageType.Binary, true, CancellationToken.None);
 
-var buffer = ArrayPool<byte>.Shared.Rent(1024);
+var buffer = ArrayPool<byte>.Shared.Rent(102400);
 
 try
 {
