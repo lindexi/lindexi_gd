@@ -1,4 +1,4 @@
-﻿namespace CodeSignServerMaster;
+﻿namespace CodeSignServerMaster.Contexts;
 
 struct MessageType()
 {

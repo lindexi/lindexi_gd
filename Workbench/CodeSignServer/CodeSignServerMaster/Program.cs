@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using CodeSignServerMaster.Contexts;
 using Microsoft.AspNetCore.Connections;
 
 namespace CodeSignServerMaster
