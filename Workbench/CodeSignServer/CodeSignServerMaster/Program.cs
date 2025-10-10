@@ -1,9 +1,11 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.AspNetCore.Connections;
 
 namespace CodeSignServerMaster
 {
@@ -68,6 +70,27 @@ namespace CodeSignServerMaster
 
                                     await webSocket.SendAsync(memory, WebSocketMessageType.Binary,
                                          WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
+
+                                    using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                                    try
+                                    {
+                                        ValueWebSocketReceiveResult result2 =
+                                            await webSocket.ReceiveAsync(memory, cancellationTokenSource.Token);
+                                    }
+                                    catch (OperationCanceledException e)
+                                    {
+                                        Console.WriteLine(e);
+                                        break;
+                                    }
+                                    catch (WebSocketException e)
+                                    {
+                                        if (e.InnerException is ConnectionResetException resetException)
+                                        {
+                                            // 		HResult	0x80131620	int
+                                            Debug.Assert((uint) resetException.HResult == 0x80131620);
+                                            break;
+                                        }
+                                    }
                                 }
                                 finally
                                 {
@@ -159,6 +182,7 @@ namespace CodeSignServerMaster
 
                     while (true)
                     {
+                        // 转发请求的内容
                         var readCount = await requestContentStream.ReadAsync(memory);
                         if (readCount == 0)
                         {

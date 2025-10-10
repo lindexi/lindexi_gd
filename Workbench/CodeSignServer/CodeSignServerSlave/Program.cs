@@ -41,6 +41,21 @@ await clientWebSocket.SendAsync(t, WebSocketMessageType.Binary, true, Cancellati
 
 var buffer = ArrayPool<byte>.Shared.Rent(1024);
 
-var webSocketReceiveResult = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
+try
+{
+    while (clientWebSocket.State == WebSocketState.Open)
+    {
+        var webSocketReceiveResult = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
+        var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
+
+        await clientWebSocket.SendAsync(buffer,WebSocketMessageType.Binary,WebSocketMessageFlags.EndOfMessage,CancellationToken.None);
+        break;
+    }
+}
+finally
+{
+    ArrayPool<byte>.Shared.Return(buffer);
+}
+
 
 Console.WriteLine("Hello, World!");
