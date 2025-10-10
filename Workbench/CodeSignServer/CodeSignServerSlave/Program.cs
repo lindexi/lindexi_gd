@@ -2,6 +2,7 @@
 
 using System.Buffers;
 using System.Net.WebSockets;
+using System.Reflection;
 
 Task.Run(async () =>
 {
@@ -47,6 +48,7 @@ try
     {
         var webSocketReceiveResult = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
         var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
+        
 
         await clientWebSocket.SendAsync(buffer,WebSocketMessageType.Binary,WebSocketMessageFlags.EndOfMessage,CancellationToken.None);
         break;
