@@ -19,6 +19,11 @@ namespace CodeSignServerMaster
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.WebHost.UseKestrel(options =>
+            {
+                // 无限制请求体大小
+                options.Limits.MaxRequestBodySize = null;
+            });
 
             var app = builder.Build();
 
@@ -54,6 +59,7 @@ namespace CodeSignServerMaster
 
                         while (webSocket.State == WebSocketState.Open)
                         {
+                            bool beBreak = false;
                             if (await signSlave.SemaphoreSlim.WaitAsync(0))
                             {
                                 try
@@ -76,10 +82,13 @@ namespace CodeSignServerMaster
                                     {
                                         ValueWebSocketReceiveResult result2 =
                                             await webSocket.ReceiveAsync(memory, cancellationTokenSource.Token);
+                                        var responseMessageType = MemoryMarshal.Read<MessageType>(memory.Span.Slice(0, result2.Count));
+                                        Debug.Assert(responseMessageType.Type == 3);
                                     }
                                     catch (OperationCanceledException e)
                                     {
                                         Console.WriteLine(e);
+                                        beBreak = true;
                                         break;
                                     }
                                     catch (WebSocketException e)
@@ -87,15 +96,19 @@ namespace CodeSignServerMaster
                                         if (e.InnerException is ConnectionResetException resetException)
                                         {
                                             Debug.Assert((uint) resetException.HResult == 0x80131620);
+                                        beBreak = true;
                                             break;
                                         }
                                     }
                                 }
                                 finally
                                 {
-                                    lock (signSlaveList)
+                                    if (beBreak)
                                     {
-                                        signSlaveList.Remove(signSlave);
+                                        lock (signSlaveList)
+                                        {
+                                            signSlaveList.Remove(signSlave);
+                                        }
                                     }
 
                                     signSlave.SemaphoreSlim.Release();
@@ -185,7 +198,7 @@ namespace CodeSignServerMaster
                  
                     var webSocket = freeSlave.WebSocket;
                     await webSocket.SendAsync(memory,
-                        WebSocketMessageType.Binary, WebSocketMessageFlags.None, CancellationToken.None);
+                        WebSocketMessageType.Binary, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
 
                     while (true)
                     {
