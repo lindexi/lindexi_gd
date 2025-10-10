@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using CodeSignServerMaster.Contexts;
 using Microsoft.AspNetCore.Connections;
 
 namespace CodeSignServerMaster
@@ -57,16 +58,15 @@ namespace CodeSignServerMaster
                             {
                                 try
                                 {
-                                    var headLength = 10000;
-                                    var memory = arraySegment.AsMemory(0, sizeof(long) + headLength);
-                                    memory.Span.Clear();
-                                    BinaryPrimitives.WriteInt64LittleEndian(memory.Span, headLength);
                                     MessageType messageType = new MessageType()
                                     {
                                         Type = 1
                                     };
 
-                                    MemoryMarshal.Write(memory.Span.Slice(sizeof(long)), in messageType);
+                                    var memory = arraySegment.AsMemory(0, messageType.HeadLength);
+                                    memory.Span.Clear();
+
+                                    MemoryMarshal.Write(memory.Span, in messageType);
 
                                     await webSocket.SendAsync(memory, WebSocketMessageType.Binary,
                                          WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
@@ -86,7 +86,6 @@ namespace CodeSignServerMaster
                                     {
                                         if (e.InnerException is ConnectionResetException resetException)
                                         {
-                                            // 		HResult	0x80131620	int
                                             Debug.Assert((uint) resetException.HResult == 0x80131620);
                                             break;
                                         }
@@ -94,6 +93,11 @@ namespace CodeSignServerMaster
                                 }
                                 finally
                                 {
+                                    lock (signSlaveList)
+                                    {
+                                        signSlaveList.Remove(signSlave);
+                                    }
+
                                     signSlave.SemaphoreSlim.Release();
                                 }
                             }
@@ -171,18 +175,22 @@ namespace CodeSignServerMaster
 
                     // Header Length
                     // 默认 C# 就是小端
-                    Memory<byte> memory = buffer.AsMemory();
-
-                    int headerLength = 100;
-                    BinaryPrimitives.WriteInt64LittleEndian(memory.Span, headerLength);
-                    memory.Span.Slice(sizeof(long), headerLength).Clear();
+                    var messageType = new MessageType()
+                    {
+                        Type = 2,
+                    };
+                    Memory<byte> memory = buffer.AsMemory(0, messageType.HeadLength);
+                    memory.Span.Clear();
+                    MemoryMarshal.Write(memory.Span, in messageType);
+                 
                     var webSocket = freeSlave.WebSocket;
-                    await webSocket.SendAsync(memory[..(headerLength + sizeof(long))],
+                    await webSocket.SendAsync(memory,
                         WebSocketMessageType.Binary, WebSocketMessageFlags.None, CancellationToken.None);
 
                     while (true)
                     {
                         // 转发请求的内容
+                        memory = buffer.AsMemory();
                         var readCount = await requestContentStream.ReadAsync(memory);
                         if (readCount == 0)
                         {
