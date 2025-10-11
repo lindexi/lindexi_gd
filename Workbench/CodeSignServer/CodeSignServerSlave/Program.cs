@@ -80,8 +80,6 @@ if (File.Exists(configurationFile))
                     var responseContent = JsonSerializer.SerializeToUtf8Bytes(fetchSignTaskResponse);
                     await clientWebSocket.SendAsync(responseContent, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
                 }
-
-                //await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
             }
             finally
             {
