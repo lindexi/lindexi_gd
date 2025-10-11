@@ -10,13 +10,14 @@ var manualResetEventSlim = new ManualResetEventSlim(false);
 
 Task.Run(async () =>
 {
-    manualResetEventSlim.Wait();
+    //manualResetEventSlim.Wait();
 
     using var httpClient = new HttpClient()
     {
-        Timeout = TimeSpan.FromMinutes(100)
+        //Timeout = TimeSpan.FromMinutes(100)
+        Timeout = TimeSpan.FromSeconds(5)
     };
-    var file = @"C:\lindexi\文本库编辑保存卡住 devenv.DMP";
+    var file = @"C:\lindexi\App.dmp";
     using var fileStream = File.OpenRead(file);
     var httpRequestMessage = new HttpRequestMessage()
     {

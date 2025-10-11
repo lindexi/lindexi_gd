@@ -167,9 +167,7 @@ namespace CodeSignServerMaster
 
                     if (freeSlave == null)
                     {
-                        content.Response.StatusCode = 503;
-                        await content.Response.StartAsync();
-                        await content.Response.CompleteAsync();
+                        await FastFail($"无可用签名服务器");
                         return;
                     }
 
@@ -241,6 +239,22 @@ namespace CodeSignServerMaster
                 {
                     freeSlave.SemaphoreSlim.Release();
                     ArrayPool<byte>.Shared.Return(buffer);
+                    await content.Response.CompleteAsync();
+                }
+
+                return;
+
+                async Task FastFail(string errorMessage)
+                {
+                    if (content.Request.Headers.ContentLength>0)
+                    {
+                        // 读取请求体，避免客户端异常
+                        await content.Request.BodyReader.CompleteAsync();
+                    }
+
+                    content.Response.StatusCode = 503;
+                    await content.Response.StartAsync();
+                    await content.Response.WriteAsync(errorMessage);
                     await content.Response.CompleteAsync();
                 }
             });
