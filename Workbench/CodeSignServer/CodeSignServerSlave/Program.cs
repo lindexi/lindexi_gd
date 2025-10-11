@@ -3,9 +3,19 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.WebSockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using CodeSignServerMaster.Contexts;
+
+var host = "127.0.0.1:57562";
+var configurationFile = @"C:\lindexi\Sign.coin";
+if (File.Exists(configurationFile))
+{
+    var configurationHost = File.ReadAllText(configurationFile).Trim();
+    if (!string.IsNullOrEmpty(configurationHost))
+    {
+        host = configurationHost;
+    }
+}
 
 var manualResetEventSlim = new ManualResetEventSlim(false);
 
@@ -23,7 +33,7 @@ Task.Run(async () =>
     {
         Method = HttpMethod.Post,
         Content = new StreamContent(fileStream),
-        RequestUri = new Uri("http://127.0.0.1:5073/sign")
+        RequestUri = new Uri($"http://{host}/sign")
     };
     try
     {
@@ -54,7 +64,7 @@ Task.Run(async () =>
 
 var clientWebSocket = new ClientWebSocket();
 clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(1);
-await clientWebSocket.ConnectAsync(new Uri("ws://127.0.0.1:5073/task"), CancellationToken.None);
+await clientWebSocket.ConnectAsync(new Uri($"ws://{host}/task"), CancellationToken.None);
 
 manualResetEventSlim.Set();
 
