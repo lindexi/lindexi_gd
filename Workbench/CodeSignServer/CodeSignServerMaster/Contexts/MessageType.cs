@@ -18,3 +18,5 @@ record SignTaskResponse(string TraceId, string FileUrl, string Message);
 
 record FetchSignTaskRequest(SignTaskRequest? SignTaskRequest, string Message);
 record FetchSignTaskResponse(SignTaskResponse? SignTaskResponse);
+
+record SignSlaveInfo(string Name);
