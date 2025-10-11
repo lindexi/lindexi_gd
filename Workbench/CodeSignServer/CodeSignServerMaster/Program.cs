@@ -167,9 +167,7 @@ namespace CodeSignServerMaster
 
                     if (freeSlave == null)
                     {
-                        content.Response.StatusCode = 503;
-                        await content.Response.StartAsync();
-                        await content.Response.CompleteAsync();
+                        await FastFail($"无可用签名服务器");
                         return;
                     }
 
@@ -179,7 +177,7 @@ namespace CodeSignServerMaster
                 content.Response.StatusCode = 200;
                 await content.Response.StartAsync();
 
-                var buffer = ArrayPool<byte>.Shared.Rent(10240);
+                var buffer = ArrayPool<byte>.Shared.Rent(102400);
                 try
                 {
                     // Read content to byte array
@@ -200,6 +198,8 @@ namespace CodeSignServerMaster
                     await webSocket.SendAsync(memory,
                         WebSocketMessageType.Binary, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
 
+                    var stopwatch = Stopwatch.StartNew();
+                    long totalReadCount = 0;
                     while (true)
                     {
                         // 转发请求的内容
@@ -212,8 +212,12 @@ namespace CodeSignServerMaster
 
                         await webSocket.SendAsync(memory.Slice(0, readCount), WebSocketMessageType.Binary,
                             WebSocketMessageFlags.None, CancellationToken.None);
+
+                        totalReadCount += readCount;
+                        var speed = totalReadCount / stopwatch.Elapsed.TotalSeconds;
                     }
 
+                    // System.ArgumentNullException:“Value cannot be null. (Parameter 'buffer.Array')”
                     await webSocket.SendAsync([], WebSocketMessageType.Binary, endOfMessage: true, CancellationToken.None);
 
                     while (true)
@@ -235,6 +239,22 @@ namespace CodeSignServerMaster
                 {
                     freeSlave.SemaphoreSlim.Release();
                     ArrayPool<byte>.Shared.Return(buffer);
+                    await content.Response.CompleteAsync();
+                }
+
+                return;
+
+                async Task FastFail(string errorMessage)
+                {
+                    if (content.Request.Headers.ContentLength>0)
+                    {
+                        // 读取请求体，避免客户端异常
+                        await content.Request.BodyReader.CompleteAsync();
+                    }
+
+                    content.Response.StatusCode = 503;
+                    await content.Response.StartAsync();
+                    await content.Response.WriteAsync(errorMessage);
                     await content.Response.CompleteAsync();
                 }
             });
