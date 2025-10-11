@@ -3,9 +3,19 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.WebSockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using CodeSignServerMaster.Contexts;
+
+var host = "127.0.0.1:57562";
+var configurationFile = @"C:\lindexi\Sign.coin";
+if (File.Exists(configurationFile))
+{
+    var configurationHost = File.ReadAllText(configurationFile).Trim();
+    if (!string.IsNullOrEmpty(configurationHost))
+    {
+        host = configurationHost;
+    }
+}
 
 var manualResetEventSlim = new ManualResetEventSlim(false);
 
@@ -23,8 +33,9 @@ Task.Run(async () =>
     {
         Method = HttpMethod.Post,
         Content = new StreamContent(fileStream),
-        RequestUri = new Uri("http://127.0.0.1:5073/sign")
+        RequestUri = new Uri($"http://{host}/sign")
     };
+
     try
     {
         using var httpResponseMessage =
@@ -54,7 +65,7 @@ Task.Run(async () =>
 
 var clientWebSocket = new ClientWebSocket();
 clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(1);
-await clientWebSocket.ConnectAsync(new Uri("ws://127.0.0.1:5073/task"), CancellationToken.None);
+await clientWebSocket.ConnectAsync(new Uri($"ws://{host}/task"), CancellationToken.None);
 
 manualResetEventSlim.Set();
 
@@ -70,8 +81,6 @@ try
         var webSocketReceiveResult = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
         var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
         var messageType = MemoryMarshal.Read<MessageType>(content);
-
-        Debug.Assert(messageType.Header == MessageType.DefaultHeader);
 
         if (messageType.Type == 1)
         {
@@ -90,7 +99,7 @@ try
         }
         else if (messageType.Type == 2)
         {
-
+            // 完全读取
         }
     }
 }

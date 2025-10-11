@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -28,6 +29,7 @@ namespace CodeSignServerMaster
             });
 
             var app = builder.Build();
+            app.Urls.Add("http://0.0.0.0:57562");
 
             // Configure the HTTP request pipeline.
 
@@ -140,6 +142,8 @@ namespace CodeSignServerMaster
 
                 signSlave.Dispose();
             });
+
+            app.MapGet("/alive", () => DateTime.Now.ToString(CultureInfo.InvariantCulture));
 
             app.Map("/sign", async (Microsoft.AspNetCore.Http.HttpContext content) =>
             {

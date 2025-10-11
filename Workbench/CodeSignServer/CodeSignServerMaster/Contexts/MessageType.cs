@@ -13,3 +13,5 @@ struct MessageType()
     //var header = MemoryMarshal.Read<long>("CodeSignServer"u8);
 }
 
+record SignTaskRequest(string TraceId, string FileUrl, string SignName);
+record SignTaskResponse(string TraceId, string FileUrl, string Message);
