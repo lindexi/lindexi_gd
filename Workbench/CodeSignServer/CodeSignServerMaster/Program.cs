@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 
 using CodeSignServerMaster.Contexts;
 
@@ -144,6 +145,60 @@ namespace CodeSignServerMaster
             });
 
             app.MapGet("/alive", () => DateTime.Now.ToString(CultureInfo.InvariantCulture));
+
+            var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+            var signTaskInfoList = new List<SignTaskInfo>();
+
+            app.MapPost("/signapp", (SignTaskRequest request) =>
+            {
+                logger.LogInformation($"[SignApp] TraceId={request.TraceId};FileUrl={request.FileUrl};SignName={request.SignName}");
+
+                var tcs = new TaskCompletionSource<SignTaskResponse>();
+                lock (signTaskInfoList)
+                {
+                    signTaskInfoList.Add(new SignTaskInfo(request, tcs));
+                }
+
+                return tcs.Task;
+            });
+
+            app.MapPost("/fetch", async (Microsoft.AspNetCore.Http.HttpContext context) =>
+            {
+                SignTaskInfo? signTaskInfo = null;
+                for (int i = 0; i < 1000; i++)
+                {
+                    lock (signTaskInfoList)
+                    {
+                        if (signTaskInfoList.Count > 0)
+                        {
+                            signTaskInfo = signTaskInfoList[0];
+                            signTaskInfoList.RemoveAt(0);
+                            break;
+                        }
+                    }
+
+                    await Task.Delay(10);
+                }
+
+                var fetchSignTaskRequest = new FetchSignTaskRequest(signTaskInfo?.Request, "Fetch sign task");
+
+                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                var json = JsonSerializer.Serialize(fetchSignTaskRequest);
+                var buffer = Encoding.UTF8.GetBytes(json);
+                await webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+
+                var arraySegment = new ArraySegment<byte>(new byte[10240]);
+                var result = await webSocket.ReceiveAsync(arraySegment, CancellationToken.None);
+                var messageSpan = arraySegment.AsSpan(0, result.Count);
+                var message = Encoding.UTF8.GetString(messageSpan);
+                var fetchSignTaskResponse = JsonSerializer.Deserialize<FetchSignTaskResponse>(message);
+
+                if (signTaskInfo != null)
+                {
+                    signTaskInfo.ResponseTaskCompletionSource.SetResult(fetchSignTaskResponse?.SignTaskResponse ?? new SignTaskResponse(signTaskInfo.Request.TraceId, "", "Can not find result."));
+                }
+            });
 
             app.Map("/sign", async (Microsoft.AspNetCore.Http.HttpContext content) =>
             {
@@ -311,3 +366,5 @@ record SignSlave(string Name, WebSocket WebSocket, SemaphoreSlim SemaphoreSlim) 
         SemaphoreSlim.Dispose();
     }
 }
+
+record SignTaskInfo(SignTaskRequest Request, TaskCompletionSource<SignTaskResponse> ResponseTaskCompletionSource);
