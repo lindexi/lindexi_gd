@@ -47,11 +47,16 @@ namespace WPFMediaFoundation
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static string VideoPath = @"D:\Samples\lg-uhd-arctic.mkv";
+        public static string VideoPath = @"D:\Samples\4K.mp4";
 
         DispatcherTimer _dispatcherTimer;
         public MainWindow()
         {
+            if (Environment.GetCommandLineArgs().Skip(1).FirstOrDefault() is string s)
+            {
+                VideoPath = s;
+            }
+
             InitializeComponent();
             var d3dImage = new D3DImage();
             D3DImage = d3dImage;
@@ -316,7 +321,7 @@ namespace WPFMediaFoundation
             }
 
             var end = PlayerStopwatch.ElapsedMilliseconds;
-            Console.WriteLine($"RenderFrame: Start {start} End {end} Duration {end - start}");
+            //Console.WriteLine($"RenderFrame: Start {start} End {end} Duration {end - start}");
         }
     }
 }
