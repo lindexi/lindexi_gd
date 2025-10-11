@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Buffers;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -10,12 +11,11 @@ var manualResetEventSlim = new ManualResetEventSlim(false);
 
 Task.Run(async () =>
 {
-    //manualResetEventSlim.Wait();
+    manualResetEventSlim.Wait();
 
     using var httpClient = new HttpClient()
     {
-        //Timeout = TimeSpan.FromMinutes(100)
-        Timeout = TimeSpan.FromSeconds(5)
+        Timeout = TimeSpan.FromMinutes(100)
     };
     var file = @"C:\lindexi\App.dmp";
     using var fileStream = File.OpenRead(file);
@@ -29,10 +29,19 @@ Task.Run(async () =>
     {
         using var httpResponseMessage =
             await httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
-        await using var responseStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-        var outputFile = "output";
-        await using var outputStream = File.Create(outputFile);
-        await responseStream.CopyToAsync(outputStream);
+
+        if (httpResponseMessage.IsSuccessStatusCode)
+        {
+            await using var responseStream = await httpResponseMessage.Content.ReadAsStreamAsync();
+            var outputFile = "output";
+            await using var outputStream = File.Create(outputFile);
+            await responseStream.CopyToAsync(outputStream);
+        }
+        else
+        {
+            var errorMessage = await httpResponseMessage.Content.ReadAsStringAsync();
+            Console.WriteLine($"请求签名失败 StatusCode:{httpResponseMessage.StatusCode} ErrorMessage:{errorMessage}");
+        }
     }
     catch (Exception e)
     {
@@ -62,12 +71,15 @@ try
         var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
         var messageType = MemoryMarshal.Read<MessageType>(content);
 
+        Debug.Assert(messageType.Header == MessageType.DefaultHeader);
+
         if (messageType.Type == 1)
         {
             // 心跳消息
             MessageType responseMessageType = new MessageType()
             {
                 Type = 3,
+                Header = MessageType.DefaultHeader
             };
 
             var memory = buffer.AsMemory(0, responseMessageType.HeadLength);
