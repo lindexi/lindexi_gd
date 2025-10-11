@@ -6,8 +6,11 @@ using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.Http.Json;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -46,7 +49,7 @@ if (File.Exists(configurationFile))
             clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(1);
             await clientWebSocket.ConnectAsync(new Uri($"ws://{host}/fetch"), CancellationToken.None);
 
-            var signSlaveInfo = new SignSlaveInfo("签名服务器1");
+            var signSlaveInfo = new SignSlaveInfo($"签名服务器 {GetCurrentIp()}");
             var signSlaveInfoContent = JsonSerializer.SerializeToUtf8Bytes(signSlaveInfo);
             await clientWebSocket.SendAsync(signSlaveInfoContent, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
 
@@ -66,7 +69,7 @@ if (File.Exists(configurationFile))
                     {
                         Console.WriteLine($"TraceId:{fetchSignTaskRequest.SignTaskRequest.TraceId} FileUrl:{fetchSignTaskRequest.SignTaskRequest.FileUrl} SignName:{fetchSignTaskRequest.SignTaskRequest.SignName} Message:{fetchSignTaskRequest.Message}");
 
-                        response = new SignTaskResponse(fetchSignTaskRequest.SignTaskRequest.TraceId, "http://blog.lindexi.com/Sign", "签名成功");
+                        response = new SignTaskResponse(fetchSignTaskRequest.SignTaskRequest.TraceId, "http://blog.lindexi.com/Sign", $"签名成功，由 {GetCurrentIp()} 服务器签名");
                     }
                     else
                     {
@@ -77,8 +80,6 @@ if (File.Exists(configurationFile))
                     var responseContent = JsonSerializer.SerializeToUtf8Bytes(fetchSignTaskResponse);
                     await clientWebSocket.SendAsync(responseContent, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
                 }
-
-                //await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
             }
             finally
             {
@@ -200,3 +201,32 @@ if (File.Exists(configurationFile))
 }
 
 Console.WriteLine("Hello, World!");
+
+string GetCurrentIp()
+{
+    var stringBuilder = new StringBuilder();
+    foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+    {
+        if (networkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+        {
+            continue;
+        }
+
+        if (networkInterface.Supports(NetworkInterfaceComponent.IPv4))
+        {
+            var ipInterfaceProperties = networkInterface.
+                GetIPProperties();
+            foreach (var unicastIpAddressInformation in ipInterfaceProperties.UnicastAddresses)
+            {
+                if (unicastIpAddressInformation.Address.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    var address = unicastIpAddressInformation.Address.ToString();
+                    stringBuilder.Append(address)
+                        .Append(';');
+                }
+            }
+        }
+    }
+
+    return stringBuilder.ToString();
+}
