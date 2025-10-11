@@ -5,8 +5,11 @@ using CodeSignServerMaster.Contexts;
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Net.Http.Json;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var host = "127.0.0.1:57562";
 var configurationFile = @"C:\lindexi\Sign.coin";
@@ -16,6 +19,65 @@ if (File.Exists(configurationFile))
     if (!string.IsNullOrEmpty(configurationHost))
     {
         host = configurationHost;
+    }
+}
+
+{
+    Task.Run(async () =>
+    {
+        using var httpClient = new HttpClient()
+        {
+            Timeout = TimeSpan.FromMinutes(100)
+        };
+
+        var signTaskRequest = new SignTaskRequest("abc", "http://www.lindexi.com/ChachawferceFalacerewhine", "lindexi");
+        using var httpResponseMessage = await httpClient.PostAsJsonAsync($"http://{host}/signapp", signTaskRequest);
+
+        var signTaskResponse = await httpResponseMessage.Content.ReadFromJsonAsync<SignTaskResponse>();
+        Debug.Assert(signTaskResponse is not null, nameof(signTaskResponse) + " != null");
+        Console.WriteLine($"TraceId:{signTaskResponse.TraceId} FileUrl:{signTaskResponse.FileUrl} Message:{signTaskResponse.Message}");
+    });
+
+    while (true)
+    {
+        try
+        {
+            using var clientWebSocket = new ClientWebSocket();
+            clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(1);
+            await clientWebSocket.ConnectAsync(new Uri($"ws://{host}/fetch"), CancellationToken.None);
+
+            var buffer = ArrayPool<byte>.Shared.Rent(102400);
+
+            try
+            {
+                var webSocketReceiveResult = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                if (webSocketReceiveResult.EndOfMessage)
+                {
+                    // 处理完整消息
+                    var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
+                    var fetchSignTaskRequest = JsonSerializer.Deserialize<FetchSignTaskRequest>(content);
+                    if (fetchSignTaskRequest?.SignTaskRequest is not null)
+                    {
+                        Console.WriteLine($"TraceId:{fetchSignTaskRequest.SignTaskRequest.TraceId} FileUrl:{fetchSignTaskRequest.SignTaskRequest.FileUrl} SignName:{fetchSignTaskRequest.SignTaskRequest.SignName} Message:{fetchSignTaskRequest.Message}");
+                    }
+
+                    var fetchSignTaskResponse = new FetchSignTaskResponse(new SignTaskResponse("abc", "http://www.lindexi.com/SignYallqibemhaWeawaybearlear", "成功"));
+                    var responseContent = JsonSerializer.SerializeToUtf8Bytes(fetchSignTaskResponse);
+                    await clientWebSocket.SendAsync(responseContent, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
+                }
+
+                await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, "正常关闭", CancellationToken.None);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            break;
+        }
     }
 }
 

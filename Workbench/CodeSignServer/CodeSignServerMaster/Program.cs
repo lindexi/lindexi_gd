@@ -163,7 +163,7 @@ namespace CodeSignServerMaster
                 return tcs.Task;
             });
 
-            app.MapPost("/fetch", async (Microsoft.AspNetCore.Http.HttpContext context) =>
+            app.Map("/fetch", async (Microsoft.AspNetCore.Http.HttpContext context) =>
             {
                 SignTaskInfo? signTaskInfo = null;
                 for (int i = 0; i < 1000; i++)
