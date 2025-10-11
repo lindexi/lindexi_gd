@@ -1,10 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using CodeSignServerMaster.Contexts;
+
+using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
-using CodeSignServerMaster.Contexts;
 
 var host = "127.0.0.1:57562";
 var configurationFile = @"C:\lindexi\Sign.coin";
@@ -100,6 +102,17 @@ try
         else if (messageType.Type == 2)
         {
             // 完全读取
+            while (true)
+            {
+                webSocketReceiveResult = await clientWebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                content = buffer.AsSpan(0, webSocketReceiveResult.Count);
+                if (webSocketReceiveResult.EndOfMessage)
+                {
+                    break;
+                }
+            }
+
+            await clientWebSocket.SendAsync(buffer, WebSocketMessageType.Binary, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
         }
     }
 }

@@ -15,3 +15,6 @@ struct MessageType()
 
 record SignTaskRequest(string TraceId, string FileUrl, string SignName);
 record SignTaskResponse(string TraceId, string FileUrl, string Message);
+
+record FetchSignTaskRequest(SignTaskRequest? SignTaskRequest, string Message);
+record FetchSignTaskResponse(SignTaskResponse? SignTaskResponse);
