@@ -138,6 +138,13 @@ namespace CodeSignServerMaster
 
             app.Map("/sign", async (Microsoft.AspNetCore.Http.HttpContext content) =>
             {
+                var contentLength = content.Request.Headers.ContentLength;
+                if(contentLength == null || contentLength <= 0)
+                {
+                    await FastFail(StatusCodes.Status411LengthRequired, "请求体不能为空");
+                    return;
+                }
+
                 // Get a free slave
                 SignSlave? freeSlave = null;
                 lock (signSlaveList)
@@ -167,7 +174,7 @@ namespace CodeSignServerMaster
 
                     if (freeSlave == null)
                     {
-                        await FastFail($"无可用签名服务器");
+                        await FastFail(StatusCodes.Status503ServiceUnavailable, $"无可用签名服务器");
                         return;
                     }
 
@@ -244,15 +251,19 @@ namespace CodeSignServerMaster
 
                 return;
 
-                async Task FastFail(string errorMessage)
+                async Task FastFail(int statusCode , string errorMessage)
                 {
-                    if (content.Request.Headers.ContentLength>0)
+                    if (contentLength>0)
                     {
                         // 读取请求体，避免客户端异常
-                        await content.Request.BodyReader.CompleteAsync();
+
+                        // 不能通过 CompleteAsync 设置读取完成，此时会让客户端无法完成传输
+                        //await content.Request.BodyReader.CompleteAsync();
+                        using var emptyStream = new EmptyStream();
+                        await content.Request.Body.CopyToAsync(emptyStream);
                     }
 
-                    content.Response.StatusCode = 503;
+                    content.Response.StatusCode = statusCode;
                     await content.Response.StartAsync();
                     await content.Response.WriteAsync(errorMessage);
                     await content.Response.CompleteAsync();
