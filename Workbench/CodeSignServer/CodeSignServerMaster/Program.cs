@@ -163,13 +163,18 @@ namespace CodeSignServerMaster
                 return tcs.Task;
             });
 
-            app.Use(async (context, next) =>
+            app.Map("/fetch", async (Microsoft.AspNetCore.Http.HttpContext context) =>
             {
-                if (context.Request.Path != "/fetch")
-                {
-                    await next(context);
-                    return;
-                }
+                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                var buffer = ArrayPool<byte>.Shared.Rent(102400);
+                context.Response.RegisterForDispose(() => ArrayPool<byte>.Shared.Return(buffer));
+
+                var webSocketReceiveResult = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                var messageSpan = buffer.AsSpan(0, webSocketReceiveResult.Count);
+                var message = Encoding.UTF8.GetString(messageSpan);
+                var signSlaveInfo = JsonSerializer.Deserialize<SignSlaveInfo>(message);
+
+                logger.LogInformation($"收到签名服务器信息: {signSlaveInfo}");
 
                 SignTaskInfo? signTaskInfo = null;
                 for (int i = 0; i < 1000; i++)
@@ -187,17 +192,25 @@ namespace CodeSignServerMaster
                     await Task.Delay(10);
                 }
 
+                if (signTaskInfo is null)
+                {
+                    logger.LogInformation($"当前任务空闲，无任何签名任务可以给 {signSlaveInfo?.Name}");
+                }
+                else
+                {
+                    logger.LogInformation($"调度签名任务给 {signSlaveInfo?.Name} {signTaskInfo}");
+                }
+
                 var fetchSignTaskRequest = new FetchSignTaskRequest(signTaskInfo?.Request, "Fetch sign task");
 
-                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
                 var json = JsonSerializer.Serialize(fetchSignTaskRequest);
-                var buffer = Encoding.UTF8.GetBytes(json);
-                await webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                var jsonByteList = Encoding.UTF8.GetBytes(json);
+                await webSocket.SendAsync(jsonByteList, WebSocketMessageType.Text, true, CancellationToken.None);
 
                 var arraySegment = new ArraySegment<byte>(new byte[10240]);
                 var result = await webSocket.ReceiveAsync(arraySegment, CancellationToken.None);
-                var messageSpan = arraySegment.AsSpan(0, result.Count);
-                var message = Encoding.UTF8.GetString(messageSpan);
+                messageSpan = arraySegment.AsSpan(0, result.Count);
+                message = Encoding.UTF8.GetString(messageSpan);
                 var fetchSignTaskResponse = JsonSerializer.Deserialize<FetchSignTaskResponse>(message);
 
                 if (signTaskInfo != null)
@@ -208,8 +221,6 @@ namespace CodeSignServerMaster
 
             app.Map("/sign", async (Microsoft.AspNetCore.Http.HttpContext content) =>
             {
-                var logger = content.RequestServices.GetRequiredService<ILogger<Program>>();
-
                 var contentLength = content.Request.Headers.ContentLength;
                 if (contentLength == null || contentLength <= 0)
                 {
@@ -374,3 +385,19 @@ record SignSlave(string Name, WebSocket WebSocket, SemaphoreSlim SemaphoreSlim) 
 }
 
 record SignTaskInfo(SignTaskRequest Request, TaskCompletionSource<SignTaskResponse> ResponseTaskCompletionSource);
+
+static class HttpHelper
+{
+    public static void RegisterForDispose(this Microsoft.AspNetCore.Http.HttpResponse response, Action disposeAction)
+    {
+        response.RegisterForDispose(new DelegateDisposable(disposeAction));
+    }
+
+    class DelegateDisposable(Action disposeAction) : IDisposable
+    {
+        public void Dispose()
+        {
+            disposeAction();
+        }
+    }
+}

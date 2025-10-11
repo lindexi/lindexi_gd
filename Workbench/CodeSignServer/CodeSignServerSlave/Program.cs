@@ -46,6 +46,10 @@ if (File.Exists(configurationFile))
             clientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(1);
             await clientWebSocket.ConnectAsync(new Uri($"ws://{host}/fetch"), CancellationToken.None);
 
+            var signSlaveInfo = new SignSlaveInfo("签名服务器1");
+            var signSlaveInfoContent = JsonSerializer.SerializeToUtf8Bytes(signSlaveInfo);
+            await clientWebSocket.SendAsync(signSlaveInfoContent, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
+
             var buffer = ArrayPool<byte>.Shared.Rent(102400);
 
             try
@@ -56,17 +60,25 @@ if (File.Exists(configurationFile))
                     // 处理完整消息
                     var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
                     var fetchSignTaskRequest = JsonSerializer.Deserialize<FetchSignTaskRequest>(content);
+
+                    SignTaskResponse? response = null;
                     if (fetchSignTaskRequest?.SignTaskRequest is not null)
                     {
                         Console.WriteLine($"TraceId:{fetchSignTaskRequest.SignTaskRequest.TraceId} FileUrl:{fetchSignTaskRequest.SignTaskRequest.FileUrl} SignName:{fetchSignTaskRequest.SignTaskRequest.SignName} Message:{fetchSignTaskRequest.Message}");
+
+                        response = new SignTaskResponse(fetchSignTaskRequest.SignTaskRequest.TraceId, "http://blog.lindexi.com/Sign", "签名成功");
+                    }
+                    else
+                    {
+                        // 空任务，回复空白礼貌
                     }
 
-                    var fetchSignTaskResponse = new FetchSignTaskResponse(new SignTaskResponse("abc", "http://www.lindexi.com/SignYallqibemhaWeawaybearlear", "成功"));
+                    var fetchSignTaskResponse = new FetchSignTaskResponse(response);
                     var responseContent = JsonSerializer.SerializeToUtf8Bytes(fetchSignTaskResponse);
                     await clientWebSocket.SendAsync(responseContent, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, CancellationToken.None);
                 }
 
-                await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, "正常关闭", CancellationToken.None);
+                //await clientWebSocket.CloseAsync(WebSocketCloseStatus.Empty, null, CancellationToken.None);
             }
             finally
             {
