@@ -35,6 +35,7 @@ Task.Run(async () =>
         Content = new StreamContent(fileStream),
         RequestUri = new Uri($"http://{host}/sign")
     };
+
     try
     {
         using var httpResponseMessage =
@@ -81,8 +82,6 @@ try
         var content = buffer.AsSpan(0, webSocketReceiveResult.Count);
         var messageType = MemoryMarshal.Read<MessageType>(content);
 
-        Debug.Assert(messageType.Header == MessageType.DefaultHeader);
-
         if (messageType.Type == 1)
         {
             // 心跳消息
@@ -100,7 +99,7 @@ try
         }
         else if (messageType.Type == 2)
         {
-
+            // 完全读取
         }
     }
 }
