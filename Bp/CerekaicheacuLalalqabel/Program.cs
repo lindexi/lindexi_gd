@@ -3,20 +3,18 @@
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
-// 这是输入层的输入值。可以认为是随机的输入值
-const double x0 = 0.35;
-const double x1 = 0.9;
-const double x2 = 0.5;
+var testInfoList = new List<TestInfo>();
 
-const double y_out = 0.3;
+for (int i = 0; i < 1000; i++)
+{
+    double x0 = Random.Shared.Next(0, 3000) / 10000.0;
+    double x1 = Random.Shared.Next(0, 3000) / 10000.0;
+    double x2 = Random.Shared.Next(0, 3000) / 10000.0;
 
-Matrix<double> input = Matrix.Build.SparseOfRowArrays
-(
-[
-    [x0],
-    [x1],
-    [x2],
-]);
+    double y_out = x0 + x1 + x2;
+
+    testInfoList.Add(new TestInfo(x0, x1, x2, y_out));
+}
 
 var layerManager = new LayerManager();
 
@@ -24,8 +22,24 @@ var count = 0;
 
 while (true)
 {
-    var c = layerManager.T(input,y_out,true);
-    if (c < 0.0000001)
+    double c = 0;
+    foreach (var testInfo in testInfoList)
+    {
+        Matrix<double> input = Matrix.Build.SparseOfRowArrays
+        (
+        [
+            [testInfo.X0],
+            [testInfo.X1],
+            [testInfo.X2],
+        ]);
+
+        double y_out = testInfo.Y_Out;
+        c += layerManager.T(input, y_out, true);
+    }
+
+    var ave = c / testInfoList.Count;
+
+    if (ave < 0.0000001)
     {
         Console.WriteLine($"训练结束，成功获取接近预期输出。训练次数={count}");
         break;
@@ -36,6 +50,7 @@ while (true)
 
 Console.WriteLine("Hello, World!");
 
+record TestInfo(double X0, double X1, double X2, double Y_Out);
 
 class LayerManager
 {
