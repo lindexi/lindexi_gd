@@ -19,6 +19,9 @@ for (int i = 0; i < 6; i++)
 var layerManager = new LayerManager();
 
 var count = 0;
+var tCount = 0;
+
+double lastC = 0;
 
 while (true)
 {
@@ -37,21 +40,49 @@ while (true)
     {
         Console.WriteLine($"训练结束，成功获取接近预期输出。训练次数={count}");
 
-        for (var i = 0; i < testInfoList.Count; i++)
-        {
-            var testInfo = testInfoList[i];
-            Matrix<double> input = testInfo.GetInput();
-            double y_out = testInfo.Y_Out;
-
-            var (_, y2) = layerManager.T(input, y_out, false);
-
-            Console.WriteLine($"[{i}] 预期输出 {testInfo.Y_Out:0.000} 实际输出 {y2:0.000} 差距 {Math.Abs(testInfo.Y_Out - y2):0.000}");
-        }
+        Output();
 
         break;
     }
 
+    if (tCount == 100000)
+    {
+        Console.WriteLine($"训练次数={count} 当前误差={ave}");
+
+        Output();
+
+        tCount = 0;
+
+        if (lastC == 0)
+        {
+            lastC = ave;
+        }
+        else
+        {
+            if (Math.Abs(lastC - ave) < 0.0000001)
+            {
+                Console.WriteLine($"陷入局部最优解");
+                break;
+            }
+        }
+    }
+
     count++;
+    tCount++;
+}
+
+void Output()
+{
+    for (var i = 0; i < testInfoList.Count; i++)
+    {
+        var testInfo = testInfoList[i];
+        Matrix<double> input = testInfo.GetInput();
+        double y_out = testInfo.Y_Out;
+
+        var (_, y2) = layerManager.T(input, y_out, false);
+
+        Console.WriteLine($"[{i}] 预期输出 {testInfo.Y_Out:0.000} 实际输出 {y2:0.000} 差距 {Math.Abs(testInfo.Y_Out - y2):0.000}");
+    }
 }
 
 Console.WriteLine("Hello, World!");
