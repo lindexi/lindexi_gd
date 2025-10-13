@@ -21,6 +21,11 @@ var repository = new Repository(folder);
 
 foreach (var worktree in repository.Worktrees)
 {
+    if (worktree is null)
+    {
+        continue;
+    }
+
     if (worktree.Name.Contains("Text"))
     {
         var last = worktree.WorktreeRepository.Commits.First();
