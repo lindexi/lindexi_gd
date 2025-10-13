@@ -51,15 +51,7 @@ internal partial class ImageProvider
                     {
                         createTime = time;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-                        if (createTime < new DateTime(2024, 3, 01))
-=======
-                        if (createTime < new DateTime(2024, 1, 1))
->>>>>>> 9c844564970decdb92c197ed43d97473064f054c
-=======
                         if (createTime < new DateTime(2023, 12, 1))
->>>>>>> 93158c013b752a969f3c38042418072fa8900221
                         {
                             // 不要点爆了博客园
                             return;
