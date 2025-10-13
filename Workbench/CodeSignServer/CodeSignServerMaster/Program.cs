@@ -40,8 +40,9 @@ namespace CodeSignServerMaster
                 //KeepAliveTimeout = TimeSpan.FromSeconds(10),
             });
 
+            var signSlaveList = new List<SignSlave>();
+
             // 不能通过 Websocket 传输文件，否则会导致网关内存占用过高。当前网关是先完全接收，然后再打到本服务。通过日志可见，瞬间获取 200MB 的传输，但在客户端上传过程中，需要等待好久之后，才能到达本服务的控制器。证明内容是先被网关接收，然后再转发
-            //var signSlaveList = new List<SignSlave>();
             //app.Use(async (context, next) =>
             //{
             //    if (context.Request.Path != "/task")
@@ -150,9 +151,17 @@ namespace CodeSignServerMaster
 
             var signTaskInfoList = new List<SignTaskInfo>();
 
+            int GetSignSlaveCount()
+            {
+                lock (signSlaveList)
+                {
+                    return signSlaveList.Count(t => (DateTimeOffset.Now - t.VisitTime) < TimeSpan.FromMinutes(1));
+                }
+            }
+
             app.MapPost("/signapp", (SignTaskRequest request) =>
             {
-                logger.LogInformation($"[SignApp] TraceId={request.TraceId};FileUrl={request.FileUrl};SignName={request.SignName}");
+                logger.LogInformation($"[SignApp] TraceId={request.TraceId};FileUrl={request.FileUrl};SignName={request.SignName};CurrentSlaveCount={GetSignSlaveCount()}");
 
                 var tcs = new TaskCompletionSource<SignTaskResponse>();
                 lock (signTaskInfoList)
@@ -175,6 +184,16 @@ namespace CodeSignServerMaster
                 var signSlaveInfo = JsonSerializer.Deserialize<SignSlaveInfo>(message);
 
                 logger.LogInformation($"收到签名服务器信息: {signSlaveInfo}");
+                lock (signSlaveList)
+                {
+                    if (signSlaveInfo is not null)
+                    {
+                        // 预期签名服务器数量不多，直接线性查找
+                        signSlaveList.RemoveAll(t => t.SignSlaveInfo.Name == signSlaveInfo.Name || (DateTimeOffset.Now - t.VisitTime) > TimeSpan.FromMinutes(1));
+
+                        signSlaveList.Add(new SignSlave(signSlaveInfo, DateTimeOffset.Now));
+                    }
+                }
 
                 SignTaskInfo? signTaskInfo = null;
                 for (int i = 0; i < 1000; i++)
@@ -376,12 +395,8 @@ namespace CodeSignServerMaster
     }
 }
 
-record SignSlave(string Name, WebSocket WebSocket, SemaphoreSlim SemaphoreSlim) : IDisposable
+record SignSlave(SignSlaveInfo SignSlaveInfo, DateTimeOffset VisitTime)
 {
-    public void Dispose()
-    {
-        SemaphoreSlim.Dispose();
-    }
 }
 
 record SignTaskInfo(SignTaskRequest Request, TaskCompletionSource<SignTaskResponse> ResponseTaskCompletionSource);
