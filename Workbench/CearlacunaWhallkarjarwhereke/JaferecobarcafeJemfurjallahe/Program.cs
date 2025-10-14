@@ -16,20 +16,6 @@ _ = Task.Run(() =>
 });
 
 await Foo();
-try
-{
-    await Foo();
-}
-catch (Exception e)
-{
-    if (e is SocketException socketException)
-    {
-        // 通常每个套接字地址(协议/网络地址/端口)只允许使用一次
-        Debug.Assert(socketException.ErrorCode == 10048);
-    }
-
-    Console.WriteLine(e);
-}
 
 using var httpClient = new HttpClient();
 using var httpResponseMessage = await httpClient.GetAsync("http://127.0.0.1:7799/success");
@@ -76,6 +62,8 @@ class MyHttpPlug1 : PluginBase, IHttpPlugin
 
         if (request.IsGet() && request.UrlEquals("/success"))
         {
+            var foo = request.Query.Get("azxscasd");
+
             //直接响应文字
             await response
                 .SetStatus(200, "success")
