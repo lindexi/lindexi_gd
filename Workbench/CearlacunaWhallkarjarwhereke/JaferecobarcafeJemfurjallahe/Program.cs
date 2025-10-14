@@ -3,12 +3,16 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 using TouchSocket.Core;
 using TouchSocket.Http;
 using TouchSocket.Sockets;
+
 using HttpClient = System.Net.Http.HttpClient;
 
-var manualResetEventSlim = new ManualResetEventSlim(initialState:false);
+var manualResetEventSlim = new ManualResetEventSlim(initialState: false);
 _ = Task.Run(() =>
 {
     manualResetEventSlim.Wait();
@@ -16,20 +20,6 @@ _ = Task.Run(() =>
 });
 
 await Foo();
-try
-{
-    await Foo();
-}
-catch (Exception e)
-{
-    if (e is SocketException socketException)
-    {
-        // 通常每个套接字地址(协议/网络地址/端口)只允许使用一次
-        Debug.Assert(socketException.ErrorCode == 10048);
-    }
-
-    Console.WriteLine(e);
-}
 
 using var httpClient = new HttpClient();
 using var httpResponseMessage = await httpClient.GetAsync("http://127.0.0.1:7799/success");
@@ -76,11 +66,19 @@ class MyHttpPlug1 : PluginBase, IHttpPlugin
 
         if (request.IsGet() && request.UrlEquals("/success"))
         {
-            //直接响应文字
-            await response
-                .SetStatus(200, "success")
-                .FromText("Success成功的输出信息")
-                .AnswerAsync();//直接回应
+            var foo = request.Query.Get("azxscasd");
+
+            var errorResponse = new ErrorResponse()
+            {
+                Code = 123,
+                Message = "模拟网络"
+            };
+
+            response.SetStatus(200, "success");
+            var json = JsonSerializer.Serialize(errorResponse,DefaultJsonSerializerContext.Default.ErrorResponse);
+            response.FromJson(json);
+            await response.AnswerAsync();
+      
             Console.WriteLine("处理/success");
             return;
         }
@@ -89,4 +87,19 @@ class MyHttpPlug1 : PluginBase, IHttpPlugin
         //无法处理，调用下一个插件
         await e.InvokeNext();
     }
+}
+
+class ErrorResponse
+{
+    [JsonPropertyName("error_code")]
+    public int Code { get; set; }
+
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
+}
+
+[JsonSerializable(typeof(ErrorResponse))]
+partial class DefaultJsonSerializerContext : JsonSerializerContext
+{
+    
 }
