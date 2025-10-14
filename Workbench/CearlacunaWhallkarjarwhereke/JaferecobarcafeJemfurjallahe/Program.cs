@@ -3,12 +3,16 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 using TouchSocket.Core;
 using TouchSocket.Http;
 using TouchSocket.Sockets;
+
 using HttpClient = System.Net.Http.HttpClient;
 
-var manualResetEventSlim = new ManualResetEventSlim(initialState:false);
+var manualResetEventSlim = new ManualResetEventSlim(initialState: false);
 _ = Task.Run(() =>
 {
     manualResetEventSlim.Wait();
@@ -64,11 +68,17 @@ class MyHttpPlug1 : PluginBase, IHttpPlugin
         {
             var foo = request.Query.Get("azxscasd");
 
-            //直接响应文字
-            await response
-                .SetStatus(200, "success")
-                .FromText("Success成功的输出信息")
-                .AnswerAsync();//直接回应
+            var errorResponse = new ErrorResponse()
+            {
+                Code = 123,
+                Message = "模拟网络"
+            };
+
+            response.SetStatus(200, "success");
+            var json = JsonSerializer.Serialize(errorResponse,DefaultJsonSerializerContext.Default.ErrorResponse);
+            response.FromJson(json);
+            await response.AnswerAsync();
+      
             Console.WriteLine("处理/success");
             return;
         }
@@ -77,4 +87,19 @@ class MyHttpPlug1 : PluginBase, IHttpPlugin
         //无法处理，调用下一个插件
         await e.InvokeNext();
     }
+}
+
+class ErrorResponse
+{
+    [JsonPropertyName("error_code")]
+    public int Code { get; set; }
+
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
+}
+
+[JsonSerializable(typeof(ErrorResponse))]
+partial class DefaultJsonSerializerContext : JsonSerializerContext
+{
+    
 }
