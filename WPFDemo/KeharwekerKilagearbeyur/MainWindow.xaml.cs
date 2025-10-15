@@ -22,7 +22,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        Title = new string(Enumerable.Repeat('a', 20000).ToArray());
+        Title = new string(Enumerable.Repeat('a', 65535 + 1).ToArray());
         Loaded += MainWindow_Loaded;
     }
 
