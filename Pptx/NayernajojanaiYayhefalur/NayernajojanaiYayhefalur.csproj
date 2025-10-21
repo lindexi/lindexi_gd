@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -12,6 +12,9 @@
   <ItemGroup>
     <Reference Include="Microsoft.Office.Interop.PowerPoint">
       <HintPath>C:\lindexi\Library\Microsoft.Office.Interop.PowerPoint.dll</HintPath>
+    </Reference>
+    <Reference Include="office">
+      <HintPath>C:\lindexi\Library\Office.dll</HintPath>
     </Reference>
   </ItemGroup>
 

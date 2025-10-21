@@ -34,8 +34,20 @@ public partial class MainWindow : Window
         CLSIDFromProgIDEx(id, out var guid);
         GetActiveObject(ref guid, IntPtr.Zero, out var obj);
         Microsoft.Office.Interop.PowerPoint.Application? app = obj as Application;
+        if (app is null)
+        {
+            return;
+        }
 
+        var appName = app.Name;
+        var caption = app.Caption;
+        TextBlock.Text = $"当前打开 {caption} - {appName}";
+        app.SlideShowNextSlide += App_SlideShowNextSlide;
+    }
 
+    private void App_SlideShowNextSlide(Microsoft.Office.Interop.PowerPoint.SlideShowWindow wn)
+    {
+        TextBlock.Text = $"当前播放到第 {wn.View.CurrentShowPosition} 页";
     }
 
     //[DllImport(Microsoft.Win32.Win32Native.OLE32, PreserveSig = false)]
