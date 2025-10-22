@@ -42,14 +42,21 @@ public class ConsoleTextEditor : TextEditor
             LeftIndentation = 50,
             RightIndentation = 50,
         });
-        Loaded += ConsoleTextEditor_Loaded;
+        DebugAddText();
+        //Loaded += ConsoleTextEditor_Loaded;
     }
 
     private void ConsoleTextEditor_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        for (int i = 0; i < 100; i++)
+        DebugAddText();
+    }
+
+    private void DebugAddText()
+    {
+        for (int i = 0; i < 50; i++)
         {
-            AppendText("123abc中文\r\n中文123abc");
+            //AppendText("123abc中文\r\n中文123abc");
+            AppendText($"[{i}] 123abc中文\r\n");
         }
     }
 }
