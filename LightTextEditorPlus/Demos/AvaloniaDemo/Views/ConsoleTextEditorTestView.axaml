@@ -1,12 +1,19 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views.Controls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="LightTextEditorPlus.AvaloniaDemo.ConsoleTextEditorTestView" Background="Black" Foreground="White">
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:controls="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views.Controls"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="LightTextEditorPlus.AvaloniaDemo.ConsoleTextEditorTestView" Background="Black" Foreground="White">
 
-	<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
-        <controls:ConsoleTextEditor x:Name="ConsoleTextEditor" SizeToContent="Height"/>
-    </ScrollViewer>
+	<Grid RowDefinitions="*,Auto">
+		<ScrollViewer x:Name="ConsoleTextEditorScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
+		</ScrollViewer>
+
+		<StackPanel Grid.Row="1" Orientation="Horizontal" Background="#ACAAAAAA">
+			<Button x:Name="RemoveConsoleTextEditorButton" Margin="10,10,10,10" Click="RemoveConsoleTextEditorButton_OnClick">退出文本</Button>
+			<Button x:Name="RaiseGarbageCollectionButton" Margin="10,10,10,10" Click="RaiseGarbageCollectionButton_OnClick">触发垃圾回收</Button>
+        </StackPanel>
+	</Grid>
+
 </UserControl>

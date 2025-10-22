@@ -456,6 +456,26 @@ partial class TextEditor : Control
             else if (sizeToContent is TextSizeToContent.WidthAndHeight)
             {
                 // 宽度和高度都自适应
+                if (notExistsWidth)
+                {
+                    // 可能是放入无限宽度的容器中
+                    if (width < documentContentBounds.Width)
+                    {
+                        // 内容宽度大于布局宽度，则使用内容宽度
+                        width = documentContentBounds.Width;
+                    }
+                }
+
+                if (notExistsHeight)
+                {
+                    // 可能是放入无限高度的容器中
+                    if (height < documentContentBounds.Height)
+                    {
+                        // 内容高度大于布局高度，则使用内容高度
+                        height = documentContentBounds.Height;
+                    }
+                }
+
                 return new Size(width, height);
             }
             else if (sizeToContent == TextSizeToContent.Manual)
