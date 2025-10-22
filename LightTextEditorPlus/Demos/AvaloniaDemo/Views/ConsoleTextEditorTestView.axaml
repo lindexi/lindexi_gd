@@ -3,14 +3,10 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:controls="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views.Controls"
-			 xmlns:avaloniaDemo="clr-namespace:LightTextEditorPlus.AvaloniaDemo"
 			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:Class="LightTextEditorPlus.AvaloniaDemo.ConsoleTextEditorTestView" Background="Black" Foreground="White">
 
-    <UserControl.DataContext>
-		<avaloniaDemo:ConsoleTextEditorTestViewModel/>
-    </UserControl.DataContext>
-    <Grid RowDefinitions="*,Auto">
+	<Grid RowDefinitions="*,Auto">
 		<ScrollViewer x:Name="ConsoleTextEditorScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
 		</ScrollViewer>
 
