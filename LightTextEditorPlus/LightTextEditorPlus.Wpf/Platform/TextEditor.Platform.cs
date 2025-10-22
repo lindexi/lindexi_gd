@@ -4,6 +4,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
@@ -284,7 +285,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     {
         // 此时可以通知文本底层进行布局了，这是一个很好的时机
         RenderInfoProvider renderInfoProvider = ForceLayout();
-        (double x, double y, double width, double height) = renderInfoProvider.GetDocumentLayoutBounds()
+
+        DocumentLayoutBounds documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
+        TextRect documentContentBounds = documentLayoutBounds.DocumentContentBounds;
+
+        (double x, double y, double width, double height) = documentLayoutBounds
             // 不应该取内容，应该取外接范围。解决垂直居中和底部对齐的问题
             .DocumentOutlineBounds;
         _ = x;
@@ -297,6 +302,16 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         if (sizeToContent == TextSizeToContent.Width)
         {
             // 宽度自适应，高度固定
+            if (notExistsWidth)
+            {
+                // 可能是放入无限宽度的容器中
+                if (width < documentContentBounds.Width)
+                {
+                    // 内容宽度大于布局宽度，则使用内容宽度
+                    width = documentContentBounds.Width;
+                }
+            }
+
             if (notExistsHeight)
             {
                 throw new InvalidOperationException($"宽度自适应时，要求高度固定。{GetWidthAndHeightFormatMessage()}");
@@ -312,11 +327,41 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
                 throw new InvalidOperationException($"高度自适应，要求宽度固定。{GetWidthAndHeightFormatMessage()}");
             }
 
+            if (notExistsHeight)
+            {
+                // 可能是放入无限高度的容器中
+                if (height < documentContentBounds.Height)
+                {
+                    // 内容高度大于布局高度，则使用内容高度
+                    height = documentContentBounds.Height;
+                }
+            }
+
             return new Size(availableSize.Width, height);
         }
         else if (sizeToContent == TextSizeToContent.WidthAndHeight)
         {
             // 宽度和高度都自适应
+            if (notExistsWidth)
+            {
+                // 可能是放入无限宽度的容器中
+                if (width < documentContentBounds.Width)
+                {
+                    // 内容宽度大于布局宽度，则使用内容宽度
+                    width = documentContentBounds.Width;
+                }
+            }
+
+            if (notExistsHeight)
+            {
+                // 可能是放入无限高度的容器中
+                if (height < documentContentBounds.Height)
+                {
+                    // 内容高度大于布局高度，则使用内容高度
+                    height = documentContentBounds.Height;
+                }
+            }
+
             return new Size(width, height);
         }
         else if (sizeToContent == TextSizeToContent.Manual)
