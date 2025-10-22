@@ -26,6 +26,17 @@ public partial class ConsoleTextEditorTestView : UserControl
         ConsoleTextEditorBorder.IsVisible = true;
     }
 
+    private void AddTextButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (ConsoleTextEditorScrollViewer.Content is ConsoleTextEditor textEditor)
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                textEditor.AppendText($"[{i}] 123123123\n");
+            }
+        }
+    }
+
     private void RemoveConsoleTextEditorButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ConsoleTextEditorScrollViewer.Content = null;

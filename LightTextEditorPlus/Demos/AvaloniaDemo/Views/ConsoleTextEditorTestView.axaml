@@ -14,6 +14,7 @@
 
 		<StackPanel Grid.Row="1" Orientation="Horizontal" Background="#ACAAAAAA">
 			<Button x:Name="AddConsoleTextEditorButton" Margin="10,10,10,10" Click="AddConsoleTextEditorButton_OnClick">显示文本</Button>
+			<Button x:Name="AddTextButton" Margin="10,10,10,10" Click="AddTextButton_OnClick">添加文本</Button>
 			<Button x:Name="RemoveConsoleTextEditorButton" Margin="10,10,10,10" Click="RemoveConsoleTextEditorButton_OnClick">退出文本</Button>
 			<Button x:Name="RaiseGarbageCollectionButton" Margin="10,10,10,10" Click="RaiseGarbageCollectionButton_OnClick">触发垃圾回收</Button>
 		</StackPanel>
