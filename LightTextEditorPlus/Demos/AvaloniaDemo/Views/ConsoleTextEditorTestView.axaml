@@ -6,5 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LightTextEditorPlus.AvaloniaDemo.ConsoleTextEditorTestView" Background="Black" Foreground="White">
 
-  <controls:ConsoleTextEditor x:Name="ConsoleTextEditor" />
+	<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
+        <controls:ConsoleTextEditor x:Name="ConsoleTextEditor" SizeToContent="Height"/>
+    </ScrollViewer>
 </UserControl>

@@ -14,6 +14,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Primitive;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views.Controls;
@@ -46,7 +47,10 @@ public class ConsoleTextEditor : TextEditor
 
     private void ConsoleTextEditor_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        AppendText("123abc中文\r\n中文123abc");
+        for (int i = 0; i < 100; i++)
+        {
+            AppendText("123abc中文\r\n中文123abc");
+        }
     }
 }
 
