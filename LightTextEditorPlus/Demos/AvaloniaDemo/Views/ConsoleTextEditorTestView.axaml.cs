@@ -15,6 +15,23 @@ public partial class ConsoleTextEditorTestView : UserControl
     {
         InitializeComponent();
 
+        Loaded += ConsoleTextEditorTestView_Loaded;
+        DataContextChanged += ConsoleTextEditorTestView_DataContextChanged;
+    }
+
+    private void ConsoleTextEditorTestView_Loaded(object? sender, RoutedEventArgs e)
+    {
+        object? dataContext = DataContext;
+        if (dataContext is not null)
+        {
+            DataContext = null;
+        }
+    }
+
+    private void ConsoleTextEditorTestView_DataContextChanged(object? sender, EventArgs e)
+    {
+        DataContextChanged -= ConsoleTextEditorTestView_DataContextChanged;
+
         ConsoleTextEditorScrollViewer.Content = new ConsoleTextEditor()
         {
             SizeToContent = SizeToContent.Height
@@ -32,4 +49,8 @@ public partial class ConsoleTextEditorTestView : UserControl
         GC.WaitForFullGCComplete();
         GC.Collect();
     }
+}
+
+public class ConsoleTextEditorTestViewModel
+{
 }
