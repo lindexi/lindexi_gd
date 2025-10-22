@@ -291,5 +291,13 @@ public partial class TextEditorHandler
     /// </summary>
     /// <param name="type"></param>
     protected internal virtual partial void MoveCaret(CaretMoveType type);
+
+    /// <summary>
+    /// 全选
+    /// </summary>
+    public void OnSelectAll()
+    {
+        TextEditor.SelectAll();
+    }
 }
 #endif

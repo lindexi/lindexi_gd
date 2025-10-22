@@ -35,6 +35,9 @@ internal class KeyboardHandler
         AddShortCut(new KeyGesture(Key.X, KeyModifiers.Control), TextEditorHandler.OnCut);
         AddShortCut(new KeyGesture(Key.V, KeyModifiers.Control), TextEditorHandler.OnPaste);
 
+        // 全选
+        AddShortCut(new KeyGesture(Key.A, KeyModifiers.Control), TextEditorHandler.OnSelectAll);
+
         void AddShortCut(KeyGesture gesture, Action command)
         {
             TextEditor.KeyBindings.Add(new KeyBinding()

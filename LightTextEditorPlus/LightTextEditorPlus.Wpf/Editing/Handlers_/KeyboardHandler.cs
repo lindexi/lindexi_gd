@@ -39,6 +39,9 @@ internal class KeyboardHandler
         Add(Key.Back, EditingCommands.Backspace, OnBackspace);
         Add(Key.Delete, EditingCommands.Delete, OnDelete);
 
+        // 全选
+        Add(Key.A, ModifierKeys.Control, ApplicationCommands.SelectAll, (s, e) => TextEditorHandler.OnSelectAll());
+
         // 输入状态
         Add(Key.Insert, EditingCommands.ToggleInsert, OnToggleInsert);
 
