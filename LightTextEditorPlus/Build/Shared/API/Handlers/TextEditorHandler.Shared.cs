@@ -295,7 +295,7 @@ public partial class TextEditorHandler
     /// <summary>
     /// 全选
     /// </summary>
-    protected void OnSelectAll()
+    protected internal void OnSelectAll()
     {
         TextEditor.SelectAll();
     }

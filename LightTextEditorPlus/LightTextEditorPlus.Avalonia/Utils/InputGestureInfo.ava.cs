@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 using Avalonia;
 using Avalonia.Input;
@@ -41,7 +41,7 @@ internal class InputGestureInfo
         ClickCount++;
         _lastClickTime = timestamp;
         _lastClickRect = new TextRect(position, new TextSize());
-        _lastClickRect.Inflate(doubleClickWidth / 2d, doubleClickHeight / 2d);
+        _lastClickRect = _lastClickRect.Inflate(doubleClickWidth / 2d, doubleClickHeight / 2d);
     }
 
     private TextRect _lastClickRect;
