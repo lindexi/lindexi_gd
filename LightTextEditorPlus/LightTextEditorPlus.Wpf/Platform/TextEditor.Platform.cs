@@ -206,9 +206,30 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         Debug.Assert(!TextEditorCore.IsDirty, "布局完成时，文本一定可用");
 
-        TextRect documentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
-        bool widthChanged = !NearlyEquals(documentLayoutBounds.Width, DesiredSize.Width);
-        bool heightChanged = !NearlyEquals(documentLayoutBounds.Height, DesiredSize.Height);
+        DocumentLayoutBounds layoutBounds = TextEditorCore.GetDocumentLayoutBounds();
+        TextRect documentContentBounds = layoutBounds.DocumentContentBounds;
+        TextRect documentOutlineBounds = layoutBounds.DocumentOutlineBounds;
+
+        bool widthChanged = !NearlyEquals(documentOutlineBounds.Width, DesiredSize.Width);
+        bool heightChanged = !NearlyEquals(documentOutlineBounds.Height, DesiredSize.Height);
+
+        if (!widthChanged)
+        {
+            if (documentOutlineBounds.Width < documentContentBounds.Width)
+            {
+                // 如果内容已经超过了外接大小，则说明宽度应该发生变化
+                widthChanged = true;
+            }
+        }
+
+        if (!heightChanged)
+        {
+            if (documentOutlineBounds.Height < documentContentBounds.Height)
+            {
+                // 如果内容已经超过了外接大小，则说明高度应该发生变化
+                heightChanged = true;
+            }
+        }
 
         bool shouldInvalidateMeasure = false;
         TextSizeToContent sizeToContent = TextEditorCore.SizeToContent;
