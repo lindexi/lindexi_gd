@@ -13,7 +13,7 @@ using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
-
+using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views.Controls;
@@ -31,7 +31,10 @@ public class ConsoleTextEditor : TextEditor
             UseRenderCharByCharMode = true,
             RenderFaceInFrameAlignment = SkiaTextEditorCharRenderFaceInFrameAlignment.Center,
         };
-
+        SetStyleTextRunProperty(property => property with
+        {
+            Foreground = new SolidColorSkiaTextBrush(SKColors.White)
+        });
         Loaded += ConsoleTextEditor_Loaded;
     }
 
