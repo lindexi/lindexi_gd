@@ -33,7 +33,13 @@ public class ConsoleTextEditor : TextEditor
         };
         SetStyleTextRunProperty(property => property with
         {
+            FontSize = 60,
             Foreground = new SolidColorSkiaTextBrush(SKColors.White)
+        });
+        SetStyleParagraphProperty(base.StyleParagraphProperty with
+        {
+            LeftIndentation = 50,
+            RightIndentation = 50,
         });
         Loaded += ConsoleTextEditor_Loaded;
     }

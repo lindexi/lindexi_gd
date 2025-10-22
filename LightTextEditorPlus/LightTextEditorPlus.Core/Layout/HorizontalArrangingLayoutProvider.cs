@@ -1054,6 +1054,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextSize documentOutlineSize = CalculateDocumentOutlineSize(in documentContentSize);
 
         var documentWidth = documentOutlineSize.Width;
+
+#if DEBUG
+        if (documentWidth < 0.001)
+        {
+            // 有点奇怪，为什么会是这么小？调试下可在这里打断点
+
+            if (updateLayoutContext.TextEditor.DocumentManager.CharCount == 0)
+            {
+                // 空文本布局的情况？那就符合预期了
+            }
+        }
+#endif
+
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
 
         for (var paragraphIndex = 0/*为什么从首段开始？如右对齐情况下，被撑大文档范围，则即使没有变脏也需要更新坐标*/; paragraphIndex < paragraphList.Count; paragraphIndex++)
@@ -1085,7 +1098,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 回溯最终布局段落
     /// </summary>
     /// <param name="argument"></param>
-    private static void FinalUpdateParagraphLayout(in FinalParagraphLayoutArgument argument)
+    private void FinalUpdateParagraphLayout(in FinalParagraphLayoutArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         int paragraphIndex = argument.ParagraphIndex.Index;
@@ -1155,10 +1168,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="lineLayoutArgument"></param>
     /// <exception cref="NotSupportedException"></exception>
-    private static void FinalUpdateParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
+    private void FinalUpdateParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
     {
         FinalParagraphLayoutArgument paragraphLayoutArgument = lineLayoutArgument.FinalParagraphLayoutArgument;
-        UpdateLayoutContext updateLayoutContext = paragraphLayoutArgument.UpdateLayoutContext;
+        //UpdateLayoutContext updateLayoutContext = paragraphLayoutArgument.UpdateLayoutContext;
         ParagraphProperty paragraphProperty = paragraphLayoutArgument.Paragraph.ParagraphProperty;
         IParagraphLayoutData paragraphLayoutData = paragraphLayoutArgument.Paragraph.ParagraphLayoutData;
         ParagraphLayoutIndentInfo indentInfo = paragraphLayoutData.IndentInfo;
@@ -1199,25 +1212,56 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var outlineWidth = documentWidth;
         var outlineHeight = lineLayoutData.LineContentSize.Height;
 
+        // 外接的宽度需要考虑一下段落的边距带来的空白影响，确保外接不会超过边框
+        var contentWidth = lineLayoutData.LineContentSize.Width;
+        var contentWidthAddThickness = contentWidth + indentationThickness.Left + indentationThickness.Right;
+        if (contentWidthAddThickness > outlineWidth)
+        {
+            if (outlineWidth == 0)
+            {
+                // 明确等于 0 的情况，则直接采用内容宽度加上边距
+                // 什么时候？如空文本的情况
+                outlineWidth = contentWidthAddThickness;
+            }
+            else
+            {
+                double documentMaxWidth = GetLineMaxWidth();
+                if (!double.IsFinite(documentMaxWidth))
+                {
+                    // 非有限宽度，则采用内容宽度加上边距
+                    outlineWidth = contentWidthAddThickness;
+                }
+                else
+                {
+                    // 有限宽度，则不能超过文档的最大宽度
+                    if (!paragraphProperty.AllowHangingPunctuation)
+                    {
+                        Debug.Fail("外接宽度小于段落宽度。什么时候大于？一行字符不满的时候。什么时候等于？刚好一行字符刚好满，这里还要求行宽度是字符宽度的倍数。什么时候可能小于？允许标点溢出边界。非这些情况下，则是异常");
+                    }
+                }
+            }
+        }
+        else
+        {
+            // 正常情况下，内容宽度加上边距小于等于外接宽度，则保持不变
+        }
+
         lineLayoutData.SetOutlineBounds(outlineStartPoint, new TextSize(outlineWidth, outlineHeight));
 
-        if (updateLayoutContext.IsInDebugMode)
-        {
-            // 调试模式，校验一下宽度
-            var contentWidth = lineLayoutData.LineContentSize.Width;
+        //if (updateLayoutContext.IsInDebugMode)
+        //{
+        //    // 调试模式，校验一下宽度
 
-            Debug.Assert(Nearly.Equals(outlineWidth, documentWidth));
+        //    Debug.Assert(Nearly.Equals(outlineWidth, documentWidth));
 
-            var contentWidthAddThickness = contentWidth + indentationThickness.Left + indentationThickness.Right;
-
-            // 以下的等于关系是不正确的。因为一行里面有文本的内容可能不满行，如以下例子
-            // 123123
-            // 123\n
-            // 可见末行的内容只有 `123` 无法占满行内容，则此时以下判断条件不相等
-            //Debug.Assert(Nearly.Equals(outlineWidth, contentWidthAddThickness),"外接的宽度等于内容框架加上各个边距");
-            Debug.Assert(!paragraphProperty.AllowHangingPunctuation && contentWidthAddThickness <= outlineWidth,
-                "什么时候小于？一行字符不满的时候。什么时候等于？刚好一行字符刚好满，这里还要求行宽度是字符宽度的倍数。什么时候可能大于？允许标点溢出边界");
-        }
+        //    // 以下的等于关系是不正确的。因为一行里面有文本的内容可能不满行，如以下例子
+        //    // 123123
+        //    // 123\n
+        //    // 可见末行的内容只有 `123` 无法占满行内容，则此时以下判断条件不相等
+        //    //Debug.Assert(Nearly.Equals(outlineWidth, contentWidthAddThickness),"外接的宽度等于内容框架加上各个边距");
+        //    Debug.Assert(!paragraphProperty.AllowHangingPunctuation && contentWidthAddThickness <= outlineWidth,
+        //        "什么时候小于？一行字符不满的时候。什么时候等于？刚好一行字符刚好满，这里还要求行宽度是字符宽度的倍数。什么时候可能大于？允许标点溢出边界");
+        //}
     }
 
     /// <summary>
