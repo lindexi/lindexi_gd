@@ -21,6 +21,11 @@ public partial class ConsoleTextEditorTestView : UserControl
         };
     }
 
+    private void AddConsoleTextEditorButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        ConsoleTextEditorBorder.IsVisible = true;
+    }
+
     private void RemoveConsoleTextEditorButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ConsoleTextEditorScrollViewer.Content = null;
