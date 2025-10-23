@@ -22,35 +22,6 @@ sealed class ParagraphManager
 
     public TextEditorCore TextEditor { get; }
 
-    public int CharCount
-    {
-        get
-        {
-            var rawParagraphList = ParagraphList;
-            // 为什么不调用 DocumentRunEditProvider.ParagraphManager.GetParagraphList() 方法？因为担心 GetParagraphList 额外调用了确保至少一段的方法，导致不必要的损耗
-            if (rawParagraphList.Count == 0)
-            {
-                return 0;
-            }
-
-            var sum = 0;
-            foreach (var paragraphData in rawParagraphList)
-            {
-                sum += paragraphData.CharCount;
-                // 加上换行符的字符
-                sum += ParagraphData.DelimiterLength;
-            }
-
-            if (sum > 0)
-            {
-                // 证明存在一段以上，那减去最后一段多加上的换行符
-                sum -= ParagraphData.DelimiterLength;
-            }
-
-            return sum;
-        }
-    }
-
     /// <summary>
     /// 获取被指定的光标偏移命中的段落信息
     /// </summary>
