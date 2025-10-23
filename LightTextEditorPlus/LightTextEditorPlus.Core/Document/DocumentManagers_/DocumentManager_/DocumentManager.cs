@@ -416,34 +416,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 文档的字符数量。段落之间，使用换行符，加入计算为换行符字符。不包含项目符号
         /// </summary>
-        public int CharCount
-        {
-            get
-            {
-                IReadOnlyList<ParagraphData> rawParagraphList = DocumentRunEditProvider.ParagraphManager.GetRawParagraphList();
-                // 为什么不调用 DocumentRunEditProvider.ParagraphManager.GetParagraphList() 方法？因为担心 GetParagraphList 额外调用了确保至少一段的方法，导致不必要的损耗
-                if (rawParagraphList.Count == 0)
-                {
-                    return 0;
-                }
-
-                var sum = 0;
-                foreach (var paragraphData in rawParagraphList)
-                {
-                    sum += paragraphData.CharCount;
-                    // 加上换行符的字符
-                    sum += ParagraphData.DelimiterLength;
-                }
-
-                if (sum > 0)
-                {
-                    // 证明存在一段以上，那减去最后一段多加上的换行符
-                    sum -= ParagraphData.DelimiterLength;
-                }
-
-                return sum;
-            }
-        }
+        public int CharCount => DocumentRunEditProvider.ParagraphManager.CharCount;
 
         #endregion
 
