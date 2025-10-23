@@ -670,7 +670,7 @@ namespace LightTextEditorPlus.Core.Document
             // 继续获取后续段落，如果首段不够的话
             var lastParagraphData = result.ParagraphData;
             var list = ParagraphManager.GetParagraphList();
-            for (int i = result.ParagraphData.Index.Index + 1; i < list.Count && remainingLength > 0; i++)
+            for (int i = result.ParagraphIndex.Index + 1; i < list.Count && remainingLength > 0; i++)
             {
                 // 加上段末换行符
                 remainingLength -= ParagraphData.DelimiterLength;
