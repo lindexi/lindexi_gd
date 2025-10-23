@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using LightTextEditorPlus.AvaloniaDemo.Views.Controls;
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace LightTextEditorPlus.AvaloniaDemo;
@@ -51,5 +52,14 @@ public partial class ConsoleTextEditorTestView : UserControl
         GC.Collect();
         GC.WaitForFullGCComplete();
         GC.Collect();
+    }
+
+    private void SaveTextToFileButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var text = (ConsoleTextEditorScrollViewer.Content as TextEditor)?.Text;
+        if (!string.IsNullOrEmpty(text))
+        {
+            File.WriteAllText("Text.txt", text);
+        }
     }
 }
