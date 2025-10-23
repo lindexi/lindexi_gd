@@ -167,9 +167,9 @@ public partial class SkiaTextEditor : IRenderManager
     /// <param name="renderContext"></param>
     /// <returns></returns>
     /// 正常情况下，可以使用 <see cref="IRenderManager.Render"/> 配合 <see cref="GetCurrentTextRender"/> 方法获取渲染内容
-    public ITextEditorContentSkiaRenderer BuildTextEditorSkiaRender(TextEditorSkiaRenderContext renderContext)
+    public ITextEditorContentSkiaRenderer BuildTextEditorSkiaRender(in TextEditorSkiaRenderContext renderContext)
     {
-        return RenderManager.BuildTextEditorSkiaRender(renderContext);
+        return RenderManager.BuildTextEditorSkiaRender(in renderContext);
     }
 
     /// <summary>

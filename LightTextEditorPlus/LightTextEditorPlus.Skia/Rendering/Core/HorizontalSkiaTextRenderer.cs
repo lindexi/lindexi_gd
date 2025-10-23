@@ -54,6 +54,7 @@ file struct Renderer : IDisposable
         TextRect renderBounds = renderArgument.RenderBounds;
         RenderInfoProvider = renderInfoProvider;
         RenderBounds = renderBounds;
+        Viewport = renderArgument.Viewport;
 
         Debug.Assert(!renderInfoProvider.IsDirty);
 
@@ -67,6 +68,23 @@ file struct Renderer : IDisposable
     public RenderInfoProvider RenderInfoProvider { get; }
 
     public TextRect RenderBounds { get; set; }
+
+    /// <summary>
+    /// 可见范围，为空则代表需要全文档渲染
+    /// </summary>
+    public TextRect? Viewport { get; }
+
+    /// <summary>
+    /// 是否在可见范围内
+    /// </summary>
+    /// <param name="textRect"></param>
+    /// <returns></returns>
+    private bool IsInViewport(in TextRect textRect)
+    {
+        if (Viewport is null) return true;
+        return Viewport.Value.IntersectsWith(textRect);
+    }
+
     public HorizontalSkiaTextRenderer HorizontalSkiaTextRenderer { get; }
 
     private SkiaTextEditorDebugConfiguration Config => TextEditor.DebugConfiguration;
@@ -77,6 +95,12 @@ file struct Renderer : IDisposable
     {
         foreach (ParagraphRenderInfo paragraphRenderInfo in RenderInfoProvider.GetParagraphRenderInfoList())
         {
+            if (!IsInViewport(paragraphRenderInfo.ParagraphLayoutData.OutlineBounds))
+            {
+                // 不在可见范围内，跳过
+                continue;
+            }
+
             if (Config.IsInDebugMode)
             {
                 IParagraphLayoutData paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
@@ -87,6 +111,14 @@ file struct Renderer : IDisposable
 
             foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
+                if (Viewport is {} viewport)
+                {
+                    if (!viewport.IntersectsWith(lineRenderInfo.OutlineBounds))
+                    {
+                        continue;
+                    }
+                }
+
                 RenderTextLine(in lineRenderInfo);
             }
         }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Rendering;
 
@@ -141,6 +142,13 @@ partial class TextEditor
         {
             TextEditor textEditor = TextEditor;
 
+            TextRect? viewport = textEditor.GetViewport();
+            if (_lastViewport != viewport)
+            {
+                _lastViewport = viewport;
+                RemoveCache();
+            }
+
             if (_cacheRenderInfoProvider is not null && !_cacheRenderInfoProvider.IsDirty)
             {
                 // 有缓存的情况，尽量使用缓存
@@ -163,8 +171,9 @@ partial class TextEditor
 
             ITextEditorContentSkiaRenderer BuildAndCache(RenderInfoProvider renderInfoProvider)
             {
-                var renderer = textEditor.SkiaTextEditor.BuildTextEditorSkiaRender(
-                    new TextEditorSkiaRenderContext(renderInfoProvider));
+                var renderContext = new TextEditorSkiaRenderContext(renderInfoProvider, viewport);
+                SkiaTextEditor skiaTextEditor = textEditor.SkiaTextEditor;
+                var renderer = skiaTextEditor.BuildTextEditorSkiaRender(in renderContext);
                 _cacheRenderer = renderer;
                 return renderer;
             }
@@ -173,10 +182,7 @@ partial class TextEditor
         public void Render(RenderInfoProvider renderInfoProvider)
         {
             _cacheRenderInfoProvider = renderInfoProvider;
-            if (_cacheRenderer is not null)
-            {
-                _cacheRenderer.IsObsoleted = true;
-            }
+            RemoveCache();
 
             if (TextEditor._isRendering)
             {
@@ -187,8 +193,19 @@ partial class TextEditor
             TextEditor.InvalidateVisual();
         }
 
+        private TextRect? _lastViewport;
+
         private RenderInfoProvider? _cacheRenderInfoProvider;
         private ITextEditorContentSkiaRenderer? _cacheRenderer;
+
+        private void RemoveCache()
+        {
+            if (_cacheRenderer is not null)
+            {
+                _cacheRenderer.IsObsoleted = true;
+                _cacheRenderer = null;
+            }
+        }
     }
 }
 
