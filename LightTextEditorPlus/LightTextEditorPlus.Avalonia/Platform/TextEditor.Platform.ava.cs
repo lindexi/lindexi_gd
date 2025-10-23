@@ -28,6 +28,7 @@ using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Editing;
@@ -60,6 +61,17 @@ partial class TextEditor : Control
         SkiaTextEditor = new SkiaTextEditor(TextEditorPlatformProvider);
 
         _renderEngine = new AvaloniaTextEditorRenderEngine(this);
+
+        // 禁用自动刷新光标和选择渲染。因为 Avalonia 框架会统一调用渲染，将光标渲染交给 Avalonia 来调度
+        SkiaTextEditor.DisableAutoFlushCaretAndSelectionRender();
+        TextEditorCore.CurrentSelectionChanged += (sender, args) =>
+        {
+            if (_renderEngine.CanShowCaret && !_isRendering)
+            {
+                // 能够显示光标，且不在渲染过程中，才触发重绘
+                InvalidateVisual();
+            }
+        };
 
         SkiaTextEditor.InvalidateVisualRequested += SkiaTextEditor_InvalidateVisualRequested;
 
@@ -541,6 +553,8 @@ partial class TextEditor : Control
 
     private void SkiaTextEditor_InvalidateVisualRequested(object? sender, EventArgs e)
     {
+        Debug.Fail("不应该，也不可能进入此分支。因为现在全部都在 UI 框架里处理");
+
         if (_isRendering)
         {
             // 如果当前正在渲染中，那就不要再次触发重绘。因为再次触发重绘也是浪费
@@ -562,10 +576,12 @@ partial class TextEditor : Control
 
         try
         {
-            if (TextEditorCore.IsDirty)
-            {
-                ForceRedraw();
-            }
+            //if (TextEditorCore.IsDirty)
+            //{
+            //    ForceRedraw();
+            //}
+            //// 在 ForceLayout 里面会处理脏文本的问题。渲染时候，只能选择强制布局
+            //RenderInfoProvider renderInfoProvider = ForceLayout();
 
             _renderEngine.Render(context);
         }
@@ -576,4 +592,6 @@ partial class TextEditor : Control
     }
 
     #endregion
+
+
 }

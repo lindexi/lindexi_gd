@@ -39,7 +39,7 @@ public interface ITextEditorContentSkiaRenderer : ITextEditorSkiaRenderer
     /// <summary>
     /// 是否已经被废弃
     /// </summary>
-    bool IsObsoleted { get; }
+    bool IsObsoleted { get; set; }
 
     /// <summary>
     /// 是否已经被释放

@@ -3,6 +3,7 @@ using System.Diagnostics;
 
 using Avalonia.Threading;
 using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Editing;
 
@@ -153,6 +154,13 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     public virtual TextEditorHandler GetHandler()
     {
         return new TextEditorHandler(AvaloniaTextEditor);
+    }
+
+    /// <inheritdoc />
+    public override IRenderManager GetRenderManager()
+    {
+        // 如果掉底层的 SkiaTextEditorPlatformProvider 的 GetRenderManager 方法，返回上层控件。如此即可在刷新渲染时，和 UI 框架同步，防止布局过程中出现额外的渲染。同时也能支持长文本只渲染可视区域
+        return AvaloniaTextEditor.RenderManager;
     }
 }
 

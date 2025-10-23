@@ -38,13 +38,20 @@ class RenderManager
     /// <param name="renderInfoProvider"></param>
     /// <param name="selection"></param>
     [MemberNotNull(nameof(_currentCaretAndSelectionRender))]
-    public void UpdateCaretAndSelectionRender(RenderInfoProvider renderInfoProvider, Selection selection)
+    public void UpdateCaretAndSelectionRender(RenderInfoProvider renderInfoProvider, in Selection selection)
+    {
+        _currentCaretAndSelectionRender =
+            BuildCaretAndSelectionRender(renderInfoProvider, in selection, new CaretAndSelectionRenderContext(IsOvertypeModeCaret));
+    }
+
+    public ITextEditorCaretAndSelectionRenderSkiaRenderer BuildCaretAndSelectionRender
+        (RenderInfoProvider renderInfoProvider, in Selection selection, in CaretAndSelectionRenderContext renderContext)
     {
         if (selection.IsEmpty)
         {
             // 无选择，只有光标
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(TextEditor.CaretConfiguration.CaretThickness, IsOvertypeModeCaret);
+            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(TextEditor.CaretConfiguration.CaretThickness, renderContext.IsOvertypeModeCaret);
 
             SKColor? caretColor = TextEditor.CaretConfiguration.CaretBrush;
             if (caretColor == null)
@@ -54,7 +61,7 @@ class RenderManager
                 caretColor = currentCaretRunProperty.AsSkiaRunProperty().Foreground.AsSolidColor();
             }
 
-            _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor.Value);
+            return new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor.Value);
         }
         else
         {
@@ -62,7 +69,7 @@ class RenderManager
 
             IReadOnlyList<TextRect> selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
 
-            _currentCaretAndSelectionRender = new TextEditorSelectionSkiaRender(selectionBoundsList, selectionColor);
+            return new TextEditorSelectionSkiaRender(selectionBoundsList, selectionColor);
         }
     }
 
@@ -115,8 +122,6 @@ class RenderManager
     {
         Debug.Assert(!renderInfoProvider.IsDirty);
 
-        BaseSkiaTextRenderer textRenderer = GetSkiaTextRender();
-
         UpdateCaretAndSelectionRender(renderInfoProvider, TextEditor.TextEditorCore.CurrentSelection);
 
         if (_currentRender is not null)
@@ -135,6 +140,21 @@ class RenderManager
 
             _currentRender = null;
         }
+
+        TextEditorSkiaRender render = BuildTextEditorSkiaRender(new TextEditorSkiaRenderContext(renderInfoProvider));
+
+        _currentRender = render;
+    }
+
+    /// <summary>
+    /// 为什么会考虑使用 SKPicture 来进行渲染？原因是在上层 UI 程序里面，可能会面临未更改但多次渲染的情况。此时文本内容没有变化，通过 SKPicture 可以缓存渲染命令，提升性能且不会过多占用内存
+    /// </summary>
+    /// <param name="renderContext"></param>
+    /// <returns></returns>
+    public TextEditorSkiaRender BuildTextEditorSkiaRender(TextEditorSkiaRenderContext renderContext)
+    {
+        RenderInfoProvider renderInfoProvider = renderContext.RenderInfoProvider;
+        BaseSkiaTextRenderer textRenderer = GetSkiaTextRender();
 
         DocumentLayoutBounds layoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
         TextRect documentOutlineBounds = layoutBounds.DocumentOutlineBounds;
@@ -181,7 +201,8 @@ class RenderManager
         }
 
         SKPicture skPicture = skPictureRecorder.EndRecording();
-        _currentRender = new TextEditorSkiaRender(TextEditor, skPicture, renderBounds);
+        var render = new TextEditorSkiaRender(TextEditor, skPicture, renderBounds);
+        return render;
     }
 
     private BaseSkiaTextRenderer GetSkiaTextRender()
@@ -214,3 +235,10 @@ class RenderManager
 
     private BaseSkiaTextRenderer? _textRender;
 }
+
+
+/// <summary>
+/// 渲染上下文
+/// </summary>
+/// <param name="RenderInfoProvider"></param>
+public readonly record struct TextEditorSkiaRenderContext(RenderInfoProvider RenderInfoProvider);
