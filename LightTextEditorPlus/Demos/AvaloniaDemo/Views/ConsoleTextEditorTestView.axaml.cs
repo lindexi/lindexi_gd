@@ -7,6 +7,7 @@ using LightTextEditorPlus.AvaloniaDemo.Views.Controls;
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LightTextEditorPlus.AvaloniaDemo;
@@ -32,10 +33,15 @@ public partial class ConsoleTextEditorTestView : UserControl
     {
         if (ConsoleTextEditorScrollViewer.Content is ConsoleTextEditor textEditor)
         {
-            for (int i = 0; i < 500; i++)
+            var count = 500;
+            StringBuilder stringBuilder = new StringBuilder(20* count);
+            for (int i = 0; i < count; i++)
             {
-                textEditor.AppendText($"[{textEditor.ParagraphList.Count}] 123123123 {Random.Shared.Next(10000)}\n");
+                stringBuilder.Append($"[{textEditor.ParagraphList.Count}] 123123123 {Random.Shared.Next(10000)}\n");
             }
+
+            string text = stringBuilder.ToString();
+            textEditor.AppendText(text);
 
             await Task.Delay(100);
             ConsoleTextEditorScrollViewer.ScrollToEnd();
