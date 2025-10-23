@@ -28,6 +28,7 @@ using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Editing;
@@ -541,6 +542,8 @@ partial class TextEditor : Control
 
     private void SkiaTextEditor_InvalidateVisualRequested(object? sender, EventArgs e)
     {
+        Debug.Fail("不应该，也不可能进入此分支。因为现在全部都在 UI 框架里处理");
+
         if (_isRendering)
         {
             // 如果当前正在渲染中，那就不要再次触发重绘。因为再次触发重绘也是浪费
@@ -562,10 +565,12 @@ partial class TextEditor : Control
 
         try
         {
-            if (TextEditorCore.IsDirty)
-            {
-                ForceRedraw();
-            }
+            //if (TextEditorCore.IsDirty)
+            //{
+            //    ForceRedraw();
+            //}
+            //// 在 ForceLayout 里面会处理脏文本的问题。渲染时候，只能选择强制布局
+            //RenderInfoProvider renderInfoProvider = ForceLayout();
 
             _renderEngine.Render(context);
         }
@@ -576,4 +581,6 @@ partial class TextEditor : Control
     }
 
     #endregion
+
+
 }

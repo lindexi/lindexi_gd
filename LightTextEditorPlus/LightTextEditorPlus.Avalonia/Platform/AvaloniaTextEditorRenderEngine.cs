@@ -9,6 +9,8 @@ using System.Collections.Generic;
 
 using System.Diagnostics;
 using System.Linq;
+using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Rendering;
 
 namespace LightTextEditorPlus;
@@ -16,6 +18,9 @@ namespace LightTextEditorPlus;
 partial class TextEditor
 {
     private readonly AvaloniaTextEditorRenderEngine _renderEngine;
+
+    internal IRenderManager RenderManager => _renderEngine;
+
 
     /// <summary>
     /// 使用 Skia 渲染承载的文本编辑器的渲染引擎
@@ -28,7 +33,7 @@ partial class TextEditor
     ///   - 为什么不是引用计数为 0 时释放资源，而是需要等待同时满足 IsObsoleted 为 true 条件？因为切页，如切 Tab 时，此时渲染量为 0 的值，但文本内容没有变更，此时文本不产生新的渲染内容。等 Tab 切回来时，文本底层提供了相同的渲染对象内容。如果在之前释放了资源，那就会导致切回来时，文本内容无法渲染。这就是待办里面记录的 `切换 Tab 再回来，文本无渲染` 问题
     /// 2. 添加 <see cref="_contentSkiaRenderCache"/> 记录历史上的所有参与渲染的内容，判断如果已经被标记 IsObsoleted 释放，则加入到 <see cref="DrawingContext.Custom"/> 里面，加入到此仅仅是为了被调度到渲染线程进行资源释放
     ///   - 为什么需要调度到渲染线程才能释放资源？因为 Skia 资源可能还在渲染线程里面使用着，在 UI 线程释放会导致渲染线程出现异常，进而炸掉进程。全部调度到渲染线程释放可以确保没有渲染线程在使用资源的时候释放资源
-    private class AvaloniaTextEditorRenderEngine
+    private class AvaloniaTextEditorRenderEngine : IRenderManager
     {
         public AvaloniaTextEditorRenderEngine(TextEditor textEditor)
         {
@@ -43,7 +48,7 @@ partial class TextEditor
         /// </summary>
         private readonly HashSet<ITextEditorContentSkiaRenderer> _contentSkiaRenderCache = new HashSet<ITextEditorContentSkiaRenderer>(ReferenceEqualityComparer.Instance);
 
-#if DEBUG 
+#if DEBUG
         /// <summary>
         /// 这是一个用于调试使用的字段
         /// </summary>
@@ -53,14 +58,11 @@ partial class TextEditor
         public void Render(DrawingContext context)
         {
             TextEditor textEditor = TextEditor;
-            if (textEditor.IsDirty)
-            {
-                // 准备要渲染了，结果文本还是脏的，那就强制布局
-                textEditor.ForceRedraw();
-            }
+            //Debug.Assert(!textEditor.IsDirty, "调用此方法的上层必须确保文本非脏");
+            ITextEditorContentSkiaRenderer textEditorSkiaRenderer = GetSkiaRenderer();
 
             SkiaTextEditor skiaTextEditor = textEditor.SkiaTextEditor;
-            ITextEditorContentSkiaRenderer textEditorSkiaRenderer = skiaTextEditor.GetCurrentTextRender();
+            //ITextEditorContentSkiaRenderer textEditorSkiaRenderer = skiaTextEditor.GetCurrentTextRender();
 
             var currentBounds = new Rect(textEditor.DesiredSize);
 
@@ -117,31 +119,105 @@ partial class TextEditor
 
             if (showCaret)
             {
+                Debug.Assert(_cacheRenderInfoProvider is not null && !_cacheRenderInfoProvider.IsDirty,"经过前面的文本渲染之后，必定缓存的信息非空也非脏");
+
+                var caretAndSelectionRender = skiaTextEditor.BuildCaretAndSelectionRender(_cacheRenderInfoProvider, textEditor.CurrentSelection,
+                    new CaretAndSelectionRenderContext(textEditor.IsOvertypeMode));
+
                 // 只有编辑模式下才会绘制光标和选择区域
                 context.Custom(new TextEditorCustomDrawOperation(renderBounds,
-                    skiaTextEditor.GetCurrentCaretAndSelectionRender(new CaretAndSelectionRenderContext(TextEditor.IsOvertypeMode)), toDisposedList: null));
+                    caretAndSelectionRender, toDisposedList: null));
             }
         }
+
+        private ITextEditorContentSkiaRenderer GetSkiaRenderer()
+        {
+            TextEditor textEditor = TextEditor;
+
+            if (_cacheRenderInfoProvider is not null && !_cacheRenderInfoProvider.IsDirty)
+            {
+                // 有缓存的情况，尽量使用缓存
+                if (_cacheRenderer is not null && !_cacheRenderer.IsObsoleted)
+                {
+                    return _cacheRenderer;
+                }
+                else
+                {
+                    return BuildAndCache(_cacheRenderInfoProvider);
+                }
+            }
+            else
+            {
+                RenderInfoProvider renderInfoProvider = textEditor.GetRenderInfoImmediately();
+                _cacheRenderInfoProvider = renderInfoProvider;
+
+                return BuildAndCache(_cacheRenderInfoProvider);
+            }
+
+            ITextEditorContentSkiaRenderer BuildAndCache(RenderInfoProvider renderInfoProvider)
+            {
+                var renderer = textEditor.SkiaTextEditor.BuildTextEditorSkiaRender(
+                    new TextEditorSkiaRenderContext(renderInfoProvider));
+                _cacheRenderer = renderer;
+                return renderer;
+            }
+        }
+
+        public void Render(RenderInfoProvider renderInfoProvider)
+        {
+            _cacheRenderInfoProvider = renderInfoProvider;
+            if (_cacheRenderer is not null)
+            {
+                _cacheRenderer.IsObsoleted = true;
+            }
+
+            if (TextEditor._isRendering)
+            {
+                // 如果当前正在渲染中，那就不要再次触发重绘。因为再次触发重绘也是浪费
+                return;
+            }
+
+            TextEditor.InvalidateVisual();
+        }
+
+        private RenderInfoProvider? _cacheRenderInfoProvider;
+        private ITextEditorContentSkiaRenderer? _cacheRenderer;
     }
 }
 
+//file class RenderInfo
+//{
+//    public required ITextEditorSkiaRenderer Renderer { get; init; }
+
+//    ///// <summary>
+//    ///// 是否已经被返回出去被使用了，被使用了的，就应该将释放权给到外部，而不是自己释放
+//    ///// </summary>
+//    ///// 如果为 false 则表示尚未在渲染线程中使用，为 true 则表示可能在渲染线程中使用了。一旦在渲染线程中使用了，就不能在 UI 线程中释放，就需要通过 <see cref="IsObsoleted"/> 交给 UI 线程来释放
+//    //internal bool IsUsed { get; set; }
+
+//    /// <summary>
+//    /// 是否已经被标记为过时了。在 UI 线程被文本编辑器标记为过时了，但是在渲染线程上可能还在使用中，于是渲染线程应该判断一下这个属性，决定是否在渲染线程释放
+//    /// </summary>
+//    public bool IsObsoleted { get; set; }
+//}
+
 file class TextEditorCustomDrawOperation : ICustomDrawOperation
 {
-    public TextEditorCustomDrawOperation(Rect bounds, ITextEditorSkiaRenderer render, List<ITextEditorContentSkiaRenderer>? toDisposedList)
+    public TextEditorCustomDrawOperation(Rect bounds, ITextEditorSkiaRenderer renderer, List<ITextEditorContentSkiaRenderer>? toDisposedList = null)
     {
-        _render = render;
+        _renderer = renderer;
         _toDisposedList = toDisposedList;
         Bounds = bounds;
 
-        render.AddReference();
+        renderer.AddReference();
     }
 
-    private readonly ITextEditorSkiaRenderer _render;
+    private readonly ITextEditorSkiaRenderer _renderer;
     private readonly List<ITextEditorContentSkiaRenderer>? _toDisposedList;
 
     public void Dispose()
     {
-        _render.ReleaseReference();
+        _renderer.ReleaseReference();
 
         if (_toDisposedList is { } list)
         {
@@ -162,7 +238,7 @@ file class TextEditorCustomDrawOperation : ICustomDrawOperation
 
     public bool Equals(ICustomDrawOperation? other)
     {
-        return ReferenceEquals(_render, (other as TextEditorCustomDrawOperation)?._render);
+        return ReferenceEquals(_renderer, (other as TextEditorCustomDrawOperation)?._renderer);
     }
 
     public bool HitTest(Point p)
@@ -176,7 +252,7 @@ file class TextEditorCustomDrawOperation : ICustomDrawOperation
         if (skiaSharpApiLeaseFeature != null)
         {
             using ISkiaSharpApiLease skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
-            _render.Render(skiaSharpApiLease.SkCanvas);
+            _renderer.Render(skiaSharpApiLease.SkCanvas);
         }
         else
         {

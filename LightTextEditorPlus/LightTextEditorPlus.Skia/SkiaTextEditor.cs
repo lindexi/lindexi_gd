@@ -83,10 +83,10 @@ public partial class SkiaTextEditor : IRenderManager
     /// </summary>
     public ITextLogger Logger => TextEditorCore.Logger;
 
-    /// <summary>
-    /// 获取文档的布局尺寸，实际布局尺寸
-    /// </summary>
-    public TextRect CurrentLayoutBounds { get; private set; } = TextRect.Zero;
+    ///// <summary>
+    ///// 获取文档的布局尺寸，实际布局尺寸
+    ///// </summary>
+    //public TextRect CurrentLayoutBounds { get; private set; } = TextRect.Zero;
 
     #region 渲染
     internal RenderManager RenderManager { get; }
@@ -132,7 +132,7 @@ public partial class SkiaTextEditor : IRenderManager
             return;
         }
 
-        CurrentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
+        //CurrentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
 
         RenderManager.Render(renderInfoProvider);
 
@@ -153,6 +153,17 @@ public partial class SkiaTextEditor : IRenderManager
     }
 
     /// <summary>
+    /// 构建渲染内容，适合自定义渲染
+    /// </summary>
+    /// <param name="renderContext"></param>
+    /// <returns></returns>
+    /// 正常情况下，可以使用 <see cref="IRenderManager.Render"/> 配合 <see cref="GetCurrentTextRender"/> 方法获取渲染内容
+    public ITextEditorContentSkiaRenderer BuildTextEditorSkiaRender(TextEditorSkiaRenderContext renderContext)
+    {
+        return RenderManager.BuildTextEditorSkiaRender(renderContext);
+    }
+
+    /// <summary>
     /// 获取当前的光标和选择的渲染内容
     /// </summary>
     /// <param name="renderContext"></param>
@@ -160,6 +171,19 @@ public partial class SkiaTextEditor : IRenderManager
     public ITextEditorCaretAndSelectionRenderSkiaRenderer GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
     {
         return RenderManager.GetCurrentCaretAndSelectionRender(renderContext);
+    }
+
+    /// <summary>
+    /// 构建光标和选择的渲染内容，适合自定义渲染
+    /// </summary>
+    /// <param name="renderInfoProvider"></param>
+    /// <param name="selection"></param>
+    /// <param name="renderContext"></param>
+    /// <returns></returns>
+    public ITextEditorCaretAndSelectionRenderSkiaRenderer BuildCaretAndSelectionRender
+        (RenderInfoProvider renderInfoProvider, in Selection selection, in CaretAndSelectionRenderContext renderContext)
+    {
+        return RenderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
     }
 
     /// <summary>
