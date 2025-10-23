@@ -79,13 +79,14 @@ namespace LightTextEditorPlus
 
         private void TextEditorCore_TextChanged(object? sender, EventArgs e)
         {
+            _cacheText = null;
+
             if (ShouldRaiseTextPropertyChanged)
             {
                 if (!_isSettingsTextProperty)
                 {
                     // Can I raise the DirectProperty changed without set the value?
                     // One of my properties can be bound, but most of the time, users don't pay attention to this property, meaning that changes to this property are not of interest to all users. However, assigning a value to this property is time-consuming. I would like to simply notify about the change of this property and perform a lazy evaluation when the property's getter is accessed. I noticed that in Avalonia there are only SetAndRaise and RaisePropertyChanged methods, both of which require the new value to be passed immediately. Is there a way in Avalonia to notify about a property change without having to assign the value immediately?
-                    _cacheText = null;
                     SetAndRaise(TextProperty, ref _cacheText!, TextEditorCore.GetText());
                 }
             }

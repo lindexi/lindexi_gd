@@ -17,6 +17,7 @@
 			<Button x:Name="AddTextButton" Margin="10,10,10,10" Click="AddTextButton_OnClick">添加文本</Button>
 			<Button x:Name="RemoveConsoleTextEditorButton" Margin="10,10,10,10" Click="RemoveConsoleTextEditorButton_OnClick">退出文本</Button>
 			<Button x:Name="RaiseGarbageCollectionButton" Margin="10,10,10,10" Click="RaiseGarbageCollectionButton_OnClick">触发垃圾回收</Button>
+			<Button x:Name="SaveTextToFileButton" Margin="10,10,10,10" Click="SaveTextToFileButton_OnClick">保存文件</Button>
 		</StackPanel>
 	</Grid>
 
