@@ -91,7 +91,9 @@ partial class TextEditor : Control
     /// </summary>
     private bool IsDebugging
 #if DEBUG
-        => DebugName?.Contains("江南莲花开，莲花惹人采") ?? false;
+        => 
+            //DebugName?.Contains("江南莲花开，莲花惹人采") ?? 
+            false;
 #else
         => false;
 #endif

@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using LightTextEditorPlus.AvaloniaDemo.Views.Controls;
 
 using System;
+using System.Threading.Tasks;
 
 namespace LightTextEditorPlus.AvaloniaDemo;
 
@@ -26,14 +27,17 @@ public partial class ConsoleTextEditorTestView : UserControl
         ConsoleTextEditorBorder.IsVisible = true;
     }
 
-    private void AddTextButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void AddTextButton_OnClick(object? sender, RoutedEventArgs e)
     {
         if (ConsoleTextEditorScrollViewer.Content is ConsoleTextEditor textEditor)
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 500; i++)
             {
-                textEditor.AppendText($"[{i}] 123123123\n");
+                textEditor.AppendText($"[{textEditor.ParagraphList.Count}] 123123123 {Random.Shared.Next(10000)}\n");
             }
+
+            await Task.Delay(100);
+            ConsoleTextEditorScrollViewer.ScrollToEnd();
         }
     }
 
