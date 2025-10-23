@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Rendering;
 
@@ -20,7 +21,6 @@ partial class TextEditor
     private readonly AvaloniaTextEditorRenderEngine _renderEngine;
 
     internal IRenderManager RenderManager => _renderEngine;
-
 
     /// <summary>
     /// 使用 Skia 渲染承载的文本编辑器的渲染引擎
@@ -142,6 +142,13 @@ partial class TextEditor
         {
             TextEditor textEditor = TextEditor;
 
+            TextRect? viewport = textEditor.GetViewport();
+            if (_lastViewport != viewport)
+            {
+                _lastViewport = viewport;
+                RemoveCache();
+            }
+
             if (_cacheRenderInfoProvider is not null && !_cacheRenderInfoProvider.IsDirty)
             {
                 // 有缓存的情况，尽量使用缓存
@@ -164,8 +171,9 @@ partial class TextEditor
 
             ITextEditorContentSkiaRenderer BuildAndCache(RenderInfoProvider renderInfoProvider)
             {
-                var renderer = textEditor.SkiaTextEditor.BuildTextEditorSkiaRender(
-                    new TextEditorSkiaRenderContext(renderInfoProvider));
+                var renderContext = new TextEditorSkiaRenderContext(renderInfoProvider, viewport);
+                SkiaTextEditor skiaTextEditor = textEditor.SkiaTextEditor;
+                var renderer = skiaTextEditor.BuildTextEditorSkiaRender(in renderContext);
                 _cacheRenderer = renderer;
                 return renderer;
             }
@@ -174,10 +182,7 @@ partial class TextEditor
         public void Render(RenderInfoProvider renderInfoProvider)
         {
             _cacheRenderInfoProvider = renderInfoProvider;
-            if (_cacheRenderer is not null)
-            {
-                _cacheRenderer.IsObsoleted = true;
-            }
+            RemoveCache();
 
             if (TextEditor._isRendering)
             {
@@ -188,26 +193,21 @@ partial class TextEditor
             TextEditor.InvalidateVisual();
         }
 
+        private TextRect? _lastViewport;
+
         private RenderInfoProvider? _cacheRenderInfoProvider;
         private ITextEditorContentSkiaRenderer? _cacheRenderer;
+
+        private void RemoveCache()
+        {
+            if (_cacheRenderer is not null)
+            {
+                _cacheRenderer.IsObsoleted = true;
+                _cacheRenderer = null;
+            }
+        }
     }
 }
-
-//file class RenderInfo
-//{
-//    public required ITextEditorSkiaRenderer Renderer { get; init; }
-
-//    ///// <summary>
-//    ///// 是否已经被返回出去被使用了，被使用了的，就应该将释放权给到外部，而不是自己释放
-//    ///// </summary>
-//    ///// 如果为 false 则表示尚未在渲染线程中使用，为 true 则表示可能在渲染线程中使用了。一旦在渲染线程中使用了，就不能在 UI 线程中释放，就需要通过 <see cref="IsObsoleted"/> 交给 UI 线程来释放
-//    //internal bool IsUsed { get; set; }
-
-//    /// <summary>
-//    /// 是否已经被标记为过时了。在 UI 线程被文本编辑器标记为过时了，但是在渲染线程上可能还在使用中，于是渲染线程应该判断一下这个属性，决定是否在渲染线程释放
-//    /// </summary>
-//    public bool IsObsoleted { get; set; }
-//}
 
 file class TextEditorCustomDrawOperation : ICustomDrawOperation
 {

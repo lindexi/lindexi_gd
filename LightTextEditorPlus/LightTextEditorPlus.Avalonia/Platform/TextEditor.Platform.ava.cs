@@ -96,6 +96,14 @@ partial class TextEditor : Control
         IMESupporter.AddIMESupport(this);
     }
 
+    /// <inheritdoc />
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        UpdateInScrollViewer();
+
+        base.OnLoaded(e);
+    }
+
     internal AvaloniaSkiaTextEditorPlatformProvider TextEditorPlatformProvider { get; }
 
     /// <summary>
@@ -593,5 +601,33 @@ partial class TextEditor : Control
 
     #endregion
 
+    #region 滚动条可见范围
 
+    private void UpdateInScrollViewer()
+    {
+        ScrollViewer? scrollViewer = Parent as ScrollViewer;
+        _containerScrollViewer = scrollViewer;
+    }
+
+    private ScrollViewer? _containerScrollViewer;
+
+    /// <summary>
+    /// 获取可见范围
+    /// </summary>
+    /// <returns></returns>
+    private TextRect? GetViewport()
+    {
+        if (_containerScrollViewer is null)
+        {
+            return null;
+        }
+
+        double offsetX = _containerScrollViewer.Offset.X;
+        double offsetY = _containerScrollViewer.Offset.Y;
+        double viewportWidth = _containerScrollViewer.Viewport.Width;
+        double viewportHeight = _containerScrollViewer.Viewport.Height;
+        return new TextRect(offsetX, offsetY, viewportWidth, viewportHeight);
+    }
+
+    #endregion
 }

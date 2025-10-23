@@ -141,7 +141,7 @@ class RenderManager
             _currentRender = null;
         }
 
-        TextEditorSkiaRender render = BuildTextEditorSkiaRender(new TextEditorSkiaRenderContext(renderInfoProvider));
+        TextEditorSkiaRender render = BuildTextEditorSkiaRender(new TextEditorSkiaRenderContext(renderInfoProvider, null));
 
         _currentRender = render;
     }
@@ -151,7 +151,7 @@ class RenderManager
     /// </summary>
     /// <param name="renderContext"></param>
     /// <returns></returns>
-    public TextEditorSkiaRender BuildTextEditorSkiaRender(TextEditorSkiaRenderContext renderContext)
+    public TextEditorSkiaRender BuildTextEditorSkiaRender(in TextEditorSkiaRenderContext renderContext)
     {
         RenderInfoProvider renderInfoProvider = renderContext.RenderInfoProvider;
         BaseSkiaTextRenderer textRenderer = GetSkiaTextRender();
@@ -187,7 +187,8 @@ class RenderManager
             {
                 Canvas = canvas,
                 RenderInfoProvider = renderInfoProvider,
-                RenderBounds = renderBounds
+                RenderBounds = renderBounds,
+                Viewport = renderContext.Viewport,
             });
             renderBounds = skiaTextRenderResult.RenderBounds;
 
@@ -236,9 +237,9 @@ class RenderManager
     private BaseSkiaTextRenderer? _textRender;
 }
 
-
 /// <summary>
 /// 渲染上下文
 /// </summary>
 /// <param name="RenderInfoProvider"></param>
-public readonly record struct TextEditorSkiaRenderContext(RenderInfoProvider RenderInfoProvider);
+/// <param name="Viewport">可见范围，为空则代表需要全文档渲染</param>
+public readonly record struct TextEditorSkiaRenderContext(RenderInfoProvider RenderInfoProvider, TextRect? Viewport);

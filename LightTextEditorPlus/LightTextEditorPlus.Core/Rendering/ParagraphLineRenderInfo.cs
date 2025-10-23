@@ -1,5 +1,6 @@
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Rendering;
@@ -70,6 +71,12 @@ public readonly struct ParagraphLineRenderInfo
 
     /// <summary>行渲染参数</summary>
     public LineDrawingArgument Argument { get; }
+
+    /// <inheritdoc cref="LineLayoutData.GetLineContentBounds"/>
+    public TextRect ContentBounds => LineLayoutData.GetLineContentBounds();
+
+    /// <inheritdoc cref="LineLayoutData.OutlineBounds"/>
+    public TextRect OutlineBounds => LineLayoutData.OutlineBounds;
 
     /// <inheritdoc cref="LineDrawingArgument.CharList"/>
     /// <remarks>
