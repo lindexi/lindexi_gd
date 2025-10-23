@@ -170,10 +170,28 @@ public partial class TextEditorHandler
     #region 键盘相关
 
     /// <inheritdoc cref="TextEditorCore.Delete"/>
-    protected internal virtual void Delete() => TextEditorCore.Delete();
+    protected internal virtual void Delete()
+    {
+        if (!TextEditor.IsInEditingInputMode)
+        {
+            // 不在编辑输入模式下，忽略输入
+            return;
+        }
+
+        TextEditorCore.Delete();
+    }
 
     /// <inheritdoc cref="TextEditorCore.Backspace"/>
-    protected internal virtual void Backspace() => TextEditorCore.Backspace();
+    protected internal virtual void Backspace()
+    {
+        if (!TextEditor.IsInEditingInputMode)
+        {
+            // 不在编辑输入模式下，忽略输入
+            return;
+        }
+
+        TextEditorCore.Backspace();
+    }
 
     /// <inheritdoc cref="SwitchOvertypeMode"/>
     /// <remarks>完全等同于 <see cref="SwitchOvertypeMode"/> 方法</remarks>
@@ -252,11 +270,17 @@ public partial class TextEditorHandler
     }
 
     /// <summary>
-    /// 处理输入的文本，直接插入到文本中
+    /// 处理输入的文本，直接插入到文本中。如果非编辑模式下 <see cref="TextEditor.IsInEditingInputMode"/> 则忽略输入。此方法为用户交互层的方法，如需强行编辑，则直接使用 <see cref="TextEditorCore.EditAndReplace"/> 等代码调用方法
     /// </summary>
     /// <param name="text"></param>
     protected virtual void PerformInput(string text)
     {
+        if (!TextEditor.IsInEditingInputMode)
+        {
+            // 不在编辑输入模式下，忽略输入
+            return;
+        }
+
         Selection? selection = null;
         if (TextEditor.IsOvertypeMode)
         {

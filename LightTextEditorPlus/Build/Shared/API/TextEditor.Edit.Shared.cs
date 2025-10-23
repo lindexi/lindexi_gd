@@ -61,7 +61,7 @@ namespace LightTextEditorPlus
         #region 编辑模式
 
         /// <summary>
-        /// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
+        /// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入。只影响用户的交互输入，不影响通过 API 进行文本编辑
         /// </summary>
         public bool IsInEditingInputMode
         {

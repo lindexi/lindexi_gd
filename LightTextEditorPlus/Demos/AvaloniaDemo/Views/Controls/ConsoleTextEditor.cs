@@ -43,6 +43,8 @@ public class ConsoleTextEditor : TextEditor
             RightIndentation = 50,
         });
         DebugAddText();
+
+        IsEditable = false;
         //Loaded += ConsoleTextEditor_Loaded;
     }
 
