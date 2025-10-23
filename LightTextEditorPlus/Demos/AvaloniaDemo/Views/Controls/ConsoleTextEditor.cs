@@ -45,6 +45,7 @@ public class ConsoleTextEditor : TextEditor
         DebugAddText();
 
         IsEditable = false;
+        TextEditorCore.SetUndoRedoEnable(false, "控制台禁用撤销重做");
         //Loaded += ConsoleTextEditor_Loaded;
     }
 
