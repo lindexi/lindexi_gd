@@ -62,6 +62,17 @@ partial class TextEditor : Control
 
         _renderEngine = new AvaloniaTextEditorRenderEngine(this);
 
+        // 禁用自动刷新光标和选择渲染。因为 Avalonia 框架会统一调用渲染，将光标渲染交给 Avalonia 来调度
+        SkiaTextEditor.DisableAutoFlushCaretAndSelectionRender();
+        TextEditorCore.CurrentSelectionChanged += (sender, args) =>
+        {
+            if (_renderEngine.CanShowCaret && !_isRendering)
+            {
+                // 能够显示光标，且不在渲染过程中，才触发重绘
+                InvalidateVisual();
+            }
+        };
+
         SkiaTextEditor.InvalidateVisualRequested += SkiaTextEditor_InvalidateVisualRequested;
 
         HorizontalAlignment = HorizontalAlignment.Stretch;

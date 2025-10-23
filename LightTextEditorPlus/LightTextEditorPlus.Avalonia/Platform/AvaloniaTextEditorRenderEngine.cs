@@ -55,6 +55,25 @@ partial class TextEditor
         private List<ITextEditorContentSkiaRenderer>? _debugAllContentSkiaRenderList;
 #endif
 
+        public bool CanShowCaret
+        {
+            get
+            {
+                TextEditor textEditor = TextEditor;
+                var showCaret = textEditor.IsInEditingInputMode;
+                // 如果配置了选择区域在非编辑模式下也会绘制，那在非编辑模式下也会绘制选择区域
+                showCaret = showCaret ||
+                            (
+                                textEditor
+                                    .CaretConfiguration
+                                    .ShowSelectionWhenNotInEditingInputMode
+                                // 有选择时才能绘制选择范围，否则不应该只显示光标
+                                && !textEditor.CurrentSelection.IsEmpty
+                            );
+                return showCaret;
+            }
+        }
+
         public void Render(DrawingContext context)
         {
             TextEditor textEditor = TextEditor;
@@ -106,18 +125,7 @@ partial class TextEditor
 
             context.Custom(new TextEditorCustomDrawOperation(renderBounds, textEditorSkiaRenderer, toDisposedList));
 
-            var showCaret = textEditor.IsInEditingInputMode;
-            // 如果配置了选择区域在非编辑模式下也会绘制，那在非编辑模式下也会绘制选择区域
-            showCaret = showCaret ||
-                        (
-                            textEditor
-                                .CaretConfiguration
-                                .ShowSelectionWhenNotInEditingInputMode
-                            // 有选择时才能绘制选择范围，否则不应该只显示光标
-                            && !textEditor.CurrentSelection.IsEmpty
-                        );
-
-            if (showCaret)
+            if (CanShowCaret)
             {
                 Debug.Assert(_cacheRenderInfoProvider is not null && !_cacheRenderInfoProvider.IsDirty,"经过前面的文本渲染之后，必定缓存的信息非空也非脏");
 

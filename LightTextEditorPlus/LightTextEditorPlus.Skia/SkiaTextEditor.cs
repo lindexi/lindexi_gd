@@ -91,6 +91,15 @@ public partial class SkiaTextEditor : IRenderManager
     #region 渲染
     internal RenderManager RenderManager { get; }
 
+    /// <summary>
+    /// 禁用自动刷新光标和选择区域的渲染
+    /// </summary>
+    public void DisableAutoFlushCaretAndSelectionRender()
+    {
+        Logger.LogDebug("[SkiaTextEditor][DisableAutoFlushCaretAndSelectionRender] 禁用自动刷新光标和选择区域的渲染。过程不可逆");
+        TextEditorCore.CurrentSelectionChanged -= TextEditorCore_CurrentSelectionChanged;
+    }
+
     private void TextEditorCore_CurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
     {
         if (TextEditorCore.IsDirty)
