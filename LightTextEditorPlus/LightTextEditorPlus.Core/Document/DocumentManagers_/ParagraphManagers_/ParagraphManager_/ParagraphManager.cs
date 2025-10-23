@@ -36,15 +36,16 @@ sealed class ParagraphManager
         if (offset.Offset == 0)
         {
             ParagraphData firstParagraph = ParagraphList[0];
-            return GetResult(firstParagraph, hitOffset: null);
+            return GetResult(firstParagraph, 0, hitOffset: null);
         }
         else
         {
             // 判断落在哪个段落里
             // 判断方法就是判断字符范围是否在段落内
             var currentDocumentOffset = 0;
-            foreach (var paragraphData in ParagraphList)
+            for (int paragraphIndex = 0; paragraphIndex < ParagraphList.Count; paragraphIndex++)
             {
+                ParagraphData paragraphData = ParagraphList[paragraphIndex];
                 var endOffset =
                     currentDocumentOffset + paragraphData.CharCount +
                     ParagraphData.DelimiterLength;
@@ -68,7 +69,7 @@ sealed class ParagraphManager
                     //    hitParagraphOffset = paragraphData.CharCount;
                     //}
 
-                    return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
+                    return GetResult(paragraphData, paragraphIndex, new ParagraphCaretOffset(hitParagraphOffset));
                 }
 
                 currentDocumentOffset = endOffset;
@@ -78,9 +79,10 @@ sealed class ParagraphManager
         // 没有落到哪个段落？那就抛个异常
         throw GetHitCaretOffsetOutOfRangeException();
 
-        HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphCaretOffset? hitOffset)
+        HitParagraphDataResult GetResult
+            (ParagraphData paragraphData, int paragraphIndex, ParagraphCaretOffset? hitOffset)
         {
-            return new HitParagraphDataResult(offset, paragraphData,
+            return new HitParagraphDataResult(offset, new ParagraphIndex(paragraphIndex), paragraphData,
                 hitOffset ?? new ParagraphCaretOffset(0), this);
         }
 

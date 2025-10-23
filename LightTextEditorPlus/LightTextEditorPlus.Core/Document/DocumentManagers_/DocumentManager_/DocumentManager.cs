@@ -670,7 +670,7 @@ namespace LightTextEditorPlus.Core.Document
             // 继续获取后续段落，如果首段不够的话
             var lastParagraphData = result.ParagraphData;
             var list = ParagraphManager.GetParagraphList();
-            for (int i = result.ParagraphData.Index.Index + 1; i < list.Count && remainingLength > 0; i++)
+            for (int i = result.ParagraphIndex.Index + 1; i < list.Count && remainingLength > 0; i++)
             {
                 // 加上段末换行符
                 remainingLength -= ParagraphData.DelimiterLength;
@@ -746,14 +746,10 @@ namespace LightTextEditorPlus.Core.Document
                 IImmutableRunList? oldRun = null; // 追加的过程，是没有替换的，即 oldRun 一定是空
                 var newSelection = new Selection(oldCaretOffset, newCaretOffset);
 
-                ITextEditorUndoRedoProvider undoRedoProvider = TextEditor.UndoRedoProvider;
-                if (undoRedoProvider.IsEnable)
-                {
-                    // 不能直接使用 run 的内容，因为 run 里可能没有写好使用的样式。因此需要获取实际插入的内容，从而获取到实际的插入带样式文本
-                    var newRun = GetImmutableRunList(newSelection);
-                    var textChangeOperation = new TextChangeOperation(TextEditor, oldSelection, oldRun, newSelection, newRun);
-                    undoRedoProvider.Insert(textChangeOperation);
-                }
+                // 不能直接使用 run 的内容，因为 run 里可能没有写好使用的样式。因此需要获取实际插入的内容，从而获取到实际的插入带样式文本
+                var newRun = GetImmutableRunList(newSelection);
+                var textChangeOperation = new TextChangeOperation(TextEditor, oldSelection, oldRun, newSelection, newRun);
+                TextEditor.UndoRedoProvider.Insert(textChangeOperation);
             }
 
             InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));

@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
+namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <summary>
 /// 文本撤销恢复提供
@@ -10,9 +10,4 @@ public interface ITextEditorUndoRedoProvider
     /// </summary>
     /// <param name="textOperation"></param>
     void Insert(ITextOperation textOperation);
-
-    /// <summary>
-    /// 是否启用撤销恢复功能
-    /// </summary>
-    bool IsEnable => true;
 }
