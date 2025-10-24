@@ -293,7 +293,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             if (double.IsFinite(Width))
             {
                 Debug.Assert(Width.Equals(documentManager.DocumentWidth), $"在 {nameof(OnPropertyChanged)}(DependencyPropertyChangedEventArgs e) 中必然已经完成了同步，正常不会单独变更 DocumentWidth 使其与 Width 不等");
-                //documentManager.DocumentWidth = Width;
             }
 
             if (double.IsFinite(Height))

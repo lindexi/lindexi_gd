@@ -375,7 +375,7 @@ public partial class RichTextCaseProvider
     public void Debug()
     {
         //RichTextCases[2].Exec(textEditor);
-        Run("文本带下标单倍行距");
-        //Run(_richTextCases.Last());
+        //Run("文本带下标单倍行距");
+        Run(_richTextCases.Last());
     }
 }
