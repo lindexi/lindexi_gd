@@ -524,10 +524,10 @@ namespace LightTextEditorPlus
         /// 获取或设置文本的垂直对齐方式。此属性仅仅只是为了兼容其他控件的设置属性而已，更加正确的是使用 <see cref="VerticalTextAlignment"/> 属性。此属性和 <see cref="VerticalTextAlignment"/> 完全等价
         /// </summary>
         /// <remarks>完全等价于 <see cref="VerticalTextAlignment"/> 属性</remarks>
+        [Obsolete("请使用 VerticalTextAlignment 属性代替")]
         public VerticalAlignment VerticalContentAlignment
         {
             get => VerticalTextAlignment;
-            [Obsolete("当前还没实现，请不要调用")]
             set => VerticalTextAlignment = value;
         }
 
