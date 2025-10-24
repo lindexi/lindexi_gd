@@ -236,6 +236,7 @@ partial class RichTextCaseProvider
 
         Add(editor =>
         {
+            editor.CaretConfiguration.ShowCaretAndSelectionInReadonlyMode = true;
             editor.SetFontSize(50);
             editor.SetFontName("微软雅黑");
             editor.AppendText("123123123123123123123123123");
@@ -244,6 +245,7 @@ partial class RichTextCaseProvider
 
         Add(editor =>
         {
+            editor.CaretConfiguration.ShowCaretAndSelectionInReadonlyMode = true;
             editor.SetFontSize(50);
             editor.SetFontName("微软雅黑");
             editor.CaretConfiguration.SelectionBrush = new Color(0x5C, 0xFF, 0x00, 0x00);
