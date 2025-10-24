@@ -81,9 +81,6 @@ partial class TextEditor : Control
         TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
         TextEditorCore.TextChanged += TextEditorCore_TextChanged;
 
-        //// 调试代码
-        //TextEditorCore.AppendText("afg123微软雅黑123123");
-
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
 
         //#if DEBUG

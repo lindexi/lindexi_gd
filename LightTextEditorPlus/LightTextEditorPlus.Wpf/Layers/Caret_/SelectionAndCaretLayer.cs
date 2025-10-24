@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -251,7 +251,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
     {
         var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
 
-        if (!currentSelection.IsEmpty && _textEditor.CaretConfiguration.ShowSelectionWhenNotInEditingInputMode)
+        if (!currentSelection.IsEmpty && _textEditor.CaretConfiguration.ShowCaretAndSelectionInReadonlyMode)
         {
             // 选择内容就无需隐藏了
             return;

@@ -95,7 +95,14 @@ namespace LightTextEditorPlus
                 }
                 else
                 {
-                    LeaveEditingCursor();
+                    if (CaretConfiguration.ShowCaretAndSelectionInReadonlyMode)
+                    {
+                        EnterEditingCursor();
+                    }
+                    else
+                    {
+                        LeaveEditingCursor();
+                    }
                 }
 
                 IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);

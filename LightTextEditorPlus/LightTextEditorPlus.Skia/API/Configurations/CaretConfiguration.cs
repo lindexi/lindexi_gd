@@ -55,7 +55,7 @@ public class SkiaCaretConfiguration
     /// 不在编辑状态时，保留显示选择范围
     /// </summary>
     /// 默认 WPF 的 TextBox 是不保留显示的
-    public bool ShowSelectionWhenNotInEditingInputMode { set; get; } = true;
+    public bool ShowCaretAndSelectionInReadonlyMode { set; get; } = true;
 
     /// <summary>
     /// 选择的背景色
