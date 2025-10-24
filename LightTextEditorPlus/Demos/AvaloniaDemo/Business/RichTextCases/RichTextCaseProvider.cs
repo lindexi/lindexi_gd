@@ -468,5 +468,12 @@ partial class RichTextCaseProvider
             editor.SetFontSize(60);
             editor.Text = "ti";
         }, "输入一个连写字单词，测试光标坐标");
+
+        Add(editor =>
+        {
+            editor.SetFontName("微软雅黑");
+            editor.SetFontSize(60);
+            editor.Text = "ᠳᠽᠱ";
+        }, "蒙文测试");
     }
 }
