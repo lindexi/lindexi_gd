@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
     <PackageReference Include="SkiaSharp.HarfBuzz" Version="2.88.7" />
-    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" Version="12.0.1" PrivateAssets="all" />
+    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" Version="13.0.1" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
