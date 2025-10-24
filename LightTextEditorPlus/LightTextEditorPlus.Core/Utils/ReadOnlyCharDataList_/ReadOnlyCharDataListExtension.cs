@@ -183,7 +183,7 @@ public static class ReadOnlyCharDataListExtension
             var next = charList[i];
             if (checker is null)
             {
-                if (current.RunProperty != next.RunProperty)
+                if (!current.RunProperty.Equals(next.RunProperty))
                 {
                     break;
                 }
