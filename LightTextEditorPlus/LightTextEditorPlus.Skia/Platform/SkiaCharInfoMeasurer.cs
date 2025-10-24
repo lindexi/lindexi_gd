@@ -503,7 +503,9 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     {
         ICharDataLayoutInfoSetter charDataLayoutInfoSetter = argument.CharDataLayoutInfoSetter;
         Debug.Assert(charSizeInfoSpan.Length > 0);
-        CharDataInfo ligatureCharDataInfo = charSizeInfoSpan[0].CharDataInfo with
+
+        // 表示连写的字符的后续字符部分的信息。由于每个字符都应该被设置一个 CharDataInfo 信息，尽管对于连写字的后续字符来说都是相同的值，但也不得不设置一个
+        CharDataInfo ligatureContinueCharDataInfo = charSizeInfoSpan[0].CharDataInfo with
         {
             FrameSize = TextSize.Zero,
             FaceSize = TextSize.Zero,
@@ -578,6 +580,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 // 如果是属于连写的开始，则需要更新状态。比如说有 'fi' 连写。分为两次输入，第一次输入 'f'，第二次输入 'i'。第一次输入 'f' 时，可能已经测量过了，并且状态是 Normal 值。此时当输入 'i' 时，才发现 'fi' 是连写的开始，则需要更新 'f' 的状态为 LigatureStart 值
                 charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
             }
+            else if (charData.CharDataInfo.GlyphIndex != charDataInfo.GlyphIndex)
+            {
+                // 比如蒙古文的情况。蒙古文需要根据后续字符来决定前续字符的字形索引，此时符合预期
+                charDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
+            }
 
             charDataListIndex++;
         }
@@ -586,7 +593,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         {
             CharData ligatureCharData = charDataList[charIndex];
             // 连写的字符，均设置为 LigatureContinue 状态。且无宽度高度值
-            charDataLayoutInfoSetter.SetCharDataInfo(ligatureCharData, ligatureCharDataInfo);
+            charDataLayoutInfoSetter.SetCharDataInfo(ligatureCharData, ligatureContinueCharDataInfo);
         }
     }
 
