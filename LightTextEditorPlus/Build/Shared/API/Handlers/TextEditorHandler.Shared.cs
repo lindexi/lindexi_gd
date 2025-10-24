@@ -178,7 +178,7 @@ public partial class TextEditorHandler
             return;
         }
 
-        TextEditorCore.Delete();
+        TextEditor.Delete();
     }
 
     /// <inheritdoc cref="TextEditorCore.Backspace"/>
@@ -190,7 +190,7 @@ public partial class TextEditorHandler
             return;
         }
 
-        TextEditorCore.Backspace();
+        TextEditor.Backspace();
     }
 
     /// <inheritdoc cref="SwitchOvertypeMode"/>
