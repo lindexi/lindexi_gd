@@ -150,6 +150,8 @@ public class SkiaPlatformResourceManager :
         return normalRunProperty;
     }
 
+    private readonly string[] _cacheBcp47StringArray = new string[1];
+
     private SKTypeface? TryMatchCharacterTypeface(SkiaTextRunProperty normalRunProperty, Utf32CodePoint codePoint)
     {
 #if DEBUG
@@ -164,7 +166,8 @@ public class SkiaPlatformResourceManager :
         using SKFontStyle skFontStyle = normalRunProperty.ToSKFontStyle();
 
         // 先测试带 bcp47 的 MatchCharacter 方法
-        string[]? bcp47 = new string[] { SkiaTextEditor.TextEditorCore.CurrentCulture.Name };
+        string[]? bcp47 = _cacheBcp47StringArray;
+        _cacheBcp47StringArray[0] = SkiaTextEditor.TextEditorCore.CurrentCulture.Name ;
 
         SKTypeface? matchCharacterTypeface = SKFontManager.Default.MatchCharacter(normalRunProperty.RenderFontName,
             skFontStyle, bcp47, codePoint.Value);
