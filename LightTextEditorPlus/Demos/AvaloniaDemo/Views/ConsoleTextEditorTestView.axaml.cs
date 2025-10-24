@@ -34,10 +34,12 @@ public partial class ConsoleTextEditorTestView : UserControl
         if (ConsoleTextEditorScrollViewer.Content is ConsoleTextEditor textEditor)
         {
             var count = 500;
-            StringBuilder stringBuilder = new StringBuilder(20* count);
+            // 一行差不多 20 个字符
+            var countOfLine = 20;
+            var stringBuilder = new StringBuilder(countOfLine * count);
             for (int i = 0; i < count; i++)
             {
-                stringBuilder.Append($"[{textEditor.ParagraphList.Count}] 123123123 {Random.Shared.Next(10000)}\n");
+                stringBuilder.Append($"[{textEditor.ParagraphList.Count + i}] 123123123 {Random.Shared.Next(10000)}\n");
             }
 
             string text = stringBuilder.ToString();
