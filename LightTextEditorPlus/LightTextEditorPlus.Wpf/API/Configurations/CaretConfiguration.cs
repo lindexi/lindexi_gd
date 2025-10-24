@@ -59,7 +59,7 @@ public class CaretConfiguration
     /// 不在编辑状态时，保留显示选择范围
     /// </summary>
     /// 默认 WPF 的 TextBox 是不保留显示的
-    public bool ShowCaretAndSelectionInReadonlyMode { set; get; } = true;
+    public bool ShowCaretAndSelectionInReadonlyMode { set; get; } = false;
 
     /// <summary>
     /// 选择的画刷，默认是 SystemColors.HighlightColor 颜色
