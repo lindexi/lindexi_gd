@@ -209,4 +209,82 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
     internal SKFontStyle ToSKFontStyle() =>
         new SKFontStyle(FontWeight, Stretch, FontStyle);
+
+    /// <inheritdoc />
+    public override bool Equals(IReadOnlyRunProperty? other)
+    {
+        if (other is SkiaTextRunProperty skiaTextRunProperty)
+        {
+            return Equals(skiaTextRunProperty);
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
+    public virtual bool Equals(SkiaTextRunProperty? other)
+    {
+        if (other is null) return false;
+
+        if (!base.Equals(other))
+        {
+            return false;
+        }
+
+        if (!string.Equals(RenderFontName, other.RenderFontName))
+        {
+            return false;
+        }
+
+        if (Foreground != other.Foreground) //&& Background == other.Background 
+        {
+            return false;
+        }
+
+        if (Stretch != other.Stretch)
+        {
+            return false;
+        }
+
+        if (FontWeight != other.FontWeight)
+        {
+            return false;
+        }
+
+        if (FontStyle != other.FontStyle)
+        {
+            return false;
+        }
+
+        if (!Opacity.Equals(other.Opacity))
+        {
+            return false;
+        }
+
+        if (!DecorationCollection.Equals(other.DecorationCollection))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        HashCode hashCode = new HashCode();
+        hashCode.Add(RenderFontName);
+        // 忽略 FontName
+        hashCode.Add(FontSize);
+        hashCode.Add(FontVariant);
+
+        hashCode.Add(Foreground);
+        hashCode.Add(Stretch);
+        hashCode.Add(FontWeight);
+        hashCode.Add(FontStyle);
+        hashCode.Add(Opacity);
+        hashCode.Add(DecorationCollection.GetHashCode());
+
+        return hashCode.ToHashCode();
+    }
 }
