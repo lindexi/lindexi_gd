@@ -241,27 +241,6 @@ public partial class TextEditorHandler
         }
     }
 
-    #region 快捷键
-
-    ///// <summary>
-    ///// 尝试执行快捷键
-    ///// </summary>
-    ///// <param name="e"></param>
-    ///// <returns></returns>
-    //protected bool TryExecuteShortCut(KeyEventArgs e)
-    //{
-    //    TextEditor.KeyBindings.Add(new KeyBinding()
-    //    {
-            
-    //    });
-
-        
-
-    //    ShortCutManager.FindCommandBinding(new TextEditorKeyGesture(e.Key, e.KeyModifiers))
-    //}
-
-    #endregion 快捷键
-
     #endregion 键盘
 
     #region 方向键
