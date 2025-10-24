@@ -67,10 +67,11 @@ namespace LightTextEditorPlus
         {
             set
             {
-                if (_isInEditingInputMode == value)
-                {
-                    return;
-                }
+                // 这个属性还负担着设置光标的功能，即使属性值没有变化，也需要执行后续逻辑
+                //if (_isInEditingInputMode == value)
+                //{
+                //    return;
+                //}
 
                 if (value is true && IsEditable is false)
                 {
@@ -95,7 +96,14 @@ namespace LightTextEditorPlus
                 }
                 else
                 {
-                    LeaveEditingCursor();
+                    if (CaretConfiguration.ShowCaretAndSelectionInReadonlyMode)
+                    {
+                        EnterEditingCursor();
+                    }
+                    else
+                    {
+                        LeaveEditingCursor();
+                    }
                 }
 
                 IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);

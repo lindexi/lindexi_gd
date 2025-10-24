@@ -66,7 +66,7 @@ partial class TextEditor
                             (
                                 textEditor
                                     .CaretConfiguration
-                                    .ShowSelectionWhenNotInEditingInputMode
+                                    .ShowCaretAndSelectionInReadonlyMode
                                 // 有选择时才能绘制选择范围，否则不应该只显示光标
                                 && !textEditor.CurrentSelection.IsEmpty
                             );

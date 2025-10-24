@@ -24,7 +24,7 @@ public class CaretConfiguration : SkiaCaretConfiguration
         base.CaretBrush = configuration.CaretBrush;
         base.SelectionBrush = configuration.SelectionBrush;
         CaretBlinkTime = configuration.CaretBlinkTime;
-        ShowSelectionWhenNotInEditingInputMode = configuration.ShowSelectionWhenNotInEditingInputMode;
+        ShowCaretAndSelectionInReadonlyMode = configuration.ShowCaretAndSelectionInReadonlyMode;
     }
 
     /// <summary>
