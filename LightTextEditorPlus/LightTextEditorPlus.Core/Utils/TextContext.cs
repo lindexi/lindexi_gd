@@ -44,6 +44,12 @@ public static class TextContext
     public const string NewLine = "\n";
 
     /// <summary>
+    /// 换行符的字符数量
+    /// </summary>
+    /// 为什么不使用 <see cref="NewLine"/>.Length 方法？这是为了提升性能
+    public const int NewLineDelimiterLength = 1; // length of '\n' NewLine.Length
+
+    /// <summary>
     /// 文本库统一写入的换行符，此换行符和平台无关，所有平台写入相同的值
     /// </summary>
     public const char NewLineChar = '\n';

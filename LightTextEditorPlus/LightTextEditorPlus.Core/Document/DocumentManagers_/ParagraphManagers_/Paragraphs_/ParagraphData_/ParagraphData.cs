@@ -232,7 +232,7 @@ internal sealed class ParagraphData : ITextParagraph
     /// 当本行被删除后这个属性值依然有效，这种情况下，它包含在删除之前的行分隔符的长度
     /// </summary>
     /// 无论在哪个平台上，都统一为 \n 一个字符
-    public static int DelimiterLength => TextContext.NewLine.Length;
+    public const int DelimiterLength = TextContext.NewLineDelimiterLength;
 
     /// <summary>
     /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如“123\r\n123”字符串，那么第二个段落的 Offset 为 "123".Length + DelimiterLength 的长度
