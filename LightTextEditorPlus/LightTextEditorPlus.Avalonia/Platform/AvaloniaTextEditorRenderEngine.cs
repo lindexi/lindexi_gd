@@ -67,8 +67,9 @@ partial class TextEditor
                                 textEditor
                                     .CaretConfiguration
                                     .ShowCaretAndSelectionInReadonlyMode
-                                // 有选择时才能绘制选择范围，否则不应该只显示光标
-                                && !textEditor.CurrentSelection.IsEmpty
+                                // 不能添加是否空选择的判断，否则从有选择切换到无选择时，将无法清除当前选择内容
+                                //// 有选择时才能绘制选择范围，否则不应该只显示光标
+                                //&& !textEditor.CurrentSelection.IsEmpty
                             );
                 return showCaret;
             }

@@ -463,6 +463,12 @@ partial class TextEditor : Control
                         // 内容宽度大于布局宽度，则使用内容宽度
                         width = documentContentBounds.Width;
                     }
+
+                    if (double.IsInfinity(availableSize.Width))
+                    {
+                        // 高度无穷的情况，应该得取小的范围，避免滚动条内，先拉大再缩小时，文本将获取拉大时的内容，无法再次缩小
+                        width = documentContentBounds.Width;
+                    }
                 }
 
                 if (notExistsHeight)
@@ -488,6 +494,12 @@ partial class TextEditor : Control
                         // 内容高度大于布局高度，则使用内容高度
                         height = documentContentBounds.Height;
                     }
+
+                    if (double.IsInfinity(availableSize.Height))
+                    {
+                        // 高度无穷的情况，应该得取小的范围，避免滚动条内，先拉大再缩小时，文本将获取拉大时的内容，无法再次缩小
+                        height = documentContentBounds.Height;
+                    }
                 }
 
                 return new Size(availableSize.Width, height);
@@ -503,6 +515,12 @@ partial class TextEditor : Control
                         // 内容宽度大于布局宽度，则使用内容宽度
                         width = documentContentBounds.Width;
                     }
+
+                    if (double.IsInfinity(availableSize.Width))
+                    {
+                        // 高度无穷的情况，应该得取小的范围，避免滚动条内，先拉大再缩小时，文本将获取拉大时的内容，无法再次缩小
+                        width = documentContentBounds.Width;
+                    }
                 }
 
                 if (notExistsHeight)
@@ -511,6 +529,12 @@ partial class TextEditor : Control
                     if (height < documentContentBounds.Height)
                     {
                         // 内容高度大于布局高度，则使用内容高度
+                        height = documentContentBounds.Height;
+                    }
+
+                    if (double.IsInfinity(availableSize.Height))
+                    {
+                        // 高度无穷的情况，应该得取小的范围，避免滚动条内，先拉大再缩小时，文本将获取拉大时的内容，无法再次缩小
                         height = documentContentBounds.Height;
                     }
                 }
