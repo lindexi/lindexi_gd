@@ -184,6 +184,11 @@ public sealed class CharData : ICharData, ILayoutCharData
                     CharLayoutData?.CurrentLine?.SetDirty();
                 }
             }
+            else if (CharDataInfo.GlyphIndex != charDataInfo.GlyphIndex)
+            {
+                // 比如蒙古文的情况。蒙古文需要根据后续字符来决定前续字符的字形索引，此时符合预期
+                CharLayoutData?.CurrentLine?.SetDirty();
+            }
             else
             {
                 throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
