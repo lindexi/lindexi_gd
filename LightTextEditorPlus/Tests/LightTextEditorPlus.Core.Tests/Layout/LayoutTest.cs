@@ -66,7 +66,7 @@ public class LayoutTest
             };
 
             // 修改文本，触发布局，然后布局过程触发修改文本
-            Assert.ThrowsException<ChangeDocumentOnUpdatingLayoutException>(() =>
+            Assert.ThrowsExactly<ChangeDocumentOnUpdatingLayoutException>(() =>
             {
                 textEditorCore.AppendText(TestHelper.PlainNumberText);
             });
