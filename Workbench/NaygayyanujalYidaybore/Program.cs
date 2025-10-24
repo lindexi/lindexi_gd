@@ -10,8 +10,8 @@ using BenchmarkDotNet.Jobs;
 
 namespace NaygayyanujalYidaybore;
 
-[SimpleJob(RunStrategy.ColdStart, RuntimeMoniker.Net90, launchCount: 1, warmupCount: 5, iterationCount: 500, id: "FastAndDirtyJob")]
-[SimpleJob(RunStrategy.ColdStart, RuntimeMoniker.Net10_0, launchCount: 1, warmupCount: 5, iterationCount: 500, id: "FastAndDirtyJob")]
+[SimpleJob(RunStrategy.ColdStart, RuntimeMoniker.Net90, launchCount: 1, warmupCount: 5, iterationCount: 500, invocationCount: 500, id: "FastAndDirtyJob")]
+[SimpleJob(RunStrategy.ColdStart, RuntimeMoniker.Net10_0, launchCount: 1, warmupCount: 5, iterationCount: 500, invocationCount: 500, id: "FastAndDirtyJob")]
 public class Program
 {
     static void Main(string[] args)
@@ -33,17 +33,27 @@ public class Program
 
     public const string TheText = "\n";
 
+    private IReadOnlyList<P> GetList() => _list;
+
     [Benchmark]
     public int BenchmarkMethod1()
     {
+        var list = GetList();
+
+        if (list.Count == 0)
+        {
+            return 0;
+        }
+
         int sum = 0;
-        foreach (var p in _list)
+
+        foreach (var p in list)
         {
             sum += p.Count;
             sum += P.TheTextLength;
         }
 
-        if (_list.Count > 0)
+        if (sum > 0)
         {
             sum -= P.TheTextLength;
         }
