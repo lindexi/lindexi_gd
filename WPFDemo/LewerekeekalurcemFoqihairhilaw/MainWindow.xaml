@@ -12,8 +12,9 @@
     </WindowChrome.WindowChrome>
 
     <Grid RowDefinitions="*,Auto">
-        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="123"/>
+        <TextBlock x:Name="TheTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Text="123"/>
 
         <!--<ToggleButton x:Name="SwitchThemeModeButton" Grid.Row="1" Margin="10,10,10,10" Click="SwitchThemeModeButton_OnClick">Switch Theme Mode</ToggleButton>-->
+        <Button x:Name="UpdateButton" Margin="10,10,10,10" VerticalAlignment="Bottom" Click="UpdateButton_OnClick">Update</Button>
     </Grid>
 </Window>

@@ -36,4 +36,11 @@ public partial class MainWindow : Window
         //    ThemeMode = ThemeMode.Light;
         //}
     }
+
+    private void UpdateButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TheTextBlock.Text = $"abc{Random.Shared.Next(10)}";
+        InvalidateVisual();
+        UpdateLayout();
+    }
 }
