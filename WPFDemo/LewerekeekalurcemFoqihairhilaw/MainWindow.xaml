@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LewerekeekalurcemFoqihairhilaw"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        Foreground="Black" Background="White">
     <WindowChrome.WindowChrome>
         <WindowChrome NonClientFrameEdges="Left,Right,Bottom"/>
     </WindowChrome.WindowChrome>
@@ -13,6 +14,6 @@
     <Grid RowDefinitions="*,Auto">
         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="123"/>
 
-        <ToggleButton x:Name="SwitchThemeModeButton" Grid.Row="1" Margin="10,10,10,10" Click="SwitchThemeModeButton_OnClick">Switch Theme Mode</ToggleButton>
+        <!--<ToggleButton x:Name="SwitchThemeModeButton" Grid.Row="1" Margin="10,10,10,10" Click="SwitchThemeModeButton_OnClick">Switch Theme Mode</ToggleButton>-->
     </Grid>
 </Window>

@@ -22,18 +22,18 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        ThemeMode = ThemeMode.Light;
+        //ThemeMode = ThemeMode.Light;
     }
 
     private void SwitchThemeModeButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (SwitchThemeModeButton.IsChecked is true)
-        {
-            ThemeMode = ThemeMode.Dark;
-        }
-        else
-        {
-            ThemeMode = ThemeMode.Light;
-        }
+        //if (SwitchThemeModeButton.IsChecked is true)
+        //{
+        //    ThemeMode = ThemeMode.Dark;
+        //}
+        //else
+        //{
+        //    ThemeMode = ThemeMode.Light;
+        //}
     }
 }
