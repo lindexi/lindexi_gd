@@ -292,11 +292,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //});
     }
 
-    private ModeInputArgs ToModeInputArgs(PointerRoutedEventArgs args)
+    private InkingModeInputArgs ToModeInputArgs(PointerRoutedEventArgs args)
     {
         var currentPoint = args.GetCurrentPoint(this);
         var stylusPoint = ToStylusPoint(currentPoint);
-        var modeInputArgs = new ModeInputArgs((int) args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
+        var modeInputArgs = new InkingModeInputArgs((int) args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
         return modeInputArgs;
     }
 

@@ -85,9 +85,13 @@ public readonly partial record struct InkId(int Value);
 /// 使用 Skia 的 Ink 笔迹画板
 >>>>>>> 922abd94b6eacfc8662c7dbc2186ea112c57f342
 /// </summary>
+<<<<<<< HEAD
 /// <param name="EnableClippingEraser">是否允许使用裁剪方式的橡皮擦，而不是走静态笔迹层</param>
 /// <param name="AutoSoftPen">是否开启自动软笔模式</param>
 record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true)
+=======
+class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSensitive
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
 {
     /// <summary>
     /// 修改笔尖渲染部分配置 动态笔迹层
@@ -416,11 +420,15 @@ partial class SkInkCanvas
     /// </summary>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     /// <param name="inputInfo"></param>
     class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
     {
 =======
     class DrawStrokeContext(InkId inkId, ModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
+=======
+    class DrawStrokeContext(InkId inkId, InkingModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         /// <summary>
         /// 笔迹的 Id 号，基本上每个笔迹都是不相同的。和输入的 Id 是不相同的，这是给每个 Stroke 一个的，不同的 Stroke 是不同的。除非有人能够一秒一条笔迹，写 60 多年才能重复
@@ -431,6 +439,7 @@ partial class SkInkCanvas
 
 >>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         public SKColor StrokeColor { get; } = strokeColor;
+<<<<<<< HEAD
         public InkingInputInfo InputInfo { set; get; } = inputInfo;
 =======
     class DrawStrokeContext : IDisposable
@@ -466,6 +475,9 @@ partial class SkInkCanvas
         /// 丢点的数量
         /// </summary>
 >>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
+=======
+        public InkingModeInputArgs InputInfo { set; get; } = inputInfo;
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
         public int DropPointCount { set; get; }
 
         /// <summary>
@@ -545,9 +557,13 @@ partial class SkInkCanvas
 <<<<<<< HEAD
     private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
 
+<<<<<<< HEAD
     private int MainInputId { set; get; }
 
     private void InputStart()
+=======
+    void IInkingInputProcessor.InputStart()
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -593,7 +609,11 @@ partial class SkInkCanvas
         skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
     }
 
+<<<<<<< HEAD
     public void Down(InkingInputInfo info)
+=======
+    void IInkingInputProcessor.Down(InkingModeInputArgs info)
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -654,7 +674,11 @@ partial class SkInkCanvas
     private StepCounter _stepCounter = new StepCounter();
     private int _moveCount = 0;
 
+<<<<<<< HEAD
     public void Move(InkingInputInfo info)
+=======
+    void IInkingInputProcessor.Move(InkingModeInputArgs info)
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         if (!CurrentInputDictionary.ContainsKey(info.Id))
         {
@@ -790,7 +814,16 @@ partial class SkInkCanvas
         //_stepCounter.Restart();
     }
 
+<<<<<<< HEAD
     public void Up(InkingInputInfo info)
+=======
+    void IInkingInputProcessor.Hover(InkingModeInputArgs args)
+    {
+        // 没有什么作用
+    }
+
+    void IInkingInputProcessor.Up(InkingModeInputArgs info)
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         var context = UpdateInkingStylusPoint(info);
 
@@ -843,7 +876,20 @@ partial class SkInkCanvas
 >>>>>>> 922abd94b6eacfc8662c7dbc2186ea112c57f342
     }
 
+<<<<<<< HEAD
     private void InputComplete()
+=======
+    void IInkingInputProcessor.InputComplete()
+    {
+        Clean();
+
+        StaticDebugLogger.WriteLine($"InputComplete\r\n==========\r\n");
+
+        InputCompleted?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Clean()
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         // 不加这句话，将会在 foreach 里炸掉，不知道是不是 CLR 的坑
         var enumerator = CurrentInputDictionary.GetEnumerator();
@@ -865,7 +911,11 @@ partial class SkInkCanvas
     /// <summary>
     /// 这是 WPF 的概念，那就继续用这个概念
     /// </summary>
+<<<<<<< HEAD
     public void Leave()
+=======
+    void IInkingInputProcessor.Leave()
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         InputComplete();
 
@@ -890,7 +940,13 @@ partial class SkInkCanvas
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
     }
 
+<<<<<<< HEAD
     private DrawStrokeContext UpdateInkingStylusPoint(InkingInputInfo info)
+=======
+    #endregion
+
+    private DrawStrokeContext UpdateInkingStylusPoint(InkingModeInputArgs info)
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
         {
@@ -1450,12 +1506,74 @@ partial class SkInkCanvas
 
     private bool IsInEraserMode { set; get; }
 
+<<<<<<< HEAD
+=======
+    public bool IsInEraserGestureMode { private set; get; }
+
+    /// <summary>
+    /// 进入橡皮擦模式
+    /// </summary>
+    public void EnterEraserGestureMode(in InkingModeInputArgs args)
+    {
+        IsInEraserGestureMode = true;
+
+        // 解决手势橡皮擦无法启动问题
+        // 步骤：
+        // 1. 左手手指1按下
+        // 2. 右手手掌2触摸
+        // 3. 移动手指1然后抬起
+        // 原现象：
+        // 手指1移动过程出现橡皮擦，手掌2部分移动没效果
+        // 抬起手指1之后，所有触摸都没有反应
+        // 原因，橡皮擦采用首个触摸手指进行处理，而不是真正触发面积的手指处理，导致处理错误
+        // 实际效果：有时候手势橡皮擦就是什么都没发生
+        // 当前逻辑： 橡皮擦将跟随手掌2移动，等后续如果手掌2先于手指1抬起，之后手指1移动将会作为橡皮擦
+        if (IsInEraserMode && _isErasing)
+        {
+            // 如果是橡皮擦模式，且在擦中，则啥都不需要做
+            // 修复 gitlab/45
+        }
+        else
+        {
+            System.Diagnostics.Debug.Assert(!_isErasing);
+            DownEraser(in args);
+        }
+    }
+
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     /// <summary>
     /// 移动橡皮擦的计时器，用于丢点
     /// </summary>
     private Stopwatch MoveEraserStopwatch { get; } = new Stopwatch();
 
+<<<<<<< HEAD
     private void MoveEraser(InkingInputInfo info)
+=======
+    private (double Width, double Height)? _lastEraserTouchSize;
+
+    /// <summary>
+    /// 由于橡皮擦只能支持单个手指，多个手指性能顶不住，因此需要此判断具体输入是哪个手指
+    /// </summary>
+    private int _eraserDeviceId;
+
+    /// <summary>
+    /// 是否正在擦中
+    /// </summary>
+    private bool _isErasing;
+
+    private void DownEraser(in InkingModeInputArgs info)
+    {
+        if (_isErasing)
+        {
+            throw new InvalidOperationException($"重复进入橡皮擦");
+        }
+
+        _eraserDeviceId = info.Id;
+        _isErasing = true;
+    }
+
+    private void MoveEraser(InkingModeInputArgs info)
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         if (_skCanvas is not { } canvas || _originBackground is null)
         {
@@ -2007,7 +2125,16 @@ partial class SkInkCanvas
     /// </summary>
     private Rect? _lastEraserRenderBounds;
 
+<<<<<<< HEAD
     private void UpEraser(InkingInputInfo info)
+=======
+    /// <summary>
+    /// 橡皮擦开始擦的时间
+    /// </summary>
+    private readonly Stopwatch _eraserStartTime = new Stopwatch();
+
+    private void UpEraser(in InkingModeInputArgs info)
+>>>>>>> d2e26b5cc6815e22adbebe5cfa6f68b898e61ab4
     {
         if (_skCanvas is not { } canvas || _originBackground is null || EraserPath is null)
         {
@@ -2065,7 +2192,7 @@ partial class SkInkCanvas
             new SKRect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
-    public ModeInputDispatcher ModeInputDispatcher { set; get; }
+    public InkingModeInputDispatcher ModeInputDispatcher { set; get; }
     // 框架层赋值
         = null!;
 >>>>>>> 39d04b77e06e363367cdf8cd19518d9f2e904b9d
