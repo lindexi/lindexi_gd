@@ -1,6 +1,9 @@
-using System.Numerics;
+﻿using System.Numerics;
 using DotNetCampus.Inking.Primitive;
-using Microsoft.Maui.Graphics;
+
+using Point = DotNetCampus.Numerics.Geometry.Point2D;
+using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
+using Size2D = DotNetCampus.Numerics.Geometry.Size2D;
 
 namespace UnoInk.Inking.InkCore
 {
