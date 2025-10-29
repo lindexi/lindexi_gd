@@ -933,6 +933,7 @@ partial class SkInkCanvas
     /// </summary>
     public List<StrokeCollectionInfo> StaticInkInfoList { get; } = new List<StrokeCollectionInfo>();
 
+<<<<<<< HEAD
 
     /// <summary>
     /// 按照德熙的玄幻算法，决定传入的点是否能丢掉
@@ -989,6 +990,9 @@ partial class SkInkCanvas
         return true;
 >>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
     }
+=======
+  
+>>>>>>> d2df240b7c57f7de213904a3a82db3d62501b43d
 
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {

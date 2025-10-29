@@ -8,8 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetCampus.Numerics.Geometry" Version="1.0.1-alpha22" />
-    <PackageReference Include="DotNetCampus.Logger" Version="1.3.0-alpha01" />
+    <PackageReference Include="SkiaSharp" Version="2.88.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetCampus.InkCanvas.InkCore\DotNetCampus.InkCanvas.InkCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Algorithms\" />
   </ItemGroup>
 
 </Project>
