@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Inking\Context_\" />
+  </ItemGroup>
+
 </Project>
