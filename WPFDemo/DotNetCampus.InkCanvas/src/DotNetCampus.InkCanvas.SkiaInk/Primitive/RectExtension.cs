@@ -1,5 +1,6 @@
-using Microsoft.Maui.Graphics;
-using SkiaSharp;
+﻿using SkiaSharp;
+
+using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
 
 namespace UnoInk.Inking.InkCore;
 
@@ -58,6 +59,11 @@ static class RectExtension
         var right = inputRect.Right;
         var bottom = inputRect.Bottom;
 
+        if (double.IsNaN(left) || double.IsNaN(top) || double.IsNaN(right) || double.IsNaN(bottom))
+        {
+            return Rect.Zero;
+        }
+
         left = Math.Max(left, maxRect.Left);
         top = Math.Max(top, maxRect.Top);
         right = Math.Min(right, maxRect.Right);
@@ -74,19 +80,34 @@ static class RectExtension
         return new Rect(left, top, width, height);
     }
 
-    public static Rect Expand(SKRect rect, double addition)
+    public static Rect ExpandLength(SKRect rect, double additionLengthIncrement)
     {
-        return new Rect(rect.Left - addition, rect.Top - addition,
-            rect.Width + addition * 2, rect.Height + addition * 2);
+        return new Rect(rect.Left - additionLengthIncrement, rect.Top - additionLengthIncrement,
+            rect.Width + additionLengthIncrement * 2, rect.Height + additionLengthIncrement * 2);
     }
 
-    public static SKRect ExpandSKRect(SKRect rect, float addition)
+    public static SKRect ExpandSKRectLength(SKRect rect, float additionLengthIncrement)
     {
-        return new SKRect(rect.Left - addition, rect.Top - addition,
-            rect.Width + addition * 2, rect.Height + addition * 2);
+        return new SKRect(rect.Left - additionLengthIncrement, rect.Top - additionLengthIncrement,
+            rect.Width + additionLengthIncrement * 2, rect.Height + additionLengthIncrement * 2);
     }
-    
-    public static Rect ToMauiRect(this SKRect rect)
+
+    //public static Rect ToMauiRect(this SKRect rect)
+    //{
+    //    return new Rect(rect.Left, rect.Top, rect.Width, rect.Height);
+    //}
+
+    //public static Rect ToMauiRect(this Rect rect)
+    //{
+    //    return new Rect(rect.Left, rect.Top, rect.Width, rect.Height);
+    //}
+
+    public static Rect ToRect2D(this SKRect rect)
+    {
+        return new Rect(rect.Left, rect.Top, rect.Width, rect.Height);
+    }
+
+    public static Rect ToRect2D(this Rect rect)
     {
         return new Rect(rect.Left, rect.Top, rect.Width, rect.Height);
     }
