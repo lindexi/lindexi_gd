@@ -7,4 +7,8 @@
     <RootNamespace>DotNetCampus.Inking</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DotNetCampus.Numerics.Geometry" Version="1.0.1-alpha22" />
+  </ItemGroup>
+
 </Project>
