@@ -1,5 +1,4 @@
-using System.Numerics;
-using Microsoft.Maui.Graphics;
+﻿using System.Numerics;
 
 namespace BujeeberehemnaNurgacolarje
 {
@@ -8,11 +7,7 @@ namespace BujeeberehemnaNurgacolarje
     /// </summary>
     internal static class SimpleInkRender
     {
-        private static readonly Matrix3x2 RotationPiDiv8 = Matrix3x2.CreateRotation(MathF.PI / 8);
-        private static readonly Matrix3x2 RotationPiDiv4 = Matrix3x2.CreateRotation(MathF.PI / 4);
-        private static readonly Matrix3x2 Rotation3PiDiv8 = Matrix3x2.CreateRotation(3 * MathF.PI / 8);
-
-        public static Point[] GetOutlinePointList(IReadOnlyList<UnoInk.Inking.InkCore.StylusPoint> pointList, double inkSize)
+        public static Point[] GetOutlinePointList(Span<StylusPoint> pointList, double inkSize)
         {
             if (pointList.Count < 2)
             {

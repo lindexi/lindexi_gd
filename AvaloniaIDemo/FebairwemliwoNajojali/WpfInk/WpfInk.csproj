@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <DefineConstants>$(DefineConstants);PRESENTATION_CORE;WpfInk</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\BrushCreator.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\PerformanceDesktopTransparentWindow.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.Dwmapi.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.WM.cs" />
+  </ItemGroup>
+
+  <!--<PropertyGroup>
+    <WpfInkFolder>..\..\..\..\lindexi_gd\Ink\WpfInk\WpfInk</WpfInkFolder>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(WpfInkFolder)\PresentationCore\**\*" LinkBase="PresentationCore" />
+    <Compile Include="$(WpfInkFolder)\ref\**\*" LinkBase="ref" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="$(WpfInkFolder)\PresentationCore\MS\Internal\Ink\GestureRecognizer\NativeRecognizer.cs" />
+    <Compile Remove="$(WpfInkFolder)\PresentationCore\System\Windows\Ink\GestureRecognizer.cs" />
+    <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\exports.cs" />
+    <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\Generated\wgx_commands.cs" />
+    <Compile Remove="$(WpfInkFolder)\ref\WpfCommon\Graphics\wgx_exports.cs" />
+  </ItemGroup>-->
+
+  <ItemGroup>
+    <ProjectReference Include="..\InkBase\InkBase.csproj" />
+  </ItemGroup>
+
+</Project>

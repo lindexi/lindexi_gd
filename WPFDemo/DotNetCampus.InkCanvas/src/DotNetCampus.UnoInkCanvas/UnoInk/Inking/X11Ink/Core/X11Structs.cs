@@ -1159,10 +1159,10 @@ namespace CPF.Linux
         public IntPtr input_mode;
         public IntPtr status;
 
-        public override string ToString()
-        {
-            return string.Format("MotifWmHints <flags={0}, functions={1}, decorations={2}, input_mode={3}, status={4}", (MotifFlags)flags.ToInt32(), (MotifFunctions)functions.ToInt32(), (MotifDecorations)decorations.ToInt32(), (MotifInputMode)input_mode.ToInt32(), status.ToInt32());
-        }
+        //public override string ToString()
+        //{
+        //    return string.Format("MotifWmHints <flags={0}, functions={1}, decorations={2}, input_mode={3}, status={4}", (MotifFlags)flags.ToInt32(), (MotifFunctions)functions.ToInt32(), (MotifDecorations)decorations.ToInt32(), (MotifInputMode)input_mode.ToInt32(), status.ToInt32());
+        //}
     }
 
     [Flags]
@@ -1794,11 +1794,11 @@ namespace CPF.Linux
         public int delay;       /* hot spot y (must be inside image) */
         public IntPtr pixels;    /* pointer to pixels */
 
-        public override string ToString()
-        {
-            return string.Format("XCursorImage (version: {0}, size: {1}, width: {2}, height: {3}, xhot: {4}, yhot: {5}, delay: {6}, pixels: {7}",
-                version, size, width, height, xhot, yhot, delay, pixels);
-        }
+        //public override string ToString()
+        //{
+        //    return string.Format("XCursorImage (version: {0}, size: {1}, width: {2}, height: {3}, xhot: {4}, yhot: {5}, delay: {6}, pixels: {7}",
+        //        version, size, width, height, xhot, yhot, delay, pixels);
+        //}
     };
 
     [StructLayout(LayoutKind.Sequential)]

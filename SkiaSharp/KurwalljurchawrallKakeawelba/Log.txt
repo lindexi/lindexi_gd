@@ -1,0 +1,141 @@
+﻿[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] -0.53,0.26
+[ManipulateMove] -2.40,1.12
+[ManipulateMove] -5.45,1.29
+[ManipulateMove] -5.27,-0.30
+[ManipulateMove] -3.11,-0.36
+[ManipulateMove] -2.75,-0.40
+[ManipulateMove] -3.05,-0.99
+[ManipulateMove] -4.98,-2.14
+[ManipulateMove] -1.99,-1.42
+[ManipulateMove] -0.88,-0.89
+[ManipulateMove] -0.23,-0.10
+[ManipulateMove] -1.05,-1.02
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] -1.23,-1.42
+[ManipulateMove] 3.28,5.34
+[ManipulateMove] 5.10,6.59
+[ManipulateMove] 5.51,4.81
+[ManipulateMove] 6.62,6.06
+[ManipulateMove] 1.99,2.18
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.88,0.99
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.76,0.79
+[ManipulateMove] -0.12,-0.13
+[ManipulateMove] -0.12,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.00,0.00
+[ManipulateMove] 0.12,-0.16
+[ManipulateMove] -0.12,-1.48
+[ManipulateMove] 0.00,0.00
+
+UpdateOriginBackground 1.653121ms
+统计所需命中的笔迹 5.986465ms
+完成绘制笔迹 1.959817ms
+拷贝像素 2.795475ms
+
+[PointPathEraserManager] Move 平均耗时 12.10752376237623 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.204573267326733 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.68830495049505 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 16.993600000000004 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 16.83861683168317 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.254797029702967 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.05034950495049 点数量 34076996
+
+多线程版本的性能
+
+[PointPathEraserManager] Move 平均耗时 7.301952475247526
+[PointPathEraserManager] Move 平均耗时 10.627973267326736
+[PointPathEraserManager] Move 平均耗时 11.802664356435647
+[PointPathEraserManager] Move 平均耗时 12.236166336633664
+[PointPathEraserManager] Move 平均耗时 11.555821782178217
+[PointPathEraserManager] Move 平均耗时 11.60158217821782
+[PointPathEraserManager] Move 平均耗时 11.628834653465352
+[PointPathEraserManager] Move 平均耗时 12.27623366336634
+[PointPathEraserManager] Move 平均耗时 11.758031683168326
+[PointPathEraserManager] Move 平均耗时 11.83289504950495
+[PointPathEraserManager] Move 平均耗时 12.227991089108917
+[PointPathEraserManager] Move 平均耗时 12.089899009900995
+
+[PointPathEraserManager] Move 平均耗时 9.770741584158415
+[PointPathEraserManager] Move 平均耗时 8.86427623762376
+[PointPathEraserManager] Move 平均耗时 8.85716633663366
+[PointPathEraserManager] Move 平均耗时 9.034934653465344
+[PointPathEraserManager] Move 平均耗时 9.494974257425744
+[PointPathEraserManager] Move 平均耗时 9.157076237623764
+[PointPathEraserManager] Move 平均耗时 9.288452475247526
+
+在 WPF 跑的性能
+
+[PointPathEraserManager] Move 平均耗时 0.6395207920792079
+[PointPathEraserManager] Move 平均耗时 0.6338920792079203
+[PointPathEraserManager] Move 平均耗时 0.5654366336633665
+[PointPathEraserManager] Move 平均耗时 0.5687079207920792
+[PointPathEraserManager] Move 平均耗时 0.6063267326732671
+[PointPathEraserManager] Move 平均耗时 0.5464405940594058
+
+在 WPF 单线程
+
+[PointPathEraserManager] Move 平均耗时 2.6840554455445553
+[PointPathEraserManager] Move 平均耗时 2.618812871287129
+[PointPathEraserManager] Move 平均耗时 2.514526732673268
+[PointPathEraserManager] Move 平均耗时 2.5372712871287137
+[PointPathEraserManager] Move 平均耗时 2.613154455445544
+[PointPathEraserManager] Move 平均耗时 2.5237980198019807
+[PointPathEraserManager] Move 平均耗时 2.4983475247524756
+[PointPathEraserManager] Move 平均耗时 2.5970960396039597
+[PointPathEraserManager] Move 平均耗时 2.669212871287128
+[PointPathEraserManager] Move 平均耗时 2.509209900990099
+[PointPathEraserManager] Move 平均耗时 2.460584158415842
+[PointPathEraserManager] Move 平均耗时 2.424407920792079
+[PointPathEraserManager] Move 平均耗时 2.41298811881188
+[PointPathEraserManager] Move 平均耗时 2.3992336633663363
+[PointPathEraserManager] Move 平均耗时 2.4015544554455452
+[PointPathEraserManager] Move 平均耗时 2.410529702970297
+[PointPathEraserManager] Move 平均耗时 2.383587128712871
+
+带结构体
+
+[PointPathEraserManager] Move 平均耗时 2.4972455445544552
+[PointPathEraserManager] Move 平均耗时 2.5618554455445555
+[PointPathEraserManager] Move 平均耗时 2.571540594059406
+[PointPathEraserManager] Move 平均耗时 2.596585148514852
+[PointPathEraserManager] Move 平均耗时 2.4919316831683176
+[PointPathEraserManager] Move 平均耗时 2.4700792079207923
+[PointPathEraserManager] Move 平均耗时 2.4596366336633664
+
+带 Point 小结构体
+
+[PointPathEraserManager] Move 平均耗时 2.0423702970297026
+[PointPathEraserManager] Move 平均耗时 2.024487128712871
+[PointPathEraserManager] Move 平均耗时 2.00399405940594
+[PointPathEraserManager] Move 平均耗时 2.007448514851484
+[PointPathEraserManager] Move 平均耗时 2.017367326732674
+[PointPathEraserManager] Move 平均耗时 1.9945524752475243
+[PointPathEraserManager] Move 平均耗时 1.9932960396039616
+[PointPathEraserManager] Move 平均耗时 1.9945029702970296

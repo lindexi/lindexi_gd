@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:febairwemliwoNajojali="clr-namespace:FebairwemliwoNajojali"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="FebairwemliwoNajojali.MainWindow"
+        WindowState="FullScreen"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="FebairwemliwoNajojali" Background="Transparent">
+  <Grid>
+
+    <febairwemliwoNajojali:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
+
+    <StackPanel Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" Background="White">
+      <StackPanel.Styles>
+        <Style Selector="Button">
+          <Setter Property="Margin" Value="10,10,10,10"></Setter>
+        </Style>
+      </StackPanel.Styles>
+      <Button x:Name="ReduceInkThicknessButton" Content="减少尺寸" Click="ReduceInkThicknessButton_OnClick"></Button>
+      <Button x:Name="AddInkThicknessButton" Content="增加尺寸" Click="AddInkThicknessButton_OnClick"></Button>
+      <Button x:Name="ToggleStrokeButton" Content="隐藏或显示WPF笔迹" Click="ToggleStrokeButton_OnClick"></Button>
+      <Button x:Name="CloseButton" Content="退出" Click="CloseButton_OnClick"></Button>
+    </StackPanel>
+
+  </Grid>
+</Window>

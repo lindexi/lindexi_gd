@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);ChalljeheahawCemkokewhahile</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\X11Platforms\**\*.cs" LinkBase="X11Apps" />
+    <Compile Include="..\..\BehairracercairJifelalihay\EdidInfo.cs" Link="Edid\EdidInfo.cs" />
+    <Compile Include="..\..\BehairracercairJifelalihay\Cm.cs" Link="Edid\Cm.cs" />
+    <Compile Include="..\..\BehairracercairJifelalihay\EdidBasicDisplayParameters.cs" Link="Edid\EdidBasicDisplayParameters.cs" />
+    <Compile Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\Primitive\Mathematics\GlobalUsing.cs" Link="GlobalUsing.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\PixelSize.cs" Link="PixelSize.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\X11Atoms.cs" Link="X11Atoms.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\X11Enums.cs" Link="X11Enums.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\X11Info.cs" Link="X11Info.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\X11Structs.cs" Link="X11Structs.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\XError.cs" Link="XError.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\XIStructs.cs" Link="XIStructs.cs" />
+    <Compile Include="..\BujeeberehemnaNurgacolarje\XLib.cs" Link="XLib.cs" />
+    <Compile Include="..\DikalehebeekaJaqunicobo\ShapeConst.cs" Link="ShapeConst.cs" />
+    <Compile Include="..\DikalehebeekaJaqunicobo\XFixes.cs" Link="XFixes.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\YerwurfarjahoWeljifaihel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.7" />
+  </ItemGroup>
+</Project>
