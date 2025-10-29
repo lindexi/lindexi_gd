@@ -468,6 +468,7 @@ partial class SkInkCanvas
         /// 笔尖的点
         /// </summary>
 <<<<<<< HEAD
+<<<<<<< HEAD
         public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
 =======
         public FixedQueue<StylusPoint> TipStylusPoints { get; }
@@ -479,6 +480,9 @@ partial class SkInkCanvas
         ///// </summary>
         //private List<StylusPoint>? _historyDequeueList;
 >>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
+=======
+        public readonly FixedQueue<InkStylusPoint> TipStylusPoints = new FixedQueue<InkStylusPoint>(MaxTipStylusCount);
+>>>>>>> e1ada82f64d1e8e364e841a1d30345d38656d20e
 
         ///// <summary>
         ///// 整个笔迹的点，包括笔尖的点
@@ -706,7 +710,7 @@ partial class SkInkCanvas
                 // 大部分情况下都不会进入此分支，除非是卡了
 
                 // 先执行丢点算法，避免进入太多的点
-                var result = new List<StylusPoint>();
+                var result = new List<InkStylusPoint>();
                 result.Add(stylusPointList[0]);
                 // 这里使用新的丢点的算法
                 // 可以丢掉更多的点
@@ -997,7 +1001,7 @@ partial class SkInkCanvas
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
         //StaticDebugLogger.WriteLine($"DrawStroke {context.InputInfo.StylusPoint.Point}");
-        StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
+        InkStylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
         drawRect = Rect.Zero;
         if (context.TipStylusPoints.Count == 0)
@@ -1538,7 +1542,7 @@ partial class SkInkCanvas
                 // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 20 毫秒，导致性能过于差
                 if (Settings.ShouldCollectDropErasePoint)
                 {
-                    _eraserDropPointList ??= new List<StylusPoint>();
+                    _eraserDropPointList ??= new List<InkStylusPoint>();
                     _eraserDropPointList.Add(info.StylusPoint);
                 }
 
@@ -1732,7 +1736,7 @@ partial class SkInkCanvas
                 // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 20 毫秒，导致性能过于差
                 if (Settings.ShouldCollectDropErasePoint)
                 {
-                    _eraserDropPointList ??= new List<StylusPoint>();
+                    _eraserDropPointList ??= new List<InkStylusPoint>();
                     _eraserDropPointList.Add(info.StylusPoint);
                 }
 
@@ -1866,7 +1870,7 @@ partial class SkInkCanvas
                 // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 20 毫秒，导致性能过于差
                 if (Settings.ShouldCollectDropErasePoint)
                 {
-                    _eraserDropPointList ??= new List<StylusPoint>();
+                    _eraserDropPointList ??= new List<InkStylusPoint>();
                     _eraserDropPointList.Add(info.StylusPoint);
                 }
 
@@ -1992,7 +1996,7 @@ partial class SkInkCanvas
     /// <summary>
     /// 在橡皮擦丢点进行收集，进行一次性处理
     /// </summary>
-    private List<StylusPoint>? _eraserDropPointList;
+    private List<InkStylusPoint>? _eraserDropPointList;
 
     /// <summary>
     /// 上一次的橡皮擦渲染范围

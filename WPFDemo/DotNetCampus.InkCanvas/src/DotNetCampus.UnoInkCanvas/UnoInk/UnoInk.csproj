@@ -52,6 +52,7 @@
     <PackageReference Include="Microsoft.Maui.Graphics" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\DotNetCampus.InkCanvas.InkCore\DotNetCampus.InkCanvas.InkCore.csproj" />
     <ProjectReference Include="..\UnoHacker\UnoHacker.csproj" />
   </ItemGroup>
 =======

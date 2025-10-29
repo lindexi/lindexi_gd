@@ -32,15 +32,15 @@ public class SkiaStroke : IDisposable
     public SKColor Color { get; init; } = SKColors.Red;
     public float InkThickness { get; init; } = 20;
 
-    public IReadOnlyList<StylusPoint> PointList => _pointList;
-    private readonly List<StylusPoint> _pointList = [];
+    public IReadOnlyList<InkStylusPoint> PointList => _pointList;
+    private readonly List<InkStylusPoint> _pointList = [];
 
     /// <summary>
     /// 是否需要重新创建笔迹点，采用平滑滤波算法
     /// </summary>
     public static bool ShouldReCreatePoint { get; set; } = false;
 
-    public void AddPoint(StylusPoint point)
+    public void AddPoint(InkStylusPoint point)
     {
         if (_isStaticStroke)
         {
@@ -82,15 +82,15 @@ public class SkiaStroke : IDisposable
         Path.Dispose();
     }
 
-    public static List<StylusPoint> ApplyMeanFilter(List<StylusPoint> pointList, int step = 10)
+    public static List<InkStylusPoint> ApplyMeanFilter(List<InkStylusPoint> pointList, int step = 10)
     {
         var xList = ApplyMeanFilter(pointList.Select(t => t.Point.X).ToList(), step);
         var yList = ApplyMeanFilter(pointList.Select(t => t.Point.Y).ToList(), step);
 
-        var newPointList = new List<StylusPoint>();
+        var newPointList = new List<InkStylusPoint>();
         for (int i = 0; i < xList.Count && i < yList.Count; i++)
         {
-            newPointList.Add(new StylusPoint(xList[i], yList[i]));
+            newPointList.Add(new InkStylusPoint(xList[i], yList[i]));
         }
 
         return newPointList;

@@ -1,18 +1,18 @@
-using System.Linq;
+﻿using System.Linq;
 using UnoInk.Inking.InkCore;
 
 namespace WejallkachawDadeawejearhuce.Inking.Primitive;
 
-public readonly record struct StylusPointListSpan(IReadOnlyList<StylusPoint> OriginList, int Start, int Length)
+public readonly record struct StylusPointListSpan(IReadOnlyList<InkStylusPoint> OriginList, int Start, int Length)
 {
-    public IEnumerable<StylusPoint> GetEnumerable()
+    public IEnumerable<InkStylusPoint> GetEnumerable()
     {
         return OriginList.Skip(Start).Take(Length);
     }
 
-    public IReadOnlyList<StylusPoint> ToReadOnlyList()
+    public IReadOnlyList<InkStylusPoint> ToReadOnlyList()
     {
-        var result = new StylusPoint[Length];
+        var result = new InkStylusPoint[Length];
         for (int i = 0, listIndex = Start; i < Length; i++, listIndex++)
         {
             result[i] = OriginList[listIndex];

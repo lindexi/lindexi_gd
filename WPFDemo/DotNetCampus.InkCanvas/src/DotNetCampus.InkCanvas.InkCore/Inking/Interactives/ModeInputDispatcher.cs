@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.Maui.Graphics;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Input;
@@ -222,7 +222,7 @@ public record InputProcessorSettings
 }
 
 [ImplicitKeys(IsEnabled = false)]
-public readonly record struct ModeInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp)
+public readonly record struct ModeInputArgs(int Id, InkStylusPoint StylusPoint, ulong Timestamp)
 {
     public Point Position => StylusPoint.Point;
 
@@ -234,7 +234,7 @@ public readonly record struct ModeInputArgs(int Id, StylusPoint StylusPoint, ulo
     /// <summary>
     /// 被合并的其他历史的触摸点。可能为空
     /// </summary>
-    public IReadOnlyList<StylusPoint>? StylusPointList { init; get; }
+    public IReadOnlyList<InkStylusPoint>? StylusPointList { init; get; }
 }
 
 static class ModeInputArgsExtension
@@ -243,7 +243,7 @@ static class ModeInputArgsExtension
     {
         var deviceInputPoint = args.Point;
         
-        IReadOnlyList<StylusPoint>? stylusPointList;
+        IReadOnlyList<InkStylusPoint>? stylusPointList;
         var count = args.DeviceInputPointCount;
         if (count < 1)
         {
@@ -265,8 +265,8 @@ static class ModeInputArgsExtension
         };
     }
     
-    public static StylusPoint ToStylusPoint(in DeviceInputPoint point, bool ignorePressure = true) =>
-        new StylusPoint(point.Position, !ignorePressure ? point.Pressure ?? 0.5f : 0.5f)
+    public static InkStylusPoint ToStylusPoint(in DeviceInputPoint point, bool ignorePressure = true) =>
+        new InkStylusPoint(point.Position, !ignorePressure ? point.Pressure ?? 0.5f : 0.5f)
         {
             IsPressureEnable = !ignorePressure && point.Pressure is not null,
             Width = point.PixelWidth,

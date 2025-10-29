@@ -15,8 +15,4 @@
     <ProjectReference Include="..\DotNetCampus.InkCanvas.InkCore\DotNetCampus.InkCanvas.InkCore.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Algorithms\" />
-  </ItemGroup>
-
 </Project>
