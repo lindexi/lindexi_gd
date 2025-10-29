@@ -55,6 +55,7 @@
     <ProjectReference Include="..\..\DotNetCampus.InkCanvas.InkCore\DotNetCampus.InkCanvas.InkCore.csproj" />
     <ProjectReference Include="..\UnoHacker\UnoHacker.csproj" />
   </ItemGroup>
+<<<<<<< HEAD
 =======
     </UnoFeatures>
   </PropertyGroup>
@@ -85,5 +86,10 @@
     </UnoFeatures>
   </PropertyGroup>
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
+=======
+  <ItemGroup>
+    <Folder Include="Inking\InkCore\Diagnostics\" />
+  </ItemGroup>
+>>>>>>> ce268d7b54dbdacf57f3d7abce948bcd4fd1c381
 
 </Project>
