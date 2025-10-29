@@ -9,7 +9,7 @@ namespace UnoInk.Inking.InkCore.Interactives;
 /// <summary>
 /// 输入调度器
 /// </summary>
-public class ModeInputDispatcher
+public class InkingModeInputDispatcher
 {
     private HashSet<int> CurrentInputIdHashSet { get; } = new HashSet<int>();
 
@@ -30,7 +30,7 @@ public class ModeInputDispatcher
 
     private readonly Stopwatch _inputDuringStopwatch = new Stopwatch();
 
-    public void Down(in ModeInputArgs args)
+    public void Down(in InkingModeInputArgs args)
     {
         CurrentInputIdHashSet.Add(args.Id);
 
@@ -57,7 +57,7 @@ public class ModeInputDispatcher
         }
     }
 
-    private void ProcessDown(in ModeInputArgs args)
+    private void ProcessDown(in InkingModeInputArgs args)
     {
         foreach (var inputProcessor in InputProcessors)
         {
@@ -68,7 +68,7 @@ public class ModeInputDispatcher
         }
     }
 
-    public void Move(in ModeInputArgs args)
+    public void Move(in InkingModeInputArgs args)
     {
         if (CurrentInputIdHashSet.Contains(args.Id))
         {
@@ -100,18 +100,18 @@ public class ModeInputDispatcher
                 // 非鼠标没有 Hover 效果
                 // 如果是在 IsInputStart=false 时，代表触摸离开之后，收到离开之后的消息
                 // 对应的问题记录：手势橡皮擦进入工具条时，先触发 Leave 里面，符合预期的进行结束手势橡皮擦。然而后续居然又继续收到 Move 事件，导致判断橡皮擦逻辑工作，再次错误进入了手势橡皮擦模式
-                StaticDebugLogger.WriteLine($"[{nameof(ModeInputDispatcher)}] Lost Move IsInputStart={IsInputStart} Id={args.Id}");
+                StaticDebugLogger.WriteLine($"[{nameof(InkingModeInputDispatcher)}] Lost Move IsInputStart={IsInputStart} Id={args.Id}");
             }
         }
     }
 
-    public void Up(ModeInputArgs args)
+    public void Up(InkingModeInputArgs args)
     {
         if (CurrentInputIdHashSet.Remove(args.Id))
         {
             if (args.Id == MainInputId)
             {
-                StaticDebugLogger.WriteLine($"[{nameof(ModeInputDispatcher)}] MainIdUp MainId={MainInputId}");
+                StaticDebugLogger.WriteLine($"[{nameof(InkingModeInputDispatcher)}] MainIdUp MainId={MainInputId}");
             }
 
             foreach (var inputProcessor in InputProcessors)
@@ -154,7 +154,7 @@ public class ModeInputDispatcher
     /// </summary>
     public void Leave()
     {
-        StaticDebugLogger.WriteLine($"{nameof(ModeInputDispatcher)} Leave");
+        StaticDebugLogger.WriteLine($"{nameof(InkingModeInputDispatcher)} Leave");
 
         foreach (var inputProcessor in InputProcessors)
         {
@@ -172,17 +172,17 @@ public class ModeInputDispatcher
     /// <summary>
     /// 加上输入处理者，有输入时自然执行
     /// </summary>
-    /// <param name="inputProcessor"></param>
-    public void AddInputProcessor(IInputProcessor inputProcessor)
+    /// <param name="inkingInputProcessor"></param>
+    public void AddInputProcessor(IInkingInputProcessor inkingInputProcessor)
     {
-        InputProcessors.Add(inputProcessor);
-        if (inputProcessor is IModeInputDispatcherSensitive modeInputDispatcherSensitive)
+        InputProcessors.Add(inkingInputProcessor);
+        if (inkingInputProcessor is IInkingModeInputDispatcherSensitive modeInputDispatcherSensitive)
         {
             modeInputDispatcherSensitive.ModeInputDispatcher = this;
         }
     }
 
-    private List<IInputProcessor> InputProcessors { get; } = new List<IInputProcessor>();
+    private List<IInkingInputProcessor> InputProcessors { get; } = new List<IInkingInputProcessor>();
 
     //public bool Enable => true;
 
@@ -209,7 +209,7 @@ public class ModeInputDispatcher
 
 //}
 
-public record InputProcessorSettings
+public record InkingInputProcessorSettings
 {
     // 不好实现，存在漏洞是首次收到 Move 的情况，此时不仅需要补 Down 还需要补 Start 的情况
     ///// <summary>
@@ -219,11 +219,11 @@ public record InputProcessorSettings
 
     public bool EnableMultiTouch { init; get; } = true;
 
-    public static readonly InputProcessorSettings Default = new InputProcessorSettings();
+    public static readonly InkingInputProcessorSettings Default = new InkingInputProcessorSettings();
 }
 
 [ImplicitKeys(IsEnabled = false)]
-public readonly record struct ModeInputArgs(int Id, InkStylusPoint StylusPoint, ulong Timestamp)
+public readonly record struct InkingModeInputArgs(int Id, InkStylusPoint StylusPoint, ulong Timestamp)
 {
     public Point Position => StylusPoint.Point;
 
@@ -240,7 +240,7 @@ public readonly record struct ModeInputArgs(int Id, InkStylusPoint StylusPoint, 
 
 static class ModeInputArgsExtension
 {
-    public static ModeInputArgs ToModeInputArgs(this DeviceInputArgs args, bool ignorePressure = true)
+    public static InkingModeInputArgs ToModeInputArgs(this DeviceInputArgs args, bool ignorePressure = true)
     {
         var deviceInputPoint = args.Point;
         
@@ -259,7 +259,7 @@ static class ModeInputArgsExtension
             stylusPointList = args.GetDeviceInputPoints().Select(t => ToStylusPoint(in t, ignorePressure)).ToList();
         }
         
-        return new ModeInputArgs(args.Id, ToStylusPoint(in deviceInputPoint, ignorePressure), args.Timestamp)
+        return new InkingModeInputArgs(args.Id, ToStylusPoint(in deviceInputPoint, ignorePressure), args.Timestamp)
         {
             IsMouse = args.IsMouse,
             StylusPointList = stylusPointList,

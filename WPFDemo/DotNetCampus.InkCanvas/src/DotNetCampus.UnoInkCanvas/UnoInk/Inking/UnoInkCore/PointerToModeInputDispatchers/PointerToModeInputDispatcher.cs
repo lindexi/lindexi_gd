@@ -23,7 +23,7 @@ class PointerToModeInputDispatcher
 
     private ChannelReader<PointerInputInfo> Reader { get; }
     public X11InkWindow X11InkWindow { get; }
-    private ModeInputDispatcher ModeInputDispatcher => X11InkWindow.ModeInputDispatcher;
+    private InkingModeInputDispatcher ModeInputDispatcher => X11InkWindow.ModeInputDispatcher;
 
     public async Task RunAsync()
     {
@@ -86,7 +86,7 @@ class PointerToModeInputDispatcher
         }
     }
 
-    private ModeInputArgs MergeMove(ModeInputArgs currentInputArgs)
+    private InkingModeInputArgs MergeMove(InkingModeInputArgs currentInputArgs)
     {
         List<InkStylusPoint>? list = null;
 

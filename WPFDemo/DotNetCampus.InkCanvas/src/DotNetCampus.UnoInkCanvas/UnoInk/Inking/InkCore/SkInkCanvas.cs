@@ -16,7 +16,7 @@ namespace UnoInk.Inking.InkCore;
 /// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
 /// </summary>
-class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
+class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSensitive
 {
     /// <summary>
     /// 创建画板
@@ -74,7 +74,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
-    class DrawStrokeContext(InkId inkId, ModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
+    class DrawStrokeContext(InkId inkId, InkingModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
     {
         /// <summary>
         /// 笔迹的 Id 号，基本上每个笔迹都是不相同的。和输入的 Id 是不相同的，这是给每个 Stroke 一个的，不同的 Stroke 是不同的。除非有人能够一秒一条笔迹，写 60 多年才能重复
@@ -84,7 +84,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         public double InkThickness { get; } = inkThickness;
 
         public SKColor StrokeColor { get; } = strokeColor;
-        public ModeInputArgs InputInfo { set; get; } = inputInfo;
+        public InkingModeInputArgs InputInfo { set; get; } = inputInfo;
         public int DropPointCount { set; get; }
 
         /// <summary>
@@ -113,7 +113,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     #region IInputProcessor
 
-    void IInputProcessor.InputStart()
+    void IInkingInputProcessor.InputStart()
     {
         StaticDebugLogger.WriteLine("==========InputStart============");
 
@@ -137,7 +137,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
     }
 
-    void IInputProcessor.Down(ModeInputArgs info)
+    void IInkingInputProcessor.Down(InkingModeInputArgs info)
     {
         var inkId = CreateInkId();
         var drawStrokeContext = new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness);
@@ -175,7 +175,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     private StepCounter _stepCounter = new StepCounter();
     private int _moveCount = 0;
 
-    void IInputProcessor.Move(ModeInputArgs info)
+    void IInkingInputProcessor.Move(InkingModeInputArgs info)
     {
         if (!CurrentInputDictionary.ContainsKey(info.Id))
         {
@@ -344,12 +344,12 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         //_stepCounter.Restart();
     }
 
-    void IInputProcessor.Hover(ModeInputArgs args)
+    void IInkingInputProcessor.Hover(InkingModeInputArgs args)
     {
         // 没有什么作用
     }
 
-    void IInputProcessor.Up(ModeInputArgs info)
+    void IInkingInputProcessor.Up(InkingModeInputArgs info)
     {
         var context = UpdateInkingStylusPoint(info);
         info = context.InputInfo;
@@ -385,7 +385,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         //}
     }
 
-    void IInputProcessor.InputComplete()
+    void IInkingInputProcessor.InputComplete()
     {
         Clean();
 
@@ -429,7 +429,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     /// <summary>
     /// 这是 WPF 的概念，那就继续用这个概念
     /// </summary>
-    void IInputProcessor.Leave()
+    void IInkingInputProcessor.Leave()
     {
         StaticDebugLogger.WriteLine($"{DateTime.Now:hh-MM-ss} IInputProcessor.Leave");
 
@@ -460,7 +460,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     #endregion
 
-    private DrawStrokeContext UpdateInkingStylusPoint(ModeInputArgs info)
+    private DrawStrokeContext UpdateInkingStylusPoint(InkingModeInputArgs info)
     {
         if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
         {
@@ -884,7 +884,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     /// <summary>
     /// 进入橡皮擦模式
     /// </summary>
-    public void EnterEraserGestureMode(in ModeInputArgs args)
+    public void EnterEraserGestureMode(in InkingModeInputArgs args)
     {
         IsInEraserGestureMode = true;
 
@@ -928,7 +928,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     /// </summary>
     private bool _isErasing;
 
-    private void DownEraser(in ModeInputArgs info)
+    private void DownEraser(in InkingModeInputArgs info)
     {
         if (_isErasing)
         {
@@ -939,7 +939,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         _isErasing = true;
     }
 
-    private void MoveEraser(ModeInputArgs info)
+    private void MoveEraser(InkingModeInputArgs info)
     {
         if (_skCanvas is not { } canvas || _originBackground is null)
         {
@@ -1484,7 +1484,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     /// </summary>
     private readonly Stopwatch _eraserStartTime = new Stopwatch();
 
-    private void UpEraser(in ModeInputArgs info)
+    private void UpEraser(in InkingModeInputArgs info)
     {
         if (info.Id != _eraserDeviceId)
         {
@@ -1581,7 +1581,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             new SKRect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
-    public ModeInputDispatcher ModeInputDispatcher { set; get; }
+    public InkingModeInputDispatcher ModeInputDispatcher { set; get; }
     // 框架层赋值
         = null!;
 }

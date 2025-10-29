@@ -118,7 +118,7 @@ class X11InkWindow : X11Window
         };
         SkInkCanvas = skInkCanvas;
         
-        var modeInputDispatcher = new ModeInputDispatcher();
+        var modeInputDispatcher = new InkingModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
         ModeInputDispatcher = modeInputDispatcher;
         HandleInput(X11DeviceInputManager);
@@ -216,7 +216,7 @@ class X11InkWindow : X11Window
     }
     
     public IntPtr X11InkWindowIntPtr => X11WindowIntPtr;
-    public ModeInputDispatcher ModeInputDispatcher { get; }
+    public InkingModeInputDispatcher ModeInputDispatcher { get; }
     
     public Task InvokeAsync(Action<SkInkCanvas> action)
     {
