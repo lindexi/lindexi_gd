@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Inking\Context_\" />
-    <Folder Include="Inking\新文件夹\" />
+    <PackageReference Include="DotNetCampus.Numerics.Geometry" Version="1.0.1-alpha22" />
   </ItemGroup>
 
 </Project>

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.ComponentModel;
 
-namespace BujeeberehemnaNurgacolarje;
+namespace DotNetCampus.Inking.Inking.Utils;
 
 /// <summary>
 /// 带最大数量的队列，超过最大数量将会自动将队头元素出队丢弃
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class FixedQueue<T> : ICollection, IEnumerable<T>
+class InkingFixedQueue<T> : ICollection, IEnumerable<T>
 {
     private readonly Queue<T> _innerQueue = new Queue<T>();
 
@@ -17,7 +15,7 @@ public class FixedQueue<T> : ICollection, IEnumerable<T>
     /// 创建带最大数量的队列
     /// </summary>
     /// <param name="maxCount"></param>
-    public FixedQueue(int maxCount)
+    public InkingFixedQueue(int maxCount)
     {
         MaxCount = maxCount;
     }
