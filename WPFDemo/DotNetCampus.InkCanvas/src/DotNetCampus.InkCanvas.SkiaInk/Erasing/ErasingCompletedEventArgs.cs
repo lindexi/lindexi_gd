@@ -1,13 +1,30 @@
-using WejallkachawDadeawejearhuce.Inking.Erasing;
+﻿using DotNetCampus.Inking;
 
 namespace WejallkachawDadeawejearhuce.Inking.Contexts;
 
-public class ErasingCompletedEventArgs : EventArgs
+/// <summary>
+/// 擦除完成参数
+/// </summary>
+class SkInkCanvasErasingCompletedEventArgs : EventArgs
 {
-    public ErasingCompletedEventArgs(IReadOnlyList<ErasingSkiaStroke> erasingSkiaStrokeList)
+    public SkInkCanvasErasingCompletedEventArgs(bool isCanceled)
     {
-        ErasingSkiaStrokeList = erasingSkiaStrokeList;
+        IsCanceled = isCanceled;
     }
 
-    public IReadOnlyList<ErasingSkiaStroke> ErasingSkiaStrokeList { get; }
+    public SkInkCanvasErasingCompletedEventArgs(IReadOnlyList<SkiaStrokeSynchronizer> originList,
+        IReadOnlyList<SkiaStrokeSynchronizer> newList) : this(false)
+    {
+        OriginList = originList;
+        NewList = newList;
+    }
+
+    public IReadOnlyList<SkiaStrokeSynchronizer> OriginList { get; } = null!;
+
+    public IReadOnlyList<SkiaStrokeSynchronizer> NewList { get; } = null!;
+
+    /// <summary>
+    /// 是否取消
+    /// </summary>
+    public bool IsCanceled { get; private set; }
 }
