@@ -1,6 +1,8 @@
-using DotNetCampus.Inking.Primitive;
-using Microsoft.Maui.Graphics;
+﻿using DotNetCampus.Inking.Primitive;
+//using Microsoft.Maui.Graphics;
 using SkiaSharp;
+
+using Size = DotNetCampus.Numerics.Geometry.Size2D;
 
 namespace UnoInk.Inking.InkCore.Settings;
 
