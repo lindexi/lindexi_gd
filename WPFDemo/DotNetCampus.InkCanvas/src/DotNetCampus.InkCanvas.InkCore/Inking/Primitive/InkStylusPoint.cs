@@ -1,6 +1,6 @@
 ﻿using DotNetCampus.Numerics.Geometry;
 
-namespace UnoInk.Inking.InkCore;
+namespace DotNetCampus.Inking.Primitive;
 
 public readonly record struct InkStylusPoint
 {

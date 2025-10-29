@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using DotNetCampus.Inking.Primitive;
 using Microsoft.Maui.Graphics;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Input;

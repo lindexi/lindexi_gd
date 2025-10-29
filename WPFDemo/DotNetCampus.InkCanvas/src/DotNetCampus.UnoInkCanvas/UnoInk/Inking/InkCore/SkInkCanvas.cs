@@ -6,6 +6,7 @@ using System.Diagnostics;
 using BujeeberehemnaNurgacolarje;
 =======
 using System.Numerics;
+<<<<<<< HEAD
 >>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
 =======
 using System;
@@ -15,6 +16,9 @@ using System.Runtime.CompilerServices;
 using BujeeberehemnaNurgacolarje;
 >>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
 
+=======
+using DotNetCampus.Inking.Primitive;
+>>>>>>> 4bec1cabcab9c953e08f5a2ed28dd13ba06f9118
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
