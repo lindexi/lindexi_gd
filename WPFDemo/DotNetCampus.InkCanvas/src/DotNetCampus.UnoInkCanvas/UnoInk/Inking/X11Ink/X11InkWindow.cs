@@ -19,7 +19,7 @@ class X11InkWindow : X11Window
             IsFullScreen = true
         })
     {
-        application.EnsureStart();
+        //application.EnsureStart();
         X11PlatformThreading = application.X11PlatformThreading;
         var x11Info = application.X11Info;
         _x11Info = x11Info;
