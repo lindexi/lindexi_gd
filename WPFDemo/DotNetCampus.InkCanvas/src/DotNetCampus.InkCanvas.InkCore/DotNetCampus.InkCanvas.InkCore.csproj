@@ -4,6 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>DotNetCampus.Inking</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Inking\Context_\" />
+    <Folder Include="Inking\新文件夹\" />
+  </ItemGroup>
 
 </Project>
