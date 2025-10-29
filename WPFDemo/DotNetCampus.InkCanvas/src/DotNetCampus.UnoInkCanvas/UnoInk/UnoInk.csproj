@@ -51,5 +51,8 @@
     <ProjectReference Include="..\..\DotNetCampus.InkCanvas.InkCore\DotNetCampus.InkCanvas.InkCore.csproj" />
     <ProjectReference Include="..\UnoHacker\UnoHacker.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Inking\InkCore\Diagnostics\" />
+  </ItemGroup>
 
 </Project>
