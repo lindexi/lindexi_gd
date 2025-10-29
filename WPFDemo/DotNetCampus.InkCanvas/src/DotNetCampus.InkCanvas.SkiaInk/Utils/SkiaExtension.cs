@@ -64,6 +64,9 @@ static class SkiaExtension
     /// <param name="rect"></param>
     public static unsafe void ClearBounds(this SKBitmap bitmap, SKRectI rect)
     {
+        // 等价于 Erase 方法
+        //bitmap.Erase(SKColor.Empty, rect);
+
         uint* basePtr = (uint*) bitmap.GetPixels().ToPointer();
         // Loop through the rows
         //var stopwatch = Stopwatch.StartNew();
