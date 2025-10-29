@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <Compile Include="..\..\DotNetCampus.InkCanvas\src\DotNetCampus.UnoInkCanvas\UnoInk\Inking\InkCore\Primitive\StylusPoint.cs" Link="Inking\Primitive\StylusPoint.cs" />
-    <Compile Include="..\..\DotNetCampus.InkCanvas\src\DotNetCampus.UnoInkCanvas\UnoInk\Inking\InkCore\SimpleInkRender.cs" Link="Inking\SimpleInkRender.cs" />
   </ItemGroup>
 
   <ItemGroup>
