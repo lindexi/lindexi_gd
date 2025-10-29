@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
-
+using DotNetCampus.Inking.Primitive;
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;

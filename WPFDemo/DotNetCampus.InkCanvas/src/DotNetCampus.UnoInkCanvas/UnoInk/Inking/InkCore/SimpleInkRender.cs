@@ -1,4 +1,5 @@
 using System.Numerics;
+using DotNetCampus.Inking.Primitive;
 using Microsoft.Maui.Graphics;
 
 namespace UnoInk.Inking.InkCore
