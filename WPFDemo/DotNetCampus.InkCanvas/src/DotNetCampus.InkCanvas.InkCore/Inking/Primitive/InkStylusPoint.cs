@@ -1,21 +1,29 @@
-﻿using Microsoft.Maui.Graphics;
+﻿using DotNetCampus.Numerics.Geometry;
 
 namespace UnoInk.Inking.InkCore;
 
-public readonly record struct InkStylusPoint(Point Point, float Pressure = 0.5f)
+public readonly record struct InkStylusPoint
 {
-    public InkStylusPoint(double x, double y, float Pressure = 0.5f) : this(new Point(x, y), Pressure)
+    public InkStylusPoint(Point2D point, float pressure = DefaultPressure)
+    {
+        Point = point;
+        Pressure = pressure;
+    }
+
+    public InkStylusPoint(double x, double y, float pressure = DefaultPressure) : this(new Point2D(x, y), pressure)
     {
     }
 
-    public static implicit operator InkStylusPoint(Point point) => new InkStylusPoint(point);
+    public double X => Point.X;
+    public double Y => Point.Y;
+
+    public Point2D Point { init; get; }
+    public float Pressure { init; get; }
 
     public bool IsPressureEnable { init; get; }
 
     public double? Width { init; get; }
     public double? Height { init; get; }
 
-    //public static implicit operator StylusPoint(Windows.Foundation.Point point) => new StylusPoint(point.ToPoint());
-
-    //public static implicit operator Windows.Foundation.Point(StylusPoint point) => point.Point.ToFoundationPoint();
+    public const float DefaultPressure = 0.5f;
 }
