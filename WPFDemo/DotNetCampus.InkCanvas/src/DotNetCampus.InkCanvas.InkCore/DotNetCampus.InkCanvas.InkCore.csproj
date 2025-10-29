@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="Inking\Context_\" />
+    <Folder Include="Inking\新文件夹\" />
   </ItemGroup>
 
 </Project>
