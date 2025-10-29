@@ -17,7 +17,7 @@ internal static class DropPointAlgorithm
     /// <param name="currentStylusPoint"></param>
     /// <param name="dropPointCount"></param>
     /// <returns></returns>
-    private static bool CanDropLastPoint(IReadOnlyList<StylusPoint> pointList, StylusPoint currentStylusPoint,
+    private static bool CanDropLastPoint(IReadOnlyList<InkStylusPoint> pointList, InkStylusPoint currentStylusPoint,
         int dropPointCount)
     {
         if (pointList.Count < 3)

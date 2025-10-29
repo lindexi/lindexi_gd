@@ -2,13 +2,13 @@
 
 namespace UnoInk.Inking.InkCore;
 
-public readonly record struct StylusPoint(Point Point, float Pressure = 0.5f)
+public readonly record struct InkStylusPoint(Point Point, float Pressure = 0.5f)
 {
-    public StylusPoint(double x, double y, float Pressure = 0.5f) : this(new Point(x, y), Pressure)
+    public InkStylusPoint(double x, double y, float Pressure = 0.5f) : this(new Point(x, y), Pressure)
     {
     }
 
-    public static implicit operator StylusPoint(Point point) => new StylusPoint(point);
+    public static implicit operator InkStylusPoint(Point point) => new InkStylusPoint(point);
 
     public bool IsPressureEnable { init; get; }
 

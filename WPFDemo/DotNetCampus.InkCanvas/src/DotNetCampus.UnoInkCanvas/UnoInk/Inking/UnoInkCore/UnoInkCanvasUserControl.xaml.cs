@@ -161,9 +161,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         return modeInputArgs;
     }
 
-    private static StylusPoint ToStylusPoint(PointerPoint currentPoint)
+    private static InkStylusPoint ToStylusPoint(PointerPoint currentPoint)
     {
-        var stylusPoint = new StylusPoint(currentPoint.Position.X, currentPoint.Position.Y, currentPoint.Properties.Pressure);
+        var stylusPoint = new InkStylusPoint(currentPoint.Position.X, currentPoint.Position.Y, currentPoint.Properties.Pressure);
         return stylusPoint;
     }
 

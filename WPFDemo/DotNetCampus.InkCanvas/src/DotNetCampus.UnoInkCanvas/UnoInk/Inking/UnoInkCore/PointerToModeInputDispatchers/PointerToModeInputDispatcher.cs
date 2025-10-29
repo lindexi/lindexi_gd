@@ -88,7 +88,7 @@ class PointerToModeInputDispatcher
 
     private ModeInputArgs MergeMove(ModeInputArgs currentInputArgs)
     {
-        List<StylusPoint>? list = null;
+        List<InkStylusPoint>? list = null;
 
         while (true)
         {

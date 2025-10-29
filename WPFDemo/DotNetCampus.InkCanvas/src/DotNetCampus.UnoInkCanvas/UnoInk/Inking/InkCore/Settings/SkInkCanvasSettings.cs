@@ -40,7 +40,7 @@ public record SkInkCanvasSettings(bool AutoSoftPen = true)
     public Size EraserSize { get; init; } = DefaultEraserSize;
 
     /// <summary>
-    /// 将触摸尺寸当成橡皮擦尺寸，即橡皮擦大小不完全跟随 <see cref="EraserSize"/> 尺寸，而是会根据 <see cref="StylusPoint"/> 的触摸大小决定
+    /// 将触摸尺寸当成橡皮擦尺寸，即橡皮擦大小不完全跟随 <see cref="EraserSize"/> 尺寸，而是会根据 <see cref="InkStylusPoint"/> 的触摸大小决定
     /// </summary>
     public bool EnableStylusSizeAsEraserSize { get; init; } = true;
 
@@ -96,7 +96,7 @@ public record SkInkCanvasSettings(bool AutoSoftPen = true)
     /// <summary>
     /// 是否启用手势橡皮擦 默认不启用，由上层业务自己调用进入手势橡皮擦模式。因为在这一层不好进行计算
     /// 此属性设置为 false 之后，需要上层业务自行决定什么时机进入手势橡皮擦模式，通过调用 EnterEraserMode 方法进入手势橡皮擦模式
-    /// 此属性设置为 true 将会在框架层，通过输入的 <see cref="StylusPoint"/> 的触摸尺寸，通过像素判断方法，判断是否大于 <see cref="MinEraserGesturePixelSize"/> 尺寸决定是否进入橡皮擦模式。由于通过像素方式判断不靠谱，因此推荐不要开启此属性。业务层自己决定更好
+    /// 此属性设置为 true 将会在框架层，通过输入的 <see cref="InkStylusPoint"/> 的触摸尺寸，通过像素判断方法，判断是否大于 <see cref="MinEraserGesturePixelSize"/> 尺寸决定是否进入橡皮擦模式。由于通过像素方式判断不靠谱，因此推荐不要开启此属性。业务层自己决定更好
     /// </summary>
     public bool EnableEraserGesture { get; init; } = false;
 

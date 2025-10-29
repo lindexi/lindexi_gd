@@ -12,7 +12,7 @@ namespace UnoInk.Inking.InkCore
         private static readonly Matrix3x2 RotationPiDiv4 = Matrix3x2.CreateRotation(MathF.PI / 4);
         private static readonly Matrix3x2 Rotation3PiDiv8 = Matrix3x2.CreateRotation(3 * MathF.PI / 8);
 
-        public static Point[] GetOutlinePointList(IReadOnlyList<StylusPoint> pointList, double inkSize)
+        public static Point[] GetOutlinePointList(IReadOnlyList<InkStylusPoint> pointList, double inkSize)
         {
             if (pointList.Count < 2)
             {

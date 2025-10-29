@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Avalonia.Skia;
 
@@ -203,7 +203,7 @@ class PointPathEraserManager
         /// <summary>
         /// 所有实际带的点
         /// </summary>
-        /// 比 <see cref="StylusPoint"/> 结构体小，如此可以提升遍历性能
+        /// 比 <see cref="InkStylusPoint"/> 结构体小，如此可以提升遍历性能
         public Point[] PointList { get; }
 
         /// <summary>
