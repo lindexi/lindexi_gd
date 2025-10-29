@@ -5,8 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\DotNetCampus.UnoInkCanvas\UnoInk\Inking\InkCore\Primitive\StylusPoint.cs" Link="Inking\Primitive\StylusPoint.cs" />
+    <Compile Include="..\DotNetCampus.UnoInkCanvas\UnoInk\Inking\InkCore\SimpleInkRender.cs" Link="Inking\SimpleInkRender.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.1.3" />
     <PackageReference Include="Avalonia.Skia" Version="11.1.3" />
+    <PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.80" />
   </ItemGroup>
 </Project>
