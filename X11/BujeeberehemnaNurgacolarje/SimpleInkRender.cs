@@ -5,6 +5,7 @@ namespace BujeeberehemnaNurgacolarje
     /// <summary>
     /// 特别简单的笔迹渲染器。
     /// </summary>
+<<<<<<< HEAD
     public static class SimpleInkRender
     {
         private static readonly Matrix3x2 RotationPiDiv8 = Matrix3x2.CreateRotation(MathF.PI / 8);
@@ -12,6 +13,11 @@ namespace BujeeberehemnaNurgacolarje
         private static readonly Matrix3x2 Rotation3PiDiv8 = Matrix3x2.CreateRotation(3 * MathF.PI / 8);
 
         public static Point[] GetOutlinePointList(IReadOnlyList<StylusPoint> pointList, double inkSize)
+=======
+    internal static class SimpleInkRender
+    {
+        public static Point[] GetOutlinePointList(Span<StylusPoint> pointList, double inkSize)
+>>>>>>> 7fe6827b952c9008241dc5805239e04390bb6966
         {
             if (pointList.Count < 2)
             {
@@ -153,6 +159,7 @@ namespace BujeeberehemnaNurgacolarje
             outlinePoints[^1] = outlinePoints[0];
             return outlinePoints;
         }
+<<<<<<< HEAD
 
         public static Point[] GetOutlinePointList(Span<StylusPoint> pointList, double inkSize)
         {
@@ -252,3 +259,7 @@ namespace BujeeberehemnaNurgacolarje
         }
     }
 }
+=======
+    }
+}
+>>>>>>> 7fe6827b952c9008241dc5805239e04390bb6966

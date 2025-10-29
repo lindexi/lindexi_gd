@@ -23,6 +23,7 @@ namespace ReewheaberekaiNayweelehe;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 =======
 record InkingModeInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp)
@@ -133,6 +134,9 @@ partial class SkInkCanvas
 =======
 partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSensitive
 >>>>>>> 80e4690e464b58133b931ec1a63ee7a6c9d5df5e
+=======
+record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+>>>>>>> 7fe6827b952c9008241dc5805239e04390bb6966
 {
     public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
     {
@@ -140,7 +144,11 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
     }
 
+<<<<<<< HEAD
     public bool Enable { get; private set; } = true;
+=======
+record InkInfo(int Id);
+>>>>>>> 7fe6827b952c9008241dc5805239e04390bb6966
 
     public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
 
@@ -199,10 +207,7 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
             }
         }
 
-        foreach (var skiaStrokeSynchronizer in StaticInkInfoList)
-        {
-            DrawInk(skCanvas, skPaint, skiaStrokeSynchronizer);
-        }
+    private SKCanvas? _skCanvas;
 
         skCanvas.Flush();
     }
@@ -216,6 +221,7 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
             skCanvas.DrawPath(path, skPaint);
         }
     }
+<<<<<<< HEAD
 
 <<<<<<< HEAD
     public void DrawStrokeUp(InkingModeInputArgs args)
@@ -314,6 +320,8 @@ partial class SkInkCanvas
     private const int MaxTipStylusCount = 7;
 =======
 >>>>>>> 06026b0bbb703276589096b11fd69181ce02f21c
+=======
+>>>>>>> 7fe6827b952c9008241dc5805239e04390bb6966
 
 
     private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
@@ -569,14 +577,13 @@ partial class SkInkCanvas
 
         public double InkThickness { get; }
 
-        public SKColor StrokeColor { get; }
-        public InkingModeInputArgs InputInfo { set; get; }
+    public event EventHandler<Rect>? RenderBoundsChanged;
 
 
-        /// <summary>
-        /// 丢点的数量
-        /// </summary>
-        public int DropPointCount { set; get; }
+    /// <summary>
+    /// 取多少个点做笔尖
+    /// </summary>
+    private const int MaxTipStylusCount = 7;
 
         /// <summary>
         /// 笔尖的点

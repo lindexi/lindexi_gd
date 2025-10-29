@@ -49,12 +49,6 @@
 
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\BujeeberehemnaNurgacolarje\*.cs" LinkBase="Inking\X11Ink\Core" />
-    <Compile Remove="..\..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" />
-    <Compile Remove="..\..\BujeeberehemnaNurgacolarje\StylusPoint.cs" />
-    <Compile Remove="..\..\BujeeberehemnaNurgacolarje\X11App.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Graphics" />
   </ItemGroup>
   <ItemGroup>
