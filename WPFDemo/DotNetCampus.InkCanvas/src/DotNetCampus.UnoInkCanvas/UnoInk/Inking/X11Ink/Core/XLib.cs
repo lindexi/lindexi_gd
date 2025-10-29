@@ -766,6 +766,13 @@ namespace CPF.Linux
             }
         }
 
+        public static IntPtr CreateEventWindow(nint display, nint rootWindow)
+        {
+            var win = XCreateSimpleWindow(display, rootWindow,
+                0, 0, 1, 1, 0, IntPtr.Zero, IntPtr.Zero);
+            return win;
+        }
+
         [DllImport("libXext.so.6")]
         public extern static void XShapeCombineRectangles(IntPtr display, IntPtr window, XShapeKind dest_kind, int x_off, int y_off, XRectangle[] rectangles, int n_rects, XShapeOperation op, XOrdering ordering);
         //public static IntPtr CreateEventWindow(LinuxPlatform plat, Action<XEvent> handler)
