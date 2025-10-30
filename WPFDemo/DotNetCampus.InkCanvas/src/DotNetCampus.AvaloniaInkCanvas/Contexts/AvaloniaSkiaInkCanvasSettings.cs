@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace DotNetCampus.Inking.Contexts;
 
-public class AvaSkiaInkCanvasSettings
+public class AvaloniaSkiaInkCanvasSettings
 {
     /// <summary>
     /// 笔迹粗细。

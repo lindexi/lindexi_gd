@@ -15,9 +15,9 @@ using Size = Avalonia.Size;
 
 namespace DotNetCampus.Inking.Erasing;
 
-public class AvaSkiaInkCanvasEraserMode
+public class AvaloniaSkiaInkCanvasEraserMode
 {
-    public AvaSkiaInkCanvasEraserMode(AvaSkiaInkCanvas inkCanvas)
+    public AvaloniaSkiaInkCanvasEraserMode(AvaloniaSkiaInkCanvas inkCanvas)
     {
         InkCanvas = inkCanvas;
     }
@@ -29,7 +29,7 @@ public class AvaSkiaInkCanvasEraserMode
 
     private double _debugEraserSizeScale = 0;
 
-    public AvaSkiaInkCanvas InkCanvas { get; }
+    public AvaloniaSkiaInkCanvas InkCanvas { get; }
     public bool IsErasing { get; private set; }
     private int MainEraserInputId { set; get; }
 
@@ -135,7 +135,7 @@ public class AvaSkiaInkCanvasEraserMode
 
     class EraserModeCustomDrawOperation : ICustomDrawOperation
     {
-        public EraserModeCustomDrawOperation(AvaSkiaInkCanvasEraserMode eraserMode)
+        public EraserModeCustomDrawOperation(AvaloniaSkiaInkCanvasEraserMode eraserMode)
         {
             var pointPathEraserManager = eraserMode.PointPathEraserManager;
             IReadOnlyList<SkiaStrokeDrawContext> drawContextList = pointPathEraserManager.GetDrawContextList();

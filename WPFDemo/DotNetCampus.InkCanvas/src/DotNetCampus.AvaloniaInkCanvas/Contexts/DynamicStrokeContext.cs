@@ -8,7 +8,7 @@ namespace DotNetCampus.Inking.Contexts;
 /// </summary>
 class DynamicStrokeContext
 {
-    public DynamicStrokeContext(InkingModeInputArgs lastInputArgs, AvaSkiaInkCanvasSettings settings)
+    public DynamicStrokeContext(InkingModeInputArgs lastInputArgs, AvaloniaSkiaInkCanvasSettings settings)
     {
         LastInputArgs = lastInputArgs;
 
