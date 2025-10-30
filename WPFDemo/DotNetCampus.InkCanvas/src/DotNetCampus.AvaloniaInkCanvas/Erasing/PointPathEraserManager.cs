@@ -94,7 +94,7 @@ class PointPathEraserManager
     public PointPathEraserResult Finish()
     {
         var count = WorkList.Sum(t => t.SubInkInfoList.Count);
-        var erasingSkiaStrokeList = new List<ErasingSkiaStroke>(count);
+        var erasingSkiaStrokeList = new List<ErasedSkiaStroke>(count);
 
         foreach (var inkInfoForEraserPointPath in WorkList)
         {
@@ -114,7 +114,7 @@ class PointPathEraserManager
                 //result.Add(new SkiaStrokeDrawContext(subInkInfoForEraserPointPath.PointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
             }
 
-            erasingSkiaStrokeList.Add(new ErasingSkiaStroke(originSkiaStroke, newStrokeList));
+            erasingSkiaStrokeList.Add(new ErasedSkiaStroke(originSkiaStroke, newStrokeList));
         }
 
         WorkList.Clear();
