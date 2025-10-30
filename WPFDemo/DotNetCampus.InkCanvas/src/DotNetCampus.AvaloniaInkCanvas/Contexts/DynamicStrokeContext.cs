@@ -1,4 +1,4 @@
-﻿namespace NarjejerechowainoBuwurjofear.Inking.Contexts;
+﻿namespace DotNetCampus.Inking.Contexts;
 
 class DynamicStrokeContext
 {

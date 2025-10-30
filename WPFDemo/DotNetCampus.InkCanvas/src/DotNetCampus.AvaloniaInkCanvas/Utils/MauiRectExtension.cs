@@ -1,7 +1,7 @@
 ﻿using Microsoft.Maui.Graphics;
 using SkiaSharp;
 
-namespace NarjejerechowainoBuwurjofear.Inking.Utils;
+namespace DotNetCampus.Inking.Utils;
 
 static class MauiRectExtension
 {

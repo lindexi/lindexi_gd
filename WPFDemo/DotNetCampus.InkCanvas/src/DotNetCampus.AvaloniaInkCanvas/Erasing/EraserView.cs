@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 
-namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
+namespace DotNetCampus.Inking.Erasing;
 
 class EraserView : Control
 {
