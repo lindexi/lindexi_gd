@@ -7,6 +7,7 @@ using Avalonia.Skia;
 using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Utils;
 using SkiaSharp;
+using UnoInk.Inking.InkCore.Interactives;
 //using Microsoft.Maui.Graphics;
 using Point = Avalonia.Point;
 using Rect = Avalonia.Rect;
@@ -51,9 +52,9 @@ public class AvaSkiaInkCanvasEraserMode
         InkCanvas.AddChild(_eraserView);
     }
 
-    public void EraserDown(InkingInputArgs args)
+    public void EraserDown(InkingModeInputArgs args)
     {
-        InkCanvas.EnsureInputConflicts();
+        //InkCanvas.EnsureInputConflicts();
         if (!IsErasing)
         {
             MainEraserInputId = args.Id;
@@ -62,7 +63,7 @@ public class AvaSkiaInkCanvasEraserMode
 
             StartEraser();
 
-            _eraserView.Move(args.Point.Point.ToAvaloniaPoint());
+            _eraserView.Move(args.Position.ToAvaloniaPoint());
         }
         else
         {
@@ -70,9 +71,9 @@ public class AvaSkiaInkCanvasEraserMode
         }
     }
 
-    public void EraserMove(InkingInputArgs args)
+    public void EraserMove(InkingModeInputArgs args)
     {
-        InkCanvas.EnsureInputConflicts();
+        //InkCanvas.EnsureInputConflicts();
         if (IsErasing && args.Id == MainEraserInputId)
         {
             // 擦除
@@ -96,23 +97,23 @@ public class AvaSkiaInkCanvasEraserMode
             }
 #endif
 
-            var rect = new Rect(args.Point.Point.X - eraserWidth / 2, args.Point.Point.Y - eraserHeight / 2, eraserWidth, eraserHeight);
+            var rect = new Rect(args.Position.X - eraserWidth / 2, args.Position.Y - eraserHeight / 2, eraserWidth, eraserHeight);
             PointPathEraserManager.Move(rect.ToRect2D());
 
             _eraserView.SetEraserSize(new Size(eraserWidth, eraserHeight));
-            _eraserView.Move(args.Point.Point.ToAvaloniaPoint());
+            _eraserView.Move(args.Position.ToAvaloniaPoint());
         }
     }
 
-    public void EraserUp(InkingInputArgs args)
+    public void EraserUp(InkingModeInputArgs args)
     {
-        InkCanvas.EnsureInputConflicts();
+        //InkCanvas.EnsureInputConflicts();
         if (IsErasing && args.Id == MainEraserInputId)
         {
             IsErasing = false;
             var pointPathEraserResult = PointPathEraserManager.Finish();
 
-            InkCanvas.ResetStaticStrokeListEraserResult(pointPathEraserResult.ErasingSkiaStrokeList.SelectMany(t => t.NewStrokeList));
+            InkCanvas.ResetStaticStrokeListByEraserResult(pointPathEraserResult.ErasingSkiaStrokeList.SelectMany(t => t.NewStrokeList));
 
             ClearEraser();
 

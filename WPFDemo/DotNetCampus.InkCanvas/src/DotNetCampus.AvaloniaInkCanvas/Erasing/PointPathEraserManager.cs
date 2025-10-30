@@ -113,7 +113,7 @@ class PointPathEraserManager
                 var skPath = ToPath(subInkInfoForEraserPointPath);
 
                 var skiaStroke = SkiaStroke.CreateStaticStroke(InkId.NewId(), skPath, pointList, originSkiaStroke.Color,
-                    originSkiaStroke.InkThickness);
+                    originSkiaStroke.InkThickness, ownSkiaPath:true, originSkiaStroke.InkStrokeRenderer);
                 newStrokeList.Add(skiaStroke);
                 //result.Add(new SkiaStrokeDrawContext(subInkInfoForEraserPointPath.PointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
             }
@@ -141,7 +141,7 @@ class PointPathEraserManager
                 {
                     var skPath = ToPath(subInkInfoForEraserPointPath);
 
-                    result.Add(new SkiaStrokeDrawContext(originSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
+                    result.Add(new SkiaStrokeDrawContext(originSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), SKMatrix.Identity, ShouldDisposePath: true));
                 }
             }
             else
