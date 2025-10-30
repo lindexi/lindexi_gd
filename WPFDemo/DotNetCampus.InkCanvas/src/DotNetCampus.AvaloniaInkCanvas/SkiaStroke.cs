@@ -237,7 +237,7 @@ public class SkiaStroke : IDisposable
             return _drawBounds;
         }
 
-        return SkiaSharpExtensions.ToAvaloniaRect(Path.Bounds).Expand(InkThickness);
+        return SkiaSharpExtensions.ToAvaloniaRect(Path.Bounds).ExpandLength(InkThickness);
     }
 
     public void SetTransform(SKMatrix matrix)
@@ -265,7 +265,7 @@ public class SkiaStroke : IDisposable
         }
 
         Transform = SKMatrix.Identity;
-        _drawBounds = SkiaSharpExtensions.ToAvaloniaRect(Path.Bounds).Expand(InkThickness);
+        _drawBounds = SkiaSharpExtensions.ToAvaloniaRect(Path.Bounds).ExpandLength(InkThickness);
 
         InkCanvas?.InvalidateVisual();
     }
