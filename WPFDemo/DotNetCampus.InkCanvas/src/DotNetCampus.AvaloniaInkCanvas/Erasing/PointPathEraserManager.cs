@@ -2,9 +2,11 @@
 using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Primitive;
 using DotNetCampus.Inking.Utils;
-using Microsoft.Maui.Graphics;
 using SkiaSharp;
 using UnoInk.Inking.InkCore;
+using Point = DotNetCampus.Numerics.Geometry.Point2D;
+using Point2D = DotNetCampus.Numerics.Geometry.Point2D;
+using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
 
 namespace DotNetCampus.Inking.Erasing;
 
@@ -180,7 +182,7 @@ class PointPathEraserManager
             var subInk = new SubInkInfoForEraserPointPath(new PointListSpan(0, originSkiaStroke.PointList.Count), this);
             if (originSkiaStroke.Path is { } skPath)
             {
-                subInk.CacheBounds = skPath.Bounds.ToMauiRect();
+                subInk.CacheBounds = skPath.Bounds.ToRect2D();
             }
 
             SubInkInfoList.Add(subInk);
