@@ -87,10 +87,10 @@ class AvaSkiaInkCanvasSettings
     /// </summary>
     public bool ShouldReCreatePoint { get; set; }
 
-    /// <summary>
-    /// 笔迹渲染器
-    /// </summary>
-    public ISkiaInkStrokeRenderer? InkStrokeRenderer { get; set; }
+    ///// <summary>
+    ///// 笔迹渲染器
+    ///// </summary>
+    //public ISkiaInkStrokeRenderer? InkStrokeRenderer { get; set; }
 
     /// <summary>
     /// 设置或获取是否需要忽略压感

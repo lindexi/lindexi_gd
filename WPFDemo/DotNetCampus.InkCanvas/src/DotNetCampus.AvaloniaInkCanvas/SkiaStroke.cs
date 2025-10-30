@@ -10,15 +10,21 @@ namespace DotNetCampus.Inking;
 
 public class SkiaStroke : IDisposable
 {
-    public SkiaStroke(InkId id) : this(id, new SKPath())
+    public SkiaStroke(InkId id) : this(id, new SKPath(), ownSkiaPath: true)
     {
     }
 
-    private SkiaStroke(InkId id, SKPath path)
+    private SkiaStroke(InkId id, SKPath path, bool ownSkiaPath)
     {
+        _ownSkiaPath = ownSkiaPath;
         Id = id;
         Path = path;
     }
+
+    /// <summary>
+    /// 是否拥有 <see cref="Path"/> 的所有权，即需要在释放的使用同步将其释放
+    /// </summary>
+    private readonly bool _ownSkiaPath;
 
     public InkId Id { get; }
 
@@ -74,7 +80,10 @@ public class SkiaStroke : IDisposable
 
     public void Dispose()
     {
-        Path.Dispose();
+        if(_ownSkiaPath)
+        {
+            Path.Dispose();
+        }
     }
 
     public static List<InkStylusPoint> ApplyMeanFilter(List<InkStylusPoint> pointList, int step = 10)
@@ -133,7 +142,7 @@ public class SkiaStroke : IDisposable
 
     public static SkiaStroke CreateStaticStroke(InkId id, SKPath path, StylusPointListSpan pointList, SKColor color, float inkThickness)
     {
-        var skiaStroke = new SkiaStroke(id, path)
+        var skiaStroke = new SkiaStroke(id, path,true)
         {
             Color = color,
             InkThickness = inkThickness,
