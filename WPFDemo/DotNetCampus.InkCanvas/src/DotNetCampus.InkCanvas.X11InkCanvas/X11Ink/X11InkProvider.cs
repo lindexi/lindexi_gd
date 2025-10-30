@@ -1,16 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.Versioning;
-
-using UnoInk.Inking.X11Platforms;
 using X11ApplicationFramework.Apps;
 using X11ApplicationFramework.Natives;
-
-using Point2D = DotNetCampus.Numerics.Geometry.Point2D;
-using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
 using static X11ApplicationFramework.Natives.XLib;
 
-namespace UnoInk.Inking.X11Ink;
+namespace DotNetCampus.InkCanvas.X11InkCanvas.X11Ink;
 
 //interface IX11WindowManager
 
