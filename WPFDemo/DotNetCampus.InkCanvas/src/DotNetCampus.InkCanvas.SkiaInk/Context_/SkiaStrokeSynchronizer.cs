@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using DotNetCampus.Inking.Primitive;
 using UnoInk.Inking.InkCore;
 using WpfInk;
+using InkStylusPoint = DotNetCampus.Inking.Primitive.InkStylusPoint;
 
 namespace DotNetCampus.Inking;
 
