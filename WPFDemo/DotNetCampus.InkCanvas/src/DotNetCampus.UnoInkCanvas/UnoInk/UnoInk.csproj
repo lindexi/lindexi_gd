@@ -56,6 +56,7 @@
     <ProjectReference Include="..\UnoHacker\UnoHacker.csproj" />
   </ItemGroup>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     </UnoFeatures>
   </PropertyGroup>
@@ -91,5 +92,7 @@
     <Folder Include="Inking\InkCore\Diagnostics\" />
   </ItemGroup>
 >>>>>>> ce268d7b54dbdacf57f3d7abce948bcd4fd1c381
+=======
+>>>>>>> b273a30c27db30da5d08e5a1dafa5a6fd9f3df97
 
 </Project>
