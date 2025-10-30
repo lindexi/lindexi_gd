@@ -1,5 +1,8 @@
-﻿using SkiaSharp;
-using Avalonia;
+﻿using Avalonia;
+
+using DotNetCampus.Inking.StrokeRenderers;
+
+using SkiaSharp;
 
 namespace DotNetCampus.Inking.Contexts;
 class AvaSkiaInkCanvasSettings
@@ -83,6 +86,11 @@ class AvaSkiaInkCanvasSettings
     /// 是否需要重新创建笔迹点，采用平滑滤波算法
     /// </summary>
     public bool ShouldReCreatePoint { get; set; }
+
+    /// <summary>
+    /// 笔迹渲染器
+    /// </summary>
+    public ISkiaInkStrokeRenderer? InkStrokeRenderer { get; set; }
 
     /// <summary>
     /// 设置或获取是否需要忽略压感
