@@ -1,18 +1,12 @@
-﻿using System.Linq;
-
-using Avalonia.Skia;
+﻿using Avalonia.Skia;
+using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Primitive;
+using DotNetCampus.Inking.Utils;
 using Microsoft.Maui.Graphics;
-
-using NarjejerechowainoBuwurjofear.Inking.Contexts;
-using NarjejerechowainoBuwurjofear.Inking.Primitive;
-using NarjejerechowainoBuwurjofear.Inking.Utils;
-
 using SkiaSharp;
-
 using UnoInk.Inking.InkCore;
 
-namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
+namespace DotNetCampus.Inking.Erasing;
 
 class PointPathEraserManager
 {

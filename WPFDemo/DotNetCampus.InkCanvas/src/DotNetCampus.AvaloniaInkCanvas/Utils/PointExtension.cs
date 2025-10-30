@@ -1,6 +1,6 @@
 ﻿using Microsoft.Maui.Graphics;
 
-namespace NarjejerechowainoBuwurjofear.Inking.Utils;
+namespace DotNetCampus.Inking.Utils;
 
 static class PointExtension
 {

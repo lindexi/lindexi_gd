@@ -1,17 +1,12 @@
-﻿using System.Linq;
-
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Skia;
+using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Primitive;
-using NarjejerechowainoBuwurjofear.Inking.Contexts;
-using NarjejerechowainoBuwurjofear.Inking.Primitive;
-using NarjejerechowainoBuwurjofear.Inking.Utils;
-
+using DotNetCampus.Inking.Utils;
 using SkiaSharp;
-
 using UnoInk.Inking.InkCore;
 
-namespace NarjejerechowainoBuwurjofear.Inking;
+namespace DotNetCampus.Inking;
 
 public class SkiaStroke : IDisposable
 {

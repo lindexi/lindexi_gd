@@ -1,6 +1,6 @@
-﻿using NarjejerechowainoBuwurjofear.Inking.Erasing;
+﻿using DotNetCampus.Inking.Erasing;
 
-namespace NarjejerechowainoBuwurjofear.Inking.Contexts;
+namespace DotNetCampus.Inking.Contexts;
 
 public class ErasingCompletedEventArgs : EventArgs
 {

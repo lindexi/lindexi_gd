@@ -1,8 +1,4 @@
-﻿using System.Linq;
-using DotNetCampus.Inking.Primitive;
-using UnoInk.Inking.InkCore;
-
-namespace NarjejerechowainoBuwurjofear.Inking.Primitive;
+﻿namespace DotNetCampus.Inking.Primitive;
 
 public readonly record struct StylusPointListSpan(IReadOnlyList<InkStylusPoint> OriginList, int Start, int Length)
 {

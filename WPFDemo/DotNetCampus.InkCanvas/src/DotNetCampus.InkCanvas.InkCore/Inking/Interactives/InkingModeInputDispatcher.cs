@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
 using DotNetCampus.Inking.Primitive;
-using Microsoft.Maui.Graphics;
+using DotNetCampus.Numerics.Geometry;
 using UnoInk.Inking.X11Platforms;
-using UnoInk.Inking.X11Platforms.Input;
 
 namespace UnoInk.Inking.InkCore.Interactives;
 
@@ -222,10 +221,9 @@ public record InkingInputProcessorSettings
     public static readonly InkingInputProcessorSettings Default = new InkingInputProcessorSettings();
 }
 
-[ImplicitKeys(IsEnabled = false)]
 public readonly record struct InkingModeInputArgs(int Id, InkStylusPoint StylusPoint, ulong Timestamp)
 {
-    public Point Position => StylusPoint.Point;
+    public Point2D Position => StylusPoint.Point;
 
     /// <summary>
     /// 是否来自鼠标的输入
@@ -238,39 +236,39 @@ public readonly record struct InkingModeInputArgs(int Id, InkStylusPoint StylusP
     public IReadOnlyList<InkStylusPoint>? StylusPointList { init; get; }
 }
 
-static class ModeInputArgsExtension
-{
-    public static InkingModeInputArgs ToModeInputArgs(this DeviceInputArgs args, bool ignorePressure = true)
-    {
-        var deviceInputPoint = args.Point;
+//static class ModeInputArgsExtension
+//{
+//    public static InkingModeInputArgs ToModeInputArgs(this DeviceInputArgs args, bool ignorePressure = true)
+//    {
+//        var deviceInputPoint = args.Point;
         
-        IReadOnlyList<InkStylusPoint>? stylusPointList;
-        var count = args.DeviceInputPointCount;
-        if (count < 1)
-        {
-            stylusPointList = null;
-        }
-        else if (count == 1)
-        {
-            stylusPointList = [ToStylusPoint(in deviceInputPoint, ignorePressure)];
-        }
-        else
-        {
-            stylusPointList = args.GetDeviceInputPoints().Select(t => ToStylusPoint(in t, ignorePressure)).ToList();
-        }
+//        IReadOnlyList<InkStylusPoint>? stylusPointList;
+//        var count = args.DeviceInputPointCount;
+//        if (count < 1)
+//        {
+//            stylusPointList = null;
+//        }
+//        else if (count == 1)
+//        {
+//            stylusPointList = [ToStylusPoint(in deviceInputPoint, ignorePressure)];
+//        }
+//        else
+//        {
+//            stylusPointList = args.GetDeviceInputPoints().Select(t => ToStylusPoint(in t, ignorePressure)).ToList();
+//        }
         
-        return new InkingModeInputArgs(args.Id, ToStylusPoint(in deviceInputPoint, ignorePressure), args.Timestamp)
-        {
-            IsMouse = args.IsMouse,
-            StylusPointList = stylusPointList,
-        };
-    }
+//        return new InkingModeInputArgs(args.Id, ToStylusPoint(in deviceInputPoint, ignorePressure), args.Timestamp)
+//        {
+//            IsMouse = args.IsMouse,
+//            StylusPointList = stylusPointList,
+//        };
+//    }
     
-    public static InkStylusPoint ToStylusPoint(in DeviceInputPoint point, bool ignorePressure = true) =>
-        new InkStylusPoint(point.Position, !ignorePressure ? point.Pressure ?? 0.5f : 0.5f)
-        {
-            IsPressureEnable = !ignorePressure && point.Pressure is not null,
-            Width = point.PixelWidth,
-            Height = point.PixelHeight
-        };
-}
+//    public static InkStylusPoint ToStylusPoint(in DeviceInputPoint point, bool ignorePressure = true) =>
+//        new InkStylusPoint(point.Position, !ignorePressure ? point.Pressure ?? 0.5f : 0.5f)
+//        {
+//            IsPressureEnable = !ignorePressure && point.Pressure is not null,
+//            Width = point.PixelWidth,
+//            Height = point.PixelHeight
+//        };
+//}

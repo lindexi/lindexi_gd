@@ -1,23 +1,18 @@
-﻿using System.Linq;
-using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
-//using Microsoft.Maui.Graphics;
-
-using NarjejerechowainoBuwurjofear.Inking.Contexts;
-using NarjejerechowainoBuwurjofear.Inking.Utils;
-
+using DotNetCampus.Inking.Contexts;
+using DotNetCampus.Inking.Utils;
 using SkiaSharp;
+//using Microsoft.Maui.Graphics;
 using Point = Avalonia.Point;
 using Rect = Avalonia.Rect;
 using Size = Avalonia.Size;
 
-namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
+namespace DotNetCampus.Inking.Erasing;
 
 public class AvaSkiaInkCanvasEraserMode
 {
