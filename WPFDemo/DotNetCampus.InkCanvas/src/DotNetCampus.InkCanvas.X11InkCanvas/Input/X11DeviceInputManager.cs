@@ -72,25 +72,15 @@
 // for touchscreens
 // https://github.com/whot/evemu-devices
 
-using DotNetCampus.Logging;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-
+using DotNetCampus.Logging;
 using UnoInk.Inking.X11Platforms;
-using UnoInk.Inking.X11Platforms.Input;
-
 using X11ApplicationFramework.Apps;
 using X11ApplicationFramework.Natives;
-
 using Point2D = DotNetCampus.Numerics.Geometry.Point2D;
-using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
 using static X11ApplicationFramework.Natives.XLib;
 
-namespace DotNetCampus.InkCanvas.X11InkCanvas.X11Platforms.Input;
+namespace DotNetCampus.InkCanvas.X11InkCanvas.Input;
 
 unsafe class X11DeviceInputManager
 {

@@ -1,6 +1,11 @@
-﻿using System;
+﻿using DotNetCampus.Logging;
+
+using System;
+using System.ComponentModel;
 using System.Runtime.Versioning;
-using DotNetCampus.Logging;
+using System.Threading;
+using System.Threading.Tasks;
+
 using X11ApplicationFramework.Natives;
 
 using static X11ApplicationFramework.Natives.XLib;
@@ -90,6 +95,9 @@ public class X11Window : X11WindowNativeInterop
         return x11Window;
     }
 
+    internal IDispatcher GetDispatcher()
+        => new X11InkWindowDispatcher(this);
+
     internal unsafe void DispatchEvent(XEvent* @event)
     {
         OnDispatchEvent(@event);
@@ -100,3 +108,73 @@ public class X11Window : X11WindowNativeInterop
         OnReceiveEvent(@event);
     }
 }
+
+[SupportedOSPlatform("Linux")]
+file class X11InkWindowDispatcher : IDispatcher
+{
+    public X11InkWindowDispatcher(X11Window x11InkWindow)
+    {
+        _x11InkWindow = x11InkWindow;
+    }
+
+    private readonly X11Window _x11InkWindow;
+
+    public bool TryEnqueue(Action action)
+    {
+        return _x11InkWindow.Application.X11PlatformThreading.TryEnqueue(action, _x11InkWindow.X11WindowIntPtr);
+    }
+
+    public async ValueTask<TResult> ExecuteAsync<TResult>(AsyncFunc<TResult> action, CancellationToken cancellation)
+    {
+        var taskCompletionSource = new TaskCompletionSource<TResult>();
+
+        // 以下是兼容实现
+        TryEnqueue(async () =>
+        {
+            try
+            {
+                var result = await action(cancellation);
+                // 其实不支持同步上下文返回
+                taskCompletionSource.SetResult(result);
+            }
+            catch (Exception e)
+            {
+                taskCompletionSource.SetException(e);
+            }
+        });
+
+        return await taskCompletionSource.Task;
+    }
+
+    public bool HasThreadAccess => _x11InkWindow.Application.X11PlatformThreading?.HasThreadAccess ?? false;
+}
+
+interface IDispatcher
+{
+    /// <summary>
+    ///  Gets a value that specifies whether the current execution context is on the UI thread.
+    /// </summary>
+    bool HasThreadAccess { get; }
+
+    /// <summary>
+    /// Adds a task to the queue which will be executed on the thread associated with the dispatcher.
+    /// </summary>
+    /// <remarks>This is the raw version which allows to interact with the native dispatcher the fewest overhead possible.</remarks>
+    /// <param name="action">The task to execute.</param>
+    /// <returns>True indicates that the task was added to the queue; false, otherwise.</returns>
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
+    bool TryEnqueue(Action action);
+
+    /// <summary>
+    /// Asynchronously executes an operation on the UI thread.
+    /// </summary>
+    /// <typeparam name="TResult">Type of the result of the operation.</typeparam>
+    /// <param name="action">The async operation to execute.</param>
+    /// <param name="cancellation">An cancellation token to cancel the async operation.</param>
+    /// <returns>A ValueTask to asynchronously get the result of the operation.</returns>
+    ValueTask<TResult> ExecuteAsync<TResult>(
+        AsyncFunc<TResult> action,
+        CancellationToken cancellation);
+}
+
+delegate ValueTask<TResult> AsyncFunc<TResult>(CancellationToken ct);

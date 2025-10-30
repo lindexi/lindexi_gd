@@ -1,9 +1,6 @@
-﻿using DotNetCampus.InkCanvas.X11InkCanvas.X11Platforms.Input;
-using Point = DotNetCampus.Numerics.Geometry.Point2D;
-using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
-using Size2D = DotNetCampus.Numerics.Geometry.Size2D;
+﻿using Point = DotNetCampus.Numerics.Geometry.Point2D;
 
-namespace UnoInk.Inking.X11Platforms.Input;
+namespace DotNetCampus.InkCanvas.X11InkCanvas.Input;
 
 public readonly record struct DeviceInputArgs(int Id, bool IsMouse, DeviceInputPoint Point)
 {
