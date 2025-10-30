@@ -1,11 +1,14 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Versioning;
 
-using CPF.Linux;
-using Uno.UI.Xaml;
 using UnoInk.Inking.X11Platforms;
-using static CPF.Linux.XLib;
+using X11ApplicationFramework.Apps;
+using X11ApplicationFramework.Natives;
+
+using Point2D = DotNetCampus.Numerics.Geometry.Point2D;
+using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
+using static X11ApplicationFramework.Natives.XLib;
 
 namespace UnoInk.Inking.X11Ink;
 
@@ -23,32 +26,46 @@ internal class X11InkProvider : X11Application
         //XInitThreads();
         //XInitThreads();
         //XInitThreads();
+
+        Randr15ScreensImpl? xRandr15ScreensImpl = Randr15ScreensImpl.TryCreateXRandr15ScreensImpl(this);
+        if (xRandr15ScreensImpl is not null)
+        {
+            // 这里需要监听屏幕变化，于是多创建了一个 Event 窗口，需要注册到窗口管理器，如此才能在后续收到消息时进行调度通知
+            WindowManager.RegisterWindow(xRandr15ScreensImpl.EventWindow);
+        }
+
+        Randr15ScreensImpl = xRandr15ScreensImpl;
     }
 
-    [MemberNotNull(nameof(_x11InkWindow))]
-    public void Start(Window unoWindow)
-    {
-        base.Start();
+    /// <summary>
+    /// 使用 XRandr 1.5 获取屏幕信息的实现
+    /// </summary>
+    public Randr15ScreensImpl? Randr15ScreensImpl { get; }
 
-#if HAS_UNO
-        var x11Window = unoWindow.GetNativeWindow()!;
-#else
-        var type = unoWindow.GetType();
-        var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
-        var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
-#endif
-        // Uno.WinUI.Runtime.Skia.X11.X11Window
-        var x11WindowType = x11Window.GetType();
+    //    [MemberNotNull(nameof(_x11InkWindow))]
+    //    public void Start(Window unoWindow)
+    //    {
+    //        base.Start();
 
-        var x11WindowIntPtr =
-            (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(
-                x11Window, null)!;
+    //#if HAS_UNO
+    //        var x11Window = unoWindow.GetNativeWindow()!;
+    //#else
+    //        var type = unoWindow.GetType();
+    //        var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
+    //        var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+    //#endif
+    //        // Uno.WinUI.Runtime.Skia.X11.X11Window
+    //        var x11WindowType = x11Window.GetType();
 
-        //Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
+    //        var x11WindowIntPtr =
+    //            (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(
+    //                x11Window, null)!;
 
-        var x11InkWindow = new X11InkWindow(this, x11WindowIntPtr);
-        _x11InkWindow = x11InkWindow;
-    }
+    //        //Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
+
+    //        var x11InkWindow = new X11InkWindow(this, x11WindowIntPtr);
+    //        _x11InkWindow = x11InkWindow;
+    //    }
 
     public X11InkWindow InkWindow
     {
@@ -70,8 +87,9 @@ internal class X11InkProvider : X11Application
         }
     }
 
-    internal override unsafe void DispatchEvent(XEvent @event)
+    internal override unsafe void DispatchEvent(XEvent* @eventPtr)
     {
+        var @event = *@eventPtr;
         //Console.WriteLine($"[DispatchEvent] {@event.type}");
         if (_x11InkWindow is null)
         {
@@ -166,7 +184,6 @@ internal class X11InkProvider : X11Application
             }
         }
 
-        base.DispatchEvent(@event);
+        base.DispatchEvent(@eventPtr);
     }
-
 }
