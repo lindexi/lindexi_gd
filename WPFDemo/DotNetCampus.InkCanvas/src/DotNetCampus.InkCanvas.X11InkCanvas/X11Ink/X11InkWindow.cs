@@ -1,4 +1,4 @@
-using System.Runtime.Versioning;
+﻿using System.Runtime.Versioning;
 using CPF.Linux;
 using SkiaSharp;
 using UnoInk.Inking.InkCore;
@@ -7,6 +7,8 @@ using UnoInk.Inking.InkCore.Settings;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Input;
 using UnoInk.Inking.X11Platforms.Threading;
+using X11ApplicationFramework.Apps;
+using X11ApplicationFramework.Natives;
 
 namespace UnoInk.Inking.X11Ink;
 
