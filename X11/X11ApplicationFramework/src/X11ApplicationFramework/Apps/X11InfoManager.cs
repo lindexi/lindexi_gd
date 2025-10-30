@@ -41,33 +41,33 @@ public record X11InfoManager
         XCloseDisplay(Display);
     }
 
-    ///// <summary>
-    ///// 屏幕的物理尺寸
-    ///// 先照86寸屏幕来
-    ///// 86寸屏幕的屏幕的长度和宽度分别是多少厘米
-    ///// </summary>
-    //public double ScreenPhysicalWidthCentimetre { set; get; } = 192;
-    //public double ScreenPhysicalHeightCentimetre { set; get; } = 111;
+    /// <summary>
+    /// 屏幕的物理尺寸
+    /// 先照86寸屏幕来
+    /// 86寸屏幕的屏幕的长度和宽度分别是多少厘米
+    /// </summary>
+    public double ScreenPhysicalWidthCentimetre { set; get; } = 192;
+    public double ScreenPhysicalHeightCentimetre { set; get; } = 111;
 
     #region Atoms
 
     public X11Atoms X11Atoms { get; }
 
-    //public IntPtr HintsPropertyAtom => GetAtom(ref _hintsPropertyAtom, "_MOTIF_WM_HINTS");
-    //private IntPtr _hintsPropertyAtom;
+    public IntPtr HintsPropertyAtom => GetAtom(ref _hintsPropertyAtom, "_MOTIF_WM_HINTS");
+    private IntPtr _hintsPropertyAtom;
 
-    //public IntPtr WMStateAtom => GetAtom(ref _wmStateAtom, "_NET_WM_STATE");
-    //private IntPtr _wmStateAtom;
+    public IntPtr WMStateAtom => GetAtom(ref _wmStateAtom, "_NET_WM_STATE");
+    private IntPtr _wmStateAtom;
 
-    //private IntPtr GetAtom(ref IntPtr atom, string atomName)
-    //{
-    //    if (atom == IntPtr.Zero)
-    //    {
-    //        atom = GetAtom(atomName);
-    //    }
+    private IntPtr GetAtom(ref IntPtr atom, string atomName)
+    {
+        if (atom == IntPtr.Zero)
+        {
+            atom = GetAtom(atomName);
+        }
 
-    //    return atom;
-    //}
+        return atom;
+    }
 
     public IntPtr GetAtom(string atomName)
     {
