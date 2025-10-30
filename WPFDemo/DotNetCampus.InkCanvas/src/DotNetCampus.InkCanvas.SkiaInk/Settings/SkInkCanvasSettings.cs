@@ -1,11 +1,9 @@
 ﻿using DotNetCampus.Inking.Primitive;
-using DotNetCampus.Inking.Settings;
-//using Microsoft.Maui.Graphics;
 using SkiaSharp;
-
+//using Microsoft.Maui.Graphics;
 using Size = DotNetCampus.Numerics.Geometry.Size2D;
 
-namespace UnoInk.Inking.InkCore.Settings;
+namespace DotNetCampus.Inking.Settings;
 
 /// <summary>
 /// 画板的配置

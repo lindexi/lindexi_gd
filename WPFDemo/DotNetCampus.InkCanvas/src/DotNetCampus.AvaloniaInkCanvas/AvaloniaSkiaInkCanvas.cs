@@ -16,9 +16,8 @@ using DotNetCampus.Numerics.Geometry;
 using SkiaSharp;
 
 using System.Diagnostics;
+using DotNetCampus.Inking.Interactives;
 using DotNetCampus.Inking.Utils;
-using UnoInk.Inking.InkCore.Interactives;
-
 using InkTransformContext = (DotNetCampus.Numerics.Geometry.BoundingBox2D VisibleBounds, DotNetCampus.Numerics.Geometry.SimilarityTransformation2D TransformToRoot);
 
 namespace DotNetCampus.Inking;

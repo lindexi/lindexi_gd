@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Skia;
-
 using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Primitive;
 using DotNetCampus.Inking.StrokeRenderers;

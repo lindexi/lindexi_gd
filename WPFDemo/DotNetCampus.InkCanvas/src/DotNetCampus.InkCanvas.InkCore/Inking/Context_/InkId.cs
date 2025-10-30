@@ -1,4 +1,4 @@
-﻿namespace UnoInk.Inking.InkCore;
+﻿namespace DotNetCampus.Inking;
 
 public readonly partial record struct InkId(int Value)
 {

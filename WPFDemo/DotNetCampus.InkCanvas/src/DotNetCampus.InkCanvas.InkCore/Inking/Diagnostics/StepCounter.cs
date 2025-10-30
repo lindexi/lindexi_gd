@@ -1,7 +1,7 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 
-namespace UnoInk.Inking.InkCore.Diagnostics;
+namespace DotNetCampus.Inking.Diagnostics;
 
 /// <summary>
 /// 线性步骤记录器

@@ -1,4 +1,4 @@
-﻿namespace UnoInk.Inking.InkCore.Interactives;
+﻿namespace DotNetCampus.Inking.Interactives;
 
 /// <summary>
 /// 表示对输入调度器敏感，将被注入

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using DotNetCampus.Logging;
 
-namespace UnoInk.Inking.X11Platforms;
+namespace DotNetCampus.Inking.Diagnostics;
 
 static class StaticDebugLogger
 {

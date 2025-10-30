@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
+using DotNetCampus.Inking.Diagnostics;
 using DotNetCampus.Inking.Primitive;
 using DotNetCampus.Numerics.Geometry;
-using UnoInk.Inking.X11Platforms;
 
-namespace UnoInk.Inking.InkCore.Interactives;
+namespace DotNetCampus.Inking.Interactives;
 
 /// <summary>
 /// 输入调度器
