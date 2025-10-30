@@ -20,7 +20,7 @@ public readonly record struct InkStylusPoint
     public Point2D Point { init; get; }
     public float Pressure { init; get; }
 
-    public bool IsPressureEnable { init; get; }
+    //public bool IsPressureEnable { init; get; }
 
     public double? Width { init; get; }
     public double? Height { init; get; }

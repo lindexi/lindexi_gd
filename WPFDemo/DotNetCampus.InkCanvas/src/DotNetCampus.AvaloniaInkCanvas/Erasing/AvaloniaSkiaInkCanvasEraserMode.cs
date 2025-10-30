@@ -113,7 +113,7 @@ public class AvaloniaSkiaInkCanvasEraserMode
             IsErasing = false;
             var pointPathEraserResult = PointPathEraserManager.Finish();
 
-            InkCanvas.ResetStaticStrokeListByEraserResult(pointPathEraserResult.ErasingSkiaStrokeList.SelectMany(t => t.NewStrokeList));
+            InkCanvas.ResetStaticStrokeListByEraserResult(pointPathEraserResult.ErasingSkiaStrokeList.SelectMany(t => t.NewStrokeList ?? Enumerable.Empty<SkiaStroke>()));
 
             ClearEraser();
 
