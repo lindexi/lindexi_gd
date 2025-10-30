@@ -1,77 +1,40 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
+
 using CPF.Linux;
+
+using DotNetCampus.Logging;
+
+using Microsoft.UI;
+
 using Uno.Extensions;
-using static CPF.Linux.XLib;
+
 using static CPF.Linux.ShapeConst;
+using static CPF.Linux.XLib;
 
 namespace UnoInk.Inking.X11Platforms;
 
 [SupportedOSPlatform("Linux")]
-public class X11Window
+public class X11Window : X11WindowNativeInterop
 {
     public X11Window(X11Application application, X11WindowCreateInfo createInfo) : this(application, CreateX11Window(application, createInfo))
     {
+        AppendPid();
+        SetNetWmWindowTypeNormal();
     }
 
-    public X11Window(X11Application application, IntPtr x11WindowIntPtr)
+    internal X11Window(X11Application application, IntPtr x11WindowIntPtr) : base(application.X11Info,
+        x11WindowIntPtr)
     {
         Application = application;
-        X11WindowIntPtr = x11WindowIntPtr;
+        application.RegisterWindow(this);
     }
 
     public X11Application Application { get; }
-    public IntPtr X11WindowIntPtr { get; }
-    private X11InfoManager X11Info => Application.X11Info;
 
-    public IntPtr GC => _gc ??= XCreateGC(X11Info.Display, X11WindowIntPtr, 0, 0);
+    public IntPtr GC => _gc ??= XCreateGC(Display, X11WindowIntPtr, 0, 0);
 
     private IntPtr? _gc;
-
-    public void ShowActive()
-    {
-        XMapWindow(X11Info.Display, X11WindowIntPtr);
-        XFlush(X11Info.Display);
-    }
-
-    /// <summary>
-    /// 点击命中穿透
-    /// </summary>
-    public void SetClickThrough()
-    {
-        // 设置不接受输入
-        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
-        var region = XCreateRegion();
-        XShapeCombineRegion(X11Info.Display, X11WindowIntPtr, ShapeInput, 0, 0, region, ShapeSet);
-    }
-
-    public void SetOwner(IntPtr ownerX11WindowIntPtr)
-    {
-        XSetTransientForHint(X11Info.Display, X11WindowIntPtr, ownerX11WindowIntPtr);
-    }
-    
-    public void RegisterMultiTouch([DisallowNull] XIDeviceInfo? pointerDevice)
-    {
-        XiEventType[] multiTouchEventTypes =
-        [
-            XiEventType.XI_TouchBegin,
-            XiEventType.XI_TouchUpdate,
-            XiEventType.XI_TouchEnd
-        ];
-        
-        XiEventType[] defaultEventTypes =
-        [
-            XiEventType.XI_Motion,
-            XiEventType.XI_ButtonPress,
-            XiEventType.XI_ButtonRelease,
-            XiEventType.XI_Leave,
-            XiEventType.XI_Enter,
-        ];
-        
-        List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
-        
-        XiSelectEvents(X11Info.Display, X11WindowIntPtr, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
-    }
 
     private static IntPtr CreateX11Window(X11Application application, X11WindowCreateInfo createInfo)
     {
@@ -122,148 +85,25 @@ public class X11Window
             visual,
             (nuint) valueMask, ref xSetWindowAttributes);
 
+        Log.Info($"[InkCore][X11Apps][X11Window] 创建窗口 Visual={visual} WH={width},{height} XID={x11Window}");
+
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
         var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
         XLib.XSelectInput(display, x11Window, mask);
 
+        Log.Info($"[InkCore][X11Apps][X11Window] 完成创建窗口 X11Window={x11Window}");
+
         return x11Window;
     }
-    
-    public IDispatcher GetDispatcher()
-        => new X11InkWindowDispatcher(this);
 
-    public void ShowTaskbarIcon(bool value)
+    internal void DispatchEvent(XEvent @event)
     {
-        var _NET_WM_STATE_SKIP_TASKBAR = XInternAtom(X11Info.Display, "_NET_WM_STATE_SKIP_TASKBAR", false);
-        ChangeWMAtoms(!value, _NET_WM_STATE_SKIP_TASKBAR);
+        OnDispatchEvent(@event);
     }
 
-    private void ChangeWMAtoms(bool enable, params IntPtr[] atoms)
+    protected virtual unsafe void OnDispatchEvent(XEvent @event)
     {
-        if (atoms.Length != 1 && atoms.Length != 2)
-        {
-            throw new ArgumentException();
-        }
-
-        //if (!_mapped)
-        //{
-        //    XGetWindowProperty(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE, IntPtr.Zero, new IntPtr(256),
-        //        false, (IntPtr) Atom.XA_ATOM, out _, out _, out var nitems, out _,
-        //        out var prop);
-        //    var ptr = (IntPtr*) prop.ToPointer();
-        //    var newAtoms = new HashSet<IntPtr>();
-        //    for (var c = 0; c < nitems.ToInt64(); c++)
-        //        newAtoms.Add(*ptr);
-        //    XFree(prop);
-        //    foreach (var atom in atoms)
-        //        if (enable)
-        //            newAtoms.Add(atom);
-        //        else
-        //            newAtoms.Remove(atom);
-
-        //    XChangeProperty(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE, (IntPtr) Atom.XA_ATOM, 32,
-        //        PropertyMode.Replace, newAtoms.ToArray(), newAtoms.Count);
-        //}
-        var wmState = XInternAtom(X11Info.Display, "_NET_WM_STATE", true);
-
-        SendNetWMMessage(wmState,
-            (IntPtr) (enable ? 1 : 0),
-            atoms[0],
-            atoms.Length > 1 ? atoms[1] : IntPtr.Zero,
-            atoms.Length > 2 ? atoms[2] : IntPtr.Zero,
-            atoms.Length > 3 ? atoms[3] : IntPtr.Zero
-         );
+        OnReceiveEvent(&@event);
     }
-
-    public void SendNetWMMessage(IntPtr message_type, IntPtr l0,
-        IntPtr? l1 = null, IntPtr? l2 = null, IntPtr? l3 = null, IntPtr? l4 = null)
-    {
-        var xev = new XEvent
-        {
-            ClientMessageEvent =
-            {
-                type = XEventName.ClientMessage,
-                send_event = true,
-                window = X11WindowIntPtr,
-                message_type = message_type,
-                format = 32,
-                ptr1 = l0,
-                ptr2 = l1 ?? IntPtr.Zero,
-                ptr3 = l2 ?? IntPtr.Zero,
-                ptr4 = l3 ?? IntPtr.Zero
-            }
-        };
-        xev.ClientMessageEvent.ptr4 = l4 ?? IntPtr.Zero;
-        XSendEvent(X11Info.Display, X11Info.RootWindow, false,
-            new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
-    }
-
-    public void EnterFullScreen(bool topmost)
-    {
-        // 下面是进入全屏
-        var display = X11Info.Display;
-        var hintsPropertyAtom = X11Info.HintsPropertyAtom;
-        XChangeProperty(display, X11WindowIntPtr, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace, new uint[5]
-        {
-            2, // flags : Specify that we're changing the window decorations.
-            0, // functions
-            0, // decorations : 0 (false) means that window decorations should go bye-bye.
-            0, // inputMode
-            0, // status
-        }, 5);
-        
-        ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_HIDDEN", true));
-        ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", true));
-        ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
-        
-        if (topmost)
-        {
-            // 在 UNO 下，将会导致停止渲染
-            var topmostAtom = XInternAtom(display, "_NET_WM_STATE_ABOVE", true);
-            SendNetWMMessage(X11Info.WMStateAtom, new IntPtr(1), topmostAtom);
-        }
-    }
-}
-
-[SupportedOSPlatform("Linux")]
-file class X11InkWindowDispatcher : IDispatcher
-{
-    public X11InkWindowDispatcher(X11Window x11InkWindow)
-    {
-        _x11InkWindow = x11InkWindow;
-    }
-    
-    private readonly X11Window _x11InkWindow;
-    
-    public bool TryEnqueue(Action action)
-    {
-        _ = _x11InkWindow.Application.X11PlatformThreading?.InvokeAsync(action, _x11InkWindow.X11WindowIntPtr);
-        
-        return true;
-    }
-    
-    public async ValueTask<TResult> ExecuteAsync<TResult>(AsyncFunc<TResult> action, CancellationToken cancellation)
-    {
-        var taskCompletionSource = new TaskCompletionSource<TResult>();
-        
-        // 以下是兼容实现
-        _ = _x11InkWindow.Application.X11PlatformThreading?.InvokeAsync(async () =>
-        {
-            try
-            {
-                var result = await action(cancellation);
-                // 其实不支持同步上下文返回
-                taskCompletionSource.SetResult(result);
-            }
-            catch (Exception e)
-            {
-                taskCompletionSource.SetException(e);
-            }
-        }, _x11InkWindow.X11WindowIntPtr);
-        
-        return await taskCompletionSource.Task;
-    }
-    
-    public bool HasThreadAccess => _x11InkWindow.Application.X11PlatformThreading?.HasThreadAccess ?? false;
 }
