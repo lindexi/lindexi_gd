@@ -3,7 +3,7 @@ using SkiaSharp;
 
 namespace DotNetCampus.Inking.Utils;
 
-static class MauiRectExtension
+static class AvaloniaRectExtension
 {
     //public static Rect Union(this Rect rect, Point point)
     //{
