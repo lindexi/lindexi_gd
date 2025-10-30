@@ -90,13 +90,13 @@ public class X11Window : X11WindowNativeInterop
         return x11Window;
     }
 
-    internal void DispatchEvent(XEvent @event)
+    internal unsafe void DispatchEvent(XEvent* @event)
     {
         OnDispatchEvent(@event);
     }
 
-    protected virtual unsafe void OnDispatchEvent(XEvent @event)
+    protected virtual unsafe void OnDispatchEvent(XEvent* @event)
     {
-        OnReceiveEvent(&@event);
+        OnReceiveEvent(@event);
     }
 }
