@@ -76,7 +76,6 @@ using System.Text;
 using DotNetCampus.Logging;
 using UnoInk.Inking.X11Platforms;
 using X11ApplicationFramework.Apps;
-using X11ApplicationFramework.Diagnostics;
 using X11ApplicationFramework.Natives;
 using Point2D = DotNetCampus.Numerics.Geometry.Point2D;
 using static X11ApplicationFramework.Natives.XLib;
@@ -490,7 +489,7 @@ unsafe class X11DeviceInputManager
             if (count > 1)
             {
                 // 这个 count 越大证明越慢
-                StaticDebugLogger.WriteLine($"卡顿度 XEventsQueued={count}");
+                Log.Debug($"卡顿度 XEventsQueued={count}");
             }
 
             if (count == 0)
@@ -506,7 +505,7 @@ unsafe class X11DeviceInputManager
 
                 if (@event.AnyEvent.window != X11WindowIntPtr)
                 {
-                    StaticDebugLogger.WriteLine($"[X11DeviceInputManager] TryReadEvents 读取结束，因为读取到非当前关联窗口的消息。 AnyEvent.window={@event.AnyEvent.window} X11WindowIntPtr={X11WindowIntPtr}");
+                    Log.Debug($"[X11DeviceInputManager] TryReadEvents 读取结束，因为读取到非当前关联窗口的消息。 AnyEvent.window={@event.AnyEvent.window} X11WindowIntPtr={X11WindowIntPtr}");
 
                     return;
                 }
