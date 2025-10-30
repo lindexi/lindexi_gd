@@ -3,6 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetCampus.Logger" Version="1.3.0-alpha02" />
+  </ItemGroup>
 
 </Project>
