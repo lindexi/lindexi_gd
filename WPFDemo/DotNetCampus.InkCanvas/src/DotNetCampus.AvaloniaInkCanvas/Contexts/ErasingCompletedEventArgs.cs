@@ -4,10 +4,10 @@ namespace DotNetCampus.Inking.Contexts;
 
 public class ErasingCompletedEventArgs : EventArgs
 {
-    public ErasingCompletedEventArgs(IReadOnlyList<ErasingSkiaStroke> erasingSkiaStrokeList)
+    public ErasingCompletedEventArgs(IReadOnlyList<ErasedSkiaStroke> erasingSkiaStrokeList)
     {
         ErasingSkiaStrokeList = erasingSkiaStrokeList;
     }
 
-    public IReadOnlyList<ErasingSkiaStroke> ErasingSkiaStrokeList { get; }
+    public IReadOnlyList<ErasedSkiaStroke> ErasingSkiaStrokeList { get; }
 }

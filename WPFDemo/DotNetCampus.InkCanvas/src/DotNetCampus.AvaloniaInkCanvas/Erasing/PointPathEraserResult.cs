@@ -1,3 +1,3 @@
 ﻿namespace DotNetCampus.Inking.Erasing;
 
-record PointPathEraserResult(IReadOnlyList<ErasingSkiaStroke> ErasingSkiaStrokeList);
+record PointPathEraserResult(IReadOnlyList<ErasedSkiaStroke> ErasingSkiaStrokeList);

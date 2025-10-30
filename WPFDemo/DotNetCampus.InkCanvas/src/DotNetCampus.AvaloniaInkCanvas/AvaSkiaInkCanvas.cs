@@ -4,6 +4,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+
 using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Erasing;
 using SkiaSharp;
