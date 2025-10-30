@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\DotNetCampus.UnoInkCanvas\UnoInk\Inking\InkCore\Primitive\StylusPoint.cs" Link="Inking\Primitive\StylusPoint.cs" />
-    <Compile Include="..\DotNetCampus.UnoInkCanvas\UnoInk\Inking\InkCore\SimpleInkRender.cs" Link="Inking\SimpleInkRender.cs" />
+    <Compile Include="..\DotNetCampus.InkCanvas.InkCore\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
+    <Compile Include="..\DotNetCampus.UnoInkCanvas\UnoInk\Inking\InkCore\Primitive\StylusPoint.cs" Link="Primitive\StylusPoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.1.3" />
