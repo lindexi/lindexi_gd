@@ -1,47 +1,47 @@
-using Uno.Extensions;
+﻿//using Uno.Extensions;
 
-namespace UnoInk.Inking.X11Platforms.Threading;
+//namespace UnoInk.Inking.X11Platforms.Threading;
 
-public class DispatcherRequiring
-{
-    public DispatcherRequiring(Action action, IDispatcher dispatcher)
-    {
-        _action = action;
-        _dispatcher = dispatcher;
-    }
+//public class DispatcherRequiring
+//{
+//    public DispatcherRequiring(Action action, IDispatcher dispatcher)
+//    {
+//        _action = action;
+//        _dispatcher = dispatcher;
+//    }
 
-    private readonly Action _action;
-    private readonly IDispatcher _dispatcher;
-    private bool _isTaskRequired;
+//    private readonly Action _action;
+//    private readonly IDispatcher _dispatcher;
+//    private bool _isTaskRequired;
 
-    /// <summary>
-    /// 请求执行任务，以便在调度发生时开始执行。
-    /// </summary>
-    public void Require()
-    {
-        if (_isTaskRequired)
-        {
-            return;
-        }
-        _isTaskRequired = true;
+//    /// <summary>
+//    /// 请求执行任务，以便在调度发生时开始执行。
+//    /// </summary>
+//    public void Require()
+//    {
+//        if (_isTaskRequired)
+//        {
+//            return;
+//        }
+//        _isTaskRequired = true;
 
-        _dispatcher.TryEnqueue(InvokeAction);
-    }
+//        _dispatcher.TryEnqueue(InvokeAction);
+//    }
 
-    private void InvokeAction()
-    {
-        if (!_isTaskRequired)
-        {
-            return;
-        }
+//    private void InvokeAction()
+//    {
+//        if (!_isTaskRequired)
+//        {
+//            return;
+//        }
 
-        try
-        {
-            _action.Invoke();
-        }
-        finally
-        {
-            _isTaskRequired = false;
-        }
-    }
-}
+//        try
+//        {
+//            _action.Invoke();
+//        }
+//        finally
+//        {
+//            _isTaskRequired = false;
+//        }
+//    }
+//}
