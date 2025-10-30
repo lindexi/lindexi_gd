@@ -15,7 +15,7 @@ using UnhandledExceptionEventArgs = X11ApplicationFramework.Apps.Threading.Unhan
 namespace X11ApplicationFramework.Apps;
 
 [SupportedOSPlatform("Linux")]
-class X11Application
+public class X11Application
 {
     public X11Application()
     {

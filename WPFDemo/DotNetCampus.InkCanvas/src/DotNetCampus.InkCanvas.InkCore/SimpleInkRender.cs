@@ -1,11 +1,8 @@
 ﻿using System.Numerics;
 using DotNetCampus.Inking.Primitive;
-
 using Point = DotNetCampus.Numerics.Geometry.Point2D;
-using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
-using Size2D = DotNetCampus.Numerics.Geometry.Size2D;
 
-namespace UnoInk.Inking.InkCore
+namespace DotNetCampus.Inking
 {
     /// <summary>
     /// 特别简单的笔迹渲染器。
