@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.ComponentModel;
 
-namespace DotNetCampus.Inking.Inking.Utils;
+namespace DotNetCampus.Inking.Utils;
 
 /// <summary>
 /// 带最大数量的队列，超过最大数量将会自动将队头元素出队丢弃

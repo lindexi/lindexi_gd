@@ -97,8 +97,7 @@ public class AvaSkiaInkCanvasEraserMode
 #endif
 
             var rect = new Rect(args.Point.Point.X - eraserWidth / 2, args.Point.Point.Y - eraserHeight / 2, eraserWidth, eraserHeight);
-
-            PointPathEraserManager.Move(rect.ToMauiRect());
+            PointPathEraserManager.Move(rect.ToRect2D());
 
             _eraserView.SetEraserSize(new Size(eraserWidth, eraserHeight));
             _eraserView.Move(args.Point.Point.ToAvaloniaPoint());
