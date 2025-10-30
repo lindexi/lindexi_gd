@@ -1,4 +1,4 @@
-namespace UnoInk.Inking.InkCore.Settings;
+﻿namespace DotNetCampus.Inking.Settings;
 
 /// <summary>
 /// 对清空笔迹的配置

@@ -16,7 +16,7 @@ namespace X11ApplicationFramework.Apps.Threading;
 /// 命名是从 Avalonia 抄的
 /// </summary>
 [SupportedOSPlatform("Linux")]
-class X11PlatformThreading : IDisposable
+public class X11PlatformThreading : IDisposable
 {
     public X11PlatformThreading(X11Application x11Application)
     {

@@ -85,7 +85,7 @@ namespace X11ApplicationFramework.Primitive
         /// <returns>
         /// True if <paramref name="obj"/> is a size that equals the current size.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is PixelSize other)
             {

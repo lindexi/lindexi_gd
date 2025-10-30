@@ -690,7 +690,7 @@ namespace X11ApplicationFramework.Natives
                 {
                     result += ", ";
                 }
-                object value = fields[i].GetValue(ev);
+                object? value = fields[i].GetValue(ev);
                 result += fields[i].Name + "=" + (value == null ? "<null>" : value.ToString());
             }
             return type.Name + " (" + result + ")";

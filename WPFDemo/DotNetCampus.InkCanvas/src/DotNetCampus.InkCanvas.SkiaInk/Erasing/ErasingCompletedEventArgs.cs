@@ -1,6 +1,4 @@
-﻿using DotNetCampus.Inking;
-
-namespace WejallkachawDadeawejearhuce.Inking.Contexts;
+﻿namespace DotNetCampus.Inking.Erasing;
 
 /// <summary>
 /// 擦除完成参数

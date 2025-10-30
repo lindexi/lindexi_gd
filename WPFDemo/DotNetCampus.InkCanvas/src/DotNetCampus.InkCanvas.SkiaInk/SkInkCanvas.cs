@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿#nullable enable
 <<<<<<< HEAD
 using System.Diagnostics;
@@ -19,6 +20,14 @@ using BujeeberehemnaNurgacolarje;
 =======
 using DotNetCampus.Inking.Primitive;
 >>>>>>> 4bec1cabcab9c953e08f5a2ed28dd13ba06f9118
+=======
+﻿using System.Diagnostics;
+using System.Numerics;
+using DotNetCampus.Inking;
+using DotNetCampus.Inking.Primitive;
+using DotNetCampus.Inking.Settings;
+using DotNetCampus.Inking.Utils;
+>>>>>>> de413a1b2455fc5833fbc49900dc952036bec237
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
@@ -30,8 +39,12 @@ using UnoInk.Inking.InkCore.Diagnostics;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.InkCore.Settings;
 using UnoInk.Inking.X11Platforms;
+<<<<<<< HEAD
 using static UnoInk.Inking.InkCore.RectExtension;
 >>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
+=======
+using static DotNetCampus.Inking.Primitive.RectExtension;
+>>>>>>> de413a1b2455fc5833fbc49900dc952036bec237
 
 namespace ReewheaberekaiNayweelehe;
 

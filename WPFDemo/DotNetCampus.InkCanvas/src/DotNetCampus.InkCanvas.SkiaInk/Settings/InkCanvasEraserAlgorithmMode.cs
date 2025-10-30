@@ -1,4 +1,4 @@
-﻿namespace UnoInk.Inking.InkCore.Settings;
+﻿namespace DotNetCampus.Inking.Settings;
 
 /// <summary>
 /// 橡皮擦算法模式

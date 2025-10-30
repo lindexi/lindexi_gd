@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Versioning;
 using CPF.Linux;
+using DotNetCampus.Inking.Settings;
 using SkiaSharp;
 using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;

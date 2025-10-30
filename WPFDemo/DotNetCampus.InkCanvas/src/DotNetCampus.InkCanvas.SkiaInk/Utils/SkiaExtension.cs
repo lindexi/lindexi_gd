@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using SkiaSharp;
 
-namespace UnoInk.Inking.InkCore;
+namespace DotNetCampus.Inking.Utils;
 
 static class SkiaExtension
 {
