@@ -23,4 +23,3 @@ public interface ISkiaInkStrokeRenderer
     /// <returns></returns>
     SKPath RenderInkToPath(IReadOnlyList<InkStylusPoint> pointList, double inkThickness);
 }
-
