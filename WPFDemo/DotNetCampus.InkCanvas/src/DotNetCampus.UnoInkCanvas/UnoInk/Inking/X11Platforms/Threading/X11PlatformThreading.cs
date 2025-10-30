@@ -8,52 +8,51 @@ namespace UnoInk.Inking.X11Platforms.Threading;
 /// 命名是从 Avalonia 抄的
 /// </summary>
 [SupportedOSPlatform("Linux")]
-public class X11PlatformThreading
+public class X11PlatformDispatcher
 {
-    public X11PlatformThreading(X11Application x11Application)
+    public X11PlatformDispatcher(X11Application x11Application)
     {
         _x11Application = x11Application;
+        _currentThread = Thread.CurrentThread;
     }
 
     private readonly X11Application _x11Application;
 
-    public void RunInNewThread()
-    {
-        // 启动消息
-        _eventsThread = new Thread(RunInner)
-        {
-            Name = $"X11InkWindow XEvents {Interlocked.Increment(ref _threadCount) - 1}",
-            IsBackground = true
-        };
-
-        _eventsThread.Start();
-    }
-
-    public void Run()
-    {
-        _eventsThread = Thread.CurrentThread;
-        RunInner();
-    }
+    private readonly Thread _currentThread;
 
     private X11InfoManager X11Info => _x11Application.X11Info;
-    public bool IsRunning => _eventsThread != null;
-    public bool HasThreadAccess => ReferenceEquals(Thread.CurrentThread, _eventsThread);
 
-    private void RunInner()
+    public bool HasThreadAccess => ReferenceEquals(Thread.CurrentThread, _currentThread);
+
+    public bool CheckAccess()
     {
-        var display = X11Info.Display;
-        while (true)
+        return HasThreadAccess;
+    }
+
+    public void VerifyAccess()
+    {
+        if (!CheckAccess())
         {
-            var xNextEvent = XLib.XNextEvent(display, out var @event);
-            //Console.WriteLine($"XNextEvent [{Thread.CurrentThread.Name}] {@event.type}");
-            //if (@event.type == XEventName.Expose)
-            //{
-            //    if (@event.ExposeEvent.window == X11InkProvider.InkWindow.X11InkWindowIntPtr)
-            //    {
-            //        X11InkProvider.InkWindow.Expose(@event.ExposeEvent);
-            //    }
-            //}
-            //else 
+            //StaticDebugLogger.WriteLine($"[X11PlatformThreading] Fail VerifyAccess {Environment.StackTrace}\r\n\r\n");
+
+            throw new InvalidOperationException("Access is not allowed from a different thread.");
+        }
+    }
+
+    internal void Run()
+    {
+        if (_x11Application.WindowManager.Windows.Count == 0)
+        {
+            throw new InvalidOperationException($"一旦没有任何窗口，则不能开启消息");
+        }
+
+        var display = X11Info.Display;
+
+        while (!_isShutdown)
+        {
+            var xNextEvent = XNextEvent(display, out var @event);
+
+            // 判断是否私有 Invoke 的消息
             if (@event.type == XEventName.ClientMessage)
             {
                 var clientMessageEvent = @event.ClientMessageEvent;
@@ -68,28 +67,70 @@ public class X11PlatformThreading
 
                     foreach (var action in tempList)
                     {
-                        action();
+                        try
+                        {
+                            action();
+                        }
+                        catch (Exception e)
+                        {
+                            _x11Application.RaiseUnhandledException(e);
+                        }
                     }
 
+                    // 这是专门用来处理业务逻辑的，不需要处理其他的事件
                     continue;
                 }
             }
 
-            _x11Application.DispatchEvent(@event);
+            // 其他窗口消息
+            if (_x11Application.WindowManager.TryGetWindow(@event.AnyEvent.window, out var window))
+            {
+                window.DispatchEvent(@event);
+            }
         }
-        // ReSharper disable once FunctionNeverReturns
     }
 
-    private readonly List<Action> _invokeList = new List<Action>();
-    private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
-    private ulong _invokeIndex;
+    private bool _isShutdown;
 
-    public void TryEnqueue(Action action, IntPtr x11WindowIntPtr)
+    /// <summary>
+    /// 内部 Invoke 的消息号，这是随便写的
+    /// </summary>
+    private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
+
+    /// <summary>
+    /// 专门用来发送事件的 Display 用于修复线程安全
+    /// </summary>
+    private IntPtr _sendEventDisplay;
+
+    internal void ShutdownDispose()
     {
-        var index = Interlocked.Increment(ref _invokeIndex);
+        _isShutdown = true;
+
+        if (_sendEventDisplay != 0)
+        {
+            XCloseDisplay(_sendEventDisplay);
+        }
+    }
+
+    #region 消息调度
+
+    public bool TryEnqueue(Action action)
+    {
+        var eventWindow = _x11Application.EventWindow;
+
+        if (_isShutdown)
+        {
+            return false;
+        }
+
         lock (_invokeList)
         {
             _invokeList.Add(action);
+
+            if (_sendEventDisplay == IntPtr.Zero)
+            {
+                _sendEventDisplay = XLib.XOpenDisplay(IntPtr.Zero);
+            }
         }
 
         // 在 Avalonia 里面，是通过循环读取的方式，通过 XPending 判断是否有消息
@@ -112,7 +153,7 @@ public class X11PlatformThreading
             {
                 type = XEventName.ClientMessage,
                 send_event = true,
-                window = x11WindowIntPtr,
+                window = eventWindow.X11WindowIntPtr,
                 message_type = 0,
                 format = 32,
                 ptr1 = _invokeMessageId,
@@ -121,25 +162,60 @@ public class X11PlatformThreading
                 ptr4 = 0,
             }
         };
-        XLib.XSendEvent(X11Info.Display, x11WindowIntPtr, false, 0, ref @event);
+        XLib.XSendEvent(_sendEventDisplay, eventWindow.X11WindowIntPtr, false, 0, ref @event);
 
-        XLib.XFlush(X11Info.Display);
+        XLib.XFlush(_sendEventDisplay);
+        return true;
     }
+    private readonly List<Action> _invokeList = new List<Action>();
 
-
-    public async Task InvokeAsync(Action action, IntPtr x11WindowIntPtr)
+    public Task InvokeAsync(Action action)
     {
         var taskCompletionSource = new TaskCompletionSource();
-        TryEnqueue(() =>
+        var success = TryEnqueue(() =>
         {
-            // 测试顺序调用通过
-            //Console.WriteLine($"Invoke Index={index}");
-            action();
-            taskCompletionSource.SetResult();
-        }, x11WindowIntPtr);
-        await taskCompletionSource.Task;
+            try
+            {
+                action();
+                taskCompletionSource.SetResult();
+            }
+            catch (Exception e)
+            {
+                taskCompletionSource.SetException(e);
+            }
+        });
+
+        if (!success)
+        {
+            taskCompletionSource.SetException(new Exception());
+        }
+
+        return taskCompletionSource.Task;
     }
 
-    private Thread? _eventsThread;
-    private static int _threadCount;
+    public Task<T> InvokeAsync<T>(Func<T> func)
+    {
+        var taskCompletionSource = new TaskCompletionSource<T>();
+        var success = TryEnqueue(() =>
+        {
+            try
+            {
+                var result = func();
+                taskCompletionSource.SetResult(result);
+            }
+            catch (Exception e)
+            {
+                taskCompletionSource.SetException(e);
+            }
+        });
+
+        if (!success)
+        {
+            taskCompletionSource.SetException(new Exception());
+        }
+
+        return taskCompletionSource.Task;
+    }
+
+    #endregion
 }
