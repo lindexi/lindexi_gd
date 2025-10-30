@@ -13,7 +13,7 @@ namespace DotNetCampus.Inking.StrokeRenderers;
 /// <summary>
 /// 提供给 Skia 系的笔迹渲染器的接口
 /// </summary>
-internal interface ISkiaInkStrokeRenderer
+public interface ISkiaInkStrokeRenderer
 {
     /// <summary>
     /// 从给点的点集创建笔迹路径

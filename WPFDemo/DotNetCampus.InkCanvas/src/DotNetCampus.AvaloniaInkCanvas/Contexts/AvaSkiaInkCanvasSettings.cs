@@ -1,11 +1,10 @@
 ﻿using Avalonia;
 
-using DotNetCampus.Inking.StrokeRenderers;
-
 using SkiaSharp;
 
 namespace DotNetCampus.Inking.Contexts;
-class AvaSkiaInkCanvasSettings
+
+public class AvaSkiaInkCanvasSettings
 {
     /// <summary>
     /// 笔迹粗细。
