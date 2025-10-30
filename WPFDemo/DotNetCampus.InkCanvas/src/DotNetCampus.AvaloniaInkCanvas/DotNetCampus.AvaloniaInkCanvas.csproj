@@ -14,4 +14,5 @@
     <ProjectReference Include="..\DotNetCampus.InkCanvas.InkCore\DotNetCampus.InkCanvas.InkCore.csproj" />
     <ProjectReference Include="..\DotNetCampus.InkCanvas.SkiaInk\DotNetCampus.InkCanvas.SkiaInk.csproj" />
   </ItemGroup>
+
 </Project>

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DotNetCampus.Numerics.Geometry;
 using WpfInk.PresentationCore.System.Windows;
 
 namespace WpfInk;
@@ -12,7 +13,7 @@ internal class InternalStreamGeometryContext : IInternalStreamGeometryContext
     }
 
     private readonly IStreamGeometryContext _context;
-    private readonly List<InkPoint2D> _cacheList = new List<InkPoint2D>();
+    private readonly List<Point2D> _cacheList = new List<Point2D>();
 
     public void BeginFigure(Point startPoint, bool isFilled, bool isClosed)
     {

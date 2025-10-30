@@ -1,4 +1,5 @@
-﻿using MS.Internal.Ink;
+﻿using DotNetCampus.Inking.Primitive;
+using MS.Internal.Ink;
 using WpfInk.PresentationCore.System.Windows.Ink;
 using WpfInk.PresentationCore.System.Windows.Input.Stylus;
 
@@ -16,7 +17,7 @@ public static class InkStrokeRenderer
 
         var stylusPointCollection = new StylusPointCollection(info.StylusPointCollection.Count);
 
-        foreach (InkStylusPoint2D inkStylusPoint2D in info.StylusPointCollection)
+        foreach (InkStylusPoint inkStylusPoint2D in info.StylusPointCollection)
         {
             stylusPointCollection.Add(inkStylusPoint2D.ToStylusPoint());
         }
