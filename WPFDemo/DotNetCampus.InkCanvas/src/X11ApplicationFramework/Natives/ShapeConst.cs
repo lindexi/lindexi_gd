@@ -1,4 +1,4 @@
-﻿namespace CPF.Linux;
+﻿namespace X11ApplicationFramework.Natives;
 
 public static class ShapeConst
 {
