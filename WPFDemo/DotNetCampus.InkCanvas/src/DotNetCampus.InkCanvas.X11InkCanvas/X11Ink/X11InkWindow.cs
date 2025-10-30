@@ -1,38 +1,64 @@
 ﻿using System.Runtime.Versioning;
-using CPF.Linux;
+using DotNetCampus.InkCanvas.X11InkCanvas.Input;
+using DotNetCampus.InkCanvas.X11InkCanvas.Renders;
 using DotNetCampus.Inking.Settings;
 using SkiaSharp;
 using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.InkCore.Settings;
-using UnoInk.Inking.X11Platforms;
-using UnoInk.Inking.X11Platforms.Input;
-using UnoInk.Inking.X11Platforms.Threading;
 using X11ApplicationFramework.Apps;
+using X11ApplicationFramework.Apps.Threading;
 using X11ApplicationFramework.Natives;
 
-namespace UnoInk.Inking.X11Ink;
+namespace DotNetCampus.InkCanvas.X11InkCanvas.X11Ink;
 
 [SupportedOSPlatform("Linux")]
 class X11InkWindow : X11Window
 {
-    public X11InkWindow(X11Application application, IntPtr mainWindowHandle) : base(application,
+    /// <summary>
+    /// 创建一个 X11 笔迹窗口
+    /// </summary>
+    /// <param name="application"></param>
+    /// <param name="mainWindowHandle"></param>
+    /// <param name="enableInput">是否允许从 X11 获取输入</param>
+    public X11InkWindow(X11Application application, IntPtr mainWindowHandle, bool enableInput = false) : this
+    (
+        application,
+        mainWindowHandle,
+        enableInput,
         new X11WindowCreateInfo()
         {
-            IsFullScreen = true
-        })
+            IsFullScreen = true,
+
+            Width = application.X11Info.XDisplayWidth,
+            Height = application.X11Info.XDisplayHeight
+        }
+    )
     {
-        //application.EnsureStart();
+    }
+
+    /// <summary>
+    /// 创建一个 X11 笔迹窗口
+    /// </summary>
+    /// <param name="application"></param>
+    /// <param name="mainWindowHandle"></param>
+    /// <param name="enableInput">是否允许从 X11 获取输入</param>
+    /// <param name="info"></param>
+    public X11InkWindow(X11Application application, IntPtr mainWindowHandle, bool enableInput,
+        X11WindowCreateInfo info)
+        : base(application, info)
+    {
         X11PlatformThreading = application.X11PlatformThreading;
         var x11Info = application.X11Info;
         _x11Info = x11Info;
         _mainWindowHandle = mainWindowHandle;
-        
-        var xDisplayWidth = x11Info.XDisplayWidth;
-        var xDisplayHeight = x11Info.XDisplayHeight;
+        _enableInput = enableInput;
+
+        var windowWidth = info.Width;
+        var windowHeight = info.Height;
 
         // 放在显示窗口之前进行 XIQueryDevice 不会让窗口停止渲染，否则将会在 XIQueryDevice 方法卡住
-        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
+        X11DeviceInputManager = new X11DeviceInputManager(_x11Info, X11WindowIntPtr);
 
         // 在 SetClickThrough 之前注册触摸，这样也不会让下层窗口收不到触摸
         var pointerDevice = X11DeviceInputManager.PointerDevice;
@@ -42,91 +68,91 @@ class X11InkWindow : X11Window
             RegisterMultiTouch(pointerDevice);
         }
 
-        // 设置不接受输入
-        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
-        SetClickThrough();
+        BusinessShow();
 
-        // 设置一定放在输入的窗口上方
-        SetOwner(mainWindowHandle);
+        var skBitmap = new SKBitmap(windowWidth, windowHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
 
-        ShowActive();
-
-        // 进入全屏
-        EnterFullScreen(topmost: false/*这里必须设置为false否则UNO窗口将不会渲染*/);
-        
-        var skBitmap = new SKBitmap(xDisplayWidth, xDisplayHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
         var skCanvas = new SKCanvas(skBitmap);
         _skCanvas = skCanvas;
-        
-        XImage image = CreateImage();
-        _image = image;
-        
-        // 读取屏幕物理尺寸，用于实现橡皮擦功能
-        //UpdateScreenPhysicalSize();
-        
+
+        if (ShouldDrawDebugImage)
+        {
+            skCanvas.Clear(SKColors.Transparent);
+            using var skPaint = new SKPaint();
+            skPaint.IsAntialias = true;
+            skPaint.Color = SKColors.Black;
+            skPaint.StrokeWidth = 10;
+            skPaint.Style = SKPaintStyle.Stroke;
+            skCanvas.DrawLine(0, 0, windowWidth, windowHeight, skPaint);
+            skCanvas.DrawLine(0, windowHeight, windowWidth, 0, skPaint);
+            skCanvas.Flush();
+        }
+
+        var xImageProxy = new XImageProxy(_skBitmap);
+        _xImageProxy = xImageProxy;
+        //_image = xImageProxy.Image;
+
+        _x11RenderManager = new X11RenderManager(application, X11InkWindowIntPtr,
+            new SKBitmapBackendRenderContext(_skBitmap));
+
         var skInkCanvas = // new SkInkCanvas(_skCanvas, _skBitmap);
             new SkInkCanvas(_skCanvas, _skBitmap);
         //skInkCanvas.ApplicationDrawingSkBitmap = _skBitmap;
         //skInkCanvas.SetCanvas(_skCanvas);
-        
-        skInkCanvas.Settings = skInkCanvas.Settings with
-        {
-            AutoSoftPen = false,
-            //EnableEraserGesture = false,
-            DynamicRenderType = InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip,
 
-            // 尝试修复丢失按下的点
-            ShouldDrawStrokeOnDown = true,
+        // 以下配置会被 BoardInkLayer 覆盖，但这里依然保持，是为了独立业务
+        //skInkCanvas.Settings = skInkCanvas.Settings with
+        //{
+        //    AutoSoftPen = false,
+        //    //EnableEraserGesture = false,
+        //    DynamicRenderType = InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip,
 
-            CleanStrokeSettings = new CleanStrokeSettings()
-            {
-                ShouldDrawBackground = false,
-                ShouldUpdateBackground = true,
-            }
-        };
-        
+        //    // 尝试修复丢失按下的点
+        //    ShouldDrawStrokeOnDown = true,
+
+        //    CleanStrokeSettings = new CleanStrokeSettings()
+        //    {
+        //        ShouldDrawBackground = false,
+        //        ShouldUpdateBackground = true,
+        //    },
+
+        //    // 丢点策略
+        //    DropPointSettings = skInkCanvas.Settings.DropPointSettings with
+        //    {
+        //        DropPointStrategy = DropPointStrategy.Aggressive
+        //    }
+        //};
+
+        // 统一为调试模式
+        skInkCanvas.Settings = SkInkCanvasSettings.DebugSettings(skInkCanvas.Settings);
+
         skInkCanvas.RenderBoundsChanged += (sender, rect) =>
         {
-            //if (PutImageBeforeExposeOnRenderBoundsChanged)
-            //{
-            //    var x = (int) rect.X;
-            //    var y = (int) rect.Y;
-            //    var width = (int) rect.Width;
-            //    var height = (int) rect.Height;
-            
-            //    // 曝光之前推送图片
-            //    XPutImage(Display, Window, GC, ref _image, x, y, x, y, (uint) width,
-            //        (uint) height);
-            //}
-            
-            var xEvent = new XEvent
-            {
-                ExposeEvent =
-                {
-                    type = XEventName.Expose,
-                    send_event = true,
-                    window = X11InkWindowIntPtr,
-                    count = 1,
-                    display = x11Info.Display,
-                    height = (int)rect.Height,
-                    width = (int)rect.Width,
-                    x = (int)rect.X,
-                    y = (int)rect.Y
-                }
-            };
-            // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-            XLib.XSendEvent(x11Info.Display, X11InkWindowIntPtr, propagate: false, new IntPtr((int) (EventMask.ExposureMask)),
-                ref xEvent);
+            var x = (int) rect.X;
+            var y = (int) rect.Y;
+            var width = (int) rect.Width;
+            var height = (int) rect.Height;
+
+            _x11RenderManager.RequestRender(SKRectI.Create(x, y, width, height));
         };
+
+        skInkCanvas.RequestDispatcher += (sender, action) =>
+        {
+            X11PlatformThreading.TryEnqueue(action, X11WindowIntPtr);
+        };
+
         SkInkCanvas = skInkCanvas;
-        
+
+        // 输入调度器，既可以禁用 X11 窗口本身的输入接收，完全靠其他 UI 框架调度输入进来，也可以就在 X11 窗口处理所有的输入
         var modeInputDispatcher = new InkingModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
+        modeInputDispatcher.AddInputProcessor(skInkCanvas.SkInkCanvasManipulationManager);
+
         ModeInputDispatcher = modeInputDispatcher;
+
+        // 这里为 X11 窗口自己接收输入时的输入调度
         HandleInput(X11DeviceInputManager);
-        
-      
     }
 
     private SkInkCanvasSettings Settings => SkInkCanvas.Settings;
