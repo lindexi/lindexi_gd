@@ -1,4 +1,6 @@
-﻿namespace DotNetCampus.Inking.Contexts;
+﻿using UnoInk.Inking.InkCore;
+
+namespace DotNetCampus.Inking.Contexts;
 
 class DynamicStrokeContext
 {
