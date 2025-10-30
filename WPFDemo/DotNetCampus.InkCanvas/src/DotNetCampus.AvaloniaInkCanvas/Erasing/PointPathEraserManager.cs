@@ -1,9 +1,13 @@
 ﻿using Avalonia.Skia;
+
 using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Primitive;
 using DotNetCampus.Inking.Utils;
+
 using SkiaSharp;
+
 using UnoInk.Inking.InkCore;
+
 using Point = DotNetCampus.Numerics.Geometry.Point2D;
 using Point2D = DotNetCampus.Numerics.Geometry.Point2D;
 using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
@@ -114,7 +118,7 @@ class PointPathEraserManager
                 //result.Add(new SkiaStrokeDrawContext(subInkInfoForEraserPointPath.PointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
             }
 
-            erasingSkiaStrokeList.Add(new ErasedSkiaStroke(originSkiaStroke, newStrokeList));
+            erasingSkiaStrokeList.Add(new ErasedSkiaStroke(originSkiaStroke, newStrokeList, isErased: true));
         }
 
         WorkList.Clear();
