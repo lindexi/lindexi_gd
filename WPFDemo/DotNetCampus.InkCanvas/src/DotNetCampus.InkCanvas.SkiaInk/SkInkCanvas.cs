@@ -1,6 +1,9 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
+using DotNetCampus.Inking;
 using DotNetCampus.Inking.Primitive;
+using DotNetCampus.Inking.Settings;
+using DotNetCampus.Inking.Utils;
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
@@ -9,7 +12,7 @@ using UnoInk.Inking.InkCore.Diagnostics;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.InkCore.Settings;
 using UnoInk.Inking.X11Platforms;
-using static UnoInk.Inking.InkCore.RectExtension;
+using static DotNetCampus.Inking.Primitive.RectExtension;
 
 namespace UnoInk.Inking.InkCore;
 

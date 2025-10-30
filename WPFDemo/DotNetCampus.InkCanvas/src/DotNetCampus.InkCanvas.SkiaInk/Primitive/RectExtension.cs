@@ -1,8 +1,7 @@
 ﻿using SkiaSharp;
-
 using Rect = DotNetCampus.Numerics.Geometry.Rect2D;
 
-namespace UnoInk.Inking.InkCore;
+namespace DotNetCampus.Inking.Primitive;
 
 static class RectExtension
 {

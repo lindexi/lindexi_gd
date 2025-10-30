@@ -1,4 +1,6 @@
-namespace UnoInk.Inking.InkCore.Settings;
+﻿using DotNetCampus.Inking.Utils;
+
+namespace DotNetCampus.Inking.Settings;
 
 /// <summary>
 /// 笔尖渲染模式
@@ -9,7 +11,7 @@ public enum InkCanvasDynamicRenderTipStrokeType
     /// 通过裁剪画布的方式进行绘制所有的笔迹
     /// </summary>
     /// 这是当前最快的笔迹，写的快炸的快
-    /// 这里面用了绕过 Skia 的裁剪，使用 <see cref="UnoInk.Inking.InkCore.SkiaExtension.ReplacePixels(SkiaSharp.SKBitmap, SkiaSharp.SKBitmap)"/> 替换为背景
+    /// 这里面用了绕过 Skia 的裁剪，使用 <see cref="SkiaExtension.ReplacePixels(SkiaSharp.SKBitmap,SkiaSharp.SKBitmap)"/> 替换为背景
     RenderAllTouchingStrokeWithClip,
 
     /// <summary>

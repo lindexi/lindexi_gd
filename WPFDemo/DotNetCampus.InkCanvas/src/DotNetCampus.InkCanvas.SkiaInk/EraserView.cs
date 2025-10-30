@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace UnoInk.Inking.InkCore;
+namespace DotNetCampus.Inking;
 
 class EraserView
 {

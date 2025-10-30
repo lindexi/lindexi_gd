@@ -1,4 +1,5 @@
 ﻿using DotNetCampus.Inking.Primitive;
+using DotNetCampus.Inking.Settings;
 //using Microsoft.Maui.Graphics;
 using SkiaSharp;
 
