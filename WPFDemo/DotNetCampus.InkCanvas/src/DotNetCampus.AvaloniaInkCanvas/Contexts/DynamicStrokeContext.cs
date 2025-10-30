@@ -1,5 +1,5 @@
-﻿using UnoInk.Inking.InkCore;
-using UnoInk.Inking.InkCore.Interactives;
+﻿using DotNetCampus.Inking.Interactives;
+using UnoInk.Inking.InkCore;
 
 namespace DotNetCampus.Inking.Contexts;
 
@@ -8,7 +8,7 @@ namespace DotNetCampus.Inking.Contexts;
 /// </summary>
 class DynamicStrokeContext
 {
-    public DynamicStrokeContext(InkingModeInputArgs lastInputArgs, AvaSkiaInkCanvasSettings settings)
+    public DynamicStrokeContext(InkingModeInputArgs lastInputArgs, AvaloniaSkiaInkCanvasSettings settings)
     {
         LastInputArgs = lastInputArgs;
 

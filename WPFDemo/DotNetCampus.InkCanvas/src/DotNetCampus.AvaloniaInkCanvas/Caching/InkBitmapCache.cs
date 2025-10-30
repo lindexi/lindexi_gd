@@ -16,7 +16,7 @@ internal sealed class InkBitmapCache : IDisposable
 {
     private readonly object _lock = new();
 
-    private readonly AvaSkiaInkCanvasSettings _settings;
+    private readonly AvaloniaSkiaInkCanvasSettings _settings;
     private readonly int _uiThreadId;
     private int _renderThreadId;
     private bool _useCacheOnNextRender;
@@ -69,7 +69,7 @@ internal sealed class InkBitmapCache : IDisposable
     /// 创建 <see cref="InkBitmapCache"/> 的新实例。
     /// </summary>
     /// <param name="settings">包含位图缓存的设置。</param>
-    public InkBitmapCache(AvaSkiaInkCanvasSettings settings)
+    public InkBitmapCache(AvaloniaSkiaInkCanvasSettings settings)
     {
         _uiThreadId = Environment.CurrentManagedThreadId;
         _settings = settings;
@@ -152,7 +152,7 @@ internal sealed class InkBitmapCache : IDisposable
     /// <param name="context">缓存所用的上下文信息。</param>
     /// <param name="settings">位图缓存的设置。</param>
     /// <returns>缓存的位图数据。</returns>
-    private static InkBitmapCachedData CreateBitmapData(in ReadOnlySpan<SkiaStrokeDrawContext> paths, SKPaint skPaint, in InkBitmapCacheContext context, AvaSkiaInkCanvasSettings settings)
+    private static InkBitmapCachedData CreateBitmapData(in ReadOnlySpan<SkiaStrokeDrawContext> paths, SKPaint skPaint, in InkBitmapCacheContext context, AvaloniaSkiaInkCanvasSettings settings)
     {
         // 将原始的笔迹数据（元素坐标系）转换为画板坐标系，并求取其边界。
         var inkBounds = paths.GetTransformedBounds(context.TransformFromInkToRoot);
@@ -194,7 +194,7 @@ internal sealed class InkBitmapCache : IDisposable
     /// </remarks>
     private static InkQualityBitmapData? CreateBitmapCore(
         in ReadOnlySpan<SkiaStrokeDrawContext> paths, SKPaint skPaint,
-        in InkBitmapCacheContext context, AvaSkiaInkCanvasSettings settings,
+        in InkBitmapCacheContext context, AvaloniaSkiaInkCanvasSettings settings,
         BoundingBox2D inkBounds, BoundingBox2D visibleBounds, BoundingBox2D? clipBounds = null)
     {
         // 笔迹和可视区域的交集。使用此交集可以避免笔迹区域没那么大时生成过大的位图。

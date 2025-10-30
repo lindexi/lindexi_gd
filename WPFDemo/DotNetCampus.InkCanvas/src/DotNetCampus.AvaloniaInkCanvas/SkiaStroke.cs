@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Skia;
-
 using DotNetCampus.Inking.Contexts;
 using DotNetCampus.Inking.Primitive;
 using DotNetCampus.Inking.StrokeRenderers;
@@ -31,7 +30,7 @@ public class SkiaStroke : IDisposable
     /// </summary>
     public ISkiaInkStrokeRenderer? InkStrokeRenderer { get; init; }
 
-    public AvaSkiaInkCanvas? InkCanvas { get; set; }
+    public AvaloniaSkiaInkCanvas? InkCanvas { get; set; }
 
     public InkId Id { get; }
 
@@ -47,12 +46,12 @@ public class SkiaStroke : IDisposable
     /// <summary>
     /// 笔迹颜色
     /// </summary>
-    public SKColor Color { get; init; } = AvaSkiaInkCanvasSettings.DefaultInkColor;
+    public SKColor Color { get; init; } = AvaloniaSkiaInkCanvasSettings.DefaultInkColor;
 
     /// <summary>
     /// 笔迹粗细
     /// </summary>
-    public float InkThickness { get; init; } = AvaSkiaInkCanvasSettings.DefaultInkThickness;
+    public float InkThickness { get; init; } = AvaloniaSkiaInkCanvasSettings.DefaultInkThickness;
 
     internal IReadOnlyList<InkStylusPoint> PointList => _pointList;
 

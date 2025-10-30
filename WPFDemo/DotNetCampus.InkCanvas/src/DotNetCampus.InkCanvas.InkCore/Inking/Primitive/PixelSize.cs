@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace UnoInk.Inking.InkCore
+namespace DotNetCampus.Inking.Primitive
 {
     /// <summary>
     /// Represents a size in device pixels.

@@ -9,7 +9,6 @@ using DotNetCampus.Numerics.Geometry;
 using SkiaSharp;
 
 using System.Diagnostics;
-
 using UnoInk.Inking.InkCore;
 
 using Point = DotNetCampus.Numerics.Geometry.Point2D;

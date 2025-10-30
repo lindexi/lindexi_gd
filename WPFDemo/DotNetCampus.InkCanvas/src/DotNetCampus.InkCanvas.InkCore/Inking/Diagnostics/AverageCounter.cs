@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using UnoInk.Inking.X11Platforms;
-
 namespace DotNetCampus.Inking.Diagnostics;
 
 class AverageCounter

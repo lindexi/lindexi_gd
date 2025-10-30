@@ -16,9 +16,8 @@ using DotNetCampus.Numerics.Geometry;
 using SkiaSharp;
 
 using System.Diagnostics;
+using DotNetCampus.Inking.Interactives;
 using DotNetCampus.Inking.Utils;
-using UnoInk.Inking.InkCore.Interactives;
-
 using InkTransformContext = (DotNetCampus.Numerics.Geometry.BoundingBox2D VisibleBounds, DotNetCampus.Numerics.Geometry.SimilarityTransformation2D TransformToRoot);
 
 namespace DotNetCampus.Inking;
@@ -27,12 +26,12 @@ namespace DotNetCampus.Inking;
 /// 为 Avalonia 实现的基于 Skia 的 InkCanvas 笔迹画布，可提供动态和静态笔迹层
 /// </summary>
 /// 既可以单独用作笔迹绘制的接收输入层执行绘制，也可以作为静态笔迹层的承载
-public class AvaSkiaInkCanvas : Control
+public class AvaloniaSkiaInkCanvas : Control
 {
     private readonly InkBitmapCache _cache;
     private InkTransformContext? _inkTransformContext;
 
-    public AvaSkiaInkCanvas()
+    public AvaloniaSkiaInkCanvas()
     {
         _cache = new InkBitmapCache(Context.Settings);
 
@@ -68,9 +67,9 @@ public class AvaSkiaInkCanvas : Control
     /// <summary>
     /// 获取笔迹渲染相关的设置和状态上下文。
     /// </summary>
-    internal AvaSkiaInkCanvasContext Context { get; } = new();
+    internal AvaloniaSkiaInkCanvasContext Context { get; } = new();
 
-    public AvaSkiaInkCanvasSettings Settings => Context.Settings;
+    public AvaloniaSkiaInkCanvasSettings Settings => Context.Settings;
 
     internal void AddChild(Control childControl)
     {
@@ -198,7 +197,7 @@ public class AvaSkiaInkCanvas : Control
     /// <param name="skiaStroke"></param>
     private void DumpStrokeData(SkiaStroke skiaStroke)
     {
-        var folder = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), nameof(AvaSkiaInkCanvas));
+        var folder = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), nameof(AvaloniaSkiaInkCanvas));
         Directory.CreateDirectory(folder);
         var fileName = Path.Join(folder, $"{DateTime.Now:yyMMdd_HH-mm-ss} {skiaStroke.Id.Value}.txt");
         using var streamWriter = new StreamWriter(fileName, append: true);
@@ -326,7 +325,7 @@ public class AvaSkiaInkCanvas : Control
     {
         private readonly InkBitmapCache _cache;
 
-        public InkCanvasCustomDrawOperation(AvaSkiaInkCanvas inkCanvas, InkBitmapCache cache)
+        public InkCanvasCustomDrawOperation(AvaloniaSkiaInkCanvas inkCanvas, InkBitmapCache cache)
         {
             _cache = cache;
             var contextDictionary = inkCanvas._contextDictionary;
@@ -522,7 +521,7 @@ public class AvaSkiaInkCanvas : Control
     /// </param>
     /// <remarks>
     /// 注意，此方法并不会修改用户设置的位图缓存开关，而是设置在某种程序状态下应该打开还是关闭位图缓存。<br/>
-    /// 关于它们之间的区别，请参见 <see cref="AvaSkiaInkCanvasContext.UseBitmapCache(bool)"/> 的注释。
+    /// 关于它们之间的区别，请参见 <see cref="AvaloniaSkiaInkCanvasContext.UseBitmapCache(bool)"/> 的注释。
     /// </remarks>
     public void UseBitmapCache(bool useBitmapCache)
     {

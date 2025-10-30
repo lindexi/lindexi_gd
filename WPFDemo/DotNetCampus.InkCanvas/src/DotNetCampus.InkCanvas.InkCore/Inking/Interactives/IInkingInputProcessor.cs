@@ -1,4 +1,4 @@
-﻿namespace UnoInk.Inking.InkCore.Interactives;
+﻿namespace DotNetCampus.Inking.Interactives;
 
 /// <summary>
 /// 输入处理者
