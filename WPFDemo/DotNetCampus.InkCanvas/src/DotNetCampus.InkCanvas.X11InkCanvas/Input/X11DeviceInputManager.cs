@@ -76,6 +76,7 @@ using System.Text;
 using DotNetCampus.Logging;
 using UnoInk.Inking.X11Platforms;
 using X11ApplicationFramework.Apps;
+using X11ApplicationFramework.Diagnostics;
 using X11ApplicationFramework.Natives;
 using Point2D = DotNetCampus.Numerics.Geometry.Point2D;
 using static X11ApplicationFramework.Natives.XLib;
@@ -430,7 +431,7 @@ unsafe class X11DeviceInputManager
         };
 
 
-        StaticDebugLogger.WriteLine($"[X11DeviceInputManager][{xiDeviceEvent->evtype}][{id}] {deviceInputPoint.Position.X:0.00},{deviceInputPoint.Position.Y:0.00} WH:{physicalWidth:0.00},{physicalHeight:0.00} valuator:{valuatorDictionary.Count}");
+        Log.Debug($"[X11DeviceInputManager][{xiDeviceEvent->evtype}][{id}] {deviceInputPoint.Position.X:0.00},{deviceInputPoint.Position.Y:0.00} WH:{physicalWidth:0.00},{physicalHeight:0.00} valuator:{valuatorDictionary.Count}");
 
         var deviceInputArgs = new DeviceInputArgs(id, isMouse, deviceInputPoint);
         return (false, deviceInputArgs);
