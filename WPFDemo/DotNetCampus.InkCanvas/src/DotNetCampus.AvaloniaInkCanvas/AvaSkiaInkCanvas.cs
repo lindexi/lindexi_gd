@@ -18,6 +18,7 @@ public class AvaSkiaInkCanvas : Control
         EraserMode = new AvaSkiaInkCanvasEraserMode(this);
     }
 
+    public AvaSkiaInkCanvasSettings Settings { get; set; } = new AvaSkiaInkCanvasSettings();
     public AvaSkiaInkCanvasEraserMode EraserMode { get; }
 
     internal void AddChild(Control childControl)
