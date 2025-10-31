@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WPFD3D11MediaFoundation": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
