@@ -10,7 +10,11 @@
     <WindowChrome.WindowChrome>
         <WindowChrome NonClientFrameEdges="Left,Right,Bottom"/>
     </WindowChrome.WindowChrome>
-    <Grid RowDefinitions="*,Auto">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
         <TextBlock x:Name="TheTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Text="123"/>
 
         <Button x:Name="UpdateButton" Margin="10,10,10,10" VerticalAlignment="Bottom" Click="UpdateButton_OnClick">Update</Button>
