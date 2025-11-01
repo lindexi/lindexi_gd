@@ -181,7 +181,7 @@ namespace X11ApplicationFramework.Natives
             // make sure this array stays in sync with the statements below
 
             var fields = typeof(X11Atoms).GetFields()
-                .Where(f => f.FieldType == typeof(IntPtr) && (IntPtr)f.GetValue(this) == IntPtr.Zero).ToArray();
+                .Where(f => f.FieldType == typeof(IntPtr) && (IntPtr)f.GetValue(this)! == IntPtr.Zero).ToArray();
             var atomNames = fields.Select(f => f.Name).ToArray();
 
             IntPtr[] atoms = new IntPtr[atomNames.Length];

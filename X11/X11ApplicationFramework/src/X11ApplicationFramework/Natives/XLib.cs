@@ -808,9 +808,9 @@ namespace X11ApplicationFramework.Natives
         public struct Pollfd : IEquatable<Pollfd>
         {
             public int fd;
-            [CLSCompliant(false)]
+            //[CLSCompliant(false)]
             public PollEvents events;
-            [CLSCompliant(false)]
+            //[CLSCompliant(false)]
             public PollEvents revents;
 
             public override int GetHashCode()
@@ -818,7 +818,7 @@ namespace X11ApplicationFramework.Natives
                 return events.GetHashCode() ^ revents.GetHashCode();
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (obj == null || obj.GetType() != GetType())
                     return false;
@@ -841,11 +841,12 @@ namespace X11ApplicationFramework.Natives
                 return !lhs.Equals(rhs);
             }
         }
-        private struct _pollfd
+
+        private struct _pollfd()
         {
             public int fd;
             public short events;
-            public short revents;
+            public short revents = 0;
         }
         [DllImport("libc", SetLastError = true, EntryPoint = "poll")]
         private static extern int sys_poll([In, Out] _pollfd[] ufds, uint nfds, int timeout);

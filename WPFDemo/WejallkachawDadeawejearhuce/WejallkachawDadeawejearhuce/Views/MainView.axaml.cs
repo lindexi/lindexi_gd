@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -174,7 +174,7 @@ public partial class MainView : UserControl
     {
         var currentPoint = args.GetCurrentPoint(RootGrid);
         var (x, y) = currentPoint.Position;
-        return new InkingInputArgs(currentPoint.Pointer.Id, new StylusPoint(x, y));
+        return new InkingInputArgs(currentPoint.Pointer.Id, new InkStylusPoint(x, y));
     }
 
     private async void MainView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
