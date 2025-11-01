@@ -1,0 +1,22 @@
+﻿<Window x:Class="LellaibeayeelaRakearjemfal.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LellaibeayeelaRakearjemfal"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        Foreground="Black" Background="White">
+    <WindowChrome.WindowChrome>
+        <WindowChrome NonClientFrameEdges="Left,Right,Bottom"/>
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="TheTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Text="123"/>
+
+        <Button x:Name="UpdateButton" Margin="10,10,10,10" VerticalAlignment="Bottom" Click="UpdateButton_OnClick">Update</Button>
+    </Grid>
+</Window>
