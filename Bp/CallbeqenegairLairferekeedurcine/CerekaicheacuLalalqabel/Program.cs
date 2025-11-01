@@ -5,7 +5,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 
 var testInfoList = new List<TestInfo>();
 
-for (int i = 0; i < 6; i++)
+for (int i = 0; i < 10; i++)
 {
     double x0 = Random.Shared.Next(0, 3000) / 10000.0;
     double x1 = Random.Shared.Next(0, 3000) / 10000.0;
@@ -109,44 +109,43 @@ class LayerManager
 {
     public LayerManager()
     {
-        // 这是一些随意的权重值，实际应用中这些权重值通过随机数先随意创建的
-        var w11 = 0.1;
-        var w12 = 0.8;
-        var w13 = 0.2;
-
-        var w21 = 0.4;
-        var w22 = 0.6;
-        var w23 = 0.2;
-
         // 输入参数数量
         var inputArgumentCount = 3;
         // 第一层的权重数量。第一层的权重数量等于输入参数数量
         var layer1WeightCount = inputArgumentCount;
         // 第一层的节点数量
-        var layer1NodeCount = 2;
+        var layer1NodeCount = 100;
 
         // w1 layer
-        Matrix<double> layer1Weight = Matrix.Build.SparseOfRows(layer1NodeCount, layer1WeightCount,
-        [
-            [w11, w12, w13],
-            [w21, w22, w23],
-        ]);
-
-        var w31 = 0.3;
-        var w32 = 0.9;
+        Matrix<double> layer1Weight = CreateRandomMatrix(layer1NodeCount, layer1WeightCount);
 
         // w2 layer
         // 第二层的权重数量。第二层的权重数量等于第一层的节点数量
         var layer2WeightCount = layer1NodeCount;
         // 第二层的节点数量
         var layer2NodeCount = 1;
-        Matrix<double> layer2Weight = Matrix.Build.SparseOfRows(layer2NodeCount, layer2WeightCount,
-        [
-            [w31, w32],
-        ]);
+
+        Matrix<double> layer2Weight = CreateRandomMatrix(layer2NodeCount, layer2WeightCount);
 
         Layer1Weight = layer1Weight;
         Layer2Weight = layer2Weight;
+    }
+
+    private Matrix<double> CreateRandomMatrix(int rowCount,int columnCount)
+    {
+        var data = new List<List<double>>();
+        for (int i = 0; i < rowCount; i++)
+        {
+            var row = new List<double>();
+            for (int j = 0; j < columnCount; j++)
+            {
+                row.Add(Random.Shared.NextDouble());
+            }
+            data.Add(row);
+        }
+
+        Matrix<double> layer1Weight = Matrix.Build.SparseOfRows(rowCount, columnCount, data);
+        return layer1Weight;
     }
 
     public Matrix<double> Layer1Weight { get; set; }
