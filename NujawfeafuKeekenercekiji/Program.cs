@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.WebUtilities;
 
+using System.IO;
 using System.Net;
 using System.Net.Mime;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -20,6 +22,8 @@ Task.Run(async () =>
     multipartFormDataContent.Add(new StringContent("Value1"), "Field1");
     var response = await httpClient.PostAsync($"{url}/PostMultipartForm", multipartFormDataContent);
     response.EnsureSuccessStatusCode();
+    var responseContent = await response.Content.ReadAsStringAsync();
+    Console.WriteLine($"{responseContent}");
 });
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -57,6 +61,8 @@ app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext c
 
     var multipartReader = new MultipartReader(contentTypeBoundary, request.Body, 1024);
 
+    await response.StartAsync();
+
     while (true)
     {
         MultipartSection? multipartSection = await multipartReader.ReadNextSectionAsync();
@@ -78,22 +84,40 @@ app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext c
 
         if (contentDisposition.FileName is not null)
         {
-            // 文件
-            var fileName = contentDisposition.FileName;
-            fileName = GetSafeFileName(fileName);
-            // 处理文件上传逻辑，例如保存文件
-            // 这里简单地将文件保存到临时目录。小心，生产环境中请确保文件名安全，小心被攻击
-            var filePath = Path.Join(Path.GetTempPath(), $"Uploaded_{fileName}");
-            await using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read,
-                10240,
-                // 确保文件在关闭后被删除，以防止临时文件堆积。此仅仅为演示需求，避免临时文件太多。请根据你的需求决定是否使用此选项
-                FileOptions.DeleteOnClose);
-            await multipartSection.Body.CopyToAsync(fileStream);
+            var fileMultipartSection = multipartSection.AsFileSection();
+            if (fileMultipartSection?.FileStream is null)
+            {
+                continue;
+            }
 
-            // 完成文件写入之后，可以通过以下代码，直接读取文件的内容
-            fileStream.Position = 0;
-            // 此时就可以立刻读取 FileStream 的内容了
-            logger.LogInformation($"Received file '{fileName}', saved to '{filePath}'");
+            if (fileMultipartSection.Name == "Foo1")
+            {
+                // 文件
+                var fileName = fileMultipartSection.FileName;
+                fileName = GetSafeFileName(fileName);
+                // 处理文件上传逻辑，例如保存文件
+                // 这里简单地将文件保存到临时目录。小心，生产环境中请确保文件名安全，小心被攻击
+                var filePath = Path.Join(Path.GetTempPath(), $"Uploaded_{fileName}");
+                await using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read,
+                    10240,
+                    // 确保文件在关闭后被删除，以防止临时文件堆积。此仅仅为演示需求，避免临时文件太多。请根据你的需求决定是否使用此选项
+                    FileOptions.DeleteOnClose);
+                await fileMultipartSection.FileStream.CopyToAsync(fileStream);
+
+                // 完成文件写入之后，可以通过以下代码，直接读取文件的内容
+                fileStream.Position = 0;
+                // 此时就可以立刻读取 FileStream 的内容了
+                logger.LogInformation($"Received file '{fileName}', saved to '{filePath}'");
+            }
+            else if (fileMultipartSection.Name == "TheFile")
+            {
+                using var sha1 = SHA1.Create();
+                var hashByteList = await sha1.ComputeHashAsync(fileMultipartSection.FileStream);
+                var hashString = Convert.ToHexString(hashByteList);
+                logger.LogInformation($"Received file '{fileMultipartSection.FileName}', SHA1: {hashString}");
+                await using var streamWriter = new StreamWriter(response.Body, leaveOpen: true);
+                await streamWriter.WriteLineAsync($"Received file '{fileMultipartSection.FileName}', SHA1: {hashString}");
+            }
         }
         else
         {
@@ -111,7 +135,6 @@ app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext c
         }
     }
 
-    await response.StartAsync();
 
     await response.CompleteAsync();
 });
