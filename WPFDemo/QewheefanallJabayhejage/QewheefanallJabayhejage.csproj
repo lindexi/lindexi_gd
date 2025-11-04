@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MajorVersion>1</MajorVersion>
+    <MinorVersion>2</MinorVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateResxSource>true</GenerateResxSource>
+
+    <!-- <GenerateResxSourceOmitGetResourceString>true</GenerateResxSourceOmitGetResourceString> -->
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+
+  <ItemDefinitionGroup>
+    <EmbeddedResource>
+      <GenerateSource>true</GenerateSource>
+      <ManifestResourceName>FxResources.$(AssemblyName).SR</ManifestResourceName>
+      <ClassName>MS.Utility.SR</ClassName>
+      </EmbeddedResource>
+  </ItemDefinitionGroup>
+</Project>
