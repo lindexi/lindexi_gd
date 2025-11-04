@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.WebUtilities;
+﻿using Microsoft.AspNetCore.WebUtilities;
 
 using System.IO;
 using System.Net;
@@ -7,13 +6,13 @@ using System.Net.Mime;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Serialization;
 
 var port = GetAvailablePort(IPAddress.Loopback);
 var url = $"http://127.0.0.1:{port}";
 
-Task.Run(async () =>
+_ = Task.Run(async () =>
 {
+    // 以下是测试代码
     using var httpClient = new HttpClient();
 
     using var multipartFormDataContent = new MultipartFormDataContent();
@@ -90,6 +89,7 @@ app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext c
                 continue;
             }
 
+            // 可在此判断表单的各项内容。如判断是 Foo1 的就保存文件，是 TheFile 的就计算哈希值
             if (fileMultipartSection.Name == "Foo1")
             {
                 // 文件
