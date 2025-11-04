@@ -9,11 +9,18 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <MajorVersion>1</MajorVersion>
+    <MinorVersion>2</MinorVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <GenerateResxSource>true</GenerateResxSource>
 
+    <!-- <GenerateResxSourceOmitGetResourceString>true</GenerateResxSourceOmitGetResourceString> -->
   </PropertyGroup>
 
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <ItemDefinitionGroup>
     <EmbeddedResource>
