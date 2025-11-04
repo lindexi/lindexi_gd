@@ -6,6 +6,7 @@ using System.Net.Mime;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Net.Http.Headers;
 
 var port = GetAvailablePort(IPAddress.Loopback);
 var url = $"http://127.0.0.1:{port}";
@@ -34,7 +35,7 @@ builder.WebHost.UseKestrel(options =>
     options.Limits.MaxRequestBodySize = null;
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 app.Urls.Add(url);
 
 app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext context) =>
@@ -44,21 +45,16 @@ app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext c
     var request = context.Request;
     var response = context.Response;
 
-    var headersContentType = request.Headers.ContentType;
-    string? contentType = headersContentType[0];
+    string? contentType = request.ContentType;
     if (contentType is null)
     {
         return;
     }
 
-    var type = new ContentType(contentType);
-    var contentTypeBoundary = type.Boundary;
-    if (contentTypeBoundary is null)
-    {
-        return;
-    }
-
-    var multipartReader = new MultipartReader(contentTypeBoundary, request.Body, 1024);
+    MediaTypeHeaderValue mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
+    var contentTypeBoundary = mediaTypeHeaderValue.Boundary;
+    var boundary = HeaderUtilities.RemoveQuotes(contentTypeBoundary).Value!;
+    var multipartReader = new MultipartReader(boundary, request.Body, 1024);
 
     await response.StartAsync();
 
@@ -71,7 +67,9 @@ app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext c
             break;
         }
 
-        if (multipartSection.ContentDisposition is null)
+        ContentDispositionHeaderValue? contentDispositionHeaderValue = multipartSection.GetContentDispositionHeader();
+
+        if (contentDispositionHeaderValue is null)
         {
             continue;
         }
@@ -79,9 +77,7 @@ app.MapPost("/PostMultipartForm", async (Microsoft.AspNetCore.Http.HttpContext c
         // ContentType=application/octet-stream
         // form-data; name="file"; filename="Input.zip"
 
-        var contentDisposition = new ContentDisposition(multipartSection.ContentDisposition);
-
-        if (contentDisposition.FileName is not null)
+        if (contentDispositionHeaderValue.IsFileDisposition())
         {
             var fileMultipartSection = multipartSection.AsFileSection();
             if (fileMultipartSection?.FileStream is null)
