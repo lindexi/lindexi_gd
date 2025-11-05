@@ -342,8 +342,6 @@ namespace LightTextEditorPlus.Core.Document
         /// <inheritdoc cref="P:LightTextEditorPlus.Core.Carets.CaretManager.CurrentCaretRunProperty"/>
         public IReadOnlyRunProperty CurrentCaretRunProperty
         {
-            //private set => CaretManager.CurrentCaretRunProperty = value;
-            //get => GetCurrentCaretRunProperty();
             get
             {
                 // 获取当前光标的字符属性
