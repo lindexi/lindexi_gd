@@ -1,4 +1,5 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -266,5 +267,81 @@ public class TextEditorAppendTest
         })
             // [']!！@#$%^&*()￥…（）；;：:【】{}|、\/?.。,，-—=+
             .WithArguments('[', '\'', ']', '!', '！', '@', '#', '$', '%', '^', '&', '*', '(', ')', '￥', '…', '（', '）', '；', ';', '：', ':', '【', '】', '{', '}', '|', '、', '\\', '/', '?', '.', ',', '，', '-', '—', '=', '+');
+    }
+
+    [ContractTestCase]
+    public void AppendCaretRunProperty()
+    {
+        const double defaultFontSize = 15;
+        const double caretRunPropertyFontSize = 30;
+
+        "如果文本光标不在文档末尾，设置光标字符属性，追加的文本不使用光标字符属性".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 设置样式，只是为了区分开来光标字符属性
+            textEditorCore.DocumentManager
+                .SetStyleTextRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty with
+                {
+                    FontSize = defaultFontSize
+                });
+            // 加一些文本，方便测试，让光标可以设置为不在文档末尾
+            textEditorCore.AppendText("123");
+            // 设置光标属性
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
+            // 光标不在文档末尾
+            // 设置光标属性
+            textEditorCore.DocumentManager
+                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty with
+                {
+                    FontSize = caretRunPropertyFontSize
+                });
+
+            // Action
+            textEditorCore.AppendText("abc");
+
+            // Assert
+            // 追加的文本不使用光标字符属性，依然保持默认的字符尺寸
+            // 即全部内容都是采用默认的字号
+            foreach (CharData charData in textEditorCore.DocumentManager.GetCharDataRange(textEditorCore.GetAllDocumentSelection()))
+            {
+                Assert.AreEqual(defaultFontSize, charData.RunProperty.FontSize);
+            }
+        });
+
+        "如果文本光标在文档末尾，文档存在光标字符属性，追加的文本应用光标字符属性".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 设置样式，只是为了区分开来光标字符属性
+            textEditorCore.DocumentManager
+                .SetStyleTextRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty with
+                {
+                    FontSize = defaultFontSize
+                });
+            // 加一些文本，方便测试
+            textEditorCore.AppendText("123");
+
+            // 设置光标属性
+            textEditorCore.DocumentManager
+                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty with
+                {
+                    FontSize = caretRunPropertyFontSize
+                });
+
+            // Action
+            textEditorCore.AppendText("abc");
+
+            // Assert
+            // 追加的文本应用光标字符属性
+            List<CharData> charDataList = textEditorCore.DocumentManager.GetCharDataRange(new Selection(new CaretOffset("123".Length), "abc".Length)).ToList();
+            Assert.AreEqual(3, charDataList.Count);
+            Assert.AreEqual("a", charDataList[0].CharObject.ToText());
+            Assert.AreEqual(caretRunPropertyFontSize, charDataList[0].RunProperty.FontSize);
+            Assert.AreEqual("b", charDataList[1].CharObject.ToText());
+            Assert.AreEqual(caretRunPropertyFontSize, charDataList[1].RunProperty.FontSize);
+            Assert.AreEqual("c", charDataList[2].CharObject.ToText());
+            Assert.AreEqual(caretRunPropertyFontSize, charDataList[2].RunProperty.FontSize);
+        });
     }
 }
