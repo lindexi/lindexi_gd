@@ -32,8 +32,12 @@ public partial class TextEditorDebugView : UserControl
         {
             //var fontFamily = (FontFamily) Application.Current!.Resources["TestMeatballFontFamily"]!;
             //TextEditorFontManager.RegisterFontNameToResource("仓耳小丸子", fontFamily);
-            TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子",
-                new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf")));
+            FileInfo fontFile = new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf"));
+            if (fontFile.Exists)
+            {
+                TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子",
+                    fontFile);
+            }
 
             TextContext.GlobalFontNameManager.UseDefaultFontFallbackRules();
 
