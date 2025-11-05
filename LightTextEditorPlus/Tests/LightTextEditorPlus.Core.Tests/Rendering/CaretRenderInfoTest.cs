@@ -1,4 +1,4 @@
-using MSTest.Extensions.Contracts;
+﻿using MSTest.Extensions.Contracts;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -107,7 +107,7 @@ public class CaretRenderInfoTest
             textEditorCore.AppendText(text);
 
             // Assert
-            Assert.ThrowsException<HitCaretOffsetOutOfRangeException>(() =>
+            Assert.ThrowsExactly<HitCaretOffsetOutOfRangeException>(() =>
             {
                 // Action
                 // 传入超过文档范围的光标

@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Exceptions;
+﻿using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
@@ -26,7 +26,7 @@ public class TextEditorDirtyExceptionTest
             Assert.AreEqual(true, textEditorCore.IsDirty);
             Assert.IsNotNull(manuallyRequireLayoutDispatcher.CurrentLayoutAction, "文本变更之后，手动布局器可以收到布局请求");
             // 特意不让布局完成，直接获取布局信息。预期抛出异常
-            Assert.ThrowsException<TextEditorDirtyException>(() =>
+            Assert.ThrowsExactly<TextEditorDirtyException>(() =>
             {
                 // 抛出 TextEditorDirtyException 异常
                 textEditorCore.GetRenderInfo();

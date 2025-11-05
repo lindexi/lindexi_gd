@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
@@ -12,7 +12,7 @@ public class CaretOffsetTest
     {
         "传入负数的光标坐标，抛出异常".Test(() =>
         {
-            Assert.ThrowsException<ArgumentException>(() =>
+            Assert.ThrowsExactly<ArgumentException>(() =>
             {
                 _ = new CaretOffset(-1);
             });

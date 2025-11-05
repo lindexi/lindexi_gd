@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -23,7 +23,7 @@ public class TextEditorEditTest
             var selection = new Selection(new CaretOffset(1), length: 2);
 
             // Assert
-            Assert.ThrowsException<SelectionOutOfRangeException>(() =>
+            Assert.ThrowsExactly<SelectionOutOfRangeException>(() =>
             {
                 // Action
                 textEditorCore.Remove(selection);

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
@@ -95,7 +95,7 @@ public class DocumentManagerParagraphPropertyTests
 
             // Assert
             // 预期此时抛出异常
-            Assert.ThrowsException<InvalidOperationException>(() =>
+            Assert.ThrowsExactly<InvalidOperationException>(() =>
             {
                 textEditorCore.DocumentManager.SetStyleTextRunProperty((LayoutOnlyRunProperty runProperty) => runProperty with
                 {
