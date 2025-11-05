@@ -31,14 +31,46 @@ internal class DocumentRunEditProvider
         // 1. 当前光标样式存在，则采用当前光标样式，否则执行以下判断
         // 2. 如果当前段落是空，那么追加时，继承当前段落的字符属性样式
         // 3. 如果当前段落已有文本，那么追加时，使用此段落最后一个字符的字符属性作为字符属性样式
-        // 以上规则就是 DocumentManager.CurrentCaretRunProperty 属性的值
+        // ~~以上规则就是 DocumentManager.CurrentCaretRunProperty 属性的值~~ 不是的
         IReadOnlyRunProperty? styleRunProperty = run.RunProperty;
         if (styleRunProperty is null)
         {
-            styleRunProperty = TextEditor.DocumentManager.CurrentCaretRunProperty;
+            // 如果 run 自身没有字符属性，那就需要获取继承的字符属性
+            styleRunProperty = GetLastDocumentCaretRunProperty();
         }
 
         AppendRunToParagraph(run, lastParagraph, styleRunProperty);
+    }
+
+    /// <summary>
+    /// 获取文档最后的光标字符属性
+    /// </summary>
+    /// <returns></returns>
+    private IReadOnlyRunProperty GetLastDocumentCaretRunProperty()
+    {
+        // 为什么不是 DocumentManager.CurrentCaretRunProperty 属性？因为此属性存在一个问题是，如果当前光标非文档末尾，那么获取的样式就不是文档末尾的样式
+
+        if (TextEditor.CaretManager.CurrentCaretRunProperty is { } currentCaretRunProperty)
+        {
+            // 当前光标样式存在，则再判断当前光标是否文档末尾
+            if (TextEditor.CaretManager.CurrentCaretOffset == TextEditor.DocumentManager.GetDocumentEndCaretOffset())
+            {
+                return currentCaretRunProperty;
+            }
+        }
+
+        var lastParagraph = ParagraphManager.GetLastParagraph();
+        // 获取最后一个字符的样式
+        if (lastParagraph.IsEmptyParagraph)
+        {
+            // 如果最后一个段落是空段，那就使用段落的字符属性
+            return lastParagraph.ParagraphStartRunProperty;
+        }
+        else
+        {
+            var lastCharData = lastParagraph.GetCharData(new ParagraphCharOffset(lastParagraph.CharCount - 1));
+            return lastCharData.RunProperty;
+        }
     }
 
     public void Replace(in Selection selection, IImmutableRunList? runList)
