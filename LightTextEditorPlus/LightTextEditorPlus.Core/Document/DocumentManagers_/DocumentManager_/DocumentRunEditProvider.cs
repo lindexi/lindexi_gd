@@ -32,7 +32,11 @@ internal class DocumentRunEditProvider
         // 2. 如果当前段落是空，那么追加时，继承当前段落的字符属性样式
         // 3. 如果当前段落已有文本，那么追加时，使用此段落最后一个字符的字符属性作为字符属性样式
         // 以上规则就是 DocumentManager.CurrentCaretRunProperty 属性的值
-        IReadOnlyRunProperty styleRunProperty = TextEditor.DocumentManager.CurrentCaretRunProperty;
+        IReadOnlyRunProperty? styleRunProperty = run.RunProperty;
+        if (styleRunProperty is null)
+        {
+            styleRunProperty = TextEditor.DocumentManager.CurrentCaretRunProperty;
+        }
 
         AppendRunToParagraph(run, lastParagraph, styleRunProperty);
     }
