@@ -142,11 +142,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 SkiaTextRunProperty skiaTextRunProperty = charData.RunProperty.AsSkiaRunProperty();
                 RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(charData.CharObject.CodePoint);
 
-                // 字形替换（GSUB）表为连字提供字形替换数据
+                // 字形替换（GSUB）表为连字提供字形替换数据。如存在，则证明字体支持连写，不能进入快速分支，需要重复测量
                 // [GSUB — Glyph Substitution Table (OpenType 1.9.1) - Typography | Microsoft Learn](https://learn.microsoft.com/en-us/typography/opentype/spec/gsub )
                 SKTypeface skTypeface = renderingRunPropertyInfo.Typeface;
                 if (!ContainFeature(skTypeface, "GSUB"u8))
                 {
+                    // 字体不存在 GSUB 可以进入快速分支，不用重新测量
                     continue;
                 }
             }

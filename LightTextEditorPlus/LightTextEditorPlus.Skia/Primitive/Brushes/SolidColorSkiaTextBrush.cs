@@ -1,4 +1,6 @@
-﻿using SkiaSharp;
+﻿using System;
+
+using SkiaSharp;
 
 namespace LightTextEditorPlus.Primitive;
 
@@ -6,7 +8,7 @@ namespace LightTextEditorPlus.Primitive;
 /// 纯色画刷
 /// </summary>
 /// <param name="color"></param>
-public sealed class SolidColorSkiaTextBrush(SKColor color) : SkiaTextBrush
+public sealed class SolidColorSkiaTextBrush(SKColor color) : SkiaTextBrush, IEquatable<SolidColorSkiaTextBrush>
 {
     /// <summary>
     /// 画刷的颜色
@@ -29,4 +31,27 @@ public sealed class SolidColorSkiaTextBrush(SKColor color) : SkiaTextBrush
 
     /// <inheritdoc />
     public override SKColor AsSolidColor() => Color;
+
+    /// <inheritdoc />
+    public bool Equals(SolidColorSkiaTextBrush? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Color.Equals(other.Color);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is SolidColorSkiaTextBrush other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Color);
+    }
 }
