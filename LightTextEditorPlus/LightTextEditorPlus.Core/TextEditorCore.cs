@@ -74,7 +74,7 @@ public partial class TextEditorCore
 
         DocumentManager = new DocumentManager(this);
         DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
-        DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
+        DocumentManager.InternalDocumentChanged += DocumentManager_InternalDocumentChanged;
 
         CaretManager = new CaretManager(this);
         CaretManager.InternalCurrentCaretOffsetChanging +=
@@ -221,7 +221,7 @@ public partial class TextEditorCore
         DocumentChanging?.Invoke(this, e);
     }
 
-    private void DocumentManager_DocumentChanged(object? sender, DocumentChangeEventArgs e)
+    private void DocumentManager_InternalDocumentChanged(object? sender, DocumentChangeEventArgs e)
     {
         if (IsUpdatingLayout)
         {
