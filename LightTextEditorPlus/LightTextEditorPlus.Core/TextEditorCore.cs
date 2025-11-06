@@ -91,9 +91,9 @@ public partial class TextEditorCore
 
         DebugConfiguration = new TextEditorDebugConfiguration(Logger);
 
-//#if DEBUG
-//        DebugConfiguration.SetInDebugMode(withLog: false);
-//#endif
+#if DEBUG
+        DebugConfiguration.SetInDebugMode(withLog: false);
+#endif
     }
 
     #region 框架逻辑
