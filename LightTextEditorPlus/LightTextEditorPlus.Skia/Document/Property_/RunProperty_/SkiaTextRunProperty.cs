@@ -236,22 +236,22 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
             return false;
         }
 
-        if (Foreground != other.Foreground) //&& Background == other.Background 
+        if (!Foreground.Equals(other.Foreground)) //&& Background == other.Background 
         {
             return false;
         }
 
-        if (Stretch != other.Stretch)
+        if (!Equals(Stretch, other.Stretch))
         {
             return false;
         }
 
-        if (FontWeight != other.FontWeight)
+        if (!Equals(FontWeight, other.FontWeight))
         {
             return false;
         }
 
-        if (FontStyle != other.FontStyle)
+        if (!Equals(FontStyle, other.FontStyle))
         {
             return false;
         }

@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
@@ -476,6 +477,19 @@ partial class RichTextCaseProvider
             editor.SetFontName("微软雅黑");
             editor.SetFontSize(60);
             editor.Text = "ᠳᠽᠱ";
-        }, "蒙文测试");
+        }, "蒙文渲染测试");
+
+        Add(editor =>
+        {
+            editor.SetFontName("微软雅黑");
+            editor.SetFontSize(60);
+            editor.Text = "ᠳᠽᠱ";
+
+            // 设置中间字符颜色为红色，再设置回黑色
+            Selection selection = new(new CaretOffset(1), 1);
+            editor.SetForeground(Brushes.Red, selection);
+            editor.SetForeground(Brushes.Black, selection);
+            // 此测试不需要写断言，因为靠渲染图片对比即可，由集成测试确保行为
+        }, "测试ad1b1c9-设置文本前景色导致连写字渲染失效");
     }
 }
