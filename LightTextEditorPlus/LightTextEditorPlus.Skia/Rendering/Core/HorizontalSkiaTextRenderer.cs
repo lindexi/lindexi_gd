@@ -135,8 +135,11 @@ file struct Renderer : IDisposable
     /// <param name="lineRenderInfo"></param>
     private void RenderTextLine(in ParagraphLineRenderInfo lineRenderInfo)
     {
+        RenderBackground(in lineRenderInfo);
+
         if (lineRenderInfo.IsIncludeMarker)
         {
+            // 如果包含了项目符号，那么就需要先绘制项目符号
             TextReadOnlyListSpan<CharData> markerCharDataList = lineRenderInfo.GetMarkerCharDataList();
             RenderCharList(in markerCharDataList, in lineRenderInfo);
         }
@@ -280,6 +283,15 @@ file struct Renderer : IDisposable
         foreground.Apply(brushRenderContext);
 
         Canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
+    }
+
+    /// <summary>
+    /// 渲染背景
+    /// </summary>
+    /// <param name="lineRenderInfo"></param>
+    private void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
+    {
+        
     }
 
     /// <summary>
