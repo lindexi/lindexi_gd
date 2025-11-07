@@ -144,6 +144,9 @@ file struct Renderer : IDisposable
             RenderCharList(in markerCharDataList, in lineRenderInfo);
         }
 
+        // 标记是否包含文本装饰
+        bool containsTextDecoration = false;
+
         // 先不考虑缓存
         LineDrawingArgument argument = lineRenderInfo.Argument;
 
@@ -159,6 +162,8 @@ file struct Renderer : IDisposable
                     continue;
                 }
                 RenderCharList(in charList, in lineRenderInfo);
+
+                containsTextDecoration |= ContainsTextDecoration(in charList);
             }
         }
         else
@@ -166,6 +171,8 @@ file struct Renderer : IDisposable
             foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
             {
                 RenderCharList(charList, lineRenderInfo);
+
+                containsTextDecoration |= ContainsTextDecoration(in charList);
             }
         }
 
@@ -185,10 +192,19 @@ file struct Renderer : IDisposable
             }
         }
 
-        // 渲染文本装饰
-        RenderTextDecoration(lineRenderInfo);
+        if (containsTextDecoration)
+        {
+            // 渲染文本装饰
+            RenderTextDecoration(lineRenderInfo);
+        }
 
         DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
+
+        static bool ContainsTextDecoration(in TextReadOnlyListSpan<CharData> charList)
+        {
+            SkiaTextRunProperty skiaTextRunProperty = charList[0].RunProperty.AsSkiaRunProperty();
+            return !skiaTextRunProperty.DecorationCollection.IsEmpty;
+        }
     }
 
     /// <summary>
