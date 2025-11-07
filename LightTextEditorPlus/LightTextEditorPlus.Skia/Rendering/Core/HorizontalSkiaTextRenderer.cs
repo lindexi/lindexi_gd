@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+
 using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -111,7 +112,7 @@ file struct Renderer : IDisposable
 
             foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
-                if (Viewport is {} viewport)
+                if (Viewport is { } viewport)
                 {
                     if (!viewport.IntersectsWith(lineRenderInfo.OutlineBounds))
                     {
@@ -144,6 +145,9 @@ file struct Renderer : IDisposable
             RenderCharList(in markerCharDataList, in lineRenderInfo);
         }
 
+        // 标记是否包含文本装饰
+        bool containsTextDecoration = false;
+
         // 先不考虑缓存
         LineDrawingArgument argument = lineRenderInfo.Argument;
 
@@ -159,6 +163,8 @@ file struct Renderer : IDisposable
                     continue;
                 }
                 RenderCharList(in charList, in lineRenderInfo);
+
+                containsTextDecoration |= ContainsTextDecoration(in charList);
             }
         }
         else
@@ -166,6 +172,8 @@ file struct Renderer : IDisposable
             foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
             {
                 RenderCharList(charList, lineRenderInfo);
+
+                containsTextDecoration |= ContainsTextDecoration(in charList);
             }
         }
 
@@ -185,10 +193,19 @@ file struct Renderer : IDisposable
             }
         }
 
-        // 渲染文本装饰
-        RenderTextDecoration(lineRenderInfo);
+        if (containsTextDecoration)
+        {
+            // 渲染文本装饰
+            RenderTextDecoration(lineRenderInfo);
+        }
 
         DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
+
+        static bool ContainsTextDecoration(in TextReadOnlyListSpan<CharData> charList)
+        {
+            SkiaTextRunProperty skiaTextRunProperty = charList[0].RunProperty.AsSkiaRunProperty();
+            return !skiaTextRunProperty.DecorationCollection.IsEmpty;
+        }
     }
 
     /// <summary>
@@ -291,7 +308,20 @@ file struct Renderer : IDisposable
     /// <param name="lineRenderInfo"></param>
     private void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
     {
-        
+        LineDrawingArgument argument = lineRenderInfo.Argument;
+        for (var i = 0; i < argument.CharList.Count; i++)
+        {
+            var charData = argument.CharList[i];
+            SkiaTextRunProperty skiaTextRunProperty = charData.RunProperty.AsSkiaRunProperty();
+            SKColor background = skiaTextRunProperty.Background;
+            if (background.Alpha == 0x00)
+            {
+                // 完全透明的，就不绘制了
+                // 尽管这样可能导致 Avalonia 命中穿透，但为了性能考虑，还是不绘制了
+                continue;
+            }
+
+        }
     }
 
     /// <summary>
