@@ -98,8 +98,6 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// <summary>
     /// 背景色
     /// </summary>
-    [Obsolete("还没完成背景色的支持", true)]
-    // todo 支持背景色
     public SKColor Background { get; init; } = SKColors.Transparent;
 
     /// <summary>
@@ -236,7 +234,12 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
             return false;
         }
 
-        if (!Foreground.Equals(other.Foreground)) //&& Background == other.Background 
+        if (!Foreground.Equals(other.Foreground))
+        {
+            return false;
+        }
+
+        if (!Background.Equals(other.Background))
         {
             return false;
         }

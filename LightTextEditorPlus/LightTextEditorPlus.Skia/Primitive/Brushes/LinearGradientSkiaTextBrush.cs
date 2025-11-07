@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Primitive;
 /// <summary>
 /// 线性渐变的 Skia 文本画刷
 /// </summary>
-public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush, IEquatable<LinearGradientSkiaTextBrush>
+public sealed record LinearGradientSkiaTextBrush : SkiaTextBrush, IEquatable<LinearGradientSkiaTextBrush>
 {
     /// <summary>
     /// 起始点
@@ -61,53 +61,5 @@ public sealed class LinearGradientSkiaTextBrush : SkiaTextBrush, IEquatable<Line
             // 没有渐变色时返回默认黑色
             return SKColors.Black;
         }
-    }
-
-    /// <inheritdoc />
-    public bool Equals(LinearGradientSkiaTextBrush? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        if (!StartPoint.Equals(other.StartPoint))
-        {
-            return false;
-        }
-
-        if (!EndPoint.Equals(other.EndPoint))
-        {
-            return false;
-        }
-
-        if (!Opacity.Equals(other.Opacity))
-        {
-            return false;
-        }
-
-        if (!GradientStops.Equals(other.GradientStops))
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    /// <inheritdoc />
-    public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) || obj is LinearGradientSkiaTextBrush other && Equals(other);
-    }
-
-    /// <inheritdoc />
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(StartPoint, EndPoint, Opacity, GradientStops);
     }
 }

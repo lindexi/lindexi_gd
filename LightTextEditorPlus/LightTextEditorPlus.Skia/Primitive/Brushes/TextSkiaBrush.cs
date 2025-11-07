@@ -11,7 +11,7 @@ namespace LightTextEditorPlus.Primitive;
 /// <summary>
 /// 文本的 Skia 渲染画刷
 /// </summary>
-public abstract class SkiaTextBrush
+public abstract record SkiaTextBrush
 {
     /// <summary>
     /// 应用画刷到指定的 <see cref="SKPaint"/> 对象上
