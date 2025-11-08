@@ -491,5 +491,15 @@ partial class RichTextCaseProvider
             editor.SetForeground(Brushes.Black, selection);
             // 此测试不需要写断言，因为靠渲染图片对比即可，由集成测试确保行为
         }, "测试ad1b1c9-设置文本前景色导致连写字渲染失效");
+
+        Add(editor =>
+        {
+            editor.UseWpfLineSpacingStyle();
+            editor.AppendRun(new SkiaTextRun("123", editor.StyleRunProperty with
+            {
+                Background = SKColors.Red,
+                FontSize = 50,
+            }));
+        }, "添加背景色");
     }
 }
