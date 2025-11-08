@@ -228,7 +228,56 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
         return memberConstraintList;
     }
 
-    record MemberConstraint(string Name);
+    class MemberConstraint : IEquatable<MemberConstraint>
+    {
+        // 特意从 record 改成 class 类型，用于让 ReSharper 开森，不要在这里给我报告警告
+        public MemberConstraint(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
+
+        public bool Equals(MemberConstraint? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Name == other.Name;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((MemberConstraint) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
+    }
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
