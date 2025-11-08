@@ -34,6 +34,8 @@ public readonly struct ArrangingType : IEquatable<ArrangingType>
         IsVertical = true,
         // 蒙古文布局，从左到右
         IsLeftToRightVertical = true,
+        LatinRotationDegree = DefaultRotationDegree,
+        NumberRotationDegree = DefaultRotationDegree,
     };
 
     /// <summary>
