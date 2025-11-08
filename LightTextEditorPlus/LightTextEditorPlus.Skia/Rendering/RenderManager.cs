@@ -2,23 +2,18 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
+
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Events;
-using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
-using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Core.Rendering;
-using SkiaSharp;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Diagnostics;
-using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Rendering.Core;
+using LightTextEditorPlus.Utils;
+
+using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering;
 
@@ -30,6 +25,7 @@ class RenderManager
     }
 
     public SkiaTextEditor TextEditor { get; }
+
     #region 光标渲染
 
     /// <summary>
@@ -224,7 +220,6 @@ class RenderManager
             throw new ArgumentOutOfRangeException();
         }
     }
-
 }
 
 /// <summary>
