@@ -272,6 +272,16 @@ abstract class BaseSkiaTextRenderer : IDisposable
         return Viewport.Value.IntersectsWith(textRect);
     }
 
+    public void DrawDebugBoundsInfo(TextRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
+    {
+        if (!Config.IsInDebugMode || drawInfo is null)
+        {
+            return;
+        }
+
+        DrawDebugBoundsInfo(bounds.ToSKRect(), drawInfo);
+    }
+
     public void DrawDebugBoundsInfo(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
     {
         if (!Config.IsInDebugMode || drawInfo is null)

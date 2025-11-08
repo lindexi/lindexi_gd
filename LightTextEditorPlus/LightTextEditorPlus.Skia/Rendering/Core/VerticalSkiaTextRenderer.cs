@@ -7,9 +7,7 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
-using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
-using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
 
@@ -22,48 +20,6 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
 {
     public VerticalSkiaTextRenderer(RenderManager renderManager, in SkiaTextRenderArgument renderArgument) : base(renderManager, in renderArgument)
     {
-    }
-
-    //protected override void RenderTextLine(in ParagraphLineRenderInfo lineInfo)
-    //{
-    //    // 先不考虑缓存
-    //    LineDrawingArgument argument = lineInfo.Argument;
-
-    //    if (TextEditor.RenderConfiguration.UseRenderCharByCharMode)
-    //    {
-    //        // 逐字符渲染。渲染效率慢，但可以遵循布局结果
-    //        for (var i = 0; i < argument.CharList.Count; i++)
-    //        {
-    //            TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i, 1);
-    //            RenderCharList(charList, lineInfo);
-    //        }
-    //    }
-    //    else
-    //    {
-    //        foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
-    //        {
-    //            RenderCharList(charList, lineInfo);
-    //        }
-    //    }
-
-    //    TextPoint lineStartPoint = argument.StartPoint;
-    //    if (!ArrangingType.IsLeftToRightVertical)
-    //    {
-    //        lineStartPoint = lineStartPoint with
-    //        {
-    //            X = lineStartPoint.X - argument.LineContentSize.Height
-    //        };
-    //    }
-    //    DrawDebugBounds(new TextRect(lineStartPoint, argument.LineContentSize.SwapWidthAndHeight()), Config.DebugDrawLineContentBoundsInfo);
-    //}
-
-    private void DrawDebugBounds(TextRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
-    {
-        if (drawInfo is null)
-        {
-            return;
-        }
-        DrawDebugBoundsInfo(bounds.ToSKRect(), drawInfo);
     }
 
     protected override void RenderCharList(in TextReadOnlyListSpan<CharData> charList, in ParagraphLineRenderInfo lineInfo)
@@ -99,7 +55,7 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
             }
 
             var charBounds = new TextRect(x, y, frameSize.Width, frameSize.Height);
-            DrawDebugBounds(charBounds, Config.DebugDrawCharBoundsInfo);
+            DrawDebugBoundsInfo(charBounds, Config.DebugDrawCharBoundsInfo);
 
             RenderBounds = RenderBounds.Union(charBounds);
 
