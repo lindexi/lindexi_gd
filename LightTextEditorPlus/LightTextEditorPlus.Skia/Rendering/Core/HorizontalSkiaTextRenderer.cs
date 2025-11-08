@@ -311,7 +311,15 @@ file struct Renderer : IDisposable
         using SKPaint paint = new SKPaint();
 
         LineDrawingArgument argument = lineRenderInfo.Argument;
-        foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+
+        static bool CheckSameBackground(CharData a, CharData b)
+        {
+            SkiaTextRunProperty aRunProperty = a.RunProperty.AsSkiaRunProperty();
+            SkiaTextRunProperty bRunProperty = b.RunProperty.AsSkiaRunProperty();
+            return aRunProperty.Background == bRunProperty.Background;
+        }
+
+        foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous(CheckSameBackground))
         {
             var charData = charList[0];
             SkiaTextRunProperty skiaTextRunProperty = charData.RunProperty.AsSkiaRunProperty();
