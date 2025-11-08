@@ -309,10 +309,11 @@ file struct Renderer : IDisposable
     private void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
     {
         LineDrawingArgument argument = lineRenderInfo.Argument;
-        for (var i = 0; i < argument.CharList.Count; i++)
+        foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
         {
-            var charData = argument.CharList[i];
+            var charData = argument.CharList[0];
             SkiaTextRunProperty skiaTextRunProperty = charData.RunProperty.AsSkiaRunProperty();
+
             SKColor background = skiaTextRunProperty.Background;
             if (background.Alpha == 0x00)
             {
@@ -320,7 +321,6 @@ file struct Renderer : IDisposable
                 // 尽管这样可能导致 Avalonia 命中穿透，但为了性能考虑，还是不绘制了
                 continue;
             }
-
         }
     }
 
