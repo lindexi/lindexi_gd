@@ -28,7 +28,7 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
     public HorizontalSkiaTextRenderer(RenderManager renderManager) : base(renderManager.TextEditor)
     {
         RenderManager = renderManager;
-    }
+    } 
 
     public RenderManager RenderManager { get; }
 

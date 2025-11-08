@@ -1,10 +1,13 @@
 ﻿using HarfBuzzSharp;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Diagnostics;
+using LightTextEditorPlus.Utils;
 
 using SkiaSharp;
 
@@ -24,6 +27,48 @@ abstract class BaseSkiaTextRenderer : IDisposable
     protected SkiaTextEditor TextEditor { get; }
 
     public abstract SkiaTextRenderResult Render(in SkiaTextRenderArgument argument);
+
+    internal SkiaTextRenderResult RenderInner(in SkiaTextRenderArgument argument)
+    {
+        SKCanvas canvas = argument.Canvas;
+
+        foreach (ParagraphRenderInfo paragraphRenderInfo in argument.RenderInfoProvider.GetParagraphRenderInfoList())
+        {
+            if (!IsInViewport(in argument, paragraphRenderInfo.ParagraphLayoutData.OutlineBounds))
+            {
+                // 不在可见范围内，跳过
+                continue;
+            }
+
+            if (Config.IsInDebugMode)
+            {
+                IParagraphLayoutData paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
+
+                DrawDebugBoundsInfo(canvas, paragraphLayoutData.TextContentBounds.ToSKRect(), Config.DebugDrawParagraphContentBoundsInfo);
+                DrawDebugBoundsInfo(canvas, paragraphLayoutData.OutlineBounds.ToSKRect(), Config.DebugDrawParagraphOutlineBoundsInfo);
+            }
+
+            // 段落内逐行渲染
+            foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
+            {
+                if (argument.Viewport is { } viewport)
+                {
+
+                }
+
+            }
+        }
+    }
+
+    /// <summary>
+    /// 是否在可见范围内
+    /// </summary>
+    /// <returns></returns>
+    private bool IsInViewport(in SkiaTextRenderArgument argument, in TextRect textRect)
+    {
+        if (argument.Viewport is null) return true;
+        return argument.Viewport.Value.IntersectsWith(textRect);
+    }
 
     private SKPaint? _debugSKPaint;
 
