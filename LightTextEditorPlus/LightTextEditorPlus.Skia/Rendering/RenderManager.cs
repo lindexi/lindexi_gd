@@ -154,7 +154,6 @@ class RenderManager
     public TextEditorSkiaRender BuildTextEditorSkiaRender(in TextEditorSkiaRenderContext renderContext)
     {
         RenderInfoProvider renderInfoProvider = renderContext.RenderInfoProvider;
-        BaseSkiaTextRenderer textRenderer = GetSkiaTextRender();
 
         DocumentLayoutBounds layoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
         TextRect documentOutlineBounds = layoutBounds.DocumentOutlineBounds;
@@ -183,21 +182,25 @@ class RenderManager
 
         using (SKCanvas canvas = skPictureRecorder.BeginRecording(SKRect.Create(0, 0, renderWidth, renderHeight)))
         {
-            SkiaTextRenderResult skiaTextRenderResult = textRenderer.Render(new SkiaTextRenderArgument()
+            var argument = new SkiaTextRenderArgument()
             {
                 Canvas = canvas,
                 RenderInfoProvider = renderInfoProvider,
                 RenderBounds = renderBounds,
                 Viewport = renderContext.Viewport,
-            });
+            };
+
+            using BaseSkiaTextRenderer textRenderer = GetSkiaTextRender(in argument);
+
+            SkiaTextRenderResult skiaTextRenderResult = textRenderer.Render();
             renderBounds = skiaTextRenderResult.RenderBounds;
 
             SkiaTextEditorDebugConfiguration skiaTextEditorDebugConfiguration = TextEditor.DebugConfiguration;
             if (skiaTextEditorDebugConfiguration.IsInDebugMode)
             {
-                textRenderer.DrawDebugBoundsInfo(canvas, renderBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentRenderBoundsInfo);
-                textRenderer.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentContentBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo);
-                textRenderer.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentOutlineBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo);
+                textRenderer.DrawDebugBoundsInfo(renderBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentRenderBoundsInfo);
+                textRenderer.DrawDebugBoundsInfo(layoutBounds.DocumentContentBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo);
+                textRenderer.DrawDebugBoundsInfo(layoutBounds.DocumentOutlineBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo);
             }
         }
 
@@ -206,27 +209,15 @@ class RenderManager
         return render;
     }
 
-    private BaseSkiaTextRenderer GetSkiaTextRender()
+    private BaseSkiaTextRenderer GetSkiaTextRender(in SkiaTextRenderArgument argument)
     {
         if (TextEditor.TextEditorCore.ArrangingType.IsHorizontal)
         {
-            if (_textRender is not HorizontalSkiaTextRenderer)
-            {
-                _textRender?.Dispose();
-                _textRender = new HorizontalSkiaTextRenderer(this);
-            }
-
-            return _textRender;
+            return new HorizontalSkiaTextRenderer(this, in argument);
         }
         else if (TextEditor.TextEditorCore.ArrangingType.IsVertical)
         {
-            if (_textRender is not VerticalSkiaTextRenderer)
-            {
-                _textRender?.Dispose();
-                _textRender = new VerticalSkiaTextRenderer(this);
-            }
-
-            return _textRender;
+            return new VerticalSkiaTextRenderer(this, in argument);
         }
         else
         {
@@ -234,7 +225,6 @@ class RenderManager
         }
     }
 
-    private BaseSkiaTextRenderer? _textRender;
 }
 
 /// <summary>

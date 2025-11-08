@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 using LightTextEditorPlus.Configurations;
@@ -25,116 +24,15 @@ namespace LightTextEditorPlus.Rendering.Core;
 /// </summary>
 class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
 {
-    public HorizontalSkiaTextRenderer(RenderManager renderManager) : base(renderManager.TextEditor)
+    public HorizontalSkiaTextRenderer(RenderManager renderManager, in SkiaTextRenderArgument renderArgument) : base(renderManager, in renderArgument)
     {
-        RenderManager = renderManager;
-    } 
-
-    public RenderManager RenderManager { get; }
-
-    public override SkiaTextRenderResult Render(in SkiaTextRenderArgument renderArgument)
-    {
-        using var renderer = new Renderer(in renderArgument, TextEditor, this);
-        return renderer.Render();
-    }
-}
-
-/// <summary>
-/// 渲染器
-/// </summary>
-/// 这个结构体仅仅只是为了减少一些内部方法而已，没有实际的逻辑作用
-file struct Renderer : IDisposable
-{
-    public Renderer(in SkiaTextRenderArgument renderArgument, SkiaTextEditor textEditor, HorizontalSkiaTextRenderer horizontalSkiaTextRenderer)
-    {
-        TextEditor = textEditor;
-        SKCanvas canvas = renderArgument.Canvas;
-        Canvas = canvas;
-
-        RenderInfoProvider renderInfoProvider = renderArgument.RenderInfoProvider;
-        TextRect renderBounds = renderArgument.RenderBounds;
-        RenderInfoProvider = renderInfoProvider;
-        RenderBounds = renderBounds;
-        Viewport = renderArgument.Viewport;
-
-        Debug.Assert(!renderInfoProvider.IsDirty);
-
-        HorizontalSkiaTextRenderer = horizontalSkiaTextRenderer;
-    }
-
-    public SkiaTextEditor TextEditor { get; }
-
-    public SKCanvas Canvas { get; }
-
-    public RenderInfoProvider RenderInfoProvider { get; }
-
-    public TextRect RenderBounds { get; set; }
-
-    /// <summary>
-    /// 可见范围，为空则代表需要全文档渲染
-    /// </summary>
-    public TextRect? Viewport { get; }
-
-    /// <summary>
-    /// 是否在可见范围内
-    /// </summary>
-    /// <param name="textRect"></param>
-    /// <returns></returns>
-    private bool IsInViewport(in TextRect textRect)
-    {
-        if (Viewport is null) return true;
-        return Viewport.Value.IntersectsWith(textRect);
-    }
-
-    public HorizontalSkiaTextRenderer HorizontalSkiaTextRenderer { get; }
-
-    private SkiaTextEditorDebugConfiguration Config => TextEditor.DebugConfiguration;
-
-    private ITextLogger Logger => TextEditor.TextEditorCore.Logger;
-
-    public SkiaTextRenderResult Render()
-    {
-        foreach (ParagraphRenderInfo paragraphRenderInfo in RenderInfoProvider.GetParagraphRenderInfoList())
-        {
-            if (!IsInViewport(paragraphRenderInfo.ParagraphLayoutData.OutlineBounds))
-            {
-                // 不在可见范围内，跳过
-                continue;
-            }
-
-            if (Config.IsInDebugMode)
-            {
-                IParagraphLayoutData paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
-
-                DrawDebugBounds(paragraphLayoutData.TextContentBounds.ToSKRect(), Config.DebugDrawParagraphContentBoundsInfo);
-                DrawDebugBounds(paragraphLayoutData.OutlineBounds.ToSKRect(), Config.DebugDrawParagraphOutlineBoundsInfo);
-            }
-
-            foreach (ParagraphLineRenderInfo lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
-            {
-                if (Viewport is { } viewport)
-                {
-                    if (!viewport.IntersectsWith(lineRenderInfo.OutlineBounds))
-                    {
-                        continue;
-                    }
-                }
-
-                RenderTextLine(in lineRenderInfo);
-            }
-        }
-
-        return new SkiaTextRenderResult()
-        {
-            RenderBounds = RenderBounds
-        };
     }
 
     /// <summary>
     /// 渲染一行文本
     /// </summary>
     /// <param name="lineRenderInfo"></param>
-    private void RenderTextLine(in ParagraphLineRenderInfo lineRenderInfo)
+    protected override void RenderTextLine(in ParagraphLineRenderInfo lineRenderInfo)
     {
         RenderBackground(in lineRenderInfo);
 
@@ -185,7 +83,7 @@ file struct Renderer : IDisposable
             {
                 CharHandwritingPaperInfo charHandwritingPaperInfo =
                     RenderInfoProvider.GetHandwritingPaperInfo(in lineRenderInfo);
-                HorizontalSkiaTextRenderer.DrawDebugHandwritingPaper(Canvas, new TextRect(argument.StartPoint, argument.LineContentSize with
+                DrawDebugHandwritingPaper(new TextRect(argument.StartPoint, argument.LineContentSize with
                 {
                     // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
                     Width = RenderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
@@ -273,7 +171,7 @@ file struct Renderer : IDisposable
         {
             CharHandwritingPaperInfo charHandwritingPaperInfo =
                 RenderInfoProvider.GetHandwritingPaperInfo(in lineInfo, firstCharData);
-            HorizontalSkiaTextRenderer.DrawDebugHandwritingPaper(Canvas, charSpanBounds, charHandwritingPaperInfo);
+            DrawDebugHandwritingPaper(charSpanBounds, charHandwritingPaperInfo);
         }
 
         //float x = skiaTextRenderInfo.X;
@@ -421,26 +319,8 @@ file struct Renderer : IDisposable
 
     private void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
     {
-        HorizontalSkiaTextRenderer.DrawDebugBoundsInfo(Canvas, bounds, drawInfo);
+        DrawDebugBoundsInfo(bounds, drawInfo);
     }
-
-    private SKPaint CachePaint
-    {
-        get
-        {
-            if (_cachePaint is null)
-            {
-                _cachePaint = new SKPaint()
-                {
-                    IsAntialias = true
-                };
-            }
-
-            return _cachePaint;
-        }
-    }
-
-    private SKPaint? _cachePaint;
 
     private static SKTextBlob ToSKTextBlob(in TextReadOnlyListSpan<CharData> charList, SKFont skFont)
     {
@@ -451,24 +331,4 @@ file struct Renderer : IDisposable
         SKTextBlob skTextBlob = SKTextBlob.Create(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont);
         return skTextBlob;
     }
-
-    public void Dispose()
-    {
-        _cachePaint?.Dispose();
-    }
 }
-
-// 由于可能会在业务层访问，因此不开启
-///// <summary>
-///// 支持借用的 SKPaint 信息，只能支持有限量的更改
-///// </summary>
-//struct SKPaintRentInfo
-//{
-//    public SKPaintRentInfo(SKPaint paint)
-//    {
-//        Paint = paint;
-//        paint.
-//    }
-
-//    public SKPaint Paint { get; }
-//}
