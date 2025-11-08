@@ -28,91 +28,8 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
     {
     }
 
-    /// <summary>
-    /// 渲染一行文本
-    /// </summary>
-    /// <param name="lineRenderInfo"></param>
-    protected override void RenderTextLine(in ParagraphLineRenderInfo lineRenderInfo)
-    {
-        RenderBackground(in lineRenderInfo);
-
-        if (lineRenderInfo.IsIncludeMarker)
-        {
-            // 如果包含了项目符号，那么就需要先绘制项目符号
-            TextReadOnlyListSpan<CharData> markerCharDataList = lineRenderInfo.GetMarkerCharDataList();
-            RenderCharList(in markerCharDataList, in lineRenderInfo);
-        }
-
-        // 标记是否包含文本装饰
-        bool containsTextDecoration = false;
-
-        // 先不考虑缓存
-        LineDrawingArgument argument = lineRenderInfo.Argument;
-
-        if (TextEditor.RenderConfiguration.UseRenderCharByCharMode)
-        {
-            // 逐字符渲染。渲染效率慢，但可以遵循布局结果
-            for (var i = 0; i < argument.CharList.Count; i++)
-            {
-                TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i, 1);
-                if (charList[0].CharDataInfo.Status == CharDataInfoStatus.LigatureContinue)
-                {
-                    // 逐个渲染时，需要考虑连写字的情况，跳过连写字的中间部分
-                    continue;
-                }
-                RenderCharList(in charList, in lineRenderInfo);
-
-                containsTextDecoration |= ContainsTextDecoration(in charList);
-            }
-        }
-        else
-        {
-            foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
-            {
-                RenderCharList(charList, lineRenderInfo);
-
-                containsTextDecoration |= ContainsTextDecoration(in charList);
-            }
-        }
-
-        if (argument.CharList.Count == 0)
-        {
-            // 空行
-            // 绘制四线三格的调试信息
-            if (Config.ShowHandwritingPaperDebugInfo)
-            {
-                CharHandwritingPaperInfo charHandwritingPaperInfo =
-                    RenderInfoProvider.GetHandwritingPaperInfo(in lineRenderInfo);
-                DrawDebugHandwritingPaper(new TextRect(argument.StartPoint, argument.LineContentSize with
-                {
-                    // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
-                    Width = RenderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
-                }).ToSKRect(), charHandwritingPaperInfo);
-            }
-        }
-
-        if (containsTextDecoration)
-        {
-            // 渲染文本装饰
-            RenderTextDecoration(lineRenderInfo);
-        }
-
-        DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineContentSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
-
-        static bool ContainsTextDecoration(in TextReadOnlyListSpan<CharData> charList)
-        {
-            SkiaTextRunProperty skiaTextRunProperty = charList[0].RunProperty.AsSkiaRunProperty();
-            return !skiaTextRunProperty.DecorationCollection.IsEmpty;
-        }
-    }
-
-    /// <summary>
-    /// 连续、相同字符属性的字符列表渲染方法
-    /// </summary>
-    /// <param name="charList"></param>
-    /// <param name="lineInfo"></param>
-    /// <exception cref="TextEditorInnerException"></exception>
-    private void RenderCharList(in TextReadOnlyListSpan<CharData> charList, in ParagraphLineRenderInfo lineInfo)
+    /// <inheritdoc />
+    protected override void RenderCharList(in TextReadOnlyListSpan<CharData> charList, in ParagraphLineRenderInfo lineInfo)
     {
         CharData firstCharData = charList[0];
 
@@ -157,13 +74,13 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
 
         foreach (CharData charData in charList)
         {
-            DrawDebugBounds(charData.GetBounds().ToSKRect(), Config.DebugDrawCharBoundsInfo);
+            DrawDebugBoundsInfo(charData.GetBounds().ToSKRect(), Config.DebugDrawCharBoundsInfo);
 
             width += (float) charData.Size.Width;
         }
 
         SKRect charSpanBounds = SKRect.Create(x, y, width, height);
-        DrawDebugBounds(charSpanBounds, Config.DebugDrawCharSpanBoundsInfo);
+        DrawDebugBoundsInfo(charSpanBounds, Config.DebugDrawCharSpanBoundsInfo);
         RenderBounds = RenderBounds.Union(charSpanBounds.ToTextRect());
 
         // 绘制四线三格的调试信息
@@ -200,22 +117,12 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
         Canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
     }
 
-    /// <summary>
-    /// 渲染背景
-    /// </summary>
-    /// <param name="lineRenderInfo"></param>
-    private void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
+    /// <inheritdoc />
+    protected override void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
     {
-        using SKPaint paint = new SKPaint();
+        SKPaint paint = CachePaint;
 
         LineDrawingArgument argument = lineRenderInfo.Argument;
-
-        static bool CheckSameBackground(CharData a, CharData b)
-        {
-            SkiaTextRunProperty aRunProperty = a.RunProperty.AsSkiaRunProperty();
-            SkiaTextRunProperty bRunProperty = b.RunProperty.AsSkiaRunProperty();
-            return aRunProperty.Background == bRunProperty.Background;
-        }
 
         foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous(CheckSameBackground))
         {
@@ -243,92 +150,5 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
             paint.Color = background;
             Canvas.DrawRect(backgroundRect, paint);
         }
-    }
-
-    /// <summary>
-    /// 绘制文本装饰层
-    /// </summary>
-    /// <param name="lineRenderInfo"></param>
-    private void RenderTextDecoration(ParagraphLineRenderInfo lineRenderInfo)
-    {
-        LineDrawingArgument argument = lineRenderInfo.Argument;
-        foreach (DecorationSplitResult decorationSplitResult in TextEditorDecorationHelper
-                     .SplitContinuousTextDecorationCharData(argument.CharList))
-        {
-            TextEditorDecoration textEditorDecoration = decorationSplitResult.Decoration;
-            SkiaTextRunProperty runProperty = decorationSplitResult.RunProperty;
-            TextReadOnlyListSpan<CharData> charDataList = decorationSplitResult.CharList;
-
-            var currentCharDataList = charDataList;
-            var currentCharIndexInLine = decorationSplitResult.CurrentCharIndexInLine;
-
-            while (true)
-            {
-                TextRect recommendedBounds = TextEditorDecoration
-                    .GetDecorationLocationRecommendedBounds(textEditorDecoration.TextDecorationLocation, in currentCharDataList, in lineRenderInfo, TextEditor);
-
-                var decorationArgument = new BuildDecorationArgument()
-                {
-                    CharDataList = currentCharDataList,
-                    CurrentCharIndexInLine = currentCharIndexInLine,
-                    RunProperty = runProperty,
-                    LineRenderInfo = lineRenderInfo,
-                    TextEditor = TextEditor,
-                    RecommendedBounds = recommendedBounds,
-                    Canvas = Canvas,
-                    CachePaint = CachePaint,
-                };
-                BuildDecorationResult result = textEditorDecoration.BuildDecoration(in decorationArgument);
-
-                if (result.TakeCharCount == currentCharDataList.Count)
-                {
-                    break;
-                }
-                else if (result.TakeCharCount < 1)
-                {
-                    var message = $"文本装饰渲染时，所需使用的字符数量至少要有一个。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}";
-                    if (Config.IsInDebugMode)
-                    {
-                        throw new TextEditorDebugException(message);
-                    }
-                    else
-                    {
-                        Logger.LogWarning(message);
-                    }
-                }
-                else if (result.TakeCharCount > currentCharDataList.Count)
-                {
-                    var message = $"文本装饰渲染时，所需使用的字符数量不能超过传入的字符数量。装饰器类型： {textEditorDecoration.GetType()}；TakeCharCount={result.TakeCharCount}；CurrentCharDataListCount={currentCharDataList.Count}";
-                    if (Config.IsInDebugMode)
-                    {
-                        throw new TextEditorDebugException(message);
-                    }
-                    else
-                    {
-                        Logger.LogWarning(message);
-                    }
-                }
-                else
-                {
-                    currentCharDataList = currentCharDataList.Slice(result.TakeCharCount);
-                    currentCharIndexInLine += result.TakeCharCount;
-                }
-            }
-        }
-    }
-
-    private void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
-    {
-        DrawDebugBoundsInfo(bounds, drawInfo);
-    }
-
-    private static SKTextBlob ToSKTextBlob(in TextReadOnlyListSpan<CharData> charList, SKFont skFont)
-    {
-        using TextPoolArrayContext<ushort> glyphIndexContext = charList.ToRenderGlyphIndexSpanContext();
-        Span<ushort> glyphIndexSpan = glyphIndexContext.Span;
-        Span<byte> glyphIndexByteSpan = MemoryMarshal.AsBytes(glyphIndexSpan);
-
-        SKTextBlob skTextBlob = SKTextBlob.Create(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont);
-        return skTextBlob;
     }
 }

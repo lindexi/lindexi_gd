@@ -24,40 +24,38 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
     {
     }
 
-    private ArrangingType ArrangingType => TextEditor.TextEditorCore.ArrangingType;
+    //protected override void RenderTextLine(in ParagraphLineRenderInfo lineInfo)
+    //{
+    //    // 先不考虑缓存
+    //    LineDrawingArgument argument = lineInfo.Argument;
 
-    protected override void RenderTextLine(in ParagraphLineRenderInfo lineInfo)
-    {
-        // 先不考虑缓存
-        LineDrawingArgument argument = lineInfo.Argument;
+    //    if (TextEditor.RenderConfiguration.UseRenderCharByCharMode)
+    //    {
+    //        // 逐字符渲染。渲染效率慢，但可以遵循布局结果
+    //        for (var i = 0; i < argument.CharList.Count; i++)
+    //        {
+    //            TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i, 1);
+    //            RenderCharList(charList, lineInfo);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+    //        {
+    //            RenderCharList(charList, lineInfo);
+    //        }
+    //    }
 
-        if (TextEditor.RenderConfiguration.UseRenderCharByCharMode)
-        {
-            // 逐字符渲染。渲染效率慢，但可以遵循布局结果
-            for (var i = 0; i < argument.CharList.Count; i++)
-            {
-                TextReadOnlyListSpan<CharData> charList = argument.CharList.Slice(i, 1);
-                RenderCharList(charList, lineInfo);
-            }
-        }
-        else
-        {
-            foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
-            {
-                RenderCharList(charList, lineInfo);
-            }
-        }
-
-        TextPoint lineStartPoint = argument.StartPoint;
-        if (!ArrangingType.IsLeftToRightVertical)
-        {
-            lineStartPoint = lineStartPoint with
-            {
-                X = lineStartPoint.X - argument.LineContentSize.Height
-            };
-        }
-        DrawDebugBounds(new TextRect(lineStartPoint, argument.LineContentSize.SwapWidthAndHeight()), Config.DebugDrawLineContentBoundsInfo);
-    }
+    //    TextPoint lineStartPoint = argument.StartPoint;
+    //    if (!ArrangingType.IsLeftToRightVertical)
+    //    {
+    //        lineStartPoint = lineStartPoint with
+    //        {
+    //            X = lineStartPoint.X - argument.LineContentSize.Height
+    //        };
+    //    }
+    //    DrawDebugBounds(new TextRect(lineStartPoint, argument.LineContentSize.SwapWidthAndHeight()), Config.DebugDrawLineContentBoundsInfo);
+    //}
 
     private void DrawDebugBounds(TextRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
     {
@@ -68,7 +66,7 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
         DrawDebugBoundsInfo(bounds.ToSKRect(), drawInfo);
     }
 
-    private void RenderCharList(TextReadOnlyListSpan<CharData> charList, ParagraphLineRenderInfo lineInfo)
+    protected override void RenderCharList(in TextReadOnlyListSpan<CharData> charList, in ParagraphLineRenderInfo lineInfo)
     {
         LineDrawingArgument argument = lineInfo.Argument;
 
@@ -122,5 +120,48 @@ class VerticalSkiaTextRenderer : BaseSkiaTextRenderer
         Span<byte> glyphIndexByteSpan = MemoryMarshal.AsBytes(glyphIndexSpan);
         using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont, positionList.ToSpan());
         Canvas.DrawText(skTextBlob, 0, 0, textRenderSKPaint);
+    }
+
+    /// <inheritdoc />
+    protected override void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
+    {
+        SKPaint paint = CachePaint;
+
+        LineDrawingArgument argument = lineRenderInfo.Argument;
+
+        foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous(CheckSameBackground))
+        {
+            var charData = charList[0];
+            SkiaTextRunProperty skiaTextRunProperty = charData.RunProperty.AsSkiaRunProperty();
+
+            SKColor background = skiaTextRunProperty.Background;
+            if (background.Alpha == 0x00)
+            {
+                // 完全透明的，就不绘制了
+                // 尽管这样可能导致 Avalonia 命中穿透，但为了性能考虑，还是不绘制了
+                continue;
+            }
+
+            var x = argument.StartPoint.X;
+            double y = charData.GetStartPoint().Y;
+
+            var lastCharData = charList[^1];
+            TextPoint lastCharDataStartPoint = lastCharData.GetStartPoint();
+            double lastCharDataHeight = lastCharData.Size.SwapWidthAndHeight().Height;
+
+            double width = argument.LineCharTextSize.SwapWidthAndHeight().Width;
+            double height = (lastCharDataStartPoint.Y + lastCharDataHeight) - y;
+
+            if (!ArrangingType.IsLeftToRightVertical)
+            {
+                // 如果是从右到左的竖排，则需要将 x 减去行宽度，确保从左到右渲染，不会让竖排越过文档右边。否则将会在行的右侧绘制背景
+                x -= width;
+            }
+
+            SKRect backgroundRect = SKRect.Create((float) x, (float) y, (float) width, (float) height);
+            paint.Style = SKPaintStyle.Fill;
+            paint.Color = background;
+            Canvas.DrawRect(backgroundRect, paint);
+        }
     }
 }
