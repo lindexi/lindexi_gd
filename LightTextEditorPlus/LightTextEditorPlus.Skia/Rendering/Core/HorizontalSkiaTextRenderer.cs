@@ -308,10 +308,12 @@ file struct Renderer : IDisposable
     /// <param name="lineRenderInfo"></param>
     private void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
     {
+        using SKPaint paint = new SKPaint();
+
         LineDrawingArgument argument = lineRenderInfo.Argument;
         foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
         {
-            var charData = argument.CharList[0];
+            var charData = charList[0];
             SkiaTextRunProperty skiaTextRunProperty = charData.RunProperty.AsSkiaRunProperty();
 
             SKColor background = skiaTextRunProperty.Background;
@@ -321,6 +323,19 @@ file struct Renderer : IDisposable
                 // 尽管这样可能导致 Avalonia 命中穿透，但为了性能考虑，还是不绘制了
                 continue;
             }
+
+            var x = charData.GetStartPoint().X;
+            double y = argument.StartPoint.Y;
+
+            var lastCharData = charList[^1];
+            // 宽度是最后一个字符的结束位置减去第一个字符的起始位置
+            double width = lastCharData.GetBounds().Right - x;
+            double height = argument.LineCharTextSize.Height;
+
+            SKRect backgroundRect = SKRect.Create((float) x, (float) y, (float) width, (float) height);
+            paint.Style = SKPaintStyle.Fill;
+            paint.Color = background;
+            Canvas.DrawRect(backgroundRect, paint);
         }
     }
 
