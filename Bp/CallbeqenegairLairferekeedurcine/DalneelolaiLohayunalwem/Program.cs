@@ -7,38 +7,6 @@ var architecture = new[] { 2, 2, 2, 1 };
 
 var net = new Mlp(architecture, seed: 123);
 
-// 为了与现有三层 BP 示例保持一致，这里演示如何“按你的权重”初始化（可选）
-if (architecture.Length == 4 && architecture[0] == 2 && architecture[1] == 2 && architecture[2] == 2 &&
-    architecture[3] == 1)
-{
-    // W[0]: 2x2 （隐藏层1 <- 输入）
-    // z0 = w11*a + w12*b, z1 = w21*a + w22*b
-    net.SetWeights
-    (
-        layerIndex: 0,
-        weights: new double[,] { { 0.1, 0.8 }, { 0.4, 0.6 } }, // [z0; z1] = W0 * [a; b]
-        biases: [0.0, 0.0]
-    );
-
-    // W[1]: 2x2 （隐藏层2 <- 隐藏层1）
-    // z2 = w31*y0 + w32*y1, z3 = w41*y0 + w42*y1
-    net.SetWeights
-    (
-        layerIndex: 1,
-        weights: new double[,] { { 0.3, 0.9 }, { 0.2, 0.7 } }, // [z2; z3] = W1 * [y0; y1]
-        biases: [0.0, 0.0]
-    );
-
-    // W[2]: 1x2 （输出 <- 隐藏层2）
-    // z4 = w51*y2 + w52*y3
-    net.SetWeights
-    (
-        layerIndex: 2,
-        weights: new double[,] { { 0.5, 0.4 } }, // [z4] = W2 * [y2; y3]
-        biases: new double[] { 0.0 }
-    );
-}
-
 // 单样本训练（与原示例一致）
 double[] x = [0.35, 0.9];
 double[] target = [0.5];
