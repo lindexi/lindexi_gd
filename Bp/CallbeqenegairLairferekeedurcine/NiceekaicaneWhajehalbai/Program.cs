@@ -79,16 +79,31 @@ while (true)
     var dz2_dy0 = l2_w31;
     var dy0_dz0 = DF(l1_y0);
     var dz_dw11 = a;
-    var dc_dw11 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz_dw11;
-    var dz_dw12 = b;
-    var dc_dw12 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz_dw12;
+    // 这是从 y2 计算过来的路径
+    var dc_dw11_p1 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz_dw11;
+    // 这是从 y3 计算过来的路径
+    var dz3_dy0 = l2_w41;
+    var dz0_dw11 = a;
+    var dc_dw11_p2 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy0 * dy0_dz0 * dz0_dw11;
+
+    var dc_dw11 = dc_dw11_p1 + dc_dw11_p2;
+
+    var dz0_dw12 = b;
+    var dc_dw12_p1 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz0_dw12;
+    var dc_dw12_p2 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy0 * dy0_dz0 * dz0_dw12;
+    var dc_dw12 = dc_dw12_p1 + dc_dw12_p2;
 
     var dz3_dy1 = l2_w42;
     var dy1_dz1 = DF(l1_y1);
     var dz1_dw21 = a;
-    var dc_dw21 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw21;
+    var dc_dw21_p1 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw21;
+    var dc_dw21_p2 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw21;
+    var dc_dw21 = dc_dw21_p1 + dc_dw21_p2;
     var dz1_dw22 = b;
-    var dc_dw22 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw22;
+    var dc_dw22_p1 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw22;
+    var dz2_dy1 = l2_w32;
+    var dc_dw22_p2 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy1 *dy1_dz1 *dz1_dw22;
+    var dc_dw22 = dc_dw22_p1 + dc_dw22_p2;
 
     l3_w51 = l3_w51 - dc_dw51;
     l3_w52 = l3_w52 - dc_dw52;
@@ -122,3 +137,104 @@ static double C(double y2)
 {
     return 1.0 / 2 * Math.Pow((y2 - y_out), 2);
 }
+
+/*
+// 三层 BP 网络示例
+
+const double x0 = 0.35;
+const double x1 = 0.9;
+const double y_out = 0.5;
+
+double a = x0;
+double b = x1;
+
+// 第一层权重
+double w11 = 0.1, w12 = 0.8;
+double w21 = 0.4, w22 = 0.6;
+
+// 第二层权重
+double w31 = 0.3, w32 = 0.9;
+double w41 = 0.2, w42 = 0.7;
+
+// 第三层（输出层）权重
+double w51 = 0.5, w52 = 0.4;
+
+double learningRate = 0.5; // 可调学习率
+int maxIter = 100000;
+int count = 0;
+
+while (count < maxIter)
+{
+    // 前向传播
+    double z0 = w11 * a + w12 * b;
+    double z1 = w21 * a + w22 * b;
+    double y0 = Sigmoid(z0);
+    double y1 = Sigmoid(z1);
+
+    double z2 = w31 * y0 + w32 * y1;
+    double z3 = w41 * y0 + w42 * y1;
+    double y2 = Sigmoid(z2);
+    double y3 = Sigmoid(z3);
+
+    double z4 = w51 * y2 + w52 * y3;
+    double y4 = Sigmoid(z4);
+
+    double cost = 0.5 * Math.Pow(y4 - y_out, 2);
+
+    if (cost < 1e-7)
+    {
+        break;
+    }
+
+    // 反向传播：逐层计算 δ
+    double dCost_dy4 = (y4 - y_out);
+    double dy4_dz4 = y4 * (1 - y4);
+    double delta4 = dCost_dy4 * dy4_dz4;
+
+    double dy2_dz2 = y2 * (1 - y2);
+    double dy3_dz3 = y3 * (1 - y3);
+
+    double delta2 = delta4 * w51 * dy2_dz2;
+    double delta3 = delta4 * w52 * dy3_dz3;
+
+    double dy0_dz0 = y0 * (1 - y0);
+    double dy1_dz1 = y1 * (1 - y1);
+
+    double delta0 = (delta2 * w31 + delta3 * w41) * dy0_dz0;
+    double delta1 = (delta2 * w32 + delta3 * w42) * dy1_dz1;
+
+    // 计算各权重梯度
+    double dw51 = delta4 * y2;
+    double dw52 = delta4 * y3;
+
+    double dw31 = delta2 * y0;
+    double dw32 = delta2 * y1;
+    double dw41 = delta3 * y0;
+    double dw42 = delta3 * y1;
+
+    double dw11 = delta0 * a;
+    double dw12 = delta0 * b;
+    double dw21 = delta1 * a;
+    double dw22 = delta1 * b;
+
+    // 更新权重
+    w51 -= learningRate * dw51;
+    w52 -= learningRate * dw52;
+
+    w31 -= learningRate * dw31;
+    w32 -= learningRate * dw32;
+    w41 -= learningRate * dw41;
+    w42 -= learningRate * dw42;
+
+    w11 -= learningRate * dw11;
+    w12 -= learningRate * dw12;
+    w21 -= learningRate * dw21;
+    w22 -= learningRate * dw22;
+
+    count++;
+}
+
+Console.WriteLine($"训练结束，迭代次数: {count}");
+
+static double Sigmoid(double x) => 1.0 / (1.0 + Math.Exp(-x));
+ */
