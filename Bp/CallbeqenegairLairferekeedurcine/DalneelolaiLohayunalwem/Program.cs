@@ -1,35 +1,90 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 // 架构：输入2 -> 隐藏层(2) -> 隐藏层(2) -> 输出1
 // 需要更多隐藏层时，只需修改下面的数组，比如 new[] { 2, 4, 3, 2, 1 }
-var architecture = new[] { 2, 2, 2, 1 };
+var architecture = new[] { 3, 100, 100, 100, 1 };
 
 var net = new Mlp(architecture, seed: 123);
-
-// 单样本训练（与原示例一致）
-double[] x = [0.35, 0.9];
-double[] target = [0.5];
 
 double lr = 0.5;
 int maxIterator = 100_000;
 double tol = 1e-7;
 int iterator = 0;
+
+var testInfoList = new List<TestInfo>();
+
+for (int i = 0; i < 50; i++)
+{
+    double x0 = Random.Shared.Next(0, 3000) / 10000.0;
+    double x1 = Random.Shared.Next(0, 3000) / 10000.0;
+    double x2 = Random.Shared.Next(0, 3000) / 10000.0;
+
+    double y_out = x0 + x1 + x2;
+
+    testInfoList.Add(new TestInfo(x0, x1, x2, y_out));
+}
+
+double[] x = [0.35, 0.9, 0.5];
+double[] target = [0.5];
+
 for (; iterator < maxIterator; iterator++)
 {
-    var y = net.Forward(x);
-    double cost = 0.5 * Math.Pow(y[0] - target[0], 2);
+    double c = 0;
 
-    if (cost < tol)
+    foreach (var testInfo in testInfoList)
+    {
+        x[0] = testInfo.X0;
+        x[1] = testInfo.X1;
+        x[2] = testInfo.X2;
+        target[0] = testInfo.Y_Out;
+
+        var y = net.Forward(x);
+        double cost = 0.5 * Math.Pow(y[0] - target[0], 2);
+
+        var y_out = y[0];
+        var t = target[0];
+
+        var s = Math.Abs(t - y_out);
+        if (s < 0.00001)
+        {
+            cost = 0;
+        }
+
+        c += cost;
+
+        net.Backward(target, lr);
+    }
+
+    var ave = c / testInfoList.Count;
+
+    if (ave < tol)
     {
         break;
     }
 
-    net.Backward(target, lr);
+    if (iterator == 10000)
+    {
+        Console.WriteLine($"平均误差 {ave}");
+        iterator = 0;
+    }
 }
 
-var yPred = net.Forward(x);
-Console.WriteLine($"训练结束: 迭代={iterator}, 预测={yPred[0]:F6}");
+Console.WriteLine($"训练结束: 迭代={iterator}");
+
+foreach (var testInfo in testInfoList)
+{
+    x[0] = testInfo.X0;
+    x[1] = testInfo.X1;
+    x[2] = testInfo.X2;
+    target[0] = testInfo.Y_Out;
+
+    var y = net.Forward(x);
+    var s = Math.Abs(target[0] - y[0]);
+
+    Console.WriteLine($"预期={target[0]:F6} 预测={y[0]:F6} 差距={s:F6}");
+}
 
 // ----------------- 通用多层 MLP 实现 -----------------
 sealed class Mlp
@@ -46,7 +101,7 @@ sealed class Mlp
         if (layerSizes is null || layerSizes.Length < 2)
             throw new ArgumentException("layerSizes 至少包含输入与输出两层。");
 
-        _sizes = (int[])layerSizes.Clone();
+        _sizes = (int[]) layerSizes.Clone();
         int layerCount = _sizes.Length - 1; // 权重层数
 
         Weight = new List<double[,]>(layerCount);
@@ -126,10 +181,10 @@ sealed class Mlp
             var alPrev = _a[l];
             var al = _a[l + 1];
 
-            int outSize = wl.GetLength(0);
-            int inSize = wl.GetLength(1);
+            int outSize = wl.GetLength(0); // 有 outSize 个神经元
+            int inSize = wl.GetLength(1); // 每个神经元有 inSize 个输入
 
-            for (int j = 0; j < outSize; j++)
+            Parallel.For(0, outSize, j =>
             {
                 double sum = bl[j];
                 for (int i = 0; i < inSize; i++)
@@ -139,7 +194,7 @@ sealed class Mlp
 
                 zl[j] = sum;
                 al[j] = Sigmoid(sum);
-            }
+            });
         }
 
         return _a[^1];
@@ -176,9 +231,8 @@ sealed class Mlp
 
             int outSize = dl.Length; // sizes[l+1]
             int nextOut = dlNext.Length; // sizes[l+2]
-            int thisOut = outSize;
 
-            for (int i = 0; i < thisOut; i++)
+            Parallel.For(0, outSize, i =>
             {
                 double sum = 0.0;
                 for (int j = 0; j < nextOut; j++)
@@ -188,7 +242,7 @@ sealed class Mlp
 
                 double dy_dz = al[i] * (1 - al[i]); // sigmoid'(z_l)
                 dl[i] = sum * dy_dz;
-            }
+            });
         }
 
         // 梯度更新（SGD）
@@ -217,4 +271,8 @@ sealed class Mlp
     }
 
     private static double Sigmoid(double x) => 1.0 / (1.0 + Math.Exp(-x));
+}
+
+record TestInfo(double X0, double X1, double X2, double Y_Out)
+{
 }
