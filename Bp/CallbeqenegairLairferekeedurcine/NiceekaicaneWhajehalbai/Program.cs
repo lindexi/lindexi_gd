@@ -79,16 +79,31 @@ while (true)
     var dz2_dy0 = l2_w31;
     var dy0_dz0 = DF(l1_y0);
     var dz_dw11 = a;
-    var dc_dw11 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz_dw11;
-    var dz_dw12 = b;
-    var dc_dw12 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz_dw12;
+    // 这是从 y2 计算过来的路径
+    var dc_dw11_p1 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz_dw11;
+    // 这是从 y3 计算过来的路径
+    var dz3_dy0 = l2_w41;
+    var dz0_dw11 = a;
+    var dc_dw11_p2 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy0 * dy0_dz0 * dz0_dw11;
+
+    var dc_dw11 = dc_dw11_p1 + dc_dw11_p2;
+
+    var dz0_dw12 = b;
+    var dc_dw12_p1 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz0_dw12;
+    var dc_dw12_p2 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy0 * dy0_dz0 * dz0_dw12;
+    var dc_dw12 = dc_dw12_p1 + dc_dw12_p2;
 
     var dz3_dy1 = l2_w42;
     var dy1_dz1 = DF(l1_y1);
     var dz1_dw21 = a;
-    var dc_dw21 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw21;
+    var dc_dw21_p1 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw21;
+    var dc_dw21_p2 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw21;
+    var dc_dw21 = dc_dw21_p1 + dc_dw21_p2;
     var dz1_dw22 = b;
-    var dc_dw22 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw22;
+    var dc_dw22_p1 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dy1 * dy1_dz1 * dz1_dw22;
+    var dz2_dy1 = l2_w32;
+    var dc_dw22_p2 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy1 *dy1_dz1 *dz1_dw22;
+    var dc_dw22 = dc_dw22_p1 + dc_dw22_p2;
 
     l3_w51 = l3_w51 - dc_dw51;
     l3_w52 = l3_w52 - dc_dw52;
