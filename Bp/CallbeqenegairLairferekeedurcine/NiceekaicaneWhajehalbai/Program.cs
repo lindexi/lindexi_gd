@@ -107,7 +107,7 @@ Console.WriteLine("Hello, World!");
 
 double F(double x)
 {
-    return 1.0 / (1 + Math.Pow(Math.E, -x));
+    return 1.0 / (1 + Math.Exp(-x));
 }
 
 double DF(double y)
