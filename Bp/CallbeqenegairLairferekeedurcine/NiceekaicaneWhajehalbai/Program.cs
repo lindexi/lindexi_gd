@@ -73,7 +73,10 @@ while (true)
     var dz3_dw42 = l1_y1;
     var dc_dw42 = dc_dy4 * dy4_dz4 * dz4_dy3 * dy3_dz3 * dz3_dw42;
 
-    var dz2_dy0 = l2_w32;
+    // w11、w12 的梯度只通过 y2（即神经元 z2）反向传播，没有包含通过 y3（z3）的路径。
+    // 正确做法是对所有从该权重到输出的路径求和
+
+    var dz2_dy0 = l2_w31;
     var dy0_dz0 = DF(l1_y0);
     var dz_dw11 = a;
     var dc_dw11 = dc_dy4 * dy4_dz4 * dz4_dy2 * dy2_dz2 * dz2_dy0 * dy0_dz0 * dz_dw11;
