@@ -256,7 +256,7 @@ sealed class Mlp
         }
 
         // 梯度更新（SGD）
-        for (int l = 0; l < layerCount; l++)
+        Parallel.For(0, layerCount, ParallelOptions, l =>
         {
             var wl = Weight[l];
             var bl = _b[l];
@@ -277,7 +277,7 @@ sealed class Mlp
 
                 bl[j] -= lr * dj;
             }
-        }
+        });
     }
 
     private static double Sigmoid(double x) => 1.0 / (1.0 + Math.Exp(-x));
