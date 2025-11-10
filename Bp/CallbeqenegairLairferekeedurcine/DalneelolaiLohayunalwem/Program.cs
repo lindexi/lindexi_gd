@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 
 // 架构：输入2 -> 隐藏层(2) -> 隐藏层(2) -> 输出1
@@ -28,7 +29,7 @@ for (int i = 0; i < 50; i++)
 
 double[] x = [0.35, 0.9, 0.5];
 double[] target = [0.5];
-
+var stopwatch = Stopwatch.StartNew();
 for (; iterator < maxIterator; iterator++)
 {
     double c = 0;
@@ -66,8 +67,12 @@ for (; iterator < maxIterator; iterator++)
 
     if (iterator == 10000)
     {
-        Console.WriteLine($"平均误差 {ave}");
+        stopwatch.Stop();
+
+        Console.WriteLine($"平均误差 {ave} 单次耗时 {stopwatch.Elapsed.TotalMilliseconds/iterator}ms");
         iterator = 0;
+
+        stopwatch.Restart();
     }
 }
 
@@ -184,7 +189,7 @@ sealed class Mlp
             int outSize = wl.GetLength(0); // 有 outSize 个神经元
             int inSize = wl.GetLength(1); // 每个神经元有 inSize 个输入
 
-            Parallel.For(0, outSize, j =>
+            Parallel.For(0, outSize, ParallelOptions, j =>
             {
                 double sum = bl[j];
                 for (int i = 0; i < inSize; i++)
@@ -199,6 +204,11 @@ sealed class Mlp
 
         return _a[^1];
     }
+
+    private ParallelOptions ParallelOptions { get; } = new ParallelOptions()
+    {
+        MaxDegreeOfParallelism = Environment.ProcessorCount
+    };
 
     public void Backward(ReadOnlySpan<double> target, double lr)
     {
@@ -232,7 +242,7 @@ sealed class Mlp
             int outSize = dl.Length; // sizes[l+1]
             int nextOut = dlNext.Length; // sizes[l+2]
 
-            Parallel.For(0, outSize, i =>
+            Parallel.For(0, outSize, ParallelOptions, i =>
             {
                 double sum = 0.0;
                 for (int j = 0; j < nextOut; j++)
