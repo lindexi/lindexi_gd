@@ -262,7 +262,7 @@ public class SkiaPlatformResourceManager :
         //    skPaint.Color = skPaint.Color.WithAlpha((byte) (skPaint.Color.Alpha * runProperty.Opacity));
         //}
 
-        skPaint.IsAntialias = true;
+        skPaint.IsAntialias = false;
 
         var info = new RenderingRunPropertyInfo(skTypeface, renderSkFont, skPaint);
         _cache[runProperty] = new CacheRenderingRunPropertyInfo(skTypeface, renderSkFont, skPaint);
