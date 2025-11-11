@@ -248,7 +248,7 @@ public class SkiaPlatformResourceManager :
 
         renderSkFont.Hinting = SKFontHinting.Full;
         renderSkFont.Edging = edging;
-        renderSkFont.Subpixel = edging != SKFontEdging.Alias;
+        renderSkFont.Subpixel = edging != SKFontEdging.SubpixelAntialias;
 
         SKPaint skPaint = new SKPaint(renderSkFont);
         // skPaint 已经用上 SKFont 的字号属性，不需要再设置 TextSize 属性

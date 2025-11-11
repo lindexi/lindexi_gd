@@ -511,7 +511,8 @@ partial class RichTextCaseProvider
             editor.AppendRun(new SkiaTextRun("adj", editor.StyleRunProperty with
             {
                 FontSize = 24,
+                FontName = new FontName("HarmonyOS Sans SC")
             }));
-        }, "测试龙芯运行渲染效果");
+        }, "测试龙芯鸿蒙运行渲染效果");
     }
 }
