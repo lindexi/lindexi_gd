@@ -164,11 +164,6 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void SetFontName(FontName fontName, Selection? selection = null)
         {
-            if (IsInDebugMode)
-            {
-                TextEditorCore.Logger.LogDebug($"SetFontName: {fontName} Selection:{selection}");
-            }
-
             SetRunProperty(p => p with { FontName = fontName }, PropertyType.FontName, selection);
         }
 
