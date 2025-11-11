@@ -243,7 +243,7 @@ public class SkiaPlatformResourceManager :
         // But the bounds depends on the edging: for now, always use SubpixelAntialias so we have consistent values.
         // The resulting bounds may be shifted by 1px on some fonts:
         // "F" text with Inter size 14 has a 0px left bound with SubpixelAntialias but 1px with Antialias.
-
+        // 在龙芯设备上，如果使用 SubpixelAntialias 会导致文本被相互盖住
         var edging = SKFontEdging.SubpixelAntialias;
 
         renderSkFont.Hinting = SKFontHinting.Full;
