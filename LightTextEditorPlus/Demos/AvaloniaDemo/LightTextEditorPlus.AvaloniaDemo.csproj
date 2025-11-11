@@ -10,9 +10,6 @@
     <PublishAot>true</PublishAot>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <SelfContained>true</SelfContained>
-
-    <AvaloniaVersion>11.3.8</AvaloniaVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,8 +25,8 @@
     <PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
 
-    <PackageReference Include="SkiaSharp" Version="3.118.0-runtimeshader" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.118.0-runtimeshader" />
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" />
   </ItemGroup>
 
   <ItemGroup>
