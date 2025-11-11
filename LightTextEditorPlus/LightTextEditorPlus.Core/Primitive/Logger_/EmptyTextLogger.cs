@@ -110,6 +110,8 @@ internal class EmptyTextLogger : ITextLogger
             Debug.WriteLine(message);
         }
 
+        Console.WriteLine(message);
+
         _logList ??= [];
         _logList.Add((DateTime.Now, message));
     }
