@@ -91,7 +91,6 @@ partial class TextEditor : Control
         //#endif
 
         IMESupporter.AddIMESupport(this);
-        RenderOptions.SetEdgeMode(this, EdgeMode.Unspecified);
     }
 
     /// <inheritdoc />
