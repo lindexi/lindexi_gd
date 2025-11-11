@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,7 +53,11 @@ partial class TextEditorCore
     /// <returns></returns>
     public void SetUndoRedoEnable(bool isEnable, string debugReason)
     {
-        Logger.LogDebug($"[SetUndoRedoEnable] Enable={isEnable};Reason={debugReason}");
+        if (IsInDebugMode)
+        {
+            Logger.LogDebug($"[SetUndoRedoEnable] Enable={isEnable};Reason={debugReason}");
+        }
+
         EnableUndoRedo = isEnable;
     }
 
