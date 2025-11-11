@@ -42,7 +42,6 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
         SKFont skFont = renderingRunPropertyInfo.Font;
 
         SKPaint textRenderSKPaint = renderingRunPropertyInfo.Paint;
-        textRenderSKPaint.IsAntialias = false;
 
         var runBounds = firstCharData.GetBounds();
         var startPoint = runBounds.LeftTop;
@@ -114,8 +113,6 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
             RenderBounds = charSpanBounds,
         };
         foreground.Apply(brushRenderContext);
-
-        textRenderSKPaint.IsAntialias = false;
 
         Canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
     }

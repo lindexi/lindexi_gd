@@ -243,12 +243,12 @@ public class SkiaPlatformResourceManager :
         // But the bounds depends on the edging: for now, always use SubpixelAntialias so we have consistent values.
         // The resulting bounds may be shifted by 1px on some fonts:
         // "F" text with Inter size 14 has a 0px left bound with SubpixelAntialias but 1px with Antialias.
-
-        var edging = SKFontEdging.Antialias;
+        // 在龙芯设备上，如果使用 SubpixelAntialias 会导致文本被相互盖住
+        var edging = SKFontEdging.SubpixelAntialias;
 
         renderSkFont.Hinting = SKFontHinting.Full;
         renderSkFont.Edging = edging;
-        renderSkFont.Subpixel = edging != SKFontEdging.SubpixelAntialias;
+        renderSkFont.Subpixel = edging != SKFontEdging.Alias;
 
         SKPaint skPaint = new SKPaint(renderSkFont);
         // skPaint 已经用上 SKFont 的字号属性，不需要再设置 TextSize 属性
@@ -262,7 +262,7 @@ public class SkiaPlatformResourceManager :
         //    skPaint.Color = skPaint.Color.WithAlpha((byte) (skPaint.Color.Alpha * runProperty.Opacity));
         //}
 
-        skPaint.IsAntialias = false;
+        skPaint.IsAntialias = true;
 
         var info = new RenderingRunPropertyInfo(skTypeface, renderSkFont, skPaint);
         _cache[runProperty] = new CacheRenderingRunPropertyInfo(skTypeface, renderSkFont, skPaint);
