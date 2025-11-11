@@ -114,6 +114,8 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
         };
         foreground.Apply(brushRenderContext);
 
+        textRenderSKPaint.IsAntialias = false;
+
         Canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
     }
 
