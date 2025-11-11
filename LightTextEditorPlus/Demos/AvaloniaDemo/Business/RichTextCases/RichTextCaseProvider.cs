@@ -502,14 +502,14 @@ partial class RichTextCaseProvider
             }));
         }, "添加背景色");
 
-        Add(editor =>
-        {
-            editor.UseWpfLineSpacingStyle();
-            editor.AppendRun(new SkiaTextRun("adj", editor.StyleRunProperty with
-            {
-                FontSize = 24,
-                FontName = new FontName("HarmonyOS Sans SC")
-            }));
-        }, "测试龙芯鸿蒙运行渲染效果");
+        //Add(editor =>
+        //{
+        //    editor.UseWpfLineSpacingStyle();
+        //    editor.AppendRun(new SkiaTextRun("adj", editor.StyleRunProperty with
+        //    {
+        //        FontSize = 24,
+        //        FontName = new FontName("HarmonyOS Sans SC")
+        //    }));
+        //}, "测试龙芯鸿蒙运行渲染效果");
     }
 }
