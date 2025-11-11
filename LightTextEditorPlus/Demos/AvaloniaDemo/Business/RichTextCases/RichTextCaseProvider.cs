@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Threading;
-
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -16,7 +14,6 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Primitive;
-
 using SkiaSharp;
 
 // ReSharper disable once CheckNamespace
@@ -404,23 +401,23 @@ partial class RichTextCaseProvider
 
         Add(editor =>
         {
-            editor.SetFontSize(60);
+           editor.SetFontSize(60);
 
-            editor.SetCurrentCaretRunProperty(property => property with
-            {
-                Foreground = new LinearGradientSkiaTextBrush()
-                {
-                    StartPoint = new GradientSkiaTextBrushRelativePoint(0, 0),
-                    EndPoint = new GradientSkiaTextBrushRelativePoint(1, 1),
+           editor.SetCurrentCaretRunProperty(property => property with
+           {
+               Foreground = new LinearGradientSkiaTextBrush()
+               {
+                   StartPoint = new GradientSkiaTextBrushRelativePoint(0, 0),
+                   EndPoint = new GradientSkiaTextBrushRelativePoint(1, 1),
 
-                    GradientStops = new(
-                    [
-                        new SkiaTextGradientStop(new SKColor(0xFF, 0x00, 0x00), 0),
+                   GradientStops = new(
+                   [
+                       new SkiaTextGradientStop(new SKColor(0xFF, 0x00, 0x00), 0),
                        new SkiaTextGradientStop(new SKColor(0xFF, 0xFF, 0x00), 0.5f),
                        new SkiaTextGradientStop(new SKColor(0x00, 0x00, 0xFF), 1)
-                    ])
-                }
-            });
+                   ])
+               }
+           });
             editor.AppendText("文本前景色是渐变色 abc x gf");
         }, "文本前景色是渐变色");
 
@@ -428,8 +425,8 @@ partial class RichTextCaseProvider
         {
             TextElement.SetForeground(editor, new LinearGradientBrush()
             {
-                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-                EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+                StartPoint = new RelativePoint(0,0,RelativeUnit.Relative),
+                EndPoint = new RelativePoint(1,1,RelativeUnit.Relative),
                 GradientStops = new GradientStops()
                 {
                     new GradientStop(new Color(0xFF, 0xFF, 0x00, 0x00), 0),
@@ -504,14 +501,5 @@ partial class RichTextCaseProvider
                 FontSize = 50,
             }));
         }, "添加背景色");
-
-        Add(editor =>
-        {
-            editor.UseWpfLineSpacingStyle();
-            editor.AppendRun(new SkiaTextRun("adj", editor.StyleRunProperty with
-            {
-                FontSize = 24,
-            }));
-        }, "测试龙芯运行渲染效果");
     }
 }
