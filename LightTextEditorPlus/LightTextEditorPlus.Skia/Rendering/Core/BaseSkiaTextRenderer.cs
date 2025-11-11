@@ -374,6 +374,7 @@ abstract class BaseSkiaTextRenderer : IDisposable
         Span<byte> glyphIndexByteSpan = MemoryMarshal.AsBytes(glyphIndexSpan);
 
         skFont.Hinting = SKFontHinting.None;
+
         SKTextBlob skTextBlob = SKTextBlob.Create(glyphIndexByteSpan, SKTextEncoding.GlyphId, skFont);
         return skTextBlob;
     }

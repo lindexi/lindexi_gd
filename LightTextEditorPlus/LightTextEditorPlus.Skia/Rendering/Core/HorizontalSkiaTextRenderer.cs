@@ -42,6 +42,7 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
         SKFont skFont = renderingRunPropertyInfo.Font;
 
         SKPaint textRenderSKPaint = renderingRunPropertyInfo.Paint;
+        textRenderSKPaint.IsAntialias = false;
 
         var runBounds = firstCharData.GetBounds();
         var startPoint = runBounds.LeftTop;
