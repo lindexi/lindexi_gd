@@ -9,6 +9,7 @@
   <Project Path="D3D9MediaFoundation/D3D9MediaFoundation.csproj" />
   <Project Path="DynamicDelegate/DynamicDelegate.csproj" Id="7a5e3e94-9622-4d8f-ad42-43add6d6431e" />
   <Project Path="ProcesssManager/ProcesssManager.csproj" Id="857a89da-f8b3-4e11-8ad1-74eb131e2233" />
+  <Project Path="WPFD3D11MediaEngine/WPFD3D11MediaEngine.csproj" Id="533c8c13-5907-4002-b709-7484484a406c" />
   <Project Path="WPFD3D11MediaFoundation/WPFD3D11MediaFoundation.csproj" />
   <Project Path="WPFMediaFoundation/WPFMediaFoundation.csproj" Id="928de436-7e89-4df8-aad9-0fd8bf0f3707" />
 </Solution>
