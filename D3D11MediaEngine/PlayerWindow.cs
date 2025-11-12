@@ -27,10 +27,6 @@ namespace D3D11MediaEngine
 
         public P<IMFMediaEngine> MFMediaEngine { get; private set; }
 
-        public uint VideoWidth { get; private set; }
-
-        public uint VideoHeight { get; private set; }
-
         public Stopwatch PlayerStopwatch { get; } = new Stopwatch();
 
         protected override bool OnAfterInitD3D11(HWND hWnd)
@@ -123,7 +119,9 @@ namespace D3D11MediaEngine
 
         class MediaEngineCallback : BaseComObject<IMFMediaEngineNotify>
         {
-            protected override void InitVTable(VTable<IMFMediaEngineNotify> vTable)
+            protected override int VTableItemCount => 4;
+
+            protected override void InitVTable(VTableInitHelper<IMFMediaEngineNotify> vTable)
             {
                 vTable.SetMethod(3, GetMethodInfo(nameof(EventNotify)));
             }
