@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 
 namespace LightTextEditorPlus.Core.Carets;
@@ -105,7 +105,7 @@ public readonly struct Selection : IEquatable<Selection>
     /// <inheritdoc />
     public bool Equals(Selection other)
     {
-        return StartOffset.Equals(other.StartOffset) && FrontOffset.Equals(other.FrontOffset);
+        return StartOffset.Equals(other.StartOffset) && EndOffset.Equals(other.EndOffset);
     }
 
     /// <inheritdoc />
@@ -117,6 +117,6 @@ public readonly struct Selection : IEquatable<Selection>
     /// <inheritdoc />
     public override int GetHashCode()
     {
-        return HashCode.Combine(StartOffset, FrontOffset);
+        return HashCode.Combine(StartOffset, EndOffset);
     }
 }
