@@ -9,12 +9,27 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <Border x:Name="ImageBorder"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" SizeChanged="ImageBorder_SizeChanged">
             <Image x:Name="Image"/>
         </Border>
-        <StackPanel Orientation="Horizontal" Grid.Row="1">
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Slider x:Name="ProgressSlider" Orientation="Horizontal" Minimum="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5 0"
+                    IsMoveToPointEnabled="True" ValueChanged="ProgressSlider_ValueChanged"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="5 0">
+                <TextBlock x:Name="CurrentTextBlock" Text="00:00:00"/>
+                <TextBlock Text="/"/>
+                <TextBlock x:Name="DurationTextBlock" Text="00:00:00"/>
+            </StackPanel>
+        </Grid>
+        <StackPanel Orientation="Horizontal" Grid.Row="2">
+            <Button Margin="5" Width="40" Content="Open" Click="OpenButton_Click"/>
             <Button Margin="5" Width="40" Content="Play" Click="PlayButton_Click"/>
             <Button Margin="5" Width="40" Content="Pause" Click="PauseButton_Click"/>
         </StackPanel>

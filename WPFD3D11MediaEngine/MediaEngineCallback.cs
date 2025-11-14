@@ -9,6 +9,13 @@ namespace WPFD3D11MediaEngine
 {
     class MediaEngineCallback : BaseComObject<IMFMediaEngineNotify>
     {
+        private readonly MainWindow _window;
+
+        public MediaEngineCallback(MainWindow window)
+        {
+            _window = window;
+        }
+
         protected override int VTableItemCount => 4;
 
         protected override void InitVTable(VTableInitHelper<IMFMediaEngineNotify> vTable)
@@ -30,6 +37,22 @@ namespace WPFD3D11MediaEngine
         public HRESULT EventNotify([In] MF_MEDIA_ENGINE_EVENT @event, [In] DWORD_PTR param1, [In] DWORD param2)
         {
             Console.WriteLine($"[MediaEngineCallback] {@event}");
+
+            if (@event == MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_DURATIONCHANGE)
+            {
+                _window.Dispatcher.InvokeAsync(() =>
+                {
+                    _window.UpdateDuration();
+                });
+            }
+            else if (@event == MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_TIMEUPDATE)
+            {
+                _window.Dispatcher.InvokeAsync(() =>
+                {
+                    _window.UpdateTime();
+                });
+            }
+
             return HRESULT.S_OK;
         }
     }

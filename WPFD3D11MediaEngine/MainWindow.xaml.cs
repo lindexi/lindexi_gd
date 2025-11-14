@@ -10,8 +10,11 @@ using Lsj.Util.Win32.MediaFoundation;
 using Lsj.Util.Win32.MediaFoundation.ComInterfaces;
 using Lsj.Util.Win32.MediaFoundation.Structs;
 using Lsj.Util.Win32.Structs;
+using Microsoft.Win32;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Interop;
 using System.Windows.Media;
 using static Lsj.Util.Win32.ComInterfaces.IIDs;
@@ -41,15 +44,8 @@ namespace WPFD3D11MediaEngine
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static string VideoPath = @"D:\Samples\4K.mp4";
-
         public MainWindow()
         {
-            if (Environment.GetCommandLineArgs().Skip(1).FirstOrDefault() is string s)
-            {
-                VideoPath = s;
-            }
-
             InitializeComponent();
             var d3dImage = new D3DImage();
             D3DImage = d3dImage;
@@ -173,7 +169,7 @@ namespace WPFD3D11MediaEngine
             var factory = COMExtensions.CreateInstance<IMFMediaEngineClassFactory>(CLSIDs.CLSID_MFMediaEngineClassFactory, IIDs.IID_IMFMediaEngineClassFactory);
             MFCreateAttributes(out var mediaEngineAttributes, 3);
 
-            var callback = new MediaEngineCallback();
+            var callback = new MediaEngineCallback(this);
             mediaEngineAttributes.Value.SetUnknown(MF_MEDIA_ENGINE_CALLBACK, callback.GetNativePointer().AsIUnknown());
             mediaEngineAttributes.Value.SetUnknown(MF_MEDIA_ENGINE_DXGI_MANAGER, DXGIDeviceManager.AsIUnknown());
             mediaEngineAttributes.Value.SetUINT32(MF_MEDIA_ENGINE_VIDEO_OUTPUT_FORMAT, (uint)DXGI_FORMAT_B8G8R8A8_UNORM);
@@ -185,12 +181,7 @@ namespace WPFD3D11MediaEngine
 
             MFMediaEngine = engine;
 
-
-            var url = OleAut32.SysAllocString(VideoPath);
-            engine.Value.SetSource(url);
-            OleAut32.SysFreeString(url);
             engine.Value.SetLoop(true);
-            engine.Value.Play();
 
             return true;
         }
@@ -278,6 +269,24 @@ namespace WPFD3D11MediaEngine
             }
         }
 
+        private void OpenButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (MFMediaEngine != NULL)
+            {
+                var dialog = new OpenFileDialog();
+                if (dialog.ShowDialog() is true)
+                {
+                    if (File.Exists(dialog.FileName))
+                    {
+                        var url = OleAut32.SysAllocString(dialog.FileName);
+                        MFMediaEngine.Value.SetSource(url);
+                        OleAut32.SysFreeString(url);
+                        MFMediaEngine.Value.Play();
+                    }
+                }
+            }
+        }
+
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             if (MFMediaEngine != NULL)
@@ -290,7 +299,40 @@ namespace WPFD3D11MediaEngine
         {
             if (MFMediaEngine != NULL)
             {
-                MFMediaEngine.Value.PAu();
+                MFMediaEngine.Value.Pause();
+            }
+        }
+
+        public void UpdateDuration()
+        {
+            var duration = MFMediaEngine.Value.GetDuration();
+            ProgressSlider.Maximum = duration;
+            DurationTextBlock.Text = TimeSpan.FromSeconds(duration).ToString(@"hh\:mm\:ss");
+        }
+
+        private bool _updatingTime = false;
+        public void UpdateTime()
+        {
+            _updatingTime = true;
+            try
+            {
+                var current = MFMediaEngine.Value.GetCurrentTime();
+                ProgressSlider.Value = current;
+                CurrentTextBlock.Text = TimeSpan.FromSeconds(current).ToString(@"hh\:mm\:ss");
+                //Console.WriteLine($"UpdateTime {ProgressSlider.Value}");
+            }
+            finally
+            {
+                _updatingTime = false;
+            }
+        }
+
+        private void ProgressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!_updatingTime)
+            {
+                MFMediaEngine.Value.SetCurrentTime(e.NewValue);
+                Console.WriteLine($"SetCurrentTime {e.OldValue} {e.NewValue}");
             }
         }
     }
