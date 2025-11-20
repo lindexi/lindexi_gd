@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using DotNetCampus.Storage.Lib.Serialization.XmlSerialization;
 using DotNetCampus.Storage.Tests.Assets;
 
 namespace DotNetCampus.Storage.Lib.Tests;

@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using System.Xml;
 using System.Xml.Linq;
+using DotNetCampus.Storage.Lib.StorageNodes;
 
-namespace DotNetCampus.Storage.Lib;
+namespace DotNetCampus.Storage.Lib.Serialization.XmlSerialization;
 
 /// <summary>
 /// 存储的 XML 序列化器
