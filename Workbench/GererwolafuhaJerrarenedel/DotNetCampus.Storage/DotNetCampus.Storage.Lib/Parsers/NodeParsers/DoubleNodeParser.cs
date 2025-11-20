@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Storage.Lib.Parsers.Contexts;
+﻿using System.Globalization;
+using DotNetCampus.Storage.Lib.Parsers.Contexts;
 using DotNetCampus.Storage.Lib.StorageNodes;
 
 namespace DotNetCampus.Storage.Lib.Parsers.NodeParsers;
@@ -15,7 +16,7 @@ internal class DoubleNodeParser : BaseClrTypeNodeParser<double>
         return new StorageNode()
         {
             Name = name,
-            Value = obj.ToString(),
+            Value = obj.ToString(CultureInfo.InvariantCulture),
         };
     }
 }
