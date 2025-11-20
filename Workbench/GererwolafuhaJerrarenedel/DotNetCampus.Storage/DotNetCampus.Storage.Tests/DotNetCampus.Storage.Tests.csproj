@@ -16,11 +16,14 @@
       with Microsoft Testing Platform Tools license.
     -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="MSTest.Engine" Version="1.0.0-alpha.25317.1" />
-    <PackageReference Include="MSTest.SourceGeneration" Version="1.0.0-alpha.25317.1" />
+    <PackageReference Include="MSTest.Engine" Version="2.0.0-alpha.25561.4" />
+    <PackageReference Include="MSTest.SourceGeneration" Version="2.0.0-alpha.25561.4" />
 
     <PackageReference Include="MSTest.TestAdapter" Version="4.0.2" />
-
+    <PackageReference Include="MSTest.Analyzers" Version="4.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
