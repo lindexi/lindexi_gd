@@ -11,8 +11,14 @@ public class StorageNode
 {
     public StorageNodeType StorageNodeType { get; set; }
 
+    /// <summary>
+    /// 名称
+    /// </summary>
     public StorageTextSpan Name { get; set; }
 
+    /// <summary>
+    /// 值
+    /// </summary>
     public StorageTextSpan Value { get; set; } = StorageTextSpan.NullValue;
 
     public List<StorageNode>? Children { get; set; }
