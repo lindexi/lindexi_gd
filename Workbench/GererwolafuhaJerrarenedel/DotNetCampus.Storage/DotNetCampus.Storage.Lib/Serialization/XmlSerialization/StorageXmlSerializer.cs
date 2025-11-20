@@ -7,12 +7,21 @@ using System.Xml.Linq;
 
 namespace DotNetCampus.Storage.Lib;
 
+/// <summary>
+/// 存储的 XML 序列化器
+/// </summary>
 public class StorageXmlSerializer
 {
-    public async Task SerializeAsync(StorageNode node, FileInfo outputFile)
+    public XDocument Serialize(StorageNode node)
     {
         var element = RecursiveSerializeNode(node);
         XDocument document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), element);
+        return document;
+    }
+
+    public async Task SerializeAsync(StorageNode node, FileInfo outputFile)
+    {
+        var document = Serialize(node);
 
         using var stringWriter = new StringWriter(CultureInfo.InvariantCulture);
         var settings = new XmlWriterSettings
@@ -60,6 +69,12 @@ public class StorageXmlSerializer
     {
         await using var fileStream = file.OpenRead();
         XDocument document = await XDocument.LoadAsync(fileStream, LoadOptions.None, CancellationToken.None);
+        var rootNode = Deserialize(document);
+        return rootNode;
+    }
+
+    public StorageNode Deserialize(XDocument document)
+    {
         var root = document.Root!;
         var rootNode = RecursiveDeserializeNode(root);
         return rootNode;
