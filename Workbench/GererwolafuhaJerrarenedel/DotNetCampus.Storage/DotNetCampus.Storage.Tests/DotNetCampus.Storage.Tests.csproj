@@ -9,18 +9,33 @@
     <PublishAot>true</PublishAot>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AspireTestingVersion>9.5.1</AspireTestingVersion>
+    <CodeCoverageVersion>18.1.0</CodeCoverageVersion>
+    <MSTestVersion>4.0.2</MSTestVersion>
+    <MSTestAOTVersion>2.0.0-alpha.25561.4</MSTestAOTVersion>
+    <PlaywrightVersion>1.56.0</PlaywrightVersion>
+    <TestingPlatformVersion>2.0.2</TestingPlatformVersion>
+    <VSTestVersion>18.0.0</VSTestVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- 
       Experimental MSTest Engine & source generator, 
       close sourced, licensed the same as our extensions 
       with Microsoft Testing Platform Tools license.
     -->
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="MSTest.Engine" Version="2.0.0-alpha.25561.4" />
-    <PackageReference Include="MSTest.SourceGeneration" Version="2.0.0-alpha.25561.4" />
+    <PackageReference Include="MSTest.Engine" Version="$(MSTestAOTVersion)" />
+    <PackageReference Include="MSTest.SourceGeneration" Version="$(MSTestAOTVersion)" />
 
-    <PackageReference Include="MSTest.TestAdapter" Version="4.0.2" />
-    <PackageReference Include="MSTest.Analyzers" Version="4.0.2">
+    <PackageReference Include="Microsoft.CodeCoverage.MSBuild" Version="$(CodeCoverageVersion)" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="$(CodeCoverageVersion)" />
+
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="$(TestingPlatformVersion)" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="$(TestingPlatformVersion)" />
+    <PackageReference Include="MSTest.TestFramework" Version="$(MSTestVersion)" />
+    <PackageReference Include="MSTest.Analyzers" Version="$(MSTestVersion)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
