@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Storage.Lib;
+﻿namespace DotNetCampus.Storage.Lib.StorageNodes;
 
 /// <summary>
 /// 存储类型

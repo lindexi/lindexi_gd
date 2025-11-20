@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
-namespace DotNetCampus.Storage.Lib;
+namespace DotNetCampus.Storage.Lib.StorageNodes;
 
 /// <summary>
 /// 存储的数据最小单位。用于作为数据模型和具体文件存档格式的中间层

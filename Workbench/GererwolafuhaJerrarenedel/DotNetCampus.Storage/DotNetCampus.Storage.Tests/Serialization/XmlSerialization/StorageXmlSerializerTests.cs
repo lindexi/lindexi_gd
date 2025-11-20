@@ -1,18 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using DotNetCampus.Storage.Lib;
-
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
+using DotNetCampus.Storage.Lib.Serialization.XmlSerialization;
 using DotNetCampus.Storage.Tests.Assets;
 
-namespace DotNetCampus.Storage.Lib.Tests;
+namespace DotNetCampus.Storage.Tests.Serialization.XmlSerialization;
 
 public partial class StorageXmlSerializerTests
 {
@@ -38,6 +32,10 @@ public partial class StorageXmlSerializerTests
         // 这里的 slide1.xml 是一份超级大的文档
         // 可见全部都加载成了对象，这是很大的损耗
         var testFile = @"C:\lindexi\slide1.xml";
+        if (!File.Exists(testFile))
+        {
+            return;
+        }
 
         using var fileStream = File.OpenRead(testFile);
         var document = await XDocument.LoadAsync(fileStream, LoadOptions.None, CancellationToken.None);

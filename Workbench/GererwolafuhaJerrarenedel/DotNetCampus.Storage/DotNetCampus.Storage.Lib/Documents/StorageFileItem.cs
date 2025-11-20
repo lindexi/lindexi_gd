@@ -1,4 +1,6 @@
-﻿namespace DotNetCampus.Storage.Lib;
+﻿using DotNetCampus.Storage.Lib.StorageNodes;
+
+namespace DotNetCampus.Storage.Lib.Documents;
 
 /// <summary>
 /// 表示文件为单位的存储信息
