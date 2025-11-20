@@ -4,16 +4,19 @@ using DotNetCampus.Storage.Lib.StorageNodes;
 namespace DotNetCampus.Storage.Lib.Parsers.NodeParsers;
 
 internal abstract class BaseClrTypeNodeParser<T> : NodeParser<T>
- where T : IParsable<T>
 {
     public override string? TargetStorageName => null;
+}
 
-    protected internal override T ParseCore(StorageNode node, in ParseNodeContext context)
+internal class BoolNodeParser : BaseClrTypeNodeParser<bool>
+{
+    protected internal override bool ParseCore(StorageNode node, in ParseNodeContext context)
     {
-        return T.Parse(node.Value.AsSpan().ToString(),null);
+        
+        return bool.Parse(node.Value.AsSpan());
     }
 
-    protected internal override StorageNode DeparseCore(T obj, in DeparseNodeContext context)
+    protected internal override StorageNode DeparseCore(bool obj, in DeparseNodeContext context)
     {
         var name = context.NodeName!;
         return new StorageNode()
@@ -22,9 +25,4 @@ internal abstract class BaseClrTypeNodeParser<T> : NodeParser<T>
             Value = obj.ToString(),
         };
     }
-}
-
-internal class BoolNodeParser : BaseClrTypeNodeParser<bool>
-{
-   
 }
