@@ -2,5 +2,6 @@
 
 public readonly record struct DeparseNodeContext
 {
-    public required string? NodeName { get; init; }
+    public string? NodeName { get; init; }
+    public required StorableNodeParserManager ParserManager { get; init; }
 }
