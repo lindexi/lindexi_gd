@@ -46,6 +46,11 @@ public partial class StorageXmlSerializerTests
         <Document Type="Element">
         </Document>
          */
+        var storageXmlSerializer = new StorageXmlSerializer();
+        var storageNode = storageXmlSerializer.Deserialize(document);
+        var outputFile = new FileInfo(Path.GetTempFileName());
+        await storageXmlSerializer.SerializeAsync(storageNode, outputFile);
+        outputFile.Delete();
     }
 
     [TestMethod()]
