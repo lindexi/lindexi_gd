@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Storage.Lib.Parsers;
+﻿namespace DotNetCampus.Storage.Lib.Parsers.NodeParsers;
 
 internal abstract class BaseClrTypeNodeParser<T> : NodeParser<T>
 {

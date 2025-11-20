@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetCampus.Storage.Lib.Parsers.Contexts;
 
 namespace DotNetCampus.Storage.Lib.Parsers;
 
@@ -60,26 +61,3 @@ public abstract class NodeParser<T> : NodeParser
 
     protected internal abstract StorageNode DeparseCore(T obj, in DeparseNodeContext context);
 }
-
-public readonly record struct ParseNodeContext
-{
-
-}
-
-public readonly record struct DeparseNodeContext
-{
-
-}
-
-//internal class SaveInfoParser : NodeParser
-//{
-//}
-
-/// <summary>
-/// 存储转换管理器
-/// </summary>
-public class StorableNodeParserManager
-{
-
-}
-
