@@ -79,7 +79,7 @@ public partial class StorageXmlSerializerTests
 
     class Document
     {
-        public List<IElement> ElementList { get; }
+        public List<IElement> ElementList { get; } = null!;
     }
     interface IElement { }
     class Picture
