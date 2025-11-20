@@ -13,8 +13,19 @@ public class StorageXmlSerializer
 {
     public XDocument Serialize(StorageNode node)
     {
-        var element = RecursiveSerializeNode(node);
-        XDocument document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), element);
+        var rootElement = RecursiveSerializeNode(node);
+
+        // 如果有任何的节点包含 Type 属性，则添加命名空间声明
+        var includeTypeName = rootElement.DescendantNodesAndSelf()
+            .OfType<XElement>()
+            .Any(t => t.HasAttributes
+                      && t.Attribute(TypeName) != null);
+        if (includeTypeName)
+        {
+            rootElement.SetAttributeValue(XNamespace.Xmlns + "s", TypeName.NamespaceName);
+        }
+
+        XDocument document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), rootElement);
         return document;
     }
 
@@ -59,7 +70,6 @@ public class StorageXmlSerializer
         if (node.StorageNodeType != StorageNodeType.Unknown)
         {
             element.SetAttributeValue(TypeName, node.StorageNodeType.ToString());
-            element.SetAttributeValue(XNamespace.Xmlns + "s", TypeName.NamespaceName);
         }
 
         return element;
@@ -96,28 +106,32 @@ public class StorageXmlSerializer
         }
 
         StorageNodeType storageNodeType = StorageNodeType.Unknown;
-        var type = currentElement.Attributes(TypeName).FirstOrDefault();
-        if (type is not null && Enum.TryParse(type.Value, out StorageNodeType storageType))
-        {
-            storageNodeType = storageType;
-        }
 
-        foreach (XAttribute attribute in currentElement.Attributes())
+        if (currentElement.HasAttributes)
         {
-            if (attribute.Name == TypeName)
+            var type = currentElement.Attributes(TypeName).FirstOrDefault();
+            if (type is not null && Enum.TryParse(type.Value, out StorageNodeType storageType))
             {
-                continue;
+                storageNodeType = storageType;
             }
 
-            // 处理属性节点
-            var attributeNode = new StorageNode()
+            foreach (XAttribute attribute in currentElement.Attributes())
             {
-                Name = attribute.Name.LocalName,
-                Value = attribute.Value,
-                StorageNodeType = StorageNodeType.Property,
-            };
-            children ??= [];
-            children.Add(attributeNode);
+                if (attribute.Name == TypeName)
+                {
+                    continue;
+                }
+
+                // 处理属性节点
+                var attributeNode = new StorageNode()
+                {
+                    Name = attribute.Name.LocalName,
+                    Value = attribute.Value,
+                    StorageNodeType = StorageNodeType.Property,
+                };
+                children ??= [];
+                children.Add(attributeNode);
+            }
         }
 
         var storageNode = new StorageNode()
