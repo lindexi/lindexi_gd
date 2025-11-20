@@ -7,12 +7,21 @@ using System.Xml.Linq;
 
 namespace DotNetCampus.Storage.Lib;
 
+/// <summary>
+/// 存储的 XML 序列化器
+/// </summary>
 public class StorageXmlSerializer
 {
-    public async Task SerializeAsync(StorageNode node, FileInfo outputFile)
+    public XDocument Serialize(StorageNode node)
     {
         var element = RecursiveSerializeNode(node);
         XDocument document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), element);
+        return document;
+    }
+
+    public async Task SerializeAsync(StorageNode node, FileInfo outputFile)
+    {
+        var document = Serialize(node);
 
         using var stringWriter = new StringWriter(CultureInfo.InvariantCulture);
         var settings = new XmlWriterSettings
@@ -35,6 +44,8 @@ public class StorageXmlSerializer
         var element = new XElement(node.Name.Text);
         if (!node.Value.IsNull)
         {
+            // 考虑 xml 合法字符 [dotnet OpenXML 已知问题 设置 0x0001 等 XML 不合法字符给到标题将在保存时抛出异常 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18730520 )
+            // 考虑 QainurbeweLekaynula 的实现代码
             element.Value = node.Value.ToText();
         }
 
@@ -46,6 +57,11 @@ public class StorageXmlSerializer
             }
         }
 
+        if (node.StorageNodeType != StorageNodeType.Unknown)
+        {
+            element.SetAttributeValue(TypeName, node.StorageNodeType.ToString());
+        }
+
         return element;
     }
 
@@ -53,6 +69,12 @@ public class StorageXmlSerializer
     {
         await using var fileStream = file.OpenRead();
         XDocument document = await XDocument.LoadAsync(fileStream, LoadOptions.None, CancellationToken.None);
+        var rootNode = Deserialize(document);
+        return rootNode;
+    }
+
+    public StorageNode Deserialize(XDocument document)
+    {
         var root = document.Root!;
         var rootNode = RecursiveDeserializeNode(root);
         return rootNode;
