@@ -59,6 +59,7 @@ public class StorageXmlSerializer
         if (node.StorageNodeType != StorageNodeType.Unknown)
         {
             element.SetAttributeValue(TypeName, node.StorageNodeType.ToString());
+            element.SetAttributeValue(XNamespace.Xmlns + "s", TypeName.NamespaceName);
         }
 
         return element;
@@ -96,8 +97,27 @@ public class StorageXmlSerializer
 
         StorageNodeType storageNodeType = StorageNodeType.Unknown;
         var type = currentElement.Attributes(TypeName).FirstOrDefault();
-        if (type is not null && Enum.TryParse(type.Value, out storageNodeType))
+        if (type is not null && Enum.TryParse(type.Value, out StorageNodeType storageType))
         {
+            storageNodeType = storageType;
+        }
+
+        foreach (XAttribute attribute in currentElement.Attributes())
+        {
+            if (attribute.Name == TypeName)
+            {
+                continue;
+            }
+
+            // 处理属性节点
+            var attributeNode = new StorageNode()
+            {
+                Name = attribute.Name.LocalName,
+                Value = attribute.Value,
+                StorageNodeType = StorageNodeType.Property,
+            };
+            children ??= [];
+            children.Add(attributeNode);
         }
 
         var storageNode = new StorageNode()

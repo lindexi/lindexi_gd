@@ -19,6 +19,13 @@ public partial class StorageXmlSerializerTests
 
         var outputFile = new FileInfo(Path.GetTempFileName());
         await storageXmlSerializer.SerializeAsync(storageNode, outputFile);
+
+        // 对比两个文件是否相同
+        var sourceText = await File.ReadAllTextAsync(testFile.FullName);
+        var outputText = await File.ReadAllTextAsync(outputFile.FullName);
+
+        Assert.AreEqual(sourceText, outputText);
+
         outputFile.Delete();
     }
 }
@@ -46,6 +53,11 @@ public partial class StorageXmlSerializerTests
         <Document Type="Element">
         </Document>
          */
+        var storageXmlSerializer = new StorageXmlSerializer();
+        var storageNode = storageXmlSerializer.Deserialize(document);
+        var outputFile = new FileInfo(Path.GetTempFileName());
+        await storageXmlSerializer.SerializeAsync(storageNode, outputFile);
+        outputFile.Delete();
     }
 
     [TestMethod()]
