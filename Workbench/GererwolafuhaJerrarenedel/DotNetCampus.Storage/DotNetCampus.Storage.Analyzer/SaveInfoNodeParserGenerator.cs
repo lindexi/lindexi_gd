@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace DotNetCampus.Storage.Analyzer;
 
@@ -20,7 +21,10 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
             .Where(static m => m is not null);
 
-        classDeclarations.Combine(context.AnalyzerConfigOptionsProvider)
+        // 为什么不用 ForAttributeWithMetadataName 方式，因为考虑到特性的命名空间会有不同，通过名称判断效果更好
+        //context.SyntaxProvider.ForAttributeWithMetadataName("")
+
+        classDeclarations = classDeclarations.Combine(context.AnalyzerConfigOptionsProvider)
             .Select((tuple, _) =>
             {
                 var classInfo = tuple.Left;
@@ -30,15 +34,25 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                 }
 
                 var provider = tuple.Right;
-                if (provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
-                {
-                    return classInfo with
-                    {
-                        Namespace = rootNamespace
-                    };
-                }
 
-                return classInfo;
+                if (provider.GlobalOptions.TryGetValue("build_property.GenerateSaveInfoNodeParser", out var generateSaveInfoNodeParser)
+                    && bool.TryParse(generateSaveInfoNodeParser,out var shouldGenerateSaveInfoNodeParser) 
+                    && shouldGenerateSaveInfoNodeParser)
+                {
+                    if (provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
+                    {
+                        return classInfo with
+                        {
+                            Namespace = rootNamespace
+                        };
+                    }
+
+                    return classInfo;
+                }
+                else
+                {
+                    return null;
+                }
             });
 
         // 生成代码
@@ -54,14 +68,24 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
     private static bool IsSaveInfoCandidate(SyntaxNode node)
     {
         // 查找带有特性的类声明
-        return node is ClassDeclarationSyntax classDeclaration
-            && classDeclaration.AttributeLists.Count > 0;
+        if (node is ClassDeclarationSyntax classDeclaration
+            && classDeclaration.AttributeLists.Count > 0)
+        {
+            if (classDeclaration.Modifiers.Any(t => t.IsKind(SyntaxKind.AbstractKeyword)))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private static ClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
         var classDeclaration = (ClassDeclarationSyntax) context.Node;
-        var symbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
+        var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, classDeclaration);
 
         if (symbol is not INamedTypeSymbol classSymbol)
         {
@@ -104,6 +128,13 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         {
             foreach (var member in currentType.GetMembers().OfType<IPropertySymbol>())
             {
+                // 这是当前程序集内的，忽略此情况
+                //if (member.DeclaredAccessibility != Accessibility.Public)
+                //{
+                //    // 非公共属性跳过
+                //    continue;
+                //}
+
                 var memberAttribute = member.GetAttributes()
                     .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
 

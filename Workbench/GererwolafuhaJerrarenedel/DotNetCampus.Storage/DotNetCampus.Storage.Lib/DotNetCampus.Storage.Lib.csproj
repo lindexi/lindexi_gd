@@ -8,7 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotNetCampus.Storage.Analyzer\DotNetCampus.Storage.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    <!-- 此引用只是为了确定关系，确保分析器项目构建 -->
+    <ProjectReference Include="..\DotNetCampus.Storage.Analyzer\DotNetCampus.Storage.Analyzer.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
