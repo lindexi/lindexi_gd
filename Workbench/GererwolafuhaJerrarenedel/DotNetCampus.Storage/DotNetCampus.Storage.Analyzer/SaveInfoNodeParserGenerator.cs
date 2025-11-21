@@ -190,7 +190,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
             namespace {{classInfo.Namespace}};
 
-            public partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassFullName}}>
+            internal partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassFullName}}>
             {
                 public override SaveInfoContractAttribute ContractAttribute => _contractAttribute ??= new SaveInfoContractAttribute("{{classInfo.ContractName}}");
                 private SaveInfoContractAttribute? _contractAttribute;
