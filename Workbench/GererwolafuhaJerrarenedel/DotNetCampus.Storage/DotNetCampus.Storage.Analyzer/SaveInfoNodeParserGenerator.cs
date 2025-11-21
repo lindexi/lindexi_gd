@@ -86,6 +86,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         return new ClassInfo
         {
             ClassName = classSymbol.Name,
+            ClassFullName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
             ContractName = contractName!,
             Properties = properties
@@ -132,7 +133,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
             namespace {{classInfo.Namespace}};
 
-            public partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassName}}>
+            public partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassFullName}}>
             {
                 public override SaveInfoContractAttribute ContractAttribute { get; } = new SaveInfoContractAttribute("{{classInfo.ContractName}}");
 
@@ -167,12 +168,12 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         var propertiesCode = sb.ToString();
 
         return $$"""
-                protected override {{classInfo.ClassName}} ParseCore(StorageNode node, in ParseNodeContext context)
+                protected override {{classInfo.ClassFullName}} ParseCore(StorageNode node, in ParseNodeContext context)
                 {
                     StorableNodeParserManager parserManager = context.ParserManager;
 
                     // 决定不支持 init 的情况，这样才能更好地保留默认值
-                    var result = new {{classInfo.ClassName}}();
+                    var result = new {{classInfo.ClassFullName}}();
 
                     if (node.Children is { } children)
                     {
@@ -225,7 +226,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         var propertiesCode = sb.ToString().TrimEnd('\r', '\n');
 
         return $$"""
-                protected override StorageNode DeparseCore({{classInfo.ClassName}} obj, in DeparseNodeContext context)
+                protected override StorageNode DeparseCore({{classInfo.ClassFullName}} obj, in DeparseNodeContext context)
                 {
                     StorableNodeParserManager parserManager = context.ParserManager;
 
@@ -246,6 +247,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
     private record ClassInfo
     {
         public required string ClassName { get; init; }
+        public required string ClassFullName { get; init; }
         public required string Namespace { get; init; }
         public required string ContractName { get; init; }
         public required List<PropertyInfo> Properties { get; init; }
