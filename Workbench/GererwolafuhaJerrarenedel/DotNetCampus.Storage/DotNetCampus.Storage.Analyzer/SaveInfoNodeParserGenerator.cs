@@ -36,7 +36,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
     private static ClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
-        var classDeclaration = (ClassDeclarationSyntax)context.Node;
+        var classDeclaration = (ClassDeclarationSyntax) context.Node;
         var symbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
 
         if (symbol is not INamedTypeSymbol classSymbol)
@@ -104,8 +104,8 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
     private static void Execute(Compilation compilation, IEnumerable<ClassInfo> classes, SourceProductionContext context)
     {
-        if (!classes.Any())
-            return;
+        //if (!classes.Any())
+        //    return;
 
         foreach (var classInfo in classes)
         {
@@ -145,7 +145,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
     private static string GenerateParseCore(ClassInfo classInfo)
     {
         var sb = new StringBuilder();
-        
+
         foreach (var property in classInfo.Properties)
         {
             var propertyVarName = $"propertyNameFor{property.PropertyName}";
@@ -190,7 +190,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
     private static string GenerateDeparseCore(ClassInfo classInfo)
     {
         var sb = new StringBuilder();
-        
+
         foreach (var property in classInfo.Properties)
         {
             var propertyVarName = $"propertyNameFor{property.PropertyName}";
@@ -233,19 +233,19 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
             """;
     }
 
-    private class ClassInfo
+    private record ClassInfo
     {
-        public string ClassName { get; set; } = null!;
-        public string Namespace { get; set; } = null!;
-        public string ContractName { get; set; } = null!;
-        public List<PropertyInfo> Properties { get; set; } = new();
+        public required string ClassName { get; init; }
+        public required string Namespace { get; init; }
+        public required string ContractName { get; init; }
+        public required List<PropertyInfo> Properties { get; init; }
     }
 
-    private class PropertyInfo
+    private record PropertyInfo
     {
-        public string PropertyName { get; set; } = null!;
-        public string PropertyType { get; set; } = null!;
-        public string StorageName { get; set; } = null!;
-        public bool IsNullable { get; set; }
+        public required string PropertyName { get; init; }
+        public required string PropertyType { get; init; }
+        public required string StorageName { get; init; }
+        public required bool IsNullable { get; init; }
     }
 }
