@@ -20,9 +20,31 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
             .Where(static m => m is not null);
 
+        classDeclarations.Combine(context.AnalyzerConfigOptionsProvider)
+            .Select((tuple, _) =>
+            {
+                var classInfo = tuple.Left;
+                if (classInfo is null)
+                {
+                    return null;
+                }
+
+                var provider = tuple.Right;
+                if (provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
+                {
+                    return classInfo with
+                    {
+                        Namespace = rootNamespace
+                    };
+                }
+
+                return classInfo;
+            });
+
         // 生成代码
         context.RegisterSourceOutput(classDeclarations, GenerateParseCode);
 
+        // 再获取引用程序集的编译信息，以防需要用到
         //var compilationAndClasses = context.CompilationProvider.Combine(classDeclarations.Collect());
 
         //context.RegisterSourceOutput(compilationAndClasses,
@@ -168,7 +190,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
             namespace {{classInfo.Namespace}};
 
-            public partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassFullName}}>
+            internal partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassFullName}}>
             {
                 public override SaveInfoContractAttribute ContractAttribute => _contractAttribute ??= new SaveInfoContractAttribute("{{classInfo.ContractName}}");
                 private SaveInfoContractAttribute? _contractAttribute;
