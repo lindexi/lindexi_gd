@@ -42,23 +42,36 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         var symbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
 
         if (symbol is not INamedTypeSymbol classSymbol)
+        {
             return null;
+        }
+
+        if (classSymbol.IsAbstract)
+        {
+            return null;
+        }
 
         // 检查是否继承自 SaveInfo
         if (!InheritsFromSaveInfo(classSymbol))
+        {
             return null;
+        }
 
         // 查找 SaveInfoContract 特性
         var contractAttribute = classSymbol.GetAttributes()
             .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoContractAttribute");
 
         if (contractAttribute == null)
+        {
             return null;
+        }
 
         // 获取特性中的名称参数
         var contractName = contractAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
         if (string.IsNullOrEmpty(contractName))
+        {
             return null;
+        }
 
         // 获取所有带有 SaveInfoMember 特性的属性
         var properties = new List<PropertyInfo>();
@@ -68,11 +81,15 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                 .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
 
             if (memberAttribute == null)
+            {
                 continue;
+            }
 
             var memberName = memberAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
             if (string.IsNullOrEmpty(memberName))
+            {
                 continue;
+            }
 
             properties.Add(new PropertyInfo
             {
