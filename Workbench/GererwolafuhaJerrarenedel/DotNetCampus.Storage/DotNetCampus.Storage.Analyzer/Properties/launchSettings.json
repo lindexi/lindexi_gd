@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Debug": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\DotNetCampus.Storage.Demo\\DotNetCampus.Storage.Demo.csproj"
+    }
+  }
+}
