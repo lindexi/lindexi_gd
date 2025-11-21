@@ -5,7 +5,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <GenerateSaveInfoNodeParser>true</GenerateSaveInfoNodeParser>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
+
+  <Import Project="..\DotNetCampus.Storage.Lib\Assets\Package.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetCampus.Storage.Analyzer\DotNetCampus.Storage.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace DotNetCampus.Storage.Analyzer;
 
@@ -14,13 +15,16 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // 查找所有带有 SaveInfoContract 特性的类
-        var classDeclarations = context.SyntaxProvider
+        var classDeclarationProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (s, _) => IsSaveInfoCandidate(s),
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
             .Where(static m => m is not null);
 
-        classDeclarations.Combine(context.AnalyzerConfigOptionsProvider)
+        // 为什么不用 ForAttributeWithMetadataName 方式，因为考虑到特性的命名空间会有不同，通过名称判断效果更好
+        //context.SyntaxProvider.ForAttributeWithMetadataName("")
+
+        classDeclarationProvider = classDeclarationProvider.Combine(context.AnalyzerConfigOptionsProvider)
             .Select((tuple, _) =>
             {
                 var classInfo = tuple.Left;
@@ -30,44 +34,126 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                 }
 
                 var provider = tuple.Right;
-                if (provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
-                {
-                    return classInfo with
-                    {
-                        Namespace = rootNamespace
-                    };
-                }
 
-                return classInfo;
+                if (provider.GlobalOptions.TryGetValue("build_property.GenerateSaveInfoNodeParser", out var generateSaveInfoNodeParser)
+                    && bool.TryParse(generateSaveInfoNodeParser, out var shouldGenerateSaveInfoNodeParser)
+                    && shouldGenerateSaveInfoNodeParser)
+                {
+                    if (provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
+                    {
+                        return classInfo with
+                        {
+                            Namespace = rootNamespace
+                        };
+                    }
+
+                    return classInfo;
+                }
+                else
+                {
+                    return null;
+                }
             });
 
         // 生成代码
-        context.RegisterSourceOutput(classDeclarations, GenerateParseCode);
+        context.RegisterSourceOutput(classDeclarationProvider, GenerateParseCode);
 
         // 再获取引用程序集的编译信息，以防需要用到
-        //var compilationAndClasses = context.CompilationProvider.Combine(classDeclarations.Collect());
+        var referencedAssemblySaveInfoClassInfoProvider = context.CompilationProvider.Select((t, _) =>
+        {
+            var referencedAssemblyDictionary = new Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo>();
+
+            foreach (IAssemblySymbol referencedAssemblySymbol in t.SourceModule.ReferencedAssemblySymbols)
+            {
+                // 获取引用程序集中的 SaveInfo 类信息
+                // 可选先判断程序集是否存在存储库的引用，用来提升性能，减少遍历无效的程序集
+                if (!IsSaveInfoAssemblyCandidate(referencedAssemblySymbol, referencedAssemblyDictionary))
+                {
+                    continue;
+                }
+
+                // 此时还不急处理，等待遍历完成，直接处理 Dictionary 好了
+            }
+
+            return new object();
+        });
 
         //context.RegisterSourceOutput(compilationAndClasses,
         //    static (spc, source) => Execute(source.Left, source.Right!, spc));
     }
 
+    private static bool IsSaveInfoAssemblyCandidate(IAssemblySymbol assemblySymbol, Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo> dictionary)
+    {
+        dictionary.Add(assemblySymbol, new ReferencedAssemblySymbolInfo(assemblySymbol, null));
+
+        bool isCandidate = false;
+
+        foreach (var assemblySymbolModule in assemblySymbol.Modules)
+        {
+            foreach (var referencedAssemblySymbol in assemblySymbolModule.ReferencedAssemblySymbols)
+            {
+                if (dictionary.TryGetValue(referencedAssemblySymbol, out var referencedAssemblyInfo))
+                {
+                    if (referencedAssemblyInfo.IsCandidate is true)
+                    {
+                        isCandidate = true;
+                    }
+                    else
+                    {
+                        // 此程序集已经判断过不是候选项，跳过
+                    }
+                    continue;
+                }
+
+                if (referencedAssemblySymbol.Name == "DotNetCampus.Storage")
+                {
+                    dictionary[assemblySymbol] = new ReferencedAssemblySymbolInfo(assemblySymbol, true);
+
+                    isCandidate = true;
+                }
+
+                if (IsSaveInfoAssemblyCandidate(referencedAssemblySymbol, dictionary))
+                {
+                    isCandidate = true;
+                }
+            }
+        }
+
+        return isCandidate;
+    }
+
     private static bool IsSaveInfoCandidate(SyntaxNode node)
     {
         // 查找带有特性的类声明
-        return node is ClassDeclarationSyntax classDeclaration
-            && classDeclaration.AttributeLists.Count > 0;
+        if (node is ClassDeclarationSyntax classDeclaration
+            && classDeclaration.AttributeLists.Count > 0)
+        {
+            if (classDeclaration.Modifiers.Any(t => t.IsKind(SyntaxKind.AbstractKeyword)))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private static ClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
         var classDeclaration = (ClassDeclarationSyntax) context.Node;
-        var symbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
+        var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, classDeclaration);
 
         if (symbol is not INamedTypeSymbol classSymbol)
         {
             return null;
         }
 
+        return TryGetSaveInfoClassInfo(classSymbol);
+    }
+
+    private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol)
+    {
         if (classSymbol.IsAbstract)
         {
             return null;
@@ -98,12 +184,19 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         // 获取所有带有 SaveInfoMember 特性的属性，包括继承的属性
         var properties = new List<PropertyInfo>();
         var currentType = classSymbol;
-        
+
         // 遍历继承链，收集所有带有 SaveInfoMemberAttribute 特性的属性
         while (currentType != null)
         {
             foreach (var member in currentType.GetMembers().OfType<IPropertySymbol>())
             {
+                // 这是当前程序集内的，忽略此情况
+                //if (member.DeclaredAccessibility != Accessibility.Public)
+                //{
+                //    // 非公共属性跳过
+                //    continue;
+                //}
+
                 var memberAttribute = member.GetAttributes()
                     .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
 
@@ -317,5 +410,18 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         public required string PropertyType { get; init; }
         public required string StorageName { get; init; }
         public required bool IsNullable { get; init; }
+    }
+
+    private readonly record struct ReferencedAssemblySymbolInfo(IAssemblySymbol AssemblySymbol, bool? IsCandidate)
+    {
+        public override int GetHashCode()
+        {
+            return AssemblySymbol.GetHashCode();
+        }
+
+        public bool Equals(ReferencedAssemblySymbolInfo? other)
+        {
+            return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
+        }
     }
 }
