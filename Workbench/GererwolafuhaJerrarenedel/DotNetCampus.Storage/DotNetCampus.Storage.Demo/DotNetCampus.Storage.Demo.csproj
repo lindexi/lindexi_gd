@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
 
     <GenerateSaveInfoNodeParser>true</GenerateSaveInfoNodeParser>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
 
   <Import Project="..\DotNetCampus.Storage.Lib\Assets\Package.props" />
