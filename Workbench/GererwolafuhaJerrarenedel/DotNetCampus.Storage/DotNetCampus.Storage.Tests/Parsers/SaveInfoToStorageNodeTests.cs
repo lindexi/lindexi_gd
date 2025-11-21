@@ -135,7 +135,8 @@ public class FooSaveInfo : SaveInfo
 
 public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
 {
-    public override SaveInfoContractAttribute ContractAttribute { get; } = new SaveInfoContractAttribute("Foo");
+    public override SaveInfoContractAttribute ContractAttribute => _contractAttribute ??= new SaveInfoContractAttribute("Foo");
+    private SaveInfoContractAttribute? _contractAttribute;
 
     protected override FooSaveInfo ParseCore(StorageNode node, in ParseNodeContext context)
     {
