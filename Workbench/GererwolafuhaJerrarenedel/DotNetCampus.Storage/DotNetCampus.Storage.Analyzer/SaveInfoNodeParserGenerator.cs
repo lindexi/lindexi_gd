@@ -20,11 +20,13 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
             .Where(static m => m is not null);
 
-        // 组合编译信息并生成代码
-        var compilationAndClasses = context.CompilationProvider.Combine(classDeclarations.Collect());
+        // 生成代码
+        context.RegisterSourceOutput(classDeclarations, GenerateParseCode);
 
-        context.RegisterSourceOutput(compilationAndClasses,
-            static (spc, source) => Execute(source.Left, source.Right!, spc));
+        //var compilationAndClasses = context.CompilationProvider.Combine(classDeclarations.Collect());
+
+        //context.RegisterSourceOutput(compilationAndClasses,
+        //    static (spc, source) => Execute(source.Left, source.Right!, spc));
     }
 
     private static bool IsSaveInfoCandidate(SyntaxNode node)
@@ -76,7 +78,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
             {
                 PropertyName = member.Name,
                 PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                StorageName = memberName,
+                StorageName = memberName!,
                 IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated
             });
         }
@@ -85,7 +87,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         {
             ClassName = classSymbol.Name,
             Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
-            ContractName = contractName,
+            ContractName = contractName!,
             Properties = properties
         };
     }
@@ -102,16 +104,15 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static void Execute(Compilation compilation, IEnumerable<ClassInfo> classes, SourceProductionContext context)
+    private static void GenerateParseCode(SourceProductionContext sourceProductionContext, ClassInfo? classInfo)
     {
-        //if (!classes.Any())
-        //    return;
-
-        foreach (var classInfo in classes)
+        if (classInfo is null)
         {
-            var source = GenerateNodeParser(classInfo);
-            context.AddSource($"{classInfo.ClassName}NodeParser.g.cs", source);
+            return;
         }
+
+        var source = GenerateNodeParser(classInfo);
+        sourceProductionContext.AddSource($"{classInfo.ClassName}NodeParser.g.cs", source);
     }
 
     private static string GenerateNodeParser(ClassInfo classInfo)
@@ -157,12 +158,13 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                                 var nodeParserFor{{property.PropertyName}} = parserManager.GetNodeParser(typeOf{{property.PropertyName}});
                                 var valueFor{{property.PropertyName}} = nodeParserFor{{property.PropertyName}}.Parse(storageNode, context);
                                 result.{{property.PropertyName}} = ({{property.PropertyType}}) valueFor{{property.PropertyName}};
+                                continue;
                             }
 
             """);
         }
 
-        var propertiesCode = sb.ToString().TrimEnd('\r', '\n');
+        var propertiesCode = sb.ToString();
 
         return $$"""
                 protected override {{classInfo.ClassName}} ParseCore(StorageNode node, in ParseNodeContext context)
@@ -174,12 +176,20 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
                     if (node.Children is { } children)
                     {
+                        List<StorageNode>? unknownNodeList = null;
                         foreach (var storageNode in children)
                         {
                             var currentName = storageNode.Name.AsSpan();
 
             {{propertiesCode}}
+                            unknownNodeList ??= new List<StorageNode>();
+                            unknownNodeList.Add(storageNode);
                         }
+                        
+                        if (unknownNodeList != null)
+                        {
+                            FillExtensionAndUnknownProperties(unknownNodeList, result, in context);
+                        }     
                     }
 
                     return result;
@@ -227,7 +237,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                     DeparseNodeContext tempContext;
 
             {{propertiesCode}}
-
+                    AppendExtensionAndUnknownProperties(storageNode, obj, in context);
                     return storageNode;
                 }
             """;
