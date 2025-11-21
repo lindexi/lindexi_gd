@@ -73,31 +73,48 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
             return null;
         }
 
-        // 获取所有带有 SaveInfoMember 特性的属性
+        // 获取所有带有 SaveInfoMember 特性的属性，包括继承的属性
         var properties = new List<PropertyInfo>();
-        foreach (var member in classSymbol.GetMembers().OfType<IPropertySymbol>())
+        var currentType = classSymbol;
+        
+        // 遍历继承链，收集所有带有 SaveInfoMemberAttribute 特性的属性
+        while (currentType != null)
         {
-            var memberAttribute = member.GetAttributes()
-                .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
-
-            if (memberAttribute == null)
+            foreach (var member in currentType.GetMembers().OfType<IPropertySymbol>())
             {
-                continue;
+                var memberAttribute = member.GetAttributes()
+                    .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
+
+                if (memberAttribute == null)
+                {
+                    continue;
+                }
+
+                var memberName = memberAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
+                if (string.IsNullOrEmpty(memberName))
+                {
+                    continue;
+                }
+
+                // 避免添加重复的属性（子类可能覆盖基类属性）
+                if (properties.All(p => p.PropertyName != member.Name))
+                {
+                    properties.Add(new PropertyInfo
+                    {
+                        PropertyName = member.Name,
+                        PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        StorageName = memberName!,
+                        IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated
+                    });
+                }
             }
 
-            var memberName = memberAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-            if (string.IsNullOrEmpty(memberName))
+            // 移动到基类，但在到达 SaveInfo 时停止（不包括 SaveInfo 本身的属性）
+            currentType = currentType.BaseType;
+            if (currentType?.Name == "SaveInfo")
             {
-                continue;
+                break;
             }
-
-            properties.Add(new PropertyInfo
-            {
-                PropertyName = member.Name,
-                PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                StorageName = memberName!,
-                IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated
-            });
         }
 
         return new ClassInfo
