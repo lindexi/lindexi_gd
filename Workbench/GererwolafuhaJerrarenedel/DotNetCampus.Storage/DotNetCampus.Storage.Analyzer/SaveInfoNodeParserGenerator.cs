@@ -158,12 +158,13 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                                 var nodeParserFor{{property.PropertyName}} = parserManager.GetNodeParser(typeOf{{property.PropertyName}});
                                 var valueFor{{property.PropertyName}} = nodeParserFor{{property.PropertyName}}.Parse(storageNode, context);
                                 result.{{property.PropertyName}} = ({{property.PropertyType}}) valueFor{{property.PropertyName}};
+                                continue;
                             }
 
             """);
         }
 
-        var propertiesCode = sb.ToString().TrimEnd('\r', '\n');
+        var propertiesCode = sb.ToString();
 
         return $$"""
                 protected override {{classInfo.ClassName}} ParseCore(StorageNode node, in ParseNodeContext context)
@@ -175,12 +176,20 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
                     if (node.Children is { } children)
                     {
+                        List<StorageNode>? unknownNodeList = null;
                         foreach (var storageNode in children)
                         {
                             var currentName = storageNode.Name.AsSpan();
 
             {{propertiesCode}}
+                            unknownNodeList ??= new List<StorageNode>();
+                            unknownNodeList.Add(storageNode);
                         }
+                        
+                        if (unknownNodeList != null)
+                        {
+                            FillExtensionAndUnknownProperties(unknownNodeList, result, in context);
+                        }     
                     }
 
                     return result;
@@ -228,7 +237,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                     DeparseNodeContext tempContext;
 
             {{propertiesCode}}
-
+                    AppendExtensionAndUnknownProperties(storageNode, obj, in context);
                     return storageNode;
                 }
             """;

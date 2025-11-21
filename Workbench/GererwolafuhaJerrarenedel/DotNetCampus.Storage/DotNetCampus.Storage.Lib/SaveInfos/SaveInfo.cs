@@ -17,7 +17,7 @@ public abstract class SaveInfo
     /// 未识别的属性
     /// <para>一般是新版本的 SaveInfo 在旧版本打开，其部分新增属性无法识别。</para>
     /// </summary>
-    public IReadOnlyList<StorageNode>? UnknownProperties { get; private init; }
+    public IReadOnlyList<StorageNode>? UnknownProperties { get; internal set; }
 
     private List<SaveInfo>? _extensions;
 

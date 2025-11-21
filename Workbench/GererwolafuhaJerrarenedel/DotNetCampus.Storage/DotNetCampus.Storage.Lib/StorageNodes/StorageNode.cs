@@ -42,4 +42,16 @@ public class StorageNode
             return $"{Name} Count:{Children.Count}";
         }
     }
+
+    internal StorageNode Clone()
+    {
+        var clone = new StorageNode
+        {
+            StorageNodeType = StorageNodeType,
+            Name = Name,
+            Value = Value,
+            Children = Children?.Select(child => child.Clone()).ToList()
+        };
+        return clone;
+    }
 }

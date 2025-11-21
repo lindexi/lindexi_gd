@@ -64,6 +64,27 @@ public class SaveInfoToStorageNodeTests
             NodeName = null,
             ParserManager = storableNodeParserManager
         });
+
+        var foo1SaveInfo = new Foo1SaveInfo()
+        {
+            Foo2Property = Random.Shared.Next(),
+        };
+        var extensionStorageNode = storableNodeParserManager.GetNodeParser(foo1SaveInfo.GetType()).Deparse(foo1SaveInfo, new DeparseNodeContext()
+        {
+            NodeName = null,
+            ParserManager = storableNodeParserManager
+        });
+        storageNode.Children ??= new List<StorageNode>();
+        storageNode.Children.Add(extensionStorageNode);
+
+        // 再添加一些未知属性
+        var unknownStorageNode = new StorageNode()
+        {
+            Name = "UnknownProperty1",
+            Value = "SomeValue",
+        };
+        storageNode.Children.Add(unknownStorageNode);
+
         var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
         {
             ParserManager = storableNodeParserManager
@@ -73,9 +94,34 @@ public class SaveInfoToStorageNodeTests
         Assert.IsNotNull(parsedFooSaveInfo.Foo1);
         Assert.AreEqual(fooSaveInfo.Foo1.Foo1Property, parsedFooSaveInfo.Foo1.Foo1Property);
         Assert.AreEqual(fooSaveInfo.Foo1.Foo2Property, parsedFooSaveInfo.Foo1.Foo2Property);
+
+        // 验证扩展属性
+        Assert.AreEqual(1, parsedFooSaveInfo.Extensions.Count);
+        var parsedExtension = parsedFooSaveInfo.Extensions[0] as Foo1SaveInfo;
+        Assert.IsNotNull(parsedExtension);
+        Assert.AreEqual(foo1SaveInfo.Foo2Property, parsedExtension.Foo2Property);
+
+        // 验证未知属性
+        Assert.IsNotNull(parsedFooSaveInfo.UnknownProperties);
+        Assert.AreEqual(1, parsedFooSaveInfo.UnknownProperties.Count);
+        Assert.AreEqual(unknownStorageNode.Name.ToText(), parsedFooSaveInfo.UnknownProperties[0].Name.ToText());
+        Assert.AreEqual(unknownStorageNode.Value.ToText(), parsedFooSaveInfo.UnknownProperties[0].Value.ToText());
+
+        // 继续转换为 StorageNode 可以不丢失扩展和未知属性
+        var reDeparsedStorageNode = nodeParser.Deparse(parsedFooSaveInfo, new DeparseNodeContext()
+        {
+            NodeName = null,
+            ParserManager = storableNodeParserManager
+        });
+        Assert.IsNotNull(reDeparsedStorageNode.Children);
+        // 能够不丢失扩展属性
+        var extensionNode = reDeparsedStorageNode.Children.FirstOrDefault(t => t.Name.ToText() == "Foo1");
+        Assert.IsNotNull(extensionNode);
+        // 能够不丢失未知属性
+        var unknownNode = reDeparsedStorageNode.Children.FirstOrDefault(t => t.Name.ToText() == unknownStorageNode.Name.ToText());
+        Assert.IsNotNull(unknownNode);
     }
 }
-
 
 [SaveInfoContract("Foo")]
 public class FooSaveInfo : SaveInfo
@@ -98,6 +144,7 @@ public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
         var fooSaveInfo = new FooSaveInfo();
         if (node.Children is { } children)
         {
+            List<StorageNode>? unknownNodeList = null;
             foreach (var storageNode in children)
             {
                 var currentName = storageNode.Name.AsSpan();
@@ -108,6 +155,7 @@ public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
                     var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
                     var valueForFooProperty = nodeParserForFooProperty.Parse(storageNode, context);
                     fooSaveInfo.FooProperty = (int) valueForFooProperty;
+                    continue;
                 }
 
                 var propertyNameForFoo1 = "F1";
@@ -117,7 +165,16 @@ public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
                     var nodeParserForFoo1 = parserManager.GetNodeParser(typeOfFoo1);
                     var valueForFoo1 = nodeParserForFoo1.Parse(storageNode, context);
                     fooSaveInfo.Foo1 = (Foo1SaveInfo) valueForFoo1;
+                    continue;
                 }
+
+                unknownNodeList ??= new List<StorageNode>();
+                unknownNodeList.Add(storageNode);
+            }
+
+            if (unknownNodeList != null)
+            {
+                FillExtensionAndUnknownProperties(unknownNodeList, fooSaveInfo, in context);
             }
         }
         return fooSaveInfo;
@@ -158,6 +215,8 @@ public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
             var childNodeForFoo1 = nodeParserForFoo1.Deparse(valueForFoo1, tempContext);
             storageNode.Children.Add(childNodeForFoo1);
         }
+
+        AppendExtensionAndUnknownProperties(storageNode, obj, in context);
 
         return storageNode;
     }
