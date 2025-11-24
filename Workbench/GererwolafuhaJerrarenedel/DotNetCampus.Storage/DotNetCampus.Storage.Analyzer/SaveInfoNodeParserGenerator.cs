@@ -44,6 +44,20 @@ namespace DotNetCampus.Storage.Analyzer
                 };
             });
 
+            provider = provider
+                .Combine(configurationProvider)
+                .Select((t, _) =>
+                {
+                    if (!t.Right.ShouldGenerateSaveInfoNodeParser)
+                    {
+                        return null;
+                    }
+                    return t.Left;
+                })
+                .Where(static m => m is not null)
+                .Select(static (m, _) => m!);
+
+
             context.RegisterSourceOutput(provider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
         }
 
