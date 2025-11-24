@@ -59,6 +59,29 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
         }
     }
 
+    /// <summary>
+    /// 是否能够匹配别名
+    /// </summary>
+    /// <param name="currentStorageName"></param>
+    /// <param name="aliases"></param>
+    /// <returns></returns>
+    protected static bool IsMatchAliases(ReadOnlySpan<char> currentStorageName, string[]? aliases)
+    {
+        if (aliases is null)
+        {
+            return false;
+        }
+
+        foreach (var alias in aliases)
+        {
+            if (currentStorageName.Equals(alias, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected void AppendExtensionAndUnknownProperties(StorageNode storageNode, SaveInfo saveInfo, in DeparseNodeContext context)
     {
         var parserManager = context.ParserManager;

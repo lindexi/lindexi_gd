@@ -231,6 +231,9 @@ public class Foo1SaveInfo : SaveInfo
 
     [SaveInfoMember("Foo2Property", Description = "This is a foo2 property.")]
     public int Foo2Property { get; set; } = 3;
+
+    [SaveInfoMember("F3Fx", Aliases = ["Foo3Fx", "FxFoo"], Description = "This is a foo3 property.")]
+    public int Foo3Property { get; set; } = 5;
 }
 
 public class Foo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
@@ -246,28 +249,65 @@ public class Foo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
 
         if (node.Children is { } children)
         {
+            bool isNotSetFoo1Property = true;
+            var propertyNameForFoo1Property = "Foo1Property";
+            string[]? aliasesForFoo1Property = null;
+
+            bool isNotSetFoo2Property = true;
+            var propertyNameForFoo2Property = "Foo2Property";
+            string[]? aliasesForFoo2Property = null;
+
+            bool isNotSetFoo3Property = true;
+            var propertyNameForFoo3Property = "F3Fx";
+            string[]? aliasesForFoo3Property = new string[] { "Foo3Fx", "FxFoo" };
+
             foreach (var storageNode in children)
             {
                 var currentName = storageNode.Name.AsSpan();
 
-                var propertyNameForFoo1Property = "Foo1Property";
-                if (currentName.Equals(propertyNameForFoo1Property, StringComparison.Ordinal))
+                if (isNotSetFoo1Property)
                 {
-                    var typeOfFoo1Property = typeof(bool);
-                    var nodeParserForFoo1Property = parserManager.GetNodeParser(typeOfFoo1Property);
-                    var valueForFoo1Property = nodeParserForFoo1Property.Parse(storageNode, context);
-                    foo1SaveInfo.Foo1Property = (bool) valueForFoo1Property;
-                    continue;
+                    if (currentName.Equals(propertyNameForFoo1Property, StringComparison.Ordinal)
+                        // 或者别名匹配
+                        || IsMatchAliases(currentName, aliasesForFoo1Property))
+                    {
+                        var typeOfFoo1Property = typeof(bool);
+                        var nodeParserForFoo1Property = parserManager.GetNodeParser(typeOfFoo1Property);
+                        var valueForFoo1Property = nodeParserForFoo1Property.Parse(storageNode, context);
+                        foo1SaveInfo.Foo1Property = (bool) valueForFoo1Property;
+                        isNotSetFoo1Property = false;
+                        continue;
+                    }
                 }
 
-                var propertyNameForFoo2Property = "Foo2Property";
-                if (currentName.Equals(propertyNameForFoo2Property, StringComparison.Ordinal))
+                if (isNotSetFoo2Property)
                 {
-                    var typeOfFoo2Property = typeof(int);
-                    var nodeParserForFoo2Property = parserManager.GetNodeParser(typeOfFoo2Property);
-                    var valueForFoo2Property = nodeParserForFoo2Property.Parse(storageNode, context);
-                    foo1SaveInfo.Foo2Property = (int) valueForFoo2Property;
-                    continue;
+                    if (currentName.Equals(propertyNameForFoo2Property, StringComparison.Ordinal)
+                     // 或者别名匹配
+                     || IsMatchAliases(currentName, aliasesForFoo2Property))
+                    {
+                        var typeOfFoo2Property = typeof(int);
+                        var nodeParserForFoo2Property = parserManager.GetNodeParser(typeOfFoo2Property);
+                        var valueForFoo2Property = nodeParserForFoo2Property.Parse(storageNode, context);
+                        foo1SaveInfo.Foo2Property = (int) valueForFoo2Property;
+                        isNotSetFoo2Property = false;
+                        continue;
+                    }
+                }
+
+                if (isNotSetFoo3Property)
+                {
+                    if (currentName.Equals(propertyNameForFoo3Property, StringComparison.Ordinal)
+                        // 或者别名匹配
+                        || IsMatchAliases(currentName, aliasesForFoo3Property))
+                    {
+                        var typeOfFoo3Property = typeof(int);
+                        var nodeParserForFoo3Property = parserManager.GetNodeParser(typeOfFoo3Property);
+                        var valueForFoo3Property = nodeParserForFoo3Property.Parse(storageNode, context);
+                        foo1SaveInfo.Foo3Property = (int) valueForFoo3Property;
+                        isNotSetFoo3Property = false;
+                        continue;
+                    }
                 }
             }
         }
