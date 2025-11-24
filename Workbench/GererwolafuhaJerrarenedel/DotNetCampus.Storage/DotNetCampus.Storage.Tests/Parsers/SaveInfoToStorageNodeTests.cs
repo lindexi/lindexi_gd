@@ -178,6 +178,16 @@ public class FooSaveInfo : SaveInfo
 
     [SaveInfoMember("S1")]
     public List<SaveInfo>? SaveInfoList { get; set; }
+
+    [SaveInfoMember("F2")]
+    public FooEnum Foo2Enum { get; set; }
+}
+
+public enum FooEnum
+{
+    Value1,
+    Value2,
+    Value3
 }
 
 internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
@@ -204,6 +214,10 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
             bool isNotSetSaveInfoList = true;
             var propertyNameForSaveInfoList = "S1";
             string[]? aliasesForSaveInfoList = null;
+
+            bool isNotSetFoo2Enum = true;
+            var propertyNameForFoo2Enum = "F2";
+            string[]? aliasesForFoo2Enum = null;
 
             List<StorageNode>? unknownNodeList = null;
             foreach (var storageNode in children)
@@ -249,6 +263,23 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
                     }
                 }
 
+                // Parse property Foo2Enum
+                if (isNotSetFoo2Enum)
+                {
+                    if (currentName.Equals(propertyNameForFoo2Enum, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForFoo2Enum))
+                    {
+                        //var typeOfFoo2Enum = typeof(FooEnum);
+
+                        if (Enum.TryParse(storageNode.Value.ToText(), out FooEnum valueForFoo2Enum))
+                        {
+                            result.Foo2Enum = (FooEnum) valueForFoo2Enum;
+                        }
+                        
+                        isNotSetFoo2Enum = false;
+                        continue;
+                    }
+                }
+
                 unknownNodeList ??= new List<StorageNode>();
                 unknownNodeList.Add(storageNode);
             }
@@ -276,7 +307,7 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
         var propertyNameForFooProperty = "FooProperty";
         var typeOfFooProperty = typeof(int);
         var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
-        object? valueForFooProperty = obj.FooProperty;
+        int? valueForFooProperty = obj.FooProperty;
         if (valueForFooProperty is not null)
         {
             tempContext = context with
@@ -316,6 +347,19 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
                 Children = DeparseElementOfList(obj.SaveInfoList, tempContext)
             };
             storageNode.Children.Add(childNodeForSaveInfoList);
+        }
+
+        // Generate code for property Foo2Enum
+        var propertyNameForFoo2Enum = "F2";
+        FooEnum? valueForFoo2Enum = obj.Foo2Enum;
+        if (valueForFoo2Enum is not null)
+        {
+            var childrenNodeForFoo2Enum = new StorageNode()
+            {
+                Name = propertyNameForFoo2Enum,
+                Value = valueForFoo2Enum.ToString()
+            };
+            storageNode.Children.Add(childrenNodeForFoo2Enum);
         }
 
         AppendExtensionAndUnknownProperties(storageNode, obj, in context);
