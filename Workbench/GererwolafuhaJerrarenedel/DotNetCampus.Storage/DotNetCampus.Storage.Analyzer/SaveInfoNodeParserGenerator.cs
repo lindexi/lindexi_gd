@@ -57,8 +57,95 @@ namespace DotNetCampus.Storage.Analyzer
                 .Where(static m => m is not null)
                 .Select(static (m, _) => m!);
 
-
             context.RegisterSourceOutput(provider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
+
+            // 再获取引用程序集的编译信息，以防需要用到
+            var referencedAssemblySaveInfoClassInfoProvider = context.CompilationProvider.Combine(configurationProvider).Select((tuple, _) =>
+            {
+                if (!tuple.Right.ShouldGenerateSaveInfoNodeParser)
+                {
+                    return [];
+                }
+
+                var compilation = tuple.Left;
+                var referencedAssemblyDictionary = new Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo>();
+
+                foreach (IAssemblySymbol referencedAssemblySymbol in compilation.SourceModule.ReferencedAssemblySymbols)
+                {
+                    // 获取引用程序集中的 SaveInfo 类信息
+                    // 可选先判断程序集是否存在存储库的引用，用来提升性能，减少遍历无效的程序集
+                    if (!IsSaveInfoAssemblyCandidate(referencedAssemblySymbol, referencedAssemblyDictionary))
+                    {
+                        continue;
+                    }
+
+                    // 此时还不急处理，等待遍历完成，直接处理 Dictionary 好了
+                }
+
+                return (IReadOnlyCollection<ReferencedAssemblySymbolInfo>) referencedAssemblyDictionary.Values;
+            });
+
+            // 从程序集里面找到所有候选的 SaveInfo 类
+            IncrementalValuesProvider<ClassInfo> referencedAssemblyClassInfoProvider = referencedAssemblySaveInfoClassInfoProvider
+                .SelectMany((t, _) => t)
+                .Select((t, _) =>
+                {
+                    var classInfoList = new List<ClassInfo>();
+                    var assemblySymbol = t.AssemblySymbol;
+                    foreach (var namedTypeSymbol in assemblySymbol.GlobalNamespace.GetTypeMembers())
+                    {
+                        // 对于引用程序集中的类型，要求是公开的
+                        var classInfo = TryGetSaveInfoClassInfo(namedTypeSymbol, shouldPublic: true);
+                        if (classInfo != null)
+                        {
+                            classInfoList.Add(classInfo);
+                        }
+                    }
+
+                    return classInfoList;
+                }).SelectMany((t, _) => t);
+
+            context.RegisterSourceOutput(referencedAssemblyClassInfoProvider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
+        }
+
+        private static bool IsSaveInfoAssemblyCandidate(IAssemblySymbol assemblySymbol, Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo> dictionary)
+        {
+            dictionary.Add(assemblySymbol, new ReferencedAssemblySymbolInfo(assemblySymbol, null));
+
+            bool isCandidate = false;
+
+            foreach (var assemblySymbolModule in assemblySymbol.Modules)
+            {
+                foreach (var referencedAssemblySymbol in assemblySymbolModule.ReferencedAssemblySymbols)
+                {
+                    if (dictionary.TryGetValue(referencedAssemblySymbol, out var referencedAssemblyInfo))
+                    {
+                        if (referencedAssemblyInfo.IsCandidate is true)
+                        {
+                            isCandidate = true;
+                        }
+                        else
+                        {
+                            // 此程序集已经判断过不是候选项，跳过
+                        }
+                        continue;
+                    }
+
+                    if (referencedAssemblySymbol.Name == "DotNetCampus.Storage")
+                    {
+                        dictionary[assemblySymbol] = new ReferencedAssemblySymbolInfo(assemblySymbol, true);
+
+                        isCandidate = true;
+                    }
+
+                    if (IsSaveInfoAssemblyCandidate(referencedAssemblySymbol, dictionary))
+                    {
+                        isCandidate = true;
+                    }
+                }
+            }
+
+            return isCandidate;
         }
 
         private static bool IsSaveInfoCandidate(SyntaxNode node)
@@ -92,11 +179,19 @@ namespace DotNetCampus.Storage.Analyzer
             return TryGetSaveInfoClassInfo(classSymbol);
         }
 
-        private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol)
+        private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol, bool shouldPublic = false)
         {
             if (classSymbol.IsAbstract)
             {
                 return null;
+            }
+
+            if (shouldPublic)
+            {
+                if (classSymbol.DeclaredAccessibility != Accessibility.Public)
+                {
+                    return null;
+                }
             }
 
             if (!InheritsFromSaveInfo(classSymbol))
@@ -209,7 +304,7 @@ namespace DotNetCampus.Storage.Analyzer
             if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
             {
                 var typeName = namedType.ConstructUnboundGenericType().ToDisplayString();
-                if (typeName is "System.Collections.Generic.List<>" 
+                if (typeName is "System.Collections.Generic.List<>"
                     or "System.Collections.Generic.IReadOnlyList<>"
                     or "System.Collections.Generic.IList<>")
                 {
@@ -467,6 +562,19 @@ namespace DotNetCampus.Storage.Analyzer
             //public required bool IsNullable { get; init; }
             public IReadOnlyList<string>? Aliases { get; init; }
             public bool IsListType { get; init; }
+        }
+
+        private readonly record struct ReferencedAssemblySymbolInfo(IAssemblySymbol AssemblySymbol, bool? IsCandidate)
+        {
+            public override int GetHashCode()
+            {
+                return AssemblySymbol.GetHashCode();
+            }
+
+            public bool Equals(ReferencedAssemblySymbolInfo? other)
+            {
+                return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
+            }
         }
     }
 }
