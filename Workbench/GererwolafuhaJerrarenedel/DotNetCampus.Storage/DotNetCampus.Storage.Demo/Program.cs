@@ -6,7 +6,7 @@ using DotNetCampus.Storage.Lib.Parsers;
 using DotNetCampus.Storage.Lib.Parsers.Contexts;
 using DotNetCampus.Storage.Lib.StorageNodes;
 
-var storableNodeParserManager = new StorableNodeParserManager();
+var storableNodeParserManager = new StorageNodeParserManager();
 storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
 storableNodeParserManager.Register(new FooSaveInfoNodeParser());
 

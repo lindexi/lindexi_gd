@@ -95,7 +95,7 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
             yield break;
         }
 
-        StorableNodeParserManager parserManager = context.ParserManager;
+        StorageNodeParserManager parserManager = context.ParserManager;
         foreach (var storageNode in storageNodeChildren)
         {
             var storageNodeName = storageNode.Name.ToText();
@@ -137,7 +137,7 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
     /// <returns></returns>
     protected List<StorageNode> DeparseElementOfList(IEnumerable<object> children, DeparseNodeContext context)
     {
-        StorableNodeParserManager parserManager = context.ParserManager;
+        StorageNodeParserManager parserManager = context.ParserManager;
         var storageNodeList = new List<StorageNode>();
         foreach (var child in children)
         {

@@ -100,16 +100,16 @@ namespace DotNetCampus.Storage.Analyzer
                     $$"""
                       namespace {{rootNamespace}};
                       
-                      internal static partial class StorableNodeParserManagerCollection
+                      internal static partial class StorageNodeParserManagerCollection
                       {
-                          public static partial void RegisterSaveInfoNodeParser(StorableNodeParserManager parserManager)
+                          public static partial void RegisterSaveInfoNodeParser(StorageNodeParserManager parserManager)
                           {
                       
                           }
                       }
                       """;
 
-                spc.AddSource("StorableNodeParserManagerCollection.SaveInfoNodeParsers.g.cs", code);
+                spc.AddSource("StorageNodeParserManagerCollection.SaveInfoNodeParsers.g.cs", code);
             });
         }
 
@@ -443,7 +443,7 @@ namespace DotNetCampus.Storage.Analyzer
             return $$"""
                     protected override {{classInfo.ClassFullName}} ParseCore(StorageNode node, in ParseNodeContext context)
                     {
-                        StorableNodeParserManager parserManager = context.ParserManager;
+                        var parserManager = context.ParserManager;
 
                         var result = new {{classInfo.ClassFullName}}();
 
@@ -526,7 +526,7 @@ namespace DotNetCampus.Storage.Analyzer
             return $$"""
                     protected override StorageNode DeparseCore({{classInfo.ClassFullName}} obj, in DeparseNodeContext context)
                     {
-                        StorableNodeParserManager parserManager = context.ParserManager;
+                        var parserManager = context.ParserManager;
 
                         var storageNode = new StorageNode();
                         const int saveInfoMemberCount = {{classInfo.Properties.Count}};

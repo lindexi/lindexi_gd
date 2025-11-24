@@ -5,9 +5,9 @@ namespace DotNetCampus.Storage.Lib.Parsers;
 /// <summary>
 /// 存储转换管理器
 /// </summary>
-public class StorableNodeParserManager
+public class StorageNodeParserManager
 {
-    public StorableNodeParserManager()
+    public StorageNodeParserManager()
     {
         // 基础类型
         Register(new BoolNodeParser());
