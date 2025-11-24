@@ -23,7 +23,7 @@ namespace DotNetCampus.Storage.Analyzer
             // 为什么不用 ForAttributeWithMetadataName 方式，因为考虑到特性的命名空间会有不同，通过名称判断效果更好
             //context.SyntaxProvider.ForAttributeWithMetadataName("")
 
-            var configurationProvider = context.AnalyzerConfigOptionsProvider.Select((t, _) =>
+            IncrementalValueProvider<SaveInfoNodeParserGeneratorConfigOption> configurationProvider = context.AnalyzerConfigOptionsProvider.Select((t, _) =>
             {
                 bool shouldGenerateSaveInfoNodeParser = false;
                 if (t.GlobalOptions.TryGetValue("build_property.GenerateSaveInfoNodeParser",
@@ -44,18 +44,7 @@ namespace DotNetCampus.Storage.Analyzer
                 };
             });
 
-            provider = provider
-                .Combine(configurationProvider)
-                .Select((t, _) =>
-                {
-                    if (!t.Right.ShouldGenerateSaveInfoNodeParser)
-                    {
-                        return null;
-                    }
-                    return t.Left;
-                })
-                .Where(static m => m is not null)
-                .Select(static (m, _) => m!);
+            provider = SaveInfoNodeParserGeneratorConfigHelper.FilterAndUpdateNamespace(provider, configurationProvider);
 
             context.RegisterSourceOutput(provider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
 
@@ -574,6 +563,34 @@ namespace DotNetCampus.Storage.Analyzer
             public bool Equals(ReferencedAssemblySymbolInfo? other)
             {
                 return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
+            }
+        }
+
+        static class SaveInfoNodeParserGeneratorConfigHelper
+        {
+            public static IncrementalValuesProvider<ClassInfo> FilterAndUpdateNamespace(IncrementalValuesProvider<ClassInfo> classInfoProvider, IncrementalValueProvider<SaveInfoNodeParserGeneratorConfigOption> configurationProvider)
+            {
+                var provider = classInfoProvider
+                     .Combine(configurationProvider)
+                     .Select((t, _) =>
+                     {
+                         if (!t.Right.ShouldGenerateSaveInfoNodeParser)
+                         {
+                             return null;
+                         }
+
+                         if (t.Right.RootNamespace != null)
+                         {
+                             return t.Left with
+                             {
+                                 Namespace = t.Right.RootNamespace
+                             };
+                         }
+                         return t.Left;
+                     })
+                     .Where(static m => m is not null)
+                     .Select(static (m, _) => m!);
+                return provider;
             }
         }
     }
