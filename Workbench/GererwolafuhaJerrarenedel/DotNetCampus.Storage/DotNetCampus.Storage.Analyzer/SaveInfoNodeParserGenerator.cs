@@ -210,6 +210,14 @@ namespace DotNetCampus.Storage.Analyzer
                 }
             }
 
+            // 要求类型有公开的无参构造函数
+            var hasPublicParameterlessConstructor = classSymbol.Constructors.Any(ctor =>
+                ctor.DeclaredAccessibility == Accessibility.Public && ctor.Parameters.Length == 0);
+            if (!hasPublicParameterlessConstructor)
+            {
+                return null;
+            }
+
             if (!InheritsFromSaveInfo(classSymbol))
             {
                 return null;
@@ -565,12 +573,12 @@ namespace DotNetCampus.Storage.Analyzer
         {
             public override int GetHashCode()
             {
-                return AssemblySymbol.GetHashCode();
+                return SymbolEqualityComparer.Default.GetHashCode(AssemblySymbol);
             }
 
             public bool Equals(ReferencedAssemblySymbolInfo? other)
             {
-                return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
+                return SymbolEqualityComparer.Default.Equals(AssemblySymbol, other?.AssemblySymbol);
             }
         }
     }
