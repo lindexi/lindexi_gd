@@ -46,7 +46,7 @@ namespace DotNetCampus.Storage.Analyzer
             }
 
             var symbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
-            if (symbol is not INamedTypeSymbol classSymbol)
+            if (symbol is not { } classSymbol)
             {
                 return null;
             }
@@ -81,8 +81,16 @@ namespace DotNetCampus.Storage.Analyzer
                         continue;
 
                     var storageName = memberAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-                    if (string.IsNullOrEmpty(storageName))
+
+                    if (storageName is null)
+                    {
                         continue;
+                    }
+
+                    if (string.IsNullOrEmpty(storageName))
+                    {
+                        continue;
+                    }
 
                     IReadOnlyList<string>? aliases = null;
                     foreach (var named in memberAttribute.NamedArguments)
