@@ -15,7 +15,7 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // 查找所有带有 SaveInfoContract 特性的类
-        var classDeclarationProvider = context.SyntaxProvider
+        IncrementalValuesProvider<ClassInfo?> classDeclarationProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (s, _) => IsSaveInfoCandidate(s),
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
@@ -75,8 +75,50 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
                 // 此时还不急处理，等待遍历完成，直接处理 Dictionary 好了
             }
 
-            return new object();
+            return (IReadOnlyCollection<ReferencedAssemblySymbolInfo>) referencedAssemblyDictionary.Values;
         });
+
+        // 根据配置决定是否过滤掉非候选的程序集
+        referencedAssemblySaveInfoClassInfoProvider = referencedAssemblySaveInfoClassInfoProvider
+            .Combine(context.AnalyzerConfigOptionsProvider)
+            .Select((tuple, _) =>
+            {
+                var referencedAssemblyInfos = tuple.Left;
+                var provider = tuple.Right;
+
+                if (provider.GlobalOptions.TryGetValue("build_property.ShouldFilterStorage",
+                        out var shouldFilterStorageConfiguration)
+                    && bool.TryParse(shouldFilterStorageConfiguration, out var shouldFilterStorage)
+                    && shouldFilterStorage)
+                {
+                    return referencedAssemblyInfos.Where(t => t.IsCandidate is true).ToList();
+                }
+
+                return referencedAssemblyInfos;
+            });
+
+        IncrementalValuesProvider<IAssemblySymbol> referencedAssemblyProvider =
+            referencedAssemblySaveInfoClassInfoProvider.SelectMany((t, _) => t.Select(x => x.AssemblySymbol));
+
+        IncrementalValuesProvider<ClassInfo> referencedClassInfoProvider = referencedAssemblyProvider
+            .Combine(context.AnalyzerConfigOptionsProvider)
+            .Select(((tuple, _) =>
+        {
+            var assemblySymbol = tuple.Left;
+
+            var list = new List<ClassInfo>();
+            foreach (var namedTypeSymbol in assemblySymbol.GlobalNamespace.GetTypeMembers())
+            {
+                var classInfo = TryGetSaveInfoClassInfo(namedTypeSymbol);
+                if (classInfo is not null)
+                {
+                    list.Add(classInfo);
+                }
+            }
+
+            return list;
+        })).SelectMany((t, _) => t);
+        context.RegisterSourceOutput(referencedClassInfoProvider, GenerateParseCode);
 
         //context.RegisterSourceOutput(compilationAndClasses,
         //    static (spc, source) => Execute(source.Left, source.Right!, spc));
@@ -301,6 +343,17 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
         foreach (var property in classInfo.Properties)
         {
+            /*
+              var propertyNameForFooProperty = "FooProperty";
+              if (currentName.Equals(propertyNameForFooProperty, StringComparison.Ordinal))
+              {
+                  var typeOfFooProperty = typeof(int);
+                  var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
+                  var valueForFooProperty = nodeParserForFooProperty.Parse(storageNode, context);
+                  fooSaveInfo.FooProperty = (int) valueForFooProperty;
+                  continue;
+              }
+            */
             var propertyVarName = $"propertyNameFor{property.PropertyName}";
             sb.AppendLine($$"""
                             var {{propertyVarName}} = "{{property.StorageName}}";
@@ -355,6 +408,22 @@ public class SaveInfoNodeParserGenerator : IIncrementalGenerator
 
         foreach (var property in classInfo.Properties)
         {
+            /*
+               var propertyNameForFooProperty = "FooProperty";
+               var typeOfFooProperty = typeof(int);
+               var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
+               object? valueForFooProperty = obj.FooProperty;
+               if (valueForFooProperty is not null)
+               {
+                   tempContext = context with
+                   {
+                       NodeName = propertyNameForFooProperty
+                   };
+                   var childNodeForFooProperty = nodeParserForFooProperty.Deparse(valueForFooProperty, tempContext);
+                   storageNode.Children.Add(childNodeForFooProperty);
+               }
+             */
+
             var propertyVarName = $"propertyNameFor{property.PropertyName}";
             sb.AppendLine($$"""
                     var {{propertyVarName}} = "{{property.StorageName}}";

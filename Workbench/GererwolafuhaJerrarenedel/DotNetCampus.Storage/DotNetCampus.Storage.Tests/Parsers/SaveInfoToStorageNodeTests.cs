@@ -257,6 +257,7 @@ public class Foo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
                     var nodeParserForFoo1Property = parserManager.GetNodeParser(typeOfFoo1Property);
                     var valueForFoo1Property = nodeParserForFoo1Property.Parse(storageNode, context);
                     foo1SaveInfo.Foo1Property = (bool) valueForFoo1Property;
+                    continue;
                 }
 
                 var propertyNameForFoo2Property = "Foo2Property";
@@ -266,6 +267,7 @@ public class Foo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
                     var nodeParserForFoo2Property = parserManager.GetNodeParser(typeOfFoo2Property);
                     var valueForFoo2Property = nodeParserForFoo2Property.Parse(storageNode, context);
                     foo1SaveInfo.Foo2Property = (int) valueForFoo2Property;
+                    continue;
                 }
             }
         }
