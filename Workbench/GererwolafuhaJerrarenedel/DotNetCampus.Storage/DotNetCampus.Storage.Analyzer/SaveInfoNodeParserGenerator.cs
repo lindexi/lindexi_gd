@@ -128,7 +128,7 @@ namespace DotNetCampus.Storage.Analyzer
                             PropertyName = member.Name,
                             PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             StorageName = storageName,
-                            IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
+                            //IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
                             Aliases = aliases,
                             IsListType = isListType
                         });
@@ -152,16 +152,14 @@ namespace DotNetCampus.Storage.Analyzer
 
         private static bool IsListOfSaveInfo(ITypeSymbol type)
         {
-            // Check if the type is List<T> where T is SaveInfo or inherits from SaveInfo
-            if (type is INamedTypeSymbol namedType &&
-                namedType.IsGenericType &&
-                namedType.ConstructUnboundGenericType().ToDisplayString() == "System.Collections.Generic.List<>")
+            if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
             {
-                var typeArgument = namedType.TypeArguments.FirstOrDefault();
-                if (typeArgument != null)
+                var typeName = namedType.ConstructUnboundGenericType().ToDisplayString();
+                if (typeName is "System.Collections.Generic.List<>" 
+                    or "System.Collections.Generic.IReadOnlyList<>"
+                    or "System.Collections.Generic.IList<>")
                 {
-                    return InheritsFromSaveInfo(typeArgument as INamedTypeSymbol) || 
-                           typeArgument.Name == "SaveInfo";
+                    return true;
                 }
             }
             return false;
@@ -170,7 +168,7 @@ namespace DotNetCampus.Storage.Analyzer
         private static bool InheritsFromSaveInfo(INamedTypeSymbol? classSymbol)
         {
             if (classSymbol == null) return false;
-            
+
             var bt = classSymbol.BaseType;
             while (bt != null)
             {
@@ -407,7 +405,7 @@ namespace DotNetCampus.Storage.Analyzer
             public required string PropertyName { get; init; }
             public required string PropertyType { get; init; }
             public required string StorageName { get; init; }
-            public required bool IsNullable { get; init; }
+            //public required bool IsNullable { get; init; }
             public IReadOnlyList<string>? Aliases { get; init; }
             public bool IsListType { get; init; }
         }
