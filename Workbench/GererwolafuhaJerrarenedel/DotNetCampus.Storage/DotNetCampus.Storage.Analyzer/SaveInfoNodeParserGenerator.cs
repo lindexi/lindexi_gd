@@ -565,12 +565,12 @@ namespace DotNetCampus.Storage.Analyzer
         {
             public override int GetHashCode()
             {
-                return AssemblySymbol.GetHashCode();
+                return SymbolEqualityComparer.Default.GetHashCode(AssemblySymbol);
             }
 
             public bool Equals(ReferencedAssemblySymbolInfo? other)
             {
-                return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
+                return SymbolEqualityComparer.Default.Equals(AssemblySymbol, other?.AssemblySymbol);
             }
         }
     }
