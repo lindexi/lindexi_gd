@@ -592,7 +592,7 @@ namespace DotNetCampus.Storage.Analyzer
                            var {{propNameVar}} = "{{propertyInfo.StorageName}}";
                            var typeOf{{propertyInfo.PropertyName}} = typeof({{propertyInfo.PropertyType}});
                            var nodeParserFor{{propertyInfo.PropertyName}} = parserManager.GetNodeParser(typeOf{{propertyInfo.PropertyName}});
-                           object? valueFor{{propertyInfo.PropertyName}} = obj.{{propertyInfo.PropertyName}};
+                           {{propertyInfo.PropertyType}}? valueFor{{propertyInfo.PropertyName}} = obj.{{propertyInfo.PropertyName}};
                            if (valueFor{{propertyInfo.PropertyName}} is not null)
                            {
                                tempContext = context with
