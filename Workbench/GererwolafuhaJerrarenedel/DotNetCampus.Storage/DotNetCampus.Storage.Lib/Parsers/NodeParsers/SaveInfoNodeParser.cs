@@ -82,6 +82,32 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
         return false;
     }
 
+    /// <summary>
+    /// 处理 List 等内部的元素的情况，支持泛型
+    /// </summary>
+    /// <param name="storageNodeChildren"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    protected IEnumerable<object> ParseElementOfList(List<StorageNode>? storageNodeChildren, ParseNodeContext context)
+    {
+        if (storageNodeChildren is null)
+        {
+            yield break;
+        }
+
+        StorableNodeParserManager parserManager = context.ParserManager;
+        foreach (var storageNode in storageNodeChildren)
+        {
+            var storageNodeName = storageNode.Name.ToText();
+            var nodeParser = parserManager.GetNodeParser(storageNodeName);
+            if (nodeParser is not null)
+            {
+                var element = nodeParser.Parse(storageNode, context);
+                yield return element;
+            }
+        }
+    }
+
     protected void AppendExtensionAndUnknownProperties(StorageNode storageNode, SaveInfo saveInfo, in DeparseNodeContext context)
     {
         var parserManager = context.ParserManager;
@@ -101,5 +127,25 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
                 storageNode.Children.Add(unknownProperty.Clone());
             }
         }
+    }
+
+    /// <summary>
+    /// 处理列表元素的情况
+    /// </summary>
+    /// <param name="children"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    protected List<StorageNode> DeparseElementOfList(IEnumerable<object> children, DeparseNodeContext context)
+    {
+        StorableNodeParserManager parserManager = context.ParserManager;
+        var storageNodeList = new List<StorageNode>();
+        foreach (var child in children)
+        {
+            var nodeParser = parserManager.GetNodeParser(child.GetType());
+            var childNode = nodeParser.Deparse(child, context);
+            storageNodeList.Add(childNode);
+        }
+
+        return storageNodeList;
     }
 }

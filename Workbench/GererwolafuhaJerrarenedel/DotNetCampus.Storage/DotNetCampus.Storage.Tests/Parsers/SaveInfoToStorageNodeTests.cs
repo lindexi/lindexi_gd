@@ -96,14 +96,14 @@ public class SaveInfoToStorageNodeTests
         Assert.AreEqual(fooSaveInfo.Foo1.Foo2Property, parsedFooSaveInfo.Foo1.Foo2Property);
 
         // 验证扩展属性
-        Assert.AreEqual(1, parsedFooSaveInfo.Extensions.Count);
+        Assert.HasCount(1, parsedFooSaveInfo.Extensions);
         var parsedExtension = parsedFooSaveInfo.Extensions[0] as Foo1SaveInfo;
         Assert.IsNotNull(parsedExtension);
         Assert.AreEqual(foo1SaveInfo.Foo2Property, parsedExtension.Foo2Property);
 
         // 验证未知属性
         Assert.IsNotNull(parsedFooSaveInfo.UnknownProperties);
-        Assert.AreEqual(1, parsedFooSaveInfo.UnknownProperties.Count);
+        Assert.HasCount(1, parsedFooSaveInfo.UnknownProperties);
         Assert.AreEqual(unknownStorageNode.Name.ToText(), parsedFooSaveInfo.UnknownProperties[0].Name.ToText());
         Assert.AreEqual(unknownStorageNode.Value.ToText(), parsedFooSaveInfo.UnknownProperties[0].Value.ToText());
 
@@ -121,6 +121,50 @@ public class SaveInfoToStorageNodeTests
         var unknownNode = reDeparsedStorageNode.Children.FirstOrDefault(t => t.Name.ToText() == unknownStorageNode.Name.ToText());
         Assert.IsNotNull(unknownNode);
     }
+
+    [TestMethod]
+    public void TestMethod3()
+    {
+        var storableNodeParserManager = new StorableNodeParserManager();
+        storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
+        storableNodeParserManager.Register(new FooSaveInfoNodeParser());
+
+        var fooSaveInfo = new FooSaveInfo()
+        {
+            FooProperty = Random.Shared.Next(),
+            SaveInfoList = new List<SaveInfo>()
+            {
+                new Foo1SaveInfo()
+                {
+                    Foo1Property = true,
+                    Foo2Property = Random.Shared.Next()
+                },
+                new Foo1SaveInfo()
+                {
+                    Foo1Property = false,
+                    Foo2Property = Random.Shared.Next()
+                }
+            }
+        };
+
+        var nodeParser = storableNodeParserManager.GetNodeParser(fooSaveInfo.GetType());
+        var storageNode = nodeParser.Deparse(fooSaveInfo, new DeparseNodeContext()
+        {
+            NodeName = null,
+            ParserManager = storableNodeParserManager
+        });
+
+        var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
+        {
+            ParserManager = storableNodeParserManager
+        }) as FooSaveInfo;
+
+        Assert.IsNotNull(parsedFooSaveInfo);
+        Assert.IsNotNull(parsedFooSaveInfo.SaveInfoList);
+        Assert.HasCount(2, parsedFooSaveInfo.SaveInfoList);
+        Assert.AreEqual(((Foo1SaveInfo) fooSaveInfo.SaveInfoList[0]).Foo2Property,((Foo1SaveInfo) parsedFooSaveInfo.SaveInfoList[0]).Foo2Property);
+        Assert.AreEqual(((Foo1SaveInfo) fooSaveInfo.SaveInfoList[1]).Foo2Property, ((Foo1SaveInfo) parsedFooSaveInfo.SaveInfoList[1]).Foo2Property);
+    }
 }
 
 [SaveInfoContract("Foo")]
@@ -131,9 +175,12 @@ public class FooSaveInfo : SaveInfo
 
     [SaveInfoMember("F1", Description = "This is a foo property.")]
     public Foo1SaveInfo? Foo1 { get; set; }
+
+    [SaveInfoMember("S1")]
+    public List<SaveInfo>? SaveInfoList { get; set; }
 }
 
-public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
+internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
 {
     public override SaveInfoContractAttribute ContractAttribute => _contractAttribute ??= new SaveInfoContractAttribute("Foo");
     private SaveInfoContractAttribute? _contractAttribute;
@@ -141,54 +188,92 @@ public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
     protected override FooSaveInfo ParseCore(StorageNode node, in ParseNodeContext context)
     {
         StorableNodeParserManager parserManager = context.ParserManager;
-        // 决定不支持 init 的情况，这样才能更好地保留默认值
-        var fooSaveInfo = new FooSaveInfo();
+
+        var result = new FooSaveInfo();
+
         if (node.Children is { } children)
         {
+            bool isNotSetFooProperty = true;
+            var propertyNameForFooProperty = "FooProperty";
+            string[]? aliasesForFooProperty = null;
+
+            bool isNotSetFoo1 = true;
+            var propertyNameForFoo1 = "F1";
+            string[]? aliasesForFoo1 = null;
+
+            bool isNotSetSaveInfoList = true;
+            var propertyNameForSaveInfoList = "S1";
+            string[]? aliasesForSaveInfoList = null;
+
             List<StorageNode>? unknownNodeList = null;
             foreach (var storageNode in children)
             {
                 var currentName = storageNode.Name.AsSpan();
-                var propertyNameForFooProperty = "FooProperty";
-                if (currentName.Equals(propertyNameForFooProperty, StringComparison.Ordinal))
+
+                // Parse property FooProperty
+                if (isNotSetFooProperty)
                 {
-                    var typeOfFooProperty = typeof(int);
-                    var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
-                    var valueForFooProperty = nodeParserForFooProperty.Parse(storageNode, context);
-                    fooSaveInfo.FooProperty = (int) valueForFooProperty;
-                    continue;
+                    if (currentName.Equals(propertyNameForFooProperty, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForFooProperty))
+                    {
+                        var typeOfFooProperty = typeof(int);
+                        var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
+                        var valueForFooProperty = nodeParserForFooProperty.Parse(storageNode, context);
+                        result.FooProperty = (int) valueForFooProperty;
+                        isNotSetFooProperty = false;
+                        continue;
+                    }
                 }
 
-                var propertyNameForFoo1 = "F1";
-                if (currentName.Equals(propertyNameForFoo1, StringComparison.Ordinal))
+                // Parse property Foo1
+                if (isNotSetFoo1)
                 {
-                    var typeOfFoo1 = typeof(Foo1SaveInfo);
-                    var nodeParserForFoo1 = parserManager.GetNodeParser(typeOfFoo1);
-                    var valueForFoo1 = nodeParserForFoo1.Parse(storageNode, context);
-                    fooSaveInfo.Foo1 = (Foo1SaveInfo) valueForFoo1;
-                    continue;
+                    if (currentName.Equals(propertyNameForFoo1, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForFoo1))
+                    {
+                        var typeOfFoo1 = typeof(Foo1SaveInfo);
+                        var nodeParserForFoo1 = parserManager.GetNodeParser(typeOfFoo1);
+                        var valueForFoo1 = nodeParserForFoo1.Parse(storageNode, context);
+                        result.Foo1 = (Foo1SaveInfo) valueForFoo1;
+                        isNotSetFoo1 = false;
+                        continue;
+                    }
+                }
+
+                // Parse property SaveInfoList
+                if (isNotSetSaveInfoList)
+                {
+                    if (currentName.Equals(propertyNameForSaveInfoList, StringComparison.Ordinal) ||
+                        IsMatchAliases(currentName, aliasesForSaveInfoList))
+                    {
+                        result.SaveInfoList = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
+                        isNotSetSaveInfoList = true;
+                        continue;
+                    }
                 }
 
                 unknownNodeList ??= new List<StorageNode>();
                 unknownNodeList.Add(storageNode);
             }
-
             if (unknownNodeList != null)
             {
-                FillExtensionAndUnknownProperties(unknownNodeList, fooSaveInfo, in context);
+                FillExtensionAndUnknownProperties(unknownNodeList, result, in context);
             }
         }
-        return fooSaveInfo;
+
+        return result;
     }
 
     protected override StorageNode DeparseCore(FooSaveInfo obj, in DeparseNodeContext context)
     {
         StorableNodeParserManager parserManager = context.ParserManager;
+
         var storageNode = new StorageNode();
         const int saveInfoMemberCount = 2;
         storageNode.Name = context.NodeName ?? TargetStorageName;
         storageNode.Children = new List<StorageNode>(saveInfoMemberCount);
+
         DeparseNodeContext tempContext;
+
+        // Generate code for property FooProperty
         var propertyNameForFooProperty = "FooProperty";
         var typeOfFooProperty = typeof(int);
         var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
@@ -203,6 +288,7 @@ public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
             storageNode.Children.Add(childNodeForFooProperty);
         }
 
+        // Generate code for property Foo1
         var propertyNameForFoo1 = "F1";
         var typeOfFoo1 = typeof(Foo1SaveInfo);
         var nodeParserForFoo1 = parserManager.GetNodeParser(typeOfFoo1);
@@ -217,8 +303,23 @@ public class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
             storageNode.Children.Add(childNodeForFoo1);
         }
 
-        AppendExtensionAndUnknownProperties(storageNode, obj, in context);
+        // Generate code for property SaveInfoList
+        var propertyNameForSaveInfoList = "S1";
+        if (obj.SaveInfoList is not null)
+        {
+            tempContext = context with
+            {
+                NodeName = null
+            };
+            var childNodeForSaveInfoList = new StorageNode()
+            {
+                Name = propertyNameForSaveInfoList,
+                Children = DeparseElementOfList(obj.SaveInfoList, tempContext)
+            };
+            storageNode.Children.Add(childNodeForSaveInfoList);
+        }
 
+        AppendExtensionAndUnknownProperties(storageNode, obj, in context);
         return storageNode;
     }
 }

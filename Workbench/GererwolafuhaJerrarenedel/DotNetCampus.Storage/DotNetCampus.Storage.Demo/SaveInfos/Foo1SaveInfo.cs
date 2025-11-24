@@ -10,6 +10,9 @@ public class Foo1SaveInfo : BaseSaveInfo
 
     [SaveInfoMember("Foo2Property", Description = "This is a foo2 property.")]
     public int Foo2Property { get; set; } = 3;
+
+    [SaveInfoMember("F3Fx", Aliases = ["Foo3Fx", "FxFoo"], Description = "This is a foo3 property.")]
+    public int FooFxxProperty { get; set; } = 5;
 }
 
 public class BaseSaveInfo : SaveInfo

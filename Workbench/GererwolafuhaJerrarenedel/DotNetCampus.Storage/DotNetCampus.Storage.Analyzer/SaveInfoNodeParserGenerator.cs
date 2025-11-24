@@ -1,496 +1,378 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp;
 
-namespace DotNetCampus.Storage.Analyzer;
-
-[Generator(LanguageNames.CSharp)]
-public class SaveInfoNodeParserGenerator : IIncrementalGenerator
+namespace DotNetCampus.Storage.Analyzer
 {
-    public void Initialize(IncrementalGeneratorInitializationContext context)
+    [Generator(LanguageNames.CSharp)]
+    public class SaveInfoNodeParserGenerator : IIncrementalGenerator
     {
-        // 查找所有带有 SaveInfoContract 特性的类
-        IncrementalValuesProvider<ClassInfo?> classDeclarationProvider = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                predicate: static (s, _) => IsSaveInfoCandidate(s),
-                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
-            .Where(static m => m is not null);
-
-        // 为什么不用 ForAttributeWithMetadataName 方式，因为考虑到特性的命名空间会有不同，通过名称判断效果更好
-        //context.SyntaxProvider.ForAttributeWithMetadataName("")
-
-        classDeclarationProvider = classDeclarationProvider.Combine(context.AnalyzerConfigOptionsProvider)
-            .Select((tuple, _) =>
-            {
-                var classInfo = tuple.Left;
-                if (classInfo is null)
-                {
-                    return null;
-                }
-
-                var provider = tuple.Right;
-
-                if (provider.GlobalOptions.TryGetValue("build_property.GenerateSaveInfoNodeParser", out var generateSaveInfoNodeParser)
-                    && bool.TryParse(generateSaveInfoNodeParser, out var shouldGenerateSaveInfoNodeParser)
-                    && shouldGenerateSaveInfoNodeParser)
-                {
-                    if (provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
-                    {
-                        return classInfo with
-                        {
-                            Namespace = rootNamespace
-                        };
-                    }
-
-                    return classInfo;
-                }
-                else
-                {
-                    return null;
-                }
-            });
-
-        // 生成代码
-        context.RegisterSourceOutput(classDeclarationProvider, GenerateParseCode);
-
-        // 再获取引用程序集的编译信息，以防需要用到
-        var referencedAssemblySaveInfoClassInfoProvider = context.CompilationProvider.Select((t, _) =>
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var referencedAssemblyDictionary = new Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo>();
+            var provider = context.SyntaxProvider
+                .CreateSyntaxProvider(
+                    predicate: static (node, _) => IsSaveInfoCandidate(node),
+                    transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+                .Where(static m => m is not null)
+                .Select(static (m, _) => m!);
 
-            foreach (IAssemblySymbol referencedAssemblySymbol in t.SourceModule.ReferencedAssemblySymbols)
-            {
-                // 获取引用程序集中的 SaveInfo 类信息
-                // 可选先判断程序集是否存在存储库的引用，用来提升性能，减少遍历无效的程序集
-                if (!IsSaveInfoAssemblyCandidate(referencedAssemblySymbol, referencedAssemblyDictionary))
-                {
-                    continue;
-                }
-
-                // 此时还不急处理，等待遍历完成，直接处理 Dictionary 好了
-            }
-
-            return (IReadOnlyCollection<ReferencedAssemblySymbolInfo>) referencedAssemblyDictionary.Values;
-        });
-
-        // 根据配置决定是否过滤掉非候选的程序集
-        referencedAssemblySaveInfoClassInfoProvider = referencedAssemblySaveInfoClassInfoProvider
-            .Combine(context.AnalyzerConfigOptionsProvider)
-            .Select((tuple, _) =>
-            {
-                var referencedAssemblyInfos = tuple.Left;
-                var provider = tuple.Right;
-
-                if (provider.GlobalOptions.TryGetValue("build_property.ShouldFilterStorage",
-                        out var shouldFilterStorageConfiguration)
-                    && bool.TryParse(shouldFilterStorageConfiguration, out var shouldFilterStorage)
-                    && shouldFilterStorage)
-                {
-                    return referencedAssemblyInfos.Where(t => t.IsCandidate is true).ToList();
-                }
-
-                return referencedAssemblyInfos;
-            });
-
-        IncrementalValuesProvider<IAssemblySymbol> referencedAssemblyProvider =
-            referencedAssemblySaveInfoClassInfoProvider.SelectMany((t, _) => t.Select(x => x.AssemblySymbol));
-
-        IncrementalValuesProvider<ClassInfo> referencedClassInfoProvider = referencedAssemblyProvider
-            .Combine(context.AnalyzerConfigOptionsProvider)
-            .Select(((tuple, _) =>
-        {
-            var assemblySymbol = tuple.Left;
-
-            var list = new List<ClassInfo>();
-            foreach (var namedTypeSymbol in assemblySymbol.GlobalNamespace.GetTypeMembers())
-            {
-                var classInfo = TryGetSaveInfoClassInfo(namedTypeSymbol);
-                if (classInfo is not null)
-                {
-                    list.Add(classInfo);
-                }
-            }
-
-            return list;
-        })).SelectMany((t, _) => t);
-        context.RegisterSourceOutput(referencedClassInfoProvider, GenerateParseCode);
-
-        //context.RegisterSourceOutput(compilationAndClasses,
-        //    static (spc, source) => Execute(source.Left, source.Right!, spc));
-    }
-
-    private static bool IsSaveInfoAssemblyCandidate(IAssemblySymbol assemblySymbol, Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo> dictionary)
-    {
-        dictionary.Add(assemblySymbol, new ReferencedAssemblySymbolInfo(assemblySymbol, null));
-
-        bool isCandidate = false;
-
-        foreach (var assemblySymbolModule in assemblySymbol.Modules)
-        {
-            foreach (var referencedAssemblySymbol in assemblySymbolModule.ReferencedAssemblySymbols)
-            {
-                if (dictionary.TryGetValue(referencedAssemblySymbol, out var referencedAssemblyInfo))
-                {
-                    if (referencedAssemblyInfo.IsCandidate is true)
-                    {
-                        isCandidate = true;
-                    }
-                    else
-                    {
-                        // 此程序集已经判断过不是候选项，跳过
-                    }
-                    continue;
-                }
-
-                if (referencedAssemblySymbol.Name == "DotNetCampus.Storage")
-                {
-                    dictionary[assemblySymbol] = new ReferencedAssemblySymbolInfo(assemblySymbol, true);
-
-                    isCandidate = true;
-                }
-
-                if (IsSaveInfoAssemblyCandidate(referencedAssemblySymbol, dictionary))
-                {
-                    isCandidate = true;
-                }
-            }
+            context.RegisterSourceOutput(provider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
         }
 
-        return isCandidate;
-    }
-
-    private static bool IsSaveInfoCandidate(SyntaxNode node)
-    {
-        // 查找带有特性的类声明
-        if (node is ClassDeclarationSyntax classDeclaration
-            && classDeclaration.AttributeLists.Count > 0)
+        private static bool IsSaveInfoCandidate(SyntaxNode node)
         {
-            if (classDeclaration.Modifiers.Any(t => t.IsKind(SyntaxKind.AbstractKeyword)))
+            if (node is ClassDeclarationSyntax cds && cds.AttributeLists.Count > 0)
             {
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private static ClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
-    {
-        var classDeclaration = (ClassDeclarationSyntax) context.Node;
-        var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, classDeclaration);
-
-        if (symbol is not INamedTypeSymbol classSymbol)
-        {
-            return null;
-        }
-
-        return TryGetSaveInfoClassInfo(classSymbol);
-    }
-
-    private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol)
-    {
-        if (classSymbol.IsAbstract)
-        {
-            return null;
-        }
-
-        // 检查是否继承自 SaveInfo
-        if (!InheritsFromSaveInfo(classSymbol))
-        {
-            return null;
-        }
-
-        // 查找 SaveInfoContract 特性
-        var contractAttribute = classSymbol.GetAttributes()
-            .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoContractAttribute");
-
-        if (contractAttribute == null)
-        {
-            return null;
-        }
-
-        // 获取特性中的名称参数
-        var contractName = contractAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-        if (string.IsNullOrEmpty(contractName))
-        {
-            return null;
-        }
-
-        // 获取所有带有 SaveInfoMember 特性的属性，包括继承的属性
-        var properties = new List<PropertyInfo>();
-        var currentType = classSymbol;
-
-        // 遍历继承链，收集所有带有 SaveInfoMemberAttribute 特性的属性
-        while (currentType != null)
-        {
-            foreach (var member in currentType.GetMembers().OfType<IPropertySymbol>())
-            {
-                // 这是当前程序集内的，忽略此情况
-                //if (member.DeclaredAccessibility != Accessibility.Public)
-                //{
-                //    // 非公共属性跳过
-                //    continue;
-                //}
-
-                var memberAttribute = member.GetAttributes()
-                    .FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
-
-                if (memberAttribute == null)
+                if (cds.Modifiers.Any(m => m.IsKind(SyntaxKind.AbstractKeyword)))
                 {
-                    continue;
+                    return false;
                 }
 
-                var memberName = memberAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-                if (string.IsNullOrEmpty(memberName))
-                {
-                    continue;
-                }
-
-                // 避免添加重复的属性（子类可能覆盖基类属性）
-                if (properties.All(p => p.PropertyName != member.Name))
-                {
-                    properties.Add(new PropertyInfo
-                    {
-                        PropertyName = member.Name,
-                        PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                        StorageName = memberName!,
-                        IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated
-                    });
-                }
-            }
-
-            // 移动到基类，但在到达 SaveInfo 时停止（不包括 SaveInfo 本身的属性）
-            currentType = currentType.BaseType;
-            if (currentType?.Name == "SaveInfo")
-            {
-                break;
-            }
-        }
-
-        return new ClassInfo
-        {
-            ClassName = classSymbol.Name,
-            ClassFullName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-            Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
-            ContractName = contractName!,
-            Properties = properties
-        };
-    }
-
-    private static bool InheritsFromSaveInfo(INamedTypeSymbol classSymbol)
-    {
-        var baseType = classSymbol.BaseType;
-        while (baseType != null)
-        {
-            if (baseType.Name == "SaveInfo")
                 return true;
-            baseType = baseType.BaseType;
-        }
-        return false;
-    }
-
-    private static void GenerateParseCode(SourceProductionContext sourceProductionContext, ClassInfo? classInfo)
-    {
-        if (classInfo is null)
-        {
-            return;
-        }
-
-        var source = GenerateNodeParser(classInfo);
-        sourceProductionContext.AddSource($"{classInfo.ClassName}NodeParser.g.cs", source);
-    }
-
-    private static string GenerateNodeParser(ClassInfo classInfo)
-    {
-        var parseCoreMethod = GenerateParseCore(classInfo);
-        var deparseCoreMethod = GenerateDeparseCore(classInfo);
-
-        return $$"""
-            // <auto-generated/>
-            #nullable enable
-            using System;
-            using System.Collections.Generic;
-            using DotNetCampus.Storage.Lib.Parsers;
-            using DotNetCampus.Storage.Lib.Parsers.Contexts;
-            using DotNetCampus.Storage.Lib.Parsers.NodeParsers;
-            using DotNetCampus.Storage.Lib.SaveInfos;
-            using DotNetCampus.Storage.Lib.StorageNodes;
-
-            namespace {{classInfo.Namespace}};
-
-            internal partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassFullName}}>
-            {
-                public override SaveInfoContractAttribute ContractAttribute => _contractAttribute ??= new SaveInfoContractAttribute("{{classInfo.ContractName}}");
-                private SaveInfoContractAttribute? _contractAttribute;
-
-            {{parseCoreMethod}}
-
-            {{deparseCoreMethod}}
             }
-            """;
-    }
 
-    private static string GenerateParseCore(ClassInfo classInfo)
-    {
-        var sb = new StringBuilder();
+            return false;
+        }
 
-        foreach (var property in classInfo.Properties)
+        private static ClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
         {
-            /*
-              var propertyNameForFooProperty = "FooProperty";
-              if (currentName.Equals(propertyNameForFooProperty, StringComparison.Ordinal))
-              {
-                  var typeOfFooProperty = typeof(int);
-                  var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
-                  var valueForFooProperty = nodeParserForFooProperty.Parse(storageNode, context);
-                  fooSaveInfo.FooProperty = (int) valueForFooProperty;
-                  continue;
-              }
-            */
-            var propertyVarName = $"propertyNameFor{property.PropertyName}";
-            sb.AppendLine($$"""
-                            var {{propertyVarName}} = "{{property.StorageName}}";
-                            if (currentName.Equals({{propertyVarName}}, StringComparison.Ordinal))
+            if (context.Node is not ClassDeclarationSyntax classDeclaration)
+            {
+                return null;
+            }
+
+            var symbol = context.SemanticModel.GetDeclaredSymbol(classDeclaration);
+            if (symbol is not { } classSymbol)
+            {
+                return null;
+            }
+
+            return TryGetSaveInfoClassInfo(classSymbol);
+        }
+
+        private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol)
+        {
+            if (classSymbol.IsAbstract)
+                return null;
+
+            if (!InheritsFromSaveInfo(classSymbol))
+                return null;
+
+            var contractAttribute = classSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoContractAttribute");
+            if (contractAttribute == null)
+                return null;
+
+            var contractName = contractAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
+            if (string.IsNullOrEmpty(contractName))
+                return null;
+
+            var properties = new List<PropertyInfo>();
+            var current = classSymbol;
+            while (current != null)
+            {
+                foreach (var member in current.GetMembers().OfType<IPropertySymbol>())
+                {
+                    var memberAttribute = member.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
+                    if (memberAttribute == null)
+                        continue;
+
+                    var storageName = memberAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
+
+                    if (storageName is null)
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(storageName))
+                    {
+                        continue;
+                    }
+
+                    IReadOnlyList<string>? aliases = null;
+                    foreach (var named in memberAttribute.NamedArguments)
+                    {
+                        if (named.Key == "Aliases")
+                        {
+                            var tc = named.Value;
+                            if (tc.Kind == TypedConstantKind.Array && !tc.IsNull)
                             {
-                                var typeOf{{property.PropertyName}} = typeof({{property.PropertyType}});
-                                var nodeParserFor{{property.PropertyName}} = parserManager.GetNodeParser(typeOf{{property.PropertyName}});
-                                var valueFor{{property.PropertyName}} = nodeParserFor{{property.PropertyName}}.Parse(storageNode, context);
-                                result.{{property.PropertyName}} = ({{property.PropertyType}}) valueFor{{property.PropertyName}};
-                                continue;
+                                var items = new List<string>();
+                                foreach (var element in tc.Values)
+                                {
+                                    if (element.Value is string s)
+                                        items.Add(s);
+                                }
+
+                                if (items.Count > 0)
+                                    aliases = items.ToArray();
+                            }
+                            else if (tc.Value is string single)
+                            {
+                                aliases = new[] { single };
                             }
 
-            """);
-        }
-
-        var propertiesCode = sb.ToString();
-
-        return $$"""
-                protected override {{classInfo.ClassFullName}} ParseCore(StorageNode node, in ParseNodeContext context)
-                {
-                    StorableNodeParserManager parserManager = context.ParserManager;
-
-                    // 决定不支持 init 的情况，这样才能更好地保留默认值
-                    var result = new {{classInfo.ClassFullName}}();
-
-                    if (node.Children is { } children)
-                    {
-                        List<StorageNode>? unknownNodeList = null;
-                        foreach (var storageNode in children)
-                        {
-                            var currentName = storageNode.Name.AsSpan();
-
-            {{propertiesCode}}
-                            unknownNodeList ??= new List<StorageNode>();
-                            unknownNodeList.Add(storageNode);
+                            break;
                         }
-                        
-                        if (unknownNodeList != null)
-                        {
-                            FillExtensionAndUnknownProperties(unknownNodeList, result, in context);
-                        }     
                     }
 
-                    return result;
+                    if (properties.All(p => p.PropertyName != member.Name))
+                    {
+                        properties.Add(new PropertyInfo
+                        {
+                            PropertyName = member.Name,
+                            PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                            StorageName = storageName,
+                            IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
+                            Aliases = aliases
+                        });
+                    }
                 }
-            """;
-    }
 
-    private static string GenerateDeparseCore(ClassInfo classInfo)
-    {
-        var sb = new StringBuilder();
+                current = current.BaseType;
+                if (current?.Name == "SaveInfo")
+                    break;
+            }
 
-        foreach (var property in classInfo.Properties)
+            return new ClassInfo
+            {
+                ClassName = classSymbol.Name,
+                ClassFullName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
+                ContractName = contractName!,
+                Properties = properties
+            };
+        }
+
+        private static bool InheritsFromSaveInfo(INamedTypeSymbol classSymbol)
         {
+            var bt = classSymbol.BaseType;
+            while (bt != null)
+            {
+                if (bt.Name == "SaveInfo")
+                    return true;
+                bt = bt.BaseType;
+            }
+            return false;
+        }
+
+        private static void GenerateParseCode(SourceProductionContext spc, ClassInfo? classInfo)
+        {
+            if (classInfo is null)
+                return;
+
+            var source = GenerateNodeParser(classInfo);
+            spc.AddSource(classInfo.ClassName + "NodeParser.g.cs", source);
+        }
+
+        private static string GenerateNodeParser(ClassInfo classInfo)
+        {
+            return $$"""
+                     // <auto-generated/>
+                     #nullable enable
+                     using System;
+                     using System.Collections.Generic;
+                     using DotNetCampus.Storage.Lib.Parsers;
+                     using DotNetCampus.Storage.Lib.Parsers.Contexts;
+                     using DotNetCampus.Storage.Lib.Parsers.NodeParsers;
+                     using DotNetCampus.Storage.Lib.SaveInfos;
+                     using DotNetCampus.Storage.Lib.StorageNodes;
+
+                     namespace {{classInfo.Namespace}};
+
+                     internal partial class {{classInfo.ClassName}}NodeParser : SaveInfoNodeParser<{{classInfo.ClassFullName}}>
+                     {
+                         public override SaveInfoContractAttribute ContractAttribute => _contractAttribute ??= new SaveInfoContractAttribute("{{classInfo.ContractName}}");
+                         private SaveInfoContractAttribute? _contractAttribute;
+
+                     {{GenerateParseCore(classInfo)}}
+
+                     {{GenerateDeparseCore(classInfo)}}
+                     }
+                     """;
+        }
+
+        private static string GenerateParseCore(ClassInfo classInfo)
+        {
+            // Generate variable declarations for each property
             /*
-               var propertyNameForFooProperty = "FooProperty";
-               var typeOfFooProperty = typeof(int);
-               var nodeParserForFooProperty = parserManager.GetNodeParser(typeOfFooProperty);
-               object? valueForFooProperty = obj.FooProperty;
-               if (valueForFooProperty is not null)
+               bool isNotSetFoo1Property = true;
+               var propertyNameForFoo1Property = "Foo1Property";
+               string[]? aliasesForFoo1Property = null;
+             */
+            var preDeclarations = string.Join("\n", classInfo.Properties.Select(prop =>
+            {
+                var aliasesInitialization = prop.Aliases is null
+                    ? "null"
+                    : "new string[] { " + string.Join(", ", prop.Aliases.Select(a => "\"" + a.Replace("\"", "\\\"") + "\"")) + " }";
+
+                return $"""
+                        bool isNotSet{prop.PropertyName} = true;
+                        var propertyNameFor{prop.PropertyName} = "{prop.StorageName}";
+                        string[]? aliasesFor{prop.PropertyName} = {aliasesInitialization};
+                        
+                        """;
+            }));
+            preDeclarations = SetIndent(preDeclarations, 3);
+
+            // Generate match logic for each property
+            /*
+               if (isNotSetFoo1Property)
+               {
+                   if (currentName.Equals(propertyNameForFoo1Property, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForFoo1Property))
+                   {
+                       var typeOfFoo1Property = typeof(bool);
+                       var nodeParserForFoo1Property = parserManager.GetNodeParser(typeOfFoo1Property);
+                       var valueForFoo1Property = nodeParserForFoo1Property.Parse(storageNode, context);
+                       result.Foo1Property = (bool) valueForFoo1Property;
+                       isNotSetFoo1Property = false;
+                       continue;
+                   }
+               }
+             */
+            var matchLogic = string.Join("\n", classInfo.Properties.Select(prop =>
+            {
+                var isNotSet = "isNotSet" + prop.PropertyName;
+                var propNameVar = "propertyNameFor" + prop.PropertyName;
+                var aliasesVar = "aliasesFor" + prop.PropertyName;
+
+                return $$"""
+                       // Parse property {{prop.PropertyName}}
+                       if ({{isNotSet}})
+                       {
+                           if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
+                           {
+                               var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
+                               var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
+                               var valueFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Parse(storageNode, context);
+                               result.{{prop.PropertyName}} = ({{prop.PropertyType}}) valueFor{{prop.PropertyName}};
+                               {{isNotSet}} = false;
+                               continue;
+                           }
+                       }
+                       
+                       """;
+            }));
+            matchLogic = SetIndent(matchLogic, 4);
+
+            return $$"""
+                    protected override {{classInfo.ClassFullName}} ParseCore(StorageNode node, in ParseNodeContext context)
+                    {
+                        StorableNodeParserManager parserManager = context.ParserManager;
+
+                        var result = new {{classInfo.ClassFullName}}();
+
+                        if (node.Children is { } children)
+                        {
+                {{preDeclarations}}
+                            List<StorageNode>? unknownNodeList = null;
+                            foreach (var storageNode in children)
+                            {
+                                var currentName = storageNode.Name.AsSpan();
+
+                {{matchLogic}}
+                                unknownNodeList ??= new List<StorageNode>();
+                                unknownNodeList.Add(storageNode);
+                            }
+                            if (unknownNodeList != null)
+                            {
+                                FillExtensionAndUnknownProperties(unknownNodeList, result, in context);
+                            }
+                        }
+
+                        return result;
+                    }
+                """;
+        }
+
+        private static string GenerateDeparseCore(ClassInfo classInfo)
+        {
+            // Generate properties code using raw strings
+            /*
+               var propertyNameForFoo1Property = "Foo1Property";
+               var typeOfFoo1Property = typeof(bool);
+               var nodeParserForFoo1Property = parserManager.GetNodeParser(typeOfFoo1Property);
+               object? valueForFoo1Property = obj.Foo1Property;
+               if (valueForFoo1Property is not null)
                {
                    tempContext = context with
                    {
-                       NodeName = propertyNameForFooProperty
-                   };
-                   var childNodeForFooProperty = nodeParserForFooProperty.Deparse(valueForFooProperty, tempContext);
-                   storageNode.Children.Add(childNodeForFooProperty);
+                       NodeName = propertyNameForFoo1Property
+                   }; 
+                   var childNodeForFoo1Property = nodeParserForFoo1Property.Deparse(valueForFoo1Property, tempContext);
+                   storageNode.Children.Add(childNodeForFoo1Property);
                }
              */
+            var propertiesCode = string.Join("\n", classInfo.Properties.Select(prop =>
+            {
+                var propNameVar = "propertyNameFor" + prop.PropertyName;
 
-            var propertyVarName = $"propertyNameFor{property.PropertyName}";
-            sb.AppendLine($$"""
-                    var {{propertyVarName}} = "{{property.StorageName}}";
-                    var typeOf{{property.PropertyName}} = typeof({{property.PropertyType}});
-                    var nodeParserFor{{property.PropertyName}} = parserManager.GetNodeParser(typeOf{{property.PropertyName}});
-                    object? valueFor{{property.PropertyName}} = obj.{{property.PropertyName}};
-                    if (valueFor{{property.PropertyName}} is not null)
+                return $$"""
+                       // Generate code for property {{prop.PropertyName}}
+                       var {{propNameVar}} = "{{prop.StorageName}}";
+                       var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
+                       var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
+                       object? valueFor{{prop.PropertyName}} = obj.{{prop.PropertyName}};
+                       if (valueFor{{prop.PropertyName}} is not null)
+                       {
+                           tempContext = context with
+                           {
+                               NodeName = {{propNameVar}}
+                           }; 
+                           var childNodeFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Deparse(valueFor{{prop.PropertyName}}, tempContext);
+                           storageNode.Children.Add(childNodeFor{{prop.PropertyName}});
+                       }
+                       
+                       """;
+            }));
+            propertiesCode = SetIndent(propertiesCode, 2);
+
+            return $$"""
+                    protected override StorageNode DeparseCore({{classInfo.ClassFullName}} obj, in DeparseNodeContext context)
                     {
-                        tempContext = context with
-                        {
-                            NodeName = {{propertyVarName}}
-                        };
-                        var childNodeFor{{property.PropertyName}} = nodeParserFor{{property.PropertyName}}.Deparse(valueFor{{property.PropertyName}}, tempContext);
-                        storageNode.Children.Add(childNodeFor{{property.PropertyName}});
+                        StorableNodeParserManager parserManager = context.ParserManager;
+
+                        var storageNode = new StorageNode();
+                        const int saveInfoMemberCount = {{classInfo.Properties.Count}};
+                        storageNode.Name = context.NodeName ?? TargetStorageName;
+                        storageNode.Children = new List<StorageNode>(saveInfoMemberCount);
+
+                        DeparseNodeContext tempContext;
+
+                {{propertiesCode}}
+                        AppendExtensionAndUnknownProperties(storageNode, obj, in context);
+                        return storageNode;
                     }
-
-            """);
+                """;
         }
 
-        var propertiesCode = sb.ToString().TrimEnd('\r', '\n');
-
-        return $$"""
-                protected override StorageNode DeparseCore({{classInfo.ClassFullName}} obj, in DeparseNodeContext context)
-                {
-                    StorableNodeParserManager parserManager = context.ParserManager;
-
-                    var storageNode = new StorageNode();
-                    const int saveInfoMemberCount = {{classInfo.Properties.Count}};
-                    storageNode.Name = context.NodeName ?? TargetStorageName;
-                    storageNode.Children = new List<StorageNode>(saveInfoMemberCount);
-
-                    DeparseNodeContext tempContext;
-
-            {{propertiesCode}}
-                    AppendExtensionAndUnknownProperties(storageNode, obj, in context);
-                    return storageNode;
-                }
-            """;
-    }
-
-    private record ClassInfo
-    {
-        public required string ClassName { get; init; }
-        public required string ClassFullName { get; init; }
-        public required string Namespace { get; init; }
-        public required string ContractName { get; init; }
-        public required List<PropertyInfo> Properties { get; init; }
-    }
-
-    private record PropertyInfo
-    {
-        public required string PropertyName { get; init; }
-        public required string PropertyType { get; init; }
-        public required string StorageName { get; init; }
-        public required bool IsNullable { get; init; }
-    }
-
-    private readonly record struct ReferencedAssemblySymbolInfo(IAssemblySymbol AssemblySymbol, bool? IsCandidate)
-    {
-        public override int GetHashCode()
+        private static string SetIndent(string code, int indentLevel)
         {
-            return AssemblySymbol.GetHashCode();
+            var indent = new string(' ', indentLevel * 4);
+            var lines = code.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var indentedLines = lines.Select(line => indent + line);
+            return string.Join("\r\n", indentedLines);
         }
 
-        public bool Equals(ReferencedAssemblySymbolInfo? other)
+        private record ClassInfo
         {
-            return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
+            public required string ClassName { get; init; }
+            public required string ClassFullName { get; init; }
+            public required string Namespace { get; init; }
+            public required string ContractName { get; init; }
+            public required List<PropertyInfo> Properties { get; init; }
+        }
+
+        private record PropertyInfo
+        {
+            public required string PropertyName { get; init; }
+            public required string PropertyType { get; init; }
+            public required string StorageName { get; init; }
+            public required bool IsNullable { get; init; }
+            public IReadOnlyList<string>? Aliases { get; init; }
         }
     }
 }
