@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace DotNetCampus.Storage.Analyzer
 {
@@ -23,28 +24,10 @@ namespace DotNetCampus.Storage.Analyzer
             // 为什么不用 ForAttributeWithMetadataName 方式，因为考虑到特性的命名空间会有不同，通过名称判断效果更好
             //context.SyntaxProvider.ForAttributeWithMetadataName("")
 
-            IncrementalValueProvider<SaveInfoNodeParserGeneratorConfigOption> configurationProvider = context.AnalyzerConfigOptionsProvider.Select((t, _) =>
-            {
-                bool shouldGenerateSaveInfoNodeParser = false;
-                if (t.GlobalOptions.TryGetValue("build_property.GenerateSaveInfoNodeParser",
-                        out var generateSaveInfoNodeParser))
-                {
-                    bool.TryParse(generateSaveInfoNodeParser, out shouldGenerateSaveInfoNodeParser);
-                }
+            IncrementalValueProvider<SaveInfoNodeParserGeneratorConfigOption> configurationProvider =
+                context.AnalyzerConfigOptionsProvider.GetConfigOption();
 
-                if (!t.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
-                {
-                    rootNamespace = null;
-                }
-
-                return new SaveInfoNodeParserGeneratorConfigOption()
-                {
-                    ShouldGenerateSaveInfoNodeParser = shouldGenerateSaveInfoNodeParser,
-                    RootNamespace = rootNamespace,
-                };
-            });
-
-            provider = SaveInfoNodeParserGeneratorConfigHelper.FilterAndUpdateNamespace(provider, configurationProvider);
+            provider = provider.FilterAndUpdateNamespace(configurationProvider);
 
             context.RegisterSourceOutput(provider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
 
@@ -534,8 +517,6 @@ namespace DotNetCampus.Storage.Analyzer
             return string.Join("\r\n", indentedLines);
         }
 
-
-
         private readonly record struct ReferencedAssemblySymbolInfo(IAssemblySymbol AssemblySymbol, bool? IsCandidate)
         {
             public override int GetHashCode()
@@ -547,53 +528,6 @@ namespace DotNetCampus.Storage.Analyzer
             {
                 return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
             }
-        }
-    }
-
-    record SaveInfoClassInfo
-    {
-        public required string ClassName { get; init; }
-        public required string ClassFullName { get; init; }
-        public required string Namespace { get; init; }
-        public required string ContractName { get; init; }
-        public required List<SaveInfoPropertyInfo> Properties { get; init; }
-    }
-
-    record SaveInfoPropertyInfo
-    {
-        public required string PropertyName { get; init; }
-        public required string PropertyType { get; init; }
-        public required string StorageName { get; init; }
-        //public required bool IsNullable { get; init; }
-        public IReadOnlyList<string>? Aliases { get; init; }
-        public bool IsListType { get; init; }
-    }
-
-    static class SaveInfoNodeParserGeneratorConfigHelper
-    {
-        public static IncrementalValuesProvider<SaveInfoClassInfo> FilterAndUpdateNamespace(IncrementalValuesProvider<SaveInfoClassInfo> classInfoProvider, IncrementalValueProvider<SaveInfoNodeParserGeneratorConfigOption> configurationProvider)
-        {
-            var provider = classInfoProvider
-                .Combine(configurationProvider)
-                .Select((t, _) =>
-                {
-                    if (!t.Right.ShouldGenerateSaveInfoNodeParser)
-                    {
-                        return null;
-                    }
-
-                    if (t.Right.RootNamespace != null)
-                    {
-                        return t.Left with
-                        {
-                            Namespace = t.Right.RootNamespace
-                        };
-                    }
-                    return t.Left;
-                })
-                .Where(static m => m is not null)
-                .Select(static (m, _) => m!);
-            return provider;
         }
     }
 }
