@@ -13,12 +13,50 @@ namespace DotNetCampus.Storage.Analyzer
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var provider = context.SyntaxProvider
+            IncrementalValuesProvider<ClassInfo> provider = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: static (node, _) => IsSaveInfoCandidate(node),
                     transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
                 .Where(static m => m is not null)
                 .Select(static (m, _) => m!);
+
+            // 为什么不用 ForAttributeWithMetadataName 方式，因为考虑到特性的命名空间会有不同，通过名称判断效果更好
+            //context.SyntaxProvider.ForAttributeWithMetadataName("")
+
+            var configurationProvider = context.AnalyzerConfigOptionsProvider.Select((t, _) =>
+            {
+                bool shouldGenerateSaveInfoNodeParser = false;
+                if (t.GlobalOptions.TryGetValue("build_property.GenerateSaveInfoNodeParser",
+                        out var generateSaveInfoNodeParser))
+                {
+                    bool.TryParse(generateSaveInfoNodeParser, out shouldGenerateSaveInfoNodeParser);
+                }
+
+                if (!t.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace))
+                {
+                    rootNamespace = null;
+                }
+
+                return new SaveInfoNodeParserGeneratorConfigOption()
+                {
+                    ShouldGenerateSaveInfoNodeParser = shouldGenerateSaveInfoNodeParser,
+                    RootNamespace = rootNamespace,
+                };
+            });
+
+            provider = provider
+                .Combine(configurationProvider)
+                .Select((t, _) =>
+                {
+                    if (!t.Right.ShouldGenerateSaveInfoNodeParser)
+                    {
+                        return null;
+                    }
+                    return t.Left;
+                })
+                .Where(static m => m is not null)
+                .Select(static (m, _) => m!);
+
 
             context.RegisterSourceOutput(provider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
         }
@@ -57,18 +95,26 @@ namespace DotNetCampus.Storage.Analyzer
         private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol)
         {
             if (classSymbol.IsAbstract)
+            {
                 return null;
+            }
 
             if (!InheritsFromSaveInfo(classSymbol))
+            {
                 return null;
+            }
 
             var contractAttribute = classSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoContractAttribute");
             if (contractAttribute == null)
+            {
                 return null;
+            }
 
             var contractName = contractAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
             if (string.IsNullOrEmpty(contractName))
+            {
                 return null;
+            }
 
             var properties = new List<PropertyInfo>();
             var current = classSymbol;
@@ -78,7 +124,9 @@ namespace DotNetCampus.Storage.Analyzer
                 {
                     var memberAttribute = member.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == "SaveInfoMemberAttribute");
                     if (memberAttribute == null)
+                    {
                         continue;
+                    }
 
                     var storageName = memberAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
 
@@ -104,11 +152,15 @@ namespace DotNetCampus.Storage.Analyzer
                                 foreach (var element in tc.Values)
                                 {
                                     if (element.Value is string s)
+                                    {
                                         items.Add(s);
+                                    }
                                 }
 
                                 if (items.Count > 0)
+                                {
                                     aliases = items.ToArray();
+                                }
                             }
                             else if (tc.Value is string single)
                             {
@@ -137,7 +189,9 @@ namespace DotNetCampus.Storage.Analyzer
 
                 current = current.BaseType;
                 if (current?.Name == "SaveInfo")
+                {
                     break;
+                }
             }
 
             return new ClassInfo
@@ -173,7 +227,10 @@ namespace DotNetCampus.Storage.Analyzer
             while (bt != null)
             {
                 if (bt.Name == "SaveInfo")
+                {
                     return true;
+                }
+
                 bt = bt.BaseType;
             }
             return false;
@@ -182,7 +239,9 @@ namespace DotNetCampus.Storage.Analyzer
         private static void GenerateParseCode(SourceProductionContext spc, ClassInfo? classInfo)
         {
             if (classInfo is null)
+            {
                 return;
+            }
 
             var source = GenerateNodeParser(classInfo);
             spc.AddSource(classInfo.ClassName + "NodeParser.g.cs", source);
