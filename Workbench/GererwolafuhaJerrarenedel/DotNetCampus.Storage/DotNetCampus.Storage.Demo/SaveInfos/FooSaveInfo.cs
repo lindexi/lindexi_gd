@@ -18,5 +18,15 @@ public class FooSaveInfo : SaveInfo
     public Foo1SaveInfo? Foo1 { get; set; }
 
     [SaveInfoMember("S1")]
-    public IList<SaveInfo>? SaveInfoList { get; set; }
+    public List<SaveInfo>? SaveInfoList { get; set; }
+
+    [SaveInfoMember("F2")]
+    public FooEnum Foo2Enum { get; set; }
+}
+
+public enum FooEnum
+{
+    Value1,
+    Value2,
+    Value3
 }
