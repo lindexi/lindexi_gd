@@ -18,7 +18,7 @@ public class SaveInfoToStorageNodeTests
     [TestMethod]
     public void TestMethod1()
     {
-        var storableNodeParserManager = new StorableNodeParserManager();
+        var storableNodeParserManager = new StorageNodeParserManager();
         storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
 
         var foo1SaveInfo = new Foo1SaveInfo()
@@ -44,7 +44,7 @@ public class SaveInfoToStorageNodeTests
     [TestMethod]
     public void TestMethod2()
     {
-        var storableNodeParserManager = new StorableNodeParserManager();
+        var storableNodeParserManager = new StorageNodeParserManager();
         storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
         storableNodeParserManager.Register(new FooSaveInfoNodeParser());
 
@@ -125,7 +125,7 @@ public class SaveInfoToStorageNodeTests
     [TestMethod]
     public void TestMethod3()
     {
-        var storableNodeParserManager = new StorableNodeParserManager();
+        var storableNodeParserManager = new StorageNodeParserManager();
         storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
         storableNodeParserManager.Register(new FooSaveInfoNodeParser());
 
@@ -187,7 +187,7 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
 
     protected override FooSaveInfo ParseCore(StorageNode node, in ParseNodeContext context)
     {
-        StorableNodeParserManager parserManager = context.ParserManager;
+        StorageNodeParserManager parserManager = context.ParserManager;
 
         var result = new FooSaveInfo();
 
@@ -263,7 +263,7 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
 
     protected override StorageNode DeparseCore(FooSaveInfo obj, in DeparseNodeContext context)
     {
-        StorableNodeParserManager parserManager = context.ParserManager;
+        StorageNodeParserManager parserManager = context.ParserManager;
 
         var storageNode = new StorageNode();
         const int saveInfoMemberCount = 3;
@@ -342,7 +342,7 @@ public class Foo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
 
     protected override Foo1SaveInfo ParseCore(StorageNode node, in ParseNodeContext context)
     {
-        StorableNodeParserManager parserManager = context.ParserManager;
+        StorageNodeParserManager parserManager = context.ParserManager;
 
         // 决定不支持 init 的情况，这样才能更好地保留默认值
         var foo1SaveInfo = new Foo1SaveInfo();
@@ -417,7 +417,7 @@ public class Foo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
 
     protected override StorageNode DeparseCore(Foo1SaveInfo obj, in DeparseNodeContext context)
     {
-        StorableNodeParserManager parserManager = context.ParserManager;
+        StorageNodeParserManager parserManager = context.ParserManager;
 
         var storageNode = new StorageNode();
         const int saveInfoMemberCount = 2;

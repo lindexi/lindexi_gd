@@ -41,7 +41,7 @@ namespace DotNetCampus.Storage.Analyzer
                 }
 
                 var compilation = tuple.Left;
-                var referencedAssemblyDictionary = new Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo>();
+                var referencedAssemblyDictionary = new Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo>(SymbolEqualityComparer.Default);
 
                 foreach (IAssemblySymbol referencedAssemblySymbol in compilation.SourceModule.ReferencedAssemblySymbols)
                 {
@@ -83,7 +83,7 @@ namespace DotNetCampus.Storage.Analyzer
             // 将当前程序集和引用程序集的类信息合并，用于收集当前有多少可用的 SaveInfo 转换类
             IncrementalValueProvider<ImmutableArray<SaveInfoClassInfo>> allSaveInfoClassInfoProvider = provider.Collect()
                 .Combine(referencedAssemblyClassInfoProvider.Collect())
-                .Select((tuple,_)=>tuple.Left.AddRange(tuple.Right));
+                .Select((tuple, _) => tuple.Left.AddRange(tuple.Right));
 
             context.RegisterSourceOutput(allSaveInfoClassInfoProvider.Combine(configurationProvider), (spc, tuple) =>
             {
@@ -94,27 +94,38 @@ namespace DotNetCampus.Storage.Analyzer
                     return;
                 }
 
+                var registerCodeStringBuilder = new StringBuilder();
+                foreach (var saveInfoClassInfo in allSaveInfoClassInfo)
+                {
+                    registerCodeStringBuilder.AppendLine($"        parserManager.Register(new global::{saveInfoClassInfo.Namespace}.{saveInfoClassInfo.ClassName}NodeParser());");
+                }
+
                 var rootNamespace = configOption.RootNamespace ?? "DotNetCampus.Storage";
 
                 var code =
                     $$"""
                       namespace {{rootNamespace}};
                       
-                      internal static partial class StorableNodeParserManagerCollection
+                      internal static class StorageNodeParserManagerCollection
                       {
-                          public static partial void RegisterSaveInfoNodeParser(StorableNodeParserManager parserManager)
+                          public static void RegisterSaveInfoNodeParser(global::DotNetCampus.Storage.Lib.Parsers.StorageNodeParserManager parserManager)
                           {
-                      
+                      {{registerCodeStringBuilder.ToString()}}        
                           }
                       }
                       """;
 
-                spc.AddSource("StorableNodeParserManagerCollection.SaveInfoNodeParsers.g.cs", code);
+                spc.AddSource("StorageNodeParserManagerCollection.g.cs", code);
             });
         }
 
         private static bool IsSaveInfoAssemblyCandidate(IAssemblySymbol assemblySymbol, Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo> dictionary)
         {
+            if (dictionary.TryGetValue(assemblySymbol, out var info))
+            {
+                return info.IsCandidate is true;
+            }
+
             dictionary.Add(assemblySymbol, new ReferencedAssemblySymbolInfo(assemblySymbol, null));
 
             bool isCandidate = false;
@@ -443,7 +454,7 @@ namespace DotNetCampus.Storage.Analyzer
             return $$"""
                     protected override {{classInfo.ClassFullName}} ParseCore(StorageNode node, in ParseNodeContext context)
                     {
-                        StorableNodeParserManager parserManager = context.ParserManager;
+                        var parserManager = context.ParserManager;
 
                         var result = new {{classInfo.ClassFullName}}();
 
@@ -526,7 +537,7 @@ namespace DotNetCampus.Storage.Analyzer
             return $$"""
                     protected override StorageNode DeparseCore({{classInfo.ClassFullName}} obj, in DeparseNodeContext context)
                     {
-                        StorableNodeParserManager parserManager = context.ParserManager;
+                        var parserManager = context.ParserManager;
 
                         var storageNode = new StorageNode();
                         const int saveInfoMemberCount = {{classInfo.Properties.Count}};

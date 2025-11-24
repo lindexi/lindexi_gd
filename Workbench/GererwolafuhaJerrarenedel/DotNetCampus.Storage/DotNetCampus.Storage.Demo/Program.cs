@@ -6,9 +6,8 @@ using DotNetCampus.Storage.Lib.Parsers;
 using DotNetCampus.Storage.Lib.Parsers.Contexts;
 using DotNetCampus.Storage.Lib.StorageNodes;
 
-var storableNodeParserManager = new StorableNodeParserManager();
-storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
-storableNodeParserManager.Register(new FooSaveInfoNodeParser());
+var parserManager = new StorageNodeParserManager();
+StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser(parserManager);
 
 var fooSaveInfo = new FooSaveInfo()
 {
@@ -20,21 +19,21 @@ var fooSaveInfo = new FooSaveInfo()
     }
 };
 
-var nodeParser = storableNodeParserManager.GetNodeParser(fooSaveInfo.GetType());
+var nodeParser = parserManager.GetNodeParser(fooSaveInfo.GetType());
 var storageNode = nodeParser.Deparse(fooSaveInfo, new DeparseNodeContext()
 {
     NodeName = null,
-    ParserManager = storableNodeParserManager
+    ParserManager = parserManager
 });
 
 var foo1SaveInfo = new Foo1SaveInfo()
 {
     Foo2Property = Random.Shared.Next(),
 };
-var extensionStorageNode = storableNodeParserManager.GetNodeParser(foo1SaveInfo.GetType()).Deparse(foo1SaveInfo, new DeparseNodeContext()
+var extensionStorageNode = parserManager.GetNodeParser(foo1SaveInfo.GetType()).Deparse(foo1SaveInfo, new DeparseNodeContext()
 {
     NodeName = null,
-    ParserManager = storableNodeParserManager
+    ParserManager = parserManager
 });
 storageNode.Children ??= new List<StorageNode>();
 storageNode.Children.Add(extensionStorageNode);
@@ -49,7 +48,7 @@ storageNode.Children.Add(unknownStorageNode);
 
 var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
 {
-    ParserManager = storableNodeParserManager
+    ParserManager = parserManager
 }) as FooSaveInfo;
 
 Console.WriteLine("Hello, World!");

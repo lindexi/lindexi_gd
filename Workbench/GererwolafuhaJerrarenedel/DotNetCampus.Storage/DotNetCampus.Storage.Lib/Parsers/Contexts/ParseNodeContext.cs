@@ -2,5 +2,5 @@
 
 public readonly record struct ParseNodeContext
 {
-    public required StorableNodeParserManager ParserManager { get; init; }
+    public required StorageNodeParserManager ParserManager { get; init; }
 }
