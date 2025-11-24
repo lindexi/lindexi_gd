@@ -448,80 +448,48 @@ namespace DotNetCampus.Storage.Analyzer
                 var propNameVar = "propertyNameFor" + propertyInfo.PropertyName;
                 var aliasesVar = "aliasesFor" + propertyInfo.PropertyName;
 
+                string convertCode;
                 if (propertyInfo.IsListType)
                 {
-                    // Special handling for List<SaveInfo> properties
-                    return $$"""
-                           // Parse property {{propertyInfo.PropertyName}} (List type)
-                           if ({{isNotSet}})
-                           {
-                               if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
-                               {
-                                   result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
-                                   {{isNotSet}} = false;
-                                   continue;
-                               }
-                           }
-                          
-                           """;
+                    convertCode = $$"""
+                                    result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
+                                    """;
                 }
                 else if (propertyInfo.IsEnumType)
                 {
-                    /*
-                       // Parse property Foo2Enum
-                       if (isNotSetFoo2Enum)
-                       {
-                           if (currentName.Equals(propertyNameForFoo2Enum, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForFoo2Enum))
-                           {
-                               //var typeOfFoo2Enum = typeof(FooEnum);
-
-                               if (Enum.TryParse(storageNode.Value.ToText(), out FooEnum valueForFoo2Enum))
-                               {
-                                   result.Foo2Enum = (FooEnum) valueForFoo2Enum;
-                               }
-
-                               isNotSetFoo2Enum = false;
-                               continue;
-                           }
-                       }
-                     */
-                    return $$"""
-                             // Parse property {{propertyInfo.PropertyName}} (Enum type)
-                             if ({{isNotSet}})
-                             {
-                                 if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
-                                 {
-                                     if (Enum.TryParse(storageNode.Value.ToText(), out {{propertyInfo.PropertyType}} valueFor{{propertyInfo.PropertyName}}))
-                                     {
-                                         result.{{propertyInfo.PropertyName}} = valueFor{{propertyInfo.PropertyName}};
-                                     }
-                                     
-                                     {{isNotSet}} = false;
-                                     continue;
-                                 }
-                             }
-                             """;
+                    convertCode = $$"""
+                                    if (Enum.TryParse(storageNode.Value.ToText(), out {{propertyInfo.PropertyType}} valueFor{{propertyInfo.PropertyName}}))
+                                    {
+                                        result.{{propertyInfo.PropertyName}} = valueFor{{propertyInfo.PropertyName}};
+                                    }
+                                    """;
                 }
                 else
                 {
-                    // Regular property handling
-                    return $$"""
-                           // Parse property {{propertyInfo.PropertyName}}
-                           if ({{isNotSet}})
-                           {
-                               if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
-                               {
-                                   var typeOf{{propertyInfo.PropertyName}} = typeof({{propertyInfo.PropertyType}});
-                                   var nodeParserFor{{propertyInfo.PropertyName}} = parserManager.GetNodeParser(typeOf{{propertyInfo.PropertyName}});
-                                   var valueFor{{propertyInfo.PropertyName}} = nodeParserFor{{propertyInfo.PropertyName}}.Parse(storageNode, context);
-                                   result.{{propertyInfo.PropertyName}} = ({{propertyInfo.PropertyType}}) valueFor{{propertyInfo.PropertyName}};
-                                   {{isNotSet}} = false;
-                                   continue;
-                               }
-                           }
-                       
-                           """;
+                    convertCode = $$"""
+                                    var typeOf{{propertyInfo.PropertyName}} = typeof({{propertyInfo.PropertyType}});
+                                    var nodeParserFor{{propertyInfo.PropertyName}} = parserManager.GetNodeParser(typeOf{{propertyInfo.PropertyName}});
+                                    var valueFor{{propertyInfo.PropertyName}} = nodeParserFor{{propertyInfo.PropertyName}}.Parse(storageNode, context);
+                                    result.{{propertyInfo.PropertyName}} = ({{propertyInfo.PropertyType}}) valueFor{{propertyInfo.PropertyName}};
+                                    """;
                 }
+
+                convertCode = SetIndent(convertCode, 2);
+
+                // Special handling for List<SaveInfo> properties
+                return $$"""
+                         // Parse property {{propertyInfo.PropertyName}} ({{propertyInfo.PropertyType}})
+                         if ({{isNotSet}})
+                         {
+                             if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
+                             {
+                         {{convertCode}}
+                                 {{isNotSet}} = false;
+                                 continue;
+                             }
+                         }
+
+                         """;
             }));
             matchLogic = SetIndent(matchLogic, 4);
 
