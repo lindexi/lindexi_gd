@@ -8,4 +8,5 @@ record SaveInfoPropertyInfo
     //public required bool IsNullable { get; init; }
     public IReadOnlyList<string>? Aliases { get; init; }
     public bool IsListType { get; init; }
+    public bool IsEnumType { get; init; }
 }

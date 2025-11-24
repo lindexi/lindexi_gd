@@ -291,6 +291,7 @@ namespace DotNetCampus.Storage.Analyzer
                     }
 
                     var isListType = IsListOfSaveInfo(member.Type);
+                    var isEnumType = IsEnumType(member.Type);
 
                     if (properties.All(p => p.PropertyName != member.Name))
                     {
@@ -301,7 +302,8 @@ namespace DotNetCampus.Storage.Analyzer
                             StorageName = storageName,
                             //IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
                             Aliases = aliases,
-                            IsListType = isListType
+                            IsListType = isListType,
+                            IsEnumType = isEnumType,
                         });
                     }
                 }
@@ -321,6 +323,33 @@ namespace DotNetCampus.Storage.Analyzer
                 ContractName = contractName!,
                 Properties = properties
             };
+        }
+
+        /// <summary>
+        /// 判断是否为枚举类型，包括可空枚举类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static bool IsEnumType(ITypeSymbol type)
+        {
+            if (type is INamedTypeSymbol namedType)
+            {
+                if (namedType.TypeKind == TypeKind.Enum)
+                {
+                    return true;
+                }
+                // 判断是否为可空枚举类型
+                if (namedType.IsGenericType && namedType.ConstructUnboundGenericType().ToDisplayString() == "System.Nullable<>")
+                {
+                    var typeArgument = namedType.TypeArguments.FirstOrDefault();
+                    if (typeArgument != null && typeArgument.TypeKind == TypeKind.Enum)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool IsListOfSaveInfo(ITypeSymbol type)
@@ -413,22 +442,22 @@ namespace DotNetCampus.Storage.Analyzer
             preDeclarations = SetIndent(preDeclarations, 3);
 
             // Generate match logic for each property
-            var matchLogic = string.Join("\n", classInfo.Properties.Select(prop =>
+            var matchLogic = string.Join("\n", classInfo.Properties.Select(propertyInfo =>
             {
-                var isNotSet = "isNotSet" + prop.PropertyName;
-                var propNameVar = "propertyNameFor" + prop.PropertyName;
-                var aliasesVar = "aliasesFor" + prop.PropertyName;
+                var isNotSet = "isNotSet" + propertyInfo.PropertyName;
+                var propNameVar = "propertyNameFor" + propertyInfo.PropertyName;
+                var aliasesVar = "aliasesFor" + propertyInfo.PropertyName;
 
-                if (prop.IsListType)
+                if (propertyInfo.IsListType)
                 {
                     // Special handling for List<SaveInfo> properties
                     return $$"""
-                           // Parse property {{prop.PropertyName}} (List type)
+                           // Parse property {{propertyInfo.PropertyName}} (List type)
                            if ({{isNotSet}})
                            {
                                if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
                                {
-                                   result.{{prop.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
+                                   result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
                                    {{isNotSet}} = false;
                                    continue;
                                }
@@ -436,19 +465,56 @@ namespace DotNetCampus.Storage.Analyzer
                           
                            """;
                 }
+                else if (propertyInfo.IsEnumType)
+                {
+                    /*
+                       // Parse property Foo2Enum
+                       if (isNotSetFoo2Enum)
+                       {
+                           if (currentName.Equals(propertyNameForFoo2Enum, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForFoo2Enum))
+                           {
+                               //var typeOfFoo2Enum = typeof(FooEnum);
+
+                               if (Enum.TryParse(storageNode.Value.ToText(), out FooEnum valueForFoo2Enum))
+                               {
+                                   result.Foo2Enum = (FooEnum) valueForFoo2Enum;
+                               }
+
+                               isNotSetFoo2Enum = false;
+                               continue;
+                           }
+                       }
+                     */
+                    return $$"""
+                             // Parse property {{propertyInfo.PropertyName}} (Enum type)
+                             if ({{isNotSet}})
+                             {
+                                 if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
+                                 {
+                                     if (Enum.TryParse(storageNode.Value.ToText(), out {{propertyInfo.PropertyType}} valueFor{{propertyInfo.PropertyName}}))
+                                     {
+                                         result.{{propertyInfo.PropertyName}} = valueFor{{propertyInfo.PropertyName}};
+                                     }
+                                     
+                                     {{isNotSet}} = false;
+                                     continue;
+                                 }
+                             }
+                             """;
+                }
                 else
                 {
                     // Regular property handling
                     return $$"""
-                           // Parse property {{prop.PropertyName}}
+                           // Parse property {{propertyInfo.PropertyName}}
                            if ({{isNotSet}})
                            {
                                if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
                                {
-                                   var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
-                                   var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
-                                   var valueFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Parse(storageNode, context);
-                                   result.{{prop.PropertyName}} = ({{prop.PropertyType}}) valueFor{{prop.PropertyName}};
+                                   var typeOf{{propertyInfo.PropertyName}} = typeof({{propertyInfo.PropertyType}});
+                                   var nodeParserFor{{propertyInfo.PropertyName}} = parserManager.GetNodeParser(typeOf{{propertyInfo.PropertyName}});
+                                   var valueFor{{propertyInfo.PropertyName}} = nodeParserFor{{propertyInfo.PropertyName}}.Parse(storageNode, context);
+                                   result.{{propertyInfo.PropertyName}} = ({{propertyInfo.PropertyType}}) valueFor{{propertyInfo.PropertyName}};
                                    {{isNotSet}} = false;
                                    continue;
                                }
@@ -492,49 +558,81 @@ namespace DotNetCampus.Storage.Analyzer
         private static string GenerateDeparseCore(SaveInfoClassInfo classInfo)
         {
             // Generate properties code using raw strings
-            var propertiesCode = string.Join("\n", classInfo.Properties.Select(prop =>
+            var propertiesCode = string.Join("\n", classInfo.Properties.Select(propertyInfo =>
             {
-                var propNameVar = "propertyNameFor" + prop.PropertyName;
+                var propNameVar = "propertyNameFor" + propertyInfo.PropertyName;
 
-                if (prop.IsListType)
+                if (propertyInfo.IsListType)
                 {
                     // Special handling for List<SaveInfo> properties
                     return $$"""
-                           // Generate code for property {{prop.PropertyName}} (List type)
-                           var {{propNameVar}} = "{{prop.StorageName}}";
-                           if (obj.{{prop.PropertyName}} is not null)
+                           // Generate code for property {{propertyInfo.PropertyName}} (List type)
+                           var {{propNameVar}} = "{{propertyInfo.StorageName}}";
+                           if (obj.{{propertyInfo.PropertyName}} is not null)
                            {
                                tempContext = context with
                                {
                                    NodeName = null
                                };
-                               var childNodeFor{{prop.PropertyName}} = new StorageNode()
+                               var childNodeFor{{propertyInfo.PropertyName}} = new StorageNode()
                                {
                                    Name = {{propNameVar}},
-                                   Children = DeparseElementOfList(obj.{{prop.PropertyName}}, tempContext)
+                                   Children = DeparseElementOfList(obj.{{propertyInfo.PropertyName}}, tempContext)
                                };
-                               storageNode.Children.Add(childNodeFor{{prop.PropertyName}});
+                               storageNode.Children.Add(childNodeFor{{propertyInfo.PropertyName}});
                            }
                            
                            """;
+                }
+                else if (propertyInfo.IsEnumType)
+                {
+                    /*
+   // Generate code for property Foo2Enum
+   var propertyNameForFoo2Enum = "F2";
+   FooEnum? valueForFoo2Enum = obj.Foo2Enum;
+   if (valueForFoo2Enum is not null)
+   {
+       var childrenNodeForFoo2Enum = new StorageNode()
+       {
+           Name = propertyNameForFoo2Enum,
+           Value = valueForFoo2Enum.ToString()
+       };
+       storageNode.Children.Add(childrenNodeForFoo2Enum);
+   }
+ */
+                    return $$"""
+                             // Generate code for property {{propertyInfo.PropertyName}} (Enum type)
+                             var {{propNameVar}} = "{{propertyInfo.StorageName}}";
+
+                             {{propertyInfo.PropertyType}}? valueFor{{propertyInfo.PropertyName}} = obj.{{propertyInfo.PropertyName}};
+                             if (valueFor{{propertyInfo.PropertyName}} is not null)
+                             {
+                                 var childrenNodeFor{{propertyInfo.PropertyName}} = new StorageNode()
+                                 {
+                                     Name = {{propNameVar}},
+                                     Value = valueFor{{propertyInfo.PropertyName}}.ToString()
+                                 };
+                                 storageNode.Children.Add(childrenNodeFor{{propertyInfo.PropertyName}});
+                             }
+                             """;
                 }
                 else
                 {
                     // Regular property handling
                     return $$"""
-                           // Generate code for property {{prop.PropertyName}}
-                           var {{propNameVar}} = "{{prop.StorageName}}";
-                           var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
-                           var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
-                           object? valueFor{{prop.PropertyName}} = obj.{{prop.PropertyName}};
-                           if (valueFor{{prop.PropertyName}} is not null)
+                           // Generate code for property {{propertyInfo.PropertyName}}
+                           var {{propNameVar}} = "{{propertyInfo.StorageName}}";
+                           var typeOf{{propertyInfo.PropertyName}} = typeof({{propertyInfo.PropertyType}});
+                           var nodeParserFor{{propertyInfo.PropertyName}} = parserManager.GetNodeParser(typeOf{{propertyInfo.PropertyName}});
+                           object? valueFor{{propertyInfo.PropertyName}} = obj.{{propertyInfo.PropertyName}};
+                           if (valueFor{{propertyInfo.PropertyName}} is not null)
                            {
                                tempContext = context with
                                {
                                    NodeName = {{propNameVar}}
                                }; 
-                               var childNodeFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Deparse(valueFor{{prop.PropertyName}}, tempContext);
-                               storageNode.Children.Add(childNodeFor{{prop.PropertyName}});
+                               var childNodeFor{{propertyInfo.PropertyName}} = nodeParserFor{{propertyInfo.PropertyName}}.Deparse(valueFor{{propertyInfo.PropertyName}}, tempContext);
+                               storageNode.Children.Add(childNodeFor{{propertyInfo.PropertyName}});
                            }
                            
                            """;

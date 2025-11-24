@@ -21,6 +21,11 @@ public readonly record struct StorageTextSpan(string Text, int Start, int Length
             return Text;
         }
 
+        if (Length == -1)
+        {
+            return string.Empty;
+        }
+
         return AsSpan().ToString();
     }
 
@@ -38,5 +43,13 @@ public readonly record struct StorageTextSpan(string Text, int Start, int Length
 
     public bool IsNull => Start == -1 && Length == -1;
 
-    public static implicit operator StorageTextSpan(string text) => new StorageTextSpan(text);
+    public static implicit operator StorageTextSpan(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return NullValue;
+        }
+
+        return new StorageTextSpan(text);
+    }
 }
