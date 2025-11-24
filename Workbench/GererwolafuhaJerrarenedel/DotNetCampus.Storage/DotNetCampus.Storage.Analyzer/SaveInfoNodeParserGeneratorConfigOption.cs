@@ -1,4 +1,6 @@
-﻿namespace DotNetCampus.Storage.Analyzer;
+﻿using Microsoft.CodeAnalysis;
+
+namespace DotNetCampus.Storage.Analyzer;
 
 record SaveInfoNodeParserGeneratorConfigOption
 {

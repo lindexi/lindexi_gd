@@ -13,7 +13,7 @@ namespace DotNetCampus.Storage.Analyzer
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            IncrementalValuesProvider<ClassInfo> provider = context.SyntaxProvider
+            IncrementalValuesProvider<SaveInfoClassInfo> provider = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: static (node, _) => IsSaveInfoCandidate(node),
                     transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
@@ -23,7 +23,7 @@ namespace DotNetCampus.Storage.Analyzer
             // 为什么不用 ForAttributeWithMetadataName 方式，因为考虑到特性的命名空间会有不同，通过名称判断效果更好
             //context.SyntaxProvider.ForAttributeWithMetadataName("")
 
-            var configurationProvider = context.AnalyzerConfigOptionsProvider.Select((t, _) =>
+            IncrementalValueProvider<SaveInfoNodeParserGeneratorConfigOption> configurationProvider = context.AnalyzerConfigOptionsProvider.Select((t, _) =>
             {
                 bool shouldGenerateSaveInfoNodeParser = false;
                 if (t.GlobalOptions.TryGetValue("build_property.GenerateSaveInfoNodeParser",
@@ -44,18 +44,7 @@ namespace DotNetCampus.Storage.Analyzer
                 };
             });
 
-            provider = provider
-                .Combine(configurationProvider)
-                .Select((t, _) =>
-                {
-                    if (!t.Right.ShouldGenerateSaveInfoNodeParser)
-                    {
-                        return null;
-                    }
-                    return t.Left;
-                })
-                .Where(static m => m is not null)
-                .Select(static (m, _) => m!);
+            provider = SaveInfoNodeParserGeneratorConfigHelper.FilterAndUpdateNamespace(provider, configurationProvider);
 
             context.RegisterSourceOutput(provider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
 
@@ -86,11 +75,11 @@ namespace DotNetCampus.Storage.Analyzer
             });
 
             // 从程序集里面找到所有候选的 SaveInfo 类
-            IncrementalValuesProvider<ClassInfo> referencedAssemblyClassInfoProvider = referencedAssemblySaveInfoClassInfoProvider
+            IncrementalValuesProvider<SaveInfoClassInfo> referencedAssemblyClassInfoProvider = referencedAssemblySaveInfoClassInfoProvider
                 .SelectMany((t, _) => t)
                 .Select((t, _) =>
                 {
-                    var classInfoList = new List<ClassInfo>();
+                    var classInfoList = new List<SaveInfoClassInfo>();
                     var assemblySymbol = t.AssemblySymbol;
                     foreach (var namedTypeSymbol in assemblySymbol.GlobalNamespace.GetTypeMembers())
                     {
@@ -163,7 +152,7 @@ namespace DotNetCampus.Storage.Analyzer
             return false;
         }
 
-        private static ClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+        private static SaveInfoClassInfo? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
         {
             if (context.Node is not ClassDeclarationSyntax classDeclaration)
             {
@@ -179,7 +168,7 @@ namespace DotNetCampus.Storage.Analyzer
             return TryGetSaveInfoClassInfo(classSymbol);
         }
 
-        private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol, bool shouldPublic = false)
+        private static SaveInfoClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol, bool shouldPublic = false)
         {
             if (classSymbol.IsAbstract)
             {
@@ -211,7 +200,7 @@ namespace DotNetCampus.Storage.Analyzer
                 return null;
             }
 
-            var properties = new List<PropertyInfo>();
+            var properties = new List<SaveInfoPropertyInfo>();
             var current = classSymbol;
             while (current != null)
             {
@@ -270,7 +259,7 @@ namespace DotNetCampus.Storage.Analyzer
 
                     if (properties.All(p => p.PropertyName != member.Name))
                     {
-                        properties.Add(new PropertyInfo
+                        properties.Add(new SaveInfoPropertyInfo
                         {
                             PropertyName = member.Name,
                             PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
@@ -289,7 +278,7 @@ namespace DotNetCampus.Storage.Analyzer
                 }
             }
 
-            return new ClassInfo
+            return new SaveInfoClassInfo
             {
                 ClassName = classSymbol.Name,
                 ClassFullName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
@@ -331,7 +320,7 @@ namespace DotNetCampus.Storage.Analyzer
             return false;
         }
 
-        private static void GenerateParseCode(SourceProductionContext spc, ClassInfo? classInfo)
+        private static void GenerateParseCode(SourceProductionContext spc, SaveInfoClassInfo? classInfo)
         {
             if (classInfo is null)
             {
@@ -342,7 +331,7 @@ namespace DotNetCampus.Storage.Analyzer
             spc.AddSource(classInfo.ClassName + "NodeParser.g.cs", source);
         }
 
-        private static string GenerateNodeParser(ClassInfo classInfo)
+        private static string GenerateNodeParser(SaveInfoClassInfo classInfo)
         {
             return $$"""
                      // <auto-generated/>
@@ -370,7 +359,7 @@ namespace DotNetCampus.Storage.Analyzer
                      """;
         }
 
-        private static string GenerateParseCore(ClassInfo classInfo)
+        private static string GenerateParseCore(SaveInfoClassInfo classInfo)
         {
             // Generate variable declarations for each property
             var preDeclarations = string.Join("\n", classInfo.Properties.Select(prop =>
@@ -465,7 +454,7 @@ namespace DotNetCampus.Storage.Analyzer
                 """;
         }
 
-        private static string GenerateDeparseCore(ClassInfo classInfo)
+        private static string GenerateDeparseCore(SaveInfoClassInfo classInfo)
         {
             // Generate properties code using raw strings
             var propertiesCode = string.Join("\n", classInfo.Properties.Select(prop =>
@@ -545,24 +534,7 @@ namespace DotNetCampus.Storage.Analyzer
             return string.Join("\r\n", indentedLines);
         }
 
-        private record ClassInfo
-        {
-            public required string ClassName { get; init; }
-            public required string ClassFullName { get; init; }
-            public required string Namespace { get; init; }
-            public required string ContractName { get; init; }
-            public required List<PropertyInfo> Properties { get; init; }
-        }
 
-        private record PropertyInfo
-        {
-            public required string PropertyName { get; init; }
-            public required string PropertyType { get; init; }
-            public required string StorageName { get; init; }
-            //public required bool IsNullable { get; init; }
-            public IReadOnlyList<string>? Aliases { get; init; }
-            public bool IsListType { get; init; }
-        }
 
         private readonly record struct ReferencedAssemblySymbolInfo(IAssemblySymbol AssemblySymbol, bool? IsCandidate)
         {
@@ -575,6 +547,53 @@ namespace DotNetCampus.Storage.Analyzer
             {
                 return AssemblySymbol.Equals(other?.AssemblySymbol, SymbolEqualityComparer.Default);
             }
+        }
+    }
+
+    record SaveInfoClassInfo
+    {
+        public required string ClassName { get; init; }
+        public required string ClassFullName { get; init; }
+        public required string Namespace { get; init; }
+        public required string ContractName { get; init; }
+        public required List<SaveInfoPropertyInfo> Properties { get; init; }
+    }
+
+    record SaveInfoPropertyInfo
+    {
+        public required string PropertyName { get; init; }
+        public required string PropertyType { get; init; }
+        public required string StorageName { get; init; }
+        //public required bool IsNullable { get; init; }
+        public IReadOnlyList<string>? Aliases { get; init; }
+        public bool IsListType { get; init; }
+    }
+
+    static class SaveInfoNodeParserGeneratorConfigHelper
+    {
+        public static IncrementalValuesProvider<SaveInfoClassInfo> FilterAndUpdateNamespace(IncrementalValuesProvider<SaveInfoClassInfo> classInfoProvider, IncrementalValueProvider<SaveInfoNodeParserGeneratorConfigOption> configurationProvider)
+        {
+            var provider = classInfoProvider
+                .Combine(configurationProvider)
+                .Select((t, _) =>
+                {
+                    if (!t.Right.ShouldGenerateSaveInfoNodeParser)
+                    {
+                        return null;
+                    }
+
+                    if (t.Right.RootNamespace != null)
+                    {
+                        return t.Left with
+                        {
+                            Namespace = t.Right.RootNamespace
+                        };
+                    }
+                    return t.Left;
+                })
+                .Where(static m => m is not null)
+                .Select(static (m, _) => m!);
+            return provider;
         }
     }
 }
