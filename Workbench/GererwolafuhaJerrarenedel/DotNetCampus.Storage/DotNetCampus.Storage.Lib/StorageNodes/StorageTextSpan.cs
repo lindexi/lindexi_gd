@@ -14,7 +14,16 @@ public readonly record struct StorageTextSpan(string Text, int Start, int Length
 
     public ReadOnlySpan<char> AsSpan() => Text.AsSpan(Start, Length);
 
-    public string ToText() => AsSpan().ToString();
+    public string ToText()
+    {
+        if (Start == 0 && Length == Text.Length)
+        {
+            return Text;
+        }
+
+        return AsSpan().ToString();
+    }
+
     public override string ToString()
     {
         if (Equals(NullValue))
