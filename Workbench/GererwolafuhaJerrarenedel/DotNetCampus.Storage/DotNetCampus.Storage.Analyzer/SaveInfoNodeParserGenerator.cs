@@ -94,7 +94,8 @@ namespace DotNetCampus.Storage.Analyzer
                     var assemblySymbol = t.AssemblySymbol;
                     foreach (var namedTypeSymbol in assemblySymbol.GlobalNamespace.GetTypeMembers())
                     {
-                        var classInfo = TryGetSaveInfoClassInfo(namedTypeSymbol);
+                        // 对于引用程序集中的类型，要求是公开的
+                        var classInfo = TryGetSaveInfoClassInfo(namedTypeSymbol, shouldPublic: true);
                         if (classInfo != null)
                         {
                             classInfoList.Add(classInfo);
@@ -178,11 +179,19 @@ namespace DotNetCampus.Storage.Analyzer
             return TryGetSaveInfoClassInfo(classSymbol);
         }
 
-        private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol)
+        private static ClassInfo? TryGetSaveInfoClassInfo(INamedTypeSymbol classSymbol, bool shouldPublic = false)
         {
             if (classSymbol.IsAbstract)
             {
                 return null;
+            }
+
+            if (shouldPublic)
+            {
+                if (classSymbol.DeclaredAccessibility != Accessibility.Public)
+                {
+                    return null;
+                }
             }
 
             if (!InheritsFromSaveInfo(classSymbol))
