@@ -238,14 +238,13 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
                     }
                 }
 
-                // Parse property SaveInfoList
+                // Parse property SaveInfoList (List type)
                 if (isNotSetSaveInfoList)
                 {
-                    if (currentName.Equals(propertyNameForSaveInfoList, StringComparison.Ordinal) ||
-                        IsMatchAliases(currentName, aliasesForSaveInfoList))
+                    if (currentName.Equals(propertyNameForSaveInfoList, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForSaveInfoList))
                     {
                         result.SaveInfoList = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
-                        isNotSetSaveInfoList = true;
+                        isNotSetSaveInfoList = false;
                         continue;
                     }
                 }
@@ -267,7 +266,7 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
         StorableNodeParserManager parserManager = context.ParserManager;
 
         var storageNode = new StorageNode();
-        const int saveInfoMemberCount = 2;
+        const int saveInfoMemberCount = 3;
         storageNode.Name = context.NodeName ?? TargetStorageName;
         storageNode.Children = new List<StorageNode>(saveInfoMemberCount);
 
@@ -303,7 +302,7 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
             storageNode.Children.Add(childNodeForFoo1);
         }
 
-        // Generate code for property SaveInfoList
+        // Generate code for property SaveInfoList (List type)
         var propertyNameForSaveInfoList = "S1";
         if (obj.SaveInfoList is not null)
         {

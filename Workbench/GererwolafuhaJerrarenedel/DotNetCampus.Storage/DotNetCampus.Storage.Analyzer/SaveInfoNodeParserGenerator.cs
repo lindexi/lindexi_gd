@@ -119,6 +119,8 @@ namespace DotNetCampus.Storage.Analyzer
                         }
                     }
 
+                    var isListType = IsListOfSaveInfo(member.Type);
+
                     if (properties.All(p => p.PropertyName != member.Name))
                     {
                         properties.Add(new PropertyInfo
@@ -127,7 +129,8 @@ namespace DotNetCampus.Storage.Analyzer
                             PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             StorageName = storageName,
                             IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                            Aliases = aliases
+                            Aliases = aliases,
+                            IsListType = isListType
                         });
                     }
                 }
@@ -147,8 +150,27 @@ namespace DotNetCampus.Storage.Analyzer
             };
         }
 
-        private static bool InheritsFromSaveInfo(INamedTypeSymbol classSymbol)
+        private static bool IsListOfSaveInfo(ITypeSymbol type)
         {
+            // Check if the type is List<T> where T is SaveInfo or inherits from SaveInfo
+            if (type is INamedTypeSymbol namedType &&
+                namedType.IsGenericType &&
+                namedType.ConstructUnboundGenericType().ToDisplayString() == "System.Collections.Generic.List<>")
+            {
+                var typeArgument = namedType.TypeArguments.FirstOrDefault();
+                if (typeArgument != null)
+                {
+                    return InheritsFromSaveInfo(typeArgument as INamedTypeSymbol) || 
+                           typeArgument.Name == "SaveInfo";
+                }
+            }
+            return false;
+        }
+
+        private static bool InheritsFromSaveInfo(INamedTypeSymbol? classSymbol)
+        {
+            if (classSymbol == null) return false;
+            
             var bt = classSymbol.BaseType;
             while (bt != null)
             {
@@ -175,6 +197,7 @@ namespace DotNetCampus.Storage.Analyzer
                      #nullable enable
                      using System;
                      using System.Collections.Generic;
+                     using System.Linq;
                      using DotNetCampus.Storage.Lib.Parsers;
                      using DotNetCampus.Storage.Lib.Parsers.Contexts;
                      using DotNetCampus.Storage.Lib.Parsers.NodeParsers;
@@ -198,63 +221,65 @@ namespace DotNetCampus.Storage.Analyzer
         private static string GenerateParseCore(ClassInfo classInfo)
         {
             // Generate variable declarations for each property
-            /*
-               bool isNotSetFoo1Property = true;
-               var propertyNameForFoo1Property = "Foo1Property";
-               string[]? aliasesForFoo1Property = null;
-             */
             var preDeclarations = string.Join("\n", classInfo.Properties.Select(prop =>
             {
                 var aliasesInitialization = prop.Aliases is null
                     ? "null"
                     : "new string[] { " + string.Join(", ", prop.Aliases.Select(a => "\"" + a.Replace("\"", "\\\"") + "\"")) + " }";
 
-                return $"""
-                        bool isNotSet{prop.PropertyName} = true;
-                        var propertyNameFor{prop.PropertyName} = "{prop.StorageName}";
-                        string[]? aliasesFor{prop.PropertyName} = {aliasesInitialization};
+                return $$"""
+                        bool isNotSet{{prop.PropertyName}} = true;
+                        var propertyNameFor{{prop.PropertyName}} = "{{prop.StorageName}}";
+                        string[]? aliasesFor{{prop.PropertyName}} = {{aliasesInitialization}};
                         
                         """;
             }));
             preDeclarations = SetIndent(preDeclarations, 3);
 
             // Generate match logic for each property
-            /*
-               if (isNotSetFoo1Property)
-               {
-                   if (currentName.Equals(propertyNameForFoo1Property, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForFoo1Property))
-                   {
-                       var typeOfFoo1Property = typeof(bool);
-                       var nodeParserForFoo1Property = parserManager.GetNodeParser(typeOfFoo1Property);
-                       var valueForFoo1Property = nodeParserForFoo1Property.Parse(storageNode, context);
-                       result.Foo1Property = (bool) valueForFoo1Property;
-                       isNotSetFoo1Property = false;
-                       continue;
-                   }
-               }
-             */
             var matchLogic = string.Join("\n", classInfo.Properties.Select(prop =>
             {
                 var isNotSet = "isNotSet" + prop.PropertyName;
                 var propNameVar = "propertyNameFor" + prop.PropertyName;
                 var aliasesVar = "aliasesFor" + prop.PropertyName;
 
-                return $$"""
-                       // Parse property {{prop.PropertyName}}
-                       if ({{isNotSet}})
-                       {
-                           if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
+                if (prop.IsListType)
+                {
+                    // Special handling for List<SaveInfo> properties
+                    return $$"""
+                           // Parse property {{prop.PropertyName}} (List type)
+                           if ({{isNotSet}})
                            {
-                               var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
-                               var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
-                               var valueFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Parse(storageNode, context);
-                               result.{{prop.PropertyName}} = ({{prop.PropertyType}}) valueFor{{prop.PropertyName}};
-                               {{isNotSet}} = false;
-                               continue;
+                               if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
+                               {
+                                   result.{{prop.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
+                                   {{isNotSet}} = false;
+                                   continue;
+                               }
                            }
-                       }
+                          
+                           """;
+                }
+                else
+                {
+                    // Regular property handling
+                    return $$"""
+                           // Parse property {{prop.PropertyName}}
+                           if ({{isNotSet}})
+                           {
+                               if (currentName.Equals({{propNameVar}}, StringComparison.Ordinal) || IsMatchAliases(currentName, {{aliasesVar}}))
+                               {
+                                   var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
+                                   var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
+                                   var valueFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Parse(storageNode, context);
+                                   result.{{prop.PropertyName}} = ({{prop.PropertyType}}) valueFor{{prop.PropertyName}};
+                                   {{isNotSet}} = false;
+                                   continue;
+                               }
+                           }
                        
-                       """;
+                           """;
+                }
             }));
             matchLogic = SetIndent(matchLogic, 4);
 
@@ -291,42 +316,53 @@ namespace DotNetCampus.Storage.Analyzer
         private static string GenerateDeparseCore(ClassInfo classInfo)
         {
             // Generate properties code using raw strings
-            /*
-               var propertyNameForFoo1Property = "Foo1Property";
-               var typeOfFoo1Property = typeof(bool);
-               var nodeParserForFoo1Property = parserManager.GetNodeParser(typeOfFoo1Property);
-               object? valueForFoo1Property = obj.Foo1Property;
-               if (valueForFoo1Property is not null)
-               {
-                   tempContext = context with
-                   {
-                       NodeName = propertyNameForFoo1Property
-                   }; 
-                   var childNodeForFoo1Property = nodeParserForFoo1Property.Deparse(valueForFoo1Property, tempContext);
-                   storageNode.Children.Add(childNodeForFoo1Property);
-               }
-             */
             var propertiesCode = string.Join("\n", classInfo.Properties.Select(prop =>
             {
                 var propNameVar = "propertyNameFor" + prop.PropertyName;
 
-                return $$"""
-                       // Generate code for property {{prop.PropertyName}}
-                       var {{propNameVar}} = "{{prop.StorageName}}";
-                       var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
-                       var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
-                       object? valueFor{{prop.PropertyName}} = obj.{{prop.PropertyName}};
-                       if (valueFor{{prop.PropertyName}} is not null)
-                       {
-                           tempContext = context with
+                if (prop.IsListType)
+                {
+                    // Special handling for List<SaveInfo> properties
+                    return $$"""
+                           // Generate code for property {{prop.PropertyName}} (List type)
+                           var {{propNameVar}} = "{{prop.StorageName}}";
+                           if (obj.{{prop.PropertyName}} is not null)
                            {
-                               NodeName = {{propNameVar}}
-                           }; 
-                           var childNodeFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Deparse(valueFor{{prop.PropertyName}}, tempContext);
-                           storageNode.Children.Add(childNodeFor{{prop.PropertyName}});
-                       }
-                       
-                       """;
+                               tempContext = context with
+                               {
+                                   NodeName = null
+                               };
+                               var childNodeFor{{prop.PropertyName}} = new StorageNode()
+                               {
+                                   Name = {{propNameVar}},
+                                   Children = DeparseElementOfList(obj.{{prop.PropertyName}}, tempContext)
+                               };
+                               storageNode.Children.Add(childNodeFor{{prop.PropertyName}});
+                           }
+                           
+                           """;
+                }
+                else
+                {
+                    // Regular property handling
+                    return $$"""
+                           // Generate code for property {{prop.PropertyName}}
+                           var {{propNameVar}} = "{{prop.StorageName}}";
+                           var typeOf{{prop.PropertyName}} = typeof({{prop.PropertyType}});
+                           var nodeParserFor{{prop.PropertyName}} = parserManager.GetNodeParser(typeOf{{prop.PropertyName}});
+                           object? valueFor{{prop.PropertyName}} = obj.{{prop.PropertyName}};
+                           if (valueFor{{prop.PropertyName}} is not null)
+                           {
+                               tempContext = context with
+                               {
+                                   NodeName = {{propNameVar}}
+                               }; 
+                               var childNodeFor{{prop.PropertyName}} = nodeParserFor{{prop.PropertyName}}.Deparse(valueFor{{prop.PropertyName}}, tempContext);
+                               storageNode.Children.Add(childNodeFor{{prop.PropertyName}});
+                           }
+                           
+                           """;
+                }
             }));
             propertiesCode = SetIndent(propertiesCode, 2);
 
@@ -373,6 +409,7 @@ namespace DotNetCampus.Storage.Analyzer
             public required string StorageName { get; init; }
             public required bool IsNullable { get; init; }
             public IReadOnlyList<string>? Aliases { get; init; }
+            public bool IsListType { get; init; }
         }
     }
 }
