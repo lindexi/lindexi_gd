@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -78,6 +79,38 @@ namespace DotNetCampus.Storage.Analyzer
                 }).SelectMany((t, _) => t);
 
             context.RegisterSourceOutput(referencedAssemblyClassInfoProvider, (spc, classInfo) => GenerateParseCode(spc, classInfo));
+
+            // 将当前程序集和引用程序集的类信息合并，用于收集当前有多少可用的 SaveInfo 转换类
+            IncrementalValueProvider<ImmutableArray<SaveInfoClassInfo>> allSaveInfoClassInfoProvider = provider.Collect()
+                .Combine(referencedAssemblyClassInfoProvider.Collect())
+                .Select((tuple,_)=>tuple.Left.AddRange(tuple.Right));
+
+            context.RegisterSourceOutput(allSaveInfoClassInfoProvider.Combine(configurationProvider), (spc, tuple) =>
+            {
+                ImmutableArray<SaveInfoClassInfo> allSaveInfoClassInfo = tuple.Left;
+                var configOption = tuple.Right;
+                if (!configOption.ShouldGenerateSaveInfoNodeParser)
+                {
+                    return;
+                }
+
+                var rootNamespace = configOption.RootNamespace ?? "DotNetCampus.Storage";
+
+                var code =
+                    $$"""
+                      namespace {{rootNamespace}};
+                      
+                      internal static partial class StorableNodeParserManagerCollection
+                      {
+                          public static partial void RegisterSaveInfoNodeParser(StorableNodeParserManager parserManager)
+                          {
+                      
+                          }
+                      }
+                      """;
+
+                spc.AddSource("StorableNodeParserManagerCollection.SaveInfoNodeParsers.g.cs", code);
+            });
         }
 
         private static bool IsSaveInfoAssemblyCandidate(IAssemblySymbol assemblySymbol, Dictionary<IAssemblySymbol, ReferencedAssemblySymbolInfo> dictionary)

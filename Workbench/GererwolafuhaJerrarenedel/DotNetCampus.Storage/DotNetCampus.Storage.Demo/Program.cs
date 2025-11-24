@@ -53,3 +53,13 @@ var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
 }) as FooSaveInfo;
 
 Console.WriteLine("Hello, World!");
+
+internal static partial class StorableNodeParserManagerCollection
+{
+    public static partial void RegisterSaveInfoNodeParser(StorableNodeParserManager parserManager);
+
+    public static partial void RegisterSaveInfoNodeParser(StorableNodeParserManager parserManager)
+    {
+
+    }
+}
