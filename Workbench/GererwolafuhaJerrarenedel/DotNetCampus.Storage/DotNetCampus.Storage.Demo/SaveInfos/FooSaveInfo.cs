@@ -16,4 +16,7 @@ public class FooSaveInfo : SaveInfo
 
     [SaveInfoMember("F1", Description = "This is a foo property.")]
     public Foo1SaveInfo? Foo1 { get; set; }
+
+    [SaveInfoMember("S1")]
+    public IList<SaveInfo>? SaveInfoList { get; set; }
 }
