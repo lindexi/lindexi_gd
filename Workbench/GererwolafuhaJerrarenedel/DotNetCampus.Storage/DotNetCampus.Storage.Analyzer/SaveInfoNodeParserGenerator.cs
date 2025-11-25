@@ -290,7 +290,24 @@ namespace DotNetCampus.Storage.Analyzer
                         }
                     }
 
-                    var isListType = IsListOfSaveInfo(member.Type);
+                    bool isListType = false;
+                    string? listGenericType = null;
+
+                    if (member.Type is INamedTypeSymbol namedType && namedType.IsGenericType)
+                    {
+                        var typeName = namedType.ConstructUnboundGenericType().ToDisplayString();
+                        if (typeName is "System.Collections.Generic.List<>"
+                            or "System.Collections.Generic.IReadOnlyList<>"
+                            or "System.Collections.Generic.IList<>")
+                        {
+                            var typeArgument = namedType.TypeArguments.FirstOrDefault();
+                            listGenericType = typeArgument?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                            // 预期这里一定不是空，即 isListType 是 true 值
+                            isListType = listGenericType != null;
+                        }
+                    }
+
                     var isEnumType = IsEnumType(member.Type);
 
                     if (properties.All(p => p.PropertyName != member.Name))
@@ -303,6 +320,7 @@ namespace DotNetCampus.Storage.Analyzer
                             //IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
                             Aliases = aliases,
                             IsListType = isListType,
+                            ListGenericType = listGenericType,
                             IsEnumType = isEnumType,
                         });
                     }
@@ -349,21 +367,6 @@ namespace DotNetCampus.Storage.Analyzer
                 }
             }
 
-            return false;
-        }
-
-        private static bool IsListOfSaveInfo(ITypeSymbol type)
-        {
-            if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
-            {
-                var typeName = namedType.ConstructUnboundGenericType().ToDisplayString();
-                if (typeName is "System.Collections.Generic.List<>"
-                    or "System.Collections.Generic.IReadOnlyList<>"
-                    or "System.Collections.Generic.IList<>")
-                {
-                    return true;
-                }
-            }
             return false;
         }
 
@@ -452,7 +455,7 @@ namespace DotNetCampus.Storage.Analyzer
                 if (propertyInfo.IsListType)
                 {
                     convertCode = $$"""
-                                    result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
+                                    result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<{{propertyInfo.ListGenericType}}>().ToList();
                                     """;
                 }
                 else if (propertyInfo.IsEnumType)

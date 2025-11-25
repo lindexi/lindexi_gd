@@ -20,6 +20,9 @@ public class FooSaveInfo : SaveInfo
     [SaveInfoMember("S1")]
     public List<SaveInfo>? SaveInfoList { get; set; }
 
+    [SaveInfoMember("Count")]
+    public List<object>? CountList { get; set; }
+
     [SaveInfoMember("F2")]
     public FooEnum Foo2Enum { get; set; }
 }
