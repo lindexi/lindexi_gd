@@ -1,14 +1,15 @@
 ﻿using DotNetCampus.Storage.Parsers;
+using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.Parsers.NodeParsers;
 using DotNetCampus.Storage.SaveInfos;
+using DotNetCampus.Storage.StorageNodes;
+using DotNetCampus.Storage.Tests.CompoundStorageDocumentManagers;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DotNetCampus.Storage.Parsers.Contexts;
-using DotNetCampus.Storage.Parsers.NodeParsers;
-using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Tests.Parsers;
 
@@ -18,7 +19,9 @@ public class SaveInfoToStorageNodeTests
     [TestMethod]
     public void TestMethod1()
     {
-        var storableNodeParserManager = new StorageNodeParserManager();
+        var compoundStorageDocumentManager = CompoundStorageDocumentManagerTest.GetTestManager();
+
+        var storableNodeParserManager = compoundStorageDocumentManager.ParserManager;
         storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
 
         var foo1SaveInfo = new Foo1SaveInfo()
@@ -26,15 +29,16 @@ public class SaveInfoToStorageNodeTests
             Foo2Property = Random.Shared.Next()
         };
         var nodeParser = storableNodeParserManager.GetNodeParser(foo1SaveInfo.GetType());
+        
         var storageNode = nodeParser.Deparse(foo1SaveInfo, new DeparseNodeContext()
         {
             NodeName = null,
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         });
 
         var parsedFoo1SaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
         {
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         }) as Foo1SaveInfo;
         Assert.IsNotNull(parsedFoo1SaveInfo);
         Assert.AreEqual(foo1SaveInfo.Foo1Property, parsedFoo1SaveInfo.Foo1Property);
@@ -44,7 +48,9 @@ public class SaveInfoToStorageNodeTests
     [TestMethod]
     public void TestMethod2()
     {
-        var storableNodeParserManager = new StorageNodeParserManager();
+        var compoundStorageDocumentManager = CompoundStorageDocumentManagerTest.GetTestManager();
+
+        var storableNodeParserManager = compoundStorageDocumentManager.ParserManager;
         storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
         storableNodeParserManager.Register(new FooSaveInfoNodeParser());
 
@@ -62,7 +68,7 @@ public class SaveInfoToStorageNodeTests
         var storageNode = nodeParser.Deparse(fooSaveInfo, new DeparseNodeContext()
         {
             NodeName = null,
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         });
 
         var foo1SaveInfo = new Foo1SaveInfo()
@@ -72,7 +78,7 @@ public class SaveInfoToStorageNodeTests
         var extensionStorageNode = storableNodeParserManager.GetNodeParser(foo1SaveInfo.GetType()).Deparse(foo1SaveInfo, new DeparseNodeContext()
         {
             NodeName = null,
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         });
         storageNode.Children ??= new List<StorageNode>();
         storageNode.Children.Add(extensionStorageNode);
@@ -87,7 +93,7 @@ public class SaveInfoToStorageNodeTests
 
         var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
         {
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         }) as FooSaveInfo;
         Assert.IsNotNull(parsedFooSaveInfo);
         Assert.AreEqual(fooSaveInfo.FooProperty, parsedFooSaveInfo.FooProperty);
@@ -111,7 +117,7 @@ public class SaveInfoToStorageNodeTests
         var reDeparsedStorageNode = nodeParser.Deparse(parsedFooSaveInfo, new DeparseNodeContext()
         {
             NodeName = null,
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         });
         Assert.IsNotNull(reDeparsedStorageNode.Children);
         // 能够不丢失扩展属性
@@ -125,7 +131,9 @@ public class SaveInfoToStorageNodeTests
     [TestMethod]
     public void TestMethod3()
     {
-        var storableNodeParserManager = new StorageNodeParserManager();
+        var compoundStorageDocumentManager = CompoundStorageDocumentManagerTest.GetTestManager();
+
+        var storableNodeParserManager = compoundStorageDocumentManager.ParserManager;
         storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
         storableNodeParserManager.Register(new FooSaveInfoNodeParser());
 
@@ -151,12 +159,12 @@ public class SaveInfoToStorageNodeTests
         var storageNode = nodeParser.Deparse(fooSaveInfo, new DeparseNodeContext()
         {
             NodeName = null,
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         });
 
         var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
         {
-            ParserManager = storableNodeParserManager
+            DocumentManager = compoundStorageDocumentManager,
         }) as FooSaveInfo;
 
         Assert.IsNotNull(parsedFooSaveInfo);

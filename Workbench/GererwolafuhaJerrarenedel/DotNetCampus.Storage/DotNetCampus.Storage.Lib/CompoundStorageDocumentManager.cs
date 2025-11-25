@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Parsers;
@@ -18,10 +19,10 @@ namespace DotNetCampus.Storage;
 /// 这是这个程序集的入口
 public class CompoundStorageDocumentManager
 {
-    /// <summary>
-    /// 工作路径。每个文档实例必须使用不同的工作路径
-    /// </summary>
-    public required DirectoryInfo WorkingDirectoryInfo { get; init; }
+    ///// <summary>
+    ///// 工作路径。每个文档实例必须使用不同的工作路径
+    ///// </summary>
+    //public required DirectoryInfo WorkingDirectoryInfo { get; init; }
 
     /// <summary>
     /// 文件管理
@@ -42,4 +43,9 @@ public class CompoundStorageDocumentManager
     /// 存储模型到复合文档的转换器
     /// </summary>
     public required IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; init; }
+
+    public static CompoundStorageDocumentManagerBuilder CreateBuilder()
+    {
+        return new CompoundStorageDocumentManagerBuilder();
+    }
 }

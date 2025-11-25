@@ -3,3 +3,7 @@
 public interface IReferencedFileManager
 {
 }
+
+internal class EmptyReferencedFileManager : IReferencedFileManager
+{
+}
