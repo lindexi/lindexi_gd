@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Storage.Documents.StorageDocuments;
+﻿using DotNetCampus.Storage.CompoundStorageDocumentManagers;
+using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.Parsers.Contexts;
@@ -12,22 +13,24 @@ namespace DotNetCampus.Storage.Documents.Converters;
 /// </summary>
 public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToCompoundDocumentConverter
 {
-    protected StorageModelToCompoundDocumentConverter(CompoundStorageDocumentManager manager)
+    protected StorageModelToCompoundDocumentConverter(CompoundStorageDocumentManagerProvider provider)
     {
-        _manager = manager;
+        _provider = provider;
     }
 
-    private readonly CompoundStorageDocumentManager _manager;
+    private readonly CompoundStorageDocumentManagerProvider _provider;
+
+    public CompoundStorageDocumentManager Manager => _provider.GetManager();
 
     public abstract StorageModel ToStorageModel(CompoundStorageDocument document);
 
     protected T ReadAsPropertyValue<T>(StorageNode storageNode)
     {
-        var parserManager = _manager.ParserManager;
+        var parserManager = Manager.ParserManager;
         var nodeParser = parserManager.GetNodeParser(typeof(T));
         var value = nodeParser.Parse(storageNode, new ParseNodeContext()
         {
-            DocumentManager = _manager
+            DocumentManager = Manager
         });
         return (T) value;
     }
@@ -37,12 +40,12 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
     protected StorageFileItem ToStorageFileItem<T>(T propertyValue, string relativePath, string? nodeName = null)
       where T : notnull
     {
-        var parserManager = _manager.ParserManager;
+        var parserManager = Manager.ParserManager;
         var nodeParser = parserManager.GetNodeParser(typeof(T));
         var storageNode = nodeParser.Deparse(propertyValue, new DeparseNodeContext()
         {
             NodeName = nodeName,
-            DocumentManager = _manager,
+            DocumentManager = Manager,
         });
 
         return new StorageFileItem()

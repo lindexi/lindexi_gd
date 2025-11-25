@@ -7,12 +7,8 @@ using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.StorageNodes;
 
-var compoundStorageDocumentManager = new CompoundStorageDocumentManager()
-{
-    ReferencedFileManager = null!,
-    StorageFileManager = null!,
-    StorageModelToCompoundDocumentConverter = null!,
-};
+var builder = CompoundStorageDocumentManager.CreateBuilder();
+var compoundStorageDocumentManager = builder.Build();
 
 var parserManager = compoundStorageDocumentManager.ParserManager;
 StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser(parserManager);

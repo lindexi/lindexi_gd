@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Parsers;
@@ -42,25 +43,9 @@ public class CompoundStorageDocumentManager
     /// 存储模型到复合文档的转换器
     /// </summary>
     public required IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; init; }
-}
 
-
-public class CompoundStorageDocumentManagerBuilder
-{
-
-}
-
-public class CompoundStorageDocumentManagerProvider
-{
-    internal CompoundStorageDocumentManager? Manager { get; set; }
-
-    public CompoundStorageDocumentManager GetManager()
+    public static CompoundStorageDocumentManagerBuilder CreateBuilder()
     {
-        if (Manager == null)
-        {
-            throw new InvalidOperationException($"Manager is null");
-        }
-
-        return Manager;
+        return new CompoundStorageDocumentManagerBuilder();
     }
 }

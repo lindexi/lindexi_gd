@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Storage.Documents.Converters;
+﻿using DotNetCampus.Storage.CompoundStorageDocumentManagers;
+using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageModels;
 
@@ -8,12 +9,10 @@ public class CompoundStorageDocumentManagerTest
 {
     public static CompoundStorageDocumentManager GetTestManager()
     {
-        var compoundStorageDocumentManager = new CompoundStorageDocumentManager()
-        {
-            ReferencedFileManager = null!,
-            StorageFileManager = null!,
-            StorageModelToCompoundDocumentConverter = null!,
-        };
+        var builder = CompoundStorageDocumentManager.CreateBuilder();
+        builder.UseStorageModelToCompoundDocumentConverter(provider => new FakeStorageModelToCompoundDocumentConverter(provider));
+
+        var compoundStorageDocumentManager = builder.Build();
 
         return compoundStorageDocumentManager;
     }
@@ -24,9 +23,9 @@ class FakeStorageModel : StorageModel
 
 }
 
-class FakeStorageModelToCompoundDocumentConverter: StorageModelToCompoundDocumentConverter
+class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocumentConverter
 {
-    public FakeStorageModelToCompoundDocumentConverter(CompoundStorageDocumentManager manager) : base(manager)
+    public FakeStorageModelToCompoundDocumentConverter(CompoundStorageDocumentManagerProvider provider) : base(provider)
     {
     }
 
