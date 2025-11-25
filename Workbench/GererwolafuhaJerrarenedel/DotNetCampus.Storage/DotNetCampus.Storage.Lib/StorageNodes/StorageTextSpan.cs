@@ -43,6 +43,11 @@ public readonly record struct StorageTextSpan(string Text, int Start, int Length
 
     public bool IsNull => Start == -1 && Length == -1;
 
+    /// <summary>
+    /// 是否空字符串
+    /// </summary>
+    public bool IsEmptyOrNull => Length <= 0;
+
     public static implicit operator StorageTextSpan(string? text)
     {
         if (string.IsNullOrEmpty(text))

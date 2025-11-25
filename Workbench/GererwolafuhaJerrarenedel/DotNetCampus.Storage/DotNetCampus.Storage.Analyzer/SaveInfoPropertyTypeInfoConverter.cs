@@ -55,31 +55,4 @@ static class SaveInfoPropertyTypeInfoConverter
             PropertyType = propertyType,
         };
     }
-
-    /// <summary>
-    /// 判断是否为枚举类型，包括可空枚举类型
-    /// </summary>
-    /// <param name="type"></param>
-    /// <returns></returns>
-    private static bool IsEnumType(ITypeSymbol type)
-    {
-        if (type is INamedTypeSymbol namedType)
-        {
-            if (namedType.TypeKind == TypeKind.Enum)
-            {
-                return true;
-            }
-            // 判断是否为可空枚举类型
-            if (namedType.IsGenericType && namedType.ConstructUnboundGenericType().ToDisplayString() == "System.Nullable<>")
-            {
-                var typeArgument = namedType.TypeArguments.FirstOrDefault();
-                if (typeArgument != null && typeArgument.TypeKind == TypeKind.Enum)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 }

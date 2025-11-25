@@ -430,7 +430,25 @@ namespace DotNetCampus.Storage.Analyzer
                                     """;
                 }
 
+                if (propertyInfo.TypeInfo.IsNullableValueType)
+                {
+                    // 对于可空的值类型来说，需要判断当前存储是否赋空值
+                    var nullableConvertCode =
+                        $$"""
+                          if (storageNode.Value.IsEmptyOrNull)
+                          {
+                              result.{{propertyInfo.PropertyName}} = null;
+                          }
+                          else
+                          {
+                          {{SetIndent(convertCode, 1)}}
+                          }
+                          """;
+                    convertCode = nullableConvertCode;
+                }
+
                 convertCode = SetIndent(convertCode, 2);
+
 
                 // Special handling for List<SaveInfo> properties
                 return $$"""
