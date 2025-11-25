@@ -1,8 +1,12 @@
-﻿using System;
+﻿using DotNetCampus.Storage.Documents.StorageDocuments;
+using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
+using DotNetCampus.Storage.StorageFiles;
 
 namespace DotNetCampus.Storage.Serialization;
 
@@ -11,15 +15,227 @@ namespace DotNetCampus.Storage.Serialization;
 /// </summary>
 /// https://learn.microsoft.com/en-us/previous-versions/windows/desktop/opc/open-packaging-conventions-overview
 /// > The ECMA-376 OpenXML, 1st Edition, Part 2: Open Packaging Conventions (OPC) can be more easily understood through an analogy with real world filing systems. 
-public class OpcSerializer
+public class OpcSerializer : CompoundStorageDocumentSerializer
 {
-    public OpcSerializer(DirectoryInfo? workingDirectoryInfo = null)
+    public OpcSerializer(CompoundStorageDocumentManager manager) : base(manager)
     {
-        WorkingDirectoryInfo = workingDirectoryInfo ??
-                               new DirectoryInfo(Path.Join(Path.GetTempPath(), Path.GetRandomFileName())); ;
     }
 
-    public DirectoryInfo WorkingDirectoryInfo { get; }
+    public async Task<CompoundStorageDocument> ReadFromOpcFileAsync(FileInfo opcFile)
+    {
+        await using var fileStream = opcFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Read, leaveOpen: true);
 
+        var fileList = new List<IReadOnlyStorageFileInfo>(zipArchive.Entries.Count);
 
+        foreach (ZipArchiveEntry zipArchiveEntry in zipArchive.Entries)
+        {
+            var opcStorageFileInfo = new OpcStorageFileInfo(zipArchiveEntry);
+            fileList.Add(opcStorageFileInfo);
+        }
+
+        var fileProvider = new SerializationStorageFileProvider(fileList);
+
+        var compoundStorageDocument = await ToCompoundStorageDocument(fileProvider);
+        return compoundStorageDocument;
+    }
+}
+
+public class CompoundStorageDocumentSerializer
+{
+    public CompoundStorageDocumentSerializer(CompoundStorageDocumentManager manager)
+    {
+        Manager = manager;
+    }
+
+    public CompoundStorageDocumentManager Manager { get; }
+
+    protected async Task<CompoundStorageDocument> ToCompoundStorageDocument(
+        SerializationStorageFileProvider fileProvider)
+    {
+        var fileFilter = Manager.SerializationFileFilter ?? new OpcSerializationFileFilter();
+        var classificationResult = fileFilter.Filter(fileProvider);
+
+        var compoundStorageDocument = await ToCompoundStorageDocument(classificationResult);
+        return compoundStorageDocument;
+    }
+
+    /// <summary>
+    /// 从过滤之后的结果转换为复合存储文档
+    /// </summary>
+    /// <param name="classificationResult"></param>
+    /// <returns></returns>
+    protected async Task<CompoundStorageDocument> ToCompoundStorageDocument(OpcSerializationFileClassificationResult classificationResult)
+    {
+        var storageNodeSerializer = Manager.DefaultStorageNodeSerializer;
+
+        foreach (var fileInfo in classificationResult.ResourceFiles)
+        {
+            var storageNode = await storageNodeSerializer.DeserializeAsync((IStorageFileInfo) fileInfo);
+
+            // 在 IReferencedFileManager 执行更新
+        }
+
+        // 可以将 StorageFileItem 改名为 StorageNodeItem
+        var storageFileItemList = new List<StorageFileItem>();
+
+        foreach (var fileInfo in classificationResult.DocumentFiles)
+        {
+            var storageNode = await storageNodeSerializer.DeserializeAsync((IStorageFileInfo) fileInfo);
+
+            storageFileItemList.Add(new StorageFileItem()
+            {
+                RootStorageNode = storageNode,
+                RelativePath = fileInfo.RelativePath
+            });
+        }
+
+        var storageResourceItemList = new List<StorageResourceItem>();
+        var referencedFileManager = Manager.ReferencedFileManager;
+
+        foreach (var fileInfo in classificationResult.ResourceFiles)
+        {
+            // 考虑将资源存起来
+            storageResourceItemList.Add(new StorageResourceItem()
+            {
+                RelativePath = fileInfo.RelativePath,
+                ResourceId = fileInfo.RelativePath // 先用路径作为 ResourceId，后续可以改进
+            });
+        }
+
+        // 似乎 CompoundStorageDocument 有些废，没有什么用处，毕竟存放的东西本身也在污染 CompoundStorageDocumentManager 管理器
+        var storageItemList =
+            new List<IStorageItem>(storageFileItemList.Count + storageResourceItemList.Count);
+        storageItemList.AddRange(storageFileItemList);
+        storageItemList.AddRange(storageResourceItemList);
+
+        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedFileManager);
+        return compoundStorageDocument;
+    }
+}
+
+internal class OpcStorageFileInfo : IReadOnlyStorageFileInfo
+{
+    public OpcStorageFileInfo(ZipArchiveEntry zipArchiveEntry)
+    {
+        _zipArchiveEntry = zipArchiveEntry;
+        RelativePath = zipArchiveEntry.FullName;
+    }
+
+    private readonly ZipArchiveEntry _zipArchiveEntry;
+
+    public string RelativePath { get; init; }
+
+    public Stream OpenRead()
+    {
+        return _zipArchiveEntry.Open();
+    }
+}
+
+/// <summary>
+/// 存放序列化之后的文件信息
+/// </summary>
+/// <param name="FileList"></param>
+public record SerializationStorageFileProvider(IReadOnlyList<IReadOnlyStorageFileInfo> FileList) : IStorageFileManager
+{
+}
+
+/// <summary>
+/// 文件过滤器，用来鉴别文件类型
+/// </summary>
+public interface ISerializationFileFilter
+{
+    OpcSerializationFileClassificationResult Filter(SerializationStorageFileProvider fileProvider);
+}
+
+public class OpcSerializationFileFilter : ISerializationFileFilter
+{
+    public const string DefaultReferenceFileName = "Reference.xml";
+    public const string ContentTypesFileName = "[Content_Types].xml";
+
+    public OpcSerializationFileClassificationResult Filter(SerializationStorageFileProvider fileProvider)
+    {
+        var fileList = fileProvider.FileList;
+
+        var referenceFile = fileList.FirstOrDefault(t => string.Equals(t.RelativePath, "Reference.xml", StringComparison.OrdinalIgnoreCase));
+
+        IReadOnlyList<IReadOnlyStorageFileInfo> referenceResourceManagerFiles;
+        if (referenceFile is not null)
+        {
+            referenceResourceManagerFiles = [referenceFile];
+        }
+        else
+        {
+            referenceResourceManagerFiles = [];
+        }
+
+        var documentFile = new List<IReadOnlyStorageFileInfo>();
+        var resourceFile = new List<IReadOnlyStorageFileInfo>();
+
+        foreach (var fileInfo in fileList)
+        {
+            if (IsDocumentFile(fileInfo))
+            {
+                documentFile.Add(fileInfo);
+            }
+            else
+            {
+                resourceFile.Add(fileInfo);
+            }
+        }
+
+        return new OpcSerializationFileClassificationResult()
+        {
+            ResourceFiles = resourceFile,
+            DocumentFiles = documentFile,
+            ReferenceResourceManagerFiles = referenceResourceManagerFiles,
+            FileProvider = fileProvider,
+        };
+
+        static bool IsDocumentFile(IReadOnlyStorageFileInfo fileInfo)
+        {
+            // 后缀是 xml 的，但是不是 Reference.xml 和 [Content_Types].xml 文件的，就是文档文件
+            var relativePath = fileInfo.RelativePath;
+            var extension = Path.GetExtension(relativePath.AsSpan());
+            if (!extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.Equals(relativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.Equals(relativePath, ContentTypesFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
+}
+
+/// <summary>
+/// 文件分类的结果
+/// </summary>
+public record OpcSerializationFileClassificationResult
+{
+    /// <summary>
+    /// 引用资源记录的文件列表
+    /// </summary>
+    public required IReadOnlyList<IReadOnlyStorageFileInfo> ReferenceResourceManagerFiles { get; init; }
+
+    /// <summary>
+    /// 文档文件的列表
+    /// </summary>
+    public required IReadOnlyList<IReadOnlyStorageFileInfo> DocumentFiles { get; init; }
+
+    /// <summary>
+    /// 资源文件的列表
+    /// </summary>
+    public required IReadOnlyList<IReadOnlyStorageFileInfo> ResourceFiles { get; init; }
+
+    public required SerializationStorageFileProvider FileProvider { get; init; }
 }
