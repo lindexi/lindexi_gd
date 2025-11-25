@@ -2,9 +2,9 @@
 
 using DotNetCampus.Storage.Demo;
 using DotNetCampus.Storage.Demo.SaveInfos;
-using DotNetCampus.Storage.Lib.Parsers;
-using DotNetCampus.Storage.Lib.Parsers.Contexts;
-using DotNetCampus.Storage.Lib.StorageNodes;
+using DotNetCampus.Storage.Parsers;
+using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.StorageNodes;
 
 var parserManager = new StorageNodeParserManager();
 StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser(parserManager);

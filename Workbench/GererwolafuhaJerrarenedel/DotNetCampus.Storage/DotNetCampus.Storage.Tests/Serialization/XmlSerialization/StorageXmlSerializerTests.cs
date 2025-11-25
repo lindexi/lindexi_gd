@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DotNetCampus.Storage.Lib.Serialization.XmlSerialization;
+using DotNetCampus.Storage.Serialization.XmlSerialization;
 using DotNetCampus.Storage.Tests.Assets;
 
 namespace DotNetCampus.Storage.Tests.Serialization.XmlSerialization;

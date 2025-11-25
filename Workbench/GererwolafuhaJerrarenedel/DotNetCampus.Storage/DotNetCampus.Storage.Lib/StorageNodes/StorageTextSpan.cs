@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Storage.Lib.StorageNodes;
+﻿namespace DotNetCampus.Storage.StorageNodes;
 
 /// <summary>
 /// 表示存储的字符内容

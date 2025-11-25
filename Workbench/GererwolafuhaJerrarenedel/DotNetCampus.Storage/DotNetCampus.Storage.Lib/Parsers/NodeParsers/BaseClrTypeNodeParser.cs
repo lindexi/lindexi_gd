@@ -1,6 +1,6 @@
-﻿using DotNetCampus.Storage.Lib.SaveInfos;
+﻿using DotNetCampus.Storage.SaveInfos;
 
-namespace DotNetCampus.Storage.Lib.Parsers.NodeParsers;
+namespace DotNetCampus.Storage.Parsers.NodeParsers;
 
 internal abstract class BaseClrTypeNodeParser<T> : NodeParser<T>
 {

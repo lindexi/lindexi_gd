@@ -1,4 +1,4 @@
-﻿using DotNetCampus.Storage.Lib.SaveInfos;
+﻿using DotNetCampus.Storage.SaveInfos;
 
 namespace DotNetCampus.Storage.Demo.SaveInfos;
 

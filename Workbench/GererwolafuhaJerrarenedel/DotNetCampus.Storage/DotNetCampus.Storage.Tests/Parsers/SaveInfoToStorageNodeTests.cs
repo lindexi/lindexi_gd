@@ -1,14 +1,14 @@
-﻿using DotNetCampus.Storage.Lib.Parsers;
-using DotNetCampus.Storage.Lib.SaveInfos;
+﻿using DotNetCampus.Storage.Parsers;
+using DotNetCampus.Storage.SaveInfos;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DotNetCampus.Storage.Lib.Parsers.Contexts;
-using DotNetCampus.Storage.Lib.Parsers.NodeParsers;
-using DotNetCampus.Storage.Lib.StorageNodes;
+using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.Parsers.NodeParsers;
+using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Tests.Parsers;
 

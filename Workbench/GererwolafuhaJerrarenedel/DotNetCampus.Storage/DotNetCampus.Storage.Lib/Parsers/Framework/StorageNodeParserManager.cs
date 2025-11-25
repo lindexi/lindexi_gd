@@ -1,6 +1,6 @@
-﻿using DotNetCampus.Storage.Lib.Parsers.NodeParsers;
+﻿using DotNetCampus.Storage.Parsers.NodeParsers;
 
-namespace DotNetCampus.Storage.Lib.Parsers;
+namespace DotNetCampus.Storage.Parsers;
 
 /// <summary>
 /// 存储转换管理器

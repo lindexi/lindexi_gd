@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Storage.Lib.Documents;
+﻿namespace DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 
 /// <summary>
 /// 表示资源内容

@@ -108,7 +108,7 @@ namespace DotNetCampus.Storage.Analyzer
                       
                       internal static class StorageNodeParserManagerCollection
                       {
-                          public static void RegisterSaveInfoNodeParser(global::DotNetCampus.Storage.Lib.Parsers.StorageNodeParserManager parserManager)
+                          public static void RegisterSaveInfoNodeParser(global::DotNetCampus.Storage.Parsers.StorageNodeParserManager parserManager)
                           {
                       {{registerCodeStringBuilder.ToString()}}        
                           }
@@ -359,11 +359,11 @@ namespace DotNetCampus.Storage.Analyzer
                      using System;
                      using System.Collections.Generic;
                      using System.Linq;
-                     using DotNetCampus.Storage.Lib.Parsers;
-                     using DotNetCampus.Storage.Lib.Parsers.Contexts;
-                     using DotNetCampus.Storage.Lib.Parsers.NodeParsers;
-                     using DotNetCampus.Storage.Lib.SaveInfos;
-                     using DotNetCampus.Storage.Lib.StorageNodes;
+                     using DotNetCampus.Storage.Parsers;
+                     using DotNetCampus.Storage.Parsers.Contexts;
+                     using DotNetCampus.Storage.Parsers.NodeParsers;
+                     using DotNetCampus.Storage.SaveInfos;
+                     using DotNetCampus.Storage.StorageNodes;
 
                      namespace {{classInfo.Namespace}};
 

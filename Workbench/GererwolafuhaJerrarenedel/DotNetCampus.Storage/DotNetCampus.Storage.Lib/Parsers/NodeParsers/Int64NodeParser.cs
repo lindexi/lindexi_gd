@@ -1,9 +1,9 @@
-﻿using DotNetCampus.Storage.Lib.Parsers.Contexts;
-using DotNetCampus.Storage.Lib.StorageNodes;
+﻿using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.StorageNodes;
 
 using System.Globalization;
 
-namespace DotNetCampus.Storage.Lib.Parsers.NodeParsers;
+namespace DotNetCampus.Storage.Parsers.NodeParsers;
 
 internal class Int64NodeParser : BaseClrTypeNodeParser<long>
 {

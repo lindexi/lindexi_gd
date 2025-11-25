@@ -1,8 +1,8 @@
-﻿using DotNetCampus.Storage.Lib.Parsers.Contexts;
-using DotNetCampus.Storage.Lib.SaveInfos;
-using DotNetCampus.Storage.Lib.StorageNodes;
+﻿using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.SaveInfos;
+using DotNetCampus.Storage.StorageNodes;
 
-namespace DotNetCampus.Storage.Lib.Parsers.NodeParsers;
+namespace DotNetCampus.Storage.Parsers.NodeParsers;
 
 public abstract class SaveInfoNodeParser<T> : NodeParser<T>
 {
