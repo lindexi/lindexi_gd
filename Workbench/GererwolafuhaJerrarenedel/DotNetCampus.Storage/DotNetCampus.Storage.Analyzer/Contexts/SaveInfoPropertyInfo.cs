@@ -3,7 +3,7 @@
 record SaveInfoPropertyInfo
 {
     public required string PropertyName { get; init; }
-    public required string PropertyType { get; init; }
+    public string PropertyType => TypeInfo.PropertyType;
     public required string StorageName { get; init; }
     //public required bool IsNullable { get; init; }
     public IReadOnlyList<string>? Aliases { get; init; }
@@ -13,6 +13,8 @@ record SaveInfoPropertyInfo
 
 readonly record struct SaveInfoPropertyTypeInfo
 {
+    public required string PropertyType { get; init; }
+
     /// <summary>
     /// 是否列表类型
     /// </summary>
