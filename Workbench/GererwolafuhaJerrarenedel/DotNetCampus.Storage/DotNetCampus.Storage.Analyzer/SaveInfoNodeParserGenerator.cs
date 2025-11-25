@@ -298,7 +298,6 @@ namespace DotNetCampus.Storage.Analyzer
                         properties.Add(new SaveInfoPropertyInfo
                         {
                             PropertyName = member.Name,
-                            PropertyType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                             StorageName = storageName,
                             //IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
                             Aliases = aliases,
