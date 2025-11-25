@@ -109,7 +109,7 @@ public class CompoundStorageDocumentSerializer
         storageItemList.AddRange(storageFileItemList);
         storageItemList.AddRange(storageResourceItemList);
 
-        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedFileManager);
+        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, Manager);
         return compoundStorageDocument;
     }
 }
