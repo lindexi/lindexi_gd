@@ -69,9 +69,9 @@ public class CompoundStorageDocumentSerializer
     {
         var storageNodeSerializer = Manager.DefaultStorageNodeSerializer;
 
-        foreach (var fileInfo in classificationResult.ResourceFiles)
+        foreach (var fileInfo in classificationResult.ReferenceResourceManagerFiles)
         {
-            var storageNode = await storageNodeSerializer.DeserializeAsync((IStorageFileInfo) fileInfo);
+            var storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
 
             // 在 IReferencedFileManager 执行更新
         }
@@ -81,7 +81,7 @@ public class CompoundStorageDocumentSerializer
 
         foreach (var fileInfo in classificationResult.DocumentFiles)
         {
-            var storageNode = await storageNodeSerializer.DeserializeAsync((IStorageFileInfo) fileInfo);
+            var storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
 
             storageFileItemList.Add(new StorageFileItem()
             {

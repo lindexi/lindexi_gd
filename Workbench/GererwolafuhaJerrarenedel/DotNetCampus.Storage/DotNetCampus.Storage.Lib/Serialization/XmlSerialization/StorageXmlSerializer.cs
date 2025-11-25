@@ -99,7 +99,7 @@ public class StorageXmlSerializer : IStorageNodeSerializer
         return DeserializeAsync(localStorageFileInfo);
     }
 
-    public async Task<StorageNode> DeserializeAsync(IStorageFileInfo file)
+    public async Task<StorageNode> DeserializeAsync(IReadOnlyStorageFileInfo file)
     {
         await using var fileStream = file.OpenRead();
         XDocument document = await XDocument.LoadAsync(fileStream, LoadOptions.None, CancellationToken.None);
