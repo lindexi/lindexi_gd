@@ -9,7 +9,7 @@ namespace DotNetCampus.Storage.Lib.Logging;
 /// <summary>
 /// 面包屑的存储路径导航
 /// </summary>
-class CrumbsStoragePathNavigator
+public class CrumbsStoragePathNavigator
 {
     private readonly List<string> _crumbs = new List<string>();
 

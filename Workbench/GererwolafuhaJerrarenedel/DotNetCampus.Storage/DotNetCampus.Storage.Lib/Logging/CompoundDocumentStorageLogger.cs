@@ -5,7 +5,7 @@ namespace DotNetCampus.Storage.Lib.Logging;
 /// <summary>
 /// 复合文档的存储日志记录器
 /// </summary>
-class CompoundDocumentStorageLogger
+public class CompoundDocumentStorageLogger
 {
     // 这个应该是接口的，这里为了简化，就不写接口了
 
