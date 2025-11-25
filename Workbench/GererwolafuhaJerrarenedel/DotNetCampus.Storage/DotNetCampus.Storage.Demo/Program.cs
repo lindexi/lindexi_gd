@@ -1,12 +1,20 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using DotNetCampus.Storage;
 using DotNetCampus.Storage.Demo;
 using DotNetCampus.Storage.Demo.SaveInfos;
 using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.StorageNodes;
 
-var parserManager = new StorageNodeParserManager();
+var compoundStorageDocumentManager = new CompoundStorageDocumentManager()
+{
+    ReferencedFileManager = null!,
+    StorageFileManager = null!,
+    StorageModelToCompoundDocumentConverter = null!,
+};
+
+var parserManager = compoundStorageDocumentManager.ParserManager;
 StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser(parserManager);
 
 var fooSaveInfo = new FooSaveInfo()
@@ -23,7 +31,7 @@ var nodeParser = parserManager.GetNodeParser(fooSaveInfo.GetType());
 var storageNode = nodeParser.Deparse(fooSaveInfo, new DeparseNodeContext()
 {
     NodeName = null,
-    ParserManager = parserManager
+    DocumentManager = compoundStorageDocumentManager,
 });
 
 var foo1SaveInfo = new Foo1SaveInfo()
@@ -33,7 +41,7 @@ var foo1SaveInfo = new Foo1SaveInfo()
 var extensionStorageNode = parserManager.GetNodeParser(foo1SaveInfo.GetType()).Deparse(foo1SaveInfo, new DeparseNodeContext()
 {
     NodeName = null,
-    ParserManager = parserManager
+    DocumentManager = compoundStorageDocumentManager,
 });
 storageNode.Children ??= new List<StorageNode>();
 storageNode.Children.Add(extensionStorageNode);
@@ -48,7 +56,7 @@ storageNode.Children.Add(unknownStorageNode);
 
 var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
 {
-    ParserManager = parserManager
+    DocumentManager = compoundStorageDocumentManager,
 }) as FooSaveInfo;
 
 Console.WriteLine("Hello, World!");

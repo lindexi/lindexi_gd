@@ -27,7 +27,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
         var nodeParser = parserManager.GetNodeParser(typeof(T));
         var value = nodeParser.Parse(storageNode, new ParseNodeContext()
         {
-            ParserManager = parserManager
+            DocumentManager = _manager
         });
         return (T) value;
     }
@@ -42,7 +42,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
         var storageNode = nodeParser.Deparse(propertyValue, new DeparseNodeContext()
         {
             NodeName = nodeName,
-            ParserManager = parserManager
+            DocumentManager = _manager,
         });
 
         return new StorageFileItem()
