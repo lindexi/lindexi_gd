@@ -3,10 +3,8 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
 using LightTextEditorPlus.Utils;
 using System.Collections.Generic;
-
 using System.Diagnostics;
 using System.Linq;
 using LightTextEditorPlus.Core.Platform;
@@ -46,7 +44,8 @@ partial class TextEditor
         /// <summary>
         /// 用于解决释放问题
         /// </summary>
-        private readonly HashSet<ITextEditorContentSkiaRenderer> _contentSkiaRenderCache = new HashSet<ITextEditorContentSkiaRenderer>(ReferenceEqualityComparer.Instance);
+        private readonly HashSet<ITextEditorContentSkiaRenderer> _contentSkiaRenderCache =
+            new HashSet<ITextEditorContentSkiaRenderer>(ReferenceEqualityComparer.Instance);
 
 #if DEBUG
         /// <summary>
@@ -67,9 +66,9 @@ partial class TextEditor
                                 textEditor
                                     .CaretConfiguration
                                     .ShowCaretAndSelectionInReadonlyMode
-                                // 不能添加是否空选择的判断，否则从有选择切换到无选择时，将无法清除当前选择内容
-                                //// 有选择时才能绘制选择范围，否则不应该只显示光标
-                                //&& !textEditor.CurrentSelection.IsEmpty
+                            // 不能添加是否空选择的判断，否则从有选择切换到无选择时，将无法清除当前选择内容
+                            //// 有选择时才能绘制选择范围，否则不应该只显示光标
+                            //&& !textEditor.CurrentSelection.IsEmpty
                             );
                 return showCaret;
             }
@@ -87,14 +86,17 @@ partial class TextEditor
             var currentBounds = new Rect(textEditor.DesiredSize);
 
             #region 解决渲染资源释放问题
+
             // 尝试解决释放问题。因为创建是 UI 线程，但不知道渲染线程是否还在使用，于是决定将释放逻辑放在渲染线程
             List<ITextEditorContentSkiaRenderer>? toDisposedList = null;
             _contentSkiaRenderCache.RemoveWhere(t => t.IsDisposed);
-            foreach (var textEditorContentSkiaRender in _contentSkiaRenderCache.Where(textEditorContentSkiaRender => textEditorContentSkiaRender.IsObsoleted))
+            foreach (var textEditorContentSkiaRender in _contentSkiaRenderCache.Where(textEditorContentSkiaRender =>
+                         textEditorContentSkiaRender.IsObsoleted))
             {
                 toDisposedList ??= new List<ITextEditorContentSkiaRenderer>();
                 toDisposedList.Add(textEditorContentSkiaRender);
             }
+
             if (_contentSkiaRenderCache.Add(textEditorSkiaRenderer))
             {
                 Debug.Assert(_contentSkiaRenderCache.Count < 3, "预期不会超过两个，一个是在 UI 线程准备等待渲染，另一个是在渲染线程进行渲染过程");
@@ -111,6 +113,7 @@ partial class TextEditor
                 Debug.WriteLine($"Avalonia 渲染测试 当前未释放数量： {count}/{_debugAllContentSkiaRenderList?.Count}");
             }
 #endif
+
             #endregion
 
             currentBounds = currentBounds.Union(textEditorSkiaRenderer.RenderBounds.ToAvaloniaRect());
@@ -122,15 +125,18 @@ partial class TextEditor
                 // 之前有渲染过，那就要重绘之前的区域。这是 Avalonia 的问题，如果前一次范围比较大，本次比较小，如果依然按照本次的范围，则会让前一次的渲染内容不清掉
                 renderBounds = renderBounds.Union(_lastRenderBounds);
             }
+
             _lastRenderBounds = currentBounds;
 
             context.Custom(new TextEditorCustomDrawOperation(renderBounds, textEditorSkiaRenderer, toDisposedList));
 
             if (CanShowCaret)
             {
-                Debug.Assert(_cacheRenderInfoProvider is not null && !_cacheRenderInfoProvider.IsDirty,"经过前面的文本渲染之后，必定缓存的信息非空也非脏");
+                Debug.Assert(_cacheRenderInfoProvider is not null && !_cacheRenderInfoProvider.IsDirty,
+                    "经过前面的文本渲染之后，必定缓存的信息非空也非脏");
 
-                var caretAndSelectionRender = skiaTextEditor.BuildCaretAndSelectionRender(_cacheRenderInfoProvider, textEditor.CurrentSelection,
+                var caretAndSelectionRender = skiaTextEditor.BuildCaretAndSelectionRender(_cacheRenderInfoProvider,
+                    textEditor.CurrentSelection,
                     new CaretAndSelectionRenderContext(textEditor.IsOvertypeMode));
 
                 // 只有编辑模式下才会绘制光标和选择区域
@@ -212,7 +218,8 @@ partial class TextEditor
 
 file class TextEditorCustomDrawOperation : ICustomDrawOperation
 {
-    public TextEditorCustomDrawOperation(Rect bounds, ITextEditorSkiaRenderer renderer, List<ITextEditorContentSkiaRenderer>? toDisposedList = null)
+    public TextEditorCustomDrawOperation
+        (Rect bounds, ITextEditorSkiaRenderer renderer, List<ITextEditorContentSkiaRenderer>? toDisposedList = null)
     {
         _renderer = renderer;
         _toDisposedList = toDisposedList;

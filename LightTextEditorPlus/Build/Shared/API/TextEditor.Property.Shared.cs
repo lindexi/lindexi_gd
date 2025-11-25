@@ -47,7 +47,8 @@ partial class TextEditor
     public bool IsFeaturesEnable(TextFeatures features) => TextEditorCore.IsFeaturesEnable(features);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.CheckFeaturesDisableWithLog"/>
-    public bool CheckFeaturesDisableWithLog(TextFeatures features) => TextEditorCore.CheckFeaturesDisableWithLog(features);
+    public bool CheckFeaturesDisableWithLog
+        (TextFeatures features) => TextEditorCore.CheckFeaturesDisableWithLog(features);
 
     #endregion
 }

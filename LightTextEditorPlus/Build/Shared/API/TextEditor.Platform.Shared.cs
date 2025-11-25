@@ -3,7 +3,6 @@
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
-
 using System;
 
 namespace LightTextEditorPlus;

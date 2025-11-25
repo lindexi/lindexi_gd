@@ -1,7 +1,6 @@
 ﻿#if TopApiTextEditorDefinition
 using System.Collections.Generic;
 using System.Text;
-
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive.Collections;

@@ -12,7 +12,7 @@ public readonly record struct ForceLayoutNotFoundUpdateActionLogInfo(bool IsFini
     public override string ToString()
     {
         var message = "进行 ForceLayout 立刻布局时，没有找到任何可更新的任务。";
-        if(IsFinishUpdateLayoutWithException)
+        if (IsFinishUpdateLayoutWithException)
         {
             message += "上次布局是异常的，文本没有正确完成布局";
         }

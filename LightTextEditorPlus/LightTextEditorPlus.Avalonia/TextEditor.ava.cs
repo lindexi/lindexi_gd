@@ -21,4 +21,3 @@ public partial class TextEditor
     /// </summary>
     public SkiaTextEditor SkiaTextEditor { get; }
 }
-

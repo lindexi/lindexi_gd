@@ -21,7 +21,8 @@ internal static class CharInfoConverter
     /// </summary>
     /// <param name="charData"></param>
     /// <returns></returns>
-    public static CharInfo ToCharInfo(this CharData charData) => new CharInfo(charData.CharObject, charData.RunProperty.AsRunProperty());
+    public static CharInfo ToCharInfo
+        (this CharData charData) => new CharInfo(charData.CharObject, charData.RunProperty.AsRunProperty());
 
     internal static IReadOnlyList<CharInfo> ToCharInfoList(in TextReadOnlyListSpan<CharData> list)
     {

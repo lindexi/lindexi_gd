@@ -58,5 +58,5 @@ public class TextEditorFontResourceManager
         return FontFileDictionary.TryGetValue(fontName, out fontFile);
     }
 
-    private static Dictionary<string/*fontName*/, FileInfo/*fontFile*/> FontFileDictionary { get; } = new();
+    private static Dictionary<string /*fontName*/, FileInfo /*fontFile*/> FontFileDictionary { get; } = new();
 }

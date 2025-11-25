@@ -1,5 +1,4 @@
 ﻿#if DirectTextEditorDefinition
-
 using System;
 using System.Linq;
 using LightTextEditorPlus.Core.Document;

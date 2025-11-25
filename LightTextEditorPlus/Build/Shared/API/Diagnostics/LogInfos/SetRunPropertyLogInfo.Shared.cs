@@ -23,6 +23,7 @@ public readonly record struct SetRunPropertyLogInfo(PropertyType PropertyType, S
         {
             selectionText = $"设置范围 {Selection}";
         }
+
         return $"设置字符属性，属性类型：{PropertyType}，{selectionText}";
     }
 }

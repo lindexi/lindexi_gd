@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// 不可变的文本列表
 /// </summary>
 public abstract class ImmutableRunListBase<T> : IImmutableRunList
-    where T: IImmutableRun
+    where T : IImmutableRun
 {
     /// <summary>
     /// 创建不可变的文本列表

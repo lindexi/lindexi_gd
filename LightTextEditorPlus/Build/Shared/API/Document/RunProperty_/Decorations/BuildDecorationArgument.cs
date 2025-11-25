@@ -1,5 +1,4 @@
 ﻿#if DirectTextEditorDefinition
-
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;

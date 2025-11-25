@@ -1,5 +1,4 @@
 ﻿#if DirectTextEditorDefinition
-
 namespace LightTextEditorPlus.Document.Decorations;
 
 /// <summary>

@@ -154,20 +154,20 @@ public class SkiaPlatformResourceManager :
 
     private SKTypeface? TryMatchCharacterTypeface(SkiaTextRunProperty normalRunProperty, Utf32CodePoint codePoint)
     {
-//#if DEBUG
-//        // 调试下，强行将此当成找不到字体的情况，方便调试
-//        if (codePoint.Value == '\u2001')
-//        {
-//            return null;
-//        }
-//#endif
+        //#if DEBUG
+        //        // 调试下，强行将此当成找不到字体的情况，方便调试
+        //        if (codePoint.Value == '\u2001')
+        //        {
+        //            return null;
+        //        }
+        //#endif
 
         // 字体不支持此字符。尝试进入字符回滚策略。核心调用的是 MatchCharacter 方法
         using SKFontStyle skFontStyle = normalRunProperty.ToSKFontStyle();
 
         // 先测试带 bcp47 的 MatchCharacter 方法
         string[]? bcp47 = _cacheBcp47StringArray;
-        _cacheBcp47StringArray[0] = SkiaTextEditor.TextEditorCore.CurrentCulture.Name ;
+        _cacheBcp47StringArray[0] = SkiaTextEditor.TextEditorCore.CurrentCulture.Name;
 
         SKTypeface? matchCharacterTypeface = SKFontManager.Default.MatchCharacter(normalRunProperty.RenderFontName,
             skFontStyle, bcp47, codePoint.Value);

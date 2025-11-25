@@ -1,7 +1,6 @@
 ﻿#if !USE_SKIA || USE_AllInOne
 
 using System;
-
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
@@ -100,7 +99,7 @@ partial class TextEditor
     /// </summary>
     /// 不直接开放，防止业务方大量调用造成性能问题
     /// <returns></returns>
-    internal RenderInfoProvider GetRenderInfoImmediately() 
+    internal RenderInfoProvider GetRenderInfoImmediately()
         => ForceLayout();
 
     internal partial RenderInfoProvider ForceLayout();

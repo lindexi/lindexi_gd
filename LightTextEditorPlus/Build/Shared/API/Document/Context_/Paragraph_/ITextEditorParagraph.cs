@@ -1,6 +1,5 @@
 ﻿#if TopApiTextEditorDefinition
 using System.Collections.Generic;
-
 using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Document;

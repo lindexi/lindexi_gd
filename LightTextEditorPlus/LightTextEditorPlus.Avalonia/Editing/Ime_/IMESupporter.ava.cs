@@ -22,10 +22,7 @@ internal class IMESupporter : TextInputMethodClient
 {
     public static void AddIMESupport(TextEditor textEditor)
     {
-        textEditor.TextInputMethodClientRequested += (sender, args) =>
-        {
-            args.Client = new IMESupporter(textEditor);
-        };
+        textEditor.TextInputMethodClientRequested += (sender, args) => { args.Client = new IMESupporter(textEditor); };
     }
 
     private IMESupporter(TextEditor textEditor)

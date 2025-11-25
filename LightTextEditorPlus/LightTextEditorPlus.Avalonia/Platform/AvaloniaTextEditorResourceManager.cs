@@ -6,7 +6,6 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.FontManagers;
 using LightTextEditorPlus.Utils;
-
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Platform;
@@ -21,7 +20,8 @@ public class AvaloniaTextEditorResourceManager : SkiaPlatformResourceManager
     /// </summary>
     /// <param name="textEditor"></param>
     /// <param name="skiaTextEditor"></param>
-    public AvaloniaTextEditorResourceManager(TextEditor textEditor, SkiaTextEditor skiaTextEditor) : base(skiaTextEditor)
+    public AvaloniaTextEditorResourceManager
+        (TextEditor textEditor, SkiaTextEditor skiaTextEditor) : base(skiaTextEditor)
     {
         // 为什么此时不能用 textEditor.SkiaTextEditor 属性？
         // 因为初始化过程中 textEditor.SkiaTextEditor 属性还没有被赋值

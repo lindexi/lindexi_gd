@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 /// </summary>
 /// <param name="CaretOffset"></param>
 /// <param name="TextEditor"></param>
-public readonly record struct GetCaretWordArgument(CaretOffset CaretOffset,TextEditorCore TextEditor);
+public readonly record struct GetCaretWordArgument(CaretOffset CaretOffset, TextEditorCore TextEditor);
 
 /// <summary>
 /// 获取传入光标所在的单词选择范围的结果
