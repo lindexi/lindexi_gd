@@ -8,6 +8,7 @@ using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.SaveInfos;
+using DotNetCampus.Storage.Serialization;
 using DotNetCampus.Storage.StorageFiles;
 using DotNetCampus.Storage.StorageNodes;
 
@@ -19,11 +20,6 @@ namespace DotNetCampus.Storage;
 /// 这是这个程序集的入口
 public class CompoundStorageDocumentManager
 {
-    ///// <summary>
-    ///// 工作路径。每个文档实例必须使用不同的工作路径
-    ///// </summary>
-    //public required DirectoryInfo WorkingDirectoryInfo { get; init; }
-
     /// <summary>
     /// 文件管理
     /// </summary>
@@ -43,6 +39,11 @@ public class CompoundStorageDocumentManager
     /// 存储模型到复合文档的转换器
     /// </summary>
     public required IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; init; }
+
+    /// <summary>
+    /// 默认的存储节点序列化器
+    /// </summary>
+    public required IStorageNodeSerializer DefaultStorageNodeSerializer { get; init; }
 
     public static CompoundStorageDocumentManagerBuilder CreateBuilder()
     {

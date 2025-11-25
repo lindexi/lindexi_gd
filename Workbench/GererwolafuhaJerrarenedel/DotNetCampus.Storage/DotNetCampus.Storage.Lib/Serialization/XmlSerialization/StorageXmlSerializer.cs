@@ -1,15 +1,17 @@
-﻿using System.Globalization;
+﻿using DotNetCampus.Storage.StorageFiles;
+using DotNetCampus.Storage.StorageNodes;
+
+using System.Globalization;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Serialization.XmlSerialization;
 
 /// <summary>
 /// 存储的 XML 序列化器
 /// </summary>
-public class StorageXmlSerializer
+public class StorageXmlSerializer : IStorageNodeSerializer
 {
     public XDocument Serialize(StorageNode node)
     {
@@ -29,7 +31,18 @@ public class StorageXmlSerializer
         return document;
     }
 
-    public async Task SerializeAsync(StorageNode node, FileInfo outputFile)
+    public Task SerializeAsync(StorageNode node, FileInfo outputFile)
+    {
+        var localStorageFileInfo = new LocalStorageFileInfo()
+        {
+            RelativePath = outputFile.FullName,
+            FileInfo = outputFile
+        };
+
+        return SerializeAsync(node, localStorageFileInfo);
+    }
+
+    public async Task SerializeAsync(StorageNode node, IStorageFileInfo outputFile)
     {
         var document = Serialize(node);
 
@@ -75,7 +88,18 @@ public class StorageXmlSerializer
         return element;
     }
 
-    public async Task<StorageNode> DeserializeAsync(FileInfo file)
+    public Task<StorageNode> DeserializeAsync(FileInfo file)
+    {
+        var localStorageFileInfo = new LocalStorageFileInfo()
+        {
+            RelativePath = file.FullName,
+            FileInfo = file
+        };
+
+        return DeserializeAsync(localStorageFileInfo);
+    }
+
+    public async Task<StorageNode> DeserializeAsync(IStorageFileInfo file)
     {
         await using var fileStream = file.OpenRead();
         XDocument document = await XDocument.LoadAsync(fileStream, LoadOptions.None, CancellationToken.None);

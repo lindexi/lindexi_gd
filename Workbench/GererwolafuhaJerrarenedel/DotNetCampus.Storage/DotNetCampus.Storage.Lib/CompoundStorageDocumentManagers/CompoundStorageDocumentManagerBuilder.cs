@@ -2,6 +2,8 @@
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.SaveInfos;
+using DotNetCampus.Storage.Serialization;
+using DotNetCampus.Storage.Serialization.XmlSerialization;
 using DotNetCampus.Storage.StorageFiles;
 using DotNetCampus.Storage.StorageNodes;
 
@@ -43,6 +45,11 @@ public class CompoundStorageDocumentManagerBuilder
     /// </summary>
     public IStorageModelToCompoundDocumentConverter? StorageModelToCompoundDocumentConverter { get; set; }
 
+    /// <summary>
+    /// 默认的存储节点序列化器
+    /// </summary>
+    public IStorageNodeSerializer? DefaultStorageNodeSerializer { get; set; }
+
     public CompoundStorageDocumentManagerBuilder UseStorageModelToCompoundDocumentConverter(
         Func<CompoundStorageDocumentManagerProvider, IStorageModelToCompoundDocumentConverter> creator)
     {
@@ -64,12 +71,17 @@ public class CompoundStorageDocumentManagerBuilder
         var storageModelToCompoundDocumentConverter = StorageModelToCompoundDocumentConverter
                                                       ?? new EmptyStorageModelToCompoundDocumentConverter(
                                                           ManagerProvider);
+
+        var defaultStorageNodeSerializer = DefaultStorageNodeSerializer
+            ?? new StorageXmlSerializer();
+
         var manager = new CompoundStorageDocumentManager()
         {
             ReferencedFileManager = referencedFileManager,
             StorageFileManager = storageFileManager,
             StorageModelToCompoundDocumentConverter = storageModelToCompoundDocumentConverter,
-            ParserManager = parserManager
+            ParserManager = parserManager,
+            DefaultStorageNodeSerializer = defaultStorageNodeSerializer
         };
         ManagerProvider.Manager = manager;
         return manager;
