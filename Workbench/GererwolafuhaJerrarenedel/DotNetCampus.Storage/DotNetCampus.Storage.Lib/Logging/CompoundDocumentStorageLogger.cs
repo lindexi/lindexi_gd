@@ -1,6 +1,6 @@
-﻿using DotNetCampus.Storage.Lib.StorageNodes;
+﻿using DotNetCampus.Storage.StorageNodes;
 
-namespace DotNetCampus.Storage.Lib.Logging;
+namespace DotNetCampus.Storage.Logging;
 
 /// <summary>
 /// 复合文档的存储日志记录器

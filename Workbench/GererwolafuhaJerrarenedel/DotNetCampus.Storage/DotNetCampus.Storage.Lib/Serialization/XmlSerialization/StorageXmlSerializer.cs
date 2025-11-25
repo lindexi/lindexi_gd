@@ -2,9 +2,9 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using DotNetCampus.Storage.Lib.StorageNodes;
+using DotNetCampus.Storage.StorageNodes;
 
-namespace DotNetCampus.Storage.Lib.Serialization.XmlSerialization;
+namespace DotNetCampus.Storage.Serialization.XmlSerialization;
 
 /// <summary>
 /// 存储的 XML 序列化器

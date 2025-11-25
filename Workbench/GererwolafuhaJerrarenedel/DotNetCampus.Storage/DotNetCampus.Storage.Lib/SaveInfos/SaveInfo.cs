@@ -1,4 +1,4 @@
-﻿using DotNetCampus.Storage.Lib.StorageNodes;
+﻿using DotNetCampus.Storage.StorageNodes;
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotNetCampus.Storage.Lib.SaveInfos;
+namespace DotNetCampus.Storage.SaveInfos;
 
 /// <summary>
 /// 数据模型的基类

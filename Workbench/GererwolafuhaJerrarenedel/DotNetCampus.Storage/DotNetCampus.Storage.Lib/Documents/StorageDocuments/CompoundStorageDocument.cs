@@ -1,6 +1,6 @@
-﻿using DotNetCampus.Storage.Lib.Logging;
+﻿using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 
-namespace DotNetCampus.Storage.Lib.Documents;
+namespace DotNetCampus.Storage.Documents.StorageDocuments;
 
 /// <summary>
 /// 复合的存储文档

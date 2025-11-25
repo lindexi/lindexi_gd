@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotNetCampus.Storage.Lib.Serialization;
+namespace DotNetCampus.Storage.Serialization;
 
 /// <summary>
 /// 使用 Open Packaging Conventions(OPC) 格式的序列化器

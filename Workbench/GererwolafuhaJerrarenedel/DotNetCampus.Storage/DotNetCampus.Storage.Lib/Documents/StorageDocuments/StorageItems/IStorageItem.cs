@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Storage.Lib.Documents;
+﻿namespace DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 
 public interface IStorageItem
 {

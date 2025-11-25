@@ -1,13 +1,13 @@
-﻿using DotNetCampus.Storage.Lib.StorageNodes;
+﻿using DotNetCampus.Storage.StorageNodes;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DotNetCampus.Storage.Lib.Parsers.Contexts;
+using DotNetCampus.Storage.Parsers.Contexts;
 
-namespace DotNetCampus.Storage.Lib.Parsers;
+namespace DotNetCampus.Storage.Parsers;
 
 public abstract class NodeParser
 {

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace DotNetCampus.Storage.Lib.StorageNodes;
+namespace DotNetCampus.Storage.StorageNodes;
 
 /// <summary>
 /// 存储的数据最小单位。用于作为数据模型和具体文件存档格式的中间层

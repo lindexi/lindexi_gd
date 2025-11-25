@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Storage.Lib.Parsers.Contexts;
+﻿namespace DotNetCampus.Storage.Parsers.Contexts;
 
 public readonly record struct DeparseNodeContext
 {

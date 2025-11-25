@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Storage.Lib.SaveInfos;
+﻿namespace DotNetCampus.Storage.SaveInfos;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class SaveInfoContractAttribute : Attribute

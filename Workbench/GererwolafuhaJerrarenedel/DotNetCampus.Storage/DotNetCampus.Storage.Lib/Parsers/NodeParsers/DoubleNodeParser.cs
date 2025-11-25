@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
-using DotNetCampus.Storage.Lib.Parsers.Contexts;
-using DotNetCampus.Storage.Lib.StorageNodes;
+using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.StorageNodes;
 
-namespace DotNetCampus.Storage.Lib.Parsers.NodeParsers;
+namespace DotNetCampus.Storage.Parsers.NodeParsers;
 
 internal class DoubleNodeParser : BaseClrTypeNodeParser<double>
 {

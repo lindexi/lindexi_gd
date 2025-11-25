@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotNetCampus.Storage.Lib.Logging;
+namespace DotNetCampus.Storage.Logging;
 
 /// <summary>
 /// 面包屑的存储路径导航

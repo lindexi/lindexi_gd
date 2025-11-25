@@ -17,7 +17,7 @@ public sealed class SaveInfoNodeParserGeneratorTest
     {
         var sourceCode =
             """
-            using DotNetCampus.Storage.Lib.SaveInfos;
+            using DotNetCampus.Storage.SaveInfos;
 
             using System;
             using System.Collections.Generic;
@@ -62,7 +62,7 @@ public sealed class SaveInfoNodeParserGeneratorTest
             {
                 // 如果缺少引用，那将会导致单元测试有些符号无法寻找正确，从而导致解析失败
                 // 添加对于 Lib 的引用
-                MetadataReference.CreateFromFile(typeof(DotNetCampus.Storage.Lib.SaveInfos.SaveInfo).GetTypeInfo().Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(DotNetCampus.Storage.SaveInfos.SaveInfo).GetTypeInfo().Assembly.Location),
             }
             // 加上整个 dotnet 的基础库
             .Concat(MetadataReferenceProvider.GetDotNetMetadataReferenceList()),
