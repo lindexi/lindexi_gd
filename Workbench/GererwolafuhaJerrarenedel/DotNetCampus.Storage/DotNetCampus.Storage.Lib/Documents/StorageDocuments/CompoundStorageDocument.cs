@@ -1,4 +1,6 @@
-﻿namespace DotNetCampus.Storage.Lib.Documents;
+﻿using DotNetCampus.Storage.Lib.Logging;
+
+namespace DotNetCampus.Storage.Lib.Documents;
 
 /// <summary>
 /// 复合的存储文档
@@ -8,5 +10,8 @@
 /// 可以将其转换为具体的存储模型
 public class CompoundStorageDocument
 {
-
+    //public CompoundDocument ToCompoundDocument(StorageModel storageModel,
+    //    CompoundDocumentStorageLogger? logger = null)
+    //{
+    //}
 }
