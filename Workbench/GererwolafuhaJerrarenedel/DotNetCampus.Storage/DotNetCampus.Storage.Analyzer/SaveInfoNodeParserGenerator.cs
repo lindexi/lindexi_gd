@@ -290,11 +290,11 @@ namespace DotNetCampus.Storage.Analyzer
                         }
                     }
 
-                    var isListType = IsListOfSaveInfo(member.Type);
-                    var isEnumType = IsEnumType(member.Type);
-
+                    // 防止重复添加基类的同名属性
                     if (properties.All(p => p.PropertyName != member.Name))
                     {
+                        var typeInfo = SaveInfoPropertyTypeInfoConverter.ToTypeInfo(member.Type);
+
                         properties.Add(new SaveInfoPropertyInfo
                         {
                             PropertyName = member.Name,
@@ -302,8 +302,7 @@ namespace DotNetCampus.Storage.Analyzer
                             StorageName = storageName,
                             //IsNullable = member.Type.NullableAnnotation == NullableAnnotation.Annotated,
                             Aliases = aliases,
-                            IsListType = isListType,
-                            IsEnumType = isEnumType,
+                            TypeInfo = typeInfo
                         });
                     }
                 }
@@ -323,48 +322,6 @@ namespace DotNetCampus.Storage.Analyzer
                 ContractName = contractName!,
                 Properties = properties
             };
-        }
-
-        /// <summary>
-        /// 判断是否为枚举类型，包括可空枚举类型
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private static bool IsEnumType(ITypeSymbol type)
-        {
-            if (type is INamedTypeSymbol namedType)
-            {
-                if (namedType.TypeKind == TypeKind.Enum)
-                {
-                    return true;
-                }
-                // 判断是否为可空枚举类型
-                if (namedType.IsGenericType && namedType.ConstructUnboundGenericType().ToDisplayString() == "System.Nullable<>")
-                {
-                    var typeArgument = namedType.TypeArguments.FirstOrDefault();
-                    if (typeArgument != null && typeArgument.TypeKind == TypeKind.Enum)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool IsListOfSaveInfo(ITypeSymbol type)
-        {
-            if (type is INamedTypeSymbol namedType && namedType.IsGenericType)
-            {
-                var typeName = namedType.ConstructUnboundGenericType().ToDisplayString();
-                if (typeName is "System.Collections.Generic.List<>"
-                    or "System.Collections.Generic.IReadOnlyList<>"
-                    or "System.Collections.Generic.IList<>")
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private static bool InheritsFromSaveInfo(INamedTypeSymbol? classSymbol)
@@ -449,13 +406,13 @@ namespace DotNetCampus.Storage.Analyzer
                 var aliasesVar = "aliasesFor" + propertyInfo.PropertyName;
 
                 string convertCode;
-                if (propertyInfo.IsListType)
+                if (propertyInfo.TypeInfo.IsListType)
                 {
                     convertCode = $$"""
-                                    result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
+                                    result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<{{propertyInfo.TypeInfo.ListGenericType}}>().ToList();
                                     """;
                 }
-                else if (propertyInfo.IsEnumType)
+                else if (propertyInfo.TypeInfo.IsEnumType)
                 {
                     convertCode = $$"""
                                     if (Enum.TryParse(storageNode.Value.ToText(), out {{propertyInfo.PropertyType}} valueFor{{propertyInfo.PropertyName}}))
@@ -530,7 +487,7 @@ namespace DotNetCampus.Storage.Analyzer
             {
                 var propNameVar = "propertyNameFor" + propertyInfo.PropertyName;
 
-                if (propertyInfo.IsListType)
+                if (propertyInfo.TypeInfo.IsListType)
                 {
                     // Special handling for List<SaveInfo> properties
                     return $$"""
@@ -552,7 +509,7 @@ namespace DotNetCampus.Storage.Analyzer
                            
                            """;
                 }
-                else if (propertyInfo.IsEnumType)
+                else if (propertyInfo.TypeInfo.IsEnumType)
                 {
                     /*
    // Generate code for property Foo2Enum
