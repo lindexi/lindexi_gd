@@ -21,5 +21,5 @@ public interface IStorageNodeSerializer
     /// </summary>
     /// <param name="file"></param>
     /// <returns></returns>
-    Task<StorageNode> DeserializeAsync(IStorageFileInfo file);
+    Task<StorageNode> DeserializeAsync(IReadOnlyStorageFileInfo file);
 }
