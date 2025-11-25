@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DotNetCampus.Storage.Lib.StorageNodes;
 
@@ -22,6 +23,12 @@ public class StorageNode
     public StorageTextSpan Value { get; set; } = StorageTextSpan.NullValue;
 
     public List<StorageNode>? Children { get; set; }
+
+    /// <summary>
+    /// 是否拥有子节点
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(Children))]
+    public bool HasChild => Children != null && Children.Any();
 
     public override string ToString()
     {

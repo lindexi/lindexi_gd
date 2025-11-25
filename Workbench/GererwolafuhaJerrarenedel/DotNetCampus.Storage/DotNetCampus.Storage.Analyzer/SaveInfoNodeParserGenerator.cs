@@ -228,7 +228,7 @@ namespace DotNetCampus.Storage.Analyzer
             {
                 return null;
             }
-
+            
             var contractName = contractAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
             if (string.IsNullOrEmpty(contractName))
             {
@@ -448,7 +448,6 @@ namespace DotNetCampus.Storage.Analyzer
                 }
 
                 convertCode = SetIndent(convertCode, 2);
-
 
                 // Special handling for List<SaveInfo> properties
                 return $$"""
