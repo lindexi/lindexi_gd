@@ -8,15 +8,28 @@ record SaveInfoPropertyInfo
     //public required bool IsNullable { get; init; }
     public IReadOnlyList<string>? Aliases { get; init; }
 
+    public required SaveInfoPropertyTypeInfo TypeInfo { get; init; }
+}
+
+readonly record struct SaveInfoPropertyTypeInfo
+{
     /// <summary>
     /// 是否列表类型
     /// </summary>
-    public bool IsListType { get; init; }
+    public required bool IsListType { get; init; }
 
     /// <summary>
     /// 列表类型里面的泛型类型名称
     /// </summary>
-    public string? ListGenericType { get; init; }
+    public required string? ListGenericType { get; init; }
 
-    public bool IsEnumType { get; init; }
+    /// <summary>
+    /// 是否枚举类型
+    /// </summary>
+    public required bool IsEnumType { get; init; }
+
+    /// <summary>
+    /// 是否可空的值类型
+    /// </summary>
+    public required bool IsNullableValueType { get; init; }
 }
