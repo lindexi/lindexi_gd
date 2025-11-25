@@ -1,14 +1,31 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using DotNetCampus.Storage;
+using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Demo;
 using DotNetCampus.Storage.Demo.SaveInfos;
+using DotNetCampus.Storage.Documents.Converters;
+using DotNetCampus.Storage.Documents.StorageDocuments;
+using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.SaveInfos;
 using DotNetCampus.Storage.StorageNodes;
 
+var testFile = @"C:\lindexi\Test.opc";
+
+if (!File.Exists(testFile))
+{
+    return;
+}
+
 var builder = CompoundStorageDocumentManager.CreateBuilder();
+builder.UseStorageModelToCompoundDocumentConverter(provider =>
+    new FakeStorageModelToCompoundDocumentConverter(provider));
+
 var compoundStorageDocumentManager = builder.Build();
+
+var storageModel = await compoundStorageDocumentManager.ReadStorageModelFromOpcFile<FakeStorageModel>(new FileInfo(testFile));
 
 var parserManager = compoundStorageDocumentManager.ParserManager;
 StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser(parserManager);
@@ -56,3 +73,40 @@ var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
 }) as FooSaveInfo;
 
 Console.WriteLine("Hello, World!");
+
+
+
+class FakeStorageModel : StorageModel
+{
+    public TestDocumentSaveInfo? Document { get; set; }
+}
+
+[SaveInfoContract("Document")]
+class TestDocumentSaveInfo : SaveInfo
+{
+    [SaveInfoMember("Name")]
+    public string? Name { get; set; }
+
+    [SaveInfoMember("Creator")]
+    public string? Creator { get; set; }
+
+    [SaveInfoMember("DocumentVersion")]
+    public string? DocumentVersion { get; set; }
+}
+
+class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocumentConverter
+{
+    public FakeStorageModelToCompoundDocumentConverter(CompoundStorageDocumentManagerProvider provider) : base(provider)
+    {
+    }
+
+    public override StorageModel ToStorageModel(CompoundStorageDocument document)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
+    {
+        throw new System.NotImplementedException();
+    }
+}

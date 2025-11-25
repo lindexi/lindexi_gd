@@ -14,6 +14,7 @@ public class StorageNodeParserManager
         Register(new DoubleNodeParser());
         Register(new Int32NodeParser());
         Register(new Int64NodeParser());
+        Register(new StringNodeParser());
     }
 
     public void Register(NodeParser nodeParser)
