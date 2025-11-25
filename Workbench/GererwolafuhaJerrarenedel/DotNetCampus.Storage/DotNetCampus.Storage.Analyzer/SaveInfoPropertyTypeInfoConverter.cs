@@ -32,7 +32,7 @@ static class SaveInfoPropertyTypeInfoConverter
                     isListType = listGenericType != null;
                 }
 
-                if (typeName is "System.Nullable<>")
+                if (typeName is "System.Nullable<>" || namedType.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     isNullableValueType = true;
 

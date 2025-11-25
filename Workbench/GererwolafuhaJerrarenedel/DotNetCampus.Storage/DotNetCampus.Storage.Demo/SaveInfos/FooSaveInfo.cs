@@ -14,6 +14,9 @@ public class FooSaveInfo : SaveInfo
     [SaveInfoMember("FooProperty", Description = "This is a foo property.")]
     public int FooProperty { get; set; } = 2;
 
+    [SaveInfoMember("FooNullProperty", Description = "This is a foo null property.")]
+    public int? FooNullProperty { get; set; }
+
     [SaveInfoMember("F1", Description = "This is a foo property.")]
     public Foo1SaveInfo? Foo1 { get; set; }
 
