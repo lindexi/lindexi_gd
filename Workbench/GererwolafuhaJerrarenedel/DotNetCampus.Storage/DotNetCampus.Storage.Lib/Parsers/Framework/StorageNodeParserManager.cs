@@ -92,7 +92,7 @@ public class DoubleLayerStorageNodeListParser : IStorageNodeListParser
                 }
             }
 
-            if (nodeParser != null && nodeParser.TargetType.IsAssignableFrom(typeof(TElement)) is false)
+            if (nodeParser != null && nodeParser.TargetType.IsAssignableTo(typeof(TElement)) is false)
             {
                 // 这是特殊的情况，意味着刚好有名字没有匹配到正确类型的解析器
                 // 比如某些过于通用的名称，如 Item 等
