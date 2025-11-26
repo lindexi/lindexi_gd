@@ -114,24 +114,6 @@ public class CompoundStorageDocumentSerializer
     }
 }
 
-internal class OpcStorageFileInfo : IReadOnlyStorageFileInfo
-{
-    public OpcStorageFileInfo(ZipArchiveEntry zipArchiveEntry)
-    {
-        _zipArchiveEntry = zipArchiveEntry;
-        RelativePath = zipArchiveEntry.FullName;
-    }
-
-    private readonly ZipArchiveEntry _zipArchiveEntry;
-
-    public StorageFileRelativePath RelativePath { get; init; }
-
-    public Stream OpenRead()
-    {
-        return _zipArchiveEntry.Open();
-    }
-}
-
 /// <summary>
 /// 存放序列化之后的文件信息
 /// </summary>
