@@ -91,7 +91,7 @@ public class CompoundStorageDocumentSerializer
         }
 
         var storageResourceItemList = new List<StorageResourceItem>();
-        var referencedFileManager = Manager.ReferencedFileManager;
+        var referencedFileManager = Manager.ReferencedManager;
 
         foreach (var fileInfo in classificationResult.ResourceFiles)
         {

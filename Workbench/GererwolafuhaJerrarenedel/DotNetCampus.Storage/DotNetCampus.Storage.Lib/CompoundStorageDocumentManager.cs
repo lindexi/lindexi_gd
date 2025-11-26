@@ -31,7 +31,7 @@ public class CompoundStorageDocumentManager
     /// <summary>
     /// 引用管理器。不同文档之间禁止复用。带状态
     /// </summary>
-    public required IReferencedFileManager ReferencedFileManager { get; init; }
+    public required IReferencedManager ReferencedManager { get; init; }
 
     /// <summary>
     /// 提供 <see cref="SaveInfo"/> 和 <see cref="StorageNode"/> 的转换管理器
