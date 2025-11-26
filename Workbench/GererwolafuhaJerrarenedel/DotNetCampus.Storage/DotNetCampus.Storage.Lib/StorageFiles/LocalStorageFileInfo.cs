@@ -8,7 +8,7 @@ public class LocalStorageFileInfo : IStorageFileInfo
     /// <summary>
     /// 相对路径
     /// </summary>
-    public required string RelativePath { get; init; }
+    public required StorageFileRelativePath RelativePath { get; init; }
 
     /// <summary>
     /// 实际文件

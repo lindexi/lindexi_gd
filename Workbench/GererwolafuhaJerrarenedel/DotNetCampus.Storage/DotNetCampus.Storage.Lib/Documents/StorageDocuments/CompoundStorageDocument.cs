@@ -1,4 +1,5 @@
 ﻿using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
+using DotNetCampus.Storage.StorageFiles;
 
 namespace DotNetCampus.Storage.Documents.StorageDocuments;
 
@@ -22,6 +23,8 @@ public class CompoundStorageDocument
     private readonly List<IStorageItem> _storageItemList;
 
     public IReferencedFileManager ReferencedFileManager => Manager.ReferencedFileManager;
+
+    public IStorageFileManager StorageFileManager => Manager.StorageFileManager;
 
     //public CompoundDocument ToCompoundDocument(StorageModel storageModel,
     //    CompoundDocumentStorageLogger? logger = null)

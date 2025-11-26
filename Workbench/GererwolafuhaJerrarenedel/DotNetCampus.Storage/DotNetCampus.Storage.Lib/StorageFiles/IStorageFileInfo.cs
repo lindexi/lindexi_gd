@@ -20,7 +20,7 @@ public interface IReadOnlyStorageFileInfo
     /// <summary>
     /// 文件相对路径
     /// </summary>
-    string RelativePath { get; init; }
+    StorageFileRelativePath RelativePath { get; init; }
 
     /// <summary>
     /// 打开用于读取的流
