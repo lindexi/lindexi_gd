@@ -9,7 +9,7 @@ public interface IReferencedManager
     /// </summary>
     IStorageFileManager StorageFileManager { get; }
 
-    void Rest(IReadOnlyCollection<ReferenceInfo>? references = null);
+    void Reset(IReadOnlyCollection<ReferenceInfo>? references = null);
 
     IReadOnlyCollection<ReferenceInfo> References { get; }
 
