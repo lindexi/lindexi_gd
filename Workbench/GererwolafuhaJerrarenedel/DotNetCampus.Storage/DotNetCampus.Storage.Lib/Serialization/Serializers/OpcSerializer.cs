@@ -55,8 +55,6 @@ public abstract class CompoundStorageDocumentSerializer
         _provider = provider;
     }
 
-    public virtual ISerializationFileFilter SerializationFileFilter => new OpcSerializationFileFilter();
-
     public virtual IStorageNodeSerializer StorageNodeSerializer => new StorageXmlSerializer();
 
     private readonly CompoundStorageDocumentManagerProvider _provider;
@@ -66,11 +64,76 @@ public abstract class CompoundStorageDocumentSerializer
     public virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(
         IReadOnlyStorageFileManager fileProvider)
     {
-        var fileFilter = SerializationFileFilter;
-        var classificationResult = fileFilter.Filter(fileProvider);
+        var classificationResult = Filter(fileProvider);
 
         var compoundStorageDocument = await ToCompoundStorageDocument(classificationResult);
         return compoundStorageDocument;
+    }
+
+    public const string DefaultReferenceFileName = "Reference.xml";
+    public const string ContentTypesFileName = "[Content_Types].xml";
+
+    protected virtual OpcSerializationFileClassificationResult Filter(IReadOnlyStorageFileManager fileProvider)
+    {
+        var fileList = fileProvider.FileList;
+
+        var referenceFile = fileList.FirstOrDefault(t => string.Equals(t.RelativePath.RelativePath, "Reference.xml", StringComparison.OrdinalIgnoreCase));
+
+        IReadOnlyList<IReadOnlyStorageFileInfo> referenceResourceManagerFiles;
+        if (referenceFile is not null)
+        {
+            referenceResourceManagerFiles = [referenceFile];
+        }
+        else
+        {
+            referenceResourceManagerFiles = [];
+        }
+
+        var documentFile = new List<IReadOnlyStorageFileInfo>();
+        var resourceFile = new List<IReadOnlyStorageFileInfo>();
+
+        foreach (var fileInfo in fileList)
+        {
+            if (IsDocumentFile(fileInfo))
+            {
+                documentFile.Add(fileInfo);
+            }
+            else
+            {
+                resourceFile.Add(fileInfo);
+            }
+        }
+
+        return new OpcSerializationFileClassificationResult()
+        {
+            ResourceFiles = resourceFile,
+            DocumentFiles = documentFile,
+            ReferenceResourceManagerFiles = referenceResourceManagerFiles,
+            FileProvider = fileProvider,
+        };
+
+        static bool IsDocumentFile(IReadOnlyStorageFileInfo fileInfo)
+        {
+            // 后缀是 xml 的，但是不是 Reference.xml 和 [Content_Types].xml 文件的，就是文档文件
+            var relativePath = fileInfo.RelativePath;
+            var extension = Path.GetExtension(relativePath.AsSpan());
+            if (!extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.Equals(relativePath.RelativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.Equals(relativePath.RelativePath, ContentTypesFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 
     protected virtual void AddResourceReference(StorageNode referenceStorageNode)
@@ -154,83 +217,6 @@ public record SerializationStorageFileProvider(IReadOnlyCollection<IReadOnlyStor
     // 在 CompoundStorageDocumentManager 将一批 XML 相关的转换器放在一起。同时开放用户的配置逻辑
     // 如此可以搞定从 CompoundStorageDocumentManager 转换序列化的本地文件到存储文档的过程
     // 以及从存储文档转换到内存模型的过程。存储文档本身需要注入文档的文件到对应哪个存储模型的关系
-}
-
-/// <summary>
-/// 文件过滤器，用来鉴别文件类型
-/// </summary>
-public interface ISerializationFileFilter
-{
-    OpcSerializationFileClassificationResult Filter(IReadOnlyStorageFileManager fileProvider);
-}
-
-public class OpcSerializationFileFilter : ISerializationFileFilter
-{
-    public const string DefaultReferenceFileName = "Reference.xml";
-    public const string ContentTypesFileName = "[Content_Types].xml";
-
-    public OpcSerializationFileClassificationResult Filter(IReadOnlyStorageFileManager fileProvider)
-    {
-        var fileList = fileProvider.FileList;
-
-        var referenceFile = fileList.FirstOrDefault(t => string.Equals(t.RelativePath.RelativePath, "Reference.xml", StringComparison.OrdinalIgnoreCase));
-
-        IReadOnlyList<IReadOnlyStorageFileInfo> referenceResourceManagerFiles;
-        if (referenceFile is not null)
-        {
-            referenceResourceManagerFiles = [referenceFile];
-        }
-        else
-        {
-            referenceResourceManagerFiles = [];
-        }
-
-        var documentFile = new List<IReadOnlyStorageFileInfo>();
-        var resourceFile = new List<IReadOnlyStorageFileInfo>();
-
-        foreach (var fileInfo in fileList)
-        {
-            if (IsDocumentFile(fileInfo))
-            {
-                documentFile.Add(fileInfo);
-            }
-            else
-            {
-                resourceFile.Add(fileInfo);
-            }
-        }
-
-        return new OpcSerializationFileClassificationResult()
-        {
-            ResourceFiles = resourceFile,
-            DocumentFiles = documentFile,
-            ReferenceResourceManagerFiles = referenceResourceManagerFiles,
-            FileProvider = fileProvider,
-        };
-
-        static bool IsDocumentFile(IReadOnlyStorageFileInfo fileInfo)
-        {
-            // 后缀是 xml 的，但是不是 Reference.xml 和 [Content_Types].xml 文件的，就是文档文件
-            var relativePath = fileInfo.RelativePath;
-            var extension = Path.GetExtension(relativePath.AsSpan());
-            if (!extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (string.Equals(relativePath.RelativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (string.Equals(relativePath.RelativePath, ContentTypesFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            return true;
-        }
-    }
 }
 
 /// <summary>
