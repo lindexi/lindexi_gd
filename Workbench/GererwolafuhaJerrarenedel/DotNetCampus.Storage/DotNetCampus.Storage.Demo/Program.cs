@@ -15,12 +15,7 @@ using DotNetCampus.Storage.Serialization;
 using DotNetCampus.Storage.StorageFiles;
 using DotNetCampus.Storage.StorageNodes;
 
-var testFile = @"C:\lindexi\Test.opc";
-
-if (!File.Exists(testFile))
-{
-    return;
-}
+var testFile = Path.Join(AppContext.BaseDirectory, "Asserts", "TestFiles", "Test.opc");
 
 var builder = CompoundStorageDocumentManager.CreateBuilder();
 builder
