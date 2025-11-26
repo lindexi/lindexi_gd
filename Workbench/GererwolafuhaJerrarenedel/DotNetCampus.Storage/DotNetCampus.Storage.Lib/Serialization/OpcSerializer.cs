@@ -53,7 +53,7 @@ public class CompoundStorageDocumentSerializer
     protected async Task<CompoundStorageDocument> ToCompoundStorageDocument(
         SerializationStorageFileProvider fileProvider)
     {
-        var fileFilter = Manager.SerializationFileFilter ?? new OpcSerializationFileFilter();
+        var fileFilter = new OpcSerializationFileFilter();
         var classificationResult = fileFilter.Filter(fileProvider);
 
         var compoundStorageDocument = await ToCompoundStorageDocument(classificationResult);
@@ -86,7 +86,7 @@ public class CompoundStorageDocumentSerializer
             storageFileItemList.Add(new StorageFileItem()
             {
                 RootStorageNode = storageNode,
-                RelativePath = fileInfo.RelativePath
+                RelativePath = fileInfo.RelativePath.RelativePath
             });
         }
 
@@ -98,8 +98,8 @@ public class CompoundStorageDocumentSerializer
             // 考虑将资源存起来
             storageResourceItemList.Add(new StorageResourceItem()
             {
-                RelativePath = fileInfo.RelativePath,
-                ResourceId = fileInfo.RelativePath // 先用路径作为 ResourceId，后续可以改进
+                RelativePath = fileInfo.RelativePath.RelativePath,
+                ResourceId = fileInfo.RelativePath.RelativePath // 先用路径作为 ResourceId，后续可以改进
             });
         }
 
@@ -109,7 +109,7 @@ public class CompoundStorageDocumentSerializer
         storageItemList.AddRange(storageFileItemList);
         storageItemList.AddRange(storageResourceItemList);
 
-        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedFileManager);
+        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, Manager);
         return compoundStorageDocument;
     }
 }
@@ -124,7 +124,7 @@ internal class OpcStorageFileInfo : IReadOnlyStorageFileInfo
 
     private readonly ZipArchiveEntry _zipArchiveEntry;
 
-    public string RelativePath { get; init; }
+    public StorageFileRelativePath RelativePath { get; init; }
 
     public Stream OpenRead()
     {
@@ -136,8 +136,13 @@ internal class OpcStorageFileInfo : IReadOnlyStorageFileInfo
 /// 存放序列化之后的文件信息
 /// </summary>
 /// <param name="FileList"></param>
-public record SerializationStorageFileProvider(IReadOnlyList<IReadOnlyStorageFileInfo> FileList) : IStorageFileManager
+public record SerializationStorageFileProvider(IReadOnlyCollection<IReadOnlyStorageFileInfo> FileList) : IReadOnlyStorageFileManager
 {
+    // 设计上应该是从 IStorageFileManager 源到复合存储文档之间的转换
+    // 这个过程需要关注的是哪个文件到哪个文件之间的映射关系
+    // 在 CompoundStorageDocumentManager 将一批 XML 相关的转换器放在一起。同时开放用户的配置逻辑
+    // 如此可以搞定从 CompoundStorageDocumentManager 转换序列化的本地文件到存储文档的过程
+    // 以及从存储文档转换到内存模型的过程。存储文档本身需要注入文档的文件到对应哪个存储模型的关系
 }
 
 /// <summary>
@@ -157,7 +162,7 @@ public class OpcSerializationFileFilter : ISerializationFileFilter
     {
         var fileList = fileProvider.FileList;
 
-        var referenceFile = fileList.FirstOrDefault(t => string.Equals(t.RelativePath, "Reference.xml", StringComparison.OrdinalIgnoreCase));
+        var referenceFile = fileList.FirstOrDefault(t => string.Equals(t.RelativePath.RelativePath, "Reference.xml", StringComparison.OrdinalIgnoreCase));
 
         IReadOnlyList<IReadOnlyStorageFileInfo> referenceResourceManagerFiles;
         if (referenceFile is not null)
@@ -202,12 +207,12 @@ public class OpcSerializationFileFilter : ISerializationFileFilter
                 return false;
             }
 
-            if (string.Equals(relativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(relativePath.RelativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            if (string.Equals(relativePath, ContentTypesFileName, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(relativePath.RelativePath, ContentTypesFileName, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
