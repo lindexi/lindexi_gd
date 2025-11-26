@@ -435,13 +435,13 @@ namespace DotNetCampus.Storage.Analyzer
                     // 对于可空的值类型来说，需要判断当前存储是否赋空值
                     var nullableConvertCode =
                         $$"""
-                          if (storageNode.Value.IsEmptyOrNull)
+                          if (storageNode.HashChildOrValue)
                           {
-                              result.{{propertyInfo.PropertyName}} = null;
+                          {{SetIndent(convertCode, 1)}}
                           }
                           else
                           {
-                          {{SetIndent(convertCode, 1)}}
+                              result.{{propertyInfo.PropertyName}} = null;
                           }
                           """;
                     convertCode = nullableConvertCode;

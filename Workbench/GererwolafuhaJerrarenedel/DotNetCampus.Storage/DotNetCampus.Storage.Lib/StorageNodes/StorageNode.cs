@@ -30,6 +30,11 @@ public class StorageNode
     [MemberNotNullWhen(true, nameof(Children))]
     public bool HasChild => Children != null && Children.Any();
 
+    /// <summary>
+    /// 是否存在内容
+    /// </summary>
+    public bool HashChildOrValue => !Value.IsNull || HasChild;
+
     public override string ToString()
     {
         if (Children is null)

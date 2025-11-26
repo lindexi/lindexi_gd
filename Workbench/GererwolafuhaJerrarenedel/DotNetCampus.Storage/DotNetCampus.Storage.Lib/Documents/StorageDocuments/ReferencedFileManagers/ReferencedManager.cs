@@ -13,7 +13,7 @@ public class ReferencedManager : IReferencedManager
 
     private Dictionary<StorageReferenceId, ReferenceInfo> ReferenceInfoDictionary { get; } = [];
 
-    public void Rest(IReadOnlyCollection<ReferenceInfo>? references = null)
+    public void Reset(IReadOnlyCollection<ReferenceInfo>? references = null)
     {
         ReferenceInfoDictionary.Clear();
 

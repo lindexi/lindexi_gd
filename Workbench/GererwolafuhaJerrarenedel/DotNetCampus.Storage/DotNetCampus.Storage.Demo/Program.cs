@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Text.RegularExpressions;
 using DotNetCampus.Storage;
 using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Demo;
@@ -11,6 +12,7 @@ using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.SaveInfos;
 using DotNetCampus.Storage.Serialization;
+using DotNetCampus.Storage.StorageFiles;
 using DotNetCampus.Storage.StorageNodes;
 
 var testFile = @"C:\lindexi\Test.opc";
@@ -92,7 +94,26 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
 
     public override StorageModel ToStorageModel(CompoundStorageDocument document)
     {
-        throw new System.NotImplementedException();
+        var fakeStorageModel = new FakeStorageModel()
+        {
+            Document = ReadRootSaveInfoProperty<TestDocumentSaveInfo>(document,"Document.xml"),
+            Presentation = ReadRootSaveInfoProperty<PresentationSaveInfo>(document, "Presentation.xml"),
+            SlideList = ReadRootSaveInfoPropertyList<SlideSaveInfo>(document, path =>
+            {
+                var relativePath = path.RelativePath;
+                if (relativePath.Contains('\\') || relativePath.Contains('/'))
+                {
+                    if (Path.GetDirectoryName(relativePath.AsSpan()) is "Slides")
+                    {
+                        var fileName = Path.GetFileName(relativePath.AsSpan());
+                        return Regex.IsMatch(fileName, @"Slide\d+\.xml");
+                    }
+                }
+
+                return false;
+            }).ToList()
+        };
+        return fakeStorageModel;
     }
 
     public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
@@ -109,7 +130,33 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
 
     protected override void AddResourceReference(StorageNode referenceStorageNode)
     {
+        var referencedManager = Manager.ReferencedManager;
+
+        List<ReferenceInfo>? referenceInfoList = null;
         var storageReferenceSaveInfo = ReadAsPropertyValue<StorageReferenceSaveInfo>(referenceStorageNode);
+        if (storageReferenceSaveInfo.Relationships is {} list)
+        {
+            referenceInfoList = new List<ReferenceInfo>(list.Count);
+
+            foreach (StorageRelationshipsSaveInfo relationshipsSaveInfo in list)
+            {
+                var id = relationshipsSaveInfo.Id;
+                var target = relationshipsSaveInfo.Target;
+
+                if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(target))
+                {
+                    continue;
+                }
+
+                referenceInfoList.Add(new ReferenceInfo()
+                {
+                    ReferenceId = new StorageReferenceId(id),
+                    FilePath = new StorageFileRelativePath(target)
+                });
+            }
+        }
+
+        referencedManager.Reset(referenceInfoList);
     }
 
     private T ReadAsPropertyValue<T>(StorageNode storageNode)

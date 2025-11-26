@@ -3,6 +3,7 @@ using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.StorageFiles;
 using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Documents.Converters;
@@ -25,6 +26,28 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
     public CompoundStorageDocumentManager Manager => _provider.GetManager();
 
     public abstract StorageModel ToStorageModel(CompoundStorageDocument document);
+
+    protected T? ReadRootSaveInfoProperty<T>(CompoundStorageDocument document, string relativePath)
+    {
+        if (document.StorageItemList.FirstOrDefault(t => t.RelativePath.Equals(relativePath)) is StorageFileItem storageNodeItem)
+        {
+            return ReadAsPropertyValue<T>(storageNodeItem.RootStorageNode);
+        }
+
+        return default;
+    }
+
+    public IEnumerable<T> ReadRootSaveInfoPropertyList<T>(CompoundStorageDocument document,
+        Predicate<StorageFileRelativePath> relativePathPredicate)
+    {
+        foreach (var storageNodeItem in document.StorageItemList.OfType<StorageFileItem>())
+        {
+            if (relativePathPredicate(storageNodeItem.RelativePath))
+            {
+                yield return ReadAsPropertyValue<T>(storageNodeItem.RootStorageNode);
+            }
+        }
+    }
 
     protected T ReadAsPropertyValue<T>(StorageNode storageNode)
     {
