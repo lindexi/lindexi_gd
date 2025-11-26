@@ -88,7 +88,7 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
     /// <param name="storageNodeChildren"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected IEnumerable<object> ParseElementOfList(List<StorageNode>? storageNodeChildren, ParseNodeContext context)
+    protected IEnumerable<TElement> ParseElementOfList<TElement>(List<StorageNode>? storageNodeChildren, ParseNodeContext context)
     {
         if (storageNodeChildren is null)
         {
@@ -98,12 +98,27 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
         StorageNodeParserManager parserManager = context.ParserManager;
         foreach (var storageNode in storageNodeChildren)
         {
-            var storageNodeName = storageNode.Name.ToText();
-            var nodeParser = parserManager.GetNodeParser(storageNodeName);
+            NodeParser? nodeParser = null;
+
+            if (storageNode.Name.IsEmptyOrNull)
+            {
+                // 不存在名称的节点，比如 List<string> 等
+                nodeParser = parserManager.GetNodeParser(typeof(TElement));
+            }
+            else
+            {
+                var storageNodeName = storageNode.Name.ToText();
+                nodeParser = parserManager.GetNodeParser(storageNodeName);
+            }
+
             if (nodeParser is not null)
             {
                 var element = nodeParser.Parse(storageNode, context);
-                yield return element;
+
+                if (element is TElement result)
+                {
+                    yield return result;
+                }
             }
         }
     }

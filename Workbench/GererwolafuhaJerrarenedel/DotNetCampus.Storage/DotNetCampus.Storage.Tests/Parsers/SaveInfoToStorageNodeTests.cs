@@ -265,7 +265,7 @@ internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
                 {
                     if (currentName.Equals(propertyNameForSaveInfoList, StringComparison.Ordinal) || IsMatchAliases(currentName, aliasesForSaveInfoList))
                     {
-                        result.SaveInfoList = ParseElementOfList(storageNode.Children, context).OfType<SaveInfo>().ToList();
+                        result.SaveInfoList = ParseElementOfList<SaveInfo>(storageNode.Children, context).ToList();
                         isNotSetSaveInfoList = false;
                         continue;
                     }

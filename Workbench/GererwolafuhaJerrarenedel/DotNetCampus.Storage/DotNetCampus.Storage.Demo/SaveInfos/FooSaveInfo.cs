@@ -24,7 +24,7 @@ public class FooSaveInfo : SaveInfo
     public List<SaveInfo>? SaveInfoList { get; set; }
 
     [SaveInfoMember("Count")]
-    public List<object>? CountList { get; set; }
+    public List<string>? CountList { get; set; }
 
     [SaveInfoMember("F2")]
     public FooEnum Foo2Enum { get; set; }

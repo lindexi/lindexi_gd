@@ -408,7 +408,7 @@ namespace DotNetCampus.Storage.Analyzer
                 if (propertyInfo.TypeInfo.IsListType)
                 {
                     convertCode = $$"""
-                                    result.{{propertyInfo.PropertyName}} = ParseElementOfList(storageNode.Children, context).OfType<{{propertyInfo.TypeInfo.ListGenericType}}>().ToList();
+                                    result.{{propertyInfo.PropertyName}} = ParseElementOfList<{{propertyInfo.TypeInfo.ListGenericType}}>(storageNode.Children, context).ToList();
                                     """;
                 }
                 else if (propertyInfo.TypeInfo.IsEnumType)

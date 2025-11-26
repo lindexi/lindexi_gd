@@ -17,4 +17,10 @@
     <ProjectReference Include="..\DotNetCampus.Storage.Lib\DotNetCampus.Storage.Lib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Asserts\TestFiles\Test.opc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
