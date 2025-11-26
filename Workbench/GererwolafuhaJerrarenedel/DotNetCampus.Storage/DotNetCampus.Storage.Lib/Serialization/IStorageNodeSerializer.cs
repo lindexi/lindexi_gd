@@ -6,6 +6,7 @@ namespace DotNetCampus.Storage.Serialization;
 /// <summary>
 /// 存储节点序列化器
 /// </summary>
+/// StorageNode -> IStorageFileInfo
 public interface IStorageNodeSerializer
 {
     /// <summary>

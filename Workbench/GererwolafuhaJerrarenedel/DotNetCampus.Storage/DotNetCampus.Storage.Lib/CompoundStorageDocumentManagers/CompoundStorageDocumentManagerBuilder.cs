@@ -50,6 +50,8 @@ public class CompoundStorageDocumentManagerBuilder
     /// </summary>
     public IStorageNodeSerializer? DefaultStorageNodeSerializer { get; set; }
 
+    public CompoundStorageDocumentSerializer? CompoundStorageDocumentSerializer { get; set; }
+
     public CompoundStorageDocumentManagerBuilder UseStorageModelToCompoundDocumentConverter(
         Func<CompoundStorageDocumentManagerProvider, IStorageModelToCompoundDocumentConverter> creator)
     {
@@ -72,8 +74,7 @@ public class CompoundStorageDocumentManagerBuilder
                                                       ?? new EmptyStorageModelToCompoundDocumentConverter(
                                                           ManagerProvider);
 
-        var defaultStorageNodeSerializer = DefaultStorageNodeSerializer
-            ?? new StorageXmlSerializer();
+        var compoundStorageDocumentSerializer = CompoundStorageDocumentSerializer ?? throw new InvalidOperationException();
 
         var manager = new CompoundStorageDocumentManager()
         {
@@ -81,7 +82,8 @@ public class CompoundStorageDocumentManagerBuilder
             StorageFileManager = storageFileManager,
             StorageModelToCompoundDocumentConverter = storageModelToCompoundDocumentConverter,
             ParserManager = parserManager,
-            DefaultStorageNodeSerializer = defaultStorageNodeSerializer
+            CompoundStorageDocumentSerializer = compoundStorageDocumentSerializer,
+            //DefaultStorageNodeSerializer = defaultStorageNodeSerializer
         };
         ManagerProvider.Manager = manager;
         return manager;

@@ -10,6 +10,8 @@ public class LocalStorageFileInfo : IStorageFileInfo
     /// </summary>
     public required StorageFileRelativePath RelativePath { get; init; }
 
+    //public required IStorageFileManager StorageFileManager { get; init; }
+
     /// <summary>
     /// 实际文件
     /// </summary>

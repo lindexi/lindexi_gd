@@ -1,12 +1,16 @@
 ﻿using DotNetCampus.Storage.Documents.StorageDocuments;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
+using DotNetCampus.Storage.Serialization.XmlSerialization;
 using DotNetCampus.Storage.StorageFiles;
+using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Serialization;
 
@@ -15,11 +19,14 @@ namespace DotNetCampus.Storage.Serialization;
 /// </summary>
 /// https://learn.microsoft.com/en-us/previous-versions/windows/desktop/opc/open-packaging-conventions-overview
 /// > The ECMA-376 OpenXML, 1st Edition, Part 2: Open Packaging Conventions (OPC) can be more easily understood through an analogy with real world filing systems. 
-public class OpcSerializer : CompoundStorageDocumentSerializer
+public class OpcSerializer
 {
-    public OpcSerializer(CompoundStorageDocumentManager manager) : base(manager)
+    public OpcSerializer(CompoundStorageDocumentManager manager)
     {
+        _manager = manager;
     }
+
+    private readonly CompoundStorageDocumentManager _manager;
 
     public async Task<CompoundStorageDocument> ReadFromOpcFileAsync(FileInfo opcFile)
     {
@@ -36,28 +43,39 @@ public class OpcSerializer : CompoundStorageDocumentSerializer
 
         var fileProvider = new SerializationStorageFileProvider(fileList);
 
-        var compoundStorageDocument = await ToCompoundStorageDocument(fileProvider);
+        var compoundStorageDocument = await _manager.CompoundStorageDocumentSerializer.ToCompoundStorageDocument(fileProvider);
         return compoundStorageDocument;
     }
 }
 
 public abstract class CompoundStorageDocumentSerializer
 {
-    public CompoundStorageDocumentSerializer(CompoundStorageDocumentManager manager)
+    public CompoundStorageDocumentSerializer(CompoundStorageDocumentManagerProvider provider)
     {
-        Manager = manager;
+        _provider = provider;
     }
 
-    public CompoundStorageDocumentManager Manager { get; }
+    public virtual ISerializationFileFilter SerializationFileFilter => new OpcSerializationFileFilter();
 
-    protected async Task<CompoundStorageDocument> ToCompoundStorageDocument(
+    public virtual IStorageNodeSerializer StorageNodeSerializer => new StorageXmlSerializer();
+
+    private readonly CompoundStorageDocumentManagerProvider _provider;
+
+    public CompoundStorageDocumentManager Manager => _provider.GetManager();
+
+    public virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(
         IReadOnlyStorageFileManager fileProvider)
     {
-        var fileFilter = new OpcSerializationFileFilter();
+        var fileFilter = SerializationFileFilter;
         var classificationResult = fileFilter.Filter(fileProvider);
 
         var compoundStorageDocument = await ToCompoundStorageDocument(classificationResult);
         return compoundStorageDocument;
+    }
+
+    protected virtual void AddResourceReference(StorageNode referenceStorageNode)
+    {
+
     }
 
     /// <summary>
@@ -65,15 +83,17 @@ public abstract class CompoundStorageDocumentSerializer
     /// </summary>
     /// <param name="classificationResult"></param>
     /// <returns></returns>
-    protected async Task<CompoundStorageDocument> ToCompoundStorageDocument(OpcSerializationFileClassificationResult classificationResult)
+    protected virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(OpcSerializationFileClassificationResult classificationResult)
     {
-        var storageNodeSerializer = Manager.DefaultStorageNodeSerializer;
+        var referencedManager = Manager.ReferencedManager;
+        var fileManager = Manager.StorageFileManager;
+
+        var storageNodeSerializer = StorageNodeSerializer;
 
         foreach (var fileInfo in classificationResult.ReferenceResourceManagerFiles)
         {
-            var storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
-
-            // 在 IReferencedFileManager 执行更新
+            StorageNode storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
+            AddResourceReference(storageNode);
         }
 
         // 可以将 StorageFileItem 改名为 StorageNodeItem
@@ -90,17 +110,26 @@ public abstract class CompoundStorageDocumentSerializer
             });
         }
 
+        var referenceInfoDictionary = referencedManager.References.ToFrozenDictionary(t => t.FilePath);
+
         var storageResourceItemList = new List<StorageResourceItem>();
-        var referencedManager = Manager.ReferencedManager;
 
         foreach (var fileInfo in classificationResult.ResourceFiles)
         {
-            // 考虑将资源存起来
-            storageResourceItemList.Add(new StorageResourceItem()
+            if (referenceInfoDictionary.TryGetValue(fileInfo.RelativePath,out var referenceInfo))
             {
-                RelativePath = fileInfo.RelativePath,
-                ResourceId = default // 先用路径作为 ResourceId，后续可以改进
-            });
+                // 这是有记录的资源
+                storageResourceItemList.Add(new StorageResourceItem()
+                {
+                    RelativePath = fileInfo.RelativePath,
+                    ResourceId = referenceInfo.ReferenceId
+                });
+
+                // 可以尝试确保资源存放在本地文件管理器中
+
+                await fileManager.ToLocalStorageFileInfoAsync(fileInfo);
+                //fileManager.AddFile(fileInfo);
+            }
         }
 
         // 似乎 CompoundStorageDocument 有些废，没有什么用处，毕竟存放的东西本身也在污染 CompoundStorageDocumentManager 管理器
