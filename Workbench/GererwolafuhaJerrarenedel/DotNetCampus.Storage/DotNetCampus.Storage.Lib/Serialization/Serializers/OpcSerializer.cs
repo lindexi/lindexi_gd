@@ -160,13 +160,13 @@ public abstract class CompoundStorageDocumentSerializer
         }
 
         // 可以将 StorageFileItem 改名为 StorageNodeItem
-        var storageFileItemList = new List<StorageFileItem>();
+        var storageFileItemList = new List<StorageNodeItem>();
 
         foreach (var fileInfo in classificationResult.DocumentFiles)
         {
             var storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
 
-            storageFileItemList.Add(new StorageFileItem()
+            storageFileItemList.Add(new StorageNodeItem()
             {
                 RootStorageNode = storageNode,
                 RelativePath = fileInfo.RelativePath.RelativePath

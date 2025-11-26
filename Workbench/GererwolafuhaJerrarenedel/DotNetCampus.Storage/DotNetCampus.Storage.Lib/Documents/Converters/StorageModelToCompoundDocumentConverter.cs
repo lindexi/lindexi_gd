@@ -29,7 +29,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
 
     protected T? ReadRootSaveInfoProperty<T>(CompoundStorageDocument document, string relativePath)
     {
-        if (document.StorageItemList.FirstOrDefault(t => t.RelativePath.Equals(relativePath)) is StorageFileItem storageNodeItem)
+        if (document.StorageItemList.FirstOrDefault(t => t.RelativePath.Equals(relativePath)) is StorageNodeItem storageNodeItem)
         {
             return ReadAsPropertyValue<T>(storageNodeItem.RootStorageNode);
         }
@@ -40,7 +40,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
     public IEnumerable<T> ReadRootSaveInfoPropertyList<T>(CompoundStorageDocument document,
         Predicate<StorageFileRelativePath> relativePathPredicate)
     {
-        foreach (var storageNodeItem in document.StorageItemList.OfType<StorageFileItem>())
+        foreach (var storageNodeItem in document.StorageItemList.OfType<StorageNodeItem>())
         {
             if (relativePathPredicate(storageNodeItem.RelativePath))
             {
@@ -62,7 +62,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
 
     public abstract CompoundStorageDocument ToCompoundDocument(StorageModel model);
 
-    protected StorageFileItem ToStorageFileItem<T>(T propertyValue, string relativePath, string? nodeName = null)
+    protected StorageNodeItem ToStorageFileItem<T>(T propertyValue, string relativePath, string? nodeName = null)
       where T : notnull
     {
         var parserManager = Manager.ParserManager;
@@ -73,7 +73,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
             DocumentManager = Manager,
         });
 
-        return new StorageFileItem()
+        return new StorageNodeItem()
         {
             RootStorageNode = storageNode,
             RelativePath = relativePath
