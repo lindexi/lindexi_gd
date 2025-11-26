@@ -51,7 +51,7 @@ public class CompoundStorageDocumentSerializer
     public CompoundStorageDocumentManager Manager { get; }
 
     protected async Task<CompoundStorageDocument> ToCompoundStorageDocument(
-        SerializationStorageFileProvider fileProvider)
+        IReadOnlyStorageFileManager fileProvider)
     {
         var fileFilter = new OpcSerializationFileFilter();
         var classificationResult = fileFilter.Filter(fileProvider);
@@ -91,7 +91,7 @@ public class CompoundStorageDocumentSerializer
         }
 
         var storageResourceItemList = new List<StorageResourceItem>();
-        var referencedFileManager = Manager.ReferencedFileManager;
+        var referencedFileManager = Manager.ReferencedManager;
 
         foreach (var fileInfo in classificationResult.ResourceFiles)
         {
@@ -150,7 +150,7 @@ public record SerializationStorageFileProvider(IReadOnlyCollection<IReadOnlyStor
 /// </summary>
 public interface ISerializationFileFilter
 {
-    OpcSerializationFileClassificationResult Filter(SerializationStorageFileProvider fileProvider);
+    OpcSerializationFileClassificationResult Filter(IReadOnlyStorageFileManager fileProvider);
 }
 
 public class OpcSerializationFileFilter : ISerializationFileFilter
@@ -158,7 +158,7 @@ public class OpcSerializationFileFilter : ISerializationFileFilter
     public const string DefaultReferenceFileName = "Reference.xml";
     public const string ContentTypesFileName = "[Content_Types].xml";
 
-    public OpcSerializationFileClassificationResult Filter(SerializationStorageFileProvider fileProvider)
+    public OpcSerializationFileClassificationResult Filter(IReadOnlyStorageFileManager fileProvider)
     {
         var fileList = fileProvider.FileList;
 
@@ -242,5 +242,5 @@ public record OpcSerializationFileClassificationResult
     /// </summary>
     public required IReadOnlyList<IReadOnlyStorageFileInfo> ResourceFiles { get; init; }
 
-    public required SerializationStorageFileProvider FileProvider { get; init; }
+    public required IReadOnlyStorageFileManager FileProvider { get; init; }
 }

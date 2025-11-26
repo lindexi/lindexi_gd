@@ -22,7 +22,7 @@ public class CompoundStorageDocument
     public IReadOnlyList<IStorageItem> StorageItemList => _storageItemList;
     private readonly List<IStorageItem> _storageItemList;
 
-    public IReferencedFileManager ReferencedFileManager => Manager.ReferencedFileManager;
+    public IReferencedManager ReferencedManager => Manager.ReferencedManager;
 
     public IStorageFileManager StorageFileManager => Manager.StorageFileManager;
 

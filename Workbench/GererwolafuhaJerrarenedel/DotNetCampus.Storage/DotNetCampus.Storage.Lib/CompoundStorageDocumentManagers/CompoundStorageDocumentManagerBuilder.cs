@@ -38,7 +38,7 @@ public class CompoundStorageDocumentManagerBuilder
     /// <summary>
     /// 引用管理器。不同文档之间禁止复用
     /// </summary>
-    public IReferencedFileManager? ReferencedFileManager { get; set; }
+    public IReferencedManager? ReferencedFileManager { get; set; }
 
     /// <summary>
     /// 存储模型到复合文档的转换器
@@ -66,7 +66,7 @@ public class CompoundStorageDocumentManagerBuilder
                             ?? new StorageNodeParserManager();
 
         var referencedFileManager = ReferencedFileManager
-                                    ?? new EmptyReferencedFileManager();
+                                    ?? new ReferencedManager(storageFileManager);
 
         var storageModelToCompoundDocumentConverter = StorageModelToCompoundDocumentConverter
                                                       ?? new EmptyStorageModelToCompoundDocumentConverter(
@@ -77,7 +77,7 @@ public class CompoundStorageDocumentManagerBuilder
 
         var manager = new CompoundStorageDocumentManager()
         {
-            ReferencedFileManager = referencedFileManager,
+            ReferencedManager = referencedFileManager,
             StorageFileManager = storageFileManager,
             StorageModelToCompoundDocumentConverter = storageModelToCompoundDocumentConverter,
             ParserManager = parserManager,
