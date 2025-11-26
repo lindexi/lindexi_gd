@@ -1,4 +1,6 @@
-﻿using DotNetCampus.Storage.Parsers.NodeParsers;
+﻿using DotNetCampus.Storage.Parsers.Contexts;
+using DotNetCampus.Storage.Parsers.NodeParsers;
+using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Parsers;
 
@@ -26,11 +28,107 @@ public class StorageNodeParserManager
         }
     }
 
+    /// <summary>
+    /// 只针对列表的转换器
+    /// </summary>
+    public IStorageNodeListParser StorageNodeListParser { get; init; } = new DoubleLayerStorageNodeListParser();
+
     private readonly Dictionary<Type, NodeParser> _typeNodeParserDictionary = [];
     private readonly Dictionary<string/*TargetStorageName*/, NodeParser> _nameNodeParserDictionary = [];
 
     public NodeParser GetNodeParser(Type targetType) =>
         _typeNodeParserDictionary[targetType];
+
+    internal NodeParser? TryGetNodeParser(Type targetType) =>
+        _typeNodeParserDictionary.GetValueOrDefault(targetType);
+
     public NodeParser? GetNodeParser(string targetStorageName) =>
         _nameNodeParserDictionary.GetValueOrDefault(targetStorageName);
+}
+
+public interface IStorageNodeListParser
+{
+    IEnumerable<TElement> ParseElementOfList<TElement>(IReadOnlyList<StorageNode>? storageNodeChildren,
+        ParseNodeContext context);
+
+    List<StorageNode> DeparseElementOfList(IEnumerable<object> children, DeparseNodeContext context);
+}
+
+public class DoubleLayerStorageNodeListParser : IStorageNodeListParser
+{
+    public const string DefaultItemPropertyName = "Item";
+
+    public string? ItemPropertyName { get; init; } = DefaultItemPropertyName;
+
+    public IEnumerable<TElement> ParseElementOfList<TElement>(IReadOnlyList<StorageNode>? storageNodeChildren, ParseNodeContext context)
+    {
+        if (storageNodeChildren is null)
+        {
+            yield break;
+        }
+
+        StorageNodeParserManager parserManager = context.ParserManager;
+        foreach (var storageNode in storageNodeChildren)
+        {
+            NodeParser? nodeParser = null;
+
+            if (!storageNode.Name.IsEmptyOrNull)
+            {
+                var storageNodeName = storageNode.Name.ToText();
+
+                if (ItemPropertyName is not null &&
+                    storageNodeName.Equals(ItemPropertyName, StringComparison.Ordinal))
+                {
+                    // 如果名称是 Item 则跳过
+                    // 不能取名称对应的解析器
+                }
+                else
+                {
+                    // 可能是泛型的类型内容
+                    nodeParser = parserManager.GetNodeParser(storageNodeName);
+                }
+            }
+
+            if (nodeParser != null && nodeParser.TargetType.IsAssignableFrom(typeof(TElement)) is false)
+            {
+                // 这是特殊的情况，意味着刚好有名字没有匹配到正确类型的解析器
+                // 比如某些过于通用的名称，如 Item 等
+                nodeParser = null;
+            }
+
+            // 不存在名称的节点，比如 List<string> 等
+            nodeParser ??= parserManager.TryGetNodeParser(typeof(TElement));
+
+            if (nodeParser is not null)
+            {
+                var element = nodeParser.Parse(storageNode, context);
+
+                if (element is TElement result)
+                {
+                    yield return result;
+                }
+            }
+        }
+    }
+
+    public List<StorageNode> DeparseElementOfList(IEnumerable<object> children, DeparseNodeContext context)
+    {
+        StorageNodeParserManager parserManager = context.ParserManager;
+        var storageNodeList = new List<StorageNode>();
+        foreach (var child in children)
+        {
+            var nodeParser = parserManager.GetNodeParser(child.GetType());
+            var childNode = nodeParser.Deparse(child, context);
+
+            if (!string.IsNullOrEmpty(ItemPropertyName)
+                && childNode.Name.IsEmptyOrNull)
+            {
+                childNode.Name = ItemPropertyName;
+            }
+
+            storageNodeList.Add(childNode);
+        }
+
+        return storageNodeList;
+    }
 }
