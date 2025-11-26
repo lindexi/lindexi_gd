@@ -44,11 +44,7 @@ public class CompoundStorageDocumentManager
     /// StorageNode - StorageModel -> CompoundStorageDocument - -.xml 文件（或 .json 等格式）
     public required IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; init; }
 
-    /// <summary>
-    /// 默认的存储节点序列化器
-    /// </summary>
-    /// SaveInfo -> StorageNode
-    public required IStorageNodeSerializer DefaultStorageNodeSerializer { get; init; }
+    public required CompoundStorageDocumentSerializer CompoundStorageDocumentSerializer { get; init; }
 
     public static CompoundStorageDocumentManagerBuilder CreateBuilder()
     {

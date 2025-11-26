@@ -47,7 +47,8 @@ public class LocalStorageFileManager : IStorageFileManager
         var result = new LocalStorageFileInfo
         {
             RelativePath = fileInfo.RelativePath,
-            FileInfo = localFileInfo
+            FileInfo = localFileInfo,
+            //StorageFileManager = this,
         };
 
         FileDictionary[result.RelativePath.RelativePath] = result;
