@@ -41,7 +41,7 @@ public class OpcSerializer : CompoundStorageDocumentSerializer
     }
 }
 
-public class CompoundStorageDocumentSerializer
+public abstract class CompoundStorageDocumentSerializer
 {
     public CompoundStorageDocumentSerializer(CompoundStorageDocumentManager manager)
     {
@@ -91,15 +91,15 @@ public class CompoundStorageDocumentSerializer
         }
 
         var storageResourceItemList = new List<StorageResourceItem>();
-        var referencedFileManager = Manager.ReferencedManager;
+        var referencedManager = Manager.ReferencedManager;
 
         foreach (var fileInfo in classificationResult.ResourceFiles)
         {
             // 考虑将资源存起来
             storageResourceItemList.Add(new StorageResourceItem()
             {
-                RelativePath = fileInfo.RelativePath.RelativePath,
-                ResourceId = fileInfo.RelativePath.RelativePath // 先用路径作为 ResourceId，后续可以改进
+                RelativePath = fileInfo.RelativePath,
+                ResourceId = default // 先用路径作为 ResourceId，后续可以改进
             });
         }
 
@@ -109,26 +109,8 @@ public class CompoundStorageDocumentSerializer
         storageItemList.AddRange(storageFileItemList);
         storageItemList.AddRange(storageResourceItemList);
 
-        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, Manager);
+        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedManager);
         return compoundStorageDocument;
-    }
-}
-
-internal class OpcStorageFileInfo : IReadOnlyStorageFileInfo
-{
-    public OpcStorageFileInfo(ZipArchiveEntry zipArchiveEntry)
-    {
-        _zipArchiveEntry = zipArchiveEntry;
-        RelativePath = zipArchiveEntry.FullName;
-    }
-
-    private readonly ZipArchiveEntry _zipArchiveEntry;
-
-    public StorageFileRelativePath RelativePath { get; init; }
-
-    public Stream OpenRead()
-    {
-        return _zipArchiveEntry.Open();
     }
 }
 

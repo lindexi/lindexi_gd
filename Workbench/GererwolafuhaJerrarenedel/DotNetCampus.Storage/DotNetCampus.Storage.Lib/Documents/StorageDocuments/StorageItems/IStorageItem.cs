@@ -1,6 +1,8 @@
-﻿namespace DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
+﻿using DotNetCampus.Storage.StorageFiles;
+
+namespace DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 
 public interface IStorageItem
 {
-    string RelativePath { get; }
+    StorageFileRelativePath RelativePath { get; }
 }

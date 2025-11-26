@@ -20,6 +20,6 @@ internal class EmptyStorageModelToCompoundDocumentConverter : StorageModelToComp
 
     public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
     {
-        return new CompoundStorageDocument(new List<IStorageItem>(), Manager);
+        return new CompoundStorageDocument(new List<IStorageItem>(), Manager.ReferencedManager);
     }
 }

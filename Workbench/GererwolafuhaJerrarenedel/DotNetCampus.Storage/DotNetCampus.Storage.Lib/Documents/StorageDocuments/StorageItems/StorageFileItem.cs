@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Storage.StorageNodes;
+﻿using DotNetCampus.Storage.StorageFiles;
+using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 
@@ -7,7 +8,7 @@ namespace DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 /// </summary>
 public class StorageFileItem : IStorageItem
 {
-    public required string RelativePath { get; init; }
+    public required StorageFileRelativePath RelativePath { get; init; }
 
     public required StorageNode RootStorageNode { get; init; }
 }
