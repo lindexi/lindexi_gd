@@ -11,20 +11,17 @@ namespace DotNetCampus.Storage.Documents.StorageDocuments;
 /// 可以将其转换为具体的存储模型
 public class CompoundStorageDocument
 {
-    public CompoundStorageDocument(List<IStorageItem> storageItemList, CompoundStorageDocumentManager manager)
+    public CompoundStorageDocument(IReadOnlyList<IStorageItem> storageItemList, IReferencedManager referencedManager)
     {
-        Manager = manager;
-        _storageItemList = storageItemList;
+        StorageItemList = storageItemList;
+        ReferencedManager = referencedManager;
     }
 
-    public CompoundStorageDocumentManager Manager { get; }
+    //public IReadOnlyList<StorageFileItem> StorageNodeItemList { get; }
+    public IReferencedManager ReferencedManager { get; }
+    public IStorageFileManager StorageFileManager => ReferencedManager.StorageFileManager;
 
-    public IReadOnlyList<IStorageItem> StorageItemList => _storageItemList;
-    private readonly List<IStorageItem> _storageItemList;
-
-    public IReferencedManager ReferencedManager => Manager.ReferencedManager;
-
-    public IStorageFileManager StorageFileManager => Manager.StorageFileManager;
+    public IReadOnlyList<IStorageItem> StorageItemList { get; }
 
     //public CompoundDocument ToCompoundDocument(StorageModel storageModel,
     //    CompoundDocumentStorageLogger? logger = null)
