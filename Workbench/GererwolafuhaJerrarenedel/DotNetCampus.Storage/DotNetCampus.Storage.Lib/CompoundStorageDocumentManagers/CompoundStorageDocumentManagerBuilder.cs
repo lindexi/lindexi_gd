@@ -35,6 +35,14 @@ public class CompoundStorageDocumentManagerBuilder
     /// </summary>
     public StorageNodeParserManager? ParserManager { get; set; }
 
+    public CompoundStorageDocumentManagerBuilder UseParserManager(Action<StorageNodeParserManager> configureAction)
+    {
+        _parserManagerConfigureAction = configureAction;
+        return this;
+    }
+
+    private Action<StorageNodeParserManager>? _parserManagerConfigureAction;
+
     /// <summary>
     /// 引用管理器。不同文档之间禁止复用
     /// </summary>
@@ -45,10 +53,10 @@ public class CompoundStorageDocumentManagerBuilder
     /// </summary>
     public IStorageModelToCompoundDocumentConverter? StorageModelToCompoundDocumentConverter { get; set; }
 
-    /// <summary>
-    /// 默认的存储节点序列化器
-    /// </summary>
-    public IStorageNodeSerializer? DefaultStorageNodeSerializer { get; set; }
+    ///// <summary>
+    ///// 默认的存储节点序列化器
+    ///// </summary>
+    //public IStorageNodeSerializer? DefaultStorageNodeSerializer { get; set; }
 
     public CompoundStorageDocumentSerializer? CompoundStorageDocumentSerializer { get; set; }
 
@@ -66,6 +74,8 @@ public class CompoundStorageDocumentManagerBuilder
                                  ?? new LocalStorageFileManager();
         var parserManager = ParserManager
                             ?? new StorageNodeParserManager();
+
+        _parserManagerConfigureAction?.Invoke(parserManager);
 
         var referencedFileManager = ReferencedFileManager
                                     ?? new ReferencedManager(storageFileManager);

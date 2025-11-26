@@ -12,6 +12,9 @@ namespace DotNetCampus.Storage.Documents.Converters;
 /// </summary>
 public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToCompoundDocumentConverter
 {
+    /// <summary>
+    /// 创建存储模型与复合文档转换器基类
+    /// </summary>
     protected StorageModelToCompoundDocumentConverter(CompoundStorageDocumentManagerProvider provider)
     {
         _provider = provider;
