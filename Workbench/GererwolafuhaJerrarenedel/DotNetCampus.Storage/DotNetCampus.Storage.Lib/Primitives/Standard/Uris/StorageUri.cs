@@ -2,7 +2,6 @@
 using System.Buffers.Text;
 
 using Uri = DotNetCampus.Storage.Standard.StorageUri;
-using UriContext = DotNetCampus.Storage.Standard.StorageUriContext;
 
 namespace DotNetCampus.Storage.Standard;
 
@@ -89,77 +88,6 @@ public abstract class StorageUri
     }
 }
 
-internal static class UriUtils
-{
-    /// <summary>
-    /// 去掉值的前缀
-    /// </summary>
-    /// <param name="value"></param>
-    /// <param name="prefix"></param>
-    /// <returns></returns>
-    public static string RemovePrefix(string value, string prefix)
-    {
-        // 下面代码解决 value = " id://foo" 的问题
-        value = value.Trim();
-        // 前缀是内部传入的，确保不需要删除空格
-        //prefix = prefix.Trim();
-
-        // 忽略大小写 协议应该都不会区分大小写
-        if (value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        {
-            return value.Substring(prefix.Length).Trim();
-        }
-
-        return value;
-    }
-}
-
-/// <summary>
-/// 用于存储的文件链接
-/// </summary>
-public class FileUri : Uri
-{
-    /// <summary>
-    /// 创建用于存储的文件链接
-    /// </summary>
-    /// <param name="value"></param>
-    public FileUri(string value)
-    {
-        Value = UriUtils.RemovePrefix(value, UriContext.FilePrefix);
-    }
-
-    public override string Value { get; }
-
-    /// <inheritdoc />
-    public override string Encode()
-    {
-        return $"{UriContext.FilePrefix}{Value}";
-    }
-}
-
-/// <summary>
-/// 用于存储的 Http 链接
-/// </summary>
-public class HttpUri : Uri
-{
-    /// <summary>
-    /// 创建用于存储的 Http 链接
-    /// </summary>
-    /// <param name="value"></param>
-    public HttpUri(string value)
-    {
-        Value = value;
-    }
-
-    public override string Value { get; }
-
-    /// <inheritdoc />
-    public override string Encode()
-    {
-        return Value;
-    }
-}
-
 ///// <summary>
 ///// 用于存储的 App 链接
 ///// </summary>
@@ -182,28 +110,6 @@ public class HttpUri : Uri
 //        return $"{UriContext.AppPrefix}{Value}";
 //    }
 //}
-
-/// <summary>
-/// 用于存储的 Id 链接
-/// </summary>
-public class IdUri : Uri
-{
-    /// <summary>
-    /// 创建用于存储的 Id 链接
-    /// </summary>
-    public IdUri(string value)
-    {
-        Value = value.Replace(UriContext.IdPrefix, "");
-    }
-
-    public override string Value { get; }
-
-    /// <inheritdoc />
-    public override string Encode()
-    {
-        return $"{UriContext.IdPrefix}{Value}";
-    }
-}
 
 ///// <summary>
 ///// 用于存储的 Base64 链接
