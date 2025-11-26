@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers.Text;
-
-using Uri = DotNetCampus.Storage.Standard.StorageUri;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DotNetCampus.Storage.Standard;
 
@@ -37,6 +36,7 @@ public abstract class StorageUri
         return new FileUri(value.OriginalString);
     }
 
+    [return: NotNullIfNotNull(nameof(uri))]
     public static implicit operator System.Uri?(StorageUri? uri)
     {
         if (uri == null)
@@ -52,7 +52,7 @@ public abstract class StorageUri
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static Uri? Create(string value)
+    public static StorageUri? Create(string value)
     {
         if (value.StartsWith(StorageUriContext.FilePrefix, StringComparison.OrdinalIgnoreCase))
         {
@@ -74,62 +74,62 @@ public abstract class StorageUri
             return new HttpUri(value);
         }
 
-        //if (value.StartsWith(StorageUriContext.AppPrefix, StringComparison.OrdinalIgnoreCase))
-        //{
-        //    return new AppUri(value);
-        //}
+        if (value.StartsWith(StorageUriContext.AppPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return new AppUri(value);
+        }
 
-        //if (value.StartsWith(StorageUriContext.Base64Prefix, StringComparison.OrdinalIgnoreCase))
-        //{
-        //    return new Base64Uri(value);
-        //}
+        if (value.StartsWith(StorageUriContext.Base64Prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return new Base64Uri(value);
+        }
 
         return null;
     }
 }
 
-///// <summary>
-///// 用于存储的 App 链接
-///// </summary>
-//public class AppUri : Uri
-//{
-//    /// <summary>
-//    /// 创建用于存储的 App 链接
-//    /// </summary>
-//    /// <param name="value"></param>
-//    public AppUri(string value)
-//    {
-//        Value = UriUtils.RemovePrefix(value, UriContext.AppPrefix);
-//    }
+/// <summary>
+/// 用于存储的 App 链接
+/// </summary>
+file class AppUri : StorageUri
+{
+    /// <summary>
+    /// 创建用于存储的 App 链接
+    /// </summary>
+    /// <param name="value"></param>
+    public AppUri(string value)
+    {
+        Value = UriUtils.RemovePrefix(value, StorageUriContext.AppPrefix);
+    }
 
-//    public override string Value { get; }
+    public override string Value { get; }
 
-//    /// <inheritdoc />
-//    public override string Encode()
-//    {
-//        return $"{UriContext.AppPrefix}{Value}";
-//    }
-//}
+    /// <inheritdoc />
+    public override string Encode()
+    {
+        return $"{StorageUriContext.AppPrefix}{Value}";
+    }
+}
 
-///// <summary>
-///// 用于存储的 Base64 链接
-///// </summary>
-//public class Base64Uri : Uri
-//{
-//    /// <summary>
-//    /// 创建用于存储的 Base64 链接
-//    /// </summary>
-//    /// <param name="value"></param>
-//    public Base64Uri(string value)
-//    {
-//        Value = value;
-//    }
+/// <summary>
+/// 用于存储的 Base64 链接
+/// </summary>
+file class Base64Uri : StorageUri
+{
+    /// <summary>
+    /// 创建用于存储的 Base64 链接
+    /// </summary>
+    /// <param name="value"></param>
+    public Base64Uri(string value)
+    {
+        Value = value;
+    }
 
-//    public override string Value { get; }
+    public override string Value { get; }
 
-//    /// <inheritdoc />
-//    public override string Encode()
-//    {
-//        return Value;
-//    }
-//}
+    /// <inheritdoc />
+    public override string Encode()
+    {
+        return Value;
+    }
+}

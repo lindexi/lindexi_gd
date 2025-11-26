@@ -12,6 +12,7 @@ internal static class UriUtils
     {
         // 下面代码解决 value = " id://foo" 的问题
         value = value.Trim();
+
         // 前缀是内部传入的，确保不需要删除空格
         //prefix = prefix.Trim();
 

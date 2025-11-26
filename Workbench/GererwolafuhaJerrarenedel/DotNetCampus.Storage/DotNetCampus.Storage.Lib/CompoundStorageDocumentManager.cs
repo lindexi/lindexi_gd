@@ -36,7 +36,7 @@ public class CompoundStorageDocumentManager
     /// <summary>
     /// 提供 <see cref="SaveInfo"/> 和 <see cref="StorageNode"/> 的转换管理器
     /// </summary>
-    public StorageNodeParserManager ParserManager { get; init; } = new StorageNodeParserManager();
+    public required StorageNodeParserManager ParserManager { get; init; }
 
     /// <summary>
     /// 存储模型到复合文档的转换器

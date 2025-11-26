@@ -1,4 +1,6 @@
-﻿namespace DotNetCampus.Storage.Standard;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace DotNetCampus.Storage.Standard;
 
 /// <summary>
 /// 用于存储的文件链接
@@ -20,5 +22,16 @@ public class FileUri : StorageUri
     public override string Encode()
     {
         return $"{StorageUriContext.FilePrefix}{Value}";
+    }
+
+    [return: NotNullIfNotNull(nameof(value))]
+    public static implicit operator FileUri?(FileInfo? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        return new FileUri(value.FullName);
     }
 }
