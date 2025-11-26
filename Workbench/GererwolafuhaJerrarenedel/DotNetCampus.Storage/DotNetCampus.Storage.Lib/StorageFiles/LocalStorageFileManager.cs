@@ -30,16 +30,9 @@ public class LocalStorageFileManager : IStorageFileManager
 
         await using var readStream = fileInfo.OpenRead();
 
-        var relativePath = fileInfo.RelativePath.RelativePath.AsSpan();
-        var fileName = Path.GetFileName(relativePath);
-        var localFileDirectory = Path.GetDirectoryName(relativePath);
-        var extension = Path.GetExtension(fileName);
-        var localFileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+        var relativePath = fileInfo.RelativePath.AsSpan();
 
-        var localFileName = $"{localFileNameWithoutExtension}_{Path.GetRandomFileName()}{extension}";
-
-        var localFilePath = Path.Join(WorkingDirectoryInfo.FullName, localFileDirectory, localFileName);
-        var localFileInfo = new FileInfo(localFilePath);
+        var localFileInfo = CreateLocalFileInfo(relativePath);
 
         await using var fileStream = localFileInfo.Create();
         await readStream.CopyToAsync(fileStream);
@@ -63,6 +56,33 @@ public class LocalStorageFileManager : IStorageFileManager
     public void AddFile(IReadOnlyStorageFileInfo fileInfo)
     {
         FileDictionary[fileInfo.RelativePath.RelativePath] = fileInfo;
+    }
+
+    public IStorageFileInfo CreateFile(StorageFileRelativePath relativePath)
+    {
+        var fileInfo = CreateLocalFileInfo(relativePath.AsSpan());
+
+        var localStorageFileInfo = new LocalStorageFileInfo()
+        {
+            RelativePath = relativePath,
+            FileInfo = fileInfo,
+        };
+        AddFile(localStorageFileInfo);
+        return localStorageFileInfo;
+    }
+
+    private FileInfo CreateLocalFileInfo(ReadOnlySpan<char> relativePath)
+    {
+        var fileName = Path.GetFileName(relativePath);
+        var localFileDirectory = Path.GetDirectoryName(relativePath);
+        var extension = Path.GetExtension(fileName);
+        var localFileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+
+        var localFileName = $"{localFileNameWithoutExtension}_{Path.GetRandomFileName()}{extension}";
+
+        var localFilePath = Path.Join(WorkingDirectoryInfo.FullName, localFileDirectory, localFileName);
+        var localFileInfo = new FileInfo(localFilePath);
+        return localFileInfo;
     }
 
     public void RemoveFile(StorageFileRelativePath relativePath)

@@ -13,12 +13,3 @@ public interface IStorageModelToCompoundDocumentConverter
 
     CompoundStorageDocument ToCompoundDocument(StorageModel model);
 }
-
-//public class SaveInfoPropertyToStorageFileConverter
-//{
-//    public StorageFileItem ToStorageFileItem(object rootPropertyObject,)
-//    {
-
-//    }
-//}
-

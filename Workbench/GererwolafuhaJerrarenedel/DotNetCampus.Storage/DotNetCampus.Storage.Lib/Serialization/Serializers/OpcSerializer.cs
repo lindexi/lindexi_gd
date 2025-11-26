@@ -46,6 +46,21 @@ public class OpcSerializer
         var compoundStorageDocument = await _manager.CompoundStorageDocumentSerializer.ToCompoundStorageDocument(fileProvider);
         return compoundStorageDocument;
     }
+
+    public async Task SaveToOpcFileAsync(CompoundStorageDocument document, FileInfo opcOutputFile)
+    {
+        await using var fileStream = opcOutputFile.Create();
+        using var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true);
+
+        var storageFileManager = await _manager.CompoundStorageDocumentSerializer.ToStorageFileManager(document);
+        foreach (IReadOnlyStorageFileInfo fileInfo in storageFileManager.FileList)
+        {
+            var zipArchiveEntry = zipArchive.CreateEntry(fileInfo.RelativePath.RelativePath, CompressionLevel.Optimal);
+            await using var zipStream = zipArchiveEntry.Open();
+            await using var stream = fileInfo.OpenRead();
+            await stream.CopyToAsync(zipStream);
+        }
+    }
 }
 
 public abstract class CompoundStorageDocumentSerializer
@@ -159,14 +174,13 @@ public abstract class CompoundStorageDocumentSerializer
             AddResourceReference(storageNode);
         }
 
-        // 可以将 StorageFileItem 改名为 StorageNodeItem
-        var storageFileItemList = new List<StorageNodeItem>();
+        var storageNodeItemList = new List<StorageNodeItem>();
 
         foreach (var fileInfo in classificationResult.DocumentFiles)
         {
             var storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
 
-            storageFileItemList.Add(new StorageNodeItem()
+            storageNodeItemList.Add(new StorageNodeItem()
             {
                 RootStorageNode = storageNode,
                 RelativePath = fileInfo.RelativePath.RelativePath
@@ -179,7 +193,7 @@ public abstract class CompoundStorageDocumentSerializer
 
         foreach (var fileInfo in classificationResult.ResourceFiles)
         {
-            if (referenceInfoDictionary.TryGetValue(fileInfo.RelativePath,out var referenceInfo))
+            if (referenceInfoDictionary.TryGetValue(fileInfo.RelativePath, out var referenceInfo))
             {
                 // 这是有记录的资源
                 storageResourceItemList.Add(new StorageResourceItem()
@@ -197,12 +211,75 @@ public abstract class CompoundStorageDocumentSerializer
 
         // 似乎 CompoundStorageDocument 有些废，没有什么用处，毕竟存放的东西本身也在污染 CompoundStorageDocumentManager 管理器
         var storageItemList =
-            new List<IStorageItem>(storageFileItemList.Count + storageResourceItemList.Count);
-        storageItemList.AddRange(storageFileItemList);
+            new List<IStorageItem>(storageNodeItemList.Count + storageResourceItemList.Count);
+        storageItemList.AddRange(storageNodeItemList);
         storageItemList.AddRange(storageResourceItemList);
 
         var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedManager);
         return compoundStorageDocument;
+    }
+
+    /// <summary>
+    /// 从复合文档里面转换为一个纯粹的存放文件信息的管理器，这个文件管理器只存放当前文档用到的文件信息
+    /// </summary>
+    /// <param name="document"></param>
+    /// <returns></returns>
+    public virtual async Task<IReadOnlyStorageFileManager> ToStorageFileManager(CompoundStorageDocument document)
+    {
+        var cleanStorageFileManager = new CleanStorageFileManager(document.StorageFileManager);
+        var storageNodeSerializer = StorageNodeSerializer;
+
+        foreach (var storageItem in document.StorageItemList)
+        {
+            if (storageItem is StorageNodeItem storageNodeItem)
+            {
+                var fileInfo = cleanStorageFileManager.CreateFile(storageItem.RelativePath);
+
+                await storageNodeSerializer.SerializeAsync(storageNodeItem.RootStorageNode, fileInfo);
+            }
+            else if (storageItem is StorageResourceItem storageResourceItem)
+            {
+                var fileInfo = document.StorageFileManager.GetFile(storageResourceItem.RelativePath);
+                if (fileInfo is not null)
+                {
+                    cleanStorageFileManager.AddFile(fileInfo);
+                }
+            }
+        }
+
+        return cleanStorageFileManager;
+    }
+}
+
+/// <summary>
+/// 一个干净的存放文件信息的管理器，只存放被添加进去的文件信息
+/// </summary>
+internal class CleanStorageFileManager : IReadOnlyStorageFileManager
+{
+    public CleanStorageFileManager(IStorageFileManager backStorageFileManager)
+    {
+        BackStorageFileManager = backStorageFileManager;
+    }
+
+    public IStorageFileInfo CreateFile(StorageFileRelativePath relativePath)
+    {
+        var fileInfo = BackStorageFileManager.CreateFile(relativePath);
+        AddFile(fileInfo);
+        return fileInfo;
+    }
+
+    private List<IReadOnlyStorageFileInfo> FileList { get; } = [];
+
+    /// <summary>
+    /// 后备的文件存储管理器。实际的文件存储管理器
+    /// </summary>
+    public IStorageFileManager BackStorageFileManager { get; }
+
+    IReadOnlyCollection<IReadOnlyStorageFileInfo> IReadOnlyStorageFileManager.FileList => FileList;
+
+    public void AddFile(IReadOnlyStorageFileInfo fileInfo)
+    {
+        FileList.Add(fileInfo);
     }
 }
 

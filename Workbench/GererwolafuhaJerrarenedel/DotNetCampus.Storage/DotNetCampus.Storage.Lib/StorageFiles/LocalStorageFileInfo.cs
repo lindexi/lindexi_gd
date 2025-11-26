@@ -10,8 +10,6 @@ public class LocalStorageFileInfo : IStorageFileInfo
     /// </summary>
     public required StorageFileRelativePath RelativePath { get; init; }
 
-    //public required IStorageFileManager StorageFileManager { get; init; }
-
     /// <summary>
     /// 实际文件
     /// </summary>
@@ -24,6 +22,11 @@ public class LocalStorageFileInfo : IStorageFileInfo
 
     public Stream OpenWrite()
     {
+        if (!File.Exists(FileInfo.FullName))
+        {
+            FileInfo.Directory?.Create();
+        }
+
         return FileInfo.OpenWrite();
     }
 }
