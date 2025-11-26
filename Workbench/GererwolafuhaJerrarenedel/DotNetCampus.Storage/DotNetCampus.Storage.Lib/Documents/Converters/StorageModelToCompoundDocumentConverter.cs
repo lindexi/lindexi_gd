@@ -62,9 +62,13 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
 
     public abstract CompoundStorageDocument ToCompoundDocument(StorageModel model);
 
-    protected StorageNodeItem ToStorageFileItem<T>(T propertyValue, string relativePath, string? nodeName = null)
-      where T : notnull
+    protected StorageNodeItem? ToStorageNodeItem<T>(T? propertyValue, StorageFileRelativePath relativePath, string? nodeName = null)
     {
+        if (propertyValue is null)
+        {
+            return null;
+        }
+
         var parserManager = Manager.ParserManager;
         var nodeParser = parserManager.GetNodeParser(typeof(T));
         var storageNode = nodeParser.Deparse(propertyValue, new DeparseNodeContext()

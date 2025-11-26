@@ -14,7 +14,7 @@ internal class Int32NodeParser : BaseClrTypeNodeParser<int>
 
     protected internal override StorageNode DeparseCore(int obj, in DeparseNodeContext context)
     {
-        var name = context.NodeName!;
+        var name = context.NodeName;
         return new StorageNode()
         {
             Name = name,

@@ -1,18 +1,20 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Text.RegularExpressions;
-
+using System.Xml.Linq;
 using DotNetCampus.Storage;
 using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Demo;
 using DotNetCampus.Storage.Demo.SaveInfos;
 using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
+using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.SaveInfos;
 using DotNetCampus.Storage.Serialization;
+using DotNetCampus.Storage.Serialization.XmlSerialization;
 using DotNetCampus.Storage.StorageFiles;
 using DotNetCampus.Storage.StorageNodes;
 
@@ -30,6 +32,12 @@ builder.CompoundStorageDocumentSerializer = new FakeCompoundStorageDocumentSeria
 var compoundStorageDocumentManager = builder.Build();
 
 var storageModel = await compoundStorageDocumentManager.ReadStorageModelFromOpcFile<FakeStorageModel>(new FileInfo(testFile));
+
+if (storageModel != null)
+{
+    var testOutputFile = Path.Join(AppContext.BaseDirectory, Path.GetRandomFileName());
+    await compoundStorageDocumentManager.SaveToOpcFileAsync(storageModel, new FileInfo(testOutputFile));
+}
 
 var parserManager = compoundStorageDocumentManager.ParserManager;
 
@@ -76,6 +84,10 @@ var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
     DocumentManager = compoundStorageDocumentManager,
 }) as FooSaveInfo;
 
+var storageXmlSerializer = new StorageXmlSerializer();
+var xDocument = storageXmlSerializer.Serialize(storageNode);
+var xml = xDocument.ToString(SaveOptions.None);
+
 Console.WriteLine("Hello, World!");
 
 
@@ -115,7 +127,38 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
 
     public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
     {
-        throw new System.NotImplementedException();
+        var referencedManager = Manager.ReferencedManager;
+        var storageItemList = new List<IStorageItem>();
+
+        if (model is FakeStorageModel fakeStorageModel)
+        {
+            referencedManager.Reset();
+
+            AddNode(fakeStorageModel.Document, "Document.xml");
+            AddNode(fakeStorageModel.Presentation, "Presentation.xml");
+
+            if (fakeStorageModel.SlideList is {} slideList)
+            {
+                for (var i = 0; i < slideList.Count; i++)
+                {
+                    var slideSaveInfo = slideList[i];
+                    var relativePath = $@"Slides\Slide{i + 1}.xml";
+                    AddNode(slideSaveInfo, relativePath);
+                }
+            }
+        }
+
+        var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedManager);
+        return compoundStorageDocument;
+
+        void AddNode<T>(T? value, StorageFileRelativePath relativePath)
+        {
+            var storageNodeItem = ToStorageNodeItem(value, relativePath);
+            if (storageNodeItem != null)
+            {
+                storageItemList.Add(storageNodeItem);
+            }
+        }
     }
 }
 

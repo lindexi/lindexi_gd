@@ -57,6 +57,7 @@ public class StorageXmlSerializer : IStorageNodeSerializer
         };
 
         await using var fileStream = outputFile.OpenWrite();
+        fileStream.SetLength(0);
 
         await using var writer = System.Xml.XmlWriter.Create(fileStream, settings);
         await document.WriteToAsync(writer, CancellationToken.None);

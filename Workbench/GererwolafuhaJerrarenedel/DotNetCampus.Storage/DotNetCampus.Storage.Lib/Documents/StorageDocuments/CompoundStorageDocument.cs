@@ -17,7 +17,6 @@ public class CompoundStorageDocument
         ReferencedManager = referencedManager;
     }
 
-    //public IReadOnlyList<StorageFileItem> StorageNodeItemList { get; }
     public IReferencedManager ReferencedManager { get; }
     public IStorageFileManager StorageFileManager => ReferencedManager.StorageFileManager;
 

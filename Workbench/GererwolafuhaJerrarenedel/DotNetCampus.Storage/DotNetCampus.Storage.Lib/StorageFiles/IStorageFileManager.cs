@@ -19,6 +19,8 @@ public interface IStorageFileManager : IReadOnlyStorageFileManager
     /// <param name="fileInfo"></param>
     void AddFile(IReadOnlyStorageFileInfo fileInfo);
 
+    IStorageFileInfo CreateFile(StorageFileRelativePath relativePath);
+
     /// <summary>
     /// 删除文件
     /// </summary>
