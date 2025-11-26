@@ -88,39 +88,11 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
     /// <param name="storageNodeChildren"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    protected IEnumerable<TElement> ParseElementOfList<TElement>(List<StorageNode>? storageNodeChildren, ParseNodeContext context)
+    protected IEnumerable<TElement> ParseElementOfList<TElement>(IReadOnlyList<StorageNode>? storageNodeChildren, ParseNodeContext context)
     {
-        if (storageNodeChildren is null)
-        {
-            yield break;
-        }
-
-        StorageNodeParserManager parserManager = context.ParserManager;
-        foreach (var storageNode in storageNodeChildren)
-        {
-            NodeParser? nodeParser = null;
-
-            if (storageNode.Name.IsEmptyOrNull)
-            {
-                // 不存在名称的节点，比如 List<string> 等
-                nodeParser = parserManager.GetNodeParser(typeof(TElement));
-            }
-            else
-            {
-                var storageNodeName = storageNode.Name.ToText();
-                nodeParser = parserManager.GetNodeParser(storageNodeName);
-            }
-
-            if (nodeParser is not null)
-            {
-                var element = nodeParser.Parse(storageNode, context);
-
-                if (element is TElement result)
-                {
-                    yield return result;
-                }
-            }
-        }
+        var parser = context.ParserManager.StorageNodeListParser;
+        return parser.ParseElementOfList<TElement>(storageNodeChildren,
+            context);
     }
 
     protected void AppendExtensionAndUnknownProperties(StorageNode storageNode, SaveInfo saveInfo, in DeparseNodeContext context)
@@ -152,15 +124,8 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
     /// <returns></returns>
     protected List<StorageNode> DeparseElementOfList(IEnumerable<object> children, DeparseNodeContext context)
     {
-        StorageNodeParserManager parserManager = context.ParserManager;
-        var storageNodeList = new List<StorageNode>();
-        foreach (var child in children)
-        {
-            var nodeParser = parserManager.GetNodeParser(child.GetType());
-            var childNode = nodeParser.Deparse(child, context);
-            storageNodeList.Add(childNode);
-        }
+        var parser = context.ParserManager.StorageNodeListParser;
 
-        return storageNodeList;
+        return parser.DeparseElementOfList(children, context);
     }
 }
