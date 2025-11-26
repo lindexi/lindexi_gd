@@ -13,7 +13,7 @@ internal class Int64NodeParser : BaseClrTypeNodeParser<long>
     }
     protected internal override StorageNode DeparseCore(long obj, in DeparseNodeContext context)
     {
-        var name = context.NodeName!;
+        var name = context.NodeName;
         return new StorageNode()
         {
             Name = name,

@@ -12,7 +12,7 @@ internal class BoolNodeParser : BaseClrTypeNodeParser<bool>
 
     protected internal override StorageNode DeparseCore(bool obj, in DeparseNodeContext context)
     {
-        var name = context.NodeName!;
+        var name = context.NodeName;
         return new StorageNode()
         {
             Name = name,

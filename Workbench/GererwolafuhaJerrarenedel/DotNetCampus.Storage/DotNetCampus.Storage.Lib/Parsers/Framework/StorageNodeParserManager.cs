@@ -54,11 +54,15 @@ public interface IStorageNodeListParser
     List<StorageNode> DeparseElementOfList(IEnumerable<object> children, DeparseNodeContext context);
 }
 
+/// <summary>
+/// 包含双层内容的列表解析器
+/// 如对 string[] 进行解析时，外层是列表节点，内层是 Item 节点
+/// </summary>
 public class DoubleLayerStorageNodeListParser : IStorageNodeListParser
 {
     public const string DefaultItemPropertyName = "Item";
 
-    public string? ItemPropertyName { get; init; } = DefaultItemPropertyName;
+    public string ItemPropertyName { get; init; } = DefaultItemPropertyName;
 
     public IEnumerable<TElement> ParseElementOfList<TElement>(IReadOnlyList<StorageNode>? storageNodeChildren, ParseNodeContext context)
     {
@@ -76,8 +80,7 @@ public class DoubleLayerStorageNodeListParser : IStorageNodeListParser
             {
                 var storageNodeName = storageNode.Name.ToText();
 
-                if (ItemPropertyName is not null &&
-                    storageNodeName.Equals(ItemPropertyName, StringComparison.Ordinal))
+                if (storageNodeName.Equals(ItemPropertyName, StringComparison.Ordinal))
                 {
                     // 如果名称是 Item 则跳过
                     // 不能取名称对应的解析器
