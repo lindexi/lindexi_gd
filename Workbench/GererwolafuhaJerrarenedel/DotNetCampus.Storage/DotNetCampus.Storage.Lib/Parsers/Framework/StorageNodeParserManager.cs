@@ -1,5 +1,6 @@
 ﻿using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.Parsers.NodeParsers;
+using DotNetCampus.Storage.Standard;
 using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Parsers;
@@ -17,6 +18,12 @@ public class StorageNodeParserManager
         Register(new Int32NodeParser());
         Register(new Int64NodeParser());
         Register(new StringNodeParser());
+
+        // 链接类型
+        Register(new UriNodeParser<StorageUri>());
+        Register(new UriNodeParser<FileUri>());
+        Register(new UriNodeParser<IdUri>());
+        Register(new HttpUriNodeParser());
     }
 
     public void Register(NodeParser nodeParser)
