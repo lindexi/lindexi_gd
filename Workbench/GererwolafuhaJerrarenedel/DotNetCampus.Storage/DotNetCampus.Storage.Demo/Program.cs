@@ -10,6 +10,7 @@ using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.SaveInfos;
+using DotNetCampus.Storage.Serialization;
 using DotNetCampus.Storage.StorageNodes;
 
 var testFile = @"C:\lindexi\Test.opc";
@@ -20,15 +21,19 @@ if (!File.Exists(testFile))
 }
 
 var builder = CompoundStorageDocumentManager.CreateBuilder();
-builder.UseStorageModelToCompoundDocumentConverter(provider =>
-    new FakeStorageModelToCompoundDocumentConverter(provider));
+builder
+    .UseStorageModelToCompoundDocumentConverter(provider =>
+    new FakeStorageModelToCompoundDocumentConverter(provider))
+    .UseParserManager(StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser)
+    ;
+
+builder.CompoundStorageDocumentSerializer = new FakeCompoundStorageDocumentSerializer(builder.ManagerProvider);
 
 var compoundStorageDocumentManager = builder.Build();
 
 var storageModel = await compoundStorageDocumentManager.ReadStorageModelFromOpcFile<FakeStorageModel>(new FileInfo(testFile));
 
 var parserManager = compoundStorageDocumentManager.ParserManager;
-StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser(parserManager);
 
 var fooSaveInfo = new FooSaveInfo()
 {
@@ -76,23 +81,8 @@ Console.WriteLine("Hello, World!");
 
 
 
-class FakeStorageModel : StorageModel
-{
-    public TestDocumentSaveInfo? Document { get; set; }
-}
 
-[SaveInfoContract("Document")]
-class TestDocumentSaveInfo : SaveInfo
-{
-    [SaveInfoMember("Name")]
-    public string? Name { get; set; }
 
-    [SaveInfoMember("Creator")]
-    public string? Creator { get; set; }
-
-    [SaveInfoMember("DocumentVersion")]
-    public string? DocumentVersion { get; set; }
-}
 
 class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocumentConverter
 {
@@ -108,5 +98,28 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
     public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
     {
         throw new System.NotImplementedException();
+    }
+}
+
+public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSerializer
+{
+    public FakeCompoundStorageDocumentSerializer(CompoundStorageDocumentManagerProvider provider) : base(provider)
+    {
+    }
+
+    protected override void AddResourceReference(StorageNode referenceStorageNode)
+    {
+        var storageReferenceSaveInfo = ReadAsPropertyValue<StorageReferenceSaveInfo>(referenceStorageNode);
+    }
+
+    private T ReadAsPropertyValue<T>(StorageNode storageNode)
+    {
+        var parserManager = Manager.ParserManager;
+        var nodeParser = parserManager.GetNodeParser(typeof(T));
+        var value = nodeParser.Parse(storageNode, new ParseNodeContext()
+        {
+            DocumentManager = Manager
+        });
+        return (T) value;
     }
 }
