@@ -126,7 +126,9 @@ public abstract class CompoundStorageDocumentSerializer
                 });
 
                 // 可以尝试确保资源存放在本地文件管理器中
-                fileManager.AddFile(fileInfo);
+
+                await fileManager.ToLocalStorageFileInfoAsync(fileInfo);
+                //fileManager.AddFile(fileInfo);
             }
         }
 
