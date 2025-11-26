@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Text.RegularExpressions;
+
 using DotNetCampus.Storage;
 using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Demo;
@@ -39,7 +40,8 @@ var fooSaveInfo = new FooSaveInfo()
     {
         Foo1Property = true,
         Foo2Property = Random.Shared.Next()
-    }
+    },
+    CountList = ["123", "abc"]
 };
 
 var nodeParser = parserManager.GetNodeParser(fooSaveInfo.GetType());
@@ -91,7 +93,7 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
     {
         var fakeStorageModel = new FakeStorageModel()
         {
-            Document = ReadRootSaveInfoProperty<TestDocumentSaveInfo>(document,"Document.xml"),
+            Document = ReadRootSaveInfoProperty<TestDocumentSaveInfo>(document, "Document.xml"),
             Presentation = ReadRootSaveInfoProperty<PresentationSaveInfo>(document, "Presentation.xml"),
             SlideList = ReadRootSaveInfoPropertyList<SlideSaveInfo>(document, path =>
             {
@@ -129,7 +131,7 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
 
         List<ReferenceInfo>? referenceInfoList = null;
         var storageReferenceSaveInfo = ReadAsPropertyValue<StorageReferenceSaveInfo>(referenceStorageNode);
-        if (storageReferenceSaveInfo.Relationships is {} list)
+        if (storageReferenceSaveInfo.Relationships is { } list)
         {
             referenceInfoList = new List<ReferenceInfo>(list.Count);
 
