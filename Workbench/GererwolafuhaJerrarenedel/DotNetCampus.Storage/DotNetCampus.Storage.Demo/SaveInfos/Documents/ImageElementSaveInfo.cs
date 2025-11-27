@@ -1,4 +1,5 @@
 ﻿using DotNetCampus.Storage.SaveInfos;
+using DotNetCampus.Storage.Standard;
 
 namespace DotNetCampus.Storage.Demo.SaveInfos;
 
@@ -6,5 +7,8 @@ namespace DotNetCampus.Storage.Demo.SaveInfos;
 public class ImageElementSaveInfo : ElementSaveInfo
 {
     [SaveInfoMember("Source")]
-    public string? Source { get; set; }
+    public StorageUri? Source { get; set; }
+
+    [SaveInfoMember("Id")]
+    public string? Id { get; set; }
 }

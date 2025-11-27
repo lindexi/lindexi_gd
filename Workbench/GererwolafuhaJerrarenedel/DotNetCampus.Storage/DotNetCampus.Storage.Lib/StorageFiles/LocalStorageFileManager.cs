@@ -80,7 +80,9 @@ public class LocalStorageFileManager : IStorageFileManager
 
         var localFileName = $"{localFileNameWithoutExtension}_{Path.GetRandomFileName()}{extension}";
 
-        var localFilePath = Path.Join(WorkingDirectoryInfo.FullName, localFileDirectory, localFileName);
+        var folder = Path.Join(WorkingDirectoryInfo.FullName, localFileDirectory);
+        Directory.CreateDirectory(folder);
+        var localFilePath = Path.Join(folder, localFileName);
         var localFileInfo = new FileInfo(localFilePath);
         return localFileInfo;
     }
