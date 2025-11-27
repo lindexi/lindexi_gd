@@ -11,6 +11,7 @@ public interface IStorageNodeSerializer
 {
     /// <summary>
     /// 从节点序列化到文件
+    /// StorageNode -> File
     /// </summary>
     /// <param name="node"></param>
     /// <param name="outputFile"></param>
@@ -19,6 +20,7 @@ public interface IStorageNodeSerializer
 
     /// <summary>
     /// 从文件反序列化到节点
+    /// File -> StorageNode
     /// </summary>
     /// <param name="file"></param>
     /// <returns></returns>

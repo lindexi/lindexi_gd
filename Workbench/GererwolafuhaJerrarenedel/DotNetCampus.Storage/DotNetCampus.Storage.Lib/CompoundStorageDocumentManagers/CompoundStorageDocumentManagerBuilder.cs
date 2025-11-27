@@ -58,7 +58,7 @@ public class CompoundStorageDocumentManagerBuilder
     ///// </summary>
     //public IStorageNodeSerializer? DefaultStorageNodeSerializer { get; set; }
 
-    public CompoundStorageDocumentSerializer? CompoundStorageDocumentSerializer { get; set; }
+    public ICompoundStorageDocumentSerializer? CompoundStorageDocumentSerializer { get; set; }
 
     public CompoundStorageDocumentManagerBuilder UseStorageModelToCompoundDocumentConverter(
         Func<CompoundStorageDocumentManagerProvider, IStorageModelToCompoundDocumentConverter> creator)

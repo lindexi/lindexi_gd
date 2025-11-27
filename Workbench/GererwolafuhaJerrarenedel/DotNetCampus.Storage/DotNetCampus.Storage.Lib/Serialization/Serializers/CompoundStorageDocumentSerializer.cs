@@ -11,7 +11,27 @@ namespace DotNetCampus.Storage.Serialization;
 /// <summary>
 /// 复合文档序列化器，用于在复合存储文档和松散文件之间进行转换
 /// </summary>
-public abstract class CompoundStorageDocumentSerializer
+public interface ICompoundStorageDocumentSerializer
+{
+    /// <summary>
+    /// 从松散文件管理器转换为复合存储文档
+    /// </summary>
+    /// <param name="fileProvider"></param>
+    /// <returns></returns>
+    Task<CompoundStorageDocument> ToCompoundStorageDocument(IReadOnlyStorageFileManager fileProvider);
+
+    /// <summary>
+    /// 从复合文档里面转换为一个纯粹的存放文件信息的管理器，这个文件管理器只存放当前文档用到的文件信息
+    /// </summary>
+    /// <param name="document"></param>
+    /// <returns></returns>
+    Task<IReadOnlyStorageFileManager> ToStorageFileManager(CompoundStorageDocument document);
+}
+
+/// <summary>
+/// 复合文档序列化器，用于在复合存储文档和松散文件之间进行转换
+/// </summary>
+public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocumentSerializer
 {
     public CompoundStorageDocumentSerializer(CompoundStorageDocumentManagerProvider provider)
     {
@@ -185,6 +205,24 @@ public abstract class CompoundStorageDocumentSerializer
             }
         }
 
+        // 添加引用文件
+        var referenceStorageNode = ReferencedManagerToReferenceStorageNode(document.ReferencedManager);
+        if (referenceStorageNode != null)
+        {
+            var fileInfo = cleanStorageFileManager.CreateFile(DefaultReferenceFileName);
+            await storageNodeSerializer.SerializeAsync(referenceStorageNode, fileInfo);
+        }
+
         return cleanStorageFileManager;
+    }
+
+    /// <summary>
+    /// 从引用建立对应的存储节点
+    /// </summary>
+    /// <param name="referencedManager"></param>
+    /// <returns></returns>
+    protected virtual StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
+    {
+        return null;
     }
 }

@@ -146,6 +146,16 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
                     AddNode(slideSaveInfo, relativePath);
                 }
             }
+
+            foreach (var referenceInfo in referencedManager.References)
+            {
+                var storageResourceItem = new StorageResourceItem()
+                {
+                    ResourceId = referenceInfo.ReferenceId,
+                    RelativePath = referenceInfo.FilePath,
+                };
+                storageItemList.Add(storageResourceItem);
+            }
         }
 
         var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedManager);
@@ -208,5 +218,44 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
             DocumentManager = Manager
         });
         return (T) value;
+    }
+
+    protected override StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
+    {
+        var references = referencedManager.References;
+        var list = new List<StorageRelationshipsSaveInfo>(references.Count);
+        foreach (var referenceInfo in references)
+        {
+            list.Add(new StorageRelationshipsSaveInfo()
+            {
+                Id = referenceInfo.ReferenceId.ReferenceId,
+                Target = referenceInfo.FilePath.RelativePath,
+            });
+        }
+        var storageReferenceSaveInfo = new StorageReferenceSaveInfo()
+        {
+            Relationships = list
+        };
+
+        var storageNode = ToStorageNodeItem(storageReferenceSaveInfo);
+        return storageNode;
+    }
+
+    private StorageNode ToStorageNodeItem<T>(T propertyValue, string? nodeName = null)
+    {
+        //if (propertyValue is null)
+        //{
+        //    return null;
+        //}
+
+        var parserManager = Manager.ParserManager;
+        var nodeParser = parserManager.GetNodeParser(typeof(T));
+        var storageNode = nodeParser.Deparse(propertyValue, new DeparseNodeContext()
+        {
+            NodeName = nodeName,
+            DocumentManager = Manager,
+        });
+
+        return storageNode;
     }
 }

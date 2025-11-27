@@ -41,10 +41,14 @@ public class CompoundStorageDocumentManager
     /// <summary>
     /// 存储模型到复合文档的转换器
     /// </summary>
-    /// StorageNode - StorageModel -> CompoundStorageDocument - -.xml 文件（或 .json 等格式）
+    /// StorageModel (SaveInfo们) -> CompoundStorageDocument (StorageNode们 + 资源)
     public required IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; init; }
 
-    public required CompoundStorageDocumentSerializer CompoundStorageDocumentSerializer { get; init; }
+    /// <summary>
+    /// 复合存储文档和松散文件之间进行转换
+    /// CompoundStorageDocument (内存里) -> 松散文件夹（.xml 磁盘文件）
+    /// </summary>
+    public required ICompoundStorageDocumentSerializer CompoundStorageDocumentSerializer { get; init; }
 
     public static CompoundStorageDocumentManagerBuilder CreateBuilder()
     {
