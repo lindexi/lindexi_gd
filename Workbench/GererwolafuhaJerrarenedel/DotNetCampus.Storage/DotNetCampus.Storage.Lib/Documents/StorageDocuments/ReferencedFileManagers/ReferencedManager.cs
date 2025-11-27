@@ -37,8 +37,18 @@ public class ReferencedManager : IReferencedManager
     {
         IReferencedManager referencedManager = this;
 
-        LocalStorageFileInfo? existFile = StorageFileManager.FileList.OfType<LocalStorageFileInfo>()
-            .FirstOrDefault(t => t.FileInfo.FullName == localFile.FullName);
+        LocalStorageFileInfo? existFile;
+
+        if (StorageFileManager is ILocalStorageFileManager localStorageFileManager)
+        {
+            // 对于 LocalStorageFileManager 可以提升一些速度
+            existFile = localStorageFileManager.GetFile(localFile);
+        }
+        else
+        {
+            existFile = StorageFileManager.FileList.OfType<LocalStorageFileInfo>()
+                .FirstOrDefault(t => t.FileInfo.FullName == localFile.FullName);
+        }
 
         // 存在本地文件了，说不定已经存在引用了
         if (existFile is not null)
