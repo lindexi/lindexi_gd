@@ -14,7 +14,7 @@ public class ReferencedManager : IReferencedManager
 
     public IStorageFileManager StorageFileManager { get; }
 
-    private Dictionary<StorageReferenceId, ReferenceInfo> ReferenceInfoDictionary { get; } = [];
+    private ReferenceInfoDictionary ReferenceInfoDictionary { get; } = new ReferenceInfoDictionary();
 
     public void Reset(IReadOnlyCollection<ReferenceInfo>? references = null)
     {
@@ -22,18 +22,15 @@ public class ReferencedManager : IReferencedManager
 
         if (references != null)
         {
-            foreach (var referenceInfo in references)
-            {
-                ReferenceInfoDictionary.Add(referenceInfo.ReferenceId, referenceInfo);
-            }
+            ReferenceInfoDictionary.AddRange(references);
         }
     }
 
-    public IReadOnlyCollection<ReferenceInfo> References => ReferenceInfoDictionary.Values;
+    public IReadOnlyList<ReferenceInfo> References => ReferenceInfoDictionary.References;
 
     public ReferenceInfo? GetReferenceInfo(StorageReferenceId referenceId)
     {
-        return ReferenceInfoDictionary.GetValueOrDefault(referenceId);
+        return ReferenceInfoDictionary.GetReferenceInfo(referenceId);
     }
 
     public ReferenceInfo AddLocalFile(FileInfo localFile)
@@ -61,7 +58,7 @@ public class ReferencedManager : IReferencedManager
 
     public void AddReference(ReferenceInfo referenceInfo)
     {
-        ReferenceInfoDictionary[referenceInfo.ReferenceId] = referenceInfo;
+        ReferenceInfoDictionary.Add(referenceInfo);
     }
 
     public ReferenceInfo AddReferenceFile(StorageReferenceId referenceId, IReadOnlyStorageFileInfo fileInfo)
@@ -80,7 +77,7 @@ public class ReferencedManager : IReferencedManager
 
     public void AddReferenceCount(StorageReferenceId referenceId)
     {
-        if (ReferenceInfoDictionary.TryGetValue(referenceId, out var referenceInfo))
+        if (ReferenceInfoDictionary.GetReferenceInfo(referenceId) is {} referenceInfo)
         {
             referenceInfo.Counter++;
         }
@@ -92,7 +89,7 @@ public class ReferencedManager : IReferencedManager
 
     public void SubtractReferenceCount(StorageReferenceId referenceId)
     {
-        if (ReferenceInfoDictionary.TryGetValue(referenceId, out var referenceInfo))
+        if (ReferenceInfoDictionary.GetReferenceInfo(referenceId) is { } referenceInfo)
         {
             referenceInfo.Counter--;
         }
@@ -105,7 +102,7 @@ public class ReferencedManager : IReferencedManager
     public void PruneReference()
     {
         var toRemoveList = new List<ReferenceInfo>();
-        foreach (var referenceInfo in ReferenceInfoDictionary.Values)
+        foreach (var referenceInfo in ReferenceInfoDictionary.References)
         {
             if (referenceInfo.Counter <= 0)
             {
@@ -115,7 +112,7 @@ public class ReferencedManager : IReferencedManager
 
         foreach (var referenceInfo in toRemoveList)
         {
-            ReferenceInfoDictionary.Remove(referenceInfo.ReferenceId);
+            ReferenceInfoDictionary.Remove(referenceInfo);
             StorageFileManager.RemoveFile(referenceInfo.FilePath);
         }
     }

@@ -26,7 +26,7 @@ public interface IReferencedManager
     /// <summary>
     /// 当前存在的引用列表
     /// </summary>
-    IReadOnlyCollection<ReferenceInfo> References { get; }
+    IReadOnlyList<ReferenceInfo> References { get; }
 
     /// <summary>
     /// 获取引用信息
