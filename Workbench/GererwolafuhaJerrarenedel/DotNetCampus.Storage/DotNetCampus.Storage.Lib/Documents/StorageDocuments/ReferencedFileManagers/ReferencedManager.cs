@@ -56,7 +56,7 @@ public class ReferencedManager : IReferencedManager
             ReferenceInfo? existReferenceInfo = ReferenceInfoDictionary.GetReferenceInfo(existFile.RelativePath);
             if (existReferenceInfo is not null)
             {
-                existReferenceInfo.Counter++;
+                AddReference(existReferenceInfo);
                 return existReferenceInfo;
             }
             else
