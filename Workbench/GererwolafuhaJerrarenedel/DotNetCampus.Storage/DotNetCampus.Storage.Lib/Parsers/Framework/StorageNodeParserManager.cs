@@ -8,6 +8,7 @@ namespace DotNetCampus.Storage.Parsers;
 /// <summary>
 /// 存储转换管理器
 /// </summary>
+/// SaveInfo （或 SaveInfo 里面的子属性） -> StorageNode 
 public class StorageNodeParserManager
 {
     public StorageNodeParserManager()

@@ -33,6 +33,29 @@ public class ReferencedManager : IReferencedManager
         return ReferenceInfoDictionary.GetValueOrDefault(referenceId);
     }
 
+    public ReferenceInfo AddLocalFile(FileInfo localFile)
+    {
+        IReferencedManager referencedManager = this;
+        StorageFileRelativePath relativePath = Path.Join(referencedManager.ResourceFolderRelativePath.AsSpan(), localFile.Name);
+
+        var localStorageFileInfo = new LocalStorageFileInfo()
+        {
+            FileInfo = localFile,
+            RelativePath = relativePath
+        };
+        // 添加本地文件时，不用考虑重复的问题，因为刚好每次相同的文件都能覆盖。但是每次生成新的 Id 倒是有点亏。至少文件不会重复，只是 Id 内容重复而已
+        StorageFileManager.AddFile(localStorageFileInfo);
+
+        var referenceId = new StorageReferenceId(Guid.NewGuid().ToString("N"));
+        var referenceInfo = new ReferenceInfo()
+        {
+            FilePath = relativePath,
+            ReferenceId = referenceId,
+            Counter = 1
+        };
+        return referenceInfo;
+    }
+
     public void AddReference(ReferenceInfo referenceInfo)
     {
         ReferenceInfoDictionary[referenceInfo.ReferenceId] = referenceInfo;

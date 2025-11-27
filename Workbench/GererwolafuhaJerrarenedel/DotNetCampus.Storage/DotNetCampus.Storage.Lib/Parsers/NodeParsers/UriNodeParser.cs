@@ -94,17 +94,9 @@ internal class UriNodeParser<TStorageUri> : NodeParser<TStorageUri>
         if (obj is FileUri fileUri)
         {
             var fileInfo = new FileInfo(fileUri.Value);
-            var readOnlyStorageFileInfo = new LocalStorageFileInfo()
-            {
-                FileInfo = fileInfo,
-                RelativePath = new StorageFileRelativePath(fileInfo.Name)
-            };
-
-            referencedManager.StorageFileManager.AddFile(readOnlyStorageFileInfo);
-
-            var storageReferenceId = new StorageReferenceId(Guid.NewGuid().ToString("N"));
+            var referenceInfo = referencedManager.AddLocalFile(fileInfo);
+            var storageReferenceId = referenceInfo.ReferenceId;
             
-            referencedManager.AddReferenceFile(storageReferenceId, readOnlyStorageFileInfo);
             var idUri = new IdUri(storageReferenceId.ReferenceId);
             value = idUri.Encode();
         }
