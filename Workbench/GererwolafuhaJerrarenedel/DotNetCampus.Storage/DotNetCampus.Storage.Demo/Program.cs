@@ -81,6 +81,3 @@ var xDocument = storageXmlSerializer.Serialize(storageNode);
 var xml = xDocument.ToString(SaveOptions.None);
 
 Console.WriteLine("Hello, World!");
-
-
-

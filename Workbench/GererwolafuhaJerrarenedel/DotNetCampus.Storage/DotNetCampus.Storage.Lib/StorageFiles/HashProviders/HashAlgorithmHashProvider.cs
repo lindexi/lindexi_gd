@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.IO;
+using System.Security.Cryptography;
 
 namespace DotNetCampus.Storage.StorageFiles;
 
@@ -13,10 +14,9 @@ public abstract class HashAlgorithmHashProvider : IHashProvider
     public HashAlgorithm HashAlgorithm { get; }
     public StorageHashAlgorithm StorageHashAlgorithm { get; }
 
-    public async ValueTask<HashResult> ComputeHashAsync(FileInfo file)
+    public async ValueTask<HashResult> ComputeHashAsync(Stream inputStream)
     {
-        await using var fileStream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-        var hashBytes = await HashAlgorithm.ComputeHashAsync(fileStream);
+        var hashBytes = await HashAlgorithm.ComputeHashAsync(inputStream);
         var hashValue = string.Join("", hashBytes.Select(b => b.ToString("x2")));
         return new HashResult(hashValue, GetStorageHashAlgorithmText());
     }
