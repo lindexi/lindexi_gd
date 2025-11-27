@@ -40,7 +40,7 @@ public abstract class CompoundStorageDocumentSerializer
     {
         var fileList = fileProvider.FileList;
 
-        var referenceFile = fileList.FirstOrDefault(t => string.Equals(t.RelativePath.RelativePath, "Reference.xml", StringComparison.OrdinalIgnoreCase));
+        var referenceFile = fileList.FirstOrDefault(t => string.Equals(t.RelativePath.RelativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase));
 
         IReadOnlyList<IReadOnlyStorageFileInfo> referenceResourceManagerFiles;
         if (referenceFile is not null)
@@ -57,8 +57,21 @@ public abstract class CompoundStorageDocumentSerializer
 
         foreach (var fileInfo in fileList)
         {
-            if (IsDocumentFile(fileInfo))
+            var relativePath = fileInfo.RelativePath;
+            var extension = Path.GetExtension(relativePath.AsSpan());
+            if (extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
             {
+                // 后缀是 xml 的，但是不是 Reference.xml 和 [Content_Types].xml 文件的，就是文档文件
+                if (string.Equals(relativePath.RelativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                   continue;
+                }
+
+                if (string.Equals(relativePath.RelativePath, ContentTypesFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                   continue;
+                }
+
                 documentFile.Add(fileInfo);
             }
             else
@@ -74,29 +87,6 @@ public abstract class CompoundStorageDocumentSerializer
             ReferenceResourceManagerFiles = referenceResourceManagerFiles,
             FileProvider = fileProvider,
         };
-
-        static bool IsDocumentFile(IReadOnlyStorageFileInfo fileInfo)
-        {
-            // 后缀是 xml 的，但是不是 Reference.xml 和 [Content_Types].xml 文件的，就是文档文件
-            var relativePath = fileInfo.RelativePath;
-            var extension = Path.GetExtension(relativePath.AsSpan());
-            if (!extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (string.Equals(relativePath.RelativePath, DefaultReferenceFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (string.Equals(relativePath.RelativePath, ContentTypesFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            return true;
-        }
     }
 
     protected virtual void AddResourceReference(StorageNode referenceStorageNode)
