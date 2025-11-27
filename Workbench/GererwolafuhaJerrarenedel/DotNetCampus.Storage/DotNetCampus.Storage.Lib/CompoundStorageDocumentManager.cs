@@ -20,7 +20,8 @@ namespace DotNetCampus.Storage;
 /// </summary>
 /// 这是这个程序集的入口
 /// 由于有部分属性必须业务注入具体实现，因此设计为抽象类
-public abstract class CompoundStorageDocumentManager
+public abstract class CompoundStorageDocumentManager<TStorageModel>
+    where TStorageModel : StorageModel
 {
     // ~~也许带状态的，放在 CompoundStorageDocument 更佳，跟随文档内容走。缺点是没有方法可以重新更新~~
 
@@ -50,44 +51,11 @@ public abstract class CompoundStorageDocumentManager
     /// 存储模型到复合文档的转换器。必须业务注入具体实现
     /// </summary>
     /// StorageModel (SaveInfo们) -> CompoundStorageDocument (StorageNode们 + 资源)
-    public abstract IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; }
+    public abstract IStorageModelToCompoundDocumentConverter<TStorageModel> StorageModelToCompoundDocumentConverter { get; }
 
     /// <summary>
     /// 复合存储文档和松散文件之间进行转换。必须业务注入具体实现
     /// CompoundStorageDocument (内存里) -> 松散文件夹（.xml 磁盘文件）
     /// </summary>
     public abstract ICompoundStorageDocumentSerializer CompoundStorageDocumentSerializer { get; }
-}
-
-public static class CompoundStorageDocumentManagerExtension
-{
-    public static Task<CompoundStorageDocument> ReadFromOpcFileAsync(this CompoundStorageDocumentManager manager, FileInfo opcFile)
-    {
-        var opcSerializer = new OpcSerializer(manager);
-        return opcSerializer.ReadFromOpcFileAsync(opcFile);
-    }
-
-    public static async Task<T?> ReadStorageModelFromOpcFile<T>(this CompoundStorageDocumentManager manager, FileInfo opcFile)
-        where T : StorageModel
-    {
-        var compoundStorageDocument = await manager.ReadFromOpcFileAsync(opcFile);
-        var converter = manager.StorageModelToCompoundDocumentConverter;
-        var storageModel = converter.ToStorageModel(compoundStorageDocument);
-
-        return storageModel as T;
-    }
-
-    public static Task SaveToOpcFileAsync(this CompoundStorageDocumentManager manager, CompoundStorageDocument document, FileInfo opcOutputFile)
-    {
-        var opcSerializer = new OpcSerializer(manager);
-        return opcSerializer.SaveToOpcFileAsync(document, opcOutputFile);
-    }
-
-    public static Task SaveToOpcFileAsync(this CompoundStorageDocumentManager manager, StorageModel storageModel,
-        FileInfo opcOutputFile)
-    {
-        var converter = manager.StorageModelToCompoundDocumentConverter;
-        var compoundStorageDocument = converter.ToCompoundDocument(storageModel);
-        return manager.SaveToOpcFileAsync(compoundStorageDocument, opcOutputFile);
-    }
 }
