@@ -3,7 +3,6 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using DotNetCampus.Storage;
-using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Demo;
 using DotNetCampus.Storage.Demo.SaveInfos;
 using DotNetCampus.Storage.Documents.Converters;
@@ -20,16 +19,7 @@ using DotNetCampus.Storage.StorageNodes;
 
 var testFile = Path.Join(AppContext.BaseDirectory, "Asserts", "TestFiles", "Test.opc");
 
-var builder = CompoundStorageDocumentManager.CreateBuilder();
-builder
-    .UseStorageModelToCompoundDocumentConverter(provider =>
-    new FakeStorageModelToCompoundDocumentConverter(provider))
-    .UseParserManager(StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser)
-    ;
-
-builder.CompoundStorageDocumentSerializer = new FakeCompoundStorageDocumentSerializer(builder.ManagerProvider);
-
-var compoundStorageDocumentManager = builder.Build();
+var compoundStorageDocumentManager = new FakeCompoundStorageDocumentManager();
 
 var storageModel = await compoundStorageDocumentManager.ReadStorageModelFromOpcFile<FakeStorageModel>(new FileInfo(testFile));
 
@@ -93,11 +83,26 @@ Console.WriteLine("Hello, World!");
 
 
 
+class FakeCompoundStorageDocumentManager : CompoundStorageDocumentManager
+{
+    public FakeCompoundStorageDocumentManager()
+    {
+        StorageModelToCompoundDocumentConverter = new FakeStorageModelToCompoundDocumentConverter(this);
+        CompoundStorageDocumentSerializer = new FakeCompoundStorageDocumentSerializer(this);
+        var parserManager = new StorageNodeParserManager();
+        StorageNodeParserManagerCollection.RegisterSaveInfoNodeParser(parserManager);
+        ParserManager = parserManager;
+    }
 
+    public override StorageNodeParserManager ParserManager { get; }
+
+    public override IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; }
+    public override ICompoundStorageDocumentSerializer CompoundStorageDocumentSerializer { get; }
+}
 
 class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocumentConverter
 {
-    public FakeStorageModelToCompoundDocumentConverter(CompoundStorageDocumentManagerProvider provider) : base(provider)
+    public FakeStorageModelToCompoundDocumentConverter(CompoundStorageDocumentManager manager) : base(manager)
     {
     }
 
@@ -146,6 +151,16 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
                     AddNode(slideSaveInfo, relativePath);
                 }
             }
+
+            foreach (var referenceInfo in referencedManager.References)
+            {
+                var storageResourceItem = new StorageResourceItem()
+                {
+                    ResourceId = referenceInfo.ReferenceId,
+                    RelativePath = referenceInfo.FilePath,
+                };
+                storageItemList.Add(storageResourceItem);
+            }
         }
 
         var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedManager);
@@ -164,14 +179,12 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
 
 public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSerializer
 {
-    public FakeCompoundStorageDocumentSerializer(CompoundStorageDocumentManagerProvider provider) : base(provider)
+    public FakeCompoundStorageDocumentSerializer(CompoundStorageDocumentManager manager) : base(manager)
     {
     }
 
-    protected override void AddResourceReference(StorageNode referenceStorageNode)
+    protected override void AddResourceReference(StorageNode referenceStorageNode, IReferencedManager referencedManager)
     {
-        var referencedManager = Manager.ReferencedManager;
-
         List<ReferenceInfo>? referenceInfoList = null;
         var storageReferenceSaveInfo = ReadAsPropertyValue<StorageReferenceSaveInfo>(referenceStorageNode);
         if (storageReferenceSaveInfo.Relationships is { } list)
@@ -208,5 +221,44 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
             DocumentManager = Manager
         });
         return (T) value;
+    }
+
+    protected override StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
+    {
+        var references = referencedManager.References;
+        var list = new List<StorageRelationshipsSaveInfo>(references.Count);
+        foreach (var referenceInfo in references)
+        {
+            list.Add(new StorageRelationshipsSaveInfo()
+            {
+                Id = referenceInfo.ReferenceId.ReferenceId,
+                Target = referenceInfo.FilePath.RelativePath,
+            });
+        }
+        var storageReferenceSaveInfo = new StorageReferenceSaveInfo()
+        {
+            Relationships = list
+        };
+
+        var storageNode = ToStorageNodeItem(storageReferenceSaveInfo);
+        return storageNode;
+    }
+
+    private StorageNode ToStorageNodeItem<T>(T propertyValue, string? nodeName = null)
+    {
+        //if (propertyValue is null)
+        //{
+        //    return null;
+        //}
+
+        var parserManager = Manager.ParserManager;
+        var nodeParser = parserManager.GetNodeParser(typeof(T));
+        var storageNode = nodeParser.Deparse(propertyValue, new DeparseNodeContext()
+        {
+            NodeName = nodeName,
+            DocumentManager = Manager,
+        });
+
+        return storageNode;
     }
 }

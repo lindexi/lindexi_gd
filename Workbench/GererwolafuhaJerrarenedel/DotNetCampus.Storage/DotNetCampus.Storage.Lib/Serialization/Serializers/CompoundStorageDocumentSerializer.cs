@@ -1,5 +1,4 @@
 ﻿using System.Collections.Frozen;
-using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 using DotNetCampus.Storage.Serialization.XmlSerialization;
@@ -11,18 +10,21 @@ namespace DotNetCampus.Storage.Serialization;
 /// <summary>
 /// 复合文档序列化器，用于在复合存储文档和松散文件之间进行转换
 /// </summary>
-public abstract class CompoundStorageDocumentSerializer
+public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocumentSerializer
 {
-    public CompoundStorageDocumentSerializer(CompoundStorageDocumentManagerProvider provider)
+    public CompoundStorageDocumentSerializer(CompoundStorageDocumentManager manager)
     {
-        _provider = provider;
+        Manager = manager;
     }
 
+    /// <summary>
+    /// 存储节点序列化器
+    /// </summary>
+    /// StorageNode -> IStorageFileInfo
+    /// 由于不同的对接存储方式不同，必定要让 <see cref="IStorageNodeSerializer"/> 跟着 <see cref="ICompoundStorageDocumentSerializer"/> 配置
     public virtual IStorageNodeSerializer StorageNodeSerializer => new StorageXmlSerializer();
 
-    private readonly CompoundStorageDocumentManagerProvider _provider;
-
-    public CompoundStorageDocumentManager Manager => _provider.GetManager();
+    public CompoundStorageDocumentManager Manager { get; }
 
     public virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(
         IReadOnlyStorageFileManager fileProvider)
@@ -89,10 +91,12 @@ public abstract class CompoundStorageDocumentSerializer
         };
     }
 
-    protected virtual void AddResourceReference(StorageNode referenceStorageNode)
-    {
-
-    }
+    /// <summary>
+    /// 从 <paramref name="referenceStorageNode"/> 存储引用资源的 <see cref="StorageNode"/> 读取数据，写入到引用管理器中
+    /// </summary>
+    /// <param name="referenceStorageNode"></param>
+    /// <param name="referencedManager"></param>
+    protected abstract void AddResourceReference(StorageNode referenceStorageNode, IReferencedManager referencedManager);
 
     /// <summary>
     /// 从过滤之后的结果转换为复合存储文档
@@ -101,7 +105,7 @@ public abstract class CompoundStorageDocumentSerializer
     /// <returns></returns>
     protected virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(OpcSerializationFileClassificationResult classificationResult)
     {
-        var referencedManager = Manager.ReferencedManager;
+        IReferencedManager referencedManager = Manager.ReferencedManager;
         var fileManager = Manager.StorageFileManager;
 
         var storageNodeSerializer = StorageNodeSerializer;
@@ -109,7 +113,7 @@ public abstract class CompoundStorageDocumentSerializer
         foreach (var fileInfo in classificationResult.ReferenceResourceManagerFiles)
         {
             StorageNode storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
-            AddResourceReference(storageNode);
+            AddResourceReference(storageNode, referencedManager);
         }
 
         var storageNodeItemList = new List<StorageNodeItem>();
@@ -185,6 +189,21 @@ public abstract class CompoundStorageDocumentSerializer
             }
         }
 
+        // 添加引用文件
+        var referenceStorageNode = ReferencedManagerToReferenceStorageNode(document.ReferencedManager);
+        if (referenceStorageNode != null)
+        {
+            var fileInfo = cleanStorageFileManager.CreateFile(DefaultReferenceFileName);
+            await storageNodeSerializer.SerializeAsync(referenceStorageNode, fileInfo);
+        }
+
         return cleanStorageFileManager;
     }
+
+    /// <summary>
+    /// 从引用建立对应的存储节点
+    /// </summary>
+    /// <param name="referencedManager"></param>
+    /// <returns></returns>
+    protected abstract StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager);
 }

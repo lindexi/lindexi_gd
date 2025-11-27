@@ -1,9 +1,10 @@
 ﻿using System.IO;
-using DotNetCampus.Storage.CompoundStorageDocumentManagers;
 using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.SaveInfos;
+using DotNetCampus.Storage.Serialization;
+using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Tests.CompoundStorageDocumentManagers;
 
@@ -25,13 +26,20 @@ public class CompoundStorageDocumentManagerTest
 
     public static CompoundStorageDocumentManager GetTestManager()
     {
-        var builder = CompoundStorageDocumentManager.CreateBuilder();
-        builder.UseStorageModelToCompoundDocumentConverter(provider => new FakeStorageModelToCompoundDocumentConverter(provider));
-
-        var compoundStorageDocumentManager = builder.Build();
-
-        return compoundStorageDocumentManager;
+        return new FakeCompoundStorageDocumentManager();
     }
+}
+
+class FakeCompoundStorageDocumentManager : CompoundStorageDocumentManager
+{
+    public FakeCompoundStorageDocumentManager()
+    {
+        StorageModelToCompoundDocumentConverter = new FakeStorageModelToCompoundDocumentConverter(this);
+        CompoundStorageDocumentSerializer = new FakeCompoundStorageDocumentSerializer(this);
+    }
+
+    public override IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; }
+    public override ICompoundStorageDocumentSerializer CompoundStorageDocumentSerializer { get; }
 }
 
 class FakeStorageModel : StorageModel
@@ -53,7 +61,7 @@ class TestDocumentSaveInfo : SaveInfo
 
 class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocumentConverter
 {
-    public FakeStorageModelToCompoundDocumentConverter(CompoundStorageDocumentManagerProvider provider) : base(provider)
+    public FakeStorageModelToCompoundDocumentConverter(CompoundStorageDocumentManager manager) : base(manager)
     {
     }
 
@@ -65,5 +73,22 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
     public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
     {
         throw new System.NotImplementedException();
+    }
+}
+
+public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSerializer
+{
+    public FakeCompoundStorageDocumentSerializer(CompoundStorageDocumentManager manager) : base(manager)
+    {
+    }
+
+    protected override void AddResourceReference(StorageNode referenceStorageNode, IReferencedManager referencedManager)
+    {
+        
+    }
+
+    protected override StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
+    {
+        return null;
     }
 }

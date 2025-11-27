@@ -99,8 +99,11 @@ internal class UriNodeParser<TStorageUri> : NodeParser<TStorageUri>
                 FileInfo = fileInfo,
                 RelativePath = new StorageFileRelativePath(fileInfo.Name)
             };
+
             referencedManager.StorageFileManager.AddFile(readOnlyStorageFileInfo);
+
             var storageReferenceId = new StorageReferenceId(Guid.NewGuid().ToString("N"));
+            
             referencedManager.AddReferenceFile(storageReferenceId, readOnlyStorageFileInfo);
             var idUri = new IdUri(storageReferenceId.ReferenceId);
             value = idUri.Encode();
