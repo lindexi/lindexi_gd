@@ -8,6 +8,18 @@ public class LocalStorageFileManager : ILocalStorageFileManager
     public LocalStorageFileManager(DirectoryInfo? workingDirectoryInfo = null)
     {
         WorkingDirectoryInfo = workingDirectoryInfo ?? new DirectoryInfo(Path.Join(Path.GetTempPath(), Path.GetRandomFileName()));
+
+        StringComparer stringComparer;
+        if (OperatingSystem.IsWindows())
+        {
+            stringComparer = StringComparer.OrdinalIgnoreCase;
+        }
+        else
+        {
+            stringComparer = StringComparer.Ordinal;
+        }
+
+        AbsolutePathFileDictionary = new Dictionary<string, LocalStorageFileInfo>([], stringComparer);
     }
 
     /// <summary>
@@ -19,6 +31,9 @@ public class LocalStorageFileManager : ILocalStorageFileManager
 
     private Dictionary<string /*RelativePath*/, IReadOnlyStorageFileInfo> FileDictionary { get; } =
         new Dictionary<string, IReadOnlyStorageFileInfo>([], StringComparer.OrdinalIgnoreCase);
+
+    private Dictionary<string /*FullName*/, LocalStorageFileInfo> AbsolutePathFileDictionary { get; }
+
 
     public async Task<LocalStorageFileInfo> ToLocalStorageFileInfoAsync(IReadOnlyStorageFileInfo fileInfo)
     {
@@ -45,6 +60,7 @@ public class LocalStorageFileManager : ILocalStorageFileManager
         };
 
         FileDictionary[result.RelativePath.RelativePath] = result;
+        AbsolutePathFileDictionary[localFileInfo.FullName] = result;
         return result;
     }
 
@@ -53,9 +69,18 @@ public class LocalStorageFileManager : ILocalStorageFileManager
         return FileDictionary.GetValueOrDefault(relativePath.RelativePath);
     }
 
+    public LocalStorageFileInfo? GetFile(FileInfo fileInfo)
+    {
+        return AbsolutePathFileDictionary.GetValueOrDefault(fileInfo.FullName);
+    }
+
     public void AddFile(IReadOnlyStorageFileInfo fileInfo)
     {
         FileDictionary[fileInfo.RelativePath.RelativePath] = fileInfo;
+        if (fileInfo is LocalStorageFileInfo localStorageFileInfo)
+        {
+            AbsolutePathFileDictionary[localStorageFileInfo.FileInfo.FullName] = localStorageFileInfo;
+        }
     }
 
     public IStorageFileInfo CreateFile(StorageFileRelativePath relativePath)
@@ -89,7 +114,13 @@ public class LocalStorageFileManager : ILocalStorageFileManager
 
     public void RemoveFile(StorageFileRelativePath relativePath)
     {
-        FileDictionary.Remove(relativePath.RelativePath);
+        if (FileDictionary.Remove(relativePath.RelativePath, out IReadOnlyStorageFileInfo? fileInfo))
+        {
+            if (fileInfo is LocalStorageFileInfo localStorageFileInfo)
+            {
+                AbsolutePathFileDictionary.Remove(localStorageFileInfo.FileInfo.FullName);
+            }
+        }
     }
 
     /// <summary>
@@ -109,10 +140,22 @@ public class LocalStorageFileManager : ILocalStorageFileManager
     }
 }
 
-file interface ILocalStorageFileManager : IStorageFileManager
+public interface ILocalStorageFileManager : IStorageFileManager
 {
     /// <summary>
     /// 工作路径。每个文档实例必须使用不同的工作路径
     /// </summary>
     DirectoryInfo WorkingDirectoryInfo { get; }
+
+    /// <summary>
+    /// 清理已经不包含的文件
+    /// </summary>
+    void Prune();
+
+    /// <summary>
+    /// 尝试根据本地文件信息获取存储文件信息
+    /// </summary>
+    /// <param name="fileInfo"></param>
+    /// <returns></returns>
+    LocalStorageFileInfo? GetFile(FileInfo fileInfo);
 }

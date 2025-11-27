@@ -19,6 +19,11 @@ public interface IStorageFileManager : IReadOnlyStorageFileManager
     /// <param name="fileInfo"></param>
     void AddFile(IReadOnlyStorageFileInfo fileInfo);
 
+    /// <summary>
+    /// 根据传入的相对路径，创建一个可写可读的文件
+    /// </summary>
+    /// <param name="relativePath"></param>
+    /// <returns></returns>
     IStorageFileInfo CreateFile(StorageFileRelativePath relativePath);
 
     /// <summary>
