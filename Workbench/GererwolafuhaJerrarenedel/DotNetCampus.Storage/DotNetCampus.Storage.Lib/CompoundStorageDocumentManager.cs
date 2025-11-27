@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
-using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.SaveInfos;
 using DotNetCampus.Storage.Serialization;
@@ -20,8 +19,7 @@ namespace DotNetCampus.Storage;
 /// </summary>
 /// 这是这个程序集的入口
 /// 由于有部分属性必须业务注入具体实现，因此设计为抽象类
-public abstract class CompoundStorageDocumentManager<TStorageModel>
-    where TStorageModel : StorageModel
+public abstract class CompoundStorageDocumentManager
 {
     // ~~也许带状态的，放在 CompoundStorageDocument 更佳，跟随文档内容走。缺点是没有方法可以重新更新~~
 
@@ -51,7 +49,7 @@ public abstract class CompoundStorageDocumentManager<TStorageModel>
     /// 存储模型到复合文档的转换器。必须业务注入具体实现
     /// </summary>
     /// StorageModel (SaveInfo们) -> CompoundStorageDocument (StorageNode们 + 资源)
-    public abstract IStorageModelToCompoundDocumentConverter<TStorageModel> StorageModelToCompoundDocumentConverter { get; }
+    public abstract IStorageModelToCompoundDocumentConverter StorageModelToCompoundDocumentConverter { get; }
 
     /// <summary>
     /// 复合存储文档和松散文件之间进行转换。必须业务注入具体实现

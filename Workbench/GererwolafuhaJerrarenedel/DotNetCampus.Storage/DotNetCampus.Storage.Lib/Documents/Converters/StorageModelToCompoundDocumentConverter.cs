@@ -10,22 +10,19 @@ namespace DotNetCampus.Storage.Documents.Converters;
 /// <summary>
 /// 存储模型与复合文档转换器基类
 /// </summary>
-public abstract class StorageModelToCompoundDocumentConverter<TStorageModel>
-    : IStorageModelToCompoundDocumentConverter<TStorageModel>
-    where TStorageModel : StorageModel
-
+public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToCompoundDocumentConverter
 {
     /// <summary>
     /// 创建存储模型与复合文档转换器基类
     /// </summary>
-    protected StorageModelToCompoundDocumentConverter(CompoundStorageDocumentManager<TStorageModel> manager)
+    protected StorageModelToCompoundDocumentConverter(CompoundStorageDocumentManager manager)
     {
         Manager = manager;
     }
 
-    public CompoundStorageDocumentManager<TStorageModel> Manager { get; }
+    public CompoundStorageDocumentManager Manager { get; }
 
-    public abstract TStorageModel ToStorageModel(CompoundStorageDocument document);
+    public abstract StorageModel ToStorageModel(CompoundStorageDocument document);
 
     protected T? ReadRootSaveInfoProperty<T>(CompoundStorageDocument document, string relativePath)
     {
