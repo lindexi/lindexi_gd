@@ -9,11 +9,16 @@ using DotNetCampus.Storage.Parsers.Contexts;
 
 namespace DotNetCampus.Storage.Parsers;
 
+/// <summary>
+/// 存储转换器
+/// SaveInfo （或 SaveInfo 里面的子属性） -> StorageNode
+/// </summary>
 public abstract class NodeParser
 {
     /// <summary>
     /// 用于转换的目标类型
     /// </summary>
+    /// SaveInfo （或 SaveInfo 里面的子属性）
     public abstract Type TargetType { get; }
 
     /// <summary>
