@@ -7,9 +7,10 @@ namespace DotNetCampus.Storage.Documents.Converters;
 /// <summary>
 /// 模型和复合文档之间的转换器
 /// </summary>
-public interface IStorageModelToCompoundDocumentConverter
+public interface IStorageModelToCompoundDocumentConverter<TStorageModel>
+    where TStorageModel : StorageModel
 {
-    StorageModel ToStorageModel(CompoundStorageDocument document);
+    TStorageModel ToStorageModel(CompoundStorageDocument document);
 
-    CompoundStorageDocument ToCompoundDocument(StorageModel model);
+    CompoundStorageDocument ToCompoundDocument(TStorageModel model);
 }
