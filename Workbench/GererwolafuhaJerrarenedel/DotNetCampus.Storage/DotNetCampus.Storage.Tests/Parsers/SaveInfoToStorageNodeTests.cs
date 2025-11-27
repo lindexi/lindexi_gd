@@ -22,7 +22,7 @@ public class SaveInfoToStorageNodeTests
         var compoundStorageDocumentManager = CompoundStorageDocumentManagerTest.GetTestManager();
 
         var storableNodeParserManager = compoundStorageDocumentManager.ParserManager;
-        storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
+        storableNodeParserManager.Register(new ManualFoo1SaveInfoNodeParser());
 
         var foo1SaveInfo = new Foo1SaveInfo()
         {
@@ -51,8 +51,8 @@ public class SaveInfoToStorageNodeTests
         var compoundStorageDocumentManager = CompoundStorageDocumentManagerTest.GetTestManager();
 
         var storableNodeParserManager = compoundStorageDocumentManager.ParserManager;
-        storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
-        storableNodeParserManager.Register(new FooSaveInfoNodeParser());
+        storableNodeParserManager.Register(new ManualFoo1SaveInfoNodeParser());
+        storableNodeParserManager.Register(new ManualFooSaveInfoNodeParser());
 
         var fooSaveInfo = new FooSaveInfo()
         {
@@ -134,8 +134,8 @@ public class SaveInfoToStorageNodeTests
         var compoundStorageDocumentManager = CompoundStorageDocumentManagerTest.GetTestManager();
 
         var storableNodeParserManager = compoundStorageDocumentManager.ParserManager;
-        storableNodeParserManager.Register(new Foo1SaveInfoNodeParser());
-        storableNodeParserManager.Register(new FooSaveInfoNodeParser());
+        storableNodeParserManager.Register(new ManualFoo1SaveInfoNodeParser());
+        storableNodeParserManager.Register(new ManualFooSaveInfoNodeParser());
 
         var fooSaveInfo = new FooSaveInfo()
         {
@@ -198,7 +198,7 @@ public enum FooEnum
     Value3
 }
 
-internal partial class FooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
+internal partial class ManualFooSaveInfoNodeParser : SaveInfoNodeParser<FooSaveInfo>
 {
     public override SaveInfoContractAttribute ContractAttribute => _contractAttribute ??= new SaveInfoContractAttribute("Foo");
     private SaveInfoContractAttribute? _contractAttribute;
@@ -388,7 +388,7 @@ public class Foo1SaveInfo : SaveInfo
     public int Foo3Property { get; set; } = 5;
 }
 
-public class Foo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
+public class ManualFoo1SaveInfoNodeParser : SaveInfoNodeParser<Foo1SaveInfo>
 {
     public override SaveInfoContractAttribute ContractAttribute { get; } = new SaveInfoContractAttribute("Foo1");
 

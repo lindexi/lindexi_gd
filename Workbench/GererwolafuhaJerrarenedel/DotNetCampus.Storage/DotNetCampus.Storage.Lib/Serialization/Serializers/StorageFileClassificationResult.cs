@@ -5,7 +5,7 @@ namespace DotNetCampus.Storage.Serialization;
 /// <summary>
 /// 文件分类的结果
 /// </summary>
-public record OpcSerializationFileClassificationResult
+public record StorageFileClassificationResult
 {
     /// <summary>
     /// 引用资源记录的文件列表

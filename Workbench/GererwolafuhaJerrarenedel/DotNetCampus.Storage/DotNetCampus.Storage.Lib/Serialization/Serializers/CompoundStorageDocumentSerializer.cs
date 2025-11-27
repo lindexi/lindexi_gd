@@ -38,7 +38,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
     public const string DefaultReferenceFileName = "Reference.xml";
     public const string ContentTypesFileName = "[Content_Types].xml";
 
-    protected virtual OpcSerializationFileClassificationResult Filter(IReadOnlyStorageFileManager fileProvider)
+    protected virtual StorageFileClassificationResult Filter(IReadOnlyStorageFileManager fileProvider)
     {
         var fileList = fileProvider.FileList;
 
@@ -82,7 +82,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
             }
         }
 
-        return new OpcSerializationFileClassificationResult()
+        return new StorageFileClassificationResult()
         {
             ResourceFiles = resourceFile,
             DocumentFiles = documentFile,
@@ -103,7 +103,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
     /// </summary>
     /// <param name="classificationResult"></param>
     /// <returns></returns>
-    protected virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(OpcSerializationFileClassificationResult classificationResult)
+    protected virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(StorageFileClassificationResult classificationResult)
     {
         IReferencedManager referencedManager = Manager.ReferencedManager;
         var fileManager = Manager.StorageFileManager;
