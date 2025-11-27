@@ -36,14 +36,33 @@ public class ReferencedManager : IReferencedManager
     public ReferenceInfo AddLocalFile(FileInfo localFile)
     {
         IReferencedManager referencedManager = this;
-        StorageFileRelativePath relativePath = Path.Join(referencedManager.ResourceFolderRelativePath.AsSpan(), localFile.Name);
 
+        LocalStorageFileInfo? existFile = StorageFileManager.FileList.OfType<LocalStorageFileInfo>()
+            .FirstOrDefault(t => t.FileInfo.FullName == localFile.FullName);
+
+        // 存在本地文件了，说不定已经存在引用了
+        if (existFile is not null)
+        {
+            ReferenceInfo? existReferenceInfo = ReferenceInfoDictionary.GetReferenceInfo(existFile.RelativePath);
+            if (existReferenceInfo is not null)
+            {
+                existReferenceInfo.Counter++;
+                return existReferenceInfo;
+            }
+            else
+            {
+                // 没有引用信息，创建一个新的引用信息
+                return AddReferenceFile(new StorageReferenceId(Guid.NewGuid().ToString("N")), existFile);
+            }
+        }
+
+        // 相对路径不应该直接取文件名，因为可能会是两个不同的文件夹包含相同的文件名，导致冲突
+        StorageFileRelativePath relativePath = Path.Join(referencedManager.ResourceFolderRelativePath.AsSpan(), localFile.Name);
         var localStorageFileInfo = new LocalStorageFileInfo()
         {
             FileInfo = localFile,
             RelativePath = relativePath
         };
-        // 添加本地文件时，不用考虑重复的问题，因为刚好每次相同的文件都能覆盖。但是每次生成新的 Id 倒是有点亏。至少文件不会重复，只是 Id 内容重复而已
         StorageFileManager.AddFile(localStorageFileInfo);
 
         var referenceId = new StorageReferenceId(Guid.NewGuid().ToString("N"));
@@ -53,6 +72,7 @@ public class ReferencedManager : IReferencedManager
             ReferenceId = referenceId,
             Counter = 1
         };
+        AddReference(referenceInfo);
         return referenceInfo;
     }
 

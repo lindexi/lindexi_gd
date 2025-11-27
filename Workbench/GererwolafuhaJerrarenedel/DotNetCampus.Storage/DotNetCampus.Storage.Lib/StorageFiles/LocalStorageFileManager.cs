@@ -3,7 +3,7 @@
 /// <summary>
 /// 本地文件的存储文件管理器
 /// </summary>
-public class LocalStorageFileManager : IStorageFileManager
+public class LocalStorageFileManager : ILocalStorageFileManager
 {
     public LocalStorageFileManager(DirectoryInfo? workingDirectoryInfo = null)
     {
@@ -97,7 +97,7 @@ public class LocalStorageFileManager : IStorageFileManager
     /// </summary>
     public void Prune()
     {
-        var allFiles = WorkingDirectoryInfo.GetFiles("*",SearchOption.AllDirectories);
+        var allFiles = WorkingDirectoryInfo.GetFiles("*", SearchOption.AllDirectories);
         foreach (var fileInfo in allFiles)
         {
             var relativePath = Path.GetRelativePath(WorkingDirectoryInfo.FullName, fileInfo.FullName);
@@ -107,4 +107,12 @@ public class LocalStorageFileManager : IStorageFileManager
             }
         }
     }
+}
+
+file interface ILocalStorageFileManager : IStorageFileManager
+{
+    /// <summary>
+    /// 工作路径。每个文档实例必须使用不同的工作路径
+    /// </summary>
+    DirectoryInfo WorkingDirectoryInfo { get; }
 }
