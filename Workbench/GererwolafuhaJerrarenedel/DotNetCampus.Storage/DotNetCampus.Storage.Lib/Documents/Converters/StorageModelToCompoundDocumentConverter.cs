@@ -1,9 +1,7 @@
 ﻿using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 using DotNetCampus.Storage.Documents.StorageModels;
-using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.StorageFiles;
-using DotNetCampus.Storage.StorageNodes;
 
 namespace DotNetCampus.Storage.Documents.Converters;
 
@@ -28,7 +26,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
     {
         if (document.StorageItemList.FirstOrDefault(t => t.RelativePath.Equals(relativePath)) is StorageNodeItem storageNodeItem)
         {
-            return ReadAsPropertyValue<T>(storageNodeItem.RootStorageNode);
+            return Manager.ParseToValue<T>(storageNodeItem.RootStorageNode);
         }
 
         return default;
@@ -41,43 +39,10 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
         {
             if (relativePathPredicate(storageNodeItem.RelativePath))
             {
-                yield return ReadAsPropertyValue<T>(storageNodeItem.RootStorageNode);
+                yield return Manager.ParseToValue<T>(storageNodeItem.RootStorageNode);
             }
         }
     }
 
-    protected T ReadAsPropertyValue<T>(StorageNode storageNode)
-    {
-        var parserManager = Manager.ParserManager;
-        var nodeParser = parserManager.GetNodeParser(typeof(T));
-        var value = nodeParser.Parse(storageNode, new ParseNodeContext()
-        {
-            DocumentManager = Manager
-        });
-        return (T) value;
-    }
-
     public abstract CompoundStorageDocument ToCompoundDocument(StorageModel model);
-
-    protected StorageNodeItem? ToStorageNodeItem<T>(T? propertyValue, StorageFileRelativePath relativePath, string? nodeName = null)
-    {
-        if (propertyValue is null)
-        {
-            return null;
-        }
-
-        var parserManager = Manager.ParserManager;
-        var nodeParser = parserManager.GetNodeParser(typeof(T));
-        var storageNode = nodeParser.Deparse(propertyValue, new DeparseNodeContext()
-        {
-            NodeName = nodeName,
-            DocumentManager = Manager,
-        });
-
-        return new StorageNodeItem()
-        {
-            RootStorageNode = storageNode,
-            RelativePath = relativePath
-        };
-    }
 }

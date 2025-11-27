@@ -1,6 +1,5 @@
 ﻿using DotNetCampus.Storage.Demo.SaveInfos;
 using DotNetCampus.Storage.Documents.StorageDocuments;
-using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.Serialization;
 using DotNetCampus.Storage.StorageFiles;
 using DotNetCampus.Storage.StorageNodes;
@@ -16,7 +15,7 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
     protected override void AddResourceReference(StorageNode referenceStorageNode, IReferencedManager referencedManager)
     {
         List<ReferenceInfo>? referenceInfoList = null;
-        var storageReferenceSaveInfo = ReadAsPropertyValue<StorageReferenceSaveInfo>(referenceStorageNode);
+        var storageReferenceSaveInfo = Manager.ParseToValue<StorageReferenceSaveInfo>(referenceStorageNode);
         if (storageReferenceSaveInfo.Relationships is { } list)
         {
             referenceInfoList = new List<ReferenceInfo>(list.Count);
@@ -42,18 +41,7 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
         referencedManager.Reset(referenceInfoList);
     }
 
-    private T ReadAsPropertyValue<T>(StorageNode storageNode)
-    {
-        var parserManager = Manager.ParserManager;
-        var nodeParser = parserManager.GetNodeParser(typeof(T));
-        var value = nodeParser.Parse(storageNode, new ParseNodeContext()
-        {
-            DocumentManager = Manager
-        });
-        return (T) value;
-    }
-
-    protected override StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
+    protected override StorageNode ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
     {
         var references = referencedManager.References;
         var list = new List<StorageRelationshipsSaveInfo>(references.Count);
@@ -70,25 +58,7 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
             Relationships = list
         };
 
-        var storageNode = ToStorageNodeItem(storageReferenceSaveInfo);
-        return storageNode;
-    }
-
-    private StorageNode ToStorageNodeItem<T>(T propertyValue, string? nodeName = null)
-    {
-        //if (propertyValue is null)
-        //{
-        //    return null;
-        //}
-
-        var parserManager = Manager.ParserManager;
-        var nodeParser = parserManager.GetNodeParser(typeof(T));
-        var storageNode = nodeParser.Deparse(propertyValue, new DeparseNodeContext()
-        {
-            NodeName = nodeName,
-            DocumentManager = Manager,
-        });
-
+        var storageNode = Manager.DeparseToStorageNode(storageReferenceSaveInfo);
         return storageNode;
     }
 }
