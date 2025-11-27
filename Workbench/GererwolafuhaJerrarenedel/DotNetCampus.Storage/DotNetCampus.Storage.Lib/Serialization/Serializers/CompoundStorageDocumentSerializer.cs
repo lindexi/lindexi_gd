@@ -26,7 +26,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
 
     public CompoundStorageDocumentManager Manager { get; }
 
-    public virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(
+    public virtual async Task<CompoundStorageDocument> DeserializeToCompoundStorageDocumentAsync(
         IReadOnlyStorageFileManager fileProvider)
     {
         var classificationResult = Filter(fileProvider);
@@ -96,7 +96,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
     /// </summary>
     /// <param name="referenceStorageNode"></param>
     /// <param name="referencedManager"></param>
-    protected abstract void AddResourceReference(StorageNode referenceStorageNode, IReferencedManager referencedManager);
+    protected abstract Task AddResourceReferenceAsync(StorageNode referenceStorageNode, IReferencedManager referencedManager);
 
     /// <summary>
     /// 从过滤之后的结果转换为复合存储文档
@@ -113,7 +113,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
         foreach (var fileInfo in classificationResult.ReferenceResourceManagerFiles)
         {
             StorageNode storageNode = await storageNodeSerializer.DeserializeAsync(fileInfo);
-            AddResourceReference(storageNode, referencedManager);
+            await AddResourceReferenceAsync(storageNode, referencedManager);
         }
 
         var storageNodeItemList = new List<StorageNodeItem>();
@@ -147,7 +147,6 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
                 // 可以尝试确保资源存放在本地文件管理器中
 
                 await fileManager.ToLocalStorageFileInfoAsync(fileInfo);
-                //fileManager.AddFile(fileInfo);
             }
         }
 
@@ -166,7 +165,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
     /// </summary>
     /// <param name="document"></param>
     /// <returns></returns>
-    public virtual async Task<IReadOnlyStorageFileManager> ToStorageFileManager(CompoundStorageDocument document)
+    public virtual async Task<IReadOnlyStorageFileManager> SerializeToStorageFileManagerAsync(CompoundStorageDocument document)
     {
         var cleanStorageFileManager = new CleanStorageFileManager(document.StorageFileManager);
         var storageNodeSerializer = StorageNodeSerializer;
@@ -190,7 +189,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
         }
 
         // 添加引用文件
-        var referenceStorageNode = ReferencedManagerToReferenceStorageNode(document.ReferencedManager);
+        var referenceStorageNode = await CreateReferenceStorageNodeAsync(document.ReferencedManager);
         if (referenceStorageNode != null)
         {
             var fileInfo = cleanStorageFileManager.CreateFile(DefaultReferenceFileName);
@@ -205,5 +204,5 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
     /// </summary>
     /// <param name="referencedManager"></param>
     /// <returns></returns>
-    protected abstract StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager);
+    protected abstract Task<StorageNode?> CreateReferenceStorageNodeAsync(IReferencedManager referencedManager);
 }

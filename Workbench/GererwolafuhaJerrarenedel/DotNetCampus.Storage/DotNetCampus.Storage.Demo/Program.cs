@@ -2,6 +2,7 @@
 
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+
 using DotNetCampus.Storage;
 using DotNetCampus.Storage.Demo;
 using DotNetCampus.Storage.Demo.CompoundStorageDocumentManagers;
@@ -26,7 +27,7 @@ var storageModel = await compoundStorageDocumentManager.ReadStorageModelFromOpcF
 
 if (storageModel != null)
 {
-    var testOutputFile = Path.Join(AppContext.BaseDirectory, Path.GetRandomFileName());
+    var testOutputFile = Path.Join(AppContext.BaseDirectory, $"{DateTime.Now:yyyyMMdd-HHmmss}.opc");
     await compoundStorageDocumentManager.SaveToOpcFileAsync(storageModel, new FileInfo(testOutputFile));
 }
 
@@ -80,6 +81,3 @@ var xDocument = storageXmlSerializer.Serialize(storageNode);
 var xml = xDocument.ToString(SaveOptions.None);
 
 Console.WriteLine("Hello, World!");
-
-
-

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageModels;
@@ -82,13 +83,14 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
     {
     }
 
-    protected override void AddResourceReference(StorageNode referenceStorageNode, IReferencedManager referencedManager)
+    protected override Task AddResourceReferenceAsync(StorageNode referenceStorageNode, IReferencedManager referencedManager)
     {
-        
+        return Task.CompletedTask;
     }
 
-    protected override StorageNode? ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
+    protected override async Task<StorageNode?> CreateReferenceStorageNodeAsync(IReferencedManager referencedManager)
     {
+        await Task.CompletedTask;
         return null;
     }
 }

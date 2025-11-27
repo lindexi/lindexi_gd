@@ -12,7 +12,7 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
     {
     }
 
-    protected override void AddResourceReference(StorageNode referenceStorageNode, IReferencedManager referencedManager)
+    protected override Task AddResourceReferenceAsync(StorageNode referenceStorageNode, IReferencedManager referencedManager)
     {
         List<ReferenceInfo>? referenceInfoList = null;
         var storageReferenceSaveInfo = Manager.ParseToValue<StorageReferenceSaveInfo>(referenceStorageNode);
@@ -39,18 +39,37 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
         }
 
         referencedManager.Reset(referenceInfoList);
+        return Task.CompletedTask;
     }
 
-    protected override StorageNode ReferencedManagerToReferenceStorageNode(IReferencedManager referencedManager)
+    protected override async Task<StorageNode?> CreateReferenceStorageNodeAsync(IReferencedManager referencedManager)
     {
         var references = referencedManager.References;
         var list = new List<StorageRelationshipsSaveInfo>(references.Count);
         foreach (var referenceInfo in references)
         {
+            string? hash = null;
+            var storageFileInfo = referencedManager.StorageFileManager.GetFile(referenceInfo.FilePath);
+            if (storageFileInfo is LocalStorageFileInfo localStorageFileInfo)
+            {
+                var hashResult = await Manager.HashProvider.GetFileHashAsync(localStorageFileInfo);
+                hash = hashResult.HashValue;
+            }
+            else
+            {
+                if (storageFileInfo != null)
+                {
+                    await using var readStream = storageFileInfo.OpenRead();
+                    var hashResult = await Manager.HashProvider.ComputeHashAsync(readStream);
+                    hash = hashResult.HashValue;
+                }
+            }
+
             list.Add(new StorageRelationshipsSaveInfo()
             {
                 Id = referenceInfo.ReferenceId.ReferenceId,
                 Target = referenceInfo.FilePath.RelativePath,
+                Hash = hash,
             });
         }
         var storageReferenceSaveInfo = new StorageReferenceSaveInfo()

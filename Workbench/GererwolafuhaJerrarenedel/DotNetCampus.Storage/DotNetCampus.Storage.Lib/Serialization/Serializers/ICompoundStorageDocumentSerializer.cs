@@ -21,12 +21,12 @@ public interface ICompoundStorageDocumentSerializer
     /// </summary>
     /// <param name="fileProvider"></param>
     /// <returns></returns>
-    Task<CompoundStorageDocument> ToCompoundStorageDocument(IReadOnlyStorageFileManager fileProvider);
+    Task<CompoundStorageDocument> DeserializeToCompoundStorageDocumentAsync(IReadOnlyStorageFileManager fileProvider);
 
     /// <summary>
     /// 从复合文档里面转换为一个纯粹的存放文件信息的管理器，这个文件管理器只存放当前文档用到的文件信息
     /// </summary>
     /// <param name="document"></param>
     /// <returns></returns>
-    Task<IReadOnlyStorageFileManager> ToStorageFileManager(CompoundStorageDocument document);
+    Task<IReadOnlyStorageFileManager> SerializeToStorageFileManagerAsync(CompoundStorageDocument document);
 }

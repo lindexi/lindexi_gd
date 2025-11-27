@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
 
     <GenerateSaveInfoNodeParser>true</GenerateSaveInfoNodeParser>
+    <!-- 去掉元数据 -->
+    <IlcDisableReflection>true</IlcDisableReflection>
     <PublishAot>true</PublishAot>
   </PropertyGroup>
 

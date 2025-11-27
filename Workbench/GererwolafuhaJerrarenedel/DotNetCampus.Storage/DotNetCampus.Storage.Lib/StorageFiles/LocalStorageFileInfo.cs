@@ -15,6 +15,8 @@ public class LocalStorageFileInfo : IStorageFileInfo
     /// </summary>
     public required FileInfo FileInfo { get; init; }
 
+    internal HashCache? HashCache { get; set; }
+
     public Stream OpenRead()
     {
         return FileInfo.OpenRead();
