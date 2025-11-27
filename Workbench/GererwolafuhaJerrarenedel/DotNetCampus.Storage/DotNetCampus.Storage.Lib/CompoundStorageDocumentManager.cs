@@ -33,8 +33,13 @@ public abstract class CompoundStorageDocumentManager
     /// 引用管理器。不同文档之间禁止复用。带状态
     /// </summary>
     public virtual IReferencedManager ReferencedManager => _referencedManager ??= new ReferencedManager(StorageFileManager);
-
     private IReferencedManager? _referencedManager;
+
+    /// <summary>
+    /// 哈希提供器，默认使用 Md5 算法
+    /// </summary>
+    public IHashProvider HashProvider => _hashProvider ??= new Md5HashProvider();
+    private IHashProvider? _hashProvider;
 
     /// <summary>
     /// 提供 <see cref="SaveInfo"/> 和 <see cref="StorageNode"/> 的转换管理器

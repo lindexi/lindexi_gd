@@ -62,12 +62,15 @@ public class ReferencedManager : IReferencedManager
             else
             {
                 // 没有引用信息，创建一个新的引用信息
-                return AddReferenceFile(new StorageReferenceId(Guid.NewGuid().ToString("N")), existFile);
+                return AddReferenceFile(StorageReferenceId.CreateNewReferenceId(), existFile);
             }
         }
 
-        // 相对路径不应该直接取文件名，因为可能会是两个不同的文件夹包含相同的文件名，导致冲突
-        StorageFileRelativePath relativePath = Path.Join(referencedManager.ResourceFolderRelativePath.AsSpan(), localFile.Name);
+        var referenceId = StorageReferenceId.CreateNewReferenceId();
+
+        // 相对路径保持是引用 Id 加上后缀名，后缀名用于其他业务逻辑或文件类型判断
+        // 相对路径不能使用原有文件路径，防止不同文件夹的同名文件相互覆盖
+        StorageFileRelativePath relativePath = Path.Join(referencedManager.ResourceFolderRelativePath.AsSpan(), referenceId.ReferenceId + localFile.Extension);
         var localStorageFileInfo = new LocalStorageFileInfo()
         {
             FileInfo = localFile,
@@ -75,7 +78,6 @@ public class ReferencedManager : IReferencedManager
         };
         StorageFileManager.AddFile(localStorageFileInfo);
 
-        var referenceId = new StorageReferenceId(Guid.NewGuid().ToString("N"));
         var referenceInfo = new ReferenceInfo()
         {
             FilePath = relativePath,
@@ -107,7 +109,7 @@ public class ReferencedManager : IReferencedManager
 
     public void AddReferenceCount(StorageReferenceId referenceId)
     {
-        if (ReferenceInfoDictionary.GetReferenceInfo(referenceId) is {} referenceInfo)
+        if (ReferenceInfoDictionary.GetReferenceInfo(referenceId) is { } referenceInfo)
         {
             referenceInfo.Counter++;
         }

@@ -8,7 +8,7 @@ namespace DotNetCampus.Storage.Documents.StorageDocuments;
 public interface IReferencedManager
 {
     /// <summary>
-    /// 资源文件夹的相对路径。默认应该是 "Resources" 文件夹。当添加本地文件，调用 <see cref="AddLocalFile"/> 时，将会将其相对文件夹存放在此路径下
+    /// 资源文件夹的相对路径。默认应该是 "Resources" 文件夹。当添加本地文件，调用 <see cref="AddLocalFile"/> 时，将会将其相对文件夹存放在此路径下。只影响 <see cref="AddLocalFile"/> 加入的文件，自定义的 <see cref="AddReferenceFile"/> 加入的不受此影响
     /// </summary>
     StorageFileRelativePath ResourceFolderRelativePath => new StorageFileRelativePath("Resources");
 
