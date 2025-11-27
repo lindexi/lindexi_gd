@@ -38,7 +38,7 @@ public class OpcSerializer
 
         var fileProvider = new OpcVirtualStorageFileManager(fileList);
 
-        var compoundStorageDocument = await _manager.CompoundStorageDocumentSerializer.ToCompoundStorageDocument(fileProvider);
+        var compoundStorageDocument = await _manager.CompoundStorageDocumentSerializer.DeserializeToCompoundStorageDocumentAsync(fileProvider);
         return compoundStorageDocument;
     }
 
@@ -47,7 +47,7 @@ public class OpcSerializer
         await using var fileStream = opcOutputFile.Create();
         using var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true);
 
-        var storageFileManager = await _manager.CompoundStorageDocumentSerializer.ToStorageFileManager(document);
+        var storageFileManager = await _manager.CompoundStorageDocumentSerializer.SerializeToStorageFileManagerAsync(document);
         foreach (IReadOnlyStorageFileInfo fileInfo in storageFileManager.FileList)
         {
             var zipArchiveEntry = zipArchive.CreateEntry(fileInfo.RelativePath.RelativePath, CompressionLevel.Optimal);

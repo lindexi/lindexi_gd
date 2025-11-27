@@ -26,7 +26,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
 
     public CompoundStorageDocumentManager Manager { get; }
 
-    public virtual async Task<CompoundStorageDocument> ToCompoundStorageDocument(
+    public virtual async Task<CompoundStorageDocument> DeserializeToCompoundStorageDocumentAsync(
         IReadOnlyStorageFileManager fileProvider)
     {
         var classificationResult = Filter(fileProvider);
@@ -166,7 +166,7 @@ public abstract class CompoundStorageDocumentSerializer : ICompoundStorageDocume
     /// </summary>
     /// <param name="document"></param>
     /// <returns></returns>
-    public virtual async Task<IReadOnlyStorageFileManager> ToStorageFileManager(CompoundStorageDocument document)
+    public virtual async Task<IReadOnlyStorageFileManager> SerializeToStorageFileManagerAsync(CompoundStorageDocument document)
     {
         var cleanStorageFileManager = new CleanStorageFileManager(document.StorageFileManager);
         var storageNodeSerializer = StorageNodeSerializer;

@@ -8,6 +8,8 @@
 
     <GenerateSaveInfoNodeParser>true</GenerateSaveInfoNodeParser>
     <PublishAot>true</PublishAot>
+    <!-- 去掉元数据 -->
+    <IlcDisableReflection>true</IlcDisableReflection>
   </PropertyGroup>
 
   <Import Project="..\DotNetCampus.Storage.Lib\Assets\Package.props" />
