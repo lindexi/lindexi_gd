@@ -3,9 +3,15 @@
 /// <summary>
 /// 表示存储文件的相对路径
 /// </summary>
-/// <param name="RelativePath"></param>
-public readonly record struct StorageFileRelativePath(string RelativePath)
+public readonly record struct StorageFileRelativePath
 {
+    public StorageFileRelativePath(string relativePath)
+    {
+        RelativePath = relativePath.Replace('\\', '/'); // 决定用 / 解决 Linux 路径拼接问题
+    }
+
+    public string RelativePath { get; }
+
     public static implicit operator StorageFileRelativePath(string relativePath)
     {
         return new StorageFileRelativePath(relativePath);
@@ -30,3 +36,16 @@ public readonly record struct StorageFileRelativePath(string RelativePath)
         return Equals(other?.RelativePath);
     }
 }
+
+//public class StorageFileRelativePathEqualityComparer : IEqualityComparer<StorageFileRelativePath>
+//{
+//    public bool Equals(StorageFileRelativePath x, StorageFileRelativePath y)
+//    {
+//        return x.RelativePath == y.RelativePath;
+//    }
+
+//    public int GetHashCode(StorageFileRelativePath obj)
+//    {
+//        return obj.RelativePath.GetHashCode();
+//    }
+//}
