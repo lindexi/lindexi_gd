@@ -28,7 +28,7 @@ public class OpcSerializer
         await using var fileStream = opcFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         using var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Read, leaveOpen: true);
 
-        var fileList = new List<IReadOnlyStorageFileInfo>(zipArchive.Entries.Count);
+        var fileList = new List<OpcStorageFileInfo>(zipArchive.Entries.Count);
 
         foreach (ZipArchiveEntry zipArchiveEntry in zipArchive.Entries)
         {
@@ -36,7 +36,7 @@ public class OpcSerializer
             fileList.Add(opcStorageFileInfo);
         }
 
-        var fileProvider = new SerializationStorageFileProvider(fileList);
+        var fileProvider = new OpcVirtualStorageFileManager(fileList);
 
         var compoundStorageDocument = await _manager.CompoundStorageDocumentSerializer.ToCompoundStorageDocument(fileProvider);
         return compoundStorageDocument;
@@ -59,43 +59,19 @@ public class OpcSerializer
 }
 
 /// <summary>
-/// 一个干净的存放文件信息的管理器，只存放被添加进去的文件信息
+/// 用于 Opc 格式里面，虚拟的文件存放器。里面存放的是 <see cref="OpcStorageFileInfo"/> 类型
 /// </summary>
-internal class CleanStorageFileManager : IReadOnlyStorageFileManager
+file record OpcVirtualStorageFileManager : IReadOnlyStorageFileManager
 {
-    public CleanStorageFileManager(IStorageFileManager backStorageFileManager)
+    public OpcVirtualStorageFileManager(IReadOnlyList<OpcStorageFileInfo> opcFileList)
     {
-        BackStorageFileManager = backStorageFileManager;
+        OpcFileList = opcFileList;
     }
 
-    public IStorageFileInfo CreateFile(StorageFileRelativePath relativePath)
-    {
-        var fileInfo = BackStorageFileManager.CreateFile(relativePath);
-        AddFile(fileInfo);
-        return fileInfo;
-    }
+    public IReadOnlyList<OpcStorageFileInfo> OpcFileList { get; }
 
-    private List<IReadOnlyStorageFileInfo> FileList { get; } = [];
+    public IReadOnlyCollection<IReadOnlyStorageFileInfo> FileList => OpcFileList;
 
-    /// <summary>
-    /// 后备的文件存储管理器。实际的文件存储管理器
-    /// </summary>
-    public IStorageFileManager BackStorageFileManager { get; }
-
-    IReadOnlyCollection<IReadOnlyStorageFileInfo> IReadOnlyStorageFileManager.FileList => FileList;
-
-    public void AddFile(IReadOnlyStorageFileInfo fileInfo)
-    {
-        FileList.Add(fileInfo);
-    }
-}
-
-/// <summary>
-/// 存放序列化之后的文件信息
-/// </summary>
-/// <param name="FileList"></param>
-public record SerializationStorageFileProvider(IReadOnlyCollection<IReadOnlyStorageFileInfo> FileList) : IReadOnlyStorageFileManager
-{
     // 设计上应该是从 IStorageFileManager 源到复合存储文档之间的转换
     // 这个过程需要关注的是哪个文件到哪个文件之间的映射关系
     // 在 CompoundStorageDocumentManager 将一批 XML 相关的转换器放在一起。同时开放用户的配置逻辑
