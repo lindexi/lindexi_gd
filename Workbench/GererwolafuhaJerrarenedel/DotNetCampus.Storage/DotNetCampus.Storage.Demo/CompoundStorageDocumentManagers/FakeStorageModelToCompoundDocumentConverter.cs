@@ -76,11 +76,18 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
 
         void AddNode<T>(T? value, StorageFileRelativePath relativePath)
         {
-            var storageNodeItem = ToStorageNodeItem(value, relativePath);
-            if (storageNodeItem != null)
+            if (value is null)
             {
-                storageItemList.Add(storageNodeItem);
+                return;
             }
+
+            var storageNode = Manager.DeparseToStorageNode(value);
+            var storageNodeItem = new StorageNodeItem()
+            {
+                RootStorageNode = storageNode,
+                RelativePath = relativePath
+            };
+            storageItemList.Add(storageNodeItem);
         }
     }
 }

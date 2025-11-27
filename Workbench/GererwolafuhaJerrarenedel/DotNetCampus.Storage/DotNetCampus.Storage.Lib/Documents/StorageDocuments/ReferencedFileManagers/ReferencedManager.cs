@@ -2,6 +2,9 @@
 
 namespace DotNetCampus.Storage.Documents.StorageDocuments;
 
+/// <summary>
+/// 引用资源管理器
+/// </summary>
 public class ReferencedManager : IReferencedManager
 {
     public ReferencedManager(IStorageFileManager storageFileManager)

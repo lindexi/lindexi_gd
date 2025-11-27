@@ -10,6 +10,12 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
 
     public override string TargetStorageName => ContractAttribute.Name;
 
+    /// <summary>
+    /// 填充扩展和未知属性
+    /// </summary>
+    /// <param name="list"></param>
+    /// <param name="saveInfo"></param>
+    /// <param name="context"></param>
     protected void FillExtensionAndUnknownProperties(IReadOnlyList<StorageNode> list, SaveInfo saveInfo, in ParseNodeContext context)
     {
         var parserManager = context.ParserManager;
@@ -95,6 +101,12 @@ public abstract class SaveInfoNodeParser<T> : NodeParser<T>
             context);
     }
 
+    /// <summary>
+    /// 添加扩展和未知属性
+    /// </summary>
+    /// <param name="storageNode"></param>
+    /// <param name="saveInfo"></param>
+    /// <param name="context"></param>
     protected void AppendExtensionAndUnknownProperties(StorageNode storageNode, SaveInfo saveInfo, in DeparseNodeContext context)
     {
         var parserManager = context.ParserManager;
