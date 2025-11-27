@@ -1,5 +1,4 @@
-﻿using DotNetCampus.Storage.CompoundStorageDocumentManagers;
-using DotNetCampus.Storage.Documents.StorageDocuments;
+﻿using DotNetCampus.Storage.Documents.StorageDocuments;
 using DotNetCampus.Storage.Documents.StorageDocuments.StorageItems;
 using DotNetCampus.Storage.Documents.StorageModels;
 using DotNetCampus.Storage.Parsers.Contexts;
@@ -16,14 +15,12 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
     /// <summary>
     /// 创建存储模型与复合文档转换器基类
     /// </summary>
-    protected StorageModelToCompoundDocumentConverter(CompoundStorageDocumentManagerProvider provider)
+    protected StorageModelToCompoundDocumentConverter(CompoundStorageDocumentManager manager)
     {
-        _provider = provider;
+        Manager = manager;
     }
 
-    private readonly CompoundStorageDocumentManagerProvider _provider;
-
-    public CompoundStorageDocumentManager Manager => _provider.GetManager();
+    public CompoundStorageDocumentManager Manager { get; }
 
     public abstract StorageModel ToStorageModel(CompoundStorageDocument document);
 
