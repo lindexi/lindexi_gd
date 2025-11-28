@@ -161,7 +161,7 @@ public class SaveInfoToStorageNodeTests
             NodeName = null,
             DocumentManager = compoundStorageDocumentManager,
         });
-
+        
         var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
         {
             DocumentManager = compoundStorageDocumentManager,

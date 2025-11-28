@@ -33,10 +33,10 @@ if (storageModel != null)
 
 var parserManager = compoundStorageDocumentManager.ParserManager;
 
-var fooSaveInfo = new FooSaveInfo()
+var fooSaveInfo = new DemoFooSaveInfo()
 {
     FooProperty = Random.Shared.Next(),
-    Foo1 = new Foo1SaveInfo()
+    Foo1 = new DemoFoo1SaveInfo()
     {
         Foo1Property = true,
         Foo2Property = Random.Shared.Next()
@@ -51,7 +51,7 @@ var storageNode = nodeParser.Deparse(fooSaveInfo, new DeparseNodeContext()
     DocumentManager = compoundStorageDocumentManager,
 });
 
-var foo1SaveInfo = new Foo1SaveInfo()
+var foo1SaveInfo = new DemoFoo1SaveInfo()
 {
     Foo2Property = Random.Shared.Next(),
 };
@@ -74,7 +74,7 @@ storageNode.Children.Add(unknownStorageNode);
 var parsedFooSaveInfo = nodeParser.Parse(storageNode, new ParseNodeContext()
 {
     DocumentManager = compoundStorageDocumentManager,
-}) as FooSaveInfo;
+}) as DemoFooSaveInfo;
 
 var storageXmlSerializer = new StorageXmlSerializer();
 var xDocument = storageXmlSerializer.Serialize(storageNode);

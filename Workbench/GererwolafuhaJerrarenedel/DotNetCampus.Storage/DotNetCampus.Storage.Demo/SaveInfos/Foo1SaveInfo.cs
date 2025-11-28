@@ -3,7 +3,7 @@
 namespace DotNetCampus.Storage.Demo.SaveInfos;
 
 [SaveInfoContract("Foo1")]
-public class Foo1SaveInfo : BaseSaveInfo
+public class DemoFoo1SaveInfo : DemoBaseSaveInfo
 {
     [SaveInfoMember("Foo1Property", Description = "This is a foo1 property.")]
     public bool Foo1Property { get; set; } = false;
@@ -15,7 +15,7 @@ public class Foo1SaveInfo : BaseSaveInfo
     public int FooFxxProperty { get; set; } = 5;
 }
 
-public class BaseSaveInfo : SaveInfo
+public class DemoBaseSaveInfo : SaveInfo
 {
     [SaveInfoMember("Foo3Property", Description = "This is a foo3 property.")]
     public long Foo3Property { get; set; } = 3;

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DotNetCampus.Storage.Demo.SaveInfos;
 
 [SaveInfoContract("Foo")]
-public class FooSaveInfo : SaveInfo
+public class DemoFooSaveInfo : SaveInfo
 {
     [SaveInfoMember("FooProperty", Description = "This is a foo property.")]
     public int FooProperty { get; set; } = 2;
@@ -18,7 +18,7 @@ public class FooSaveInfo : SaveInfo
     public int? FooNullProperty { get; set; }
 
     [SaveInfoMember("F1", Description = "This is a foo property.")]
-    public Foo1SaveInfo? Foo1 { get; set; }
+    public DemoFoo1SaveInfo? Foo1 { get; set; }
 
     [SaveInfoMember("S1")]
     public List<SaveInfo>? SaveInfoList { get; set; }
@@ -27,10 +27,10 @@ public class FooSaveInfo : SaveInfo
     public List<string>? CountList { get; set; }
 
     [SaveInfoMember("F2")]
-    public FooEnum Foo2Enum { get; set; }
+    public DemoFooEnum Foo2Enum { get; set; }
 }
 
-public enum FooEnum
+public enum DemoFooEnum
 {
     Value1,
     Value2,
