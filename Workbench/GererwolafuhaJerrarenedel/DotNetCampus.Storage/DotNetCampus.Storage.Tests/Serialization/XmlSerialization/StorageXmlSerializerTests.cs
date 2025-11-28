@@ -14,6 +14,7 @@ public partial class StorageXmlSerializerTests
     public async Task TestDeserializeAsync()
     {
         var testFile = TestFileProvider.GetTestFile("Slide_1_S4509.7082muxhueq.wc3.xml");
+
         var storageXmlSerializer = new StorageXmlSerializer();
         var storageNode = await storageXmlSerializer.DeserializeAsync(testFile);
 
@@ -24,7 +25,11 @@ public partial class StorageXmlSerializerTests
         var sourceText = await File.ReadAllTextAsync(testFile.FullName);
         var outputText = await File.ReadAllTextAsync(outputFile.FullName);
 
-        //Assert.AreEqual(sourceText, outputText);
+        sourceText = sourceText.Replace("\r\n", "\n")
+            .Replace("<Text></Text>", "<Text />");
+        outputText = outputText.Replace("\r\n", "\n");
+
+        Assert.AreEqual(sourceText, outputText);
 
         outputFile.Delete();
     }
