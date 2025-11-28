@@ -14,7 +14,7 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
     {
     }
 
-    public override StorageModel ToStorageModel(CompoundStorageDocument document)
+    public override async Task<StorageModel> ToStorageModel(CompoundStorageDocument document)
     {
         var fakeStorageModel = new FakeStorageModel()
         {
@@ -38,7 +38,7 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
         return fakeStorageModel;
     }
 
-    public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
+    public override async Task<CompoundStorageDocument> ToCompoundDocument(StorageModel model)
     {
         var referencedManager = Manager.ReferencedManager;
         var storageItemList = new List<IStorageItem>();
@@ -55,7 +55,7 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
                 for (var i = 0; i < slideList.Count; i++)
                 {
                     var slideSaveInfo = slideList[i];
-                    var relativePath = $@"Slides\Slide{i + 1}.xml";
+                    var relativePath = $"Slides/Slide{i + 1}.xml";
                     AddNode(slideSaveInfo, relativePath);
                 }
             }

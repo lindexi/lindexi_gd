@@ -20,7 +20,7 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
 
     public CompoundStorageDocumentManager Manager { get; }
 
-    public abstract StorageModel ToStorageModel(CompoundStorageDocument document);
+    public abstract Task<StorageModel> ToStorageModel(CompoundStorageDocument document);
 
     protected T? ReadRootSaveInfoProperty<T>(CompoundStorageDocument document, string relativePath)
     {
@@ -44,5 +44,5 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
         }
     }
 
-    public abstract CompoundStorageDocument ToCompoundDocument(StorageModel model);
+    public abstract Task<CompoundStorageDocument> ToCompoundDocument(StorageModel model);
 }

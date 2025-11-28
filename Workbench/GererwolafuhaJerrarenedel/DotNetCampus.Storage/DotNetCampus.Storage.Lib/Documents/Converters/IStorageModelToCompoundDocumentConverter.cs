@@ -9,7 +9,7 @@ namespace DotNetCampus.Storage.Documents.Converters;
 /// </summary>
 public interface IStorageModelToCompoundDocumentConverter
 {
-    StorageModel ToStorageModel(CompoundStorageDocument document);
+    Task<StorageModel> ToStorageModel(CompoundStorageDocument document);
 
-    CompoundStorageDocument ToCompoundDocument(StorageModel model);
+    Task<CompoundStorageDocument> ToCompoundDocument(StorageModel model);
 }
