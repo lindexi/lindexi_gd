@@ -17,7 +17,7 @@ public static class CompoundStorageDocumentManagerExtension
     {
         var compoundStorageDocument = await manager.ReadFromOpcFileAsync(opcFile);
         var converter = manager.StorageModelToCompoundDocumentConverter;
-        var storageModel = converter.ToStorageModel(compoundStorageDocument);
+        var storageModel = await converter.ToStorageModel(compoundStorageDocument);
 
         return storageModel as T;
     }
@@ -28,11 +28,11 @@ public static class CompoundStorageDocumentManagerExtension
         return opcSerializer.SaveToOpcFileAsync(document, opcOutputFile);
     }
 
-    public static Task SaveToOpcFileAsync(this CompoundStorageDocumentManager manager, StorageModel storageModel,
+    public static async Task SaveToOpcFileAsync(this CompoundStorageDocumentManager manager, StorageModel storageModel,
         FileInfo opcOutputFile)
     {
         var converter = manager.StorageModelToCompoundDocumentConverter;
-        var compoundStorageDocument = converter.ToCompoundDocument(storageModel);
-        return manager.SaveToOpcFileAsync(compoundStorageDocument, opcOutputFile);
+        var compoundStorageDocument = await converter.ToCompoundDocument(storageModel);
+        await manager.SaveToOpcFileAsync(compoundStorageDocument, opcOutputFile);
     }
 }

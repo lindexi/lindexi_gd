@@ -66,12 +66,13 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
     {
     }
 
-    public override StorageModel ToStorageModel(CompoundStorageDocument document)
+
+    public override Task<StorageModel> ToStorageModel(CompoundStorageDocument document)
     {
         throw new System.NotImplementedException();
     }
 
-    public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
+    public override Task<CompoundStorageDocument> ToCompoundDocument(StorageModel model)
     {
         throw new System.NotImplementedException();
     }

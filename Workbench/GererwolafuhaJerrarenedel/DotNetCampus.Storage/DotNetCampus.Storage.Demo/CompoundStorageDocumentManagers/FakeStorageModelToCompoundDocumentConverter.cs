@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+
 using DotNetCampus.Storage.Demo.SaveInfos;
 using DotNetCampus.Storage.Documents.Converters;
 using DotNetCampus.Storage.Documents.StorageDocuments;
@@ -14,13 +15,13 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
     {
     }
 
-    public override StorageModel ToStorageModel(CompoundStorageDocument document)
+    public override async Task<StorageModel> ToStorageModel(CompoundStorageDocument document)
     {
         var fakeStorageModel = new FakeStorageModel()
         {
-            Document = ReadRootSaveInfoProperty<TestDocumentSaveInfo>(document, "Document.xml"),
-            Presentation = ReadRootSaveInfoProperty<PresentationSaveInfo>(document, "Presentation.xml"),
-            SlideList = ReadRootSaveInfoPropertyList<SlideSaveInfo>(document, path =>
+            Document = await ReadRootSaveInfoPropertyAsync<TestDocumentSaveInfo>(document, "Document.xml"),
+            Presentation = await ReadRootSaveInfoPropertyAsync<PresentationSaveInfo>(document, "Presentation.xml"),
+            SlideList = await ReadRootSaveInfoPropertyListAsync<SlideSaveInfo>(document, path =>
             {
                 var relativePath = path.RelativePath;
                 if (relativePath.Contains('\\') || relativePath.Contains('/'))
@@ -33,12 +34,12 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
                 }
 
                 return false;
-            }).ToList()
+            })
         };
         return fakeStorageModel;
     }
 
-    public override CompoundStorageDocument ToCompoundDocument(StorageModel model)
+    public override async Task<CompoundStorageDocument> ToCompoundDocument(StorageModel model)
     {
         var referencedManager = Manager.ReferencedManager;
         var storageItemList = new List<IStorageItem>();
@@ -47,16 +48,16 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
         {
             referencedManager.Reset();
 
-            AddNode(fakeStorageModel.Document, "Document.xml");
-            AddNode(fakeStorageModel.Presentation, "Presentation.xml");
+            await AddNodeAsync(fakeStorageModel.Document, "Document.xml");
+            await AddNodeAsync(fakeStorageModel.Presentation, "Presentation.xml");
 
             if (fakeStorageModel.SlideList is { } slideList)
             {
                 for (var i = 0; i < slideList.Count; i++)
                 {
                     var slideSaveInfo = slideList[i];
-                    var relativePath = $@"Slides\Slide{i + 1}.xml";
-                    AddNode(slideSaveInfo, relativePath);
+                    var relativePath = $"Slides/Slide{i + 1}.xml";
+                    await AddNodeAsync(slideSaveInfo, relativePath);
                 }
             }
 
@@ -74,14 +75,14 @@ class FakeStorageModelToCompoundDocumentConverter : StorageModelToCompoundDocume
         var compoundStorageDocument = new CompoundStorageDocument(storageItemList, referencedManager);
         return compoundStorageDocument;
 
-        void AddNode<T>(T? value, StorageFileRelativePath relativePath)
+        async Task AddNodeAsync<T>(T? value, StorageFileRelativePath relativePath)
         {
             if (value is null)
             {
                 return;
             }
 
-            var storageNode = Manager.DeparseToStorageNode(value);
+            var storageNode = await Manager.DeparseToStorageNodeAsync(value);
             var storageNodeItem = new StorageNodeItem()
             {
                 RootStorageNode = storageNode,

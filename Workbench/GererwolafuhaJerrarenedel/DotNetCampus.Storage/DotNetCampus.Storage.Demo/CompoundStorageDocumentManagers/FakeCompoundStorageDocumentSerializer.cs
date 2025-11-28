@@ -12,10 +12,10 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
     {
     }
 
-    protected override Task AddResourceReferenceAsync(StorageNode referenceStorageNode, IReferencedManager referencedManager)
+    protected override async Task AddResourceReferenceAsync(StorageNode referenceStorageNode, IReferencedManager referencedManager)
     {
         List<ReferenceInfo>? referenceInfoList = null;
-        var storageReferenceSaveInfo = Manager.ParseToValue<StorageReferenceSaveInfo>(referenceStorageNode);
+        var storageReferenceSaveInfo = await Manager.ParseToValueAsync<StorageReferenceSaveInfo>(referenceStorageNode);
         if (storageReferenceSaveInfo.Relationships is { } list)
         {
             referenceInfoList = new List<ReferenceInfo>(list.Count);
@@ -39,7 +39,6 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
         }
 
         referencedManager.Reset(referenceInfoList);
-        return Task.CompletedTask;
     }
 
     protected override async Task<StorageNode?> CreateReferenceStorageNodeAsync(IReferencedManager referencedManager)
@@ -77,7 +76,7 @@ public class FakeCompoundStorageDocumentSerializer : CompoundStorageDocumentSeri
             Relationships = list
         };
 
-        var storageNode = Manager.DeparseToStorageNode(storageReferenceSaveInfo);
+        var storageNode = await Manager.DeparseToStorageNodeAsync(storageReferenceSaveInfo);
         return storageNode;
     }
 }

@@ -7,7 +7,7 @@ using DotNetCampus.Storage.StorageFiles;
 
 namespace DotNetCampus.Storage.Parsers.NodeParsers;
 
-internal class UriNodeParser<TStorageUri> : NodeParser<TStorageUri>
+internal class UriNodeParser<TStorageUri> : AsyncPostNodeParser<TStorageUri>
     where TStorageUri : StorageUri
 {
     public override string? TargetStorageName => null;
@@ -88,6 +88,16 @@ internal class UriNodeParser<TStorageUri> : NodeParser<TStorageUri>
 
     protected internal override StorageNode DeparseCore(TStorageUri obj, in DeparseNodeContext context)
     {
+        var name = context.NodeName;
+        return new StorageNode()
+        {
+            Name = name,
+            Value = obj.Encode(),
+        };
+    }
+
+    protected override async Task<StorageNode> PostDeparseCoreAsync(TStorageUri obj, StorageNode oldStorageNode, DeparseNodeContext context)
+    {
         var referencedManager = context.DocumentManager.ReferencedManager;
         StorageTextSpan value;
 
@@ -96,7 +106,7 @@ internal class UriNodeParser<TStorageUri> : NodeParser<TStorageUri>
             var fileInfo = new FileInfo(fileUri.Value);
             var referenceInfo = referencedManager.AddLocalFile(fileInfo);
             var storageReferenceId = referenceInfo.ReferenceId;
-            
+
             var idUri = new IdUri(storageReferenceId.ReferenceId);
             value = idUri.Encode();
         }
@@ -109,11 +119,7 @@ internal class UriNodeParser<TStorageUri> : NodeParser<TStorageUri>
             throw new InvalidOperationException();
         }
 
-        var name = context.NodeName;
-        return new StorageNode()
-        {
-            Name = name,
-            Value = value,
-        };
+
+        return oldStorageNode;
     }
 }
