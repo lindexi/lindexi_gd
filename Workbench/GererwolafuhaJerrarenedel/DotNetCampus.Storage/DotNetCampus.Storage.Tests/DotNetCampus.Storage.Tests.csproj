@@ -7,7 +7,12 @@
 
     <OutputType>exe</OutputType>
     <PublishAot>true</PublishAot>
+
+    <GenerateSaveInfoNodeParser>true</GenerateSaveInfoNodeParser>
+
   </PropertyGroup>
+
+  <Import Project="..\DotNetCampus.Storage.Lib\Assets\Package.props" />
 
   <ItemGroup>
     <!-- 
@@ -31,7 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotNetCampus.Storage.Demo\DotNetCampus.Storage.Demo.csproj" />
     <ProjectReference Include="..\DotNetCampus.Storage.Lib\DotNetCampus.Storage.Lib.csproj" />
+    <ProjectReference Include="..\DotNetCampus.Storage.Analyzer\DotNetCampus.Storage.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
