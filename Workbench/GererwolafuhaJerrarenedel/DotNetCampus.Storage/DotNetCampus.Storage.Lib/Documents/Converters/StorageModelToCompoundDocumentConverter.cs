@@ -22,26 +22,30 @@ public abstract class StorageModelToCompoundDocumentConverter : IStorageModelToC
 
     public abstract Task<StorageModel> ToStorageModel(CompoundStorageDocument document);
 
-    protected T? ReadRootSaveInfoProperty<T>(CompoundStorageDocument document, string relativePath)
+    protected async Task<T?> ReadRootSaveInfoPropertyAsync<T>(CompoundStorageDocument document, string relativePath)
     {
         if (document.StorageItemList.FirstOrDefault(t => t.RelativePath.Equals(relativePath)) is StorageNodeItem storageNodeItem)
         {
-            return Manager.ParseToValue<T>(storageNodeItem.RootStorageNode);
+            return await Manager.ParseToValueAsync<T>(storageNodeItem.RootStorageNode);
         }
 
         return default;
     }
 
-    public IEnumerable<T> ReadRootSaveInfoPropertyList<T>(CompoundStorageDocument document,
+    public async Task<List<T>> ReadRootSaveInfoPropertyListAsync<T>(CompoundStorageDocument document,
         Predicate<StorageFileRelativePath> relativePathPredicate)
     {
+        var list = new List<T>();
         foreach (var storageNodeItem in document.StorageItemList.OfType<StorageNodeItem>())
         {
             if (relativePathPredicate(storageNodeItem.RelativePath))
             {
-                yield return Manager.ParseToValue<T>(storageNodeItem.RootStorageNode);
+                var value = await Manager.ParseToValueAsync<T>(storageNodeItem.RootStorageNode);
+                list.Add(value);
             }
         }
+
+        return list;
     }
 
     public abstract Task<CompoundStorageDocument> ToCompoundDocument(StorageModel model);

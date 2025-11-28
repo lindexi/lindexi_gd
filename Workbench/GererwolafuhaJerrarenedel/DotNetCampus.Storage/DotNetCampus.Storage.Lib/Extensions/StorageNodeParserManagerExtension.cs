@@ -1,4 +1,6 @@
-﻿using DotNetCampus.Storage.Parsers;
+﻿using System.Collections.Frozen;
+
+using DotNetCampus.Storage.Parsers;
 using DotNetCampus.Storage.Parsers.Contexts;
 using DotNetCampus.Storage.StorageNodes;
 
@@ -16,7 +18,7 @@ public static class StorageNodeParserManagerExtension
     /// <param name="manager"></param>
     /// <param name="storageNode"></param>
     /// <returns></returns>
-    public static T ParseToValue<T>(this CompoundStorageDocumentManager manager, StorageNode storageNode)
+    public static Task<T> ParseToValueAsync<T>(this CompoundStorageDocumentManager manager, StorageNode storageNode)
     {
         var parserManager = manager.ParserManager;
         var nodeParser = parserManager.GetNodeParser(typeof(T));
@@ -24,7 +26,7 @@ public static class StorageNodeParserManagerExtension
         {
             DocumentManager = manager
         });
-        return (T) value;
+        return Task.FromResult((T) value);
     }
 
     /// <summary>
@@ -35,16 +37,57 @@ public static class StorageNodeParserManagerExtension
     /// <param name="value"></param>
     /// <param name="nodeName"></param>
     /// <returns></returns>
-    public static StorageNode DeparseToStorageNode<T>(this CompoundStorageDocumentManager manager, T value, string? nodeName = null)
+    public static async Task<StorageNode> DeparseToStorageNodeAsync<T>(this CompoundStorageDocumentManager manager, T value, string? nodeName = null)
     {
         var parserManager = manager.ParserManager;
         var nodeParser = parserManager.GetNodeParser(typeof(T));
 
-        var storageNode = nodeParser.Deparse(value!, new DeparseNodeContext()
+        var deparseNodeContext = new DeparseNodeContext()
         {
             NodeName = nodeName,
             DocumentManager = manager,
-        });
+        };
+
+        StorageNode storageNode = nodeParser.Deparse(value!, deparseNodeContext);
+
+        var dictionary = deparseNodeContext.PostNodeParserTaskList.Where(t => t.IsDeparse).ToFrozenDictionary(t => t.StorageNode);
+
+        if (dictionary.TryGetValue(storageNode, out PostAsyncNodeParserTaskInfo info))
+        {
+            var newStorageNode = await RunTaskInfo(info);
+            return newStorageNode;
+        }
+
+        await RecursiveRunPostDeparser(storageNode.Children);
+
         return storageNode;
+
+        async Task<StorageNode> RunTaskInfo(PostAsyncNodeParserTaskInfo taskInfo)
+        {
+            var parser = taskInfo.Parser;
+            var newStorageNode = await parser.PostDeparseAsync(taskInfo.Value, taskInfo.StorageNode, deparseNodeContext);
+            return newStorageNode;
+        }
+
+        async Task RecursiveRunPostDeparser(List<StorageNode>? storageNodeChildren)
+        {
+            // 递归执行解析器
+            if (storageNodeChildren is null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < storageNodeChildren.Count; i++)
+            {
+                var oldStorageNode = storageNodeChildren[i];
+                if (dictionary.TryGetValue(oldStorageNode, out PostAsyncNodeParserTaskInfo taskInfo))
+                {
+                    var newStorageNode = await RunTaskInfo(taskInfo);
+                    storageNodeChildren[i] = newStorageNode;
+                }
+
+                await RecursiveRunPostDeparser(storageNodeChildren[i].Children);
+            }
+        }
     }
 }

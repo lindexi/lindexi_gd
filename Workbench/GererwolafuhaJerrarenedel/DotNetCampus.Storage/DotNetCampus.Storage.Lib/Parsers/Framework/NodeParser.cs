@@ -50,6 +50,10 @@ public abstract class NodeParser<T> : NodeParser
 
     public override object Parse(StorageNode node, in ParseNodeContext context)
     {
+        if (this is IAsyncPostNodeParser)
+        {
+        }
+
         return ParseCore(node, in context)!;
     }
 
@@ -61,7 +65,22 @@ public abstract class NodeParser<T> : NodeParser
         {
             throw new ArgumentException($"对象类型错误，期望类型：{typeof(T).FullName}，实际类型：{obj.GetType().FullName}");
         }
-        return DeparseCore(t, in context);
+
+        var result = DeparseCore(t, in context);
+
+        if (this is IAsyncPostNodeParser asyncPostNodeParser)
+        {
+            var taskInfo = new PostAsyncNodeParserTaskInfo()
+            {
+                Value = obj,
+                StorageNode = result,
+                Parser = asyncPostNodeParser,
+                IsDeparse = true,
+            };
+            context.PostNodeParserTaskList.Add(taskInfo);
+        }
+
+        return result;
     }
 
     protected internal abstract StorageNode DeparseCore(T obj, in DeparseNodeContext context);
