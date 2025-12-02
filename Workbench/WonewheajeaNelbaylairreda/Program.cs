@@ -33,4 +33,34 @@ class F2(Foo foo) : F1(foo)
     {
         var f = Foo;
     }
+/*
+   [NullableContext(1)]
+   [Nullable(0)]
+   internal class F2 : F1
+   {
+     [CompilerGenerated]
+     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+     private Foo <foo>P;
+   
+     public F2(Foo foo)
+     {
+       this.<foo>P = foo;
+       base..ctor(this.<foo>P);
+     }
+   
+     public override Foo Foo
+     {
+       get
+       {
+         return this.<foo>P;
+       }
+     }
+   
+     public override void D()
+     {
+       Foo f = this.Foo;
+     }
+   }
+   
+ */
 }
