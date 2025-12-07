@@ -1,19 +1,20 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Input;
 using Avalonia.Media;
 
 using LightTextEditorPlus;
+using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Primitive;
 
+using SimpleWrite.Business.ShortcutManagers;
+using SimpleWrite.Models;
 using SimpleWrite.ViewModels;
 
 using SkiaSharp;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Avalonia.Input;
-using LightTextEditorPlus.Editing;
-using SimpleWrite.Models;
 
 namespace SimpleWrite.Views.Components;
 
@@ -55,6 +56,11 @@ public partial class MainEditorView : UserControl
         CurrentTextEditor = editorModel.TextEditor;
     }
 
+    /// <summary>
+    /// 创建文本编辑器
+    /// </summary>
+    /// <param name="editorModel"></param>
+    /// <returns></returns>
     private TextEditor CreateTextEditor(EditorModel editorModel)
     {
         TextEditor textEditor = new TextEditor();
@@ -70,7 +76,11 @@ public partial class MainEditorView : UserControl
         {
             UpdateEditorModel(textEditor, editorModel);
         };
-        textEditor.TextEditorHandler = new SimpleWriteTextEditorHandler(textEditor);
+       
+        textEditor.TextEditorHandler = new SimpleWriteTextEditorHandler(textEditor)
+        {
+            ShortcutManager = ViewModel.ShortcutManager,
+        };
         return textEditor;
     }
 
@@ -116,5 +126,31 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
 {
     public SimpleWriteTextEditorHandler(TextEditor textEditor) : base(textEditor)
     {
+    }
+
+    private ShortcutExecutor Executor => _executor ??= new ShortcutExecutor()
+    {
+        ShortcutManager = ShortcutManager
+    };
+    private ShortcutExecutor? _executor;
+
+    public required ShortcutManager ShortcutManager { get; init; }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        // 判断是否落在快捷键范围内
+        var shortcutHandled = Executor.Handle(e);
+        if (shortcutHandled)
+        {
+            // 被快捷键处理了，就不继续往下传递
+            return;
+        }
+
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        base.OnKeyUp(e);
     }
 }

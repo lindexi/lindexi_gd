@@ -73,6 +73,6 @@ public partial class StatusBar : UserControl
     {
         var textEditor = TextEditorInfo.GetTextEditorInfo(this).CurrentTextEditor;
         textEditor.SetInDebugMode();
-        textEditor.SkiaTextEditor.DebugConfiguration.DebugReRender();
+        //textEditor.SkiaTextEditor.DebugConfiguration.DebugReRender();
     }
 }
