@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
@@ -14,9 +13,7 @@ using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Events;
 using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Utils;
-
 using SkiaSharp;
-
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -61,8 +58,9 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 文本内容属性
         /// </summary>
-        public static readonly DirectProperty<TextEditor, string> TextProperty = AvaloniaProperty.RegisterDirect<TextEditor, string>(nameof(Text),
-            editor => editor.Text, (editor, value) => editor.Text = value);
+        public static readonly DirectProperty<TextEditor, string> TextProperty =
+            AvaloniaProperty.RegisterDirect<TextEditor, string>(nameof(Text),
+                editor => editor.Text, (editor, value) => editor.Text = value);
 
         /// <summary>
         /// 是否正在设置 Text 属性。正在设置 Text 属性时，不触发 TextProperty 变更事件
@@ -125,10 +123,12 @@ namespace LightTextEditorPlus
         #region RunProperty
 
         /// <inheritdoc cref="LightTextEditorPlus.Core.Document.DocumentManager.CurrentCaretRunProperty"/>
-        public SkiaTextRunProperty CurrentCaretRunProperty => (SkiaTextRunProperty) TextEditorCore.DocumentManager.CurrentCaretRunProperty;
+        public SkiaTextRunProperty CurrentCaretRunProperty =>
+            (SkiaTextRunProperty) TextEditorCore.DocumentManager.CurrentCaretRunProperty;
 
         /// <inheritdoc cref="DocumentManager.StyleRunProperty"/>
-        public SkiaTextRunProperty StyleRunProperty => (SkiaTextRunProperty) TextEditorCore.DocumentManager.StyleRunProperty;
+        public SkiaTextRunProperty StyleRunProperty =>
+            (SkiaTextRunProperty) TextEditorCore.DocumentManager.StyleRunProperty;
 
         /// <summary>
         /// 创建一个新的 RunProperty 对象
@@ -147,7 +147,8 @@ namespace LightTextEditorPlus
 
         /// <inheritdoc cref="DocumentManager.SetCurrentCaretRunProperty{T}"/>
         public void SetCurrentCaretRunProperty(ConfigRunProperty config)
-            => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty((SkiaTextRunProperty property) => config(property));
+            => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty((SkiaTextRunProperty property) =>
+                config(property));
 
         /// <summary>
         /// 设置字体名
@@ -300,7 +301,8 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void SetFontStyle(FontStyle fontStyle, Selection? selection = null)
         {
-            SetRunProperty(p => p with { FontStyle = fontStyle.ToSKFontStyleSlant() }, PropertyType.FontStyle, selection);
+            SetRunProperty(p => p with { FontStyle = fontStyle.ToSKFontStyleSlant() }, PropertyType.FontStyle,
+                selection);
         }
 
         /// <summary>
@@ -329,7 +331,8 @@ namespace LightTextEditorPlus
         /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
         public void SetFontWeight(FontWeight fontWeight, Selection? selection = null)
         {
-            SetRunProperty(p => p with { FontWeight = fontWeight.ToSKFontStyleWeight() }, PropertyType.FontWeight, selection);
+            SetRunProperty(p => p with { FontWeight = fontWeight.ToSKFontStyleWeight() }, PropertyType.FontWeight,
+                selection);
         }
 
         #region 文本装饰
@@ -394,7 +397,8 @@ namespace LightTextEditorPlus
         /// <param name="textDecoration"></param>
         /// <param name="addOrRemove">true 表示添加，false 表示删除</param>
         /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
-        public void SetTextDecoration(TextEditorDecoration textDecoration, bool addOrRemove, Selection? selection = null)
+        public void SetTextDecoration
+            (TextEditorDecoration textDecoration, bool addOrRemove, Selection? selection = null)
         {
             if (addOrRemove)
             {
@@ -476,14 +480,16 @@ namespace LightTextEditorPlus
             if (!selection.Value.IsEmpty)
             {
                 // 选择范围不为空，那就是一定有变更内容，记录布局变更原因
-                TextEditorCore.AddLayoutReason($"SetRunPropertyAva PropertyType={property} Selection={selection.Value.FrontOffset.Offset}-{selection.Value.BehindOffset.Offset}");
+                TextEditorCore.AddLayoutReason(
+                    $"SetRunPropertyAva PropertyType={property} Selection={selection.Value.FrontOffset.Offset}-{selection.Value.BehindOffset.Offset}");
             }
 
             TextEditorCore.Logger.Log(new SetRunPropertyLogInfo(property, selection.Value));
 
             OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
 
-            TextEditorCore.DocumentManager.SetRunProperty<SkiaTextRunProperty>(runProperty => config(runProperty), selection);
+            TextEditorCore.DocumentManager.SetRunProperty<SkiaTextRunProperty>(runProperty => config(runProperty),
+                selection);
 
             OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
         }
@@ -582,10 +588,12 @@ namespace LightTextEditorPlus
         public void AppendRun(SkiaTextRun textRun) => SkiaTextEditor.AppendRun(textRun);
 
         /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplace"/>
-        public void EditAndReplace(string text, Selection? selection = null) => SkiaTextEditor.EditAndReplace(text, selection);
+        public void EditAndReplace
+            (string text, Selection? selection = null) => SkiaTextEditor.EditAndReplace(text, selection);
 
         /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplaceRun"/>
-        public void EditAndReplaceRun(SkiaTextRun textRun, Selection? selection = null) => SkiaTextEditor.EditAndReplaceRun(textRun, selection);
+        public void EditAndReplaceRun
+            (SkiaTextRun textRun, Selection? selection = null) => SkiaTextEditor.EditAndReplaceRun(textRun, selection);
 
         /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.Backspace"/>
         public void Backspace() => SkiaTextEditor.Backspace();
@@ -599,6 +607,7 @@ namespace LightTextEditorPlus
         #endregion
 
         #region 事件
+
         /// <summary>
         /// 当设置样式时触发
         /// </summary>
@@ -616,7 +625,6 @@ namespace LightTextEditorPlus
 
         internal void OnStyleChanged(StyleChangeEventArgs styleChangeEventArgs)
         {
-
             StyleChanged?.Invoke(this, styleChangeEventArgs);
         }
 
@@ -639,6 +647,7 @@ namespace LightTextEditorPlus
             add => base.LayoutUpdated += value;
             remove => base.LayoutUpdated -= value;
         }
+
         #endregion
     }
 }

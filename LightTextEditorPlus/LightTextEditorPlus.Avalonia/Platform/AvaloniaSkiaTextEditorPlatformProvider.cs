@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-
 using Avalonia.Threading;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Platform;
@@ -61,6 +60,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
             return _layoutDispatcherRequiring;
         }
     }
+
     private AvaloniaTextEditorDispatcherRequiring? _layoutDispatcherRequiring;
     private Action? _layoutUpdateAction;
 
@@ -124,7 +124,10 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
         if (_layoutUpdateAction is null)
         {
             // 无需布局
-            Debug.Assert(!AvaloniaTextEditor.TextEditorCore.IsDirty || AvaloniaTextEditor.TextEditorCore.DocumentManager.CharCount == 0, "无需布局的情况只有两个，要么文本不是脏的 IsDirty 为 false 值。要么是空文本，即 CharCount 为零");
+            Debug.Assert(
+                !AvaloniaTextEditor.TextEditorCore.IsDirty ||
+                AvaloniaTextEditor.TextEditorCore.DocumentManager.CharCount == 0,
+                "无需布局的情况只有两个，要么文本不是脏的 IsDirty 为 false 值。要么是空文本，即 CharCount 为零");
             return false;
         }
 
@@ -166,7 +169,8 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
 
 class AvaloniaTextEditorDispatcherRequiring
 {
-    public AvaloniaTextEditorDispatcherRequiring(Action action, Dispatcher dispatcher, DispatcherPriority? priority = null)
+    public AvaloniaTextEditorDispatcherRequiring
+        (Action action, Dispatcher dispatcher, DispatcherPriority? priority = null)
     {
         _action = action;
         _dispatcher = dispatcher;
@@ -184,6 +188,7 @@ class AvaloniaTextEditorDispatcherRequiring
         {
             return;
         }
+
         _isTaskRequired = true;
 
         _dispatcher.InvokeAsync(InvokeAction, _priority);
@@ -226,6 +231,7 @@ class AvaloniaTextEditorDispatcherRequiring
         {
             return;
         }
+
         try
         {
             _action.Invoke();

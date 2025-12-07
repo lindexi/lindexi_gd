@@ -1,5 +1,4 @@
 ﻿#if DirectTextEditorDefinition
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -80,7 +79,8 @@ static class TextEditorDecorationHelper
                 }
 
                 var textDecorationCharDataList = lineCharList.Slice(lineOffset);
-                TextReadOnlyListSpan<CharData> firstCharSpanContinuous = textDecorationCharDataList.GetFirstCharSpanContinuous(Predicate);
+                TextReadOnlyListSpan<CharData> firstCharSpanContinuous =
+ textDecorationCharDataList.GetFirstCharSpanContinuous(Predicate);
 
                 yield return new DecorationSplitResult(textEditorDecoration, runProperty, firstCharSpanContinuous, lineOffset);
 

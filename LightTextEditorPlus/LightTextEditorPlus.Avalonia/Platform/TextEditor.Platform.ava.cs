@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
-
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -21,7 +20,6 @@ using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
-
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
@@ -108,7 +106,7 @@ partial class TextEditor : Control
     /// </summary>
     private bool IsDebugging
 #if DEBUG
-        => 
+        =>
             //DebugName?.Contains("江南莲花开，莲花惹人采") ?? 
             false;
 #else
@@ -179,6 +177,7 @@ partial class TextEditor : Control
         {
             IsInEditingInputMode = false;
         }
+
         base.OnLostFocus(e);
     }
 
@@ -320,7 +319,6 @@ partial class TextEditor : Control
     {
         if (IsDebugging)
         {
-
         }
 
         InvalidateMeasureAfterLayoutCompleted();
@@ -334,7 +332,6 @@ partial class TextEditor : Control
     {
         if (IsDebugging)
         {
-
         }
 
         if (_isMeasuring)

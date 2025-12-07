@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-
 using Avalonia;
 using Avalonia.Input;
 using LightTextEditorPlus.Core.Primitive;

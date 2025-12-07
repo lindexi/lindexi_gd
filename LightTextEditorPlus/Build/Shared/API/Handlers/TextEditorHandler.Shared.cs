@@ -7,7 +7,6 @@ using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Utils;
-
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Rendering;
@@ -49,13 +48,15 @@ public partial class TextEditorHandler
         if (TextEditorCore.TryHitTest(in clickPoint, out var result))
         {
             // 是否命中到选择。条件： 当前有选择（!TextEditorCore.CurrentSelection.IsEmpty），且选择内容包含命中的光标（TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset)）
-            _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty && TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
+            _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty &&
+                              TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
 
             if (!_isHitSelection)
             {
                 // 没有命中到选择，那就设置当前光标
                 TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
             }
+
             return true;
         }
         else
@@ -91,7 +92,7 @@ public partial class TextEditorHandler
                 return true;
             }
         }
-      
+
         return false;
     }
 
@@ -295,6 +296,7 @@ public partial class TextEditorHandler
     /// 用于接收第一个字符
     /// </summary>
     private string _emojiCache = string.Empty;
+
     #endregion
 
     #region 剪贴板

@@ -2,12 +2,9 @@
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Skia;
-
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Primitive;
-
 using SkiaSharp;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -94,32 +91,32 @@ static class AvaloniaSkiaExtensions
     }
 
     public static FontStretch ToFontStretch(this SKFontStyleWidth stretch)
-     => stretch switch
-     {
-         SKFontStyleWidth.UltraCondensed => FontStretch.UltraCondensed,
-         SKFontStyleWidth.ExtraCondensed => FontStretch.ExtraCondensed,
-         SKFontStyleWidth.Condensed => FontStretch.Condensed,
-         SKFontStyleWidth.SemiCondensed => FontStretch.SemiCondensed,
-         SKFontStyleWidth.Normal => FontStretch.Normal,
-         SKFontStyleWidth.SemiExpanded => FontStretch.SemiExpanded,
-         SKFontStyleWidth.Expanded => FontStretch.Expanded,
-         SKFontStyleWidth.ExtraExpanded => FontStretch.ExtraExpanded,
-         SKFontStyleWidth.UltraExpanded => FontStretch.UltraExpanded,
-         _ => throw new ArgumentOutOfRangeException(nameof(stretch), stretch, null)
-     };
+        => stretch switch
+        {
+            SKFontStyleWidth.UltraCondensed => FontStretch.UltraCondensed,
+            SKFontStyleWidth.ExtraCondensed => FontStretch.ExtraCondensed,
+            SKFontStyleWidth.Condensed => FontStretch.Condensed,
+            SKFontStyleWidth.SemiCondensed => FontStretch.SemiCondensed,
+            SKFontStyleWidth.Normal => FontStretch.Normal,
+            SKFontStyleWidth.SemiExpanded => FontStretch.SemiExpanded,
+            SKFontStyleWidth.Expanded => FontStretch.Expanded,
+            SKFontStyleWidth.ExtraExpanded => FontStretch.ExtraExpanded,
+            SKFontStyleWidth.UltraExpanded => FontStretch.UltraExpanded,
+            _ => throw new ArgumentOutOfRangeException(nameof(stretch), stretch, null)
+        };
 
     public static SKFontStyleWidth ToSKFontStyleWidth(this FontStretch stretch)
-     => stretch switch
-     {
-         FontStretch.UltraCondensed => SKFontStyleWidth.UltraCondensed,
-         FontStretch.ExtraCondensed => SKFontStyleWidth.ExtraCondensed,
-         FontStretch.Condensed => SKFontStyleWidth.Condensed,
-         FontStretch.SemiCondensed => SKFontStyleWidth.SemiCondensed,
-         FontStretch.Normal => SKFontStyleWidth.Normal,
-         FontStretch.SemiExpanded => SKFontStyleWidth.SemiExpanded,
-         FontStretch.Expanded => SKFontStyleWidth.Expanded,
-         FontStretch.ExtraExpanded => SKFontStyleWidth.ExtraExpanded,
-         FontStretch.UltraExpanded => SKFontStyleWidth.UltraExpanded,
-         _ => throw new ArgumentOutOfRangeException(nameof(stretch), stretch, null)
-     };
+        => stretch switch
+        {
+            FontStretch.UltraCondensed => SKFontStyleWidth.UltraCondensed,
+            FontStretch.ExtraCondensed => SKFontStyleWidth.ExtraCondensed,
+            FontStretch.Condensed => SKFontStyleWidth.Condensed,
+            FontStretch.SemiCondensed => SKFontStyleWidth.SemiCondensed,
+            FontStretch.Normal => SKFontStyleWidth.Normal,
+            FontStretch.SemiExpanded => SKFontStyleWidth.SemiExpanded,
+            FontStretch.Expanded => SKFontStyleWidth.Expanded,
+            FontStretch.ExtraExpanded => SKFontStyleWidth.ExtraExpanded,
+            FontStretch.UltraExpanded => SKFontStyleWidth.UltraExpanded,
+            _ => throw new ArgumentOutOfRangeException(nameof(stretch), stretch, null)
+        };
 }

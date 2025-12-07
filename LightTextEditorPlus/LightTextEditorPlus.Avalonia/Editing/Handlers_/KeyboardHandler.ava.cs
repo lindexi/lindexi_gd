@@ -1,7 +1,5 @@
 ﻿using System;
-
 using Avalonia.Input;
-
 using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Editing;

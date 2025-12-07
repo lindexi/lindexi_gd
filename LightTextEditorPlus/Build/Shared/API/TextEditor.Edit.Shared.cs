@@ -133,6 +133,7 @@ namespace LightTextEditorPlus
                 {
                     Logger.LogWarning($"由于当前文本禁用编辑，设置自动编辑模式失效 Set IsAutoEditingModeByFocus Fail. IsEditable=False");
                 }
+
                 _isAutoEditingModeByFocus = value;
             }
         }
@@ -203,6 +204,7 @@ namespace LightTextEditorPlus
                 {
                     return;
                 }
+
                 var oldValue = _isEditable;
 
                 _isEditable = value;
@@ -280,7 +282,7 @@ namespace LightTextEditorPlus
                 {
                     Logger.LogDebug("QuitOvertypeMode");
                 }
-                
+
                 IsOvertypeModeChanged?.Invoke(this, new TextEditorValueChangeEventArgs<bool>(oldValue, value));
 
                 InvalidateVisual();
@@ -301,6 +303,7 @@ namespace LightTextEditorPlus
         /// <inheritdoc cref="TextEditorCore.ParagraphList"/>
         public TextEditorParagraphList ParagraphList =>
             _paragraphList ??= new TextEditorParagraphList(TextEditorCore.ParagraphList);
+
         private TextEditorParagraphList? _paragraphList;
 
         /// <summary>
@@ -349,7 +352,9 @@ namespace LightTextEditorPlus
         /// 设置当前光标所在的段落的段落属性
         /// </summary>
         /// <param name="paragraphProperty"></param>
-        public void SetCurrentCaretOffsetParagraphProperty(ParagraphProperty paragraphProperty) => SetParagraphProperty(TextEditorCore.CurrentCaretOffset, paragraphProperty);
+        public void SetCurrentCaretOffsetParagraphProperty
+            (ParagraphProperty paragraphProperty) =>
+            SetParagraphProperty(TextEditorCore.CurrentCaretOffset, paragraphProperty);
 
         /// <summary>
         /// 配置当前光标所在的段落的段落属性
@@ -408,6 +413,7 @@ namespace LightTextEditorPlus
             get => _textEditorHandler ??= TextEditorPlatformProvider.GetHandler();
             set => _textEditorHandler = value;
         }
+
         private TextEditorHandler? _textEditorHandler;
     }
 }

@@ -163,9 +163,9 @@ public sealed class CharData : ICharData, ILayoutCharData
         // 已经设置过值，且更新的不是连写字则抛出异常
         if (!CharDataInfo.IsInvalid)
         {
-            if ((charDataInfo.Status is CharDataInfoStatus.LigatureStart or CharDataInfoStatus.LigatureContinue) 
+            if ((charDataInfo.Status is CharDataInfoStatus.LigatureStart or CharDataInfoStatus.LigatureContinue)
                 // 或者从连写字改为正常字符
-                || CharDataInfo.Status!= charDataInfo.Status)
+                || CharDataInfo.Status != charDataInfo.Status)
             {
                 // 为什么连写字允许重复更新？比如说有 'fi' 连写。分为两次输入，第一次输入 'f'，第二次输入 'i'。第一次输入 'f' 时，可能已经测量过了，并且状态是 Normal 值。此时当输入 'i' 时，才发现 'fi' 是连写的开始，则需要更新 'f' 的状态为 LigatureStart 值
 

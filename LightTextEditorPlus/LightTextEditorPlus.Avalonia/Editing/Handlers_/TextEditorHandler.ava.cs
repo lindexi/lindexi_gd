@@ -1,10 +1,8 @@
 ﻿using System;
 using Avalonia.Input;
-
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Utils.Patterns;
-
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
@@ -16,7 +14,6 @@ namespace LightTextEditorPlus.Editing;
 
 public partial class TextEditorHandler
 {
-
     #region 鼠标
 
     /// <summary>
@@ -269,7 +266,7 @@ public partial class TextEditorHandler
         }
 
         string text = TextEditor.GetSelectedText();
-         _ = GetClipboard()?.SetTextAsync(text);
+        _ = GetClipboard()?.SetTextAsync(text);
     }
 
     /// <summary>
@@ -284,7 +281,7 @@ public partial class TextEditorHandler
         }
 
         string text = TextEditor.GetText(in currentSelection);
-         _ = GetClipboard()?.SetTextAsync(text);
+        _ = GetClipboard()?.SetTextAsync(text);
         TextEditor.Remove(in currentSelection);
     }
 
@@ -311,7 +308,7 @@ public partial class TextEditorHandler
 
     private IClipboard? GetClipboard()
     {
-        if (TopLevel.GetTopLevel(TextEditor) is {} topLevel)
+        if (TopLevel.GetTopLevel(TextEditor) is { } topLevel)
         {
             return topLevel.Clipboard;
         }

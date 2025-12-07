@@ -1,9 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Skia;
-
 using LightTextEditorPlus.Primitive;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -78,7 +76,8 @@ public static class SkiaTextBrushConverter
         for (var i = 0; i < gradientStopList.Count; i++)
         {
             IGradientStop gradientStop = gradientStopList[i];
-            var skiaTextGradientStop = new SkiaTextGradientStop(gradientStop.Color.ToSKColor(), (float) gradientStop.Offset);
+            var skiaTextGradientStop =
+                new SkiaTextGradientStop(gradientStop.Color.ToSKColor(), (float) gradientStop.Offset);
             stopList[i] = skiaTextGradientStop;
         }
 
