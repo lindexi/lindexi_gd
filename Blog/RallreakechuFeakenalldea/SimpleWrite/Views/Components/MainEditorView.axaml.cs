@@ -37,7 +37,6 @@ public partial class MainEditorView : UserControl
         {
             editorViewModel.EditorModelChanged += EditorViewModel_EditorModelChanged;
             UpdateCurrentEditorMode(editorViewModel.CurrentEditorModel);
-
         }
 
         base.OnDataContextChanged(e);
@@ -65,6 +64,12 @@ public partial class MainEditorView : UserControl
         {
             TextEditor textEditor = CreateTextEditor(editorModel);
             editorModel.TextEditor = textEditor;
+
+            // 如果此时已经有文件了，就加载文件内容
+            if (editorModel.FileInfo is { } fileInfo)
+            {
+                _ = ViewModel.LoadFileToTextEditorAsync(editorModel, textEditor,fileInfo);
+            }
         }
 
         TextEditorBorder.Child = editorModel.TextEditor;

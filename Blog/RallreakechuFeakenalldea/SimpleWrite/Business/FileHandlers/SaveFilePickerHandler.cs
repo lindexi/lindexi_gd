@@ -16,7 +16,9 @@ class SaveFilePickerHandler : ISaveFilePickerHandler
 
     public async Task<FileInfo?> PickSaveFileAsync()
     {
-        var filePickerSaveOptions = new FilePickerSaveOptions();
+        var filePickerSaveOptions = new FilePickerSaveOptions()
+        {
+        };
         var pickResult = await _topLevel.StorageProvider.SaveFilePickerAsync(filePickerSaveOptions);
         var localFilePath = pickResult?.TryGetLocalPath();
         if (localFilePath is null)
