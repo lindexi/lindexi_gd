@@ -16,6 +16,8 @@ using SkiaSharp;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Avalonia.Interactivity;
+using SimpleWrite.Business.FileHandlers;
 
 namespace SimpleWrite.Views.Components;
 
@@ -35,9 +37,21 @@ public partial class MainEditorView : UserControl
         {
             editorViewModel.EditorModelChanged += EditorViewModel_EditorModelChanged;
             UpdateCurrentEditorMode(editorViewModel.CurrentEditorModel);
+
         }
 
         base.OnDataContextChanged(e);
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        // 提供 View 层的功能给 ViewModel 使用
+        if (TopLevel.GetTopLevel(this) is {} topLevel)
+        {
+            ViewModel.SaveFilePickerHandler ??= new SaveFilePickerHandler(topLevel);
+        }
+
+        base.OnLoaded(e);
     }
 
     private void EditorViewModel_EditorModelChanged(object? sender, EventArgs e)
@@ -80,10 +94,11 @@ public partial class MainEditorView : UserControl
        
         textEditor.TextEditorHandler = new SimpleWriteTextEditorHandler(textEditor)
         {
-            ShortcutManager = ViewModel.ShortcutManager,
+            ShortcutExecutor = ShortcutExecutor,
         };
         return textEditor;
     }
+
 
     private void UpdateEditorModel(TextEditor textEditor, EditorModel editorModel)
     {
@@ -120,6 +135,12 @@ public partial class MainEditorView : UserControl
         }
     }
 
+    private ShortcutExecutor ShortcutExecutor => _shortcutExecutor ??= new ShortcutExecutor()
+    {
+        ShortcutManager = ViewModel.ShortcutManager
+    };
+    private ShortcutExecutor? _shortcutExecutor;
+
     public TextEditor CurrentTextEditor { get; private set; } = null!;
 }
 
@@ -129,18 +150,12 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
     {
     }
 
-    private ShortcutExecutor Executor => _executor ??= new ShortcutExecutor()
-    {
-        ShortcutManager = ShortcutManager
-    };
-    private ShortcutExecutor? _executor;
-
-    public required ShortcutManager ShortcutManager { get; init; }
+    public required ShortcutExecutor ShortcutExecutor { get; init; }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         // 判断是否落在快捷键范围内
-        var shortcutHandled = Executor.Handle(e);
+        var shortcutHandled = ShortcutExecutor.Handle(e);
         if (shortcutHandled)
         {
             // 被快捷键处理了，就不继续往下传递
