@@ -54,10 +54,13 @@ public class EditorModel : INotifyPropertyChanged
         {
             if (value == _saveStatus) return;
             _saveStatus = value;
+            SaveStatusChanged?.Invoke(this,EventArgs.Empty);
             OnPropertyChanged();
         }
     }
     private SaveStatus _saveStatus;
+
+    public event EventHandler? SaveStatusChanged;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

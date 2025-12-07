@@ -7,8 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-using Avalonia.Diagnostics.Screenshots;
-
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Models;
@@ -23,6 +21,8 @@ public class EditorViewModel : ViewModelBase
 
         ShortcutManagerHelper.AddDefaultShortcut(this);
     }
+
+    public SimpleWriteMainViewModel? MainViewModel { get; init; }
 
     /// <summary>
     /// 当前标记列表，等于标签栏
@@ -55,6 +55,8 @@ public class EditorViewModel : ViewModelBase
     /// </summary>
     public async Task SaveDocument()
     {
+        SetSaveStatus(SaveStatus.Saving);
+
         if (CurrentEditorModel.FileInfo is null)
         {
             // 尚未保存过，执行另存为逻辑
@@ -63,6 +65,7 @@ public class EditorViewModel : ViewModelBase
         else
         {
             await SaveEditorModelToFileAsync(CurrentEditorModel, CurrentEditorModel.FileInfo);
+            SetSaveStatus(SaveStatus.Saved);
         }
     }
 
@@ -71,19 +74,23 @@ public class EditorViewModel : ViewModelBase
     /// </summary>
     public async Task SaveDocumentAs()
     {
+        SetSaveStatus(SaveStatus.Saving);
         if (SaveFilePickerHandler is null)
         {
+            SetSaveStatus(SaveStatus.Error);
             return;
         }
 
         var saveFile = await SaveFilePickerHandler.PickSaveFileAsync();
         if (saveFile is null)
         {
+            SetSaveStatus(SaveStatus.Error);
             return;
         }
 
         CurrentEditorModel.FileInfo = saveFile;
         await SaveEditorModelToFileAsync(CurrentEditorModel, saveFile);
+        SetSaveStatus(SaveStatus.Saved);
     }
 
     private async Task SaveEditorModelToFileAsync(EditorModel editorModel, FileInfo saveFile)
@@ -109,4 +116,14 @@ public class EditorViewModel : ViewModelBase
     }
 
     internal ISaveFilePickerHandler? SaveFilePickerHandler { get; set; }
+
+    private void SetSaveStatus(SaveStatus saveStatus)
+    {
+        //if (StatusViewModel != null)
+        //{
+        //    StatusViewModel.IsSaving = saveStatus;
+        //}
+
+        CurrentEditorModel.SaveStatus = saveStatus;
+    }
 }

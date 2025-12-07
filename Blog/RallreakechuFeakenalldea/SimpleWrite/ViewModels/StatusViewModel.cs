@@ -6,6 +6,8 @@ namespace SimpleWrite.ViewModels;
 
 public class StatusViewModel : ViewModelBase
 {
+    public SimpleWriteMainViewModel? MainViewModel { get; init; }
+
     public SaveStatus IsSaving
     {
         get => _isSaving;

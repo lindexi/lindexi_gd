@@ -37,7 +37,6 @@ public partial class MainEditorView : UserControl
         {
             editorViewModel.EditorModelChanged += EditorViewModel_EditorModelChanged;
             UpdateCurrentEditorMode(editorViewModel.CurrentEditorModel);
-
         }
 
         base.OnDataContextChanged(e);
