@@ -76,4 +76,31 @@ public class EditorModel : INotifyPropertyChanged
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    public bool IsEmptyText()
+    {
+        if (_fileInfo is not null)
+        {
+            return false;
+        }
+
+        if (TextEditor is null)
+        {
+            return true;
+        }
+
+        // 判断空文本的方法是： 如果只有一段，且此段没有字符，则是空文本
+        // 如果超过一段了，则一定不是空文本
+        // 文本库规定，至少存在一段
+        var paragraphList = TextEditor.TextEditorCore.ParagraphList;
+        if (paragraphList.Count == 1)
+        {
+            if (paragraphList[0].CharCount == 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

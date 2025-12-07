@@ -19,6 +19,6 @@ public partial class SimpleWriteMainView : UserControl
 
     public async Task OpenFileAsync(FileInfo file)
     {
-
+        await ViewModel.OpenFileAsync(file);
     }
 }

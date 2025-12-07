@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-
+using LightTextEditorPlus;
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Models;
@@ -49,6 +49,60 @@ public class EditorViewModel : ViewModelBase
     /// 快捷键管理器。这里存放的是数据层，即快捷键绑定方式的数据
     /// </summary>
     internal ShortcutManager ShortcutManager { get; } = new ShortcutManager();
+
+    /// <summary>
+    /// 打开文件
+    /// </summary>
+    /// <param name="file"></param>
+    /// <returns></returns>
+    public async Task OpenFileAsync(FileInfo file)
+    {
+        // 如果已经有打开了，就切换过去
+        foreach (var editorModel in EditorModelList)
+        {
+            if (editorModel.FileInfo?.FullName == file.FullName)
+            {
+                CurrentEditorModel = editorModel;
+                return;
+            }
+        }
+
+        // 如果没有，则打开
+        var originEditorModel = CurrentEditorModel;
+        if (originEditorModel.IsEmptyText())
+        {
+            // 如果原本就是空文本，则删除当前的内容
+            EditorModelList.Remove(originEditorModel);
+        }
+
+        var newEditorModel = new EditorModel
+        {
+            FileInfo = file
+        };
+        EditorModelList.Add(newEditorModel);
+        CurrentEditorModel = newEditorModel;
+
+        await Task.CompletedTask;
+    }
+
+    public async Task LoadFileToTextEditorAsync(EditorModel editorModel, TextEditor textEditor, FileInfo fileInfo)
+    {
+        if (!ReferenceEquals(editorModel.FileInfo, fileInfo))
+        {
+            // 传入的参数只是为了解决可空而已
+            throw new ArgumentException();
+        }
+
+        if (!ReferenceEquals(editorModel.TextEditor, textEditor))
+        {
+            // 传入的参数只是为了解决可空而已
+            throw new ArgumentException();
+        }
+
+        await using var fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var streamReader = new StreamReader(fileStream, Encoding.UTF8, leaveOpen: true);
+        textEditor.Text = await streamReader.ReadToEndAsync();
+    }
 
     /// <summary>
     /// 保存当前文档
