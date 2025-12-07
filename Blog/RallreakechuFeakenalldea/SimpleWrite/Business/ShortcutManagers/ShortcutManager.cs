@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Avalonia.Input;
 
 namespace SimpleWrite.Business.ShortcutManagers;
 
@@ -54,29 +53,4 @@ internal class ShortcutManager
     {
         return _keyBinds;
     }
-}
-
-public record ShortcutKeyBind(KeyModifiers Modifiers, Key Key, string CommandName);
-
-public class ShortcutExecuteContext
-{
-}
-
-public class ShortcutCommand
-{
-    public ShortcutCommand(string name, Action<ShortcutExecuteContext> command)
-    {
-        Name = name;
-        Command = command;
-    }
-
-    /// <summary>
-    /// 快捷方式的名称
-    /// </summary>
-    public string Name { get; }
-
-    /// <summary>
-    /// 执行的命令
-    /// </summary>
-    public Action<ShortcutExecuteContext> Command { get;}
 }
