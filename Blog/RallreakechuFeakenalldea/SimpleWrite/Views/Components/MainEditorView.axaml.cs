@@ -7,6 +7,7 @@ using LightTextEditorPlus;
 using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Primitive;
 
+using SimpleWrite.Business;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Models;
 using SimpleWrite.ViewModels;
@@ -61,9 +62,9 @@ public partial class MainEditorView : UserControl
     /// </summary>
     /// <param name="editorModel"></param>
     /// <returns></returns>
-    private TextEditor CreateTextEditor(EditorModel editorModel)
+    private SimpleWriteTextEditor CreateTextEditor(EditorModel editorModel)
     {
-        TextEditor textEditor = new TextEditor();
+        var textEditor = new SimpleWriteTextEditor();
         textEditor.TextEditorCore.SetExitDebugMode();
 
         textEditor.SetStyleTextRunProperty(runProperty => runProperty with
