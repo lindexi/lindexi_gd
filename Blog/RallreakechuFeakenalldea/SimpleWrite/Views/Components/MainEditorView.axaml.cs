@@ -80,10 +80,11 @@ public partial class MainEditorView : UserControl
        
         textEditor.TextEditorHandler = new SimpleWriteTextEditorHandler(textEditor)
         {
-            ShortcutManager = ViewModel.ShortcutManager,
+            ShortcutExecutor = ShortcutExecutor,
         };
         return textEditor;
     }
+
 
     private void UpdateEditorModel(TextEditor textEditor, EditorModel editorModel)
     {
@@ -120,6 +121,12 @@ public partial class MainEditorView : UserControl
         }
     }
 
+    private ShortcutExecutor ShortcutExecutor => _shortcutExecutor ??= new ShortcutExecutor()
+    {
+        ShortcutManager = ViewModel.ShortcutManager
+    };
+    private ShortcutExecutor? _shortcutExecutor;
+
     public TextEditor CurrentTextEditor { get; private set; } = null!;
 }
 
@@ -129,18 +136,12 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
     {
     }
 
-    private ShortcutExecutor Executor => _executor ??= new ShortcutExecutor()
-    {
-        ShortcutManager = ShortcutManager
-    };
-    private ShortcutExecutor? _executor;
-
-    public required ShortcutManager ShortcutManager { get; init; }
+    public required ShortcutExecutor ShortcutExecutor { get; init; }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         // 判断是否落在快捷键范围内
-        var shortcutHandled = Executor.Handle(e);
+        var shortcutHandled = ShortcutExecutor.Handle(e);
         if (shortcutHandled)
         {
             // 被快捷键处理了，就不继续往下传递
