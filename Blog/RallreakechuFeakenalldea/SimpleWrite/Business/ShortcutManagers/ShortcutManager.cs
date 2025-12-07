@@ -14,12 +14,17 @@ internal class ShortcutManager
 {
     public ShortcutManager()
     {
-
     }
 
     private readonly List<ShortcutCommand> _commands = new();
 
     private readonly List<ShortcutKeyBind> _keyBinds = new();
+
+    public void AddKeyBind(ShortcutKeyBind keyBind)
+    {
+        if (keyBind == null) throw new ArgumentNullException(nameof(keyBind));
+        _keyBinds.Add(keyBind);
+    }
 
     /// <summary>
     /// 添加一个快捷方式命令
@@ -35,18 +40,23 @@ internal class ShortcutManager
     /// 获取所有的快捷方式命令
     /// </summary>
     /// <returns>所有的快捷方式命令</returns>
-    public IEnumerable<ShortcutCommand> GetCommands()
+    public IReadOnlyList<ShortcutCommand> GetCommands()
     {
-        return _commands.AsReadOnly();
+        return _commands;
     }
 
     public ShortcutCommand? GetCommand(string name)
     {
         return _commands.FirstOrDefault(t => t.Name == name);
     }
+
+    public IReadOnlyList<ShortcutKeyBind> GetKeyBinds()
+    {
+        return _keyBinds;
+    }
 }
 
-public record ShortcutKeyBind(KeyModifiers Modifiers, Key Key, ShortcutCommand Command);
+public record ShortcutKeyBind(KeyModifiers Modifiers, Key Key, string CommandName);
 
 public class ShortcutExecuteContext
 {

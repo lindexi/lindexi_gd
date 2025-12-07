@@ -13,6 +13,9 @@ namespace SimpleWrite.Models;
 
 public class EditorModel : INotifyPropertyChanged
 {
+    /// <summary>
+    /// 标题内容
+    /// </summary>
     public string Title
     {
         get => _title;
