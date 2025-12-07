@@ -16,6 +16,8 @@ using SkiaSharp;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Avalonia.Interactivity;
+using SimpleWrite.Business.FileHandlers;
 
 namespace SimpleWrite.Views.Components;
 
@@ -35,9 +37,21 @@ public partial class MainEditorView : UserControl
         {
             editorViewModel.EditorModelChanged += EditorViewModel_EditorModelChanged;
             UpdateCurrentEditorMode(editorViewModel.CurrentEditorModel);
+
         }
 
         base.OnDataContextChanged(e);
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        // 提供 View 层的功能给 ViewModel 使用
+        if (TopLevel.GetTopLevel(this) is {} topLevel)
+        {
+            ViewModel.SaveFilePickerHandler ??= new SaveFilePickerHandler(topLevel);
+        }
+
+        base.OnLoaded(e);
     }
 
     private void EditorViewModel_EditorModelChanged(object? sender, EventArgs e)

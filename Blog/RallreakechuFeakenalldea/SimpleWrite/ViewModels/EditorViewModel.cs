@@ -2,7 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+
+using Avalonia.Diagnostics.Screenshots;
+
+using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Models;
 
@@ -13,6 +20,8 @@ public class EditorViewModel : ViewModelBase
     public EditorViewModel()
     {
         EditorModelList.Add(_currentEditorModel);
+
+        ShortcutManagerHelper.AddDefaultShortcut(this);
     }
 
     /// <summary>
@@ -40,4 +49,64 @@ public class EditorViewModel : ViewModelBase
     /// 快捷键管理器。这里存放的是数据层，即快捷键绑定方式的数据
     /// </summary>
     internal ShortcutManager ShortcutManager { get; } = new ShortcutManager();
+
+    /// <summary>
+    /// 保存当前文档
+    /// </summary>
+    public async Task SaveDocument()
+    {
+        if (CurrentEditorModel.FileInfo is null)
+        {
+            // 尚未保存过，执行另存为逻辑
+            await SaveDocumentAs();
+        }
+        else
+        {
+            await SaveEditorModelToFileAsync(CurrentEditorModel, CurrentEditorModel.FileInfo);
+        }
+    }
+
+    /// <summary>
+    /// 当前文档另存为
+    /// </summary>
+    public async Task SaveDocumentAs()
+    {
+        if (SaveFilePickerHandler is null)
+        {
+            return;
+        }
+
+        var saveFile = await SaveFilePickerHandler.PickSaveFileAsync();
+        if (saveFile is null)
+        {
+            return;
+        }
+
+        CurrentEditorModel.FileInfo = saveFile;
+        await SaveEditorModelToFileAsync(CurrentEditorModel, saveFile);
+    }
+
+    private async Task SaveEditorModelToFileAsync(EditorModel editorModel, FileInfo saveFile)
+    {
+        if (editorModel.TextEditor is { } textEditor)
+        {
+            var allText = textEditor.Text;
+
+            if (!ReferenceEquals(editorModel.FileInfo, saveFile))
+            {
+                // 要求必定是一样的。传入的这个参数只是为了减少可空判断而已
+                throw new ArgumentException();
+            }
+
+            await using var fileStream = saveFile.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
+            await using var streamWriter = new StreamWriter(fileStream, Encoding.UTF8, leaveOpen: true);
+            await streamWriter.WriteAsync(allText);
+        }
+        else
+        {
+            // 如果还没初始化，证明啥都没有干，那自然就不需要保存
+        }
+    }
+
+    internal ISaveFilePickerHandler? SaveFilePickerHandler { get; set; }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Avalonia.Input;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,6 +20,12 @@ internal class ShortcutManager
     private readonly List<ShortcutCommand> _commands = new();
 
     private readonly List<ShortcutKeyBind> _keyBinds = new();
+
+    public void AddShortcut(KeyModifiers modifiers, Key key, string name, Action<ShortcutExecuteContext> command)
+    {
+        _keyBinds.Add(new ShortcutKeyBind(modifiers, key, name));
+        _commands.Add(new ShortcutCommand(name, command));
+    }
 
     public void AddKeyBind(ShortcutKeyBind keyBind)
     {
