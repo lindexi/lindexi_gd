@@ -5,7 +5,7 @@ using System.IO;
 namespace LightTextEditorPlus.FontManagers;
 
 /// <summary>
-/// 文本资源管理器
+/// 文本的字体资源管理器
 /// </summary>
 public class TextEditorFontResourceManager
 {

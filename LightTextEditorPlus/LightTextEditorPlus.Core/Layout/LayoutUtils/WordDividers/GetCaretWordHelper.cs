@@ -12,6 +12,12 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 static class GetCaretWordHelper
 {
+    /// <summary>
+    /// 无语言文化的分词查找
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    /// 行为是找到被符号包围的单词，或者连续的符号。对于英文来说，自然每个单词之间都是被空格或标点符号包围的。对于中文来说，就没有按照空格来分词的习惯了，只好把连续的汉字作为一个单词来处理了。对于汉字的处理来说，只要没有上语言文化分词，那就没有更好的处理方法了
     public static GetCaretWordResult GetCaretCurrentWord(in GetCaretWordArgument argument)
     {
         // 无语言文化的分词查找
@@ -32,6 +38,7 @@ static class GetCaretWordHelper
 
         DocumentOffset paragraphStartOffset = textParagraph.GetParagraphStartOffset();
 
+        // 这里的是相对于段落的光标位置
         var currentCharCaret = caretOffset.Offset - paragraphStartOffset.Offset;
         // 找当前光标的单词
         Debug.Assert(currentCharCaret >= 0);
@@ -72,6 +79,13 @@ static class GetCaretWordHelper
         }
     }
 
+    /// <summary>
+    /// 读取单词的字符数量
+    /// </summary>
+    /// <param name="currentCharCaret">当前的字符光标，相对于 <paramref name="charDataList"/> 的坐标</param>
+    /// <param name="charDataList">字符数据列表</param>
+    /// <param name="predicate">判断字符是否符合条件的谓词</param>
+    /// <returns>读取单词的字符数量结果</returns>
     private static ReadWordCountResult ReadWordCount
         (int currentCharCaret, TextReadOnlyListSpan<CharData> charDataList, Predicate<CharData> predicate)
     {
@@ -104,6 +118,11 @@ static class GetCaretWordHelper
         return new ReadWordCountResult(leftWordCharCount, rightWordCharCount, currentCharCaret);
     }
 
+    /// <summary>
+    /// 是否符号。这里的符号包括空格
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <returns></returns>
     public static bool IsPunctuation(CharData charData)
     {
         Utf32CodePoint codePoint = charData.CharObject.CodePoint;
@@ -127,10 +146,24 @@ static class GetCaretWordHelper
         }
     }
 
+    /// <summary>
+    /// 读取单词的字符数量结果
+    /// </summary>
+    /// <param name="LeftCount">光标的左边有多少个字符</param>
+    /// <param name="RightCount">光标的右边有多少个字符</param>
+    /// <param name="CurrentCharIndex">光标的当前索引位置</param>
     readonly record struct ReadWordCountResult(int LeftCount, int RightCount, int CurrentCharIndex)
     {
+        /// <summary>
+        /// 总字符数量
+        /// </summary>
         public int Length => LeftCount + RightCount;
 
+        /// <summary>
+        /// 转换为选择范围
+        /// </summary>
+        /// <param name="paragraphStartOffset"></param>
+        /// <returns></returns>
         public Selection ToSelection(DocumentOffset paragraphStartOffset)
         {
             int startIndex = CurrentCharIndex - LeftCount;
