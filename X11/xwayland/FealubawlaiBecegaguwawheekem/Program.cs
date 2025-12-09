@@ -1,4 +1,6 @@
 ﻿using X11ApplicationFramework.Apps;
+using X11ApplicationFramework.Natives;
+using X11ApplicationFramework.Utils;
 
 using static X11ApplicationFramework.Natives.XLib;
 
@@ -14,19 +16,12 @@ unsafe
     x11Application.Startup += (_, _) =>
     {
         var x11Info = x11Application.X11Info;
+        var displayInfos = MultiScreensDisplayInfoHelper.GetDisplayInfos(x11Info);
+        Console.WriteLine($"显示器数量: {displayInfos.Count}");
 
-        var monitors = XRRGetMonitors(x11Info.Display, x11Info.RootWindow, true, out var count);
-
-        Console.WriteLine($"获取显示器数量: {count}");
-
-        for (int i = 0; i < count; i++)
+        foreach (var displayInfo in displayInfos)
         {
-            var monitor = monitors[i];
-            Console.WriteLine($"显示器 {i}:");
-            //Console.WriteLine($"  名称: {new string(monitor.Name)}");
-            Console.WriteLine($"  位置: ({monitor.X}, {monitor.Y})");
-            Console.WriteLine($"  大小: {monitor.Width}x{monitor.Height}");
-            Console.WriteLine($"  主显示器: {monitor.Primary}");
+            Console.WriteLine($"显示器信息: 宽度={displayInfo.Width}, 高度={displayInfo.Height}, EDID名称={displayInfo.EDIDName}, 是否主显示器={displayInfo.IsPrimary}");
         }
     };
     x11Application.Run();
