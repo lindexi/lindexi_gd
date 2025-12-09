@@ -360,6 +360,8 @@ namespace X11ApplicationFramework.Natives
 
         private void InitAtom(ref nint field, string name, nint value)
         {
+            Console.WriteLine($"设置 {name}={value}");
+
             if (value != IntPtr.Zero)
             {
                 field = value;
