@@ -1,4 +1,4 @@
-namespace WhonurqaikarjurceLallchelceeqalbear;
+﻿namespace X11ApplicationFramework.Utils.Edid;
 
 public readonly record struct Cm(uint Value)
 {
