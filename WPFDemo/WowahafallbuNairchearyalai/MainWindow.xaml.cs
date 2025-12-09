@@ -69,18 +69,12 @@ public partial class MainWindow : Window
 
                 try
                 {
+                    var activeWordDocumentInfoList = new List<WordDocumentInfo>();
                     foreach (Microsoft.Office.Interop.Word.Window appWindow in application.Windows)
                     {
                         if (appWindow.Active)
                         {
                             WriteLogMessage($"当前激活窗口《{appWindow.Caption}》 Hwnd={appWindow.Hwnd:X}");
-
-                            if (appWindow.Caption == lastCaption)
-                            {
-                                break;
-                            }
-
-                            lastCaption = appWindow.Caption;
 
                             WordDocumentInfo? wordDocumentInfo =
                                 WordDocumentInfoList.FirstOrDefault(t => t.Caption == appWindow.Caption);
@@ -91,8 +85,44 @@ public partial class MainWindow : Window
                                 WordDocumentInfoList.Add(wordDocumentInfo);
                             }
 
-                            await ShowWordDocumentInfoAsync(wordDocumentInfo);
+                            activeWordDocumentInfoList.Add(wordDocumentInfo);
                         }
+                    }
+
+                    if (activeWordDocumentInfoList.Count == 1)
+                    {
+                        await ShowAsync(activeWordDocumentInfoList[0]);
+                    }
+                    else if (activeWordDocumentInfoList.Count > 0)
+                    {
+                        var message = $"当前检测到 {activeWordDocumentInfoList.Count} 个窗口。";
+                        var foregroundWindow = GetForegroundWindow();
+                        message += $"前台窗口={foregroundWindow:X}。";
+
+                        var wordDocumentInfo = activeWordDocumentInfoList.FirstOrDefault(t => t.Hwnd == foregroundWindow);
+                        if (wordDocumentInfo is null)
+                        {
+                            message += $"无任何文档满足前台窗口。文档={string.Join(';', activeWordDocumentInfoList.Select(t => t.Hwnd.ToString("X")))}";
+                        }
+                        else
+                        {
+                            message += $"当前激活窗口《{wordDocumentInfo.Caption}》";
+                            await ShowAsync(wordDocumentInfo);
+                        }
+
+                        WriteLogMessage(message);
+                    }
+
+                    async Task ShowAsync(WordDocumentInfo wordDocumentInfo)
+                    {
+                        if (wordDocumentInfo.Caption == lastCaption)
+                        {
+                            return;
+                        }
+
+                        lastCaption = wordDocumentInfo.Caption;
+
+                        await ShowWordDocumentInfoAsync(wordDocumentInfo);
                     }
                 }
                 catch (Exception exception)
@@ -104,6 +134,13 @@ public partial class MainWindow : Window
             }
         });
     }
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    //[DllImport("user32.dll")]
+    //public static extern IntPtr GetActiveWindow(); // 当前线程
+
 
     private async Task ShowWordDocumentInfoAsync(WordDocumentInfo wordDocumentInfo)
     {
