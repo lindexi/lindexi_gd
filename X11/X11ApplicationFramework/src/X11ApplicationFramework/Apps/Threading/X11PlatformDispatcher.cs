@@ -55,6 +55,7 @@ public class X11PlatformDispatcher
 
         while (!_isShutdown)
         {
+            Console.WriteLine($"开始接收消息");
             var xNextEvent = XNextEvent(display, out var @event);
             Console.WriteLine($"收到消息 {@event}");
 
@@ -101,7 +102,7 @@ public class X11PlatformDispatcher
     /// <summary>
     /// 内部 Invoke 的消息号，这是随便写的
     /// </summary>
-    private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
+    private readonly IntPtr _invokeMessageId = new IntPtr(123123223);
 
     /// <summary>
     /// 专门用来发送事件的 Display 用于修复线程安全

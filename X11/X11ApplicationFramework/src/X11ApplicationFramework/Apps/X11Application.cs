@@ -59,7 +59,7 @@ public class X11Application
             {
                 var eventWindow = XLib.CreateEventWindow(X11Info.Display, X11Info.RootWindow);
                 _eventWindow = new X11Window(this, eventWindow);
-                _eventWindow.AppendPid();
+                //_eventWindow.AppendPid();
             }
 
             return _eventWindow;
