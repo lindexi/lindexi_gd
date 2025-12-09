@@ -364,8 +364,12 @@ public class X11WindowNativeInterop
         IntPtr XA_CARDINAL = (IntPtr) 6;
 =======
         var _NET_WM_PID = XLib.XInternAtom(Display, "_NET_WM_PID", true);
+<<<<<<< HEAD
         IntPtr XA_CARDINAL = X11Info.X11Atoms.XA_CARDINAL;
 >>>>>>> f17892e1bcef253173ca643fcdedc91bec64aadf
+=======
+        IntPtr XA_CARDINAL = X11Atoms.XA_CARDINAL;
+>>>>>>> c57652985be3eaa800d7536537d648ac2021917f
         var pid = (uint) Environment.ProcessId;
         XChangeProperty(Display, X11WindowIntPtr,
             _NET_WM_PID, XA_CARDINAL, 32,

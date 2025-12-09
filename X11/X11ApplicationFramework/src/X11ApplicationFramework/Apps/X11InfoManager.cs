@@ -12,7 +12,7 @@ public record X11InfoManager
         Screen = screen;
         RootWindow = rootWindow;
 
-        X11Atoms = new X11Atoms(display);
+        X11Atoms = new X11Atoms(display, screen);
     }
 
     public X11InfoManager(IntPtr display)
@@ -23,7 +23,7 @@ public record X11InfoManager
         var rootWindow = XDefaultRootWindow(display);
         RootWindow = rootWindow;
 
-        X11Atoms = new X11Atoms(display);
+        X11Atoms = new X11Atoms(display, screen);
     }
 
     public IntPtr Display { get; init; }

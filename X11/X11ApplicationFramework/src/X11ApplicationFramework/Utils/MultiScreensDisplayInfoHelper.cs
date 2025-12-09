@@ -89,9 +89,9 @@ public static unsafe class MultiScreensDisplayInfoHelper
             }
 
             XRRGetOutputProperty(x11.Display, rrOutput, x11.X11Atoms.EDID, 0, EDIDStructureLength, false, false,
-                x11.X11Atoms.AnyPropertyType, out IntPtr actualType, out int actualFormat, out _, out var bytesAfter,
+                X11Atoms.AnyPropertyType, out IntPtr actualType, out int actualFormat, out _, out var bytesAfter,
                 out prop);
-            if (actualType != x11.X11Atoms.XA_INTEGER)
+            if (actualType != X11Atoms.XA_INTEGER)
             {
                 return false;
             }
