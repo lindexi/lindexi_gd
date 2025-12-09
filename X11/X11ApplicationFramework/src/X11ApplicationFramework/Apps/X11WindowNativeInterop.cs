@@ -358,7 +358,7 @@ public class X11WindowNativeInterop
     {
         // The type of `_NET_WM_PID` is `CARDINAL` which is 32-bit unsigned integer, see https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html
         var _NET_WM_PID = XLib.XInternAtom(Display, "_NET_WM_PID", true);
-        IntPtr XA_CARDINAL = X11Info.X11Atoms.XA_CARDINAL;
+        IntPtr XA_CARDINAL = X11Atoms.XA_CARDINAL;
         var pid = (uint) Environment.ProcessId;
         XLib.XChangeProperty(Display, X11WindowIntPtr,
             _NET_WM_PID, XA_CARDINAL, 32,
