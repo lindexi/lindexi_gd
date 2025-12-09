@@ -222,7 +222,10 @@ namespace X11ApplicationFramework.Natives
             XLib.XInternAtoms(display, atomNames, atomNames.Length, true, atoms);
 
             for (var c = 0; c < fields.Length; c++)
+            {
                 fields[c].SetValue(this, atoms[c]);
+                Console.WriteLine($"{fields[c].Name}={atoms[c]}");
+            }
 
             _NET_SYSTEM_TRAY_S = XLib.XInternAtom(display, "_NET_SYSTEM_TRAY_S" + screen, false);
         }
