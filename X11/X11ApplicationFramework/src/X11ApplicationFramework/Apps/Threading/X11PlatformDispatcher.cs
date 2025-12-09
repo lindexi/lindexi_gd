@@ -55,9 +55,7 @@ public class X11PlatformDispatcher
 
         while (!_isShutdown)
         {
-            Console.WriteLine($"开始接收消息");
             var xNextEvent = XNextEvent(display, out var @event);
-            Console.WriteLine($"收到消息 {@event}");
 
             // 判断是否私有 Invoke 的消息
             if (@event.type == XEventName.ClientMessage)
@@ -102,7 +100,7 @@ public class X11PlatformDispatcher
     /// <summary>
     /// 内部 Invoke 的消息号，这是随便写的
     /// </summary>
-    private readonly IntPtr _invokeMessageId = new IntPtr(123123223);
+    private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
 
     /// <summary>
     /// 专门用来发送事件的 Display 用于修复线程安全
@@ -169,8 +167,6 @@ public class X11PlatformDispatcher
                 ptr4 = 0,
             }
         };
-
-        Console.WriteLine($"发布消息，消息窗口： {eventWindow.X11WindowIntPtr}");
         XLib.XSendEvent(_sendEventDisplay, eventWindow.X11WindowIntPtr, false, 0, ref @event);
 
         XLib.XFlush(_sendEventDisplay);
