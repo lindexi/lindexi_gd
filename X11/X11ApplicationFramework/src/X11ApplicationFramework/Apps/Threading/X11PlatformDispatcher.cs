@@ -45,10 +45,11 @@ public class X11PlatformDispatcher
 
     internal void Run()
     {
-        if (_x11Application.WindowManager.Windows.Count == 0)
-        {
-            throw new InvalidOperationException($"一旦没有任何窗口，则不能开启消息");
-        }
+        // 没有任何窗口，也能使用消息
+        //if (_x11Application.WindowManager.Windows.Count == 0)
+        //{
+        //    throw new InvalidOperationException($"一旦没有任何窗口，则不能开启消息");
+        //}
 
         var display = X11Info.Display;
 

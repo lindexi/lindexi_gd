@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Runtime.Versioning;
 using System.Text;
+<<<<<<< HEAD
 using System.Threading.Tasks;
 using DotNetCampus.Logging;
 using WhonurqaikarjurceLallchelceeqalbear;
+=======
+
+>>>>>>> f17892e1bcef253173ca643fcdedc91bec64aadf
 using X11ApplicationFramework.Apps.Threading;
 using X11ApplicationFramework.Apps.X11EventArgs;
 using X11ApplicationFramework.Natives;
@@ -77,7 +81,18 @@ public class X11Application
     {
         if (WindowManager.TryGetWindow(@event->AnyEvent.window, out var window))
         {
+<<<<<<< HEAD
             window.DispatchEvent(@event);
+=======
+            if (_eventWindow is null)
+            {
+                var eventWindow = XLib.CreateEventWindow(X11Info.Display, X11Info.RootWindow);
+                _eventWindow = new X11Window(this, eventWindow);
+                _eventWindow.AppendPid();
+            }
+
+            return _eventWindow;
+>>>>>>> f17892e1bcef253173ca643fcdedc91bec64aadf
         }
     }
 

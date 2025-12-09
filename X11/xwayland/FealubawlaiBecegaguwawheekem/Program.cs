@@ -21,7 +21,8 @@ unsafe
 
         foreach (var displayInfo in displayInfos)
         {
-            Console.WriteLine($"显示器信息: 宽度={displayInfo.Width}, 高度={displayInfo.Height}, EDID名称={displayInfo.EDIDName}, 是否主显示器={displayInfo.IsPrimary}");
+            Console.WriteLine(
+                $"显示器信息: 宽度={displayInfo.Width}, 高度={displayInfo.Height}, EDID名称={displayInfo.EDIDName}, 是否主显示器={displayInfo.IsPrimary}, Edid显示器物理高度={displayInfo.EdidInfo?.BasicDisplayParameters.MonitorPhysicalWidth.Value}");
         }
     };
     x11Application.Run();
