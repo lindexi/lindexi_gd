@@ -56,6 +56,7 @@ public class X11PlatformDispatcher
         while (!_isShutdown)
         {
             var xNextEvent = XNextEvent(display, out var @event);
+            Console.WriteLine($"收到消息 {@event}");
 
             // 判断是否私有 Invoke 的消息
             if (@event.type == XEventName.ClientMessage)
@@ -167,6 +168,8 @@ public class X11PlatformDispatcher
                 ptr4 = 0,
             }
         };
+
+        Console.WriteLine($"发布消息，消息窗口： {eventWindow.X11WindowIntPtr}");
         XLib.XSendEvent(_sendEventDisplay, eventWindow.X11WindowIntPtr, false, 0, ref @event);
 
         XLib.XFlush(_sendEventDisplay);
