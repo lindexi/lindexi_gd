@@ -7,6 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <ListView x:Name="ListView"></ListView>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="LogTextBlock" Grid.Row="0"></TextBlock>
+        <ListView x:Name="ListView" Grid.Row="1"></ListView>
     </Grid>
 </Window>
