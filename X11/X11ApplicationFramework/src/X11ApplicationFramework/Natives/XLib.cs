@@ -841,12 +841,11 @@ namespace X11ApplicationFramework.Natives
                 return !lhs.Equals(rhs);
             }
         }
-
-        private struct _pollfd()
+        private struct _pollfd
         {
             public int fd;
             public short events;
-            public short revents = 0;
+            public short revents;
         }
         [DllImport("libc", SetLastError = true, EntryPoint = "poll")]
         private static extern int sys_poll([In, Out] _pollfd[] ufds, uint nfds, int timeout);

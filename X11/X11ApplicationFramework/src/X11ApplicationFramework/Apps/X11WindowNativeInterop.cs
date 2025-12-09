@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using X11ApplicationFramework.Natives;
 
 using static X11ApplicationFramework.Natives.XLib;
-using static X11ApplicationFramework.Natives.ShapeConst;
 
 namespace X11ApplicationFramework.Apps;
 
@@ -40,16 +39,16 @@ public class X11WindowNativeInterop
 
     public void ShowActive()
     {
-        Log.Debug($"窗口显示");
-        XMapWindow(Display, X11WindowIntPtr);
-        XFlush(Display);
+        //StaticDebugLogger.WriteLine($"窗口显示");
+        XLib.XMapWindow(Display, X11WindowIntPtr);
+        XLib.XFlush(Display);
         IsShowing = true;
     }
 
     public void Hide()
     {
-        XUnmapWindow(Display, X11WindowIntPtr);
-        XFlush(Display);
+        XLib.XUnmapWindow(Display, X11WindowIntPtr);
+        XLib.XFlush(Display);
         IsShowing = false;
     }
 
@@ -62,8 +61,8 @@ public class X11WindowNativeInterop
             throw new InvalidOperationException($"窗口已经关闭，不能重复关闭");
         }
 
-        XDestroyWindow(Display, X11WindowIntPtr);
-        XFlush(Display);
+        XLib.XDestroyWindow(Display, X11WindowIntPtr);
+        XLib.XFlush(Display);
         OnClosed();
         IsClosed = true;
     }
@@ -72,19 +71,19 @@ public class X11WindowNativeInterop
     {
     }
 
-    /// <summary>
-    /// 点击命中穿透
-    /// </summary>
-    public void SetClickThrough()
-    {
-        // 设置不接受输入
-        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
-        var region = XCreateRegion();
-        XShapeCombineRegion(Display, X11WindowIntPtr, ShapeInput, 0, 0, region, ShapeSet);
-        IsSetClickThrough = true;
-    }
+    ///// <summary>
+    ///// 点击命中穿透
+    ///// </summary>
+    //public void SetClickThrough()
+    //{
+    //    // 设置不接受输入
+    //    // 这样输入穿透到后面一层里，由后面一层将内容上报上来
+    //    var region = XCreateRegion();
+    //    XShapeCombineRegion(Display, X11WindowIntPtr, ShapeInput, 0, 0, region, ShapeSet);
+    //    IsSetClickThrough = true;
+    //}
 
-    public bool IsSetClickThrough { get; private set; }
+    //public bool IsSetClickThrough { get; private set; }
 
     [Obsolete("请使用 SetOwner 代替，这个方法的作用只是让你知道有 SetOwner 方法可以调用而已")]
     public void SetParent(IntPtr parent) => SetOwner(parent);
@@ -92,7 +91,7 @@ public class X11WindowNativeInterop
     public void SetOwner(IntPtr ownerX11WindowIntPtr)
     {
         Log.Debug($"[X11WindowNativeInterop] SetOwner ownerX11WindowIntPtr={ownerX11WindowIntPtr}");
-        XSetTransientForHint(Display, X11WindowIntPtr, ownerX11WindowIntPtr);
+        XLib.XSetTransientForHint(Display, X11WindowIntPtr, ownerX11WindowIntPtr);
     }
 
     /// <summary>
@@ -103,14 +102,14 @@ public class X11WindowNativeInterop
     {
         Log.Info($"[X11WindowNativeInterop] ResetOwnerByUnmapAndMap OwnerX11WindowIntPtr={ownerX11WindowIntPtr}");
 
-        XUnmapWindow(Display, X11WindowIntPtr);
-        XFlush(Display);
+        XLib.XUnmapWindow(Display, X11WindowIntPtr);
+        XLib.XFlush(Display);
 
         // 如果快速的 Unmap 和 Map，可能会导致 X11 窗口管理器没有正确的处理
 
-        XMapWindow(Display, X11WindowIntPtr);
-        XSetTransientForHint(Display, X11WindowIntPtr, ownerX11WindowIntPtr);
-        XFlush(Display);
+        XLib.XMapWindow(Display, X11WindowIntPtr);
+        XLib.XSetTransientForHint(Display, X11WindowIntPtr, ownerX11WindowIntPtr);
+        XLib.XFlush(Display);
     }
 
     [Obsolete("此方式是不稳妥的，只靠等待，稳妥的是 unmap X11WindowIntPtr 再 map 再设置 Owner 关系")]
@@ -120,14 +119,14 @@ public class X11WindowNativeInterop
         // 详细测试代码：https://github.com/lindexi/lindexi_gd/tree/7b5489fed420c4239d8635b4c826ceb690fbd773/X11/JawalwhofuYageakaje
         var display = Display;
         IntPtr XA_WM_TRANSIENT_FOR = (IntPtr) 68;
-        XDeleteProperty(display, X11WindowIntPtr, XA_WM_TRANSIENT_FOR);
-        XFlush(display);
+        XLib.XDeleteProperty(display, X11WindowIntPtr, XA_WM_TRANSIENT_FOR);
+        XLib.XFlush(display);
 
         // 去掉等待将无效。这是不稳妥的。在 demo 上测试没问题，但是在本项目测试是需要更大时间延迟，说不定在用户设备上再长都是无效的
         await Task.Delay(200);
 
-        XSetTransientForHint(display, X11WindowIntPtr, ownerX11WindowIntPtr);
-        XFlush(display);
+        XLib.XSetTransientForHint(display, X11WindowIntPtr, ownerX11WindowIntPtr);
+        XLib.XFlush(display);
     }
 
     public void RegisterMultiTouch([DisallowNull] XIDeviceInfo? pointerDevice)
@@ -146,12 +145,11 @@ public class X11WindowNativeInterop
             XiEventType.XI_ButtonRelease,
             XiEventType.XI_Leave,
             XiEventType.XI_Enter,
-            XiEventType.XI_DeviceChanged,
         ];
 
         List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
 
-        XiSelectEvents(Display, X11WindowIntPtr, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
+        XLib.XiSelectEvents(Display, X11WindowIntPtr, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
     }
 
     /// <summary>
@@ -161,7 +159,7 @@ public class X11WindowNativeInterop
     /// <param name="value"></param>
     public void ShowTaskbarIcon(bool value)
     {
-        var _NET_WM_STATE_SKIP_TASKBAR = XInternAtom(X11Info.Display, "_NET_WM_STATE_SKIP_TASKBAR", false);
+        var _NET_WM_STATE_SKIP_TASKBAR = XLib.XInternAtom(X11Info.Display, "_NET_WM_STATE_SKIP_TASKBAR", false);
         ChangeWMAtoms(!value, _NET_WM_STATE_SKIP_TASKBAR);
     }
 
@@ -172,13 +170,13 @@ public class X11WindowNativeInterop
             throw new ArgumentException();
         }
 
-        var wmState = XInternAtom(X11Info.Display, "_NET_WM_STATE", true);
+        var wmState = XLib.XInternAtom(X11Info.Display, "_NET_WM_STATE", true);
 
         var isMapped = IsMapped;
 
         if (!isMapped)
         {
-            XGetWindowProperty(X11Info.Display, X11WindowIntPtr, wmState, IntPtr.Zero, new IntPtr(256),
+            XLib.XGetWindowProperty(X11Info.Display, X11WindowIntPtr, wmState, IntPtr.Zero, new IntPtr(256),
                 false, (IntPtr) Atom.XA_ATOM, out _, out _, out var nitems, out _,
                 out var prop);
             var ptr = (IntPtr*) prop.ToPointer();
@@ -191,7 +189,7 @@ public class X11WindowNativeInterop
                 ptr++;
             }
 
-            XFree(prop);
+            XLib.XFree(prop);
             foreach (var atom in atoms)
             {
                 if (enable)
@@ -204,10 +202,10 @@ public class X11WindowNativeInterop
                 }
             }
 
-            XChangeProperty(X11Info.Display, X11WindowIntPtr, wmState, (IntPtr) Atom.XA_ATOM, 32,
+            XLib.XChangeProperty(X11Info.Display, X11WindowIntPtr, wmState, (IntPtr) Atom.XA_ATOM, 32,
                 PropertyMode.Replace, newAtoms.ToArray(), newAtoms.Count);
 
-            Log.Debug($"ChangeWMAtoms: {(enable ? "Enable" : "Disable")} atoms: {string.Join(", ", atoms.Select(a => a.ToString("X")))} ;  IsMapped={IsMapped}");
+            //StaticDebugLogger.WriteLine($"ChangeWMAtoms: {(enable ? "Enable" : "Disable")} atoms: {string.Join(", ", atoms.Select(a => a.ToString("X")))} ;  IsMapped={IsMapped}");
         }
 
         // 仿照 Avalonia 的写法，无论是否 Map 窗口都发送消息
@@ -219,7 +217,7 @@ public class X11WindowNativeInterop
             atoms.Length > 3 ? atoms[3] : IntPtr.Zero
         );
 
-        Log.Debug($"ChangeWMAtoms: {(enable ? "Enable" : "Disable")} atoms: {string.Join(", ", atoms.Select(a => a.ToString("X")))} ;  SendNetWMMessage");
+        //StaticDebugLogger.WriteLine($"ChangeWMAtoms: {(enable ? "Enable" : "Disable")} atoms: {string.Join(", ", atoms.Select(a => a.ToString("X")))} ;  SendNetWMMessage");
     }
 
     public void SendNetWMMessage(IntPtr message_type, IntPtr l0,
@@ -237,61 +235,61 @@ public class X11WindowNativeInterop
                 ptr1 = l0,
                 ptr2 = l1 ?? IntPtr.Zero,
                 ptr3 = l2 ?? IntPtr.Zero,
-                ptr4 = l3 ?? IntPtr.Zero,
-                ptr5 = l4 ?? IntPtr.Zero,
+                ptr4 = l3 ?? IntPtr.Zero
             }
         };
-        XSendEvent(Display, X11Info.RootWindow, false,
+        xev.ClientMessageEvent.ptr4 = l4 ?? IntPtr.Zero;
+        XLib.XSendEvent(Display, X11Info.RootWindow, false,
             new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
     }
 
-    public void EnterFullScreen(bool topmost)
-    {
-        // 下面是进入全屏
-        var display = Display;
-        var hintsPropertyAtom = X11Info.HintsPropertyAtom;
-        XChangeProperty(display, X11WindowIntPtr, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace, new nint[5]
-        {
-            2, // flags : Specify that we're changing the window decorations.
-            0, // functions
-            0, // decorations : 0 (false) means that window decorations should go bye-bye.
-            0, // inputMode
-            0, // status
-        }, 5);
+    //public void EnterFullScreen(bool topmost)
+    //{
+    //    // 下面是进入全屏
+    //    var display = Display;
+    //    var hintsPropertyAtom = X11Info.HintsPropertyAtom;
+    //    XChangeProperty(display, X11WindowIntPtr, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace, new nint[5]
+    //    {
+    //        2, // flags : Specify that we're changing the window decorations.
+    //        0, // functions
+    //        0, // decorations : 0 (false) means that window decorations should go bye-bye.
+    //        0, // inputMode
+    //        0, // status
+    //    }, 5);
 
-        ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_HIDDEN", true));
-        ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", true));
-        ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", true));
-        ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
+    //    ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_HIDDEN", true));
+    //    ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", true));
+    //    ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", true));
+    //    ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
 
-        if (topmost)
-        {
-            // 在 UNO 下，将会导致停止渲染
-            var topmostAtom = XInternAtom(display, "_NET_WM_STATE_ABOVE", true);
-            SendNetWMMessage(X11Info.WMStateAtom, new IntPtr(1), topmostAtom);
-        }
-    }
+    //    if (topmost)
+    //    {
+    //        // 在 UNO 下，将会导致停止渲染
+    //        var topmostAtom = XInternAtom(display, "_NET_WM_STATE_ABOVE", true);
+    //        SendNetWMMessage(X11Info.WMStateAtom, new IntPtr(1), topmostAtom);
+    //    }
+    //}
 
-    /// <summary>
-    /// 移动当前全屏窗口到指定的显示器
-    /// </summary>
-    /// <param name="monitorId"></param>
-    public void MoveFullScreenWindowToMonitor(string monitorId)
-    {
-        var monitorInfos = Randr15ScreensImpl.GetMonitorInfos(Display, X11WindowIntPtr);
+    ///// <summary>
+    ///// 移动当前全屏窗口到指定的显示器
+    ///// </summary>
+    ///// <param name="monitorId"></param>
+    //public void MoveFullScreenWindowToMonitor(string monitorId)
+    //{
+    //    var monitorInfos = Randr15ScreensImpl.GetMonitorInfos(Display, X11WindowIntPtr);
 
-        for (var i = 0; i < monitorInfos.Length; i++)
-        {
-            if (monitorInfos[i].GetNameText() == monitorId)
-            {
-                Log.Info($"[X11WindowNativeInterop] MoveFullScreenWindowToMonitor Find Monitor={monitorId} Index={i}");
-                MoveFullScreenWindowToMonitor(i);
-                return;
-            }
-        }
+    //    for (var i = 0; i < monitorInfos.Length; i++)
+    //    {
+    //        if (monitorInfos[i].GetNameText() == monitorId)
+    //        {
+    //            Log.Info($"[X11WindowNativeInterop] MoveFullScreenWindowToMonitor Find Monitor={monitorId} Index={i}");
+    //            MoveFullScreenWindowToMonitor(i);
+    //            return;
+    //        }
+    //    }
 
-        Log.Warn($"[X11WindowNativeInterop] MoveFullScreenWindowToMonitor can not find Monitor={monitorId}");
-    }
+    //    Log.Warn($"[X11WindowNativeInterop] MoveFullScreenWindowToMonitor can not find Monitor={monitorId}");
+    //}
 
     /// <summary>
     /// 移动当前全屏窗口到指定的显示器
@@ -306,7 +304,7 @@ public class X11WindowNativeInterop
         // Windows transient for the window with _NET_WM_FULLSCREEN_MONITORS set, such as those with type _NEW_WM_WINDOW_TYPE_DIALOG, are generally expected to be positioned (e.g. centered) with respect to only one of the monitors. This might be the monitor containing the mouse pointer or the monitor containing the non-full-screen window.
         // A Client wishing to change this list MUST send a _NET_WM_FULLSCREEN_MONITORS client message to the root window. The Window Manager MUST keep this list updated to reflect the current state of the window.
 
-        var wmState = XInternAtom(Display, "_NET_WM_FULLSCREEN_MONITORS", true);
+        var wmState = XLib.XInternAtom(Display, "_NET_WM_FULLSCREEN_MONITORS", true);
         Log.Debug($"[X11WindowNativeInterop] MoveFullScreenWindowToMonitor _NET_WM_FULLSCREEN_MONITORS={wmState}");
 
         // 如 https://github.com/underdoeg/ofxFenster/blob/6ecd5bd9b8412f98e1c4e73433e2aade2b5902c4/src/ofxFenster.cpp#L691 的代码所示。这里传入的 Left、Top、Right、Bottom 不是像素的值，而是屏幕的索引值
@@ -352,36 +350,27 @@ public class X11WindowNativeInterop
             }
         };
 
-        XSendEvent(Display, X11Info.RootWindow, false,
+        XLib.XSendEvent(Display, X11Info.RootWindow, false,
             new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
     }
 
     public void AppendPid()
     {
         // The type of `_NET_WM_PID` is `CARDINAL` which is 32-bit unsigned integer, see https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html
-<<<<<<< HEAD
-        var _NET_WM_PID = XInternAtom(Display, "_NET_WM_PID", true);
-        IntPtr XA_CARDINAL = (IntPtr) 6;
-=======
         var _NET_WM_PID = XLib.XInternAtom(Display, "_NET_WM_PID", true);
-<<<<<<< HEAD
-        IntPtr XA_CARDINAL = X11Info.X11Atoms.XA_CARDINAL;
->>>>>>> f17892e1bcef253173ca643fcdedc91bec64aadf
-=======
         IntPtr XA_CARDINAL = X11Atoms.XA_CARDINAL;
->>>>>>> c57652985be3eaa800d7536537d648ac2021917f
         var pid = (uint) Environment.ProcessId;
-        XChangeProperty(Display, X11WindowIntPtr,
+        XLib.XChangeProperty(Display, X11WindowIntPtr,
             _NET_WM_PID, XA_CARDINAL, 32,
             PropertyMode.Replace, ref pid, 1);
     }
 
     public void SetNetWmWindowTypeNormal()
     {
-        var _NET_WM_WINDOW_TYPE_NORMAL = XInternAtom(Display, "_NET_WM_WINDOW_TYPE_NORMAL", true);
-        var _NET_WM_WINDOW_TYPE = XInternAtom(Display, "_NET_WM_WINDOW_TYPE", true);
+        var _NET_WM_WINDOW_TYPE_NORMAL = XLib.XInternAtom(Display, "_NET_WM_WINDOW_TYPE_NORMAL", true);
+        var _NET_WM_WINDOW_TYPE = XLib.XInternAtom(Display, "_NET_WM_WINDOW_TYPE", true);
 
-        XChangeProperty(Display, X11WindowIntPtr, _NET_WM_WINDOW_TYPE, (IntPtr) Atom.XA_ATOM,
+        XLib.XChangeProperty(Display, X11WindowIntPtr, _NET_WM_WINDOW_TYPE, (IntPtr) Atom.XA_ATOM,
             32, PropertyMode.Replace, new[] { _NET_WM_WINDOW_TYPE_NORMAL }, 1);
     }
 

@@ -8,7 +8,7 @@ namespace X11ApplicationFramework.Apps;
 /// 管理当前 X11 平台的窗口
 /// </summary>
 [SupportedOSPlatform("Linux")]
-public class X11WindowManager
+class X11WindowManager
 {
     public IReadOnlyCollection<X11Window> Windows => _windows.Values;
 

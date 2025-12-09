@@ -180,59 +180,6 @@ namespace X11ApplicationFramework.Natives
 
             // make sure this array stays in sync with the statements below
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        private void InitAtom(ref nint field, string name, nint value)
-        {
-            if (value != IntPtr.Zero)
-            {
-                field = value;
-                _namesToAtoms[name] = value;
-                _atomsToNames[value] = name;
-            }
-        }
-
-<<<<<<< HEAD
-            var fields = typeof(X11Atoms).GetFields()
-<<<<<<< HEAD
-                .Where(f => f.FieldType == typeof(IntPtr) && (IntPtr)f.GetValue(this)! == IntPtr.Zero).ToArray();
-=======
-=======
-            var fields = typeof(X11Atoms).GetFields()
->>>>>>> 18259f370063df3bad92aa52704d51c602d6f735
-                .Where(f =>
-                {
-                    if (f.FieldType != typeof(IntPtr))
-                    {
-                        return false;
-                    }
-<<<<<<< HEAD
-=======
-        public nint GetAtom(string name)
-        {
-            if (_namesToAtoms.TryGetValue(name, out var value))
-            {
-                return value;
-            }
->>>>>>> f17892e1bcef253173ca643fcdedc91bec64aadf
-
-            nint num = XLib.XInternAtom(_display, name, only_if_exists: false);
-            _namesToAtoms[name] = num;
-            _atomsToNames[num] = name;
-            return num;
-        }
-
-        public string? GetAtomName(nint atom)
-        {
-            if (_atomsToNames.TryGetValue(atom, out string value))
-            {
-                return value;
-            }
-
-<<<<<<< HEAD
-=======
-=======
             //var fields = typeof(X11Atoms).GetFields()
             //    .Where(f =>
             //    {
@@ -240,7 +187,6 @@ namespace X11ApplicationFramework.Natives
             //        {
             //            return false;
             //        }
->>>>>>> 63d9fd7bc15a068e3884dd72cd36d685d206144c
 
             //        if (f.IsLiteral)
             //        {
@@ -260,41 +206,6 @@ namespace X11ApplicationFramework.Natives
             //                return n == 0;
             //            }
 
-<<<<<<< HEAD
->>>>>>> 18259f370063df3bad92aa52704d51c602d6f735
-                        return false;
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Field Fail. Name={f.Name} {e}");
-                        throw;
-                    }
-                }).ToArray();
-<<<<<<< HEAD
->>>>>>> 5b15653c089f8362f8cfea5ca7443c18800e97cb
-            var atomNames = fields.Select(f => f.Name).ToArray();
-=======
-            string atomName = XLib.GetAtomName(_display, atom);
-            if (atomName == null)
-            {
-                return null;
-            }
->>>>>>> f17892e1bcef253173ca643fcdedc91bec64aadf
-
-            _atomsToNames[atom] = atomName;
-            _namesToAtoms[atomName] = atom;
-            return atomName;
-        }
-
-        private void PopulateAtoms(nint display)
-        {
-=======
->>>>>>> c57652985be3eaa800d7536537d648ac2021917f
-            nint[] array = new nint[148];
-            string[] array2 = new string[148]
-=======
-            var atomNames = fields.Select(f => f.Name).ToArray();
-=======
             //            return false;
             //        }
             //        catch (Exception e)
@@ -304,24 +215,14 @@ namespace X11ApplicationFramework.Natives
             //        }
             //    }).ToArray();
             //var atomNames = fields.Select(f => f.Name).ToArray();
->>>>>>> 63d9fd7bc15a068e3884dd72cd36d685d206144c
 
             //IntPtr[] atoms = new IntPtr[atomNames.Length];
 
 
             //XLib.XInternAtoms(display, atomNames, atomNames.Length, true, atoms);
 
-<<<<<<< HEAD
-            for (var c = 0; c < fields.Length; c++)
->>>>>>> 18259f370063df3bad92aa52704d51c602d6f735
-            {
-                fields[c].SetValue(this, atoms[c]);
-                Console.WriteLine($"{fields[c].Name}={atoms[c]}");
-            }
-=======
             //for (var c = 0; c < fields.Length; c++)
             //    fields[c].SetValue(this, atoms[c]);
->>>>>>> 63d9fd7bc15a068e3884dd72cd36d685d206144c
 
             _NET_SYSTEM_TRAY_S = XLib.XInternAtom(display, "_NET_SYSTEM_TRAY_S" + screen, false);
 
