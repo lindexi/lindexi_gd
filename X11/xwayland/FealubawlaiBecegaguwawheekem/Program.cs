@@ -1,6 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using X11ApplicationFramework.Apps;
+﻿using X11ApplicationFramework.Apps;
 
 using static X11ApplicationFramework.Natives.XLib;
 
