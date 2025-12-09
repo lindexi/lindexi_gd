@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.Versioning;
 using System.Text;
+
 using X11ApplicationFramework.Apps.Threading;
 using X11ApplicationFramework.Apps.X11EventArgs;
 using X11ApplicationFramework.Natives;
@@ -57,7 +58,7 @@ public class X11Application
             if (_eventWindow is null)
             {
                 var eventWindow = XLib.CreateEventWindow(X11Info.Display, X11Info.RootWindow);
-                _eventWindow = new X11Window(this,eventWindow);
+                _eventWindow = new X11Window(this, eventWindow);
                 _eventWindow.AppendPid();
             }
 
