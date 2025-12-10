@@ -26,7 +26,7 @@ unsafe
             var x11Info = x11Application.X11Info;
 
 
-            var list = x11Info.EnumerateTopLevelWindowsViaNetClientList();
+            var list = x11Info.EnumerateChildrenViaXQueryTree();
             Console.WriteLine($"ListCount={list.Count}");
             foreach (var xWindowId in list)
             {
