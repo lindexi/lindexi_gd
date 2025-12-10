@@ -12,7 +12,8 @@ namespace X11ApplicationFramework.Utils;
 
 public static class XWindowHelper
 {
-    public static IReadOnlyList<XWindowId> EnumerateTopLevelWindowsViaNetClientList(this X11InfoManager x11Info)
+    [Obsolete("不能获取全部窗口")]
+    private static IReadOnlyList<XWindowId> EnumerateTopLevelWindowsViaNetClientList(this X11InfoManager x11Info)
     {
         var dpy = x11Info.Display;
 
@@ -52,12 +53,27 @@ public static class XWindowHelper
         return result;
     }
 
-    public static IReadOnlyList<XWindowId> EnumerateChildrenViaXQueryTree(this X11InfoManager x11Info)
+    /// <summary>
+    /// 使用 XQueryTree 获取子窗口列表
+    /// </summary>
+    /// <param name="x11Info"></param>
+    /// <param name="windowId">如果传入空，将使用 root 窗口</param>
+    /// <returns></returns>
+    public static IReadOnlyList<XWindowId> EnumerateChildrenViaXQueryTree(this X11InfoManager x11Info, XWindowId? windowId = null)
     {
         var dpy = x11Info.Display;
 
-        var root = XDefaultRootWindow(dpy);
-        var status = XQueryTree(dpy, root, out _, out _, out var children, out var count);
+        IntPtr window;
+        if (windowId != null)
+        {
+            window = windowId.Value;
+        }
+        else
+        {
+            var root = XDefaultRootWindow(dpy);
+            window = root;
+        }
+        var status = XQueryTree(dpy, window, out _, out _, out var children, out var count);
 
         //Console.WriteLine($"Tree Count={count}");
 

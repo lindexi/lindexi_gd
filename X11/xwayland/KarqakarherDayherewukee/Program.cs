@@ -2,6 +2,7 @@
 
 using X11ApplicationFramework.Apps;
 using X11ApplicationFramework.Natives;
+using X11ApplicationFramework.Primitive;
 using X11ApplicationFramework.Utils;
 
 using static X11ApplicationFramework.Natives.XLib;
@@ -24,17 +25,27 @@ unsafe
 
             var x11Info = x11Application.X11Info;
 
+
             var list = x11Info.EnumerateChildrenViaXQueryTree();
             Console.WriteLine($"ListCount={list.Count}");
             foreach (var xWindowId in list)
             {
-                //var name = x11Info.GetWindowName(xWindowId);
-                //Console.WriteLine($"XID={xWindowId.Handle:X} Name={name}");
-                Console.WriteLine($"XID={xWindowId.Handle:X}");
-                using var process = Process.Start("xprop", $"-id 0x{xWindowId.Handle:X}");
-                process.WaitForExit();
+                var name = x11Info.GetWindowName(xWindowId);
+                Console.WriteLine($"XID={xWindowId.Handle:X} Name={name}");
 
-                Console.Read();
+                var childrenWindowList = x11Info.EnumerateChildrenViaXQueryTree(xWindowId);
+                Console.WriteLine($"  Children Count={childrenWindowList.Count}");
+                foreach (var childXWindowId in childrenWindowList)
+                {
+                    name = x11Info.GetWindowName(childXWindowId);
+                    Console.WriteLine($"  XID={childXWindowId.Handle:X} Name={name}");
+                }
+
+                //Console.WriteLine($"XID={xWindowId.Handle:X}");
+                //using var process = Process.Start("xprop", $"-id 0x{xWindowId.Handle:X}");
+                //process.WaitForExit();
+
+                //Console.Read();
             }
         });
     };
