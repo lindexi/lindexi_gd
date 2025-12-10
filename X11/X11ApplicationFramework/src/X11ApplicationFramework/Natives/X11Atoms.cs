@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace X11ApplicationFramework.Natives
 {
     public class X11Atoms
     {
+        private readonly nint _display;
 
         // Our atoms
         public const IntPtr AnyPropertyType = (IntPtr) 0;
@@ -177,6 +179,8 @@ namespace X11ApplicationFramework.Natives
         public static IntPtr BeginInvoke = (IntPtr) 1501;
         public X11Atoms(IntPtr display, int screen)
         {
+            _display = display;
+
             _NET_SYSTEM_TRAY_S = XLib.XInternAtom(display, "_NET_SYSTEM_TRAY_S" + screen, false);
 
             // 以下逻辑从 Avalonia 拷贝。在 Avalonia 里使用源代码生成器生成，这个项目是直接用 ILSpy 反编译过来的代码
@@ -359,11 +363,42 @@ namespace X11ApplicationFramework.Natives
             if (value != IntPtr.Zero)
             {
                 field = value;
-                //_namesToAtoms[name] = value;
-                //_atomsToNames[value] = name;
+                _namesToAtoms[name] = value;
+                _atomsToNames[value] = name;
             }
         }
 
+        private readonly Dictionary<string, nint> _namesToAtoms = new Dictionary<string, nint>();
+
+        private readonly Dictionary<nint, string> _atomsToNames = new Dictionary<nint, string>();
+
+        public nint GetAtom(string name)
+        {
+            if (_namesToAtoms.TryGetValue(name, out var value))
+            {
+                return value;
+            }
+            nint num = XLib.XInternAtom(_display, name, only_if_exists: false);
+            _namesToAtoms[name] = num;
+            _atomsToNames[num] = name;
+            return num;
+        }
+
+        public string? GetAtomName(nint atom)
+        {
+            if (_atomsToNames.TryGetValue(atom, out string value))
+            {
+                return value;
+            }
+            string atomName = XLib.GetAtomName(_display, atom);
+            if (atomName == null)
+            {
+                return null;
+            }
+            _atomsToNames[atom] = atomName;
+            _namesToAtoms[atomName] = atom;
+            return atomName;
+        }
 
     }
 }
