@@ -69,10 +69,10 @@ public record X11InfoManager
     //    return atom;
     //}
 
-    public IntPtr GetAtom(string atomName)
-    {
-        return XInternAtom(Display, atomName, true);
-    }
+    //public IntPtr GetAtom(string atomName)
+    //{
+    //    return XInternAtom(Display, atomName, true);
+    //}
 
     #endregion
 }
