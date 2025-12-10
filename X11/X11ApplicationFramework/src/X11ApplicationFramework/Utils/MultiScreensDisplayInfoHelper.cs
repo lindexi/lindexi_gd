@@ -33,7 +33,9 @@ public static unsafe class MultiScreensDisplayInfoHelper
             {
                 var output = outputs[j];
 
-                if (TryGetEdidInfo(x11Info, output, out var edidInfo))
+                var tryGetEdidInfo = TryGetEdidInfo(x11Info, output, out var edidInfo);
+                Console.WriteLine($"TryGetEdidInfo={tryGetEdidInfo}");
+                if (tryGetEdidInfo)
                 {
                     edid = edidInfo;
                     var nameFromEdid = edidInfo.ManufacturerName;
@@ -83,14 +85,35 @@ public static unsafe class MultiScreensDisplayInfoHelper
                     hasEDID = true;
             }
 
-            if (!hasEDID)
+            List<string> atomNameList = [];
+            for (var pc = 0; pc < propertyCount; pc++)
             {
-                return false;
+                var atom = properties[pc];
+                var name = x11.X11Atoms.GetAtomName(atom);
+                if (name != null)
+                {
+                    atomNameList.Add($"{atom}({name})");
+                }
+                else
+                {
+                    atomNameList.Add($"{atom}");
+                }
             }
+
+            Console.WriteLine($"hasEDID={hasEDID} EDID={x11.X11Atoms.EDID} propertyCount={propertyCount} [{string.Join(';', atomNameList)}]");
+
+            //if (!hasEDID)
+            //{
+            //    return false;
+            //}
 
             XRRGetOutputProperty(x11.Display, rrOutput, x11.X11Atoms.EDID, 0, EDIDStructureLength, false, false,
                 X11Atoms.AnyPropertyType, out IntPtr actualType, out int actualFormat, out _, out var bytesAfter,
                 out prop);
+
+            Console.WriteLine($"actualType={actualType}");
+            Console.WriteLine($"actualFormat={actualFormat}");
+
             if (actualType != X11Atoms.XA_INTEGER)
             {
                 return false;
