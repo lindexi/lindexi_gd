@@ -13,7 +13,7 @@ namespace X11ApplicationFramework.Utils;
 public static class XWindowHelper
 {
     [Obsolete("不能获取全部窗口")]
-    private static IReadOnlyList<XWindowId> EnumerateTopLevelWindowsViaNetClientList(this X11InfoManager x11Info)
+    public static IReadOnlyList<XWindowId> EnumerateTopLevelWindowsViaNetClientList(this X11InfoManager x11Info)
     {
         var dpy = x11Info.Display;
 
