@@ -33,6 +33,11 @@ unsafe
                 var name = x11Info.GetWindowName(xWindowId);
                 Console.WriteLine($"XID={xWindowId.Handle:X} Name={name}");
 
+                XWindowAttributes attributes = default;
+                XGetWindowAttributes(x11Info.Display, xWindowId, ref attributes);
+
+                Console.WriteLine($"  X={attributes.x};Y={attributes.y};Width={attributes.width};Height={attributes.height}");
+
                 var childrenWindowList = x11Info.EnumerateChildrenViaXQueryTree(xWindowId);
                 Console.WriteLine($"  Children Count={childrenWindowList.Count}");
                 foreach (var childXWindowId in childrenWindowList)
@@ -40,12 +45,6 @@ unsafe
                     name = x11Info.GetWindowName(childXWindowId);
                     Console.WriteLine($"  XID={childXWindowId.Handle:X} Name={name}");
                 }
-
-                //Console.WriteLine($"XID={xWindowId.Handle:X}");
-                //using var process = Process.Start("xprop", $"-id 0x{xWindowId.Handle:X}");
-                //process.WaitForExit();
-
-                //Console.Read();
             }
         });
     };

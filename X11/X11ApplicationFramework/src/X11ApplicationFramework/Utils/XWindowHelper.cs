@@ -97,10 +97,17 @@ public static class XWindowHelper
 
     public static string? GetWindowName(this X11InfoManager x11Info, XWindowId window)
     {
-        return GetWindowName(x11Info.Display, window);
+        var name = GetWindowTitleViaWMName(x11Info, window);
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            return name;
+        }
+
+        return GetWindowNameViaXFetchName(x11Info.Display, window);
     }
 
-    public static string? GetWindowName(IntPtr display, IntPtr window)
+    public static string? GetWindowNameViaXFetchName(IntPtr display, IntPtr window)
     {
         nint namePtr = 0;
         if (XFetchName(display, window, ref namePtr) == 0 || namePtr == IntPtr.Zero)
@@ -116,5 +123,63 @@ public static class XWindowHelper
         {
             XFree(namePtr);
         }
+    }
+
+    public static string? GetWindowTitleViaWMName(X11InfoManager x11Info, IntPtr window)
+    {
+        // 优先尝试 _NET_WM_NAME (UTF8_STRING)
+        var display = x11Info.Display;
+        var x11Atoms = x11Info.X11Atoms;
+        var utf8String = x11Atoms.UTF8_STRING;
+        var netWmName = x11Atoms._NET_WM_NAME;
+
+        var result = XGetTextProperty(display, window, out var netProp, netWmName);
+        if (result != 0 && netProp.value != 0)
+        {
+            try
+            {
+                // 当 encoding 为 UTF8_STRING 且 format==8 时按 UTF-8 解析
+                if (netProp.encoding == utf8String && netProp.format == 8 && netProp.nitems > 0)
+                {
+                    return Marshal.PtrToStringUTF8(netProp.value);
+                }
+                // 其他编码可能为 COMPOUND_TEXT，尝试 ANSI 回退（不保证正确）
+                if (netProp.nitems > 0)
+                {
+                    return Marshal.PtrToStringAnsi(netProp.value);
+                }
+            }
+            finally
+            {
+                XFree(netProp.value);
+            }
+        }
+
+        // 回退到传统 WM_NAME
+
+        result = XGetWMName(display, window, out var prop);
+        if (result != 0 && prop.value != 0)
+        {
+            try
+            {
+                // WM_NAME 通常为 COMPOUND_TEXT/STRING，format==8，使用 ANSI 回退
+                if (prop.nitems > 0)
+                {
+                    // 若是 UTF8_STRING 也用 UTF8 解析
+                    if (prop.encoding == utf8String && prop.format == 8)
+                    {
+                        return Marshal.PtrToStringUTF8(prop.value);
+                    }
+
+                    return Marshal.PtrToStringAnsi(prop.value);
+                }
+            }
+            finally
+            {
+                XFree(prop.value);
+            }
+        }
+
+        return null;
     }
 }
