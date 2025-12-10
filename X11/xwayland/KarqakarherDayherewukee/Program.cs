@@ -28,7 +28,8 @@ unsafe
             Console.WriteLine($"ListCount={list.Count}");
             foreach (var xWindowId in list)
             {
-                Console.WriteLine(xWindowId);
+                var name = x11Info.GetWindowName(xWindowId);
+                Console.WriteLine($"XID={xWindowId} Name={name}");
             }
         });
     };
