@@ -24,12 +24,17 @@ unsafe
 
             var x11Info = x11Application.X11Info;
 
-            var list = x11Info.EnumerateTopLevelWindowsViaNetClientList();
+            var list = x11Info.EnumerateChildrenViaXQueryTree();
             Console.WriteLine($"ListCount={list.Count}");
             foreach (var xWindowId in list)
             {
-                var name = x11Info.GetWindowName(xWindowId);
-                Console.WriteLine($"XID={xWindowId} Name={name}");
+                //var name = x11Info.GetWindowName(xWindowId);
+                //Console.WriteLine($"XID={xWindowId.Handle:X} Name={name}");
+                Console.WriteLine($"XID={xWindowId.Handle:X}");
+                using var process = Process.Start("xprop", $"-id 0x{xWindowId.Handle:X}");
+                process.WaitForExit();
+
+                Console.Read();
             }
         });
     };

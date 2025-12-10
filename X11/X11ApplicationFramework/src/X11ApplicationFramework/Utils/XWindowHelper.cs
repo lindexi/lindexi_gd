@@ -52,6 +52,33 @@ public static class XWindowHelper
         return result;
     }
 
+    public static IReadOnlyList<XWindowId> EnumerateChildrenViaXQueryTree(this X11InfoManager x11Info)
+    {
+        var dpy = x11Info.Display;
+
+        var root = XDefaultRootWindow(dpy);
+        var status = XQueryTree(dpy, root, out _, out _, out var children, out var count);
+
+        //Console.WriteLine($"Tree Count={count}");
+
+        if (status == 0 || children == IntPtr.Zero || count == 0) return [];
+
+        var result = new List<XWindowId>(count);
+        // children 是 Window* 数组；每项 32-bit ID
+        for (uint i = 0; i < count; i++)
+        {
+            var w = Marshal.ReadInt32(children, (int) (i * 4));
+            if (w is 0)
+            {
+                continue;
+            }
+
+            result.Add(new XWindowId(new IntPtr(w)));
+        }
+        XFree(children);
+        return result;
+    }
+
     public static string? GetWindowName(this X11InfoManager x11Info, XWindowId window)
     {
         return GetWindowName(x11Info.Display, window);
