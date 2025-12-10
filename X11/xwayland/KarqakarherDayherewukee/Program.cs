@@ -30,8 +30,16 @@ unsafe
             Console.WriteLine($"ListCount={list.Count}");
             foreach (var xWindowId in list)
             {
-                 var name = x11Info.GetWindowName(xWindowId);
+                var name = x11Info.GetWindowName(xWindowId);
                 Console.WriteLine($"XID={xWindowId.Handle:X} Name={name}");
+
+                var childrenWindowList = x11Info.EnumerateChildrenViaXQueryTree(xWindowId);
+                Console.WriteLine($"  Children Count={childrenWindowList.Count}");
+                foreach (var childXWindowId in childrenWindowList)
+                {
+                    name = x11Info.GetWindowName(childXWindowId);
+                    Console.WriteLine($"  XID={childXWindowId.Handle:X} Name={name}");
+                }
 
                 //Console.WriteLine($"XID={xWindowId.Handle:X}");
                 //using var process = Process.Start("xprop", $"-id 0x{xWindowId.Handle:X}");
