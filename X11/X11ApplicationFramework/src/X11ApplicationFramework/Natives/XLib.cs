@@ -105,6 +105,16 @@ namespace X11ApplicationFramework.Natives
         public static extern Status XGetWindowAttributes(IntPtr display, IntPtr window, ref XWindowAttributes attributes);
 
         [DllImport(libX11)]
+        public static extern int XGetWMName(IntPtr display, IntPtr w, out XTextProperty text_prop);
+
+        [DllImport(libX11)]
+        public static extern int XGetTextProperty(
+            IntPtr display,
+            IntPtr w,
+            out XTextProperty text_prop,
+            IntPtr property);
+
+        [DllImport(libX11)]
         public static extern int XFlush(IntPtr display);
 
         [DllImport(libX11)]
