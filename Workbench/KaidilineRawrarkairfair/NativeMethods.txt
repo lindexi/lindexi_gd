@@ -1,0 +1,10 @@
+﻿ICustomDestinationList
+IObjectCollection
+IShellLinkW
+IPersistFile
+IPropertyStore
+
+PKEY_Title
+
+PropVariantClear
+CoCreateInstance
