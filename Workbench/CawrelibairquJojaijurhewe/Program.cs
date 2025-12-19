@@ -1,0 +1,32 @@
+﻿// See https://aka.ms/new-console-template for more information
+
+
+var path = @"H:\lindexi\test.txt";
+var isUDiskPath = IsUDiskPath(path);
+Console.WriteLine($"Path={path} 是 U 盘={isUDiskPath}");
+
+foreach (var driveInfo in DriveInfo.GetDrives())
+{
+    if (driveInfo.DriveType == DriveType.Removable)
+    {
+        Console.WriteLine($"{driveInfo.RootDirectory} 是 U 盘");
+    }
+}
+Console.WriteLine("Hello, World!");
+
+static bool IsUDiskPath(string path)
+{
+    if (!Path.IsPathFullyQualified(path))
+    {
+        throw new ArgumentException($"路径必须是绝对路径。 Path={path}", nameof(path));
+    }
+
+    var pathRoot = Path.GetPathRoot(path);
+    if (pathRoot is null)
+    {
+        return false;
+    }
+
+    var driveInfo = new DriveInfo(pathRoot);
+    return driveInfo.DriveType == DriveType.Removable;
+}
