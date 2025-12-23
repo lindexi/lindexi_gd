@@ -28,5 +28,6 @@ static bool IsUDiskPath(string path)
     }
 
     var driveInfo = new DriveInfo(pathRoot);
-    return driveInfo.DriveType == DriveType.Removable;
+    // 必须先判断 IsReady 属性，详细请看 [C# 获取磁盘或硬盘信息的坑，存在未就绪（IsReady = false）导致异常的问题 - wuty007 - 博客园](https://www.cnblogs.com/wuty/p/18413323 )
+    return driveInfo.IsReady && driveInfo.DriveType == DriveType.Removable;
 }
