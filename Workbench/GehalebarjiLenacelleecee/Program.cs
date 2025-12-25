@@ -4,26 +4,29 @@ using System.Buffers;
 using System.Reflection.PortableExecutable;
 using System.Text;
 
-var appFile = Path.Join(AppContext.BaseDirectory, "App.exe");
+// Signed = 947712
+// App = 947712
+
+var appFile = Path.Join(AppContext.BaseDirectory, "SignedApp.exe");
 
 // 如果已经存在则直接读取 PE 头信息，获取 Overlays 信息
 if (File.Exists(appFile))
 {
     using var fs = File.OpenRead(appFile);
     using var peReader = new PEReader(fs);
-    var overlayInfo = PeOverlayHelper.GetOverlay(fs, peReader);
-    long overlayOffset = overlayInfo.offset;
-    long overlayLength = overlayInfo.length;
-
-    Console.WriteLine($"Found overlay: offset={overlayOffset}, length={overlayLength}");
-    if (overlayLength > 0)
+    var parts = PeOverlayHelper.GetOverlayAndCertificate(fs, peReader);
+    Console.WriteLine($"Certificate: offset={parts.certificateOffset}, length={parts.certificateLength}");
+    Console.WriteLine($"Overlay before certificate: offset={parts.overlayBeforeCertOffset}, length={parts.overlayBeforeCertLength}");
+    // 示例读取前后两个 Overlay 的部分内容
+    if (parts.overlayBeforeCertLength > 0)
     {
-        fs.Seek(overlayOffset, SeekOrigin.Begin);
-        var sampleLen = (int)Math.Min(overlayLength, 64);
+        fs.Seek(parts.overlayBeforeCertOffset, SeekOrigin.Begin);
+        var sampleLen = (int)Math.Min(parts.overlayBeforeCertLength, 64);
         var sample = new byte[sampleLen];
         _ = fs.Read(sample, 0, sampleLen);
-        Console.WriteLine($"Overlay sample (first {sampleLen} bytes): {BitConverter.ToString(sample)}");
+        Console.WriteLine($"Overlay(before) sample (first {sampleLen} bytes): {BitConverter.ToString(sample)}");
     }
+   
     return;
 }
 
@@ -60,20 +63,26 @@ appFileStream.Position = 0;
 var verifyStream = appFileStream;
 using (var peReader2 = new PEReader(verifyStream))
 {
-    var overlayInfo2 = PeOverlayHelper.GetOverlay(verifyStream, peReader2);
-    long overlayOffset2 = overlayInfo2.offset;
-    long overlayLength2 = overlayInfo2.length;
-    var fileStreamLength = fileStream.Length;
-    Console.WriteLine($"Added overlay: offset={overlayOffset2}, length={overlayLength2}");
+    var parts2 = PeOverlayHelper.GetOverlayAndCertificate(verifyStream, peReader2);
+    Console.WriteLine($"Certificate: offset={parts2.certificateOffset}, length={parts2.certificateLength}");
+    Console.WriteLine($"Overlay before certificate: offset={parts2.overlayBeforeCertOffset}, length={parts2.overlayBeforeCertLength}");
 }
 
 // 计算并读取 PE Overlays 的帮助类
 static class PeOverlayHelper
 {
-    public static (long offset, long length) GetOverlay(FileStream fs, PEReader peReader)
+    // 返回证书区间、证书前的 Overlay、证书后的 Overlay
+    public static (
+        long certificateOffset,
+        long certificateLength,
+        long overlayBeforeCertOffset,
+        long overlayBeforeCertLength
+    ) GetOverlayAndCertificate(FileStream fs, PEReader peReader)
     {
         var headers = peReader.PEHeaders;
-        // 计算文件中最后一个节的末尾位置：max(Section.PointerToRawData + Section.SizeOfRawData)
+        long fileLen = fs.Length;
+
+        // 计算最后一个节结束位置
         long lastSectionEnd = 0;
         foreach (var s in headers.SectionHeaders)
         {
@@ -81,22 +90,51 @@ static class PeOverlayHelper
             if (end > lastSectionEnd)
                 lastSectionEnd = end;
         }
-
-        // 如果没有节，则使用 SizeOfHeaders 作为镜像文件末尾
         if (headers.SectionHeaders.Length == 0)
         {
             lastSectionEnd = headers.PEHeader.SizeOfHeaders;
         }
 
-        // 覆盖数据从 lastSectionEnd 开始直到文件末尾
-        long fileLen = fs.Length;
-        if (fileLen <= lastSectionEnd)
+        // 读取 Security 目录（证书位置与大小）。注意：Security 目录的 RVA 字段是文件偏移而非 RVA。
+        var securityDir = headers.PEHeader!.CertificateTableDirectory;
+        long certOffset = securityDir.Size == 0 ? 0 : securityDir.RelativeVirtualAddress; // 实际是文件偏移
+        long certLength = securityDir.Size;
+
+        // 规范：AuthentiCode 签名位于文件靠后位置，校验覆盖证书区间之外的所有数据。
+        // 我们将 Overlay 分为两段：
+        // 1) 证书前的 Overlay：从 lastSectionEnd 到 certOffset（不含证书本身）。
+        // 2) 证书后的 Overlay：从 certOffset+certLength 到文件末尾。
+
+        long beforeOffset = 0, beforeLength = 0;
+        long afterOffset = 0, afterLength = 0;
+
+        if (fileLen > lastSectionEnd)
         {
-            return (0, 0);
+            if (certLength > 0 && certOffset > lastSectionEnd)
+            {
+                beforeOffset = lastSectionEnd;
+                beforeLength = Math.Max(0, certOffset - lastSectionEnd);
+            }
+            else if (certLength == 0)
+            {
+                // 无证书则整个 lastSectionEnd 之后都是 Overlay
+                beforeOffset = lastSectionEnd;
+                beforeLength = fileLen - lastSectionEnd;
+            }
         }
 
-        long overlayOffset = lastSectionEnd;
-        long overlayLength = fileLen - lastSectionEnd;
-        return (overlayOffset, overlayLength);
+        if (certLength > 0)
+        {
+            long certEnd = certOffset + certLength;
+            if (fileLen > certEnd)
+            {
+                afterOffset = certEnd;
+                afterLength = fileLen - certEnd;
+
+                // 不会存在此情况
+            }
+        }
+
+        return (certOffset, certLength, beforeOffset, beforeLength);
     }
 }
