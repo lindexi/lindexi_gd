@@ -19,7 +19,16 @@ var chatClient = openAiClient.GetChatClient("deepseek-reasoner");
 
 ChatClientAgent aiAgent = chatClient.CreateAIAgent();
 
-await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("告诉我一个关于海盗的笑话"))
+var agentThread = aiAgent.GetNewThread();
+
+await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("告诉我一个关于海盗的笑话", agentThread))
+{
+    Console.Write(agentRunResponseUpdate.Text);
+}
+
+Console.WriteLine();
+
+await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("这个笑话不好笑，给我换一个", agentThread))
 {
     Console.Write(agentRunResponseUpdate.Text);
 }
