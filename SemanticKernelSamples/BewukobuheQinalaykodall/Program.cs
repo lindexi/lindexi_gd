@@ -21,9 +21,10 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
 
 var chatClient = openAiClient.GetChatClient("deepseek-chat");
 
-ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools: 
+ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
 [
-    AIFunctionFactory.Create(GetWeather)
+    AIFunctionFactory.Create(GetWeather),
+    AIFunctionFactory.Create(GetDateTime),
 ]);
 
 var agentThread = aiAgent.GetNewThread();
@@ -32,7 +33,7 @@ var agentRunOptions = new AgentRunOptions()
     AllowBackgroundResponses = true,
 };
 
-var agentRunResponse = await aiAgent.RunAsync("What is the weather like in Amsterdam?", agentThread, agentRunOptions);
+var agentRunResponse = await aiAgent.RunAsync("今天北京的天气咋样", agentThread, agentRunOptions);
 Console.WriteLine(agentRunResponse);
 
 Console.Read();
@@ -63,7 +64,10 @@ await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("这个�
 Console.Read();
 
 [Description("Get the weather for a given location.")]
-static string GetWeather([Description("The location to get the weather for.")] string location)
+static string GetWeather([Description("The location to get the weather for.")] string location, [Description("查询天气的日期")] string date)
 {
-    return $"The weather in {location} is cloudy with a high of 100°C.";
+    return $"查询不到 {location} 城市信息";
 }
+
+[Description("Get the current date and time.")]
+static DateTime GetDateTime() => DateTime.Now.AddYears(1000);
