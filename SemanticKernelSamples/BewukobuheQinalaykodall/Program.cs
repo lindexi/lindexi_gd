@@ -7,6 +7,8 @@ using OpenAI.Chat;
 
 using System;
 using System.ClientModel;
+using System.ComponentModel;
+
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 var keyFile = @"C:\lindexi\Work\deepseek.txt";
@@ -17,11 +19,25 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
     Endpoint = new Uri("https://api.deepseek.com/v1")
 });
 
-var chatClient = openAiClient.GetChatClient("deepseek-reasoner");
+var chatClient = openAiClient.GetChatClient("deepseek-chat");
 
-ChatClientAgent aiAgent = chatClient.CreateAIAgent();
+ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
+[
+    AIFunctionFactory.Create(GetWeather),
+    AIFunctionFactory.Create(GetDateTime),
+]);
 
 var agentThread = aiAgent.GetNewThread();
+var agentRunOptions = new AgentRunOptions()
+{
+    AllowBackgroundResponses = true,
+};
+
+var agentRunResponse = await aiAgent.RunAsync("今天北京的天气咋样", agentThread, agentRunOptions);
+Console.WriteLine(agentRunResponse);
+
+Console.Read();
+return;
 
 /*
 System.ClientModel.ClientResultException:“HTTP 400 (invalid_request_error: invalid_request_error)
@@ -46,3 +62,12 @@ await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("这个�
 }
 
 Console.Read();
+
+[Description("Get the weather for a given location.")]
+static string GetWeather([Description("The location to get the weather for.")] string location, [Description("查询天气的日期")] string date)
+{
+    return $"查询不到 {location} 城市信息";
+}
+
+[Description("Get the current date and time.")]
+static DateTime GetDateTime() => DateTime.Now.AddYears(1000);
