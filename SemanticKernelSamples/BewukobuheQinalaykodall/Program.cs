@@ -1,8 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
 using System.ClientModel;
-using Azure.AI.OpenAI;
-using Azure.Identity;
 
 using Microsoft.Agents.AI;
 
@@ -12,20 +10,16 @@ using OpenAI.Chat;
 var keyFile = @"C:\lindexi\Work\deepseek.txt";
 var key = File.ReadAllText(keyFile);
 
-var openAiClient = new OpenAIClient(new ApiKeyCredential(key),new OpenAIClientOptions()
+var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientOptions()
 {
     Endpoint = new Uri("https://api.deepseek.com/v1")
 });
+
 var chatClient = openAiClient.GetChatClient("deepseek-chat");
-var result = chatClient.CompleteChat([new UserChatMessage("Tell me a joke about a pirate.")]);
-var chatCompletion = result.Value;
 
-AIAgent agent = new AzureOpenAIClient(
-        new Uri("https://api.deepseek.com/"),
-        new ApiKeyCredential(key))
-    .GetChatClient("deepseek-chat")
-    .CreateAIAgent(instructions: "You are good at telling jokes.");
+ChatClientAgent aiAgent = chatClient.CreateAIAgent();
 
-Console.WriteLine(await agent.RunAsync("Tell me a joke about a pirate."));
+AgentRunResponse runResponse = await aiAgent.RunAsync("告诉我一个关于海盗的笑话");
+Console.WriteLine(runResponse);
 
-Console.WriteLine("Hello, World!");
+Console.Read();
