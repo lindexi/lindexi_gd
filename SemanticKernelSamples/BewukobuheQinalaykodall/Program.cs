@@ -47,7 +47,7 @@ var functionApprovalRequests = agentRunResponse.Messages
 
 FunctionApprovalRequestContent requestContent = functionApprovalRequests.First();
 Console.WriteLine($"请求执行 '{requestContent.FunctionCall.Name}'");
-FunctionApprovalResponseContent functionApprovalResponseContent = requestContent.CreateResponse(approved: false);
+FunctionApprovalResponseContent functionApprovalResponseContent = requestContent.CreateResponse(approved: true);
 // 将确认结果加入对话
 var agentRunResponse2 = await aiAgent.RunAsync(new ChatMessage(ChatRole.User, [functionApprovalResponseContent]), agentThread);
 
