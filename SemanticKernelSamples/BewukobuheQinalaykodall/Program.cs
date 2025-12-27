@@ -7,6 +7,8 @@ using OpenAI.Chat;
 
 using System;
 using System.ClientModel;
+using System.ComponentModel;
+
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 var keyFile = @"C:\lindexi\Work\deepseek.txt";
@@ -17,11 +19,24 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
     Endpoint = new Uri("https://api.deepseek.com/v1")
 });
 
-var chatClient = openAiClient.GetChatClient("deepseek-reasoner");
+var chatClient = openAiClient.GetChatClient("deepseek-chat");
 
-ChatClientAgent aiAgent = chatClient.CreateAIAgent();
+ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools: 
+[
+    AIFunctionFactory.Create(GetWeather)
+]);
 
 var agentThread = aiAgent.GetNewThread();
+var agentRunOptions = new AgentRunOptions()
+{
+    AllowBackgroundResponses = true,
+};
+
+var agentRunResponse = await aiAgent.RunAsync("What is the weather like in Amsterdam?", agentThread, agentRunOptions);
+Console.WriteLine(agentRunResponse);
+
+Console.Read();
+return;
 
 /*
 System.ClientModel.ClientResultException:“HTTP 400 (invalid_request_error: invalid_request_error)
@@ -46,3 +61,9 @@ await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("这个�
 }
 
 Console.Read();
+
+[Description("Get the weather for a given location.")]
+static string GetWeather([Description("The location to get the weather for.")] string location)
+{
+    return $"The weather in {location} is cloudy with a high of 100°C.";
+}
