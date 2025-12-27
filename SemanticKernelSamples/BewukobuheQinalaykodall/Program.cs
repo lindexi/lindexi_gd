@@ -21,9 +21,13 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
 
 var chatClient = openAiClient.GetChatClient("deepseek-chat");
 
+AIFunction weatherFunction = AIFunctionFactory.Create(GetWeather);
+#pragma warning disable MEAI001
+AIFunction approvalRequiredWeatherFunction = new ApprovalRequiredAIFunction(weatherFunction);
+
 ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
 [
-    AIFunctionFactory.Create(GetWeather),
+    approvalRequiredWeatherFunction,
     AIFunctionFactory.Create(GetDateTime),
 ]);
 
@@ -34,7 +38,20 @@ var agentRunOptions = new AgentRunOptions()
 };
 
 var agentRunResponse = await aiAgent.RunAsync("今天北京的天气咋样", agentThread, agentRunOptions);
-Console.WriteLine(agentRunResponse);
+
+// 人类确认的内容
+var functionApprovalRequests = agentRunResponse.Messages
+    .SelectMany(x => x.Contents)
+    .OfType<FunctionApprovalRequestContent>()
+    .ToList();
+
+FunctionApprovalRequestContent requestContent = functionApprovalRequests.First();
+Console.WriteLine($"请求执行 '{requestContent.FunctionCall.Name}'");
+FunctionApprovalResponseContent functionApprovalResponseContent = requestContent.CreateResponse(approved: false);
+// 将确认结果加入对话
+var agentRunResponse2 = await aiAgent.RunAsync(new ChatMessage(ChatRole.User, [functionApprovalResponseContent]), agentThread);
+
+Console.WriteLine(agentRunResponse2);
 
 Console.Read();
 return;
