@@ -15,7 +15,7 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
     Endpoint = new Uri("https://api.deepseek.com/v1")
 });
 
-var chatClient = openAiClient.GetChatClient("deepseek-chat");
+var chatClient = openAiClient.GetChatClient("deepseek-reasoner");
 
 ChatClientAgent aiAgent = chatClient.CreateAIAgent();
 
