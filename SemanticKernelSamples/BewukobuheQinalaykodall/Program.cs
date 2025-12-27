@@ -1,11 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using System;
-using System.ClientModel;
-
 using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 
 using OpenAI;
 using OpenAI.Chat;
+
+using System;
+using System.ClientModel;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 var keyFile = @"C:\lindexi\Work\deepseek.txt";
 var key = File.ReadAllText(keyFile);
@@ -19,7 +21,13 @@ var chatClient = openAiClient.GetChatClient("deepseek-chat");
 
 ChatClientAgent aiAgent = chatClient.CreateAIAgent();
 
-await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("告诉我一个关于海盗的笑话"))
+ChatMessage message = new(ChatRole.User, 
+[
+    new TextContent("Tell me a joke about this image?"),
+    new UriContent("https://upload.wikimedia.org/wikipedia/commons/1/11/Joseph_Grimaldi.jpg", "image/jpeg")
+]);
+
+await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync(message))
 {
     Console.Write(agentRunResponseUpdate.Text);
 }
