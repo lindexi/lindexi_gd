@@ -19,7 +19,9 @@ var chatClient = openAiClient.GetChatClient("deepseek-chat");
 
 ChatClientAgent aiAgent = chatClient.CreateAIAgent();
 
-AgentRunResponse runResponse = await aiAgent.RunAsync("告诉我一个关于海盗的笑话");
-Console.WriteLine(runResponse);
+await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync("告诉我一个关于海盗的笑话"))
+{
+    Console.Write(agentRunResponseUpdate.Text);
+}
 
 Console.Read();
