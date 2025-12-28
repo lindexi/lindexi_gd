@@ -1,0 +1,85 @@
+﻿// See https://aka.ms/new-console-template for more information
+
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+
+using OpenAI;
+using OpenAI.Chat;
+
+using System;
+using System.ClientModel;
+using System.ComponentModel;
+
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+
+var keyFile = @"C:\lindexi\Work\deepseek.txt";
+var key = File.ReadAllText(keyFile);
+
+var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientOptions()
+{
+    Endpoint = new Uri("https://api.deepseek.com/v1")
+});
+
+ChatClient chatClient = openAiClient.GetChatClient("deepseek-chat");
+IChatClient chatClientMicrosoftExtensions = chatClient.AsIChatClient();
+var chatClientAgent = new ChatClientAgent(chatClientMicrosoftExtensions);
+
+AIFunction weatherFunction = AIFunctionFactory.Create(GetWeather);
+
+ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
+[
+    weatherFunction,
+    AIFunctionFactory.Create(GetDateTime),
+]);
+
+var agentWithMiddleware = aiAgent.AsBuilder()
+    .Use(runFunc: CustomAgentRunMiddleware, runStreamingFunc: null)
+    .Use(CustomFunctionCallingMiddleware)
+    .Build();
+
+var agentRunResponse = await agentWithMiddleware.RunAsync("今天北京的天气咋样");
+
+Console.WriteLine(agentRunResponse);
+
+Console.Read();
+return;
+
+
+[Description("Get the weather for a given location.")]
+static string GetWeather([Description("The location to get the weather for.")] string location,
+    [Description("查询天气的日期")] string date)
+{
+    return $"查询不到 {location} 城市信息";
+}
+
+[Description("Get the current date and time.")]
+static async Task<DateTime> GetDateTime() => DateTime.Now.AddYears(1000);
+
+async Task<AgentRunResponse> CustomAgentRunMiddleware
+(
+    IEnumerable<ChatMessage> messages,
+    AgentThread? thread,
+    AgentRunOptions? options,
+    AIAgent innerAgent,
+    CancellationToken cancellationToken
+)
+{
+    Console.WriteLine($"Input: {messages.Count()}");
+    var response = await innerAgent.RunAsync(messages, thread, options, cancellationToken).ConfigureAwait(false);
+    Console.WriteLine($"Output: {response.Messages.Count}");
+    return response;
+}
+
+async ValueTask<object?> CustomFunctionCallingMiddleware
+(
+    AIAgent agent,
+    FunctionInvocationContext context,
+    Func<FunctionInvocationContext, CancellationToken, ValueTask<object?>> next,
+    CancellationToken cancellationToken)
+{
+    Console.WriteLine($"Function Name: {context!.Function.Name}");
+    var result = await next(context, cancellationToken);
+    Console.WriteLine($"Function Call Result: {result}");
+
+    return result;
+}
