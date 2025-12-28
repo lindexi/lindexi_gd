@@ -12,8 +12,19 @@ using System.ComponentModel;
 
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
+
 var keyFile = @"C:\lindexi\Work\deepseek.txt";
 var key = File.ReadAllText(keyFile);
+
+#pragma warning disable MEAI001
+var messageCountingChatReducer = new MessageCountingChatReducer(2);
+var inMemoryChatMessageStore = new InMemoryChatMessageStore(messageCountingChatReducer);
+inMemoryChatMessageStore.Add(new ChatMessage(ChatRole.User, "asdasdasd1"));
+inMemoryChatMessageStore.Add(new ChatMessage(ChatRole.User, "asdasdasd2"));
+inMemoryChatMessageStore.Add(new ChatMessage(ChatRole.User, "asdasdasd3"));
+inMemoryChatMessageStore.Add(new ChatMessage(ChatRole.User, "asdasdasd4"));
+inMemoryChatMessageStore.Add(new ChatMessage(ChatRole.User, "asdasdasd5"));
+var chatMessages = await inMemoryChatMessageStore.GetMessagesAsync();
 
 var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientOptions()
 {
@@ -21,6 +32,7 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
 });
 
 var chatClient = openAiClient.GetChatClient("deepseek-chat");
+
 
 AIFunction weatherFunction = AIFunctionFactory.Create(GetWeather);
 
