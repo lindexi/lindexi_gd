@@ -51,7 +51,7 @@ static string GetWeather([Description("The location to get the weather for.")] s
 }
 
 [Description("Get the current date and time.")]
-static DateTime GetDateTime() => DateTime.Now.AddYears(1000);
+static async Task<DateTime> GetDateTime() => DateTime.Now.AddYears(1000);
 
 async Task<AgentRunResponse> CustomAgentRunMiddleware
 (
