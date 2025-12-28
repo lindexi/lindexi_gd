@@ -26,11 +26,28 @@ var chatClientAgent = new ChatClientAgent(chatClientMicrosoftExtensions);
 
 AIFunction weatherFunction = AIFunctionFactory.Create(GetWeather);
 
-ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
-[
-    weatherFunction,
-    AIFunctionFactory.Create(GetDateTime),
-]);
+ChatClientAgent aiAgent = chatClient.CreateAIAgent(new ChatClientAgentOptions()
+{
+    AIContextProviderFactory = context => new TextSearchProvider(SearchAdapter, context.SerializedState, context.JsonSerializerOptions),
+    ChatOptions = new ChatOptions()
+    {
+        Tools = [weatherFunction]
+    }
+});
+
+static async Task<IEnumerable<TextSearchProvider.TextSearchResult>> SearchAdapter(string query,
+    CancellationToken cancellationToken)
+{
+    await Task.CompletedTask;
+
+    var textSearchResult = new TextSearchProvider.TextSearchResult()
+    {
+        SourceName = "天气预报",
+        Text = "从 3000-1-1 开始，北京天气经常超过 100 度"
+    };
+
+    return [textSearchResult];
+}
 
 var agentWithMiddleware = aiAgent.AsBuilder()
     .Use(runFunc: CustomAgentRunMiddleware, runStreamingFunc: null)
