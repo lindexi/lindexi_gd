@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace X11ApplicationFramework.Utils.Edid;
 
@@ -31,10 +33,40 @@ public readonly record struct EdidInfo
 
     private const int MinEdidDataLength = 128;
 
+    [SupportedOSPlatform("windows")]
+    public static ReadEdidInfoResult ReadFromWindows()
+    {
+        var edidInfoList = new List<EdidInfo>();
+        string? errorMessage = null;
+        foreach (var rawEdid in Win32EdidReader.GetEDID())
+        {
+            var result = ReadEdid(rawEdid.Data);
+            if (result.IsSuccess)
+            {
+                edidInfoList.AddRange(result.EdidInfoList);
+            }
+            else
+            {
+                errorMessage ??= result.ErrorMessage;
+            }
+        }
+
+        if (edidInfoList.Count > 0)
+        {
+            return ReadEdidInfoResult.Success(edidInfoList);
+        }
+
+        errorMessage ??= "找不到可用的 EDID 信息";
+        return ReadEdidInfoResult.Fail(errorMessage);
+    }
+
+    [SupportedOSPlatform("linux")]
     public static ReadEdidInfoResult ReadFormLinux()
     {
         var drmFolder = "/sys/class/drm/";
 
+        var edidInfoList = new List<EdidInfo>();
+        string? errorMessage = null;
         foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
         {
             var enableFile = Path.Join(subFolder, "enabled");
@@ -47,13 +79,27 @@ public readonly record struct EdidInfo
                     var edid = Path.Join(subFolder, "edid");
                     if (File.Exists(edid))
                     {
-                        return ReadEdidFromFile(edid);
+                        var result = ReadEdidFromFile(edid);
+                        if (result.IsSuccess)
+                        {
+                            edidInfoList.AddRange(result.EdidInfoList);
+                        }
+                        else
+                        {
+                            errorMessage ??= result.ErrorMessage;
+                        }
                     }
                 }
             }
         }
 
-        return ReadEdidInfoResult.Fail("找不到可用的 EDID 文件");
+        if (edidInfoList.Count > 0)
+        {
+            return ReadEdidInfoResult.Success(edidInfoList);
+        }
+
+        errorMessage ??= "找不到可用的 EDID 文件";
+        return ReadEdidInfoResult.Fail(errorMessage);
     }
 
     public static ReadEdidInfoResult ReadEdidFromFile(string edidFile)
@@ -153,7 +199,7 @@ public readonly record struct EdidInfo
             FeatureSupport = featureSupport,
         };
 
-        return ReadEdidInfoResult.Success(new EdidInfo()
+        return ReadEdidInfoResult.Success([new EdidInfo()
         {
             ManufacturerNameChar0 = nameChar0,
             ManufacturerNameChar1 = nameChar1,
@@ -166,6 +212,6 @@ public readonly record struct EdidInfo
             Revision = revision,
 
             BasicDisplayParameters = edidBasicDisplayParameters,
-        });
+        }]);
     }
 }
