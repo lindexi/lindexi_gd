@@ -36,28 +36,7 @@ public readonly record struct EdidInfo
     [SupportedOSPlatform("windows")]
     public static ReadEdidInfoResult ReadFromWindows()
     {
-        var edidInfoList = new List<EdidInfo>();
-        string? errorMessage = null;
-        foreach (var rawEdid in Win32EdidReader.GetEDID())
-        {
-            var result = ReadEdid(rawEdid.Data);
-            if (result.IsSuccess)
-            {
-                edidInfoList.AddRange(result.EdidInfoList);
-            }
-            else
-            {
-                errorMessage ??= result.ErrorMessage;
-            }
-        }
-
-        if (edidInfoList.Count > 0)
-        {
-            return ReadEdidInfoResult.Success(edidInfoList);
-        }
-
-        errorMessage ??= "找不到可用的 EDID 信息";
-        return ReadEdidInfoResult.Fail(errorMessage);
+        return Win32EdidReader.GetEDID();
     }
 
     [SupportedOSPlatform("linux")]

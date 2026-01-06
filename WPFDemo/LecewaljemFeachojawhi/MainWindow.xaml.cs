@@ -36,8 +36,7 @@ public partial class MainWindow : Window
             var edid = edids[i];
             stringBuilder
                 .AppendLine($"Edid Manufacturer: {edid.ManufacturerName}")
-                .AppendLine($"{edid.BasicDisplayParameters.MonitorPhysicalWidth} x {edid.BasicDisplayParameters.MonitorPhysicalHeight}")
-                ;
+                .AppendLine($"{edid.BasicDisplayParameters.MonitorPhysicalWidth} x {edid.BasicDisplayParameters.MonitorPhysicalHeight}");
 
             if (i < edids.Count - 1)
             {
