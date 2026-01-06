@@ -7,15 +7,13 @@ using System.Threading.Tasks;
 
 namespace X11ApplicationFramework.Utils.Edid;
 
-internal record RawEdid(byte[] Data);
-
 internal static class Win32EdidReader
 {
     #region EDID Method
 
-    public static RawEdid[] GetEDID()
+    public static ReadEdidInfoResult GetEDID()
     {
-        var lsi = new List<RawEdid>();
+        var list = new List<EdidInfo>();
         var pGuid = Marshal.AllocHGlobal(Marshal.SizeOf(GUID_CLASS_MONITOR));
         Marshal.StructureToPtr(GUID_CLASS_MONITOR, pGuid, false);
         var hDevInfo = SetupDiGetClassDevsEx(
@@ -44,7 +42,7 @@ internal static class Win32EdidReader
                 if ((ddMon.StateFlags & DisplayDeviceStateFlags.AttachedToDesktop) != 0 &&
                     (ddMon.StateFlags & DisplayDeviceStateFlags.MirroringDriver) == 0)
                 {
-                    bFoundDevice = GetActualEDID(out DeviceID, lsi);
+                    bFoundDevice = GetActualEDID(out DeviceID, list);
                 }
                 devMon++;
 
@@ -57,14 +55,16 @@ internal static class Win32EdidReader
             dev++;
         }
 
-        return lsi.ToArray();
+        Marshal.FreeHGlobal(pGuid);
+
+        return new ReadEdidInfoResult(list.Count > 0, "", list);
     }
 
     const int DICS_FLAG_GLOBAL = 0x00000001;
     const int DIREG_DEV = 0x00000001;
     const int KEY_READ = 0x20019;
 
-    private static bool GetActualEDID(out string DeviceID, List<RawEdid> lsi)
+    private static bool GetActualEDID(out string DeviceID, List<EdidInfo> list)
     {
         var pGuid = Marshal.AllocHGlobal(Marshal.SizeOf(GUID_CLASS_MONITOR));
         Marshal.StructureToPtr(GUID_CLASS_MONITOR, pGuid, false);
@@ -103,10 +103,10 @@ internal static class Win32EdidReader
                 if (hDevRegKey == 0)
                     continue;
 
-                var si = PullEDID(hDevRegKey);
-                if (si != null)
+                var edid = PullEDID(hDevRegKey);
+                if (edid != null)
                 {
-                    lsi.Add(si);
+                    list.Add(edid.Value);
                 }
                 RegCloseKey(hDevRegKey);
             }
@@ -119,9 +119,10 @@ internal static class Win32EdidReader
 
     private const int ERROR_SUCCESS = 0;
 
-    private static RawEdid? PullEDID(nuint hDevRegKey)
+    private static EdidInfo? PullEDID(nuint hDevRegKey)
     {
-        RawEdid? si = null;
+        EdidInfo? edidInfo = null;
+
         var valueName = new StringBuilder(128);
         uint ActualValueNameLength = 128;
 
@@ -144,13 +145,19 @@ internal static class Win32EdidReader
             if (size < 1)
                 continue;
 
-            var actualData = new byte[size];
-            Marshal.Copy(pEDIdata, actualData, 0, size);
-            si = new RawEdid(actualData);
+            unsafe
+            {
+                var edidData = new Span<byte>((void*) pEDIdata, size);
+                var result = EdidInfo.ReadEdid(edidData);
+                if (result.IsSuccess)
+                {
+                    edidInfo = result.EdidInfo;
+                }
+            }
         }
 
         Marshal.FreeHGlobal(pEDIdata);
-        return si;
+        return edidInfo;
     }
 
     #endregion
