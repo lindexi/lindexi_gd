@@ -1,7 +1,11 @@
-﻿namespace X11ApplicationFramework.Utils.Edid;
+﻿using System.Collections.Generic;
 
-public readonly record struct ReadEdidInfoResult(bool IsSuccess, string ErrorMessage, EdidInfo EdidInfo)
+namespace X11ApplicationFramework.Utils.Edid;
+
+public readonly record struct ReadEdidInfoResult(bool IsSuccess, string ErrorMessage, IReadOnlyList<EdidInfo> EdidInfoList)
 {
-    public static ReadEdidInfoResult Success(EdidInfo edidInfo) => new ReadEdidInfoResult(true, "Success", edidInfo);
-    public static ReadEdidInfoResult Fail(string errorMessage) => new ReadEdidInfoResult(false, errorMessage, default);
+    public EdidInfo EdidInfo => EdidInfoList.Count > 0 ? EdidInfoList[0] : default;
+
+    public static ReadEdidInfoResult Success(IReadOnlyList<EdidInfo> edidInfoList) => new ReadEdidInfoResult(true, "Success", edidInfoList);
+    public static ReadEdidInfoResult Fail(string errorMessage) => new ReadEdidInfoResult(false, errorMessage, []);
 }
