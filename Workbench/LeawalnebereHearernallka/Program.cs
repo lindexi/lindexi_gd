@@ -2,9 +2,14 @@
 
 SortedList<int, int> list = [];
 
-list.Add(0, 0);
-list.Add(0, 1);
-list.Add(0, 2);
+//list.Add(0, 0);
+//list.Add(0, 1);
+//list.Add(0, 2);
+
+if (list.Values is IReadOnlyList<int> value)
+{
+    
+}
 
 list.Values.Add(2);
 
