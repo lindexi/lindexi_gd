@@ -24,6 +24,10 @@ internal class StandardInstallerProgram
            
             return 0;
         })
+        .AddHandler<DefaultOption>(option =>
+        {
+
+        })
             .RunAsync();
 
     }
