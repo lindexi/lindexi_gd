@@ -29,6 +29,5 @@ internal class StandardInstallerProgram
 
         })
             .RunAsync();
-
     }
 }
