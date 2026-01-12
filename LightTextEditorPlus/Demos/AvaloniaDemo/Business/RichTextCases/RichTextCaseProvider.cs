@@ -502,6 +502,19 @@ partial class RichTextCaseProvider
             }));
         }, "添加背景色");
 
+        Add(editor =>
+        {
+            var text = "德国化学家维勒通过蒸发氰酸铵";
+            editor.UseWpfLineSpacingStyle();
+            editor.AppendRun(new SkiaTextRun(text, editor.StyleRunProperty with
+            {
+                Background = SKColors.Red,
+                FontSize = 30,
+                FontName = new FontName("华文楷体"),
+                FontWeight = SKFontStyleWeight.Bold,
+            }));
+        }, "测试加粗字体的渲染");
+
         //Add(editor =>
         //{
         //    editor.UseWpfLineSpacingStyle();
