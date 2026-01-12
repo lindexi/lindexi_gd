@@ -19,10 +19,14 @@ internal class StandardInstallerProgram
     {
         var commandLine = CommandLine.Parse(args);
 
-        var result = await commandLine.AddHandler(async (DebugShowInstallerContentOption option) =>
+        var result = await commandLine.AddHandler<DebugShowInstallerContentOption>(async option =>
         {
            
             return 0;
+        })
+        .AddHandler<DefaultOption>(option =>
+        {
+
         })
             .RunAsync();
 

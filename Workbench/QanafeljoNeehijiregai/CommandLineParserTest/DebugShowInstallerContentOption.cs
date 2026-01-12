@@ -9,3 +9,6 @@ namespace DotNetCampus.Installer.Lib.Commandlines;
 public class DebugShowInstallerContentOption
 {
 }
+
+[Command]
+internal record DefaultOption();
