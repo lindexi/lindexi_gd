@@ -1,5 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
+
 using CommandLineParserTest;
+
+args =
+[
+    "debug",
+    "ShowContent"
+];
 
 var standardInstallerProgram = new StandardInstallerProgram();
 await standardInstallerProgram.RunDefaultCommandLine(args);
