@@ -245,7 +245,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         Debug.Assert(glyphInfoListCount > 0, "必定能找到至少一个字符");
 
         // 2. 通过 Skia 获取 Glyph 的渲染尺寸
-        TextPoolArrayContext<SKRect> glyphIndexContext =
+        using TextPoolArrayContext<SKRect> glyphIndexContext =
             GetGlyphBoundsBySkia(glyphInfoSpan, skFont, updateLayoutContext);
         Span<SKRect> glyphBounds = glyphIndexContext.Span;
 
