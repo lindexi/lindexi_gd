@@ -251,6 +251,12 @@ public class SkiaPlatformResourceManager :
         renderSkFont.Edging = edging;
         renderSkFont.Subpixel = edging != SKFontEdging.Alias;
 
+        SKFontStyleWeight semiBoldWeight = SKFontStyleWeight.SemiBold;
+        if ((int) runProperty.FontWeight >= (int) semiBoldWeight && (int) skTypeface.FontWeight < (int) semiBoldWeight)
+        {
+            renderSkFont.Embolden = true;
+        }
+
         SKPaint skPaint = new SKPaint(renderSkFont);
         // skPaint 已经用上 SKFont 的字号属性，不需要再设置 TextSize 属性
         //skPaint.TextSize = runProperty.FontSize;
