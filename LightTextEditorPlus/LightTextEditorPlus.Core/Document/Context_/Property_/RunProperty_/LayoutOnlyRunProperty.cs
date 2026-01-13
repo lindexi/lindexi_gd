@@ -60,7 +60,7 @@ namespace LightTextEditorPlus.Core.Document
         private readonly FontName? _fontFamily;
 
         /// <summary>
-        /// 上下标
+        /// 上下标。可通过 <see cref="TextFontVariant"/> 静态属性设置值，如 <code>TextFontVariant.Normal</code>，或直接使用 <see cref="TextFontVariants"/> 枚举
         /// </summary>
         public TextFontVariant FontVariant { get; init; } = TextFontVariant.Normal;
 
