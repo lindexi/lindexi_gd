@@ -504,15 +504,21 @@ partial class RichTextCaseProvider
 
         Add(editor =>
         {
-            var text = "德国化学家维勒通过蒸发氰酸铵";
             editor.UseWpfLineSpacingStyle();
-            editor.AppendRun(new SkiaTextRun(text, editor.StyleRunProperty with
+            SkiaTextRunProperty runProperty = editor.StyleRunProperty with
             {
                 Background = SKColors.Red,
-                FontSize = 30,
+                FontSize = 25,
                 FontName = new FontName("华文楷体"),
                 FontWeight = SKFontStyleWeight.Bold,
+            };
+            editor.AppendRun(new SkiaTextRun("德国化学家维勒通过蒸发氰酸铵NH", runProperty));
+            editor.AppendRun(new SkiaTextRun("4", runProperty with
+            {
+                FontVariant = TextFontVariants.Subscript
             }));
+            editor.AppendRun(new SkiaTextRun("CNO", runProperty));
+
         }, "测试加粗字体的渲染");
 
         //Add(editor =>
