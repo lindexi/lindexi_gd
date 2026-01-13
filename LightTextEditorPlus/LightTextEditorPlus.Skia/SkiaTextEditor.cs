@@ -130,7 +130,9 @@ public partial class SkiaTextEditor : IRenderManager
         }
 
         RenderInfoProvider renderInfoProvider = TextEditorCore.GetRenderInfo();
-        IRenderManager renderManager = this;
+
+        var renderManager = TextEditorCore.PlatformProvider.GetRenderManager();
+        renderManager ??= this;
         renderManager.Render(renderInfoProvider);
     }
 
