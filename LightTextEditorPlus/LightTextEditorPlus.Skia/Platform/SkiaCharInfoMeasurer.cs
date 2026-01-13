@@ -381,6 +381,26 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
 
+        // 假的粗体渲染效果。如果 Skia 开启了 FakeBoldText (skPaint.FakeBoldText = true) 那么这里也需要设置，否则 HarfBuzz 获取到的 GlyphAdvance 会偏小
+        // 从而导致光标定位不准确
+        var isFakeBoldText = skFont.Embolden;
+        if (isFakeBoldText)
+        {
+            // 数量抄自 Skia 的 SkFont::setEmbolden 逻辑
+            // https://github.com/google/skia/blob/46d0309199d2121e7d83391d84814d436a53bc77/src/core/SkFont.cpp#L48
+            // SkScalar SkFontPriv::ApproximateTransformedTextSize(const SkFont& font, const SkMatrix& matrix,
+            //                                                const SkPoint& textLocation) {
+            // ...
+            // if (font.isEmbolden()) {
+            //    return SkScalarMul(textSize, kEmboldenTextSizeScale);
+            // }
+            // 不过这里不是 TextSize 而是 Weight 或者是其他
+            // 我也没看懂 Skia 的逻辑。不过经过实验，设置为 20 的效果是差不多的
+            
+            // 当前 HarfBuzzSharp 版本 (2.88.7) 尚未不仅包含 SetSyntheticBold 方法，暂时先屏蔽此逻辑
+            // font.SetSyntheticBold(20, 20, 0, 0); // 这个数量不是 20 而是根据 em 等计算的，暂时先写死 20 试试
+        }
+
         font.Shape(buffer);
 
         font.GetScale(out var scaleX, out _);
