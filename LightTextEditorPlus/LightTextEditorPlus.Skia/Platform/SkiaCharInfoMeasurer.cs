@@ -230,6 +230,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         // 1. 通过 Harfbuzz 进行 Shape 获取 Glyph 信息
         SKFont skFont = renderingRunPropertyInfo.Font;
+        bool isBold = skFont.Typeface.IsBold;
+
         ReadOnlySpan<char> text = charDataListToCharSpanResult.CharSpan;
         using TextPoolArrayContext<TextGlyphInfo> textGlyphInfoContext =
             ShapeByHarfBuzz(text, skFont, updateLayoutContext);
@@ -245,9 +247,10 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         Debug.Assert(glyphInfoListCount > 0, "必定能找到至少一个字符");
 
         // 2. 通过 Skia 获取 Glyph 的渲染尺寸
-        using TextPoolArrayContext<SKRect> glyphIndexContext =
+        using var glyphBoundsBySkia =
             GetGlyphBoundsBySkia(glyphInfoSpan, skFont, updateLayoutContext);
-        Span<SKRect> glyphBounds = glyphIndexContext.Span;
+        Span<SKRect> glyphSkiaBounds = glyphBoundsBySkia.Bounds;
+        Span<float> glyphSkiaWidths = glyphBoundsBySkia.Widths;
 
         DebugGetRenderInfo(glyphInfoSpan, updateLayoutContext);
 
@@ -271,12 +274,18 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         for (int i = 0; i < glyphInfoListCount; i++)
         {
-            var renderBounds = glyphBounds[i];
+            var renderBounds = glyphSkiaBounds[i];
             TextGlyphInfo glyphInfo = glyphInfoSpan[i];
             var advance = glyphInfo.GlyphAdvance;
 
             // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
             // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
+            if (isBold)
+            {
+                // 如果是加粗的情况，尝试使用 Skia 的 Widths 宽度
+                float glyphSkiaWidth = glyphSkiaWidths[i];
+                advance = Math.Max(advance, glyphSkiaWidth);
+            }
 
             var width = advance; // renderBounds.Width;
             float height = charHeight; // = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
@@ -355,6 +364,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         (ReadOnlySpan<char> text, SKFont skFont, UpdateLayoutContext updateLayoutContext)
     {
         SKTypeface skTypeface = skFont.Typeface;
+
         using var buffer = new Buffer();
         buffer.AddUtf16(text);
         buffer.GuessSegmentProperties();
@@ -438,12 +448,13 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         return textGlyphInfoContext;
     }
 
-    private static TextPoolArrayContext<SKRect> GetGlyphBoundsBySkia
+    private static SkiaGlyphBounds GetGlyphBoundsBySkia
         (Span<TextGlyphInfo> glyphInfoSpan, SKFont skFont, UpdateLayoutContext updateLayoutContext)
     {
         using TextPoolArrayContext<ushort> glyphIndexContext = updateLayoutContext.Rent<ushort>(glyphInfoSpan.Length);
         /*using 不能 using 因为将被返回*/
         TextPoolArrayContext<SKRect> glyphBoundsContext = updateLayoutContext.Rent<SKRect>(glyphInfoSpan.Length);
+        TextPoolArrayContext<float> widthsContext = updateLayoutContext.Rent<float>(glyphInfoSpan.Length);
 
         Span<ushort> glyphIndices = glyphIndexContext.Span;
         Span<SKRect> glyphBounds = glyphBoundsContext.Span;
@@ -454,8 +465,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             glyphIndices[i] = glyphInfo.GlyphIndex;
         }
 
-        skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
-        return glyphBoundsContext;
+        Span<float> widths = widthsContext.Span;
+
+        skFont.GetGlyphWidths(glyphIndices, widths, glyphBounds);
+
+        return new SkiaGlyphBounds(glyphBoundsContext, widthsContext);
     }
 
     /// <summary>
@@ -463,6 +477,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// </summary>
     /// <param name="glyphInfoSpan"></param>
     /// <param name="updateLayoutContext"></param>
+    [Conditional("DEBUG")]
     private static void DebugGetRenderInfo
         (Span<TextGlyphInfo> glyphInfoSpan, UpdateLayoutContext updateLayoutContext)
     {
@@ -639,5 +654,31 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         /// 文字外框，字外框尺寸
         /// </summary>
         public TextSize TextFrameSize => GlyphRunBounds.TextSize;
+    }
+
+    /// <summary>
+    /// 字符边框
+    /// </summary>
+    readonly record struct SkiaGlyphBounds //(SKRect Bounds, float AdvanceWidth);
+        : IDisposable
+    {
+        public SkiaGlyphBounds(TextPoolArrayContext<SKRect> bounds, TextPoolArrayContext<float> widths)
+        {
+            _bounds = bounds;
+            _widths = widths;
+        }
+
+        public Span<SKRect> Bounds => _bounds.Span;
+        public Span<float> Widths => _widths.Span;
+
+        private readonly TextPoolArrayContext<SKRect> _bounds;
+
+        private readonly TextPoolArrayContext<float> _widths;
+
+        public void Dispose()
+        {
+            _bounds.Dispose();
+            _widths.Dispose();
+        }
     }
 }
