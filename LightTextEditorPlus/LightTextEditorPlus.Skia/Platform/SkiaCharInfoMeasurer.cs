@@ -245,130 +245,110 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         Debug.Assert(glyphInfoListCount > 0, "必定能找到至少一个字符");
 
         // 2. 通过 Skia 获取 Glyph 的渲染尺寸
-        TextPoolArrayContext<SKRect>? glyphIndexContext = null;
-        TextPoolArrayContext<float>? skiaAdvancesContext = null;
-        try
+        TextPoolArrayContext<SKRect> glyphIndexContext =
+            GetGlyphBoundsBySkia(glyphInfoSpan, skFont, updateLayoutContext);
+        Span<SKRect> glyphBounds = glyphIndexContext.Span;
+
+        DebugGetRenderInfo(glyphInfoSpan, updateLayoutContext);
+
+        // 3. 将 Harfbuzz 和 Skia 获取的结果进行组合
+
+        // 当前的 run 的边界。这个变量现在没有用到，只有调试用途
+        var runBounds = new TextRect();
+
+        var baselineY = -skFont.Metrics.Ascent;
+
+        var baselineOrigin = new SKPoint(0, baselineY);
+        var currentX = 0.0;
+
+        float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
+
+        // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
+        /*using 要返回的参数，不能在这里 using 掉*/
+        TextPoolArrayContext<CharRenderInfo> charSizeInfoArrayContext =
+            updateLayoutContext.Rent<CharRenderInfo>(glyphInfoListCount);
+        Span<CharRenderInfo> charSizeInfoSpan = charSizeInfoArrayContext.Span;
+
+        for (int i = 0; i < glyphInfoListCount; i++)
         {
-            GetGlyphBoundsAndAdvancesBySkia(glyphInfoSpan, skFont, updateLayoutContext, out var outGlyphIndexContext,
-                out var outSkiaAdvancesContext);
-            glyphIndexContext = outGlyphIndexContext;
-            skiaAdvancesContext = outSkiaAdvancesContext;
+            var renderBounds = glyphBounds[i];
+            TextGlyphInfo glyphInfo = glyphInfoSpan[i];
+            var advance = glyphInfo.GlyphAdvance;
 
-            Span<SKRect> glyphBounds = glyphIndexContext.Value.Span;
-            Span<float> skiaAdvances = skiaAdvancesContext.Value.Span;
+            // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
+            // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
 
-            DebugGetRenderInfo(glyphInfoSpan, updateLayoutContext);
+            var width = advance; // renderBounds.Width;
+            float height = charHeight; // = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
 
-            // 3. 将 Harfbuzz 和 Skia 获取的结果进行组合
+            // 字外框尺寸
+            TextSize frameSize = new TextSize(width, height);
+            // 字墨尺寸
+            TextSize faceSize = new TextSize(renderBounds.Width, renderBounds.Height);
+            var nextX = currentX + advance;
 
-            // 当前的 run 的边界。这个变量现在没有用到，只有调试用途
-            var runBounds = new TextRect();
-
-            var baselineY = -skFont.Metrics.Ascent;
-
-            var baselineOrigin = new SKPoint(0, baselineY);
-            var currentX = 0.0;
-
-            float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
-
-            // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
-            /*using 要返回的参数，不能在这里 using 掉*/
-            TextPoolArrayContext<CharRenderInfo> charSizeInfoArrayContext =
-                updateLayoutContext.Rent<CharRenderInfo>(glyphInfoListCount);
-            Span<CharRenderInfo> charSizeInfoSpan = charSizeInfoArrayContext.Span;
-
-            for (int i = 0; i < glyphInfoListCount; i++)
+            if (!isHorizontal)
             {
-                var renderBounds = glyphBounds[i];
-                TextGlyphInfo glyphInfo = glyphInfoSpan[i];
-                var advance = glyphInfo.GlyphAdvance;
+                // 计算方法请参阅
+                // [WPF 探索 Skia 的竖排文本渲染的字符高度 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18815810 )
+                // 何为 space 变量等，请参阅文档： 《Skia 垂直直排竖排文本字符尺寸间距.enbx》
+                float top = renderBounds.Top;
+                var space = baselineY + top;
+                var renderCharHeight = renderBounds.Height + space;
 
-                if (skFont.Embolden)
+                frameSize = frameSize with
                 {
-                    // 如果开启了伪粗体，那么 HarfBuzz 的 advance 是不含粗体的，需要使用 Skia 的 advance
-                    advance = skiaAdvances[i];
-                }
-
-                // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
-                // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
-
-                var width = advance; // renderBounds.Width;
-                float height = charHeight; // = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
-
-                // 字外框尺寸
-                TextSize frameSize = new TextSize(width, height);
-                // 字墨尺寸
-                TextSize faceSize = new TextSize(renderBounds.Width, renderBounds.Height);
-                var nextX = currentX + advance;
-
-                if (!isHorizontal)
-                {
-                    // 计算方法请参阅
-                    // [WPF 探索 Skia 的竖排文本渲染的字符高度 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18815810 )
-                    // 何为 space 变量等，请参阅文档： 《Skia 垂直直排竖排文本字符尺寸间距.enbx》
-                    float top = renderBounds.Top;
-                    var space = baselineY + top;
-                    var renderCharHeight = renderBounds.Height + space;
-
-                    frameSize = frameSize with
-                    {
-                        Height = renderCharHeight
-                    };
-
-                    // 对于非横排来说，需要倒换宽度高度，确保竖排也按照横排坐标来计算
-                    frameSize = frameSize.SwapWidthAndHeight();
-                    faceSize = faceSize.SwapWidthAndHeight();
-
-                    nextX = currentX + faceSize.Width;
-                }
-                //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
-                //var enhance = 0f;
-                //// 有些字体的 Top 就是超过格子，不要补偿。如华文仿宋字体
-                ////if (baselineY < Math.Abs(skFont.Metrics.Top))
-                ////{
-                ////    enhance = Math.Abs(skFont.Metrics.Top) - baselineY;
-                ////}
-
-                //height = /*skFont.Metrics.Leading + 有些字体的 Leading 是不参与排版的，越过的，属于上加。不能将其加入计算 */ baselineY + skFont.Metrics.Descent + enhance;
-                //// 同理 skFont.Metrics.Bottom 也是不应该使用的，可能下加是超过格子的
-
-                double glyphX = currentX + renderBounds.Left;
-                double glyphY = baselineOrigin.Y + renderBounds.Top;
-                var glyphRunBounds = new TextRect(glyphX, glyphY, frameSize.Width,
-                    frameSize.Height);
-
-                Debug.Assert(frameSize == glyphRunBounds.TextSize);
-
-                runBounds = runBounds.Union(glyphRunBounds);
-
-                charSizeInfoSpan[i] = new CharRenderInfo(glyphRunBounds)
-                {
-                    CharDataInfo = new CharDataInfo(frameSize, faceSize, baselineY)
-                    {
-                        GlyphIndex = glyphInfo.GlyphIndex,
-                        Status = CharDataInfoStatus.Normal,
-                    },
-                    GlyphCluster = glyphInfo.GlyphCluster,
+                    Height = renderCharHeight
                 };
 
-                currentX = nextX;
-            }
+                // 对于非横排来说，需要倒换宽度高度，确保竖排也按照横排坐标来计算
+                frameSize = frameSize.SwapWidthAndHeight();
+                faceSize = faceSize.SwapWidthAndHeight();
 
-            if (runBounds.Left < 0)
+                nextX = currentX + faceSize.Width;
+            }
+            //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
+            //var enhance = 0f;
+            //// 有些字体的 Top 就是超过格子，不要补偿。如华文仿宋字体
+            ////if (baselineY < Math.Abs(skFont.Metrics.Top))
+            ////{
+            ////    enhance = Math.Abs(skFont.Metrics.Top) - baselineY;
+            ////}
+
+            //height = /*skFont.Metrics.Leading + 有些字体的 Leading 是不参与排版的，越过的，属于上加。不能将其加入计算 */ baselineY + skFont.Metrics.Descent + enhance;
+            //// 同理 skFont.Metrics.Bottom 也是不应该使用的，可能下加是超过格子的
+
+            double glyphX = currentX + renderBounds.Left;
+            double glyphY = baselineOrigin.Y + renderBounds.Top;
+            var glyphRunBounds = new TextRect(glyphX, glyphY, frameSize.Width,
+                frameSize.Height);
+
+            Debug.Assert(frameSize == glyphRunBounds.TextSize);
+
+            runBounds = runBounds.Union(glyphRunBounds);
+
+            charSizeInfoSpan[i] = new CharRenderInfo(glyphRunBounds)
             {
-                runBounds = runBounds.Offset(-runBounds.Left, 0);
-            }
+                CharDataInfo = new CharDataInfo(frameSize, faceSize, baselineY)
+                {
+                    GlyphIndex = glyphInfo.GlyphIndex,
+                    Status = CharDataInfoStatus.Normal,
+                },
+                GlyphCluster = glyphInfo.GlyphCluster,
+            };
 
-            runBounds = runBounds.Offset(baselineOrigin.X, 0);
-            _ = runBounds; // 当前 runBounds 只有调试作用
-
-            return charSizeInfoArrayContext;
+            currentX = nextX;
         }
-        finally
+
+        if (runBounds.Left < 0)
         {
-            glyphIndexContext?.Dispose();
-            skiaAdvancesContext?.Dispose();
+            runBounds = runBounds.Offset(-runBounds.Left, 0);
         }
+
+        runBounds = runBounds.Offset(baselineOrigin.X, 0);
+        _ = runBounds; // 当前 runBounds 只有调试作用
+
+        return charSizeInfoArrayContext;
     }
 
     private static TextPoolArrayContext<TextGlyphInfo> ShapeByHarfBuzz
@@ -458,17 +438,15 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         return textGlyphInfoContext;
     }
 
-    private static void GetGlyphBoundsAndAdvancesBySkia
-        (Span<TextGlyphInfo> glyphInfoSpan, SKFont skFont, UpdateLayoutContext updateLayoutContext, out TextPoolArrayContext<SKRect> glyphBoundsContext, out TextPoolArrayContext<float> skiaAdvancesContext)
+    private static TextPoolArrayContext<SKRect> GetGlyphBoundsBySkia
+        (Span<TextGlyphInfo> glyphInfoSpan, SKFont skFont, UpdateLayoutContext updateLayoutContext)
     {
         using TextPoolArrayContext<ushort> glyphIndexContext = updateLayoutContext.Rent<ushort>(glyphInfoSpan.Length);
-        /*using // 不能 using 因为将被返回*/
-        glyphBoundsContext = updateLayoutContext.Rent<SKRect>(glyphInfoSpan.Length);
-        skiaAdvancesContext = updateLayoutContext.Rent<float>(glyphInfoSpan.Length);
+        /*using 不能 using 因为将被返回*/
+        TextPoolArrayContext<SKRect> glyphBoundsContext = updateLayoutContext.Rent<SKRect>(glyphInfoSpan.Length);
 
         Span<ushort> glyphIndices = glyphIndexContext.Span;
         Span<SKRect> glyphBounds = glyphBoundsContext.Span;
-        Span<float> skiaAdvances = skiaAdvancesContext.Span;
 
         for (int i = 0; i < glyphInfoSpan.Length; i++)
         {
@@ -476,7 +454,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             glyphIndices[i] = glyphInfo.GlyphIndex;
         }
 
-        skFont.GetGlyphWidths(glyphIndices, skiaAdvances, glyphBounds);
+        skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
+        return glyphBoundsContext;
     }
 
     /// <summary>
