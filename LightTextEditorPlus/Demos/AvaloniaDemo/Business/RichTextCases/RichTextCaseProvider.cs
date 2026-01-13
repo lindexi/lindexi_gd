@@ -515,11 +515,12 @@ partial class RichTextCaseProvider
             editor.AppendRun(new SkiaTextRun("德国化学家维勒通过蒸发氰酸铵NH", runProperty));
             editor.AppendRun(new SkiaTextRun("4", runProperty with
             {
+                // 下标
                 FontVariant = TextFontVariants.Subscript
             }));
             editor.AppendRun(new SkiaTextRun("CNO", runProperty));
 
-        }, "测试加粗字体的渲染");
+        }, "测试037d9449-加粗的文本里下标渲染错误");
 
         //Add(editor =>
         //{
