@@ -22,20 +22,19 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
 var chatClient = openAiClient.GetChatClient("ep-20260115192014-kgkxq");
 
 AIFunction weatherFunction = AIFunctionFactory.Create(GetWeather);
-#pragma warning disable MEAI001
-AIFunction approvalRequiredWeatherFunction = new ApprovalRequiredAIFunction(weatherFunction);
 
 ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
 [
-    approvalRequiredWeatherFunction,
+    weatherFunction,
     AIFunctionFactory.Create(GetDateTime),
 ]);
 
 var agentThread = aiAgent.GetNewThread();
 
-ChatMessage message = new(ChatRole.User, [
-    new TextContent("What do you see in this image?"),
-    new UriContent("https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg", "image/jpeg")
+ChatMessage message = new(ChatRole.User, 
+[
+    new TextContent("图中这个地方今天的天气怎样"),
+    new UriContent("http://cdn.lindexi.site/lindexi-20261151939253242.jpg", "image/jpeg")
 ]);
 
 await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync(message, agentThread))
@@ -55,7 +54,7 @@ Console.Read();
 [Description("Get the weather for a given location.")]
 static string GetWeather([Description("The location to get the weather for.")] string location, [Description("查询天气的日期")] string date)
 {
-    return $"查询不到 {location} 城市信息";
+    return $"{location} 城市温度为 100 摄氏度";
 }
 
 [Description("Get the current date and time.")]
