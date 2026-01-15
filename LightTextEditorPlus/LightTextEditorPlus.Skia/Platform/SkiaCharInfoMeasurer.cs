@@ -11,8 +11,6 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Document;
 
-using MS.Internal;
-
 using SkiaSharp;
 
 using System;
