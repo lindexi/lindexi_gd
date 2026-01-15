@@ -41,7 +41,9 @@ string CalculateHash(string input)
         Encoding.UTF8.GetBytes(input, buffer);
         if (hashAlgorithm.TryComputeHash(buffer.AsSpan(0, byteCount), hashBuffer.AsSpan(0, MD5.HashSizeInBytes), out var bytesWritten))
         {
-            var hash = string.Join("", hashBuffer.Take(bytesWritten).Select(b => b.ToString("X2")));
+            var hash = string.Join("", hashBuffer
+                .Take(bytesWritten)
+                .Select(b => b.ToString("X2")));
             return hash;
         }
     }
