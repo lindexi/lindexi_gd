@@ -139,30 +139,22 @@ class ReportParser
         str.Append((itemData & Variable) != 0 ? ", Var" : ", Array");
         str.Append((itemData & Relative) != 0 ? ", Rel" : ", Abs");
         
-        if ((itemData & Wrap) != 0)
-        {
-            str.Append(", Wrap");
-        }
+        // 总是显示 Wrap 状态
+        str.Append((itemData & Wrap) != 0 ? ", Wrap" : ", No Wrap");
 
-        if ((itemData & NonLinear) != 0)
-        {
-            str.Append(", NonLinear");
-        }
+        // 总是显示 Linear 状态
+        str.Append((itemData & NonLinear) != 0 ? ", NonLinear" : ", Linear");
 
-        if ((itemData & NoPreferred) != 0)
-        {
-            str.Append(", No Preferred");
-        }
+        // 总是显示 Preferred 状态
+        str.Append((itemData & NoPreferred) != 0 ? ", No Preferred" : ", Preferred State");
 
-        if ((itemData & NullState) != 0)
-        {
-            str.Append(", Null State");
-        }
+        // 总是显示 Null State 状态
+        str.Append((itemData & NullState) != 0 ? ", Null State" : ", No Null Position");
 
         // Input Items Data bit 7 is undefined and is RFU.
-        if ((itemTag & TagMask) != Input(0) && (itemData & Volatile) != 0)
+        if ((itemTag & TagMask) != Input(0))
         {
-            str.Append(", Volatile");
+            str.Append((itemData & Volatile) != 0 ? ", Volatile" : ", Non-volatile");
         }
 
         // Data byte 1~3 is RFU.
@@ -200,7 +192,8 @@ class ReportParser
 
         if ((itemTag & TagMask) == UsagePage(0))
         {
-            _currentUsagePage = itemData;
+            // 将有符号值转换为无符号存储（处理 0xFFAB 这样的 Vendor Defined 值）
+            _currentUsagePage = (int)(ushort)itemData;
             str.Append($"Usage Page ({GetUsagePageName(itemData)})");
         }
         else if ((itemTag & TagMask) == LogicalMinimum(0))
@@ -266,7 +259,16 @@ class ReportParser
 
         if ((itemTag & TagMask) == Usage(0))
         {
-            str.Append($"Usage ({ToUsage((uint)_currentUsagePage, (uint)itemData)})");
+            var usageStr = ToUsage((uint)_currentUsagePage, (uint)itemData);
+            // 对于 Vendor Defined Usage Page 或者返回 Unknown 的情况，显示十六进制值
+            if (usageStr == "Unknown" || (uint)_currentUsagePage >= 0xFF00)
+            {
+                str.Append($"Usage (0x{itemData:X2})");
+            }
+            else
+            {
+                str.Append($"Usage ({usageStr})");
+            }
         }
         else if ((itemTag & TagMask) == UsageMinimum(0))
         {
@@ -315,7 +317,10 @@ class ReportParser
 
     string GetUsagePageName(int usagePage)
     {
-        return (uint)usagePage switch
+        // 将有符号的 int 转换为无符号处理（处理 0xFFAB 这样的值）
+        var pageValue = (uint)(ushort)usagePage;
+        
+        var result = pageValue switch
         {
             UP_Generic_Desktop => "Generic Desktop",
             UP_Simulation_Controls => "Simulation",
@@ -334,8 +339,17 @@ class ReportParser
             UP_Unicode => "Unicode",
             UP_Alphanumeric_Display => "Alphanumeric Display",
             UP_Medical_Instruments => "Medical Instruments",
-            _ => "Unknown"
+            _ => null
         };
+
+        if (result != null)
+            return result;
+
+        // Vendor Defined (0xFF00-0xFFFF)
+        if (pageValue >= 0xFF00)
+            return $"Vendor Defined 0x{pageValue:X4}";
+
+        return "Unknown";
     }
 
     string GetExponent(int itemData)
@@ -353,8 +367,8 @@ class ReportParser
 
     string GetUnit(uint itemData)
     {
-        string?[][] strUnits = [
-            null,
+        string[][] strUnits = [
+            [], // 占位符，索引 0 不使用
             ["SI Linear", "cm", "Gram", "Seconds", "Kelvin", "Ampere", "Candela"],
             ["SI Rotation", "rad", "Gram", "Seconds", "Kelvin", "Ampere", "Candela"],
             ["English Linear", "Inch", "Slug", "Seconds", "Fahrenheit", "Ampere", "Candela"],
@@ -370,7 +384,7 @@ class ReportParser
             return "Unknown";
 
         var str = new StringBuilder();
-        var selectedUnit = strUnits[nibble]!; // 保存选中的单位系统
+        var selectedUnit = strUnits[nibble]; // 保存选中的单位系统
         str.Append(selectedUnit[0]);
         str.Append(':');
 
