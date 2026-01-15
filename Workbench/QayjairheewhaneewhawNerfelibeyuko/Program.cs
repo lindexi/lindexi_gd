@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using QayjairheewhaneewhawNerfelibeyuko;
+
 using System.Buffers;
 using System.Security.Cryptography;
 using System.Text;
@@ -42,7 +44,7 @@ string CalculateHash(string input)
     try
     {
         Encoding.UTF8.GetBytes(input, buffer);
-        if (hashAlgorithm.TryComputeHash(buffer.AsSpan(0, byteCount), hashBuffer.AsSpan(0, MD5.HashSizeInBytes),
+        if (hashAlgorithm.TryComputeHash(buffer.AsSpan(0, byteCount), hashBuffer.AsSpan(0, hashByteCount),
                 out var bytesWritten))
         {
             //var stringBuilder = new StringBuilder(bytesWritten * 2/*每个 byte 为两个字符*/);
@@ -54,7 +56,7 @@ string CalculateHash(string input)
             //var hash = string.Join("", hashBuffer
             //    .Take(bytesWritten)
             //    .Select(b => b.ToString("X2")));
-            return Convert.ToHexString(hashBuffer.AsSpan(0, bytesWritten));
+            return HexConverter.ToString(hashBuffer.AsSpan(0, bytesWritten), HexConverter.Casing.Lower);
         }
     }
     finally
