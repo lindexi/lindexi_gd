@@ -420,6 +420,26 @@ public class DocumentManagerTests
             Assert.AreEqual(count, textEditorCore.DocumentManager.CharCount);
         });
 
+        "无论使用 \\r\\n 还是 \\n 作为分段符，都能被统一计算为 \\n 字符计算".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.AppendText("1\r\n2");
+
+            var charCount1 = textEditorCore.DocumentManager.CharCount;
+            var text1 = textEditorCore.GetText();
+
+            textEditorCore.EditAndReplace("1\n2", textEditorCore.GetAllDocumentSelection());
+            var charCount2 = textEditorCore.DocumentManager.CharCount;
+            var text2 = textEditorCore.GetText();
+
+            Assert.AreEqual(charCount1, charCount2);
+            Assert.AreEqual(text1, text2);
+            Assert.AreEqual("1\n2", text1);
+        });
+
         "插入一行123纯文本，获取文档字符数量，可以获取到3个".Test(() =>
         {
             // Arrange
