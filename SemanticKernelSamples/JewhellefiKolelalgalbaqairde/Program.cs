@@ -32,29 +32,6 @@ ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
 ]);
 
 var agentThread = aiAgent.GetNewThread();
-var agentRunOptions = new AgentRunOptions()
-{
-    AllowBackgroundResponses = true,
-};
-
-var agentRunResponse = await aiAgent.RunAsync("今天北京的天气咋样", agentThread, agentRunOptions);
-
-// 人类确认的内容
-var functionApprovalRequests = agentRunResponse.Messages
-    .SelectMany(x => x.Contents)
-    .OfType<FunctionApprovalRequestContent>()
-    .ToList();
-
-FunctionApprovalRequestContent requestContent = functionApprovalRequests.First();
-Console.WriteLine($"请求执行 '{requestContent.FunctionCall.Name}'");
-FunctionApprovalResponseContent functionApprovalResponseContent = requestContent.CreateResponse(approved: true);
-// 将确认结果加入对话
-var agentRunResponse2 = await aiAgent.RunAsync(new ChatMessage(ChatRole.User, [functionApprovalResponseContent]), agentThread);
-
-Console.WriteLine(agentRunResponse2);
-
-Console.Read();
-return;
 
 /*
 System.ClientModel.ClientResultException:“HTTP 400 (invalid_request_error: invalid_request_error)
