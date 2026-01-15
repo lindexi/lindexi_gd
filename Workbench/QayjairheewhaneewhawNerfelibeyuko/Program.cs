@@ -18,10 +18,10 @@ for (int i = 0; i < count; i++)
 
     if (list.Count == count - 1)
     {
-        var gcCount = 
-            //GC.CollectionCount(0) +
-                      GC.CollectionCount(1) 
-                      //+ GC.CollectionCount(2)
+        var gcCount =
+                GC.CollectionCount(0) +
+                GC.CollectionCount(1)
+                + GC.CollectionCount(2)
             ;
         return;
     }
@@ -34,17 +34,27 @@ string CalculateHash(string input)
     var byteCount = Encoding.UTF8.GetByteCount(input);
     var buffer = ArrayPool<byte>.Shared.Rent(byteCount);
 
-    var hashBuffer = ArrayPool<byte>.Shared.Rent(MD5.HashSizeInBytes);
+    var bitOfByte = 8;
+    var hashByteCount = hashAlgorithm.HashSize / bitOfByte;
+
+    var hashBuffer = ArrayPool<byte>.Shared.Rent(hashByteCount);
 
     try
     {
         Encoding.UTF8.GetBytes(input, buffer);
-        if (hashAlgorithm.TryComputeHash(buffer.AsSpan(0, byteCount), hashBuffer.AsSpan(0, MD5.HashSizeInBytes), out var bytesWritten))
+        if (hashAlgorithm.TryComputeHash(buffer.AsSpan(0, byteCount), hashBuffer.AsSpan(0, MD5.HashSizeInBytes),
+                out var bytesWritten))
         {
-            var hash = string.Join("", hashBuffer
-                .Take(bytesWritten)
-                .Select(b => b.ToString("X2")));
-            return hash;
+            //var stringBuilder = new StringBuilder(bytesWritten * 2/*每个 byte 为两个字符*/);
+            //for (int i = 0; i < bytesWritten; i++)
+            //{
+            //    Convert.ToHexString()
+            //}
+
+            //var hash = string.Join("", hashBuffer
+            //    .Take(bytesWritten)
+            //    .Select(b => b.ToString("X2")));
+            return Convert.ToHexString(hashBuffer.AsSpan(0, bytesWritten));
         }
     }
     finally
