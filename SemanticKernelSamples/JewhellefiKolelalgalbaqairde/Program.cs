@@ -33,11 +33,6 @@ ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
 
 var agentThread = aiAgent.GetNewThread();
 
-/*
-System.ClientModel.ClientResultException:“HTTP 400 (invalid_request_error: invalid_request_error)
-   
-   Failed to deserialize the JSON body into the target type: messages[0]: unknown variant `image_url`, expected `text` at line 1 column 299”
- */
 ChatMessage message = new(ChatRole.User, [
     new TextContent("What do you see in this image?"),
     new UriContent("https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg", "image/jpeg")
