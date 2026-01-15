@@ -34,7 +34,10 @@ string CalculateHash(string input)
     var byteCount = Encoding.UTF8.GetByteCount(input);
     var buffer = ArrayPool<byte>.Shared.Rent(byteCount);
 
-    var hashBuffer = ArrayPool<byte>.Shared.Rent(MD5.HashSizeInBytes);
+    var bitOfByte = 8;
+    var hashByteCount = hashAlgorithm.HashSize / bitOfByte;
+
+    var hashBuffer = ArrayPool<byte>.Shared.Rent(hashByteCount);
 
     try
     {
