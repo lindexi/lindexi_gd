@@ -72,8 +72,12 @@ var agentThread = aiAgent.GetNewThread();
 ChatMessage message = new(ChatRole.User,
 [
     new TextContent("图中这个地方今天的天气怎样"),
-    //new UriContent($"file://{uploadedFileName}", "image/jpeg")
-    new HostedFileContent(uploadedFileName),
+    new CustomContent()
+    {
+        FileName = uploadedFileName,
+    },
+    //new UriContent($"file://{uploadedFileName}", "image/jpeg") // Only base64, http or https URLs are supported. Request id: 021768531582403586ec96c526882919017714fdd6e6a27d68b0b”
+    //new HostedFileContent(uploadedFileName), // The parameter `messages.content.type` specified in the request are not valid: invalid value: `file`, supported values are: `text`, `image_url` and `video_url`. Request id: 021768531709460a5f1c148697d36f5cbc8f8cca4aee98479a560”
 ]);
 
 await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync(message, agentThread))
@@ -109,4 +113,9 @@ static async Task CheckAsync(string uploadedFileName, string key)
     using var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
     var responseContent = await httpResponseMessage.Content.ReadAsStringAsync();
     // {"object":"file","id":"file-20260116103421-875jp","purpose":"user_data","filename":"Image.png","bytes":1086184,"mime_type":"image/png","created_at":1768530861,"expire_at":1769135661,"status":"active"}
+}
+
+class CustomContent : AIContent
+{
+   public required string FileName { get; set; }
 }
