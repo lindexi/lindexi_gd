@@ -7,7 +7,9 @@ using OpenAI.Chat;
 
 using System;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.ComponentModel;
+using System.Text.Json;
 
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
@@ -32,15 +34,63 @@ var agentThread = aiAgent.GetNewThread(new InMemoryChatMessageStore()
     new ChatMessage(ChatRole.System,"你是一位学习辅导员，你将辅导学生做作业，对学生不会的题进行讲解")
 });
 
-ChatMessage message = new(ChatRole.User, 
+ChatMessage message = new(ChatRole.User,
 [
     new TextContent("我第三题不会做，你和我讲一下"),
     new UriContent("http://cdn.lindexi.site/lindexi-20261191019524327.jpg", "image/jpeg")
 ]);
 
+bool? isThinking = null;
+bool isFirstResponse = true;
+
 await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync(message, agentThread))
 {
-    Console.Write(agentRunResponseUpdate.Text);
+    // -		RawRepresentation	{OpenAI.Chat.StreamingChatCompletionUpdate}	object {OpenAI.Chat.StreamingChatCompletionUpdate}
+    // -		agentRunResponseUpdate.RawRepresentation	[{assistant}] Text = ""	object {Microsoft.Extensions.AI.ChatResponseUpdate}
+    // 
+    var contentIsEmpty = string.IsNullOrEmpty(agentRunResponseUpdate.Text);
+
+    if (contentIsEmpty && agentRunResponseUpdate.RawRepresentation is Microsoft.Extensions.AI.ChatResponseUpdate streamingChatCompletionUpdate)
+    {
+        if (streamingChatCompletionUpdate.RawRepresentation is OpenAI.Chat.StreamingChatCompletionUpdate chatCompletionUpdate)
+        {
+#pragma warning disable SCME0001
+            ref JsonPatch patch = ref chatCompletionUpdate.Patch;
+            if (patch.TryGetJson("$.choices[0].delta"u8, out var data))
+            {
+                var jsonElement = JsonElement.Parse(data.Span);
+                if (jsonElement.TryGetProperty("reasoning_content", out var choicesElement))
+                {
+                    if (isThinking is null)
+                    {
+                        isThinking = true;
+                        Console.WriteLine("思考：");
+                    }
+
+                    if (isThinking is true)
+                    {
+                        Console.Write(choicesElement);
+                    }
+                }
+            }
+
+#pragma warning restore SCME0001
+        }
+    }
+
+    if (!contentIsEmpty)
+    {
+        if (isThinking is true && isFirstResponse)
+        {
+            Console.WriteLine();
+            Console.WriteLine("--------");
+        }
+
+        isFirstResponse = false;
+        isThinking = false;
+
+        Console.Write(agentRunResponseUpdate.Text);
+    }
 }
 
 /*
