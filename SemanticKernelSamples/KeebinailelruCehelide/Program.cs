@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
 using OpenAI;
@@ -29,19 +30,46 @@ ChatClientAgent aiAgent = chatClient.CreateAIAgent(tools:
 
 var agentThread = aiAgent.GetNewThread(new InMemoryChatMessageStore()
 {
-    new ChatMessage(ChatRole.System,"你是一位学习辅导员，你将辅导学生做作业，对学生不会的题进行讲解")
+    new ChatMessage(ChatRole.System,
+        """
+        你是一位学习辅导员，你将辅导学生做作业，对学生不会的题进行讲解。
+        
+        ## 格式要求
+        
+        如果你需要输入公式，请将公式使用 <Formula></Formula> 标签包围。例如 <Formula>\(x \in \mathbb{R}\)</Formula>。输出的公式请严格符合 Latex 规范
+        """)
 });
 
-ChatMessage message = new(ChatRole.User, 
+ChatMessage message = new(ChatRole.User,
 [
     new TextContent("第九题应该选什么"),
     // 这是一份拍歪的试卷
     new UriContent("http://cdn.lindexi.site/lindexi-20261191048564138.jpg", "image/jpeg")
 ]);
 
-await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync(message, agentThread))
+await foreach (var agentRunResponseUpdate in aiAgent.RunReasoningStreamingAsync(message, agentThread))
 {
-    Console.Write(agentRunResponseUpdate.Text);
+    if (agentRunResponseUpdate.IsFirstThinking)
+    {
+        Console.WriteLine("思考：");
+    }
+
+    if (agentRunResponseUpdate.Reasoning is not null)
+    {
+        Console.Write(agentRunResponseUpdate.Reasoning);
+    }
+
+    if (agentRunResponseUpdate.IsThinkingEnd)
+    {
+        Console.WriteLine();
+        Console.WriteLine("--------");
+    }
+
+    var text = agentRunResponseUpdate.Text;
+    if (!string.IsNullOrEmpty(text))
+    {
+        Console.Write(text);
+    }
 }
 
 /*
