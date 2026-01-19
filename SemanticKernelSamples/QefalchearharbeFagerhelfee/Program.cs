@@ -32,7 +32,7 @@ var agentThread = aiAgent.GetNewThread(new InMemoryChatMessageStore()
         
         ## 格式要求
         
-        如果你需要输入公式，请将公式使用 <Formula></Formula> 标签包围。例如 <Formula>\(x \in \mathbb{R}\)</Formula>。输出的公式请严格符合 Latex 规范
+        如果你需要输出公式，请将公式使用 <Formula></Formula> 标签包围。例如 <Formula>\(x \in \mathbb{R}\)</Formula>。哪怕输出的是简单的公式，也都要使用 <Formula></Formula> 标签包围。例如 <Formula>\(1+1=2\)</Formula> 。输出的公式请严格符合 Latex 规范
         """)
 });
 
