@@ -10,7 +10,7 @@ using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.ComponentModel;
 using System.Text.Json;
-
+using Microsoft.Agents.AI.Reasoning;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 var keyFile = @"C:\lindexi\Work\Doubao.txt";
@@ -40,56 +40,28 @@ ChatMessage message = new(ChatRole.User,
     new UriContent("http://cdn.lindexi.site/lindexi-20261191019524327.jpg", "image/jpeg")
 ]);
 
-bool? isThinking = null;
-bool isFirstResponse = true;
-
-await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync(message, agentThread))
+await foreach (var agentRunResponseUpdate in aiAgent.RunReasoningStreamingAsync(message, agentThread))
 {
-    // -		RawRepresentation	{OpenAI.Chat.StreamingChatCompletionUpdate}	object {OpenAI.Chat.StreamingChatCompletionUpdate}
-    // -		agentRunResponseUpdate.RawRepresentation	[{assistant}] Text = ""	object {Microsoft.Extensions.AI.ChatResponseUpdate}
-    // 
-    var contentIsEmpty = string.IsNullOrEmpty(agentRunResponseUpdate.Text);
-
-    if (contentIsEmpty && agentRunResponseUpdate.RawRepresentation is Microsoft.Extensions.AI.ChatResponseUpdate streamingChatCompletionUpdate)
+    if (agentRunResponseUpdate.IsFirstThinking)
     {
-        if (streamingChatCompletionUpdate.RawRepresentation is OpenAI.Chat.StreamingChatCompletionUpdate chatCompletionUpdate)
-        {
-#pragma warning disable SCME0001
-            ref JsonPatch patch = ref chatCompletionUpdate.Patch;
-            if (patch.TryGetJson("$.choices[0].delta"u8, out var data))
-            {
-                var jsonElement = JsonElement.Parse(data.Span);
-                if (jsonElement.TryGetProperty("reasoning_content", out var choicesElement))
-                {
-                    if (isThinking is null)
-                    {
-                        isThinking = true;
                         Console.WriteLine("思考：");
-                    }
-
-                    if (isThinking is true)
-                    {
-                        Console.Write(choicesElement);
-                    }
-                }
-            }
-
-#pragma warning restore SCME0001
-        }
     }
 
-    if (!contentIsEmpty)
+    if (agentRunResponseUpdate.Reasoning is not null)
     {
-        if (isThinking is true && isFirstResponse)
-        {
-            Console.WriteLine();
-            Console.WriteLine("--------");
-        }
+        Console.Write(agentRunResponseUpdate.Reasoning);
+    }
 
-        isFirstResponse = false;
-        isThinking = false;
+    if (agentRunResponseUpdate.IsThinkingEnd)
+    {
+        Console.WriteLine();
+        Console.WriteLine("--------");
+    }
 
-        Console.Write(agentRunResponseUpdate.Text);
+    var text = agentRunResponseUpdate.Text;
+    if (!string.IsNullOrEmpty(text))
+    {
+        Console.Write(text);
     }
 }
 
