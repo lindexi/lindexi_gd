@@ -7,8 +7,10 @@ using OpenAI.Chat;
 
 using System;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.ComponentModel;
-
+using System.Text.Json;
+using Microsoft.Agents.AI.Reasoning;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 var keyFile = @"C:\lindexi\Work\Doubao.txt";
@@ -32,15 +34,35 @@ var agentThread = aiAgent.GetNewThread(new InMemoryChatMessageStore()
     new ChatMessage(ChatRole.System,"你是一位学习辅导员，你将辅导学生做作业，对学生不会的题进行讲解")
 });
 
-ChatMessage message = new(ChatRole.User, 
+ChatMessage message = new(ChatRole.User,
 [
     new TextContent("我第三题不会做，你和我讲一下"),
     new UriContent("http://cdn.lindexi.site/lindexi-20261191019524327.jpg", "image/jpeg")
 ]);
 
-await foreach (var agentRunResponseUpdate in aiAgent.RunStreamingAsync(message, agentThread))
+await foreach (var agentRunResponseUpdate in aiAgent.RunReasoningStreamingAsync(message, agentThread))
 {
-    Console.Write(agentRunResponseUpdate.Text);
+    if (agentRunResponseUpdate.IsFirstThinking)
+    {
+                        Console.WriteLine("思考：");
+    }
+
+    if (agentRunResponseUpdate.Reasoning is not null)
+    {
+        Console.Write(agentRunResponseUpdate.Reasoning);
+    }
+
+    if (agentRunResponseUpdate.IsThinkingEnd)
+    {
+        Console.WriteLine();
+        Console.WriteLine("--------");
+    }
+
+    var text = agentRunResponseUpdate.Text;
+    if (!string.IsNullOrEmpty(text))
+    {
+        Console.Write(text);
+    }
 }
 
 /*

@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 var text =
@@ -60,12 +62,12 @@ var text =
     [53]	0x22	byte
     [54]	0x3a	byte
     [55]	0x22	byte
-    [56]	0xe9	byte
-    [57]	0x9c	byte
-    [58]	0x80	byte
-    [59]	0xe8	byte
-    [60]	0xa6	byte
-    [61]	0x81	byte
+    [56]	0xe8	byte
+    [57]	0xa7	byte
+    [58]	0xa3	byte
+    [59]	0xe5	byte
+    [60]	0x86	byte
+    [61]	0xb3	byte
     [62]	0x22	byte
     [63]	0x2c	byte
     [64]	0x22	byte
@@ -286,9 +288,11 @@ var text =
     [279]	0x6c	byte
     [280]	0x6c	byte
     [281]	0x7d	byte
+    
     """;
 
 var stringReader = new StringReader(text);
+var byteList = new List<byte>();
 while (true)
 {
     var line = stringReader.ReadLine();
@@ -303,7 +307,10 @@ while (true)
         continue;
     }
 
-    var value = match.Groups[1].Value;
+    var value = match.Groups[1].ValueSpan;
+    byteList.Add(byte.Parse(value, NumberStyles.AllowHexSpecifier));
 }
 
-Console.WriteLine("Hello, World!");
+var output = Encoding.UTF8.GetString(byteList.ToArray());
+
+Console.WriteLine(output);
