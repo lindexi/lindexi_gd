@@ -24,9 +24,8 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
 
 ImageClient imageClient = openAiClient.GetImageClient("ep-20260120102721-c4pxb");
 
-var result = await imageClient.GenerateImageAsync("星际穿越，黑洞，黑洞里冲出一辆快支离破碎的复古列车，抢视觉冲击力，电影大片，末日既视感，动感，对比色，oc渲染，光线追踪，动态模糊，景深，超现实主义，深蓝，画面通过细腻的丰富的色彩层次塑造主体与场景，质感真实，暗黑风背景的光影效果营造出氛围，整体兼具艺术幻想感，夸张的广角透视效果，耀光，反射，极致的光影，强引力，吞噬", new ImageGenerationOptions()
+var result = await imageClient.GenerateImageAsync("三年级数学分数应用题讲解视频，卡通童趣风格，搭配公园游览路线示意图。内容包含：1. 展示题目：公园游览路线里，2/7是上坡，1/7是下坡，计算平地路线长度占总长度的比例；2. 分析常见错误原因：①错误用上坡分数减下坡分数求平地比例；②未将总路线视为单位1，不懂用整体1减去已占比例；3. 演示正确解法：步骤1，把总路线长度看作单位1（即7/7）；步骤2，计算上坡+下坡的总占比：2/7 + 1/7 = 3/7；步骤3，用1减去上坡下坡总和：1 - 3/7 = 4/7；4. 总结解题要点：分数应用题要明确单位1，同分母分数相加减分母不变、分子相加减。", new ImageGenerationOptions()
 {
-
 });
 
 var generatedImage = result.Value;
