@@ -1,6 +1,4 @@
-﻿using System.Windows;
-
-using LightTextEditorPlus.Core.Primitive;
+﻿using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
 using SkiaSharp;
 

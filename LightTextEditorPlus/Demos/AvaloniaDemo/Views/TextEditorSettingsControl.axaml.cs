@@ -15,7 +15,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
-
+using LightTextEditorPlus.Document.Decorations;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views;
@@ -390,7 +390,7 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void ToggleWaveLineButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        throw new NotImplementedException();
+        TextEditor.ToggleTextDecoration(WaveLineTextEditorDecoration.Instance);
     }
 
     private void EmphasisDotsButton_OnClick(object? sender, RoutedEventArgs e)
