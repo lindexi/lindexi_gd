@@ -3,15 +3,14 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:WichijarbejeHearlaridejenerewhu"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-  <ScrollViewer IsTabStop="True">
-    <Grid>
-      <StackPanel
+    <ScrollViewer IsTabStop="True">
+        <Grid>
+            <StackPanel
         HorizontalAlignment="Center"
         VerticalAlignment="Center">
-        <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
-          Text="Hello Uno Platform!"
-          HorizontalAlignment="Center" />
-      </StackPanel>
-    </Grid>
-  </ScrollViewer>
+                <TextBlock>上传文件 UploadFile</TextBlock>
+                <Button x:Name="UploadFileButton" Content="Upload" Click="UploadFileButton_OnClick"></Button>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
 </Page>
