@@ -13,6 +13,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
@@ -275,7 +276,7 @@ partial class RichTextCaseProvider
             editor.SetForeground(Brushes.Coral);
             editor.AppendText("123123123123123123123123123");
         }, "通过 TextEditor.SetForeground 设置前景色时，可设置到文本前景色");
-
+        
         //Add(editor =>
         //{
         //    for (int i = 0; i < 10; i++)
@@ -521,6 +522,13 @@ partial class RichTextCaseProvider
             editor.AppendRun(new SkiaTextRun("CNO", runProperty));
 
         }, "测试037d9449-加粗的文本里下标渲染错误");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(60);
+            editor.AppendText("123123123123123123123123123");
+            editor.ToggleTextDecoration(WaveLineTextEditorDecoration.Instance, new Selection(new CaretOffset(3), 20));
+        });
 
         //Add(editor =>
         //{
