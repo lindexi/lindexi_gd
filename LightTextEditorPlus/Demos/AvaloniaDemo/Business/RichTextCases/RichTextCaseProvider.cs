@@ -525,6 +525,7 @@ partial class RichTextCaseProvider
 
         Add(editor =>
         {
+            editor.SetFontSize(60);
             editor.AppendText("123123123123123123123123123");
             editor.ToggleTextDecoration(WaveLineTextEditorDecoration.Instance, new Selection(new CaretOffset(3), 20));
         });
