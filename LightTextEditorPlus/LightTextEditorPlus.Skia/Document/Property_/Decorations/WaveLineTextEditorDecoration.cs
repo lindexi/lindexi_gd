@@ -43,7 +43,8 @@ public class WaveLineTextEditorDecoration() : TextEditorDecoration(TextEditorDec
             foregroundBrush.Apply(new SkiaTextBrushRenderContext(paint, argument.Canvas, bounds.ToSKRect(),
                 argument.RunProperty.Opacity));
             paint.Style = SKPaintStyle.Stroke;
-            
+            paint.StrokeWidth = 1;
+
             waveLine.DrawWaveLine(startPoint, endPoint, argument.Canvas, paint);
         }
         else
