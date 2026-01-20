@@ -7,6 +7,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document.Decorations;
 
 // ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus.Demo.Business.RichTextCases;
@@ -120,6 +121,13 @@ public partial class RichTextCaseProvider
             Selection selection = textEditor.GetAllDocumentSelection();
             textEditor.ToggleStrikethrough(selection);
         }, "开启或关闭删除线");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(60);
+            editor.AppendText("123123123123123123123123123");
+            editor.ToggleTextDecoration(WaveLineTextEditorDecoration.Instance, new Selection(new CaretOffset(3), 20));
+        }, "开启或关闭波浪线");
 
         Add(editor =>
         {
