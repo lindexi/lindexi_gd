@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Windows.Win32;
@@ -23,7 +24,16 @@ class Program
         while (true)
         {
             var msg = new MSG();
-            GetMessage(&msg, window, 0, 0);
+            var getMessageResult = GetMessage(&msg, window, 0, 
+                0);
+
+            if (!getMessageResult)
+            {
+                break;
+            }
+
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
         }
 
         Console.ReadLine();
@@ -45,16 +55,18 @@ class Program
             {
                 cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
-                lpfnWndProc = new WNDPROC(Wndproc),
+                lpfnWndProc = new WNDPROC(WndProc),
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
                 hCursor = defaultCursor,
                 hbrBackground = new HBRUSH(IntPtr.Zero),
                 lpszClassName = new PCWSTR(pClassName)
             };
             ushort atom = RegisterClassEx(in wndClassEx);
-
+           
             var windowHwnd =  CreateWindowEx
-            (0, new PCWSTR((char*)atom), new PCWSTR(pTitle),
+            (
+                0, new PCWSTR((char*) atom)
+                , new PCWSTR(pTitle),
                 WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_CLIPCHILDREN,
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                 HWND.Null, HMENU.Null, HINSTANCE.Null, null
@@ -63,9 +75,9 @@ class Program
         }
     }
 
-    private static LRESULT Wndproc(HWND param0, uint param1, WPARAM param2, LPARAM param3)
+    private static LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        return new LRESULT(0);
+        return DefWindowProc(hwnd, message, wParam, lParam);
     }
 }
 
