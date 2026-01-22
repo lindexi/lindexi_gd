@@ -21,3 +21,19 @@ public interface IHttpRequestData
 
     Type? HttpResponseDataType { get; }
 }
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+public class HttpRequestDataAttribute : Attribute
+{
+    public HttpRequestDataAttribute(HttpMethodType httpMethod, string? url = null)
+    {
+    }
+
+    public Type? ResponseType { get; set; }
+}
+
+public enum HttpMethodType
+{
+    Get,
+    Post,
+}
