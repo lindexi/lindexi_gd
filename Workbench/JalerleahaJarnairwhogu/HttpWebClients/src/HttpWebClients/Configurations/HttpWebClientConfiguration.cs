@@ -14,4 +14,10 @@ public class HttpWebClientConfiguration
     public bool IsUsed { get; internal set; }
 
     public HttpWebClient? OwnerHttpWebClient { get; internal set; }
+
+
+    public HttpWebClient BuildClient()
+    {
+        return new HttpWebClient(this);
+    }
 }
