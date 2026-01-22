@@ -5,8 +5,9 @@ using System.Net.Http;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using HttpWebClients.Contexts;
 
-namespace HttpWebClients.Contexts;
+namespace HttpWebClients;
 
 public class HttpResponseData : IDisposable
 {
@@ -33,40 +34,6 @@ public class HttpResponseData : IDisposable
             Debug.Assert(Exception != null);
             ExceptionDispatchInfo.Throw(Exception);
         }
-    }
-
-    public string? ContentText => _contextText ??= ReadContentText();
-    private string? _contextText;
-
-    private string? ReadContentText()
-    {
-        if (HttpResponseMessage is null)
-        {
-            return null;
-        }
-
-        if (HttpResponseMessage.Content.Headers.ContentLength == 0)
-        {
-            return null;
-        }
-
-        using var stream = HttpResponseMessage.Content.ReadAsStream();
-        using var streamReader = new StreamReader(stream);
-        return streamReader.ReadToEnd();
-    }
-
-    public T As<T>(JsonSerializerContext? context = null)
-    {
-        context ??= RequestData.JsonSerializerContext;
-
-        var contentText = ContentText;
-
-        if (contentText is null)
-        {
-            contentText = "{}";
-        }
-
-        return JsonSerializer.Deserialize<T>(contentText, context?.Options)!;
     }
 
     public void Dispose()

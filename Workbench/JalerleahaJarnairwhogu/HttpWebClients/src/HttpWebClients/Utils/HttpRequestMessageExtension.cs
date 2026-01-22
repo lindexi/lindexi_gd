@@ -57,6 +57,7 @@ internal static class HttpRequestMessageExtension
     /// </summary>
     /// <param name="httpRequestMessage"></param>
     /// <param name="cookies"></param>
+    /// [Allow setting a CookieContainer on an HttpRequestMessage · Issue #1904 · dotnet/runtime](https://github.com/dotnet/runtime/issues/1904 )
     public static void AppendCookies(this HttpRequestMessage httpRequestMessage, params Cookie[] cookies)
     {
         var cookieCollection = httpRequestMessage.GetCookies();
