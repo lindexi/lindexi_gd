@@ -28,6 +28,8 @@ public class HttpWebClient : IDisposable
         configuration.OwnerHttpWebClient = this;
     }
 
+    public static HttpWebClientBuilder CreateBuilder() => new HttpWebClientBuilder();
+
     public void Dispose()
     {
     }
