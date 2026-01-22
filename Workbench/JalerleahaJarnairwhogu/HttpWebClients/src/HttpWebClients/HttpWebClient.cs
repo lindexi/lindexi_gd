@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace HttpWebClients;
@@ -26,11 +28,26 @@ public class HttpWebClient : IDisposable
 
         configuration.IsUsed = true;
         configuration.OwnerHttpWebClient = this;
+
+        _baseClient = configuration.HttpClientProvider.GetHttpClient();
+
+        JsonSerializerContext = configuration.MainJsonSerializerContext;
     }
 
     public static HttpWebClientBuilder CreateBuilder() => new HttpWebClientBuilder();
 
+    internal JsonSerializerContext JsonSerializerContext { get; }
+
+    private readonly HttpClient _baseClient;
+
+    public HttpClient AsHttpClient()
+    {
+        return _baseClient;
+        //return new HttpClient(new ProxyHttpMessageHandler(_baseClient));
+    }
+
     public void Dispose()
     {
+        _baseClient.Dispose();
     }
 }
