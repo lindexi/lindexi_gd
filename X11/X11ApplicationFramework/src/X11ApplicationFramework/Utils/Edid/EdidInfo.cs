@@ -108,6 +108,11 @@ public readonly record struct EdidInfo
     {
         const int minLength = 128;
 
+        if (edid.Length < minLength)
+        {
+            return ReadEdidInfoResult.Fail($"这不是一份有效的 EDID 数据，要求最小长度为 {minLength} 但实际长度为 {edid.Length}");
+        }
+
         // Header
         var edidHeader = edid[..8];
         if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
