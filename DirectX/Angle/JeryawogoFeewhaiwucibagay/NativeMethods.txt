@@ -20,3 +20,4 @@ SW_SHOW
 GetMessage
 TranslateMessage
 DispatchMessage
+DefWindowProc
