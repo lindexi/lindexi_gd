@@ -64,7 +64,19 @@ public class HttpJsonResponse<T>
     {
         ArgumentNullException.ThrowIfNull(ContentText);
 
-        var jsonTypeInfo = Client.JsonSerializerContext.GetTypeInfo(typeof(T)) as JsonTypeInfo<T>;
+        var jsonTypeInfo = GetJsonTypeInfo();
+
+        JsonTypeInfo<T>? GetJsonTypeInfo()
+        {
+            var result = RequestData.JsonSerializerContext?.GetTypeInfo(typeof(T)) as JsonTypeInfo<T>;
+
+            if (result is null)
+            {
+                result = Client.JsonSerializerContext.GetTypeInfo(typeof(T)) as JsonTypeInfo<T>;
+            }
+
+            return result;
+        }
 
         if (jsonTypeInfo is not null)
         {
