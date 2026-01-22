@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Build/Version.props" />
+    <File Path="Directory.Build.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/HttpWebClients.Demo/HttpWebClients.Demo.csproj" Id="964b8e0b-51b6-4052-874d-fdff48c032cf" />
+    <Project Path="src/HttpWebClients.Test/HttpWebClients.Test.csproj" Id="48a763a0-04a5-4625-aa52-031ddc10c213" />
+    <Project Path="src/HttpWebClients/HttpWebClients.csproj" />
+  </Folder>
+</Solution>
