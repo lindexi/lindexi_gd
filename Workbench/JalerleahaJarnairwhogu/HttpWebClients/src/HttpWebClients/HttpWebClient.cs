@@ -1,4 +1,6 @@
-﻿using System;
+﻿using HttpWebClients.Configurations;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +17,17 @@ namespace HttpWebClients;
 /// - https://github.com/reactiveui/refit
 public class HttpWebClient : IDisposable
 {
+    internal HttpWebClient(HttpWebClientConfiguration configuration)
+    {
+        if (configuration.IsUsed)
+        {
+            throw new InvalidOperationException();
+        }
+
+        configuration.IsUsed = true;
+        configuration.OwnerHttpWebClient = this;
+    }
+
     public void Dispose()
     {
     }
