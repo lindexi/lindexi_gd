@@ -5,4 +5,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DotNetCampus.LatestCSharpFeatures" PrivateAssets="all" Version="13.0.1" />
+  </ItemGroup>
+
 </Project>
