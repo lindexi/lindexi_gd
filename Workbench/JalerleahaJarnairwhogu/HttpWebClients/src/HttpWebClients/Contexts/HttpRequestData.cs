@@ -37,3 +37,8 @@ public enum HttpMethodType
     Get,
     Post,
 }
+
+public interface IGetHttpRequestData : IHttpRequestData
+{
+    string? GetQueryString();
+}
