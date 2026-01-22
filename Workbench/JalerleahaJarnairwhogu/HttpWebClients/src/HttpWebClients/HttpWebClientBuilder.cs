@@ -1,4 +1,5 @@
-﻿using HttpWebClients.HostBackup;
+﻿using HttpWebClients.Configurations;
+using HttpWebClients.HostBackup;
 using HttpWebClients.HttpProviders;
 
 using System;
@@ -57,4 +58,38 @@ public class HttpWebClientBuilder
     }
 
     private IHttpClientProvider? HttpClientProvider { set; get; }
+
+    public HttpWebClientConfiguration BuildConfiguration()
+    {
+        JsonSerializerContext context;
+        if (_jsonSerializerContextList is null)
+        {
+            context = new MergedJsonSerializerContext(null);
+        }
+        else if (_jsonSerializerContextList.Count == 1)
+        {
+            context = _jsonSerializerContextList[0];
+        }
+        else
+        {
+            var mergedJsonSerializerContext = new MergedJsonSerializerContext(null);
+            mergedJsonSerializerContext.AddRange(_jsonSerializerContextList);
+            context = mergedJsonSerializerContext;
+        }
+
+        HttpClientProvider ??= new DefaultHttpClientProvider();
+
+        return new HttpWebClientConfiguration()
+        {
+            MainJsonSerializerContext = context,
+            HttpClientProvider = HttpClientProvider,
+        };
+    }
+
+    public HttpWebClient BuildClient()
+    {
+        var configuration = BuildConfiguration();
+
+        return configuration.BuildClient();
+    }
 }
