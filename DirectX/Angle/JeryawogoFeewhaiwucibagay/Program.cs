@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Windows.Win32;
@@ -63,7 +64,9 @@ class Program
             ushort atom = RegisterClassEx(in wndClassEx);
            
             var windowHwnd =  CreateWindowEx
-            (0, wndClassEx.lpszClassName, new PCWSTR(pTitle),
+            (
+                0, new PCWSTR((char*) atom)
+                , new PCWSTR(pTitle),
                 WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_CLIPCHILDREN,
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                 HWND.Null, HMENU.Null, HINSTANCE.Null, null
