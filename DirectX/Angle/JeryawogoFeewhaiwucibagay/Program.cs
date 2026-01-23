@@ -164,7 +164,7 @@ unsafe class RenderManager(HWND hwnd)
                     (ushort) (pClientRect.right - pClientRect.left),
                     (ushort) (pClientRect.bottom - pClientRect.top),
                    Format.B8G8R8A8_UNorm,
-                    SwapChainFlags.AllowTearing
+                    SwapChainFlags.None
                 );
             }
 
@@ -183,8 +183,8 @@ unsafe class RenderManager(HWND hwnd)
             // 渲染代码写在这里
             using var renderStep = StepPerformanceCounter.RenderThreadCounter.StepStart("Render");
 
-            var result = _renderContext.SwapChain.Present(0, PresentFlags.None);
-            result.CheckError();
+             _renderContext.SwapChain.Present(1, PresentFlags.None);
+            //result.CheckError();
         }
     }
 
@@ -272,7 +272,8 @@ unsafe class RenderManager(HWND hwnd)
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipDiscard,
-            AlphaMode = AlphaMode.Ignore
+            AlphaMode = AlphaMode.Ignore,
+            Flags = SwapChainFlags.None,
         };
 
         /*
