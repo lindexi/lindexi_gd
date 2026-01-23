@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using JeryawogoFeewhaiwucibagay.Diagnostics;
+using JeryawogoFeewhaiwucibagay.OpenGL.Angle;
 
 using System;
 using System.Collections.Generic;
@@ -164,7 +165,7 @@ unsafe class RenderManager(HWND hwnd)
                     (ushort) (pClientRect.right - pClientRect.left),
                     (ushort) (pClientRect.bottom - pClientRect.top),
                    Format.B8G8R8A8_UNorm,
-                    SwapChainFlags.AllowTearing
+                    SwapChainFlags.None
                 );
             }
 
@@ -183,8 +184,8 @@ unsafe class RenderManager(HWND hwnd)
             // 渲染代码写在这里
             using var renderStep = StepPerformanceCounter.RenderThreadCounter.StepStart("Render");
 
-            var result = _renderContext.SwapChain.Present(0, PresentFlags.None);
-            result.CheckError();
+             _renderContext.SwapChain.Present(1, PresentFlags.None);
+            //result.CheckError();
         }
     }
 
@@ -272,7 +273,8 @@ unsafe class RenderManager(HWND hwnd)
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipDiscard,
-            AlphaMode = AlphaMode.Ignore
+            AlphaMode = AlphaMode.Ignore,
+            Flags = SwapChainFlags.None,
         };
 
         /*
@@ -301,6 +303,8 @@ unsafe class RenderManager(HWND hwnd)
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
+
+        var egl = new Win32AngleEglInterface();
 
         _renderContext = new RenderContext()
         {
