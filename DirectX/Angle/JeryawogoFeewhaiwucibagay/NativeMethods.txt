@@ -21,3 +21,6 @@ GetMessage
 TranslateMessage
 DispatchMessage
 DefWindowProc
+GetClientRect
+WM
+WM_PAINT
