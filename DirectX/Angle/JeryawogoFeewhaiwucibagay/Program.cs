@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using JeryawogoFeewhaiwucibagay.Diagnostics;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -148,11 +150,41 @@ unsafe class RenderManager(HWND hwnd)
             {
                 // 处理窗口大小变化
                 _isReSize = false;
-            
+
+                if (_renderInfo is not null)
+                {
+                    _renderInfo.Value.Dispose();
+                    _renderInfo = null;
+                }
+
+                GetClientRect(HWND, out var pClientRect);
+                var swapChain = _renderContext.SwapChain;
+
+                swapChain.ResizeBuffers(2,
+                    (ushort) (pClientRect.right - pClientRect.left),
+                    (ushort) (pClientRect.bottom - pClientRect.top),
+                   Format.B8G8R8A8_UNorm,
+                    SwapChainFlags.AllowTearing
+                );
             }
 
-            // 渲染代码写在这里
+            if (_renderInfo is null)
+            {
+                var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
+                _renderInfo = new RenderInfo()
+                {
+                    D3D11Texture2D = d3D11Texture2D,
+                };
+            }
+
+            
+
+            // 渲染代码写在这里
+            using var renderStep = StepPerformanceCounter.RenderThreadCounter.StepStart("Render");
+
+            var result = _renderContext.SwapChain.Present(0, PresentFlags.None);
+            result.CheckError();
         }
     }
 
@@ -270,7 +302,7 @@ unsafe class RenderManager(HWND hwnd)
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
 
-        _renderInfo = new RenderInfo()
+        _renderContext = new RenderContext()
         {
             DXGIFactory2 = dxgiFactory2,
             HardwareAdapter = hardwareAdapter,
@@ -335,10 +367,20 @@ unsafe class RenderManager(HWND hwnd)
         }
     }
 
-    private RenderInfo _renderInfo;
+    private RenderContext _renderContext;
+
+    private RenderInfo? _renderInfo;
 }
 
-readonly record struct RenderInfo(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain) : IDisposable
+readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D) :IDisposable
+{
+    public void Dispose()
+    {
+        D3D11Texture2D.Dispose();
+    }
+};
+
+readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain) : IDisposable
 {
     public void Dispose()
     {
