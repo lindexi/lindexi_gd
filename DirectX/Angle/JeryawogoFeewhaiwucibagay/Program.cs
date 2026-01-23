@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using JeryawogoFeewhaiwucibagay.Diagnostics;
+using JeryawogoFeewhaiwucibagay.OpenGL.Angle;
 
 using System;
 using System.Collections.Generic;
@@ -302,6 +303,8 @@ unsafe class RenderManager(HWND hwnd)
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
+
+        var egl = new Win32AngleEglInterface();
 
         _renderContext = new RenderContext()
         {
