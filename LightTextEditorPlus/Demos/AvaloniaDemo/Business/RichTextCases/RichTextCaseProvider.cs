@@ -13,6 +13,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
@@ -275,7 +276,7 @@ partial class RichTextCaseProvider
             editor.SetForeground(Brushes.Coral);
             editor.AppendText("123123123123123123123123123");
         }, "通过 TextEditor.SetForeground 设置前景色时，可设置到文本前景色");
-
+        
         //Add(editor =>
         //{
         //    for (int i = 0; i < 10; i++)
@@ -501,6 +502,26 @@ partial class RichTextCaseProvider
                 FontSize = 50,
             }));
         }, "添加背景色");
+
+        Add(editor =>
+        {
+            editor.UseWpfLineSpacingStyle();
+            SkiaTextRunProperty runProperty = editor.StyleRunProperty with
+            {
+                Background = SKColors.Red,
+                FontSize = 25,
+                FontName = new FontName("华文楷体"),
+                FontWeight = SKFontStyleWeight.Bold,
+            };
+            editor.AppendRun(new SkiaTextRun("德国化学家维勒通过蒸发氰酸铵NH", runProperty));
+            editor.AppendRun(new SkiaTextRun("4", runProperty with
+            {
+                // 下标
+                FontVariant = TextFontVariants.Subscript
+            }));
+            editor.AppendRun(new SkiaTextRun("CNO", runProperty));
+
+        }, "测试037d9449-加粗的文本里下标渲染错误");
 
         //Add(editor =>
         //{

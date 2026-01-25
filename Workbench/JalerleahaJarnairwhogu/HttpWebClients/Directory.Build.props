@@ -1,0 +1,22 @@
+﻿<Project>
+
+  <Import Project="build\Version.props" />
+
+  <!-- 框架和语言信息 -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Deterministic>true</Deterministic>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+  </PropertyGroup>
+
+  <!-- 库和项目信息 -->
+  <PropertyGroup>
+    <Description>网络客户端</Description>
+    <Authors>lindexi</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+</Project>

@@ -1,7 +1,5 @@
-using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Document;
-
-using SkiaSharp;
 
 namespace LightTextEditorPlus;
 
