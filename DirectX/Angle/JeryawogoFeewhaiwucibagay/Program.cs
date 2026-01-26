@@ -23,6 +23,7 @@ using Vortice.Mathematics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
+using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -49,10 +50,11 @@ class DemoWindow
         var window = CreateWindow();
         HWND = window;
         ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
+        TryEnableGlass();
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
-        renderManager.StartRenderThread();
+        //renderManager.StartRenderThread();
     }
 
     private readonly RenderManager _renderManager;
@@ -79,8 +81,22 @@ class DemoWindow
 
     private unsafe HWND CreateWindow()
     {
-        var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
+        DwmIsCompositionEnabled(out var compositionEnabled);
 
+        if (!compositionEnabled)
+        {
+            Console.WriteLine($"无法启用透明窗口效果");
+        }
+
+        WINDOW_EX_STYLE exStyle = //WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW |
+                                  WINDOW_EX_STYLE.WS_EX_LAYERED;
+
+        // 如果你想做无边框：
+        //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
+        //exStyle |= WINDOW_EX_STYLE.WS_EX_TRANSPARENT; // 点击穿透可选
+
+        var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
+        
         var defaultCursor = LoadCursor(
             new HINSTANCE(IntPtr.Zero), new PCWSTR(IDC_ARROW.Value));
 
@@ -101,23 +117,50 @@ class DemoWindow
             };
             ushort atom = RegisterClassEx(in wndClassEx);
 
-            var windowHwnd = CreateWindowEx
-            (
-                0, new PCWSTR((char*) atom)
-                , new PCWSTR(pTitle),
-                WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_CLIPCHILDREN,
+            var dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW;
+            // 去掉最大化按钮和可调边框
+            dwStyle &= ~(WINDOW_STYLE.WS_MAXIMIZEBOX | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_CAPTION);
+            // 保留最小化按钮
+            dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
+
+            dwStyle = WINDOW_STYLE.WS_SYSMENU;
+
+            var windowHwnd = CreateWindowEx(
+                exStyle,
+                new PCWSTR((char*) atom),
+                new PCWSTR(pTitle),
+                dwStyle,
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-                HWND.Null, HMENU.Null, HINSTANCE.Null, null
-            );
+                HWND.Null, HMENU.Null, HINSTANCE.Null, null);
+
+            TryEnableGlass(windowHwnd);
+
             return windowHwnd;
         }
+    }
+
+    public void TryEnableGlass() => TryEnableGlass(HWND);
+
+    private static void TryEnableGlass(HWND windowHwnd)
+    {
+        var pMarInset = new MARGINS()
+        {
+            cxLeftWidth = -1,
+            cyTopHeight = -1,
+            cxRightWidth = -1,
+            cyBottomHeight = -1
+        };
+        DwmExtendFrameIntoClientArea(windowHwnd, in pMarInset);
     }
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
         switch ((WindowsMessage) message)
         {
-
+            case WindowsMessage.WM_NCCALCSIZE:
+            {
+                return new LRESULT(0);
+            }
             case WindowsMessage.WM_SIZE:
                 {
                     _renderManager?.ReSize();
@@ -178,8 +221,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 _renderContext = _renderContext with
                 {
-                    WindowWidth = (uint)clientSize.Width,
-                    WindowHeight = (uint)clientSize.Height
+                    WindowWidth = (uint) clientSize.Width,
+                    WindowHeight = (uint) clientSize.Height
                 };
             }
 
@@ -229,8 +272,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                     var glInfo = new GRGlFramebufferInfo((uint) fb, colorType.ToGlSizedFormat());
 
-                    using (var renderTarget = new GRBackendRenderTarget((int)_renderContext.WindowWidth,
-                               (int)_renderContext.WindowHeight, maxSamples, eglDisplay.StencilSize, glInfo))
+                    using (var renderTarget = new GRBackendRenderTarget((int) _renderContext.WindowWidth,
+                               (int) _renderContext.WindowHeight, maxSamples, eglDisplay.StencilSize, glInfo))
                     {
                         var surfaceProperties = new SKSurfaceProperties(SKPixelGeometry.RgbHorizontal);
 
@@ -240,7 +283,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                         {
                             using (var skCanvas = skSurface.Canvas)
                             {
-                                skCanvas.Clear(SKColors.Transparent);
+                                skCanvas.Clear(SKColors.Empty);
                             }
                         }
                     }
