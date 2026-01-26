@@ -52,7 +52,7 @@ class DemoWindow
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
-        //renderManager.StartRenderThread();
+        renderManager.StartRenderThread();
     }
 
     private readonly RenderManager _renderManager;
@@ -194,7 +194,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         using D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
 
-
         while (!_isDisposed)
         {
             if (_isReSize)
@@ -256,7 +255,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
 
                 renderTarget.BeginDraw();
-                var color = new Color4(0.5f,1,1,1);
+                var color = new Color4(0.5f, 1, 1, 0.5f);
                 renderTarget.Clear(color);
                 renderTarget.EndDraw();
             }
