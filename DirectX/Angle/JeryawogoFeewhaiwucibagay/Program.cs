@@ -79,8 +79,14 @@ class DemoWindow
 
     private unsafe HWND CreateWindow()
     {
-        var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
+        DwmIsCompositionEnabled(out var compositionEnabled);
 
+        var exStyle = WINDOW_EX_STYLE.WS_EX_LAYERED;
+        // 如果你想做无边框：
+        //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
+          //exStyle |= WINDOW_EX_STYLE.WS_EX_TRANSPARENT; // 点击穿透可选
+
+        var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW; // 或者 WS_OVERLAPPEDWINDOW 可以先测试
         var defaultCursor = LoadCursor(
             new HINSTANCE(IntPtr.Zero), new PCWSTR(IDC_ARROW.Value));
 
@@ -101,14 +107,13 @@ class DemoWindow
             };
             ushort atom = RegisterClassEx(in wndClassEx);
 
-            var windowHwnd = CreateWindowEx
-            (
-                0, new PCWSTR((char*) atom)
-                , new PCWSTR(pTitle),
+            var windowHwnd = CreateWindowEx(
+                exStyle,
+                new PCWSTR((char*) atom),
+                new PCWSTR(pTitle),
                 WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_CLIPCHILDREN,
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-                HWND.Null, HMENU.Null, HINSTANCE.Null, null
-            );
+                HWND.Null, HMENU.Null, HINSTANCE.Null, null);
             return windowHwnd;
         }
     }
@@ -178,8 +183,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 _renderContext = _renderContext with
                 {
-                    WindowWidth = (uint)clientSize.Width,
-                    WindowHeight = (uint)clientSize.Height
+                    WindowWidth = (uint) clientSize.Width,
+                    WindowHeight = (uint) clientSize.Height
                 };
             }
 
@@ -229,8 +234,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                     var glInfo = new GRGlFramebufferInfo((uint) fb, colorType.ToGlSizedFormat());
 
-                    using (var renderTarget = new GRBackendRenderTarget((int)_renderContext.WindowWidth,
-                               (int)_renderContext.WindowHeight, maxSamples, eglDisplay.StencilSize, glInfo))
+                    using (var renderTarget = new GRBackendRenderTarget((int) _renderContext.WindowWidth,
+                               (int) _renderContext.WindowHeight, maxSamples, eglDisplay.StencilSize, glInfo))
                     {
                         var surfaceProperties = new SKSurfaceProperties(SKPixelGeometry.RgbHorizontal);
 

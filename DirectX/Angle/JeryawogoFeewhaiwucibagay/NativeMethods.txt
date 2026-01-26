@@ -24,3 +24,6 @@ DefWindowProc
 GetClientRect
 WM
 WM_PAINT
+GetWindowLong
+SetWindowLong
+DwmIsCompositionEnabled
