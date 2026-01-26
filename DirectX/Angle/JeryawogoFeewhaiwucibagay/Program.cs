@@ -267,7 +267,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                         {
                             using (var skCanvas = skSurface.Canvas)
                             {
-                                skCanvas.Clear(SKColors.Empty);
+                                skCanvas.Clear(new SKColor((uint)Random.Shared.Next()));
                             }
                         }
                     }
@@ -374,7 +374,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
-            Scaling = Scaling.None,
+            Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
             AlphaMode = AlphaMode.Premultiplied,
             Flags = SwapChainFlags.None,
