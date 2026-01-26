@@ -1,7 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using FarjairyakaBurnefuwache.Diagnostics;
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,12 +8,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vortice.Mathematics;
-
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
@@ -25,7 +22,6 @@ using Vortice.DirectComposition;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Windows.Win32.PInvoke;
 using AlphaMode = Vortice.DXGI.AlphaMode;
-
 using D2D = Vortice.Direct2D1;
 
 namespace FarjairyakaBurnefuwache;
@@ -88,7 +84,7 @@ class DemoWindow
         }
 
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-         | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
+                                  | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -106,7 +102,7 @@ class DemoWindow
         {
             var wndClassEx = new WNDCLASSEXW
             {
-                cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
+                cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
                 lpfnWndProc = new WNDPROC(WndProc),
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
@@ -126,10 +122,10 @@ class DemoWindow
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
-                new PCWSTR((char*) atom),
+                new PCWSTR((char*)atom),
                 new PCWSTR(pTitle),
                 dwStyle,
-                CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                0, 0, 1900, 1000,
                 HWND.Null, HMENU.Null, HINSTANCE.Null, null);
 
             TryEnableGlass(windowHwnd);
@@ -155,17 +151,17 @@ class DemoWindow
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        switch ((WindowsMessage) message)
+        switch ((WindowsMessage)message)
         {
-            //case WindowsMessage.WM_NCCALCSIZE:
-            //    {
-            //        return new LRESULT(0);
-            //    }
+            case WindowsMessage.WM_NCCALCSIZE:
+            {
+                return new LRESULT(0);
+            }
             case WindowsMessage.WM_SIZE:
-                {
-                    _renderManager?.ReSize();
-                    break;
-                }
+            {
+                _renderManager?.ReSize();
+                break;
+            }
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
@@ -178,10 +174,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
     public void StartRenderThread()
     {
-        var thread = new Thread(() =>
-        {
-            RenderCore();
-        })
+        var thread = new Thread(() => { RenderCore(); })
         {
             IsBackground = true,
             Name = "Render"
@@ -215,16 +208,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 var swapChain = _renderContext.SwapChain;
 
                 swapChain.ResizeBuffers(2,
-                    (uint) (clientSize.Width),
-                    (uint) (clientSize.Height),
-                   Format.B8G8R8A8_UNorm,
+                    (uint)(clientSize.Width),
+                    (uint)(clientSize.Height),
+                    Format.B8G8R8A8_UNorm,
                     SwapChainFlags.None
                 );
 
                 _renderContext = _renderContext with
                 {
-                    WindowWidth = (uint) clientSize.Width,
-                    WindowHeight = (uint) clientSize.Height
+                    WindowWidth = (uint)clientSize.Width,
+                    WindowHeight = (uint)clientSize.Height
                 };
             }
 
@@ -257,7 +250,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
 
                 renderTarget.BeginDraw();
-                var color = new Color4(0.5f, 1, 1, 0.5f);
+
+                var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
+                    Random.Shared.NextSingle(), 0.5f);
                 renderTarget.Clear(color);
                 renderTarget.EndDraw();
             }
@@ -347,8 +342,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         const int FrameCount = 2;
         SwapChainDescription1 swapChainDescription = new()
         {
-            Width = (uint) clientSize.Width,
-            Height = (uint) clientSize.Height,
+            Width = (uint)clientSize.Width,
+            Height = (uint)clientSize.Height,
             Format = colorFormat,
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
@@ -377,7 +372,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         dxgiDevice.Dispose();
 
         // 不要被按下 alt+enter 进入全屏
-        dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
+        dxgiFactory2.MakeWindowAssociation(HWND,
+            WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
 
         _renderContext = new RenderContext()
         {
@@ -422,7 +418,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 Console.WriteLine($"枚举到 {adapter.Description1.Description} 显卡");
                 yield return adapter;
-
             }
         }
         else
@@ -472,7 +467,15 @@ readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, D2D.ID2D1Rende
     }
 };
 
-readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IDCompositionDevice CompositionDevice, IDCompositionTarget CompositionTarget, IDCompositionVisual CompositionVisual) : IDisposable
+readonly record struct RenderContext(
+    IDXGIFactory2 DXGIFactory2,
+    IDXGIAdapter1 HardwareAdapter,
+    ID3D11Device1 D3D11Device1,
+    ID3D11DeviceContext1 D3D11DeviceContext1,
+    IDXGISwapChain1 SwapChain,
+    IDCompositionDevice CompositionDevice,
+    IDCompositionTarget CompositionTarget,
+    IDCompositionVisual CompositionVisual) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }
