@@ -20,9 +20,12 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
-
+using Vortice.DCommon;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Windows.Win32.PInvoke;
+using AlphaMode = Vortice.DXGI.AlphaMode;
+
+using D2D = Vortice.Direct2D1;
 
 namespace FarjairyakaBurnefuwache;
 
@@ -91,7 +94,7 @@ class DemoWindow
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TRANSPARENT; // 点击穿透可选
 
         var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
-        
+
         var defaultCursor = LoadCursor(
             new HINSTANCE(IntPtr.Zero), new PCWSTR(IDC_ARROW.Value));
 
@@ -153,9 +156,9 @@ class DemoWindow
         switch ((WindowsMessage) message)
         {
             case WindowsMessage.WM_NCCALCSIZE:
-            {
-                return new LRESULT(0);
-            }
+                {
+                    return new LRESULT(0);
+                }
             case WindowsMessage.WM_SIZE:
                 {
                     _renderManager?.ReSize();
@@ -188,6 +191,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     private void RenderCore()
     {
         Init();
+
+        using D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
+
 
         while (!_isDisposed)
         {
@@ -225,17 +231,40 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             {
                 var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
+                var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
+                var renderTargetProperties = new D2D.RenderTargetProperties()
+                {
+                    PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, Vortice.DCommon.AlphaMode.Premultiplied)
+                };
+
+                D2D.ID2D1RenderTarget d2D1RenderTarget =
+                    d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
+
                 _renderInfo = new RenderInfo()
                 {
                     D3D11Texture2D = d3D11Texture2D,
+                    D2D1RenderTarget = d2D1RenderTarget,
                 };
             }
 
             // 渲染代码写在这里
 
+            using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
+            {
+                var d2D1RenderTarget = _renderInfo.Value.D2D1RenderTarget;
+
+                D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
+
+                renderTarget.BeginDraw();
+                var color = new Color4(0.5f,1,1,1);
+                renderTarget.Clear(color);
+                renderTarget.EndDraw();
+            }
+
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
                 _renderContext.SwapChain.Present(1, PresentFlags.None);
+                _renderContext.D3D11DeviceContext1.Flush();
             }
             //result.CheckError();
         }
@@ -329,21 +358,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             Flags = SwapChainFlags.None,
         };
 
-        /*
-         * DXGI_SWAP_CHAIN_DESC1 dxgiSwapChainDesc = new DXGI_SWAP_CHAIN_DESC1();
-
-           // standard swap chain really. 
-           dxgiSwapChainDesc.Format = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
-           dxgiSwapChainDesc.SampleDesc.Count = 1U;
-           dxgiSwapChainDesc.SampleDesc.Quality = 0U;
-           dxgiSwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-           dxgiSwapChainDesc.AlphaMode = DXGI_ALPHA_MODE.DXGI_ALPHA_MODE_IGNORE;
-           dxgiSwapChainDesc.Width = (uint)_window.Size.Width;
-           dxgiSwapChainDesc.Height = (uint)_window.Size.Height;
-           dxgiSwapChainDesc.BufferCount = 2U;
-           dxgiSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT.DXGI_SWAP_EFFECT_FLIP_DISCARD;
-         */
-
         // 设置是否全屏
         var fullscreenDescription = new SwapChainFullscreenDescription
         {
@@ -356,8 +370,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
 
-       
-
         _renderContext = new RenderContext()
         {
             DXGIFactory2 = dxgiFactory2,
@@ -365,7 +377,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             D3D11Device1 = d3D11Device1,
             D3D11DeviceContext1 = d3D11DeviceContext1,
             SwapChain = swapChain,
-          
+
 
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
@@ -440,10 +452,11 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     private bool _isDisposed;
 }
 
-readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D) : IDisposable
+readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, D2D.ID2D1RenderTarget D2D1RenderTarget) : IDisposable
 {
     public void Dispose()
     {
+        D2D1RenderTarget.Dispose();
         D3D11Texture2D.Dispose();
     }
 };
