@@ -87,8 +87,9 @@ class DemoWindow
             Console.WriteLine($"无法启用透明窗口效果");
         }
 
-        WINDOW_EX_STYLE exStyle = //WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW |
-                                  WINDOW_EX_STYLE.WS_EX_LAYERED;
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
+        // | WINDOW_EX_STYLE.WS_EX_LAYERED
+                                  ;
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -118,11 +119,11 @@ class DemoWindow
 
             var dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW;
             // 去掉最大化按钮和可调边框
-            dwStyle &= ~(WINDOW_STYLE.WS_MAXIMIZEBOX | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_CAPTION);
+            //dwStyle &= ~(WINDOW_STYLE.WS_MAXIMIZEBOX | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_CAPTION);
             // 保留最小化按钮
-            dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
+            //dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
 
-            dwStyle = WINDOW_STYLE.WS_SYSMENU;
+            //dwStyle = WINDOW_STYLE.WS_SYSMENU;
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
@@ -142,6 +143,7 @@ class DemoWindow
 
     private static void TryEnableGlass(HWND windowHwnd)
     {
+        return;
         var pMarInset = new MARGINS()
         {
             cxLeftWidth = -1,
@@ -156,10 +158,10 @@ class DemoWindow
     {
         switch ((WindowsMessage) message)
         {
-            case WindowsMessage.WM_NCCALCSIZE:
-                {
-                    return new LRESULT(0);
-                }
+            //case WindowsMessage.WM_NCCALCSIZE:
+            //    {
+            //        return new LRESULT(0);
+            //    }
             case WindowsMessage.WM_SIZE:
                 {
                     _renderManager?.ReSize();
