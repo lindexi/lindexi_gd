@@ -5,8 +5,11 @@ using JeryawogoFeewhaiwucibagay.OpenGL;
 using JeryawogoFeewhaiwucibagay.OpenGL.Angle;
 using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
 
+using SkiaSharp;
+
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -126,7 +129,7 @@ class DemoWindow
     }
 }
 
-unsafe class RenderManager(HWND hwnd):IDisposable
+unsafe class RenderManager(HWND hwnd) : IDisposable
 {
     public HWND HWND => hwnd;
 
@@ -172,6 +175,12 @@ unsafe class RenderManager(HWND hwnd):IDisposable
                    Format.B8G8R8A8_UNorm,
                     SwapChainFlags.None
                 );
+
+                _renderContext = _renderContext with
+                {
+                    WindowWidth = (uint)clientSize.Width,
+                    WindowHeight = (uint)clientSize.Height
+                };
             }
 
             if (_renderInfo is null)
@@ -180,7 +189,7 @@ unsafe class RenderManager(HWND hwnd):IDisposable
 
                 EglSurface surface =
                 _renderContext.AngleWin32EglDisplay.WrapDirect3D11Texture(d3D11Texture2D.NativePointer, 0, 0,
-                    (int)_renderContext.WindowWidth, (int)_renderContext.WindowHeight);
+                    (int) _renderContext.WindowWidth, (int) _renderContext.WindowHeight);
 
                 _renderInfo = new RenderInfo()
                 {
@@ -196,23 +205,56 @@ unsafe class RenderManager(HWND hwnd):IDisposable
                 var eglInterface = _renderContext.AngleWin32EglDisplay.EglInterface;
                 var eglDisplay = _renderContext.AngleWin32EglDisplay;
 
-                var eglSurface = _renderInfo.Value.EglSurface;
+                EglSurface eglSurface = _renderInfo.Value.EglSurface;
 
-                eglInterface.MakeCurrent(eglDisplay.Handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
-
-                var success = eglInterface.MakeCurrent(eglDisplay.Handle, eglSurface?.DangerousGetHandle() ?? IntPtr.Zero,
-                    eglSurface?.DangerousGetHandle() ?? IntPtr.Zero, _renderContext.EglContext.Context);
-                if (!success)
-                {
-                    var error = eglInterface.GetError();
-                    throw OpenGlException.GetFormattedEglException("eglMakeCurrent", error);
-                }
+                using var makeCurrent = _renderContext.EglContext.MakeCurrent(eglSurface);
 
                 eglInterface.WaitClient();
                 eglInterface.WaitGL();
                 eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
 
-                
+                var eglContext = _renderContext.EglContext;
+                eglContext.GlInterface.BindFramebuffer(GlConsts.GL_FRAMEBUFFER, 0);
+
+                using (StepPerformanceCounter.RenderThreadCounter.StepStart("RenderCore"))
+                {
+                    eglContext.GlInterface.GetIntegerv(GlConsts.GL_FRAMEBUFFER_BINDING, out var fb);
+
+                    var colorType = SKColorType.Rgba8888;
+
+                    var grContext = _renderContext.GRContext;
+                    grContext.ResetContext();
+
+                    var maxSamples = grContext.GetMaxSurfaceSampleCount(colorType);
+
+                    var glInfo = new GRGlFramebufferInfo((uint) fb, colorType.ToGlSizedFormat());
+
+                    using (var renderTarget = new GRBackendRenderTarget((int)_renderContext.WindowWidth,
+                               (int)_renderContext.WindowHeight, maxSamples, eglDisplay.StencilSize, glInfo))
+                    {
+                        var surfaceProperties = new SKSurfaceProperties(SKPixelGeometry.RgbHorizontal);
+
+                        using (var skSurface = SKSurface.Create(grContext, renderTarget, GRSurfaceOrigin.TopLeft,
+                                   colorType,
+                                   surfaceProperties))
+                        {
+                            using (var skCanvas = skSurface.Canvas)
+                            {
+                                skCanvas.Clear(SKColors.White);
+                            }
+                        }
+                    }
+
+                    grContext.Flush();
+                }
+
+                eglContext.GlInterface.Flush();
+                eglInterface.WaitGL();
+                eglSurface.SwapBuffers();
+
+                eglInterface.WaitClient();
+                eglInterface.WaitGL();
+                eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
             }
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
@@ -346,6 +388,19 @@ unsafe class RenderManager(HWND hwnd):IDisposable
 
         EglContext eglContext = angleWin32EglDisplay.CreateContext();
 
+        using var makeCurrent = eglContext.MakeCurrent();
+
+        var grGlInterface = GRGlInterface.CreateGles(proc =>
+        {
+            var procAddress = eglContext.GlInterface.GetProcAddress(proc);
+            return procAddress;
+        });
+
+        var grContext = GRContext.CreateGl(grGlInterface, new GRContextOptions()
+        {
+            AvoidStencilBuffers = true
+        });
+
         _renderContext = new RenderContext()
         {
             DXGIFactory2 = dxgiFactory2,
@@ -357,6 +412,8 @@ unsafe class RenderManager(HWND hwnd):IDisposable
             AngleDisplay = display,
             AngleWin32EglDisplay = angleWin32EglDisplay,
             EglContext = eglContext,
+            GRGlInterface = grGlInterface,
+            GRContext = grContext,
 
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
@@ -440,7 +497,7 @@ readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, EglSurface Egl
     }
 };
 
-readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay, EglContext EglContext) : IDisposable
+readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay, EglContext EglContext, GRGlInterface GRGlInterface, GRContext GRContext) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }
