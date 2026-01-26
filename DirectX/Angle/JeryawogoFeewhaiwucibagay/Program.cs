@@ -1,7 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using JeryawogoFeewhaiwucibagay.Diagnostics;
+using JeryawogoFeewhaiwucibagay.OpenGL;
 using JeryawogoFeewhaiwucibagay.OpenGL.Angle;
+using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,8 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
-using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Windows.Win32.PInvoke;
 
 namespace JeryawogoFeewhaiwucibagay;
@@ -191,6 +194,20 @@ unsafe class RenderManager(HWND hwnd):IDisposable
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
             {
                 var eglInterface = _renderContext.AngleWin32EglDisplay.EglInterface;
+                var eglDisplay = _renderContext.AngleWin32EglDisplay;
+
+                var eglSurface = _renderInfo.Value.EglSurface;
+
+                eglInterface.MakeCurrent(eglDisplay.Handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+
+                var success = eglInterface.MakeCurrent(eglDisplay.Handle, eglSurface?.DangerousGetHandle() ?? IntPtr.Zero,
+                    eglSurface?.DangerousGetHandle() ?? IntPtr.Zero, _renderContext.EglContext.Context);
+                if (!success)
+                {
+                    var error = eglInterface.GetError();
+                    throw OpenGlException.GetFormattedEglException("eglMakeCurrent", error);
+                }
+
                 eglInterface.WaitClient();
                 eglInterface.WaitGL();
                 eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
@@ -327,6 +344,8 @@ unsafe class RenderManager(HWND hwnd):IDisposable
 
         var angleWin32EglDisplay = new AngleWin32EglDisplay(display, egl);
 
+        EglContext eglContext = angleWin32EglDisplay.CreateContext();
+
         _renderContext = new RenderContext()
         {
             DXGIFactory2 = dxgiFactory2,
@@ -337,6 +356,7 @@ unsafe class RenderManager(HWND hwnd):IDisposable
             AngleDevice = angleDevice,
             AngleDisplay = display,
             AngleWin32EglDisplay = angleWin32EglDisplay,
+            EglContext = eglContext,
 
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
@@ -420,7 +440,7 @@ readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, EglSurface Egl
     }
 };
 
-readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay) : IDisposable
+readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay, EglContext EglContext) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }

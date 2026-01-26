@@ -123,6 +123,21 @@ public class EglDisplay : IDisposable
         }
     }
 
+    public EglContext CreateContext()
+    {
+        lock (_lock)
+        {
+            var context = EglInterface.CreateContext(_display, Config,  IntPtr.Zero, _config.Attributes);
+
+            if (context == IntPtr.Zero)
+            {
+                throw OpenGlException.GetFormattedException("eglCreateContext", EglInterface);
+            }
+
+            return new EglContext(this, context);
+        }
+    }
+
     public void Dispose()
     {
         lock (_lock)
