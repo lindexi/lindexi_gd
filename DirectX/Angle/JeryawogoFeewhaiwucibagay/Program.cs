@@ -240,7 +240,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                         {
                             using (var skCanvas = skSurface.Canvas)
                             {
-                                skCanvas.Clear(SKColors.White);
+                                skCanvas.Clear(SKColors.Transparent);
                             }
                         }
                     }
