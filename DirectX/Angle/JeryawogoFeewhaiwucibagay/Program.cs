@@ -54,7 +54,7 @@ class DemoWindow
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
-        //renderManager.StartRenderThread();
+        renderManager.StartRenderThread();
     }
 
     private readonly RenderManager _renderManager;
@@ -95,7 +95,8 @@ class DemoWindow
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TRANSPARENT; // 点击穿透可选
 
-        var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
+        var style = //WNDCLASS_STYLES.CS_OWNDC |
+                    WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
         
         var defaultCursor = LoadCursor(
             new HINSTANCE(IntPtr.Zero), new PCWSTR(IDC_ARROW.Value));
@@ -343,11 +344,11 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         };
 
         IDXGIAdapter1 adapter = hardwareAdapter;
-        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport;
+        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport | DeviceCreationFlags.Debug;
         var result = D3D11.D3D11CreateDevice
         (
             adapter,
-            DriverType.Unknown,
+            DriverType.Null,
             creationFlags,
             featureLevels,
             out ID3D11Device d3D11Device, out FeatureLevel featureLevel,
@@ -386,13 +387,13 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         {
             Width = (uint) clientSize.Width,
             Height = (uint) clientSize.Height,
-            Format = colorFormat,
+            Format = colorFormat,                       // B8G8R8A8_UNorm
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
-            Scaling = Scaling.Stretch,
+            Scaling = Scaling.None,
             SwapEffect = SwapEffect.FlipDiscard,
-            AlphaMode = AlphaMode.Ignore,
+            AlphaMode = AlphaMode.Premultiplied,        // 关键：改为预乘
             Flags = SwapChainFlags.None,
         };
 
