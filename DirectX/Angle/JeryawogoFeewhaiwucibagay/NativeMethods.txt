@@ -27,3 +27,5 @@ WM_PAINT
 GetWindowLong
 SetWindowLong
 DwmIsCompositionEnabled
+UpdateLayeredWindow
+DwmExtendFrameIntoClientArea
