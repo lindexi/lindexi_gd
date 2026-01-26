@@ -233,7 +233,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
                 var renderTargetProperties = new D2D.RenderTargetProperties()
                 {
-                    PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, Vortice.DCommon.AlphaMode.Premultiplied)
+                    PixelFormat = new PixelFormat(_colorFormat, Vortice.DCommon.AlphaMode.Premultiplied)
                 };
 
                 D2D.ID2D1RenderTarget d2D1RenderTarget =
@@ -255,7 +255,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
 
                 renderTarget.BeginDraw();
-                var color = new Color4(0.5f, 1, 1, 0.5f);
+                var color = new Color4(0.5f, 1, 1, 0f);
                 renderTarget.Clear(color);
                 renderTarget.EndDraw();
             }
@@ -275,6 +275,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     }
 
     private bool _isReSize;
+
+    private readonly Format _colorFormat = Format.R8G8B8A8_UNorm;
 
     private void Init()
     {
@@ -315,20 +317,21 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             out ID3D11DeviceContext d3D11DeviceContext
         );
 
-        if (result.Failure)
-        {
-            // 如果失败了，那就不指定显卡，走 WARP 的方式
-            // http://go.microsoft.com/fwlink/?LinkId=286690
-            result = D3D11.D3D11CreateDevice(
-                IntPtr.Zero,
-                DriverType.Warp,
-                creationFlags,
-                featureLevels,
-                out d3D11Device, out featureLevel, out d3D11DeviceContext);
+        result.CheckError();
+        //if (result.Failure)
+        //{
+        //    // 如果失败了，那就不指定显卡，走 WARP 的方式
+        //    // http://go.microsoft.com/fwlink/?LinkId=286690
+        //    result = D3D11.D3D11CreateDevice(
+        //        IntPtr.Zero,
+        //        DriverType.Warp,
+        //        creationFlags,
+        //        featureLevels,
+        //        out d3D11Device, out featureLevel, out d3D11DeviceContext);
 
-            // 如果失败，就不能继续
-            result.CheckError();
-        }
+        //    // 如果失败，就不能继续
+        //    result.CheckError();
+        //}
 
         // 大部分情况下，用的是 ID3D11Device1 和 ID3D11DeviceContext1 类型
         // 从 ID3D11Device 转换为 ID3D11Device1 类型
@@ -339,21 +342,19 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         d3D11Device.Dispose();
         d3D11DeviceContext.Dispose();
 
-        Format colorFormat = Format.B8G8R8A8_UNorm;
-
         // 缓存的数量，包括前缓存。大部分应用来说，至少需要两个缓存，这个玩过游戏的伙伴都知道
         const int FrameCount = 2;
         SwapChainDescription1 swapChainDescription = new()
         {
             Width = (uint) clientSize.Width,
             Height = (uint) clientSize.Height,
-            Format = colorFormat,
+            Format = _colorFormat,
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipDiscard,
-            AlphaMode = AlphaMode.Ignore,
+            AlphaMode = AlphaMode.Premultiplied,
             Flags = SwapChainFlags.None,
         };
 
