@@ -21,6 +21,7 @@ using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Vortice.DCommon;
+using Vortice.DirectComposition;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Windows.Win32.PInvoke;
 using AlphaMode = Vortice.DXGI.AlphaMode;
@@ -352,19 +353,27 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
-            SwapEffect = SwapEffect.FlipDiscard,
-            AlphaMode = AlphaMode.Ignore,
+            SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
+            AlphaMode = AlphaMode.Premultiplied,
             Flags = SwapChainFlags.None,
         };
 
-        // 设置是否全屏
-        var fullscreenDescription = new SwapChainFullscreenDescription
-        {
-            Windowed = true
-        };
-
+        // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
         IDXGISwapChain1 swapChain =
-            dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription, fullscreenDescription);
+            dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
+
+        // 创建 DirectComposition 设备和目标
+        IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
+        IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
+        compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
+
+        // 创建视觉对象并设置 SwapChain 作为内容
+        IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
+        compositionVisual.SetContent(swapChain);
+        compositionTarget.SetRoot(compositionVisual);
+        compositionDevice.Commit();
+
+        dxgiDevice.Dispose();
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
@@ -376,7 +385,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             D3D11Device1 = d3D11Device1,
             D3D11DeviceContext1 = d3D11DeviceContext1,
             SwapChain = swapChain,
-
+            CompositionDevice = compositionDevice,
+            CompositionTarget = compositionTarget,
+            CompositionVisual = compositionVisual,
 
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
@@ -460,13 +471,16 @@ readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, D2D.ID2D1Rende
     }
 };
 
-readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain) : IDisposable
+readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IDCompositionDevice CompositionDevice, IDCompositionTarget CompositionTarget, IDCompositionVisual CompositionVisual) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }
 
     public void Dispose()
     {
+        CompositionVisual.Dispose();
+        CompositionTarget.Dispose();
+        CompositionDevice.Dispose();
         DXGIFactory2.Dispose();
         HardwareAdapter.Dispose();
         D3D11Device1.Dispose();

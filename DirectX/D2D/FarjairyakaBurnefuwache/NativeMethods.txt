@@ -1,4 +1,4 @@
-EnumDisplayMonitors
+﻿EnumDisplayMonitors
 GetMonitorInfo
 MONITORINFOEXW
 EnumDisplaySettings
@@ -29,3 +29,4 @@ SetWindowLong
 DwmIsCompositionEnabled
 UpdateLayeredWindow
 DwmExtendFrameIntoClientArea
+DCompositionCreateDevice
