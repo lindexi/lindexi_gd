@@ -20,6 +20,8 @@ public class EglDisplay : IDisposable
 
     private readonly EglConfigInfo _config;
 
+    public int StencilSize => _config.StencilSize;
+
     private static EglConfigInfo InitializeAndGetConfig(IntPtr display, EglInterface eglInterface)
     {
         if (!eglInterface.Initialize(display, out _, out _))
@@ -134,7 +136,7 @@ public class EglDisplay : IDisposable
                 throw OpenGlException.GetFormattedException("eglCreateContext", EglInterface);
             }
 
-            return new EglContext(this, context);
+            return new EglContext(this, context, _config.Version);
         }
     }
 
