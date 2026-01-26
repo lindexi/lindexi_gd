@@ -88,8 +88,7 @@ class DemoWindow
         }
 
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-        // | WINDOW_EX_STYLE.WS_EX_LAYERED
-                                  ;
+         | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
