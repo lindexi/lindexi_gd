@@ -98,7 +98,7 @@ public class PerformanceCounter(string name, bool enable = true)
         }
     }
 
-    internal bool CanOutput => _count > 100 && _total > 1000;
+    internal bool CanOutput => (_count > 100 && _total > 1000) || _count > 1000;
 
     public void Output()
     {

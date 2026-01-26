@@ -1,7 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using JeryawogoFeewhaiwucibagay.Diagnostics;
+using JeryawogoFeewhaiwucibagay.OpenGL;
 using JeryawogoFeewhaiwucibagay.OpenGL.Angle;
+using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
 
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Windows.Win32.PInvoke;
 
 namespace JeryawogoFeewhaiwucibagay;
@@ -123,7 +126,7 @@ class DemoWindow
     }
 }
 
-unsafe class RenderManager(HWND hwnd)
+unsafe class RenderManager(HWND hwnd):IDisposable
 {
     public HWND HWND => hwnd;
 
@@ -145,7 +148,7 @@ unsafe class RenderManager(HWND hwnd)
     {
         Init();
 
-        while (true)
+        while (!_isDisposed)
         {
             if (_isReSize)
             {
@@ -159,11 +162,13 @@ unsafe class RenderManager(HWND hwnd)
                 }
 
                 GetClientRect(HWND, out var pClientRect);
+                var clientSize = new SizeI(pClientRect.right - pClientRect.left, pClientRect.bottom - pClientRect.top);
+
                 var swapChain = _renderContext.SwapChain;
 
                 swapChain.ResizeBuffers(2,
-                    (ushort) (pClientRect.right - pClientRect.left),
-                    (ushort) (pClientRect.bottom - pClientRect.top),
+                    (uint) (clientSize.Width),
+                    (uint) (clientSize.Height),
                    Format.B8G8R8A8_UNorm,
                     SwapChainFlags.None
                 );
@@ -173,18 +178,47 @@ unsafe class RenderManager(HWND hwnd)
             {
                 var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
+                EglSurface surface =
+                _renderContext.AngleWin32EglDisplay.WrapDirect3D11Texture(d3D11Texture2D.NativePointer, 0, 0,
+                    (int)_renderContext.WindowWidth, (int)_renderContext.WindowHeight);
+
                 _renderInfo = new RenderInfo()
                 {
+                    EglSurface = surface,
                     D3D11Texture2D = d3D11Texture2D,
                 };
             }
 
-            
-
             // 渲染代码写在这里
-            using var renderStep = StepPerformanceCounter.RenderThreadCounter.StepStart("Render");
 
-             _renderContext.SwapChain.Present(1, PresentFlags.None);
+            using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
+            {
+                var eglInterface = _renderContext.AngleWin32EglDisplay.EglInterface;
+                var eglDisplay = _renderContext.AngleWin32EglDisplay;
+
+                var eglSurface = _renderInfo.Value.EglSurface;
+
+                eglInterface.MakeCurrent(eglDisplay.Handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+
+                var success = eglInterface.MakeCurrent(eglDisplay.Handle, eglSurface?.DangerousGetHandle() ?? IntPtr.Zero,
+                    eglSurface?.DangerousGetHandle() ?? IntPtr.Zero, _renderContext.EglContext.Context);
+                if (!success)
+                {
+                    var error = eglInterface.GetError();
+                    throw OpenGlException.GetFormattedEglException("eglMakeCurrent", error);
+                }
+
+                eglInterface.WaitClient();
+                eglInterface.WaitGL();
+                eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
+
+                
+            }
+
+            using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
+            {
+                _renderContext.SwapChain.Present(1, PresentFlags.None);
+            }
             //result.CheckError();
         }
     }
@@ -305,6 +339,12 @@ unsafe class RenderManager(HWND hwnd)
         dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
 
         var egl = new Win32AngleEglInterface();
+        var angleDevice = egl.CreateDeviceANGLE(EglConsts.EGL_D3D11_DEVICE_ANGLE, d3D11Device1.NativePointer, null);
+        var display = egl.GetPlatformDisplayExt(EglConsts.EGL_PLATFORM_DEVICE_EXT, angleDevice, null);
+
+        var angleWin32EglDisplay = new AngleWin32EglDisplay(display, egl);
+
+        EglContext eglContext = angleWin32EglDisplay.CreateContext();
 
         _renderContext = new RenderContext()
         {
@@ -313,6 +353,13 @@ unsafe class RenderManager(HWND hwnd)
             D3D11Device1 = d3D11Device1,
             D3D11DeviceContext1 = d3D11DeviceContext1,
             SwapChain = swapChain,
+            AngleDevice = angleDevice,
+            AngleDisplay = display,
+            AngleWin32EglDisplay = angleWin32EglDisplay,
+            EglContext = eglContext,
+
+            WindowWidth = swapChainDescription.Width,
+            WindowHeight = swapChainDescription.Height
         };
     }
 
@@ -374,18 +421,30 @@ unsafe class RenderManager(HWND hwnd)
     private RenderContext _renderContext;
 
     private RenderInfo? _renderInfo;
+
+    public void Dispose()
+    {
+        _renderContext.Dispose();
+        _isDisposed = true;
+    }
+
+    private bool _isDisposed;
 }
 
-readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D) :IDisposable
+readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, EglSurface EglSurface) : IDisposable
 {
     public void Dispose()
     {
+        EglSurface.Dispose();
         D3D11Texture2D.Dispose();
     }
 };
 
-readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain) : IDisposable
+readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay, EglContext EglContext) : IDisposable
 {
+    public uint WindowWidth { get; init; }
+    public uint WindowHeight { get; init; }
+
     public void Dispose()
     {
         DXGIFactory2.Dispose();
