@@ -17,6 +17,7 @@ using System.Threading;
 
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
+using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
 
@@ -50,7 +51,6 @@ class DemoWindow
         var window = CreateWindow();
         HWND = window;
         ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
-        TryEnableGlass();
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
@@ -88,16 +88,15 @@ class DemoWindow
             Console.WriteLine($"无法启用透明窗口效果");
         }
 
-        WINDOW_EX_STYLE exStyle = //WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW |
-                                  WINDOW_EX_STYLE.WS_EX_LAYERED;
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
+                                  | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TRANSPARENT; // 点击穿透可选
 
-        var style = //WNDCLASS_STYLES.CS_OWNDC |
-                    WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
-        
+        var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
+
         var defaultCursor = LoadCursor(
             new HINSTANCE(IntPtr.Zero), new PCWSTR(IDC_ARROW.Value));
 
@@ -120,38 +119,22 @@ class DemoWindow
 
             var dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW;
             // 去掉最大化按钮和可调边框
-            dwStyle &= ~(WINDOW_STYLE.WS_MAXIMIZEBOX | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_CAPTION);
+            //dwStyle &= ~(WINDOW_STYLE.WS_MAXIMIZEBOX | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_CAPTION);
             // 保留最小化按钮
-            dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
+            //dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
 
-            dwStyle = WINDOW_STYLE.WS_SYSMENU;
+            //dwStyle = WINDOW_STYLE.WS_SYSMENU;
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
                 new PCWSTR((char*) atom),
                 new PCWSTR(pTitle),
                 dwStyle,
-                CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                0, 0, 1900, 1000,
                 HWND.Null, HMENU.Null, HINSTANCE.Null, null);
-
-            TryEnableGlass(windowHwnd);
 
             return windowHwnd;
         }
-    }
-
-    public void TryEnableGlass() => TryEnableGlass(HWND);
-
-    private static void TryEnableGlass(HWND windowHwnd)
-    {
-        var pMarInset = new MARGINS()
-        {
-            cxLeftWidth = -1,
-            cyTopHeight = -1,
-            cxRightWidth = -1,
-            cyBottomHeight = -1
-        };
-        DwmExtendFrameIntoClientArea(windowHwnd, in pMarInset);
     }
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
@@ -344,11 +327,11 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         };
 
         IDXGIAdapter1 adapter = hardwareAdapter;
-        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport | DeviceCreationFlags.Debug;
+        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport;
         var result = D3D11.D3D11CreateDevice
         (
             adapter,
-            DriverType.Null,
+            DriverType.Unknown,
             creationFlags,
             featureLevels,
             out ID3D11Device d3D11Device, out FeatureLevel featureLevel,
@@ -392,34 +375,27 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.None,
-            SwapEffect = SwapEffect.FlipDiscard,
-            AlphaMode = AlphaMode.Premultiplied,        // 关键：改为预乘
+            SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
+            AlphaMode = AlphaMode.Premultiplied,
             Flags = SwapChainFlags.None,
         };
 
-        /*
-         * DXGI_SWAP_CHAIN_DESC1 dxgiSwapChainDesc = new DXGI_SWAP_CHAIN_DESC1();
-
-           // standard swap chain really. 
-           dxgiSwapChainDesc.Format = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
-           dxgiSwapChainDesc.SampleDesc.Count = 1U;
-           dxgiSwapChainDesc.SampleDesc.Quality = 0U;
-           dxgiSwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-           dxgiSwapChainDesc.AlphaMode = DXGI_ALPHA_MODE.DXGI_ALPHA_MODE_IGNORE;
-           dxgiSwapChainDesc.Width = (uint)_window.Size.Width;
-           dxgiSwapChainDesc.Height = (uint)_window.Size.Height;
-           dxgiSwapChainDesc.BufferCount = 2U;
-           dxgiSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT.DXGI_SWAP_EFFECT_FLIP_DISCARD;
-         */
-
-        // 设置是否全屏
-        var fullscreenDescription = new SwapChainFullscreenDescription
-        {
-            Windowed = true
-        };
-
+        // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
         IDXGISwapChain1 swapChain =
-            dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription, fullscreenDescription);
+            dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
+
+        // 创建 DirectComposition 设备和目标
+        IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
+        IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
+        compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
+
+        // 创建视觉对象并设置 SwapChain 作为内容
+        IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
+        compositionVisual.SetContent(swapChain);
+        compositionTarget.SetRoot(compositionVisual);
+        compositionDevice.Commit();
+
+        dxgiDevice.Dispose();
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
@@ -452,6 +428,10 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             D3D11Device1 = d3D11Device1,
             D3D11DeviceContext1 = d3D11DeviceContext1,
             SwapChain = swapChain,
+            CompositionDevice = compositionDevice,
+            CompositionTarget = compositionTarget,
+            CompositionVisual = compositionVisual,
+
             AngleDevice = angleDevice,
             AngleDisplay = display,
             AngleWin32EglDisplay = angleWin32EglDisplay,
@@ -541,7 +521,10 @@ readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, EglSurface Egl
     }
 };
 
-readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay, EglContext EglContext, GRGlInterface GRGlInterface, GRContext GRContext) : IDisposable
+readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain,
+    IDCompositionDevice CompositionDevice,
+    IDCompositionTarget CompositionTarget,
+    IDCompositionVisual CompositionVisual, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay, EglContext EglContext, GRGlInterface GRGlInterface, GRContext GRContext) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }

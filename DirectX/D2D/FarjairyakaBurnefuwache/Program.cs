@@ -45,7 +45,6 @@ class DemoWindow
         var window = CreateWindow();
         HWND = window;
         ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
-        TryEnableGlass();
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
@@ -128,25 +127,8 @@ class DemoWindow
                 0, 0, 1900, 1000,
                 HWND.Null, HMENU.Null, HINSTANCE.Null, null);
 
-            TryEnableGlass(windowHwnd);
-
             return windowHwnd;
         }
-    }
-
-    public void TryEnableGlass() => TryEnableGlass(HWND);
-
-    private static void TryEnableGlass(HWND windowHwnd)
-    {
-        return;
-        var pMarInset = new MARGINS()
-        {
-            cxLeftWidth = -1,
-            cyTopHeight = -1,
-            cxRightWidth = -1,
-            cyBottomHeight = -1
-        };
-        DwmExtendFrameIntoClientArea(windowHwnd, in pMarInset);
     }
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
@@ -252,7 +234,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 renderTarget.BeginDraw();
 
                 var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                    Random.Shared.NextSingle(), 0.5f);
+                    Random.Shared.NextSingle(), 0.2f);
                 renderTarget.Clear(color);
                 renderTarget.EndDraw();
             }
@@ -262,7 +244,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 _renderContext.SwapChain.Present(1, PresentFlags.None);
                 _renderContext.D3D11DeviceContext1.Flush();
             }
-            //result.CheckError();
         }
     }
 
