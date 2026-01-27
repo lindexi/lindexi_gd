@@ -50,7 +50,7 @@ class DemoWindow
     {
         var window = CreateWindow();
         HWND = window;
-        ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
+        ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
@@ -267,12 +267,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                         {
                             using (var skCanvas = skSurface.Canvas)
                             {
-                                skCanvas.Clear(new SKColor((uint)Random.Shared.Next()));
+                                skCanvas.Clear(new SKColor((uint)Random.Shared.Next()).WithAlpha(0x2C));
                             }
                         }
                     }
 
-                    grContext.Flush();
+                    using (StepPerformanceCounter.RenderThreadCounter.StepStart("GR Context.Flush"))
+                    {
+                        // 将会在这里等待垂直同步
+                        grContext.Flush();
+                    }
                 }
 
                 eglContext.GlInterface.Flush();
