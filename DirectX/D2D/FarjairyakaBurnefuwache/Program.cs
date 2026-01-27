@@ -275,9 +275,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         FeatureLevel[] featureLevels = new[]
         {
-            //FeatureLevel.Level_12_2,
-            //FeatureLevel.Level_12_1,
-            //FeatureLevel.Level_12_0,
+            FeatureLevel.Level_12_2,
+            FeatureLevel.Level_12_1,
+            FeatureLevel.Level_12_0,
             FeatureLevel.Level_11_1,
             FeatureLevel.Level_11_0,
             FeatureLevel.Level_10_1,
@@ -298,6 +298,34 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             out ID3D11Device d3D11Device, out FeatureLevel featureLevel,
             out ID3D11DeviceContext d3D11DeviceContext
         );
+
+        if (result.Failure)
+        {
+            // 降低等级试试
+            featureLevels = new[]
+            {
+                //FeatureLevel.Level_12_2,
+                //FeatureLevel.Level_12_1,
+                //FeatureLevel.Level_12_0,
+                FeatureLevel.Level_11_1,
+                FeatureLevel.Level_11_0,
+                FeatureLevel.Level_10_1,
+                FeatureLevel.Level_10_0,
+                FeatureLevel.Level_9_3,
+                FeatureLevel.Level_9_2,
+                FeatureLevel.Level_9_1,
+            };
+
+            result = D3D11.D3D11CreateDevice
+            (
+                adapter,
+                DriverType.Unknown,
+                creationFlags,
+                featureLevels,
+                out d3D11Device, out featureLevel,
+                out d3D11DeviceContext
+            );
+        }
 
         if (result.Failure)
         {
