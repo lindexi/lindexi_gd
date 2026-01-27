@@ -65,7 +65,7 @@ namespace GoqudeqeljaigealelNilacifelyall
                 CPUAccessFlags = CpuAccessFlags.None,
                 ArraySize = 1
             };
-            ID3D11Texture2D renderTarget = device.CreateTexture2D(desc);
+            var renderTarget = device.CreateTexture2D(desc);
 
             var surface = renderTarget.QueryInterface<IDXGISurface>();
             var d2dFactory = D2D1.D2D1CreateFactory<ID2D1Factory>();
