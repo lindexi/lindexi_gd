@@ -100,7 +100,7 @@ class DemoWindow
         {
             var wndClassEx = new WNDCLASSEXW
             {
-                cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
+                cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
                 lpfnWndProc = new WNDPROC(WndProc),
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
@@ -120,7 +120,7 @@ class DemoWindow
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
-                new PCWSTR((char*)atom),
+                new PCWSTR((char*) atom),
                 new PCWSTR(pTitle),
                 dwStyle,
                 0, 0, 1900, 1000,
@@ -132,17 +132,17 @@ class DemoWindow
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        switch ((WindowsMessage)message)
+        switch ((WindowsMessage) message)
         {
             case WindowsMessage.WM_NCCALCSIZE:
-            {
-                return new LRESULT(0);
-            }
+                {
+                    return new LRESULT(0);
+                }
             case WindowsMessage.WM_SIZE:
-            {
-                _renderManager?.ReSize();
-                break;
-            }
+                {
+                    _renderManager?.ReSize();
+                    break;
+                }
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
@@ -191,16 +191,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 var swapChain = _renderContext.SwapChain;
 
                 swapChain.ResizeBuffers(2,
-                    (uint)(clientSize.Width),
-                    (uint)(clientSize.Height),
+                    (uint) (clientSize.Width),
+                    (uint) (clientSize.Height),
                     _colorFormat,
                     SwapChainFlags.None
                 );
 
                 _renderContext = _renderContext with
                 {
-                    WindowWidth = (uint)clientSize.Width,
-                    WindowHeight = (uint)clientSize.Height
+                    WindowWidth = (uint) clientSize.Width,
+                    WindowHeight = (uint) clientSize.Height
                 };
             }
 
@@ -328,8 +328,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         const int FrameCount = 2;
         SwapChainDescription1 swapChainDescription = new()
         {
-            Width = (uint)clientSize.Width,
-            Height = (uint)clientSize.Height,
+            Width = (uint) clientSize.Width,
+            Height = (uint) clientSize.Height,
             Format = _colorFormat,
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
@@ -340,37 +340,61 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             Flags = SwapChainFlags.None,
         };
 
-        // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
-        IDXGISwapChain1 swapChain =
-            dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
+        // 使用 DirectComposition 才能支持透明窗口
+        bool useDirectComposition = true;
 
-        // 创建 DirectComposition 设备和目标
-        IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
-        IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
-        compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
+        IDXGISwapChain1 swapChain;
 
-        // 创建视觉对象并设置 SwapChain 作为内容
-        IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
-        compositionVisual.SetContent(swapChain);
-        compositionTarget.SetRoot(compositionVisual);
-        compositionDevice.Commit();
+        if (useDirectComposition)
+        {
+            // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
+            swapChain =
+                dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
 
-        dxgiDevice.Dispose();
+            // 创建 DirectComposition 设备和目标
+            IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
+            IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
+            compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
+
+            // 创建视觉对象并设置 SwapChain 作为内容
+            IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
+            compositionVisual.SetContent(swapChain);
+            compositionTarget.SetRoot(compositionVisual);
+            compositionDevice.Commit();
+
+            dxgiDevice.Dispose();
+
+            _renderContext = new RenderContext()
+            {
+                CompositionDevice = compositionDevice,
+                CompositionTarget = compositionTarget,
+                CompositionVisual = compositionVisual,
+            };
+        }
+        else
+        {
+            var fullscreenDescription = new SwapChainFullscreenDescription()
+            {
+                Windowed = true,
+            };
+
+            swapChainDescription.AlphaMode = AlphaMode.Ignore;
+
+            swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, hwnd, swapChainDescription,
+                fullscreenDescription);
+        }
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND,
             WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
 
-        _renderContext = new RenderContext()
+        _renderContext = _renderContext with
         {
             DXGIFactory2 = dxgiFactory2,
             HardwareAdapter = hardwareAdapter,
             D3D11Device1 = d3D11Device1,
             D3D11DeviceContext1 = d3D11DeviceContext1,
             SwapChain = swapChain,
-            CompositionDevice = compositionDevice,
-            CompositionTarget = compositionTarget,
-            CompositionVisual = compositionVisual,
 
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
@@ -459,18 +483,18 @@ readonly record struct RenderContext(
     ID3D11Device1 D3D11Device1,
     ID3D11DeviceContext1 D3D11DeviceContext1,
     IDXGISwapChain1 SwapChain,
-    IDCompositionDevice CompositionDevice,
-    IDCompositionTarget CompositionTarget,
-    IDCompositionVisual CompositionVisual) : IDisposable
+    IDCompositionDevice? CompositionDevice,
+    IDCompositionTarget? CompositionTarget,
+    IDCompositionVisual? CompositionVisual) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }
 
     public void Dispose()
     {
-        CompositionVisual.Dispose();
-        CompositionTarget.Dispose();
-        CompositionDevice.Dispose();
+        CompositionVisual?.Dispose();
+        CompositionTarget?.Dispose();
+        CompositionDevice?.Dispose();
         DXGIFactory2.Dispose();
         HardwareAdapter.Dispose();
         D3D11Device1.Dispose();
