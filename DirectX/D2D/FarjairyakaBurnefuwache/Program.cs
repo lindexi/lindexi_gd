@@ -275,9 +275,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         FeatureLevel[] featureLevels = new[]
         {
-            FeatureLevel.Level_12_2,
-            FeatureLevel.Level_12_1,
-            FeatureLevel.Level_12_0,
+            //FeatureLevel.Level_12_2,
+            //FeatureLevel.Level_12_1,
+            //FeatureLevel.Level_12_0,
             FeatureLevel.Level_11_1,
             FeatureLevel.Level_11_0,
             FeatureLevel.Level_10_1,
@@ -341,7 +341,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         };
 
         // 使用 DirectComposition 才能支持透明窗口
-        bool useDirectComposition = true;
+        bool useDirectComposition = false;
+        // 使用 DirectComposition 时有系统版本要求
+        useDirectComposition = useDirectComposition & OperatingSystem.IsWindowsVersionAtLeast(8, 1);
 
         IDXGISwapChain1 swapChain;
 
