@@ -19,7 +19,6 @@ using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Vortice.DCommon;
 using Vortice.DirectComposition;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Windows.Win32.PInvoke;
 using AlphaMode = Vortice.DXGI.AlphaMode;
 using D2D = Vortice.Direct2D1;
@@ -153,6 +152,8 @@ class DemoWindow
 unsafe class RenderManager(HWND hwnd) : IDisposable
 {
     public HWND HWND => hwnd;
+    private readonly Format _colorFormat = Format.B8G8R8A8_UNorm;
+    private Format D2DColorFormat { get; } = Format.B8G8R8A8_UNorm;
 
     public void StartRenderThread()
     {
@@ -161,7 +162,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             IsBackground = true,
             Name = "Render"
         };
-
+        thread.Priority = ThreadPriority.Highest;
         thread.Start();
     }
 
@@ -192,7 +193,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 swapChain.ResizeBuffers(2,
                     (uint)(clientSize.Width),
                     (uint)(clientSize.Height),
-                    Format.B8G8R8A8_UNorm,
+                    _colorFormat,
                     SwapChainFlags.None
                 );
 
@@ -210,7 +211,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
                 var renderTargetProperties = new D2D.RenderTargetProperties()
                 {
-                    PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, Vortice.DCommon.AlphaMode.Premultiplied)
+                    PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
+                    Type = D2D.RenderTargetType.Hardware,
                 };
 
                 D2D.ID2D1RenderTarget d2D1RenderTarget =
@@ -234,8 +236,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 renderTarget.BeginDraw();
 
                 var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                    Random.Shared.NextSingle(), 0.2f);
+                    Random.Shared.NextSingle(), 0.1f);
                 renderTarget.Clear(color);
+
                 renderTarget.EndDraw();
             }
 
@@ -272,6 +275,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         FeatureLevel[] featureLevels = new[]
         {
+            FeatureLevel.Level_12_2,
+            FeatureLevel.Level_12_1,
+            FeatureLevel.Level_12_0,
             FeatureLevel.Level_11_1,
             FeatureLevel.Level_11_0,
             FeatureLevel.Level_10_1,
@@ -317,7 +323,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         d3D11Device.Dispose();
         d3D11DeviceContext.Dispose();
 
-        Format colorFormat = Format.B8G8R8A8_UNorm;
 
         // 缓存的数量，包括前缓存。大部分应用来说，至少需要两个缓存，这个玩过游戏的伙伴都知道
         const int FrameCount = 2;
@@ -325,7 +330,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         {
             Width = (uint)clientSize.Width,
             Height = (uint)clientSize.Height,
-            Format = colorFormat,
+            Format = _colorFormat,
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
