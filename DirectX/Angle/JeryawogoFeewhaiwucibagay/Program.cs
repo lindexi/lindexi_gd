@@ -27,7 +27,6 @@ using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Windows.Win32.PInvoke;
 
 namespace JeryawogoFeewhaiwucibagay;
@@ -69,7 +68,7 @@ class DemoWindow
             var getMessageResult = GetMessage(&msg, HWND, 0,
                 0);
 
-            if (!getMessageResult)
+            if (!getMessageResult || getMessageResult < 0)
             {
                 break;
             }
@@ -88,8 +87,9 @@ class DemoWindow
             Console.WriteLine($"无法启用透明窗口效果");
         }
 
+        // 要求 Layered 窗口仅仅是为了显示透明窗口，详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-                                  | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
+        | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -123,8 +123,6 @@ class DemoWindow
             // 保留最小化按钮
             //dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
 
-            //dwStyle = WINDOW_STYLE.WS_SYSMENU;
-
             var windowHwnd = CreateWindowEx(
                 exStyle,
                 new PCWSTR((char*) atom),
@@ -142,9 +140,9 @@ class DemoWindow
         switch ((WindowsMessage) message)
         {
             case WindowsMessage.WM_NCCALCSIZE:
-            {
-                return new LRESULT(0);
-            }
+                {
+                    return new LRESULT(0);
+                }
             case WindowsMessage.WM_SIZE:
                 {
                     _renderManager?.ReSize();
@@ -267,7 +265,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                         {
                             using (var skCanvas = skSurface.Canvas)
                             {
-                                skCanvas.Clear(new SKColor((uint)Random.Shared.Next()).WithAlpha(0x2C));
+                                skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0x2C));
                             }
                         }
                     }
@@ -387,6 +385,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
         IDXGISwapChain1 swapChain =
             dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
+        // 和直接 CreateSwapChainForHwnd 的不同仅仅是为了 AlphaMode.Premultiplied 支持背景透明才引入 DirectComposition 的支持
+        // 详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
 
         // 创建 DirectComposition 设备和目标
         IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
@@ -540,5 +540,9 @@ readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 H
         D3D11Device1.Dispose();
         D3D11DeviceContext1.Dispose();
         SwapChain.Dispose();
+
+        CompositionVisual.Dispose();
+        CompositionTarget.Dispose();
+        CompositionDevice.Dispose();
     }
 }

@@ -30,3 +30,4 @@ DwmIsCompositionEnabled
 UpdateLayeredWindow
 DwmExtendFrameIntoClientArea
 DCompositionCreateDevice
+NCCALCSIZE_PARAMS
