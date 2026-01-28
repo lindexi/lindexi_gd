@@ -89,7 +89,7 @@ class DemoWindow
 
         // 要求 Layered 窗口仅仅是为了显示透明窗口，详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-        | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
+                                  | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -245,7 +245,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 {
                     eglContext.GlInterface.GetIntegerv(GlConsts.GL_FRAMEBUFFER_BINDING, out var fb);
 
-                    var colorType = SKColorType.Rgba8888;
+                    var colorType = SKColorType.Bgra8888;
 
                     var grContext = _renderContext.GRContext;
                     grContext.ResetContext();
@@ -265,7 +265,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                         {
                             using (var skCanvas = skSurface.Canvas)
                             {
-                                skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0x2C));
+                                //skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0x2C));
+                                skCanvas.Clear(SKColors.Red);
                             }
                         }
                     }
