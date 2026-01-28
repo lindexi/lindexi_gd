@@ -369,7 +369,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         };
 
         // 使用 DirectComposition 才能支持透明窗口
-        bool useDirectComposition = false;
+        bool useDirectComposition = true;
         // 使用 DirectComposition 时有系统版本要求
         useDirectComposition = useDirectComposition & OperatingSystem.IsWindowsVersionAtLeast(8, 1);
 
