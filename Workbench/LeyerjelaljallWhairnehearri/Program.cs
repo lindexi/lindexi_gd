@@ -1,8 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Text;
+
 using TouchSocket.Core;
 using TouchSocket.Http;
+
+using HttpClient = System.Net.Http.HttpClient;
 
 var service = new HttpService();
 await service.SetupAsync(new TouchSocketConfig()//加载配置
@@ -21,15 +24,19 @@ await service.SetupAsync(new TouchSocketConfig()//加载配置
       }));
 await service.StartAsync();
 
+var httpClient = new HttpClient();
+var httpResponseMessage = await httpClient.GetAsync("http://127.0.0.1:7789");
+// 以上的 httpResponseMessage 永不返回
+
 Console.Read();
 Console.WriteLine("Hello, World!");
 
 
-class MyHttpPlug1:IHttpPlugin
+class MyHttpPlug1 : IHttpPlugin
 {
     public void Dispose()
     {
-        
+
     }
 
     public bool DisposedValue { get; set; }
@@ -46,32 +53,11 @@ class MyHttpPlug1:IHttpPlugin
         var request = e.Context.Request;//http请求体
         var response = e.Context.Response;//http响应
 
-        //直接响应文字
-        response.StatusCode = 200;
-        //response.SetStatus(400, "xxx");
+        await response
+            .SetStatus(200, "success")
+            //.FromText("Success") // 不设置内容则永不返回
+            .AnswerAsync();//直接回应
 
-        //response.FromText("qase");
-        //response.SetContentLength(0);
-
-        //response.SetContent("123");
-        response.IsChunk = true;
-
-        //using (var stream = response.CreateWriteStream())
-        //{
-        //    using var streamWriter = new StreamWriter(stream);
-        //    streamWriter.WriteLine("abcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasda");
-        //}
-
-        var textBuffer = Encoding.UTF8.GetBytes("abcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasdaabcasdasdasdasdasdasdasda");
-        await response.WriteAsync(textBuffer);
-
-        //await response.AnswerAsync();
-        await response.CompleteChunkAsync();
-
-        //await response
-        //    .SetStatus(200, "success")
-        //    .FromText("Success")
-        //    .AnswerAsync();//直接回应
         Console.WriteLine("处理/success");
     }
 }
