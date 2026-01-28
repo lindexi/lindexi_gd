@@ -200,7 +200,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                     (uint) (clientSize.Width),
                     (uint) (clientSize.Height),
                    Format.B8G8R8A8_UNorm,
-                    SwapChainFlags.None
+                    SwapChainFlags.AllowTearing
                 );
 
                 _renderContext = _renderContext with
@@ -290,7 +290,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
-                _renderContext.SwapChain.Present(1, PresentFlags.None);
+                _renderContext.SwapChain.Present(0, PresentFlags.None);
             }
             //result.CheckError();
         }
@@ -381,7 +381,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
             AlphaMode = AlphaMode.Premultiplied,
-            Flags = SwapChainFlags.None,
+            Flags = SwapChainFlags.AllowTearing,
         };
 
         // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
