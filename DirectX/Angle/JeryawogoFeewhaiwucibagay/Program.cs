@@ -88,8 +88,8 @@ class DemoWindow
         }
 
         // 要求 Layered 窗口仅仅是为了显示透明窗口，详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
-        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW;
-        //| WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
+        | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -123,8 +123,6 @@ class DemoWindow
             // 保留最小化按钮
             //dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
 
-            dwStyle = WINDOW_STYLE.WS_MAXIMIZEBOX | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_CAPTION | WINDOW_STYLE.WS_SYSMENU;
-
             var windowHwnd = CreateWindowEx(
                 exStyle,
                 new PCWSTR((char*) atom),
@@ -143,8 +141,6 @@ class DemoWindow
         {
             case WindowsMessage.WM_NCCALCSIZE:
                 {
-                    var paramsObj = Marshal.PtrToStructure<NCCALCSIZE_PARAMS>(lParam);
-
                     return new LRESULT(0);
                 }
             case WindowsMessage.WM_SIZE:
