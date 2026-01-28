@@ -1,9 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using FarjairyakaBurnefuwache.Diagnostics;
+using CherweneejearKeryalceenalyall.Diagnostics;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,6 +13,7 @@ using Vortice.DXGI;
 using Vortice.Mathematics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -23,7 +23,7 @@ using static Windows.Win32.PInvoke;
 using AlphaMode = Vortice.DXGI.AlphaMode;
 using D2D = Vortice.Direct2D1;
 
-namespace FarjairyakaBurnefuwache;
+namespace CherweneejearKeryalceenalyall;
 
 class Program
 {
@@ -44,6 +44,17 @@ class DemoWindow
         var window = CreateWindow();
         HWND = window;
         ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
+
+        DwmExtendFrameIntoClientArea(HWND, new MARGINS()
+        {
+            cxLeftWidth = -1,
+            cyTopHeight = -1,
+            cxRightWidth = -1,
+            cyBottomHeight = -1
+        });
+
+        DwmSetWindowAttribute(HWND, DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, MemoryMarshal.AsBytes([true]));
+        DwmSetWindowAttribute(HWND, DWMWINDOWATTRIBUTE.DWMWA_SYSTEMBACKDROP_TYPE, MemoryMarshal.AsBytes([DWM_SYSTEMBACKDROP_TYPE.DWMSBT_MAINWINDOW]));
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
@@ -111,12 +122,6 @@ class DemoWindow
             ushort atom = RegisterClassEx(in wndClassEx);
 
             var dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW;
-            // 去掉最大化按钮和可调边框
-            //dwStyle &= ~(WINDOW_STYLE.WS_MAXIMIZEBOX | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_CAPTION);
-            // 保留最小化按钮
-            //dwStyle |= WINDOW_STYLE.WS_MINIMIZEBOX;
-
-            //dwStyle = WINDOW_STYLE.WS_SYSMENU;
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
@@ -275,9 +280,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         FeatureLevel[] featureLevels = new[]
         {
-            FeatureLevel.Level_12_2,
-            FeatureLevel.Level_12_1,
-            FeatureLevel.Level_12_0,
             FeatureLevel.Level_11_1,
             FeatureLevel.Level_11_0,
             FeatureLevel.Level_10_1,
@@ -298,34 +300,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             out ID3D11Device d3D11Device, out FeatureLevel featureLevel,
             out ID3D11DeviceContext d3D11DeviceContext
         );
-
-        if (result.Failure)
-        {
-            // 降低等级试试
-            featureLevels = new[]
-            {
-                //FeatureLevel.Level_12_2,
-                //FeatureLevel.Level_12_1,
-                //FeatureLevel.Level_12_0,
-                FeatureLevel.Level_11_1,
-                FeatureLevel.Level_11_0,
-                FeatureLevel.Level_10_1,
-                FeatureLevel.Level_10_0,
-                FeatureLevel.Level_9_3,
-                FeatureLevel.Level_9_2,
-                FeatureLevel.Level_9_1,
-            };
-
-            result = D3D11.D3D11CreateDevice
-            (
-                adapter,
-                DriverType.Unknown,
-                creationFlags,
-                featureLevels,
-                out d3D11Device, out featureLevel,
-                out d3D11DeviceContext
-            );
-        }
 
         if (result.Failure)
         {
@@ -364,55 +338,17 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
-            AlphaMode = AlphaMode.Premultiplied,
+            AlphaMode = AlphaMode.Ignore,
             Flags = SwapChainFlags.None,
         };
 
-        // 使用 DirectComposition 才能支持透明窗口
-        bool useDirectComposition = true;
-        // 使用 DirectComposition 时有系统版本要求
-        useDirectComposition = useDirectComposition & OperatingSystem.IsWindowsVersionAtLeast(8, 1);
-
-        IDXGISwapChain1 swapChain;
-
-        if (useDirectComposition)
+        var fullscreenDescription = new SwapChainFullscreenDescription()
         {
-            // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
-            swapChain =
-                dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
+            Windowed = true,
+        };
 
-            // 创建 DirectComposition 设备和目标
-            IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
-            IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
-            compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
-
-            // 创建视觉对象并设置 SwapChain 作为内容
-            IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
-            compositionVisual.SetContent(swapChain);
-            compositionTarget.SetRoot(compositionVisual);
-            compositionDevice.Commit();
-
-            dxgiDevice.Dispose();
-
-            _renderContext = new RenderContext()
-            {
-                CompositionDevice = compositionDevice,
-                CompositionTarget = compositionTarget,
-                CompositionVisual = compositionVisual,
-            };
-        }
-        else
-        {
-            var fullscreenDescription = new SwapChainFullscreenDescription()
-            {
-                Windowed = true,
-            };
-
-            swapChainDescription.AlphaMode = AlphaMode.Ignore;
-
-            swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, hwnd, swapChainDescription,
-                fullscreenDescription);
-        }
+        IDXGISwapChain1 swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, hwnd, swapChainDescription,
+            fullscreenDescription);
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND,
