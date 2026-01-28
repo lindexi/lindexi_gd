@@ -1,0 +1,16 @@
+﻿<Page x:Class="WichijarbejeHearlaridejenerewhu.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WichijarbejeHearlaridejenerewhu"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <ScrollViewer IsTabStop="True">
+        <Grid>
+            <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center">
+                <TextBlock>上传文件 UploadFile</TextBlock>
+                <Button x:Name="UploadFileButton" Content="Upload" Click="UploadFileButton_OnClick"></Button>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>
