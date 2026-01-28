@@ -81,8 +81,8 @@ class DemoWindow
             Console.WriteLine($"无法启用透明窗口效果");
         }
 
-        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW;
-        //| WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
+        | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -100,7 +100,7 @@ class DemoWindow
         {
             var wndClassEx = new WNDCLASSEXW
             {
-                cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
+                cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
                 lpfnWndProc = new WNDPROC(WndProc),
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
@@ -120,7 +120,7 @@ class DemoWindow
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
-                new PCWSTR((char*)atom),
+                new PCWSTR((char*) atom),
                 new PCWSTR(pTitle),
                 dwStyle,
                 0, 0, 1900, 1000,
@@ -132,23 +132,23 @@ class DemoWindow
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        switch ((WindowsMessage)message)
+        switch ((WindowsMessage) message)
         {
             case WindowsMessage.WM_NCCALCSIZE:
-            {
-                var paramsObj = Marshal.PtrToStructure<NCCALCSIZE_PARAMS>(lParam);
-                ref RECT rect = ref paramsObj.rgrc._0;
-                rect.top += 20;
+                {
+                    var paramsObj = Marshal.PtrToStructure<NCCALCSIZE_PARAMS>(lParam);
+                    ref RECT rect = ref paramsObj.rgrc._0;
+                    //rect.top += 10;
 
-                Marshal.StructureToPtr(paramsObj, lParam, false);
+                    Marshal.StructureToPtr(paramsObj, lParam, false);
 
-                return new LRESULT(0);
-            }
+                    return new LRESULT(0);
+                }
             case WindowsMessage.WM_SIZE:
-            {
-                _renderManager?.ReSize();
-                break;
-            }
+                {
+                    _renderManager?.ReSize();
+                    break;
+                }
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
@@ -197,16 +197,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 var swapChain = _renderContext.SwapChain;
 
                 swapChain.ResizeBuffers(2,
-                    (uint)(clientSize.Width),
-                    (uint)(clientSize.Height),
+                    (uint) (clientSize.Width),
+                    (uint) (clientSize.Height),
                     _colorFormat,
                     SwapChainFlags.None
                 );
 
                 _renderContext = _renderContext with
                 {
-                    WindowWidth = (uint)clientSize.Width,
-                    WindowHeight = (uint)clientSize.Height
+                    WindowWidth = (uint) clientSize.Width,
+                    WindowHeight = (uint) clientSize.Height
                 };
             }
 
@@ -362,8 +362,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         const int FrameCount = 2;
         SwapChainDescription1 swapChainDescription = new()
         {
-            Width = (uint)clientSize.Width,
-            Height = (uint)clientSize.Height,
+            Width = (uint) clientSize.Width,
+            Height = (uint) clientSize.Height,
             Format = _colorFormat,
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
