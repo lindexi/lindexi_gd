@@ -176,6 +176,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     {
         Init();
 
+        SkiaRenderDemo? skiaRenderDemo = null;
         while (!_isDisposed)
         {
             if (_isReSize)
@@ -221,6 +222,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                     EglSurface = surface,
                     D3D11Texture2D = d3D11Texture2D,
                 };
+
+                skiaRenderDemo = null;
             }
 
             // 渲染代码写在这里
@@ -266,7 +269,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                             using (var skCanvas = skSurface.Canvas)
                             {
                                 //skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0x2C));
-                                skCanvas.Clear(SKColors.Red);
+                                //skCanvas.Clear(SKColors.Red);
+                                skCanvas.Clear();
+
+                                if (skiaRenderDemo is null)
+                                {
+                                    skiaRenderDemo = new SkiaRenderDemo(new SizeI((int)_renderContext.WindowWidth,
+                                        (int)_renderContext.WindowHeight));
+                                }
+
+                                skiaRenderDemo.Draw(skCanvas);
                             }
                         }
                     }
@@ -545,5 +557,80 @@ readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 H
         CompositionVisual.Dispose();
         CompositionTarget.Dispose();
         CompositionDevice.Dispose();
+    }
+}
+
+record SkiaRenderDemo(SizeI ClientSize)
+{
+    // 此为调试代码，绘制一些矩形条
+    private List<RenderInfo>? _renderList;
+
+    public void Draw(SKCanvas canvas)
+    {
+        var rectWeight = 10;
+        var rectHeight = 20;
+
+        var margin = 5;
+
+        if (_renderList is null)
+        {
+            // 如果是空，那就执行初始化
+            _renderList = new List<RenderInfo>();
+            using var colorEnumerator = GetColor().GetEnumerator();
+
+            for (int top = margin; top < ClientSize.Height - rectHeight - margin; top += rectHeight + margin)
+            {
+                var skRect = new SKRect(margin, top, margin + rectWeight, top + rectHeight);
+
+                colorEnumerator.MoveNext();
+                var color = colorEnumerator.Current;
+                var step = Random.Shared.Next(1, 20);
+                var renderInfo = new RenderInfo(skRect, step, color);
+
+                _renderList.Add(renderInfo);
+            }
+        }
+
+        using var skPaint = new SKPaint();
+        skPaint.Style = SKPaintStyle.Fill;
+        for (var i = 0; i < _renderList.Count; i++)
+        {
+            var renderInfo = _renderList[i];
+            skPaint.Color = renderInfo.Color;
+
+            canvas.DrawRect(renderInfo.Rect, skPaint);
+
+            var nextRect = renderInfo.Rect with
+            {
+                Right = renderInfo.Rect.Right + renderInfo.Step
+            };
+            if (nextRect.Right > ClientSize.Width - margin)
+            {
+                nextRect = nextRect with
+                {
+                    Right = nextRect.Left + rectWeight
+                };
+            }
+
+            _renderList[i] = renderInfo with
+            {
+                Rect = nextRect
+            };
+        }
+    }
+
+    private readonly record struct RenderInfo(SKRect Rect, int Step, SKColor Color);
+
+    private IEnumerable<SKColor> GetColor()
+    {
+        yield return SKColors.Red;
+        yield return SKColors.Green;
+        yield return SKColors.Blue;
+
+        while (true)
+        {
+            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+            yield return color;
+        }
     }
 }
