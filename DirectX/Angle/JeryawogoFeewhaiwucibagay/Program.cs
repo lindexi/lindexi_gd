@@ -4,9 +4,7 @@ using JeryawogoFeewhaiwucibagay.Diagnostics;
 using JeryawogoFeewhaiwucibagay.OpenGL;
 using JeryawogoFeewhaiwucibagay.OpenGL.Angle;
 using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
-
 using SkiaSharp;
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,19 +12,16 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
-
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
-
 using static Windows.Win32.PInvoke;
 
 namespace JeryawogoFeewhaiwucibagay;
@@ -107,7 +102,7 @@ class DemoWindow
         {
             var wndClassEx = new WNDCLASSEXW
             {
-                cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
+                cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
                 lpfnWndProc = new WNDPROC(WndProc),
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
@@ -125,7 +120,7 @@ class DemoWindow
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
-                new PCWSTR((char*) atom),
+                new PCWSTR((char*)atom),
                 new PCWSTR(pTitle),
                 dwStyle,
                 0, 0, 1900, 1000,
@@ -137,17 +132,17 @@ class DemoWindow
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        switch ((WindowsMessage) message)
+        switch ((WindowsMessage)message)
         {
             case WindowsMessage.WM_NCCALCSIZE:
-                {
-                    return new LRESULT(0);
-                }
+            {
+                return new LRESULT(0);
+            }
             case WindowsMessage.WM_SIZE:
-                {
-                    _renderManager?.ReSize();
-                    break;
-                }
+            {
+                _renderManager?.ReSize();
+                break;
+            }
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
@@ -160,10 +155,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
     public void StartRenderThread()
     {
-        var thread = new Thread(() =>
-        {
-            RenderCore();
-        })
+        var thread = new Thread(() => { RenderCore(); })
         {
             IsBackground = true,
             Name = "Render"
@@ -180,124 +172,49 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         {
             if (_isReSize)
             {
-                // 处理窗口大小变化
-                _isReSize = false;
-
-                if (_renderInfo is not null)
-                {
-                    _renderInfo.Value.Dispose();
-                    _renderInfo = null;
-                }
-
-                GetClientRect(HWND, out var pClientRect);
-                var clientSize = new SizeI(pClientRect.right - pClientRect.left, pClientRect.bottom - pClientRect.top);
-
-                var swapChain = _renderContext.SwapChain;
-
-                swapChain.ResizeBuffers(2,
-                    (uint) (clientSize.Width),
-                    (uint) (clientSize.Height),
-                   Format.B8G8R8A8_UNorm,
-                    SwapChainFlags.None
-                );
-
-                _renderContext = _renderContext with
-                {
-                    WindowWidth = (uint) clientSize.Width,
-                    WindowHeight = (uint) clientSize.Height
-                };
+                ReSizeCore();
             }
 
-            if (_renderInfo is null)
-            {
-                var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
-
-                EglSurface surface =
-                _renderContext.AngleWin32EglDisplay.WrapDirect3D11Texture(d3D11Texture2D.NativePointer, 0, 0,
-                    (int) _renderContext.WindowWidth, (int) _renderContext.WindowHeight);
-
-                _renderInfo = new RenderInfo()
-                {
-                    EglSurface = surface,
-                    D3D11Texture2D = d3D11Texture2D,
-                };
-            }
-
-            // 渲染代码写在这里
-
-            using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
-            {
-                var eglInterface = _renderContext.AngleWin32EglDisplay.EglInterface;
-                var eglDisplay = _renderContext.AngleWin32EglDisplay;
-
-                EglSurface eglSurface = _renderInfo.Value.EglSurface;
-
-                using var makeCurrent = _renderContext.EglContext.MakeCurrent(eglSurface);
-
-                eglInterface.WaitClient();
-                eglInterface.WaitGL();
-                eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
-
-                var eglContext = _renderContext.EglContext;
-                eglContext.GlInterface.BindFramebuffer(GlConsts.GL_FRAMEBUFFER, 0);
-
-                using (StepPerformanceCounter.RenderThreadCounter.StepStart("RenderCore"))
-                {
-                    eglContext.GlInterface.GetIntegerv(GlConsts.GL_FRAMEBUFFER_BINDING, out var fb);
-
-                    var colorType = SKColorType.Bgra8888;
-
-                    var grContext = _renderContext.GRContext;
-                    grContext.ResetContext();
-
-                    var maxSamples = grContext.GetMaxSurfaceSampleCount(colorType);
-
-                    var glInfo = new GRGlFramebufferInfo((uint) fb, colorType.ToGlSizedFormat());
-
-                    using (var renderTarget = new GRBackendRenderTarget((int) _renderContext.WindowWidth,
-                               (int) _renderContext.WindowHeight, maxSamples, eglDisplay.StencilSize, glInfo))
-                    {
-                        var surfaceProperties = new SKSurfaceProperties(SKPixelGeometry.RgbHorizontal);
-
-                        using (var skSurface = SKSurface.Create(grContext, renderTarget, GRSurfaceOrigin.TopLeft,
-                                   colorType,
-                                   surfaceProperties))
-                        {
-                            using (var skCanvas = skSurface.Canvas)
-                            {
-                                //skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0x2C));
-                                skCanvas.Clear(SKColors.Red);
-                            }
-                        }
-                    }
-
-                    using (StepPerformanceCounter.RenderThreadCounter.StepStart("GR Context.Flush"))
-                    {
-                        // 将会在这里等待垂直同步
-                        grContext.Flush();
-                    }
-                }
-
-                eglContext.GlInterface.Flush();
-                eglInterface.WaitGL();
-                eglSurface.SwapBuffers();
-
-                eglInterface.WaitClient();
-                eglInterface.WaitGL();
-                eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
-            }
-
-            using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
-            {
-                _renderContext.SwapChain.Present(1, PresentFlags.None);
-            }
-            //result.CheckError();
+            Render();
         }
     }
+
+    private SkiaRenderDemo? _skiaRenderDemo = null;
+
 
     public void ReSize()
     {
         _isReSize = true;
+    }
+
+    private void ReSizeCore()
+    {
+        // 处理窗口大小变化
+        _isReSize = false;
+
+        if (_renderInfo is not null)
+        {
+            _renderInfo.Value.Dispose();
+            _renderInfo = null;
+        }
+
+        GetClientRect(HWND, out var pClientRect);
+        var clientSize = new SizeI(pClientRect.right - pClientRect.left, pClientRect.bottom - pClientRect.top);
+
+        var swapChain = _renderContext.SwapChain;
+
+        swapChain.ResizeBuffers(2,
+            (uint)(clientSize.Width),
+            (uint)(clientSize.Height),
+            Format.B8G8R8A8_UNorm,
+            SwapChainFlags.None
+        );
+
+        _renderContext = _renderContext with
+        {
+            WindowWidth = (uint)clientSize.Width,
+            WindowHeight = (uint)clientSize.Height
+        };
     }
 
     private bool _isReSize;
@@ -371,9 +288,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         const int FrameCount = 2;
         SwapChainDescription1 swapChainDescription = new()
         {
-            Width = (uint) clientSize.Width,
-            Height = (uint) clientSize.Height,
-            Format = colorFormat,                       // B8G8R8A8_UNorm
+            Width = (uint)clientSize.Width,
+            Height = (uint)clientSize.Height,
+            Format = colorFormat, // B8G8R8A8_UNorm
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
@@ -403,7 +320,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         dxgiDevice.Dispose();
 
         // 不要被按下 alt+enter 进入全屏
-        dxgiFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
+        dxgiFactory2.MakeWindowAssociation(HWND,
+            WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
 
         var egl = new Win32AngleEglInterface();
         var angleDevice = egl.CreateDeviceANGLE(EglConsts.EGL_D3D11_DEVICE_ANGLE, d3D11Device1.NativePointer, null);
@@ -449,6 +367,105 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         };
     }
 
+    private void Render()
+    {
+        if (_renderInfo is null)
+        {
+            var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
+
+            EglSurface surface =
+                _renderContext.AngleWin32EglDisplay.WrapDirect3D11Texture(d3D11Texture2D.NativePointer, 0, 0,
+                    (int)_renderContext.WindowWidth, (int)_renderContext.WindowHeight);
+
+            _renderInfo = new RenderInfo()
+            {
+                EglSurface = surface,
+                D3D11Texture2D = d3D11Texture2D,
+            };
+
+            _skiaRenderDemo = null;
+        }
+
+        // 渲染代码写在这里
+
+        using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
+        {
+            var eglInterface = _renderContext.AngleWin32EglDisplay.EglInterface;
+            var eglDisplay = _renderContext.AngleWin32EglDisplay;
+
+            EglSurface eglSurface = _renderInfo.Value.EglSurface;
+
+            using var makeCurrent = _renderContext.EglContext.MakeCurrent(eglSurface);
+
+            eglInterface.WaitClient();
+            eglInterface.WaitGL();
+            eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
+
+            var eglContext = _renderContext.EglContext;
+            eglContext.GlInterface.BindFramebuffer(GlConsts.GL_FRAMEBUFFER, 0);
+
+            using (StepPerformanceCounter.RenderThreadCounter.StepStart("RenderCore"))
+            {
+                eglContext.GlInterface.GetIntegerv(GlConsts.GL_FRAMEBUFFER_BINDING, out var fb);
+
+                var colorType = SKColorType.Bgra8888;
+
+                var grContext = _renderContext.GRContext;
+                grContext.ResetContext();
+
+                var maxSamples = grContext.GetMaxSurfaceSampleCount(colorType);
+
+                var glInfo = new GRGlFramebufferInfo((uint)fb, colorType.ToGlSizedFormat());
+
+                using (var renderTarget = new GRBackendRenderTarget((int)_renderContext.WindowWidth,
+                           (int)_renderContext.WindowHeight, maxSamples, eglDisplay.StencilSize, glInfo))
+                {
+                    var surfaceProperties = new SKSurfaceProperties(SKPixelGeometry.RgbHorizontal);
+
+                    using (var skSurface = SKSurface.Create(grContext, renderTarget, GRSurfaceOrigin.TopLeft,
+                               colorType,
+                               surfaceProperties))
+                    {
+                        using (var skCanvas = skSurface.Canvas)
+                        {
+                            //skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0x2C));
+                            //skCanvas.Clear(SKColors.Red);
+                            skCanvas.Clear();
+
+                            if (_skiaRenderDemo is null)
+                            {
+                                _skiaRenderDemo = new SkiaRenderDemo(new SizeI((int)_renderContext.WindowWidth,
+                                    (int)_renderContext.WindowHeight));
+                            }
+
+                            _skiaRenderDemo.Draw(skCanvas);
+                        }
+                    }
+                }
+
+                using (StepPerformanceCounter.RenderThreadCounter.StepStart("GR Context.Flush"))
+                {
+                    // 将会在这里等待垂直同步
+                    grContext.Flush();
+                }
+            }
+
+            eglContext.GlInterface.Flush();
+            eglInterface.WaitGL();
+            eglSurface.SwapBuffers();
+
+            eglInterface.WaitClient();
+            eglInterface.WaitGL();
+            eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
+        }
+
+        using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
+        {
+            _renderContext.SwapChain.Present(1, PresentFlags.None);
+        }
+        //result.CheckError();
+    }
+
     private static IEnumerable<IDXGIAdapter1> GetHardwareAdapter(IDXGIFactory2 factory)
     {
         using IDXGIFactory6? factory6 = factory.QueryInterfaceOrNull<IDXGIFactory6>();
@@ -476,7 +493,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 Console.WriteLine($"枚举到 {adapter.Description1.Description} 显卡");
                 yield return adapter;
-
             }
         }
         else
@@ -526,10 +542,21 @@ readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, EglSurface Egl
     }
 };
 
-readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 HardwareAdapter, ID3D11Device1 D3D11Device1, ID3D11DeviceContext1 D3D11DeviceContext1, IDXGISwapChain1 SwapChain,
+readonly record struct RenderContext(
+    IDXGIFactory2 DXGIFactory2,
+    IDXGIAdapter1 HardwareAdapter,
+    ID3D11Device1 D3D11Device1,
+    ID3D11DeviceContext1 D3D11DeviceContext1,
+    IDXGISwapChain1 SwapChain,
     IDCompositionDevice CompositionDevice,
     IDCompositionTarget CompositionTarget,
-    IDCompositionVisual CompositionVisual, IntPtr AngleDevice, IntPtr AngleDisplay, AngleWin32EglDisplay AngleWin32EglDisplay, EglContext EglContext, GRGlInterface GRGlInterface, GRContext GRContext) : IDisposable
+    IDCompositionVisual CompositionVisual,
+    IntPtr AngleDevice,
+    IntPtr AngleDisplay,
+    AngleWin32EglDisplay AngleWin32EglDisplay,
+    EglContext EglContext,
+    GRGlInterface GRGlInterface,
+    GRContext GRContext) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }
@@ -545,5 +572,80 @@ readonly record struct RenderContext(IDXGIFactory2 DXGIFactory2, IDXGIAdapter1 H
         CompositionVisual.Dispose();
         CompositionTarget.Dispose();
         CompositionDevice.Dispose();
+    }
+}
+
+record SkiaRenderDemo(SizeI ClientSize)
+{
+    // 此为调试代码，绘制一些矩形条
+    private List<RenderInfo>? _renderList;
+
+    public void Draw(SKCanvas canvas)
+    {
+        var rectWeight = 10;
+        var rectHeight = 20;
+
+        var margin = 5;
+
+        if (_renderList is null)
+        {
+            // 如果是空，那就执行初始化
+            _renderList = new List<RenderInfo>();
+            using var colorEnumerator = GetColor().GetEnumerator();
+
+            for (int top = margin; top < ClientSize.Height - rectHeight - margin; top += rectHeight + margin)
+            {
+                var skRect = new SKRect(margin, top, margin + rectWeight, top + rectHeight);
+
+                colorEnumerator.MoveNext();
+                var color = colorEnumerator.Current;
+                var step = Random.Shared.Next(1, 20);
+                var renderInfo = new RenderInfo(skRect, step, color);
+
+                _renderList.Add(renderInfo);
+            }
+        }
+
+        using var skPaint = new SKPaint();
+        skPaint.Style = SKPaintStyle.Fill;
+        for (var i = 0; i < _renderList.Count; i++)
+        {
+            var renderInfo = _renderList[i];
+            skPaint.Color = renderInfo.Color;
+
+            canvas.DrawRect(renderInfo.Rect, skPaint);
+
+            var nextRect = renderInfo.Rect with
+            {
+                Right = renderInfo.Rect.Right + renderInfo.Step
+            };
+            if (nextRect.Right > ClientSize.Width - margin)
+            {
+                nextRect = nextRect with
+                {
+                    Right = nextRect.Left + rectWeight
+                };
+            }
+
+            _renderList[i] = renderInfo with
+            {
+                Rect = nextRect
+            };
+        }
+    }
+
+    private readonly record struct RenderInfo(SKRect Rect, int Step, SKColor Color);
+
+    private IEnumerable<SKColor> GetColor()
+    {
+        yield return SKColors.Red;
+        yield return SKColors.Green;
+        yield return SKColors.Blue;
+
+        while (true)
+        {
+            var color = new SKColor((uint)Random.Shared.Next()).WithAlpha(0xFF);
+            yield return color;
+        }
     }
 }
