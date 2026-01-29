@@ -222,10 +222,11 @@ class Program
                 }
 
                 // 如果开启渲染同步等待，则会在这里等待
-                grContext.Flush();
+                grContext.Flush(); // 把当前挂在这个 GRContext 上、还没真正提交到 GPU 后端的绘制操作，全部提交下去
 
                 // 让 OpenGL 层刷出去
                 eglContext.GlInterface.Flush();
+                // 等待这些命令在 EGL/ANGLE 后端（D3D）里真正执行完
                 eglInterface.WaitGL();
                 eglSurface.SwapBuffers();
 
