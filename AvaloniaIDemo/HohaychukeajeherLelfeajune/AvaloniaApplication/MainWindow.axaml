@@ -11,5 +11,6 @@
         <Border.RenderTransform>
             <TranslateTransform></TranslateTransform>
         </Border.RenderTransform>
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">Ava</TextBlock>
     </Border>
 </Window>
