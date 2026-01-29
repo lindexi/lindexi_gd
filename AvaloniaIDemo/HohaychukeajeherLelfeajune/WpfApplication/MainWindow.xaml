@@ -25,6 +25,7 @@
             <Border.RenderTransform>
                 <TranslateTransform x:Name="BoardTranslateTransform"></TranslateTransform>
             </Border.RenderTransform>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">WPF</TextBlock>
         </Border>
     </Grid>
 </Window>
