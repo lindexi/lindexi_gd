@@ -395,13 +395,13 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             EglSurface eglSurface = _renderInfo.Value.EglSurface;
 
-            using var makeCurrent = _renderContext.EglContext.MakeCurrent(eglSurface);
+            var eglContext = _renderContext.EglContext;
+            using var makeCurrent = eglContext.MakeCurrent(eglSurface);
 
             eglInterface.WaitClient();
             eglInterface.WaitGL();
             eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
 
-            var eglContext = _renderContext.EglContext;
             eglContext.GlInterface.BindFramebuffer(GlConsts.GL_FRAMEBUFFER, 0);
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("RenderCore"))
@@ -410,7 +410,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 var colorType = SKColorType.Bgra8888;
 
-                var grContext = _renderContext.GRContext;
+                GRContext grContext = _renderContext.GRContext;
                 grContext.ResetContext();
 
                 var maxSamples = grContext.GetMaxSurfaceSampleCount(colorType);
@@ -450,9 +450,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 }
             }
 
-            eglContext.GlInterface.Flush();
-            eglInterface.WaitGL();
-            eglSurface.SwapBuffers();
+            //eglContext.GlInterface.Flush();
+            //eglInterface.WaitGL();
+            //eglSurface.SwapBuffers();
 
             eglInterface.WaitClient();
             eglInterface.WaitGL();
