@@ -67,7 +67,7 @@ public partial class MainWindow : Window
         var hwnd = new WindowInteropHelper(this).EnsureHandle();
 
         Win32.User32.SetWindowLongPtr(hwnd, Win32.GetWindowLongFields.GWL_EXSTYLE,
-                (IntPtr) (int) ((long) Win32.User32.GetWindowLongPtr(hwnd, Win32.GetWindowLongFields.GWL_EXSTYLE) | (long) Win32.ExtendedWindowStyles.WS_EX_TRANSPARENT));
+                (IntPtr) ((long) Win32.User32.GetWindowLongPtr(hwnd, Win32.GetWindowLongFields.GWL_EXSTYLE) | (long) Win32.ExtendedWindowStyles.WS_EX_TRANSPARENT));
 
     }
 

@@ -7,7 +7,6 @@ CreateWindowEx
 CW_USEDEFAULT
 ShowWindow
 SW_SHOW
-GetMessage
 TranslateMessage
 DispatchMessage
 DefWindowProc
@@ -16,7 +15,10 @@ WM
 WM_PAINT
 GetWindowLong
 SetWindowLong
+SetWindowLongPtr
 DwmIsCompositionEnabled
 UpdateLayeredWindow
 DwmExtendFrameIntoClientArea
 NCCALCSIZE_PARAMS
+PeekMessage
+WINDOW_EX_STYLE
