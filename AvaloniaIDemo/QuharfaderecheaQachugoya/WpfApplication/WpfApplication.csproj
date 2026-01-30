@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.cs" Link="TransparentWindows\Win32.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.Dwmapi.cs" Link="TransparentWindows\Win32.Dwmapi.cs" />
+    <Compile Include="..\..\..\RuhuyagayBemkaijearfear\RuhuyagayBemkaijearfear\Win32.WM.cs" Link="TransparentWindows\Win32.WM.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TransparentWindows\" />
+  </ItemGroup>
+
+</Project>

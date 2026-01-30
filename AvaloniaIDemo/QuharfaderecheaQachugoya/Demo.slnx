@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AngleOpenGLDemo/AngleOpenGLDemo.csproj" />
+  <Project Path="AvaloniaApplication/AvaloniaApplication.csproj" />
+  <Project Path="WpfApplication/WpfApplication.csproj" />
+</Solution>
