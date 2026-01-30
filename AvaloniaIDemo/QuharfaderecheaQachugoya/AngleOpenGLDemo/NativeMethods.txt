@@ -22,3 +22,5 @@ DwmExtendFrameIntoClientArea
 NCCALCSIZE_PARAMS
 PeekMessage
 WINDOW_EX_STYLE
+GetMessage
+PostMessage

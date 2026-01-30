@@ -1,4 +1,5 @@
-﻿using AngleOpenGLDemo.OpenGL;
+﻿using System.Diagnostics;
+using AngleOpenGLDemo.OpenGL;
 using AngleOpenGLDemo.OpenGL.Angle;
 using AngleOpenGLDemo.OpenGL.Egl;
 
@@ -58,7 +59,7 @@ public unsafe class AngleOpenGLApplication : IDisposable
     /// <summary>
     /// For Window Frame margin
     /// </summary>
-       private const int MarginX = 8;
+    private const int MarginX = 8;
 
     public void MoveBorder(double x)
     {
@@ -68,7 +69,14 @@ public unsafe class AngleOpenGLApplication : IDisposable
         {
             X = x
         };
+
+        if (HWND != HWND.Null)
+        {
+            PostMessage(HWND, (uint) CustomMessage, new WPARAM(0), new LPARAM(0));
+        }
     }
+
+    private const WindowsMessage CustomMessage = WindowsMessage.WM_APP + 0x01;
 
     private void Render(HWND window)
     {
@@ -88,7 +96,7 @@ public unsafe class AngleOpenGLApplication : IDisposable
             // 以下只是为了防止窗口无响应而已
             while (true)
             {
-                var success = PeekMessage(out var msg, HWND.Null, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE);
+                var success = PeekMessage(out var msg, HWND, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE);
                 if (success)
                 {
                     // 处理窗口消息
@@ -97,6 +105,17 @@ public unsafe class AngleOpenGLApplication : IDisposable
                 }
                 else
                 {
+                    GetMessage(&msg, HWND, 0, 0);
+
+                    //if (msg.message == (uint)CustomMessage)
+                    //{
+                    //    Debug.WriteLine($"收到自定义消息");
+                    //}
+
+                    // 处理窗口消息
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+
                     break;
                 }
             }
