@@ -55,8 +55,15 @@ public unsafe class AngleOpenGLApplication : IDisposable
     [DllImport("User32.dll", EntryPoint = "GetWindowLongPtr")]
     public static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
+    /// <summary>
+    /// For Window Frame margin
+    /// </summary>
+       private const int MarginX = 8;
+
     public void MoveBorder(double x)
     {
+        x += MarginX;
+
         _currentPosition = _currentPosition with
         {
             X = x
@@ -79,12 +86,19 @@ public unsafe class AngleOpenGLApplication : IDisposable
             RenderCore();
 
             // 以下只是为了防止窗口无响应而已
-            var success = PeekMessage(out var msg, HWND.Null, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE);
-            if (success)
+            while (true)
             {
-                // 处理窗口消息
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
+                var success = PeekMessage(out var msg, HWND.Null, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE);
+                if (success)
+                {
+                    // 处理窗口消息
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                }
+                else
+                {
+                    break;
+                }
             }
         }
     }
@@ -309,7 +323,7 @@ public unsafe class AngleOpenGLApplication : IDisposable
             {
                 eglContext.GlInterface.GetIntegerv(GlConsts.GL_FRAMEBUFFER_BINDING, out var fb);
 
-                var colorType = SKColorType.Bgra8888;
+                var colorType = SKColorType.Rgba8888;
 
                 GRContext grContext = _renderContext.GRContext;
                 grContext.ResetContext();
@@ -353,9 +367,9 @@ public unsafe class AngleOpenGLApplication : IDisposable
                 }
             }
 
-            //eglContext.GlInterface.Flush();
-            //eglInterface.WaitGL();
-            //eglSurface.SwapBuffers();
+            eglContext.GlInterface.Flush();
+            eglInterface.WaitGL();
+            eglSurface.SwapBuffers();
 
             eglInterface.WaitClient();
             eglInterface.WaitGL();
@@ -422,8 +436,7 @@ public unsafe class AngleOpenGLApplication : IDisposable
         }
     }
 
-
-    private volatile Position _currentPosition = new(0, 700);
+    private volatile Position _currentPosition = new(MarginX, 700);
 
     private unsafe HWND CreateWindow()
     {
