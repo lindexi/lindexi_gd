@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JeryawogoFeewhaiwucibagay;
+﻿namespace AngleOpenGLDemo;
 
 public enum WindowsMessage : uint
 {

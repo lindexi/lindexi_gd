@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+﻿namespace AngleOpenGLDemo.OpenGL.Egl;
 
 public static class EglConsts
 {

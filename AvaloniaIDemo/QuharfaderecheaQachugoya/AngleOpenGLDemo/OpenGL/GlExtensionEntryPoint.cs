@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL;
+﻿namespace AngleOpenGLDemo.OpenGL;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 internal class GlExtensionEntryPoint : Attribute

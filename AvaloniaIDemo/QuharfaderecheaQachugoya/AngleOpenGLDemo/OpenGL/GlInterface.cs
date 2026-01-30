@@ -1,14 +1,10 @@
-﻿using JeryawogoFeewhaiwucibagay.SourceGenerator;
-
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
-using JeryawogoFeewhaiwucibagay.OpenGL.Interop;
+using AngleOpenGLDemo.OpenGL.Interop;
+using AngleOpenGLDemo.SourceGenerator;
+using static AngleOpenGLDemo.OpenGL.GlConsts;
 
-using static JeryawogoFeewhaiwucibagay.OpenGL.GlConsts;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL;
+namespace AngleOpenGLDemo.OpenGL;
 
 public unsafe partial class GlInterface : GlBasicInfoInterface
 {

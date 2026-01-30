@@ -1,10 +1,7 @@
-﻿using System;
+﻿using AngleOpenGLDemo.OpenGL.Egl;
+using static AngleOpenGLDemo.OpenGL.Egl.EglConsts;
 
-using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
-
-using static JeryawogoFeewhaiwucibagay.OpenGL.Egl.EglConsts;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Angle;
+namespace AngleOpenGLDemo.OpenGL.Angle;
 
 class AngleWin32EglDisplay : EglDisplay
 {

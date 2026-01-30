@@ -1,8 +1,7 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using JeryawogoFeewhaiwucibagay.SourceGenerator;
+﻿using System.Runtime.InteropServices;
+using AngleOpenGLDemo.SourceGenerator;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+namespace AngleOpenGLDemo.OpenGL.Egl;
 
 public unsafe partial class EglInterface
 {

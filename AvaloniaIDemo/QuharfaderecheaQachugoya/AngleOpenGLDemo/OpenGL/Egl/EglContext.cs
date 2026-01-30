@@ -1,9 +1,4 @@
-﻿using SkiaSharp;
-
-using System;
-using System.Threading;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+﻿namespace AngleOpenGLDemo.OpenGL.Egl;
 
 public record EglContext(EglDisplay EglDisplay, IntPtr Context, GlVersion Version)
 {

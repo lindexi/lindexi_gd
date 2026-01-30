@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+namespace AngleOpenGLDemo.OpenGL.Egl;
 
 unsafe partial class EglInterface
 {
