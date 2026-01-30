@@ -1,10 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
+﻿using static AngleOpenGLDemo.OpenGL.Egl.EglConsts;
 
-using static JeryawogoFeewhaiwucibagay.OpenGL.Egl.EglConsts;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+namespace AngleOpenGLDemo.OpenGL.Egl;
 
 public class EglDisplay : IDisposable
 {

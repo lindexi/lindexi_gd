@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL;
+namespace AngleOpenGLDemo.OpenGL;
 
 unsafe partial class GlInterface
 {
@@ -441,7 +441,7 @@ unsafe partial class GlInterface
         _addr_GenVertexArrays(@n, @rv);
     }
     public bool IsGenVertexArraysAvailable => _addr_GenVertexArrays != null;
-    void Initialize(Func<string, IntPtr> getProcAddress, global::JeryawogoFeewhaiwucibagay.OpenGL.GlInterface.GlContextInfo context)
+    void Initialize(Func<string, IntPtr> getProcAddress, global::AngleOpenGLDemo.OpenGL.GlInterface.GlContextInfo context)
     {
         var addr = IntPtr.Zero;
         // Initializing ClearStencil
@@ -514,7 +514,7 @@ unsafe partial class GlInterface
         _addr_CheckFramebufferStatus = (delegate* unmanaged[Stdcall]<int, int>) addr;
         // Initializing BlitFramebuffer
         addr = IntPtr.Zero;
-        addr = global::JeryawogoFeewhaiwucibagay.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glBlitFramebuffer", 3, 0);
+        addr = global::AngleOpenGLDemo.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glBlitFramebuffer", 3, 0);
         _addr_BlitFramebuffer = (delegate* unmanaged[Stdcall]<int, int, int, int, int, int, int, int, int, int, void>) addr;
         // Initializing GenRenderbuffers
         addr = IntPtr.Zero;
@@ -729,19 +729,19 @@ unsafe partial class GlInterface
 
         // Initializing DeleteVertexArrays
         addr = IntPtr.Zero;
-        addr = global::JeryawogoFeewhaiwucibagay.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glDeleteVertexArrays", 3, 0);
-        if (addr == IntPtr.Zero) addr = global::JeryawogoFeewhaiwucibagay.OpenGL.GlExtensionEntryPoint.GetProcAddress(getProcAddress, context, "glDeleteVertexArraysOES", "GL_OES_vertex_array_object");
+        addr = global::AngleOpenGLDemo.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glDeleteVertexArrays", 3, 0);
+        if (addr == IntPtr.Zero) addr = global::AngleOpenGLDemo.OpenGL.GlExtensionEntryPoint.GetProcAddress(getProcAddress, context, "glDeleteVertexArraysOES", "GL_OES_vertex_array_object");
         _addr_DeleteVertexArrays = (delegate* unmanaged[Stdcall]<int, int*, void>) addr;
 
         // Initializing BindVertexArray
         addr = IntPtr.Zero;
-        addr = global::JeryawogoFeewhaiwucibagay.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glBindVertexArray", 3, 0);
-        if (addr == IntPtr.Zero) addr = global::JeryawogoFeewhaiwucibagay.OpenGL.GlExtensionEntryPoint.GetProcAddress(getProcAddress, context, "glBindVertexArrayOES", "GL_OES_vertex_array_object");
+        addr = global::AngleOpenGLDemo.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glBindVertexArray", 3, 0);
+        if (addr == IntPtr.Zero) addr = global::AngleOpenGLDemo.OpenGL.GlExtensionEntryPoint.GetProcAddress(getProcAddress, context, "glBindVertexArrayOES", "GL_OES_vertex_array_object");
         _addr_BindVertexArray = (delegate* unmanaged[Stdcall]<int, void>) addr;
         // Initializing GenVertexArrays
         addr = IntPtr.Zero;
-        addr = global::JeryawogoFeewhaiwucibagay.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glGenVertexArrays", 3, 0);
-        if (addr == IntPtr.Zero) addr = global::JeryawogoFeewhaiwucibagay.OpenGL.GlExtensionEntryPoint.GetProcAddress(getProcAddress, context, "glGenVertexArraysOES", "GL_OES_vertex_array_object");
+        addr = global::AngleOpenGLDemo.OpenGL.GlMinVersionEntryPoint.GetProcAddress(getProcAddress, context, "glGenVertexArrays", 3, 0);
+        if (addr == IntPtr.Zero) addr = global::AngleOpenGLDemo.OpenGL.GlExtensionEntryPoint.GetProcAddress(getProcAddress, context, "glGenVertexArraysOES", "GL_OES_vertex_array_object");
         _addr_GenVertexArrays = (delegate* unmanaged[Stdcall]<int, int*, void>) addr;
     }
 }

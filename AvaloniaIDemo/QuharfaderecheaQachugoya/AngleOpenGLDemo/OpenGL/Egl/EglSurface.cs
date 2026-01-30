@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Runtime.InteropServices;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+namespace AngleOpenGLDemo.OpenGL.Egl;
 
 public class EglSurface : SafeHandle
 {

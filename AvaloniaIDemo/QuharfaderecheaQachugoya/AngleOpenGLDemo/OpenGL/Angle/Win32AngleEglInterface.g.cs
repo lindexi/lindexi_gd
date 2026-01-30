@@ -1,11 +1,9 @@
-﻿using JeryawogoFeewhaiwucibagay.SourceGenerator;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Angle;
+namespace AngleOpenGLDemo.OpenGL.Angle;
 
 unsafe partial class Win32AngleEglInterface
 {

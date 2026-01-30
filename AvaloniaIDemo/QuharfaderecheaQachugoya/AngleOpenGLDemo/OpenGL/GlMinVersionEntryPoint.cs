@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL;
+﻿namespace AngleOpenGLDemo.OpenGL;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 internal class GlMinVersionEntryPoint : Attribute

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
+﻿using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Interop;
+namespace AngleOpenGLDemo.OpenGL.Interop;
 
 internal class Utf8Buffer : SafeHandle
 {

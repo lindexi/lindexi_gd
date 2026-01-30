@@ -1,11 +1,9 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using JeryawogoFeewhaiwucibagay.SourceGenerator;
-using EglInterface = JeryawogoFeewhaiwucibagay.OpenGL.Egl.EglInterface;
+﻿using System.Runtime.InteropServices;
+using AngleOpenGLDemo.SourceGenerator;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Angle;
+namespace AngleOpenGLDemo.OpenGL.Angle;
 
-internal partial class Win32AngleEglInterface : EglInterface
+internal partial class Win32AngleEglInterface : Egl.EglInterface
 {
     [DllImport("av_libGLESv2.dll", CharSet = CharSet.Ansi)]
     static extern IntPtr EGL_GetProcAddress(string proc);

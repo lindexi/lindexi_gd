@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL;
+namespace AngleOpenGLDemo.OpenGL;
 
 unsafe partial class GlBasicInfoInterface
 {

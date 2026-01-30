@@ -1,10 +1,6 @@
-﻿using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+﻿using AngleOpenGLDemo.OpenGL.Egl;
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL;
+namespace AngleOpenGLDemo.OpenGL;
 
 public class OpenGlException:Exception
 {

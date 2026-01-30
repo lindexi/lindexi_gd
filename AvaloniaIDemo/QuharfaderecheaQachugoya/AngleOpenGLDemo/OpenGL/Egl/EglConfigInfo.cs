@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+﻿namespace AngleOpenGLDemo.OpenGL.Egl;
 
 internal class EglConfigInfo
 {

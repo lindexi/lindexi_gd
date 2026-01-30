@@ -1,6 +1,6 @@
-﻿using JeryawogoFeewhaiwucibagay.OpenGL.Egl;
+﻿using AngleOpenGLDemo.OpenGL.Egl;
 
-namespace JeryawogoFeewhaiwucibagay.OpenGL;
+namespace AngleOpenGLDemo.OpenGL;
 
 public enum EglErrors
 {
