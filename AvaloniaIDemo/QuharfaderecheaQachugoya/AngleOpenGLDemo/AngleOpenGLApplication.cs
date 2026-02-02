@@ -201,7 +201,7 @@ public unsafe class AngleOpenGLApplication : IDisposable
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
-            SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
+            SwapEffect = SwapEffect.FlipDiscard, // 使用 FlipSequential 配合 Composition
             AlphaMode = AlphaMode.Premultiplied,
             Flags = SwapChainFlags.AllowTearing,
         };
