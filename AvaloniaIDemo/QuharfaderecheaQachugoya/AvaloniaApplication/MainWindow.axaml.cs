@@ -32,7 +32,7 @@ public partial class MainWindow : Window
             translateTransform.X = positionX;
 
             _angleOpenGLApplicationProxy.MoveBorder(positionX);
-            //_wpfProxy.MoveBorder(positionX);
+            _wpfProxy.MoveBorder(positionX);
         }
     }
 
@@ -44,7 +44,7 @@ public partial class MainWindow : Window
     private bool _isDown;
 
     private readonly AngleOpenGLApplicationProxy _angleOpenGLApplicationProxy = new AngleOpenGLApplicationProxy();
-    //private readonly WpfProxy _wpfProxy = new();
+    private readonly WpfProxy _wpfProxy = new();
 
     private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
     {
@@ -52,6 +52,6 @@ public partial class MainWindow : Window
         var avaloniaWindowHandle = platformHandle.Handle;
 
         _angleOpenGLApplicationProxy.ShowAngleOpenGLWindow(avaloniaWindowHandle);
-        //_wpfProxy.ShowWpfWindow(avaloniaWindowHandle);
+        _wpfProxy.ShowWpfWindow(avaloniaWindowHandle);
     }
 }
