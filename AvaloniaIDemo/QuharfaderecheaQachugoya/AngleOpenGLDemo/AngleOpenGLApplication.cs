@@ -102,27 +102,21 @@ public unsafe class AngleOpenGLApplication : IDisposable
                     // 处理窗口消息
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
-
-                    if (msg.message == (uint)CustomMessage)
-                    {
-                        break;
-                    }
                 }
                 else
                 {
-                    //GetMessage(&msg, HWND, 0, 0);
+                    GetMessage(&msg, HWND, 0, 0);
 
-                    ////if (msg.message == (uint)CustomMessage)
-                    ////{
-                    ////    Debug.WriteLine($"收到自定义消息");
-                    ////}
+                    //if (msg.message == (uint)CustomMessage)
+                    //{
+                    //    Debug.WriteLine($"收到自定义消息");
+                    //}
 
-                    //// 处理窗口消息
-                    //TranslateMessage(&msg);
-                    //DispatchMessage(&msg);
+                    // 处理窗口消息
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
 
-                    //break;
-                    Thread.Sleep(1);
+                    break;
                 }
             }
         }
