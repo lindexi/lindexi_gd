@@ -99,6 +99,12 @@ public unsafe class AngleOpenGLApplication : IDisposable
                 var success = PeekMessage(out var msg, HWND, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE);
                 if (success)
                 {
+                    if (msg.message == (uint) CustomMessage)
+                    {
+                        //Debug.WriteLine($"收到自定义消息");
+                        break;
+                    }
+
                     // 处理窗口消息
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
@@ -107,10 +113,11 @@ public unsafe class AngleOpenGLApplication : IDisposable
                 {
                     GetMessage(&msg, HWND, 0, 0);
 
-                    //if (msg.message == (uint)CustomMessage)
-                    //{
-                    //    Debug.WriteLine($"收到自定义消息");
-                    //}
+                    if (msg.message == (uint) CustomMessage)
+                    {
+                        //Debug.WriteLine($"收到自定义消息");
+                        break;
+                    }
 
                     // 处理窗口消息
                     TranslateMessage(&msg);
