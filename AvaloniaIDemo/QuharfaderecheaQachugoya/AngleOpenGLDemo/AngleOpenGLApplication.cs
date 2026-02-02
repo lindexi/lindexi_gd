@@ -208,7 +208,7 @@ public unsafe class AngleOpenGLApplication : IDisposable
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
-            SwapEffect = SwapEffect.FlipDiscard, // 使用 FlipSequential 配合 Composition
+            SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
             AlphaMode = AlphaMode.Premultiplied,
             Flags = SwapChainFlags.AllowTearing,
         };
@@ -338,17 +338,12 @@ public unsafe class AngleOpenGLApplication : IDisposable
 
             var eglContext = _renderContext.EglContext;
             using var makeCurrent = eglContext.MakeCurrent(eglSurface);
-            ThrowIfError();
 
             eglInterface.WaitClient();
-            ThrowIfError();
             eglInterface.WaitGL();
-            ThrowIfError();
             eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
-            ThrowIfError();
 
             eglContext.GlInterface.BindFramebuffer(GlConsts.GL_FRAMEBUFFER, 0);
-            ThrowIfError();
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("RenderCore"))
             {
@@ -399,34 +394,18 @@ public unsafe class AngleOpenGLApplication : IDisposable
             }
 
             eglContext.GlInterface.Flush();
-            ThrowIfError();
             eglInterface.WaitGL();
-            ThrowIfError();
             eglSurface.SwapBuffers();
-            ThrowIfError();
 
             eglInterface.WaitClient();
-            ThrowIfError();
             eglInterface.WaitGL();
-            ThrowIfError();
             eglInterface.WaitNative(EglConsts.EGL_CORE_NATIVE_ENGINE);
-            ThrowIfError();
         }
 
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
         {
             var presentResult = _renderContext.SwapChain.Present(0, PresentFlags.None);
             presentResult.CheckError();
-        }
-
-        void ThrowIfError()
-        {
-            var eglInterface = _renderContext.AngleWin32EglDisplay.EglInterface;
-            var error = eglInterface.GetError();
-            if (error != EglConsts.EGL_SUCCESS)
-            {
-
-            }
         }
     }
 
