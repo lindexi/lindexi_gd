@@ -175,10 +175,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 GetClientRect(HWND, out var pClientRect);
                 var clientSize = new SizeI(pClientRect.right - pClientRect.left, pClientRect.bottom - pClientRect.top);
 
-                Console.WriteLine($"窗口尺寸变化，新尺寸为 {clientSize.Width} {clientSize.Height}");
-
                 var swapChain = _renderContext.SwapChain;
-                _renderContext.D3D11DeviceContext1.ClearState();
 
                 var result = swapChain.ResizeBuffers(FrameCount,
                     (uint) (clientSize.Width),
@@ -199,9 +196,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             {
                 var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
-                Console.WriteLine($"更新的画布尺寸 {d3D11Texture2D.Description.Width} {d3D11Texture2D.Description.Height}");
-
-                var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
+                using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
                 var renderTargetProperties = new D2D.RenderTargetProperties()
                 {
                     PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
