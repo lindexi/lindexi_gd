@@ -229,7 +229,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 renderTarget.BeginDraw();
 
                 var color = new Color4(Random.Shared.NextSingle() * 0.2f, Random.Shared.NextSingle() * 0.2f,
-                    Random.Shared.NextSingle() * 0.2f);
+                    Random.Shared.NextSingle() * 0.2f, 0.2f);
                 renderTarget.Clear(color);
 
                 renderTarget.EndDraw();
@@ -324,7 +324,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
-            AlphaMode = AlphaMode.Premultiplied,
+            AlphaMode = AlphaMode.Ignore,
             Flags = SwapChainFlags.None,
         };
 
