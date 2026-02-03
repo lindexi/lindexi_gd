@@ -84,16 +84,16 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
     {
         HWND = window;
 
-        //Init();
+        Init();
 
         while (!_isDisposed)
         {
-            //if (_isReSize)
-            //{
-            //    ReSize();
-            //}
+            if (_isReSize)
+            {
+                ReSize();
+            }
 
-            //RenderCore();
+            RenderCore();
 
             // 以下只是为了防止窗口无响应而已
             while (true)
@@ -478,7 +478,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         // 要求 Layered 窗口仅仅是为了显示透明窗口，详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-                                  //| WINDOW_EX_STYLE.WS_EX_LAYERED // Layered 是透明窗口的最关键
+                                  | WINDOW_EX_STYLE.WS_EX_LAYERED // Layered 是透明窗口的最关键
                                    // [Windows 窗口样式 什么是 WS_EX_NOREDIRECTIONBITMAP 样式 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/12855270.html )
                                   | WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP
                                   ; 
@@ -528,10 +528,10 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
     {
         switch ((WindowsMessage) message)
         {
-            //case WindowsMessage.WM_NCCALCSIZE:
-            //    {
-            //        return new LRESULT(0);
-            //    }
+            case WindowsMessage.WM_NCCALCSIZE:
+                {
+                    return new LRESULT(0);
+                }
             case WindowsMessage.WM_SIZE:
                 {
                     _isReSize = true;
