@@ -478,7 +478,11 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         // 要求 Layered 窗口仅仅是为了显示透明窗口，详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-                                  | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的最关键
+                                  | WINDOW_EX_STYLE.WS_EX_LAYERED // Layered 是透明窗口的最关键
+                                   // [Windows 窗口样式 什么是 WS_EX_NOREDIRECTIONBITMAP 样式 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/12855270.html )
+                                  | WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP
+                                  ; 
+
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
