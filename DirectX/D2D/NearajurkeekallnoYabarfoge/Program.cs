@@ -43,7 +43,7 @@ class DemoWindow
     {
         var window = CreateWindow();
         HWND = window;
-        ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
+        ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
@@ -228,8 +228,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 renderTarget.BeginDraw();
 
-                var color = new Color4(Random.Shared.NextSingle() * 0.2f, Random.Shared.NextSingle() * 0.2f,
-                    Random.Shared.NextSingle() * 0.2f);
+                var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
+                    Random.Shared.NextSingle(), 0.1f);
                 renderTarget.Clear(color);
 
                 renderTarget.EndDraw();
