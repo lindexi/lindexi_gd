@@ -38,7 +38,7 @@ public partial class App : Application
             {
                 // 第 0 个参数是可执行文件路径
                 var filePath = commandLineArgs[1];
-                if (System.IO.File.Exists(filePath))
+                if (File.Exists(filePath))
                 {
                     if (desktop.MainWindow.Content is SimpleWriteMainView mainViewControl)
                     {
