@@ -316,7 +316,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
     {
         if (_renderInfo is null)
         {
-            var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
+            using var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
             EglSurface surface =
                 _renderContext.AngleWin32EglDisplay.WrapDirect3D11Texture(d3D11Texture2D.NativePointer, 0, 0,
