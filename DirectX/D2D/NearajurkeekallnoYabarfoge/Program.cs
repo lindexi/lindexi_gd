@@ -72,6 +72,8 @@ class DemoWindow
         }
     }
 
+    private WNDPROC _myInstanceWndProc;
+
     private unsafe HWND CreateWindow()
     {
         DwmIsCompositionEnabled(out var compositionEnabled);
@@ -91,6 +93,7 @@ class DemoWindow
 
         var className = $"lindexi-{Guid.NewGuid().ToString()}";
         var title = "The Title";
+        _myInstanceWndProc = new WNDPROC(WndProc)
         fixed (char* pClassName = className)
         fixed (char* pTitle = title)
         {
@@ -98,7 +101,7 @@ class DemoWindow
             {
                 cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
-                lpfnWndProc = new WNDPROC(WndProc),
+                lpfnWndProc = _myInstanceWndProc,
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
                 hCursor = defaultCursor,
                 hbrBackground = new HBRUSH(IntPtr.Zero),
