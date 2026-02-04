@@ -201,7 +201,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 Console.WriteLine($"更新的画布尺寸 {d3D11Texture2D.Description.Width} {d3D11Texture2D.Description.Height}");
 
-                var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
+                using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
                 var renderTargetProperties = new D2D.RenderTargetProperties()
                 {
                     PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
@@ -238,7 +238,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
                 _renderContext.SwapChain.Present(1, PresentFlags.None);
-                _renderContext.D3D11DeviceContext1.Flush();
+                //_renderContext.D3D11DeviceContext1.Flush();
+                _renderContext.CompositionDevice?.Commit();
             }
         }
     }
