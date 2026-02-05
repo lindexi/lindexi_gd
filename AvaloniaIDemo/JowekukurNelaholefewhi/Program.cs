@@ -21,5 +21,8 @@ class Program
             //})
             .UsePlatformDetect()
             .WithInterFont()
+            .WithDeveloperTools(options =>
+            {
+            })
             .LogToTrace();
 }
