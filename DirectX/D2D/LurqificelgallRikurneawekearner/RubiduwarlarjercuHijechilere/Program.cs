@@ -63,6 +63,7 @@ enum RenderMode
     DirectCompositionPremultipliedAlphaMode = 0,
     DirectCompositionIgnoreAlphaMode,
     DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP,
+    DirectCompositionWithWS_EX_LAYERED,
     CreateSwapChainForHwnd,
     CreateSwapChainForHwndWithoutWS_EX_NOREDIRECTIONBITMAP,
     CreateSwapChainForHwndWithWS_EX_LAYERED,
@@ -119,7 +120,7 @@ class DemoWindow
         {
             exStyle = default;
         }
-        else if (Program.RenderMode is RenderMode.CreateSwapChainForHwndWithWS_EX_LAYERED)
+        else if (Program.RenderMode is RenderMode.CreateSwapChainForHwndWithWS_EX_LAYERED or RenderMode.DirectCompositionWithWS_EX_LAYERED)
         {
             exStyle = WINDOW_EX_STYLE.WS_EX_LAYERED;
         }
@@ -387,7 +388,10 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             };
             swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription, fullscreenDescription);
         }
-        else
+        else if (RenderMode is RenderMode.DirectCompositionIgnoreAlphaMode
+                 or RenderMode.DirectCompositionPremultipliedAlphaMode
+                 or RenderMode.DirectCompositionWithWS_EX_LAYERED
+                 or RenderMode.DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP)
         {
             if (RenderMode == RenderMode.DirectCompositionPremultipliedAlphaMode)
             {
@@ -419,6 +423,10 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 CompositionTarget = compositionTarget,
                 CompositionVisual = compositionVisual,
             };
+        }
+        else
+        {
+            throw new NotSupportedException();
         }
 
         // 不要被按下 alt+enter 进入全屏
