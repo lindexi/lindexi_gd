@@ -17,7 +17,7 @@ class Program
         => AppBuilder.Configure<App>()
             .With(new Win32PlatformOptions()
             {
-                CompositionMode = [Win32CompositionMode.DirectComposition]
+                CompositionMode = [Win32CompositionMode.WinUIComposition]
             })
             .UsePlatformDetect()
             .WithInterFont()
