@@ -15,10 +15,10 @@ class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
-            //.With(new Win32PlatformOptions()
-            //{
-            //    CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
-            //})
+            .With(new Win32PlatformOptions()
+            {
+                CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
+            })
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
