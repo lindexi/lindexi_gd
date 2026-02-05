@@ -296,7 +296,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         // 创建视觉对象
         IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
-        IDCompositionVirtualSurface surface = compositionDevice.CreateVirtualSurface((uint) clientSize.Width, (uint) clientSize.Height, _colorFormat, AlphaMode.Ignore);
+        IDCompositionVirtualSurface surface = compositionDevice.CreateVirtualSurface((uint) clientSize.Width, (uint) clientSize.Height, _colorFormat, AlphaMode.Premultiplied);
         compositionVisual.SetContent(surface);
 
         compositionTarget.SetRoot(compositionVisual);
