@@ -27,7 +27,7 @@ class Program
         // 创建窗口
         var window = CreateWindow();
         // 显示窗口
-        ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
+        ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
 
         // 初始化渲染
         // 初始化 DX 相关
