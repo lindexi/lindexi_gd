@@ -64,6 +64,8 @@ enum RenderMode
     DirectCompositionIgnoreAlphaMode,
     DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP,
     CreateSwapChainForHwnd,
+    CreateSwapChainForHwndWithoutWS_EX_NOREDIRECTIONBITMAP,
+    CreateSwapChainForHwndWithWS_EX_LAYERED,
 }
 
 class DemoWindow
@@ -113,9 +115,13 @@ class DemoWindow
         // [Windows 窗口样式 什么是 WS_EX_NOREDIRECTIONBITMAP 样式](https://blog.lindexi.com/post/Windows-%E7%AA%97%E5%8F%A3%E6%A0%B7%E5%BC%8F-%E4%BB%80%E4%B9%88%E6%98%AF-WS_EX_NOREDIRECTIONBITMAP-%E6%A0%B7%E5%BC%8F.html )
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
 
-        if (Program.RenderMode == RenderMode.DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP)
+        if (Program.RenderMode is RenderMode.DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP or RenderMode.CreateSwapChainForHwndWithoutWS_EX_NOREDIRECTIONBITMAP)
         {
             exStyle = default;
+        }
+        else if (Program.RenderMode is RenderMode.CreateSwapChainForHwndWithWS_EX_LAYERED)
+        {
+            exStyle = WINDOW_EX_STYLE.WS_EX_LAYERED;
         }
 
         var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
@@ -370,7 +376,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
             ;
 
-        if (RenderMode == RenderMode.CreateSwapChainForHwnd)
+        if (RenderMode is RenderMode.CreateSwapChainForHwnd or RenderMode.CreateSwapChainForHwndWithoutWS_EX_NOREDIRECTIONBITMAP
+            or RenderMode.CreateSwapChainForHwndWithWS_EX_LAYERED)
         {
             swapChainDescription.AlphaMode = AlphaMode.Ignore;
 
