@@ -6,16 +6,17 @@
         x:Class="JowekukurNelaholefewhi.MainWindow"
         Title="JowekukurNelaholefewhi"
         ExtendClientAreaChromeHints="NoChrome"
-        TransparencyLevelHint="AcrylicBlur"
         Background="Transparent"
         ExtendClientAreaToDecorationsHint="False">
-	<Button x:Name="ChangeTransparencyLevelHintButton" Width="200" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ChangeTransparencyLevelHintButton_OnClick"
-            Background="Blue">
-        <Button.Content>
-			<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Foreground="White">
-                Click to Change TransparencyLevelHint
-            </TextBlock>
-        </Button.Content>
-    </Button>
+	<Border x:Name="BackgroundBorder">
+        <Button x:Name="ChangeTransparencyLevelHintButton" Width="200" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ChangeTransparencyLevelHintButton_OnClick"
+                Background="Blue">
+            <Button.Content>
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="White">
+                    Click to Change TransparencyLevelHint
+                </TextBlock>
+            </Button.Content>
+        </Button>
+    </Border>
 </Window>

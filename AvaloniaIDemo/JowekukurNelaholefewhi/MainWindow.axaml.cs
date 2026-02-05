@@ -1,8 +1,15 @@
-﻿using System.Linq;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Diagnostics;
 using Avalonia.Interactivity;
+using Avalonia.Rendering;
+
+using System.Linq;
+using System.Threading.Tasks;
+using Avalonia.Media;
+using Avalonia.Media.Immutable;
+using Avalonia.Skia;
 
 namespace JowekukurNelaholefewhi;
 
@@ -12,17 +19,21 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        //this.AttachDeveloperTools();
-        this.AttachDevTools(new DevToolsOptions()
-        {
-            ShowAsChildWindow = true,
-        });
+        RendererDiagnostics.DebugOverlays = RendererDebugOverlays.Fps;
         Loaded += MainWindow_Loaded;
     }
 
-    private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
+    private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)
     {
-        
+        while (IsLoaded)
+        {
+            await Task.Delay(16);
+
+            var color = new Color(0x02, NextByte(), NextByte(), NextByte());
+            BackgroundBorder.Background = new ImmutableSolidColorBrush(color);
+        }
+
+        static byte NextByte() => (byte) Random.Shared.Next(byte.MaxValue);
     }
 
     private void ChangeTransparencyLevelHintButton_OnClick(object? sender, RoutedEventArgs e)

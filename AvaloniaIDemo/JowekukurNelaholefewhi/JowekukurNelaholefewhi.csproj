@@ -16,6 +16,5 @@
     <PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)">
     
     </PackageReference>
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.1.1" />
   </ItemGroup>
 </Project>
