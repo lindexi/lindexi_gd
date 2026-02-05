@@ -27,7 +27,7 @@ public partial class MainWindow : Window
     {
         while (IsLoaded)
         {
-            await Task.Delay(16);
+            await Task.Delay(10);
 
             var color = new Color(0x02, NextByte(), NextByte(), NextByte());
             BackgroundBorder.Background = new ImmutableSolidColorBrush(color);
