@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 
 namespace JowekukurNelaholefewhi;
@@ -12,6 +13,13 @@ public partial class MainWindow : Window
 
     private void ChangeTransparencyLevelHintButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        TransparencyLevelHint = [WindowTransparencyLevel.None];
+        if (TransparencyLevelHint.First() == WindowTransparencyLevel.Transparent)
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
+        }
+        else
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
+        }
     }
 }
