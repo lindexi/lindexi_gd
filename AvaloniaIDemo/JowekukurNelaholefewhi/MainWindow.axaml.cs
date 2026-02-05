@@ -38,7 +38,7 @@ public partial class MainWindow : Window
 
     private void ChangeTransparencyLevelHintButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (TransparencyLevelHint.First() == WindowTransparencyLevel.Transparent)
+        if (TransparencyLevelHint.Count == 0 || TransparencyLevelHint.First() == WindowTransparencyLevel.Transparent)
         {
             TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
         }

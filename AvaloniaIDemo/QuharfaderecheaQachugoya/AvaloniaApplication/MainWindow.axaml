@@ -6,6 +6,7 @@
         x:Class="AvaloniaApplication.MainWindow"
         Height="1000" Width="1000"
         Title="AvaloniaApplication"
+		TransparencyLevelHint="None"
         WindowState="Maximized">
     <Border x:Name="RenderTestBorder" Width="100" Height="100" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,500,0,0" Background="Blue">
         <Border.RenderTransform>
