@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using RubiduwarlarjercuHijechilere.Diagnostics;
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,20 +9,25 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+
+using Vortice.DCommon;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
+using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
+
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.WindowsAndMessaging;
-using Vortice.DCommon;
-using Vortice.DirectComposition;
+
 using static Windows.Win32.PInvoke;
+
 using AlphaMode = Vortice.DXGI.AlphaMode;
 using D2D = Vortice.Direct2D1;
+using Rect = Vortice.Mathematics.Rect;
 
 namespace RubiduwarlarjercuHijechilere;
 
@@ -194,6 +200,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         thread.Start();
     }
 
+    private readonly D2DRenderDemo _renderDemo = new D2DRenderDemo();
+
     private void RenderCore()
     {
         Init();
@@ -212,6 +220,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                     _renderInfo.Value.Dispose();
                     _renderInfo = null;
                 }
+
+                _renderDemo.OnReSize();
 
                 GetClientRect(HWND, out var pClientRect);
                 var clientSize = new SizeI(pClientRect.right - pClientRect.left, pClientRect.bottom - pClientRect.top);
@@ -269,9 +279,12 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 renderTarget.BeginDraw();
 
-                var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                    Random.Shared.NextSingle(), 0.1f);
-                renderTarget.Clear(color);
+                //var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
+                //    Random.Shared.NextSingle(), 0.1f);
+                //renderTarget.Clear(color);
+                renderTarget.Clear(null);
+
+                _renderDemo.Draw(renderTarget, new SizeI((int) _renderContext.WindowWidth, (int) _renderContext.WindowHeight));
 
                 renderTarget.EndDraw();
             }
@@ -546,4 +559,69 @@ readonly record struct RenderContext(
         D3D11DeviceContext1.Dispose();
         SwapChain.Dispose();
     }
+}
+
+class D2DRenderDemo
+{
+    // 此为调试代码，绘制一些矩形条
+    private List<D2DRenderInfo>? _renderList;
+
+    public void OnReSize()
+    {
+        _renderList = null;
+    }
+
+    public void Draw(D2D.ID2D1RenderTarget renderTarget, SizeI clientSize)
+    {
+        var rectWeight = 10;
+        var rectHeight = 20;
+
+        var margin = 5;
+
+        if (_renderList is null)
+        {
+            _renderList = new List<D2DRenderInfo>();
+
+            for (int top = margin; top < clientSize.Height - rectHeight - margin; top += rectHeight + margin)
+            {
+                Rect rect = new Rect(margin, top, rectWeight, rectHeight);
+
+                var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
+                    Random.Shared.NextSingle());
+                var step = Random.Shared.Next(1, 20);
+
+                var renderInfo = new D2DRenderInfo(rect, step, color);
+                _renderList.Add(renderInfo);
+            }
+        }
+
+        for (var i = 0; i < _renderList.Count; i++)
+        {
+            var renderInfo = _renderList[i];
+            using var brush = renderTarget.CreateSolidColorBrush(renderInfo.Color);
+
+            renderTarget.FillRectangle(renderInfo.Rect, brush);
+
+            var nextRect = renderInfo.Rect with
+            {
+                Width = renderInfo.Rect.Width + renderInfo.Step
+            };
+
+            if (nextRect.Width > clientSize.Width - margin * 2)
+            {
+                nextRect = nextRect with
+                {
+                    Width = rectWeight
+                };
+            }
+
+            _renderList[i] = renderInfo with
+            {
+                Rect = nextRect
+            };
+        }
+    }
+
+    private readonly record struct D2DRenderInfo(Rect Rect, int Step, Color4 Color);
+
 }
