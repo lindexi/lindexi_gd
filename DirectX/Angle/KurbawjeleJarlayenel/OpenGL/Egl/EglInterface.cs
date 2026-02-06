@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using KurbawjeleJarlayenel.SourceGenerator;
 
@@ -10,33 +10,6 @@ public unsafe partial class EglInterface
     {
         Initialize(getProcAddress);
     }
-
-    public EglInterface(string library) : this(Load(library))
-    {
-    }
-
-    public EglInterface() : this(Load())
-    {
-
-    }
-
-    static Func<string, IntPtr> Load()
-    {
-        if (OperatingSystem.IsLinux())
-            return Load("libEGL.so.1");
-        if (OperatingSystem.IsAndroid())
-            return Load("libEGL.so");
-
-        throw new PlatformNotSupportedException();
-    }
-
-    static Func<string, IntPtr> Load(string library)
-    {
-        var lib = NativeLibrary.Load(library);
-        return (s) => NativeLibrary.TryGetExport(lib, s, out var address) ? address : default;
-    }
-
-    // ReSharper disable UnassignedGetOnlyAutoProperty
 
     [GetProcAddress("eglGetError")]
     public partial int GetError();

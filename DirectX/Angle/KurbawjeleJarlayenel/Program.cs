@@ -25,7 +25,7 @@ class Program
     static unsafe void Main(string[] args)
     {
         // 创建窗口
-        var window = CreateWindow();
+        HWND window = CreateWindow();
         // 显示窗口
         ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
 
