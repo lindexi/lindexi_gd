@@ -50,6 +50,13 @@ class DirectCompositionDemo
         IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
         IDCompositionVirtualSurface surface = compositionDevice.CreateVirtualSurface((uint) clientSize.Width,
             (uint) clientSize.Height, Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied);
+
+        // 创建 IDCompositionSurface 有两个方法，分别是 CreateVirtualSurface 和 CreateSurface 方法。两者不同的是 CreateVirtualSurface 创建的是稀疏表面，而 CreateSurface 是大数组（矩阵），在调用 BeginDraw 之前 IDCompositionVirtualSurface 不会分别空间，且 IDCompositionVirtualSurface 还能 Resize 重新设置大小。而 CreateSurface 则就不能
+        //var createSurfaceResult = compositionDevice.CreateSurface((uint) clientSize.Width,
+        //    (uint) clientSize.Height, Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied, out IDCompositionSurface? dCompositionSurface);
+        //createSurfaceResult.CheckError();
+        //surface = dCompositionSurface;
+
         compositionVisual.SetContent(surface);
 
         compositionTarget.SetRoot(compositionVisual);
