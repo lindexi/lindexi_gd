@@ -36,11 +36,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
                 ownerWindowHandle);
             ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
 
-            var currentWindowLong = GetWindowLongPtr(window, (int) WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-            var windowLongPtr = (IntPtr) ((long) currentWindowLong | (long) WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
-            SetWindowLongPtr(window, (int) WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                windowLongPtr);
-
             Render(window);
         })
         {
@@ -318,7 +313,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
     {
         if (_renderInfo is null)
         {
-            using var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
+            var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
             EglSurface surface =
                 _renderContext.AngleWin32EglDisplay.WrapDirect3D11Texture(d3D11Texture2D.NativePointer, 0, 0,
@@ -408,7 +403,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
         {
-            var presentResult = _renderContext.SwapChain.Present(0, PresentFlags.None);
+            var presentResult = _renderContext.SwapChain.Present(1, PresentFlags.None);
             presentResult.CheckError();
         }
     }
@@ -478,11 +473,10 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             Console.WriteLine($"无法启用透明窗口效果");
         }
 
-        // 要求 Layered 窗口仅仅是为了显示透明窗口，详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
-        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-                                   // [Windows 窗口样式 什么是 WS_EX_NOREDIRECTIONBITMAP 样式 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/12855270.html )
+        // 要求 Layered 窗口仅仅是为了点击命中穿透
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_TRANSPARENT
                                   | WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP
-                                  ; 
+                                  | WINDOW_EX_STYLE.WS_EX_LAYERED;
 
         var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
 
@@ -522,17 +516,9 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        switch ((WindowsMessage) message)
+        if ((WindowsMessage)message == WindowsMessage.WM_SIZE)
         {
-            case WindowsMessage.WM_NCCALCSIZE:
-                {
-                    return new LRESULT(0);
-                }
-            case WindowsMessage.WM_SIZE:
-                {
-                    _isReSize = true;
-                    break;
-                }
+            _isReSize = true;
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
