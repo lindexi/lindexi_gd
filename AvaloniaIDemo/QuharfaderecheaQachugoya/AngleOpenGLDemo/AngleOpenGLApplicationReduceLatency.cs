@@ -36,8 +36,10 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
                 ownerWindowHandle);
             ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
 
+            var currentWindowLong = GetWindowLongPtr(window, (int) WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+            var windowLongPtr = (IntPtr) ((long) currentWindowLong | (long) WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
             SetWindowLongPtr(window, (int) WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                (IntPtr) ((long) GetWindowLongPtr(window, (int) WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE) | (long) WINDOW_EX_STYLE.WS_EX_TRANSPARENT));
+                windowLongPtr);
 
             Render(window);
         })
