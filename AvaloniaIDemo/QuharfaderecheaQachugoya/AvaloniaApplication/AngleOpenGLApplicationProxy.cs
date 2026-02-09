@@ -13,7 +13,7 @@ class AngleOpenGLApplicationProxy
     {
     }
 
-    private readonly AngleOpenGLApplicationReduceLatency _angleOpenGLApplication = new ();
+    private readonly AngleOpenGLApplication _angleOpenGLApplication = new ();
 
     public void ShowAngleOpenGLWindow(nint avaloniaWindowHandle)
     {
