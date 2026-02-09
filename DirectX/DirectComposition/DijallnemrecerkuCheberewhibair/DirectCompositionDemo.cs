@@ -34,22 +34,19 @@ class DirectCompositionDemo
         result.CheckError();
 
         _ = feature;
-        iD3D11DeviceContext.Dispose(); // 用不着就先释放。释放不代表立刻回收资源，只是表示业务层不需要用到，减少引用计数
+        iD3D11DeviceContext.Dispose();
 
         IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice3<IDCompositionDevice>(iD3D11Device);
         compositionDevice.CreateTargetForHwnd(window, topmost: true, out IDCompositionTarget compositionTarget);
-        // 以上的 CreateTargetForHwnd 参数 topmost 不是值窗口置顶，而是：如果视觉树应显示在由 hwnd 参数指定的窗口子元素之上，则为 TRUE；否则，视觉树将显示在子元素之后
-        // > TRUE if the visual tree should be displayed on top of the children of the window specified by the hwnd parameter; otherwise, the visual tree is displayed behind the children.
-        // https://learn.microsoft.com/en-us/windows/win32/api/dcomp/nf-dcomp-idcompositiondevice-createtargetforhwnd
 
-        // 创建视觉对象
         RECT windowRect;
         PInvoke.GetClientRect(window, &windowRect);
         var clientSize = new SizeI(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
 
         IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
-        IDCompositionVirtualSurface surface = compositionDevice.CreateVirtualSurface((uint) clientSize.Width,
+        IDCompositionSurface surface = compositionDevice.CreateVirtualSurface((uint) clientSize.Width,
             (uint) clientSize.Height, Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied);
+
         compositionVisual.SetContent(surface);
 
         compositionTarget.SetRoot(compositionVisual);
@@ -77,7 +74,6 @@ class DirectCompositionDemo
 
             renderTarget.BeginDraw();
 
-            // 在这里编写绘制逻辑
             renderTarget.Clear(new Color4(0f));
             d2DRenderDemo.Draw(renderTarget, clientSize);
 
@@ -105,14 +101,6 @@ class DirectCompositionDemo
 
     private unsafe HWND CreateWindow()
     {
-        PInvoke.DwmIsCompositionEnabled(out var compositionEnabled);
-
-        if (!compositionEnabled)
-        {
-            Console.WriteLine($"无法启用透明窗口效果");
-        }
-
-        // [Windows 窗口样式 什么是 WS_EX_NOREDIRECTIONBITMAP 样式](https://blog.lindexi.com/post/Windows-%E7%AA%97%E5%8F%A3%E6%A0%B7%E5%BC%8F-%E4%BB%80%E4%B9%88%E6%98%AF-WS_EX_NOREDIRECTIONBITMAP-%E6%A0%B7%E5%BC%8F.html )
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
 
         var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
@@ -122,7 +110,7 @@ class DirectCompositionDemo
 
         var className = $"lindexi-{Guid.NewGuid().ToString()}";
         var title = "The Title";
-        _wndProcDelegate = new WNDPROC(WndProc); // 仅用于防止 GC 回收。详细请看 https://github.com/lindexi/lindexi_gd/pull/85
+        _wndProcDelegate = new WNDPROC(WndProc);
         fixed (char* pClassName = className)
         fixed (char* pTitle = title)
         {
@@ -167,13 +155,7 @@ class DirectCompositionDemo
 
 class D2DRenderDemo
 {
-    // 此为调试代码，绘制一些矩形条
     private List<D2DRenderInfo>? _renderList;
-
-    public void OnReSize()
-    {
-        _renderList = null;
-    }
 
     public void Draw(D2D.ID2D1RenderTarget renderTarget, SizeI clientSize)
     {
