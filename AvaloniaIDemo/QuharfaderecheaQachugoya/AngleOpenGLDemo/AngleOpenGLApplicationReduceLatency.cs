@@ -403,7 +403,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
         {
-            var presentResult = _renderContext.SwapChain.Present(0, PresentFlags.None);
+            var presentResult = _renderContext.SwapChain.Present(1, PresentFlags.None);
             presentResult.CheckError();
         }
     }
@@ -478,10 +478,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
                                   | WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP
                                   | WINDOW_EX_STYLE.WS_EX_LAYERED;
 
-        // 如果你想做无边框：
-        //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
-        //exStyle |= WINDOW_EX_STYLE.WS_EX_TRANSPARENT; // 点击穿透可选
-
         var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
 
         var defaultCursor = LoadCursor(
@@ -520,17 +516,9 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        switch ((WindowsMessage) message)
+        if ((WindowsMessage)message == WindowsMessage.WM_SIZE)
         {
-            //case WindowsMessage.WM_NCCALCSIZE:
-            //    {
-            //        return new LRESULT(0);
-            //    }
-            case WindowsMessage.WM_SIZE:
-                {
-                    _isReSize = true;
-                    break;
-                }
+            _isReSize = true;
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
