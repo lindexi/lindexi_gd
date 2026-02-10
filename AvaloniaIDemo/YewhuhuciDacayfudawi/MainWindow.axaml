@@ -1,25 +1,31 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="YewhuhuciDacayfudawi.MainWindow"
-        Title="YewhuhuciDacayfudawi">
-  <Grid x:Name="RootGrid" RowDefinitions="*,Auto" SizeChanged="RootGrid_OnSizeChanged">
-      <Image x:Name="TheImage" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Fill">
-          <Image.RenderTransform>
-			  <TranslateTransform></TranslateTransform>
-          </Image.RenderTransform>
-      </Image>
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+		x:Class="YewhuhuciDacayfudawi.MainWindow"
+		Title="YewhuhuciDacayfudawi">
+	<Grid x:Name="RootGrid" RowDefinitions="*,Auto" SizeChanged="RootGrid_OnSizeChanged">
+		<Image x:Name="TheImage" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="Fill">
+			<Image.RenderTransform>
+				<TranslateTransform></TranslateTransform>
+			</Image.RenderTransform>
+		</Image>
 
-	  <StackPanel Grid.Row="1" Orientation="Horizontal">
-          <StackPanel.Styles>
-			  <Style Selector="RepeatButton">
-				  <Setter Property="Margin" Value="10,10,10,10"></Setter>
-              </Style>
-          </StackPanel.Styles>
-          <RepeatButton x:Name="IncreaseSizeButton" Click="IncreaseSizeButton_OnClick">IncreaseSize</RepeatButton>
-		  <RepeatButton x:Name="DecreaseSizeButton" Click="DecreaseSizeButton_OnClick">DecreaseSize</RepeatButton>
-      </StackPanel>
-  </Grid>
+		<StackPanel Grid.Row="1" Orientation="Horizontal">
+			<StackPanel.Styles>
+				<Style Selector="RepeatButton">
+					<Setter Property="Margin" Value="10,10,10,10"></Setter>
+				</Style>
+                <Style Selector="Button">
+                    <Setter Property="Margin" Value="10,10,10,10"></Setter>
+                </Style>
+			</StackPanel.Styles>
+			<RepeatButton x:Name="IncreaseSizeButton" Click="IncreaseSizeButton_OnClick">IncreaseSize</RepeatButton>
+			<RepeatButton x:Name="DecreaseSizeButton" Click="DecreaseSizeButton_OnClick">DecreaseSize</RepeatButton>
+			<Button x:Name="Use1KImageButton" Click="Use1KImageButton_OnClick">Use 1K Image</Button>
+			<Button x:Name="Use4KImageButton" Click="Use4KImageButton_OnClick">Use 4K Image</Button>
+			<Button x:Name="Use8KImageButton" Click="Use8KImageButton_OnClick">Use 8K Image</Button>
+		</StackPanel>
+	</Grid>
 </Window>
