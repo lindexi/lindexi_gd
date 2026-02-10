@@ -21,6 +21,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AngleOpenGLDemo\AngleOpenGLDemo.csproj" />
-    <ProjectReference Include="..\WpfApplication\WpfApplication.csproj" />
   </ItemGroup>
 </Project>

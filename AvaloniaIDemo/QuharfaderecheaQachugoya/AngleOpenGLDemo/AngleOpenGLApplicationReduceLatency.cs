@@ -6,7 +6,7 @@ using AngleOpenGLDemo.OpenGL.Egl;
 using SkiaSharp;
 
 using System.Runtime.InteropServices;
-
+using Windows.Win32;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DirectComposition;
@@ -209,12 +209,20 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
             AlphaMode = AlphaMode.Premultiplied,
-            Flags = SwapChainFlags.AllowTearing,
+            Flags = SwapChainFlags.FrameLatencyWaitableObject,
         };
 
         // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
-        IDXGISwapChain1 swapChain =
+        IDXGISwapChain1 swapChain1 =
             dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
+        IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
+        swapChain1.Dispose();
+        swapChain2.MaximumFrameLatency = 1;
+        var waitableObject = swapChain2.FrameLatencyWaitableObject;
+        _ = waitableObject;
+
+        var swapChain = swapChain2;
+
         // 和直接 CreateSwapChainForHwnd 的不同仅仅是为了 AlphaMode.Premultiplied 支持背景透明才引入 DirectComposition 的支持
         // 详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
 
@@ -326,6 +334,9 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             };
         }
 
+        var waitableObject = _renderContext.SwapChain.FrameLatencyWaitableObject;
+        WaitForSingleObjectEx(new HANDLE(waitableObject), 1000, true);
+
         // 渲染代码写在这里
 
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
@@ -403,7 +414,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
         {
-            var presentResult = _renderContext.SwapChain.Present(1, PresentFlags.None);
+            var presentResult = _renderContext.SwapChain.Present(0, PresentFlags.None);
             presentResult.CheckError();
         }
     }
@@ -557,7 +568,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         IDXGIAdapter1 HardwareAdapter,
         ID3D11Device1 D3D11Device1,
         ID3D11DeviceContext1 D3D11DeviceContext1,
-        IDXGISwapChain1 SwapChain,
+        IDXGISwapChain2 SwapChain,
         IDCompositionDevice CompositionDevice,
         IDCompositionTarget CompositionTarget,
         IDCompositionVisual CompositionVisual,

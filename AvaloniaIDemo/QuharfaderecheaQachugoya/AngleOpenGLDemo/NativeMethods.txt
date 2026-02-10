@@ -2,20 +2,17 @@
 GetModuleHandle
 LoadCursor
 IDC_ARROW
-WndProc
 CreateWindowEx
 CW_USEDEFAULT
 ShowWindow
-SW_SHOW
+SHOW_WINDOW_CMD
 TranslateMessage
 DispatchMessage
 DefWindowProc
 GetClientRect
-WM
 WM_PAINT
 GetWindowLong
 SetWindowLong
-SetWindowLongPtr
 DwmIsCompositionEnabled
 UpdateLayeredWindow
 DwmExtendFrameIntoClientArea
@@ -24,3 +21,4 @@ PeekMessage
 WINDOW_EX_STYLE
 GetMessage
 PostMessage
+WaitForSingleObjectEx
