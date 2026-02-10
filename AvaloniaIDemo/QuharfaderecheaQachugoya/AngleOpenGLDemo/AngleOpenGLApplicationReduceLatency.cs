@@ -475,6 +475,11 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
     private volatile Position _currentPosition = new(MarginX, 700);
 
+    /// <summary>
+    /// 仅仅防止被回收
+    /// </summary>
+    private WNDPROC? _wndProcDelegate;
+
     private unsafe HWND CreateWindow()
     {
         DwmIsCompositionEnabled(out var compositionEnabled);
@@ -496,6 +501,8 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         var className = $"lindexi-{Guid.NewGuid().ToString()}";
         var title = "The Title";
+        _wndProcDelegate = new WNDPROC(WndProc);
+
         fixed (char* pClassName = className)
         fixed (char* pTitle = title)
         {
@@ -503,7 +510,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             {
                 cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
-                lpfnWndProc = new WNDPROC(WndProc),
+                lpfnWndProc = _wndProcDelegate,
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
                 hCursor = defaultCursor,
                 hbrBackground = new HBRUSH(IntPtr.Zero),
@@ -527,7 +534,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        if ((WindowsMessage)message == WindowsMessage.WM_SIZE)
+        if ((WindowsMessage) message == WindowsMessage.WM_SIZE)
         {
             _isReSize = true;
         }
