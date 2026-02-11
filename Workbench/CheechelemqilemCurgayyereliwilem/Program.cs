@@ -2,9 +2,11 @@
 
 using Microsoft.DotNet.RemoteExecutor;
 
+var code = Console.ReadLine();
+
 RemoteExecutor.Invoke(() =>
 {
-    File.WriteAllText(@"C:\lindexi\1.txt", "123");
+    File.WriteAllText(@"C:\lindexi\1.txt", code);
 });
 
 Console.WriteLine("Hello, World!");
