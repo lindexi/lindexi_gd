@@ -42,6 +42,10 @@ class Program
             {
                 MaxGpuResourceSizeBytes = long.MaxValue / 2
             })
+            .With(new Win32PlatformOptions()
+            {
+                CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
+            })
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
