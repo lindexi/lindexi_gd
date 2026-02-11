@@ -39,7 +39,7 @@ class Program
         => AppBuilder.Configure<App>()
             .With(new SkiaOptions()
             {
-                MaxGpuResourceSizeBytes = 2000 * 1000 * 4 * 12
+                MaxGpuResourceSizeBytes = 2000 * 2000 * 4 * 12
             })
             .UsePlatformDetect()
             .WithInterFont()
