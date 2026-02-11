@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+
 using System;
 using System.IO;
 using System.Runtime.Loader;
@@ -39,7 +40,11 @@ class Program
         => AppBuilder.Configure<App>()
             .With(new SkiaOptions()
             {
-                MaxGpuResourceSizeBytes = 2000 * 2000 * 4 * 12
+                MaxGpuResourceSizeBytes = long.MaxValue / 2
+            })
+            .With(new Win32PlatformOptions()
+            {
+                CompositionMode = [Win32CompositionMode.LowLatencyDxgiSwapChain]
             })
             .UsePlatformDetect()
             .WithInterFont()
