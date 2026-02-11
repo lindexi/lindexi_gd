@@ -37,6 +37,10 @@ class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
+            .With(new SkiaOptions()
+            {
+                MaxGpuResourceSizeBytes = 2000 * 1000 * 4 * 12
+            })
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
