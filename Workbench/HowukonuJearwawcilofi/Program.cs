@@ -23,6 +23,19 @@ var app = builder.Build();
 //    });
 //});
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        Task result = next(context);
+        await result;
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e);
+    }
+});
+
 app.MapPost("/", (FooRequest request) =>
 {
     return "OK";
