@@ -9,19 +9,19 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-app.UseExceptionHandler(exceptionHandlerApp =>
-{
-    exceptionHandlerApp.Run(async httpContext =>
-    {
-        var pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
-        if (pds == null
-            || !await pds.TryWriteAsync(new() { HttpContext = httpContext }))
-        {
-            // Fallback behavior
-            await httpContext.Response.WriteAsync("Fallback: An error occurred.");
-        }
-    });
-});
+//app.UseExceptionHandler(exceptionHandlerApp =>
+//{
+//    exceptionHandlerApp.Run(async httpContext =>
+//    {
+//        var pds = httpContext.RequestServices.GetService<IProblemDetailsService>();
+//        if (pds == null
+//            || !await pds.TryWriteAsync(new() { HttpContext = httpContext }))
+//        {
+//            // Fallback behavior
+//            await httpContext.Response.WriteAsync("Fallback: An error occurred.");
+//        }
+//    });
+//});
 
 app.MapPost("/", (FooRequest request) =>
 {
