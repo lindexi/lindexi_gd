@@ -58,7 +58,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
     /// <summary>
     /// For Window Frame margin
     /// </summary>
-    private const int MarginX = 8;
+    private const int MarginX = 0;
 
     public void MoveBorder(double x)
     {
