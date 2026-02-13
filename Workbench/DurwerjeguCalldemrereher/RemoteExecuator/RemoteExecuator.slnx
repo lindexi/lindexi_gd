@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Demo/Demo.csproj" />
+  <Project Path="RemoteExecuator/RemoteExecuator.csproj" />
+</Solution>
