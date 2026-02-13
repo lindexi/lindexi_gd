@@ -58,7 +58,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
     /// <summary>
     /// For Window Frame margin
     /// </summary>
-    private const int MarginX = 8;
+    private const int MarginX = 0;
 
     public void MoveBorder(double x)
     {
@@ -92,7 +92,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
             RenderCore();
 
-            // 以下只是为了防止窗口无响应而已
             while (true)
             {
                 var success = PeekMessage(out var msg, HWND, 0, 0, PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE);
@@ -100,11 +99,9 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
                 {
                     if (msg.message == (uint) CustomMessage)
                     {
-                        //Debug.WriteLine($"收到自定义消息");
                         break;
                     }
 
-                    // 处理窗口消息
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
                 }
@@ -114,11 +111,9 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
                     if (msg.message == (uint) CustomMessage)
                     {
-                        //Debug.WriteLine($"收到自定义消息");
                         break;
                     }
 
-                    // 处理窗口消息
                     TranslateMessage(&msg);
                     DispatchMessage(&msg);
 
@@ -128,9 +123,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         }
     }
 
-    /// <summary>
-    /// 缓存的数量，包括前缓存。大部分应用来说，至少需要两个缓存，这个玩过游戏的伙伴都知道
-    /// </summary>
     private const int FrameCount = 2;
     private const Format ColorFormat = Format.B8G8R8A8_UNorm;
 
@@ -143,7 +135,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         var dxgiFactory2 = DXGI.CreateDXGIFactory1<IDXGIFactory2>();
 
         IDXGIAdapter1? hardwareAdapter = GetHardwareAdapter(dxgiFactory2)
-            // 这里 ToList 只是想列出所有的 IDXGIAdapter1 在实际代码里，大部分都是获取第一个
             .ToList().FirstOrDefault();
         if (hardwareAdapter == null)
         {
@@ -176,7 +167,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         if (result.Failure)
         {
-            // 如果失败了，那就不指定显卡，走 WARP 的方式
             // http://go.microsoft.com/fwlink/?LinkId=286690
             result = D3D11.D3D11CreateDevice(
                 IntPtr.Zero,
@@ -189,12 +179,9 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             result.CheckError();
         }
 
-        // 大部分情况下，用的是 ID3D11Device1 和 ID3D11DeviceContext1 类型
-        // 从 ID3D11Device 转换为 ID3D11Device1 类型
         ID3D11Device1 d3D11Device1 = d3D11Device.QueryInterface<ID3D11Device1>();
         var d3D11DeviceContext1 = d3D11DeviceContext.QueryInterface<ID3D11DeviceContext1>();
 
-        // 获取到了新的两个接口，就可以减少 `d3D11Device` 和 `d3D11DeviceContext` 的引用计数。调用 Dispose 不会释放掉刚才申请的 D3D 资源，只是减少引用计数
         d3D11Device.Dispose();
         d3D11DeviceContext.Dispose();
 
@@ -207,12 +194,11 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             BufferUsage = Usage.RenderTargetOutput,
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
-            SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
+            SwapEffect = SwapEffect.FlipSequential,
             AlphaMode = AlphaMode.Premultiplied,
             Flags = SwapChainFlags.FrameLatencyWaitableObject,
         };
 
-        // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
         IDXGISwapChain1 swapChain1 =
             dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
         IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
@@ -223,15 +209,10 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         var swapChain = swapChain2;
 
-        // 和直接 CreateSwapChainForHwnd 的不同仅仅是为了 AlphaMode.Premultiplied 支持背景透明才引入 DirectComposition 的支持
-        // 详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
-
-        // 创建 DirectComposition 设备和目标
         IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
         IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
         compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
 
-        // 创建视觉对象并设置 SwapChain 作为内容
         IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
         compositionVisual.SetContent(swapChain);
         compositionTarget.SetRoot(compositionVisual);
@@ -239,7 +220,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         dxgiDevice.Dispose();
 
-        // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND,
             WindowAssociationFlags.IgnoreAltEnter | WindowAssociationFlags.IgnorePrintScreen);
 
@@ -289,7 +269,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
     private void ReSize()
     {
-        // 处理窗口大小变化
         _isReSize = false;
 
         if (_renderInfo is not null)
@@ -337,7 +316,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         var waitableObject = _renderContext.SwapChain.FrameLatencyWaitableObject;
         WaitForSingleObjectEx(new HANDLE(waitableObject), 1000, true);
 
-        // 渲染代码写在这里
+        // The render code:
 
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
         {
@@ -398,7 +377,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
                 using (StepPerformanceCounter.RenderThreadCounter.StepStart("GR Context.Flush"))
                 {
-                    // 将会在这里等待垂直同步
+                    // Will wait here
                     grContext.Flush();
                 }
             }
@@ -424,8 +403,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         using IDXGIFactory6? factory6 = factory.QueryInterfaceOrNull<IDXGIFactory6>();
         if (factory6 != null)
         {
-            // 这个系统的 DX 支持 IDXGIFactory6 类型
-            // 先告诉系统，要高性能的显卡
             for (uint adapterIndex = 0;
                  factory6.EnumAdapterByGpuPreference(adapterIndex, GpuPreference.HighPerformance,
                      out IDXGIAdapter1? adapter).Success;
@@ -444,16 +421,13 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
                     continue;
                 }
 
-                Console.WriteLine($"枚举到 {adapter.Description1.Description} 显卡");
                 yield return adapter;
             }
         }
         else
         {
-            // 不支持就不支持咯，用旧版本的方式获取显示适配器接口
         }
 
-        // 如果枚举不到，那系统返回啥都可以
         for (uint adapterIndex = 0;
              factory.EnumAdapters1(adapterIndex, out IDXGIAdapter1? adapter).Success;
              adapterIndex++)
@@ -468,7 +442,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
                 continue;
             }
 
-            Console.WriteLine($"枚举到 {adapter.Description1.Description} 显卡");
             yield return adapter;
         }
     }
@@ -476,20 +449,12 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
     private volatile Position _currentPosition = new(MarginX, 700);
 
     /// <summary>
-    /// 仅仅防止被回收
+    /// Just for GC
     /// </summary>
     private WNDPROC? _wndProcDelegate;
 
     private unsafe HWND CreateWindow()
     {
-        DwmIsCompositionEnabled(out var compositionEnabled);
-
-        if (!compositionEnabled)
-        {
-            Console.WriteLine($"无法启用透明窗口效果");
-        }
-
-        // 要求 Layered 窗口仅仅是为了点击命中穿透
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_TRANSPARENT
                                   | WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP
                                   | WINDOW_EX_STYLE.WS_EX_LAYERED;
@@ -558,7 +523,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
     record Position(double X, double Y)
     {
-        // 为什么需要 class 引用类型，而不是值类型？为了不加锁跨线程访问
     }
 
     readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, EglSurface EglSurface) : IDisposable
