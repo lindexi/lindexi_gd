@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using DotNetCampus.Cli;
 
 namespace RemoteExecutors;
@@ -31,7 +32,15 @@ public static class RemoteExecutor
                 "--Pid", Environment.ProcessId.ToString(),
             ];
 
-        TryHandle(commandLineArgs);
+        //TryHandle(commandLineArgs);
+        var processPath = Environment.ProcessPath;
+        if (processPath is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var process = Process.Start(processPath,commandLineArgs);
+        process.WaitForExit();
     }
 
     public static bool TryHandle(string[] commandLineArgs)

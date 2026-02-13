@@ -3,6 +3,11 @@
 using System.Globalization;
 using RemoteExecutors;
 
+if (RemoteExecutor.TryHandle(args))
+{
+    return;
+}
+
 RemoteExecutor.Invoke(() =>
 {
     // 写个文件测试一下
