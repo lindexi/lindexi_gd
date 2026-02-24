@@ -18,7 +18,7 @@ var cnBlogsImageUploader = new CnBlogsImageUploader()
     Key = key
 };
 
-var originFolder = new DirectoryInfo(@"C:\lindexi\Work\");
+var originFolder = new DirectoryInfo(@"C:\lindexi\Blog\");
 var workFolder = new DirectoryInfo(@"C:\lindexi\Work\");
 
 if (args.Length == 2)
@@ -59,6 +59,11 @@ var imageProvider = new ImageProvider()
 
 foreach (var blogFile in workFolder.EnumerateFiles("*.md", SearchOption.AllDirectories))
 {
+    //if (blogFile.FullName.Contains("未响应问题"))
+    //{
+
+    //}
+
     Log.WriteLine($"开始转换 {blogFile}");
     imageProvider.Convert(blogFile);
     Log.WriteLine();
