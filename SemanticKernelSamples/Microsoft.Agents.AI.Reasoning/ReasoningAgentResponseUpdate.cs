@@ -1,8 +1,8 @@
 ﻿namespace Microsoft.Agents.AI.Reasoning;
 
-public class ReasoningAgentRunResponseUpdate : AgentRunResponseUpdate
+public class ReasoningAgentResponseUpdate : AgentResponseUpdate
 {
-    public ReasoningAgentRunResponseUpdate(AgentRunResponseUpdate origin) : base(origin.Role, origin.Contents)
+    public ReasoningAgentResponseUpdate(AgentResponseUpdate origin) : base(origin.Role, origin.Contents)
     {
         Origin = origin;
         AdditionalProperties = origin.AdditionalProperties;
@@ -15,7 +15,7 @@ public class ReasoningAgentRunResponseUpdate : AgentRunResponseUpdate
         AgentId = origin.AgentId;
     }
 
-    public AgentRunResponseUpdate Origin { get; }
+    public AgentResponseUpdate Origin { get; }
 
     public string? Reasoning { get; set; }
 

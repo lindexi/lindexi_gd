@@ -9,16 +9,16 @@ namespace Microsoft.Agents.AI.Reasoning;
 
 public static class ReasoningAIAgentExtension
 {
-    public static IAsyncEnumerable<ReasoningAgentRunResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, ChatMessage message,
-        AgentThread? thread = null,
+    public static IAsyncEnumerable<ReasoningAgentResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, ChatMessage message,
+        AgentSession? session = null,
         AgentRunOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        return RunReasoningStreamingAsync(agent, [message], thread, options, cancellationToken);
+        return RunReasoningStreamingAsync(agent, [message], session, options, cancellationToken);
     }
 
-    public static async IAsyncEnumerable<ReasoningAgentRunResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, IEnumerable<ChatMessage> messages,
-        AgentThread? thread = null,
+    public static async IAsyncEnumerable<ReasoningAgentResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, IEnumerable<ChatMessage> messages,
+        AgentSession? session = null,
         AgentRunOptions? options = null,
         [EnumeratorCancellation]
         CancellationToken cancellationToken = default)
@@ -26,7 +26,7 @@ public static class ReasoningAIAgentExtension
         bool? isThinking = null;
         bool isFirstOutputContent = true;
 
-        await foreach (var agentRunResponseUpdate in agent.RunStreamingAsync(messages, thread, options, cancellationToken))
+        await foreach (AgentResponseUpdate agentRunResponseUpdate in agent.RunStreamingAsync(messages, session, options, cancellationToken))
         {
             var contentIsEmpty = string.IsNullOrEmpty(agentRunResponseUpdate.Text);
 
@@ -34,35 +34,14 @@ public static class ReasoningAIAgentExtension
             {
                 if (streamingChatCompletionUpdate.RawRepresentation is StreamingChatCompletionUpdate chatCompletionUpdate)
                 {
-#pragma warning disable SCME0001
+#pragma warning disable SCME0001 // Patch 属性是实验性内容
                     ref JsonPatch patch = ref chatCompletionUpdate.Patch;
                     if (patch.TryGetJson("$.choices[0].delta"u8, out var data))
                     {
                         var jsonElement = JsonElement.Parse(data.Span);
                         if (jsonElement.TryGetProperty("reasoning_content", out var reasoningContent))
                         {
-                            bool isFirstThinking = false;
-                            if (isThinking is null)
-                            {
-                                isThinking = true;
-                                isFirstThinking = true;
-                            }
-
-                            if (isThinking is true)
-                            {
-                                yield return new ReasoningAgentRunResponseUpdate(agentRunResponseUpdate)
-                                {
-                                    Reasoning = reasoningContent.ToString(),
-                                    IsFirstThinking = isFirstThinking,
-                                    IsFirstOutputContent = false,
-                                    IsThinkingEnd = false,
-                                };
-                                continue;
-                            }
-                            else
-                            {
-                                Debug.Fail("不能在输出内容之后，再次进入思考");
-                            }
+                            // 拿到的 reasoningContent 就是思考内容
                         }
                     }
 
@@ -72,7 +51,7 @@ public static class ReasoningAIAgentExtension
 
             if (!contentIsEmpty)
             {
-                var responseUpdate = new ReasoningAgentRunResponseUpdate(agentRunResponseUpdate);
+                var responseUpdate = new ReasoningAgentResponseUpdate(agentRunResponseUpdate);
 
                 if (isFirstOutputContent)
                 {
