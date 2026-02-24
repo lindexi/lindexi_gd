@@ -62,7 +62,7 @@ class DemoWindow
         EnableMouseInPointer(true);
 
         // 最大化显示窗口
-        ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
+        ShowWindow(window, SHOW_WINDOW_CMD.SW_SHOW);
 
         // 独立渲染线程
         var renderManager = new RenderManager(window);
@@ -240,14 +240,15 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 var position = _position;
 
-                renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y, 20, 20), brush);
+                var rectangleSize = 50;
+                renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y, rectangleSize, rectangleSize), brush);
 
                 renderTarget.EndDraw();
             }
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
-                swapChain2.Present(1, PresentFlags.None);
+                swapChain2.Present(0, PresentFlags.None);
             }
         }
     }
