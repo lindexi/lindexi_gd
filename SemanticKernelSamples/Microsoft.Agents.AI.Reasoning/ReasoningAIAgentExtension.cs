@@ -34,15 +34,10 @@ public static class ReasoningAIAgentExtension
             {
                 if (streamingChatCompletionUpdate.RawRepresentation is StreamingChatCompletionUpdate chatCompletionUpdate)
                 {
-<<<<<<< HEAD
-#pragma warning disable SCME0001 // Patch 属性是实验性内容
-                    ref JsonPatch patch = ref chatCompletionUpdate.Patch;
-=======
                     // System.Text.Encoding.UTF8.GetString(chatCompletionUpdate._patch._rawJson.Value.Span)
 #pragma warning disable SCME0001 // Patch 属性是实验性内容
                     ref JsonPatch patch = ref chatCompletionUpdate.Patch;
                     
->>>>>>> 6e54ef4f5f9594636333f1921526b9d8a1a144c4
                     if (patch.TryGetJson("$.choices[0].delta"u8, out var data))
                     {
                         var jsonElement = JsonElement.Parse(data.Span);
