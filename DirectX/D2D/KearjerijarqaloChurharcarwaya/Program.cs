@@ -57,6 +57,11 @@ class DemoWindow
     {
         var window = CreateWindow();
         HWND = window;
+
+        // 让鼠标也引发 WM_Pointer 事件
+        EnableMouseInPointer(true);
+
+        // 最大化显示窗口
         ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
 
         // 独立渲染线程
@@ -120,7 +125,7 @@ class DemoWindow
             };
             ushort atom = RegisterClassEx(in wndClassEx);
 
-            WINDOW_STYLE dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE;
+            WINDOW_STYLE dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_CAPTION;
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
@@ -154,6 +159,12 @@ class DemoWindow
                 displayRect.left;
             var y = pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height +
                     displayRect.top;
+
+            var screenTranslate = new Point(0, 0);
+            ClientToScreen(HWND, ref screenTranslate);
+
+            x -= screenTranslate.X;
+            y -= screenTranslate.Y;
 
             _renderManager.Move(x, y);
         }
@@ -228,7 +239,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 var position = _position;
 
                 using var brush = renderTarget.CreateSolidColorBrush(Colors.Yellow);
-                renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y,20,20), brush);
+                renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y, 20, 20), brush);
 
                 renderTarget.EndDraw();
             }
@@ -418,7 +429,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         _position = new Position(x, y);
     }
 
-    private Position _position = new Position(0,0);
+    private Position _position = new Position(0, 0);
 
     /// <summary>
     /// 表示当前的位置

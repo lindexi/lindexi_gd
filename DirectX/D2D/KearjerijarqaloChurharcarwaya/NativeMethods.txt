@@ -5,8 +5,6 @@ EnumDisplaySettings
 GetDisplayConfigBufferSizes
 QueryDisplayConfig
 DisplayConfigGetDeviceInfo
-DISPLAYCONFIG_SOURCE_DEVICE_NAME
-DISPLAYCONFIG_TARGET_DEVICE_NAME
 
 RegisterClassEx
 GetModuleHandle
@@ -27,6 +25,8 @@ SetWindowLong
 NCCALCSIZE_PARAMS
 WaitForSingleObjectEx
 
+ClientToScreen
 WM_POINTERUPDATE
 GetPointerDeviceRects
 GetPointerTouchInfo
+EnableMouseInPointer
