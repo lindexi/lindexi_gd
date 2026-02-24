@@ -44,6 +44,28 @@ public static class ReasoningAIAgentExtension
                         if (jsonElement.TryGetProperty("reasoning_content", out var reasoningContent))
                         {
                             // 拿到的 reasoningContent 就是思考内容
+                            bool isFirstThinking = false;
+                            if (isThinking is null)
+                            {
+                                isThinking = true;
+                                isFirstThinking = true;
+                            }
+
+                            if (isThinking is true)
+                            {
+                                yield return new ReasoningAgentResponseUpdate(agentRunResponseUpdate)
+                                {
+                                    Reasoning = reasoningContent.ToString(),
+                                    IsFirstThinking = isFirstThinking,
+                                    IsFirstOutputContent = false,
+                                    IsThinkingEnd = false,
+                                };
+                                continue;
+                            }
+                            else
+                            {
+                                Debug.Fail("不能在输出内容之后，再次进入思考");
+                            }
                         }
                     }
 
