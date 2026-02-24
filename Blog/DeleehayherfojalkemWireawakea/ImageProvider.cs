@@ -15,7 +15,7 @@ internal partial class ImageProvider
 
     public required CnBlogsImageUploader CnBlogsImageUploader { get; init; }
 
-    [GeneratedRegex(@"<!--\s*!\[\]\(image/([\w /\.]*)\)\s-->")]
+    [GeneratedRegex(@"<!--\s*!\[\]\(image/([\w /\.\-]*)\)\s-->")]
     private static partial Regex GetImageFileRegex();
 
     [GeneratedRegex(@"!\[\]\(http://cdn.lindexi.site/")]
@@ -54,6 +54,7 @@ internal partial class ImageProvider
                         if (createTime < new DateTime(2023, 12, 1))
                         {
                             // 不要点爆了博客园
+                            Log.WriteLine($"旧博客，跳过 {createTime}");
                             return;
                         }
                     }
