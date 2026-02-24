@@ -39,7 +39,10 @@ chatMessages.Add(new ChatMessage(ChatRole.System, "你是一个讲笑话机器�
 
 ChatMessage message = new ChatMessage(ChatRole.User, "请讲一个笑话");
 
-await foreach (var agentRunResponseUpdate in aiAgent.RunReasoningStreamingAsync(message))
+await foreach (var agentRunResponseUpdate in aiAgent.RunReasoningStreamingAsync(message, session,new AgentRunOptions()
+               {
+                   
+               }))
 {
     if (agentRunResponseUpdate.IsFirstThinking)
     {
