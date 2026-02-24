@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 
 using Vortice.DCommon;
@@ -16,43 +17,30 @@ using Vortice.Direct3D11;
 using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
+using Vortice.Win32;
 
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
-using Windows.Win32.UI.Controls;
+using Windows.Win32.UI.Input.Pointer;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 using static Windows.Win32.PInvoke;
 
 using AlphaMode = Vortice.DXGI.AlphaMode;
+using Color = Vortice.Mathematics.Color;
 using D2D = Vortice.Direct2D1;
-using Rect = Vortice.Mathematics.Rect;
 
 namespace KearjerijarqaloChurharcarwaya;
 
 class Program
 {
     [STAThread]
-    static unsafe void Main(string[] args)
+    static void Main(string[] args)
     {
-        var renderModeNameArray = Enum.GetNames<RenderMode>();
-        Console.WriteLine("请选择渲染模式：");
-        for (int i = 0; i < renderModeNameArray.Length; i++)
+        if (!OperatingSystem.IsWindowsVersionAtLeast(8, 1))
         {
-            Console.WriteLine($"{i}: {renderModeNameArray[i]}");
-        }
-
-        var line = Console.ReadLine();
-        if (int.TryParse(line, out var renderModeIndex))
-        {
-            var renderMode = (RenderMode) renderModeIndex;
-            Console.WriteLine($"选择的渲染模式为 {renderMode}");
-            RenderMode = renderMode;
-        }
-        else
-        {
-            Console.WriteLine($"输入的渲染模式不正确，使用默认模式");
+            return;
         }
 
         var demoWindow = new DemoWindow();
@@ -60,21 +48,9 @@ class Program
 
         Console.ReadLine();
     }
-
-    public static RenderMode RenderMode { get; private set; }
 }
 
-enum RenderMode
-{
-    DirectCompositionPremultipliedAlphaMode = 0,
-    DirectCompositionIgnoreAlphaMode,
-    DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP,
-    DirectCompositionWithWS_EX_LAYERED,
-    CreateSwapChainForHwnd,
-    CreateSwapChainForHwndWithoutWS_EX_NOREDIRECTIONBITMAP,
-    CreateSwapChainForHwndWithWS_EX_LAYERED,
-}
-
+[SupportedOSPlatform("windows8.1")]
 class DemoWindow
 {
     public DemoWindow()
@@ -83,6 +59,7 @@ class DemoWindow
         HWND = window;
         ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
 
+        // 独立渲染线程
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
         renderManager.StartRenderThread();
@@ -110,26 +87,15 @@ class DemoWindow
         }
     }
 
+    /// <summary>
+    /// 仅用于防止被回收
+    /// </summary>
+    /// <returns></returns>
+    private WNDPROC? _wndProcDelegate;
+
     private unsafe HWND CreateWindow()
     {
-        DwmIsCompositionEnabled(out var compositionEnabled);
-
-        if (!compositionEnabled)
-        {
-            Console.WriteLine($"无法启用透明窗口效果");
-        }
-
-        // [Windows 窗口样式 什么是 WS_EX_NOREDIRECTIONBITMAP 样式](https://blog.lindexi.com/post/Windows-%E7%AA%97%E5%8F%A3%E6%A0%B7%E5%BC%8F-%E4%BB%80%E4%B9%88%E6%98%AF-WS_EX_NOREDIRECTIONBITMAP-%E6%A0%B7%E5%BC%8F.html )
-        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
-
-        if (Program.RenderMode is RenderMode.DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP or RenderMode.CreateSwapChainForHwndWithoutWS_EX_NOREDIRECTIONBITMAP)
-        {
-            exStyle = default;
-        }
-        else if (Program.RenderMode is RenderMode.CreateSwapChainForHwndWithWS_EX_LAYERED or RenderMode.DirectCompositionWithWS_EX_LAYERED)
-        {
-            exStyle = WINDOW_EX_STYLE.WS_EX_LAYERED;
-        }
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_APPWINDOW;
 
         var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
 
@@ -141,11 +107,12 @@ class DemoWindow
         fixed (char* pClassName = className)
         fixed (char* pTitle = title)
         {
+            _wndProcDelegate = new WNDPROC(WndProc);
             var wndClassEx = new WNDCLASSEXW
             {
                 cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
-                lpfnWndProc = new WNDPROC(WndProc),
+                lpfnWndProc = _wndProcDelegate,
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
                 hCursor = defaultCursor,
                 hbrBackground = new HBRUSH(IntPtr.Zero),
@@ -153,7 +120,7 @@ class DemoWindow
             };
             ushort atom = RegisterClassEx(in wndClassEx);
 
-            var dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE;
+            WINDOW_STYLE dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE;
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
@@ -167,17 +134,38 @@ class DemoWindow
         }
     }
 
-    private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
+    private unsafe LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        if ((WindowsMessage) message == WindowsMessage.WM_SIZE)
+        if (message == WM_POINTERUPDATE /*Pointer Update*/)
         {
-            _renderManager?.ReSize();
+            var pointerId = (uint) (ToInt32(wParam) & 0xFFFF);
+
+            global::Windows.Win32.Foundation.RECT pointerDeviceRect = default;
+            global::Windows.Win32.Foundation.RECT displayRect = default;
+
+            GetPointerTouchInfo(pointerId, out POINTER_TOUCH_INFO pointerTouchInfo);
+
+            var pointerInfo = pointerTouchInfo.pointerInfo;
+
+            GetPointerDeviceRects(pointerInfo.sourceDevice, &pointerDeviceRect, &displayRect);
+
+            var x =
+                pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width +
+                displayRect.left;
+            var y = pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height +
+                    displayRect.top;
+
+            _renderManager.Move(x, y);
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
     }
+
+    private static int ToInt32(WPARAM wParam) => ToInt32((IntPtr) wParam.Value);
+    private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 }
 
+[SupportedOSPlatform("windows8.1")]
 unsafe class RenderManager(HWND hwnd) : IDisposable
 {
     public HWND HWND => hwnd;
@@ -200,111 +188,57 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         thread.Start();
     }
 
-    private readonly D2DRenderDemo _renderDemo = new D2DRenderDemo();
-
     private void RenderCore()
     {
         Init();
 
         using D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
 
+        IDXGISwapChain2 swapChain2 = _renderContext.SwapChain;
+        var d3D11Texture2D = swapChain2.GetBuffer<ID3D11Texture2D>(0);
+        using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
+        var renderTargetProperties = new D2D.RenderTargetProperties()
+        {
+            PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
+            Type = D2D.RenderTargetType.Hardware,
+        };
+
+        D2D.ID2D1RenderTarget d2D1RenderTarget =
+            d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
+
+        var waitableObject = swapChain2.FrameLatencyWaitableObject;
+
         while (!_isDisposed)
         {
-            if (_isReSize)
+            using (StepPerformanceCounter.RenderThreadCounter.StepStart("FrameLatencyWaitableObject"))
             {
-                // 处理窗口大小变化
-                _isReSize = false;
-
-                if (_renderInfo is not null)
-                {
-                    _renderInfo.Value.Dispose();
-                    _renderInfo = null;
-                }
-
-                _renderDemo.OnReSize();
-
-                GetClientRect(HWND, out var pClientRect);
-                var clientSize = new SizeI(pClientRect.right - pClientRect.left, pClientRect.bottom - pClientRect.top);
-
-                Console.WriteLine($"窗口尺寸变化，新尺寸为 {clientSize.Width} {clientSize.Height}");
-
-                var swapChain = _renderContext.SwapChain;
-                _renderContext.D3D11DeviceContext1.ClearState();
-
-                var result = swapChain.ResizeBuffers(FrameCount,
-                    (uint) (clientSize.Width),
-                    (uint) (clientSize.Height),
-                    _colorFormat,
-                    SwapChainFlags.None
-                );
-                result.CheckError();
-
-                _renderContext = _renderContext with
-                {
-                    WindowWidth = (uint) clientSize.Width,
-                    WindowHeight = (uint) clientSize.Height
-                };
-            }
-
-            if (_renderInfo is null)
-            {
-                var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
-
-                Console.WriteLine($"更新的画布尺寸 {d3D11Texture2D.Description.Width} {d3D11Texture2D.Description.Height}");
-
-                using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
-                var renderTargetProperties = new D2D.RenderTargetProperties()
-                {
-                    PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
-                    Type = D2D.RenderTargetType.Hardware,
-                };
-
-                D2D.ID2D1RenderTarget d2D1RenderTarget =
-                    d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
-
-                _renderInfo = new RenderInfo()
-                {
-                    D3D11Texture2D = d3D11Texture2D,
-                    D2D1RenderTarget = d2D1RenderTarget,
-                };
+                WaitForSingleObjectEx(new HANDLE(waitableObject), 1000, true);
             }
 
             // 渲染代码写在这里
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
             {
-                var d2D1RenderTarget = _renderInfo.Value.D2D1RenderTarget;
-
                 D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
 
                 renderTarget.BeginDraw();
 
-                //var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                //    Random.Shared.NextSingle(), 0.1f);
-                //renderTarget.Clear(color);
-                renderTarget.Clear(null);
+                renderTarget.Clear(Colors.White);
 
-                _renderDemo.Draw(renderTarget, new SizeI((int) _renderContext.WindowWidth, (int) _renderContext.WindowHeight));
+                var position = _position;
+
+                using var brush = renderTarget.CreateSolidColorBrush(Colors.Yellow);
+                renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y,20,20), brush);
 
                 renderTarget.EndDraw();
             }
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
-                _renderContext.SwapChain.Present(1, PresentFlags.None);
-                _renderContext.D3D11DeviceContext1.Flush();
+                swapChain2.Present(0, PresentFlags.None);
             }
         }
     }
-
-    public void ReSize()
-    {
-        _isReSize = true;
-    }
-
-    private bool _isReSize;
-
-    private RenderMode RenderMode => Program.RenderMode;
 
     private void Init()
     {
@@ -380,67 +314,23 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
-            AlphaMode = AlphaMode.Premultiplied,
-            Flags = SwapChainFlags.None,
+            AlphaMode = AlphaMode.Ignore,
+            Flags = SwapChainFlags.FrameLatencyWaitableObject, // 核心设置
         };
 
-        // 使用 DirectComposition 才能支持透明窗口
-
-        IDXGISwapChain1? swapChain
-            // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
-            ;
-
-        if (RenderMode is RenderMode.CreateSwapChainForHwnd or RenderMode.CreateSwapChainForHwndWithoutWS_EX_NOREDIRECTIONBITMAP
-            or RenderMode.CreateSwapChainForHwndWithWS_EX_LAYERED)
+        var fullscreenDescription = new SwapChainFullscreenDescription()
         {
-            swapChainDescription.AlphaMode = AlphaMode.Ignore;
+            Windowed = true,
+        };
+        IDXGISwapChain1 swapChain1 = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription, fullscreenDescription);
 
-            var fullscreenDescription = new SwapChainFullscreenDescription()
-            {
-                Windowed = true,
-            };
-            swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription, fullscreenDescription);
-        }
-        else if (RenderMode is RenderMode.DirectCompositionIgnoreAlphaMode
-                 or RenderMode.DirectCompositionPremultipliedAlphaMode
-                 or RenderMode.DirectCompositionWithWS_EX_LAYERED
-                 or RenderMode.DirectCompositionWithoutWS_EX_NOREDIRECTIONBITMAP)
-        {
-            if (RenderMode == RenderMode.DirectCompositionPremultipliedAlphaMode)
-            {
-                swapChainDescription.AlphaMode = AlphaMode.Premultiplied;
-            }
-            else if (RenderMode == RenderMode.DirectCompositionIgnoreAlphaMode)
-            {
-                swapChainDescription.AlphaMode = AlphaMode.Ignore;
-            }
+        IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
+        swapChain1.Dispose();
 
-            swapChain = dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
-
-            // 创建 DirectComposition 设备和目标
-            IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
-            IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
-            compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
-
-            // 创建视觉对象并设置 SwapChain 作为内容
-            IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
-            compositionVisual.SetContent(swapChain);
-            compositionTarget.SetRoot(compositionVisual);
-            compositionDevice.Commit();
-
-            dxgiDevice.Dispose();
-
-            _renderContext = new RenderContext()
-            {
-                CompositionDevice = compositionDevice,
-                CompositionTarget = compositionTarget,
-                CompositionVisual = compositionVisual,
-            };
-        }
-        else
-        {
-            throw new NotSupportedException();
-        }
+        swapChain2.MaximumFrameLatency = 1;
+        var waitableObject = swapChain2.FrameLatencyWaitableObject;
+        _ = waitableObject;
+        // 可以通过 WaitForSingleObjectEx 进行等待
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND,
@@ -452,7 +342,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             HardwareAdapter = hardwareAdapter,
             D3D11Device1 = d3D11Device1,
             D3D11DeviceContext1 = d3D11DeviceContext1,
-            SwapChain = swapChain,
+            SwapChain = swapChain2,
 
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
@@ -515,8 +405,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
     private RenderContext _renderContext;
 
-    private RenderInfo? _renderInfo;
-
     public void Dispose()
     {
         _renderContext.Dispose();
@@ -524,104 +412,42 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     }
 
     private bool _isDisposed;
+
+    public void Move(double x, double y)
+    {
+        _position = new Position(x, y);
+    }
+
+    private Position _position = new Position(0,0);
+
+    /// <summary>
+    /// 表示当前的位置
+    /// </summary>
+    /// <param name="X"></param>
+    /// <param name="Y"></param>
+    /// <remarks>
+    /// 为什么需要选用 record 引用 class 类型，而不是 struct 结构体值类型？这是为了在渲染线程和 UI 线程之间共享这个位置数据。由于 record class 是引用类型，所以在两个线程之间共享时，不需要担心值类型的复制问题，完全原子化，不存在多线程安全问题
+    /// </remarks>
+    record Position(double X, double Y);
 }
 
-readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, D2D.ID2D1RenderTarget D2D1RenderTarget) : IDisposable
-{
-    public void Dispose()
-    {
-        D2D1RenderTarget.Dispose();
-        D3D11Texture2D.Dispose();
-    }
-};
 
 readonly record struct RenderContext(
     IDXGIFactory2 DXGIFactory2,
     IDXGIAdapter1 HardwareAdapter,
     ID3D11Device1 D3D11Device1,
     ID3D11DeviceContext1 D3D11DeviceContext1,
-    IDXGISwapChain1 SwapChain,
-    IDCompositionDevice? CompositionDevice,
-    IDCompositionTarget? CompositionTarget,
-    IDCompositionVisual? CompositionVisual) : IDisposable
+    IDXGISwapChain2 SwapChain) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }
 
     public void Dispose()
     {
-        CompositionVisual?.Dispose();
-        CompositionTarget?.Dispose();
-        CompositionDevice?.Dispose();
         DXGIFactory2.Dispose();
         HardwareAdapter.Dispose();
         D3D11Device1.Dispose();
         D3D11DeviceContext1.Dispose();
         SwapChain.Dispose();
     }
-}
-
-class D2DRenderDemo
-{
-    // 此为调试代码，绘制一些矩形条
-    private List<D2DRenderInfo>? _renderList;
-
-    public void OnReSize()
-    {
-        _renderList = null;
-    }
-
-    public void Draw(D2D.ID2D1RenderTarget renderTarget, SizeI clientSize)
-    {
-        var rectWeight = 10;
-        var rectHeight = 20;
-
-        var margin = 5;
-
-        if (_renderList is null)
-        {
-            _renderList = new List<D2DRenderInfo>();
-
-            for (int top = margin; top < clientSize.Height - rectHeight - margin; top += rectHeight + margin)
-            {
-                Rect rect = new Rect(margin, top, rectWeight, rectHeight);
-
-                var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                    Random.Shared.NextSingle());
-                var step = Random.Shared.Next(1, 20);
-
-                var renderInfo = new D2DRenderInfo(rect, step, color);
-                _renderList.Add(renderInfo);
-            }
-        }
-
-        for (var i = 0; i < _renderList.Count; i++)
-        {
-            var renderInfo = _renderList[i];
-            using var brush = renderTarget.CreateSolidColorBrush(renderInfo.Color);
-
-            renderTarget.FillRectangle(renderInfo.Rect, brush);
-
-            var nextRect = renderInfo.Rect with
-            {
-                Width = renderInfo.Rect.Width + renderInfo.Step
-            };
-
-            if (nextRect.Width > clientSize.Width - margin * 2)
-            {
-                nextRect = nextRect with
-                {
-                    Width = rectWeight
-                };
-            }
-
-            _renderList[i] = renderInfo with
-            {
-                Rect = nextRect
-            };
-        }
-    }
-
-    private readonly record struct D2DRenderInfo(Rect Rect, int Step, Color4 Color);
-
 }
