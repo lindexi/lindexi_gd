@@ -125,7 +125,7 @@ class DemoWindow
             };
             ushort atom = RegisterClassEx(in wndClassEx);
 
-            WINDOW_STYLE dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_CAPTION;
+            WINDOW_STYLE dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_CAPTION | WINDOW_STYLE.WS_SYSMENU | WINDOW_STYLE.WS_MINIMIZEBOX | WINDOW_STYLE.WS_CLIPCHILDREN | WINDOW_STYLE.WS_BORDER | WINDOW_STYLE.WS_DLGFRAME | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_TABSTOP | WINDOW_STYLE.WS_SIZEBOX;
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
@@ -219,6 +219,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         var waitableObject = swapChain2.FrameLatencyWaitableObject;
 
+        using var brush = d2D1RenderTarget.CreateSolidColorBrush(Colors.Yellow);
+
         while (!_isDisposed)
         {
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("FrameLatencyWaitableObject"))
@@ -238,7 +240,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 var position = _position;
 
-                using var brush = renderTarget.CreateSolidColorBrush(Colors.Yellow);
                 renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y, 20, 20), brush);
 
                 renderTarget.EndDraw();
@@ -246,7 +247,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
-                swapChain2.Present(0, PresentFlags.None);
+                swapChain2.Present(1, PresentFlags.None);
             }
         }
     }
