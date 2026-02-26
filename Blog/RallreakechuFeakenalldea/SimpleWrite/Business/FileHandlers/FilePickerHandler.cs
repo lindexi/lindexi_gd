@@ -5,14 +5,29 @@ using Avalonia.Platform.Storage;
 
 namespace SimpleWrite.Business.FileHandlers;
 
-class OpenFilePickerHandler : IOpenFilePickerHandler
+class FilePickerHandler : IFilePickerHandler
 {
-    public OpenFilePickerHandler(TopLevel topLevel)
+    public FilePickerHandler(TopLevel topLevel)
     {
         _topLevel = topLevel;
     }
 
     private readonly TopLevel _topLevel;
+
+    public async Task<FileInfo?> PickSaveFileAsync()
+    {
+        var filePickerSaveOptions = new FilePickerSaveOptions()
+        {
+        };
+        var pickResult = await _topLevel.StorageProvider.SaveFilePickerAsync(filePickerSaveOptions);
+        var localFilePath = pickResult?.TryGetLocalPath();
+        if (localFilePath is null)
+        {
+            return null;
+        }
+
+        return new FileInfo(localFilePath);
+    }
 
     public async Task<FileInfo?> PickOpenFileAsync()
     {
