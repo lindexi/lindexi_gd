@@ -13,32 +13,32 @@ static class ShortcutManagerHelper
     public static void AddDefaultShortcut(EditorViewModel viewModel)
     {
         var shortcutManager = viewModel.ShortcutManager;
-        shortcutManager.AddShortcut(KeyModifiers.Control, Key.S, "SaveDocument", _1 =>
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.S, "SaveDocument", () =>
         {
             _ = viewModel.SaveDocument();
         });
 
-        shortcutManager.AddShortcut(KeyModifiers.Control | KeyModifiers.Shift, Key.S, "SaveDocumentAs", _1 =>
+        shortcutManager.AddShortcut(KeyModifiers.Control | KeyModifiers.Shift, Key.S, "SaveDocumentAs", () =>
         {
             _ = viewModel.SaveDocumentAs();
         });
 
-        shortcutManager.AddShortcut(KeyModifiers.Control, Key.O, "OpenDocument", _1 =>
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.O, "OpenDocument", () =>
         {
             _ = viewModel.OpenDocumentAsync();
         });
 
-        shortcutManager.AddShortcut(KeyModifiers.Control, Key.N, "NewDocument", _1 =>
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.N, "NewDocument", () =>
         {
             viewModel.NewDocument();
         });
 
-        shortcutManager.AddShortcut(KeyModifiers.Control, Key.W, "CloseCurrentDocument", _1 =>
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.W, "CloseCurrentDocument", () =>
         {
             viewModel.CloseCurrentDocument();
         });
 
-        shortcutManager.AddShortcut(KeyModifiers.Control, Key.Tab, "SwitchToNextDocument", _1 =>
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.Tab, "SwitchToNextDocument", () =>
         {
             viewModel.SwitchToNextDocument();
         });
