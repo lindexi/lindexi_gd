@@ -21,6 +21,11 @@ internal class ShortcutManager
 
     private readonly List<ShortcutKeyBind> _keyBinds = new();
 
+    public void AddShortcut(KeyModifiers modifiers, Key key, string name, Action command)
+    {
+        AddShortcut(modifiers, key, name, _ => command());
+    }
+
     public void AddShortcut(KeyModifiers modifiers, Key key, string name, Action<ShortcutExecuteContext> command)
     {
         _keyBinds.Add(new ShortcutKeyBind(modifiers, key, name));
