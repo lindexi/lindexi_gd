@@ -1,13 +1,9 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Documents;
-using Avalonia.Input;
 using Avalonia.Media;
 
 using LightTextEditorPlus;
-using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Primitive;
-
-using SimpleWrite.Business;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Models;
 using SimpleWrite.ViewModels;
@@ -18,6 +14,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Interactivity;
 using SimpleWrite.Business.FileHandlers;
+using SimpleWrite.Business.TextEditors;
 
 namespace SimpleWrite.Views.Components;
 
@@ -146,37 +143,4 @@ public partial class MainEditorView : UserControl
     private ShortcutExecutor? _shortcutExecutor;
 
     public TextEditor CurrentTextEditor { get; private set; } = null!;
-}
-
-class SimpleWriteTextEditorHandler : TextEditorHandler
-{
-    public SimpleWriteTextEditorHandler(TextEditor textEditor) : base(textEditor)
-    {
-        _textEditor = textEditor;
-    }
-
-    private readonly TextEditor _textEditor;
-
-    public required ShortcutExecutor ShortcutExecutor { get; init; }
-
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        // 判断是否落在快捷键范围内
-        var shortcutHandled = ShortcutExecutor.Handle(e, new ShortcutExecuteContext
-        {
-            CurrentTextEditor = _textEditor,
-        });
-        if (shortcutHandled)
-        {
-            // 被快捷键处理了，就不继续往下传递
-            return;
-        }
-
-        base.OnKeyDown(e);
-    }
-
-    protected override void OnKeyUp(KeyEventArgs e)
-    {
-        base.OnKeyUp(e);
-    }
 }
