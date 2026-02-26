@@ -410,11 +410,17 @@ namespace LightTextEditorPlus
         /// </summary>
         public TextEditorHandler TextEditorHandler
         {
-            get => _textEditorHandler ??= TextEditorPlatformProvider.GetHandler();
+            get => _textEditorHandler ??= CreateTextEditorHandler();
             set => _textEditorHandler = value;
         }
 
         private TextEditorHandler? _textEditorHandler;
+
+        /// <summary>
+        /// 创建文本编辑器的交互处理器
+        /// </summary>
+        /// <returns></returns>
+        protected virtual TextEditorHandler CreateTextEditorHandler() => TextEditorPlatformProvider.GetHandler();
     }
 }
 #endif
