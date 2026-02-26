@@ -87,8 +87,7 @@ public partial class TextEditorHandler
             else
             {
                 CaretOffset hitCaretOffset = result.HitCaretOffset;
-                Selection selection = GetCaretWord(in hitCaretOffset);
-                TextEditorCore.Select(selection);
+                SelectCaretWord(in hitCaretOffset);
                 return true;
             }
         }
@@ -97,14 +96,13 @@ public partial class TextEditorHandler
     }
 
     /// <summary>
-    /// 获取传入光标所在的单词选择范围
+    /// 选择传入的光标所在的单词
     /// </summary>
-    /// <returns></returns>
-    private Selection GetCaretWord(in CaretOffset caretOffset)
+    /// <param name="caretOffset"></param>
+    protected void SelectCaretWord(in CaretOffset caretOffset)
     {
-        IWordDivider wordDivider = TextEditor.TextEditorPlatformProvider.GetWordDivider();
-        var result = wordDivider.GetCaretWord(new GetCaretWordArgument(caretOffset, TextEditorCore));
-        return result.WordSelection;
+        Selection selection = TextEditor.GetCaretWord(in caretOffset);
+        TextEditorCore.Select(selection);
     }
 
     /// <summary>
