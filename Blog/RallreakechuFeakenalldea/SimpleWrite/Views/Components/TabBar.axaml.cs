@@ -1,8 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+
 using SimpleWrite.Models;
-using System;
-using System.Diagnostics;
+using SimpleWrite.Utils;
 
 namespace SimpleWrite.Views.Components;
 
@@ -16,6 +16,11 @@ public partial class TabBar : UserControl
         InitializeComponent();
     }
 
+    /// <summary>
+    /// 在文件资源管理器中打开
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void OpenInFileExplorerMenuItem_OnClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not MenuItem { DataContext: EditorModel { FileInfo: { } fileInfo } })
@@ -23,14 +28,6 @@ public partial class TabBar : UserControl
             return;
         }
 
-        if (!fileInfo.Exists || !OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
-        Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{fileInfo.FullName}\"")
-        {
-            UseShellExecute = true
-        });
+        FileExplorerHelper.TryOpenInFileExplorer(fileInfo);
     }
 }
