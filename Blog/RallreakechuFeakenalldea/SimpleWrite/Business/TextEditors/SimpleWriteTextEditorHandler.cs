@@ -25,6 +25,7 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         if (shortcutHandled)
         {
             // 被快捷键处理了，就不继续往下传递
+            e.Handled = true;
             return;
         }
 
