@@ -147,6 +147,88 @@ public class EditorViewModel : ViewModelBase
         SetSaveStatus(SaveStatus.Saved);
     }
 
+    /// <summary>
+    /// 打开文档
+    /// </summary>
+    public async Task OpenDocumentAsync()
+    {
+        if (OpenFilePickerHandler is null)
+        {
+            return;
+        }
+
+        var openFile = await OpenFilePickerHandler.PickOpenFileAsync();
+        if (openFile is null)
+        {
+            return;
+        }
+
+        await OpenFileAsync(openFile);
+    }
+
+    /// <summary>
+    /// 新建文档
+    /// </summary>
+    public void NewDocument()
+    {
+        if (CurrentEditorModel.IsEmptyText())
+        {
+            return;
+        }
+
+        var newEditorModel = new EditorModel();
+        EditorModelList.Add(newEditorModel);
+        CurrentEditorModel = newEditorModel;
+    }
+
+    /// <summary>
+    /// 关闭当前文档
+    /// </summary>
+    public void CloseCurrentDocument()
+    {
+        if (EditorModelList.Count <= 1)
+        {
+            if (!CurrentEditorModel.IsEmptyText())
+            {
+                CurrentEditorModel = new EditorModel();
+                EditorModelList.Clear();
+                EditorModelList.Add(CurrentEditorModel);
+            }
+
+            return;
+        }
+
+        var currentIndex = EditorModelList.IndexOf(CurrentEditorModel);
+        if (currentIndex < 0)
+        {
+            return;
+        }
+
+        EditorModelList.RemoveAt(currentIndex);
+        var nextIndex = Math.Clamp(currentIndex, 0, EditorModelList.Count - 1);
+        CurrentEditorModel = EditorModelList[nextIndex];
+    }
+
+    /// <summary>
+    /// 切换到下一个文档
+    /// </summary>
+    public void SwitchToNextDocument()
+    {
+        if (EditorModelList.Count <= 1)
+        {
+            return;
+        }
+
+        var currentIndex = EditorModelList.IndexOf(CurrentEditorModel);
+        if (currentIndex < 0)
+        {
+            return;
+        }
+
+        var nextIndex = (currentIndex + 1) % EditorModelList.Count;
+        CurrentEditorModel = EditorModelList[nextIndex];
+    }
+
     private async Task SaveEditorModelToFileAsync(EditorModel editorModel, FileInfo saveFile)
     {
         if (editorModel.TextEditor is { } textEditor)
@@ -170,6 +252,8 @@ public class EditorViewModel : ViewModelBase
     }
 
     internal ISaveFilePickerHandler? SaveFilePickerHandler { get; set; }
+
+    internal IOpenFilePickerHandler? OpenFilePickerHandler { get; set; }
 
     private void SetSaveStatus(SaveStatus saveStatus)
     {

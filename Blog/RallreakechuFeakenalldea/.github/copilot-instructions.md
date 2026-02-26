@@ -61,8 +61,8 @@ LightTextEditorPlus/                # 富文本编辑器底层库（外部依赖
   - `ShortcutExecuteContext`：快捷键执行上下文（当前为空占位）。
   - `ShortcutManager`：统一管理 `KeyBind` 与 `Command` 列表，提供查找接口；数据存放在 `EditorViewModel`。
   - `ShortcutExecutor`：在键盘事件中查找并执行匹配命令，返回是否命中；实例在 `MainEditorView` 中创建并注入 `SimpleWriteTextEditorHandler`。
-  - `ShortcutManagerHelper`：在 `EditorViewModel` 构造时注册所有默认快捷键（`Ctrl+S` 保存、`Ctrl+Shift+S` 另存为）。
-- **FileHandlers/**：`ISaveFilePickerHandler` 接口 + `SaveFilePickerHandler` 实现，封装平台文件选择对话框；`SaveFilePickerHandler` 实例在 `MainEditorView.OnLoaded()` 中创建并注入 `EditorViewModel.SaveFilePickerHandler`。
+  - `ShortcutManagerHelper`：在 `EditorViewModel` 构造时注册所有默认快捷键（`Ctrl+S` 保存、`Ctrl+Shift+S` 另存为、`Ctrl+O` 打开文件、`Ctrl+N` 新建、`Ctrl+W` 关闭当前标签、`Ctrl+Tab` 切换到下一个标签）。
+- **FileHandlers/**：`ISaveFilePickerHandler` + `SaveFilePickerHandler`、`IOpenFilePickerHandler` + `OpenFilePickerHandler`，封装平台文件选择对话框；实例在 `MainEditorView.OnLoaded()` 中创建并注入 `EditorViewModel`。
 
 ---
 

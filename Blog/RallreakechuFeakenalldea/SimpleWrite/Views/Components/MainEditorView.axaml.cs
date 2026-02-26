@@ -48,6 +48,7 @@ public partial class MainEditorView : UserControl
         if (TopLevel.GetTopLevel(this) is {} topLevel)
         {
             ViewModel.SaveFilePickerHandler ??= new SaveFilePickerHandler(topLevel);
+            ViewModel.OpenFilePickerHandler ??= new OpenFilePickerHandler(topLevel);
         }
 
         base.OnLoaded(e);
