@@ -1,4 +1,5 @@
 ﻿using Avalonia.Input;
+using LightTextEditorPlus;
 
 using SimpleWrite.ViewModels;
 
@@ -40,6 +41,14 @@ static class ShortcutManagerHelper
         shortcutManager.AddShortcut(KeyModifiers.Control, Key.Tab, "SwitchToNextDocument", _1 =>
         {
             viewModel.SwitchToNextDocument();
+        });
+
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.D, "SelectCurrentWord", context =>
+        {
+            var textEditor = context.CurrentTextEditor;
+
+            var wordSelection = textEditor.GetCurrentCaretOffsetWord();
+            textEditor.CurrentSelection = wordSelection;
         });
     }
 }
