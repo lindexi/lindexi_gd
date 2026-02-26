@@ -12,7 +12,7 @@ internal class ShortcutExecutor
     /// </summary>
     /// <param name="keyEventArgs"></param>
     /// <returns>返回 true 表示当前输入被当成快捷键处理了</returns>
-    public bool Handle(KeyEventArgs keyEventArgs)
+    public bool Handle(KeyEventArgs keyEventArgs, ShortcutExecuteContext? executeContext = null)
     {
         foreach (var shortcutKeyBind in ShortcutManager.GetKeyBinds())
         {
@@ -21,7 +21,7 @@ internal class ShortcutExecutor
                 if (shortcutKeyBind.Key == keyEventArgs.Key)
                 {
                     var command = ShortcutManager.GetCommand(shortcutKeyBind.CommandName);
-                    command?.Command(new ShortcutExecuteContext());
+                    command?.Command(executeContext ?? new ShortcutExecuteContext());
                     return true;
                 }
             }
