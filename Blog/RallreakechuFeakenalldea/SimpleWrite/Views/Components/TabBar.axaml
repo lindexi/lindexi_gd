@@ -21,7 +21,7 @@
           </ListBox.ItemContainerTheme>
           <ListBox.ItemTemplate>
               <DataTemplate DataType="models:EditorModel">
-                  <Border Margin="5,0,5,0" Background="#393933">
+                  <Border Margin="5,0,5,0" Background="#393933" ToolTip.Tip="{Binding FileInfo.FullName}">
                       <!-- 每个标签的部分 -->
                       <TextBlock Text="{Binding Title}" Foreground="White"></TextBlock>
                   </Border>
