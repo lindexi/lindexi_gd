@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="..\.github\copilot-instructions.md" Link="copilot-instructions.md" />
+  </ItemGroup>
+
 </Project>
