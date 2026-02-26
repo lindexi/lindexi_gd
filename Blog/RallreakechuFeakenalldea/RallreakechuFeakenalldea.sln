@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.10.35013.160
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11512.155 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RallreakechuFeakenalldea", "RallreakechuFeakenalldea\RallreakechuFeakenalldea.csproj", "{96E7210E-7119-454B-8690-6E55AAA8F9FC}"
 EndProject
@@ -22,6 +22,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Wpf", "..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj", "{97D539E7-7DC5-4770-EB0C-52E8686713C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docs", "Docs\Docs.csproj", "{7C8BEB69-FFB5-4B13-B671-C4E0227FED4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Docs", "..\..\..\LightTextEditorPlus\LightTextEditorPlus\Docs\Docs.csproj", "{6840F139-0DF3-A88E-68C4-576C9D565C5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -141,6 +143,18 @@ Global
 		{7C8BEB69-FFB5-4B13-B671-C4E0227FED4F}.Release|x64.Build.0 = Release|Any CPU
 		{7C8BEB69-FFB5-4B13-B671-C4E0227FED4F}.Release|x86.ActiveCfg = Release|Any CPU
 		{7C8BEB69-FFB5-4B13-B671-C4E0227FED4F}.Release|x86.Build.0 = Release|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Debug|x64.Build.0 = Debug|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Debug|x86.Build.0 = Debug|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Release|x64.ActiveCfg = Release|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Release|x64.Build.0 = Release|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Release|x86.ActiveCfg = Release|Any CPU
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,6 +165,7 @@ Global
 		{9E9D8E05-9D5A-8E38-493B-D32C5611BC93} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
 		{FF73E824-FE6D-59AB-4812-8DD9813C7BBE} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
 		{97D539E7-7DC5-4770-EB0C-52E8686713C6} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
+		{6840F139-0DF3-A88E-68C4-576C9D565C5C} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {641F0F5E-844D-463D-B96C-A178B61BBD0A}
