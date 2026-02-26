@@ -2,6 +2,7 @@
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 namespace LightTextEditorPlus;
 
@@ -39,5 +40,16 @@ public static class TextEditorSelectionExtension
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorSelectionExtension.GetAllDocumentSelection"/>
     public static Selection GetAllDocumentSelection
         (this TextEditor textEditor) => textEditor.TextEditorCore.GetAllDocumentSelection();
+
+    /// <summary>
+    /// 获取传入光标所在的单词选择范围
+    /// </summary>
+    /// <returns></returns>
+    public static Selection GetCaretWord(this TextEditor textEditor, in CaretOffset caretOffset)
+    {
+        IWordDivider wordDivider = textEditor.TextEditorPlatformProvider.GetWordDivider();
+        var result = wordDivider.GetCaretWord(new GetCaretWordArgument(caretOffset, textEditor.TextEditorCore));
+        return result.WordSelection;
+    }
 }
 #endif

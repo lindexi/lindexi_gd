@@ -101,19 +101,8 @@ public partial class TextEditorHandler
     /// <param name="caretOffset"></param>
     protected void SelectCaretWord(in CaretOffset caretOffset)
     {
-        Selection selection = GetCaretWord(in caretOffset);
+        Selection selection = TextEditor.GetCaretWord(in caretOffset);
         TextEditorCore.Select(selection);
-    }
-
-    /// <summary>
-    /// 获取传入光标所在的单词选择范围
-    /// </summary>
-    /// <returns></returns>
-    private Selection GetCaretWord(in CaretOffset caretOffset)
-    {
-        IWordDivider wordDivider = TextEditor.TextEditorPlatformProvider.GetWordDivider();
-        var result = wordDivider.GetCaretWord(new GetCaretWordArgument(caretOffset, TextEditorCore));
-        return result.WordSelection;
     }
 
     /// <summary>
