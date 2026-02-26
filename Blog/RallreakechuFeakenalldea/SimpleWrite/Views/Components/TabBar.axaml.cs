@@ -1,8 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+
 using SimpleWrite.Models;
-using System;
-using System.Diagnostics;
+using SimpleWrite.Utils;
 
 namespace SimpleWrite.Views.Components;
 
@@ -28,14 +28,6 @@ public partial class TabBar : UserControl
             return;
         }
 
-        if (!fileInfo.Exists || !OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
-        Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{fileInfo.FullName}\"")
-        {
-            UseShellExecute = true
-        });
+        FileExplorerHelper.TryOpenInFileExplorer(fileInfo);
     }
 }
