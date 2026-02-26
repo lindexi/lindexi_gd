@@ -11,10 +11,7 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
 {
     public SimpleWriteTextEditorHandler(TextEditor textEditor) : base(textEditor)
     {
-        _textEditor = textEditor;
     }
-
-    private readonly TextEditor _textEditor;
 
     public required ShortcutExecutor ShortcutExecutor { get; init; }
 
@@ -23,7 +20,7 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         // 判断是否落在快捷键范围内
         var shortcutHandled = ShortcutExecutor.Handle(e, new ShortcutExecuteContext
         {
-            CurrentTextEditor = _textEditor,
+            CurrentTextEditor = TextEditor,
         });
         if (shortcutHandled)
         {
