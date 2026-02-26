@@ -41,15 +41,12 @@ public static class TextEditorSelectionExtension
     public static Selection GetAllDocumentSelection
         (this TextEditor textEditor) => textEditor.TextEditorCore.GetAllDocumentSelection();
 
-    /// <summary>
-    /// 获取传入光标所在的单词选择范围
-    /// </summary>
-    /// <returns></returns>
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorSelectionExtension.GetCaretWord"/>
     public static Selection GetCaretWord(this TextEditor textEditor, in CaretOffset caretOffset)
-    {
-        IWordDivider wordDivider = textEditor.TextEditorPlatformProvider.GetWordDivider();
-        var result = wordDivider.GetCaretWord(new GetCaretWordArgument(caretOffset, textEditor.TextEditorCore));
-        return result.WordSelection;
-    }
+        => textEditor.TextEditorCore.GetCaretWord(in caretOffset);
+
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorSelectionExtension.GetCurrentCaretOffsetWord"/>
+    public static Selection GetCurrentCaretOffsetWord(this TextEditor textEditor)
+        => textEditor.TextEditorCore.GetCurrentCaretOffsetWord();
 }
 #endif
