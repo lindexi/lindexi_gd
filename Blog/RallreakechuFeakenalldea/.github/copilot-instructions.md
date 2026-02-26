@@ -1,5 +1,9 @@
 # SimpleWrite — AI 协作指南
 
+> 本文件用于存储 **每个会话都必须遵循** 的核心开发规范。
+> 如果本文件内容超过 200 行，请将扩展内容（详细实现示例、完整代码片段、故障排查手册等）移至 `/Docs` 文件夹，并在此保留关键要点和文档链接。
+> 开始开发之前，请阅读 `/Docs` 文件夹内的文档内容，按需阅读 `/Docs/Knowledge` 知识经验文档
+
 ## 项目概览
 
 **SimpleWrite** 是一款基于 [Avalonia UI](https://avaloniaui.net/) 与 [LightTextEditorPlus](../LightTextEditorPlus) 构建的跨平台轻量文本编辑器，目标框架为 `.NET 9`，启用了 AOT 发布。
@@ -10,7 +14,7 @@
 SimpleWrite/                        # 核心 UI 库（Avalonia UserControl，可复用）
 RallreakechuFeakenalldea/           # Avalonia 宿主应用（Shell）
 RallreakechuFeakenalldea.Desktop/   # 桌面平台入口
-Docs/                               # 项目文档与待办
+Docs/                               # 项目文档
 LightTextEditorPlus/                # 富文本编辑器底层库（外部依赖，只读）
 ```
 
