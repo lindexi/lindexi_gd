@@ -12,14 +12,34 @@ static class ShortcutManagerHelper
     public static void AddDefaultShortcut(EditorViewModel viewModel)
     {
         var shortcutManager = viewModel.ShortcutManager;
-        shortcutManager.AddShortcut(KeyModifiers.Control, Key.S, "SaveDocument", _ =>
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.S, "SaveDocument", _1 =>
         {
-            viewModel.SaveDocument();
+            _ = viewModel.SaveDocument();
         });
 
-        shortcutManager.AddShortcut(KeyModifiers.Control | KeyModifiers.Shift, Key.S, "SaveDocumentAs", _ =>
+        shortcutManager.AddShortcut(KeyModifiers.Control | KeyModifiers.Shift, Key.S, "SaveDocumentAs", _1 =>
         {
-            viewModel.SaveDocumentAs();
+            _ = viewModel.SaveDocumentAs();
+        });
+
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.O, "OpenDocument", _1 =>
+        {
+            _ = viewModel.OpenDocumentAsync();
+        });
+
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.N, "NewDocument", _1 =>
+        {
+            viewModel.NewDocument();
+        });
+
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.W, "CloseCurrentDocument", _1 =>
+        {
+            viewModel.CloseCurrentDocument();
+        });
+
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.Tab, "SwitchToNextDocument", _1 =>
+        {
+            viewModel.SwitchToNextDocument();
         });
     }
 }

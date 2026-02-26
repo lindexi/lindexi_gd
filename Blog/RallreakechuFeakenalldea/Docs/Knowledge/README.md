@@ -10,5 +10,6 @@
 ## 当前新增
 
 - `Avalonia/TabBar-ContextMenu-And-Explorer.md`
+- `Avalonia/Shortcut-Defaults-And-FilePicker.md`
 - `Avalonia/Xaml-Naming-Notes.md`
 - `Workflow/Feature-Delivery-Checklist.md`
