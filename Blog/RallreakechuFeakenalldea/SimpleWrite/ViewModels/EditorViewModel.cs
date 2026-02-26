@@ -129,13 +129,13 @@ public class EditorViewModel : ViewModelBase
     public async Task SaveDocumentAs()
     {
         SetSaveStatus(SaveStatus.Saving);
-        if (SaveFilePickerHandler is null)
+        if (FilePickerHandler is null)
         {
             SetSaveStatus(SaveStatus.Error);
             return;
         }
 
-        var saveFile = await SaveFilePickerHandler.PickSaveFileAsync();
+        var saveFile = await FilePickerHandler.PickSaveFileAsync();
         if (saveFile is null)
         {
             SetSaveStatus(SaveStatus.Error);
@@ -152,12 +152,12 @@ public class EditorViewModel : ViewModelBase
     /// </summary>
     public async Task OpenDocumentAsync()
     {
-        if (OpenFilePickerHandler is null)
+        if (FilePickerHandler is null)
         {
             return;
         }
 
-        var openFile = await OpenFilePickerHandler.PickOpenFileAsync();
+        var openFile = await FilePickerHandler.PickOpenFileAsync();
         if (openFile is null)
         {
             return;
@@ -251,9 +251,7 @@ public class EditorViewModel : ViewModelBase
         }
     }
 
-    internal ISaveFilePickerHandler? SaveFilePickerHandler { get; set; }
-
-    internal IOpenFilePickerHandler? OpenFilePickerHandler { get; set; }
+    internal IFilePickerHandler? FilePickerHandler { get; set; }
 
     private void SetSaveStatus(SaveStatus saveStatus)
     {

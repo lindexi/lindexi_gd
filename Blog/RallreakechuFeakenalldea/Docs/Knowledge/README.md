@@ -1,15 +1,45 @@
 # Knowledge Base
 
-该目录用于沉淀在开发与协作中得到的可复用经验。
+该目录用于沉淀开发与协作中的可复用经验，帮助开发者与智能体快速理解已有实践并复用。
 
 ## 分类
 
-- `Avalonia/`：Avalonia UI 相关经验
-- `Workflow/`：协作与实现流程经验
+- `Avalonia/`：Avalonia UI 设计与实现经验
+- `Workflow/`：需求落地、协作与交付流程经验
 
-## 当前新增
+## 现有文档
 
-- `Avalonia/TabBar-ContextMenu-And-Explorer.md`
-- `Avalonia/Shortcut-Defaults-And-FilePicker.md`
-- `Avalonia/Xaml-Naming-Notes.md`
-- `Workflow/Feature-Delivery-Checklist.md`
+### `Avalonia/TabBar-ContextMenu-And-Explorer.md`
+
+- **主题**：TabBar 右键菜单与资源管理器联动
+- **解决问题**：统一标签页操作入口，明确“定位文件/打开上下文菜单”等交互行为
+- **适用场景**：需要为编辑器或多标签界面补齐右键交互、文件定位能力时
+- **关键词**：`TabBar`、`ContextMenu`、`Explorer`、`交互一致性`
+
+### `Avalonia/Shortcut-Defaults-And-FilePicker.md`
+
+- **主题**：快捷键默认策略与文件选择器行为约定
+- **解决问题**：避免快捷键冲突、明确默认绑定；统一文件打开/保存选择器的体验
+- **适用场景**：新增命令、调整快捷键体系、接入文件选择器时
+- **关键词**：`Shortcut`、`默认值`、`FilePicker`、`用户体验`
+
+### `Avalonia/Xaml-Naming-Notes.md`
+
+- **主题**：XAML 命名规范与约束说明
+- **解决问题**：降低命名歧义，提升代码可读性与可维护性，便于自动化分析
+- **适用场景**：新增/重构视图、统一控件命名、进行样式与模板梳理时
+- **关键词**：`XAML`、`命名规范`、`可维护性`、`一致性`
+
+### `Workflow/Feature-Delivery-Checklist.md`
+
+- **主题**：功能交付检查清单
+- **解决问题**：确保需求从实现到验证、文档与回归检查完整闭环
+- **适用场景**：功能开发、提测、自测、代码评审、发布前检查
+- **关键词**：`Feature Delivery`、`Checklist`、`质量保障`、`交付流程`
+
+## 使用建议（面向智能体）
+
+- 在实现功能前，先按关键词匹配相关文档，提取可复用约束。
+- 在生成代码或交互方案时，优先遵循文档中的既有约定。
+- 如存在冲突，以最新的流程类文档与团队明确约定为准。
+- 在提交结果时，可引用对应文档路径，说明本次实现依据。

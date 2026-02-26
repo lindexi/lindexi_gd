@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 
 namespace SimpleWrite.Business.FileHandlers;
 
-internal interface IOpenFilePickerHandler
+internal interface IFilePickerHandler
 {
+    Task<FileInfo?> PickSaveFileAsync();
+
     Task<FileInfo?> PickOpenFileAsync();
 }
