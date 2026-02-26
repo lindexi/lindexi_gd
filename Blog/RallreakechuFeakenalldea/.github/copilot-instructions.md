@@ -110,10 +110,11 @@ var textEditor = TextEditorInfo.GetTextEditorInfo(this).CurrentTextEditor;
 
 ### LightTextEditorPlus（外部库，只读）
 
-- 不修改 `LightTextEditorPlus/` 目录下的任何文件。
 - 通过继承 `SimpleWriteTextEditor : TextEditor` 来扩展编辑器能力。
 - 事件订阅使用库提供的 `CurrentSelectionChanged`、`DocumentChanged`、`LayoutCompleted` 等事件。
 - 键盘处理通过继承 `TextEditorHandler` 并重写 `OnKeyDown` 实现（见 `SimpleWriteTextEditorHandler`）。
+
+对 LightTextEditorPlus 文本库的使用，可参阅文本库里面的 `使用说明文档.md` 文件
 
 ### AOT 兼容
 
