@@ -30,8 +30,15 @@ public partial class TextEditorHandler
         TextEditor = textEditor;
     }
 
-    private TextEditor TextEditor { get; }
-    private TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
+    /// <summary>
+    /// 文本编辑器
+    /// </summary>
+    protected TextEditor TextEditor { get; }
+
+    /// <summary>
+    /// 文本编辑器核心
+    /// </summary>
+    protected TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
 
     #region 鼠标相关
 
