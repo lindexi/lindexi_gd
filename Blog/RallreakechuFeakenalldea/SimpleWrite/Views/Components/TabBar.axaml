@@ -5,13 +5,14 @@
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              xmlns:models="clr-namespace:SimpleWrite.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Name="RootTabBar"
              x:Class="SimpleWrite.Views.Components.TabBar"
              x:DataType="viewModels:SimpleWriteMainViewModel">
-    <Border Background="#1E1E1E" BorderThickness="0,0,0,1" BorderBrush="#3D3D3D">
-      <ListBox ItemsSource="{Binding Path=EditorViewModel.EditorModelList}" Background="Transparent">
+    <Border x:Name="TabBarBorder" Background="#1E1E1E" BorderThickness="0,0,0,1" BorderBrush="#3D3D3D">
+      <ListBox x:Name="EditorTabListBox" ItemsSource="{Binding Path=EditorViewModel.EditorModelList}" Background="Transparent">
           <ListBox.ItemsPanel>
               <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal"></StackPanel>
+                  <StackPanel x:Name="EditorTabStackPanel" Orientation="Horizontal"></StackPanel>
               </ItemsPanelTemplate>
           </ListBox.ItemsPanel>
           <ListBox.ItemContainerTheme>
@@ -21,9 +22,14 @@
           </ListBox.ItemContainerTheme>
           <ListBox.ItemTemplate>
               <DataTemplate DataType="models:EditorModel">
-                  <Border Margin="5,0,5,0" Background="#393933" ToolTip.Tip="{Binding FileInfo.FullName}">
+                  <Border x:Name="TabItemBorder" Margin="5,0,5,0" Background="#393933" ToolTip.Tip="{Binding FileInfo.FullName}">
                       <!-- 每个标签的部分 -->
-                      <TextBlock Text="{Binding Title}" Foreground="White"></TextBlock>
+                      <Border.ContextMenu>
+                          <ContextMenu x:Name="TabItemContextMenu">
+                              <MenuItem x:Name="OpenInFileExplorerMenuItem" Header="在文件资源管理器中打开" Click="OpenInFileExplorerMenuItem_OnClick" />
+                          </ContextMenu>
+                      </Border.ContextMenu>
+                      <TextBlock x:Name="TabTitleTextBlock" Text="{Binding Title}" Foreground="White"></TextBlock>
                   </Border>
                 </DataTemplate>
           </ListBox.ItemTemplate>
