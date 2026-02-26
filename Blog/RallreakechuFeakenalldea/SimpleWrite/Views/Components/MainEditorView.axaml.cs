@@ -80,7 +80,10 @@ public partial class MainEditorView : UserControl
     /// <returns></returns>
     private SimpleWriteTextEditor CreateTextEditor(EditorModel editorModel)
     {
-        var textEditor = new SimpleWriteTextEditor();
+        var textEditor = new SimpleWriteTextEditor()
+        {
+            ShortcutExecutor = ShortcutExecutor,
+        };
         textEditor.TextEditorCore.SetExitDebugMode();
 
         textEditor.SetStyleTextRunProperty(runProperty => runProperty with
@@ -94,10 +97,6 @@ public partial class MainEditorView : UserControl
             UpdateEditorModel(textEditor, editorModel);
         };
        
-        textEditor.TextEditorHandler = new SimpleWriteTextEditorHandler(textEditor)
-        {
-            ShortcutExecutor = ShortcutExecutor,
-        };
         return textEditor;
     }
 

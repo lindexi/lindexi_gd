@@ -9,7 +9,7 @@ namespace SimpleWrite.Business.TextEditors;
 
 class SimpleWriteTextEditorHandler : TextEditorHandler
 {
-    public SimpleWriteTextEditorHandler(TextEditor textEditor) : base(textEditor)
+    public SimpleWriteTextEditorHandler(SimpleWriteTextEditor textEditor) : base(textEditor)
     {
     }
 
