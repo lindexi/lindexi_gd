@@ -1,6 +1,5 @@
 ﻿using Avalonia.Input;
-
-using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
+using LightTextEditorPlus;
 
 using SimpleWrite.ViewModels;
 
@@ -46,15 +45,10 @@ static class ShortcutManagerHelper
 
         shortcutManager.AddShortcut(KeyModifiers.Control, Key.D, "SelectCurrentWord", context =>
         {
-            if (context.CurrentTextEditor is not { } textEditor)
-            {
-                return;
-            }
+            var textEditor = context.CurrentTextEditor;
 
-            var textEditorCore = textEditor.TextEditorCore;
-            var wordDivider = textEditorCore.PlatformProvider.GetWordDivider();
-            var wordResult = wordDivider.GetCaretWord(new GetCaretWordArgument(textEditorCore.CurrentCaretOffset, textEditorCore));
-            textEditorCore.CurrentSelection = wordResult.WordSelection;
+            var wordSelection = textEditor.GetCurrentCaretOffsetWord();
+            textEditor.CurrentSelection = wordSelection;
         });
     }
 }

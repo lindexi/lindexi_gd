@@ -104,7 +104,6 @@ public partial class MainEditorView : UserControl
         return textEditor;
     }
 
-
     private void UpdateEditorModel(TextEditor textEditor, EditorModel editorModel)
     {
         editorModel.SaveStatus = SaveStatus.Draft;
