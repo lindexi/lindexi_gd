@@ -16,6 +16,11 @@ public partial class TabBar : UserControl
         InitializeComponent();
     }
 
+    /// <summary>
+    /// 在文件资源管理器中打开
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void OpenInFileExplorerMenuItem_OnClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not MenuItem { DataContext: EditorModel { FileInfo: { } fileInfo } })
