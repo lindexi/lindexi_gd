@@ -30,6 +30,13 @@ partial class TextEditor
         get => TextEditorCore.CurrentSelection;
     }
 
+    /// <summary>
+    /// 选择文本
+    /// </summary>
+    /// <remarks>完全等同于 <see cref="CurrentSelection"/> 的 set 方法</remarks>
+    /// <param name="selection"></param>
+    public Selection Select(in Selection selection) => CurrentSelection = selection;
+
     #region 光标事件
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.CurrentCaretOffsetChanging"/>

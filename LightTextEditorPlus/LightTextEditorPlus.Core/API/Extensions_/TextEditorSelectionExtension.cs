@@ -2,6 +2,8 @@
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
+
 using System;
 
 namespace LightTextEditorPlus.Core;
@@ -106,5 +108,26 @@ public static class TextEditorSelectionExtension
             // 有选择的情况下，如果选择范围和输入文本长度不一致，那就不是覆盖模式
             return currentSelection;
         }
+    }
+
+    /// <summary>
+    /// 获取当前光标下的选择范围
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
+    public static Selection GetCurrentCaretOffsetWord(this TextEditorCore textEditor)
+    {
+        return textEditor.GetCaretWord(textEditor.CurrentCaretOffset);
+    }
+
+    /// <summary>
+    /// 获取传入光标所在的单词选择范围
+    /// </summary>
+    /// <returns></returns>
+    public static Selection GetCaretWord(this TextEditorCore textEditor, in CaretOffset caretOffset)
+    {
+        IWordDivider wordDivider = textEditor.PlatformProvider.GetWordDivider();
+        var result = wordDivider.GetCaretWord(new GetCaretWordArgument(caretOffset, textEditor));
+        return result.WordSelection;
     }
 }
