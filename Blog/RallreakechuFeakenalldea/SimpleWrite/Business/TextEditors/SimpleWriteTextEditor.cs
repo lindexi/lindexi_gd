@@ -8,7 +8,7 @@ using Avalonia.Media;
 
 using LightTextEditorPlus;
 
-namespace SimpleWrite.Business;
+namespace SimpleWrite.Business.TextEditors;
 
 /// <summary>
 /// 文本编辑器
