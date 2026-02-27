@@ -5,7 +5,7 @@
              xmlns:components="clr-namespace:SimpleWrite.Views.Components"
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="#FF1E1E1E"  x:DataType="viewModels:SimpleWriteMainViewModel">
+             x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="#FF2E2E2E"  x:DataType="viewModels:SimpleWriteMainViewModel">
   <UserControl.DataContext>
     <viewModels:SimpleWriteMainViewModel />
   </UserControl.DataContext>
