@@ -3,6 +3,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using SimpleWrite.Business.SimpleWriteConfigurations;
+using SimpleWrite.Foundation;
 
 namespace SimpleWrite.ViewModels;
 
@@ -10,6 +12,9 @@ public class SimpleWriteMainViewModel
 {
     public SimpleWriteMainViewModel()
     {
+        AppPathManager = new AppPathManager();
+        ConfigurationManager = new ConfigurationManager(AppPathManager);
+
         StatusViewModel = new StatusViewModel()
         {
             MainViewModel = this,
@@ -38,6 +43,10 @@ public class SimpleWriteMainViewModel
             }
         }
     }
+
+    public AppPathManager AppPathManager { get; }
+
+    public ConfigurationManager ConfigurationManager { get; }
 
     public StatusViewModel StatusViewModel { get; }
     public EditorViewModel EditorViewModel { get; }
