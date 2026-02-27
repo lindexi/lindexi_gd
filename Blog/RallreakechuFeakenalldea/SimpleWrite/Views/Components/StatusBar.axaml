@@ -6,7 +6,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="25"
              x:Class="SimpleWrite.Views.Components.StatusBar"
              x:DataType="viewModels:StatusViewModel">
-  <UserControl.Styles>
+    <Design.DataContext>
+        <viewModels:StatusViewModel/>
+    </Design.DataContext>
+    <UserControl.Styles>
     <Style Selector="Button">
       <Setter Property="Foreground" Value="White"></Setter>
       <Setter Property="Padding" Value="0,0,0,0"></Setter>

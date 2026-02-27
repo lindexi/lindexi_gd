@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using LightTextEditorPlus;
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.ShortcutManagers;
@@ -17,6 +18,21 @@ public class EditorViewModel : ViewModelBase
 {
     public EditorViewModel()
     {
+        if (Design.IsDesignMode)
+        {
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档1",
+                FileInfo = new FileInfo(@"C:\Document\Text1.txt"),
+            });
+
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档a",
+                FileInfo = new FileInfo(@"C:\Document\Text2.txt"),
+            });
+        }
+
         EditorModelList.Add(_currentEditorModel);
 
         ShortcutManagerHelper.AddDefaultShortcut(this);
@@ -69,11 +85,6 @@ public class EditorViewModel : ViewModelBase
 
         // 如果没有，则打开
         var originEditorModel = CurrentEditorModel;
-        if (originEditorModel.IsEmptyText())
-        {
-            // 如果原本就是空文本，则删除当前的内容
-            EditorModelList.Remove(originEditorModel);
-        }
 
         var newEditorModel = new EditorModel
         {
@@ -81,6 +92,12 @@ public class EditorViewModel : ViewModelBase
         };
         EditorModelList.Add(newEditorModel);
         CurrentEditorModel = newEditorModel;
+
+        if (originEditorModel.IsEmptyText())
+        {
+            // 如果原本就是空文本，则删除当前的内容
+            EditorModelList.Remove(originEditorModel);
+        }
 
         await Task.CompletedTask;
     }
