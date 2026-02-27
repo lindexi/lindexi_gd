@@ -199,6 +199,42 @@ public class EditorViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 关闭文档
+    /// </summary>
+    public void CloseDocument(EditorModel editorModel)
+    {
+        var currentIndex = EditorModelList.IndexOf(editorModel);
+        if (currentIndex < 0)
+        {
+            return;
+        }
+
+        if (EditorModelList.Count <= 1)
+        {
+            // 只剩下一个，那就需要先加再删除，防止传入空值
+            var emptyEditorModel = new EditorModel();
+            EditorModelList.Add(emptyEditorModel);
+            // 需要先加入到 EditorModelList 列表再设置值，否则将会导致不在列表中而让框架设置空
+            CurrentEditorModel = emptyEditorModel;
+
+            EditorModelList.RemoveAt(currentIndex);
+        }
+        else
+        {
+            var nextIndex = Math.Clamp(currentIndex - 1, 0, EditorModelList.Count - 1);
+            if (nextIndex == currentIndex)
+            {
+                // 既然 -1 拿到自身，如第 0 个，那就试试取右边一个
+                nextIndex = Math.Clamp(currentIndex + 1, 0, EditorModelList.Count - 1);
+            }
+
+            // 需要先给 CurrentEditorModel 赋值，防止被删除后设置空值
+            CurrentEditorModel = EditorModelList[nextIndex];
+            EditorModelList.RemoveAt(currentIndex);
+        }
+    }
+
+    /// <summary>
     /// 关闭当前文档
     /// </summary>
     public void CloseCurrentDocument()

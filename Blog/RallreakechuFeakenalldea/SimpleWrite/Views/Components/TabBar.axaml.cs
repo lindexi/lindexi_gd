@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 
 using SimpleWrite.Models;
 using SimpleWrite.Utils;
+using SimpleWrite.ViewModels;
 
 namespace SimpleWrite.Views.Components;
 
@@ -15,6 +16,8 @@ public partial class TabBar : UserControl
     {
         InitializeComponent();
     }
+
+    public SimpleWriteMainViewModel MainViewModel => (SimpleWriteMainViewModel) DataContext!;
 
     /// <summary>
     /// 在文件资源管理器中打开
@@ -29,5 +32,20 @@ public partial class TabBar : UserControl
         }
 
         FileExplorerHelper.TryOpenInFileExplorer(fileInfo);
+    }
+
+    private void CloseTabButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control control)
+        {
+            return;
+        }
+
+        if (control.DataContext is not EditorModel editorModel)
+        {
+            return;
+        }
+
+        MainViewModel.EditorViewModel.CloseDocument(editorModel);
     }
 }

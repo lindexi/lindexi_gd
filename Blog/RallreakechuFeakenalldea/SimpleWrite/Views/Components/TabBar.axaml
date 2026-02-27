@@ -39,7 +39,7 @@
               <DataTemplate DataType="models:EditorModel">
                   <Border x:Name="TabItemBorder" Classes="Tab-Main-Style" Margin="0,3,2,0" 
                           Padding="5,2,5,0"
-                          ToolTip.Tip="{Binding FileInfo.FullName}">
+                          >
                       <!-- 以下设置无效 -->
                       <!-- <Border.Styles> -->
                       <!--     <Style Selector="Border:selected"> -->
@@ -53,7 +53,15 @@
                               <MenuItem x:Name="OpenInFileExplorerMenuItem" Header="在文件资源管理器中打开" Click="OpenInFileExplorerMenuItem_OnClick" />
                           </ContextMenu>
                       </Border.ContextMenu>
-                      <TextBlock x:Name="TabTitleTextBlock" Text="{Binding Title}" Foreground="White"></TextBlock>
+                      <StackPanel Orientation="Horizontal">
+                          <TextBlock x:Name="TabTitleTextBlock" Text="{Binding Title}" Foreground="White"
+                                     ToolTip.Tip="{Binding FileInfo.FullName}"></TextBlock>
+                          <Button x:Name="CloseTabButton" Margin="5 0 0 0" Background="Transparent" Padding="0"
+                                  Foreground="White"
+                                  VerticalAlignment="Center" Click="CloseTabButton_OnClick">
+                              <Path Stroke="{Binding #CloseTabButton.Foreground}" StrokeThickness="2" Data="M0,0 L6,6z M6,0 L0,6"></Path>
+                          </Button>
+                      </StackPanel>
                   </Border>
                 </DataTemplate>
           </ListBox.ItemTemplate>
