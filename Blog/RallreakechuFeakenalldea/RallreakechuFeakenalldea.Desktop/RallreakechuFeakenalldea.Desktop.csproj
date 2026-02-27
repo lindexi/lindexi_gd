@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RallreakechuFeakenalldea\RallreakechuFeakenalldea.csproj" />
+    <ProjectReference Include="..\SimpleWrite\SimpleWrite.csproj" />
   </ItemGroup>
 
 </Project>
