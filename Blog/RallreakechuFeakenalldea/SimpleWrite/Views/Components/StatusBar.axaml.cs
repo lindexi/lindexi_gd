@@ -28,6 +28,11 @@ public partial class StatusBar : UserControl
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
+        if (Design.IsDesignMode)
+        {
+            return;
+        }
+
         _ = ViewModel;
         base.OnLoaded(e);
 
