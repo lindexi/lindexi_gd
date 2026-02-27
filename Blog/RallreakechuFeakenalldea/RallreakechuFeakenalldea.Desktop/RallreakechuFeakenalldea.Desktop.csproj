@@ -9,7 +9,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
-    <PublishAot>true</PublishAot>
+    <!-- 此配置会导致 Avalonia 设计器错误，因此注释掉 PublishAot 以便开发 -->
+    <!-- <PublishAot>true</PublishAot> -->
   </PropertyGroup>
 
   <ItemGroup>
