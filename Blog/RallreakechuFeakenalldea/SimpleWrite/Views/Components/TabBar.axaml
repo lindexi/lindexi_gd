@@ -7,20 +7,22 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="25"
              x:Name="RootTabBar"
              x:Class="SimpleWrite.Views.Components.TabBar"
-             x:DataType="viewModels:SimpleWriteMainViewModel">
+             x:DataType="viewModels:SimpleWriteMainViewModel"
+             >
     <Design.DataContext>
         <viewModels:SimpleWriteMainViewModel/>
     </Design.DataContext>
-    <Border x:Name="TabBarBorder" Background="#1E1E1E" BorderThickness="0,0,0,1" BorderBrush="#3D3D3D">
+    <Border x:Name="TabBarBorder" Background="#0E0E0E" BorderThickness="0,0,0,1" BorderBrush="#3D3D3D">
       <ListBox x:Name="EditorTabListBox" SelectionMode="Single" Background="Transparent" 
                ItemsSource="{Binding Path=EditorViewModel.EditorModelList}"
                SelectedItem="{Binding Path=EditorViewModel.CurrentEditorModel}">
           <ListBox.Styles>
-              <Style Selector="ListBoxItem:selected /template/ ContentPresenter Border">
-                  <!-- The snippet from the search suggested targeting all Borders might work if the template is standard -->
-                  <Setter Property="Background" Value="Red" />
-                  <Setter Property="BorderBrush" Value="Red"></Setter>
-                  <Setter Property="BorderThickness" Value="2"></Setter>
+              <Style Selector="Border.Tab-Main-Style">
+                  <Setter Property="Background" Value="#1E1E1E" />
+              </Style>
+              <Style Selector="ListBoxItem:selected Border.Tab-Main-Style">
+                  <Setter Property="Background" Value="#2E2E2E" />
+                  <Setter Property="CornerRadius" Value="5 5 0 0"></Setter>
               </Style>
           </ListBox.Styles>
           <ListBox.ItemsPanel>
@@ -35,7 +37,7 @@
           </ListBox.ItemContainerTheme>
           <ListBox.ItemTemplate>
               <DataTemplate DataType="models:EditorModel">
-                  <Border x:Name="TabItemBorder" Margin="0,3,2,0" Background="#393933"
+                  <Border x:Name="TabItemBorder" Classes="Tab-Main-Style" Margin="0,3,2,0" 
                           Padding="5,2,5,0"
                           ToolTip.Tip="{Binding FileInfo.FullName}">
                       <!-- 以下设置无效 -->
