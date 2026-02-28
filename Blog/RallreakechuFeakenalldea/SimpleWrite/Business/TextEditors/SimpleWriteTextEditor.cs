@@ -17,6 +17,7 @@ using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Primitive;
 using Markdig.Renderers;
 using Markdig.Syntax;
+using SimpleWrite.Business.Snippets;
 using SimpleWrite.Utils;
 using SkiaSharp;
 
@@ -143,7 +144,15 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     private Selection SourceSpanToSelection(SourceSpan span) => new Selection(new CaretOffset(span.Start), span.Length);
 
+    /// <summary>
+    /// 快捷键执行器
+    /// </summary>
     public required ShortcutExecutor ShortcutExecutor { get; init; }
+
+    /// <summary>
+    /// 代码片管理器
+    /// </summary>
+    public required SnippetManager SnippetManager { get; init; }
 
     /// <summary>
     /// 正文文本属性

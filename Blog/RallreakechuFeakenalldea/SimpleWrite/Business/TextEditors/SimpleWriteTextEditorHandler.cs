@@ -29,11 +29,25 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
             return;
         }
 
+        if (e.Key == Key.Tab)
+        {
+            e.Handled = true;
+
+            
+
+            return;
+        }
+
         base.OnKeyDown(e);
     }
 
     protected override void OnKeyUp(KeyEventArgs e)
     {
         base.OnKeyUp(e);
+    }
+
+    protected override void OnPaste()
+    {
+        base.OnPaste();
     }
 }
