@@ -160,6 +160,273 @@ static class NativeTextEditorRunPropertyExporter
             runProperty => runProperty with { DecorationCollection = decorationCollection });
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyFontName")]
+    public static unsafe int GetRunPropertyFontName(uint runPropertyId, IntPtr unicode16Text, int charCount, int* textLength)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (textLength != null)
+            {
+                *textLength = 0;
+            }
+
+            return errorCode;
+        }
+
+        string text = runProperty.FontName.UserFontName;
+        if (textLength != null)
+        {
+            *textLength = text.Length;
+        }
+
+        if (unicode16Text == IntPtr.Zero || charCount <= 0)
+        {
+            return ErrorCode.Success;
+        }
+
+        int copyCount = Math.Min(charCount, text.Length);
+        if (copyCount > 0)
+        {
+            Marshal.Copy(text.ToCharArray(), 0, unicode16Text, copyCount);
+        }
+
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyFontSize")]
+    public static unsafe int GetRunPropertyFontSize(uint runPropertyId, double* fontSize)
+    {
+        var errorCode = GetRunPropertyValue(runPropertyId, runProperty => runProperty.FontSize, out var value);
+        if (fontSize != null)
+        {
+            *fontSize = errorCode == ErrorCode.Success ? value : default;
+        }
+
+        return errorCode;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyOpacity")]
+    public static unsafe int GetRunPropertyOpacity(uint runPropertyId, double* opacity)
+    {
+        var errorCode = GetRunPropertyValue(runPropertyId, runProperty => runProperty.Opacity, out var value);
+        if (opacity != null)
+        {
+            *opacity = errorCode == ErrorCode.Success ? value : default;
+        }
+
+        return errorCode;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyForegroundColor")]
+    public static unsafe int GetRunPropertyForegroundColor
+        (uint runPropertyId, byte* alpha, byte* red, byte* green, byte* blue)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (alpha != null) *alpha = 0;
+            if (red != null) *red = 0;
+            if (green != null) *green = 0;
+            if (blue != null) *blue = 0;
+            return errorCode;
+        }
+
+        SKColor color = runProperty.Foreground.AsSolidColor();
+        if (alpha != null) *alpha = color.Alpha;
+        if (red != null) *red = color.Red;
+        if (green != null) *green = color.Green;
+        if (blue != null) *blue = color.Blue;
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyBackgroundColor")]
+    public static unsafe int GetRunPropertyBackgroundColor
+        (uint runPropertyId, byte* alpha, byte* red, byte* green, byte* blue)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (alpha != null) *alpha = 0;
+            if (red != null) *red = 0;
+            if (green != null) *green = 0;
+            if (blue != null) *blue = 0;
+            return errorCode;
+        }
+
+        SKColor color = runProperty.Background;
+        if (alpha != null) *alpha = color.Alpha;
+        if (red != null) *red = color.Red;
+        if (green != null) *green = color.Green;
+        if (blue != null) *blue = color.Blue;
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyStretch")]
+    public static unsafe int GetRunPropertyStretch(uint runPropertyId, int* stretch)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (stretch != null)
+            {
+                *stretch = default;
+            }
+
+            return errorCode;
+        }
+
+        if (stretch != null)
+        {
+            *stretch = (int) runProperty.Stretch;
+        }
+
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyFontWeight")]
+    public static unsafe int GetRunPropertyFontWeight(uint runPropertyId, int* fontWeight)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (fontWeight != null)
+            {
+                *fontWeight = default;
+            }
+
+            return errorCode;
+        }
+
+        if (fontWeight != null)
+        {
+            *fontWeight = (int) runProperty.FontWeight;
+        }
+
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyFontStyle")]
+    public static unsafe int GetRunPropertyFontStyle(uint runPropertyId, int* fontStyle)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (fontStyle != null)
+            {
+                *fontStyle = default;
+            }
+
+            return errorCode;
+        }
+
+        if (fontStyle != null)
+        {
+            *fontStyle = (int) runProperty.FontStyle;
+        }
+
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyIsBold")]
+    [Obsolete("更加正确的用法应该是直接设置 FontWeight 属性")]
+    public static unsafe int GetRunPropertyIsBold(uint runPropertyId, int* isBold)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (isBold != null)
+            {
+                *isBold = 0;
+            }
+
+            return errorCode;
+        }
+
+        if (isBold != null)
+        {
+            *isBold = runProperty.IsBold ? 1 : 0;
+        }
+
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyIsItalic")]
+    [Obsolete("更加正确的用法应该是直接设置 FontStyle 属性")]
+    public static unsafe int GetRunPropertyIsItalic(uint runPropertyId, int* isItalic)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (isItalic != null)
+            {
+                *isItalic = 0;
+            }
+
+            return errorCode;
+        }
+
+        if (isItalic != null)
+        {
+            *isItalic = runProperty.IsItalic ? 1 : 0;
+        }
+
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyFontVariant")]
+    public static unsafe int GetRunPropertyFontVariant(uint runPropertyId, byte* fontVariant, double* baselineProportion)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (fontVariant != null) *fontVariant = 0;
+            if (baselineProportion != null) *baselineProportion = default;
+            return errorCode;
+        }
+
+        if (fontVariant != null)
+        {
+            *fontVariant = (byte) runProperty.FontVariant.FontVariants;
+        }
+
+        if (baselineProportion != null)
+        {
+            *baselineProportion = runProperty.FontVariant.BaselineProportion;
+        }
+
+        return ErrorCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "GetRunPropertyDecorationFlags")]
+    public static unsafe int GetRunPropertyDecorationFlags(uint runPropertyId, int* decorationFlags)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            if (decorationFlags != null)
+            {
+                *decorationFlags = 0;
+            }
+
+            return errorCode;
+        }
+
+        int flags = 0;
+
+        if (runProperty.DecorationCollection.Contains(TextEditorDecorations.Underline))
+        {
+            flags |= UnderlineDecorationFlag;
+        }
+
+        if (runProperty.DecorationCollection.Contains(TextEditorDecorations.Strikethrough))
+        {
+            flags |= StrikethroughDecorationFlag;
+        }
+
+        if (runProperty.DecorationCollection.Contains(TextEditorDecorations.EmphasisDots))
+        {
+            flags |= EmphasisDotsDecorationFlag;
+        }
+
+        if (decorationFlags != null)
+        {
+            *decorationFlags = flags;
+        }
+
+        return ErrorCode.Success;
+    }
+
     private static int UpdateRunProperty(uint runPropertyId, Func<SkiaTextRunProperty, SkiaTextRunProperty> update)
     {
         if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
@@ -168,6 +435,19 @@ static class NativeTextEditorRunPropertyExporter
         }
 
         RunPropertyDictionary[runPropertyId] = update(runProperty);
+        return ErrorCode.Success;
+    }
+
+    private static int GetRunPropertyValue<T>
+        (uint runPropertyId, Func<SkiaTextRunProperty, T> valueSelector, [MaybeNull] out T value)
+    {
+        if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
+        {
+            value = default;
+            return errorCode;
+        }
+
+        value = valueSelector(runProperty);
         return ErrorCode.Success;
     }
 
