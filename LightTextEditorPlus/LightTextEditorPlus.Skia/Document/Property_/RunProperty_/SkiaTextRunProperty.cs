@@ -116,6 +116,16 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     private readonly SKFontStyleWidth _stretch = SKFontStyleWidth.Normal;
 
     /// <summary>
+    /// 是否加粗
+    /// </summary>
+    [Obsolete("更加正确的用法应该是直接设置 FontWeight 属性")]
+    public bool IsBold
+    {
+        get => FontWeight >= SKFontStyleWeight.SemiBold;
+        init => FontWeight = value ? SKFontStyleWeight.SemiBold : SKFontStyleWeight.Normal;
+    }
+
+    /// <summary>
     /// 字的粗细度，默认值为Normal
     /// </summary>
     /// 粗细表：
@@ -139,6 +149,16 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     }
 
     private readonly SKFontStyleWeight _fontWeight = SKFontStyleWeight.Normal;
+
+    /// <summary>
+    /// 是否斜体
+    /// </summary>
+    [Obsolete("更加正确的用法应该是直接设置 FontStyle 属性")]
+    public bool IsItalic
+    {
+        get => FontStyle != SKFontStyleSlant.Upright;
+        init => FontStyle = value ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright;
+    }
 
     /// <summary>
     /// 斜体
