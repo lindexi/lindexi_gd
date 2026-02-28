@@ -105,5 +105,4 @@ class TextEditorUndoRedoStack
     /// 获取恢复操作栈
     /// </summary>
     public Stack<ITextOperation> RedoStack { get; } = new();
-
 }

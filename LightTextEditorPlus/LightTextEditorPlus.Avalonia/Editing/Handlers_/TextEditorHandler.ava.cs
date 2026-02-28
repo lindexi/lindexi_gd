@@ -228,15 +228,7 @@ public partial class TextEditorHandler
             return;
         }
     }
-
-    internal void InputEnsureLayout()
-    {
-        if (TextEditorCore.IsDirty)
-        {
-            // 如果有明确布局的话，可以在这里加上明确布局
-            TextEditor.ForceLayout();
-        }
-    }
+   
 
     #endregion 键盘
 

@@ -42,6 +42,10 @@ internal class KeyboardHandler
         // 全选
         Add(Key.A, ModifierKeys.Control, ApplicationCommands.SelectAll, (s, e) => TextEditorHandler.OnSelectAll());
 
+        // 撤销恢复
+        Add(ApplicationCommands.Undo, (s, e) => TextEditorHandler.OnUndo());
+        Add(ApplicationCommands.Redo, (s, e) => TextEditorHandler.OnRedo());
+
         // 输入状态
         Add(Key.Insert, EditingCommands.ToggleInsert, OnToggleInsert);
 

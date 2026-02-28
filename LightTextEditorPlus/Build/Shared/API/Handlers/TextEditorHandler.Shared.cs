@@ -330,5 +330,37 @@ public partial class TextEditorHandler
     {
         TextEditor.SelectAll();
     }
+
+    #region 撤销恢复
+
+    /// <summary>
+    /// 执行撤销操作
+    /// </summary>
+    protected internal void OnUndo()
+    {
+        TextEditor.TextEditorCore.UndoRedoProvider.Undo();
+    }
+
+    /// <summary>
+    /// 执行恢复操作
+    /// </summary>
+    protected internal void OnRedo()
+    {
+        TextEditor.TextEditorCore.UndoRedoProvider.Redo();
+    }
+
+    #endregion
+
+    /// <summary>
+    /// 来自输入层的确保布局完成
+    /// </summary>
+    internal void InputEnsureLayout()
+    {
+        if (TextEditorCore.IsDirty)
+        {
+            // 如果有明确布局的话，可以在这里加上明确布局
+            TextEditor.ForceLayout();
+        }
+    }
 }
 #endif
