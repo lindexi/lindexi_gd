@@ -1,4 +1,13 @@
-﻿using System;
+﻿using Avalonia.Controls;
+
+using LightTextEditorPlus;
+
+using SimpleWrite.Business.FileHandlers;
+using SimpleWrite.Business.ShortcutManagers;
+using SimpleWrite.Business.Snippets;
+using SimpleWrite.Models;
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,11 +15,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Avalonia.Controls;
-using LightTextEditorPlus;
-using SimpleWrite.Business.FileHandlers;
-using SimpleWrite.Business.ShortcutManagers;
-using SimpleWrite.Models;
 
 namespace SimpleWrite.ViewModels;
 
@@ -65,6 +69,11 @@ public class EditorViewModel : ViewModelBase
     /// 快捷键管理器。这里存放的是数据层，即快捷键绑定方式的数据
     /// </summary>
     internal ShortcutManager ShortcutManager { get; } = new ShortcutManager();
+
+    /// <summary>
+    /// 代码片管理器
+    /// </summary>
+    public SnippetManager SnippetManager { get; } = new SnippetManager();
 
     /// <summary>
     /// 打开文件

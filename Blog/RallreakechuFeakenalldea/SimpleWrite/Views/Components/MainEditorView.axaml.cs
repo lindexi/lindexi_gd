@@ -83,6 +83,7 @@ public partial class MainEditorView : UserControl
         var textEditor = new SimpleWriteTextEditor()
         {
             ShortcutExecutor = ShortcutExecutor,
+            SnippetManager = ViewModel.SnippetManager,
         };
         textEditor.TextEditorCore.SetExitDebugMode();
 
