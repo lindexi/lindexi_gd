@@ -151,6 +151,23 @@ namespace LightTextEditorPlus
                 config(property));
 
         /// <summary>
+        /// 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
+        /// <remarks>这是给业务层调用的，非框架内调用</remarks>
+        public void SetRunProperty(ConfigRunProperty config, Selection? selection = null)
+        {
+            SetRunProperty(config, PropertyType.RunProperty, selection);
+        }
+
+        /// <inheritdoc cref="SetRunProperty(Document.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/>
+        public void SetRunProperty(SkiaTextRunProperty runProperty, Selection? selection = null)
+        {
+            SetRunProperty(_ => runProperty, PropertyType.RunProperty, selection);
+        }
+
+        /// <summary>
         /// 设置字体名
         /// </summary>
         /// <param name="fontName">如果字体不存在，将会自动回滚</param>
