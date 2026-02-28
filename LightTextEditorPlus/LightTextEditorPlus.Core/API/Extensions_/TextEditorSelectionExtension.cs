@@ -81,6 +81,11 @@ public static class TextEditorSelectionExtension
     public static Selection GetAllDocumentSelection(this TextEditorCore textEditor) =>
         textEditor.DocumentManager.GetAllDocumentSelection();
 
+    /// <inheritdoc cref="DocumentManagerSelectionExtension.GetParagraphSelection"/>
+    [TextEditorPublicAPI]
+    public static Selection GetParagraphSelection(this TextEditorCore textEditor, ITextParagraph paragraph)
+        => textEditor.DocumentManager.GetParagraphSelection(paragraph);
+
     /// <summary>
     /// 获取覆盖模式下的选择范围
     /// </summary>

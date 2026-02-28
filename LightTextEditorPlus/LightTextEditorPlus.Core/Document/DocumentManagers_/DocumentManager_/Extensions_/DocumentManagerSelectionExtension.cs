@@ -1,4 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -13,7 +14,11 @@ internal static class DocumentManagerSelectionExtension
     /// </summary>
     /// <param name="documentManager"></param>
     /// <returns></returns>
-    public static CaretOffset GetDocumentStartCaretOffset(this DocumentManager documentManager) => new CaretOffset(0);
+    public static CaretOffset GetDocumentStartCaretOffset(this DocumentManager documentManager)
+    {
+        _ = documentManager;
+        return new CaretOffset(0);
+    }
 
     /// <summary>
     /// 获取文档结尾的光标，等于 CharCount 值
@@ -61,5 +66,19 @@ internal static class DocumentManagerSelectionExtension
         }
 
         return documentManager.GetAllDocumentSelection().Equals(selection);
+    }
+
+    /// <summary>
+    /// 获取全选段落的范围（不包含 \n 换行符，即删除此选择范围，依然保留空段）
+    /// </summary>
+    /// <param name="documentManager"></param>
+    /// <param name="paragraph"></param>
+    /// <returns></returns>
+    public static Selection GetParagraphSelection(this DocumentManager documentManager, ITextParagraph paragraph)
+    {
+        _ = documentManager;
+        DocumentOffset paragraphStartOffset = paragraph.GetParagraphStartOffset();
+        var startCaretOffset = new CaretOffset(paragraphStartOffset, isAtLineStart: true);
+        return new Selection(startCaretOffset, paragraph.CharCount);
     }
 }
