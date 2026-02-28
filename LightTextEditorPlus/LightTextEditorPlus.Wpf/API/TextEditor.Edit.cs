@@ -148,6 +148,7 @@ public partial class TextEditor
     /// </summary>
     /// <param name="selection"></param>
     /// <returns></returns>
+    /// 为什么要 Range 呢？因为可能一段选择范围内有多个字符属性
     public IEnumerable<RunProperty> GetRunPropertyRange
         (in Selection selection) => TextEditorCore.DocumentManager.GetRunPropertyRange(in selection)
         // 从 IReadOnlyRunProperty 转换为 RunProperty 类型。类型明确，使用 Cast 强行转换
