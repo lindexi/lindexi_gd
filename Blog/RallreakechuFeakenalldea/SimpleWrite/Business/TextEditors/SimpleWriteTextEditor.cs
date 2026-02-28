@@ -31,7 +31,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     public SimpleWriteTextEditor()
     {
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
-       
+
         TextEditorCore.DocumentChanged += TextEditorCore_DocumentChanged;
 
         var normalFontSize = 25;
@@ -87,14 +87,14 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             .UseAdvancedExtensions()
             .Build();
 
-        var markdownDocument = Markdown.Parse(this.Text,pipeline);
+        var markdownDocument = Markdown.Parse(this.Text, pipeline);
         foreach (Block block in markdownDocument)
         {
             if (block is ParagraphBlock paragraphBlock)
             {
-                if (paragraphBlock.Inline is {} inline)
+                if (paragraphBlock.Inline is { } inline)
                 {
-                    
+
                 }
 
                 TrySetRunProperty(NormalTextRunProperty, paragraphBlock.Span);
@@ -104,7 +104,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             {
                 var levelIndex = headingBlock.Level - 1;
                 SkiaTextRunProperty runProperty;
-                if (TitleLevelRunPropertyList.Count-1>levelIndex)
+                if (TitleLevelRunPropertyList.Count - 1 > levelIndex)
                 {
                     runProperty = TitleLevelRunPropertyList[levelIndex];
                 }
@@ -132,13 +132,14 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             //{
             //    SetRunProperty(runProperty,selection);
             //}
-
+            TextEditorCore.SetUndoRedoEnable(false, "框架内部设置文本样式，防止将内容动作记录");
             IEnumerable<SkiaTextRunProperty> runPropertyRange = GetRunPropertyRange(selection);
-            var same = runPropertyRange.All(t=>t==runProperty);
+            var same = runPropertyRange.All(t => t == runProperty);
             if (!same)
             {
                 SetRunProperty(runProperty, selection);
             }
+            TextEditorCore.SetUndoRedoEnable(true, "完成框架内部设置文本样式，启用撤销恢复");
         }
     }
 
@@ -157,7 +158,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     /// <summary>
     /// 正文文本属性
     /// </summary>
-    public SkiaTextRunProperty NormalTextRunProperty { get;  }
+    public SkiaTextRunProperty NormalTextRunProperty { get; }
     public IReadOnlyList<SkiaTextRunProperty> TitleLevelRunPropertyList { get; }
 
     protected override TextEditorHandler CreateTextEditorHandler()
