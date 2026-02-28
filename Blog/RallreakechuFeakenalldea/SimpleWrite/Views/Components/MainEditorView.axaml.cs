@@ -86,12 +86,6 @@ public partial class MainEditorView : UserControl
         };
         textEditor.TextEditorCore.SetExitDebugMode();
 
-        textEditor.SetStyleTextRunProperty(runProperty => runProperty with
-        {
-            FontSize = 25,
-            Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
-        });
-
         textEditor.TextEditorCore.DocumentChanged += (sender, args) =>
         {
             UpdateEditorModel(textEditor, editorModel);
