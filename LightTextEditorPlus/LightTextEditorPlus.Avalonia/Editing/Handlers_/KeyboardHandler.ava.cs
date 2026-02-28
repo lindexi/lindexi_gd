@@ -36,6 +36,10 @@ internal class KeyboardHandler
         // 全选
         AddShortCut(new KeyGesture(Key.A, KeyModifiers.Control), TextEditorHandler.OnSelectAll);
 
+        // 撤销恢复
+        AddShortCut(new KeyGesture(Key.Z, KeyModifiers.Control), TextEditorHandler.OnUndo);
+        AddShortCut(new KeyGesture(Key.Y, KeyModifiers.Control), TextEditorHandler.OnRedo);
+
         void AddShortCut(KeyGesture gesture, Action command)
         {
             TextEditor.KeyBindings.Add(new KeyBinding()
