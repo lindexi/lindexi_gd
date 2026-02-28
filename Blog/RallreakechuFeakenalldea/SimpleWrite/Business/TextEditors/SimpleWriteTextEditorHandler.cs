@@ -1,4 +1,6 @@
-﻿using Avalonia.Input;
+﻿using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Input.Platform;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
@@ -47,7 +49,6 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
 
             if (snippet != null)
             {
-                //snippetManager.Execute(TextEditor, snippet);
                 var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
                 TextEditor.EditAndReplace(snippet.ContentText, paragraphSelection);
                 // 再设置光标
@@ -66,8 +67,35 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         base.OnKeyUp(e);
     }
 
+    protected override void OnCut()
+    {
+        var selection = TextEditor.CurrentSelection;
+        if (selection.IsEmpty)
+        {
+            // 空的话，直接剪切段
+            ITextParagraph paragraph = TextEditor.GetParagraph(selection.StartOffset);
+            var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
+
+            string text = TextEditor.GetText(in paragraphSelection);
+            _ = GetClipboard()?.SetTextAsync(text);
+            TextEditor.Remove(in paragraphSelection);
+        }
+
+        base.OnCut();
+    }
+
     protected override void OnPaste()
     {
         base.OnPaste();
+    }
+
+    private IClipboard? GetClipboard()
+    {
+        if (TopLevel.GetTopLevel(TextEditor) is { } topLevel)
+        {
+            return topLevel.Clipboard;
+        }
+
+        return null;
     }
 }
