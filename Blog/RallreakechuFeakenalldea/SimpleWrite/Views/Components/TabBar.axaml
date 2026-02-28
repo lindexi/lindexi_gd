@@ -18,11 +18,11 @@
                SelectedItem="{Binding Path=EditorViewModel.CurrentEditorModel}">
           <ListBox.Styles>
               <Style Selector="Border.Tab-Main-Style">
-                  <Setter Property="Background" Value="#1E1E1E" />
+                  <Setter Property="Background" Value="#0E0E0E" />
               </Style>
               <Style Selector="ListBoxItem:selected Border.Tab-Main-Style">
                   <Setter Property="Background" Value="#2E2E2E" />
-                  <Setter Property="CornerRadius" Value="5 5 0 0"></Setter>
+                  <!-- <Setter Property="CornerRadius" Value="5 5 0 0"></Setter> -->
               </Style>
           </ListBox.Styles>
           <ListBox.ItemsPanel>
@@ -37,9 +37,11 @@
           </ListBox.ItemContainerTheme>
           <ListBox.ItemTemplate>
               <DataTemplate DataType="models:EditorModel">
-                  <Border x:Name="TabItemBorder" Classes="Tab-Main-Style" Margin="0,3,2,0" 
+                  <Border x:Name="TabItemBorder" Classes="Tab-Main-Style" 
+                          Margin="0,3,2,0" 
                           Padding="5,2,5,0"
-                          >
+                          BorderThickness="0 0 1 0"
+                          BorderBrush="White">
                       <!-- 以下设置无效 -->
                       <!-- <Border.Styles> -->
                       <!--     <Style Selector="Border:selected"> -->
@@ -54,8 +56,10 @@
                           </ContextMenu>
                       </Border.ContextMenu>
                       <StackPanel Orientation="Horizontal">
-                          <TextBlock x:Name="TabTitleTextBlock" Text="{Binding Title}" Foreground="White"
-                                     ToolTip.Tip="{Binding FileInfo.FullName}"></TextBlock>
+                          <TextBlock x:Name="TabTitleTextBlock" MinWidth="30" Text="{Binding Title}" Foreground="White"
+                                     ToolTip.Tip="{Binding FileInfo.FullName}">
+                              <!-- 添加 MinWidth 是为了防止标题太短而误点到关闭按钮上 -->
+                          </TextBlock>
                           <Button x:Name="CloseTabButton" Margin="5 0 0 0" Background="Transparent" Padding="0"
                                   Foreground="White"
                                   VerticalAlignment="Center" Click="CloseTabButton_OnClick">
