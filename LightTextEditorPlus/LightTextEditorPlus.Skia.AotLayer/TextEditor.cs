@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using LightTextEditorPlus.Platform;
 
@@ -28,6 +30,7 @@ internal class TextEditor : SkiaTextEditor
     [UnmanagedCallersOnly(EntryPoint = "CreateTextEditor")]
     public static uint CreateTextEditor()
     {
+        // 为什么不采用 GCHandler 返回 Handler 呢？因为不确定业务层会持有多久，不合适直接返回指针，防止长时间无法被 GC 掉
         var textEditor = new TextEditor();
         uint id = Interlocked.Increment(ref _id);
 
@@ -45,11 +48,11 @@ internal class TextEditor : SkiaTextEditor
     {
         if (TextEditorDictionary.TryRemove(textEditorId, out _))
         {
-            return ErrorCode.Success.Code;
+            return ErrorCode.Success;
         }
         else
         {
-            return ErrorCode.TextEditorNotFound.Code;
+            return ErrorCode.TextEditorNotFound;
         }
     }
 
@@ -62,14 +65,9 @@ internal class TextEditor : SkiaTextEditor
     [UnmanagedCallersOnly(EntryPoint = "SetDocumentWidth")]
     public static int SetDocumentWidth(uint textEditorId, double documentWidth)
     {
-        if (!TextEditorDictionary.TryGetValue(textEditorId, out var textEditor))
+        if (!TryGetEditor(textEditorId, out var textEditor, out var errorCode))
         {
-            if (textEditorId < _id)
-            {
-                return ErrorCode.TextEditorBeFree;
-            }
-
-            return ErrorCode.TextEditorNotFound;
+            return errorCode;
         }
 
         textEditor.TextEditorCore.DocumentManager.DocumentWidth = documentWidth;
@@ -85,14 +83,9 @@ internal class TextEditor : SkiaTextEditor
     [UnmanagedCallersOnly(EntryPoint = "SetDocumentHeight")]
     public static int SetDocumentHeight(uint textEditorId, double documentHeight)
     {
-        if (!TextEditorDictionary.TryGetValue(textEditorId, out var textEditor))
+        if (!TryGetEditor(textEditorId, out var textEditor, out var errorCode))
         {
-            if (textEditorId < _id)
-            {
-                return ErrorCode.TextEditorBeFree;
-            }
-
-            return ErrorCode.TextEditorNotFound;
+            return errorCode;
         }
 
         textEditor.TextEditorCore.DocumentManager.DocumentHeight = documentHeight;
@@ -108,20 +101,35 @@ internal class TextEditor : SkiaTextEditor
     [UnmanagedCallersOnly(EntryPoint = "AppendText")]
     public static int AppendText(uint textEditorId, IntPtr unicode16Text, int charCount)
     {
-        if (!TextEditorDictionary.TryGetValue(textEditorId, out var textEditor))
+        if (!TryGetEditor(textEditorId, out var textEditor,out var errorCode))
         {
-            if (textEditorId < _id)
-            {
-                return ErrorCode.TextEditorBeFree;
-            }
-
-            return ErrorCode.TextEditorNotFound;
+            return errorCode;
         }
 
         string text = Marshal.PtrToStringUni(unicode16Text, charCount);
         textEditor.AppendText(text);
 
         return ErrorCode.Success;
+    }
+
+    internal static bool TryGetEditor(uint textEditorId, [NotNullWhen(true)] out TextEditor? textEditor, out ErrorCode errorCode)
+    {
+        if (!TextEditorDictionary.TryGetValue(textEditorId, out textEditor))
+        {
+            if (textEditorId < _id)
+            {
+                errorCode = ErrorCode.TextEditorBeFree;
+            }
+            else
+            {
+                errorCode = ErrorCode.TextEditorNotFound;
+            }
+
+            return false;
+        }
+
+        errorCode = ErrorCode.Success;
+        return true;
     }
 
     /// <summary>
@@ -134,9 +142,9 @@ internal class TextEditor : SkiaTextEditor
     [UnmanagedCallersOnly(EntryPoint = "SaveAsImageFile")]
     public static int SaveAsImageFile(uint textEditorId, IntPtr unicode16FilePath, int charCountOfFilePath)
     {
-        if (!TextEditorDictionary.TryGetValue(textEditorId, out var textEditor))
+        if (!TryGetEditor(textEditorId, out var textEditor, out var errorCode))
         {
-            return ErrorCode.TextEditorNotFound;
+            return errorCode;
         }
 
         string filePath = Marshal.PtrToStringUni(unicode16FilePath, charCountOfFilePath);
