@@ -112,7 +112,7 @@ internal class TextEditor : SkiaTextEditor
         return ErrorCode.Success;
     }
 
-    private static bool TryGetEditor(uint textEditorId, [NotNullWhen(true)] out TextEditor? textEditor, out ErrorCode errorCode)
+    internal static bool TryGetEditor(uint textEditorId, [NotNullWhen(true)] out TextEditor? textEditor, out ErrorCode errorCode)
     {
         if (!TextEditorDictionary.TryGetValue(textEditorId, out textEditor))
         {
