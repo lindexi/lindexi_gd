@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace SimpleWrite.Business.Snippets;
 
@@ -54,6 +56,35 @@ public class SnippetManager
                 return snippet;
             }
         }
+        return null;
+    }
+
+    public Snippet? Match(TextReadOnlyListSpan<CharData> charDataList)
+    {
+        string? charDataText = null;
+
+        foreach (var snippet in _snippets)
+        {
+            if (charDataText is not null)
+            {
+                if (snippet.TriggerText == charDataText)
+                {
+                    return snippet;
+                }
+            }
+
+            if (charDataList.Count != snippet.TriggerText.Length)
+            {
+                continue;
+            }
+
+            charDataText = charDataList.ToString();
+            if (snippet.TriggerText == charDataText)
+            {
+                return snippet;
+            }
+        }
+
         return null;
     }
 }

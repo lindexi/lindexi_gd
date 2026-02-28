@@ -1,6 +1,9 @@
 ﻿using Avalonia.Input;
 
 using LightTextEditorPlus;
+using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Editing;
 
 using SimpleWrite.Business.ShortcutManagers;
@@ -11,16 +14,19 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
 {
     public SimpleWriteTextEditorHandler(SimpleWriteTextEditor textEditor) : base(textEditor)
     {
+        SimpleWriteTextEditor = textEditor;
     }
 
-    public required ShortcutExecutor ShortcutExecutor { get; init; }
+    public SimpleWriteTextEditor SimpleWriteTextEditor { get; }
+
+    private ShortcutExecutor ShortcutExecutor => SimpleWriteTextEditor.ShortcutExecutor;
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         // 判断是否落在快捷键范围内
         var shortcutHandled = ShortcutExecutor.Handle(e, new ShortcutExecuteContext
         {
-            CurrentTextEditor = TextEditor,
+            CurrentTextEditor = SimpleWriteTextEditor,
         });
         if (shortcutHandled)
         {
@@ -33,7 +39,21 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         {
             e.Handled = true;
 
-            
+            ITextParagraph paragraph = TextEditor.GetCurrentCaretOffsetParagraph();
+            TextReadOnlyListSpan<CharData> charDataList = paragraph.GetParagraphCharDataList();
+
+            var snippetManager = SimpleWriteTextEditor.SnippetManager;
+            var snippet = snippetManager.Match(charDataList);
+
+            if (snippet != null)
+            {
+                //snippetManager.Execute(TextEditor, snippet);
+                var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
+                TextEditor.EditAndReplace(snippet.ContentText, paragraphSelection);
+                // 再设置光标
+                TextEditor.CurrentCaretOffset =
+                    new CaretOffset(paragraphSelection.StartOffset.Offset + snippet.RelativeCaretOffset);
+            }
 
             return;
         }

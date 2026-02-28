@@ -162,10 +162,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     protected override TextEditorHandler CreateTextEditorHandler()
     {
-        return new SimpleWriteTextEditorHandler(this)
-        {
-            ShortcutExecutor = ShortcutExecutor
-        };
+        return new SimpleWriteTextEditorHandler(this);
     }
 
     //class F : IMarkdownRenderer
