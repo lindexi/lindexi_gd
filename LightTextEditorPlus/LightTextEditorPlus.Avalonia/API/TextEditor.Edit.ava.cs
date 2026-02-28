@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
@@ -13,8 +14,11 @@ using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Events;
 using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Utils;
+
 using SkiaSharp;
+
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
@@ -149,6 +153,41 @@ namespace LightTextEditorPlus
         public void SetCurrentCaretRunProperty(ConfigRunProperty config)
             => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty((SkiaTextRunProperty property) =>
                 config(property));
+
+        /// <summary>
+        /// 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
+        /// <remarks>这是给业务层调用的，非框架内调用</remarks>
+        public void SetRunProperty(ConfigRunProperty config, Selection? selection = null)
+        {
+            SetRunProperty(config, PropertyType.RunProperty, selection);
+        }
+
+        /// <inheritdoc cref="SetRunProperty(Document.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/>
+        public void SetRunProperty(SkiaTextRunProperty runProperty, Selection? selection = null)
+        {
+            SetRunProperty(_ => runProperty, PropertyType.RunProperty, selection);
+        }
+
+        /// <summary>  
+        /// 设置文本字符属性。此方法完全等价于 <see cref="SetRunProperty(Document.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/> 方法  
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="selection"></param>
+        public void ConfigRunProperty(ConfigRunProperty config, Selection? selection = null)
+            => SetRunProperty(config, selection);
+
+        /// <summary>
+        /// 获取给定选择范围内的字符属性
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        public IEnumerable<SkiaTextRunProperty> GetRunPropertyRange
+            (in Selection selection) => TextEditorCore.DocumentManager.GetRunPropertyRange(in selection)
+            // 从 IReadOnlyRunProperty 转换为 RunProperty 类型。类型明确，使用 Cast 强行转换
+            .Cast<SkiaTextRunProperty>();
 
         /// <summary>
         /// 设置字体名
