@@ -2,6 +2,7 @@
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 namespace LightTextEditorPlus;
@@ -40,6 +41,10 @@ public static class TextEditorSelectionExtension
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorSelectionExtension.GetAllDocumentSelection"/>
     public static Selection GetAllDocumentSelection
         (this TextEditor textEditor) => textEditor.TextEditorCore.GetAllDocumentSelection();
+
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorSelectionExtension.GetParagraphSelection"/>
+    public static Selection GetParagraphSelection(this TextEditor textEditor, ITextParagraph paragraph)
+        => textEditor.TextEditorCore.GetParagraphSelection(paragraph);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorSelectionExtension.GetCaretWord"/>
     public static Selection GetCaretWord(this TextEditor textEditor, in CaretOffset caretOffset)

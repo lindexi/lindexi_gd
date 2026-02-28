@@ -108,6 +108,18 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
         return !left.Equals(right);
     }
 
+    // 此方法不提供，因为无法计算出正确的 IsAtLineStart 属性
+    ///// <summary>
+    ///// 获取相对于当前的光标的偏移量
+    ///// </summary>
+    ///// <param name="caretOffset"></param>
+    ///// <param name="relativeOffset"></param>
+    ///// <returns></returns>
+    //public static CaretOffset operator +(CaretOffset caretOffset, int relativeOffset)
+    //{
+    //    return new CaretOffset(caretOffset.Offset + relativeOffset);
+    //}
+
     /// <summary>
     /// 从光标转换为选择
     /// </summary>
