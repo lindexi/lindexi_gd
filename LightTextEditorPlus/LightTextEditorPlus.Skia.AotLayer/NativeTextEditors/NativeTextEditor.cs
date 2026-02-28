@@ -1,7 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 
-using static System.Net.Mime.MediaTypeNames;
-
 // ReSharper disable once CheckNamespace
 namespace LightTextEditorPlus;
 

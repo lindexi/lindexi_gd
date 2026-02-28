@@ -1,10 +1,13 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
+using LightTextEditorPlus.Primitive;
 
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using LightTextEditorPlus.Core.Primitive;
+using SkiaSharp;
 
 namespace LightTextEditorPlus;
 
@@ -52,16 +55,125 @@ static class NativeTextEditorRunPropertyExporter
     [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyFontName")]
     public static int SetRunPropertyFontName(uint runPropertyId, IntPtr unicode16Text, int charCount)
     {
+        string text = Marshal.PtrToStringUni(unicode16Text, charCount);
+        return UpdateRunProperty(runPropertyId, runProperty => runProperty with { FontName = new FontName(text) });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyFontSize")]
+    public static int SetRunPropertyFontSize(uint runPropertyId, double fontSize)
+    {
+        return UpdateRunProperty(runPropertyId, runProperty => runProperty with { FontSize = fontSize });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyOpacity")]
+    public static int SetRunPropertyOpacity(uint runPropertyId, double opacity)
+    {
+        return UpdateRunProperty(runPropertyId, runProperty => runProperty with { Opacity = opacity });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyForegroundColor")]
+    public static int SetRunPropertyForegroundColor(uint runPropertyId, byte alpha, byte red, byte green, byte blue)
+    {
+        var skColor = new SKColor(red, green, blue, alpha);
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { Foreground = new SolidColorSkiaTextBrush(skColor) });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyBackgroundColor")]
+    public static int SetRunPropertyBackgroundColor(uint runPropertyId, byte alpha, byte red, byte green, byte blue)
+    {
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { Background = new SKColor(red, green, blue, alpha) });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyStretch")]
+    public static int SetRunPropertyStretch(uint runPropertyId, int stretch)
+    {
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { Stretch = (SKFontStyleWidth) stretch });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyFontWeight")]
+    public static int SetRunPropertyFontWeight(uint runPropertyId, int fontWeight)
+    {
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { FontWeight = (SKFontStyleWeight) fontWeight });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyFontStyle")]
+    public static int SetRunPropertyFontStyle(uint runPropertyId, int fontStyle)
+    {
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { FontStyle = (SKFontStyleSlant) fontStyle });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyIsBold")]
+    [Obsolete("更加正确的用法应该是直接设置 FontWeight 属性")]
+    public static int SetRunPropertyIsBold(uint runPropertyId, int isBold)
+    {
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { IsBold = isBold != 0 });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyIsItalic")]
+    [Obsolete("更加正确的用法应该是直接设置 FontStyle 属性")]
+    public static int SetRunPropertyIsItalic(uint runPropertyId, int isItalic)
+    {
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { IsItalic = isItalic != 0 });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyFontVariant")]
+    public static int SetRunPropertyFontVariant(uint runPropertyId, byte fontVariant, double baselineProportion)
+    {
+        var textFontVariant = new TextFontVariant
+        {
+            FontVariants = (TextFontVariants) fontVariant,
+            BaselineProportion = baselineProportion
+        };
+
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { FontVariant = textFontVariant });
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetRunPropertyDecorationFlags")]
+    public static int SetRunPropertyDecorationFlags(uint runPropertyId, int decorationFlags)
+    {
+        TextEditorImmutableDecorationCollection decorationCollection = new TextEditorImmutableDecorationCollection();
+
+        if ((decorationFlags & UnderlineDecorationFlag) != 0)
+        {
+            decorationCollection = decorationCollection.Add(TextEditorDecorations.Underline);
+        }
+
+        if ((decorationFlags & StrikethroughDecorationFlag) != 0)
+        {
+            decorationCollection = decorationCollection.Add(TextEditorDecorations.Strikethrough);
+        }
+
+        if ((decorationFlags & EmphasisDotsDecorationFlag) != 0)
+        {
+            decorationCollection = decorationCollection.Add(TextEditorDecorations.EmphasisDots);
+        }
+
+        return UpdateRunProperty(runPropertyId,
+            runProperty => runProperty with { DecorationCollection = decorationCollection });
+    }
+
+    private static int UpdateRunProperty(uint runPropertyId, Func<SkiaTextRunProperty, SkiaTextRunProperty> update)
+    {
         if (!TryGetRunProperty(runPropertyId, out var runProperty, out var errorCode))
         {
             return errorCode;
         }
 
-        string text = Marshal.PtrToStringUni(unicode16Text, charCount);
-        var newRunProperty = runProperty with { FontName = new FontName(text) };
-        RunPropertyDictionary[runPropertyId] = newRunProperty;
+        RunPropertyDictionary[runPropertyId] = update(runProperty);
         return ErrorCode.Success;
     }
+
+    private const int UnderlineDecorationFlag = 1 << 0;
+    private const int StrikethroughDecorationFlag = 1 << 1;
+    private const int EmphasisDotsDecorationFlag = 1 << 2;
 
     private static long _id = 0;
 
