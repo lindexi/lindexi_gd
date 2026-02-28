@@ -4,6 +4,7 @@ CreateRunProperty
 SetStyleTextRunProperty
 SetCurrentCaretRunProperty
 SetRunProperty
+GetRunPropertyRange
 // 设置样式
 // RunProperty
 SetFontName

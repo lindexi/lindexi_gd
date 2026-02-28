@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
@@ -13,8 +14,11 @@ using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Events;
 using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Utils;
+
 using SkiaSharp;
+
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
@@ -166,6 +170,24 @@ namespace LightTextEditorPlus
         {
             SetRunProperty(_ => runProperty, PropertyType.RunProperty, selection);
         }
+
+        /// <summary>  
+        /// 设置文本字符属性。此方法完全等价于 <see cref="SetRunProperty(Document.ConfigRunProperty,LightTextEditorPlus.Core.Carets.Selection?)"/> 方法  
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="selection"></param>
+        public void ConfigRunProperty(ConfigRunProperty config, Selection? selection = null)
+            => SetRunProperty(config, selection);
+
+        /// <summary>
+        /// 获取给定选择范围内的字符属性
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        public IEnumerable<SkiaTextRunProperty> GetRunPropertyRange
+            (in Selection selection) => TextEditorCore.DocumentManager.GetRunPropertyRange(in selection)
+            // 从 IReadOnlyRunProperty 转换为 RunProperty 类型。类型明确，使用 Cast 强行转换
+            .Cast<SkiaTextRunProperty>();
 
         /// <summary>
         /// 设置字体名

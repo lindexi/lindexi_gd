@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -141,6 +142,16 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void ConfigRunProperty(ConfigRunProperty config, Selection? selection = null)
         => SetRunProperty(config, selection);
+
+    /// <summary>
+    /// 获取给定选择范围内的字符属性
+    /// </summary>
+    /// <param name="selection"></param>
+    /// <returns></returns>
+    public IEnumerable<RunProperty> GetRunPropertyRange
+        (in Selection selection) => TextEditorCore.DocumentManager.GetRunPropertyRange(in selection)
+        // 从 IReadOnlyRunProperty 转换为 RunProperty 类型。类型明确，使用 Cast 强行转换
+        .Cast<RunProperty>();
 
     /// <summary>
     /// 设置字体名
