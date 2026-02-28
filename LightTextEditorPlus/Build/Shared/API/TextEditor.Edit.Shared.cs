@@ -405,6 +405,25 @@ namespace LightTextEditorPlus
 
         #endregion
 
+        #region 段落文本
+
+        /// <inheritdoc cref="DocumentManager.GetParagraph(ParagraphIndex)"/>
+        public ITextParagraph GetParagraph(ParagraphIndex paragraphIndex)
+            => TextEditorCore.DocumentManager.GetParagraph(paragraphIndex);
+
+        /// <inheritdoc cref="DocumentManager.GetParagraph(in CaretOffset)"/>
+        public ITextParagraph GetParagraph(in CaretOffset caretOffset)
+            => TextEditorCore.DocumentManager.GetParagraph(caretOffset);
+
+        /// <summary>
+        /// 获取当前光标下的段落
+        /// </summary>
+        /// <returns></returns>
+        public ITextParagraph GetCurrentCaretOffsetParagraph()
+            => TextEditorCore.DocumentManager.GetParagraph(TextEditorCore.CurrentCaretOffset);
+
+        #endregion
+
         /// <summary>
         /// 设置或获取文本编辑器的交互处理器
         /// </summary>

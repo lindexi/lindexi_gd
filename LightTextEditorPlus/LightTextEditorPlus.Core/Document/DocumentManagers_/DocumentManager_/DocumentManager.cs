@@ -289,6 +289,9 @@ namespace LightTextEditorPlus.Core.Document
         /// 获取段落信息
         /// </summary>
         /// <param name="paragraphIndex">段落序号</param>
+        /// <remarks>
+        /// 此方法无需在文本布局之后调用，随时都可以立刻调用，不涉及到布局信息
+        /// </remarks>
         /// <returns></returns>
         public ITextParagraph GetParagraph(ParagraphIndex paragraphIndex) => ParagraphManager.GetParagraph(paragraphIndex);
 
@@ -297,7 +300,9 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="caretOffset"></param>
         /// <returns></returns>
+        /// <remarks>
         /// 此方法无需在文本布局之后调用，随时都可以立刻调用，不涉及到布局信息
+        /// </remarks>
         public ITextParagraph GetParagraph(in CaretOffset caretOffset) =>
             ParagraphManager.GetHitParagraphData(caretOffset).ParagraphData;
 
