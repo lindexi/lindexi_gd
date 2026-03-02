@@ -112,6 +112,10 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         var markdownDocument = Markdown.Parse(markdownText, pipeline);
         var setter = new TextRunPropertySetter(this);
 
+        // 先全部刷成正常文本，但会影响性能
+        var textEditor = this;
+        textEditor.SetRunProperty(NormalTextRunProperty, textEditor.GetAllDocumentSelection());
+
         CodeBlockList.Clear();
 
         foreach (Block block in markdownDocument)
