@@ -174,15 +174,20 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
                 var lineReader = new Markdig.Helpers.LineReader(codeText);
                 StringSlice firstLine = lineReader.ReadLine();
+
+                // 如果是标准的 ```csharp 格式，则首行长度等于 ```（closingFencedCharCount） + csharp（langInfo.Length ） 长度
                 if (firstLine.Length == closingFencedCharCount + (langInfo?.Length ?? 0))
                 {
+                    // 如果条件的情况下，给 csharp（langInfo）添加高亮
                     codeSetter.TrySetRunProperty(CodeLangInfoRunProperty, new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfo?.Length ?? 0));
                 }
 
                 // 准备给代码内容着色
                 // 除了最后一行和开始行之外，其他的部分就是代码部分了
                 var lastLine = firstLine;
-                var codeLine = firstLine;
+                var codeStartLine = firstLine;
+                var codeEndLine = firstLine;
+
                 while (true)
                 {
                     var currentLine = lineReader.ReadLine();
@@ -191,15 +196,16 @@ internal sealed class SimpleWriteTextEditor : TextEditor
                         break;
                     }
 
-                    if (codeLine.Start == firstLine.Start)
+                    if (codeStartLine.Start == firstLine.Start)
                     {
-                        codeLine = currentLine;
+                        codeStartLine = currentLine;
                     }
 
+                    codeEndLine = lastLine;
                     lastLine = currentLine;
                 }
 
-                var innerCodeText = codeText.AsSpan().Slice(codeLine.Start, lastLine.Start- codeLine.Start).ToString();
+                var innerCodeText = codeText.AsSpan().Slice(codeStartLine.Start, codeEndLine.End - codeStartLine.Start + 1).ToString();
             }
         }
 
