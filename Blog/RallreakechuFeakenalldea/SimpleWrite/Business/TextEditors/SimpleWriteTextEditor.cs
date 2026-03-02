@@ -29,6 +29,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Skia;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
 using static Markdig.Syntax.CodeBlock;
 
@@ -214,43 +215,55 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         return new SimpleWriteTextEditorHandler(this);
     }
 
-    public override void Render(DrawingContext context)
+    protected override void Render(in AvaloniaTextEditorDrawingContext context)
     {
-        var viewport = GetViewport();
+        var viewport = context.Viewport;
+        var drawingContext = context.DrawingContext;
 
-        var textEditor = this;
-        if (textEditor.TextEditorCore.TryGetRenderInfo(out var renderInfoProvider))
+        var renderInfoProvider = context.GetRenderInfo();
+        TextRect? mergedCodeBlockBounds = null;
+
+        foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
-            foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
+            var paragraphBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
+
+            if (viewport != null)
             {
-                var paragraphBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
-
-                if (viewport != null)
+                if (!viewport.Value.IntersectsWith(paragraphBounds))
                 {
-                    if (!viewport.Value.IntersectsWith(paragraphBounds))
-                    {
-                        // 不在可见范围内，忽略
-                        continue;
-                    }
+                    // 不在可见范围内，忽略
+                    continue;
                 }
-
-                RenderCodeBlock(in paragraphRenderInfo);
             }
-        }
 
-        base.Render(context);
-
-        void RenderCodeBlock(in ParagraphRenderInfo paragraphRenderInfo)
-        {
-            // 判断段落是否在代码范围内
-            ITextParagraph textParagraph = paragraphRenderInfo.Paragraph;
-            var isInCodeBlock = IsInCodeBlock(textParagraph);
-            if (isInCodeBlock)
+            var textParagraph = paragraphRenderInfo.Paragraph;
+            if (IsInCodeBlock(textParagraph))
             {
                 var outlineBounds = paragraphRenderInfo.ParagraphLayoutData.OutlineBounds;
-                context.DrawRectangle(CodeBackgroundColorBrush, null, outlineBounds.ToSKRect().ToAvaloniaRect());
+                mergedCodeBlockBounds = mergedCodeBlockBounds is { } currentMergedBounds
+                    ? currentMergedBounds.Union(outlineBounds)
+                    : outlineBounds;
+            }
+            else
+            {
+                DrawMergedCodeBlock();
             }
         }
+
+        DrawMergedCodeBlock();
+
+        void DrawMergedCodeBlock()
+        {
+            if (mergedCodeBlockBounds is not { } bounds)
+            {
+                return;
+            }
+
+            drawingContext.DrawRectangle(CodeBackgroundColorBrush, null, bounds.ToSKRect().ToAvaloniaRect());
+            mergedCodeBlockBounds = null;
+        }
+
+        base.Render(in context);
 
         bool IsInCodeBlock(ITextParagraph textParagraph)
         {
