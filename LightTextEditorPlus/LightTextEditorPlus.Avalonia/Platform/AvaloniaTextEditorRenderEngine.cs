@@ -74,11 +74,11 @@ partial class TextEditor
             }
         }
 
-        public void Render(DrawingContext context)
+        public void Render(in AvaloniaTextEditorDrawingContext context)
         {
             TextEditor textEditor = TextEditor;
             //Debug.Assert(!textEditor.IsDirty, "调用此方法的上层必须确保文本非脏");
-            ITextEditorContentSkiaRenderer textEditorSkiaRenderer = GetSkiaRenderer();
+            ITextEditorContentSkiaRenderer textEditorSkiaRenderer = GetSkiaRenderer(in context);
 
             SkiaTextEditor skiaTextEditor = textEditor.SkiaTextEditor;
             //ITextEditorContentSkiaRenderer textEditorSkiaRenderer = skiaTextEditor.GetCurrentTextRender();
@@ -128,7 +128,7 @@ partial class TextEditor
 
             _lastRenderBounds = currentBounds;
 
-            context.Custom(new TextEditorCustomDrawOperation(renderBounds, textEditorSkiaRenderer, toDisposedList));
+            context.DrawingContext.Custom(new TextEditorCustomDrawOperation(renderBounds, textEditorSkiaRenderer, toDisposedList));
 
             if (CanShowCaret)
             {
@@ -140,16 +140,16 @@ partial class TextEditor
                     new CaretAndSelectionRenderContext(textEditor.IsOvertypeMode));
 
                 // 只有编辑模式下才会绘制光标和选择区域
-                context.Custom(new TextEditorCustomDrawOperation(renderBounds,
+                context.DrawingContext.Custom(new TextEditorCustomDrawOperation(renderBounds,
                     caretAndSelectionRender, toDisposedList: null));
             }
         }
 
-        private ITextEditorContentSkiaRenderer GetSkiaRenderer()
+        private ITextEditorContentSkiaRenderer GetSkiaRenderer(in AvaloniaTextEditorDrawingContext context)
         {
             TextEditor textEditor = TextEditor;
 
-            TextRect? viewport = textEditor.GetViewport();
+            TextRect? viewport = context.Viewport;
             if (_lastViewport != viewport)
             {
                 _lastViewport = viewport;
@@ -170,7 +170,7 @@ partial class TextEditor
             }
             else
             {
-                RenderInfoProvider renderInfoProvider = textEditor.GetRenderInfoImmediately();
+                RenderInfoProvider renderInfoProvider = context.GetRenderInfo();
                 _cacheRenderInfoProvider = renderInfoProvider;
 
                 return BuildAndCache(_cacheRenderInfoProvider);

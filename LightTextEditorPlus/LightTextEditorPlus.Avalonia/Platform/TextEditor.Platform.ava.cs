@@ -481,7 +481,7 @@ partial class TextEditor : Control
     }
 
     /// <inheritdoc />
-    public override void Render(DrawingContext context)
+    public sealed override void Render(DrawingContext context)
     {
         if (IsDebugging)
         {
@@ -492,19 +492,25 @@ partial class TextEditor : Control
 
         try
         {
-            //if (TextEditorCore.IsDirty)
-            //{
-            //    ForceRedraw();
-            //}
-            //// 在 ForceLayout 里面会处理脏文本的问题。渲染时候，只能选择强制布局
-            //RenderInfoProvider renderInfoProvider = ForceLayout();
-
-            _renderEngine.Render(context);
+            var drawingContext = new AvaloniaTextEditorDrawingContext(this,context)
+            {
+                Viewport = GetViewport(),
+            };
+            Render(in drawingContext);
         }
         finally
         {
             _isRendering = false;
         }
+    }
+
+    /// <summary>
+    /// 渲染文本内容，子类可以重写以获得渲染时机和执行拦截动作
+    /// </summary>
+    /// <param name="context"></param>
+    protected virtual void Render(in AvaloniaTextEditorDrawingContext context)
+    {
+        _renderEngine.Render(context);
     }
 
     #endregion
