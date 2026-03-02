@@ -158,6 +158,52 @@ public class TextEditorStatusTest
     }
 
     [ContractTestCase]
+    public void TestTryHitTest_Vertical()
+    {
+        "竖排文本命中到字符上半部分时，光标应在字符前".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor();
+            textEditorCore.ArrangingType = ArrangingType.Vertical;
+            textEditorCore.AppendText("ab");
+
+            var lineRenderInfo = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList().First();
+            var firstCharBounds = lineRenderInfo.CharList.First().GetBounds();
+
+            // Action
+            var point = new TextPoint(firstCharBounds.Center.X, firstCharBounds.Top + TextContext.Epsilon);
+            bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
+
+            // Assert
+            Assert.AreEqual(true, result);
+            Assert.AreEqual(new CaretOffset(0, isAtLineStart: true), hitTestResult.HitCaretOffset);
+            Assert.IsNotNull(hitTestResult.HitCharData);
+            Assert.AreEqual("a", hitTestResult.HitCharData.CharObject.ToText());
+        });
+
+        "竖排文本命中到字符下半部分时，光标应在字符后".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor();
+            textEditorCore.ArrangingType = ArrangingType.Vertical;
+            textEditorCore.AppendText("ab");
+
+            var lineRenderInfo = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList().First();
+            var firstCharBounds = lineRenderInfo.CharList.First().GetBounds();
+
+            // Action
+            var point = new TextPoint(firstCharBounds.Center.X, firstCharBounds.Bottom - TextContext.Epsilon);
+            bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
+
+            // Assert
+            Assert.AreEqual(true, result);
+            Assert.AreEqual(new CaretOffset(1), hitTestResult.HitCaretOffset);
+            Assert.IsNotNull(hitTestResult.HitCharData);
+            Assert.AreEqual("a", hitTestResult.HitCharData.CharObject.ToText());
+        });
+    }
+
+    [ContractTestCase]
     public void TestTryHitTest()
     {
         "文本包含空段，命中空段，可返回命中到行首".Test(() =>
