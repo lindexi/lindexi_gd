@@ -48,6 +48,8 @@ class LayoutHitTestProvider
         TextEditor.Logger.Log(new HitTestLogInfo(point, result, logContext));
 
         return result;
+
+        // todo 命中测试处理竖排文本
     }
 
     private TextHitTestResult HitTestInner(in TextPoint point, in TextEditorDebugLogContext logContext)
@@ -158,32 +160,14 @@ class LayoutHitTestProvider
 
             // 在当前行的范围内，对于横排来说，应该再次判断是行的左边还是右边
             TextRect lineContentBounds = lineLayoutData.GetLineContentBounds();
-            var arrangingType = TextEditor.ArrangingType;
-            bool isHitLineStart;
-            bool isHitLineEnd;
-            if (arrangingType.IsHorizontal)
-            {
-                isHitLineStart = point.X <= lineContentBounds.Left;
-                isHitLineEnd = point.X >= lineContentBounds.Right;
-            }
-            else
-            {
-                isHitLineStart = point.Y <= lineContentBounds.Top;
-                isHitLineEnd = point.Y >= lineContentBounds.Bottom;
-
-                if (!isHitLineStart && !isHitLineEnd)
-                {
-                    // 竖排下可能命中到行两侧空白，此时根据命中点在行内的上下位置决定前后
-                    isHitLineStart = point.Y <= lineContentBounds.Center.Y;
-                    isHitLineEnd = !isHitLineStart;
-                }
-            }
+            var isLeft = point.X <= lineContentBounds.Left;
+            var isRight = point.X >= lineContentBounds.Right;
             var lineCharList = lineLayoutData.GetCharList();
 
             CharData? hitCharData = null;
-            if (isHitLineStart)
+            if (isLeft)
             {
-                Debug.Assert(isHitLineEnd == false, "命中到行首侧，就一定不在行末侧");
+                Debug.Assert(isRight == false, "命中到左边，就一定不在右边");
                 // 那就取行首
                 if (lineCharList.Count > 0)
                 {
@@ -192,9 +176,9 @@ class LayoutHitTestProvider
 
                 hitCaretOffset = lineLayoutData.ToCaretOffset(new LineCaretOffset(0));
             }
-            else if (isHitLineEnd)
+            else if (isRight)
             {
-                Debug.Assert(isHitLineStart == false, "命中到行末侧，就一定不在行首侧");
+                Debug.Assert(isLeft == false, "命中到右边，就一定不在左边");
                 // 那就取行末
                 if (lineCharList.Count > 0)
                 {
@@ -228,20 +212,7 @@ class LayoutHitTestProvider
         const bool isInLastLineBounds = false;
 
         // 对于水平布局，顶端对齐来说，应该是只判断上下
-        bool isInTop;
-        if (TextEditor.ArrangingType.IsHorizontal)
-        {
-            isInTop = point.Y < documentLayoutBounds.DocumentContentBounds.Top;
-        }
-        else
-        {
-            // 竖排下，文档前序方向为上方；列方向则与竖排左右流向有关
-            TextRect documentContentBounds = documentLayoutBounds.DocumentContentBounds;
-            bool isBeforeByColumn = TextEditor.ArrangingType.IsLeftToRightVertical
-                ? point.X < documentContentBounds.Left
-                : point.X > documentContentBounds.Right;
-            isInTop = point.Y < documentContentBounds.Top || isBeforeByColumn;
-        }
+        var isInTop = point.Y < documentLayoutBounds.DocumentContentBounds.Top;
 
         if (isInTop)
         {
@@ -306,10 +277,7 @@ class LayoutHitTestProvider
 
                 // 如果是在段落前的情况，取首行命中，否则取末行命中
                 LineLayoutData lineLayoutData;
-                bool isHitParagraphStart = TextEditor.ArrangingType.IsHorizontal
-                    ? (isLeft || isTop)
-                    : (isTop || (TextEditor.ArrangingType.IsLeftToRightVertical ? isLeft : isRight));
-                if (isHitParagraphStart)
+                if (isLeft || isTop)
                 {
                     lineLayoutData = paragraphData.LineLayoutDataList.First();
                 }
@@ -402,39 +370,18 @@ class LayoutHitTestProvider
                 var isRight = point.X >= lineContentBounds.Right;
                 var isTop = point.Y <= lineContentBounds.Top;
                 var isBottom = point.Y >= lineContentBounds.Bottom;
+                _ = isTop;
+                _ = isBottom;
                 CaretOffset hitCaretOffset;
-                bool isHitLineStart;
-                if (TextEditor.ArrangingType.IsHorizontal)
+                if (isLeft)
                 {
-                    isHitLineStart = isLeft;
-                }
-                else
-                {
-                    isHitLineStart = isTop;
-                    if (!isHitLineStart && !isBottom)
-                    {
-                        // 竖排下可能命中到行两侧空白，此时根据命中点在行内的上下位置决定前后
-                        isHitLineStart = point.Y <= lineContentBounds.Center.Y;
-                    }
-                }
-
-                if (isHitLineStart)
-                {
-                    // 点到了行的前侧，那就是行首
+                    // 点到了行的左边，那就是行首
                     var isAtLineStart = true;
                     hitCaretOffset = new CaretOffset(currentCharIndex, isAtLineStart);
                 }
                 else
                 {
-                    if (TextEditor.ArrangingType.IsHorizontal)
-                    {
-                        Debug.Assert(isRight);
-                    }
-                    else
-                    {
-                        Debug.Assert(isBottom || !isTop, "竖排行内空白命中到行末时，命中点应在底部或中下区域");
-                    }
-
+                    Debug.Assert(isRight);
                     // 点到了行的右边，那就是行末
                     var isAtLineStart = false;
                     // 但也可能是空行，空行则证明是空段，此时应该在行首
@@ -455,34 +402,18 @@ class LayoutHitTestProvider
             {
                 var charData = charList[charIndex];
                 var charBounds = charData.GetBounds();
-                TextRect charHitBounds;
-                if (TextEditor.ArrangingType.IsHorizontal)
+                var charHitBounds = charBounds with
                 {
-                    charHitBounds = charBounds with
-                    {
-                        Y = lineContentBounds.Y,
-                        // 字符如果是小字号，字符的范围比较小
-                        Height = lineContentBounds.Height
-                    };
-                }
-                else
-                {
-                    charHitBounds = charBounds with
-                    {
-                        X = lineContentBounds.X,
-                        // 字符如果是小字号，字符的范围比较小
-                        Width = lineContentBounds.Width
-                    };
-                }
+                    Y = lineContentBounds.Y,
+                    // 字符如果是小字号，字符的范围比较小
+                    Height = lineContentBounds.Height
+                };
                 if (charHitBounds.Contains(point))
                 {
                     CaretOffset hitCaretOffset;
-                    // 需要判断命中在字符的前后，也就是前半部分还是后半部分
+                    // 横排的话，需要判断命中在字符的前后，也就是前半部分还是后半部分
                     var center = charHitBounds.Center;
-                    bool isHitCharStart = TextEditor.ArrangingType.IsHorizontal
-                        ? point.X <= center.X
-                        : point.Y <= center.Y;
-                    if (isHitCharStart)
+                    if (point.X <= center.X)
                     {
                         // 在前面
                         hitCaretOffset = new CaretOffset(currentCharIndex, isAtLineStart: charIndex == 0);
