@@ -177,6 +177,25 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
                 // 准备给代码内容着色
                 // 除了最后一行和开始行之外，其他的部分就是代码部分了
+                var lastLine = firstLine;
+                var codeLine = firstLine;
+                while (true)
+                {
+                    var currentLine = lineReader.ReadLine();
+                    if (string.IsNullOrEmpty(currentLine.Text))
+                    {
+                        break;
+                    }
+
+                    if (codeLine.Start == firstLine.Start)
+                    {
+                        codeLine = currentLine;
+                    }
+
+                    lastLine = currentLine;
+                }
+
+                var innerCodeText = codeText.AsSpan().Slice(codeLine.Start, lastLine.Start- codeLine.Start).ToString();
             }
         }
 
