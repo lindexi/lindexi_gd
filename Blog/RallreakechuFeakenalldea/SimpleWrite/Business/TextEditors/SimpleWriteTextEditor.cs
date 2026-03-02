@@ -215,57 +215,55 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         return new SimpleWriteTextEditorHandler(this);
     }
 
-    public override void Render(DrawingContext context)
+    protected override void Render(in AvaloniaTextEditorDrawingContext context)
     {
-        var viewport = GetViewport();
+        var viewport = context.Viewport;
+        var drawingContext = context.DrawingContext;
 
-        var textEditor = this;
-        if (textEditor.TextEditorCore.TryGetRenderInfo(out var renderInfoProvider))
+        var renderInfoProvider = context.GetRenderInfo();
+        TextRect? mergedCodeBlockBounds = null;
+
+        foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
-            TextRect? mergedCodeBlockBounds = null;
+            var paragraphBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
 
-            foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
+            if (viewport != null)
             {
-                var paragraphBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
-
-                if (viewport != null)
+                if (!viewport.Value.IntersectsWith(paragraphBounds))
                 {
-                    if (!viewport.Value.IntersectsWith(paragraphBounds))
-                    {
-                        // 不在可见范围内，忽略
-                        continue;
-                    }
-                }
-
-                var textParagraph = paragraphRenderInfo.Paragraph;
-                if (IsInCodeBlock(textParagraph))
-                {
-                    var outlineBounds = paragraphRenderInfo.ParagraphLayoutData.OutlineBounds;
-                    mergedCodeBlockBounds = mergedCodeBlockBounds is { } currentMergedBounds
-                        ? currentMergedBounds.Union(outlineBounds)
-                        : outlineBounds;
-                }
-                else
-                {
-                    DrawMergedCodeBlock();
+                    // 不在可见范围内，忽略
+                    continue;
                 }
             }
 
-            DrawMergedCodeBlock();
-
-            void DrawMergedCodeBlock()
+            var textParagraph = paragraphRenderInfo.Paragraph;
+            if (IsInCodeBlock(textParagraph))
             {
-                if (mergedCodeBlockBounds is not { } bounds)
-                {
-                    return;
-                }
-
-                context.DrawRectangle(CodeBackgroundColorBrush, null, bounds.ToSKRect().ToAvaloniaRect());
-                mergedCodeBlockBounds = null;
+                var outlineBounds = paragraphRenderInfo.ParagraphLayoutData.OutlineBounds;
+                mergedCodeBlockBounds = mergedCodeBlockBounds is { } currentMergedBounds
+                    ? currentMergedBounds.Union(outlineBounds)
+                    : outlineBounds;
+            }
+            else
+            {
+                DrawMergedCodeBlock();
             }
         }
 
-        base.Render(context);
+        DrawMergedCodeBlock();
+
+        void DrawMergedCodeBlock()
+        {
+            if (mergedCodeBlockBounds is not { } bounds)
+            {
+                return;
+            }
+
+            drawingContext.DrawRectangle(CodeBackgroundColorBrush, null, bounds.ToSKRect().ToAvaloniaRect());
+            mergedCodeBlockBounds = null;
+        }
+
+        base.Render(in context);
 
         bool IsInCodeBlock(ITextParagraph textParagraph)
         {
