@@ -3,8 +3,6 @@ using Avalonia.Media;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
-using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
@@ -24,7 +22,6 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Skia;
@@ -179,6 +176,26 @@ internal sealed class SimpleWriteTextEditor : TextEditor
                 }
 
                 // 准备给代码内容着色
+                // 除了最后一行和开始行之外，其他的部分就是代码部分了
+                var lastLine = firstLine;
+                var codeLine = firstLine;
+                while (true)
+                {
+                    var currentLine = lineReader.ReadLine();
+                    if (string.IsNullOrEmpty(currentLine.Text))
+                    {
+                        break;
+                    }
+
+                    if (codeLine.Start == firstLine.Start)
+                    {
+                        codeLine = currentLine;
+                    }
+
+                    lastLine = currentLine;
+                }
+
+                var innerCodeText = codeText.AsSpan().Slice(codeLine.Start, lastLine.Start- codeLine.Start).ToString();
             }
         }
 
@@ -285,46 +302,4 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             return false;
         }
     }
-}
-
-readonly record struct TextRunPropertySetter(TextEditor TextEditor)
-{
-    public DocumentOffset StartOffset { get; init; } = 0;
-
-    public void SetRunProperty(ConfigRunProperty config, SourceSpan span)
-    {
-        span = span with
-        {
-            Start = span.Start + StartOffset,
-            End = span.End + StartOffset
-        };
-        var selection = SourceSpanToSelection(span);
-
-        TextEditor.TextEditorCore.SetUndoRedoEnable(false, "框架内部设置文本样式，防止将内容动作记录");
-
-        TextEditor.SetRunProperty(config, selection);
-
-        TextEditor.TextEditorCore.SetUndoRedoEnable(true, "完成框架内部设置文本样式，启用撤销恢复");
-    }
-
-    public void TrySetRunProperty(SkiaTextRunProperty runProperty, SourceSpan span)
-    {
-        span = span with
-        {
-            Start = span.Start + StartOffset,
-            End = span.End + StartOffset
-        };
-        var selection = SourceSpanToSelection(span);
-
-        TextEditor.TextEditorCore.SetUndoRedoEnable(false, "框架内部设置文本样式，防止将内容动作记录");
-        IEnumerable<SkiaTextRunProperty> runPropertyRange = TextEditor.GetRunPropertyRange(selection);
-        var same = runPropertyRange.All(t => t == runProperty);
-        if (!same)
-        {
-            TextEditor.SetRunProperty(runProperty, selection);
-        }
-        TextEditor.TextEditorCore.SetUndoRedoEnable(true, "完成框架内部设置文本样式，启用撤销恢复");
-    }
-
-    private Selection SourceSpanToSelection(SourceSpan span) => new Selection(new CaretOffset(span.Start), span.Length);
 }
