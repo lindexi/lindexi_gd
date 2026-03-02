@@ -3,9 +3,11 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 
+using MSTest.Extensions.AssertExtensions;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests.Layout;
@@ -140,6 +142,30 @@ public class LayoutTest
     [ContractTestCase]
     public void TestEmptyParagraph()
     {
+        "横排的空段文本的 ParagraphLayoutData.OutlineBounds 也会包含整个文档的横排宽度，高度为空段文本高度".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor();
+
+            // Action
+            textEditorCore.AppendText("123\n\nabc");
+
+            // Assert
+            RenderInfoProvider renderInfoProvider = textEditorCore.GetRenderInfo();
+            // 一共有三段，其中中间一段是空段
+            var paragraphRenderList = renderInfoProvider.GetParagraphRenderInfoList();
+            Assert.AreEqual(3, paragraphRenderList.Count);
+            // 预期每一段的 OutlineBounds 尺寸都是相同的
+            var firstParagraph = paragraphRenderList[0];
+
+            for (int i = 1; i < paragraphRenderList.Count; i++)
+            {
+                ParagraphRenderInfo paragraphRenderInfo = paragraphRenderList[i];
+                Assert.AreEqual(firstParagraph.ParagraphLayoutData.OutlineBounds.TextSize,
+                    paragraphRenderInfo.ParagraphLayoutData.OutlineBounds.TextSize);
+            }
+        });
+
         "空段文本包含段前段后间距，可以给空段文本计算入段前段后间距".Test(() =>
         {
             // Arrange
