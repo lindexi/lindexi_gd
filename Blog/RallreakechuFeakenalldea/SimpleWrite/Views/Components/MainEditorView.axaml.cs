@@ -143,8 +143,10 @@ public partial class MainEditorView : UserControl
         {
             _currentTextEditor = value;
             TextEditorScrollViewer.Content = value;
+
+            CurrentTextEditorChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
-    // 添加切换文本功能，解决切换标签页之后，没有更新属性的问题
+    public event EventHandler? CurrentTextEditorChanged;
 }
