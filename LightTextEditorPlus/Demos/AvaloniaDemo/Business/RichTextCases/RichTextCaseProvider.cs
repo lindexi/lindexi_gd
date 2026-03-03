@@ -523,6 +523,16 @@ partial class RichTextCaseProvider
 
         }, "测试037d9449-加粗的文本里下标渲染错误");
 
+        Add(editor =>
+        {
+            editor.UseWpfLineSpacingStyle();
+            editor.AppendRun(new SkiaTextRun("rr.", editor.StyleRunProperty with
+            {
+                FontSize = 20,
+                FontName = new FontName("微软雅黑"),
+            }));
+        }, "1d0299-使用 rr.导致字符宽度计算错误");
+
         //Add(editor =>
         //{
         //    editor.UseWpfLineSpacingStyle();
@@ -531,6 +541,6 @@ partial class RichTextCaseProvider
         //        FontSize = 24,
         //        FontName = new FontName("HarmonyOS Sans SC")
         //    }));
-        //}, "测试龙芯鸿蒙运行渲染效果");
+        //}, "测试龙芯鸿蒙字体运行渲染效果");
     }
 }
