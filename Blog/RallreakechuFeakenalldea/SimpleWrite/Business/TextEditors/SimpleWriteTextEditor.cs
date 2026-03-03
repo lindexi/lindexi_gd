@@ -9,6 +9,7 @@ using LightTextEditorPlus.Primitive;
 
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.Snippets;
+using SimpleWrite.Business.TextEditors.Highlighters;
 
 using SkiaSharp;
 
@@ -36,19 +37,19 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         SetStyleTextRunProperty(runProperty => runProperty with
         {
             FontSize = normalFontSize,
-            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(SKColors.Azure)
+            Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
         });
 
         _documentHighlighter = new MarkdownDocumentHighlighter(this);
     }
 
-    public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
-    {
-        ArgumentNullException.ThrowIfNull(documentHighlighter);
+    //public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
+    //{
+    //    ArgumentNullException.ThrowIfNull(documentHighlighter);
 
-        _documentHighlighter = documentHighlighter;
-        ApplyHighlight();
-    }
+    //    _documentHighlighter = documentHighlighter;
+    //    ApplyHighlight();
+    //}
 
     private void TextEditorCore_TextChanged(object? sender, EventArgs e)
     {
@@ -78,8 +79,10 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     protected override void Render(in AvaloniaTextEditorDrawingContext context)
     {
-        _documentHighlighter.Render(in context);
+        _documentHighlighter.RenderBackground(in context);
 
         base.Render(in context);
+
+        _documentHighlighter.RenderForeground(in context);
     }
 }

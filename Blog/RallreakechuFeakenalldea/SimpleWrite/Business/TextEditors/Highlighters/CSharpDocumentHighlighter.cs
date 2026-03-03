@@ -1,6 +1,6 @@
 using LightTextEditorPlus;
 
-namespace SimpleWrite.Business.TextEditors;
+namespace SimpleWrite.Business.TextEditors.Highlighters;
 
 internal sealed class CSharpDocumentHighlighter : IDocumentHighlighter
 {
@@ -16,8 +16,13 @@ internal sealed class CSharpDocumentHighlighter : IDocumentHighlighter
         _plainTextDocumentHighlighter.ApplyHighlight(text);
     }
 
-    public void Render(in AvaloniaTextEditorDrawingContext context)
+    public void RenderBackground(in AvaloniaTextEditorDrawingContext context)
     {
-        _plainTextDocumentHighlighter.Render(in context);
+        _plainTextDocumentHighlighter.RenderBackground(in context);
+    }
+
+    public void RenderForeground(in AvaloniaTextEditorDrawingContext context)
+    {
+        _plainTextDocumentHighlighter.RenderForeground(in context);
     }
 }

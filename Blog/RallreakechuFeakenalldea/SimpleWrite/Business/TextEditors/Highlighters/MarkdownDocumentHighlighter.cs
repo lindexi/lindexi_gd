@@ -19,7 +19,7 @@ using SkiaSharp;
 
 using LightTextEditorPlus.Utils;
 
-namespace SimpleWrite.Business.TextEditors;
+namespace SimpleWrite.Business.TextEditors.Highlighters;
 
 internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
 {
@@ -38,7 +38,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
     {
         _textEditor = textEditor;
 
-        const int normalFontSize = 20;
+        double normalFontSize = textEditor.StyleRunProperty.FontSize;
 
         _normalTextRunProperty = _textEditor.CreateRunProperty(property => property with
         {
@@ -146,7 +146,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
         }
     }
 
-    public void Render(in AvaloniaTextEditorDrawingContext context)
+    public void RenderBackground(in AvaloniaTextEditorDrawingContext context)
     {
         var viewport = context.Viewport;
         var drawingContext = context.DrawingContext;
@@ -189,6 +189,10 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
             drawingContext.DrawRectangle(_codeBackgroundColorBrush, null, bounds.ToSKRect().ToAvaloniaRect());
             mergedCodeBlockBounds = null;
         }
+    }
+
+    public void RenderForeground(in AvaloniaTextEditorDrawingContext context)
+    {
     }
 
     private SkiaTextRunProperty GetTitleLevelRunProperty(int level)
