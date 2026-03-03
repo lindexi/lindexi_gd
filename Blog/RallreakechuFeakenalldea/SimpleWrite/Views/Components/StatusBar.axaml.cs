@@ -36,7 +36,8 @@ public partial class StatusBar : UserControl
         _ = ViewModel;
         base.OnLoaded(e);
 
-        var textEditor = TextEditorInfo.GetTextEditorInfo(this).CurrentTextEditor;
+        var textEditorInfo = TextEditorInfo.GetTextEditorInfo(this);
+        var textEditor = textEditorInfo.CurrentTextEditor;
         _currentTextEditor = textEditor;
 
         _currentTextEditor.CurrentSelectionChanged += CurrentTextEditor_CurrentSelectionChanged;

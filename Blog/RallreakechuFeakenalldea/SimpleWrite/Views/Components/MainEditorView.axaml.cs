@@ -90,7 +90,7 @@ public partial class MainEditorView : UserControl
         {
             UpdateEditorModel(textEditor, editorModel);
         };
-       
+
         return textEditor;
     }
 
@@ -145,4 +145,6 @@ public partial class MainEditorView : UserControl
             TextEditorScrollViewer.Content = value;
         }
     }
+
+    // 添加切换文本功能，解决切换标签页之后，没有更新属性的问题
 }
