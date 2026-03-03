@@ -302,9 +302,9 @@ namespace D3D11MediaFoundation
             return 0;
         }
 
-        protected override LRESULT OnResize(HWND hWnd, WPARAM wParam, LPARAM lParam, WindowSizingTypes sizingType, int width, int height)
+        protected override LRESULT OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam, WindowSizingTypes sizingType, int width, int height)
         {
-            base.OnResize(hWnd, wParam, lParam, sizingType, width, height);
+            base.OnSize(hWnd, wParam, lParam, sizingType, width, height);
             if (sizingType != WindowSizingTypes.SIZE_MINIMIZED)
             {
                 CreateVideoProcessor(width, height);
