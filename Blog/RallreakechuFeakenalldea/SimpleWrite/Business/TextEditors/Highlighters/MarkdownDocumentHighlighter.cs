@@ -94,7 +94,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
     {
         var setter = new TextRunPropertySetter(_textEditor);
 
-        _textEditor.SetRunProperty(_normalTextRunProperty, _textEditor.TextEditorCore.GetAllDocumentSelection());
+        setter.TrySetRunProperty(_normalTextRunProperty, _textEditor.TextEditorCore.GetAllDocumentSelection());
 
         var markdownDocument = Markdown.Parse(markdownText, MarkdownPipeline);
         _codeBlockList.Clear();

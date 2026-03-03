@@ -37,6 +37,16 @@ readonly record struct TextRunPropertySetter(TextEditor TextEditor)
         };
         var selection = SourceSpanToSelection(span);
 
+        TrySetRunProperty(runProperty, in selection);
+    }
+
+    /// <summary>
+    /// 尝试设置字符属性
+    /// </summary>
+    /// <param name="runProperty"></param>
+    /// <param name="selection">绝对坐标，不会叠加 <see cref="StartOffset"/> 属性</param>
+    public void TrySetRunProperty(SkiaTextRunProperty runProperty, in Selection selection)
+    {
         TextEditor.TextEditorCore.SetUndoRedoEnable(false, "框架内部设置文本样式，防止将内容动作记录");
         IEnumerable<SkiaTextRunProperty> runPropertyRange = TextEditor.GetRunPropertyRange(selection);
         var same = runPropertyRange.All(t => t == runProperty);
