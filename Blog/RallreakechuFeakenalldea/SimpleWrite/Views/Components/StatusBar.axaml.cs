@@ -37,7 +37,21 @@ public partial class StatusBar : UserControl
         base.OnLoaded(e);
 
         var textEditorInfo = TextEditorInfo.GetTextEditorInfo(this);
-        var textEditor = textEditorInfo.CurrentTextEditor;
+        TextEditor textEditor = textEditorInfo.CurrentTextEditor;
+        UpdateTextEditor(textEditor);
+
+        textEditorInfo.CurrentTextEditorChanged += TextEditorInfo_OnCurrentTextEditorChanged;
+    }
+
+    private void TextEditorInfo_OnCurrentTextEditorChanged(object? sender, EventArgs e)
+    {
+        var textEditorInfo = TextEditorInfo.GetTextEditorInfo(this);
+        TextEditor textEditor = textEditorInfo.CurrentTextEditor;
+        UpdateTextEditor(textEditor);
+    }
+
+    private void UpdateTextEditor(TextEditor textEditor)
+    {
         _currentTextEditor = textEditor;
 
         _currentTextEditor.CurrentSelectionChanged += CurrentTextEditor_CurrentSelectionChanged;

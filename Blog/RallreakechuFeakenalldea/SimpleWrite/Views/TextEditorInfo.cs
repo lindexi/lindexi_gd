@@ -1,6 +1,10 @@
 ﻿using Avalonia;
+
 using LightTextEditorPlus;
+
 using SimpleWrite.Views.Components;
+
+using System;
 
 namespace SimpleWrite.Views;
 
@@ -9,7 +13,15 @@ public class TextEditorInfo
     public TextEditorInfo(MainEditorView mainEditorView)
     {
         _mainEditorView = mainEditorView;
+        _mainEditorView.CurrentTextEditorChanged += MainEditorView_CurrentTextEditorChanged;
     }
+
+    private void MainEditorView_CurrentTextEditorChanged(object? sender, System.EventArgs e)
+    {
+        CurrentTextEditorChanged?.Invoke(sender, e);
+    }
+
+    public event EventHandler? CurrentTextEditorChanged;
 
     public TextEditor CurrentTextEditor => _mainEditorView.CurrentTextEditor;
 
