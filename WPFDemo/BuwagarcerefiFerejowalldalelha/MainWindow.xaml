@@ -1,0 +1,26 @@
+<Window x:Class="BuwagarcerefiFerejowalldalelha.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BuwagarcerefiFerejowalldalelha"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        x:Name="Root">
+    <Grid>
+        <StackPanel x:Name="MainStackPanel">
+            <TextBlock Margin="30">
+                <Hyperlink>HyperLink outside</Hyperlink>
+            </TextBlock>
+            <DataGrid IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridHyperlinkColumn ContentBinding="{Binding Path=Button}"></DataGridHyperlinkColumn>
+                </DataGrid.Columns>
+                <DataGrid.Items>
+                    <local:Model></local:Model>
+                </DataGrid.Items>
+            </DataGrid>
+        </StackPanel>
+    </Grid>
+</Window>
