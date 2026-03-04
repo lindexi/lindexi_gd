@@ -234,16 +234,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             {
                 D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
 
-                renderTarget.BeginDraw();
+                //renderTarget.BeginDraw();
 
-                renderTarget.Clear(Colors.White);
+                //renderTarget.Clear(Colors.White);
 
-                var position = _position;
+                //var position = _position;
 
-                var rectangleSize = 50;
-                renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y, rectangleSize, rectangleSize), brush);
+                //var rectangleSize = 50;
+                //renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y, rectangleSize, rectangleSize), brush);
 
-                renderTarget.EndDraw();
+                //renderTarget.EndDraw();
             }
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
@@ -328,7 +328,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
             AlphaMode = AlphaMode.Ignore,
-            Flags = SwapChainFlags.FrameLatencyWaitableObject, // 核心设置
+            //Flags = SwapChainFlags.FrameLatencyWaitableObject, // 核心设置
         };
 
         var fullscreenDescription = new SwapChainFullscreenDescription()
@@ -340,9 +340,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
         swapChain1.Dispose();
 
-        swapChain2.MaximumFrameLatency = 1;
-        var waitableObject = swapChain2.FrameLatencyWaitableObject;
-        _ = waitableObject;
+        //swapChain2.MaximumFrameLatency = 1;
+        //var waitableObject = swapChain2.FrameLatencyWaitableObject;
+        //_ = waitableObject;
         // 可以通过 WaitForSingleObjectEx 进行等待
 
         // 不要被按下 alt+enter 进入全屏
