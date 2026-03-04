@@ -286,6 +286,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 _renderContext.SwapChain.Present(1, PresentFlags.None);
                 _renderContext.D3D11DeviceContext1.Flush();
             }
+
+            // 加上 DwmFlush 之后，可以降低延迟
+            //DwmFlush();
         }
     }
 

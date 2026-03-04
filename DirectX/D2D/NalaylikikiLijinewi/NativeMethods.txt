@@ -12,11 +12,10 @@ RegisterClassEx
 GetModuleHandle
 LoadCursor
 IDC_ARROW
-WndProc
 CreateWindowEx
 CW_USEDEFAULT
 ShowWindow
-SW_SHOW
+SW_SHOW_CMD
 GetMessage
 TranslateMessage
 DispatchMessage
@@ -35,3 +34,4 @@ WM_POINTERUPDATE
 GetPointerTouchInfo
 GetPointerDeviceRects
 ClientToScreen
+DwmFlush
