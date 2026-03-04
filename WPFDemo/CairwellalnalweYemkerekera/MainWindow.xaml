@@ -22,7 +22,19 @@
             </TextBlock>
             <DataGrid IsReadOnly="True">
                 <DataGrid.Columns>
-                    <DataGridHyperlinkColumn Binding="{Binding}"></DataGridHyperlinkColumn>
+                    <DataGridTemplateColumn>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <TextBlock>
+                                        <Run Text="text with "></Run>
+                                        <Run FontWeight="Bold" Text="Strongger "></Run>
+                                        <Run Text="content"></Run>
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn ElementStyle="{StaticResource elementStyle}" Binding="{Binding}"></DataGridTextColumn>
                 </DataGrid.Columns>
                 <DataGrid.Items>
