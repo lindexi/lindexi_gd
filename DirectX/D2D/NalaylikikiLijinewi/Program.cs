@@ -203,8 +203,11 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         using D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
 
+        var fps = new Fps();
+
         while (!_isDisposed)
         {
+            fps.Record();
             if (_isReSize)
             {
                 // 处理窗口大小变化
@@ -288,7 +291,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             }
 
             // 加上 DwmFlush 之后，可以降低延迟
-            //DwmFlush();
+            DwmFlush();
         }
     }
 
