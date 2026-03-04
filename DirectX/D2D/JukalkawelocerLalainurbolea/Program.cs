@@ -1,6 +1,6 @@
 // See https://aka.ms/new-console-template for more information
 
-using NalaylikikiLijinewi.Diagnostics;
+using JukalkawelocerLalainurbolea.Diagnostics;
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 
 using Vortice.DCommon;
@@ -16,26 +17,32 @@ using Vortice.Direct3D11;
 using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
+using Vortice.Win32;
 
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
-using Windows.Win32.UI.Controls;
 using Windows.Win32.UI.Input.Pointer;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 using static Windows.Win32.PInvoke;
 
 using AlphaMode = Vortice.DXGI.AlphaMode;
+using Color = Vortice.Mathematics.Color;
 using D2D = Vortice.Direct2D1;
 
-namespace NalaylikikiLijinewi;
+namespace JukalkawelocerLalainurbolea;
 
 class Program
 {
     [STAThread]
-    static unsafe void Main(string[] args)
+    static void Main(string[] args)
     {
+        if (!OperatingSystem.IsWindowsVersionAtLeast(8, 1))
+        {
+            return;
+        }
+
         var demoWindow = new DemoWindow();
         demoWindow.Run();
 
@@ -43,6 +50,7 @@ class Program
     }
 }
 
+[SupportedOSPlatform("windows8.1")]
 class DemoWindow
 {
     public DemoWindow()
@@ -53,8 +61,10 @@ class DemoWindow
         // 让鼠标也引发 WM_Pointer 事件
         EnableMouseInPointer(true);
 
-        ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
+        // 最大化显示窗口
+        ShowWindow(window, SHOW_WINDOW_CMD.SW_SHOW);
 
+        // 独立渲染线程
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
         renderManager.StartRenderThread();
@@ -82,19 +92,15 @@ class DemoWindow
         }
     }
 
-    private WNDPROC _myInstanceWndProc;
+    /// <summary>
+    /// 仅用于防止被回收
+    /// </summary>
+    /// <returns></returns>
+    private WNDPROC? _wndProcDelegate;
 
     private unsafe HWND CreateWindow()
     {
-        DwmIsCompositionEnabled(out var compositionEnabled);
-
-        if (!compositionEnabled)
-        {
-            Console.WriteLine($"无法启用透明窗口效果");
-        }
-
-        // [Windows 窗口样式 什么是 WS_EX_NOREDIRECTIONBITMAP 样式](https://blog.lindexi.com/post/Windows-%E7%AA%97%E5%8F%A3%E6%A0%B7%E5%BC%8F-%E4%BB%80%E4%B9%88%E6%98%AF-WS_EX_NOREDIRECTIONBITMAP-%E6%A0%B7%E5%BC%8F.html )
-        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_APPWINDOW;
 
         var style = WNDCLASS_STYLES.CS_OWNDC | WNDCLASS_STYLES.CS_HREDRAW | WNDCLASS_STYLES.CS_VREDRAW;
 
@@ -103,15 +109,15 @@ class DemoWindow
 
         var className = $"lindexi-{Guid.NewGuid().ToString()}";
         var title = "The Title";
-        _myInstanceWndProc = new WNDPROC(WndProc);
         fixed (char* pClassName = className)
         fixed (char* pTitle = title)
         {
+            _wndProcDelegate = new WNDPROC(WndProc);
             var wndClassEx = new WNDCLASSEXW
             {
                 cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
-                lpfnWndProc = _myInstanceWndProc,
+                lpfnWndProc = _wndProcDelegate,
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
                 hCursor = defaultCursor,
                 hbrBackground = new HBRUSH(IntPtr.Zero),
@@ -119,7 +125,7 @@ class DemoWindow
             };
             ushort atom = RegisterClassEx(in wndClassEx);
 
-            var dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE;
+            WINDOW_STYLE dwStyle = WINDOW_STYLE.WS_OVERLAPPEDWINDOW | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_CAPTION | WINDOW_STYLE.WS_SYSMENU | WINDOW_STYLE.WS_MINIMIZEBOX | WINDOW_STYLE.WS_CLIPCHILDREN | WINDOW_STYLE.WS_BORDER | WINDOW_STYLE.WS_DLGFRAME | WINDOW_STYLE.WS_THICKFRAME | WINDOW_STYLE.WS_TABSTOP | WINDOW_STYLE.WS_SIZEBOX;
 
             var windowHwnd = CreateWindowEx(
                 exStyle,
@@ -135,11 +141,6 @@ class DemoWindow
 
     private unsafe LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
-        if ((WindowsMessage) message == WindowsMessage.WM_SIZE)
-        {
-            _renderManager?.ReSize();
-        }
-
         if (message == WM_POINTERUPDATE /*Pointer Update*/)
         {
             var pointerId = (uint) (ToInt32(wParam) & 0xFFFF);
@@ -165,7 +166,7 @@ class DemoWindow
             x -= screenTranslate.X;
             y -= screenTranslate.Y;
 
-            _renderManager?.Move(x, y);
+            _renderManager.Move(x, y);
         }
 
         return DefWindowProc(hwnd, message, wParam, lParam);
@@ -175,6 +176,7 @@ class DemoWindow
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 }
 
+[SupportedOSPlatform("windows8.1")]
 unsafe class RenderManager(HWND hwnd) : IDisposable
 {
     public HWND HWND => hwnd;
@@ -203,79 +205,39 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         using D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
 
-        var fps = new Fps();
+        IDXGISwapChain2 swapChain2 = _renderContext.SwapChain;
+        var d3D11Texture2D = swapChain2.GetBuffer<ID3D11Texture2D>(0);
+        using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
+        var renderTargetProperties = new D2D.RenderTargetProperties()
+        {
+            PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
+            Type = D2D.RenderTargetType.Hardware,
+        };
+
+        D2D.ID2D1RenderTarget d2D1RenderTarget =
+            d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
+
+        //var waitableObject = swapChain2.FrameLatencyWaitableObject;
+
+        using var brush = d2D1RenderTarget.CreateSolidColorBrush(Colors.Yellow);
 
         while (!_isDisposed)
         {
-            fps.Record();
-            if (_isReSize)
-            {
-                // 处理窗口大小变化
-                _isReSize = false;
-
-                if (_renderInfo is not null)
-                {
-                    _renderInfo.Value.Dispose();
-                    _renderInfo = null;
-                }
-
-                GetClientRect(HWND, out var pClientRect);
-                var clientSize = new SizeI(pClientRect.right - pClientRect.left, pClientRect.bottom - pClientRect.top);
-
-                var swapChain = _renderContext.SwapChain;
-
-                var result = swapChain.ResizeBuffers(FrameCount,
-                    (uint) (clientSize.Width),
-                    (uint) (clientSize.Height),
-                    _colorFormat,
-                    SwapChainFlags.None
-                );
-                result.CheckError();
-
-                _renderContext = _renderContext with
-                {
-                    WindowWidth = (uint) clientSize.Width,
-                    WindowHeight = (uint) clientSize.Height
-                };
-            }
-
-            if (_renderInfo is null)
-            {
-                var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
-
-                using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
-                var renderTargetProperties = new D2D.RenderTargetProperties()
-                {
-                    PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
-                    Type = D2D.RenderTargetType.Hardware,
-                };
-
-                D2D.ID2D1RenderTarget d2D1RenderTarget =
-                    d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
-
-                _renderInfo = new RenderInfo()
-                {
-                    D3D11Texture2D = d3D11Texture2D,
-                    D2D1RenderTarget = d2D1RenderTarget,
-                };
-            }
+            //using (StepPerformanceCounter.RenderThreadCounter.StepStart("FrameLatencyWaitableObject"))
+            //{
+            //    WaitForSingleObjectEx(new HANDLE(waitableObject), 1000, true);
+            //}
 
             // 渲染代码写在这里
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
             {
-                var d2D1RenderTarget = _renderInfo.Value.D2D1RenderTarget;
-
                 D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
 
                 renderTarget.BeginDraw();
 
-                //var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                //    Random.Shared.NextSingle(), 0.1f);
-                //renderTarget.Clear(color);
-                renderTarget.Clear(Colors.Transparent);
+                renderTarget.Clear(Colors.White);
 
-                using var brush = renderTarget.CreateSolidColorBrush(Colors.Yellow);
                 var position = _position;
 
                 var rectangleSize = 50;
@@ -286,21 +248,10 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
-                _renderContext.SwapChain.Present(1, PresentFlags.None);
-                _renderContext.D3D11DeviceContext1.Flush();
+                swapChain2.Present(1, PresentFlags.None);
             }
-
-            // 加上 DwmFlush 之后，可以降低延迟
-            DwmFlush();
         }
     }
-
-    public void ReSize()
-    {
-        _isReSize = true;
-    }
-
-    private bool _isReSize;
 
     private void Init()
     {
@@ -376,35 +327,23 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             SampleDescription = SampleDescription.Default,
             Scaling = Scaling.Stretch,
             SwapEffect = SwapEffect.FlipSequential, // 使用 FlipSequential 配合 Composition
-            AlphaMode = AlphaMode.Premultiplied,
-            Flags = SwapChainFlags.None,
+            AlphaMode = AlphaMode.Ignore,
+            Flags = SwapChainFlags.FrameLatencyWaitableObject, // 核心设置
         };
 
-        // 使用 DirectComposition 才能支持透明窗口
-
-        var swapChain =
-            // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
-            dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
-
-        // 创建 DirectComposition 设备和目标
-        IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
-        IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
-        compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
-
-        // 创建视觉对象并设置 SwapChain 作为内容
-        IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
-        compositionVisual.SetContent(swapChain);
-        compositionTarget.SetRoot(compositionVisual);
-        compositionDevice.Commit();
-
-        dxgiDevice.Dispose();
-
-        _renderContext = new RenderContext()
+        var fullscreenDescription = new SwapChainFullscreenDescription()
         {
-            CompositionDevice = compositionDevice,
-            CompositionTarget = compositionTarget,
-            CompositionVisual = compositionVisual,
+            Windowed = true,
         };
+        IDXGISwapChain1 swapChain1 = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription, fullscreenDescription);
+
+        IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
+        swapChain1.Dispose();
+
+        swapChain2.MaximumFrameLatency = 1;
+        var waitableObject = swapChain2.FrameLatencyWaitableObject;
+        _ = waitableObject;
+        // 可以通过 WaitForSingleObjectEx 进行等待
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND,
@@ -416,7 +355,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             HardwareAdapter = hardwareAdapter,
             D3D11Device1 = d3D11Device1,
             D3D11DeviceContext1 = d3D11DeviceContext1,
-            SwapChain = swapChain,
+            SwapChain = swapChain2,
 
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
@@ -479,8 +418,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
     private RenderContext _renderContext;
 
-    private RenderInfo? _renderInfo;
-
     public void Dispose()
     {
         _renderContext.Dispose();
@@ -507,33 +444,19 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     record Position(double X, double Y);
 }
 
-readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, D2D.ID2D1RenderTarget D2D1RenderTarget) : IDisposable
-{
-    public void Dispose()
-    {
-        D2D1RenderTarget.Dispose();
-        D3D11Texture2D.Dispose();
-    }
-};
 
 readonly record struct RenderContext(
     IDXGIFactory2 DXGIFactory2,
     IDXGIAdapter1 HardwareAdapter,
     ID3D11Device1 D3D11Device1,
     ID3D11DeviceContext1 D3D11DeviceContext1,
-    IDXGISwapChain1 SwapChain,
-    IDCompositionDevice? CompositionDevice,
-    IDCompositionTarget? CompositionTarget,
-    IDCompositionVisual? CompositionVisual) : IDisposable
+    IDXGISwapChain2 SwapChain) : IDisposable
 {
     public uint WindowWidth { get; init; }
     public uint WindowHeight { get; init; }
 
     public void Dispose()
     {
-        CompositionVisual?.Dispose();
-        CompositionTarget?.Dispose();
-        CompositionDevice?.Dispose();
         DXGIFactory2.Dispose();
         HardwareAdapter.Dispose();
         D3D11Device1.Dispose();
