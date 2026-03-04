@@ -3,33 +3,24 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 
 using Vortice.DCommon;
-using Vortice.Direct2D1;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
-using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
-using Vortice.Win32;
 
-using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
-using Windows.Win32.UI.Input.Pointer;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 using static Windows.Win32.PInvoke;
 
 using AlphaMode = Vortice.DXGI.AlphaMode;
-using Color = Vortice.Mathematics.Color;
 using D2D = Vortice.Direct2D1;
 
 namespace JecekelbereLaiwharhowhelli;
