@@ -2,12 +2,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+
 using LightTextEditorPlus.Demo.Business.RichTextCases;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.FontManagers;
@@ -43,6 +46,31 @@ public partial class TextEditorDebugView : UserControl
 
             // 调试代码
             RichTextCaseProvider.Debug();
+        }
+
+        TextEditorGrid.PointerWheelChanged += TextEditorGrid_OnPointerWheelChanged;
+
+        void TextEditorGrid_OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+        {
+            if ((e.KeyModifiers & KeyModifiers.Control) == 0)
+            {
+                return;
+            }
+
+            if (TextEditorGrid.RenderTransform is not ScaleTransform scaleTransform)
+            {
+                scaleTransform = new ScaleTransform();
+                TextEditorGrid.RenderTransform = scaleTransform;
+                TextEditorGrid.RenderTransformOrigin = new RelativePoint(0, 0, RelativeUnit.Relative);
+            }
+
+            var delta = e.Delta.Y / 10;
+
+            scaleTransform.ScaleX += delta;
+            scaleTransform.ScaleY += delta;
+
+            scaleTransform.ScaleX = Math.Max(0.1, scaleTransform.ScaleX);
+            scaleTransform.ScaleY = Math.Max(0.1, scaleTransform.ScaleY);
         }
     }
 
