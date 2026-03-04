@@ -40,10 +40,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         double normalFontSize = textEditor.StyleRunProperty.FontSize;
 
-        _normalTextRunProperty = _textEditor.CreateRunProperty(property => property with
-        {
-            FontSize = normalFontSize
-        });
+        _normalTextRunProperty = textEditor.StyleRunProperty;
 
         var titleLevel1RunProperty = _textEditor.CreateRunProperty(property => property with
         {
