@@ -510,7 +510,7 @@ partial class TextEditor : Control
     /// <param name="context"></param>
     protected virtual void Render(in AvaloniaTextEditorDrawingContext context)
     {
-        _renderEngine.Render(context);
+        _renderEngine.Render(in context);
     }
 
     #endregion
