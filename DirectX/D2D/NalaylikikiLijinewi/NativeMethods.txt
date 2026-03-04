@@ -22,7 +22,6 @@ TranslateMessage
 DispatchMessage
 DefWindowProc
 GetClientRect
-WM
 WM_PAINT
 GetWindowLong
 SetWindowLong
@@ -31,3 +30,8 @@ UpdateLayeredWindow
 DwmExtendFrameIntoClientArea
 DCompositionCreateDevice
 NCCALCSIZE_PARAMS
+EnableMouseInPointer
+WM_POINTERUPDATE
+GetPointerTouchInfo
+GetPointerDeviceRects
+ClientToScreen

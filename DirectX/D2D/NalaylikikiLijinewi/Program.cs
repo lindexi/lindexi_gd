@@ -1,6 +1,7 @@
 // See https://aka.ms/new-console-template for more information
 
 using NalaylikikiLijinewi.Diagnostics;
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,18 +9,23 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+
+using Vortice.DCommon;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
+using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
+
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Controls;
+using Windows.Win32.UI.Input.Pointer;
 using Windows.Win32.UI.WindowsAndMessaging;
-using Vortice.DCommon;
-using Vortice.DirectComposition;
+
 using static Windows.Win32.PInvoke;
+
 using AlphaMode = Vortice.DXGI.AlphaMode;
 using D2D = Vortice.Direct2D1;
 
@@ -43,6 +49,10 @@ class DemoWindow
     {
         var window = CreateWindow();
         HWND = window;
+
+        // 让鼠标也引发 WM_Pointer 事件
+        EnableMouseInPointer(true);
+
         ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
 
         var renderManager = new RenderManager(window);
@@ -123,15 +133,46 @@ class DemoWindow
         }
     }
 
-    private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
+    private unsafe LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
         if ((WindowsMessage) message == WindowsMessage.WM_SIZE)
         {
             _renderManager?.ReSize();
         }
 
+        if (message == WM_POINTERUPDATE /*Pointer Update*/)
+        {
+            var pointerId = (uint) (ToInt32(wParam) & 0xFFFF);
+
+            global::Windows.Win32.Foundation.RECT pointerDeviceRect = default;
+            global::Windows.Win32.Foundation.RECT displayRect = default;
+
+            GetPointerTouchInfo(pointerId, out POINTER_TOUCH_INFO pointerTouchInfo);
+
+            var pointerInfo = pointerTouchInfo.pointerInfo;
+
+            GetPointerDeviceRects(pointerInfo.sourceDevice, &pointerDeviceRect, &displayRect);
+
+            var x =
+                pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width +
+                displayRect.left;
+            var y = pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height +
+                    displayRect.top;
+
+            var screenTranslate = new Point(0, 0);
+            ClientToScreen(HWND, ref screenTranslate);
+
+            x -= screenTranslate.X;
+            y -= screenTranslate.Y;
+
+            _renderManager?.Move(x, y);
+        }
+
         return DefWindowProc(hwnd, message, wParam, lParam);
     }
+
+    private static int ToInt32(WPARAM wParam) => ToInt32((IntPtr) wParam.Value);
+    private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 }
 
 unsafe class RenderManager(HWND hwnd) : IDisposable
@@ -226,9 +267,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 renderTarget.BeginDraw();
 
-                var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                    Random.Shared.NextSingle(), 0.1f);
-                renderTarget.Clear(color);
+                //var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
+                //    Random.Shared.NextSingle(), 0.1f);
+                //renderTarget.Clear(color);
+                renderTarget.Clear(Colors.Transparent);
+
+                using var brush = renderTarget.CreateSolidColorBrush(Colors.Yellow);
+                var position = _position;
+
+                var rectangleSize = 50;
+                renderTarget.FillRectangle(new Rect((float) position.X, (float) position.Y, rectangleSize, rectangleSize), brush);
 
                 renderTarget.EndDraw();
             }
@@ -434,6 +482,23 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     }
 
     private bool _isDisposed;
+
+    public void Move(double x, double y)
+    {
+        _position = new Position(x, y);
+    }
+
+    private Position _position = new Position(0, 0);
+
+    /// <summary>
+    /// 表示当前的位置
+    /// </summary>
+    /// <param name="X"></param>
+    /// <param name="Y"></param>
+    /// <remarks>
+    /// 为什么需要选用 record 引用 class 类型，而不是 struct 结构体值类型？这是为了在渲染线程和 UI 线程之间共享这个位置数据。由于 record class 是引用类型，所以在两个线程之间共享时，不需要担心值类型的复制问题，完全原子化，不存在多线程安全问题
+    /// </remarks>
+    record Position(double X, double Y);
 }
 
 readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, D2D.ID2D1RenderTarget D2D1RenderTarget) : IDisposable
