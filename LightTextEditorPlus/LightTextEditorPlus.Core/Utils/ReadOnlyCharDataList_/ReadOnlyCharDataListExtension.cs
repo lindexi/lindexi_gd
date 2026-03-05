@@ -2,9 +2,11 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 
@@ -177,29 +179,90 @@ public static class ReadOnlyCharDataListExtension
         }
 
         var count = 1;
-        var current = charList[0];
-        for (int i = 1; i < charList.Count; i++)
+
+        if (checker is null)
         {
-            var next = charList[i];
-            if (checker is null)
+            var current = charList[0];
+            var currentStrongDirection = GetStrongFlowDirection(charList[0]);
+            for (int i = 1; i < charList.Count; i++)
             {
+                var next = charList[i];
                 if (!current.RunProperty.Equals(next.RunProperty))
                 {
                     break;
                 }
+
+                var nextStrongDirection = GetStrongFlowDirection(next);
+                if (nextStrongDirection.HasValue)
+                {
+                    if (currentStrongDirection.HasValue && currentStrongDirection.Value != nextStrongDirection.Value)
+                    {
+                        break;
+                    }
+
+                    currentStrongDirection = nextStrongDirection;
+                }
+
+                count++;
+                current = next;
             }
-            else
+        }
+        else
+        {
+            var current = charList[0];
+            for (int i = 1; i < charList.Count; i++)
             {
+                var next = charList[i];
                 if (!checker(current, next))
                 {
                     break;
                 }
+
+                count++;
+                current = next;
             }
-            count++;
-            current = next; // 这步有些多余，但是为了代码的可读性，还是加上了。为什么多余？因此此时 current 必定和 next 相等
         }
 
         return charList.Slice(0, count);
+    }
+
+    /// <summary>
+    /// 获取当前的文本方向
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <returns></returns>
+    private static FlowDirection? GetStrongFlowDirection(CharData charData)
+    {
+        var rune = charData.CharObject.CodePoint.Rune;
+        UnicodeCategory category = Rune.GetUnicodeCategory(rune);
+
+        if (category is not (UnicodeCategory.UppercaseLetter
+            or UnicodeCategory.LowercaseLetter
+            or UnicodeCategory.TitlecaseLetter
+            or UnicodeCategory.ModifierLetter
+            or UnicodeCategory.OtherLetter))
+        {
+            return null;
+        }
+
+        return IsRightToLeftScript(charData.CharObject.CodePoint.Value)
+            ? FlowDirection.RightToLeft
+            : FlowDirection.LeftToRight;
+    }
+
+    /// <summary>
+    /// 是否在从右到左范围内
+    /// </summary>
+    /// <param name="codePoint"></param>
+    /// <returns></returns>
+    private static bool IsRightToLeftScript(int codePoint)
+    {
+        return codePoint is
+            >= 0x0590 and <= 0x08FF // Hebrew, Arabic, Syriac, Thaana 等
+            or >= 0xFB1D and <= 0xFDFF // Hebrew/Arabic Presentation Forms-A
+            or >= 0xFE70 and <= 0xFEFF // Arabic Presentation Forms-B
+            or >= 0x1E900 and <= 0x1E95F // Adlam
+            or >= 0x1EE00 and <= 0x1EEFF; // Arabic Mathematical Alphabetic Symbols
     }
 }
 
