@@ -74,8 +74,6 @@ public partial class MainEditorView : UserControl
         CurrentTextEditor = textEditor;
     }
 
-    
-
     private TextEditor _currentTextEditor = null!;
 
     public TextEditor CurrentTextEditor
