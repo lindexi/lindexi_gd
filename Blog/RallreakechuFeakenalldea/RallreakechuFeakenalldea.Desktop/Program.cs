@@ -1,8 +1,10 @@
+using Avalonia;
+
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Avalonia;
+using System.Text;
 
 namespace RallreakechuFeakenalldea.Desktop;
 
@@ -14,6 +16,7 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         RunAvalonia(args);
     }
 

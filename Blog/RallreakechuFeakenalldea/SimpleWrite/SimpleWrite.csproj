@@ -17,6 +17,8 @@
     <PackageReference Include="dotnetCampus.Configurations" Version="1.9.1" />
 
     <PackageReference Include="Markdig" Version="1.0.0" />
+
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
