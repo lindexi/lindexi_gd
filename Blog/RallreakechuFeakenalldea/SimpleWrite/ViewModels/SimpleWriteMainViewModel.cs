@@ -34,12 +34,14 @@ public class SimpleWriteMainViewModel
 
         void AddSaveStatusChanged(EditorModel editorModel)
         {
+            StatusViewModel.SaveStatus = editorModel.SaveStatus;
+
             editorModel.SaveStatusChanged -= EditorModelOnSaveStatusChanged;
             editorModel.SaveStatusChanged += EditorModelOnSaveStatusChanged;
 
             void EditorModelOnSaveStatusChanged(object? sender, EventArgs e)
             {
-                StatusViewModel.IsSaving = editorModel.SaveStatus;
+                StatusViewModel.SaveStatus = editorModel.SaveStatus;
             }
         }
     }

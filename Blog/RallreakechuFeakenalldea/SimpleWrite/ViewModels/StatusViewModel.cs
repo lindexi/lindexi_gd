@@ -8,25 +8,25 @@ public class StatusViewModel : ViewModelBase
 {
     public SimpleWriteMainViewModel? MainViewModel { get; init; }
 
-    public SaveStatus IsSaving
+    public SaveStatus SaveStatus
     {
-        get => _isSaving;
+        get => _saveStatus;
         set
         {
-            if (value == _isSaving) return;
-            _isSaving = value;
+            if (value == _saveStatus) return;
+            _saveStatus = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(StatusText));
         }
     }
 
-    private SaveStatus _isSaving = SaveStatus.Draft;
+    private SaveStatus _saveStatus = SaveStatus.Draft;
 
     public string StatusText
     {
         get
         {
-            var savingText = _isSaving switch
+            var savingText = _saveStatus switch
             {
                 SaveStatus.Draft => "[编辑中]",
                 SaveStatus.Saving => "[保存中]",

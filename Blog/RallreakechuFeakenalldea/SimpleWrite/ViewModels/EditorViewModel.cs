@@ -404,7 +404,7 @@ public class EditorViewModel : ViewModelBase
     {
         //if (StatusViewModel != null)
         //{
-        //    StatusViewModel.IsSaving = saveStatus;
+        //    StatusViewModel.SaveStatus = saveStatus;
         //}
 
         CurrentEditorModel.SaveStatus = saveStatus;
