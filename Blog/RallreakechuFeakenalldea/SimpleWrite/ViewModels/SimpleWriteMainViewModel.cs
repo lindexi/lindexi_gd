@@ -39,7 +39,7 @@ public class SimpleWriteMainViewModel
 
             void EditorModelOnSaveStatusChanged(object? sender, EventArgs e)
             {
-                StatusViewModel.IsSaving = editorModel.SaveStatus;
+                StatusViewModel.SaveStatus = editorModel.SaveStatus;
             }
         }
     }
