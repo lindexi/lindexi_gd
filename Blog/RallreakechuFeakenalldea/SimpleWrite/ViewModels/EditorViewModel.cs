@@ -5,13 +5,16 @@ using LightTextEditorPlus;
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.Snippets;
+using SimpleWrite.Business.TextEditors;
 using SimpleWrite.Models;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -56,6 +59,13 @@ public class EditorViewModel : ViewModelBase
         {
             if (Equals(value, _currentEditorModel)) return;
             _currentEditorModel = value;
+
+            if (value.TextEditor is null)
+            {
+                EnsureTextEditor(value);
+                _ = LoadFileToTextEditorAsync(value);
+            }
+
             OnPropertyChanged();
             EditorModelChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -99,6 +109,9 @@ public class EditorViewModel : ViewModelBase
         {
             FileInfo = file
         };
+        newEditorModel.TextEditor = CreateTextEditor(newEditorModel);
+        await LoadFileToTextEditorAsync(newEditorModel);
+
         EditorModelList.Add(newEditorModel);
         CurrentEditorModel = newEditorModel;
 
@@ -107,28 +120,100 @@ public class EditorViewModel : ViewModelBase
             // 如果原本就是空文本，则删除当前的内容
             EditorModelList.Remove(originEditorModel);
         }
-
-        await Task.CompletedTask;
     }
 
-    public async Task LoadFileToTextEditorAsync(EditorModel editorModel, TextEditor textEditor, FileInfo fileInfo)
-    {
-        if (!ReferenceEquals(editorModel.FileInfo, fileInfo))
-        {
-            // 传入的参数只是为了解决可空而已
-            throw new ArgumentException();
-        }
+    //[NotNull]
+    //public TextEditorCreator? TextEditorCreator
+    //{
+    //    get => field ?? throw new InvalidOperationException($"尚未完成初始化");
+    //    set
+    //    {
+    //        field = value;
+    //    }
+    //}
 
-        if (!ReferenceEquals(editorModel.TextEditor, textEditor))
-        {
-            // 传入的参数只是为了解决可空而已
-            throw new ArgumentException();
-        }
+    private async Task LoadFileToTextEditorAsync(EditorModel editorModel)
+    {
+        TextEditor? textEditor = editorModel.TextEditor;
+        FileInfo? fileInfo = editorModel.FileInfo;
+
+        ArgumentNullException.ThrowIfNull(textEditor);
+        ArgumentNullException.ThrowIfNull(fileInfo);
 
         await using var fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         using var streamReader = new StreamReader(fileStream, Encoding.UTF8, leaveOpen: true);
         textEditor.Text = await streamReader.ReadToEndAsync();
     }
+
+    public TextEditor EnsureTextEditor(EditorModel editorModel)
+    {
+        var textEditor = CreateTextEditor(editorModel);
+        editorModel.TextEditor = textEditor;
+        return textEditor;
+    }
+
+    /// <summary>
+    /// 创建文本编辑器
+    /// </summary>
+    /// <param name="editorModel"></param>
+    /// <returns></returns>
+    private SimpleWriteTextEditor CreateTextEditor(EditorModel editorModel)
+    {
+        var textEditor = new SimpleWriteTextEditor()
+        {
+            ShortcutExecutor = ShortcutExecutor,
+            SnippetManager = SnippetManager,
+        };
+        textEditor.TextEditorCore.SetExitDebugMode();
+
+        textEditor.TextEditorCore.DocumentChanged += (sender, args) =>
+        {
+            UpdateEditorModel(textEditor, editorModel);
+        };
+
+        return textEditor;
+    }
+
+    private void UpdateEditorModel(TextEditor textEditor, EditorModel editorModel)
+    {
+        editorModel.SaveStatus = SaveStatus.Draft;
+
+        if (editorModel.FileInfo is null)
+        {
+            // 此时标题未定
+            var paragraphList = textEditor.ParagraphList;
+            // 至少有两段的时候，才能按照第一段作为标题
+            if (paragraphList.Count > 1)
+            {
+                var title = paragraphList[0].GetText();
+                if (!string.IsNullOrWhiteSpace(title))
+                {
+                    var trimTitle = title.Trim();
+                    if (trimTitle.Length > 5)
+                    {
+                        // 如果标题过长，截断，执行中间截断。规则是：
+                        // 保留前 5 后 3 个字符，中间用省略号代替
+                        trimTitle = trimTitle[..5] + "..." + trimTitle[^3..];
+                    }
+                    editorModel.Title = trimTitle;
+                }
+                else
+                {
+                    editorModel.Title = EditorModel.DefaultTitle;
+                }
+            }
+            else
+            {
+                editorModel.Title = EditorModel.DefaultTitle;
+            }
+        }
+    }
+
+    private ShortcutExecutor ShortcutExecutor => _shortcutExecutor ??= new ShortcutExecutor()
+    {
+        ShortcutManager = ShortcutManager
+    };
+    private ShortcutExecutor? _shortcutExecutor;
 
     /// <summary>
     /// 保存当前文档
