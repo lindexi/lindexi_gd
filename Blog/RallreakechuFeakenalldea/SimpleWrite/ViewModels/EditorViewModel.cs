@@ -140,9 +140,9 @@ public class EditorViewModel : ViewModelBase
         ArgumentNullException.ThrowIfNull(textEditor);
         ArgumentNullException.ThrowIfNull(fileInfo);
 
-        await using var fileStream = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-        using var streamReader = new StreamReader(fileStream, Encoding.UTF8, leaveOpen: true);
-        textEditor.Text = await streamReader.ReadToEndAsync();
+        var textFileReader = new TextFileReader();
+        await textFileReader.ReadToTextEditor(fileInfo, textEditor);
+        editorModel.SaveStatus = SaveStatus.Saved;
     }
 
     public TextEditor EnsureTextEditor(EditorModel editorModel)
@@ -166,7 +166,7 @@ public class EditorViewModel : ViewModelBase
         };
         textEditor.TextEditorCore.SetExitDebugMode();
 
-        textEditor.TextEditorCore.DocumentChanged += (sender, args) =>
+        textEditor.TextEditorCore.TextChanged += (sender, args) =>
         {
             UpdateEditorModel(textEditor, editorModel);
         };
