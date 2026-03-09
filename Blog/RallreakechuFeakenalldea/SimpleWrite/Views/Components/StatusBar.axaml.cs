@@ -54,8 +54,20 @@ public partial class StatusBar : UserControl
     {
         _currentTextEditor = textEditor;
 
+        _currentTextEditor.CurrentSelectionChanged -= CurrentTextEditor_CurrentSelectionChanged;
         _currentTextEditor.CurrentSelectionChanged += CurrentTextEditor_CurrentSelectionChanged;
+
+        _currentTextEditor.LayoutCompleted -=
+            OnLayoutCompleted;
+        _currentTextEditor.LayoutCompleted +=
+            OnLayoutCompleted;
+
         SetCurrentCaretInfoText(textEditor.CurrentSelection);
+
+        void OnLayoutCompleted(object? sender, LayoutCompletedEventArgs e)
+        {
+            SetCurrentCaretInfoText(textEditor.CurrentSelection);
+        }
     }
 
     private void CurrentTextEditor_CurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
@@ -66,25 +78,39 @@ public partial class StatusBar : UserControl
 
     private void SetCurrentCaretInfoText(in Selection selection)
     {
+        string caretInfo;
+
         if (selection.IsEmpty)
         {
             CaretOffset caretOffset = selection.StartOffset;
             if (caretOffset.IsAtLineStart)
             {
-                ViewModel.SetCurrentCaretInfoText($"光标位置: {caretOffset.Offset} 处于行首");
+                caretInfo = $"光标位置: {caretOffset.Offset} 处于行首";
             }
             else
             {
-                ViewModel.SetCurrentCaretInfoText($"光标位置: {caretOffset.Offset}");
+                caretInfo = $"光标位置: {caretOffset.Offset}";
             }
         }
         else
         {
-            ViewModel.SetCurrentCaretInfoText
-            (
-                $"选择范围: {selection.StartOffset.Offset} - {selection.EndOffset.Offset} 长度: {selection.Length}"
-            );
+            caretInfo =
+             $"选择范围: {selection.StartOffset.Offset} - {selection.EndOffset.Offset} 长度: {selection.Length}";
         }
+
+        // 添加段落信息
+        if (_currentTextEditor != null)
+        {
+            if (_currentTextEditor.TextEditorCore.TryGetRenderInfo(out var renderInfoProvider))
+            {
+                CaretOffset caretOffset = selection.StartOffset;
+                var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
+                
+                caretInfo += $" 第 {caretRenderInfo.ParagraphIndex.Index} 段 {caretRenderInfo.LineIndex} 行，行内第 {caretRenderInfo.HitLineCharOffset.Offset} 个字符";
+            }
+        }
+
+        ViewModel.SetCurrentCaretInfoText(caretInfo);
     }
 
     private TextEditor? _currentTextEditor;
