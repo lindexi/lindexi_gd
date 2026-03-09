@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -297,35 +298,46 @@ public class EditorViewModel : ViewModelBase
     /// </summary>
     public void CloseDocument(EditorModel editorModel)
     {
-        var currentIndex = EditorModelList.IndexOf(editorModel);
-        if (currentIndex < 0)
+        if (ReferenceEquals(editorModel, CurrentEditorModel))
         {
+            // 如果是关闭当前文档，则需要调用 CloseCurrentDocument 方法
+            // 这是因为当前的文档需要处理焦点问题，比较特殊
+            CloseCurrentDocument();
             return;
         }
 
-        if (EditorModelList.Count <= 1)
-        {
-            // 只剩下一个，那就需要先加再删除，防止传入空值
-            var emptyEditorModel = new EditorModel();
-            EditorModelList.Add(emptyEditorModel);
-            // 需要先加入到 EditorModelList 列表再设置值，否则将会导致不在列表中而让框架设置空
-            CurrentEditorModel = emptyEditorModel;
+        // 非当前文档，直接干掉，无需处理复杂的焦点
+        EditorModelList.Remove(editorModel);
 
-            EditorModelList.RemoveAt(currentIndex);
-        }
-        else
-        {
-            var nextIndex = Math.Clamp(currentIndex - 1, 0, EditorModelList.Count - 1);
-            if (nextIndex == currentIndex)
-            {
-                // 既然 -1 拿到自身，如第 0 个，那就试试取右边一个
-                nextIndex = Math.Clamp(currentIndex + 1, 0, EditorModelList.Count - 1);
-            }
+        //var currentIndex = EditorModelList.IndexOf(editorModel);
+        //if (currentIndex < 0)
+        //{
+        //    return;
+        //}
 
-            // 需要先给 CurrentEditorModel 赋值，防止被删除后设置空值
-            CurrentEditorModel = EditorModelList[nextIndex];
-            EditorModelList.RemoveAt(currentIndex);
-        }
+        //if (EditorModelList.Count <= 1)
+        //{
+        //    // 只剩下一个，那就需要先加再删除，防止传入空值
+        //    var emptyEditorModel = new EditorModel();
+        //    EditorModelList.Add(emptyEditorModel);
+        //    // 需要先加入到 EditorModelList 列表再设置值，否则将会导致不在列表中而让框架设置空
+        //    CurrentEditorModel = emptyEditorModel;
+
+        //    EditorModelList.RemoveAt(currentIndex);
+        //}
+        //else
+        //{
+        //    var nextIndex = Math.Clamp(currentIndex - 1, 0, EditorModelList.Count - 1);
+        //    if (nextIndex == currentIndex)
+        //    {
+        //        // 既然 -1 拿到自身，如第 0 个，那就试试取右边一个
+        //        nextIndex = Math.Clamp(currentIndex + 1, 0, EditorModelList.Count - 1);
+        //    }
+
+        //    // 需要先给 CurrentEditorModel 赋值，防止被删除后设置空值
+        //    CurrentEditorModel = EditorModelList[nextIndex];
+        //    EditorModelList.RemoveAt(currentIndex);
+        //}
     }
 
     /// <summary>
@@ -333,27 +345,49 @@ public class EditorViewModel : ViewModelBase
     /// </summary>
     public void CloseCurrentDocument()
     {
-        if (EditorModelList.Count <= 1)
-        {
-            if (!CurrentEditorModel.IsEmptyText())
-            {
-                CurrentEditorModel = new EditorModel();
-                EditorModelList.Clear();
-                EditorModelList.Add(CurrentEditorModel);
-            }
+        var currentEditorModel = CurrentEditorModel;
 
-            return;
-        }
-
-        var currentIndex = EditorModelList.IndexOf(CurrentEditorModel);
+        var currentIndex = EditorModelList.IndexOf(currentEditorModel);
         if (currentIndex < 0)
         {
             return;
         }
 
-        EditorModelList.RemoveAt(currentIndex);
-        var nextIndex = Math.Clamp(currentIndex, 0, EditorModelList.Count - 1);
-        CurrentEditorModel = EditorModelList[nextIndex];
+        if (currentIndex == 0)
+        {
+            if (EditorModelList.Count <= 1)
+            {
+                if (CurrentEditorModel.IsEmptyText())
+                {
+                    // 关闭一个空文档等于啥都不干
+                }
+                else
+                {
+                    var emptyTextEditorModel = new EditorModel();
+                    EditorModelList.Add(emptyTextEditorModel);
+                    CurrentEditorModel = emptyTextEditorModel;
+                    EditorModelList.Remove(currentEditorModel);
+                }
+            }
+            else
+            {
+                var nextIndex = currentIndex + 1;
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                Debug.Assert(nextIndex == 1);
+                CurrentEditorModel = EditorModelList[nextIndex];
+                EditorModelList.Remove(currentEditorModel);
+            }
+        }
+        else
+        {
+            var nextIndex = currentIndex + 1;
+            if(nextIndex >= EditorModelList.Count)
+            {
+                nextIndex = currentIndex - 1;
+            }
+            CurrentEditorModel = EditorModelList[nextIndex];
+            EditorModelList.Remove(currentEditorModel);
+        }
     }
 
     /// <summary>
