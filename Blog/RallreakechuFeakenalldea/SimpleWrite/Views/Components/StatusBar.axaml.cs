@@ -85,17 +85,17 @@ public partial class StatusBar : UserControl
             CaretOffset caretOffset = selection.StartOffset;
             if (caretOffset.IsAtLineStart)
             {
-                caretInfo = $"光标位置: {caretOffset.Offset} 处于行首";
+                caretInfo = $"光标: {caretOffset.Offset} (行首)";
             }
             else
             {
-                caretInfo = $"光标位置: {caretOffset.Offset}";
+                caretInfo = $"光标: {caretOffset.Offset}";
             }
         }
         else
         {
             caretInfo =
-             $"选择范围: {selection.StartOffset.Offset} - {selection.EndOffset.Offset} 长度: {selection.Length}";
+             $"选择: {selection.StartOffset.Offset} - {selection.EndOffset.Offset} 长度: {selection.Length}";
         }
 
         // 添加段落信息
@@ -106,7 +106,7 @@ public partial class StatusBar : UserControl
                 CaretOffset caretOffset = selection.StartOffset;
                 var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
                 
-                caretInfo += $" 第 {caretRenderInfo.ParagraphIndex.Index} 段 {caretRenderInfo.LineIndex} 行，行内第 {caretRenderInfo.HitLineCharOffset.Offset} 个字符";
+                caretInfo += $", 段: {caretRenderInfo.ParagraphIndex.Index}, 行: {caretRenderInfo.LineIndex}, 字符: {caretRenderInfo.HitLineCharOffset.Offset}";
             }
         }
 
