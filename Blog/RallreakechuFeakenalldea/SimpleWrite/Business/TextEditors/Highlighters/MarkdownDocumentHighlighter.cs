@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-
+using System.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Skia;
@@ -110,36 +111,50 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                 continue;
             }
 
-            if (block is not FencedCodeBlock fencedCodeBlock)
+            if (block is FencedCodeBlock fencedCodeBlock)
             {
-                continue;
-            }
+                var sourceSpan = fencedCodeBlock.Span;
+                _codeBlockList.Add(sourceSpan);
 
-            var sourceSpan = fencedCodeBlock.Span;
-            _codeBlockList.Add(sourceSpan);
+                var codeText = ToText(sourceSpan);
+                var codeSetter = setter with
+                {
+                    StartOffset = sourceSpan.Start
+                };
 
-            var codeText = ToText(sourceSpan);
-            var codeSetter = setter with
-            {
-                StartOffset = sourceSpan.Start
-            };
+                var lineReader = new LineReader(codeText);
+                var firstLine = lineReader.ReadLine();
+                var closingFencedCharCount = fencedCodeBlock.ClosingFencedCharCount;
+                var langInfoLength = fencedCodeBlock.Info?.Length ?? 0;
 
-            var lineReader = new LineReader(codeText);
-            var firstLine = lineReader.ReadLine();
-            var closingFencedCharCount = fencedCodeBlock.ClosingFencedCharCount;
-            var langInfoLength = fencedCodeBlock.Info?.Length ?? 0;
-
-            if (langInfoLength > 0 && firstLine.Length == closingFencedCharCount + langInfoLength)
-            {
-                codeSetter.TrySetRunProperty(
-                    _codeLangInfoRunProperty,
-                    new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfoLength - 1));
+                if (langInfoLength > 0 && firstLine.Length == closingFencedCharCount + langInfoLength)
+                {
+                    codeSetter.TrySetRunProperty(
+                        _codeLangInfoRunProperty,
+                        new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfoLength - 1));
+                }
             }
         }
 
         string ToText(SourceSpan span)
         {
-            return markdownText.Substring(span.Start, span.Length);
+#if DEBUG
+            if (span.Start + span.Length > markdownText.Length)
+            {
+                Debugger.Launch();
+                Debugger.Break();
+            }
+#endif
+
+            try
+            {
+                return markdownText.Substring(span.Start, span.Length);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                GC.KeepAlive(span);
+                throw;
+            }
         }
     }
 
