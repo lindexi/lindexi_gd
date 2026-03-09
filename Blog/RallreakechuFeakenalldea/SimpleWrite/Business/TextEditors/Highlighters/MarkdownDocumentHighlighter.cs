@@ -138,13 +138,11 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         string ToText(SourceSpan span)
         {
-#if DEBUG
             if (span.Start + span.Length > markdownText.Length)
             {
-                Debugger.Launch();
-                Debugger.Break();
+                // 越界了
+                return string.Empty;
             }
-#endif
 
             try
             {
