@@ -4,6 +4,7 @@
   <Project Path="../lsjutil/Src/Lsj.Util.Win32/Lsj.Util.Win32.csproj" />
   <Project Path="../lsjutil/Src/Lsj.Util/Lsj.Util.csproj" />
   <Project Path="ComObject/ComObject.csproj" Id="bd5a64dd-2b7f-4438-8ac4-5405ac460423" />
+  <Project Path="D3D11CaptureEngine/D3D11CaptureEngine.csproj" Id="663b4065-e38d-49e3-a0de-7d69da950cf5" />
   <Project Path="D3D11MediaEngine/D3D11MediaEngine.csproj" Id="d6dc40ff-dd4e-4ff3-be66-bcce1961ddcf" />
   <Project Path="D3D11MediaFoundation/D3D11MediaFoundation.csproj" />
   <Project Path="D3D9MediaFoundation/D3D9MediaFoundation.csproj" />
