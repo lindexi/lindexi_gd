@@ -19,6 +19,9 @@
     <PackageReference Include="Markdig" Version="1.0.0" />
 
     <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.3" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
@@ -36,6 +37,11 @@ readonly record struct TextRunPropertySetter(TextEditor TextEditor)
             End = span.End + StartOffset
         };
         var selection = SourceSpanToSelection(span);
+
+#if DEBUG
+        var text = TextEditor.GetText(in selection);
+        GC.KeepAlive(text);
+#endif
 
         TrySetRunProperty(runProperty, in selection);
     }
