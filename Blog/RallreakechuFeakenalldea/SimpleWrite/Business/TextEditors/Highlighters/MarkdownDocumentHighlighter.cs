@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Skia;
@@ -8,6 +9,7 @@ using Avalonia.Skia;
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Document;
@@ -19,6 +21,8 @@ using Markdig.Syntax;
 using SkiaSharp;
 
 using LightTextEditorPlus.Utils;
+using SimpleWrite.Business.TextEditors.Highlighters.CodeHighlighters;
+using Path = System.IO.Path;
 
 namespace SimpleWrite.Business.TextEditors.Highlighters;
 
@@ -123,7 +127,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                 };
 
                 var lineReader = new LineReader(codeText);
-                var firstLine = lineReader.ReadLine();
+                SourceSpan firstLine = lineReader.ReadLine();
                 var closingFencedCharCount = fencedCodeBlock.ClosingFencedCharCount;
                 var langInfoLength = fencedCodeBlock.Info?.Length ?? 0;
 
@@ -133,6 +137,27 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                         _codeLangInfoRunProperty,
                         new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfoLength - 1));
                 }
+
+                // 取出方法体
+                SourceSpan lastLine = firstLine;
+                while (true)
+                {
+                    var currentLine = lineReader.ReadLine();
+                    if (currentLine.End < 0)
+                    {
+                        break;
+                    }
+                    lastLine = currentLine;
+                }
+
+                var relativeOffset = sourceSpan.Start;
+                var innerCodeSpan = new SourceSpan(firstLine.End + 1 + relativeOffset, lastLine.Start + relativeOffset - 1);
+                var innerCodeText = ToText(innerCodeSpan);
+                var csharpCodeHighlighter = new CsharpCodeHighlighter();
+
+                var colorCode = new TextEditorColorCode(_textEditor,new DocumentOffset(innerCodeSpan.Start));
+                var highlightCodeContext = new HighlightCodeContext(innerCodeText, colorCode);
+                csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
             }
         }
 
