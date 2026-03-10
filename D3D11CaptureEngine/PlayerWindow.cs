@@ -83,7 +83,7 @@ namespace D3D11CaptureEngine
             CaptureEngine = (nint)engine;
 
             MFCreateAttributes(out var captureEngineAttributes, 3);
-            captureEngineAttributes.Value.SetUnknown(MF_MEDIA_ENGINE_DXGI_MANAGER, DXGIDeviceManager.AsIUnknown());
+            captureEngineAttributes.Value.SetUnknown(MF_CAPTURE_ENGINE_D3D_MANAGER, DXGIDeviceManager.AsIUnknown());
             captureEngineAttributes.Value.SetUINT32(MF_CAPTURE_ENGINE_USE_VIDEO_DEVICE_ONLY, 0);
             captureEngineAttributes.Value.SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, 1);
 
