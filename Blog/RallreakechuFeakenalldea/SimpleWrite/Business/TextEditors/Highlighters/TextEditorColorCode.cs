@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Markdig.Syntax;
 
 namespace SimpleWrite.Business.TextEditors.Highlighters;
@@ -40,7 +41,7 @@ internal record TextEditorColorCode : IColorCode
     {
         var runProperty = _styleManager.GetRunProperty(scope);
 
-        _textRunPropertySetter.TrySetRunProperty(runProperty, new SourceSpan(span.Start, span.End));
+        _textRunPropertySetter.TrySetRunProperty(runProperty, new SourceSpan(span.Start, span.End - 1/*为什么要减1呢？这是因为 SourceSpan 是左右都闭，而TextSpan 是左闭右开的*/));
     }
 }
 
@@ -49,11 +50,31 @@ class ColorCodeStyleManager
     public ColorCodeStyleManager(TextEditor textEditor)
     {
         _dictionary = [];
-        _dictionary[ScopeType.Keyword] = C("#569CD1");
-        _dictionary[ScopeType.PlainText] = _plaintTextRunProperty = textEditor.StyleRunProperty;
-        _dictionary[ScopeType.ClassName] = C("#4EC9B0");
+        _plaintTextRunProperty = textEditor.StyleRunProperty;
 
-        SkiaTextRunProperty C(string color)
+        Span<(ScopeType Scope, string Color)> span =
+        [
+            (ScopeType.Comment,"#579A4C"),
+            (ScopeType.ClassName,"#4EC9B0"),
+            (ScopeType.Comment,"#579A4C"),
+            (ScopeType.Keyword,"#569CD1"),
+            (ScopeType.String,"#BD9283"),
+            (ScopeType.Number,"#A7BC9C"),
+            (ScopeType.Brackets,"#179FFF"),
+            (ScopeType.Variable,"#9CDCFD"),
+            (ScopeType.Invocation,"#DCDCAA"),
+            (ScopeType.DeclarationTypeSyntax,"#4EC9B0"),
+        ];
+
+        foreach (var (scope, color) in span)
+        {
+            _dictionary[scope] = CreateRunProperty(color);
+        }
+
+        _dictionary[ScopeType.PlainText] = _plaintTextRunProperty = textEditor.StyleRunProperty;
+
+
+        SkiaTextRunProperty CreateRunProperty(string color)
         {
             return textEditor.StyleRunProperty with
             {

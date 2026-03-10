@@ -1,3 +1,4 @@
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,7 +9,7 @@ using System.Linq;
 
 namespace SimpleWrite.Business.TextEditors.Highlighters.CodeHighlighters;
 
-public class CsharpCodeHighlighter: ICodeHighlighter
+public class CsharpCodeHighlighter : ICodeHighlighter
 {
     public void ApplyHighlight(in HighlightCodeContext context)
     {
@@ -21,6 +22,19 @@ public class CsharpCodeHighlighter: ICodeHighlighter
         var colorSegments = BuildColorSegments(rootSyntaxNode, code.Length);
         foreach (var (span, scope) in colorSegments)
         {
+#if DEBUG
+            if (span.End < code.Length)
+            {
+                var currentText = code.Substring(span.Start, span.Length);
+                GC.KeepAlive(currentText);
+
+                if (scope == ScopeType.Invocation)
+                {
+                    
+                }
+            }
+#endif
+
             colorCode.FillCodeColor(span, scope);
         }
     }
@@ -87,6 +101,29 @@ public class CsharpCodeHighlighter: ICodeHighlighter
             result.Add((TextSpan.FromBounds(position, textLength), ScopeType.PlainText));
         }
 
+        foreach (SyntaxNode syntaxNode in root.DescendantNodes(descendIntoTrivia: false))
+        {
+            if (syntaxNode is InvocationExpressionSyntax invocationExpressionSyntax)
+            {
+                var lastToken
+                    = invocationExpressionSyntax.Expression.GetLastToken();
+                result.Add((lastToken.Span, ScopeType.Invocation));
+            }
+            else if (syntaxNode is LocalDeclarationStatementSyntax localDeclarationStatementSyntax)
+            {
+                var variableDeclarationSyntax = localDeclarationStatementSyntax.Declaration;
+                TypeSyntax typeSyntax = variableDeclarationSyntax.Type;
+                if (typeSyntax.IsVar)
+                {
+                    result.Add((typeSyntax.Span, ScopeType.Keyword));
+                }
+                else
+                {
+                    result.Add((typeSyntax.Span, ScopeType.DeclarationTypeSyntax));
+                }
+            }
+        }
+
         return result;
     }
 
@@ -121,6 +158,11 @@ public class CsharpCodeHighlighter: ICodeHighlighter
             || token.IsKind(SyntaxKind.GreaterThanToken))
         {
             return ScopeType.Brackets;
+        }
+
+        if (token.IsKind(SyntaxKind.InvocationExpression))
+        {
+            return ScopeType.Invocation;
         }
 
         if (!token.IsKind(SyntaxKind.IdentifierToken))
