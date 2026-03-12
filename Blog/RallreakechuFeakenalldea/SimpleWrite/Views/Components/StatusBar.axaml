@@ -5,7 +5,8 @@
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="25"
              x:Class="SimpleWrite.Views.Components.StatusBar"
-             x:DataType="viewModels:StatusViewModel">
+             x:DataType="viewModels:StatusViewModel"
+             Background="#2E2E2E">
     <Design.DataContext>
         <viewModels:StatusViewModel/>
     </Design.DataContext>
