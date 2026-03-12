@@ -1,12 +1,22 @@
 ﻿using SimpleWrite.Models;
 
 using System;
+using Avalonia.Controls;
 using Avalonia.Threading;
 
 namespace SimpleWrite.ViewModels;
 
 public class StatusViewModel : ViewModelBase
 {
+    public StatusViewModel()
+    {
+        if (Design.IsDesignMode)
+        {
+            _currentCaretInfoText = "光标: 9999, 段:100, 行:100,字符:0('v' 0x75)";
+            _saveStatus = SaveStatus.Saving;
+        }
+    }
+
     public SimpleWriteMainViewModel? MainViewModel { get; init; }
 
     public SaveStatus SaveStatus

@@ -107,6 +107,10 @@ public partial class StatusBar : UserControl
                 var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
                 
                 caretInfo += $", 段: {caretRenderInfo.ParagraphIndex.Index}, 行: {caretRenderInfo.LineIndex}, 字符: {caretRenderInfo.HitLineCharOffset.Offset}";
+                if (caretRenderInfo.CharData is {} charData)
+                {
+                    caretInfo += $"('{charData.CharObject.ToText()}' 0x{charData.CharObject.CodePoint.Rune.Value:X})";
+                }
             }
         }
 
