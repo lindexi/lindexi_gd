@@ -120,7 +120,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                 var sourceSpan = fencedCodeBlock.Span;
                 _codeBlockList.Add(sourceSpan);
 
-                var codeText = ToText(sourceSpan);
+                string codeText = ToText(sourceSpan);
                 var codeSetter = setter with
                 {
                     StartOffset = sourceSpan.Start
@@ -131,11 +131,13 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                 var closingFencedCharCount = fencedCodeBlock.ClosingFencedCharCount;
                 var langInfoLength = fencedCodeBlock.Info?.Length ?? 0;
 
+                ReadOnlySpan<char> codeLang = [];
                 if (langInfoLength > 0 && firstLine.Length == closingFencedCharCount + langInfoLength)
                 {
-                    codeSetter.TrySetRunProperty(
-                        _codeLangInfoRunProperty,
-                        new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfoLength - 1));
+                    var span = new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfoLength - 1);
+                    codeSetter.TrySetRunProperty(_codeLangInfoRunProperty, span);
+
+                    codeLang = codeText.AsSpan(span.Start, span.Length);
                 }
 
                 // 取出方法体
@@ -153,11 +155,16 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                 var relativeOffset = sourceSpan.Start;
                 var innerCodeSpan = new SourceSpan(firstLine.End + 1 + relativeOffset, lastLine.Start + relativeOffset - 1);
                 var innerCodeText = ToText(innerCodeSpan);
-                var csharpCodeHighlighter = new CsharpCodeHighlighter();
 
-                var colorCode = new TextEditorColorCode(_textEditor,new DocumentOffset(innerCodeSpan.Start));
-                var highlightCodeContext = new HighlightCodeContext(innerCodeText, colorCode);
-                csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
+                if (codeLang.Equals("csharp", StringComparison.OrdinalIgnoreCase)
+                    || codeLang.Equals("C#", StringComparison.OrdinalIgnoreCase))
+                {
+                    var csharpCodeHighlighter = new CsharpCodeHighlighter();
+
+                    var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(innerCodeSpan.Start));
+                    var highlightCodeContext = new HighlightCodeContext(innerCodeText, colorCode);
+                    csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
+                }
             }
         }
 
