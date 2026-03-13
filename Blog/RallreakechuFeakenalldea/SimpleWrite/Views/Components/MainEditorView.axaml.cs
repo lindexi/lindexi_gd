@@ -13,6 +13,7 @@ using SkiaSharp;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Rendering;
@@ -191,6 +192,10 @@ public partial class MainEditorView : UserControl
             return;
         }
 
-        TextEditorScrollViewer.Offset = new Avalonia.Vector(targetOffsetX, targetOffsetY);
+        // 如果发生在渲染过程中，调用强制布局，导致进入此方法的，那将会由于 `ScrollViewer.Offset` 请求刷新界面而抛异常
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            TextEditorScrollViewer.Offset = new Avalonia.Vector(targetOffsetX, targetOffsetY);
+        });
     }
 }
