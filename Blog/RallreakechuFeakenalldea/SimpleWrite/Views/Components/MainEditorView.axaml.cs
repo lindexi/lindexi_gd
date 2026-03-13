@@ -13,6 +13,9 @@ using SkiaSharp;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Interactivity;
+using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Rendering;
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.TextEditors;
 
@@ -81,12 +84,58 @@ public partial class MainEditorView : UserControl
         get => _currentTextEditor;
         private set
         {
+            var oldTextEditor = _currentTextEditor;
             _currentTextEditor = value;
             TextEditorScrollViewer.Content = value;
+
+            oldTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
+            _currentTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
+            _currentTextEditor.CurrentSelectionChanged += TextEditor_OnCurrentSelectionChanged;
 
             CurrentTextEditorChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
     public event EventHandler? CurrentTextEditorChanged;
+
+    private void TextEditor_OnCurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
+    {
+        var currentTextEditor = _currentTextEditor;
+        if (!ReferenceEquals(sender, currentTextEditor))
+        {
+            return;
+        }
+
+        if (currentTextEditor.TextEditorCore.TryGetRenderInfo(out var renderInfo, autoLayoutEmptyTextEditor: false))
+        {
+            UpdateTextEditorScrollViewer(currentTextEditor.CurrentCaretOffset, renderInfo);
+        }
+        else
+        {
+            currentTextEditor.LayoutCompleted -= OnLayoutCompleted;
+            currentTextEditor.LayoutCompleted += OnLayoutCompleted;
+        }
+
+        void OnLayoutCompleted(object? s,
+            LayoutCompletedEventArgs layoutCompletedEventArgs)
+        {
+            if (currentTextEditor.TextEditorCore.TryGetRenderInfo(out var renderInfo2, autoLayoutEmptyTextEditor: false))
+            {
+                // 能获取到，一次性即可
+                currentTextEditor.LayoutCompleted -= OnLayoutCompleted;
+
+                UpdateTextEditorScrollViewer(currentTextEditor.CurrentCaretOffset, renderInfo2);
+            }
+            else
+            {
+                // 等待下一次 LayoutCompleted 事件
+                // 等待的方法就是啥都不干，等下一次事件进入
+            }
+        }
+    }
+
+    private void UpdateTextEditorScrollViewer(CaretOffset currentCaretOffset, RenderInfoProvider renderInfoProvider)
+    {
+        // 根据当前的光标坐标更新滚动条，让光标在滚动条内可见
+    }
 }
