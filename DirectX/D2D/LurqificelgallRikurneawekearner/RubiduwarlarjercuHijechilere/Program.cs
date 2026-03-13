@@ -296,9 +296,10 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
-                var result = _renderContext.SwapChain.Present(1, PresentFlags.None);
+                var result = _renderContext.SwapChain.Present(1, PresentFlags.DoNotWait);
                 //result.CheckError();
 
+                // 必须两次调用 Flush 方法
                 _renderContext.D3D11DeviceContext1.Flush();
             }
 
