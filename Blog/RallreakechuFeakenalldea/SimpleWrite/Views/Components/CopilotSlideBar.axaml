@@ -2,6 +2,99 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:components="clr-namespace:SimpleWrite.Views.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.Components.CopilotSlideBar">
+             x:Class="SimpleWrite.Views.Components.CopilotSlideBar"
+             x:DataType="components:CopilotSlideBar">
+    <UserControl.Styles>
+        <Style Selector="Border.CardBorder">
+            <Setter Property="Background" Value="#FF1B1B1B" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="10" />
+        </Style>
+        <Style Selector="TextBlock.HeaderTitle">
+            <Setter Property="Foreground" Value="#FFF2F2F2" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.SecondaryText">
+            <Setter Property="Foreground" Value="#FF9F9F9F" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Button.PrimaryButton">
+            <Setter Property="Background" Value="#FF2F6FED" />
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="BorderBrush" Value="#FF2F6FED" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="Button.SecondaryButton">
+            <Setter Property="Background" Value="#FF2A2A2A" />
+            <Setter Property="Foreground" Value="#FFD9D9D9" />
+            <Setter Property="BorderBrush" Value="#FF404040" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="TextBox.MessageInputTextBox">
+            <Setter Property="Background" Value="#FF222222" />
+            <Setter Property="Foreground" Value="#FFF5F5F5" />
+            <Setter Property="BorderBrush" Value="#FF454545" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="MinHeight" Value="80" />
+            <Setter Property="MaxHeight" Value="140" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#FF141414" BorderThickness="1,0,0,0" BorderBrush="#FF3B3B3B">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <Border Classes="CardBorder" Margin="10,10,10,6">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                        <TextBlock Classes="HeaderTitle" Text="Copilot Chat" />
+                        <TextBlock Classes="SecondaryText" Text="与 Copilot 对话" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="SecondaryButton"
+                            VerticalAlignment="Center"
+                            Click="ClearButton_OnClick"
+                            Content="清空" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1" Classes="CardBorder" Margin="10,0,10,6" Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding ChatMessages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="components:CopilotChatMessage">
+                                <StackPanel HorizontalAlignment="{Binding HorizontalAlignment}" Margin="0,0,0,10" MaxWidth="250">
+                                    <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
+                                    <Border Background="{Binding BubbleBackground}" CornerRadius="8" Padding="10,8">
+                                        <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="{Binding BubbleForeground}" />
+                                    </Border>
+                                    <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <Border Grid.Row="2" Classes="CardBorder" Margin="10,0,10,10" Padding="10">
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8" ColumnSpacing="8">
+                    <TextBox x:Name="InputTextBox"
+                             Grid.ColumnSpan="2"
+                             Classes="MessageInputTextBox"
+                             Watermark="输入消息，Enter 发送，Shift+Enter 换行"
+                             KeyDown="InputTextBox_OnKeyDown" />
+                    <Button Grid.Row="1"
+                            Grid.Column="1"
+                            Classes="PrimaryButton"
+                            Click="SendButton_OnClick"
+                            Content="发送" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
 </UserControl>
