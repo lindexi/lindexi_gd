@@ -145,3 +145,14 @@ var textEditor = TextEditorInfo.GetTextEditorInfo(this).CurrentTextEditor;
 | 新增状态栏信息 | 在 `StatusViewModel` 中添加属性，通过 `StatusText` 组合输出；光标信息调用 `SetCurrentCaretInfoText()` |
 | 多标签切换 | 操作 `EditorViewModel.EditorModelList` 和 `CurrentEditorModel`；`MainEditorView` 会自动响应 `EditorModelChanged` 事件 |
 | 新增需访问 `TextEditor` 的子控件 | 在 `OnLoaded` 中通过 `TextEditorInfo.GetTextEditorInfo(this).CurrentTextEditor` 获取，不持有父控件引用 |
+
+---
+
+## 会话经验（持续更新）
+
+### MainEditorView 光标可见性滚动
+
+- 在 `MainEditorView.UpdateTextEditorScrollViewer(...)` 中，应通过 `RenderInfoProvider.GetCaretRenderInfo(...).GetCaretBounds(...)` 获取当前光标矩形，再和 `ScrollViewer.Viewport` 对比决定是否滚动。
+- 滚动目标值需基于 `ScrollViewer.Offset` 计算，并使用 `ScrollViewer.Extent - Viewport` 做边界裁剪，避免越界。
+- 在设置 `ScrollViewer.Offset` 前应先判断目标值是否真的变化，减少不必要的 UI 更新。
+- 当 `Viewport` 尚未有效测量（宽高小于等于 0）时直接返回，避免异常滚动行为。

@@ -88,7 +88,12 @@ public partial class MainEditorView : UserControl
             _currentTextEditor = value;
             TextEditorScrollViewer.Content = value;
 
-            oldTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (oldTextEditor != null)
+            {
+                oldTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
+            }
+
             _currentTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
             _currentTextEditor.CurrentSelectionChanged += TextEditor_OnCurrentSelectionChanged;
 
@@ -101,10 +106,6 @@ public partial class MainEditorView : UserControl
     private void TextEditor_OnCurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
     {
         var currentTextEditor = _currentTextEditor;
-        if (!ReferenceEquals(sender, currentTextEditor))
-        {
-            return;
-        }
 
         if (currentTextEditor.TextEditorCore.TryGetRenderInfo(out var renderInfo, autoLayoutEmptyTextEditor: false))
         {
@@ -134,8 +135,62 @@ public partial class MainEditorView : UserControl
         }
     }
 
+    /// <summary>
+    /// 根据当前的光标坐标更新滚动条，让光标在滚动条内可见
+    /// </summary>
+    /// <param name="currentCaretOffset"></param>
+    /// <param name="renderInfoProvider"></param>
+    /// 滚动条跟随光标
     private void UpdateTextEditorScrollViewer(CaretOffset currentCaretOffset, RenderInfoProvider renderInfoProvider)
     {
-        // 根据当前的光标坐标更新滚动条，让光标在滚动条内可见
+        var caretBounds = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset)
+            .GetCaretBounds(CurrentTextEditor.CaretConfiguration.CaretThickness);
+
+        var viewport = TextEditorScrollViewer.Viewport;
+        if (viewport.Width <= 0 || viewport.Height <= 0)
+        {
+            return;
+        }
+
+        var currentOffset = TextEditorScrollViewer.Offset;
+        var targetOffsetX = currentOffset.X;
+        var targetOffsetY = currentOffset.Y;
+
+        var viewportTop = currentOffset.Y;
+        var viewportBottom = currentOffset.Y + viewport.Height;
+        if (caretBounds.Top < viewportTop)
+        {
+            targetOffsetY = caretBounds.Top;
+        }
+        else if (caretBounds.Bottom > viewportBottom)
+        {
+            targetOffsetY = caretBounds.Bottom - viewport.Height;
+        }
+
+        var viewportLeft = currentOffset.X;
+        var viewportRight = currentOffset.X + viewport.Width;
+        if (caretBounds.Left < viewportLeft)
+        {
+            targetOffsetX = caretBounds.Left;
+        }
+        else if (caretBounds.Right > viewportRight)
+        {
+            targetOffsetX = caretBounds.Right - viewport.Width;
+        }
+
+        var extent = TextEditorScrollViewer.Extent;
+        var maxOffsetX = Math.Max(0, extent.Width - viewport.Width);
+        var maxOffsetY = Math.Max(0, extent.Height - viewport.Height);
+
+        targetOffsetX = Math.Clamp(targetOffsetX, 0, maxOffsetX);
+        targetOffsetY = Math.Clamp(targetOffsetY, 0, maxOffsetY);
+
+        if (Math.Abs(targetOffsetX - currentOffset.X) < double.Epsilon
+            && Math.Abs(targetOffsetY - currentOffset.Y) < double.Epsilon)
+        {
+            return;
+        }
+
+        TextEditorScrollViewer.Offset = new Avalonia.Vector(targetOffsetX, targetOffsetY);
     }
 }
