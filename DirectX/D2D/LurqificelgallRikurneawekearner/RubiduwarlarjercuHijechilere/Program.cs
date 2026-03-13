@@ -270,9 +270,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             }
 
             // 渲染代码写在这里
-
-            using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
             {
+
+
                 var d2D1RenderTarget = _renderInfo.Value.D2D1RenderTarget;
 
                 D2D.ID2D1RenderTarget renderTarget = d2D1RenderTarget;
@@ -286,12 +286,25 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 _renderDemo.Draw(renderTarget, new SizeI((int) _renderContext.WindowWidth, (int) _renderContext.WindowHeight));
 
-                renderTarget.EndDraw();
+
+                using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
+                {
+
+                    renderTarget.EndDraw();
+                }
             }
 
             using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
             {
-                _renderContext.SwapChain.Present(1, PresentFlags.None);
+                var result = _renderContext.SwapChain.Present(1, PresentFlags.DoNotWait);
+                //result.CheckError();
+
+                // 必须两次调用 Flush 方法
+                _renderContext.D3D11DeviceContext1.Flush();
+            }
+
+            using (StepPerformanceCounter.RenderThreadCounter.StepStart("Flush"))
+            {
                 _renderContext.D3D11DeviceContext1.Flush();
             }
         }
