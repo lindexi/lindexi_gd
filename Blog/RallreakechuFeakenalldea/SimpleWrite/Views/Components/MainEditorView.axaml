@@ -11,6 +11,7 @@
     <Border x:Name="TextEditorBorder">
         <ScrollViewer x:Name="TextEditorScrollViewer" HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Visible"
+                      Padding="2,0,15,20"
             ></ScrollViewer>
     </Border>
 </UserControl>

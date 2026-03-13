@@ -10,7 +10,7 @@
     <viewModels:SimpleWriteMainViewModel />
   </UserControl.DataContext>
 
-  <Grid ColumnDefinitions="Auto,*">
+  <Grid ColumnDefinitions="Auto,*,Auto">
 
     <components:SimpleWriteSideBar Width="200"/>
 
@@ -20,5 +20,9 @@
                                  DataContext="{Binding Path=EditorViewModel}"/>
       <components:StatusBar Grid.Row="2" Height="20" DataContext="{Binding Path=StatusViewModel}"/>
     </Grid>
+
+    <components:RightSlideBar Grid.Column="2" Width="300">
+        <!-- 右侧边栏 -->
+    </components:RightSlideBar>
   </Grid>
 </UserControl>
