@@ -1,4 +1,4 @@
-namespace Microsoft.Agents.AI.Reasoning;
+﻿namespace Microsoft.Agents.AI.Reasoning;
 
 public class ReasoningAgentResponseUpdate : AgentResponseUpdate
 {

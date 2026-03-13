@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Agents.AI.Reasoning\Microsoft.Agents.AI.Reasoning.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Agents.AI.Reasoning\Microsoft.Agents.AI.Reasoning.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-using System.ClientModel.Primitives;
+﻿using System.ClientModel.Primitives;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -34,14 +34,38 @@ public static class ReasoningAIAgentExtension
             {
                 if (streamingChatCompletionUpdate.RawRepresentation is StreamingChatCompletionUpdate chatCompletionUpdate)
                 {
+                    // System.Text.Encoding.UTF8.GetString(chatCompletionUpdate._patch._rawJson.Value.Span)
 #pragma warning disable SCME0001 // Patch 属性是实验性内容
                     ref JsonPatch patch = ref chatCompletionUpdate.Patch;
+                    
                     if (patch.TryGetJson("$.choices[0].delta"u8, out var data))
                     {
                         var jsonElement = JsonElement.Parse(data.Span);
                         if (jsonElement.TryGetProperty("reasoning_content", out var reasoningContent))
                         {
                             // 拿到的 reasoningContent 就是思考内容
+                            bool isFirstThinking = false;
+                            if (isThinking is null)
+                            {
+                                isThinking = true;
+                                isFirstThinking = true;
+                            }
+
+                            if (isThinking is true)
+                            {
+                                yield return new ReasoningAgentResponseUpdate(agentRunResponseUpdate)
+                                {
+                                    Reasoning = reasoningContent.ToString(),
+                                    IsFirstThinking = isFirstThinking,
+                                    IsFirstOutputContent = false,
+                                    IsThinkingEnd = false,
+                                };
+                                continue;
+                            }
+                            else
+                            {
+                                Debug.Fail("不能在输出内容之后，再次进入思考");
+                            }
                         }
                     }
 

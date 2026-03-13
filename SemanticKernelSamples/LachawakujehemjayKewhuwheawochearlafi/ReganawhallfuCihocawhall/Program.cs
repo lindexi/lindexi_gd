@@ -23,7 +23,14 @@ var chatClient = openAiClient.GetChatClient("ep-20260115192014-kgkxq");
 
 ChatClientAgent aiAgent = chatClient.AsAIAgent();
 
-ChatMessage message = new ChatMessage(ChatRole.User, "请讲一个笑话");
+ChatMessage message = 
+        
+            new ChatMessage(ChatRole.User,
+                [
+                    new TextContent("根据以下图片，生成矢量图的 Path 路径，要求 Path 路径是 svg 路径。你可以生成多段 Path 路径，分别给这些 Path 路径着色"),
+                    new UriContent("http://cdn.lindexi.site/lindexi-20260313160236.jpg","image/jpg")
+                ])
+        ;
 
 await foreach (var agentRunResponseUpdate in aiAgent.RunReasoningStreamingAsync(message))
 {
