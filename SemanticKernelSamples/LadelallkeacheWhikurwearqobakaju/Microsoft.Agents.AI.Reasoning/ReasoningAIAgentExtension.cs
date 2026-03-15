@@ -9,7 +9,7 @@ namespace Microsoft.Agents.AI.Reasoning;
 
 public static class ReasoningAIAgentExtension
 {
-    public static IAsyncEnumerable<ReasoningAgentResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, ChatMessage message,
+    public static IAsyncEnumerable<ReasoningAgentRunResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, ChatMessage message,
         AgentSession? session = null,
         AgentRunOptions? options = null,
         CancellationToken cancellationToken = default)
@@ -17,7 +17,7 @@ public static class ReasoningAIAgentExtension
         return RunReasoningStreamingAsync(agent, [message], session, options, cancellationToken);
     }
 
-    public static async IAsyncEnumerable<ReasoningAgentResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, IEnumerable<ChatMessage> messages,
+    public static async IAsyncEnumerable<ReasoningAgentRunResponseUpdate> RunReasoningStreamingAsync(this AIAgent agent, IEnumerable<ChatMessage> messages,
         AgentSession? session = null,
         AgentRunOptions? options = null,
         [EnumeratorCancellation]
@@ -34,16 +34,13 @@ public static class ReasoningAIAgentExtension
             {
                 if (streamingChatCompletionUpdate.RawRepresentation is StreamingChatCompletionUpdate chatCompletionUpdate)
                 {
-                    // System.Text.Encoding.UTF8.GetString(chatCompletionUpdate._patch._rawJson.Value.Span)
-#pragma warning disable SCME0001 // Patch 属性是实验性内容
+#pragma warning disable SCME0001
                     ref JsonPatch patch = ref chatCompletionUpdate.Patch;
-                    
                     if (patch.TryGetJson("$.choices[0].delta"u8, out var data))
                     {
                         var jsonElement = JsonElement.Parse(data.Span);
                         if (jsonElement.TryGetProperty("reasoning_content", out var reasoningContent))
                         {
-                            // 拿到的 reasoningContent 就是思考内容
                             bool isFirstThinking = false;
                             if (isThinking is null)
                             {
@@ -53,7 +50,7 @@ public static class ReasoningAIAgentExtension
 
                             if (isThinking is true)
                             {
-                                yield return new ReasoningAgentResponseUpdate(agentRunResponseUpdate)
+                                yield return new ReasoningAgentRunResponseUpdate(agentRunResponseUpdate)
                                 {
                                     Reasoning = reasoningContent.ToString(),
                                     IsFirstThinking = isFirstThinking,
@@ -75,7 +72,7 @@ public static class ReasoningAIAgentExtension
 
             if (!contentIsEmpty)
             {
-                var responseUpdate = new ReasoningAgentResponseUpdate(agentRunResponseUpdate);
+                var responseUpdate = new ReasoningAgentRunResponseUpdate(agentRunResponseUpdate);
 
                 if (isFirstOutputContent)
                 {
