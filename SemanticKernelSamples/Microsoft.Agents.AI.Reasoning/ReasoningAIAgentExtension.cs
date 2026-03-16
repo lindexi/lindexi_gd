@@ -34,13 +34,13 @@ public static class ReasoningAIAgentExtension
 
             var contentIsEmpty = string.IsNullOrEmpty(agentRunResponseUpdate.Text);
 
-            foreach (var aiContent in agentRunResponseUpdate.Contents)
-            {
-                if (aiContent is FunctionCallContent functionCallContent)
-                {
-                    Debug.WriteLine($"FunctionCallContent {functionCallContent.Name}");
-                }
-            }
+            //foreach (var aiContent in agentRunResponseUpdate.Contents)
+            //{
+            //    if (aiContent is FunctionCallContent functionCallContent)
+            //    {
+            //        Debug.WriteLine($"FunctionCallContent {functionCallContent.Name}");
+            //    }
+            //}
 
             if (contentIsEmpty && agentRunResponseUpdate.RawRepresentation is Microsoft.Extensions.AI.ChatResponseUpdate streamingChatCompletionUpdate)
             {
@@ -85,10 +85,10 @@ public static class ReasoningAIAgentExtension
                 }
             }
 
+            var responseUpdate = new ReasoningAgentResponseUpdate(agentRunResponseUpdate);
+
             if (!contentIsEmpty)
             {
-                var responseUpdate = new ReasoningAgentResponseUpdate(agentRunResponseUpdate);
-
                 if (isFirstOutputContent)
                 {
                     responseUpdate.IsFirstOutputContent = true;
@@ -102,6 +102,11 @@ public static class ReasoningAIAgentExtension
                 isFirstOutputContent = false;
                 isThinking = false;
 
+                yield return responseUpdate;
+            }
+            else
+            {
+                // 有内容，直接输出即可
                 yield return responseUpdate;
             }
         }
