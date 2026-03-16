@@ -2,10 +2,13 @@
 using System;
 using System.ClientModel;
 using System.Diagnostics;
+
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
+
 using ModelContextProtocol.Client;
+
 using OpenAI;
 using OpenAI.Chat;
 
@@ -21,11 +24,19 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
 
 var mcpClient = await McpClient.CreateAsync(new HttpClientTransport(new HttpClientTransportOptions()
 {
-    Endpoint = new Uri("http://127.0.0.1:53779/mcp"),
+    Endpoint = new Uri("http://127.0.0.1:54731/mcp"),
     TransportMode = HttpTransportMode.AutoDetect
 }));
 
 IList<McpClientTool> toolList = await mcpClient.ListToolsAsync();
+
+foreach (var mcpClientTool in toolList)
+{
+    if (mcpClientTool.Name.Contains("Screenshot", StringComparison.OrdinalIgnoreCase))
+    {
+
+    }
+}
 
 var chatClient = openAiClient.GetChatClient("ep-20260306101224-c8mtg");
 
@@ -37,11 +48,10 @@ ChatClientAgent aiAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
     }
 });
 
-ChatMessage message = 
-        
+ChatMessage message =
             new ChatMessage(ChatRole.User,
                 [
-                    new TextContent("我画板里面有很多页面，这些页面有一些元素是被组合的，我想你帮我一页页课件检查，将组合的元素解除组合。将锁定的元素解锁"),
+                    new TextContent("我现在的这个页面看起来排版不好看，请帮我优化一下"),
                 ])
         ;
 

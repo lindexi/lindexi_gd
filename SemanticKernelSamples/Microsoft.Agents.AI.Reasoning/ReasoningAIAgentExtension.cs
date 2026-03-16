@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
@@ -28,7 +29,18 @@ public static class ReasoningAIAgentExtension
 
         await foreach (AgentResponseUpdate agentRunResponseUpdate in agent.RunStreamingAsync(messages, session, options, cancellationToken))
         {
+            var type = agentRunResponseUpdate.GetType();
+            Debug.WriteLine(type.FullName);
+
             var contentIsEmpty = string.IsNullOrEmpty(agentRunResponseUpdate.Text);
+
+            foreach (var aiContent in agentRunResponseUpdate.Contents)
+            {
+                if (aiContent is FunctionCallContent functionCallContent)
+                {
+                    Debug.WriteLine($"FunctionCallContent {functionCallContent.Name}");
+                }
+            }
 
             if (contentIsEmpty && agentRunResponseUpdate.RawRepresentation is Microsoft.Extensions.AI.ChatResponseUpdate streamingChatCompletionUpdate)
             {
