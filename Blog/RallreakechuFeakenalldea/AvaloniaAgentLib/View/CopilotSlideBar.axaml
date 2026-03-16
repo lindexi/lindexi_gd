@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:components="clr-namespace:SimpleWrite.Views.Components"
+             xmlns:view="clr-namespace:AvaloniaAgentLib.View"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.Components.CopilotSlideBar"
-             x:DataType="components:CopilotSlideBar">
+             x:Class="AvaloniaAgentLib.View.CopilotSlideBar"
+             x:DataType="view:CopilotSlideBar">
     <UserControl.Styles>
         <Style Selector="Border.CardBorder">
             <Setter Property="Background" Value="#FF1B1B1B" />
@@ -67,7 +67,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding ChatMessages}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="components:CopilotChatMessage">
+                            <DataTemplate x:DataType="view:CopilotChatMessage">
                                 <StackPanel HorizontalAlignment="{Binding HorizontalAlignment}" Margin="0,0,0,10" MaxWidth="250">
                                     <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
                                     <Border Background="{Binding BubbleBackground}" CornerRadius="8" Padding="10,8">

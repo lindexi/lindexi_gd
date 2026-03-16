@@ -8,24 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <!-- <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" /> -->
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="dotnetCampus.Configurations" Version="1.9.1" />
-
-    <PackageReference Include="Markdig" Version="1.0.0" />
-
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.3" />
-
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
-
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
-    <ProjectReference Include="..\AvaloniaAgentLib\AvaloniaAgentLib.csproj" />
-  </ItemGroup>
 </Project>
