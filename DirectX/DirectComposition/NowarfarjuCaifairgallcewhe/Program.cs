@@ -43,7 +43,7 @@ class DemoWindow
     {
         var window = CreateWindow();
         HWND = window;
-        ShowWindow(window, SHOW_WINDOW_CMD.SW_NORMAL);
+        ShowWindow(window, SHOW_WINDOW_CMD.SW_MAXIMIZE);
 
         var renderManager = new RenderManager(window);
         _renderManager = renderManager;
@@ -191,7 +191,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
                 var renderTargetProperties = new D2D.RenderTargetProperties()
                 {
-                    PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
+                    PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Ignore),
                     Type = D2D.RenderTargetType.Hardware,
                 };
 
