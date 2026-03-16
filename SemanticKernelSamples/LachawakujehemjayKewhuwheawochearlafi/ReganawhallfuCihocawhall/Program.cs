@@ -19,7 +19,7 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
     Endpoint = new Uri("https://ark.cn-beijing.volces.com/api/v3")
 });
 
-var chatClient = openAiClient.GetChatClient("ep-20260115192014-kgkxq");
+var chatClient = openAiClient.GetChatClient("ep-20260306101224-c8mtg");
 
 ChatClientAgent aiAgent = chatClient.AsAIAgent();
 
