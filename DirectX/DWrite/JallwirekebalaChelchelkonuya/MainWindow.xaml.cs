@@ -28,7 +28,7 @@ public partial class MainWindow : Window
     }
 
     // 宋体字体
-    private const string FontFile = @"c:\lindexi\Inter-Regular.ttf";
+    private const string FontFile = @"C:\windows\fonts\simsun.ttc";
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
@@ -70,11 +70,6 @@ public partial class MainWindow : Window
                 var end = new Rune(unicodeRange.Last);
 
                 Console.WriteLine($"Range {i}: '{start.ToString()}'({start.Value}) - '{end.ToString()}'({end.Value}) Length={end.Value - start.Value + 1}");
-            }
-
-            var c = '中';
-            if (unicodeRanges.Any(t=>t.First> c && t.Last<c))
-            {
             }
 
             TestWpf(unicodeRanges);
