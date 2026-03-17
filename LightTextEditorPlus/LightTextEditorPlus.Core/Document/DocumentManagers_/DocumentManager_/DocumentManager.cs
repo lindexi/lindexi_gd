@@ -136,6 +136,7 @@ namespace LightTextEditorPlus.Core.Document
 
         private void NotifyDocumentChanging(DocumentChangeKind documentChangeKind)
         {
+            InvalidStateCache();
             _callback.OnDocumentChanging(this, new DocumentChangeEventArgs(documentChangeKind));
         }
 
@@ -143,6 +144,17 @@ namespace LightTextEditorPlus.Core.Document
         {
             ChangeVersion++;
             _callback.OnDocumentChanged(this, new DocumentChangeEventArgs(documentChangeKind));
+        }
+
+        /// <summary>
+        /// 清空状态缓存
+        /// </summary>
+        private void InvalidStateCache()
+        {
+            // 在这个方法里面存放一些清空状态的逻辑
+
+            // 如果文档变更了，那缓存的字符数量也应该变更
+            _charCount = null;
         }
 
         #endregion
@@ -445,10 +457,16 @@ namespace LightTextEditorPlus.Core.Document
         {
             get
             {
+                if (_charCount != null)
+                {
+                    return _charCount.Value;
+                }
+
                 IReadOnlyList<ParagraphData> rawParagraphList = DocumentRunEditProvider.ParagraphManager.GetRawParagraphList();
                 // 为什么不调用 DocumentRunEditProvider.ParagraphManager.GetParagraphList() 方法？因为担心 GetParagraphList 额外调用了确保至少一段的方法，导致不必要的损耗
                 if (rawParagraphList.Count == 0)
                 {
+                    _charCount = 0;
                     return 0;
                 }
 
@@ -466,9 +484,12 @@ namespace LightTextEditorPlus.Core.Document
                     sum -= ParagraphData.DelimiterLength;
                 }
 
+                _charCount = sum;
                 return sum;
             }
         }
+
+        private int? _charCount;
 
         #endregion
 
