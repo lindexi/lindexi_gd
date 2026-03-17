@@ -1,26 +1,36 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
-using Avalonia.Media;
+using AvaloniaAgentLib.Model;
+using AvaloniaAgentLib.ViewModel;
 
 namespace AvaloniaAgentLib.View;
 
 public partial class CopilotSlideBar : UserControl
 {
-    public ObservableCollection<CopilotChatMessage> ChatMessages { get; } = [];
+    private CancellationTokenSource? _sendMessageCts;
 
     public CopilotSlideBar()
     {
         InitializeComponent();
-        DataContext = this;
-        AddAssistantWelcomeMessage();
+
+        ViewModel.ChatMessages.CollectionChanged += ChatMessages_CollectionChanged;
     }
 
-    private void SendButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    public CopilotViewModel ViewModel => (CopilotViewModel)DataContext!;
+
+    private async void SendButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
-        SendMessagePlaceholder();
+        if (ViewModel.IsChatting)
+        {
+            _sendMessageCts?.Cancel();
+            return;
+        }
+
+        await SendMessageAsync();
     }
 
     private void InputTextBox_OnKeyDown(object? sender, KeyEventArgs e)
@@ -30,76 +40,96 @@ public partial class CopilotSlideBar : UserControl
             return;
         }
 
-        SendMessagePlaceholder();
+        _ = SendMessageAsync();
         e.Handled = true;
     }
 
-    private void ClearButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    private async Task SendMessageAsync()
     {
-        ChatMessages.Clear();
-        AddAssistantWelcomeMessage();
-    }
-
-    private void SendMessagePlaceholder()
-    {
-        if (InputTextBox is null)
+        if (ViewModel.IsChatting)
         {
             return;
         }
 
-        var inputText = InputTextBox.Text?.Trim();
+        var originalInputText = InputTextBox.Text;
+        var inputText = originalInputText?.Trim();
         if (string.IsNullOrWhiteSpace(inputText))
         {
             return;
         }
 
-        ChatMessages.Add(CopilotChatMessage.CreateUser(inputText));
-        ChatMessages.Add(CopilotChatMessage.CreateAssistant("消息已接收。待接入 Agent 后将返回真实回复。"));
-        InputTextBox.Text = string.Empty;
+        _sendMessageCts?.Dispose();
+        var sendMessageCts = new CancellationTokenSource();
+        _sendMessageCts = sendMessageCts;
+
+        try
+        {
+            await ViewModel.SendMessageAsync(inputText, sendMessageCts.Token);
+            InputTextBox.Text = null;
+            await ScrollToBottomAsync();
+        }
+        catch (OperationCanceledException) when (sendMessageCts.IsCancellationRequested)
+        {
+            InputTextBox.Text = originalInputText;
+        }
+        catch (Exception)
+        {
+            InputTextBox.Text = originalInputText;
+        }
+        finally
+        {
+            sendMessageCts.Dispose();
+            if (ReferenceEquals(_sendMessageCts, sendMessageCts))
+            {
+                _sendMessageCts = null;
+            }
+        }
     }
 
-    private void AddAssistantWelcomeMessage()
+    private void ClearButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ChatMessages.Add(CopilotChatMessage.CreateAssistant("你好，我是 Copilot。请开始输入你的问题。"));
-    }
-}
-
-public sealed class CopilotChatMessage
-{
-    private static readonly IBrush UserBackground = new SolidColorBrush(Color.Parse("#FF2F6FED"));
-    private static readonly IBrush AssistantBackground = new SolidColorBrush(Color.Parse("#FF2A2A2A"));
-    private static readonly IBrush UserForeground = new SolidColorBrush(Color.Parse("#FFFFFFFF"));
-    private static readonly IBrush AssistantForeground = new SolidColorBrush(Color.Parse("#FFF0F0F0"));
-
-    private CopilotChatMessage(string author, string content, HorizontalAlignment horizontalAlignment, IBrush bubbleBackground, IBrush bubbleForeground)
-    {
-        Author = author;
-        Content = content;
-        HorizontalAlignment = horizontalAlignment;
-        BubbleBackground = bubbleBackground;
-        BubbleForeground = bubbleForeground;
-        TimeText = DateTime.Now.ToString("HH:mm");
+        ViewModel.Clear();
     }
 
-    public string Author { get; }
-
-    public string Content { get; }
-
-    public string TimeText { get; }
-
-    public HorizontalAlignment HorizontalAlignment { get; }
-
-    public IBrush BubbleBackground { get; }
-
-    public IBrush BubbleForeground { get; }
-
-    internal static CopilotChatMessage CreateUser(string content)
+    private void ChatMessages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        return new CopilotChatMessage("你", content, HorizontalAlignment.Right, UserBackground, UserForeground);
+        _ = ScrollToBottomAsync();
     }
 
-    internal static CopilotChatMessage CreateAssistant(string content)
+    private async Task ScrollToBottomAsync()
     {
-        return new CopilotChatMessage("Copilot", content, HorizontalAlignment.Left, AssistantBackground, AssistantForeground);
+        await Task.Yield();
+        ChatScrollViewer.ScrollToEnd();
+    }
+
+    private async void CopyMessageMenuItem_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { CommandParameter: string messageText })
+        {
+            return;
+        }
+
+        await SetClipboardTextAsync(messageText);
+    }
+
+    private async void CopyFullMessageMenuItem_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { CommandParameter: CopilotChatMessage message })
+        {
+            return;
+        }
+
+        await SetClipboardTextAsync($"{message.Author} {message.TimeText}{Environment.NewLine}{message.Content}");
+    }
+
+    private async Task SetClipboardTextAsync(string text)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is null)
+        {
+            return;
+        }
+
+        await topLevel.Clipboard.SetTextAsync(text);
     }
 }

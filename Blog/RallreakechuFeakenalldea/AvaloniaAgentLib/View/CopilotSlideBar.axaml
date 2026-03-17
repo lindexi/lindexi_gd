@@ -3,9 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:view="clr-namespace:AvaloniaAgentLib.View"
+             xmlns:model="clr-namespace:AvaloniaAgentLib.Model"
+             xmlns:viewModel="clr-namespace:AvaloniaAgentLib.ViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AvaloniaAgentLib.View.CopilotSlideBar"
-             x:DataType="view:CopilotSlideBar">
+             x:DataType="viewModel:CopilotViewModel">
+    <UserControl.DataContext>
+        <viewModel:CopilotViewModel/>
+    </UserControl.DataContext>
     <UserControl.Styles>
         <Style Selector="Border.CardBorder">
             <Setter Property="Background" Value="#FF1B1B1B" />
@@ -66,20 +71,27 @@
                     <Button Grid.Column="1"
                             Classes="SecondaryButton"
                             VerticalAlignment="Center"
+                            IsEnabled="{Binding CanEditInput}"
                             Click="ClearButton_OnClick"
                             Content="清空" />
                 </Grid>
             </Border>
 
             <Border Grid.Row="1" Classes="CardBorder" Margin="10,0,10,6" Padding="8">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding ChatMessages}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="view:CopilotChatMessage">
+                            <DataTemplate x:DataType="model:CopilotChatMessage">
                                 <StackPanel HorizontalAlignment="{Binding HorizontalAlignment}" Margin="0,0,0,10" MaxWidth="250">
                                     <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
                                     <Border Background="{Binding BubbleBackground}" CornerRadius="8" Padding="10,8">
-                                        <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="{Binding BubbleForeground}" />
+                                        <Border.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="复制消息" Click="CopyMessageMenuItem_OnClick" CommandParameter="{Binding Content}" />
+                                                <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
+                                            </ContextMenu>
+                                        </Border.ContextMenu>
+                                        <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="{Binding BubbleForeground}" />
                                     </Border>
                                     <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
                                 </StackPanel>
@@ -94,13 +106,16 @@
                     <TextBox x:Name="InputTextBox"
                              Grid.ColumnSpan="2"
                              Classes="MessageInputTextBox"
+                             IsEnabled="{Binding CanEditInput}"
                              Watermark="输入消息，Enter 发送，Shift+Enter 换行"
                              KeyDown="InputTextBox_OnKeyDown" />
                     <Button Grid.Row="1"
                             Grid.Column="1"
                             Classes="PrimaryButton"
+                            x:Name="SendButton"
+                            Content="{Binding SendButtonText}"
                             Click="SendButton_OnClick"
-                            Content="发送" />
+                            />
                 </Grid>
             </Border>
         </Grid>
