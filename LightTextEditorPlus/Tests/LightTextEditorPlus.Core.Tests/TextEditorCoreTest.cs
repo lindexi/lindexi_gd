@@ -71,6 +71,53 @@ public class TextEditorCoreTest
             // Assert
             Assert.AreEqual(4, raiseCount);
         });
+
+        "在已有文本中调用 EditAndReplace 发生光标变化时事件顺序保持为 光标开始变更 选择开始变更 选择完成变更 光标完成变更".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("123");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
+
+            var oldCaretOffset = textEditorCore.CurrentCaretOffset;
+            var raiseCount = 0;
+
+            textEditorCore.CurrentCaretOffsetChanging += (_, args) =>
+            {
+                Assert.AreEqual(0, raiseCount);
+                Assert.AreEqual(oldCaretOffset, args.OldValue);
+                Assert.AreEqual(new CaretOffset(2), args.NewValue);
+                raiseCount = 1;
+            };
+
+            textEditorCore.CurrentSelectionChanging += (_, args) =>
+            {
+                Assert.AreEqual(1, raiseCount);
+                Assert.AreEqual(oldCaretOffset, args.OldValue.StartOffset);
+                Assert.AreEqual(new CaretOffset(2), args.NewValue.StartOffset);
+                raiseCount = 2;
+            };
+
+            textEditorCore.CurrentSelectionChanged += (_, args) =>
+            {
+                Assert.AreEqual(2, raiseCount);
+                Assert.AreEqual(new CaretOffset(2), args.NewValue.StartOffset);
+                raiseCount = 3;
+            };
+
+            textEditorCore.CurrentCaretOffsetChanged += (_, args) =>
+            {
+                Assert.AreEqual(3, raiseCount);
+                Assert.AreEqual(new CaretOffset(2), args.NewValue);
+                raiseCount = 4;
+            };
+
+            // Action
+            textEditorCore.EditAndReplace("A");
+
+            // Assert
+            Assert.AreEqual(4, raiseCount);
+        });
     }
 
     [ContractTestCase]
@@ -134,6 +181,43 @@ public class TextEditorCoreTest
             // Assert
             Assert.AreEqual(3, raiseCount);
         });
+
+        "在已有文本中调用 EditAndReplace 的事件触发顺序是 DocumentChanging DocumentChanged LayoutCompleted".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("123");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
+            var raiseCount = 0;
+
+            textEditorCore.DocumentChanging += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(0, raiseCount);
+                raiseCount = 1;
+            };
+
+            textEditorCore.DocumentChanged += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(1, raiseCount);
+                raiseCount = 2;
+            };
+
+            textEditorCore.LayoutCompleted += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(2, raiseCount);
+                raiseCount = 3;
+            };
+
+            // Action
+            textEditorCore.EditAndReplace("A");
+
+            // Assert
+            Assert.AreEqual(3, raiseCount);
+            Assert.AreEqual("1A23", textEditorCore.GetText());
+        });
     }
 
     [ContractTestCase]
@@ -156,6 +240,23 @@ public class TextEditorCoreTest
             // Action
             textEditorCore.AppendText(TestHelper.PlainNumberText);
         });
+
+        "在已有文本中调用 EditAndReplace 替换内容后，可以获取到更新后的文档尺寸".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider()).UseFixedLineSpacing();
+            textEditorCore.AppendText("12");
+            var oldDocumentBounds = textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
+
+            // Action
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset(1), length: 1);
+            textEditorCore.EditAndReplace("3456");
+
+            // Assert
+            var newDocumentBounds = textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
+            Assert.AreEqual(true, newDocumentBounds.Width > oldDocumentBounds.Width);
+            Assert.AreEqual(oldDocumentBounds.Height, newDocumentBounds.Height);
+        });
     }
 
     [ContractTestCase]
@@ -168,6 +269,20 @@ public class TextEditorCoreTest
 
             // Action
             textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Assert
+            Assert.IsNotNull(textEditorCore.DebugName);
+        });
+
+        "在已有文本中调用 EditAndReplace 后，文本调试名依然可用".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("123");
+
+            // Action
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset(1), length: 1);
+            textEditorCore.EditAndReplace("ABC");
 
             // Assert
             Assert.IsNotNull(textEditorCore.DebugName);
