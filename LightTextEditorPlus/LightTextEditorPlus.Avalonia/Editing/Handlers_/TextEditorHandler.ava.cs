@@ -34,7 +34,7 @@ public partial class TextEditorHandler
         if (currentPoint.Properties.IsRightButtonPressed)
         {
             // 右击
-            // todo 右击菜单
+            // 右击菜单等待抬起才生效
             return;
         }
         else
@@ -45,7 +45,11 @@ public partial class TextEditorHandler
 
             if (_inputGesture.ClickCount % 2 == 0)
             {
-                HandleDoubleClick(clickPoint);
+                var canHandle = HandleDoubleClick(clickPoint);
+                if (canHandle)
+                {
+                    e.Handled = true;
+                }
             }
             else if (_inputGesture.ClickCount % 2 == 1)
             {
@@ -89,11 +93,13 @@ public partial class TextEditorHandler
             if (_isHitSelection)
             {
                 HandleDragText(in textPoint);
+                e.Handled = true;
             }
             else
             {
                 //拖拽选择
                 HandleDragSelect(in textPoint);
+                e.Handled = true;
             }
         }
         else
@@ -114,6 +120,12 @@ public partial class TextEditorHandler
             return;
         }
 
+        if (e.Handled)
+        {
+            // 预期不会进入此分支
+            return;
+        }
+
         if (_isMouseDown)
         {
             if (_isHitSelection)
@@ -127,6 +139,16 @@ public partial class TextEditorHandler
         }
 
         _isMouseDown = false;
+
+        if (e.InitialPressMouseButton == MouseButton.Right && !e.Handled)
+        {
+            // 右击，尝试打开右键菜单
+            var args = new ContextRequestedEventArgs(e);
+            TextEditor.RaiseEvent(args);
+            e.Handled |= args.Handled;
+        }
+
+        e.Handled = true;
         //Mouse.Capture(TextEditor, CaptureMode.None);
     }
 
