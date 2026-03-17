@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using AvaloniaAgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
@@ -131,5 +132,10 @@ public partial class CopilotSlideBar : UserControl
         }
 
         await topLevel.Clipboard.SetTextAsync(text);
+    }
+
+    private void SettingButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        ViewModel.OpenSetting();
     }
 }

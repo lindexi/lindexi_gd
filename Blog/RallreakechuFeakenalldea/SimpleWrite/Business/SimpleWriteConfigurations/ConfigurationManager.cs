@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using dotnetCampus.Configurations;
 using dotnetCampus.Configurations.Core;
 
@@ -15,7 +16,7 @@ public class ConfigurationManager
     public ConfigurationManager(AppPathManager appPathManager)
     {
         var applicationConfigurationFile = appPathManager.ApplicationConfigurationFile;
-        var fileConfigurationRepo = ConfigurationFactory.FromFile(applicationConfigurationFile,RepoSyncingBehavior.Sync);
+        var fileConfigurationRepo = ConfigurationFactory.FromFile(applicationConfigurationFile, RepoSyncingBehavior.Sync);
         FileConfigurationRepo = fileConfigurationRepo;
         AppConfigurator = fileConfigurationRepo.CreateAppConfigurator();
     }

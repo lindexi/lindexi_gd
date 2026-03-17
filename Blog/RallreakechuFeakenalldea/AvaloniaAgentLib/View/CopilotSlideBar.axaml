@@ -63,7 +63,7 @@
     <Border Background="#FF141414" BorderThickness="1,0,0,0" BorderBrush="#FF3B3B3B">
         <Grid RowDefinitions="Auto,*,Auto">
             <Border Classes="CardBorder" Margin="10,10,10,6">
-                <Grid ColumnDefinitions="*,Auto">
+                <Grid ColumnDefinitions="*,Auto,Auto">
                     <StackPanel Spacing="2">
                         <TextBlock Classes="HeaderTitle" Text="Copilot Chat" />
                         <TextBlock Classes="SecondaryText" Text="与 Copilot 对话" />
@@ -74,6 +74,12 @@
                             IsEnabled="{Binding CanEditInput}"
                             Click="ClearButton_OnClick"
                             Content="清空" />
+                    <Button x:Name="SettingButton" Grid.Column="2"
+                            Classes="SecondaryButton"
+                            Margin="2,0,0,0"
+                            VerticalAlignment="Center"
+                            Content="设置" 
+                            Click="SettingButton_OnClick"/>
                 </Grid>
             </Border>
 

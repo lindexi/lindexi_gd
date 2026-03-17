@@ -38,12 +38,12 @@ public sealed class CopilotChatMessage
 
     public IBrush BubbleForeground { get; }
 
-    internal static CopilotChatMessage CreateUser(string content)
+    public static CopilotChatMessage CreateUser(string content)
     {
         return new CopilotChatMessage("你", content, HorizontalAlignment.Right, UserBackground, UserForeground);
     }
 
-    internal static CopilotChatMessage CreateAssistant(string content)
+    public static CopilotChatMessage CreateAssistant(string content)
     {
         return new CopilotChatMessage("Copilot", content, HorizontalAlignment.Left, AssistantBackground, AssistantForeground);
     }

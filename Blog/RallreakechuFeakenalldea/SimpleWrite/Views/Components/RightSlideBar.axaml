@@ -5,5 +5,5 @@
              xmlns:view="clr-namespace:AvaloniaAgentLib.View;assembly=AvaloniaAgentLib"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleWrite.Views.Components.RightSlideBar">
-    <view:CopilotSlideBar/>
+    <view:CopilotSlideBar x:Name="CopilotSlideBar"/>
 </UserControl>
