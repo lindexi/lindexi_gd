@@ -238,7 +238,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 设置段落属性
         /// </summary>
-        /// <param name="paragraphIndex"></param>
+        /// <param name="paragraphIndex">段落序号</param>
         /// <param name="paragraphProperty"></param>
         public void SetParagraphProperty(ParagraphIndex paragraphIndex, ParagraphProperty paragraphProperty)
         {
@@ -249,7 +249,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 设置 <paramref name="caretOffset"/> 光标所在的段落的段落属性
         /// </summary>
-        /// <param name="caretOffset"></param>
+        /// <param name="caretOffset">光标位置</param>
         /// <param name="paragraphProperty"></param>
         public void SetParagraphProperty(in CaretOffset caretOffset, ParagraphProperty paragraphProperty)
         {

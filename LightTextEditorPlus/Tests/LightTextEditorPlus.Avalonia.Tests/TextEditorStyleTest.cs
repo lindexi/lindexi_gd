@@ -192,6 +192,9 @@ public class TextEditorStyleTest
             textEditor.SetParagraphSpaceBefore(secondParagraphCaretOffset, 6);
             textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 8);
             textEditor.SetLineSpacing(secondParagraphCaretOffset, TextLineSpacings.MultipleLineSpace(2));
+            textEditor.SetHorizontalTextAlignment(HorizontalTextAlignment.Left);
+            textEditor.SetHorizontalTextAlignment(secondParagraphCaretOffset, HorizontalTextAlignment.Center);
+            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Justify);
 
             ParagraphProperty firstParagraphProperty = textEditor.GetParagraphProperty(new ParagraphIndex(0));
             ParagraphProperty secondParagraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
@@ -201,6 +204,8 @@ public class TextEditorStyleTest
             Assert.AreEqual(6, secondParagraphProperty.ParagraphBefore);
             Assert.AreEqual(8, secondParagraphProperty.ParagraphAfter);
             Assert.AreEqual(TextLineSpacings.MultipleLineSpace(2), secondParagraphProperty.LineSpacing);
+            Assert.AreEqual(HorizontalTextAlignment.Left, firstParagraphProperty.HorizontalTextAlignment);
+            Assert.AreEqual(HorizontalTextAlignment.Justify, secondParagraphProperty.HorizontalTextAlignment);
         });
     }
 
@@ -218,7 +223,8 @@ public class TextEditorStyleTest
             ParagraphProperty oldSecondParagraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
 
             textEditor.DisableFeatures(TextFeatures.SetIndentation | TextFeatures.IncreaseIndentation | TextFeatures.DecreaseIndentation
-                | TextFeatures.SetParagraphSpaceBefore | TextFeatures.SetParagraphSpaceAfter | TextFeatures.SetLineSpacing);
+                | TextFeatures.SetParagraphSpaceBefore | TextFeatures.SetParagraphSpaceAfter | TextFeatures.SetLineSpacing
+                | TextFeatures.AlignHorizontalRight);
 
             textEditor.SetIndentation(9);
             textEditor.IncreaseIndentation(secondParagraphCaretOffset, 2);
@@ -226,6 +232,7 @@ public class TextEditorStyleTest
             textEditor.SetParagraphSpaceBefore(secondParagraphCaretOffset, 6);
             textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 7);
             textEditor.SetLineSpacing(secondParagraphCaretOffset, TextLineSpacings.MultipleLineSpace(3));
+            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Right);
 
             ParagraphProperty currentSecondParagraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
             Assert.AreEqual(oldSecondParagraphProperty, currentSecondParagraphProperty);

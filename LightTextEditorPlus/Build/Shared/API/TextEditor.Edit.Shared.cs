@@ -365,9 +365,10 @@ namespace LightTextEditorPlus
         /// <param name="config">传入的样式段落属性为当前准备更改的段落的段落属性</param>
         public void ConfigParagraphProperty(in CaretOffset caretOffset, CreateParagraphPropertyDelegate config)
         {
-            ParagraphProperty paragraphProperty = GetParagraphProperty(caretOffset);
+            ITextParagraph textParagraph = TextEditorCore.DocumentManager.GetParagraph(in caretOffset);
+            ParagraphProperty paragraphProperty = textParagraph.ParagraphProperty;
             ParagraphProperty newParagraphProperty = config(paragraphProperty);
-            SetParagraphProperty(in caretOffset, newParagraphProperty);
+            TextEditorCore.DocumentManager.SetParagraphProperty(textParagraph, newParagraphProperty);
         }
 
         /// <summary>
@@ -625,6 +626,63 @@ namespace LightTextEditorPlus
             }
 
             ConfigParagraphProperty(index, paragraph => paragraph with { LineSpacing = lineSpacing });
+        }
+
+        /// <summary>
+        /// 设置当前段落水平对齐
+        /// </summary>
+        /// <param name="horizontalTextAlignment">水平对齐方式</param>
+        public void SetHorizontalTextAlignment(HorizontalTextAlignment horizontalTextAlignment)
+            => SetHorizontalTextAlignment(TextEditorCore.CurrentCaretOffset, horizontalTextAlignment);
+
+        /// <summary>
+        /// 设置指定光标所在段落水平对齐
+        /// </summary>
+        /// <param name="caretOffset">光标位置</param>
+        /// <param name="horizontalTextAlignment">水平对齐方式</param>
+        public void SetHorizontalTextAlignment(in CaretOffset caretOffset,
+            HorizontalTextAlignment horizontalTextAlignment)
+        {
+            if (CheckHorizontalAlignFeatureDisableWithLog(horizontalTextAlignment))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(caretOffset,
+                paragraph => paragraph with { HorizontalTextAlignment = horizontalTextAlignment });
+        }
+
+        /// <summary>
+        /// 设置指定段落水平对齐
+        /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="horizontalTextAlignment">水平对齐方式</param>
+        public void SetHorizontalTextAlignment(ParagraphIndex index, HorizontalTextAlignment horizontalTextAlignment)
+        {
+            if (CheckHorizontalAlignFeatureDisableWithLog(horizontalTextAlignment))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(index,
+                paragraph => paragraph with { HorizontalTextAlignment = horizontalTextAlignment });
+        }
+
+        private bool CheckHorizontalAlignFeatureDisableWithLog(HorizontalTextAlignment horizontalTextAlignment)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.HorizontalAlign))
+            {
+                return true;
+            }
+
+            return horizontalTextAlignment switch
+            {
+                HorizontalTextAlignment.Left => CheckFeaturesDisableWithLog(TextFeatures.AlignHorizontalLeft),
+                HorizontalTextAlignment.Center => CheckFeaturesDisableWithLog(TextFeatures.AlignHorizontalCenter),
+                HorizontalTextAlignment.Right => CheckFeaturesDisableWithLog(TextFeatures.AlignHorizontalRight),
+                HorizontalTextAlignment.Justify => CheckFeaturesDisableWithLog(TextFeatures.AlignJustify),
+                _ => false
+            };
         }
 
         /// <summary>
