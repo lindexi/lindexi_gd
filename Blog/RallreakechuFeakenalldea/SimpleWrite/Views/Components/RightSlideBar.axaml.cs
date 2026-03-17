@@ -22,7 +22,7 @@ public partial class RightSlideBar : UserControl
         DataContextChanged += OnDataContextChanged;
     }
 
-    public SimpleWriteMainViewModel MainViewModel => (SimpleWriteMainViewModel)DataContext!;
+    public SimpleWriteMainViewModel MainViewModel => (SimpleWriteMainViewModel) DataContext!;
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
@@ -45,7 +45,7 @@ public partial class RightSlideBar : UserControl
                 agentApiConfiguration.Key ??= keyHelpText;
                 agentApiConfiguration.ModelName ??= modelNameHelpText;
 
-                copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接"));
+                copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接", isPresetInfo: true));
             }
             else
             {

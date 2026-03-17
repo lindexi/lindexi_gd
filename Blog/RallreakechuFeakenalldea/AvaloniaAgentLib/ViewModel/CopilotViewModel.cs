@@ -1,4 +1,9 @@
-﻿using AvaloniaAgentLib.Model;
+﻿using AvaloniaAgentLib.Core;
+using AvaloniaAgentLib.Model;
+
+using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Reasoning;
+using Microsoft.Extensions.AI;
 
 using System;
 using System.Collections.Generic;
@@ -9,9 +14,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AvaloniaAgentLib.Core;
-using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
 
 namespace AvaloniaAgentLib.ViewModel;
 
@@ -72,8 +74,8 @@ public class CopilotViewModel : INotifyPropertyChanged
 
             ChatMessages.Add(CopilotChatMessage.CreateUser(inputText));
 
-            var openAIClient = AgentApiEndpointManager.CreateOpenAIClient();
-            ChatClientAgent chatClientAgent = openAIClient.AsAIAgent(new ChatClientAgentOptions()
+            var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
+            ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
                 {
@@ -81,18 +83,73 @@ public class CopilotViewModel : INotifyPropertyChanged
                 }
             });
 
-            
+            ChatMessage[] messages =
+                [
+                    ..ChatMessages
+                        .Where(chatMessage=>!chatMessage.IsPresetInfo)
+                        .Select(chatMessage => new ChatMessage(chatMessage.Role,chatMessage.Content)),
+                ];
 
-            await Task.Delay(TimeSpan.FromMilliseconds(4000), cancellationToken);
-            ChatMessages.Add(CopilotChatMessage.CreateAssistant("消息已接收。待接入 Agent 后将返回真实回复。"));
+            var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
+            ChatMessages.Add(copilotChatMessage);
+            bool isFirst = true;
+
+            await foreach (var agentRunResponseUpdate in chatClientAgent.RunReasoningStreamingAsync(messages, cancellationToken: cancellationToken))
+            {
+                if (isFirst)
+                {
+                    copilotChatMessage.Content = "";
+                }
+
+                isFirst = false;
+
+                if (agentRunResponseUpdate.IsFirstThinking)
+                {
+                    copilotChatMessage.Content = "思考：";
+                }
+
+                if (agentRunResponseUpdate.Reasoning is not null)
+                {
+                    copilotChatMessage.Content += agentRunResponseUpdate.Reasoning;
+                }
+
+                if (agentRunResponseUpdate.IsThinkingEnd)
+                {
+                    copilotChatMessage.Content += "\r\n--------\r\n";
+                }
+
+                var text = agentRunResponseUpdate.Text;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    copilotChatMessage.Content += text;
+                }
+                else
+                {
+                    foreach (var content in agentRunResponseUpdate.Origin.Contents)
+                    {
+                        if (content is FunctionCallContent functionCallContent)
+                        {
+                            copilotChatMessage.Content += $"Function Call: {functionCallContent}\r\n";
+                        }
+
+                        /*
+                         * TextContent	文本内容可以是输入，例如，来自用户或开发人员，以及代理的输出。 通常包含代理的文本结果。
+                           DataContent	可以是输入和输出的二进制内容。 可用于向代理传入和传出图像、音频或视频数据（其中受支持）。
+                           UriContent	通常指向托管内容（如图像、音频或视频）的 URL。
+                           FunctionCallContent	推理服务调用函数工具的请求。
+                           FunctionResultContent	函数工具调用的结果。
+                         */
+                    }
+                }
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            ChatMessages.Add(CopilotChatMessage.CreateAssistant("已取消"));
+            ChatMessages.Add(CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true));
         }
         catch (Exception exception)
         {
-            ChatMessages.Add(CopilotChatMessage.CreateAssistant(exception.ToString()));
+            ChatMessages.Add(CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true));
         }
         finally
         {
@@ -102,7 +159,7 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     private void AddAssistantWelcomeMessage()
     {
-        ChatMessages.Add(CopilotChatMessage.CreateAssistant("你好，我是 Copilot。请开始输入你的问题。"));
+        ChatMessages.Add(CopilotChatMessage.CreateAssistant("你好，我是 Copilot。请开始输入你的问题。", isPresetInfo: true));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
