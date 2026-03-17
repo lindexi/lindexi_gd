@@ -46,11 +46,10 @@ public class TextEditorStyleTest
             var textEditor = context.TextEditor;
             textEditor.Text = "abc";
             ParagraphProperty oldParagraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
-            ParagraphProperty newParagraphProperty = oldParagraphProperty with { ParagraphBefore = oldParagraphProperty.ParagraphBefore + 20 };
             textEditor.DisableFeatures(TextFeatures.SetParagraphSpaceBefore);
 
             // Action
-            textEditor.SetCurrentCaretOffsetParagraphProperty(newParagraphProperty);
+            textEditor.SetParagraphSpaceBefore(oldParagraphProperty.ParagraphBefore + 20);
 
             // Assert
             ParagraphProperty currentParagraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
@@ -207,6 +206,11 @@ public class TextEditorStyleTest
             var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
             var secondParagraphIndex = new ParagraphIndex(1);
 
+            // 赋值文本之后，光标就到文档末尾了
+            Assert.AreEqual(textEditor.GetDocumentEndCaretOffset(), textEditor.CurrentCaretOffset);
+            // 设置到开头
+            textEditor.CurrentCaretOffset = textEditor.GetDocumentStartCaretOffset();
+
             textEditor.SetIndentation(10);
             textEditor.IncreaseIndentation(secondParagraphCaretOffset, 4);
             textEditor.DecreaseIndentation(secondParagraphIndex, 1);
@@ -215,7 +219,7 @@ public class TextEditorStyleTest
             textEditor.SetLineSpacing(secondParagraphCaretOffset, TextLineSpacings.MultipleLineSpace(2));
             textEditor.SetHorizontalTextAlignment(HorizontalTextAlignment.Left);
             textEditor.SetHorizontalTextAlignment(secondParagraphCaretOffset, HorizontalTextAlignment.Center);
-            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Justify);
+            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Right);
 
             ParagraphProperty firstParagraphProperty = textEditor.GetParagraphProperty(new ParagraphIndex(0));
             ParagraphProperty secondParagraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
@@ -226,7 +230,7 @@ public class TextEditorStyleTest
             Assert.AreEqual(8, secondParagraphProperty.ParagraphAfter);
             Assert.AreEqual(TextLineSpacings.MultipleLineSpace(2), secondParagraphProperty.LineSpacing);
             Assert.AreEqual(HorizontalTextAlignment.Left, firstParagraphProperty.HorizontalTextAlignment);
-            Assert.AreEqual(HorizontalTextAlignment.Justify, secondParagraphProperty.HorizontalTextAlignment);
+            Assert.AreEqual(HorizontalTextAlignment.Right, secondParagraphProperty.HorizontalTextAlignment);
         });
 
         "禁用段落功能开关后，新增段落便捷 API 不生效".Test(() =>
@@ -366,12 +370,12 @@ public class TextEditorStyleTest
             textEditor.SetParagraphSpaceBefore(secondParagraphIndex, 3);
             textEditor.SetParagraphSpaceBefore(secondParagraphIndex, 9);
             textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Left);
-            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Justify);
+            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Right);
 
             ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
             Assert.AreEqual(5, paragraphProperty.Indent);
             Assert.AreEqual(9, paragraphProperty.ParagraphBefore);
-            Assert.AreEqual(HorizontalTextAlignment.Justify, paragraphProperty.HorizontalTextAlignment);
+            Assert.AreEqual(HorizontalTextAlignment.Right, paragraphProperty.HorizontalTextAlignment);
         });
 
         "ParagraphIndex API 功能开关动态启用禁用应符合预期".Test(() =>
