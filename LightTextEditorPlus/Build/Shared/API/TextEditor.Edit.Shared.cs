@@ -298,6 +298,38 @@ namespace LightTextEditorPlus
 
         #endregion
 
+        #region Style
+
+        /// <summary>
+        /// 增加字体大小
+        /// </summary>
+        public void IncreaseFontSize(Selection? selection = null)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.IncreaseFontSize)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetFontSize))
+            {
+                return;
+            }
+
+            SetRunProperty(p => p with { FontSize = p.FontSize + 1 }, PropertyType.FontSize, selection);
+        }
+
+        /// <summary>
+        /// 减小字体大小
+        /// </summary>
+        public void DecreaseFontSize(Selection? selection = null)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.DecreaseFontSize)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetFontSize))
+            {
+                return;
+            }
+
+            SetRunProperty(p => p with { FontSize = p.FontSize - 1 }, PropertyType.FontSize, selection);
+        }
+
+        #endregion
+
         #region 段落属性
 
         /// <inheritdoc cref="TextEditorCore.ParagraphList"/>

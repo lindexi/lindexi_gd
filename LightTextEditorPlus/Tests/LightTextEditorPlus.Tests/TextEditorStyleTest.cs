@@ -171,6 +171,28 @@ public class TextEditorStyleTest
         });
     }
 
+
+    [UIContractTestCase]
+    public void IncreaseAndDecreaseFontSize()
+    {
+        "IncreaseFontSize 和 DecreaseFontSize 按选择范围增减字号".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.SetFontSize(20, selection);
+
+            textEditor.IncreaseFontSize(selection);
+            RunProperty runPropertyAfterIncrease = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(21, runPropertyAfterIncrease.FontSize);
+
+            textEditor.DecreaseFontSize(selection);
+            RunProperty runPropertyAfterDecrease = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(20, runPropertyAfterDecrease.FontSize);
+        });
+    }
     [UIContractTestCase]
     public void ChangeStyle()
     {

@@ -151,6 +151,28 @@ public class TextEditorStyleTest
         });
     }
 
+    [TestMethod("IncreaseFontSize 和 DecreaseFontSize 应按选择范围增减字号")]
+    public async Task IncreaseAndDecreaseFontSizeShouldApply()
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.SetFontSize(20, selection);
+
+            textEditor.IncreaseFontSize(selection);
+            SkiaTextRunProperty runPropertyAfterIncrease = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(21, runPropertyAfterIncrease.FontSize);
+
+            textEditor.DecreaseFontSize(selection);
+            SkiaTextRunProperty runPropertyAfterDecrease = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(20, runPropertyAfterDecrease.FontSize);
+        });
+    }
+
     [TestMethod("整段文本字符属性设置之后，经过撤销恢复，能够还原状态")]
     public async Task TestSetRunProperty1()
     {
