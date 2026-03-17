@@ -7,12 +7,15 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AvaloniaAgentLib.ViewModel;
 
 public class CopilotViewModel : INotifyPropertyChanged
 {
+    private bool _isChatting;
+
     public CopilotViewModel()
     {
         AddAssistantWelcomeMessage();
@@ -20,21 +23,60 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     public ObservableCollection<CopilotChatMessage> ChatMessages { get; } = [];
 
+    public bool IsChatting
+    {
+        get => _isChatting;
+        private set
+        {
+            if (!SetField(ref _isChatting, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanEditInput));
+            OnPropertyChanged(nameof(SendButtonText));
+        }
+    }
+
+    /// <summary>
+    /// 能否编辑输入
+    /// </summary>
+    public bool CanEditInput => !IsChatting;
+
+    public string SendButtonText => IsChatting ? "停止" : "发送";
+
     public void Clear()
     {
         ChatMessages.Clear();
         AddAssistantWelcomeMessage();
     }
 
-    public async Task SendMessageAsync(string? inputText)
+    public async Task SendMessageAsync(string? inputText, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(inputText))
         {
             return;
         }
 
-        ChatMessages.Add(CopilotChatMessage.CreateUser(inputText));
-        ChatMessages.Add(CopilotChatMessage.CreateAssistant("消息已接收。待接入 Agent 后将返回真实回复。"));
+        IsChatting = true;
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ChatMessages.Add(CopilotChatMessage.CreateUser(inputText));
+            await Task.Delay(TimeSpan.FromMilliseconds(4000), cancellationToken);
+            ChatMessages.Add(CopilotChatMessage.CreateAssistant("消息已接收。待接入 Agent 后将返回真实回复。"));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            ChatMessages.Add(CopilotChatMessage.CreateAssistant("已取消"));
+        }
+        finally
+        {
+            IsChatting = false;
+        }
     }
 
     private void AddAssistantWelcomeMessage()
