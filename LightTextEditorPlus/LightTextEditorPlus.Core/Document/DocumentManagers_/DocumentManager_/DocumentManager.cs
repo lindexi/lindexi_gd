@@ -51,19 +51,6 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         internal int ChangeVersion { get; private set; }
 
-        private sealed class EmptyDocumentManagerCallback : IDocumentManagerCallback
-        {
-            public static EmptyDocumentManagerCallback Instance { get; } = new EmptyDocumentManagerCallback();
-
-            public void OnDocumentChanging(object sender, DocumentChangeEventArgs args)
-            {
-            }
-
-            public void OnDocumentChanged(object sender, DocumentChangeEventArgs args)
-            {
-            }
-        }
-
         #region DocumentWidth DocumentHeight
 
         /// <summary>
@@ -134,8 +121,14 @@ namespace LightTextEditorPlus.Core.Document
 
         #region 内部通知
 
+        /// <summary>
+        /// 是否文档正在变更
+        /// </summary>
+        public bool IsDocumentChanging { get; private set; }
+
         private void NotifyDocumentChanging(DocumentChangeKind documentChangeKind)
         {
+            IsDocumentChanging = true;
             InvalidStateCache();
             _callback.OnDocumentChanging(this, new DocumentChangeEventArgs(documentChangeKind));
         }
@@ -143,6 +136,7 @@ namespace LightTextEditorPlus.Core.Document
         private void NotifyDocumentChanged(DocumentChangeKind documentChangeKind)
         {
             ChangeVersion++;
+            IsDocumentChanging = false;
             _callback.OnDocumentChanged(this, new DocumentChangeEventArgs(documentChangeKind));
         }
 
@@ -457,39 +451,49 @@ namespace LightTextEditorPlus.Core.Document
         {
             get
             {
-                if (_charCount != null)
+                // 文档正在变更的情况，此时不能做缓存
+                var canCache = !IsDocumentChanging;
+
+                if (canCache)
                 {
+                    _charCount ??= CalculateCharCount();
                     return _charCount.Value;
                 }
-
-                IReadOnlyList<ParagraphData> rawParagraphList = DocumentRunEditProvider.ParagraphManager.GetRawParagraphList();
-                // 为什么不调用 DocumentRunEditProvider.ParagraphManager.GetParagraphList() 方法？因为担心 GetParagraphList 额外调用了确保至少一段的方法，导致不必要的损耗
-                if (rawParagraphList.Count == 0)
+                else
                 {
-                    _charCount = 0;
-                    return 0;
+                    // 不能做缓存的情况，计算字符数量
+                    return CalculateCharCount();
                 }
-
-                var sum = 0;
-                foreach (var paragraphData in rawParagraphList)
-                {
-                    sum += paragraphData.CharCount;
-                    // 加上换行符的字符
-                    sum += ParagraphData.DelimiterLength;
-                }
-
-                if (sum > 0)
-                {
-                    // 证明存在一段以上，那减去最后一段多加上的换行符
-                    sum -= ParagraphData.DelimiterLength;
-                }
-
-                _charCount = sum;
-                return sum;
             }
         }
 
         private int? _charCount;
+
+        private int CalculateCharCount()
+        {
+            IReadOnlyList<ParagraphData> rawParagraphList = DocumentRunEditProvider.ParagraphManager.GetRawParagraphList();
+            // 为什么不调用 DocumentRunEditProvider.ParagraphManager.GetParagraphList() 方法？因为担心 GetParagraphList 额外调用了确保至少一段的方法，导致不必要的损耗
+            if (rawParagraphList.Count == 0)
+            {
+                return 0;
+            }
+
+            var sum = 0;
+            foreach (var paragraphData in rawParagraphList)
+            {
+                sum += paragraphData.CharCount;
+                // 加上换行符的字符
+                sum += ParagraphData.DelimiterLength;
+            }
+
+            if (sum > 0)
+            {
+                // 证明存在一段以上，那减去最后一段多加上的换行符
+                sum -= ParagraphData.DelimiterLength;
+            }
+
+            return sum;
+        }
 
         #endregion
 

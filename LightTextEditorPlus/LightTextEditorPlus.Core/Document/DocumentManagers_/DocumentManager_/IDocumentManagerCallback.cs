@@ -12,3 +12,18 @@ internal interface IDocumentManagerCallback
 
     void OnDocumentChanged(object sender, DocumentChangeEventArgs args);
 }
+
+internal sealed class EmptyDocumentManagerCallback : IDocumentManagerCallback
+{
+    public static EmptyDocumentManagerCallback Instance { get; }
+    // 不用担心，正常情况下是不用导致初始化的
+        = new EmptyDocumentManagerCallback();
+
+    public void OnDocumentChanging(object sender, DocumentChangeEventArgs args)
+    {
+    }
+
+    public void OnDocumentChanged(object sender, DocumentChangeEventArgs args)
+    {
+    }
+}
