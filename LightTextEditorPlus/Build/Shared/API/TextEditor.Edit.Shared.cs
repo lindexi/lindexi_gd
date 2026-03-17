@@ -365,9 +365,10 @@ namespace LightTextEditorPlus
         /// <param name="config">传入的样式段落属性为当前准备更改的段落的段落属性</param>
         public void ConfigParagraphProperty(in CaretOffset caretOffset, CreateParagraphPropertyDelegate config)
         {
-            ParagraphProperty paragraphProperty = GetParagraphProperty(caretOffset);
+            ITextParagraph textParagraph = TextEditorCore.DocumentManager.GetParagraph(in caretOffset);
+            ParagraphProperty paragraphProperty = textParagraph.ParagraphProperty;
             ParagraphProperty newParagraphProperty = config(paragraphProperty);
-            SetParagraphProperty(in caretOffset, newParagraphProperty);
+            TextEditorCore.DocumentManager.SetParagraphProperty(textParagraph, newParagraphProperty);
         }
 
         /// <summary>
