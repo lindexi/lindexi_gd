@@ -62,7 +62,10 @@ namespace LightTextEditorPlus.Core;
 ///   - 可以获取到 <see cref="RenderInfoProvider"/> 内容
 /// - <see cref="LayoutCompleted"/>
 /// - 触发平台渲染
-public partial class TextEditorCore
+public partial class TextEditorCore :
+    // 用于框架内回调的接口
+    IDocumentManagerCallback, 
+    ICaretManagerCallback
 {
     /// <summary>
     /// 创建文本编辑控件
@@ -73,17 +76,8 @@ public partial class TextEditorCore
         PlatformProvider = platformProvider;
 
         DocumentManager = new DocumentManager(this);
-        DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
-        DocumentManager.InternalDocumentChanged += DocumentManager_InternalDocumentChanged;
 
         CaretManager = new CaretManager(this);
-        CaretManager.InternalCurrentCaretOffsetChanging +=
-            CaretManager_InternalCurrentCaretOffsetChanging;
-        CaretManager.InternalCurrentCaretOffsetChanged +=
-            CaretManager_InternalCurrentCaretOffsetChanged;
-        CaretManager.InternalCurrentSelectionChanging +=
-            CaretManager_InternalCurrentSelectionChanging;
-        CaretManager.InternalCurrentSelectionChanged += CaretManager_InternalCurrentSelectionChanged;
 
         _layoutManager = new LayoutManager(this);
 
@@ -130,26 +124,26 @@ public partial class TextEditorCore
 
     #region 光标
 
-    private void CaretManager_InternalCurrentCaretOffsetChanging(object? sender,
+    void ICaretManagerCallback.OnCurrentCaretOffsetChanging(object sender,
         TextEditorValueChangeEventArgs<CaretOffset> args)
     {
         // todo 后续优化事件触发顺序，确保内部监听优先触发
         CurrentCaretOffsetChanging?.Invoke(sender, args);
     }
 
-    private void CaretManager_InternalCurrentCaretOffsetChanged(object? sender,
+    void ICaretManagerCallback.OnCurrentCaretOffsetChanged(object sender,
         TextEditorValueChangeEventArgs<CaretOffset> args)
     {
         CurrentCaretOffsetChanged?.Invoke(sender, args);
     }
 
-    private void CaretManager_InternalCurrentSelectionChanging(object? sender,
+    void ICaretManagerCallback.OnCurrentSelectionChanging(object sender,
         TextEditorValueChangeEventArgs<Selection> args)
     {
         CurrentSelectionChanging?.Invoke(sender, args);
     }
 
-    private void CaretManager_InternalCurrentSelectionChanged(object? sender,
+    void ICaretManagerCallback.OnCurrentSelectionChanged(object sender,
         TextEditorValueChangeEventArgs<Selection> args)
     {
         CurrentSelectionChanged?.Invoke(sender, args);
@@ -208,7 +202,7 @@ public partial class TextEditorCore
     // ReSharper disable once RedundantDefaultMemberInitializer
     private bool _isAnyLayoutUpdate = false;
 
-    private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
+    void IDocumentManagerCallback.OnDocumentChanging(object sender, DocumentChangeEventArgs e)
     {
         if (IsUpdatingLayout)
         {
@@ -221,7 +215,7 @@ public partial class TextEditorCore
         DocumentChanging?.Invoke(this, e);
     }
 
-    private void DocumentManager_InternalDocumentChanged(object? sender, DocumentChangeEventArgs e)
+    void IDocumentManagerCallback.OnDocumentChanged(object sender, DocumentChangeEventArgs e)
     {
         if (IsUpdatingLayout)
         {
