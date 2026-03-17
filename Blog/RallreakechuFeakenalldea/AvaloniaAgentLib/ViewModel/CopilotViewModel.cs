@@ -9,17 +9,18 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AvaloniaAgentLib.Core;
 
 namespace AvaloniaAgentLib.ViewModel;
 
 public class CopilotViewModel : INotifyPropertyChanged
 {
-    private bool _isChatting;
-
     public CopilotViewModel()
     {
         AddAssistantWelcomeMessage();
     }
+
+    public AgentApiEndpointManager AgentApiEndpointManager { get; } = new();
 
     public ObservableCollection<CopilotChatMessage> ChatMessages { get; } = [];
 
@@ -38,6 +39,8 @@ public class CopilotViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(SendButtonText));
         }
     }
+
+    private bool _isChatting;
 
     /// <summary>
     /// 能否编辑输入
@@ -98,4 +101,11 @@ public class CopilotViewModel : INotifyPropertyChanged
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    public void OpenSetting()
+    {
+        SettingOpened?.Invoke(this, EventArgs.Empty);
+    }
+
+    public event EventHandler? SettingOpened;
 }
