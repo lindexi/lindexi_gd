@@ -64,7 +64,10 @@ public class EditorViewModel : ViewModelBase
             if (value.TextEditor is null)
             {
                 EnsureTextEditor(value);
-                _ = LoadFileToTextEditorAsync(value);
+                if (value.FileInfo is not null)
+                {
+                    _ = LoadFileToTextEditorAsync(value);
+                }
             }
 
             OnPropertyChanged();
