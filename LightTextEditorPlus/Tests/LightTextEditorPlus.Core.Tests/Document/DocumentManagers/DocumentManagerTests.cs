@@ -454,6 +454,112 @@ public class DocumentManagerTests
     }
 
     [ContractTestCase]
+    public void IsDocumentChangingAndCharCount()
+    {
+        "追加文本时，DocumentChanging 阶段 IsDocumentChanging 为 true 且 CharCount 为变更前值，DocumentChanged 阶段恢复并更新为变更后值".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            var documentManager = textEditorCore.DocumentManager;
+            var documentChangingCount = 0;
+            var documentChangedCount = 0;
+            var changingCharCount = -1;
+            var changedCharCount = -1;
+
+            textEditorCore.DocumentChanging += (_, _) =>
+            {
+                documentChangingCount++;
+                Assert.AreEqual(true, documentManager.IsDocumentChanging);
+                changingCharCount = documentManager.CharCount;
+            };
+
+            textEditorCore.DocumentChanged += (_, _) =>
+            {
+                documentChangedCount++;
+                Assert.AreEqual(false, documentManager.IsDocumentChanging);
+                changedCharCount = documentManager.CharCount;
+            };
+
+            // Action
+            textEditorCore.AppendText("12");
+
+            // Assert
+            Assert.AreEqual(1, documentChangingCount);
+            Assert.AreEqual(1, documentChangedCount);
+            Assert.AreEqual(0, changingCharCount);
+            Assert.AreEqual(2, changedCharCount);
+            Assert.AreEqual(false, documentManager.IsDocumentChanging);
+            Assert.AreEqual(2, documentManager.CharCount);
+        });
+
+        "仅修改字符样式时，DocumentChanging 与 DocumentChanged 阶段 CharCount 均保持不变".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            var documentManager = textEditorCore.DocumentManager;
+            textEditorCore.AppendText("123");
+
+            var oldCharCount = documentManager.CharCount;
+            var changingCharCount = -1;
+            var changedCharCount = -1;
+
+            textEditorCore.DocumentChanging += (_, _) =>
+            {
+                Assert.AreEqual(true, documentManager.IsDocumentChanging);
+                changingCharCount = documentManager.CharCount;
+            };
+
+            textEditorCore.DocumentChanged += (_, _) =>
+            {
+                Assert.AreEqual(false, documentManager.IsDocumentChanging);
+                changedCharCount = documentManager.CharCount;
+            };
+
+            // Action
+            textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) => runProperty with
+            {
+                FontSize = runProperty.FontSize + 1
+            }, textEditorCore.GetAllDocumentSelection());
+
+            // Assert
+            Assert.AreEqual(oldCharCount, changingCharCount);
+            Assert.AreEqual(oldCharCount, changedCharCount);
+            Assert.AreEqual(oldCharCount, documentManager.CharCount);
+        });
+
+        "删除文本时，DocumentChanging 阶段 CharCount 仍可读取变更前值，DocumentChanged 阶段可读取变更后值".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            var documentManager = textEditorCore.DocumentManager;
+            textEditorCore.AppendText("123");
+
+            var changingCharCount = -1;
+            var changedCharCount = -1;
+
+            textEditorCore.DocumentChanging += (_, _) =>
+            {
+                Assert.AreEqual(true, documentManager.IsDocumentChanging);
+                changingCharCount = documentManager.CharCount;
+            };
+
+            textEditorCore.DocumentChanged += (_, _) =>
+            {
+                Assert.AreEqual(false, documentManager.IsDocumentChanging);
+                changedCharCount = documentManager.CharCount;
+            };
+
+            // Action
+            textEditorCore.EditAndReplace("", textEditorCore.GetAllDocumentSelection());
+
+            // Assert
+            Assert.AreEqual(3, changingCharCount);
+            Assert.AreEqual(0, changedCharCount);
+            Assert.AreEqual(0, documentManager.CharCount);
+        });
+    }
+
+    [ContractTestCase]
     public void SetStyleTextRunProperty()
     {
         "设置不符合约定类型的字符属性作为样式属性，能够抛出异常".Test(() =>
