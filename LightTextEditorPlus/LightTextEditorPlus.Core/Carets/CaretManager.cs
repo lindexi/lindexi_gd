@@ -18,6 +18,8 @@ class CaretManager
     public CaretManager(TextEditorCore textEditor)
     {
         TextEditor = textEditor;
+        ICaretManagerCallback callback = textEditor;
+        _callback = callback;
     }
 
     /// <summary>
@@ -29,21 +31,8 @@ class CaretManager
     public IReadOnlyRunProperty? CurrentCaretRunProperty { get; set; }
 
     private TextEditorCore TextEditor { get; }
+    private readonly ICaretManagerCallback _callback;
     private DocumentManager DocumentManager => TextEditor.DocumentManager;
-
-    #region 事件
-
-    internal event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
-        InternalCurrentCaretOffsetChanging;
-
-    internal event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
-        InternalCurrentCaretOffsetChanged;
-
-    internal event EventHandler<TextEditorValueChangeEventArgs<Selection>>? InternalCurrentSelectionChanging;
-
-    internal event EventHandler<TextEditorValueChangeEventArgs<Selection>>? InternalCurrentSelectionChanged;
-
-    #endregion
 
     /// <summary>
     /// 获取或设置当前光标位置
@@ -65,7 +54,7 @@ class CaretManager
 
             // todo 完成光标系统
             var args = new TextEditorValueChangeEventArgs<CaretOffset>(oldValue, value);
-            InternalCurrentCaretOffsetChanging?.Invoke(this, args);
+            _callback.OnCurrentCaretOffsetChanging(this, args);
 
             // 清理当前光标的属性
             CurrentCaretRunProperty = null;
@@ -80,7 +69,7 @@ class CaretManager
             }
 
             _isCurrentCaretOffsetChanging = false;
-            InternalCurrentCaretOffsetChanged?.Invoke(this, args);
+            _callback.OnCurrentCaretOffsetChanged(this, args);
         }
         get { return _currentCaretOffset; }
     }
@@ -114,7 +103,7 @@ class CaretManager
 
             var args = new TextEditorValueChangeEventArgs<Selection>(oldValue, value);
             _isCurrentSelectionChanging = true;
-            InternalCurrentSelectionChanging?.Invoke(this, args);
+            _callback.OnCurrentSelectionChanging(this, args);
 
             _currentSelection = value;
 
@@ -126,7 +115,7 @@ class CaretManager
 
             // todo 处理越界
             _isCurrentSelectionChanging = false;
-            InternalCurrentSelectionChanged?.Invoke(this, args);
+            _callback.OnCurrentSelectionChanged(this, args);
         }
         get { return _currentSelection; }
     }
@@ -135,4 +124,19 @@ class CaretManager
 
     private bool _isCurrentSelectionChanging;
     private bool _isCurrentCaretOffsetChanging;
+}
+
+/// <summary>
+/// 光标的管理回调
+/// </summary>
+/// 核心作用只是减少 <see cref="CaretManager"/> 需要外发事件进行通知。事件监听需要创建委托对象，导致文本框创建的时候需要带出去很多个对象，影响内存性能
+internal interface ICaretManagerCallback
+{
+    void OnCurrentCaretOffsetChanging(object sender, TextEditorValueChangeEventArgs<CaretOffset> args);
+
+    void OnCurrentCaretOffsetChanged(object sender, TextEditorValueChangeEventArgs<CaretOffset> args);
+
+    void OnCurrentSelectionChanging(object sender, TextEditorValueChangeEventArgs<Selection> args);
+
+    void OnCurrentSelectionChanged(object sender, TextEditorValueChangeEventArgs<Selection> args);
 }

@@ -24,6 +24,56 @@ public class TextEditorCoreTest
     }
 
     [ContractTestCase]
+    public void CaretEventArrange()
+    {
+        "修改光标时事件顺序保持为 光标开始变更 选择开始变更 选择完成变更 光标完成变更".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+            var oldCaretOffset = textEditorCore.CurrentCaretOffset;
+
+            var raiseCount = 0;
+
+            textEditorCore.CurrentCaretOffsetChanging += (_, args) =>
+            {
+                Assert.AreEqual(0, raiseCount);
+                Assert.AreEqual(oldCaretOffset, args.OldValue);
+                Assert.AreEqual(new CaretOffset(1), args.NewValue);
+                raiseCount = 1;
+            };
+
+            textEditorCore.CurrentSelectionChanging += (_, args) =>
+            {
+                Assert.AreEqual(1, raiseCount);
+                Assert.AreEqual(oldCaretOffset, args.OldValue.StartOffset);
+                Assert.AreEqual(new CaretOffset(1), args.NewValue.StartOffset);
+                raiseCount = 2;
+            };
+
+            textEditorCore.CurrentSelectionChanged += (_, args) =>
+            {
+                Assert.AreEqual(2, raiseCount);
+                Assert.AreEqual(new CaretOffset(1), args.NewValue.StartOffset);
+                raiseCount = 3;
+            };
+
+            textEditorCore.CurrentCaretOffsetChanged += (_, args) =>
+            {
+                Assert.AreEqual(3, raiseCount);
+                Assert.AreEqual(new CaretOffset(1), args.NewValue);
+                raiseCount = 4;
+            };
+
+            // Action
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
+
+            // Assert
+            Assert.AreEqual(4, raiseCount);
+        });
+    }
+
+    [ContractTestCase]
     public void GetHitParagraphData()
     {
         "命中到文本的段落的换车符，可以自动修改为命中段末".Test(() =>

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Document.DocumentEventArgs;
 
 namespace LightTextEditorPlus.Core.Primitive;
 
@@ -46,25 +45,21 @@ public sealed class ReadOnlyParagraphList : IReadOnlyList<ITextParagraph>
         public ParagraphEnumerator(ReadOnlyParagraphList paragraphList)
         {
             _textEditor = paragraphList._textEditor;
-            _textEditor.DocumentManager.InternalDocumentChanged += DocumentManager_InternalDocumentChanged;
             _list = paragraphList.GetParagraphList();
+            _documentChangeVersion = _textEditor.DocumentManager.ChangeVersion;
         }
 
-        private bool _isDirty = false;
-
-        private void DocumentManager_InternalDocumentChanged(object? sender, DocumentChangeEventArgs e)
+        private void ThrowIfChanged()
         {
-            _isDirty = true;
-
-            _textEditor.DocumentManager.InternalDocumentChanged -= DocumentManager_InternalDocumentChanged;
+            if (_documentChangeVersion != _textEditor.DocumentManager.ChangeVersion)
+            {
+                ThrowEnumFailedVersionException();
+            }
         }
 
         public bool MoveNext()
         {
-            if (_isDirty)
-            {
-                ThrowEnumFailedVersionException();
-            }
+            ThrowIfChanged();
 
             _index++;
             if (_index == _list.Count)
@@ -77,17 +72,13 @@ public sealed class ReadOnlyParagraphList : IReadOnlyList<ITextParagraph>
 
         public void Reset()
         {
-            if (_isDirty)
-            {
-                ThrowEnumFailedVersionException();
-            }
+            ThrowIfChanged();
 
             _index = -1;
         }
 
         public void Dispose()
         {
-            _textEditor.DocumentManager.InternalDocumentChanged -= DocumentManager_InternalDocumentChanged;
         }
 
         private static void ThrowEnumFailedVersionException()
@@ -98,11 +89,14 @@ public sealed class ReadOnlyParagraphList : IReadOnlyList<ITextParagraph>
         private int _index = -1;
         private readonly IReadOnlyList<ParagraphData> _list;
         private readonly TextEditorCore _textEditor;
+        private readonly int _documentChangeVersion;
 
         public ITextParagraph Current
         {
             get
             {
+                ThrowIfChanged();
+
                 if (_index == -1 || (_index == _list.Count))
                 {
                     throw new InvalidOperationException("InvalidOperation_EnumOpCantHappen");

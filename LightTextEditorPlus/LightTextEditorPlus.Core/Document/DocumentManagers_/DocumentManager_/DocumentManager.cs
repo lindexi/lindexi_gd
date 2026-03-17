@@ -24,8 +24,14 @@ namespace LightTextEditorPlus.Core.Document
     {
         /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.DocumentManager"/>
         public DocumentManager(TextEditorCore textEditor)
+            : this(textEditor, textEditor as IDocumentManagerCallback ?? EmptyDocumentManagerCallback.Instance)
+        {
+        }
+
+        internal DocumentManager(TextEditorCore textEditor, IDocumentManagerCallback callback)
         {
             TextEditor = textEditor;
+            _callback = callback;
             IReadOnlyRunProperty styleRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
             _styleRunProperty = styleRunProperty;
             StyleParagraphProperty = new ParagraphProperty();
@@ -37,6 +43,26 @@ namespace LightTextEditorPlus.Core.Document
         #region 框架
 
         internal TextEditorCore TextEditor { get; }
+
+        private readonly IDocumentManagerCallback _callback;
+
+        /// <summary>
+        /// 记录当前的文档版本号，用于内部变更记录
+        /// </summary>
+        internal int ChangeVersion { get; private set; }
+
+        private sealed class EmptyDocumentManagerCallback : IDocumentManagerCallback
+        {
+            public static EmptyDocumentManagerCallback Instance { get; } = new EmptyDocumentManagerCallback();
+
+            public void OnDocumentChanging(object sender, DocumentChangeEventArgs args)
+            {
+            }
+
+            public void OnDocumentChanged(object sender, DocumentChangeEventArgs args)
+            {
+            }
+        }
 
         #region DocumentWidth DocumentHeight
 
@@ -106,22 +132,30 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         private CaretManager CaretManager => TextEditor.CaretManager;
 
-        #region 事件
+        #region 内部通知
 
-        ///// <summary>
-        ///// 给内部提供的文档尺寸变更事件
-        ///// </summary>
-        //internal event EventHandler? InternalDocumentSizeChanged; 
+        private void NotifyDocumentChanging(DocumentChangeKind documentChangeKind)
+        {
+            InvalidStateCache();
+            _callback.OnDocumentChanging(this, new DocumentChangeEventArgs(documentChangeKind));
+        }
+
+        private void NotifyDocumentChanged(DocumentChangeKind documentChangeKind)
+        {
+            ChangeVersion++;
+            _callback.OnDocumentChanged(this, new DocumentChangeEventArgs(documentChangeKind));
+        }
 
         /// <summary>
-        /// 给内部提供的文档开始变更事件
+        /// 清空状态缓存
         /// </summary>
-        internal event EventHandler<DocumentChangeEventArgs>? InternalDocumentChanging;
+        private void InvalidStateCache()
+        {
+            // 在这个方法里面存放一些清空状态的逻辑
 
-        /// <summary>
-        /// 给内部提供的文档变更完成事件
-        /// </summary>
-        internal event EventHandler<DocumentChangeEventArgs>? InternalDocumentChanged;
+            // 如果文档变更了，那缓存的字符数量也应该变更
+            _charCount = null;
+        }
 
         #endregion
 
@@ -264,9 +298,9 @@ namespace LightTextEditorPlus.Core.Document
             // 2.
             // 3.
             // 然后将 2. 的段落修改为其他项目符号，此时需要更新 3. 段落
-            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
+            NotifyDocumentChanging(DocumentChangeKind.OnlyStyle);
             paragraphData.SetParagraphProperty(paragraphProperty);
-            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
+            NotifyDocumentChanged(DocumentChangeKind.OnlyStyle);
         }
 
         /// <summary>
@@ -423,10 +457,16 @@ namespace LightTextEditorPlus.Core.Document
         {
             get
             {
+                if (_charCount != null)
+                {
+                    return _charCount.Value;
+                }
+
                 IReadOnlyList<ParagraphData> rawParagraphList = DocumentRunEditProvider.ParagraphManager.GetRawParagraphList();
                 // 为什么不调用 DocumentRunEditProvider.ParagraphManager.GetParagraphList() 方法？因为担心 GetParagraphList 额外调用了确保至少一段的方法，导致不必要的损耗
                 if (rawParagraphList.Count == 0)
                 {
+                    _charCount = 0;
                     return 0;
                 }
 
@@ -444,9 +484,12 @@ namespace LightTextEditorPlus.Core.Document
                     sum -= ParagraphData.DelimiterLength;
                 }
 
+                _charCount = sum;
                 return sum;
             }
         }
+
+        private int? _charCount;
 
         #endregion
 
@@ -530,7 +573,7 @@ namespace LightTextEditorPlus.Core.Document
                 TextEditor.AddLayoutReason($"SetRunProperty Selection={selection.Value.FrontOffset.Offset}-{selection.Value.BehindOffset.Offset}");
 
                 // 修改属性，需要触发样式变更，也就是文档变更
-                InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
+                NotifyDocumentChanging(DocumentChangeKind.OnlyStyle);
                 // 表示最后一个更改之后的文本字符属性，为了提升性能，不让每个文本字符属性都需要执行 config 函数
                 // 用来判断如果相邻两个字符的字符属性是相同的，就可以直接复用，不需要重新执行 config 函数创建新的字符属性对象
                 IReadOnlyRunProperty? lastChangedRunProperty = null;
@@ -583,7 +626,7 @@ namespace LightTextEditorPlus.Core.Document
 
                 // 只触发文档变更，不需要修改光标
 
-                InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
+                NotifyDocumentChanged(DocumentChangeKind.OnlyStyle);
             }
         }
 
@@ -725,7 +768,7 @@ namespace LightTextEditorPlus.Core.Document
 
             TextEditor.AddLayoutReason(nameof(AppendText));
 
-            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+            NotifyDocumentChanging(DocumentChangeKind.Text);
 
             // 设置光标到文档最后，再进行追加。设置光标到文档最后之后，可以自动获取当前光标下的文本字符属性
             var oldCharCount = CharCount;
@@ -755,7 +798,7 @@ namespace LightTextEditorPlus.Core.Document
                 TextEditor.UndoRedoProvider.Insert(textChangeOperation);
             }
 
-            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+            NotifyDocumentChanged(DocumentChangeKind.Text);
         }
 
         /// <summary>
@@ -813,7 +856,7 @@ namespace LightTextEditorPlus.Core.Document
                 return;
             }
 
-            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+            NotifyDocumentChanging(DocumentChangeKind.Text);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
             // 替换文本
@@ -872,7 +915,7 @@ namespace LightTextEditorPlus.Core.Document
             }
 
             // 触发事件。触发事件将用来执行重新排版
-            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+            NotifyDocumentChanged(DocumentChangeKind.Text);
         }
 
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)
