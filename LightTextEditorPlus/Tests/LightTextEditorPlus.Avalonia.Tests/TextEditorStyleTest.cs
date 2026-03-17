@@ -2,6 +2,7 @@ using Avalonia.Threading;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
@@ -148,6 +149,86 @@ public class TextEditorStyleTest
                 SkiaTextRunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
                 Assert.AreEqual(77, currentRunProperty.FontSize);
             }
+        });
+    }
+
+    [TestMethod("IncreaseFontSize 和 DecreaseFontSize 应按选择范围增减字号")]
+    public async Task IncreaseAndDecreaseFontSizeShouldApply()
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.SetFontSize(20, selection);
+
+            textEditor.IncreaseFontSize(selection);
+            SkiaTextRunProperty runPropertyAfterIncrease = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(21, runPropertyAfterIncrease.FontSize);
+
+            textEditor.DecreaseFontSize(selection);
+            SkiaTextRunProperty runPropertyAfterDecrease = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(20, runPropertyAfterDecrease.FontSize);
+        });
+    }
+
+    [TestMethod("段落便捷 API 应支持当前光标、指定光标和指定段落设置")]
+    public async Task ParagraphStyleApisShouldApply()
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            var secondParagraphIndex = new ParagraphIndex(1);
+
+            textEditor.SetIndentation(10);
+            textEditor.IncreaseIndentation(secondParagraphCaretOffset, 4);
+            textEditor.DecreaseIndentation(secondParagraphIndex, 1);
+            textEditor.SetParagraphSpaceBefore(secondParagraphCaretOffset, 6);
+            textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 8);
+            textEditor.SetLineSpacing(secondParagraphCaretOffset, TextLineSpacings.MultipleLineSpace(2));
+
+            ParagraphProperty firstParagraphProperty = textEditor.GetParagraphProperty(new ParagraphIndex(0));
+            ParagraphProperty secondParagraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+
+            Assert.AreEqual(10, firstParagraphProperty.Indent);
+            Assert.AreEqual(3, secondParagraphProperty.Indent);
+            Assert.AreEqual(6, secondParagraphProperty.ParagraphBefore);
+            Assert.AreEqual(8, secondParagraphProperty.ParagraphAfter);
+            Assert.AreEqual(TextLineSpacings.MultipleLineSpace(2), secondParagraphProperty.LineSpacing);
+        });
+    }
+
+    [TestMethod("禁用段落功能开关后，新增段落便捷 API 不生效")]
+    public async Task ParagraphStyleApisShouldRespectFeatureSwitch()
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            var secondParagraphIndex = new ParagraphIndex(1);
+            ParagraphProperty oldSecondParagraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+
+            textEditor.DisableFeatures(TextFeatures.SetIndentation | TextFeatures.IncreaseIndentation | TextFeatures.DecreaseIndentation
+                | TextFeatures.SetParagraphSpaceBefore | TextFeatures.SetParagraphSpaceAfter | TextFeatures.SetLineSpacing);
+
+            textEditor.SetIndentation(9);
+            textEditor.IncreaseIndentation(secondParagraphCaretOffset, 2);
+            textEditor.DecreaseIndentation(secondParagraphIndex, 2);
+            textEditor.SetParagraphSpaceBefore(secondParagraphCaretOffset, 6);
+            textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 7);
+            textEditor.SetLineSpacing(secondParagraphCaretOffset, TextLineSpacings.MultipleLineSpace(3));
+
+            ParagraphProperty currentSecondParagraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(oldSecondParagraphProperty, currentSecondParagraphProperty);
         });
     }
 

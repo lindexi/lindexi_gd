@@ -298,6 +298,38 @@ namespace LightTextEditorPlus
 
         #endregion
 
+        #region Style
+
+        /// <summary>
+        /// 增加字体大小
+        /// </summary>
+        public void IncreaseFontSize(Selection? selection = null)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.IncreaseFontSize)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetFontSize))
+            {
+                return;
+            }
+
+            SetRunProperty(p => p with { FontSize = p.FontSize + 1 }, PropertyType.FontSize, selection);
+        }
+
+        /// <summary>
+        /// 减小字体大小
+        /// </summary>
+        public void DecreaseFontSize(Selection? selection = null)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.DecreaseFontSize)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetFontSize))
+            {
+                return;
+            }
+
+            SetRunProperty(p => p with { FontSize = p.FontSize - 1 }, PropertyType.FontSize, selection);
+        }
+
+        #endregion
+
         #region 段落属性
 
         /// <inheritdoc cref="TextEditorCore.ParagraphList"/>
@@ -309,7 +341,7 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 设置段落属性
         /// </summary>
-        /// <param name="caretOffset"></param>
+        /// <param name="caretOffset">光标位置</param>
         /// <param name="paragraphProperty"></param>
         public void SetParagraphProperty(in CaretOffset caretOffset, ParagraphProperty paragraphProperty)
         {
@@ -319,6 +351,8 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 设置段落属性
         /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="paragraphProperty"></param>
         public void SetParagraphProperty(ParagraphIndex index, ParagraphProperty paragraphProperty)
         {
             TextEditorCore.DocumentManager.SetParagraphProperty(index, paragraphProperty);
@@ -327,7 +361,7 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 配置更改段落属性。此方法等同于手动调用 <see cref="GetParagraphProperty(in CaretOffset)"/> 获取段落属性，再调用 <see cref="SetParagraphProperty(in LightTextEditorPlus.Core.Carets.CaretOffset,LightTextEditorPlus.Core.Document.ParagraphProperty)"/> 设置段落属性
         /// </summary>
-        /// <param name="caretOffset"></param>
+        /// <param name="caretOffset">光标位置</param>
         /// <param name="config">传入的样式段落属性为当前准备更改的段落的段落属性</param>
         public void ConfigParagraphProperty(in CaretOffset caretOffset, CreateParagraphPropertyDelegate config)
         {
@@ -339,7 +373,7 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 配置更改段落属性。此方法等同于手动调用 <see cref="GetParagraphProperty(ParagraphIndex)"/> 获取段落属性，再调用 <see cref="SetParagraphProperty(ParagraphIndex,LightTextEditorPlus.Core.Document.ParagraphProperty)"/> 设置段落属性
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="index">段落序号</param>
         /// <param name="config">传入的样式段落属性为当前准备更改的段落的段落属性</param>
         public void ConfigParagraphProperty(ParagraphIndex index, CreateParagraphPropertyDelegate config)
         {
@@ -365,6 +399,232 @@ namespace LightTextEditorPlus
             CaretOffset currentCaretOffset = TextEditorCore.CurrentCaretOffset;
             ParagraphProperty paragraphProperty = GetParagraphProperty(currentCaretOffset);
             SetParagraphProperty(currentCaretOffset, config(paragraphProperty));
+        }
+
+        /// <summary>
+        /// 增加当前段落的缩进
+        /// </summary>
+        /// <param name="value">缩进增量，默认值为 1</param>
+        public void IncreaseIndentation(double value = 1)
+            => IncreaseIndentation(TextEditorCore.CurrentCaretOffset, value);
+
+        /// <summary>
+        /// 增加指定光标所在段落的缩进
+        /// </summary>
+        /// <param name="caretOffset">光标位置</param>
+        /// <param name="value">缩进增量，默认值为 1</param>
+        public void IncreaseIndentation(in CaretOffset caretOffset, double value = 1)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.IncreaseIndentation)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetIndentation))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(caretOffset, paragraph => paragraph with { Indent = paragraph.Indent + value });
+        }
+
+        /// <summary>
+        /// 增加指定段落的缩进
+        /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="value">缩进增量，默认值为 1</param>
+        public void IncreaseIndentation(ParagraphIndex index, double value = 1)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.IncreaseIndentation)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetIndentation))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(index, paragraph => paragraph with { Indent = paragraph.Indent + value });
+        }
+
+        /// <summary>
+        /// 减少当前段落的缩进
+        /// </summary>
+        /// <param name="value">缩进减量，默认值为 1</param>
+        public void DecreaseIndentation(double value = 1)
+            => DecreaseIndentation(TextEditorCore.CurrentCaretOffset, value);
+
+        /// <summary>
+        /// 减少指定光标所在段落的缩进
+        /// </summary>
+        /// <param name="caretOffset">光标位置</param>
+        /// <param name="value">缩进减量，默认值为 1</param>
+        public void DecreaseIndentation(in CaretOffset caretOffset, double value = 1)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.DecreaseIndentation)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetIndentation))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(caretOffset, paragraph => paragraph with { Indent = paragraph.Indent - value });
+        }
+
+        /// <summary>
+        /// 减少指定段落的缩进
+        /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="value">缩进减量，默认值为 1</param>
+        public void DecreaseIndentation(ParagraphIndex index, double value = 1)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.DecreaseIndentation)
+                || CheckFeaturesDisableWithLog(TextFeatures.SetIndentation))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(index, paragraph => paragraph with { Indent = paragraph.Indent - value });
+        }
+
+        /// <summary>
+        /// 设置当前段落缩进
+        /// </summary>
+        /// <param name="indent">缩进值</param>
+        public void SetIndentation(double indent)
+            => SetIndentation(TextEditorCore.CurrentCaretOffset, indent);
+
+        /// <summary>
+        /// 设置指定光标所在段落缩进
+        /// </summary>
+        /// <param name="caretOffset">光标位置</param>
+        /// <param name="indent">缩进值</param>
+        public void SetIndentation(in CaretOffset caretOffset, double indent)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetIndentation))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(caretOffset, paragraph => paragraph with { Indent = indent });
+        }
+
+        /// <summary>
+        /// 设置指定段落缩进
+        /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="indent">缩进值</param>
+        public void SetIndentation(ParagraphIndex index, double indent)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetIndentation))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(index, paragraph => paragraph with { Indent = indent });
+        }
+
+        /// <summary>
+        /// 设置当前段落段前间距
+        /// </summary>
+        /// <param name="paragraphBefore">段前间距</param>
+        public void SetParagraphSpaceBefore(double paragraphBefore)
+            => SetParagraphSpaceBefore(TextEditorCore.CurrentCaretOffset, paragraphBefore);
+
+        /// <summary>
+        /// 设置指定光标所在段落段前间距
+        /// </summary>
+        /// <param name="caretOffset">光标位置</param>
+        /// <param name="paragraphBefore">段前间距</param>
+        public void SetParagraphSpaceBefore(in CaretOffset caretOffset, double paragraphBefore)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetParagraphSpaceBefore))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(caretOffset, paragraph => paragraph with { ParagraphBefore = paragraphBefore });
+        }
+
+        /// <summary>
+        /// 设置指定段落段前间距
+        /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="paragraphBefore">段前间距</param>
+        public void SetParagraphSpaceBefore(ParagraphIndex index, double paragraphBefore)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetParagraphSpaceBefore))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(index, paragraph => paragraph with { ParagraphBefore = paragraphBefore });
+        }
+
+        /// <summary>
+        /// 设置当前段落段后间距
+        /// </summary>
+        /// <param name="paragraphAfter">段后间距</param>
+        public void SetParagraphSpaceAfter(double paragraphAfter)
+            => SetParagraphSpaceAfter(TextEditorCore.CurrentCaretOffset, paragraphAfter);
+
+        /// <summary>
+        /// 设置指定光标所在段落段后间距
+        /// </summary>
+        /// <param name="caretOffset">光标位置</param>
+        /// <param name="paragraphAfter">段后间距</param>
+        public void SetParagraphSpaceAfter(in CaretOffset caretOffset, double paragraphAfter)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetParagraphSpaceAfter))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(caretOffset, paragraph => paragraph with { ParagraphAfter = paragraphAfter });
+        }
+
+        /// <summary>
+        /// 设置指定段落段后间距
+        /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="paragraphAfter">段后间距</param>
+        public void SetParagraphSpaceAfter(ParagraphIndex index, double paragraphAfter)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetParagraphSpaceAfter))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(index, paragraph => paragraph with { ParagraphAfter = paragraphAfter });
+        }
+
+        /// <summary>
+        /// 设置当前段落行距
+        /// </summary>
+        /// <param name="lineSpacing">行距值</param>
+        public void SetLineSpacing(ITextLineSpacing lineSpacing)
+            => SetLineSpacing(TextEditorCore.CurrentCaretOffset, lineSpacing);
+
+        /// <summary>
+        /// 设置指定光标所在段落行距
+        /// </summary>
+        /// <param name="caretOffset">光标位置</param>
+        /// <param name="lineSpacing">行距值</param>
+        public void SetLineSpacing(in CaretOffset caretOffset, ITextLineSpacing lineSpacing)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetLineSpacing))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(caretOffset, paragraph => paragraph with { LineSpacing = lineSpacing });
+        }
+
+        /// <summary>
+        /// 设置指定段落行距
+        /// </summary>
+        /// <param name="index">段落序号</param>
+        /// <param name="lineSpacing">行距值</param>
+        public void SetLineSpacing(ParagraphIndex index, ITextLineSpacing lineSpacing)
+        {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetLineSpacing))
+            {
+                return;
+            }
+
+            ConfigParagraphProperty(index, paragraph => paragraph with { LineSpacing = lineSpacing });
         }
 
         /// <summary>
