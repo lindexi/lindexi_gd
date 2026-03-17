@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
@@ -204,6 +205,11 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void SetFontName(FontName fontName, Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetFontName))
+            {
+                return;
+            }
+
             SetRunProperty(p => p with { FontName = fontName }, PropertyType.FontName, selection);
         }
 
@@ -214,6 +220,11 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void SetFontSize(double fontSize, Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetFontSize))
+            {
+                return;
+            }
+
             SetRunProperty(p => p with { FontSize = fontSize }, PropertyType.FontSize, selection);
         }
 
@@ -223,6 +234,11 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void ToggleSuperscript(Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetFontSuperscript))
+            {
+                return;
+            }
+
             TextFontVariant fontVariants;
 
             if (AreAllRunPropertiesMatch(property => property.FontVariant.FontVariants == TextFontVariants.Superscript,
@@ -244,6 +260,11 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void ToggleSubscript(Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetFontSubscript))
+            {
+                return;
+            }
+
             TextFontVariant fontVariants;
 
             if (AreAllRunPropertiesMatch(property => property.FontVariant.FontVariants == TextFontVariants.Subscript,
@@ -266,6 +287,18 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void SetFontVariants(TextFontVariant fontVariants, Selection? selection = null)
         {
+            if (fontVariants.FontVariants == TextFontVariants.Superscript
+                && CheckFeaturesDisableWithLog(TextFeatures.SetFontSuperscript))
+            {
+                return;
+            }
+
+            if (fontVariants.FontVariants == TextFontVariants.Subscript
+                && CheckFeaturesDisableWithLog(TextFeatures.SetFontSubscript))
+            {
+                return;
+            }
+
             SetRunProperty(p => p with { FontVariant = fontVariants }, PropertyType.FontVariants, selection);
         }
 
@@ -305,6 +338,11 @@ namespace LightTextEditorPlus
         /// </summary>
         public void SetForeground(SkiaTextBrush foreground, Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetForeground))
+            {
+                return;
+            }
+
             SetRunProperty(p => p with { Foreground = foreground }, PropertyType.Foreground, selection);
         }
 
@@ -340,6 +378,11 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void SetFontStyle(FontStyle fontStyle, Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetItalic))
+            {
+                return;
+            }
+
             SetRunProperty(p => p with { FontStyle = fontStyle.ToSKFontStyleSlant() }, PropertyType.FontStyle,
                 selection);
         }
@@ -370,6 +413,11 @@ namespace LightTextEditorPlus
         /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
         public void SetFontWeight(FontWeight fontWeight, Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetBold))
+            {
+                return;
+            }
+
             SetRunProperty(p => p with { FontWeight = fontWeight.ToSKFontStyleWeight() }, PropertyType.FontWeight,
                 selection);
         }
@@ -382,6 +430,11 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void ToggleUnderline(Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetUnderline))
+            {
+                return;
+            }
+
             ToggleTextDecoration(UnderlineTextEditorDecoration.Instance, selection);
         }
 
@@ -391,6 +444,11 @@ namespace LightTextEditorPlus
         /// <param name="selection"></param>
         public void ToggleStrikethrough(Selection? selection = null)
         {
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetStriketh))
+            {
+                return;
+            }
+
             ToggleTextDecoration(StrikethroughTextEditorDecoration.Instance, selection);
         }
 

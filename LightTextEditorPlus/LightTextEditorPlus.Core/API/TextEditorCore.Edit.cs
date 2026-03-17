@@ -96,6 +96,7 @@ public partial class TextEditorCore
               "方法", true)]
     public void AddText()
     {
+        throw new NotSupportedException();
     }
 
     /// <summary>

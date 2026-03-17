@@ -1,10 +1,14 @@
 using System.Windows;
+using System.Windows.Media;
 
 using dotnetCampus.UITest.WPF;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Editing;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 
 using MSTest.Extensions.Contracts;
 
@@ -13,6 +17,160 @@ namespace LightTextEditorPlus.Tests;
 [TestClass]
 public class TextEditorStyleTest
 {
+    [UIContractTestCase]
+    public void FeaturesSwitch()
+    {
+        "禁用 SetFontSize 功能开关后，SetFontSize 不生效".Test(() =>
+        {
+            // Arrange
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+            Selection selection = textEditor.GetAllDocumentSelection();
+            RunProperty oldRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            textEditor.DisableFeatures(TextFeatures.SetFontSize);
+
+            // Action
+            textEditor.SetFontSize(100, selection);
+
+            // Assert
+            RunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(oldRunProperty.FontSize, currentRunProperty.FontSize);
+        });
+
+        "禁用 SetParagraphSpaceBefore 功能开关后，SetCurrentCaretOffsetParagraphProperty 不生效".Test(() =>
+        {
+            // Arrange
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+            ParagraphProperty oldParagraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
+            ParagraphProperty newParagraphProperty = oldParagraphProperty with { ParagraphBefore = oldParagraphProperty.ParagraphBefore + 20 };
+            textEditor.DisableFeatures(TextFeatures.SetParagraphSpaceBefore);
+
+            // Action
+            textEditor.SetCurrentCaretOffsetParagraphProperty(newParagraphProperty);
+
+            // Assert
+            ParagraphProperty currentParagraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
+            Assert.AreEqual(oldParagraphProperty, currentParagraphProperty);
+        });
+    }
+
+    [UIContractTestCase]
+    public void FeaturesSwitchStyleApis()
+    {
+        "禁用 SetFontName 后，SetFontName 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+            Selection selection = textEditor.GetAllDocumentSelection();
+            RunProperty oldRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            textEditor.DisableFeatures(TextFeatures.SetFontName);
+
+            textEditor.SetFontName("Times New Roman", selection);
+
+            RunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(oldRunProperty.FontName, currentRunProperty.FontName);
+        });
+
+        "禁用 SetForeground 后，SetForeground 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+            Selection selection = textEditor.GetAllDocumentSelection();
+            RunProperty oldRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            textEditor.DisableFeatures(TextFeatures.SetForeground);
+
+            textEditor.SetForeground(new ImmutableBrush(Brushes.Red), selection);
+
+            RunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(oldRunProperty.Foreground, currentRunProperty.Foreground);
+        });
+
+        "禁用 SetBold 后，ToggleBold 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.DisableFeatures(TextFeatures.SetBold);
+
+            textEditor.ToggleBold();
+
+            Assert.AreEqual(FontWeights.Normal, textEditor.CurrentCaretRunProperty.FontWeight);
+        });
+
+        "禁用 SetItalic 后，ToggleItalic 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.DisableFeatures(TextFeatures.SetItalic);
+
+            textEditor.ToggleItalic();
+
+            Assert.AreEqual(FontStyles.Normal, textEditor.CurrentCaretRunProperty.FontStyle);
+        });
+
+        "禁用 SetUnderline 后，ToggleUnderline 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.DisableFeatures(TextFeatures.SetUnderline);
+
+            textEditor.ToggleUnderline();
+
+            Assert.IsFalse(textEditor.CurrentCaretRunProperty.DecorationCollection.Contains(UnderlineTextEditorDecoration.Instance));
+        });
+
+        "禁用 SetStriketh 后，ToggleStrikethrough 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.DisableFeatures(TextFeatures.SetStriketh);
+
+            textEditor.ToggleStrikethrough();
+
+            Assert.IsFalse(textEditor.CurrentCaretRunProperty.DecorationCollection.Contains(StrikethroughTextEditorDecoration.Instance));
+        });
+
+        "禁用 SetFontSuperscript 后，ToggleSuperscript 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.DisableFeatures(TextFeatures.SetFontSuperscript);
+
+            textEditor.ToggleSuperscript();
+
+            Assert.AreEqual(TextFontVariants.Normal, textEditor.CurrentCaretRunProperty.FontVariant.FontVariants);
+        });
+
+        "禁用 SetFontSubscript 后，ToggleSubscript 不生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.DisableFeatures(TextFeatures.SetFontSubscript);
+
+            textEditor.ToggleSubscript();
+
+            Assert.AreEqual(TextFontVariants.Normal, textEditor.CurrentCaretRunProperty.FontVariant.FontVariants);
+        });
+
+        "禁用 SetFontSize 后，直接调用 SetRunProperty 仍可生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+            Selection selection = textEditor.GetAllDocumentSelection();
+            textEditor.DisableFeatures(TextFeatures.SetFontSize);
+
+            textEditor.SetRunProperty(runProperty => runProperty with { FontSize = 66 }, selection);
+
+            RunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(66, currentRunProperty.FontSize);
+        });
+    }
+
     [UIContractTestCase]
     public void ChangeStyle()
     {
