@@ -258,6 +258,281 @@ public class TextEditorStyleTest
     }
 
     [UIContractTestCase]
+    public void ParagraphStyleApisByParagraphIndex()
+    {
+        "按 ParagraphIndex 设置缩进应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            textEditor.SetIndentation(secondParagraphIndex, 9);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(9, paragraphProperty.Indent);
+        });
+
+        "按 ParagraphIndex 增加缩进应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            textEditor.SetIndentation(secondParagraphIndex, 2);
+            textEditor.IncreaseIndentation(secondParagraphIndex, 3);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(5, paragraphProperty.Indent);
+        });
+
+        "按 ParagraphIndex 减少缩进应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            textEditor.SetIndentation(secondParagraphIndex, 7);
+            textEditor.DecreaseIndentation(secondParagraphIndex, 2);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(5, paragraphProperty.Indent);
+        });
+
+        "按 ParagraphIndex 设置段前间距应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            textEditor.SetParagraphSpaceBefore(secondParagraphIndex, 6);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(6, paragraphProperty.ParagraphBefore);
+        });
+
+        "按 ParagraphIndex 设置段后间距应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 8);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(8, paragraphProperty.ParagraphAfter);
+        });
+
+        "按 ParagraphIndex 设置行距应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            ITextLineSpacing lineSpacing = TextLineSpacings.MultipleLineSpace(2);
+            textEditor.SetLineSpacing(secondParagraphIndex, lineSpacing);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(lineSpacing, paragraphProperty.LineSpacing);
+        });
+
+        "按 ParagraphIndex 设置水平对齐应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Center);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(HorizontalTextAlignment.Center, paragraphProperty.HorizontalTextAlignment);
+        });
+
+        "按 ParagraphIndex 多次设置并读取段落属性应得到最后值".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            textEditor.SetIndentation(secondParagraphIndex, 2);
+            textEditor.SetIndentation(secondParagraphIndex, 5);
+            textEditor.SetParagraphSpaceBefore(secondParagraphIndex, 3);
+            textEditor.SetParagraphSpaceBefore(secondParagraphIndex, 9);
+            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Left);
+            textEditor.SetHorizontalTextAlignment(secondParagraphIndex, HorizontalTextAlignment.Justify);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(5, paragraphProperty.Indent);
+            Assert.AreEqual(9, paragraphProperty.ParagraphBefore);
+            Assert.AreEqual(HorizontalTextAlignment.Justify, paragraphProperty.HorizontalTextAlignment);
+        });
+
+        "ParagraphIndex API 功能开关动态启用禁用应符合预期".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphIndex = new ParagraphIndex(1);
+            ParagraphProperty origin = textEditor.GetParagraphProperty(secondParagraphIndex);
+
+            textEditor.DisableFeatures(TextFeatures.SetParagraphSpaceAfter);
+            textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 6);
+            ParagraphProperty first = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(origin.ParagraphAfter, first.ParagraphAfter);
+
+            textEditor.EnableFeatures(TextFeatures.SetParagraphSpaceAfter);
+            textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 6);
+            ParagraphProperty second = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(6, second.ParagraphAfter);
+
+            textEditor.DisableFeatures(TextFeatures.SetParagraphSpaceAfter);
+            textEditor.SetParagraphSpaceAfter(secondParagraphIndex, 9);
+            ParagraphProperty third = textEditor.GetParagraphProperty(secondParagraphIndex);
+            Assert.AreEqual(6, third.ParagraphAfter);
+        });
+    }
+
+    [UIContractTestCase]
+    public void ParagraphStyleApisByCaretOffset()
+    {
+        "按 CaretOffset 设置缩进应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            textEditor.SetIndentation(secondParagraphCaretOffset, 11);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(11, paragraphProperty.Indent);
+        });
+
+        "按 CaretOffset 增加缩进应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            textEditor.SetIndentation(secondParagraphCaretOffset, 3);
+            textEditor.IncreaseIndentation(secondParagraphCaretOffset, 4);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(7, paragraphProperty.Indent);
+        });
+
+        "按 CaretOffset 减少缩进应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            textEditor.SetIndentation(secondParagraphCaretOffset, 6);
+            textEditor.DecreaseIndentation(secondParagraphCaretOffset, 2);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(4, paragraphProperty.Indent);
+        });
+
+        "按 CaretOffset 设置段前段后间距应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            textEditor.SetParagraphSpaceBefore(secondParagraphCaretOffset, 4);
+            textEditor.SetParagraphSpaceAfter(secondParagraphCaretOffset, 7);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(4, paragraphProperty.ParagraphBefore);
+            Assert.AreEqual(7, paragraphProperty.ParagraphAfter);
+        });
+
+        "按 CaretOffset 设置行距应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            ITextLineSpacing lineSpacing = TextLineSpacings.MultipleLineSpace(3);
+            textEditor.SetLineSpacing(secondParagraphCaretOffset, lineSpacing);
+
+            ParagraphProperty paragraphProperty = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(lineSpacing, paragraphProperty.LineSpacing);
+        });
+
+        "当前光标段落设置水平对齐应生效".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+            textEditor.CurrentCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+
+            textEditor.SetHorizontalTextAlignment(HorizontalTextAlignment.Right);
+
+            ParagraphProperty paragraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
+            Assert.AreEqual(HorizontalTextAlignment.Right, paragraphProperty.HorizontalTextAlignment);
+        });
+
+        "当前光标段落多次设置并读取应得到最后值".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+            textEditor.CurrentCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+
+            textEditor.SetIndentation(1);
+            textEditor.SetIndentation(12);
+            textEditor.SetParagraphSpaceAfter(2);
+            textEditor.SetParagraphSpaceAfter(10);
+            textEditor.SetLineSpacing(TextLineSpacings.MultipleLineSpace(1.5));
+            textEditor.SetLineSpacing(TextLineSpacings.MultipleLineSpace(2.5));
+
+            ParagraphProperty paragraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
+            Assert.AreEqual(12, paragraphProperty.Indent);
+            Assert.AreEqual(10, paragraphProperty.ParagraphAfter);
+            Assert.AreEqual(TextLineSpacings.MultipleLineSpace(2.5), paragraphProperty.LineSpacing);
+        });
+
+        "CaretOffset API 功能开关动态启用禁用应符合预期".Test(() =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "aaa\nbbb";
+
+            var secondParagraphCaretOffset = new CaretOffset("aaa\n".Length, isAtLineStart: true);
+            textEditor.SetHorizontalTextAlignment(secondParagraphCaretOffset, HorizontalTextAlignment.Left);
+
+            textEditor.DisableFeatures(TextFeatures.AlignHorizontalCenter);
+            textEditor.SetHorizontalTextAlignment(secondParagraphCaretOffset, HorizontalTextAlignment.Center);
+            ParagraphProperty first = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(HorizontalTextAlignment.Left, first.HorizontalTextAlignment);
+
+            textEditor.EnableFeatures(TextFeatures.AlignHorizontalCenter);
+            textEditor.SetHorizontalTextAlignment(secondParagraphCaretOffset, HorizontalTextAlignment.Center);
+            ParagraphProperty second = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(HorizontalTextAlignment.Center, second.HorizontalTextAlignment);
+
+            textEditor.DisableFeatures(TextFeatures.HorizontalAlign);
+            textEditor.SetHorizontalTextAlignment(secondParagraphCaretOffset, HorizontalTextAlignment.Right);
+            ParagraphProperty third = textEditor.GetParagraphProperty(secondParagraphCaretOffset);
+            Assert.AreEqual(HorizontalTextAlignment.Center, third.HorizontalTextAlignment);
+        });
+    }
+
+    [UIContractTestCase]
     public void ChangeStyle()
     {
         "未选择时，修改当前光标字符属性样式，只触发 StyleChanging 和 StyleChanged 事件，不触发布局变更".Test(() =>
