@@ -45,7 +45,11 @@ public partial class TextEditorHandler
 
             if (_inputGesture.ClickCount % 2 == 0)
             {
-                HandleDoubleClick(clickPoint);
+                var canHandle = HandleDoubleClick(clickPoint);
+                if (canHandle)
+                {
+                    e.Handled = true;
+                }
             }
             else if (_inputGesture.ClickCount % 2 == 1)
             {
@@ -89,11 +93,13 @@ public partial class TextEditorHandler
             if (_isHitSelection)
             {
                 HandleDragText(in textPoint);
+                e.Handled = true;
             }
             else
             {
                 //拖拽选择
                 HandleDragSelect(in textPoint);
+                e.Handled = true;
             }
         }
         else
@@ -127,6 +133,7 @@ public partial class TextEditorHandler
         }
 
         _isMouseDown = false;
+        e.Handled = true;
         //Mouse.Capture(TextEditor, CaptureMode.None);
     }
 

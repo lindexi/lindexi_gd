@@ -129,18 +129,21 @@ partial class TextEditor : Control
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         TextEditorHandler.OnPointerPressed(e);
+        base.OnPointerPressed(e);
     }
 
     /// <inheritdoc />
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         TextEditorHandler.OnPointerMoved(e);
+        base.OnPointerMoved(e);
     }
 
     /// <inheritdoc />
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         TextEditorHandler.OnPointerReleased(e);
+        base.OnPointerReleased(e);
     }
 
     /// <inheritdoc />
