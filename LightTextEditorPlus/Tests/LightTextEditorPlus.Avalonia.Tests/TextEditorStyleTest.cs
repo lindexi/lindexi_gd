@@ -2,7 +2,10 @@ using Avalonia.Threading;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Editing;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Avalonia.Tests;
@@ -10,6 +13,144 @@ namespace LightTextEditorPlus.Avalonia.Tests;
 [TestClass]
 public class TextEditorStyleTest
 {
+    [TestMethod("功能开关禁用之后，公开 API 不生效")]
+    public async Task FeatureSwitchDisableShouldNotApply()
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            // Arrange
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abc";
+
+            Selection selection = textEditor.GetAllDocumentSelection();
+            SkiaTextRunProperty oldRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+
+            ParagraphProperty oldParagraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
+            ParagraphProperty newParagraphProperty = oldParagraphProperty with { ParagraphBefore = oldParagraphProperty.ParagraphBefore + 10 };
+
+            // Action
+            textEditor.DisableFeatures(TextFeatures.SetFontSize | TextFeatures.SetParagraphSpaceBefore);
+            textEditor.SetFontSize(200, selection);
+            textEditor.SetCurrentCaretOffsetParagraphProperty(newParagraphProperty);
+
+            // Assert
+            SkiaTextRunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+            Assert.AreEqual(oldRunProperty.FontSize, currentRunProperty.FontSize);
+
+            ParagraphProperty currentParagraphProperty = textEditor.GetCurrentCaretOffsetParagraphProperty();
+            Assert.AreEqual(oldParagraphProperty, currentParagraphProperty);
+        });
+    }
+
+    [TestMethod("样式功能开关逐项禁用验证")]
+    public async Task FeatureSwitchStyleApisShouldNotApply()
+    {
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.Text = "abc";
+                Selection selection = textEditor.GetAllDocumentSelection();
+                SkiaTextRunProperty oldRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+                textEditor.DisableFeatures(TextFeatures.SetFontName);
+
+                textEditor.SetFontName("Times New Roman", selection);
+
+                SkiaTextRunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+                Assert.AreEqual(oldRunProperty.FontName, currentRunProperty.FontName);
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.Text = "abc";
+                Selection selection = textEditor.GetAllDocumentSelection();
+                SkiaTextRunProperty oldRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+                textEditor.DisableFeatures(TextFeatures.SetForeground);
+
+                textEditor.SetForeground(SKColors.Red, selection);
+
+                SkiaTextRunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+                Assert.AreEqual(oldRunProperty.Foreground, currentRunProperty.Foreground);
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.DisableFeatures(TextFeatures.SetBold);
+
+                textEditor.ToggleBold();
+
+                Assert.AreEqual(SKFontStyleWeight.Normal, textEditor.CurrentCaretRunProperty.FontWeight);
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.DisableFeatures(TextFeatures.SetItalic);
+
+                textEditor.ToggleItalic();
+
+                Assert.AreEqual(SKFontStyleSlant.Upright, textEditor.CurrentCaretRunProperty.FontStyle);
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.DisableFeatures(TextFeatures.SetUnderline);
+
+                textEditor.ToggleUnderline();
+
+                Assert.IsFalse(textEditor.CurrentCaretRunProperty.DecorationCollection.Contains(UnderlineTextEditorDecoration.Instance));
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.DisableFeatures(TextFeatures.SetStriketh);
+
+                textEditor.ToggleStrikethrough();
+
+                Assert.IsFalse(textEditor.CurrentCaretRunProperty.DecorationCollection.Contains(StrikethroughTextEditorDecoration.Instance));
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.DisableFeatures(TextFeatures.SetFontSuperscript);
+
+                textEditor.ToggleSuperscript();
+
+                Assert.AreEqual(TextFontVariants.Normal, textEditor.CurrentCaretRunProperty.FontVariant.FontVariants);
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.DisableFeatures(TextFeatures.SetFontSubscript);
+
+                textEditor.ToggleSubscript();
+
+                Assert.AreEqual(TextFontVariants.Normal, textEditor.CurrentCaretRunProperty.FontVariant.FontVariants);
+            }
+
+            {
+                using var context = TestFramework.CreateTextEditorInNewWindow();
+                var textEditor = context.TextEditor;
+                textEditor.Text = "abc";
+                Selection selection = textEditor.GetAllDocumentSelection();
+                textEditor.DisableFeatures(TextFeatures.SetFontSize);
+
+                textEditor.SetRunProperty(runProperty => runProperty with { FontSize = 77 }, selection);
+
+                SkiaTextRunProperty currentRunProperty = textEditor.GetRunPropertyRange(in selection).First();
+                Assert.AreEqual(77, currentRunProperty.FontSize);
+            }
+        });
+    }
+
     [TestMethod("整段文本字符属性设置之后，经过撤销恢复，能够还原状态")]
     public async Task TestSetRunProperty1()
     {
