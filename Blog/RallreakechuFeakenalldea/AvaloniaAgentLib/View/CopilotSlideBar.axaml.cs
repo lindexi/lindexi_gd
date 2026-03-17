@@ -1,11 +1,11 @@
+using System;
+using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using System;
-using System.Collections.ObjectModel;
 
-namespace SimpleWrite.Views.Components;
+namespace AvaloniaAgentLib.View;
 
 public partial class CopilotSlideBar : UserControl
 {

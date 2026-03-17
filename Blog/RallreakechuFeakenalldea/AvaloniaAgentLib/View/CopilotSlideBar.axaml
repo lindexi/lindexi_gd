@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:components="clr-namespace:SimpleWrite.Views.Components"
+             xmlns:view="clr-namespace:AvaloniaAgentLib.View"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.Components.CopilotSlideBar"
-             x:DataType="components:CopilotSlideBar">
+             x:Class="AvaloniaAgentLib.View.CopilotSlideBar"
+             x:DataType="view:CopilotSlideBar">
     <UserControl.Styles>
         <Style Selector="Border.CardBorder">
             <Setter Property="Background" Value="#FF1B1B1B" />
@@ -29,6 +29,14 @@
             <Setter Property="Padding" Value="14,6" />
             <Setter Property="CornerRadius" Value="6" />
         </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="Background" Value="#FF5F5F5D" />
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="Background" Value="#FF5F5F5D" />
+        </Style>
         <Style Selector="Button.SecondaryButton">
             <Setter Property="Background" Value="#FF2A2A2A" />
             <Setter Property="Foreground" Value="#FFD9D9D9" />
@@ -38,7 +46,7 @@
         </Style>
         <Style Selector="TextBox.MessageInputTextBox">
             <Setter Property="Background" Value="#FF222222" />
-            <Setter Property="Foreground" Value="#FFF5F5F5" />
+            <Setter Property="Foreground" Value="#FF5F5F5F" />
             <Setter Property="BorderBrush" Value="#FF454545" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="AcceptsReturn" Value="True" />
@@ -67,7 +75,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding ChatMessages}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="components:CopilotChatMessage">
+                            <DataTemplate x:DataType="view:CopilotChatMessage">
                                 <StackPanel HorizontalAlignment="{Binding HorizontalAlignment}" Margin="0,0,0,10" MaxWidth="250">
                                     <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
                                     <Border Background="{Binding BubbleBackground}" CornerRadius="8" Padding="10,8">
