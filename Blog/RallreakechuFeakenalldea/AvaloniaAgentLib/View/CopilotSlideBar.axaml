@@ -11,6 +11,44 @@
     <UserControl.DataContext>
         <viewModel:CopilotViewModel/>
     </UserControl.DataContext>
+    <UserControl.Resources>
+        <DataTemplate x:Key="UserMessageTemplate" x:DataType="model:CopilotChatMessage">
+            <StackPanel HorizontalAlignment="Right" Margin="0,0,0,10" MaxWidth="250">
+                <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" HorizontalAlignment="Right" />
+                <Border Background="#FF2F6FED" CornerRadius="8" Padding="10,8">
+                    <Border.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="复制消息" Click="CopyMessageMenuItem_OnClick" CommandParameter="{Binding Content}" />
+                            <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
+                        </ContextMenu>
+                    </Border.ContextMenu>
+                    <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#FFFFFFFF" />
+                </Border>
+                <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AssistantMessageTemplate" x:DataType="model:CopilotChatMessage">
+            <StackPanel HorizontalAlignment="Left" Margin="0,0,0,10" MaxWidth="250">
+                <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
+                <Border Background="#FF2A2A2A" CornerRadius="8" Padding="10,8">
+                    <Border.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="复制消息" Click="CopyMessageMenuItem_OnClick" CommandParameter="{Binding Content}" />
+                            <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
+                        </ContextMenu>
+                    </Border.ContextMenu>
+                    <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#FFF0F0F0" />
+                </Border>
+                <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
+            </StackPanel>
+        </DataTemplate>
+
+        <view:CopilotChatMessageTemplateSelector x:Key="CopilotChatMessageTemplateSelector"
+                                                UserTemplate="{StaticResource UserMessageTemplate}"
+                                                AssistantTemplate="{StaticResource AssistantMessageTemplate}"
+                                                SystemTemplate="{StaticResource AssistantMessageTemplate}" />
+    </UserControl.Resources>
     <UserControl.Styles>
         <Style Selector="Border.CardBorder">
             <Setter Property="Background" Value="#FF1B1B1B" />
@@ -85,25 +123,7 @@
 
             <Border Grid.Row="1" Classes="CardBorder" Margin="10,0,10,6" Padding="8">
                 <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl ItemsSource="{Binding ChatMessages}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="model:CopilotChatMessage">
-                                <StackPanel HorizontalAlignment="{Binding HorizontalAlignment}" Margin="0,0,0,10" MaxWidth="250">
-                                    <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
-                                    <Border Background="{Binding BubbleBackground}" CornerRadius="8" Padding="10,8">
-                                        <Border.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="复制消息" Click="CopyMessageMenuItem_OnClick" CommandParameter="{Binding Content}" />
-                                                <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
-                                            </ContextMenu>
-                                        </Border.ContextMenu>
-                                        <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="{Binding BubbleForeground}" />
-                                    </Border>
-                                    <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding ChatMessages}" ItemTemplate="{StaticResource CopilotChatMessageTemplateSelector}" />
                 </ScrollViewer>
             </Border>
 
