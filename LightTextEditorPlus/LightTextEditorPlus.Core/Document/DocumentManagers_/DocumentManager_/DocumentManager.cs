@@ -51,19 +51,6 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         internal int ChangeVersion { get; private set; }
 
-        private sealed class EmptyDocumentManagerCallback : IDocumentManagerCallback
-        {
-            public static EmptyDocumentManagerCallback Instance { get; } = new EmptyDocumentManagerCallback();
-
-            public void OnDocumentChanging(object sender, DocumentChangeEventArgs args)
-            {
-            }
-
-            public void OnDocumentChanged(object sender, DocumentChangeEventArgs args)
-            {
-            }
-        }
-
         #region DocumentWidth DocumentHeight
 
         /// <summary>
