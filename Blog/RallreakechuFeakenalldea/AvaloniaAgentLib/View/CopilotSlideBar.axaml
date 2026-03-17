@@ -3,9 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:view="clr-namespace:AvaloniaAgentLib.View"
+             xmlns:model="clr-namespace:AvaloniaAgentLib.Model"
+             xmlns:viewModel="clr-namespace:AvaloniaAgentLib.ViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AvaloniaAgentLib.View.CopilotSlideBar"
-             x:DataType="view:CopilotSlideBar">
+             x:DataType="viewModel:CopilotViewModel">
+    <UserControl.DataContext>
+        <viewModel:CopilotViewModel/>
+    </UserControl.DataContext>
     <UserControl.Styles>
         <Style Selector="Border.CardBorder">
             <Setter Property="Background" Value="#FF1B1B1B" />
@@ -75,7 +80,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding ChatMessages}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="view:CopilotChatMessage">
+                            <DataTemplate x:DataType="model:CopilotChatMessage">
                                 <StackPanel HorizontalAlignment="{Binding HorizontalAlignment}" Margin="0,0,0,10" MaxWidth="250">
                                     <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
                                     <Border Background="{Binding BubbleBackground}" CornerRadius="8" Padding="10,8">
