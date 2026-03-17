@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaAgentLib.Core;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 
 namespace AvaloniaAgentLib.ViewModel;
 
@@ -69,12 +71,28 @@ public class CopilotViewModel : INotifyPropertyChanged
             cancellationToken.ThrowIfCancellationRequested();
 
             ChatMessages.Add(CopilotChatMessage.CreateUser(inputText));
+
+            var openAIClient = AgentApiEndpointManager.CreateOpenAIClient();
+            ChatClientAgent chatClientAgent = openAIClient.AsAIAgent(new ChatClientAgentOptions()
+            {
+                ChatOptions = new ChatOptions()
+                {
+
+                }
+            });
+
+            
+
             await Task.Delay(TimeSpan.FromMilliseconds(4000), cancellationToken);
             ChatMessages.Add(CopilotChatMessage.CreateAssistant("消息已接收。待接入 Agent 后将返回真实回复。"));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             ChatMessages.Add(CopilotChatMessage.CreateAssistant("已取消"));
+        }
+        catch (Exception exception)
+        {
+            ChatMessages.Add(CopilotChatMessage.CreateAssistant(exception.ToString()));
         }
         finally
         {
