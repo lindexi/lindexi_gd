@@ -1,0 +1,59 @@
+# MVVM 分层职责与聊天消息模板选择实践
+
+## 背景
+
+`CopilotChatMessage` 作为 Model 层类型，不应持有 `IBrush`、`HorizontalAlignment` 等 UI 细节。此类信息属于 View 层表现策略。
+
+## MVVM 设计理念（简要）
+
+MVVM 的核心目标是：
+
+- **Model 关注数据与业务语义**，不感知具体 UI 技术。
+- **View 关注呈现与交互**，负责布局、样式、模板、视觉状态。
+- **ViewModel 关注状态编排与命令**，连接 View 与 Model，但不直接写具体控件样式。
+
+### 1) Model 层应放什么
+
+适合放在 Model：
+
+- 领域数据（如 `Role`、`Content`、`TimeText`）
+- 与业务语义相关的派生属性（如 `Author`）
+- 业务状态标记（如 `IsPresetInfo`）
+
+不应放在 Model：
+
+- `Brush`、`Color`、`HorizontalAlignment`、`CornerRadius` 等视觉参数
+- 依赖具体 UI 框架的展示策略
+- 模板选择、控件行为细节
+
+### 2) View 层应放什么
+
+适合放在 View（XAML / 视图代码）：
+
+- 布局与样式（颜色、间距、圆角、对齐）
+- `DataTemplate` 定义
+- 基于数据类型/状态选择模板（如模板选择器）
+
+### 3) ViewModel 层应放什么
+
+适合放在 ViewModel：
+
+- 消息集合、发送状态、按钮文案等 UI 状态
+- 事件与命令编排（发送消息、清空消息、打开设置）
+- 服务调用与结果映射
+
+不应放在 ViewModel：
+
+- 具体控件样式、颜色、模板结构
+
+## 本场景落地约定
+
+- `CopilotChatMessage` 仅保留消息语义字段，不再包含气泡背景、前景色、对齐方式。
+- `CopilotSlideBar.axaml` 中定义用户/助手消息模板。
+- 使用 `DataTemplateSelector`（基于 `Role`）决定 `ItemsControl` 每项采用的模板。
+
+## 结果收益
+
+- Model 去 UI 耦合，可复用于不同界面。
+- 视图表现集中在 View，后续改皮肤/主题只改 XAML。
+- 模板选择逻辑更清晰，避免通过 Model 携带布局参数。
