@@ -164,8 +164,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         };
 
         IDXGIAdapter1 adapter = hardwareAdapter;
-        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport
-                                            | DeviceCreationFlags.Debug;
+        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport | DeviceCreationFlags.Debug | DeviceCreationFlags.Debuggable;
         var result = D3D11.D3D11CreateDevice
         (
             adapter,
@@ -220,7 +219,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             Flags = SwapChainFlags.FrameLatencyWaitableObject,
         };
 
-        bool useComposition = true;
+        bool useComposition = false;
         // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
         IDXGISwapChain1 swapChain1;
         IDXGISwapChain2 swapChain;
@@ -258,7 +257,12 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         }
         else
         {
-            swapChainDescription.AlphaMode = AlphaMode.Ignore;
+            //swapChainDescription.AlphaMode = AlphaMode.Ignore;
+
+            while (_fxx)
+            {
+                Thread.Sleep(0);
+            }
 
             swapChain1 = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription);
             IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
@@ -317,6 +321,8 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         //var debug2 = swapChain.QueryInterface<ID3D11Debug>();
     }
 
+    private bool _fxx = true;
+
     private void ReSize()
     {
         // 处理窗口大小变化
@@ -337,7 +343,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             (uint) (clientSize.Width),
             (uint) (clientSize.Height),
             ColorFormat,
-            SwapChainFlags.FrameLatencyWaitableObject
+            SwapChainFlags.None
         );
 
         _renderContext = _renderContext with
@@ -466,6 +472,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             else
             {
                 var presentResult = _renderContext.SwapChain.Present1(0, PresentFlags.None, [rawRect]);
+                //GetDebugMessage();
 
                 presentResult.CheckError();
             }
@@ -474,7 +481,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         }
     }
 
-    private bool _isFirstRender = false;
+    private bool _isFirstRender = true;
 
     private void GetDebugMessage()
     {
