@@ -164,8 +164,8 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         };
 
         IDXGIAdapter1 adapter = hardwareAdapter;
-        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport
-                                            | DeviceCreationFlags.Debug;
+        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport;
+                                            //| DeviceCreationFlags.Debug;
         var result = D3D11.D3D11CreateDevice
         (
             adapter,
@@ -337,7 +337,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             (uint) (clientSize.Width),
             (uint) (clientSize.Height),
             ColorFormat,
-            SwapChainFlags.FrameLatencyWaitableObject
+            SwapChainFlags.None
         );
 
         _renderContext = _renderContext with
@@ -466,6 +466,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             else
             {
                 var presentResult = _renderContext.SwapChain.Present1(0, PresentFlags.None, [rawRect]);
+                //GetDebugMessage();
 
                 presentResult.CheckError();
             }
@@ -474,7 +475,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         }
     }
 
-    private bool _isFirstRender = false;
+    private bool _isFirstRender = true;
 
     private void GetDebugMessage()
     {
