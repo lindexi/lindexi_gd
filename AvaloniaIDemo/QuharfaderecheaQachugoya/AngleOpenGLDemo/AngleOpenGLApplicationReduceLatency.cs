@@ -164,7 +164,8 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         };
 
         IDXGIAdapter1 adapter = hardwareAdapter;
-        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport | DeviceCreationFlags.Debug | DeviceCreationFlags.Debuggable;
+        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport;
+                                            //| DeviceCreationFlags.Debug;
         var result = D3D11.D3D11CreateDevice
         (
             adapter,
@@ -219,7 +220,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             Flags = SwapChainFlags.FrameLatencyWaitableObject,
         };
 
-        bool useComposition = false;
+        bool useComposition = true;
         // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
         IDXGISwapChain1 swapChain1;
         IDXGISwapChain2 swapChain;
@@ -257,12 +258,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         }
         else
         {
-            //swapChainDescription.AlphaMode = AlphaMode.Ignore;
-
-            while (_fxx)
-            {
-                Thread.Sleep(0);
-            }
+            swapChainDescription.AlphaMode = AlphaMode.Ignore;
 
             swapChain1 = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription);
             IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
@@ -320,8 +316,6 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         // 不支持此接口
         //var debug2 = swapChain.QueryInterface<ID3D11Debug>();
     }
-
-    private bool _fxx = true;
 
     private void ReSize()
     {
