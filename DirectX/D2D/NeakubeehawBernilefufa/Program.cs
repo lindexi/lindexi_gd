@@ -82,7 +82,7 @@ class DemoWindow
         }
 
         WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-        | WINDOW_EX_STYLE.WS_EX_LAYERED; // Layered 是透明窗口的关键
+      ; // Layered 是透明窗口的关键
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -98,11 +98,12 @@ class DemoWindow
         fixed (char* pClassName = className)
         fixed (char* pTitle = title)
         {
+            var lpfnWndProc = _wndproc = new WNDPROC(WndProc);
             var wndClassEx = new WNDCLASSEXW
             {
                 cbSize = (uint) Marshal.SizeOf<WNDCLASSEXW>(),
                 style = style,
-                lpfnWndProc = new WNDPROC(WndProc),
+                lpfnWndProc = lpfnWndProc,
                 hInstance = new HINSTANCE(GetModuleHandle(null).DangerousGetHandle()),
                 hCursor = defaultCursor,
                 hbrBackground = new HBRUSH(IntPtr.Zero),
@@ -130,20 +131,24 @@ class DemoWindow
         }
     }
 
+    private WNDPROC? _wndproc;
+
     private LRESULT WndProc(HWND hwnd, uint message, WPARAM wParam, LPARAM lParam)
     {
         switch ((WindowsMessage) message)
         {
-            case WindowsMessage.WM_NCCALCSIZE:
-                {
-                    var paramsObj = Marshal.PtrToStructure<NCCALCSIZE_PARAMS>(lParam);
-                    ref RECT rect = ref paramsObj.rgrc._0;
-                    //rect.top += 10;
+            case WindowsMessage.WM_ERASEBKGND:
+                return new LRESULT(1);
+            //case WindowsMessage.WM_NCCALCSIZE:
+            //    {
+            //        var paramsObj = Marshal.PtrToStructure<NCCALCSIZE_PARAMS>(lParam);
+            //        ref RECT rect = ref paramsObj.rgrc._0;
+            //        //rect.top += 10;
 
-                    Marshal.StructureToPtr(paramsObj, lParam, false);
+            //        Marshal.StructureToPtr(paramsObj, lParam, false);
 
-                    return new LRESULT(0);
-                }
+            //        return new LRESULT(0);
+            //    }
             case WindowsMessage.WM_SIZE:
                 {
                     _renderManager?.ReSize();
@@ -242,7 +247,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 renderTarget.BeginDraw();
 
                 var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
-                    Random.Shared.NextSingle(), 0.1f);
+                    Random.Shared.NextSingle(), 0.0f);
                 renderTarget.Clear(color);
 
                 renderTarget.EndDraw();
@@ -255,6 +260,9 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             }
         }
     }
+
+    private int _x = 0;
+    private int _y = 0;
 
     public void ReSize()
     {
