@@ -17,6 +17,8 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 using AngleOpenGLDemo.Diagnostics;
+using Vortice;
+using Vortice.Direct3D11.Debug;
 using static Windows.Win32.PInvoke;
 
 namespace AngleOpenGLDemo;
@@ -163,6 +165,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         IDXGIAdapter1 adapter = hardwareAdapter;
         DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport;
+                                            //| DeviceCreationFlags.Debug;
         var result = D3D11.D3D11CreateDevice
         (
             adapter,
@@ -198,6 +201,11 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
         d3D11Device.Dispose();
         d3D11DeviceContext.Dispose();
 
+        //var d3D11InfoQueue = d3D11Device1.QueryInterface<ID3D11InfoQueue>();
+        //d3D11InfoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
+
+        //var d3D11Debug = d3D11Device1.QueryInterface<ID3D11Debug>();
+
         SwapChainDescription1 swapChainDescription = new()
         {
             Width = (uint) clientSize.Width,
@@ -212,32 +220,51 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             Flags = SwapChainFlags.FrameLatencyWaitableObject,
         };
 
+        bool useComposition = true;
         // 使用 CreateSwapChainForComposition 创建支持预乘 Alpha 的 SwapChain
-        IDXGISwapChain1 swapChain1 =
-            dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
-        IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
-        swapChain1.Dispose();
-        swapChain2.MaximumFrameLatency = 1;
-        var waitableObject = swapChain2.FrameLatencyWaitableObject;
-        _ = waitableObject;
+        IDXGISwapChain1 swapChain1;
+        IDXGISwapChain2 swapChain;
+        IDCompositionDevice? compositionDevice = null;
+        IDCompositionTarget? compositionTarget = null;
+        IDCompositionVisual? compositionVisual = null;
 
-        var swapChain = swapChain2;
+        if (useComposition)
+        {
+            swapChain1 = dxgiFactory2.CreateSwapChainForComposition(d3D11Device1, swapChainDescription);
+            IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
+            swapChain1.Dispose();
+            swapChain2.MaximumFrameLatency = 1;
+            var waitableObject = swapChain2.FrameLatencyWaitableObject;
+            _ = waitableObject;
 
-        // 和直接 CreateSwapChainForHwnd 的不同仅仅是为了 AlphaMode.Premultiplied 支持背景透明才引入 DirectComposition 的支持
-        // 详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
+            swapChain = swapChain2;
 
-        // 创建 DirectComposition 设备和目标
-        IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
-        IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
-        compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
 
-        // 创建视觉对象并设置 SwapChain 作为内容
-        IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
-        compositionVisual.SetContent(swapChain);
-        compositionTarget.SetRoot(compositionVisual);
-        compositionDevice.Commit();
+            // 和直接 CreateSwapChainForHwnd 的不同仅仅是为了 AlphaMode.Premultiplied 支持背景透明才引入 DirectComposition 的支持
+            // 详细请参阅 [Vortice 使用 DirectComposition 显示透明窗口 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/19541356 )
 
-        dxgiDevice.Dispose();
+            // 创建 DirectComposition 设备和目标
+            IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
+            compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
+            compositionDevice.CreateTargetForHwnd(HWND, true, out compositionTarget);
+
+            // 创建视觉对象并设置 SwapChain 作为内容
+            compositionVisual = compositionDevice.CreateVisual();
+            compositionVisual.SetContent(swapChain);
+            compositionTarget.SetRoot(compositionVisual);
+            compositionDevice.Commit();
+
+            dxgiDevice.Dispose();
+        }
+        else
+        {
+            swapChainDescription.AlphaMode = AlphaMode.Ignore;
+
+            swapChain1 = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, HWND, swapChainDescription);
+            IDXGISwapChain2 swapChain2 = swapChain1.QueryInterface<IDXGISwapChain2>();
+            swapChain1.Dispose();
+            swapChain = swapChain2;
+        }
 
         // 不要被按下 alt+enter 进入全屏
         dxgiFactory2.MakeWindowAssociation(HWND,
@@ -285,6 +312,9 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
         };
+
+        // 不支持此接口
+        //var debug2 = swapChain.QueryInterface<ID3D11Debug>();
     }
 
     private void ReSize()
@@ -339,6 +369,10 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         // 渲染代码写在这里
 
+        var size = 100;
+        var width = size;
+        var height = size;
+
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("Render"))
         {
             var eglInterface = _renderContext.AngleWin32EglDisplay.EglInterface;
@@ -391,7 +425,7 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
                             skPaint.Color = SKColors.Yellow.WithAlpha(0xC0);
                             skPaint.Style = SKPaintStyle.Fill;
 
-                            skCanvas.DrawRect(x, y, 100, 100, skPaint);
+                            skCanvas.DrawRect(x, y, width, height, skPaint);
                         }
                     }
                 }
@@ -414,8 +448,42 @@ public unsafe class AngleOpenGLApplicationReduceLatency : IDisposable
 
         using (StepPerformanceCounter.RenderThreadCounter.StepStart("SwapChain"))
         {
-            var presentResult = _renderContext.SwapChain.Present(0, PresentFlags.None);
-            presentResult.CheckError();
+            var currentPosition = _currentPosition;
+            var x = (int) currentPosition.X;
+            var y = (int) currentPosition.Y;
+
+            var rawRect = new RawRect(x, y, x + width, y + height);
+
+            var presentParameters = new PresentParameters()
+            {
+                DirtyRectangles = [rawRect],
+            };
+
+            if (_isFirstRender)
+            {
+                 _renderContext.SwapChain.Present(0, PresentFlags.None);
+            }
+            else
+            {
+                var presentResult = _renderContext.SwapChain.Present1(0, PresentFlags.None, [rawRect]);
+                //GetDebugMessage();
+
+                presentResult.CheckError();
+            }
+
+            _isFirstRender = false;
+        }
+    }
+
+    private bool _isFirstRender = true;
+
+    private void GetDebugMessage()
+    {
+        using  var d3D11InfoQueue = _renderContext.D3D11Device1.QueryInterface<ID3D11InfoQueue>();
+        var numStoredMessages = d3D11InfoQueue.NumStoredMessages;
+        for (uint i = 0; i < numStoredMessages; i++)
+        {
+            var message = d3D11InfoQueue.GetMessage(i);
         }
     }
 
