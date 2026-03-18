@@ -81,8 +81,7 @@ class DemoWindow
             Console.WriteLine($"无法启用透明窗口效果");
         }
 
-        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_OVERLAPPEDWINDOW
-      ; // Layered 是透明窗口的关键
+        WINDOW_EX_STYLE exStyle =  WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -248,6 +247,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 var color = new Color4(Random.Shared.NextSingle(), Random.Shared.NextSingle(),
                     Random.Shared.NextSingle(), 0.0f);
+                color = new Color4(0f, 0f, 0f, 0f);
                 renderTarget.Clear(color);
 
                 renderTarget.EndDraw();
