@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
@@ -21,6 +22,7 @@ using Vortice.DCommon;
 using Vortice.DirectComposition;
 using static Windows.Win32.PInvoke;
 using AlphaMode = Vortice.DXGI.AlphaMode;
+using Color = Vortice.Mathematics.Color;
 using D2D = Vortice.Direct2D1;
 
 namespace NeakubeehawBernilefufa;
@@ -56,6 +58,16 @@ class DemoWindow
 
     public unsafe void Run()
     {
+        Task.Run(() =>
+        {
+            while (true)
+            {
+                Console.ReadLine();
+                var demoWindow = this;
+                demoWindow.ToggleTransparency();
+            }
+        });
+
         while (true)
         {
             var msg = new MSG();
@@ -81,7 +93,7 @@ class DemoWindow
             Console.WriteLine($"无法启用透明窗口效果");
         }
 
-        WINDOW_EX_STYLE exStyle =  WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
+        WINDOW_EX_STYLE exStyle = WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
 
         // 如果你想做无边框：
         //exStyle |= WINDOW_EX_STYLE.WS_EX_TOOLWINDOW; // 可选
@@ -157,6 +169,11 @@ class DemoWindow
 
         return DefWindowProc(hwnd, message, wParam, lParam);
     }
+
+    public void ToggleTransparency()
+    {
+        _renderManager.ToggleTransparency();
+    }
 }
 
 unsafe class RenderManager(HWND hwnd) : IDisposable
@@ -214,6 +231,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 };
             }
 
+            {
+                var swapChain = _renderContext.SwapChain;
+                var supportTransparency = swapChain.Description1.AlphaMode is AlphaMode.Premultiplied or AlphaMode.Straight;
+
+                if (_isTransparency != supportTransparency)
+                {
+                    CreateSurface();
+                }
+            }
+
             if (_renderInfo is null)
             {
                 var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
@@ -249,6 +276,26 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                     Random.Shared.NextSingle(), 0.0f);
                 color = new Color4(0f, 0f, 0f, 0f);
                 renderTarget.Clear(color);
+
+                var size = 50;
+                var width = size;
+                var height = size;
+                using var brush = renderTarget.CreateSolidColorBrush(Colors.Blue);
+                renderTarget.FillRectangle(new Rect(_x, _y, width, height), brush);
+
+                _x++;
+                _y++;
+                var maxWidth = _renderContext.WindowWidth - width;
+                var maxHeight = _renderContext.WindowHeight - height;
+                if (_x > maxWidth)
+                {
+                    _x = 0;
+                }
+
+                if (_y > maxHeight)
+                {
+                    _y = 0;
+                }
 
                 renderTarget.EndDraw();
             }
@@ -365,13 +412,42 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         d3D11Device.Dispose();
         d3D11DeviceContext.Dispose();
 
+        _renderContext = _renderContext with
+        {
+            DXGIFactory2 = dxgiFactory2,
+            HardwareAdapter = hardwareAdapter,
+            D3D11Device1 = d3D11Device1,
+            D3D11DeviceContext1 = d3D11DeviceContext1,
+
+            WindowWidth = (uint) clientSize.Width,
+            WindowHeight = (uint) clientSize.Height
+        };
+
+        CreateSurface();
+    }
+
+    private void CreateSurface()
+    {
+        // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (_renderContext.SwapChain != null)
+        {
+            if (_renderContext.CompositionTarget != null)
+            {
+                _renderContext.CompositionTarget.Dispose();
+                _renderContext.CompositionVisual?.Dispose();
+            }
+            else
+            {
+                _renderContext.SwapChain.Dispose();
+            }
+        }
 
         // 缓存的数量，包括前缓存。大部分应用来说，至少需要两个缓存，这个玩过游戏的伙伴都知道
         const int FrameCount = 2;
         SwapChainDescription1 swapChainDescription = new()
         {
-            Width = (uint) clientSize.Width,
-            Height = (uint) clientSize.Height,
+            Width = _renderContext.WindowWidth,
+            Height = _renderContext.WindowHeight,
             Format = _colorFormat,
             BufferCount = FrameCount,
             BufferUsage = Usage.RenderTargetOutput,
@@ -387,6 +463,11 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         // 使用 DirectComposition 时有系统版本要求
         useDirectComposition = useDirectComposition & OperatingSystem.IsWindowsVersionAtLeast(8, 1);
 
+        useDirectComposition = useDirectComposition & _isTransparency;
+
+        var dxgiFactory2 = _renderContext.DXGIFactory2;
+        var d3D11Device1 = _renderContext.D3D11Device1;
+
         IDXGISwapChain1 swapChain;
 
         if (useDirectComposition)
@@ -397,8 +478,10 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             // 创建 DirectComposition 设备和目标
             IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<IDXGIDevice>();
-            IDCompositionDevice compositionDevice = DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
-            compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
+
+            IDCompositionDevice compositionDevice = _renderContext.CompositionDevice ?? DComp.DCompositionCreateDevice<IDCompositionDevice>(dxgiDevice);
+            var createResult = compositionDevice.CreateTargetForHwnd(HWND, true, out IDCompositionTarget compositionTarget);
+            createResult.CheckError();
 
             // 创建视觉对象并设置 SwapChain 作为内容
             IDCompositionVisual compositionVisual = compositionDevice.CreateVisual();
@@ -408,7 +491,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             dxgiDevice.Dispose();
 
-            _renderContext = new RenderContext()
+            _renderContext = _renderContext with
             {
                 CompositionDevice = compositionDevice,
                 CompositionTarget = compositionTarget,
@@ -434,10 +517,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
         _renderContext = _renderContext with
         {
-            DXGIFactory2 = dxgiFactory2,
-            HardwareAdapter = hardwareAdapter,
-            D3D11Device1 = d3D11Device1,
-            D3D11DeviceContext1 = d3D11DeviceContext1,
             SwapChain = swapChain,
 
             WindowWidth = swapChainDescription.Width,
@@ -510,6 +589,14 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     }
 
     private bool _isDisposed;
+
+    public void ToggleTransparency()
+    {
+        _isTransparency = !_isTransparency;
+        Console.WriteLine($"切换透明度 {(_isTransparency ? "透明" : "不透明")}");
+    }
+
+    private bool _isTransparency = false;
 }
 
 readonly record struct RenderInfo(ID3D11Texture2D D3D11Texture2D, D2D.ID2D1RenderTarget D2D1RenderTarget) : IDisposable
