@@ -245,7 +245,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             {
                 var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
-                var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
+                using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
                 var renderTargetProperties = new D2D.RenderTargetProperties()
                 {
                     PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
@@ -349,7 +349,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         };
 
         IDXGIAdapter1 adapter = hardwareAdapter;
-        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport;
+        DeviceCreationFlags creationFlags = DeviceCreationFlags.BgraSupport | DeviceCreationFlags.Debug | DeviceCreationFlags.Debuggable;
         var result = D3D11.D3D11CreateDevice
         (
             adapter,
@@ -429,16 +429,32 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     private void CreateSurface()
     {
         // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (_renderInfo is not null)
+        {
+            var renderInfo = _renderInfo.Value;
+            renderInfo.D3D11Texture2D.Dispose();
+            renderInfo.D2D1RenderTarget.Dispose();
+            _renderInfo = null;
+        }
+
         if (_renderContext.SwapChain != null)
         {
             if (_renderContext.CompositionTarget != null)
             {
+                _renderContext.SwapChain.Dispose();
+
                 _renderContext.CompositionTarget.Dispose();
                 _renderContext.CompositionVisual?.Dispose();
+
+                _renderContext.D3D11DeviceContext1.ClearState();
+                _renderContext.D3D11DeviceContext1.Flush();
             }
             else
             {
                 _renderContext.SwapChain.Dispose();
+
+                _renderContext.D3D11DeviceContext1.ClearState();
+                _renderContext.D3D11DeviceContext1.Flush();
             }
         }
 
@@ -507,6 +523,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             swapChainDescription.AlphaMode = AlphaMode.Ignore;
 
+            // DXGI ERROR: IDXGIFactory::CreateSwapChain: Only one flip model swap chain can be associate with an HWND, IWindow, or composition surface at a time. ClearState() and Flush() may need to be called on the D3D11 device context to trigger deferred destruction of old swapchains. [ MISCELLANEOUS ERROR #297: ]
             swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, hwnd, swapChainDescription,
                 fullscreenDescription);
         }
