@@ -523,7 +523,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             swapChainDescription.AlphaMode = AlphaMode.Ignore;
 
-            // DXGI ERROR: IDXGIFactory::CreateSwapChain: Only one flip model swap chain can be associate with an HWND, IWindow, or composition surface at a time. ClearState() and Flush() may need to be called on the D3D11 device context to trigger deferred destruction of old swapchains. [ MISCELLANEOUS ERROR #297: ]
             swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, hwnd, swapChainDescription,
                 fullscreenDescription);
         }
@@ -539,6 +538,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
         };
+
+        InvalidateRect(HWND, null, true);
     }
 
     private static IEnumerable<IDXGIAdapter1> GetHardwareAdapter(IDXGIFactory2 factory)
