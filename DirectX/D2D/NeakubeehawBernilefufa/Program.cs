@@ -245,7 +245,7 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             {
                 var d3D11Texture2D = _renderContext.SwapChain.GetBuffer<ID3D11Texture2D>(0);
 
-                var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
+                using var dxgiSurface = d3D11Texture2D.QueryInterface<IDXGISurface>();
                 var renderTargetProperties = new D2D.RenderTargetProperties()
                 {
                     PixelFormat = new PixelFormat(D2DColorFormat, Vortice.DCommon.AlphaMode.Premultiplied),
@@ -429,10 +429,20 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
     private void CreateSurface()
     {
         // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (_renderInfo is not null)
+        {
+            var renderInfo = _renderInfo.Value;
+            renderInfo.D3D11Texture2D.Dispose();
+            renderInfo.D2D1RenderTarget.Dispose();
+            _renderInfo = null;
+        }
+
         if (_renderContext.SwapChain != null)
         {
             if (_renderContext.CompositionTarget != null)
             {
+                _renderContext.SwapChain.Dispose();
+
                 _renderContext.CompositionTarget.Dispose();
                 _renderContext.CompositionVisual?.Dispose();
 
