@@ -1,0 +1,207 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="Color.Background">#FFF4F7FB</Color>
+    <Color x:Key="Color.Surface">#FFFFFFFF</Color>
+    <Color x:Key="Color.SurfaceMuted">#FFF8FAFC</Color>
+    <Color x:Key="Color.Border">#FFD8E1F0</Color>
+    <Color x:Key="Color.BorderStrong">#FFAEBFE3</Color>
+    <Color x:Key="Color.Primary">#FF4F6EF7</Color>
+    <Color x:Key="Color.PrimaryDark">#FF3F57C9</Color>
+    <Color x:Key="Color.Secondary">#FF7A5AF8</Color>
+    <Color x:Key="Color.Text">#FF1A2233</Color>
+    <Color x:Key="Color.TextMuted">#FF627089</Color>
+    <Color x:Key="Color.SuccessSurface">#FFEAF7F2</Color>
+    <Color x:Key="Color.SuccessBorder">#FF9BD3BC</Color>
+    <Color x:Key="Color.ReasoningSurface">#FFF1EDFF</Color>
+    <Color x:Key="Color.ReasoningBorder">#FFC6B8FF</Color>
+    <Color x:Key="Color.SpeechSurface">#FFF7FBFF</Color>
+    <Color x:Key="Color.SpeechBorder">#FFB8D4FF</Color>
+    <Color x:Key="Color.VoteSurface">#FFFFF6EA</Color>
+    <Color x:Key="Color.VoteBorder">#FFF7C47A</Color>
+    <Color x:Key="Color.PlayerSurface">#FFECF8F4</Color>
+    <Color x:Key="Color.PlayerBorder">#FF8CD1B9</Color>
+
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Color.Background}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Color.Surface}" />
+    <SolidColorBrush x:Key="SurfaceMutedBrush" Color="{StaticResource Color.SurfaceMuted}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Color.Border}" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource Color.BorderStrong}" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Color.Primary}" />
+    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource Color.PrimaryDark}" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Color.Secondary}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource Color.Text}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource Color.TextMuted}" />
+
+    <CornerRadius x:Key="CardCornerRadius">20</CornerRadius>
+    <Thickness x:Key="CardPadding">20</Thickness>
+
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+        <Setter Property="TextOptions.TextRenderingMode" Value="Auto" />
+    </Style>
+
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+
+    <Style TargetType="TextBox">
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="Margin" Value="0,4,0,0" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="0" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.75" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="Button">
+        <Setter Property="Padding" Value="18,11" />
+        <Setter Property="Margin" Value="0,0,10,0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="14">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.92" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.82" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="{StaticResource SecondaryBrush}" />
+    </Style>
+
+    <Style TargetType="GroupBox">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Border Background="{StaticResource SurfaceBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="20"
+                            Padding="18">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top"
+                                    Margin="0,0,0,14"
+                                    Padding="12,8"
+                                    Background="{StaticResource SurfaceMutedBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12">
+                                <ContentPresenter ContentSource="Header" RecognizesAccessKey="True">
+                                    <ContentPresenter.Resources>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontSize" Value="16" />
+                                            <Setter Property="FontWeight" Value="SemiBold" />
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </Border>
+                            <ContentPresenter />
+                        </DockPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+
+    <Style TargetType="ScrollBar">
+        <Setter Property="Width" Value="10" />
+        <Setter Property="Background" Value="#11FFFFFF" />
+    </Style>
+
+    <Style x:Key="GlassCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style x:Key="HeroCardStyle" TargetType="Border" BasedOn="{StaticResource GlassCardStyle}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Offset="0" Color="#FFEEF3FF" />
+                    <GradientStop Offset="1" Color="#FFF8F5FF" />
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    </Style>
+
+    <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <Style x:Key="SubtleTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+</ResourceDictionary>
