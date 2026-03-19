@@ -455,6 +455,10 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 _renderContext.D3D11DeviceContext1.ClearState();
                 _renderContext.D3D11DeviceContext1.Flush();
+
+                RedrawWindow(hwnd, null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE |
+                                                    REDRAW_WINDOW_FLAGS.RDW_ERASE |
+                                                    REDRAW_WINDOW_FLAGS.RDW_UPDATENOW);
             }
         }
 
