@@ -432,6 +432,13 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         if (_renderInfo is not null)
         {
             var renderInfo = _renderInfo.Value;
+
+            renderInfo.D2D1RenderTarget.BeginDraw();
+            renderInfo.D2D1RenderTarget.Clear(null);
+            renderInfo.D2D1RenderTarget.EndDraw();
+            _renderContext.SwapChain.Present(1);
+            _renderContext.D3D11DeviceContext1.Flush();
+
             renderInfo.D3D11Texture2D.Dispose();
             renderInfo.D2D1RenderTarget.Dispose();
             _renderInfo = null;
@@ -455,6 +462,16 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
                 _renderContext.D3D11DeviceContext1.ClearState();
                 _renderContext.D3D11DeviceContext1.Flush();
+
+                RedrawWindow(hwnd, null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE |
+                                                    REDRAW_WINDOW_FLAGS.RDW_ERASE |
+                                                    REDRAW_WINDOW_FLAGS.RDW_UPDATENOW);
+
+                _renderContext.DXGIFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.None);
+
+                var style = GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE)
+                            | (int)WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
+                SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, style);
             }
         }
 
@@ -523,7 +540,6 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
 
             swapChainDescription.AlphaMode = AlphaMode.Ignore;
 
-            // DXGI ERROR: IDXGIFactory::CreateSwapChain: Only one flip model swap chain can be associate with an HWND, IWindow, or composition surface at a time. ClearState() and Flush() may need to be called on the D3D11 device context to trigger deferred destruction of old swapchains. [ MISCELLANEOUS ERROR #297: ]
             swapChain = dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, hwnd, swapChainDescription,
                 fullscreenDescription);
         }
@@ -539,6 +555,8 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
             WindowWidth = swapChainDescription.Width,
             WindowHeight = swapChainDescription.Height
         };
+
+        InvalidateRect(HWND, null, true);
     }
 
     private static IEnumerable<IDXGIAdapter1> GetHardwareAdapter(IDXGIFactory2 factory)

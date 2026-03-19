@@ -22,7 +22,7 @@ TranslateMessage
 DispatchMessage
 DefWindowProc
 GetClientRect
-WM
+RedrawWindow
 WM_PAINT
 GetWindowLong
 SetWindowLong
@@ -30,4 +30,4 @@ DwmIsCompositionEnabled
 UpdateLayeredWindow
 DwmExtendFrameIntoClientArea
 DCompositionCreateDevice
-NCCALCSIZE_PARAMS
+InvalidateRect
