@@ -432,6 +432,13 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
         if (_renderInfo is not null)
         {
             var renderInfo = _renderInfo.Value;
+
+            renderInfo.D2D1RenderTarget.BeginDraw();
+            renderInfo.D2D1RenderTarget.Clear(null);
+            renderInfo.D2D1RenderTarget.EndDraw();
+            _renderContext.SwapChain.Present(1);
+            _renderContext.D3D11DeviceContext1.Flush();
+
             renderInfo.D3D11Texture2D.Dispose();
             renderInfo.D2D1RenderTarget.Dispose();
             _renderInfo = null;
@@ -459,6 +466,12 @@ unsafe class RenderManager(HWND hwnd) : IDisposable
                 RedrawWindow(hwnd, null, HRGN.Null, REDRAW_WINDOW_FLAGS.RDW_INVALIDATE |
                                                     REDRAW_WINDOW_FLAGS.RDW_ERASE |
                                                     REDRAW_WINDOW_FLAGS.RDW_UPDATENOW);
+
+                _renderContext.DXGIFactory2.MakeWindowAssociation(HWND, WindowAssociationFlags.None);
+
+                var style = GetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE)
+                            | (int)WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP;
+                SetWindowLong(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, style);
             }
         }
 
