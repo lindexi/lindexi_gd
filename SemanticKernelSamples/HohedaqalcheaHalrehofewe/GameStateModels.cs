@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using Microsoft.Agents.AI;
+
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace HohedaqalcheaHalrehofewe;
@@ -13,35 +15,32 @@ internal sealed record GameSettings(
     int PlayerCount,
     int HumanPlayerIndex);
 
-internal enum TurnStage
+internal sealed record HumanTurnRequest(
+    int PlayerIndex,
+    string Prompt,
+    string EntryKey,
+    string EntryHeader,
+    string Kind);
+
+internal sealed record TimelineDelta(
+    string EntryKey,
+    string Header,
+    string Text,
+    string Kind);
+
+internal static class TimelineKinds
 {
-    None,
-    Speaking,
-    Voting,
+    public const string System = "System";
+    public const string Reasoning = "Reasoning";
+    public const string AiSpeech = "AiSpeech";
+    public const string AiVote = "AiVote";
+    public const string PlayerSpeech = "PlayerSpeech";
+    public const string PlayerVote = "PlayerVote";
 }
 
-public abstract class ObservableObject : INotifyPropertyChanged
+internal sealed class PlayerRuntime
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-        {
-            return false;
-        }
-
-        field = value;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        return true;
-    }
-}
-
-public sealed class PlayerSeat : ObservableObject
-{
-    private string _statusText = "等待开始";
-
-    public PlayerSeat(int index, bool isHuman, string word, List<ChatMessage> messages)
+    public PlayerRuntime(int index, bool isHuman, string word, List<ChatMessage> messages)
     {
         Index = index;
         IsHuman = isHuman;
@@ -55,9 +54,72 @@ public sealed class PlayerSeat : ObservableObject
 
     public string Word { get; }
 
+    public List<ChatMessage> Messages { get; }
+}
+
+internal sealed class GameSession
+{
+    public GameSession(GameSettings settings, ChatClientAgent agent, List<PlayerRuntime> players)
+    {
+        Settings = settings;
+        Agent = agent;
+        Players = players;
+    }
+
+    public GameSettings Settings { get; }
+
+    public ChatClientAgent Agent { get; }
+
+    public List<PlayerRuntime> Players { get; }
+
+    public int CurrentRound { get; set; }
+}
+
+internal abstract class ObservableObject : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return false;
+        }
+
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
+}
+
+internal sealed class PlayerSeat : ObservableObject
+{
+    private string _statusText = "等待开始";
+    private bool _isCurrent;
+
+    public PlayerSeat(int index, bool isHuman, string word)
+    {
+        Index = index;
+        IsHuman = isHuman;
+        Word = word;
+    }
+
+    public int Index { get; }
+
+    public bool IsHuman { get; }
+
+    public string Word { get; }
+
     public string DisplayName => $"第 {Index} 人";
 
-    public string ControllerText => IsHuman ? "玩家" : "AI";
+    public string ControllerText => IsHuman ? "玩家参与" : "AI 托管";
+
+    public string RoleBadgeText => IsHuman ? "PLAYER" : "AI";
 
     public string StatusText
     {
@@ -65,19 +127,26 @@ public sealed class PlayerSeat : ObservableObject
         set => SetProperty(ref _statusText, value);
     }
 
-    public List<ChatMessage> Messages { get; }
+    public bool IsCurrent
+    {
+        get => _isCurrent;
+        set => SetProperty(ref _isCurrent, value);
+    }
 }
 
-public sealed class TimelineEntry : ObservableObject
+internal sealed class TimelineEntry : ObservableObject
 {
     private string _content = string.Empty;
 
-    public TimelineEntry(string header)
+    public TimelineEntry(string header, string kind)
     {
         Header = header;
+        Kind = kind;
     }
 
     public string Header { get; }
+
+    public string Kind { get; }
 
     public string Content
     {
