@@ -11,6 +11,8 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Document;
 
+using MS.Internal;
+
 using SkiaSharp;
 
 using System;
@@ -28,7 +30,25 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     public SkiaCharInfoMeasurer()
     {
     }
- 
+
+    public bool UseKern { get; private set; } = true;
+
+    private Feature[] GetFeatures()
+    {
+        if (_cacheFeatures is null)
+        {
+            Tag kernTag = //new Tag('k', 'e', 'r', 'n');
+                (uint) FeatureTags.Kerning;
+            _cacheFeatures =
+            [
+                new Feature(kernTag, UseKern ? 1u : 0u)
+            ];
+        }
+
+        return _cacheFeatures;
+    }
+    private Feature[]? _cacheFeatures;
+
     public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
     {
         var charDataList = argument.ToFillCharDataList;
@@ -112,7 +132,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// 核心包括两个步骤：
     /// 1. 通过 Harfbuzz 进行 Shape 获取 Glyph 信息
     /// 2. 通过 Skia 获取 Glyph 的渲染尺寸
-    private static TextPoolArrayContext<CharRenderInfo> GetCharListRenderInfo
+    private TextPoolArrayContext<CharRenderInfo> GetCharListRenderInfo
         (TextReadOnlyListSpan<CharData> charDataList, UpdateLayoutContext updateLayoutContext)
     {
         CharData currentCharData = charDataList[0];
@@ -260,7 +280,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         return charSizeInfoArrayContext;
     }
 
-    private static TextPoolArrayContext<TextGlyphInfo> ShapeByHarfBuzz
+    private TextPoolArrayContext<TextGlyphInfo> ShapeByHarfBuzz
         (ReadOnlySpan<char> text, SKFont skFont, UpdateLayoutContext updateLayoutContext)
     {
         SKTypeface skTypeface = skFont.Typeface;
@@ -291,7 +311,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
 
-        font.Shape(buffer, new Feature(Tag.Parse("kern"), 0));
+        font.Shape(buffer, GetFeatures());
 
         font.GetScale(out var scaleX, out _);
 
