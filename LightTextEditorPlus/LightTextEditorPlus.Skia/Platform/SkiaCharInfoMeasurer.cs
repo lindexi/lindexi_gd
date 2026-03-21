@@ -37,6 +37,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     {
         if (_cacheFeatures is null)
         {
+            // Kerning（字距调整）是通过字体的 `kern` 特性（对应 GPOS 表中的字距信息）实现的，HarfBuzz 默认会启用该特性
             Tag kernTag = //new Tag('k', 'e', 'r', 'n');
                 (uint) FeatureTags.Kerning;
             _cacheFeatures =
@@ -311,7 +312,24 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
 
+#if DEBUG
+        var originBufferLength = buffer.Length;
+#endif
+
         font.Shape(buffer, GetFeatures());
+
+#if DEBUG
+        var bufferLengthAfterShape = buffer.Length;
+
+        // 如果有连写字，则前后的 Buffer Length 不相等
+        Debug.Assert(bufferLengthAfterShape <= originBufferLength);
+        if (bufferLengthAfterShape < originBufferLength)
+        {
+            // 证明存在连写字的情况
+            // StandardLigatures 'liga'
+            // 可执行 "测试字体包含 StandardLigatures 连写字导致字符数量不匹配" 进行测试
+        }
+#endif
 
         font.GetScale(out var scaleX, out _);
 
