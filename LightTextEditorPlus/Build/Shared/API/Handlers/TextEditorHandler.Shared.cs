@@ -10,6 +10,7 @@ using LightTextEditorPlus.Utils;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Events;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -170,6 +171,21 @@ public partial class TextEditorHandler
     private readonly InputGestureInfo _inputGesture = new InputGestureInfo();
 
     #endregion
+
+    /// <summary>
+    /// 触发准备好上下文的事件
+    /// </summary>
+    /// <param name="hitPoint"></param>
+    private void RaisePrepareContextMenuEvent(in TextPoint hitPoint)
+    {
+        InputEnsureLayout();
+        var prepareContextMenuEventArgs = new PrepareContextMenuEventArgs()
+        {
+            HitPoint = hitPoint,
+            TextEditor = TextEditor,
+        };
+        TextEditor.OnRaisePrepareContextMenuEvent(prepareContextMenuEventArgs);
+    }
 
     #endregion
 
