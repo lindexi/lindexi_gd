@@ -143,7 +143,7 @@ public partial class TextEditorHandler
         if (e.InitialPressMouseButton == MouseButton.Right && !e.Handled)
         {
             // 右击，尝试打开右键菜单
-            
+            RaisePrepareContextMenuEvent(e.GetPosition(TextEditor).ToTextPoint());
             var args = new ContextRequestedEventArgs(e);
             TextEditor.RaiseEvent(args);
             e.Handled |= args.Handled;

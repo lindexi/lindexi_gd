@@ -97,6 +97,7 @@ public partial class TextEditorHandler
         {
             // 右击
             // 右击菜单
+            RaisePrepareContextMenuEvent(e.GetPosition(TextEditor).ToTextPoint());
             if (TextEditor.ContextMenu is {} contextMenu)
             {
                 contextMenu.IsOpen = true;
