@@ -2,6 +2,7 @@
 
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Events;
 
 using System;
@@ -13,6 +14,9 @@ namespace LightTextEditorPlus
     partial class TextEditor
     {
         #region 可基类重写方法
+
+        // 这个方法在另一个文件重写，这是为了能够让创建的方法靠近属性而已，让代码更加内聚
+        protected virtual partial TextEditorHandler CreateTextEditorHandler();
 
         /// <summary>
         /// 当触发了准备上下文菜单事件时调用。可以在这里添加自定义的菜单项
