@@ -757,7 +757,7 @@ namespace LightTextEditorPlus
         /// 创建文本编辑器的交互处理器
         /// </summary>
         /// <returns></returns>
-        protected virtual TextEditorHandler CreateTextEditorHandler() => TextEditorPlatformProvider.GetHandler();
+        protected virtual partial TextEditorHandler CreateTextEditorHandler() => TextEditorPlatformProvider.GetHandler();
     }
 }
 #endif
