@@ -29,6 +29,8 @@ public class MathGraphTests
         Assert.IsTrue(a.OutElementList.Contains(b));
         // 检查B的入度包含A
         Assert.IsTrue(b.InElementList.Contains(a));
+        Assert.AreEqual(1, a.OutEdgeList.Count);
+        Assert.AreEqual(1, b.InEdgeList.Count);
         // 检查A的边信息
         Assert.IsTrue(a.EdgeList.Any(e => e.EdgeInfo == 42 && e.GetOtherElement(a) == b));
     }
@@ -46,8 +48,27 @@ public class MathGraphTests
         Assert.IsTrue(b.OutElementList.Contains(a));
         Assert.IsTrue(a.InElementList.Contains(b));
         Assert.IsTrue(b.InElementList.Contains(a));
-        // 检查A的边信息
-        Assert.IsTrue(a.EdgeList.Any(e => e.EdgeInfo == 99));
+        Assert.AreEqual(1, a.OutEdgeList.Count);
+        Assert.AreEqual(1, a.InEdgeList.Count);
+        Assert.AreEqual(1, b.OutEdgeList.Count);
+        Assert.AreEqual(1, b.InEdgeList.Count);
+        Assert.AreEqual(2, a.EdgeList.Count(e => e is MathGraphUnidirectionalEdge<string, int>));
+        Assert.AreEqual(2, b.EdgeList.Count(e => e is MathGraphUnidirectionalEdge<string, int>));
+    }
+
+    [TestMethod()]
+    public void AddEdgeWithDefaultInfoStillCreatesEdgeTest()
+    {
+        var graph = new MathGraph<string, int>();
+        var a = graph.CreateAndAddElement("A");
+        var b = graph.CreateAndAddElement("B");
+
+        graph.AddEdge(a, b);
+
+        Assert.AreEqual(1, a.OutEdgeList.Count);
+        Assert.AreEqual(1, b.InEdgeList.Count);
+        Assert.AreEqual(1, a.EdgeList.Count);
+        Assert.AreEqual(1, b.EdgeList.Count);
     }
 
     [TestMethod()]
