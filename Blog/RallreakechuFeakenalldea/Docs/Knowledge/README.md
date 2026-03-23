@@ -30,6 +30,13 @@
 - **适用场景**：新增/重构视图、统一控件命名、进行样式与模板梳理时
 - **关键词**：`XAML`、`命名规范`、`可维护性`、`一致性`
 
+### `Avalonia/Markdown-Url-Highlighting.md`
+
+- **主题**：Markdown 正文 URL 高亮与命中信息记录
+- **解决问题**：为正文裸链接补齐蓝色下划线样式，并为后续点击打开链接保留范围与地址
+- **适用场景**：需要在 Markdown 编辑态识别 URL、实现链接命中测试或点击打开行为时
+- **关键词**：`Markdown`、`URL`、`Highlighter`、`HitTest`
+
 ### `Workflow/Feature-Delivery-Checklist.md`
 
 - **主题**：功能交付检查清单

@@ -14,6 +14,7 @@ using SimpleWrite.Business.TextEditors.Highlighters;
 using SkiaSharp;
 
 using System;
+using Avalonia.Controls.Platform;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -22,8 +23,6 @@ namespace SimpleWrite.Business.TextEditors;
 /// </summary>
 internal sealed class SimpleWriteTextEditor : TextEditor
 {
-    private IDocumentHighlighter _documentHighlighter;
-
     public SimpleWriteTextEditor()
     {
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
@@ -40,7 +39,17 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
         });
 
-        _documentHighlighter = new MarkdownDocumentHighlighter(this);
+        DocumentHighlighter = new MarkdownDocumentHighlighter(this);
+
+        ContextMenu = new ContextMenu();
+        ContextMenu.Items.Add(new MenuItem()
+        {
+            Header = "复制"
+        });
+        ContextMenu.Opening += (sender, args) =>
+        {
+
+        };
     }
 
     //public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
@@ -58,7 +67,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     private void ApplyHighlight()
     {
-        _documentHighlighter.ApplyHighlight(Text);
+        DocumentHighlighter.ApplyHighlight(Text);
         InvalidateVisual();
     }
 
@@ -72,6 +81,8 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     /// </summary>
     public required SnippetManager SnippetManager { get; init; }
 
+    public IDocumentHighlighter DocumentHighlighter { get; private set; }
+
     protected override TextEditorHandler CreateTextEditorHandler()
     {
         return new SimpleWriteTextEditorHandler(this);
@@ -79,10 +90,10 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     protected override void Render(in AvaloniaTextEditorDrawingContext context)
     {
-        _documentHighlighter.RenderBackground(in context);
+        DocumentHighlighter.RenderBackground(in context);
 
         base.Render(in context);
 
-        _documentHighlighter.RenderForeground(in context);
+        DocumentHighlighter.RenderForeground(in context);
     }
 }

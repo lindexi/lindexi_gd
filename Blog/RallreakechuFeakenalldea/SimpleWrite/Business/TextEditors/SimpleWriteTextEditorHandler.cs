@@ -1,14 +1,18 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Diagnostics;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Editing;
 
 using SimpleWrite.Business.ShortcutManagers;
+using SimpleWrite.Business.TextEditors.Highlighters;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -22,6 +26,74 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
     public SimpleWriteTextEditor SimpleWriteTextEditor { get; }
 
     private ShortcutExecutor ShortcutExecutor => SimpleWriteTextEditor.ShortcutExecutor;
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        if (!e.Pointer.IsPrimary)
+        {
+            // 多指就不要捣乱
+            return;
+        }
+
+        if (e.Handled)
+        {
+            // 预期不会进入此分支
+            return;
+        }
+
+        if (e.KeyModifiers is KeyModifiers.Control && e.InitialPressMouseButton == MouseButton.Left)
+        {
+            // 采用 ctrl + 鼠标左键 来触发超链接点击
+            // 判断命中测试是否在超链接上，如果是，就触发点击事件
+            var position = e.GetPosition(TextEditor);
+            TextPoint textPoint = new(position.X, position.Y);
+            var hitResult = TryHitHyperlink(in textPoint);
+            if (hitResult)
+            {
+                e.Handled = true;
+            }
+        }
+
+        base.OnPointerReleased(e);
+    }
+
+    private bool TryHitHyperlink(in TextPoint textPoint)
+    {
+        if (SimpleWriteTextEditor.DocumentHighlighter is not MarkdownDocumentHighlighter markdownDocumentHighlighter)
+        {
+            return false;
+        }
+
+        if (!TextEditorCore.TryHitTest(in textPoint, out var result))
+        {
+            return false;
+        }
+
+        if (result.IsHitSpace)
+        {
+            return false;
+        }
+
+        foreach (var markdownUrlInfo in markdownDocumentHighlighter.UrlInfoList)
+        {
+            var sourceSpan = markdownUrlInfo.SourceSpan;
+            var hitCaretOffset = result.HitCaretOffset.Offset;
+
+            if(sourceSpan.Start <= hitCaretOffset
+               && hitCaretOffset <= sourceSpan.End
+               && markdownUrlInfo.Url is var url)
+            {
+                Process.Start(new ProcessStartInfo(url)
+                {
+                    UseShellExecute = true
+                });
+
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
