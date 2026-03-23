@@ -9,6 +9,8 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>LightTextEditorPlus.Tests</RootNamespace>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    
+    <DefineConstants>$(DefineConstants);USE_WPF;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

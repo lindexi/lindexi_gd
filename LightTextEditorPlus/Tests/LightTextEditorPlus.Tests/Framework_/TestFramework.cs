@@ -13,7 +13,7 @@ using Window = System.Windows.Window;
 namespace LightTextEditorPlus.Tests;
 
 [TestClass]
-public class TestFramework
+public partial class TestFramework
 {
     private static Application _application;
 
@@ -93,14 +93,5 @@ public class TestFramework
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }
         }
-    }
-
-    public static bool IsDebug()
-    {
-#if DEBUG
-        return Debugger.IsAttached;
-#else
-        return false;
-#endif
     }
 }

@@ -5,9 +5,11 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants);USE_Avalonia;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\LightTextEditorPlus.Tests\Framework_\TestFramework.Shared.cs" Link="Framework_\TestFramework.Shared.cs" />
     <Compile Include="..\LightTextEditorPlus.Tests\IntegrationTests\VisionCompareResultException.cs" Link="IntegrationTests\VisionCompareResultException.cs" />
   </ItemGroup>
 

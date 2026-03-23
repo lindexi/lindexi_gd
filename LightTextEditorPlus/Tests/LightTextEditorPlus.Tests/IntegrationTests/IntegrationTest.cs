@@ -26,7 +26,8 @@ public class IntegrationTest
 
             foreach (IRichTextCase richTextCase in richTextCaseProvider.RichTextCases)
             {
-                Console.WriteLine($"[IntegrationTest] Start {richTextCase.Name}");
+                string testName = richTextCase.Name;
+                Console.WriteLine($"[IntegrationTest] Start {testName}");
 
                 try
                 {
@@ -50,12 +51,29 @@ public class IntegrationTest
                         }, DispatcherPriority.Render);
                     }
 
-                    var fileName = richTextCase.Name + ".png";
+                    var fileName = testName + ".png";
 
                     var imageFilePath = SaveAsImage(textEditor, fileName);
                     var assertImageFilePath = Path.Join(AppContext.BaseDirectory, "Assets", "TestImage", fileName);
+
+                    // 忽略的列表
+                    Span<string> ignoreList =
+                    [
+                        // 随意的，每次都不同，不能加入测试
+                        "随意的字符属性",
+                        // 测试服务器不一定有这个字体
+                        "测试华文仿宋字体",
+                        // 依赖 Wingdings 2 字体，服务器不一定存在
+                        "无序项目符号",
+                    ];
+
                     if (File.Exists(assertImageFilePath))
                     {
+                        if (ignoreList.Contains(testName))
+                        {
+                            return;
+                        }
+
                         VisionComparer visionComparer = new VisionComparer();
                         VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath), new FileInfo(imageFilePath));
 
@@ -64,9 +82,19 @@ public class IntegrationTest
 #if DEBUG
                             Debugger.Break();
 #endif
+                            Debug.WriteLine($"视觉识别存在差异，如符合预期，可将 '{imageFilePath}' 拷贝到 '{assertImageFilePath}' ");
+
                             await TestFramework.FreezeTestToDebug();
-                            throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath, imageFilePath);
+                            throw new VisionCompareResultException(testName, result, assertImageFilePath, imageFilePath);
                         }
+                    }
+                    else
+                    {
+#if DEBUG
+                        Debugger.Break();
+#endif
+
+                        Debug.WriteLine($"测试 '{testName}' 未找到对比图片 '{assertImageFilePath}'，已将测试结果保存到 '{imageFilePath}'，请确认是否符合预期，如符合预期，可将其拷贝到 '{assertImageFilePath}' ");
                     }
 
                     if (TestFramework.IsDebug())
@@ -77,7 +105,7 @@ public class IntegrationTest
                 }
                 catch (Exception e)
                 {
-                    list.Add((richTextCase.Name, e));
+                    list.Add((testName, e));
                 }
             }
 
