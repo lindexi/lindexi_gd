@@ -18,6 +18,11 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        if (Design.IsDesignMode)
+        {
+            return;
+        }
+
         var control = Border1;
 
         var renderTargetBitmap = new RenderTargetBitmap(new PixelSize((int) control.DesiredSize.Width, (int) control.DesiredSize.Height));

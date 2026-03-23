@@ -11,8 +11,8 @@
                Height="520">
            <!-- 宽度高度=Ellipse1.Size + BlurEffect.Radius + 20余量 -->
            <Ellipse x:Name="Ellipse1" Width="350" Height="350" Fill="#7BFFC3" 
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top">
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
                <Ellipse.Effect> 
                    <BlurEffect Radius="150"/> 
                </Ellipse.Effect> 
