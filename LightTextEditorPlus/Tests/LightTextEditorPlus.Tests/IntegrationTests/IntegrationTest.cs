@@ -67,13 +67,12 @@ public class IntegrationTest
                         "无序项目符号",
                     ];
 
-                    if (File.Exists(assertImageFilePath))
+                    if (ignoreList.Contains(testName))
                     {
-                        if (ignoreList.Contains(testName))
-                        {
-                            return;
-                        }
-
+                        // 忽略
+                    }
+                    else if (File.Exists(assertImageFilePath))
+                    {
                         VisionComparer visionComparer = new VisionComparer();
                         VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath), new FileInfo(imageFilePath));
 
