@@ -3,6 +3,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using AvaloniaAgentLib.ViewModel;
+using SimpleWrite.Business;
 using SimpleWrite.Business.SimpleWriteConfigurations;
 using SimpleWrite.Foundation;
 
@@ -63,4 +65,11 @@ public class SimpleWriteMainViewModel
         // 不想直接将 EditorViewModel 给到上层直接调用，所以在这里做一个转发
         await EditorViewModel.OpenFileAsync(file);
     }
+
+    public Task SendMessageToCopilotAsync(string text)
+    {
+       return CopilotHandler?.SendMessageToCopilotAsync(text) ?? Task.CompletedTask;
+    }
+
+    public ICopilotHandler? CopilotHandler { get; set; }
 }

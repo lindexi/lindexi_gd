@@ -37,6 +37,13 @@
 - **适用场景**：需要在 Markdown 编辑态识别 URL、实现链接命中测试或点击打开行为时
 - **关键词**：`Markdown`、`URL`、`Highlighter`、`HitTest`
 
+### `Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md`
+
+- **主题**：文本编辑器选中内容发送到 Copilot 的右键菜单交互
+- **解决问题**：让选中文本可直接通过编辑器右键菜单进入共享 Copilot 会话
+- **适用场景**：需要在编辑区与 AI 侧栏之间建立快速选区提问入口时
+- **关键词**：`TextEditor`、`ContextMenu`、`Copilot`、`Selection`
+
 ### `Workflow/Feature-Delivery-Checklist.md`
 
 - **主题**：功能交付检查清单

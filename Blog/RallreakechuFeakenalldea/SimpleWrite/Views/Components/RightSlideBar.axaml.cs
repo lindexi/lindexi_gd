@@ -1,14 +1,16 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
+using AvaloniaAgentLib.Core;
+using AvaloniaAgentLib.Model;
+using AvaloniaAgentLib.ViewModel;
+
+using SimpleWrite.Business;
 using SimpleWrite.Business.SimpleWriteConfigurations;
 using SimpleWrite.ViewModels;
 
 using System;
-
-using AvaloniaAgentLib.Core;
-using AvaloniaAgentLib.Model;
-using AvaloniaAgentLib.ViewModel;
+using System.Threading.Tasks;
 
 namespace SimpleWrite.Views.Components;
 
@@ -51,6 +53,8 @@ public partial class RightSlideBar : UserControl
             {
                 copilotViewModel.AgentApiEndpointManager.CurrentEndpoint = new ApiEndpoint(
                     agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
+
+                mainViewModel.CopilotHandler = new CopilotHandler(copilotViewModel);
             }
 
             copilotViewModel.SettingOpened -= CopilotViewModel_OnSettingOpened;
@@ -100,5 +104,15 @@ public partial class RightSlideBar : UserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
 
+    }
+}
+
+file class CopilotHandler(CopilotViewModel copilotViewModel) : ICopilotHandler
+{
+    public CopilotViewModel CopilotViewModel { get; } = copilotViewModel;
+
+    public Task SendMessageToCopilotAsync(string text)
+    {
+        return CopilotViewModel.SendMessageAsync(text);
     }
 }

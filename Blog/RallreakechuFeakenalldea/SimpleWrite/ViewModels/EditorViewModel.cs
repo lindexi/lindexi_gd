@@ -20,6 +20,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using static System.Net.Mime.MediaTypeNames;
+
 namespace SimpleWrite.ViewModels;
 
 public class EditorViewModel : ViewModelBase
@@ -46,7 +48,7 @@ public class EditorViewModel : ViewModelBase
         ShortcutManagerHelper.AddDefaultShortcut(this);
     }
 
-    public SimpleWriteMainViewModel? MainViewModel { get; init; }
+    public required SimpleWriteMainViewModel MainViewModel { get; init; }
 
     /// <summary>
     /// 当前标记列表，等于标签栏
@@ -173,6 +175,11 @@ public class EditorViewModel : ViewModelBase
         textEditor.TextEditorCore.TextChanged += (sender, args) =>
         {
             UpdateEditorModel(textEditor, editorModel);
+        };
+
+        textEditor.RequestSendSelectionToCopilot += (sender, selectedText) =>
+        {
+            _ = MainViewModel.SendMessageToCopilotAsync(selectedText);
         };
 
         return textEditor;
