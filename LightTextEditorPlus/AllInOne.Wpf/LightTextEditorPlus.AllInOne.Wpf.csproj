@@ -13,10 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" Version="13.0.1" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Include="..\LightTextEditorPlus.Core\**\*.cs" LinkBase="Core" Exclude="..\LightTextEditorPlus.Core\obj\**\*;..\LightTextEditorPlus.Core\bin\**\*" />
     <Compile Include="..\LightTextEditorPlus.Wpf\**\*.cs" LinkBase="Wpf" Exclude="..\LightTextEditorPlus.Wpf\obj\**\*;..\LightTextEditorPlus.Wpf\bin\**\*" />
   </ItemGroup>
