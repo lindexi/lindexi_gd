@@ -7,10 +7,10 @@
         Title="HerguhuwalLarbayyafacaw">
    <Grid>
        <Border x:Name="Border1" HorizontalAlignment="Center" VerticalAlignment="Center"
-               Width="520"
-               Height="520">
+               Width="320"
+               Height="320">
            <!-- 宽度高度=Ellipse1.Size + BlurEffect.Radius + 20余量 -->
-           <Ellipse x:Name="Ellipse1" Width="350" Height="350" Fill="#7BFFC3" 
+           <Ellipse x:Name="Ellipse1" Width="150" Height="150" Fill="#3EECFF" 
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
                <Ellipse.Effect> 
