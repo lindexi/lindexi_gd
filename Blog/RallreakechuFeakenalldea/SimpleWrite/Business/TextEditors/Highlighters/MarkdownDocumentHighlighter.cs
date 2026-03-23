@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -13,6 +14,7 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Primitive;
 
 using Markdig;
@@ -28,6 +30,7 @@ namespace SimpleWrite.Business.TextEditors.Highlighters;
 
 internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
 {
+    private static readonly Regex UrlRegex = new(@"https?://[^\s<>\u3000]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
@@ -36,8 +39,10 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
     private readonly SkiaTextRunProperty _normalTextRunProperty;
     private readonly IReadOnlyList<SkiaTextRunProperty> _titleLevelRunPropertyList;
     private readonly SkiaTextRunProperty _codeLangInfoRunProperty;
+    private readonly SkiaTextRunProperty _urlRunProperty;
     private readonly SolidColorBrush _codeBackgroundColorBrush = new SolidColorBrush(0xFF3B3C37);
     private readonly List<SourceSpan> _codeBlockList = [];
+    private readonly List<MarkdownUrlInfo> _urlInfoList = [];
 
     public MarkdownDocumentHighlighter(SimpleWriteTextEditor textEditor)
     {
@@ -90,6 +95,12 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
         {
             Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFFAC90DE))
         });
+
+        _urlRunProperty = _textEditor.CreateRunProperty(property => property with
+        {
+            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFF1A73E8)),
+            DecorationCollection = UnderlineTextEditorDecoration.Instance,
+        });
     }
 
     public void ApplyHighlight(string markdownText)
@@ -100,12 +111,14 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         var markdownDocument = Markdown.Parse(markdownText, MarkdownPipeline);
         _codeBlockList.Clear();
+        _urlInfoList.Clear();
 
         foreach (var block in markdownDocument)
         {
             if (block is ParagraphBlock paragraphBlock)
             {
                 setter.TrySetRunProperty(_normalTextRunProperty, paragraphBlock.Span);
+                ApplyUrlHighlight(paragraphBlock.Span);
                 continue;
             }
 
@@ -185,6 +198,52 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                 GC.KeepAlive(span);
                 throw;
             }
+        }
+
+        void ApplyUrlHighlight(SourceSpan sourceSpan)
+        {
+            string text = ToText(sourceSpan);
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            foreach (Match match in UrlRegex.Matches(text))
+            {
+                if (!match.Success || match.Length <= 0)
+                {
+                    continue;
+                }
+
+                var urlText = TrimUrl(text.AsSpan(match.Index, match.Length));
+                if (urlText.IsEmpty)
+                {
+                    continue;
+                }
+
+                int start = sourceSpan.Start + match.Index;
+                var urlSourceSpan = new SourceSpan(start, start + urlText.Length - 1);
+
+                setter.TrySetRunProperty(_urlRunProperty, urlSourceSpan);
+                _urlInfoList.Add(new MarkdownUrlInfo(urlSourceSpan, urlText.ToString()));
+            }
+        }
+
+        static ReadOnlySpan<char> TrimUrl(ReadOnlySpan<char> urlText)
+        {
+            int length = urlText.Length;
+            while (length > 0 && IsTrailingUrlPunctuation(urlText[length - 1]))
+            {
+                length--;
+            }
+
+            return urlText[..length];
+        }
+
+        static bool IsTrailingUrlPunctuation(char ch)
+        {
+            return ch is '.' or ',' or ';' or ':' or '!' or '?' or ')' or ']' or '}' or '>' or '"' or '\''
+                or '。' or '，' or '；' or '：' or '！' or '？' or '）' or '】' or '}' or '、';
         }
     }
 
@@ -272,4 +331,6 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         return false;
     }
+
+    private readonly record struct MarkdownUrlInfo(SourceSpan SourceSpan, string Url);
 }

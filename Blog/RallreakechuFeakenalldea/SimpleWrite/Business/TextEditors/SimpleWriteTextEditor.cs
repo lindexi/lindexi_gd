@@ -14,6 +14,7 @@ using SimpleWrite.Business.TextEditors.Highlighters;
 using SkiaSharp;
 
 using System;
+using Avalonia.Controls.Platform;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -22,8 +23,6 @@ namespace SimpleWrite.Business.TextEditors;
 /// </summary>
 internal sealed class SimpleWriteTextEditor : TextEditor
 {
-    private IDocumentHighlighter _documentHighlighter;
-
     public SimpleWriteTextEditor()
     {
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
@@ -41,7 +40,19 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         });
 
         _documentHighlighter = new MarkdownDocumentHighlighter(this);
+
+        ContextMenu = new ContextMenu();
+        ContextMenu.Items.Add(new MenuItem()
+        {
+            Header = "复制"
+        });
+        ContextMenu.Opening += (sender, args) =>
+        {
+
+        };
     }
+
+    private IDocumentHighlighter _documentHighlighter;
 
     //public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
     //{
