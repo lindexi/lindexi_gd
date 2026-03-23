@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AvaloniaVersion>12.0.999-cibuild0063090-alpha</AvaloniaVersion>
+  </PropertyGroup>
+</Project>
