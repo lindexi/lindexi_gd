@@ -28,9 +28,12 @@ using Path = System.IO.Path;
 
 namespace SimpleWrite.Business.TextEditors.Highlighters;
 
-internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
+internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 {
-    private static readonly Regex UrlRegex = new(@"https?://[^\s<>\u3000]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    [GeneratedRegex(@"https?://[^\s<>\u3000]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex GetUrlRegex();
+
+
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
@@ -43,6 +46,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
     private readonly SolidColorBrush _codeBackgroundColorBrush = new SolidColorBrush(0xFF3B3C37);
     private readonly List<SourceSpan> _codeBlockList = [];
     private readonly List<MarkdownUrlInfo> _urlInfoList = [];
+    public IReadOnlyList<MarkdownUrlInfo> UrlInfoList => _urlInfoList;
 
     public MarkdownDocumentHighlighter(SimpleWriteTextEditor textEditor)
     {
@@ -208,7 +212,7 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
-            foreach (Match match in UrlRegex.Matches(text))
+            foreach (Match match in GetUrlRegex().Matches(text))
             {
                 if (!match.Success || match.Length <= 0)
                 {
@@ -332,5 +336,5 @@ internal sealed class MarkdownDocumentHighlighter : IDocumentHighlighter
         return false;
     }
 
-    private readonly record struct MarkdownUrlInfo(SourceSpan SourceSpan, string Url);
+    public readonly record struct MarkdownUrlInfo(SourceSpan SourceSpan, string Url);
 }
