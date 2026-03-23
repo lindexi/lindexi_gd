@@ -42,6 +42,8 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)\.editorconfig" Link=".editorconfig" Visible="false"/>
     <SourceRoot Include="$(MSBuildThisFileDirectory)"/>
+
+    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" Version="13.0.1" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- 以下是打 NuGet 包相关辅助方法 -->

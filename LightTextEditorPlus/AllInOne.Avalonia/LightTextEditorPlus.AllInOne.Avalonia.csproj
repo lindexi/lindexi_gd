@@ -24,8 +24,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" Version="13.0.1" PrivateAssets="all" />
-  </ItemGroup>
+   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\LightTextEditorPlus.Core\**\*.cs" LinkBase="Core" Exclude="..\LightTextEditorPlus.Core\obj\**\*;..\LightTextEditorPlus.Core\bin\**\*" />
