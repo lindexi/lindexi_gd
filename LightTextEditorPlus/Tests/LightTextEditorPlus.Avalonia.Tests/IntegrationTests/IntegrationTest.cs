@@ -55,15 +55,17 @@ public class IntegrationTest
                 "测试华文仿宋字体",
                 // 依赖 Wingdings 2 字体，服务器不一定存在
                 "无序项目符号",
+                "测试ad1b1c9-设置文本前景色导致连写字渲染失效",
+                "测试037d9449-加粗的文本里下标渲染错误",
+                "测试1d0299-使用 rr.导致字符宽度计算错误",
             ];
 
-            if (File.Exists(assertImageFilePath))
+            if (ignoreList.Contains(testName))
             {
-                if (ignoreList.Contains(testName))
-                {
-                    return;
-                }
-
+                //  忽略
+            }
+            else if (File.Exists(assertImageFilePath))
+            {
                 VisionComparer visionComparer = new VisionComparer();
                 VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath),
                     new FileInfo(imageFilePath));

@@ -531,7 +531,7 @@ partial class RichTextCaseProvider
                 FontSize = 20,
                 FontName = new FontName("微软雅黑"),
             }));
-        }, "1d0299-使用 rr.导致字符宽度计算错误");
+        }, "测试1d0299-使用 rr.导致字符宽度计算错误");
 
         //Add(editor =>
         //{
