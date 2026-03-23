@@ -20,7 +20,6 @@ public partial class RightSlideBar : UserControl
     {
         InitializeComponent();
 
-        Loaded += OnLoaded;
         DataContextChanged += OnDataContextChanged;
     }
 
@@ -99,11 +98,6 @@ public partial class RightSlideBar : UserControl
     {
         var applicationConfigurationFile = MainViewModel.AppPathManager.ApplicationConfigurationFile;
         _ = MainViewModel.OpenFileAsync(applicationConfigurationFile);
-    }
-
-    private void OnLoaded(object? sender, RoutedEventArgs e)
-    {
-
     }
 }
 

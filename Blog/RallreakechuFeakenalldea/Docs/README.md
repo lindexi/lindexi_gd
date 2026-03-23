@@ -1,16 +1,29 @@
-# SimpleWrite
+# SimpleWrite Docs
 
-轻量文本编辑器
+`Docs/` 是项目文档入口，重点用于帮助开发者快速理解现有实现，而不是堆叠大段背景描述。
 
-## 文档
+## 建议阅读顺序
 
-- copilot-instructions.md： 用于给智能体阅读的文档
-- Knowledge\ : 包含知识文件夹
+1. `.github/copilot-instructions.md`
+   - 会话级开发约束、分层约定、AOT 注意事项。
+2. `Knowledge/README.md`
+   - 知识库索引，按问题类型定位对应经验文档。
+3. `Knowledge/Avalonia/*.md`
+   - 具体到某个交互、控件或分层设计的实现经验。
+4. `Knowledge/Workflow/*.md`
+   - 功能开发、自测、交付阶段的流程约定。
 
-## 待办功能
+## 当前重点文档
 
-- [ ] 支持打开加密文档，弹出加密对话框
-- [ ] 查找与替换的功能
-- [ ] 在代码片里面按下回车，应该跟随缩进
-- [ ] 滚动条跟随光标
-- [ ] 滚动条可以超过文档范围，滚动得更下一些
+- `Knowledge/Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md`
+  - 说明编辑器选区如何进入右侧 Copilot 聊天。
+- `Knowledge/Avalonia/MVVM-Layer-Responsibilities-And-ChatTemplateSelector.md`
+  - 说明聊天区域的 MVVM 分层与模板选择方式。
+- `Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md`
+  - 说明快捷键与文件选择器接入点。
+
+## 维护原则
+
+- 文档优先回答“代码在哪里、职责怎么分、从哪开始读”。
+- 同一主题只保留一个主入口，避免重复写相同说明。
+- 新增经验优先放到 `Knowledge/`，并同步补索引。
