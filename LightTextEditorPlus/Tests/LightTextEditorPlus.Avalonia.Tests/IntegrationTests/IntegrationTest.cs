@@ -57,19 +57,36 @@ public class IntegrationTest
                 "无序项目符号",
             ];
 
-            if (File.Exists(assertImageFilePath) && !ignoreList.Contains(testName))
+            if (File.Exists(assertImageFilePath))
             {
+                if (ignoreList.Contains(testName))
+                {
+                    return;
+                }
+
                 VisionComparer visionComparer = new VisionComparer();
-                VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath), new FileInfo(imageFilePath));
+                VisionCompareResult result = visionComparer.Compare(new FileInfo(assertImageFilePath),
+                    new FileInfo(imageFilePath));
 
                 if (!result.Success || !result.IsSimilar())
                 {
 #if DEBUG
                     Debugger.Break();
 #endif
+                    Debug.WriteLine($"视觉识别存在差异，如符合预期，可将 '{imageFilePath}' 拷贝到 '{assertImageFilePath}' ");
+
                     await TestFramework.FreezeTestToDebug();
-                    throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath, imageFilePath);
+                    throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath,
+                        imageFilePath);
                 }
+            }
+            else
+            {
+#if DEBUG
+                Debugger.Break();
+#endif
+
+                Debug.WriteLine($"测试 '{testName}' 未找到对比图片 '{assertImageFilePath}'，已将测试结果保存到 '{imageFilePath}'，请确认是否符合预期，如符合预期，可将其拷贝到 '{assertImageFilePath}' ");
             }
         });
 
