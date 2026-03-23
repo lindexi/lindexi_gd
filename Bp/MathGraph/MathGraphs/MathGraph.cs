@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using MathGraphs.Serialization;
+﻿ using MathGraphs.Serialization;
 
 namespace MathGraphs;
 
@@ -44,7 +43,7 @@ public class MathGraph<TElementInfo, TEdgeInfo> : ISerializableElement
         new MathGraphSerializer<TElementInfo, TEdgeInfo>(this, deserializationContext);
 
     /// <summary>
-    /// 添加单向边，添加边的同时，会添加元素关系
+    /// 添加单向边
     /// </summary>
     /// <param name="from"></param>
     /// <param name="to"></param>
@@ -52,17 +51,11 @@ public class MathGraph<TElementInfo, TEdgeInfo> : ISerializableElement
     public void AddEdge(MathGraphElement<TElementInfo, TEdgeInfo> from, MathGraphElement<TElementInfo, TEdgeInfo> to,
         TEdgeInfo? edgeInfo = default)
     {
-        from.AddOutElement(to);
-        Debug.Assert(to.InElementList.Contains(from));
-
-        if (edgeInfo != null)
+        var edge = new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(from, to)
         {
-            var edge = new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(from, to)
-            {
-                EdgeInfo = edgeInfo
-            };
-            from.AddEdge(edge);
-        }
+            EdgeInfo = edgeInfo
+        };
+        from.AddOutEdge(edge);
     }
 
     /// <summary>
@@ -74,18 +67,8 @@ public class MathGraph<TElementInfo, TEdgeInfo> : ISerializableElement
     public void AddBidirectionalEdge(MathGraphElement<TElementInfo, TEdgeInfo> a,
         MathGraphElement<TElementInfo, TEdgeInfo> b, TEdgeInfo? edgeInfo = default)
     {
-        AddEdge(a, b);
-        AddEdge(b, a);
-
-        if (edgeInfo != null)
-        {
-            var edge = new MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
-            {
-                EdgeInfo = edgeInfo
-            };
-            a.AddEdge(edge);
-            //b.AddEdge(edge);
-        }
+        AddEdge(a, b, edgeInfo);
+        AddEdge(b, a, edgeInfo);
     }
 
     #region Serialize

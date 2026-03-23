@@ -5,6 +5,7 @@ using LightTextEditorPlus.Utils;
 using System;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace LightTextEditorPlus.Editing;
@@ -19,14 +20,15 @@ public partial class TextEditorHandler
     /// <param name="e"></param>
     protected internal virtual void OnMouseDown(MouseButtonEventArgs e)
     {
-        _isMouseDown = true;
         if (e.RightButton == MouseButtonState.Pressed)
         {
             // 右击
-            // todo 右击菜单
+            // 啥都不处理
+            return;
         }
         else
         {
+             _isMouseDown = true;
             _inputGesture.RecordDown(TextEditor, e);
             var position = e.GetPosition(TextEditor);
             TextPoint textPoint = position.ToTextPoint();
@@ -91,6 +93,20 @@ public partial class TextEditorHandler
     /// <param name="e"></param>
     protected internal virtual void OnMouseUp(MouseButtonEventArgs e)
     {
+        if (e.ChangedButton == MouseButton.Right)
+        {
+            // 右击
+            // 右击菜单
+            RaisePrepareContextMenuEvent(e.GetPosition(TextEditor).ToTextPoint());
+            if (TextEditor.ContextMenu is {} contextMenu)
+            {
+                contextMenu.IsOpen = true;
+                e.Handled = true;
+            }
+
+            return;
+        }
+
         if (_isMouseDown)
         {
             if (_isHitSelection)

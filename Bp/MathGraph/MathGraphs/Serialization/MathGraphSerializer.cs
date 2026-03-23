@@ -163,45 +163,34 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 
         foreach (var serializationContext in list)
         {
-            var mathGraphElement = dictionary[serializationContext.Index];
-            foreach (var inIndex in serializationContext.InList)
-            {
-                mathGraphElement.AddInElement(dictionary[inIndex]);
-            }
-
-            foreach (var outIndex in serializationContext.OutList)
-            {
-                mathGraphElement.AddOutElement(dictionary[outIndex]);
-            }
-
             foreach (var edgeSerializationContext in serializationContext.EdgeList)
             {
                 MathGraphElement<TElementInfo, TEdgeInfo> a = dictionary[edgeSerializationContext.AElementIndex];
                 MathGraphElement<TElementInfo, TEdgeInfo> b = dictionary[edgeSerializationContext.BElementIndex];
-                MathGraphEdge<TElementInfo, TEdgeInfo> edge;
-
                 var edgeInfo = Deserialize<TEdgeInfo?>(edgeSerializationContext.EdgeInfo,
                     edgeSerializationContext.EdgeInfoType);
 
                 if (edgeSerializationContext.EdgeType == EdgeType.Unidirectional)
                 {
-                    edge = new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
-                    {
-                        EdgeInfo = edgeInfo,
-                    };
-                    a.AddEdge(edge);
+                    _mathGraph.AddEdge(a, b, edgeInfo);
                 }
                 else if (edgeSerializationContext.EdgeType == EdgeType.Bidirectional)
                 {
-                    edge = new MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
-                    {
-                        EdgeInfo = edgeInfo,
-                    };
-                    a.AddEdge(edge);
+                    _mathGraph.AddBidirectionalEdge(a, b, edgeInfo);
                 }
                 else
                 {
                     throw new InvalidOperationException();
+                }
+            }
+
+            var mathGraphElement = dictionary[serializationContext.Index];
+            foreach (var outIndex in serializationContext.OutList)
+            {
+                var outElement = dictionary[outIndex];
+                if (!mathGraphElement.OutElementList.Contains(outElement))
+                {
+                    _mathGraph.AddEdge(mathGraphElement, outElement);
                 }
             }
         }

@@ -47,68 +47,141 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
     public TElementInfo Value { get; }
 
     /// <summary>
-    /// 出度的元素列表，包含所有从当前元素出发的边指向的元素。对于带双向边的元素来说，出度与入度是相同的
+    /// 从当前元素出发的边列表
     /// </summary>
-    public IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> OutElementList => _outElementList;
+    public IReadOnlyList<MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>> OutEdgeList => _outEdgeList;
 
     /// <summary>
-    /// 入度的元素列表，包含所有指向当前元素的边的起点元素。对于带双向边的元素来说，出度与入度是相同的
+    /// 指向当前元素的边列表
     /// </summary>
-    public IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> InElementList => _inElementList;
+    public IReadOnlyList<MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>> InEdgeList => _inEdgeList;
+
+    /// <summary>
+    /// 出度的元素列表，包含所有从当前元素出发的边指向的元素
+    /// </summary>
+    public IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> OutElementList => GetOutElementList();
+
+    /// <summary>
+    /// 入度的元素列表，包含所有指向当前元素的边的起点元素
+    /// </summary>
+    public IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> InElementList => GetInElementList();
 
     public IReadOnlyList<MathGraphEdge<TElementInfo, TEdgeInfo>> EdgeList => _edgeList;
 
-    private readonly List<MathGraphElement<TElementInfo, TEdgeInfo>> _outElementList = [];
-    private readonly List<MathGraphElement<TElementInfo, TEdgeInfo>> _inElementList = [];
-
+    private readonly List<MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>> _outEdgeList = [];
+    private readonly List<MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>> _inEdgeList = [];
     private readonly List<MathGraphEdge<TElementInfo, TEdgeInfo>> _edgeList = [];
 
     /// <summary>
-    /// 添加边的关系，只加边关系，不加元素关系。如需加元素关系，调用 <see cref="MathGraph{TElementInfo, TEdgeInfo}.AddEdge"/> 方法，或调用 <see cref="AddInElement"/> 或 <see cref="AddOutElement"/> 方法
+    /// 添加边关系
     /// </summary>
     /// <param name="edge"></param>
     public void AddEdge(MathGraphEdge<TElementInfo, TEdgeInfo> edge)
     {
-        foreach (var mathGraphEdge in _edgeList)
+        if (edge is MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> unidirectionalEdge)
         {
-            if (ReferenceEquals(mathGraphEdge, edge))
+            if (ReferenceEquals(unidirectionalEdge.From, this))
             {
+                AddOutEdge(unidirectionalEdge);
                 return;
             }
+
+            if (ReferenceEquals(unidirectionalEdge.To, this))
+            {
+                AddInEdge(unidirectionalEdge);
+                return;
+            }
+
+            throw new InvalidOperationException();
         }
 
         edge.EnsureContain(this);
+        var otherElement = edge.GetOtherElement(this);
+        if (ContainsReference(_edgeList, edge))
+        {
+            return;
+        }
 
         _edgeList.Add(edge);
-
-        var otherElement = edge.GetOtherElement(this);
-#if DEBUG
-        foreach (var mathGraphEdge in otherElement._edgeList)
+        if (!ContainsReference(otherElement._edgeList, edge))
         {
-            if (ReferenceEquals(mathGraphEdge, edge))
-            {
-                Debug.Fail("边都是成对出现，在当前元素不存在的边，在边的对应元素必定也不存在");
-            }
+            otherElement._edgeList.Add(edge);
         }
-#endif
-        otherElement._edgeList.Add(edge);
+    }
+
+    public void AddOutEdge(MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> edge)
+    {
+        if (!ReferenceEquals(edge.From, this))
+        {
+            throw new InvalidOperationException();
+        }
+
+        EnsureSameMathGraph(edge.To);
+        if (ContainsReference(_outEdgeList, edge))
+        {
+            return;
+        }
+
+        _outEdgeList.Add(edge);
+        if (!ContainsReference(_edgeList, edge))
+        {
+            _edgeList.Add(edge);
+        }
+
+        if (!ContainsReference(edge.To._inEdgeList, edge))
+        {
+            edge.To._inEdgeList.Add(edge);
+        }
+
+        if (!ContainsReference(edge.To._edgeList, edge))
+        {
+            edge.To._edgeList.Add(edge);
+        }
+    }
+
+    public void AddInEdge(MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> edge)
+    {
+        if (!ReferenceEquals(edge.To, this))
+        {
+            throw new InvalidOperationException();
+        }
+
+        EnsureSameMathGraph(edge.From);
+        if (ContainsReference(_inEdgeList, edge))
+        {
+            return;
+        }
+
+        _inEdgeList.Add(edge);
+        if (!ContainsReference(_edgeList, edge))
+        {
+            _edgeList.Add(edge);
+        }
+
+        if (!ContainsReference(edge.From._outEdgeList, edge))
+        {
+            edge.From._outEdgeList.Add(edge);
+        }
+
+        if (!ContainsReference(edge.From._edgeList, edge))
+        {
+            edge.From._edgeList.Add(edge);
+        }
     }
 
     /// <summary>
-    /// 添加出度的元素关系，即从当前元素出发的边指向的元素
+    /// 添加出度的元素关系，即从当前元素出发创建一条指向目标元素的边
     /// </summary>
     /// <param name="element"></param>
     public void AddOutElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
-        if (_outElementList.Contains(element))
+        if (OutElementList.Contains(element))
         {
             return;
         }
 
-        _outElementList.Add(element);
-        Debug.Assert(!element._inElementList.Contains(this));
-        element._inElementList.Add(this);
+        AddOutEdge(new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(this, element));
     }
 
     /// <summary>
@@ -118,31 +191,38 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
     public void RemoveOutElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
-        if (!_outElementList.Contains(element))
+        var removed = false;
+        for (var i = _outEdgeList.Count - 1; i >= 0; i--)
+        {
+            var edge = _outEdgeList[i];
+            if (!ReferenceEquals(edge.To, element))
+            {
+                continue;
+            }
+
+            RemoveOutEdge(edge);
+            removed = true;
+        }
+
+        if (!removed)
         {
             return;
         }
-
-        _outElementList.Remove(element);
-        Debug.Assert(element._inElementList.Contains(this));
-        element._inElementList.Remove(this);
     }
 
     /// <summary>
-    /// 添加入度的元素关系，即指向当前元素的边的起点元素
+    /// 添加入度的元素关系，即从指定元素创建一条指向当前元素的边
     /// </summary>
     /// <param name="element"></param>
     public void AddInElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
-        if (_inElementList.Contains(element))
+        if (InElementList.Contains(element))
         {
             return;
         }
 
-        _inElementList.Add(element);
-        Debug.Assert(!element._outElementList.Contains(this));
-        element._outElementList.Add(this);
+        AddInEdge(new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(element, this));
     }
 
     /// <summary>
@@ -152,14 +232,23 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
     public void RemoveInElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
-        if (!_inElementList.Contains(element))
+        var removed = false;
+        for (var i = _inEdgeList.Count - 1; i >= 0; i--)
+        {
+            var edge = _inEdgeList[i];
+            if (!ReferenceEquals(edge.From, element))
+            {
+                continue;
+            }
+
+            RemoveInEdge(edge);
+            removed = true;
+        }
+
+        if (!removed)
         {
             return;
         }
-
-        _inElementList.Remove(element);
-        Debug.Assert(element._outElementList.Contains(this));
-        element._outElementList.Remove(this);
     }
 
     public override string ToString()
@@ -180,5 +269,63 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
         {
             throw new InvalidOperationException();
         }
+    }
+
+    private void RemoveOutEdge(MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> edge)
+    {
+        _outEdgeList.Remove(edge);
+        _edgeList.Remove(edge);
+        edge.To._inEdgeList.Remove(edge);
+        edge.To._edgeList.Remove(edge);
+    }
+
+    private void RemoveInEdge(MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> edge)
+    {
+        _inEdgeList.Remove(edge);
+        _edgeList.Remove(edge);
+        edge.From._outEdgeList.Remove(edge);
+        edge.From._edgeList.Remove(edge);
+    }
+
+    private List<MathGraphElement<TElementInfo, TEdgeInfo>> GetOutElementList()
+    {
+        var list = new List<MathGraphElement<TElementInfo, TEdgeInfo>>(_outEdgeList.Count);
+        foreach (var edge in _outEdgeList)
+        {
+            if (!list.Contains(edge.To))
+            {
+                list.Add(edge.To);
+            }
+        }
+
+        return list;
+    }
+
+    private List<MathGraphElement<TElementInfo, TEdgeInfo>> GetInElementList()
+    {
+        var list = new List<MathGraphElement<TElementInfo, TEdgeInfo>>(_inEdgeList.Count);
+        foreach (var edge in _inEdgeList)
+        {
+            if (!list.Contains(edge.From))
+            {
+                list.Add(edge.From);
+            }
+        }
+
+        return list;
+    }
+
+    private static bool ContainsReference<T>(List<T> list, T item)
+        where T : class
+    {
+        foreach (var current in list)
+        {
+            if (ReferenceEquals(current, item))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

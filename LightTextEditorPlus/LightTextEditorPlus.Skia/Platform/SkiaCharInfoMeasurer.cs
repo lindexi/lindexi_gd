@@ -11,6 +11,8 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Document;
 
+using MS.Internal;
+
 using SkiaSharp;
 
 using System;
@@ -29,103 +31,24 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     {
     }
 
-    //    public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
-    //    {
-    //        // 此逻辑只有空行测量才会进入
-    //        // 以下测量逻辑预计是不正确的，后续也许可以继续看一下具体错在哪
+    public bool UseKern { get; private set; } = true;
 
-    //        SkiaTextRunProperty skiaTextRunProperty = charInfo.RunProperty.AsSkiaRunProperty();
+    private Feature[] GetFeatures()
+    {
+        if (_cacheFeatures is null)
+        {
+            // Kerning（字距调整）是通过字体的 `kern` 特性（对应 GPOS 表中的字距信息）实现的，HarfBuzz 默认会启用该特性
+            Tag kernTag = //new Tag('k', 'e', 'r', 'n');
+                (uint) FeatureTags.Kerning;
+            _cacheFeatures =
+            [
+                new Feature(kernTag, UseKern ? 1u : 0u)
+            ];
+        }
 
-    //        RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(charInfo.CharObject.CodePoint);
-
-    //        var skTypeface = renderingRunPropertyInfo.Typeface;
-
-    //        SKPaint skPaint = renderingRunPropertyInfo.Paint;
-
-    //        SKFont skFont = renderingRunPropertyInfo.Font;
-    //        float baselineY = -skFont.Metrics.Ascent;
-    //        var textAdvances = skPaint.GetGlyphWidths(charInfo.CharObject.ToText(), out var skBounds);
-    //        // 使用 GetGlyphWidths 布局也能达到效果，但是其布局效果本身不佳
-    //        // 暂时没有找到如何对齐基线
-    //        // 但是在绘制渲染时，自动带上了基线对齐，因此保持 Y 坐标为 0 即可
-    //        if (skBounds != null && skBounds.Length > 0)
-    //        {
-    //            // 为什么实际渲染会感觉超过 11 的值？这是因为 DrawText 的 Point 给的是最下方的坐标，而不是最上方的坐标
-    //            // 字号是 15 时，测量返回的高度是 11 的值。这是因为这个 11 指的是字符渲染高度
-    //            //// 这里测量的高度是 11 的值，然而实际渲染是超过 11 的值
-    //            return new CharInfoMeasureResult(skBounds[0].ToTextRect() with
-    //            {
-    //                X = 0,
-    //                Y = 0,
-    //                Width = textAdvances[0],
-    //                //Height = skBounds[0].Height
-    //                // 测量的高度是 11 的值，却设置为字体大小 15 的值。刚好渲染 123微软雅黑 时，自动让 123 对齐基线
-    //                Height = skPaint.TextSize // todo 使用 FontCharHelper 的计算方法
-    //            }, baselineY);
-    //        }
-
-    //        var asset = skTypeface.OpenStream(out var trueTypeCollectionIndex);
-    //        var size = asset.Length;
-    //        var memoryBase = asset.GetMemoryBase();
-
-    //        using var blob = new Blob(memoryBase, size, MemoryMode.ReadOnly, () => asset.Dispose());
-    //        blob.MakeImmutable();
-
-    //        using var face = new Face(blob, (uint) trueTypeCollectionIndex);
-    //        face.UnitsPerEm = skTypeface.UnitsPerEm;
-
-    //        var fontSize = charInfo.RunProperty.FontSize;
-
-    //        using var font = new Font(face);
-    //        font.SetFunctionsOpenType();
-    //        font.GetScale(out var x, out var y);
-    //        font.SetFunctionsOpenType();
-
-    //        float glyphScale = (float) (fontSize / x);
-
-    //        using var buffer = new Buffer();
-    //        buffer.AddUtf32(charInfo.CharObject.ToText());
-
-    //        buffer.Direction = Direction.LeftToRight;
-    //        buffer.Script = Script.Han;
-    //        buffer.Language = new Language("en");
-
-    //        buffer.GuessSegmentProperties();
-
-    //        font.Shape(buffer);
-
-    //        foreach (GlyphInfo glyphInfo in buffer.GlyphInfos)
-    //        {
-    //            uint glyphInfoCodepoint = glyphInfo.Codepoint;
-    //        }
-
-    //        var length = 0f;
-    //        TextRect bounds = TextRect.Zero;
-    //        foreach (var glyphPosition in buffer.GlyphPositions)
-    //        {
-    //            var left = glyphPosition.XOffset * glyphScale;
-    //            var top = glyphPosition.YOffset * glyphScale;
-    //            var width = glyphPosition.XAdvance * glyphScale;
-    //            var height = glyphPosition.YAdvance * glyphScale;
-
-    //            // 预计 height 就是 0 的值
-    //            // https://github.com/harfbuzz/harfbuzz/discussions/4827
-    //            if (height == 0)
-    //            {
-    //                height = (float) fontSize;
-    //            }
-
-    //            bounds = new TextRect(left, top, width, height);
-
-    //            length += glyphPosition.XOffset * glyphScale + glyphPosition.XAdvance * glyphScale;
-    //        }
-
-    //#if DEBUG
-    //        GC.KeepAlive(length); // 调试代码，仅用于方便在此调试获取其长度/宽度
-    //#endif
-
-    //        return new CharInfoMeasureResult(bounds, baselineY);
-    //    }
+        return _cacheFeatures;
+    }
+    private Feature[]? _cacheFeatures;
 
     public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
     {
@@ -210,7 +133,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     /// 核心包括两个步骤：
     /// 1. 通过 Harfbuzz 进行 Shape 获取 Glyph 信息
     /// 2. 通过 Skia 获取 Glyph 的渲染尺寸
-    private static TextPoolArrayContext<CharRenderInfo> GetCharListRenderInfo
+    private TextPoolArrayContext<CharRenderInfo> GetCharListRenderInfo
         (TextReadOnlyListSpan<CharData> charDataList, UpdateLayoutContext updateLayoutContext)
     {
         CharData currentCharData = charDataList[0];
@@ -358,7 +281,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         return charSizeInfoArrayContext;
     }
 
-    private static TextPoolArrayContext<TextGlyphInfo> ShapeByHarfBuzz
+    private TextPoolArrayContext<TextGlyphInfo> ShapeByHarfBuzz
         (ReadOnlySpan<char> text, SKFont skFont, UpdateLayoutContext updateLayoutContext)
     {
         SKTypeface skTypeface = skFont.Typeface;
@@ -389,7 +312,24 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
 
-        font.Shape(buffer);
+#if DEBUG
+        var originBufferLength = buffer.Length;
+#endif
+
+        font.Shape(buffer, GetFeatures());
+
+#if DEBUG
+        var bufferLengthAfterShape = buffer.Length;
+
+        // 如果有连写字，则前后的 Buffer Length 不相等
+        Debug.Assert(bufferLengthAfterShape <= originBufferLength);
+        if (bufferLengthAfterShape < originBufferLength)
+        {
+            // 证明存在连写字的情况
+            // StandardLigatures 'liga'
+            // 可执行 "测试字体包含 StandardLigatures 连写字导致字符数量不匹配" 进行测试
+        }
+#endif
 
         font.GetScale(out var scaleX, out _);
 
