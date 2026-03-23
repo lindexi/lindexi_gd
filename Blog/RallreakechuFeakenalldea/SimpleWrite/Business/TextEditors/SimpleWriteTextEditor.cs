@@ -14,7 +14,9 @@ using SimpleWrite.Business.TextEditors.Highlighters;
 using SkiaSharp;
 
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls.Platform;
+using LightTextEditorPlus.Events;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -23,6 +25,8 @@ namespace SimpleWrite.Business.TextEditors;
 /// </summary>
 internal sealed class SimpleWriteTextEditor : TextEditor
 {
+    private readonly MenuItem _sendSelectionToCopilotMenuItem;
+
     public SimpleWriteTextEditor()
     {
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
@@ -46,10 +50,48 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         {
             Header = "复制"
         });
-        ContextMenu.Opening += (sender, args) =>
+        _sendSelectionToCopilotMenuItem = new MenuItem()
         {
-
+            Header = "发送选中内容到 Copilot 聊天"
         };
+        _sendSelectionToCopilotMenuItem.Click += SendSelectionToCopilotMenuItem_OnClick;
+    }
+
+    protected override void OnRaisePrepareContextMenuEvent(PrepareContextMenuEventArgs args)
+    {
+        if (ContextMenu?.Items is { } menuItems && RequestSendSelectionToCopilot != null)
+        {
+            if (!CurrentSelection.IsEmpty)
+            {
+                if (!menuItems.Contains(_sendSelectionToCopilotMenuItem))
+                {
+                    menuItems.Add(_sendSelectionToCopilotMenuItem);
+                }
+            }
+            else
+            {
+                menuItems.Remove(_sendSelectionToCopilotMenuItem);
+            }
+        }
+
+        base.OnRaisePrepareContextMenuEvent(args);
+    }
+
+    private async void SendSelectionToCopilotMenuItem_OnClick(object? sender, EventArgs e)
+    {
+        var selection = CurrentSelection;
+        if (selection.IsEmpty)
+        {
+            return;
+        }
+
+        var selectedText = GetText(in selection);
+        if (string.IsNullOrWhiteSpace(selectedText))
+        {
+            return;
+        }
+
+        RequestSendSelectionToCopilot?.Invoke(this, selectedText);
     }
 
     //public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
@@ -80,6 +122,8 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     /// 代码片管理器
     /// </summary>
     public required SnippetManager SnippetManager { get; init; }
+
+    public event EventHandler<string>? RequestSendSelectionToCopilot;
 
     public IDocumentHighlighter DocumentHighlighter { get; private set; }
 
