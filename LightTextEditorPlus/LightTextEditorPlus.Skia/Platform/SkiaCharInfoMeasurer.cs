@@ -31,7 +31,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     {
     }
 
-    public bool UseKern { get; private set; } = true;
+    public bool UseKern { get; private set; } = false;
 
     private Feature[] GetFeatures()
     {
@@ -42,7 +42,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 (uint) FeatureTags.Kerning;
             _cacheFeatures =
             [
-                new Feature(kernTag, UseKern ? 1u : 0u)
+                new Feature(kernTag, UseKern ? 1u : 0u),
+                // 竖排字距调整，对应竖排文本的字距优化
+                new Feature((uint)FeatureTags.VerticalKerning, UseKern ? 1u : 0u),
+                // 大写字母间距，专门调整全大写文本的字符间距，让大写文本更透气易读
+                new Feature((uint)FeatureTags.CapitalSpacing, UseKern ? 1u : 0u),
             ];
         }
 

@@ -488,7 +488,7 @@ namespace MS.Internal
         Zulu                                     = 0x5a554c20, // 'ZUL '
     }
 
-// Feature tags
+    // Feature tags
 
     internal enum FeatureTags
     {
