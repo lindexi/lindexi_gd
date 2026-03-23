@@ -18,7 +18,7 @@ using Avalonia.Threading;
 namespace LightTextEditorPlus.Avalonia.Tests;
 
 [TestClass]
-public class TestFramework
+public partial class TestFramework
 {
     public static DirectoryInfo OutputDirectory { get; private set; } = null!;
 
@@ -95,15 +95,6 @@ public class TestFramework
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }
         }
-    }
-
-    public static bool IsDebug()
-    {
-#if DEBUG
-        return Debugger.IsAttached;
-#else
-        return false;
-#endif
     }
 
     private static AppBuilder BuildAvaloniaApp()
