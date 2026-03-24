@@ -39,7 +39,7 @@
     //                Width = textAdvances[0],
     //                //Height = skBounds[0].Height
     //                // 测量的高度是 11 的值，却设置为字体大小 15 的值。刚好渲染 123微软雅黑 时，自动让 123 对齐基线
-    //                Height = skPaint.TextSize // todo 使用 FontCharHelper 的计算方法
+    //                Height = skPaint.TextSize // 使用 FontCharHelper 的计算方法
     //            }, baselineY);
     //        }
 

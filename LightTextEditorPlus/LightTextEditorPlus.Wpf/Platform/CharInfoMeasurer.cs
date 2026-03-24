@@ -55,36 +55,34 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
         CharDataInfo charDataInfo;
 
-        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
+        Utf32CodePoint codePoint = currentCharData.CharObject.CodePoint;
+        charDataInfo = MeasureChar(codePoint);
+
+        CharDataInfo MeasureChar(Utf32CodePoint c)
         {
-            Utf32CodePoint codePoint = currentCharData.CharObject.CodePoint;
-            charDataInfo = MeasureChar(codePoint);
-
-            CharDataInfo MeasureChar(Utf32CodePoint c)
+            var currentGlyphTypeface = glyphTypeface;
+            if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c.Value, out var glyphIndex))
             {
-                var currentGlyphTypeface = glyphTypeface;
-                if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c.Value, out var glyphIndex))
+                // 居然给定的字体找不到，也就是给定的字符不在当前的字体包含范围里面
+                if (!runProperty.TryGetFallbackGlyphTypeface(c, out currentGlyphTypeface, out glyphIndex))
                 {
-                    // 居然给定的字体找不到，也就是给定的字符不在当前的字体包含范围里面
-                    if (!runProperty.TryGetFallbackGlyphTypeface(c, out currentGlyphTypeface, out glyphIndex))
+                    // 如果连回滚的都没有，那就返回默认方块空格
+                    var size = new TextSize(fontSize, fontSize);
+                    // 此时只好是字外框和字墨量尺寸相同
+                    return new CharDataInfo(size, size, baseline)
                     {
-                        // 如果连回滚的都没有，那就返回默认方块空格
-                        var size = new TextSize(fontSize, fontSize);
-                        // 此时只好是字外框和字墨量尺寸相同
-                        return new CharDataInfo(size, size, baseline)
-                        {
-                            GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
-                            Status = CharDataInfoStatus.Undefined
-                        };
-                    }
+                        GlyphIndex = CharDataInfo.UndefinedGlyphIndex,
+                        Status = CharDataInfoStatus.Undefined
+                    };
                 }
+            }
 
-                //var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
-                var width = currentGlyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
-                width = GlyphExtension.RefineValue(width);
-                var height = currentGlyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
-                double topSideBearing = currentGlyphTypeface.TopSideBearings[glyphIndex] * fontSize;
-                double bottomSideBearing = currentGlyphTypeface.BottomSideBearings[glyphIndex] * fontSize;
+            //var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+            var width = currentGlyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+            width = GlyphExtension.RefineValue(width);
+            var height = currentGlyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
+            double topSideBearing = currentGlyphTypeface.TopSideBearings[glyphIndex] * fontSize;
+            double bottomSideBearing = currentGlyphTypeface.BottomSideBearings[glyphIndex] * fontSize;
 
                 //var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
                 //var glyphIndices = new[] { glyphIndex };
@@ -157,34 +155,37 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 //        throw new ArgumentOutOfRangeException();
                 //}
 
-                var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
-                // 使用固定字高，而不是每个字符的字高
-                var glyphTypefaceHeight = currentGlyphTypeface.Height * fontSize;
-                _ = fontLineSpacing;
-                _ = glyphTypefaceHeight;
-                _ = height;
-                _ = topSideBearing;
-                _ = bottomSideBearing;
-                //var fakeHeight = height + topSideBearing + bottomSideBearing;
-                //_ = fakeHeight;
-                // 在以上这些数据上，似乎只有 glyphTypefaceHeight 最正确
-                // 但是在 Javanese Text 字体里面，glyphTypefaceHeight=136 显著大于 height=60 导致字符上浮，超过文本框
-                //return (bounds.Width, bounds.Height);
+            var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
+            // 使用固定字高，而不是每个字符的字高
+            var glyphTypefaceHeight = currentGlyphTypeface.Height * fontSize;
+            _ = fontLineSpacing;
+            _ = glyphTypefaceHeight;
+            _ = height;
+            _ = topSideBearing;
+            _ = bottomSideBearing;
+            //var fakeHeight = height + topSideBearing + bottomSideBearing;
+            //_ = fakeHeight;
+            // 在以上这些数据上，似乎只有 glyphTypefaceHeight 最正确
+            // 但是在 Javanese Text 字体里面，glyphTypefaceHeight=136 显著大于 height=60 导致字符上浮，超过文本框
+            //return (bounds.Width, bounds.Height);
 
-                // 字外框。文字外框，字外框尺寸
-                var frameSize = new TextSize(width, glyphTypefaceHeight);
-                // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
-                var faceSize = new TextSize(width, height);
-                return new CharDataInfo(frameSize, faceSize, baseline)
-                {
-                    GlyphIndex = glyphIndex,
-                    Status = CharDataInfoStatus.Normal,
-                };
+            // 字外框。文字外框，字外框尺寸
+            var frameSize = new TextSize(width, glyphTypefaceHeight);
+            // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
+            var faceSize = new TextSize(width, height);
+
+            if (_textEditor.TextEditorCore.ArrangingType.IsVertical)
+            {
+                var renderCharHeight = GlyphExtension.RefineValue(Math.Max(0, height + topSideBearing));
+                frameSize = new TextSize(renderCharHeight, width);
+                faceSize = new TextSize(height, width);
             }
-        }
-        else
-        {
-            throw new NotImplementedException("还没有实现竖排的文本测量");
+
+            return new CharDataInfo(frameSize, faceSize, baseline)
+            {
+                GlyphIndex = glyphIndex,
+                Status = CharDataInfoStatus.Normal,
+            };
         }
 
         argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, charDataInfo);

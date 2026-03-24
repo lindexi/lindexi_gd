@@ -45,7 +45,8 @@ public partial class TextEditorHandler
                     return;
                 }
 
-                if (HandleSingleClick(in textPoint))
+                bool isExtendSelection = Keyboard.Modifiers == ModifierKeys.Shift;
+                if (HandleSingleClick(in textPoint, isExtendSelection))
                 {
                     // 获取焦点的同时捕获鼠标，这样既可以收到输入法，也可以用来后续拖动鼠标选中内容
                     TextEditor.Focus();

@@ -66,7 +66,7 @@
 
 //        string text = stringBuilder.ToString();
 
-//        // todo 这里需要处理换行规则
+//        // 这里需要处理换行规则
 //        long charCount = skPaint.BreakText(text, lineRemainingWidth, out var measuredWidth);
 //        var measureCharCount = charCount;
 //        // 取出的 CharObject 数量
