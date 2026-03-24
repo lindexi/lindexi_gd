@@ -50,11 +50,30 @@ public partial class TextEditorHandler
     /// <returns></returns>
     protected virtual bool HandleSingleClick(in TextPoint clickPoint)
     {
+        return HandleSingleClick(clickPoint, isExtendSelection: false);
+    }
+
+    /// <summary>
+    /// 处理单击事件
+    /// </summary>
+    /// <param name="clickPoint"></param>
+    /// <param name="isExtendSelection">是否扩展当前选择范围</param>
+    /// <returns></returns>
+    protected virtual bool HandleSingleClick(in TextPoint clickPoint, bool isExtendSelection)
+    {
         TextEditor
             .TextEditorPlatformProvider
             .EnsureLayoutUpdated();
         if (TextEditorCore.TryHitTest(in clickPoint, out var result))
         {
+            if (isExtendSelection)
+            {
+                CaretOffset selectionStartOffset = TextEditorCore.CurrentSelection.StartOffset;
+                TextEditorCore.CurrentSelection = new Selection(selectionStartOffset, result.HitCaretOffset);
+                _isHitSelection = false;
+                return true;
+            }
+
             // 是否命中到选择。条件： 当前有选择（!TextEditorCore.CurrentSelection.IsEmpty），且选择内容包含命中的光标（TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset)）
             _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty &&
                               TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
