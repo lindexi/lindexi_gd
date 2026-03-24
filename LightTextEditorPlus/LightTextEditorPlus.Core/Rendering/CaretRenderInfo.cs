@@ -214,19 +214,46 @@ public readonly struct CaretRenderInfo
             var rectangle = new TextRect(x, y, width, height);
             return rectangle;
         }
-        else if (TextEditor.ArrangingType == ArrangingType.Vertical)
+        else if (TextEditor.ArrangingType.IsVertical)
         {
+            var visualWidth = textSize.Height;
+            var visualHeight = textSize.Width;
+            var x = TextEditor.ArrangingType.IsLeftToRightVertical ? startPoint.X : startPoint.X - visualWidth;
+            var y = startPoint.Y;
+
+            if (isOvertypeMode && !IsParagraphEnd)
             {
-                // todo 实现竖排命中测试
-                return TextRect.Empty;
+                // 如果是覆盖模式，应该显示后一个字符的侧边线。特殊处理：处于行末时，继续显示普通光标
+                if (IsLineEnd)
+                {
+                    // 继续往下执行，显示普通光标
+                }
+                else
+                {
+                    var nextCharData = GetCharDataInLineAfterCaretOffset();
+                    if (nextCharData?.Size is { } nextSize)
+                    {
+                        var nextStartPoint = nextCharData.GetStartPoint();
+                        var overtypeX = TextEditor.ArrangingType.IsLeftToRightVertical
+                            ? nextStartPoint.X + nextSize.Height - caretThickness
+                            : nextStartPoint.X - nextSize.Height;
+
+                        return new TextRect(overtypeX, nextStartPoint.Y, caretThickness, nextSize.Width);
+                    }
+                }
             }
-        }
-        else if (TextEditor.ArrangingType == ArrangingType.Mongolian)
-        {
+
+            if (IsLineStart)
             {
-                // todo 实现蒙文竖排命中测试
-                return TextRect.Empty;
+                // 如果命中到行的开始，那就是首个字符之前，不能加上字符的尺寸
             }
+            else
+            {
+                // 如果命中不是行的开始，那应该让光标放在字符的后面，即 y 加上字符的高度
+                y += visualHeight;
+            }
+
+            return new TextRect(x, y, visualWidth, caretThickness);
         }
         else
         {
