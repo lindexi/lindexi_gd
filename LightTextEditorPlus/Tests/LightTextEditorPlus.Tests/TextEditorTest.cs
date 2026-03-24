@@ -176,6 +176,23 @@ public class TextEditorTest
     [UIContractTestCase]
     public void VerticalRenderTest()
     {
+        "设置竖排中文文本后可以完成渲染".Test(async () =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+
+            textEditor.SetFontName("Arial");
+            textEditor.SetFontSize(30);
+            textEditor.ArrangingType = ArrangingType.Vertical;
+            textEditor.Text = "这是一段中文";
+
+            await textEditor.WaitForRenderCompletedAsync();
+
+            RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+            await TestFramework.FreezeTestToDebug();
+            Assert.AreEqual(1, renderInfoProvider.GetParagraphRenderInfoList().Count());
+        });
+
         "设置竖排文本后可以完成渲染".Test(async () =>
         {
             using var context = TestFramework.CreateTextEditorInNewWindow();
