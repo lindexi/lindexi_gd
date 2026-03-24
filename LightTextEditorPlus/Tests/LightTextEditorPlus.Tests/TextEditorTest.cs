@@ -133,6 +133,47 @@ public class TextEditorTest
     }
 
     [UIContractTestCase]
+    public void VerticalMeasureTest()
+    {
+        "切换到竖排布局后，字符尺寸会重新按竖排语义测量".Test(async () =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+
+            textEditor.SetFontName("Arial");
+            textEditor.SetFontSize(30);
+            textEditor.Text = "A";
+
+            await textEditor.WaitForRenderCompletedAsync();
+
+            CharData horizontalCharData = textEditor.TextEditorCore.GetRenderInfo()
+                .GetParagraphRenderInfoList().First()
+                .GetLineRenderInfoList().First()
+                .CharList[0];
+
+            var horizontalSize = horizontalCharData.Size;
+            var horizontalFaceSize = horizontalCharData.FaceSize;
+            var horizontalBaseline = horizontalCharData.Baseline;
+
+            textEditor.ArrangingType = ArrangingType.Vertical;
+
+            await textEditor.WaitForRenderCompletedAsync();
+
+            CharData verticalCharData = textEditor.TextEditorCore.GetRenderInfo()
+                .GetParagraphRenderInfoList().First()
+                .GetLineRenderInfoList().First()
+                .CharList[0];
+
+            Assert.IsFalse(verticalCharData.IsInvalidCharDataInfo);
+            Assert.AreEqual(horizontalSize.Width, verticalCharData.Size.Height, 0.001);
+            Assert.AreEqual(horizontalFaceSize.Width, verticalCharData.FaceSize.Height, 0.001);
+            Assert.AreEqual(horizontalFaceSize.Height, verticalCharData.FaceSize.Width, 0.001);
+            Assert.AreEqual(horizontalBaseline, verticalCharData.Baseline, 0.001);
+            Assert.IsTrue(verticalCharData.Size.Width > 0);
+        });
+    }
+
+    [UIContractTestCase]
     public void AppendText()
     {
         "追加 Emoji 表情字符，可以显示出表情字符".Test(async () =>
