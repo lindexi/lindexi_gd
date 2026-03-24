@@ -90,10 +90,17 @@ class TextView : UIElement, IRenderManager
             }
         }
 
-        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Vertical || _textEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian)
+        if (_textEditor.TextEditorCore.ArrangingType.IsVertical)
         {
-            // 还没有支持竖排渲染
-            throw new NotSupportedException();
+            if (_textRenderBase is VerticalTextRenderer)
+            {
+                return _textRenderBase;
+            }
+            else
+            {
+                _textRenderBase = new VerticalTextRenderer();
+                return _textRenderBase;
+            }
         }
 
         throw new ArgumentOutOfRangeException();
