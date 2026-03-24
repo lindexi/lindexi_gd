@@ -174,6 +174,27 @@ public class TextEditorTest
     }
 
     [UIContractTestCase]
+    public void VerticalRenderTest()
+    {
+        "设置竖排文本后可以完成渲染".Test(async () =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+
+            textEditor.SetFontName("Arial");
+            textEditor.SetFontSize(30);
+            textEditor.ArrangingType = ArrangingType.Vertical;
+            textEditor.Text = "ABCDE";
+
+            await textEditor.WaitForRenderCompletedAsync();
+
+            RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+            await TestFramework.FreezeTestToDebug();
+            Assert.AreEqual(1, renderInfoProvider.GetParagraphRenderInfoList().Count());
+        });
+    }
+
+    [UIContractTestCase]
     public void AppendText()
     {
         "追加 Emoji 表情字符，可以显示出表情字符".Test(async () =>
