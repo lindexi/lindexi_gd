@@ -33,7 +33,6 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     [GeneratedRegex(@"https?://[^\s<>\u3000]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex GetUrlRegex();
 
-
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
@@ -102,7 +101,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         _urlRunProperty = _textEditor.CreateRunProperty(property => property with
         {
-            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFF1A73E8)),
+            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFF67D9D0)),
             DecorationCollection = UnderlineTextEditorDecoration.Instance,
         });
     }
