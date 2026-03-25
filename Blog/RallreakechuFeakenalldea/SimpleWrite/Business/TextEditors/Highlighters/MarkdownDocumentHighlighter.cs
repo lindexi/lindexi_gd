@@ -101,7 +101,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         _urlRunProperty = _textEditor.CreateRunProperty(property => property with
         {
-            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFF67D9D0)),
+            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFF67D9E0)),
             DecorationCollection = UnderlineTextEditorDecoration.Instance,
         });
     }
@@ -173,6 +173,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 var innerCodeText = ToText(innerCodeSpan);
 
                 if (codeLang.Equals("csharp", StringComparison.OrdinalIgnoreCase)
+                    || codeLang.Equals("cs", StringComparison.OrdinalIgnoreCase)
                     || codeLang.Equals("C#", StringComparison.OrdinalIgnoreCase))
                 {
                     var csharpCodeHighlighter = new CsharpCodeHighlighter();
