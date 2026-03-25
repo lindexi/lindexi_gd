@@ -1,6 +1,9 @@
 // See https://aka.ms/new-console-template for more information
 
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Reasoning;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 using OpenAI;
 using OpenAI.Chat;
@@ -8,11 +11,11 @@ using OpenAI.Chat;
 using System;
 using System.ClientModel;
 using System.ClientModel.Primitives;
+using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Schema;
-using Microsoft.Agents.AI.Reasoning;
-using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using ChatResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat;
 
@@ -37,44 +40,63 @@ var chatClient = openAiClient.GetChatClient("ep-20260306101224-c8mtg");
 //var jsonSerializerOptions = new JsonSerializerOptions();
 //var jsonSchemaAsNode = jsonSerializerOptions.GetJsonSchemaAsNode(typeof(PersonInfo));
 //var jsonString = jsonSchemaAsNode.ToJsonString();
+var serviceCollection = new ServiceCollection();
 
-JsonElement schema = AIJsonUtilities.CreateJsonSchema(typeof(PersonInfo));
 
-var agent = chatClient.AsAIAgent(options:new ChatClientAgentOptions()
+IChatClient client = chatClient.AsIChatClient();
+
+serviceCollection.AddSingleton(client);
+serviceCollection.AddSingleton(s =>
 {
-    ChatOptions = new ChatOptions()
-    {
-        //ResponseFormat = ChatResponseFormat.Json
-    }
-})
-.AsBuilder()
-.Use(runFunc: CustomAgentRunMiddleware,runStreamingFunc:RunStreamingFunc)
-.Build();
+    var innerClient = s.GetRequiredService<IChatClient>();
+    var functionInvokingChatClient = new FunctionInvokingChatClient(innerClient, functionInvocationServices: s);
 
-async IAsyncEnumerable<AgentResponseUpdate> RunStreamingFunc(IEnumerable<ChatMessage> messages, AgentSession? session, AgentRunOptions? options, AIAgent innerAgent, CancellationToken cancellationToken)
-{
-    await foreach (var agentResponseUpdate in innerAgent.RunStreamingAsync(messages, session, options, cancellationToken))
+    functionInvokingChatClient.FunctionInvoker = (context, token) =>
     {
-        yield return agentResponseUpdate;
-    }
-}
+        return context.Function.InvokeAsync(context.Arguments, token);
+    };
 
-async Task<AgentResponse> CustomAgentRunMiddleware(
-    IEnumerable<ChatMessage> messages,
-    AgentSession? session,
-    AgentRunOptions? options,
-    AIAgent innerAgent,
+    return functionInvokingChatClient;
+});
+
+var chatClientBuilder = client
+    .AsBuilder();
+
+var agent = chatClientBuilder
+        .Use((innerClient, services) =>
+        {
+            var invokingChatClient = services.GetService<FunctionInvokingChatClient>();
+
+            return innerClient;
+        })
+        //.Use(runFunc: CustomAgentRunMiddleware, runStreamingFunc: RunStreamingFunc)
+        
+        .BuildAIAgent(options: new ChatClientAgentOptions()
+        {
+            ChatOptions = new ChatOptions()
+            {
+                //ResponseFormat = ChatResponseFormat.Json
+                Tools = [
+                    AIFunctionFactory.Create(GetWeather)
+                ]
+            }
+        });
+
+
+static async ValueTask<object?> CustomFunctionCallingMiddleware(
+    AIAgent agent,
+    FunctionInvocationContext context,
+    Func<FunctionInvocationContext, CancellationToken, ValueTask<object?>> next,
     CancellationToken cancellationToken)
 {
-    Console.WriteLine($"Input: {messages.Count()}");
-    var response = await innerAgent.RunAsync(messages, session, options, cancellationToken).ConfigureAwait(false);
-    Console.WriteLine($"Output: {response.Messages.Count}");
-    return response;
+    Console.WriteLine($"Function Name: {context!.Function.Name}");
+    var result = await next(context, cancellationToken);
+    Console.WriteLine($"Function Call Result: {result}");
+
+    return result;
 }
 
-var response = await agent.RunAsync("Please provide information about John Smith, who is a 35-year-old software engineer.");
-
-await foreach (var reasoningAgentResponseUpdate in agent.RunReasoningStreamingAsync(new ChatMessage(ChatRole.User, "Please provide information about John Smith, who is a 35-year-old software engineer.")))
+await foreach (var reasoningAgentResponseUpdate in agent.RunReasoningStreamingAsync(new ChatMessage(ChatRole.User, "今天北京的天气咋样.")))
 {
     if (reasoningAgentResponseUpdate.IsFirstThinking)
     {
@@ -95,9 +117,9 @@ Console.WriteLine();
 
 Console.Read();
 
-class PersonInfo
+[Description("Get the weather for a given location.")]
+static string GetWeather([Description("The location to get the weather for.")] string location,
+    [Description("查询天气的日期")] string date)
 {
-    public string? Name { get; set; }
-    public int? Age { get; set; }
-    public string? Occupation { get; set; }
+    return $"查询不到 {location} 城市信息";
 }
