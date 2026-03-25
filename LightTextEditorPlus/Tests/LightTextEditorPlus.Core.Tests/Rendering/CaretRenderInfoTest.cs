@@ -3,6 +3,8 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -329,5 +331,128 @@ public class CaretRenderInfoTest
             var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(textEditorCore.CurrentCaretOffset);
             Assert.AreEqual(textEditorCore.CurrentCaretOffset, caretRenderInfo.CaretOffset);
         });
+    }
+
+    [ContractTestCase]
+    public void GetCaretBoundsVertical()
+    {
+        "右到左竖排在行首和行中返回水平光标范围".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = CreateVerticalCaretTestTextEditor(ArrangingType.Vertical);
+            textEditorCore.AppendText("ab");
+
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            const double caretThickness = 2;
+
+            // Action
+            var lineStartCaretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(0, isAtLineStart: true));
+            var lineMiddleCaretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(1));
+
+            // Assert
+            var lineStartCharData = lineStartCaretRenderInfo.CharData!;
+            var lineStartPoint = lineStartCharData.GetStartPoint();
+            Assert.AreEqual(
+                new TextRect(lineStartPoint.X - lineStartCharData.Size.Height, lineStartPoint.Y,
+                    lineStartCharData.Size.Height, caretThickness),
+                lineStartCaretRenderInfo.GetCaretBounds(caretThickness));
+
+            var lineMiddleCharData = lineMiddleCaretRenderInfo.CharData!;
+            var lineMiddlePoint = lineMiddleCharData.GetStartPoint();
+            Assert.AreEqual(
+                new TextRect(lineMiddlePoint.X - lineMiddleCharData.Size.Height,
+                    lineMiddlePoint.Y + lineMiddleCharData.Size.Width,
+                    lineMiddleCharData.Size.Height, caretThickness),
+                lineMiddleCaretRenderInfo.GetCaretBounds(caretThickness));
+        });
+
+        "右到左竖排覆盖模式返回后一个字符左侧边线".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = CreateVerticalCaretTestTextEditor(ArrangingType.Vertical);
+            textEditorCore.AppendText("ab");
+
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            const double caretThickness = 2;
+
+            // Action
+            var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(0, isAtLineStart: true));
+            var nextCharData = caretRenderInfo.GetCharDataInLineAfterCaretOffset()!;
+            var nextStartPoint = nextCharData.GetStartPoint();
+
+            // Assert
+            Assert.AreEqual(
+                new TextRect(nextStartPoint.X - nextCharData.Size.Height, nextStartPoint.Y,
+                    caretThickness, nextCharData.Size.Width),
+                caretRenderInfo.GetCaretBounds(caretThickness, isOvertypeMode: true));
+        });
+
+        "左到右竖排覆盖模式返回后一个字符右侧边线".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = CreateVerticalCaretTestTextEditor(ArrangingType.Mongolian);
+            textEditorCore.AppendText("ab");
+
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            const double caretThickness = 2;
+
+            // Action
+            var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(0, isAtLineStart: true));
+            var nextCharData = caretRenderInfo.GetCharDataInLineAfterCaretOffset()!;
+            var nextStartPoint = nextCharData.GetStartPoint();
+
+            // Assert
+            Assert.AreEqual(
+                new TextRect(nextStartPoint.X + nextCharData.Size.Height - caretThickness, nextStartPoint.Y,
+                    caretThickness, nextCharData.Size.Width),
+                caretRenderInfo.GetCaretBounds(caretThickness, isOvertypeMode: true));
+        });
+    }
+
+    private static TextEditorCore CreateVerticalCaretTestTextEditor(ArrangingType arrangingType)
+    {
+        var testPlatformProvider = new TestPlatformProvider()
+        {
+            CharInfoMeasurer = new VerticalCaretTestCharInfoMeasurer()
+        };
+        testPlatformProvider.UseFakeLineSpacingCalculator();
+
+        var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+        textEditorCore.DocumentManager.SetStyleTextRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty with
+        {
+            FontSize = 30
+        });
+        textEditorCore.ArrangingType = arrangingType;
+        textEditorCore.DocumentManager.DocumentHeight = 1000;
+        textEditorCore.DocumentManager.DocumentWidth = 200;
+        return textEditorCore;
+    }
+
+    private sealed class VerticalCaretTestCharInfoMeasurer : ICharInfoMeasurer
+    {
+        public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
+        {
+            for (var i = 0; i < argument.ToFillCharDataList.Count; i++)
+            {
+                CharData currentCharData = argument.ToFillCharDataList[i];
+                if (!currentCharData.IsInvalidCharDataInfo)
+                {
+                    continue;
+                }
+
+                MeasureAndFillSizeOfCharData(new FillSizeOfCharDataArgument(argument.ToFillCharDataList.Slice(i),
+                    argument.UpdateLayoutContext));
+            }
+        }
+
+        public void MeasureAndFillSizeOfCharData(in FillSizeOfCharDataArgument argument)
+        {
+            var charDataInfo = new CharDataInfo(new TextSize(10, 30), new TextSize(8, 24), 8)
+            {
+                GlyphIndex = 1,
+            };
+
+            argument.CharDataLayoutInfoSetter.SetCharDataInfo(argument.CurrentCharData, charDataInfo);
+        }
     }
 }
