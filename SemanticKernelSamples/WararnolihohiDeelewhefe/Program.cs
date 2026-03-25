@@ -44,7 +44,7 @@ var agent = chatClient.AsAIAgent(options:new ChatClientAgentOptions()
 {
     ChatOptions = new ChatOptions()
     {
-        ResponseFormat = ChatResponseFormat.ForJsonSchema(schema, "PersonInfo")
+        ResponseFormat = ChatResponseFormat.Json
     }
 });
 
