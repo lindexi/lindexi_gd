@@ -25,47 +25,6 @@ public class AppManager
 
         var imageFilePath = Path.Join(Path.GetTempPath(), $"{Path.GetRandomFileName()}.png");
 
-        Console.WriteLine($"开始进入 TakeAsync");
-
-        await Dispatcher.UIThread.InvokeAsync(async () =>
-        {
-            var taskCompletionSource = new TaskCompletionSource();
-
-            var mainWindow = new MainWindow();
-            var mainView = mainWindow.MainView;
-
-            mainView.Loaded += (sender, args) =>
-            {
-                Console.WriteLine("mainView.Loaded");
-
-                try
-                {
-                    using var renderTargetBitmap = new RenderTargetBitmap(new PixelSize(1000, 600));
-                    renderTargetBitmap.Render(mainView);
-                    renderTargetBitmap.Save(imageFilePath);
-                    taskCompletionSource.SetResult();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            };
-
-            mainWindow.Show();
-
-            await taskCompletionSource.Task;
-
-        });
-
-        return imageFilePath;
-    }
-
-    public async Task<string> TakeAsync1()
-    {
-        await App.WaitAppLaunched();
-
-        var imageFilePath = Path.Join(Path.GetTempPath(), $"{Path.GetRandomFileName()}.png");
-
         await Dispatcher.UIThread.InvokeAsync(async () =>
         {
             var taskCompletionSource = new TaskCompletionSource();
