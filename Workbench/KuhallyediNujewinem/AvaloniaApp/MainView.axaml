@@ -6,7 +6,7 @@
              x:Class="AvaloniaApp.MainView"
              Background="White">
     <Grid>
-        <TextBlock HorizontalAlignment="Center" Margin="10,10,10,10">
+        <TextBlock x:Name="TextBlock1" HorizontalAlignment="Center" Margin="10,10,10,10">
             Welcome to Avalonia!
         </TextBlock>
 
