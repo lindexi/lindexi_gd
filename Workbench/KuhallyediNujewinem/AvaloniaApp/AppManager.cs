@@ -61,7 +61,7 @@ public class AppManager
     }
 }
 
-class OffscreenTopLevelImpl : OffscreenTopLevelImplBase,ITopLevelImpl
+class OffscreenTopLevelImpl : OffscreenTopLevelImplBase, ITopLevelImpl
 {
     public override IEnumerable<object> Surfaces { get; } = [];
     public override IMouseDevice MouseDevice { get; } = new MouseDevice();
