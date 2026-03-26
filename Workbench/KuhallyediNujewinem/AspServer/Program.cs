@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AvaloniaApp;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -36,6 +37,13 @@ todosApi.MapGet("/{id}", Results<Ok<Todo>, NotFound> (int id) =>
         ? TypedResults.Ok(todo)
         : TypedResults.NotFound())
     .WithName("GetTodoById");
+
+app.MapGet("/", async () =>
+{
+    AppManager appManager = new();
+    var imageFilePath = await appManager.TakeAsync();
+    return Results.File(imageFilePath, "image/png");
+});
 
 app.Run();
 
