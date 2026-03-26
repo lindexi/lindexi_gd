@@ -13,23 +13,27 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        Task.Run(() =>
-        {
-            while (true)
-            {
-                Console.ReadLine();
+        //Task.Run(() =>
+        //{
+        //    while (true)
+        //    {
+        //        Console.ReadLine();
 
-                Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    var mainWindow = new MainWindow();
-                    mainWindow.Show();
-                });
-            }
-        });
+        //        Dispatcher.UIThread.InvokeAsync(() =>
+        //        {
+        //            var mainWindow = new MainWindow();
+        //            mainWindow.Show();
+        //        });
+        //    }
+        //});
+
+        IsStarted = true;
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
+
+    public static bool IsStarted { get; set; }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
