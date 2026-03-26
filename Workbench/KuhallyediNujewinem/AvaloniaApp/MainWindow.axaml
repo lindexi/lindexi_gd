@@ -6,5 +6,5 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaApp.MainWindow"
         Title="AvaloniaApp">
-    <avaloniaApp:MainView />
+    <avaloniaApp:MainView x:Name="MainView"/>
 </Window>

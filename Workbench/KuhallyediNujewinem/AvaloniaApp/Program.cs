@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Avalonia.Headless;
 using Avalonia.Threading;
 
 namespace AvaloniaApp;
@@ -30,12 +31,12 @@ class Program
 
         IsStarted = true;
 
-        Task.Run(async () =>
-        {
-            var appManager = new AppManager();
-            var imageFile = await appManager.TakeAsync();
-            Process.Start("explorer.exe", [imageFile]);
-        });
+        //Task.Run(async () =>
+        //{
+        //    var appManager = new AppManager();
+        //    var imageFile = await appManager.TakeAsync();
+        //    Process.Start("explorer.exe", [imageFile]);
+        //});
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
@@ -46,7 +47,7 @@ class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
-            .UsePlatformDetect()
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions())
             .WithInterFont()
             .LogToTrace();
 }
