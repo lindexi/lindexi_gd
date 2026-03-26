@@ -22,27 +22,49 @@ public class AppManager
         {
             var taskCompletionSource = new TaskCompletionSource();
 
-            var embeddableControlRoot = new EmbeddableControlRoot();
-            embeddableControlRoot.Width = 1000;
-            embeddableControlRoot.Height = 600;
-            var mainView = new MainView();
-            mainView.Loaded += (sender, args) =>
+            if (OperatingSystem.IsWindows())
             {
-                using var renderTargetBitmap = new RenderTargetBitmap(new PixelSize(1000,600));
+                var embeddableControlRoot = new EmbeddableControlRoot();
+                embeddableControlRoot.Width = 1000;
+                embeddableControlRoot.Height = 600;
+                var mainView = new MainView();
+                mainView.Loaded += (sender, args) =>
+                {
+                    using var renderTargetBitmap = new RenderTargetBitmap(new PixelSize(1000, 600));
+                    renderTargetBitmap.Render(mainView);
+                    renderTargetBitmap.Save(imageFilePath);
+                    taskCompletionSource.SetResult();
+                };
+                embeddableControlRoot.Content = mainView;
+
+                // 准备离屏渲染工作
+                embeddableControlRoot.Prepare(); // 调用此方法会触发 Loaded 事件
+                embeddableControlRoot.StartRendering();
+
+                await taskCompletionSource.Task;
+
+                embeddableControlRoot.StopRendering();
+                embeddableControlRoot.Dispose();
+            }
+            else
+            {
+                // 不能用 EmbeddableControlRoot 的方式，因为在非 Windows 上会抛出异常
+
+                var mainView = new MainView()
+                {
+                    Width = 1000,
+                    Height = 600,
+                };
+                mainView.Loaded += (sender, args) =>
+                {
+                    Console.WriteLine("MainView.Loaded");
+                };
+
+                using var renderTargetBitmap = new RenderTargetBitmap(new PixelSize(1000, 600));
                 renderTargetBitmap.Render(mainView);
                 renderTargetBitmap.Save(imageFilePath);
                 taskCompletionSource.SetResult();
-            };
-            embeddableControlRoot.Content = mainView;
-
-            // 准备离屏渲染工作
-            embeddableControlRoot.Prepare(); // 调用此方法会触发 Loaded 事件
-            embeddableControlRoot.StartRendering();
-
-            await taskCompletionSource.Task;
-
-            embeddableControlRoot.StopRendering();
-            embeddableControlRoot.Dispose();
+            }
         });
 
         return imageFilePath;

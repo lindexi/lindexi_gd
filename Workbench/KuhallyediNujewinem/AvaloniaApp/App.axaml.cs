@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 using Avalonia;
@@ -39,7 +40,15 @@ public partial class App : Application
         {
             if (!Program.IsStarted)
             {
-                Program.Main([]);
+                Program.IsStarted = true;
+                var thread = new Thread(() =>
+                 {
+                     Program.Main([]);
+                 })
+                {
+                    IsBackground = true
+                };
+                thread.Start();
             }
         }
 

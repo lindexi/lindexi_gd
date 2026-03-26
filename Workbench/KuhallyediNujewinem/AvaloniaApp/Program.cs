@@ -33,7 +33,7 @@ class Program
             .StartWithClassicDesktopLifetime(args);
     }
 
-    public static bool IsStarted { get; private set; }
+    public static bool IsStarted { get; set; }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
