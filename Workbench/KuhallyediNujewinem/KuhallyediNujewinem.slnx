@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AspServer/AspServer.csproj" />
+  <Project Path="AvaloniaApp/AvaloniaApp.csproj" />
+</Solution>
