@@ -24,6 +24,7 @@ public class AppManager
 
             if (OperatingSystem.IsWindows())
             {
+                // https://github.com/AvaloniaUI/Avalonia/issues/2174#issuecomment-3030306384
                 var embeddableControlRoot = new EmbeddableControlRoot();
                 embeddableControlRoot.Width = 1000;
                 embeddableControlRoot.Height = 600;
