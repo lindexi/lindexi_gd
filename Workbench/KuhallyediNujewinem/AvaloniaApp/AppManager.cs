@@ -32,7 +32,7 @@ public class AppManager
             // https://github.com/AvaloniaUI/Avalonia/issues/2174#issuecomment-3030306384
             var offscreenTopLevelImpl = new OffscreenTopLevelImpl()
             {
-                //ClientSize = new Size(1000, 600)
+                ClientSize = new Size(1000, 600)
             };
             var embeddableControlRoot = new EmbeddableControlRoot(offscreenTopLevelImpl);
             embeddableControlRoot.Width = 1000;
