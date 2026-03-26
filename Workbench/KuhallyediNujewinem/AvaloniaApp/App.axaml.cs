@@ -43,7 +43,7 @@ public partial class App : Application
                 Program.IsStarted = true;
                 var thread = new Thread(() =>
                  {
-                     Program.Main([]);
+                     Program.Main(["--Xvfb", ":0"]);
                  })
                 {
                     IsBackground = true
