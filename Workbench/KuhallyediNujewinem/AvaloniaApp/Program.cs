@@ -30,12 +30,12 @@ class Program
 
         IsStarted = true;
 
-        Task.Run(async () =>
-        {
-            var appManager = new AppManager();
-            var imageFile = await appManager.TakeAsync();
-            Process.Start("explorer.exe", [imageFile]);
-        });
+        //Task.Run(async () =>
+        //{
+        //    var appManager = new AppManager();
+        //    var imageFile = await appManager.TakeAsync();
+        //    Process.Start("explorer.exe", [imageFile]);
+        //});
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
