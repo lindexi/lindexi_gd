@@ -13,7 +13,8 @@ public sealed class CopilotChatMessage: NotifyBase
     {
         Role = role;
         Content = content;
-        TimeText = DateTime.Now.ToString("HH:mm");
+        CreatedTime = DateTimeOffset.Now;
+        TimeText = CreatedTime.ToString("HH:mm");
     }
 
     public ChatRole Role { get; }
@@ -54,6 +55,8 @@ public sealed class CopilotChatMessage: NotifyBase
             OnPropertyChanged();
         }
     }
+
+    public DateTimeOffset CreatedTime { get; }
 
     public string TimeText { get; }
 

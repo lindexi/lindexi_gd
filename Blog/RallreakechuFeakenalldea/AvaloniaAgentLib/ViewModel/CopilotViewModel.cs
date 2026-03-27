@@ -1,4 +1,5 @@
 ﻿using AvaloniaAgentLib.Core;
+using AvaloniaAgentLib.Logging;
 using AvaloniaAgentLib.Model;
 
 using Microsoft.Agents.AI;
@@ -11,7 +12,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,14 +19,30 @@ namespace AvaloniaAgentLib.ViewModel;
 
 public class CopilotViewModel : INotifyPropertyChanged
 {
-    public CopilotViewModel()
+    //public CopilotViewModel()
+    //    : this(new FileCopilotChatLogger())
+    //{
+    //}
+
+    public CopilotViewModel(ICopilotChatLogger chatLogger)
     {
+        ChatLogger = chatLogger;
         AddAssistantWelcomeMessage();
     }
 
     public AgentApiEndpointManager AgentApiEndpointManager { get; } = new();
 
     public ObservableCollection<CopilotChatMessage> ChatMessages { get; } = [];
+
+    public ICopilotChatLogger ChatLogger
+    {
+        get => _chatLogger;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _chatLogger = value;
+        }
+    }
 
     public bool IsChatting
     {
@@ -45,6 +61,7 @@ public class CopilotViewModel : INotifyPropertyChanged
     }
 
     private bool _isChatting;
+    private ICopilotChatLogger _chatLogger = null!;
 
     /// <summary>
     /// 能否编辑输入
@@ -57,7 +74,10 @@ public class CopilotViewModel : INotifyPropertyChanged
     {
         ChatMessages.Clear();
         AddAssistantWelcomeMessage();
+        CurrentSessionId = Guid.NewGuid();
     }
+
+    public Guid CurrentSessionId { get; private set; } = Guid.NewGuid();
 
     public async Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
     {
@@ -72,8 +92,9 @@ public class CopilotViewModel : INotifyPropertyChanged
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var userCopilotChatMessage = CopilotChatMessage.CreateUser(inputText);
-            ChatMessages.Add(userCopilotChatMessage);
+            var userChatMessage = CopilotChatMessage.CreateUser(inputText);
+            ChatMessages.Add(userChatMessage);
+            await ChatLogger.LogMessageAsync(CurrentSessionId, userChatMessage);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
@@ -93,7 +114,7 @@ public class CopilotViewModel : INotifyPropertyChanged
                         .Select(chatMessage => chatMessage.ToChatMessage()),
                 ]
                 // 无需历史的情况
-                : [userCopilotChatMessage.ToChatMessage()];
+                : [userChatMessage.ToChatMessage()];
 
             var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             ChatMessages.Add(copilotChatMessage);
@@ -147,14 +168,20 @@ public class CopilotViewModel : INotifyPropertyChanged
                     }
                 }
             }
+
+            await ChatLogger.LogMessageAsync(CurrentSessionId, copilotChatMessage);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            ChatMessages.Add(CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true));
+            var canceledMessage = CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true);
+            ChatMessages.Add(canceledMessage);
+            await ChatLogger.LogMessageAsync(CurrentSessionId, canceledMessage);
         }
         catch (Exception exception)
         {
-            ChatMessages.Add(CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true));
+            var exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
+            ChatMessages.Add(exceptionMessage);
+            await ChatLogger.LogMessageAsync(CurrentSessionId, exceptionMessage);
         }
         finally
         {
