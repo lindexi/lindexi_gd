@@ -12,7 +12,24 @@
             <Setter Property="Margin" Value="6,0,0,0" />
             <Setter Property="MinWidth" Value="180" />
         </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="Background" Value="#FF5F5F5D" />
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="Background" Value="#FF5F5F5D" />
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FF2A2A2A" />
+            <Setter Property="Foreground" Value="#FF696969" />
+        </Style>
         <Style Selector="Button">
+            <Setter Property="Background" Value="#FF2A2A2A" />
+            <Setter Property="Foreground" Value="#FFD9D9D9" />
+            <Setter Property="BorderBrush" Value="#FF404040" />
+            <Setter Property="CornerRadius" Value="6" />
+
             <Setter Property="Margin" Value="6,0,0,0" />
             <Setter Property="Padding" Value="8,2" />
         </Style>
