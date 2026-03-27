@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 
 using AvaloniaAgentLib.Core;
+using AvaloniaAgentLib.Logging;
 using AvaloniaAgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
@@ -35,6 +36,7 @@ public partial class RightSlideBar : UserControl
             var agentApiConfiguration = appConfigurator.Of<AgentApiConfiguration>();
 
             CopilotViewModel copilotViewModel = CopilotSlideBar.ViewModel;
+            copilotViewModel.ChatLogger = new FileCopilotChatLogger(mainViewModel.AppPathManager.CopilotChatLogDirectory);
 
             const string endPointHelpText = "填充 OpenAI 兼容 API 的地址，如  https://ark.cn-beijing.volces.com/api/v3";
             const string keyHelpText = "请填充密码";
