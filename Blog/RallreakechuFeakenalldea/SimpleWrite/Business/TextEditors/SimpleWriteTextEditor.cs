@@ -25,8 +25,6 @@ namespace SimpleWrite.Business.TextEditors;
 /// </summary>
 internal sealed class SimpleWriteTextEditor : TextEditor
 {
-    private readonly MenuItem _sendSelectionToCopilotMenuItem;
-
     public SimpleWriteTextEditor()
     {
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
@@ -46,38 +44,60 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         DocumentHighlighter = new MarkdownDocumentHighlighter(this);
 
         ContextMenu = new ContextMenu();
-        ContextMenu.Items.Add(new MenuItem()
+        //ContextMenu.Items.Add(new MenuItem()
+        //{
+        //    Header = "复制"
+        //});
+
+        ContextMenu.Closed += (sender, args) =>
         {
-            Header = "复制"
-        });
-        _sendSelectionToCopilotMenuItem = new MenuItem()
-        {
-            Header = "发送选中内容到 Copilot 聊天"
+            // 每次都清理，等待下一次再重新加入内容
+            ContextMenu.Items.Clear();
         };
-        _sendSelectionToCopilotMenuItem.Click += SendSelectionToCopilotMenuItem_OnClick;
     }
 
     protected override void OnRaisePrepareContextMenuEvent(PrepareContextMenuEventArgs args)
     {
-        if (ContextMenu?.Items is { } menuItems && RequestSendSelectionToCopilot != null)
+        if (ContextMenu?.Items is { } menuItems && RequestSendTextToCopilot != null)
         {
-            if (!CurrentSelection.IsEmpty)
+            var selection = CurrentSelection;
+
+            if (!selection.IsEmpty)
             {
-                if (!menuItems.Contains(_sendSelectionToCopilotMenuItem))
+                var sendTextToCopilotMenuItem = new MenuItem()
                 {
-                    menuItems.Add(_sendSelectionToCopilotMenuItem);
-                }
+                    Header = "发送选中内容到 Copilot 聊天"
+                };
+                menuItems.Add(sendTextToCopilotMenuItem);
+                sendTextToCopilotMenuItem.Click += SendTextToCopilotMenuItemOnClick;
             }
-            else
+            else if (args.TryHitTest(out var result))
             {
-                menuItems.Remove(_sendSelectionToCopilotMenuItem);
+                var hitParagraphData = result.HitParagraphData;
+                if (hitParagraphData.IsEmptyParagraph)
+                {
+                    // 空段落啥都不干
+                }
+                else
+                {
+                    var sendTextToCopilotMenuItem = new MenuItem()
+                    {
+                        Header = "发送当前段落内容到 Copilot 聊天"
+                    };
+                    sendTextToCopilotMenuItem.Click += (sender, eventArgs) =>
+                    {
+                        var text = hitParagraphData.GetText();
+                        RequestSendTextToCopilot?.Invoke(this, text);
+                    };
+                    menuItems.Add(sendTextToCopilotMenuItem);
+                }
             }
         }
 
         base.OnRaisePrepareContextMenuEvent(args);
     }
 
-    private async void SendSelectionToCopilotMenuItem_OnClick(object? sender, EventArgs e)
+    private void SendTextToCopilotMenuItemOnClick(object? sender, EventArgs e)
     {
         var selection = CurrentSelection;
         if (selection.IsEmpty)
@@ -91,7 +111,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             return;
         }
 
-        RequestSendSelectionToCopilot?.Invoke(this, selectedText);
+        RequestSendTextToCopilot?.Invoke(this, selectedText);
     }
 
     //public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
@@ -123,7 +143,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     /// </summary>
     public required SnippetManager SnippetManager { get; init; }
 
-    public event EventHandler<string>? RequestSendSelectionToCopilot;
+    public event EventHandler<string>? RequestSendTextToCopilot;
 
     public IDocumentHighlighter DocumentHighlighter { get; private set; }
 

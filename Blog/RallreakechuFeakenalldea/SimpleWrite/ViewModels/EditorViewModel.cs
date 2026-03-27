@@ -177,7 +177,7 @@ public class EditorViewModel : ViewModelBase
             UpdateEditorModel(textEditor, editorModel);
         };
 
-        textEditor.RequestSendSelectionToCopilot += (sender, selectedText) =>
+        textEditor.RequestSendTextToCopilot += (sender, selectedText) =>
         {
             _ = MainViewModel.SendMessageToCopilotAsync(selectedText);
         };

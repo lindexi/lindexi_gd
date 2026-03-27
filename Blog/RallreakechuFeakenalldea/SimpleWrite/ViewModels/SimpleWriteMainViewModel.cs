@@ -68,7 +68,12 @@ public class SimpleWriteMainViewModel
 
     public Task SendMessageToCopilotAsync(string text)
     {
-       return CopilotHandler?.SendMessageToCopilotAsync(text) ?? Task.CompletedTask;
+        if (string.IsNullOrEmpty(text))
+        {
+            return Task.CompletedTask;
+        }
+
+        return CopilotHandler?.SendMessageToCopilotAsync(text) ?? Task.CompletedTask;
     }
 
     public ICopilotHandler? CopilotHandler { get; set; }
