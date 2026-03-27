@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="80"
+             x:Class="SimpleWrite.Views.Components.FindReplaceBar"
+             x:Name="RootFindReplaceBar"
+             x:DataType="viewModels:FindReplaceViewModel">
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="MinWidth" Value="180" />
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="Padding" Value="8,2" />
+        </Style>
+        <Style Selector="TextBlock.FindReplaceCaption">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.FindReplaceStatusTextBlock">
+            <Setter Property="Foreground" Value="#FFADADAD" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="12,0,0,0" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border x:Name="FindReplaceBorder"
+            IsVisible="{Binding IsPanelVisible}"
+            Background="#FF2E2E2E"
+            BorderBrush="#FF3D3D3D"
+            BorderThickness="0,0,0,1"
+            Padding="8,6">
+        <Grid RowDefinitions="Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+                <TextBlock Classes="FindReplaceCaption" Text="查找" />
+                <TextBox x:Name="FindTextBox"
+                         Grid.Column="1"
+                         Watermark="输入要查找的内容"
+                         Text="{Binding FindText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Button x:Name="FindPreviousButton"
+                        Grid.Column="2"
+                        IsEnabled="{Binding HasSearchText}"
+                        Click="FindPreviousButton_OnClick">上一个</Button>
+                <Button x:Name="FindNextButton"
+                        Grid.Column="3"
+                        IsEnabled="{Binding HasSearchText}"
+                        Click="FindNextButton_OnClick">下一个</Button>
+                <TextBlock x:Name="FindStatusTextBlock"
+                           Grid.Column="4"
+                           Classes="FindReplaceStatusTextBlock"
+                           Text="{Binding SearchStatusText}" />
+                <Button x:Name="CloseFindReplaceButton"
+                        Grid.Column="5"
+                        Click="CloseFindReplaceButton_OnClick">关闭</Button>
+            </Grid>
+
+            <Grid x:Name="ReplaceGrid"
+                  Grid.Row="1"
+                  Margin="0,6,0,0"
+                  IsVisible="{Binding IsReplaceMode}"
+                  ColumnDefinitions="Auto,*,Auto,Auto,*,0">
+                <TextBlock Classes="FindReplaceCaption" Text="替换" />
+                <TextBox x:Name="ReplaceTextBox"
+                         Grid.Column="1"
+                         Watermark="输入替换内容"
+                         Text="{Binding ReplaceText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Button x:Name="ReplaceCurrentButton"
+                        Grid.Column="2"
+                        IsEnabled="{Binding HasMatches}"
+                        Click="ReplaceCurrentButton_OnClick">替换</Button>
+                <Button x:Name="ReplaceAllButton"
+                        Grid.Column="3"
+                        IsEnabled="{Binding HasMatches}"
+                        Click="ReplaceAllButton_OnClick">全部替换</Button>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

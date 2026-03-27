@@ -12,10 +12,10 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
 {
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
-    //public FileCopilotChatLogger()
-    //    : this(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatLogs"))
-    //{
-    //}
+    public FileCopilotChatLogger()
+        : this(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatLogs"))
+    {
+    }
 
     public FileCopilotChatLogger(string chatLogFolder)
     {

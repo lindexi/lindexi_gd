@@ -14,11 +14,15 @@
 
     <components:SimpleWriteSideBar Width="200"/>
 
-    <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*,Auto">
+    <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto">
       <components:TabBar Grid.Row="0" Height="25"/>
       <components:MainEditorView x:Name="MainEditorView" Grid.Row="1"
                                  DataContext="{Binding Path=EditorViewModel}"/>
-      <components:StatusBar Grid.Row="2" Height="20" DataContext="{Binding Path=StatusViewModel}"/>
+      <Grid x:Name="FunctionalGrid" Grid.Row="2">
+          <components:FindReplaceBar x:Name="FindReplaceBar"
+                                     DataContext="{Binding Path=FindReplaceViewModel}"/>
+      </Grid>
+      <components:StatusBar Grid.Row="3" Height="20" DataContext="{Binding Path=StatusViewModel}"/>
     </Grid>
 
     <components:RightSlideBar Grid.Column="2" Width="300">

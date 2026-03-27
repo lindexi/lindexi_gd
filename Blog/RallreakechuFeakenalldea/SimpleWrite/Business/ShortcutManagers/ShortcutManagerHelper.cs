@@ -43,6 +43,16 @@ static class ShortcutManagerHelper
             viewModel.SwitchToNextDocument();
         });
 
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.F, "ShowFindPanel", () =>
+        {
+            viewModel.MainViewModel.FindReplaceViewModel.ShowFind();
+        });
+
+        shortcutManager.AddShortcut(KeyModifiers.Control, Key.H, "ShowReplacePanel", () =>
+        {
+            viewModel.MainViewModel.FindReplaceViewModel.ShowReplace();
+        });
+
         shortcutManager.AddShortcut(KeyModifiers.Control, Key.D, "SelectCurrentWord", context =>
         {
             var textEditor = context.CurrentTextEditor;
