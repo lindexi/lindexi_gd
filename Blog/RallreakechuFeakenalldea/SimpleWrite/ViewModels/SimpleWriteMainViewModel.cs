@@ -73,7 +73,7 @@ public class SimpleWriteMainViewModel
             return Task.CompletedTask;
         }
 
-        return CopilotHandler?.SendMessageToCopilotAsync(text) ?? Task.CompletedTask;
+        return CopilotHandler?.SendMessageToCopilotAsync(text, withHistory:false) ?? Task.CompletedTask;
     }
 
     public ICopilotHandler? CopilotHandler { get; set; }

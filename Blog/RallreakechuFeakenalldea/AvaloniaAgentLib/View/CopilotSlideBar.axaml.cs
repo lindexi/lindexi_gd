@@ -2,9 +2,11 @@ using System;
 using System.Collections.Specialized;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+
 using AvaloniaAgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
@@ -21,7 +23,7 @@ public partial class CopilotSlideBar : UserControl
         ViewModel.ChatMessages.CollectionChanged += ChatMessages_CollectionChanged;
     }
 
-    public CopilotViewModel ViewModel => (CopilotViewModel)DataContext!;
+    public CopilotViewModel ViewModel => (CopilotViewModel) DataContext!;
 
     private async void SendButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -65,7 +67,7 @@ public partial class CopilotSlideBar : UserControl
 
         try
         {
-            await ViewModel.SendMessageAsync(inputText, sendMessageCts.Token);
+            await ViewModel.SendMessageAsync(inputText, withHistory: true, sendMessageCts.Token);
             InputTextBox.Text = null;
             await ScrollToBottomAsync();
         }

@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.AI;
 
+using OpenAI.Chat;
+
 using System;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace AvaloniaAgentLib.Model;
 
@@ -65,5 +68,11 @@ public sealed class CopilotChatMessage: NotifyBase
         {
             IsPresetInfo = isPresetInfo
         };
+    }
+
+    public ChatMessage ToChatMessage()
+    {
+        var chatMessage = this;
+        return new ChatMessage(chatMessage.Role, chatMessage.Content);
     }
 }

@@ -12,6 +12,7 @@ public interface ICopilotHandler
     /// 发送消息到 Copilot 聊天
     /// </summary>
     /// <param name="text"></param>
+    /// <param name="withHistory"></param>
     /// <returns></returns>
-    Task SendMessageToCopilotAsync(string text);
+    Task SendMessageToCopilotAsync(string text, bool withHistory);
 }

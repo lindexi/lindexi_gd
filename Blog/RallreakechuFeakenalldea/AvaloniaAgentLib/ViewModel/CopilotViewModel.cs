@@ -59,7 +59,7 @@ public class CopilotViewModel : INotifyPropertyChanged
         AddAssistantWelcomeMessage();
     }
 
-    public async Task SendMessageAsync(string? inputText, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(inputText))
         {
@@ -72,7 +72,8 @@ public class CopilotViewModel : INotifyPropertyChanged
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            ChatMessages.Add(CopilotChatMessage.CreateUser(inputText));
+            var userCopilotChatMessage = CopilotChatMessage.CreateUser(inputText);
+            ChatMessages.Add(userCopilotChatMessage);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
@@ -83,12 +84,16 @@ public class CopilotViewModel : INotifyPropertyChanged
                 }
             });
 
-            ChatMessage[] messages =
+            ChatMessage[] messages = withHistory
+                ?
+                // 需要带历史的情况
                 [
                     ..ChatMessages
-                        .Where(chatMessage=>!chatMessage.IsPresetInfo)
-                        .Select(chatMessage => new ChatMessage(chatMessage.Role,chatMessage.Content)),
-                ];
+                        .Where(chatMessage => !chatMessage.IsPresetInfo)
+                        .Select(chatMessage => chatMessage.ToChatMessage()),
+                ]
+                // 无需历史的情况
+                : [userCopilotChatMessage.ToChatMessage()];
 
             var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             ChatMessages.Add(copilotChatMessage);
