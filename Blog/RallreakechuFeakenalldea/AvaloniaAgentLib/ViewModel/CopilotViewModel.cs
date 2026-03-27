@@ -19,10 +19,10 @@ namespace AvaloniaAgentLib.ViewModel;
 
 public class CopilotViewModel : INotifyPropertyChanged
 {
-    //public CopilotViewModel()
-    //    : this(new FileCopilotChatLogger())
-    //{
-    //}
+    public CopilotViewModel()
+        : this(new FileCopilotChatLogger())
+    {
+    }
 
     public CopilotViewModel(ICopilotChatLogger chatLogger)
     {

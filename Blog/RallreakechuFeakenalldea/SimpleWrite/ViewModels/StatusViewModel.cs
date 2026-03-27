@@ -14,6 +14,7 @@ public class StatusViewModel : ViewModelBase
         {
             _currentCaretInfoText = "光标: 9999, 段:100, 行:100,字符:0('v' 0x75)";
             _saveStatus = SaveStatus.Saving;
+            _findStatusText = "[查找: 5 项，第 2 项]";
         }
     }
 
@@ -46,8 +47,20 @@ public class StatusViewModel : ViewModelBase
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            return $"{savingText} {_currentCaretInfoText ?? string.Empty}";
+            var findStatusText = string.IsNullOrEmpty(_findStatusText) ? string.Empty : $" {_findStatusText}";
+            return $"{savingText}{findStatusText} {_currentCaretInfoText ?? string.Empty}";
         }
+    }
+
+    public void SetFindStatusText(string? findStatusText)
+    {
+        if (findStatusText == _findStatusText)
+        {
+            return;
+        }
+
+        _findStatusText = findStatusText;
+        OnPropertyChanged(nameof(StatusText));
     }
 
     public void SetCurrentCaretInfoText(string currentCaretInfoText)
@@ -62,4 +75,5 @@ public class StatusViewModel : ViewModelBase
     }
 
     private string? _currentCaretInfoText;
+    private string? _findStatusText;
 }

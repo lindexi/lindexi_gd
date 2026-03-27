@@ -1,6 +1,7 @@
 ﻿using SimpleWrite.Models;
 
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using AvaloniaAgentLib.ViewModel;
@@ -27,12 +28,19 @@ public class SimpleWriteMainViewModel
             MainViewModel = this,
         };
 
+        FindReplaceViewModel = new FindReplaceViewModel(EditorViewModel);
+
         EditorViewModel.EditorModelChanged += (sender, args) =>
         {
             AddSaveStatusChanged(EditorViewModel.CurrentEditorModel);
+            FindReplaceViewModel.RefreshCurrentEditor();
         };
 
+        FindReplaceViewModel.PropertyChanged += FindReplaceViewModelOnPropertyChanged;
+
         AddSaveStatusChanged(EditorViewModel.CurrentEditorModel);
+        FindReplaceViewModel.RefreshCurrentEditor();
+        StatusViewModel.SetFindStatusText(FindReplaceViewModel.SearchStatusText);
 
         void AddSaveStatusChanged(EditorModel editorModel)
         {
@@ -46,6 +54,14 @@ public class SimpleWriteMainViewModel
                 StatusViewModel.SaveStatus = editorModel.SaveStatus;
             }
         }
+
+        void FindReplaceViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FindReplaceViewModel.SearchStatusText))
+            {
+                StatusViewModel.SetFindStatusText(FindReplaceViewModel.SearchStatusText);
+            }
+        }
     }
 
     public AppPathManager AppPathManager { get; }
@@ -54,6 +70,7 @@ public class SimpleWriteMainViewModel
 
     public StatusViewModel StatusViewModel { get; }
     public EditorViewModel EditorViewModel { get; }
+    public FindReplaceViewModel FindReplaceViewModel { get; }
 
     /// <summary>
     /// 打开文件
