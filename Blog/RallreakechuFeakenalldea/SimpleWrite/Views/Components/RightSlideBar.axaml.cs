@@ -105,8 +105,8 @@ file class CopilotHandler(CopilotViewModel copilotViewModel) : ICopilotHandler
 {
     public CopilotViewModel CopilotViewModel { get; } = copilotViewModel;
 
-    public Task SendMessageToCopilotAsync(string text)
+    public Task SendMessageToCopilotAsync(string text, bool withHistory)
     {
-        return CopilotViewModel.SendMessageAsync(text);
+        return CopilotViewModel.SendMessageAsync(text, withHistory);
     }
 }
