@@ -4,9 +4,12 @@ using LightTextEditorPlus.Utils;
 
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Resources;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -159,12 +162,32 @@ public partial class TextEditorHandler
             return verticalCursor;
         }
 
+        // 采用 Application
+        // .GetResourceStream(new Uri(
+        //     verticalTextUrl,
+        //     UriKind.RelativeOrAbsolute)) 会提示找不到程序集
+        // Could not load file or assembly 'LightTextEditorPlus.Wpf, Culture=neutral, PublicKeyToken=null'. 系统找不到指定的文件。
+        // 因此优先采用扫描嵌入资源的方式来获取光标资源流
+
+        Assembly assembly = this.GetType().Assembly;
+        string[] manifestResourceNames = assembly.GetManifestResourceNames();
+        string? verticalCursorName = manifestResourceNames.FirstOrDefault(t=>t.EndsWith(".Cursors.VerticalText.cur",StringComparison.OrdinalIgnoreCase));
+        if (verticalCursorName is not null)
+        {
+            Stream? manifestResourceStream = assembly.GetManifestResourceStream(verticalCursorName);
+            if (manifestResourceStream is not null)
+            {
+                verticalCursor = new Cursor(manifestResourceStream);
+                return verticalCursor;
+            }
+        }
+
         const string url = "pack://application:,,,/LightTextEditorPlus.Wpf;component/Resources/Cursors/";
         const string verticalTextUrl = url + "VerticalText.cur";
-        verticalCursor = new Cursor(Application
-            .GetResourceStream(new Uri(
-                verticalTextUrl,
-                UriKind.RelativeOrAbsolute))!.Stream);
+        Uri verticalCursorUri = new Uri(verticalTextUrl, UriKind.RelativeOrAbsolute);
+        StreamResourceInfo verticalCursorResourceInfo = Application
+            .GetResourceStream(verticalCursorUri)!;
+        verticalCursor = new Cursor(verticalCursorResourceInfo.Stream);
         return verticalCursor;
     }
 
