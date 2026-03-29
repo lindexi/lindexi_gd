@@ -85,13 +85,13 @@
                         <TextBlock Classes="SecondaryText" Text="与 Copilot 对话" />
                     </StackPanel>
                     <Button Grid.Column="1"
-                            Classes="SimpleWriteInteractiveButton SimpleWriteSecondaryButton"
+                            Classes="InteractiveButton SecondaryButton"
                             VerticalAlignment="Center"
                             IsEnabled="{Binding CanEditInput}"
                             Click="ClearButton_OnClick"
                             Content="清空" />
                     <Button x:Name="SettingButton" Grid.Column="2"
-                            Classes="SimpleWriteInteractiveButton SimpleWriteSecondaryButton"
+                            Classes="InteractiveButton SecondaryButton"
                             Margin="2,0,0,0"
                             VerticalAlignment="Center"
                             Content="设置" 
@@ -115,7 +115,7 @@
                              KeyDown="InputTextBox_OnKeyDown" />
                     <Button Grid.Row="1"
                             Grid.Column="1"
-                            Classes="SimpleWriteInteractiveButton SimpleWritePrimaryButton"
+                            Classes="InteractiveButton PrimaryButton"
                             x:Name="SendButton"
                             Content="{Binding SendButtonText}"
                             Click="SendButton_OnClick"
