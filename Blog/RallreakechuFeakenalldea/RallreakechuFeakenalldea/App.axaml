@@ -6,5 +6,6 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml" />
     </Application.Styles>
 </Application>

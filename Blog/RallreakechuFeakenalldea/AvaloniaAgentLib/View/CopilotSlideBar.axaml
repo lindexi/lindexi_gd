@@ -65,28 +65,6 @@
             <Setter Property="Foreground" Value="#FF9F9F9F" />
             <Setter Property="FontSize" Value="12" />
         </Style>
-        <Style Selector="Button.PrimaryButton">
-            <Setter Property="Background" Value="#FF2F6FED" />
-            <Setter Property="Foreground" Value="#FFFFFFFF" />
-            <Setter Property="BorderBrush" Value="#FF2F6FED" />
-            <Setter Property="Padding" Value="14,6" />
-            <Setter Property="CornerRadius" Value="6" />
-        </Style>
-        <Style Selector="Button:pressed /template/ ContentPresenter">
-            <Setter Property="Foreground" Value="#FFFFFFFF" />
-            <Setter Property="Background" Value="#FF5F5F5D" />
-        </Style>
-        <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Foreground" Value="#FFFFFFFF" />
-            <Setter Property="Background" Value="#FF5F5F5D" />
-        </Style>
-        <Style Selector="Button.SecondaryButton">
-            <Setter Property="Background" Value="#FF2A2A2A" />
-            <Setter Property="Foreground" Value="#FFD9D9D9" />
-            <Setter Property="BorderBrush" Value="#FF404040" />
-            <Setter Property="Padding" Value="10,6" />
-            <Setter Property="CornerRadius" Value="6" />
-        </Style>
         <Style Selector="TextBox.MessageInputTextBox">
             <Setter Property="Background" Value="#FF222222" />
             <Setter Property="Foreground" Value="#FF5F5F5F" />
@@ -107,13 +85,13 @@
                         <TextBlock Classes="SecondaryText" Text="与 Copilot 对话" />
                     </StackPanel>
                     <Button Grid.Column="1"
-                            Classes="SecondaryButton"
+                            Classes="SimpleWriteInteractiveButton SimpleWriteSecondaryButton"
                             VerticalAlignment="Center"
                             IsEnabled="{Binding CanEditInput}"
                             Click="ClearButton_OnClick"
                             Content="清空" />
                     <Button x:Name="SettingButton" Grid.Column="2"
-                            Classes="SecondaryButton"
+                            Classes="SimpleWriteInteractiveButton SimpleWriteSecondaryButton"
                             Margin="2,0,0,0"
                             VerticalAlignment="Center"
                             Content="设置" 
@@ -137,7 +115,7 @@
                              KeyDown="InputTextBox_OnKeyDown" />
                     <Button Grid.Row="1"
                             Grid.Column="1"
-                            Classes="PrimaryButton"
+                            Classes="SimpleWriteInteractiveButton SimpleWritePrimaryButton"
                             x:Name="SendButton"
                             Content="{Binding SendButtonText}"
                             Click="SendButton_OnClick"

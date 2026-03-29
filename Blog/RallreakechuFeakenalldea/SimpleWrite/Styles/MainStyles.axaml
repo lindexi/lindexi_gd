@@ -1,0 +1,3 @@
+<Styles xmlns="https://github.com/avaloniaui">
+    <StyleInclude Source="./ButtonStyles.axaml" />
+</Styles>
