@@ -2,20 +2,20 @@
     <Design.PreviewWith>
         <Button>The Button</Button>
     </Design.PreviewWith>
-    <Style Selector="Button.SimpleWriteInteractiveButton:pointerover /template/ ContentPresenter">
+    <Style Selector="Button.InteractiveButton:pointerover /template/ ContentPresenter">
         <Setter Property="Foreground" Value="#FFFFFFFF" />
         <Setter Property="Background" Value="#FF5F5F5D" />
     </Style>
-    <Style Selector="Button.SimpleWriteInteractiveButton:pressed /template/ ContentPresenter">
+    <Style Selector="Button.InteractiveButton:pressed /template/ ContentPresenter">
         <Setter Property="Foreground" Value="#FFFFFFFF" />
         <Setter Property="Background" Value="#FF5F5F5D" />
     </Style>
-    <Style Selector="Button.SimpleWriteInteractiveButton:disabled /template/ ContentPresenter">
+    <Style Selector="Button.InteractiveButton:disabled /template/ ContentPresenter">
         <Setter Property="Background" Value="#FF2A2A2A" />
         <Setter Property="Foreground" Value="#FF696969" />
     </Style>
 
-    <Style Selector="Button.SimpleWriteSecondaryButton">
+    <Style Selector="Button.SecondaryButton">
         <Setter Property="Background" Value="#FF2A2A2A" />
         <Setter Property="Foreground" Value="#FFD9D9D9" />
         <Setter Property="BorderBrush" Value="#FF404040" />
@@ -23,7 +23,7 @@
         <Setter Property="CornerRadius" Value="6" />
     </Style>
 
-    <Style Selector="Button.SimpleWriteFindReplaceButton">
+    <Style Selector="Button.FindReplaceButton">
         <Setter Property="Background" Value="#FF2A2A2A" />
         <Setter Property="Foreground" Value="#FFD9D9D9" />
         <Setter Property="BorderBrush" Value="#FF404040" />
@@ -32,7 +32,7 @@
         <Setter Property="Padding" Value="8,2" />
     </Style>
 
-    <Style Selector="Button.SimpleWritePrimaryButton">
+    <Style Selector="Button.PrimaryButton">
         <Setter Property="Background" Value="#FF2F6FED" />
         <Setter Property="Foreground" Value="#FFFFFFFF" />
         <Setter Property="BorderBrush" Value="#FF2F6FED" />

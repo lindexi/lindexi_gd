@@ -38,12 +38,12 @@
                          Text="{Binding FindText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 <Button x:Name="FindPreviousButton"
                         Grid.Column="2"
-                        Classes="SimpleWriteInteractiveButton SimpleWriteFindReplaceButton"
+                        Classes="InteractiveButton FindReplaceButton"
                         IsEnabled="{Binding HasSearchText}"
                         Click="FindPreviousButton_OnClick">上一个</Button>
                 <Button x:Name="FindNextButton"
                         Grid.Column="3"
-                        Classes="SimpleWriteInteractiveButton SimpleWriteFindReplaceButton"
+                        Classes="InteractiveButton FindReplaceButton"
                         IsEnabled="{Binding HasSearchText}"
                         Click="FindNextButton_OnClick">下一个</Button>
                 <TextBlock x:Name="FindStatusTextBlock"
@@ -52,7 +52,7 @@
                            Text="{Binding SearchStatusText}" />
                 <Button x:Name="CloseFindReplaceButton"
                         Grid.Column="5"
-                        Classes="SimpleWriteInteractiveButton SimpleWriteFindReplaceButton"
+                        Classes="InteractiveButton FindReplaceButton"
                         Click="CloseFindReplaceButton_OnClick">关闭</Button>
             </Grid>
 
@@ -68,12 +68,12 @@
                          Text="{Binding ReplaceText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 <Button x:Name="ReplaceCurrentButton"
                         Grid.Column="2"
-                        Classes="SimpleWriteInteractiveButton SimpleWriteFindReplaceButton"
+                        Classes="InteractiveButton FindReplaceButton"
                         IsEnabled="{Binding HasMatches}"
                         Click="ReplaceCurrentButton_OnClick">替换</Button>
                 <Button x:Name="ReplaceAllButton"
                         Grid.Column="3"
-                        Classes="SimpleWriteInteractiveButton SimpleWriteFindReplaceButton"
+                        Classes="InteractiveButton FindReplaceButton"
                         IsEnabled="{Binding HasMatches}"
                         Click="ReplaceAllButton_OnClick">全部替换</Button>
             </Grid>
