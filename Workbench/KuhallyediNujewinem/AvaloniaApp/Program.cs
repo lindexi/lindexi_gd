@@ -1,8 +1,11 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Threading;
+using Avalonia.Media;
 
 namespace AvaloniaApp;
 
@@ -28,6 +31,8 @@ class Program
         //    }
         //});
 
+        LinuxDockerEnvironmentHelper.EnsureX11Ready();
+
         IsStarted = true;
 
         //Task.Run(async () =>
@@ -48,5 +53,14 @@ class Program
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace();
+            .LogToTrace()
+            .With(new FontManagerOptions()
+            {
+                DefaultFamilyName = "Noto Sans CJK SC",
+                FontFallbacks =
+                [
+                    new FontFallback { FontFamily = "文泉驿正黑" },
+                    new FontFallback { FontFamily = "DejaVu Sans" },
+                ],
+            });
 }
