@@ -11,6 +11,9 @@
     <UserControl.DataContext>
         <viewModel:CopilotViewModel/>
     </UserControl.DataContext>
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
+    </Design.DesignStyle>
     <UserControl.Resources>
         <DataTemplate x:Key="UserMessageTemplate" x:DataType="model:CopilotChatMessage">
             <StackPanel HorizontalAlignment="Right" Margin="0,0,0,10" MaxWidth="250">
