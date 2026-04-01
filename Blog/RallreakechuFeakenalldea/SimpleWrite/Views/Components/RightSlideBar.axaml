@@ -4,6 +4,45 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:view="clr-namespace:AvaloniaAgentLib.View;assembly=AvaloniaAgentLib"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.Components.RightSlideBar">
-    <view:CopilotSlideBar x:Name="CopilotSlideBar"/>
+             x:Class="SimpleWrite.Views.Components.RightSlideBar"
+             MinWidth="40"
+             ClipToBounds="True">
+    <UserControl.Transitions>
+        <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.18" />
+        </Transitions>
+    </UserControl.Transitions>
+
+    <Grid ColumnDefinitions="Auto,*">
+        <Border Grid.Column="0"
+                Background="#FF141414"
+                BorderThickness="1,0,0,0"
+                BorderBrush="#FF3B3B3B">
+            <Button x:Name="ToggleSidebarButton"
+                    Classes="InteractiveButton SecondaryButton"
+                    Width="32"
+                    Height="84"
+                    Margin="4,12,4,12"
+                    Padding="0"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center"
+                    Click="ToggleSidebarButton_OnClick">
+                <StackPanel Spacing="4"
+                            HorizontalAlignment="Center">
+                    <TextBlock x:Name="ToggleChevronTextBlock"
+                               Text="❯"
+                               FontSize="14"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="AI"
+                               FontSize="11"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </Border>
+
+        <Border x:Name="SidebarContentHost"
+                Grid.Column="1">
+            <view:CopilotSlideBar x:Name="CopilotSlideBar" />
+        </Border>
+    </Grid>
 </UserControl>

@@ -17,14 +17,38 @@ namespace SimpleWrite.Views.Components;
 
 public partial class RightSlideBar : UserControl
 {
+    private const double DefaultExpandedWidth = 300;
+    private const double CollapsedWidth = 40;
+
+    private bool _isExpanded = true;
+    private bool _isInitialized;
+    private double _expandedWidth = DefaultExpandedWidth;
+
     public RightSlideBar()
     {
         InitializeComponent();
 
         DataContextChanged += OnDataContextChanged;
+        Loaded += OnLoaded;
     }
 
     public SimpleWriteMainViewModel MainViewModel => (SimpleWriteMainViewModel) DataContext!;
+
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        if (!double.IsNaN(Width) && Width > CollapsedWidth)
+        {
+            _expandedWidth = Width;
+        }
+
+        ApplySidebarState(isExpanded: true, storeCurrentWidth: false);
+        _isInitialized = true;
+    }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
@@ -100,6 +124,26 @@ public partial class RightSlideBar : UserControl
     {
         var applicationConfigurationFile = MainViewModel.AppPathManager.ApplicationConfigurationFile;
         _ = MainViewModel.OpenFileAsync(applicationConfigurationFile);
+    }
+
+    private void ToggleSidebarButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        ApplySidebarState(!_isExpanded);
+    }
+
+    private void ApplySidebarState(bool isExpanded, bool storeCurrentWidth = true)
+    {
+        if (!isExpanded && storeCurrentWidth && !double.IsNaN(Width) && Width > CollapsedWidth)
+        {
+            _expandedWidth = Width;
+        }
+
+        _isExpanded = isExpanded;
+
+        SidebarContentHost.IsVisible = isExpanded;
+        Width = isExpanded ? _expandedWidth : CollapsedWidth;
+        ToggleChevronTextBlock.Text = isExpanded ? "❯" : "❮";
+        ToolTip.SetTip(ToggleSidebarButton, isExpanded ? "收起 Copilot 侧边栏" : "展开 Copilot 侧边栏");
     }
 }
 
