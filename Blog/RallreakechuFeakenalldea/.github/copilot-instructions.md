@@ -132,6 +132,10 @@ var textEditor = TextEditorInfo.GetTextEditorInfo(this).CurrentTextEditor;
   - 避免动态代码生成（`Emit`、`Expression.Compile` 需评估 AOT 支持情况）。
   - Avalonia 编译绑定已默认开启（`AvaloniaUseCompiledBindingsByDefault`），AXAML 绑定需确保类型可在编译期解析。
 
+### XAML 控件访问
+
+- 在 SimpleWrite/Avalonia 代码库中，命名的 XAML 控件必须通过其生成的 `x:Name` 字段直接访问，不要在已声明 `x:Name` 的情况下使用 `FindControl` 辅助属性。
+
 ---
 
 ## 扩展点
