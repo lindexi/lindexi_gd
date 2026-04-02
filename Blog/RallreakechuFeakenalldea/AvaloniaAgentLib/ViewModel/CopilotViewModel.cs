@@ -32,7 +32,7 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     public AgentApiEndpointManager AgentApiEndpointManager { get; } = new();
 
-    public ObservableCollection<CopilotChatSession> ChatSessions { get; } = [new CopilotChatSession()];
+    public ObservableCollection<CopilotChatSession> ChatSessions { get; } = [];
 
     public ObservableCollection<CopilotChatMessage> ChatMessages => SelectedSession.ChatMessages;
 

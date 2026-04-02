@@ -87,13 +87,8 @@
         <Grid RowDefinitions="Auto,*,Auto">
             <Border Classes="CardBorder" Margin="10,0,10,6"
                     Padding="12,2,12,0">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
-                    <StackPanel Spacing="2" IsVisible="False">
-                        <TextBlock Classes="HeaderTitle" Text="Copilot Chat" />
-                        <TextBlock Classes="SecondaryText" Text="与 Copilot 对话" />
-                    </StackPanel>
-                    <ComboBox Grid.Column="1"
-                              MinWidth="130"
+                <StackPanel>
+                    <ComboBox MinWidth="130"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Center"
                               IsEnabled="{Binding CanEditInput}"
@@ -101,19 +96,20 @@
                               SelectedItem="{Binding SelectedSession}"
                               ItemTemplate="{StaticResource SessionTemplate}"
                               SelectionChanged="SessionSelector_OnSelectionChanged" />
-                    <Button Grid.Column="2"
-                            Classes="InteractiveButton SecondaryButton"
+                    <StackPanel Margin="0,5,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Classes="InteractiveButton SecondaryButton"
                             VerticalAlignment="Center"
                             IsEnabled="{Binding CanEditInput}"
                             Click="NewSessionButton_OnClick"
                             Content="新建会话" />
-                    <Button x:Name="SettingButton" Grid.Column="3"
-                            Classes="InteractiveButton SecondaryButton"
-                            Margin="2,0,0,0"
-                            VerticalAlignment="Center"
-                            Content="设置" 
-                            Click="SettingButton_OnClick"/>
-                </Grid>
+                        <Button x:Name="SettingButton"
+                                Classes="InteractiveButton SecondaryButton"
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                Content="设置"
+                                Click="SettingButton_OnClick" />
+                    </StackPanel>
+                </StackPanel>
             </Border>
 
             <Border Grid.Row="1" Classes="CardBorder" Margin="10,0,10,6" Padding="8">
