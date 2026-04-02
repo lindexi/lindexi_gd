@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -14,16 +16,37 @@ namespace AvaloniaAgentLib.View;
 
 public partial class CopilotSlideBar : UserControl
 {
+    public static readonly StyledProperty<string?> ChatLogFolderProperty =
+        AvaloniaProperty.Register<CopilotSlideBar, string?>(nameof(ChatLogFolder));
+
     private CancellationTokenSource? _sendMessageCts;
+    private INotifyCollectionChanged? _currentChatMessages;
 
     public CopilotSlideBar()
     {
         InitializeComponent();
 
-        ViewModel.ChatMessages.CollectionChanged += ChatMessages_CollectionChanged;
+        ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+        SubscribeChatMessages(ViewModel.ChatMessages);
     }
 
     public CopilotViewModel ViewModel => (CopilotViewModel) DataContext!;
+
+    public string? ChatLogFolder
+    {
+        get => GetValue(ChatLogFolderProperty);
+        set => SetValue(ChatLogFolderProperty, value);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == ChatLogFolderProperty)
+        {
+            ViewModel.SetChatLogFolder(ChatLogFolder);
+        }
+    }
 
     private async void SendButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -89,14 +112,43 @@ public partial class CopilotSlideBar : UserControl
         }
     }
 
-    private void ClearButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    private void NewSessionButton_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ViewModel.Clear();
+        ViewModel.CreateNewSession();
+        InputTextBox.Text = null;
+        _ = ScrollToBottomAsync();
     }
 
     private void ChatMessages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         _ = ScrollToBottomAsync();
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(CopilotViewModel.ChatMessages))
+        {
+            return;
+        }
+
+        SubscribeChatMessages(ViewModel.ChatMessages);
+        _ = ScrollToBottomAsync();
+    }
+
+    private void SubscribeChatMessages(INotifyCollectionChanged chatMessages)
+    {
+        if (ReferenceEquals(_currentChatMessages, chatMessages))
+        {
+            return;
+        }
+
+        if (_currentChatMessages is not null)
+        {
+            _currentChatMessages.CollectionChanged -= ChatMessages_CollectionChanged;
+        }
+
+        _currentChatMessages = chatMessages;
+        _currentChatMessages.CollectionChanged += ChatMessages_CollectionChanged;
     }
 
     private async Task ScrollToBottomAsync()
@@ -139,5 +191,10 @@ public partial class CopilotSlideBar : UserControl
     private void SettingButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ViewModel.OpenSetting();
+    }
+
+    private void SessionSelector_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        _ = ScrollToBottomAsync();
     }
 }

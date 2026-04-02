@@ -1,6 +1,7 @@
 using AvaloniaAgentLib.Model;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -11,6 +12,7 @@ namespace AvaloniaAgentLib.Logging;
 public sealed class FileCopilotChatLogger : ICopilotChatLogger
 {
     private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly Dictionary<Guid, string> _sessionLogFilePathMap = [];
 
     public FileCopilotChatLogger()
         : this(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatLogs"))
@@ -35,9 +37,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         await _writeLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            Directory.CreateDirectory(ChatLogFolder);
-
-            string logFilePath = Path.Join(ChatLogFolder, $"{sessionId:N}.log");
+            string logFilePath = GetSessionLogFilePath(sessionId, chatMessage.CreatedTime);
             bool isNewFile = !File.Exists(logFilePath);
 
             var builder = new StringBuilder();
@@ -60,5 +60,20 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         {
             _writeLock.Release();
         }
+    }
+
+    private string GetSessionLogFilePath(Guid sessionId, DateTimeOffset createdTime)
+    {
+        if (_sessionLogFilePathMap.TryGetValue(sessionId, out string? logFilePath))
+        {
+            return logFilePath;
+        }
+
+        string dayFolderPath = Path.Join(ChatLogFolder, createdTime.ToString("yyyyMMdd"));
+        Directory.CreateDirectory(dayFolderPath);
+
+        logFilePath = Path.Join(dayFolderPath, $"{createdTime:yyyyMMdd_HHmmss}_{sessionId:N}.log");
+        _sessionLogFilePathMap[sessionId] = logFilePath;
+        return logFilePath;
     }
 }
