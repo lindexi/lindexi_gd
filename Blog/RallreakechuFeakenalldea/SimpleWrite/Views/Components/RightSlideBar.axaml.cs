@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Animation;
 using Avalonia.Interactivity;
+using Avalonia.Input;
 
 using AvaloniaAgentLib.Core;
 using AvaloniaAgentLib.Logging;
@@ -19,14 +21,20 @@ public partial class RightSlideBar : UserControl
 {
     private const double DefaultExpandedWidth = 300;
     private const double CollapsedWidth = 40;
+    private const double MinimumExpandedWidth = 160;
 
     private bool _isExpanded = true;
     private bool _isInitialized;
+    private bool _isResizing;
     private double _expandedWidth = DefaultExpandedWidth;
+    private double _resizeStartPointerX;
+    private double _resizeStartWidth;
+    private Transitions? _widthTransitions;
 
     public RightSlideBar()
     {
         InitializeComponent();
+        _widthTransitions = Transitions;
 
         DataContextChanged += OnDataContextChanged;
         Loaded += OnLoaded;
@@ -131,6 +139,60 @@ public partial class RightSlideBar : UserControl
         ApplySidebarState(!_isExpanded);
     }
 
+    private void ResizeHandleBorder_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!_isExpanded || sender is not Control resizeHandle || e.GetCurrentPoint(resizeHandle).Properties.IsLeftButtonPressed == false)
+        {
+            return;
+        }
+
+        _isResizing = true;
+        _resizeStartPointerX = GetPointerX(e);
+        _resizeStartWidth = Width;
+        _widthTransitions ??= this.Transitions;
+        Transitions = null;
+
+        e.Pointer.Capture(resizeHandle);
+        e.Handled = true;
+    }
+
+    private void ResizeHandleBorder_OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_isResizing)
+        {
+            return;
+        }
+
+        double currentPointerX = GetPointerX(e);
+        double deltaX = currentPointerX - _resizeStartPointerX;
+        double newWidth = Math.Max(MinimumExpandedWidth, _resizeStartWidth - deltaX);
+
+        Width = newWidth;
+        _expandedWidth = newWidth;
+        e.Handled = true;
+    }
+
+    private void ResizeHandleBorder_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isResizing)
+        {
+            return;
+        }
+
+        EndResize(e.Pointer);
+        e.Handled = true;
+    }
+
+    private void ResizeHandleBorder_OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        if (!_isResizing)
+        {
+            return;
+        }
+
+        EndResize(pointer: null);
+    }
+
     private void ApplySidebarState(bool isExpanded, bool storeCurrentWidth = true)
     {
         if (!isExpanded && storeCurrentWidth && !double.IsNaN(Width) && Width > CollapsedWidth)
@@ -144,6 +206,19 @@ public partial class RightSlideBar : UserControl
         Width = isExpanded ? _expandedWidth : CollapsedWidth;
         ToggleChevronTextBlock.Text = isExpanded ? "❯" : "❮";
         ToolTip.SetTip(ToggleSidebarButton, isExpanded ? "收起 Copilot 侧边栏" : "展开 Copilot 侧边栏");
+    }
+
+    private void EndResize(IPointer? pointer)
+    {
+        _isResizing = false;
+        pointer?.Capture(null);
+        Transitions = _widthTransitions;
+    }
+
+    private double GetPointerX(PointerEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        return topLevel is null ? e.GetPosition(this).X : e.GetPosition(topLevel).X;
     }
 }
 
