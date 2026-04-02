@@ -15,6 +15,10 @@
         <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
     </Design.DesignStyle>
     <UserControl.Resources>
+        <DataTemplate x:Key="SessionTemplate" x:DataType="model:CopilotChatSession">
+            <TextBlock Text="{Binding DisplayText}" />
+        </DataTemplate>
+
         <DataTemplate x:Key="UserMessageTemplate" x:DataType="model:CopilotChatMessage">
             <StackPanel HorizontalAlignment="Right" Margin="0,0,0,10" >
                 <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" HorizontalAlignment="Right" />
@@ -83,24 +87,29 @@
         <Grid RowDefinitions="Auto,*,Auto">
             <Border Classes="CardBorder" Margin="10,0,10,6"
                     Padding="12,2,12,0">
-                <Grid ColumnDefinitions="*,Auto,Auto">
-                    <StackPanel Spacing="2">
-                        <TextBlock Classes="HeaderTitle" Text="Copilot Chat" />
-                        <TextBlock Classes="SecondaryText" Text="与 Copilot 对话" />
-                    </StackPanel>
-                    <Button Grid.Column="1"
-                            Classes="InteractiveButton SecondaryButton"
+                <StackPanel>
+                    <ComboBox MinWidth="130"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              IsEnabled="{Binding CanEditInput}"
+                              ItemsSource="{Binding ChatSessions}"
+                              SelectedItem="{Binding SelectedSession}"
+                              ItemTemplate="{StaticResource SessionTemplate}"
+                              SelectionChanged="SessionSelector_OnSelectionChanged" />
+                    <StackPanel Margin="0,5,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Classes="InteractiveButton SecondaryButton"
                             VerticalAlignment="Center"
                             IsEnabled="{Binding CanEditInput}"
-                            Click="ClearButton_OnClick"
-                            Content="清空" />
-                    <Button x:Name="SettingButton" Grid.Column="2"
-                            Classes="InteractiveButton SecondaryButton"
-                            Margin="2,0,0,0"
-                            VerticalAlignment="Center"
-                            Content="设置" 
-                            Click="SettingButton_OnClick"/>
-                </Grid>
+                            Click="NewSessionButton_OnClick"
+                            Content="新建会话" />
+                        <Button x:Name="SettingButton"
+                                Classes="InteractiveButton SecondaryButton"
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                Content="设置"
+                                Click="SettingButton_OnClick" />
+                    </StackPanel>
+                </StackPanel>
             </Border>
 
             <Border Grid.Row="1" Classes="CardBorder" Margin="10,0,10,6" Padding="8">

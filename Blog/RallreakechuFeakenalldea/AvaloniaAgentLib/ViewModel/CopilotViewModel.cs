@@ -27,12 +27,14 @@ public class CopilotViewModel : INotifyPropertyChanged
     public CopilotViewModel(ICopilotChatLogger chatLogger)
     {
         ChatLogger = chatLogger;
-        AddAssistantWelcomeMessage();
+        CreateNewSession();
     }
 
     public AgentApiEndpointManager AgentApiEndpointManager { get; } = new();
 
-    public ObservableCollection<CopilotChatMessage> ChatMessages { get; } = [];
+    public ObservableCollection<CopilotChatSession> ChatSessions { get; } = [];
+
+    public ObservableCollection<CopilotChatMessage> ChatMessages => SelectedSession.ChatMessages;
 
     public ICopilotChatLogger ChatLogger
     {
@@ -62,6 +64,7 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     private bool _isChatting;
     private ICopilotChatLogger _chatLogger = null!;
+    private CopilotChatSession _selectedSession = null!;
 
     /// <summary>
     /// 能否编辑输入
@@ -70,14 +73,39 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     public string SendButtonText => IsChatting ? "停止" : "发送";
 
-    public void Clear()
+    public CopilotChatSession SelectedSession
     {
-        ChatMessages.Clear();
-        AddAssistantWelcomeMessage();
-        CurrentSessionId = Guid.NewGuid();
+        get => _selectedSession;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+
+            if (!SetField(ref _selectedSession, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(ChatMessages));
+            OnPropertyChanged(nameof(CurrentSessionId));
+        }
     }
 
-    public Guid CurrentSessionId { get; private set; } = Guid.NewGuid();
+    public Guid CurrentSessionId => SelectedSession.SessionId;
+
+    public void CreateNewSession()
+    {
+        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        AddAssistantWelcomeMessage(session);
+        ChatSessions.Insert(0, session);
+        SelectedSession = session;
+    }
+
+    public void SetChatLogFolder(string? chatLogFolder)
+    {
+        ChatLogger = string.IsNullOrWhiteSpace(chatLogFolder)
+            ? new FileCopilotChatLogger()
+            : new FileCopilotChatLogger(chatLogFolder);
+    }
 
     public async Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
     {
@@ -86,6 +114,7 @@ public class CopilotViewModel : INotifyPropertyChanged
             return;
         }
 
+        CopilotChatSession currentSession = SelectedSession;
         IsChatting = true;
 
         try
@@ -93,8 +122,8 @@ public class CopilotViewModel : INotifyPropertyChanged
             cancellationToken.ThrowIfCancellationRequested();
 
             var userChatMessage = CopilotChatMessage.CreateUser(inputText);
-            ChatMessages.Add(userChatMessage);
-            await ChatLogger.LogMessageAsync(CurrentSessionId, userChatMessage);
+            currentSession.AddMessage(userChatMessage);
+            await ChatLogger.LogMessageAsync(currentSession.SessionId, userChatMessage);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
@@ -109,7 +138,7 @@ public class CopilotViewModel : INotifyPropertyChanged
                 ?
                 // 需要带历史的情况
                 [
-                    ..ChatMessages
+                    ..currentSession.ChatMessages
                         .Where(chatMessage => !chatMessage.IsPresetInfo)
                         .Select(chatMessage => chatMessage.ToChatMessage()),
                 ]
@@ -117,7 +146,7 @@ public class CopilotViewModel : INotifyPropertyChanged
                 : [userChatMessage.ToChatMessage()];
 
             var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
-            ChatMessages.Add(copilotChatMessage);
+            currentSession.AddMessage(copilotChatMessage);
             bool isFirst = true;
 
             await foreach (var agentRunResponseUpdate in chatClientAgent.RunReasoningStreamingAsync(messages, cancellationToken: cancellationToken))
@@ -169,19 +198,19 @@ public class CopilotViewModel : INotifyPropertyChanged
                 }
             }
 
-            await ChatLogger.LogMessageAsync(CurrentSessionId, copilotChatMessage);
+            await ChatLogger.LogMessageAsync(currentSession.SessionId, copilotChatMessage);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             var canceledMessage = CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true);
-            ChatMessages.Add(canceledMessage);
-            await ChatLogger.LogMessageAsync(CurrentSessionId, canceledMessage);
+            currentSession.AddMessage(canceledMessage);
+            await ChatLogger.LogMessageAsync(currentSession.SessionId, canceledMessage);
         }
         catch (Exception exception)
         {
             var exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
-            ChatMessages.Add(exceptionMessage);
-            await ChatLogger.LogMessageAsync(CurrentSessionId, exceptionMessage);
+            currentSession.AddMessage(exceptionMessage);
+            await ChatLogger.LogMessageAsync(currentSession.SessionId, exceptionMessage);
         }
         finally
         {
@@ -189,9 +218,9 @@ public class CopilotViewModel : INotifyPropertyChanged
         }
     }
 
-    private void AddAssistantWelcomeMessage()
+    private static void AddAssistantWelcomeMessage(CopilotChatSession session)
     {
-        ChatMessages.Add(CopilotChatMessage.CreateAssistant("你好，我是 Copilot。请开始输入你的问题。", isPresetInfo: true));
+        session.AddMessage(CopilotChatMessage.CreateAssistant("你好，我是 Copilot。请开始输入你的问题。", isPresetInfo: true));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
