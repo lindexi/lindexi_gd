@@ -25,14 +25,16 @@
         <Border x:Name="SidebarContentHost"
                 BorderThickness="0,0,1,0"
                 BorderBrush="{StaticResource Brush.Border.Subtle}">
-            <Grid RowDefinitions="Auto,Auto,*"
+            <Grid RowDefinitions="*,Auto,Auto"
                   Margin="8">
                 <Button x:Name="OpenFolderButton"
+                        Grid.Row="1"
                         Classes="InteractiveButton SecondaryButton"
                         HorizontalAlignment="Stretch"
+                        IsVisible="{Binding IsEmptyStateVisible}"
                         Click="OpenFolderButton_OnClick">打开文件夹</Button>
 
-                <StackPanel Grid.Row="1"
+                <StackPanel Grid.Row="2"
                             Margin="0,8,0,8"
                             Spacing="6">
                     <TextBlock x:Name="CurrentFolderCaptionTextBlock"
@@ -57,7 +59,7 @@
                 </StackPanel>
 
                 <TreeView x:Name="FolderTreeView"
-                          Grid.Row="2"
+                          Grid.Row="0"
                           Classes="LightTreeView"
                           Foreground="{StaticResource Brush.Foreground.Secondary}"
                           ItemsSource="{Binding RootItems}"

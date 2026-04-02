@@ -39,4 +39,14 @@
         <Setter Property="Padding" Value="14,6" />
         <Setter Property="CornerRadius" Value="6" />
     </Style>
+
+    <Style Selector="Button.SimpleTextButton">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}"></Setter>
+        <Setter Property="Padding" Value="0,0,0,0"></Setter>
+        <Setter Property="Margin" Value="5,0,0,0"></Setter>
+
+        <Style Selector="^:pointerover /template/ ContentPresenter">
+            <Setter Property="TextBlock.Foreground" Value="{StaticResource Brush.Foreground.Muted}"></Setter>
+        </Style>
+    </Style>
 </Styles>
