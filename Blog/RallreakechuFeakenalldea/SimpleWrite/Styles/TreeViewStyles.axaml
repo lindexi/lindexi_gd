@@ -1,0 +1,14 @@
+<Styles xmlns="https://github.com/avaloniaui">
+    <Style Selector="TreeView.LightTreeView">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+    </Style>
+</Styles>

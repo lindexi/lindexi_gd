@@ -5,14 +5,17 @@
              xmlns:components="clr-namespace:SimpleWrite.Views.Components"
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="#FF2E2E2E"  x:DataType="viewModels:SimpleWriteMainViewModel">
+             x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="{StaticResource Brush.Background.App}"  x:DataType="viewModels:SimpleWriteMainViewModel">
     <UserControl.DataContext>
         <viewModels:SimpleWriteMainViewModel />
     </UserControl.DataContext>
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
+    </Design.DesignStyle>
 
     <Grid RowDefinitions="25,*" ColumnDefinitions="Auto,*,Auto">
 
-        <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#0E0E0E"></Border>
+        <Border Grid.Row="0" Grid.ColumnSpan="3" Background="{StaticResource Brush.Background.Chrome}"></Border>
         <components:TabBar Grid.Row="0" Grid.Column="1" Height="25"/>
 
         <components:SimpleWriteSideBar Grid.Row="1" Grid.Column="0" Width="200"

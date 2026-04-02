@@ -2,7 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
-
+using Avalonia.Controls;
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.FolderExplorers;
 
@@ -10,15 +10,29 @@ namespace SimpleWrite.ViewModels;
 
 public class FolderExplorerViewModel : ViewModelBase
 {
-    public FolderExplorerViewModel(SimpleWriteMainViewModel mainViewModel)
+    public FolderExplorerViewModel()
+        : this(null)
     {
-        ArgumentNullException.ThrowIfNull(mainViewModel);
+    }
+
+    public FolderExplorerViewModel(SimpleWriteMainViewModel? mainViewModel)
+    {
+        if (!Design.IsDesignMode)
+        {
+            ArgumentNullException.ThrowIfNull(mainViewModel);
+        }
+
         MainViewModel = mainViewModel;
+
+        if (Design.IsDesignMode)
+        {
+            AddDesignTimeData();
+        }
     }
 
     private readonly FolderExplorerService _folderExplorerService = new FolderExplorerService();
 
-    public SimpleWriteMainViewModel MainViewModel { get; }
+    public SimpleWriteMainViewModel? MainViewModel { get; }
 
     public ObservableCollection<FolderTreeItemViewModel> RootItems { get; } = [];
 
@@ -71,7 +85,7 @@ public class FolderExplorerViewModel : ViewModelBase
 
     public Task OpenFileAsync(FolderTreeItemViewModel? folderTreeItem)
     {
-        if (folderTreeItem is null || folderTreeItem.IsDirectory)
+        if (MainViewModel is null || folderTreeItem is null || folderTreeItem.IsDirectory)
         {
             return Task.CompletedTask;
         }
@@ -85,6 +99,47 @@ public class FolderExplorerViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasOpenedFolder));
         OnPropertyChanged(nameof(IsEmptyStateVisible));
         CurrentFolderChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void AddDesignTimeData()
+    {
+        if (RootItems.Count > 0)
+        {
+            return;
+        }
+
+        _currentFolder = new DirectoryInfo(@"C:\Projects\SimpleWrite");
+        RootItems.Add(new FolderTreeItemViewModel(CreateDesignTimeRootEntry()));
+        NotifyFolderStateChanged();
+    }
+
+    private static FolderTreeEntry CreateDesignTimeRootEntry()
+    {
+        return new FolderTreeEntry("SimpleWrite", @"C:\Projects\SimpleWrite", true,
+        [
+            new FolderTreeEntry("Docs", @"C:\Projects\SimpleWrite\Docs", true,
+            [
+                new FolderTreeEntry("README.md", @"C:\Projects\SimpleWrite\Docs\README.md", false, []),
+                new FolderTreeEntry("Folder-Explorer-And-Folder-Find.md", @"C:\Projects\SimpleWrite\Docs\Knowledge\Avalonia\Folder-Explorer-And-Folder-Find.md", false, [])
+            ]),
+            new FolderTreeEntry("SimpleWrite", @"C:\Projects\SimpleWrite\SimpleWrite", true,
+            [
+                new FolderTreeEntry("Views", @"C:\Projects\SimpleWrite\SimpleWrite\Views", true,
+                [
+                    new FolderTreeEntry("Components", @"C:\Projects\SimpleWrite\SimpleWrite\Views\Components", true,
+                    [
+                        new FolderTreeEntry("SimpleWriteSideBar.axaml", @"C:\Projects\SimpleWrite\SimpleWrite\Views\Components\SimpleWriteSideBar.axaml", false, []),
+                        new FolderTreeEntry("MainEditorView.axaml", @"C:\Projects\SimpleWrite\SimpleWrite\Views\Components\MainEditorView.axaml", false, [])
+                    ])
+                ]),
+                new FolderTreeEntry("Styles", @"C:\Projects\SimpleWrite\SimpleWrite\Styles", true,
+                [
+                    new FolderTreeEntry("MainStyles.axaml", @"C:\Projects\SimpleWrite\SimpleWrite\Styles\MainStyles.axaml", false, []),
+                    new FolderTreeEntry("Brushes.axaml", @"C:\Projects\SimpleWrite\SimpleWrite\Styles\Brushes.axaml", false, [])
+                ])
+            ]),
+            new FolderTreeEntry("待办事项.txt", @"C:\Projects\SimpleWrite\待办事项.txt", false, [])
+        ]);
     }
 
     private DirectoryInfo? _currentFolder;

@@ -1,4 +1,23 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <SolidColorBrush x:Key="Brush.Background.TabBar" Color="#0E0E0E" />
-</ResourceDictionary>
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <SolidColorBrush x:Key="Brush.Theme.Accent" Color="#FF2F6FED" />
+
+        <SolidColorBrush x:Key="Brush.Background.App" Color="#FF2E2E2E" />
+        <SolidColorBrush x:Key="Brush.Background.Chrome" Color="#FF0E0E0E" />
+        <SolidColorBrush x:Key="Brush.Background.Panel" Color="#FF2E2E2E" />
+        <SolidColorBrush x:Key="Brush.Background.Control" Color="#FF2A2A2A" />
+        <SolidColorBrush x:Key="Brush.Background.Toggle" Color="#FF1B1B1B" />
+        <SolidColorBrush x:Key="Brush.Background.InteractiveHover" Color="#FF5F5F5D" />
+        <SolidColorBrush x:Key="Brush.Background.TabBar" Color="#FF0E0E0E" />
+        <SolidColorBrush x:Key="Brush.Background.TabSelected" Color="#FF2E2E2E" />
+
+        <SolidColorBrush x:Key="Brush.Foreground.Primary" Color="#FFFFFFFF" />
+        <SolidColorBrush x:Key="Brush.Foreground.Secondary" Color="#FFD9D9D9" />
+        <SolidColorBrush x:Key="Brush.Foreground.Muted" Color="#FFADADAD" />
+        <SolidColorBrush x:Key="Brush.Foreground.Disabled" Color="#FF696969" />
+
+        <SolidColorBrush x:Key="Brush.Border.Subtle" Color="#FF3D3D3D" />
+        <SolidColorBrush x:Key="Brush.Border.Strong" Color="#FF404040" />
+    </Styles.Resources>
+</Styles>

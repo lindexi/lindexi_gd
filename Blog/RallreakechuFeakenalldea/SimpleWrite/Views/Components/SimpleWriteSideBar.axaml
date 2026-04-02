@@ -7,7 +7,11 @@
              x:Class="SimpleWrite.Views.Components.SimpleWriteSideBar"
              x:DataType="viewModels:FolderExplorerViewModel"
              MinWidth="0"
-             ClipToBounds="False">
+             ClipToBounds="False"
+             Background="{StaticResource Brush.Background.Panel}">
+    <Design.DataContext>
+        <viewModels:FolderExplorerViewModel />
+    </Design.DataContext>
     <Design.DesignStyle>
         <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
     </Design.DesignStyle>
@@ -20,7 +24,7 @@
     <Grid>
         <Border x:Name="SidebarContentHost"
                 BorderThickness="0,0,1,0"
-                BorderBrush="#FF3D3D3D">
+                BorderBrush="{StaticResource Brush.Border.Subtle}">
             <Grid RowDefinitions="Auto,Auto,*"
                   Margin="8">
                 <Button x:Name="OpenFolderButton"
@@ -33,10 +37,11 @@
                             Spacing="6">
                     <TextBlock x:Name="CurrentFolderCaptionTextBlock"
                                Text="当前文件夹"
-                               Foreground="#FFADADAD"
+                               Foreground="{StaticResource Brush.Foreground.Muted}"
                                IsVisible="{Binding HasOpenedFolder}" />
                     <TextBlock x:Name="CurrentFolderPathTextBlock"
                                Text="{Binding CurrentFolderPath}"
+                               Foreground="{StaticResource Brush.Foreground.Secondary}"
                                TextWrapping="Wrap"
                                IsVisible="{Binding HasOpenedFolder}" />
                     <Button x:Name="ClearFolderButton"
@@ -47,12 +52,14 @@
                     <TextBlock x:Name="EmptyFolderTextBlock"
                                Text="打开文件夹后，可在这里展开目录并直接打开文件。"
                                TextWrapping="Wrap"
-                               Foreground="#FFADADAD"
+                               Foreground="{StaticResource Brush.Foreground.Muted}"
                                IsVisible="{Binding IsEmptyStateVisible}" />
                 </StackPanel>
 
                 <TreeView x:Name="FolderTreeView"
                           Grid.Row="2"
+                          Classes="LightTreeView"
+                          Foreground="{StaticResource Brush.Foreground.Secondary}"
                           ItemsSource="{Binding RootItems}"
                           IsVisible="{Binding HasOpenedFolder}"
                           DoubleTapped="FolderTreeView_OnDoubleTapped">
@@ -61,8 +68,10 @@
                                           ItemsSource="{Binding Children}">
                             <StackPanel Orientation="Horizontal"
                                         Spacing="6">
-                                <TextBlock Text="{Binding IconText}" />
-                                <TextBlock Text="{Binding Name}" />
+                                <TextBlock Text="{Binding IconText}"
+                                           Foreground="{StaticResource Brush.Foreground.Secondary}" />
+                                <TextBlock Text="{Binding Name}"
+                                           Foreground="{StaticResource Brush.Foreground.Secondary}" />
                             </StackPanel>
                         </TreeDataTemplate>
                     </TreeView.ItemTemplate>
@@ -74,7 +83,7 @@
                 Classes="InteractiveButton SecondaryButton"
                 Width="32"
                 Height="84"
-                Background="#1B1B1B"
+                Background="{StaticResource Brush.Background.Toggle}"
                 Padding="0"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Right"

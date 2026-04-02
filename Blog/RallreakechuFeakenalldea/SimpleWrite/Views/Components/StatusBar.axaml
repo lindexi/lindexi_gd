@@ -6,28 +6,31 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="25"
              x:Class="SimpleWrite.Views.Components.StatusBar"
              x:DataType="viewModels:StatusViewModel"
-             Background="#2E2E2E">
+             Background="{StaticResource Brush.Background.Panel}">
     <Design.DataContext>
         <viewModels:StatusViewModel/>
     </Design.DataContext>
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
+    </Design.DesignStyle>
     <UserControl.Styles>
     <Style Selector="Button">
-      <Setter Property="Foreground" Value="White"></Setter>
+      <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}"></Setter>
       <Setter Property="Padding" Value="0,0,0,0"></Setter>
       <Setter Property="Margin" Value="5,0,0,0"></Setter>
 
       <Style Selector="^:pointerover /template/ ContentPresenter">
-        <Setter Property="TextBlock.Foreground" Value="#FFADADAD"></Setter>
+        <Setter Property="TextBlock.Foreground" Value="{StaticResource Brush.Foreground.Muted}"></Setter>
       </Style>
     </Style>
 
     <Style Selector="TextBlock">
       <Setter Property="FontSize" Value="15"></Setter>
-      <Setter Property="Foreground" Value="White"></Setter>
+      <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}"></Setter>
       <Setter Property="Margin" Value="5,0,0,0"></Setter>
     </Style>
   </UserControl.Styles>
-  <Border BorderThickness="0,1,0,0" BorderBrush="#FF3D3D3D">
+  <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource Brush.Border.Subtle}">
     <Grid ColumnDefinitions="*,Auto">
       <StackPanel Orientation="Horizontal">
         <TextBlock x:Name="StatusBarTextBlock" Text="{Binding StatusText}"/>

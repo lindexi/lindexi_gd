@@ -3,39 +3,39 @@
         <Button>The Button</Button>
     </Design.PreviewWith>
     <Style Selector="Button.InteractiveButton:pointerover /template/ ContentPresenter">
-        <Setter Property="Foreground" Value="#FFFFFFFF" />
-        <Setter Property="Background" Value="#FF5F5F5D" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}" />
+        <Setter Property="Background" Value="{StaticResource Brush.Background.InteractiveHover}" />
     </Style>
     <Style Selector="Button.InteractiveButton:pressed /template/ ContentPresenter">
-        <Setter Property="Foreground" Value="#FFFFFFFF" />
-        <Setter Property="Background" Value="#FF5F5F5D" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}" />
+        <Setter Property="Background" Value="{StaticResource Brush.Background.InteractiveHover}" />
     </Style>
     <Style Selector="Button.InteractiveButton:disabled /template/ ContentPresenter">
-        <Setter Property="Background" Value="#FF2A2A2A" />
-        <Setter Property="Foreground" Value="#FF696969" />
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Control}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Disabled}" />
     </Style>
 
     <Style Selector="Button.SecondaryButton">
-        <Setter Property="Background" Value="#FF2A2A2A" />
-        <Setter Property="Foreground" Value="#FFD9D9D9" />
-        <Setter Property="BorderBrush" Value="#FF404040" />
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Control}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Strong}" />
         <Setter Property="Padding" Value="10,6" />
         <Setter Property="CornerRadius" Value="6" />
     </Style>
 
     <Style Selector="Button.FindReplaceButton">
-        <Setter Property="Background" Value="#FF2A2A2A" />
-        <Setter Property="Foreground" Value="#FFD9D9D9" />
-        <Setter Property="BorderBrush" Value="#FF404040" />
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Control}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Strong}" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Margin" Value="6,0,0,0" />
         <Setter Property="Padding" Value="8,2" />
     </Style>
 
     <Style Selector="Button.PrimaryButton">
-        <Setter Property="Background" Value="#FF2F6FED" />
-        <Setter Property="Foreground" Value="#FFFFFFFF" />
-        <Setter Property="BorderBrush" Value="#FF2F6FED" />
+        <Setter Property="Background" Value="{StaticResource Brush.Theme.Accent}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Theme.Accent}" />
         <Setter Property="Padding" Value="14,6" />
         <Setter Property="CornerRadius" Value="6" />
     </Style>

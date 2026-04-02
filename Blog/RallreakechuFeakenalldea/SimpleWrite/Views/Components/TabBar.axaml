@@ -12,16 +12,19 @@
     <Design.DataContext>
         <viewModels:SimpleWriteMainViewModel/>
     </Design.DataContext>
-    <Border x:Name="TabBarBorder" Background="#0E0E0E" BorderThickness="0,0,0,1" BorderBrush="#3D3D3D">
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
+    </Design.DesignStyle>
+    <Border x:Name="TabBarBorder" Background="{StaticResource Brush.Background.TabBar}" BorderThickness="0,0,0,1" BorderBrush="{StaticResource Brush.Border.Subtle}">
       <ListBox x:Name="EditorTabListBox" SelectionMode="Single" Background="Transparent" 
                ItemsSource="{Binding Path=EditorViewModel.EditorModelList}"
                SelectedItem="{Binding Path=EditorViewModel.CurrentEditorModel}">
           <ListBox.Styles>
               <Style Selector="Border.Tab-Main-Style">
-                  <Setter Property="Background" Value="#0E0E0E" />
+                  <Setter Property="Background" Value="{StaticResource Brush.Background.TabBar}" />
               </Style>
               <Style Selector="ListBoxItem:selected Border.Tab-Main-Style">
-                  <Setter Property="Background" Value="#2E2E2E" />
+                  <Setter Property="Background" Value="{StaticResource Brush.Background.TabSelected}" />
                   <!-- <Setter Property="CornerRadius" Value="5 5 0 0"></Setter> -->
               </Style>
           </ListBox.Styles>
@@ -41,7 +44,7 @@
                           Margin="0,3,2,0" 
                           Padding="5,2,5,0"
                           BorderThickness="0 0 1 0"
-                          BorderBrush="White">
+                           BorderBrush="{StaticResource Brush.Border.Subtle}">
                       <!-- 以下设置无效 -->
                       <!-- <Border.Styles> -->
                       <!--     <Style Selector="Border:selected"> -->
@@ -56,12 +59,12 @@
                           </ContextMenu>
                       </Border.ContextMenu>
                       <StackPanel Orientation="Horizontal">
-                          <TextBlock x:Name="TabTitleTextBlock" MinWidth="30" Text="{Binding Title}" Foreground="White"
+                           <TextBlock x:Name="TabTitleTextBlock" MinWidth="30" Text="{Binding Title}" Foreground="{StaticResource Brush.Foreground.Primary}"
                                      ToolTip.Tip="{Binding FileInfo.FullName}">
                               <!-- 添加 MinWidth 是为了防止标题太短而误点到关闭按钮上 -->
                           </TextBlock>
-                          <Button x:Name="CloseTabButton" Margin="5 0 0 0" Background="Transparent" Padding="0"
-                                  Foreground="White"
+                           <Button x:Name="CloseTabButton" Margin="5 0 0 0" Background="Transparent" Padding="0"
+                                   Foreground="{StaticResource Brush.Foreground.Secondary}"
                                   VerticalAlignment="Center" Click="CloseTabButton_OnClick">
                               <Path Stroke="{Binding #CloseTabButton.Foreground}" StrokeThickness="2" Data="M0,0 L6,6z M6,0 L0,6"></Path>
                           </Button>

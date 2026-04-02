@@ -7,6 +7,9 @@
              x:Class="SimpleWrite.Views.Components.RightSlideBar"
              MinWidth="0"
              ClipToBounds="False">
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
+    </Design.DesignStyle>
     <UserControl.Transitions>
         <Transitions>
             <DoubleTransition Property="Width" Duration="0:0:0.18" />
@@ -16,7 +19,7 @@
     <Grid ColumnDefinitions="6,*">
         <Border x:Name="ResizeHandleBorder"
                 Grid.Column="0"
-                Background="#2E2E2E"
+                Background="{StaticResource Brush.Background.Panel}"
                 Cursor="SizeWestEast"
                 PointerPressed="ResizeHandleBorder_OnPointerPressed"
                 PointerMoved="ResizeHandleBorder_OnPointerMoved"
@@ -32,7 +35,7 @@
                 Classes="InteractiveButton SecondaryButton"
                 Width="32"
                 Height="84"
-                Background="#1B1B1B"
+                Background="{StaticResource Brush.Background.Toggle}"
                 Padding="0"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Left"
