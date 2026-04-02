@@ -14,15 +14,6 @@
         <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
     </Design.DesignStyle>
     <UserControl.Styles>
-    <Style Selector="Button">
-      <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}"></Setter>
-      <Setter Property="Padding" Value="0,0,0,0"></Setter>
-      <Setter Property="Margin" Value="5,0,0,0"></Setter>
-
-      <Style Selector="^:pointerover /template/ ContentPresenter">
-        <Setter Property="TextBlock.Foreground" Value="{StaticResource Brush.Foreground.Muted}"></Setter>
-      </Style>
-    </Style>
 
     <Style Selector="TextBlock">
       <Setter Property="FontSize" Value="15"></Setter>
@@ -35,7 +26,7 @@
       <StackPanel Orientation="Horizontal">
         <TextBlock x:Name="StatusBarTextBlock" Text="{Binding StatusText}"/>
       </StackPanel>
-      <Button x:Name="DebugButton" Grid.Column="1" Margin="5,0,5,0" Click="DebugButton_OnClick">调试</Button>
+      <Button x:Name="DebugButton" Classes="SimpleTextButton" Grid.Column="1" Margin="5,0,5,0" Click="DebugButton_OnClick">调试</Button>
     </Grid>
   </Border>
 </UserControl>
