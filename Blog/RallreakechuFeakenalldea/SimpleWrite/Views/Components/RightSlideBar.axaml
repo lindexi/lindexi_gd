@@ -13,8 +13,17 @@
         </Transitions>
     </UserControl.Transitions>
 
-    <Grid ColumnDefinitions="Auto,*">
-        <Border Grid.Column="0"
+    <Grid ColumnDefinitions="6,Auto,*">
+        <Border x:Name="ResizeHandleBorder"
+                Grid.Column="0"
+                Background="Transparent"
+                Cursor="SizeWestEast"
+                PointerPressed="ResizeHandleBorder_OnPointerPressed"
+                PointerMoved="ResizeHandleBorder_OnPointerMoved"
+                PointerReleased="ResizeHandleBorder_OnPointerReleased"
+                PointerCaptureLost="ResizeHandleBorder_OnPointerCaptureLost" />
+
+        <Border Grid.Column="1"
                 Background="#FF141414"
                 BorderThickness="1,0,0,0"
                 BorderBrush="#FF3B3B3B">
@@ -41,7 +50,7 @@
         </Border>
 
         <Border x:Name="SidebarContentHost"
-                Grid.Column="1">
+                Grid.Column="2">
             <view:CopilotSlideBar x:Name="CopilotSlideBar" />
         </Border>
     </Grid>
