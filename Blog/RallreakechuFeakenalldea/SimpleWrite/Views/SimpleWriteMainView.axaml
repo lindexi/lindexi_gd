@@ -10,10 +10,17 @@
         <viewModels:SimpleWriteMainViewModel />
     </UserControl.DataContext>
 
-    <Grid ColumnDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="25,*" ColumnDefinitions="Auto,*,Auto">
 
-        <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto">
-            <components:TabBar Grid.Row="0" Height="25"/>
+        <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#0E0E0E"></Border>
+        <components:TabBar Grid.Row="0" Grid.Column="1" Height="25"/>
+
+        <components:SimpleWriteSideBar Grid.Row="1" Grid.Column="0" Width="200">
+            <!-- 左侧边栏 -->
+        </components:SimpleWriteSideBar>
+
+        <Grid x:Name="MainEditorGrid" Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto">
+   
             <components:MainEditorView x:Name="MainEditorView" Grid.Row="1"
                                        DataContext="{Binding Path=EditorViewModel}"/>
             <Grid x:Name="FunctionalGrid" Grid.Row="2">
@@ -23,11 +30,7 @@
             <components:StatusBar Grid.Row="3" Height="20" DataContext="{Binding Path=StatusViewModel}"/>
         </Grid>
 
-        <components:SimpleWriteSideBar Grid.Column="0" Width="200">
-            <!-- 左侧边栏 -->
-        </components:SimpleWriteSideBar>
-
-        <components:RightSlideBar Grid.Column="2" Width="300">
+        <components:RightSlideBar Grid.Row="1" Grid.Column="2" Width="300">
             <!-- 右侧边栏 -->
         </components:RightSlideBar>
     </Grid>
