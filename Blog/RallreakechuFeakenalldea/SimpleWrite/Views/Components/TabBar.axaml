@@ -7,11 +7,12 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="25"
              x:Name="RootTabBar"
              x:Class="SimpleWrite.Views.Components.TabBar"
-             x:DataType="viewModels:SimpleWriteMainViewModel">
+             x:DataType="viewModels:SimpleWriteMainViewModel"
+             >
     <Design.DataContext>
         <viewModels:SimpleWriteMainViewModel/>
     </Design.DataContext>
-    <Border x:Name="TabBarBorder" Background="{StaticResource Brush.Background.TabBar}" BorderThickness="0,0,0,1" BorderBrush="#3D3D3D">
+    <Border x:Name="TabBarBorder" Background="#0E0E0E" BorderThickness="0,0,0,1" BorderBrush="#3D3D3D">
       <ListBox x:Name="EditorTabListBox" SelectionMode="Single" Background="Transparent" 
                ItemsSource="{Binding Path=EditorViewModel.EditorModelList}"
                SelectedItem="{Binding Path=EditorViewModel.CurrentEditorModel}">
