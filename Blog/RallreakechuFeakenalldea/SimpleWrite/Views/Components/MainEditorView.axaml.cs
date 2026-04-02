@@ -48,7 +48,9 @@ public partial class MainEditorView : UserControl
         // 提供 View 层的功能给 ViewModel 使用
         if (TopLevel.GetTopLevel(this) is { } topLevel)
         {
-            ViewModel.FilePickerHandler ??= new FilePickerHandler(topLevel);
+            var filePickerHandler = ViewModel.FilePickerHandler ?? new FilePickerHandler(topLevel);
+            ViewModel.FilePickerHandler = filePickerHandler;
+            ViewModel.MainViewModel.FolderExplorerViewModel.FilePickerHandler ??= filePickerHandler;
         }
 
         base.OnLoaded(e);

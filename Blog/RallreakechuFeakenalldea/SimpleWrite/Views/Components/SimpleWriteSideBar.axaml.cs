@@ -1,7 +1,12 @@
-﻿using Avalonia.Controls;
+﻿using System;
+
+using Avalonia.Controls;
 using Avalonia.Animation;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia;
+
+using SimpleWrite.ViewModels;
 
 namespace SimpleWrite.Views.Components;
 
@@ -19,6 +24,9 @@ public partial class SimpleWriteSideBar : UserControl
         InitializeComponent();
         Loaded += OnLoaded;
     }
+
+    public FolderExplorerViewModel ViewModel => DataContext as FolderExplorerViewModel
+        ?? throw new InvalidOperationException("SimpleWriteSideBar's DataContext must be of type FolderExplorerViewModel");
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
@@ -39,6 +47,27 @@ public partial class SimpleWriteSideBar : UserControl
     private void ToggleSidebarButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ApplySidebarState(!_isExpanded);
+    }
+
+    private async void OpenFolderButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        await ViewModel.PickAndOpenFolderAsync();
+    }
+
+    private void ClearFolderButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        ViewModel.ClearFolder();
+    }
+
+    private async void FolderTreeView_OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (FolderTreeView.SelectedItem is not FolderTreeItemViewModel folderTreeItem || folderTreeItem.IsDirectory)
+        {
+            return;
+        }
+
+        await ViewModel.OpenFileAsync(folderTreeItem);
+        e.Handled = true;
     }
 
     private void ApplySidebarState(bool isExpanded, bool storeCurrentWidth = true)

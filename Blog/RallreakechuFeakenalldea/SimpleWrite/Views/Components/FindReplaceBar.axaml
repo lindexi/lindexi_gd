@@ -32,29 +32,45 @@
             BorderBrush="#FF3D3D3D"
             BorderThickness="0,0,0,1"
             Padding="8,6">
-        <Grid RowDefinitions="Auto,Auto">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+        <Grid RowDefinitions="Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto">
                 <TextBlock Classes="FindReplaceCaption" Text="查找" />
                 <TextBox x:Name="FindTextBox"
                          Grid.Column="1"
                          Watermark="输入要查找的内容"
                          Text="{Binding FindText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox x:Name="FolderSearchScopeCheckBox"
+                          Grid.Column="2"
+                          Margin="12,0,0,0"
+                          VerticalAlignment="Center"
+                          Content="当前文件夹"
+                          IsEnabled="{Binding IsFolderSearchAvailable}"
+                          IsChecked="{Binding IsFolderSearchScope, Mode=TwoWay}" />
                 <Button x:Name="FindPreviousButton"
-                        Grid.Column="2"
-                        Classes="InteractiveButton FindReplaceButton"
-                        IsEnabled="{Binding HasSearchText}"
-                        Click="FindPreviousButton_OnClick">上一个</Button>
-                <Button x:Name="FindNextButton"
                         Grid.Column="3"
                         Classes="InteractiveButton FindReplaceButton"
-                        IsEnabled="{Binding HasSearchText}"
+                        IsVisible="{Binding IsDocumentSearchScope}"
+                        IsEnabled="{Binding CanNavigateDocumentMatches}"
+                        Click="FindPreviousButton_OnClick">上一个</Button>
+                <Button x:Name="FindNextButton"
+                        Grid.Column="4"
+                        Classes="InteractiveButton FindReplaceButton"
+                        IsVisible="{Binding IsDocumentSearchScope}"
+                        IsEnabled="{Binding CanNavigateDocumentMatches}"
                         Click="FindNextButton_OnClick">下一个</Button>
+                <Button x:Name="SearchFolderButton"
+                        Grid.Column="3"
+                        Grid.ColumnSpan="2"
+                        Classes="InteractiveButton FindReplaceButton"
+                        IsVisible="{Binding IsFolderSearchScope}"
+                        IsEnabled="{Binding CanSearchInFolder}"
+                        Click="SearchFolderButton_OnClick">搜索文件夹</Button>
                 <TextBlock x:Name="FindStatusTextBlock"
-                           Grid.Column="4"
+                           Grid.Column="5"
                            Classes="FindReplaceStatusTextBlock"
                            Text="{Binding SearchStatusText}" />
                 <Button x:Name="CloseFindReplaceButton"
-                        Grid.Column="5"
+                        Grid.Column="6"
                         Classes="InteractiveButton FindReplaceButton"
                         Click="CloseFindReplaceButton_OnClick">关闭</Button>
             </Grid>
@@ -62,7 +78,7 @@
             <Grid x:Name="ReplaceGrid"
                   Grid.Row="1"
                   Margin="0,6,0,0"
-                  IsVisible="{Binding IsReplaceMode}"
+                  IsVisible="{Binding IsReplaceAvailable}"
                   ColumnDefinitions="Auto,*,Auto,Auto,*,0">
                 <TextBlock Classes="FindReplaceCaption" Text="替换" />
                 <TextBox x:Name="ReplaceTextBox"
@@ -80,6 +96,39 @@
                         IsEnabled="{Binding HasMatches}"
                         Click="ReplaceAllButton_OnClick">全部替换</Button>
             </Grid>
+
+            <ListBox x:Name="FolderSearchResultListBox"
+                     Grid.Row="2"
+                     Margin="0,6,0,0"
+                     MaxHeight="220"
+                     IsVisible="{Binding IsFolderSearchResultVisible}"
+                     ItemsSource="{Binding FolderSearchResultList}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:FolderSearchResultViewModel">
+                        <Border Padding="6,4"
+                                BorderBrush="#FF3D3D3D"
+                                BorderThickness="0,0,0,1">
+                            <Grid RowDefinitions="Auto,Auto"
+                                  ColumnDefinitions="*,Auto">
+                                <TextBlock x:Name="FolderSearchResultPathTextBlock"
+                                           Text="{Binding RelativePath}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <Button x:Name="OpenFolderSearchResultButton"
+                                        Grid.Column="1"
+                                        Classes="InteractiveButton FindReplaceButton"
+                                        Click="OpenFolderSearchResultButton_OnClick">打开</Button>
+                                <TextBlock x:Name="FolderSearchResultPreviewTextBlock"
+                                           Grid.Row="1"
+                                           Grid.ColumnSpan="2"
+                                           Margin="0,4,0,0"
+                                           Foreground="#FFADADAD"
+                                           Text="{Binding PreviewText}"
+                                           TextWrapping="Wrap" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
     </Border>
 </UserControl>

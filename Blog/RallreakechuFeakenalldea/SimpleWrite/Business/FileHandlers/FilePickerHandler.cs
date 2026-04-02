@@ -45,4 +45,21 @@ class FilePickerHandler : IFilePickerHandler
 
         return new FileInfo(localFilePath);
     }
+
+    public async Task<DirectoryInfo?> PickOpenFolderAsync()
+    {
+        var pickResultList = await _topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            AllowMultiple = false
+        });
+
+        var pickResult = pickResultList.Count > 0 ? pickResultList[0] : null;
+        var localFolderPath = pickResult?.TryGetLocalPath();
+        if (localFolderPath is null)
+        {
+            return null;
+        }
+
+        return new DirectoryInfo(localFolderPath);
+    }
 }

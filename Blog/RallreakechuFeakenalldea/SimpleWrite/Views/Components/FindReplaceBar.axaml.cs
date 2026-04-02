@@ -40,7 +40,8 @@ public partial class FindReplaceBar : UserControl
     private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(FindReplaceViewModel.IsPanelVisible)
-            || e.PropertyName == nameof(FindReplaceViewModel.IsReplaceMode))
+            || e.PropertyName == nameof(FindReplaceViewModel.IsReplaceMode)
+            || e.PropertyName == nameof(FindReplaceViewModel.IsFolderSearchScope))
         {
             if (ViewModel.IsPanelVisible)
             {
@@ -74,7 +75,22 @@ public partial class FindReplaceBar : UserControl
         HidePanel();
     }
 
-    private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
+    private async void SearchFolderButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        await ViewModel.SearchInFolderAsync();
+    }
+
+    private async void OpenFolderSearchResultButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: FolderSearchResultViewModel folderSearchResultViewModel })
+        {
+            return;
+        }
+
+        await ViewModel.OpenFolderSearchResultAsync(folderSearchResultViewModel);
+    }
+
+    private async void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape && ViewModel.IsPanelVisible)
         {
@@ -85,6 +101,13 @@ public partial class FindReplaceBar : UserControl
 
         if (e.Key == Key.Enter && ViewModel.IsPanelVisible)
         {
+            if (ViewModel.IsFolderSearchScope)
+            {
+                await ViewModel.SearchInFolderAsync();
+                e.Handled = true;
+                return;
+            }
+
             if (e.KeyModifiers == KeyModifiers.Shift)
             {
                 ViewModel.FindPrevious();
@@ -106,7 +129,7 @@ public partial class FindReplaceBar : UserControl
 
     private void FocusActiveInput()
     {
-        var targetTextBox = ViewModel.IsReplaceMode && !string.IsNullOrEmpty(ViewModel.FindText)
+        var targetTextBox = ViewModel.IsReplaceAvailable && !string.IsNullOrEmpty(ViewModel.FindText)
             ? ReplaceTextBox
             : FindTextBox;
 

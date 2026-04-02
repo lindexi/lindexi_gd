@@ -2,8 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleWrite.Views.Components.SimpleWriteSideBar"
+             x:DataType="viewModels:FolderExplorerViewModel"
              MinWidth="0"
              ClipToBounds="False">
     <Design.DesignStyle>
@@ -19,7 +21,53 @@
         <Border x:Name="SidebarContentHost"
                 BorderThickness="0,0,1,0"
                 BorderBrush="#FF3D3D3D">
+            <Grid RowDefinitions="Auto,Auto,*"
+                  Margin="8">
+                <Button x:Name="OpenFolderButton"
+                        Classes="InteractiveButton SecondaryButton"
+                        HorizontalAlignment="Stretch"
+                        Click="OpenFolderButton_OnClick">打开文件夹</Button>
 
+                <StackPanel Grid.Row="1"
+                            Margin="0,8,0,8"
+                            Spacing="6">
+                    <TextBlock x:Name="CurrentFolderCaptionTextBlock"
+                               Text="当前文件夹"
+                               Foreground="#FFADADAD"
+                               IsVisible="{Binding HasOpenedFolder}" />
+                    <TextBlock x:Name="CurrentFolderPathTextBlock"
+                               Text="{Binding CurrentFolderPath}"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding HasOpenedFolder}" />
+                    <Button x:Name="ClearFolderButton"
+                            Classes="InteractiveButton SecondaryButton"
+                            HorizontalAlignment="Left"
+                            IsVisible="{Binding HasOpenedFolder}"
+                            Click="ClearFolderButton_OnClick">关闭文件夹</Button>
+                    <TextBlock x:Name="EmptyFolderTextBlock"
+                               Text="打开文件夹后，可在这里展开目录并直接打开文件。"
+                               TextWrapping="Wrap"
+                               Foreground="#FFADADAD"
+                               IsVisible="{Binding IsEmptyStateVisible}" />
+                </StackPanel>
+
+                <TreeView x:Name="FolderTreeView"
+                          Grid.Row="2"
+                          ItemsSource="{Binding RootItems}"
+                          IsVisible="{Binding HasOpenedFolder}"
+                          DoubleTapped="FolderTreeView_OnDoubleTapped">
+                    <TreeView.ItemTemplate>
+                        <TreeDataTemplate x:DataType="viewModels:FolderTreeItemViewModel"
+                                          ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="6">
+                                <TextBlock Text="{Binding IconText}" />
+                                <TextBlock Text="{Binding Name}" />
+                            </StackPanel>
+                        </TreeDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Grid>
         </Border>
 
         <Button x:Name="ToggleSidebarButton"
