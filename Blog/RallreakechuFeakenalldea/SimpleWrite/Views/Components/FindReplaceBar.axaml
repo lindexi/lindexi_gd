@@ -13,11 +13,11 @@
             <Setter Property="MinWidth" Value="180" />
         </Style>
         <Style Selector="TextBlock.FindReplaceCaption">
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="TextBlock.FindReplaceStatusTextBlock">
-            <Setter Property="Foreground" Value="#FFADADAD" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Muted}" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Margin" Value="12,0,0,0" />
         </Style>
@@ -28,8 +28,8 @@
 
     <Border x:Name="FindReplaceBorder"
             IsVisible="{Binding IsPanelVisible}"
-            Background="#FF2E2E2E"
-            BorderBrush="#FF3D3D3D"
+            Background="{StaticResource Brush.Background.Panel}"
+            BorderBrush="{StaticResource Brush.Border.Subtle}"
             BorderThickness="0,0,0,1"
             Padding="8,6">
         <Grid RowDefinitions="Auto,Auto,Auto">
@@ -106,7 +106,7 @@
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:FolderSearchResultViewModel">
                         <Border Padding="6,4"
-                                BorderBrush="#FF3D3D3D"
+                                BorderBrush="{StaticResource Brush.Border.Subtle}"
                                 BorderThickness="0,0,0,1">
                             <Grid RowDefinitions="Auto,Auto"
                                   ColumnDefinitions="*,Auto">
@@ -121,7 +121,7 @@
                                            Grid.Row="1"
                                            Grid.ColumnSpan="2"
                                            Margin="0,4,0,0"
-                                           Foreground="#FFADADAD"
+                                           Foreground="{StaticResource Brush.Foreground.Muted}"
                                            Text="{Binding PreviewText}"
                                            TextWrapping="Wrap" />
                             </Grid>

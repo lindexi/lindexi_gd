@@ -68,6 +68,13 @@
 3. 文件夹搜索再次执行前要先清空旧结果，否则用户会在“搜索中”阶段看到上一轮结果，误以为没有刷新。
 4. 任何新增 `x:Name`、`TreeView` 模板、事件处理之后，都应立即构建一次，优先抓出 Avalonia XAML 编译错误。
 
+## 主题资源与设计时预览补充
+
+- `SimpleWrite` 里涉及侧边栏、查找栏、标签栏等共用配色时，优先放进 `SimpleWrite/Styles/Brushes.axaml`，使用语义化命名（如背景、边框、前景、强调色），不要继续散落硬编码颜色。
+- 公共控件样式统一从 `SimpleWrite/Styles/MainStyles.axaml` 进入；如新增 `TreeView`、`Button` 等共享样式，也应从这里聚合，避免设计器与运行时加载入口不一致。
+- 需要单独预览的 `UserControl`，若依赖这些主题资源，应补 `Design.DesignStyle` 指向 `avares://SimpleWrite/Styles/MainStyles.axaml`，避免设计器因拿不到资源而回退到默认黑色前景。
+- 侧边栏目录树如需复用浅色风格，可直接给 `TreeView` 添加 `LightTreeView` class，并在 ViewModel 的 `Design.IsDesignMode` 分支提供层级测试数据，保证设计图可直接看到展开效果。
+
 ## 适用场景
 
 - 继续扩展左侧资源管理器，如加入刷新、右键菜单、过滤器时。
