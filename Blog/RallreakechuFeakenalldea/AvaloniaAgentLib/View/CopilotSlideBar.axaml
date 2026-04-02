@@ -16,7 +16,7 @@
     </Design.DesignStyle>
     <UserControl.Resources>
         <DataTemplate x:Key="UserMessageTemplate" x:DataType="model:CopilotChatMessage">
-            <StackPanel HorizontalAlignment="Right" Margin="0,0,0,10" MaxWidth="250">
+            <StackPanel HorizontalAlignment="Right" Margin="0,0,0,10" >
                 <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" HorizontalAlignment="Right" />
                 <Border Background="#FF2F6FED" CornerRadius="8" Padding="10,8">
                     <Border.ContextMenu>
@@ -32,7 +32,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="AssistantMessageTemplate" x:DataType="model:CopilotChatMessage">
-            <StackPanel HorizontalAlignment="Left" Margin="0,0,0,10" MaxWidth="250">
+            <StackPanel HorizontalAlignment="Left" Margin="0,0,0,10" >
                 <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
                 <Border Background="#FF2A2A2A" CornerRadius="8" Padding="10,8">
                     <Border.ContextMenu>

@@ -14,13 +14,14 @@ using SimpleWrite.ViewModels;
 
 using System;
 using System.Threading.Tasks;
+using Avalonia;
 
 namespace SimpleWrite.Views.Components;
 
 public partial class RightSlideBar : UserControl
 {
     private const double DefaultExpandedWidth = 300;
-    private const double CollapsedWidth = 40;
+    private const double CollapsedWidth = 2;
     private const double MinimumExpandedWidth = 160;
 
     private bool _isExpanded = true;
@@ -205,7 +206,8 @@ public partial class RightSlideBar : UserControl
         SidebarContentHost.IsVisible = isExpanded;
         Width = isExpanded ? _expandedWidth : CollapsedWidth;
         ToggleChevronTextBlock.Text = isExpanded ? "❯" : "❮";
-        ToolTip.SetTip(ToggleSidebarButton, isExpanded ? "收起 Copilot 侧边栏" : "展开 Copilot 侧边栏");
+        ToggleSidebarButton.Margin = isExpanded ? new Thickness(0,0, 0, 0) : new Thickness(-35, 0, 0, 0);
+        ToolTip.SetTip(ToggleSidebarButton, isExpanded ? "收起侧边栏" : "展开侧边栏");
     }
 
     private void EndResize(IPointer? pointer)

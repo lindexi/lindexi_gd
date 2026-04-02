@@ -1,10 +1,13 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Controls.Platform;
 using Avalonia.Media;
 using Avalonia.Skia;
 
 using LightTextEditorPlus;
+using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
+using LightTextEditorPlus.Events;
 using LightTextEditorPlus.Primitive;
 
 using SimpleWrite.Business.ShortcutManagers;
@@ -15,8 +18,6 @@ using SkiaSharp;
 
 using System;
 using System.Threading.Tasks;
-using Avalonia.Controls.Platform;
-using LightTextEditorPlus.Events;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -28,6 +29,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     public SimpleWriteTextEditor()
     {
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
+        CaretConfiguration.ShowCaretAndSelectionInReadonlyMode = true;
 
         TextEditorCore.TextChanged += TextEditorCore_TextChanged;
 
@@ -64,12 +66,42 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
             if (!selection.IsEmpty)
             {
-                var sendTextToCopilotMenuItem = new MenuItem()
+                var selectedText = GetText(in selection);
+
+                Add("发送选中内容到 Copilot 聊天", () =>
                 {
-                    Header = "发送选中内容到 Copilot 聊天"
-                };
-                menuItems.Add(sendTextToCopilotMenuItem);
-                sendTextToCopilotMenuItem.Click += SendTextToCopilotMenuItemOnClick;
+                    RaiseRequestSendTextToCopilot(selectedText);
+                });
+
+                Add("翻译为计算机英文", () =>
+                {
+                    var prompt =
+                        $"""
+                         请帮我将以下内容转述为地道的计算机英文，我将在即时聊天中使用：
+                         {selectedText}
+                         """;
+                    RaiseRequestSendTextToCopilot(prompt);
+                });
+
+                Add("Json转C#类", () =>
+                {
+                    var prompt =
+                        $"""
+                         将以下 json 转换为 C# 的类型，要求使用 System.Text.Json 作为 Json 特性定义。要求 C# 属性命名符合 .NET 规范，采用帕斯卡风格：
+                         {selectedText}
+                         """;
+                    RaiseRequestSendTextToCopilot(prompt);
+                });
+
+                void Add(string header, Action action)
+                {
+                    var menuItem = new MenuItem()
+                    {
+                        Header = header
+                    };
+                    menuItems.Add(menuItem);
+                    menuItem.Click += (sender, eventArgs) => action();
+                }
             }
             else if (args.TryHitTest(out var result))
             {
@@ -97,22 +129,6 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         base.OnRaisePrepareContextMenuEvent(args);
     }
 
-    private void SendTextToCopilotMenuItemOnClick(object? sender, EventArgs e)
-    {
-        var selection = CurrentSelection;
-        if (selection.IsEmpty)
-        {
-            return;
-        }
-
-        var selectedText = GetText(in selection);
-        if (string.IsNullOrWhiteSpace(selectedText))
-        {
-            return;
-        }
-
-        RequestSendTextToCopilot?.Invoke(this, selectedText);
-    }
 
     //public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
     //{
@@ -144,6 +160,10 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     public required SnippetManager SnippetManager { get; init; }
 
     public event EventHandler<string>? RequestSendTextToCopilot;
+    private void RaiseRequestSendTextToCopilot(string text)
+    {
+        RequestSendTextToCopilot?.Invoke(this, text);
+    }
 
     public IDocumentHighlighter DocumentHighlighter { get; private set; }
 
