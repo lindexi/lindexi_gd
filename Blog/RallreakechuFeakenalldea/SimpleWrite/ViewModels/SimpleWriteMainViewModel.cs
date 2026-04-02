@@ -28,7 +28,8 @@ public class SimpleWriteMainViewModel
             MainViewModel = this,
         };
 
-        FindReplaceViewModel = new FindReplaceViewModel(EditorViewModel);
+        FolderExplorerViewModel = new FolderExplorerViewModel(this);
+        FindReplaceViewModel = new FindReplaceViewModel(EditorViewModel, FolderExplorerViewModel);
 
         EditorViewModel.EditorModelChanged += (sender, args) =>
         {
@@ -70,6 +71,7 @@ public class SimpleWriteMainViewModel
 
     public StatusViewModel StatusViewModel { get; }
     public EditorViewModel EditorViewModel { get; }
+    public FolderExplorerViewModel FolderExplorerViewModel { get; }
     public FindReplaceViewModel FindReplaceViewModel { get; }
 
     /// <summary>

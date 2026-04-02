@@ -1,19 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
 
+using SimpleWrite.Business.FolderExplorers;
+
 namespace SimpleWrite.ViewModels;
 
 public class FindReplaceViewModel : ViewModelBase
 {
-    public FindReplaceViewModel(EditorViewModel editorViewModel)
+    private readonly FolderSearchService _folderSearchService = new FolderSearchService();
+
+    public FindReplaceViewModel(EditorViewModel editorViewModel, FolderExplorerViewModel folderExplorerViewModel)
     {
         ArgumentNullException.ThrowIfNull(editorViewModel);
+        ArgumentNullException.ThrowIfNull(folderExplorerViewModel);
+
         EditorViewModel = editorViewModel;
+        FolderExplorerViewModel = folderExplorerViewModel;
+        FolderExplorerViewModel.CurrentFolderChanged += FolderExplorerViewModelOnCurrentFolderChanged;
     }
 
     public bool IsPanelVisible
@@ -23,6 +34,7 @@ public class FindReplaceViewModel : ViewModelBase
         {
             if (SetField(ref _isPanelVisible, value))
             {
+                OnPropertyChanged(nameof(IsFolderSearchResultVisible));
                 UpdateSearchStatus();
             }
         }
@@ -31,7 +43,41 @@ public class FindReplaceViewModel : ViewModelBase
     public bool IsReplaceMode
     {
         get => _isReplaceMode;
-        private set => SetField(ref _isReplaceMode, value);
+        private set
+        {
+            if (SetField(ref _isReplaceMode, value))
+            {
+                OnPropertyChanged(nameof(IsReplaceAvailable));
+            }
+        }
+    }
+
+    public bool IsFolderSearchScope
+    {
+        get => _isFolderSearchScope;
+        set
+        {
+            if (!SetField(ref _isFolderSearchScope, value))
+            {
+                return;
+            }
+
+            ClearFolderSearchResults();
+            _hasExecutedFolderSearch = false;
+            OnPropertyChanged(nameof(IsDocumentSearchScope));
+            OnPropertyChanged(nameof(IsFolderSearchResultVisible));
+            OnPropertyChanged(nameof(CanNavigateDocumentMatches));
+            OnPropertyChanged(nameof(IsReplaceAvailable));
+            OnPropertyChanged(nameof(CanSearchInFolder));
+
+            if (!value)
+            {
+                RefreshSearchMatches();
+                return;
+            }
+
+            UpdateSearchStatus();
+        }
     }
 
     public string FindText
@@ -45,6 +91,17 @@ public class FindReplaceViewModel : ViewModelBase
             }
 
             OnPropertyChanged(nameof(HasSearchText));
+            OnPropertyChanged(nameof(CanNavigateDocumentMatches));
+            OnPropertyChanged(nameof(CanSearchInFolder));
+
+            if (IsFolderSearchScope)
+            {
+                ClearFolderSearchResults();
+                _hasExecutedFolderSearch = false;
+                UpdateSearchStatus();
+                return;
+            }
+
             RefreshSearchMatches();
         }
     }
@@ -58,6 +115,35 @@ public class FindReplaceViewModel : ViewModelBase
     public bool HasSearchText => !string.IsNullOrEmpty(FindText);
 
     public bool HasMatches => _searchMatchList.Count > 0;
+
+    public bool HasFolderSearchResults => FolderSearchResultList.Count > 0;
+
+    public bool IsFolderSearchAvailable => FolderExplorerViewModel.CurrentFolder is not null;
+
+    public bool IsFolderSearchResultVisible => IsPanelVisible && IsFolderSearchScope;
+
+    public bool IsDocumentSearchScope => !IsFolderSearchScope;
+
+    public bool CanNavigateDocumentMatches => HasSearchText && !IsFolderSearchScope;
+
+    public bool IsReplaceAvailable => IsReplaceMode && !IsFolderSearchScope;
+
+    public bool CanSearchInFolder => IsFolderSearchScope && IsFolderSearchAvailable && HasSearchText && !IsSearchingFolder;
+
+    public bool IsSearchingFolder
+    {
+        get => _isSearchingFolder;
+        private set
+        {
+            if (SetField(ref _isSearchingFolder, value))
+            {
+                OnPropertyChanged(nameof(CanSearchInFolder));
+                UpdateSearchStatus();
+            }
+        }
+    }
+
+    public ObservableCollection<FolderSearchResultViewModel> FolderSearchResultList { get; } = [];
 
     public string SearchStatusText => _searchStatusText;
 
@@ -74,6 +160,64 @@ public class FindReplaceViewModel : ViewModelBase
     public void Hide()
     {
         IsPanelVisible = false;
+    }
+
+    public async Task SearchInFolderAsync()
+    {
+        if (!IsFolderSearchScope || !IsFolderSearchAvailable || string.IsNullOrEmpty(FindText) || IsSearchingFolder)
+        {
+            UpdateSearchStatus();
+            return;
+        }
+
+        var directoryInfo = FolderExplorerViewModel.CurrentFolder;
+        if (directoryInfo is null)
+        {
+            UpdateSearchStatus();
+            return;
+        }
+
+        IsSearchingFolder = true;
+        try
+        {
+            var resultList = await _folderSearchService.SearchAsync(directoryInfo, FindText);
+
+            ClearFolderSearchResults();
+            foreach (var folderSearchResult in resultList)
+            {
+                FolderSearchResultList.Add(new FolderSearchResultViewModel(folderSearchResult));
+            }
+
+            _hasExecutedFolderSearch = true;
+            OnPropertyChanged(nameof(HasFolderSearchResults));
+        }
+        finally
+        {
+            IsSearchingFolder = false;
+            UpdateSearchStatus();
+        }
+    }
+
+    public async Task OpenFolderSearchResultAsync(FolderSearchResultViewModel? folderSearchResult)
+    {
+        if (folderSearchResult is null)
+        {
+            return;
+        }
+
+        await EditorViewModel.OpenFileAsync(folderSearchResult.FileInfo);
+        RefreshCurrentEditor();
+
+        if (!TryGetCurrentTextEditor(out var textEditor))
+        {
+            return;
+        }
+
+        var startOffset = new CaretOffset(folderSearchResult.FirstMatchOffset);
+        var endOffset = new CaretOffset(folderSearchResult.FirstMatchOffset + folderSearchResult.MatchLength);
+        textEditor.CurrentSelection = new Selection(startOffset, endOffset);
+        textEditor.Focus();
+        UpdateSearchStatus();
     }
 
     public void RefreshCurrentEditor()
@@ -104,7 +248,7 @@ public class FindReplaceViewModel : ViewModelBase
 
     public void FindNext()
     {
-        if (!TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
         {
             return;
         }
@@ -115,7 +259,7 @@ public class FindReplaceViewModel : ViewModelBase
 
     public void FindPrevious()
     {
-        if (!TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
         {
             return;
         }
@@ -126,7 +270,7 @@ public class FindReplaceViewModel : ViewModelBase
 
     public void ReplaceCurrent()
     {
-        if (!TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
         {
             return;
         }
@@ -155,7 +299,7 @@ public class FindReplaceViewModel : ViewModelBase
 
     public void ReplaceAll()
     {
-        if (!TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
         {
             return;
         }
@@ -169,6 +313,8 @@ public class FindReplaceViewModel : ViewModelBase
     }
 
     private EditorViewModel EditorViewModel { get; }
+
+    private FolderExplorerViewModel FolderExplorerViewModel { get; }
 
     private void ShowPanel(bool isReplaceMode)
     {
@@ -220,6 +366,13 @@ public class FindReplaceViewModel : ViewModelBase
     private void RefreshSearchMatches()
     {
         _searchMatchList.Clear();
+
+        if (IsFolderSearchScope)
+        {
+            NotifyMatchStateChanged();
+            UpdateSearchStatus();
+            return;
+        }
 
         if (!TryGetCurrentTextEditor(out var textEditor))
         {
@@ -334,6 +487,36 @@ public class FindReplaceViewModel : ViewModelBase
             return;
         }
 
+        if (IsFolderSearchScope)
+        {
+            if (!IsFolderSearchAvailable)
+            {
+                SetSearchStatusText("[文件夹查找: 未打开文件夹]");
+                return;
+            }
+
+            if (IsSearchingFolder)
+            {
+                SetSearchStatusText("[文件夹查找: 搜索中]");
+                return;
+            }
+
+            if (!_hasExecutedFolderSearch)
+            {
+                SetSearchStatusText("[文件夹查找: 按 Enter 执行搜索]");
+                return;
+            }
+
+            if (FolderSearchResultList.Count == 0)
+            {
+                SetSearchStatusText("[文件夹查找: 0 个文件命中]");
+                return;
+            }
+
+            SetSearchStatusText($"[文件夹查找: {FolderSearchResultList.Count} 个文件，{FolderSearchResultList.Sum(temp => temp.MatchCount)} 处命中]");
+            return;
+        }
+
         var matchCount = _searchMatchList.Count;
         if (matchCount == 0)
         {
@@ -357,6 +540,26 @@ public class FindReplaceViewModel : ViewModelBase
     private void NotifyMatchStateChanged()
     {
         OnPropertyChanged(nameof(HasMatches));
+    }
+
+    private void FolderExplorerViewModelOnCurrentFolderChanged(object? sender, EventArgs e)
+    {
+        ClearFolderSearchResults();
+        _hasExecutedFolderSearch = false;
+        OnPropertyChanged(nameof(IsFolderSearchAvailable));
+        OnPropertyChanged(nameof(CanSearchInFolder));
+        UpdateSearchStatus();
+    }
+
+    private void ClearFolderSearchResults()
+    {
+        if (FolderSearchResultList.Count == 0)
+        {
+            return;
+        }
+
+        FolderSearchResultList.Clear();
+        OnPropertyChanged(nameof(HasFolderSearchResults));
     }
 
     private void SetSearchStatusText(string searchStatusText)
@@ -384,6 +587,9 @@ public class FindReplaceViewModel : ViewModelBase
     private TextEditor? _currentTextEditor;
     private bool _isPanelVisible;
     private bool _isReplaceMode;
+    private bool _isFolderSearchScope;
+    private bool _isSearchingFolder;
+    private bool _hasExecutedFolderSearch;
     private string _findText = string.Empty;
     private string _replaceText = string.Empty;
     private string _searchStatusText = string.Empty;

@@ -8,4 +8,6 @@ internal interface IFilePickerHandler
     Task<FileInfo?> PickSaveFileAsync();
 
     Task<FileInfo?> PickOpenFileAsync();
+
+    Task<DirectoryInfo?> PickOpenFolderAsync();
 }

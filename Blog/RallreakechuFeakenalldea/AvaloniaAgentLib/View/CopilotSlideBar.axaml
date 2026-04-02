@@ -57,7 +57,7 @@
             <Setter Property="Background" Value="#FF1B1B1B" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="Padding" Value="12" />
-            <Setter Property="Margin" Value="10" />
+            <Setter Property="Margin" Value="10,0,10,0" />
         </Style>
         <Style Selector="TextBlock.HeaderTitle">
             <Setter Property="Foreground" Value="#FFF2F2F2" />
@@ -81,7 +81,8 @@
 
     <Border Background="#FF141414" BorderThickness="1,0,0,0" BorderBrush="#FF3B3B3B">
         <Grid RowDefinitions="Auto,*,Auto">
-            <Border Classes="CardBorder" Margin="10,10,10,6">
+            <Border Classes="CardBorder" Margin="10,0,10,6"
+                    Padding="12,2,12,0">
                 <Grid ColumnDefinitions="*,Auto,Auto">
                     <StackPanel Spacing="2">
                         <TextBlock Classes="HeaderTitle" Text="Copilot Chat" />
