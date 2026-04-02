@@ -6,27 +6,29 @@
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleWrite.Views.SimpleWriteMainView" Background="#FF2E2E2E"  x:DataType="viewModels:SimpleWriteMainViewModel">
-  <UserControl.DataContext>
-    <viewModels:SimpleWriteMainViewModel />
-  </UserControl.DataContext>
+    <UserControl.DataContext>
+        <viewModels:SimpleWriteMainViewModel />
+    </UserControl.DataContext>
 
-  <Grid ColumnDefinitions="Auto,*,Auto">
+    <Grid ColumnDefinitions="Auto,*,Auto">
 
-    <components:SimpleWriteSideBar Width="200"/>
+        <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto">
+            <components:TabBar Grid.Row="0" Height="25"/>
+            <components:MainEditorView x:Name="MainEditorView" Grid.Row="1"
+                                       DataContext="{Binding Path=EditorViewModel}"/>
+            <Grid x:Name="FunctionalGrid" Grid.Row="2">
+                <components:FindReplaceBar x:Name="FindReplaceBar"
+                                           DataContext="{Binding Path=FindReplaceViewModel}"/>
+            </Grid>
+            <components:StatusBar Grid.Row="3" Height="20" DataContext="{Binding Path=StatusViewModel}"/>
+        </Grid>
 
-    <Grid x:Name="MainEditorGrid" Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto">
-      <components:TabBar Grid.Row="0" Height="25"/>
-      <components:MainEditorView x:Name="MainEditorView" Grid.Row="1"
-                                 DataContext="{Binding Path=EditorViewModel}"/>
-      <Grid x:Name="FunctionalGrid" Grid.Row="2">
-          <components:FindReplaceBar x:Name="FindReplaceBar"
-                                     DataContext="{Binding Path=FindReplaceViewModel}"/>
-      </Grid>
-      <components:StatusBar Grid.Row="3" Height="20" DataContext="{Binding Path=StatusViewModel}"/>
+        <components:SimpleWriteSideBar Grid.Column="0" Width="200">
+            <!-- 左侧边栏 -->
+        </components:SimpleWriteSideBar>
+
+        <components:RightSlideBar Grid.Column="2" Width="300">
+            <!-- 右侧边栏 -->
+        </components:RightSlideBar>
     </Grid>
-
-    <components:RightSlideBar Grid.Column="2" Width="300">
-        <!-- 右侧边栏 -->
-    </components:RightSlideBar>
-  </Grid>
 </UserControl>

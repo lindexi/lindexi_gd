@@ -3,8 +3,60 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.Components.SimpleWriteSideBar">
-    <Border BorderThickness="0,0,1,0" BorderBrush="#FF3D3D3D">
+             x:Class="SimpleWrite.Views.Components.SimpleWriteSideBar"
+             MinWidth="0"
+             ClipToBounds="False">
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
+    </Design.DesignStyle>
+    <UserControl.Transitions>
+        <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.18" />
+        </Transitions>
+    </UserControl.Transitions>
 
-    </Border>
+    <Grid>
+        <Border x:Name="SidebarContentHost"
+                BorderThickness="0,0,1,0"
+                BorderBrush="#FF3D3D3D">
+
+        </Border>
+
+        <Button x:Name="ToggleSidebarButton"
+                Classes="InteractiveButton SecondaryButton"
+                Width="32"
+                Height="84"
+                Background="#1B1B1B"
+                Padding="0"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Click="ToggleSidebarButton_OnClick">
+            <Button.Styles>
+                <Style Selector="Button">
+                    <Setter Property="Opacity" Value="0.5"></Setter>
+                </Style>
+                <Style Selector="Button:pointerover">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.2" FillMode="Backward">
+                            <KeyFrame Cue="50%">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="Opacity" Value="1.0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                    <Setter Property="Opacity" Value="1"></Setter>
+                </Style>
+            </Button.Styles>
+            <StackPanel Spacing="4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock x:Name="ToggleChevronTextBlock"
+                           Text="❮"
+                           FontSize="14"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Button>
+    </Grid>
 </UserControl>
