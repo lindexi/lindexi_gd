@@ -5,53 +5,68 @@
              xmlns:view="clr-namespace:AvaloniaAgentLib.View;assembly=AvaloniaAgentLib"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleWrite.Views.Components.RightSlideBar"
-             MinWidth="40"
-             ClipToBounds="True">
+             MinWidth="0"
+             ClipToBounds="False">
     <UserControl.Transitions>
         <Transitions>
             <DoubleTransition Property="Width" Duration="0:0:0.18" />
         </Transitions>
     </UserControl.Transitions>
 
-    <Grid ColumnDefinitions="6,Auto,*">
+    <Grid ColumnDefinitions="6,*">
         <Border x:Name="ResizeHandleBorder"
                 Grid.Column="0"
-                Background="Transparent"
+                Background="#2E2E2E"
                 Cursor="SizeWestEast"
                 PointerPressed="ResizeHandleBorder_OnPointerPressed"
                 PointerMoved="ResizeHandleBorder_OnPointerMoved"
                 PointerReleased="ResizeHandleBorder_OnPointerReleased"
                 PointerCaptureLost="ResizeHandleBorder_OnPointerCaptureLost" />
-
-        <Border Grid.Column="1"
-                Background="#FF141414"
-                BorderThickness="1,0,0,0"
-                BorderBrush="#FF3B3B3B">
-            <Button x:Name="ToggleSidebarButton"
-                    Classes="InteractiveButton SecondaryButton"
-                    Width="32"
-                    Height="84"
-                    Margin="4,12,4,12"
-                    Padding="0"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Center"
-                    Click="ToggleSidebarButton_OnClick">
-                <StackPanel Spacing="4"
-                            HorizontalAlignment="Center">
-                    <TextBlock x:Name="ToggleChevronTextBlock"
-                               Text="❯"
-                               FontSize="14"
-                               HorizontalAlignment="Center" />
-                    <TextBlock Text="AI"
-                               FontSize="11"
-                               HorizontalAlignment="Center" />
-                </StackPanel>
-            </Button>
-        </Border>
-
+                      
         <Border x:Name="SidebarContentHost"
-                Grid.Column="2">
+                Grid.Column="1">
             <view:CopilotSlideBar x:Name="CopilotSlideBar" />
         </Border>
+
+        <Button x:Name="ToggleSidebarButton" Grid.Column="1"
+                Classes="InteractiveButton SecondaryButton"
+                Width="32"
+                Height="84"
+                Background="#1B1B1B"
+                Padding="0"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Left"
+                Click="ToggleSidebarButton_OnClick">
+            <Button.Styles>
+                <Style Selector="Button">
+                    <Setter Property="Opacity" Value="0.5"></Setter>
+                </Style>
+                <Style Selector="Button:pointerover">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.2" FillMode="Backward">
+                            <KeyFrame Cue="50%">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="Opacity" Value="1.0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                    <Setter Property="Opacity" Value="1"></Setter>
+                </Style>
+            </Button.Styles>
+            <StackPanel Spacing="4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock x:Name="ToggleChevronTextBlock"
+                           Text="❯"
+                           FontSize="14"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="AI"
+                           FontSize="11"
+                           HorizontalAlignment="Center" IsVisible="False" />
+            </StackPanel>
+        </Button>
+
     </Grid>
 </UserControl>
