@@ -4,7 +4,7 @@ using SimpleWrite.Business.FolderExplorers;
 
 namespace SimpleWrite.ViewModels;
 
-public class FolderTreeItemViewModel
+public class FolderTreeItemViewModel : ViewModelBase
 {
     internal FolderTreeItemViewModel(FolderTreeEntry folderTreeEntry)
     {
@@ -25,6 +25,22 @@ public class FolderTreeItemViewModel
     public bool IsDirectory { get; }
 
     public string IconText => IsDirectory ? "📁" : "📄";
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set => SetField(ref _isExpanded, value);
+    }
+
+    private bool _isExpanded;
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetField(ref _isSelected, value);
+    }
+
+    private bool _isSelected;
 
     public ObservableCollection<FolderTreeItemViewModel> Children { get; } = [];
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -26,6 +27,11 @@ public class FolderExplorerViewModel : ViewModelBase
         }
 
         MainViewModel = mainViewModel;
+
+        if (mainViewModel is not null)
+        {
+            mainViewModel.EditorViewModel.EditorModelChanged += OnEditorModelChanged;
+        }
 
         if (Design.IsDesignMode)
         {
@@ -77,6 +83,7 @@ public class FolderExplorerViewModel : ViewModelBase
 
         _currentFolder = directoryInfo;
         NotifyFolderStateChanged();
+        SyncSelectedEditorFile();
     }
 
     public void ClearFolder()
@@ -102,6 +109,82 @@ public class FolderExplorerViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasOpenedFolder));
         OnPropertyChanged(nameof(IsEmptyStateVisible));
         CurrentFolderChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnEditorModelChanged(object? sender, EventArgs e)
+    {
+        SyncSelectedEditorFile();
+    }
+
+    private void SyncSelectedEditorFile()
+    {
+        ClearSelection(RootItems);
+
+        if (MainViewModel?.EditorViewModel.CurrentEditorModel.FileInfo is not { } currentFile
+            || _currentFolder is null
+            || !IsPathInCurrentFolder(currentFile.FullName))
+        {
+            return;
+        }
+
+        SelectFileItem(RootItems, currentFile.FullName);
+    }
+
+    private bool SelectFileItem(IEnumerable<FolderTreeItemViewModel> items, string currentFilePath)
+    {
+        foreach (var item in items)
+        {
+            if (!item.IsDirectory && PathsEqual(item.FullPath, currentFilePath))
+            {
+                item.IsSelected = true;
+                return true;
+            }
+
+            if (!item.IsDirectory)
+            {
+                continue;
+            }
+
+            if (SelectFileItem(item.Children, currentFilePath))
+            {
+                item.IsExpanded = true;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void ClearSelection(IEnumerable<FolderTreeItemViewModel> items)
+    {
+        foreach (var item in items)
+        {
+            item.IsSelected = false;
+            ClearSelection(item.Children);
+        }
+    }
+
+    private bool IsPathInCurrentFolder(string filePath)
+    {
+        if (_currentFolder is null)
+        {
+            return false;
+        }
+
+        var currentFolderPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(_currentFolder.FullName));
+        var normalizedFilePath = Path.GetFullPath(filePath);
+
+        return normalizedFilePath.StartsWith(currentFolderPath + Path.DirectorySeparatorChar, GetPathComparison());
+    }
+
+    private static bool PathsEqual(string left, string right)
+    {
+        return string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), GetPathComparison());
+    }
+
+    private static StringComparison GetPathComparison()
+    {
+        return OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     }
 
     private void AddDesignTimeData()

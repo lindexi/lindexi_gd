@@ -1,14 +1,59 @@
 <Styles xmlns="https://github.com/avaloniaui">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <TreeView Classes="LightTreeView">
+
+            </TreeView>
+        </Border>
+    </Design.PreviewWith>
+
     <Style Selector="TreeView.LightTreeView">
         <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
     </Style>
 
     <Style Selector="TreeView.LightTreeView TreeViewItem">
         <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+        <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded, Mode=TwoWay}" />
+        <Setter Property="IsSelected" Value="{ReflectionBinding IsSelected, Mode=TwoWay}" />
     </Style>
 
     <Style Selector="TreeView.LightTreeView TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem /template/ ToggleButton#ExpandCollapseChevron">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.TreeChevron}" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem /template/ Path#ChevronPath">
+        <Setter Property="Fill" Value="{StaticResource Brush.Foreground.TreeChevron}" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem /template/ Border#SelectionBorder">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="4,2" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem:pointerover /template/ Border#SelectionBorder">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.TreeItemHover}" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem:selected /template/ Border#SelectionBorder">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.TreeItemSelected}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.TreeItemSelected}" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.TreeItemSelected}" />
+    </Style>
+
+    <Style Selector="TreeView.LightTreeView TreeViewItem:selected /template/ Path#ChevronPath">
+        <Setter Property="Fill" Value="{StaticResource Brush.Foreground.TreeItemSelected}" />
     </Style>
 </Styles>

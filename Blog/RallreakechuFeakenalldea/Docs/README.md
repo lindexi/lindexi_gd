@@ -1,29 +1,30 @@
 ﻿# SimpleWrite Docs
 
-`Docs/` 是项目文档入口，重点用于帮助开发者快速理解现有实现，而不是堆叠大段背景描述。
+`Docs/` 只负责给出阅读入口；具体实现经验统一放进 `Docs/Knowledge/`。
 
-## 建议阅读顺序
+## 推荐阅读顺序
 
 1. `.github/copilot-instructions.md`
-   - 会话级开发约束、分层约定、AOT 注意事项。
+   - 会话级约束与高频入口。
 2. `Knowledge/README.md`
-   - 知识库索引，按问题类型定位对应经验文档。
-3. `Knowledge/Avalonia/*.md`
-   - 具体到某个交互、控件或分层设计的实现经验。
+   - 按问题类型定位知识文档。
+3. 当前任务相关的 `Knowledge/Avalonia/*.md`
+   - 看具体控件、交互和 MVVM 组织方式。
 4. `Knowledge/Workflow/*.md`
-   - 功能开发、自测、交付阶段的流程约定。
+   - 做开发自检与交付收口。
 
-## 当前重点文档
+## 常用入口
 
-- `Knowledge/Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md`
-  - 说明编辑器选区如何进入右侧 Copilot 聊天。
-- `Knowledge/Avalonia/MVVM-Layer-Responsibilities-And-ChatTemplateSelector.md`
-  - 说明聊天区域的 MVVM 分层与模板选择方式。
-- `Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md`
-  - 说明快捷键与文件选择器接入点。
+| 主题 | 文档 |
+|---|---|
+| 左侧目录树与文件夹查找 | `Knowledge/Avalonia/Folder-Explorer-And-Folder-Find.md` |
+| 目录树选中联动与深色主题 | `Knowledge/Avalonia/Folder-TreeView-Selection-And-Theme.md` |
+| 编辑器选区发送到 Copilot | `Knowledge/Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md` |
+| 快捷键与文件选择器 | `Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md` |
+| 功能交付自检 | `Knowledge/Workflow/Feature-Delivery-Checklist.md` |
 
 ## 维护原则
 
-- 文档优先回答“代码在哪里、职责怎么分、从哪开始读”。
-- 同一主题只保留一个主入口，避免重复写相同说明。
-- 新增经验优先放到 `Knowledge/`，并同步补索引。
+- 入口文档保持短小，只保留索引和阅读顺序。
+- 同一主题优先补充原有知识文档，避免重复说明。
+- 新增经验写入 `Knowledge/` 后，记得同步更新索引。

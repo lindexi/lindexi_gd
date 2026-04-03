@@ -8,6 +8,7 @@
 |---|---|
 | Copilot 聊天日志如何注入与按会话落盘 | `Avalonia/Copilot-Chat-Logging.md` |
 | 左侧文件夹树与文件夹查找怎么接进来 | `Avalonia/Folder-Explorer-And-Folder-Find.md` |
+| 目录树如何跟随当前文档并适配深色主题 | `Avalonia/Folder-TreeView-Selection-And-Theme.md` |
 | 编辑器选区如何发送到 Copilot 聊天 | `Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md` |
 | 聊天气泡模板与 MVVM 边界怎么拆 | `Avalonia/MVVM-Layer-Responsibilities-And-ChatTemplateSelector.md` |
 | Markdown 链接为何能高亮并支持命中测试 | `Avalonia/Markdown-Url-Highlighting.md` |
@@ -24,6 +25,7 @@
 |---|---|---|
 | `Copilot-Chat-Logging.md` | Copilot 聊天日志注入与按会话文件落盘 | 需要替换日志实现、调整日志目录、排查某个会话记录时 |
 | `Folder-Explorer-And-Folder-Find.md` | 左侧文件夹树与文件夹查找的组织方式 | 增加资源管理器、扩展文件夹查找、排查结果定位链路时 |
+| `Folder-TreeView-Selection-And-Theme.md` | 目录树跟随当前文档与深色主题样式 | 调整目录树联动、选中态、Chevron 配色时 |
 | `MVVM-Layer-Responsibilities-And-ChatTemplateSelector.md` | 聊天消息模板选择与 MVVM 职责边界 | 调整 Copilot 聊天 UI、梳理 Model/View/ViewModel 责任时 |
 | `Markdown-Url-Highlighting.md` | Markdown 正文 URL 高亮与命中信息记录 | 需要识别链接、命中链接、准备点击打开能力时 |
 | `Shortcut-Defaults-And-FilePicker.md` | 快捷键默认方案与文件选择器注入 | 新增命令、调整快捷键、接入打开/保存对话框时 |
