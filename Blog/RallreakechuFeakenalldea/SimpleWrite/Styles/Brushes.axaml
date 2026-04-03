@@ -9,6 +9,9 @@
         <SolidColorBrush x:Key="Brush.Background.Control" Color="#FF2A2A2A" />
         <SolidColorBrush x:Key="Brush.Background.Toggle" Color="#FF1B1B1B" />
         <SolidColorBrush x:Key="Brush.Background.InteractiveHover" Color="#FF5F5F5D" />
+        <SolidColorBrush x:Key="Brush.Background.TreeItemHover" Color="#FF373737" />
+        <SolidColorBrush x:Key="Brush.Background.TreeItemSelected" Color="#FF23407A" />
+        <SolidColorBrush x:Key="Brush.Background.TreeItemSelectedInactive" Color="#FF3A3A3A" />
         <SolidColorBrush x:Key="Brush.Background.TabBar" Color="#FF0E0E0E" />
         <SolidColorBrush x:Key="Brush.Background.TabSelected" Color="#FF2E2E2E" />
 
@@ -16,8 +19,11 @@
         <SolidColorBrush x:Key="Brush.Foreground.Secondary" Color="#FFD9D9D9" />
         <SolidColorBrush x:Key="Brush.Foreground.Muted" Color="#FFADADAD" />
         <SolidColorBrush x:Key="Brush.Foreground.Disabled" Color="#FF696969" />
+        <SolidColorBrush x:Key="Brush.Foreground.TreeItemSelected" Color="#FFFFFFFF" />
+        <SolidColorBrush x:Key="Brush.Foreground.TreeChevron" Color="#FFD9D9D9" />
 
         <SolidColorBrush x:Key="Brush.Border.Subtle" Color="#FF3D3D3D" />
         <SolidColorBrush x:Key="Brush.Border.Strong" Color="#FF404040" />
+        <SolidColorBrush x:Key="Brush.Border.TreeItemSelected" Color="#FF4C84F4" />
     </Styles.Resources>
 </Styles>
