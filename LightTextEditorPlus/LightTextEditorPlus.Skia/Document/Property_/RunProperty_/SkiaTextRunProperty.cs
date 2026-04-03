@@ -8,6 +8,7 @@ using LightTextEditorPlus.Primitive;
 using SkiaSharp;
 
 using System;
+using System.Collections.Generic;
 using LightTextEditorPlus.Core;
 
 namespace LightTextEditorPlus.Document;
@@ -239,8 +240,25 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         return false;
     }
 
+    /// <inheritdoc cref="Equals(SkiaTextRunProperty?)"/>
+    public bool Equals(SkiaTextRunProperty? other, IEqualityComparer<SkiaTextRunProperty> equalityComparer)
+    {
+        return equalityComparer.Equals(this, other);
+    }
+
     /// <inheritdoc />
     public virtual bool Equals(SkiaTextRunProperty? other)
+    {
+        return Equals(other, includeRenderProperty: true);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return GetHashCode(includeRenderProperty: true);
+    }
+
+    internal bool Equals(SkiaTextRunProperty? other, bool includeRenderProperty)
     {
         if (other is null) return false;
 
@@ -249,9 +267,19 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
             return false;
         }
 
-        if (!string.Equals(RenderFontName, other.RenderFontName))
+        if (includeRenderProperty)
         {
-            return false;
+            if (!string.Equals(RenderFontName, other.RenderFontName))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if (FontName.Equals(other.FontName))
+            {
+                return false;
+            }
         }
 
         if (!Foreground.Equals(other.Foreground))
@@ -292,12 +320,19 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         return true;
     }
 
-    /// <inheritdoc />
-    public override int GetHashCode()
+    internal int GetHashCode(bool includeRenderProperty)
     {
         HashCode hashCode = new HashCode();
-        hashCode.Add(RenderFontName);
-        // 忽略 FontName
+
+        if (includeRenderProperty)
+        {
+            hashCode.Add(RenderFontName);
+            // 忽略 FontName
+        }
+        else
+        {
+            hashCode.Add(FontName);
+        }
         hashCode.Add(FontSize);
         hashCode.Add(FontVariant);
 
@@ -309,5 +344,51 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         hashCode.Add(DecorationCollection.GetHashCode());
 
         return hashCode.ToHashCode();
+    }
+}
+
+/// <summary>
+/// 用于 <see cref="SkiaTextRunProperty"/> 的相等比较器集合
+/// </summary>
+public static class SkiaTextRunPropertyEqualityComparers
+{
+    /// <summary>
+    /// 标准的相等比较器
+    /// </summary>
+    public static IEqualityComparer<SkiaTextRunProperty> StandardComparer =>
+        EqualityComparer<SkiaTextRunProperty>.Default;
+
+    /// <summary>
+    /// 忽略渲染属性的 <see cref="SkiaTextRunProperty"/> 相等比较器
+    /// </summary>
+    public static IEqualityComparer<SkiaTextRunProperty> IgnoreRenderPropertyComparer =>
+        field ??= new SkiaTextRunPropertyIgnoreRenderEqualityComparer();
+}
+
+/// <summary>
+/// 忽略渲染属性的 <see cref="SkiaTextRunProperty"/> 相等比较器
+/// </summary>
+public class SkiaTextRunPropertyIgnoreRenderEqualityComparer : IEqualityComparer<SkiaTextRunProperty>
+{
+    /// <inheritdoc />
+    public bool Equals(SkiaTextRunProperty? x, SkiaTextRunProperty? y)
+    {
+        if (ReferenceEquals(x, y))
+        {
+            return true;
+        }
+
+        if (x is null || y is null)
+        {
+            return false;
+        }
+
+        return x.Equals(y, includeRenderProperty: false);
+    }
+
+    /// <inheritdoc />
+    public int GetHashCode(SkiaTextRunProperty obj)
+    {
+        return obj.GetHashCode(includeRenderProperty: false);
     }
 }
