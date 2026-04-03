@@ -276,10 +276,11 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         }
         else
         {
-            if (FontName.Equals(other.FontName))
-            {
-                return false;
-            }
+            // 无需再次判断 FontName 了，因为 base 已经判断了
+            //if (!FontName.Equals(other.FontName))
+            //{
+            //    return false;
+            //}
         }
 
         if (!Foreground.Equals(other.Foreground))
