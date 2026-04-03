@@ -13,6 +13,9 @@ using SimpleWrite.Business.FolderExplorers;
 
 namespace SimpleWrite.ViewModels;
 
+/// <summary>
+/// 查找和替换的模型
+/// </summary>
 public class FindReplaceViewModel : ViewModelBase
 {
     private readonly FolderSearchService _folderSearchService = new FolderSearchService();
@@ -325,6 +328,9 @@ public class FindReplaceViewModel : ViewModelBase
         RefreshCurrentEditor();
     }
 
+    /// <summary>
+    /// 尝试使用当前文本的选择内容作为查找内容
+    /// </summary>
     private void TryUseCurrentSelectionAsFindText()
     {
         if (!TryGetCurrentTextEditor(out var textEditor))
@@ -343,12 +349,18 @@ public class FindReplaceViewModel : ViewModelBase
             || selectedText.Contains('\r')
             || selectedText.Contains('\n'))
         {
+            // 如果是超过一段的内容，则忽略，太长了估计也不会作为查找的内容
             return;
         }
 
         FindText = selectedText;
     }
 
+    /// <summary>
+    /// 尝试找到当前的文本框
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
     private bool TryGetCurrentTextEditor([NotNullWhen(true)] out TextEditor? textEditor)
     {
         textEditor = _currentTextEditor ?? EditorViewModel.CurrentEditorModel.TextEditor;

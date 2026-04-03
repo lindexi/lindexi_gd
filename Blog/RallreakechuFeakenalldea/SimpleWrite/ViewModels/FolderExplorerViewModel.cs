@@ -8,6 +8,9 @@ using SimpleWrite.Business.FolderExplorers;
 
 namespace SimpleWrite.ViewModels;
 
+/// <summary>
+/// 文件夹管理器模型
+/// </summary>
 public class FolderExplorerViewModel : ViewModelBase
 {
     public FolderExplorerViewModel()
