@@ -82,15 +82,34 @@ namespace LightTextEditorPlus.Core.Document
         {
             if (other is null) return false;
 
+            return Equals(other, includeInvalid: false);
+        }
+
+        /// <inheritdoc cref="Equals(LayoutOnlyRunProperty?)"/>
+        protected bool Equals(LayoutOnlyRunProperty other, bool includeInvalid)
+        {
             if
             (
                 FontSize.Equals(other.FontSize)
                 && FontName.Equals(other.FontName)
                 && FontVariant.Equals(other.FontVariant)
-                && IsInvalidRunProperty == other.IsInvalidRunProperty
             )
             {
-                return true;
+                if (includeInvalid)
+                {
+                    if (IsInvalidRunProperty == other.IsInvalidRunProperty)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return true;
+                }
             }
 
             return false;
