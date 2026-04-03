@@ -29,7 +29,7 @@ public class AppPathManager
 
         CopilotChatLogDirectory = Directory.CreateDirectory(Path.Join(LogDirectory, "CopilotChatLogs"));
 
-        var applicationConfigurationFile = Path.Join(ConfigurationDirectory, "ApplicationConfiguration.coin");
+        var applicationConfigurationFile = Path.Join(ConfigurationDirectory, ApplicationConfigurationFileName);
         ApplicationConfigurationFile = new FilePath(applicationConfigurationFile);
     }
 
@@ -46,4 +46,6 @@ public class AppPathManager
     /// 应用程序配置文件
     /// </summary>
     public FilePath ApplicationConfigurationFile { get; }
+
+    public const string ApplicationConfigurationFileName = "ApplicationConfiguration.coin";
 }

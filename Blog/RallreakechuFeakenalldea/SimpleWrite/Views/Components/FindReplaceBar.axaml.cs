@@ -31,6 +31,7 @@ public partial class FindReplaceBar : UserControl
         if (DataContext is FindReplaceViewModel viewModel)
         {
             _viewModel = viewModel;
+            _viewModel.PropertyChanged -= ViewModelOnPropertyChanged;
             _viewModel.PropertyChanged += ViewModelOnPropertyChanged;
         }
 

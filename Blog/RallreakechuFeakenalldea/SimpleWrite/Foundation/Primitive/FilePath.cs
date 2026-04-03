@@ -15,4 +15,14 @@ public readonly record struct FilePath(string Path)
         new FileInfo(filePath.Path);
 
     public static implicit operator string(FilePath filePath) => filePath.Path;
+
+    /// <summary>
+    /// 文件是否存在
+    /// </summary>
+    /// <returns></returns>
+    public bool IsExists()
+    {
+        return System.IO.File.Exists(Path);
+    }
+    public string GetFullPath() => System.IO.Path.GetFullPath(Path);
 }
