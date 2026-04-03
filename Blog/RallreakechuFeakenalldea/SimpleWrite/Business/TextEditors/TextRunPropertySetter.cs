@@ -55,7 +55,8 @@ readonly record struct TextRunPropertySetter(TextEditor TextEditor)
     {
         TextEditor.TextEditorCore.SetUndoRedoEnable(false, "框架内部设置文本样式，防止将内容动作记录");
         IEnumerable<SkiaTextRunProperty> runPropertyRange = TextEditor.GetRunPropertyRange(selection);
-        var same = runPropertyRange.All(t => t == runProperty);
+        var same = runPropertyRange.All(t =>
+            SkiaTextRunPropertyEqualityComparers.IgnoreRenderPropertyComparer.Equals(t, runProperty));
         if (!same)
         {
             TextEditor.SetRunProperty(runProperty, selection);
