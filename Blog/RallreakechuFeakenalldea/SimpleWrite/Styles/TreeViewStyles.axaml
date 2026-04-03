@@ -28,7 +28,7 @@
         <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <Style Selector="TreeView.LightTreeView TreeViewItem /template/ Path#ChevronPath">
+    <Style Selector="TreeView.LightTreeView TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron /template/ Path#ChevronPath">
         <Setter Property="Fill" Value="{StaticResource Brush.Foreground.TreeChevron}" />
     </Style>
 
@@ -51,9 +51,5 @@
 
     <Style Selector="TreeView.LightTreeView TreeViewItem:selected TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.TreeItemSelected}" />
-    </Style>
-
-    <Style Selector="TreeView.LightTreeView TreeViewItem:selected /template/ Path#ChevronPath">
-        <Setter Property="Fill" Value="{StaticResource Brush.Foreground.TreeItemSelected}" />
     </Style>
 </Styles>
