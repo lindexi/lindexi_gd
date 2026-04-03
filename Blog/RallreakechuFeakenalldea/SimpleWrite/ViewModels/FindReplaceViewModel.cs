@@ -9,6 +9,7 @@ using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
 
+using SimpleWrite.Business.FindReplaces;
 using SimpleWrite.Business.FolderExplorers;
 
 namespace SimpleWrite.ViewModels;
@@ -93,19 +94,7 @@ public class FindReplaceViewModel : ViewModelBase
                 return;
             }
 
-            OnPropertyChanged(nameof(HasSearchText));
-            OnPropertyChanged(nameof(CanNavigateDocumentMatches));
-            OnPropertyChanged(nameof(CanSearchInFolder));
-
-            if (IsFolderSearchScope)
-            {
-                ClearFolderSearchResults();
-                _hasExecutedFolderSearch = false;
-                UpdateSearchStatus();
-                return;
-            }
-
-            RefreshSearchMatches();
+            RefreshSearchState(clearFolderSearchResults: true);
         }
     }
 
@@ -115,7 +104,37 @@ public class FindReplaceViewModel : ViewModelBase
         set => SetField(ref _replaceText, value);
     }
 
+    public bool IsCaseInsensitive
+    {
+        get => _isCaseInsensitive;
+        set
+        {
+            if (!SetField(ref _isCaseInsensitive, value))
+            {
+                return;
+            }
+
+            RefreshSearchState(clearFolderSearchResults: true);
+        }
+    }
+
+    public bool UseRegularExpression
+    {
+        get => _useRegularExpression;
+        set
+        {
+            if (!SetField(ref _useRegularExpression, value))
+            {
+                return;
+            }
+
+            RefreshSearchState(clearFolderSearchResults: true);
+        }
+    }
+
     public bool HasSearchText => !string.IsNullOrEmpty(FindText);
+
+    public bool HasValidSearchPattern => string.IsNullOrEmpty(FindText) || _searchMatcher is not null;
 
     public bool HasMatches => _searchMatchList.Count > 0;
 
@@ -127,11 +146,11 @@ public class FindReplaceViewModel : ViewModelBase
 
     public bool IsDocumentSearchScope => !IsFolderSearchScope;
 
-    public bool CanNavigateDocumentMatches => HasSearchText && !IsFolderSearchScope;
+    public bool CanNavigateDocumentMatches => HasSearchText && HasValidSearchPattern && !IsFolderSearchScope;
 
     public bool IsReplaceAvailable => IsReplaceMode && !IsFolderSearchScope;
 
-    public bool CanSearchInFolder => IsFolderSearchScope && IsFolderSearchAvailable && HasSearchText && !IsSearchingFolder;
+    public bool CanSearchInFolder => IsFolderSearchScope && IsFolderSearchAvailable && HasSearchText && HasValidSearchPattern && !IsSearchingFolder;
 
     public bool IsSearchingFolder
     {
@@ -167,7 +186,7 @@ public class FindReplaceViewModel : ViewModelBase
 
     public async Task SearchInFolderAsync()
     {
-        if (!IsFolderSearchScope || !IsFolderSearchAvailable || string.IsNullOrEmpty(FindText) || IsSearchingFolder)
+        if (!IsFolderSearchScope || !IsFolderSearchAvailable || string.IsNullOrEmpty(FindText) || !HasValidSearchPattern || IsSearchingFolder)
         {
             UpdateSearchStatus();
             return;
@@ -183,7 +202,15 @@ public class FindReplaceViewModel : ViewModelBase
         IsSearchingFolder = true;
         try
         {
-            var resultList = await _folderSearchService.SearchAsync(directoryInfo, FindText);
+            var searchMatcher = _searchMatcher;
+            if (searchMatcher is null)
+            {
+                _hasExecutedFolderSearch = false;
+                UpdateSearchStatus();
+                return;
+            }
+
+            var resultList = await _folderSearchService.SearchAsync(directoryInfo, searchMatcher);
 
             ClearFolderSearchResults();
             foreach (var folderSearchResult in resultList)
@@ -284,9 +311,17 @@ public class FindReplaceViewModel : ViewModelBase
             matchIndex = GetNextMatchIndex(textEditor.CurrentSelection);
         }
 
+        var searchMatcher = _searchMatcher;
+        if (searchMatcher is null)
+        {
+            return;
+        }
+
+        var documentText = textEditor.Text;
         var match = _searchMatchList[matchIndex];
-        var nextAnchorOffset = match.StartOffset + ReplaceText.Length;
-        textEditor.EditAndReplace(ReplaceText, match.ToSelection());
+        var replacementText = searchMatcher.GetReplacementText(documentText, match.ToSearchMatchResult(), ReplaceText);
+        var nextAnchorOffset = match.StartOffset + replacementText.Length;
+        textEditor.EditAndReplace(replacementText, match.ToSelection());
 
         RefreshSearchMatches();
 
@@ -307,9 +342,18 @@ public class FindReplaceViewModel : ViewModelBase
             return;
         }
 
+        var searchMatcher = _searchMatcher;
+        if (searchMatcher is null)
+        {
+            return;
+        }
+
+        var documentText = textEditor.Text;
         for (var i = _searchMatchList.Count - 1; i >= 0; i--)
         {
-            textEditor.EditAndReplace(ReplaceText, _searchMatchList[i].ToSelection());
+            var match = _searchMatchList[i];
+            var replacementText = searchMatcher.GetReplacementText(documentText, match.ToSearchMatchResult(), ReplaceText);
+            textEditor.EditAndReplace(replacementText, match.ToSelection());
         }
 
         RefreshSearchMatches();
@@ -398,20 +442,17 @@ public class FindReplaceViewModel : ViewModelBase
             return;
         }
 
-        var text = textEditor.Text;
-        var findTextLength = FindText.Length;
-        var startIndex = 0;
-
-        while (startIndex <= text.Length - findTextLength)
+        var searchMatcher = _searchMatcher;
+        if (searchMatcher is null)
         {
-            var matchIndex = text.IndexOf(FindText, startIndex, StringComparison.Ordinal);
-            if (matchIndex < 0)
-            {
-                break;
-            }
+            NotifyMatchStateChanged();
+            UpdateSearchStatus();
+            return;
+        }
 
-            _searchMatchList.Add(new SearchMatch(matchIndex, findTextLength));
-            startIndex = matchIndex + Math.Max(findTextLength, 1);
+        foreach (var searchMatch in searchMatcher.FindMatches(textEditor.Text))
+        {
+            _searchMatchList.Add(new SearchMatch(searchMatch.StartOffset, searchMatch.Length, searchMatch.Value));
         }
 
         NotifyMatchStateChanged();
@@ -496,6 +537,12 @@ public class FindReplaceViewModel : ViewModelBase
         if (!IsPanelVisible || string.IsNullOrEmpty(FindText))
         {
             SetSearchStatusText(string.Empty);
+            return;
+        }
+
+        if (!HasValidSearchPattern)
+        {
+            SetSearchStatusText(IsFolderSearchScope ? "[文件夹查找: 正则表达式无效]" : "[查找: 正则表达式无效]");
             return;
         }
 
@@ -595,18 +642,57 @@ public class FindReplaceViewModel : ViewModelBase
         UpdateSearchStatus();
     }
 
+    private void RefreshSearchState(bool clearFolderSearchResults)
+    {
+        RefreshSearchMatcher();
+        OnPropertyChanged(nameof(HasSearchText));
+        OnPropertyChanged(nameof(HasValidSearchPattern));
+        OnPropertyChanged(nameof(CanNavigateDocumentMatches));
+        OnPropertyChanged(nameof(CanSearchInFolder));
+
+        if (clearFolderSearchResults)
+        {
+            ClearFolderSearchResults();
+            _hasExecutedFolderSearch = false;
+        }
+
+        if (IsFolderSearchScope)
+        {
+            UpdateSearchStatus();
+            return;
+        }
+
+        RefreshSearchMatches();
+    }
+
+    private void RefreshSearchMatcher()
+    {
+        if (string.IsNullOrEmpty(FindText))
+        {
+            _searchMatcher = null;
+            return;
+        }
+
+        _searchMatcher = SearchMatcher.TryCreate(FindText, UseRegularExpression, IsCaseInsensitive, out var searchMatcher)
+            ? searchMatcher
+            : null;
+    }
+
     private readonly List<SearchMatch> _searchMatchList = [];
     private TextEditor? _currentTextEditor;
     private bool _isPanelVisible;
     private bool _isReplaceMode;
     private bool _isFolderSearchScope;
+    private bool _isCaseInsensitive;
     private bool _isSearchingFolder;
+    private bool _useRegularExpression;
     private bool _hasExecutedFolderSearch;
     private string _findText = string.Empty;
     private string _replaceText = string.Empty;
     private string _searchStatusText = string.Empty;
+    private SearchMatcher? _searchMatcher;
 
-    private readonly record struct SearchMatch(int StartOffset, int Length)
+    private readonly record struct SearchMatch(int StartOffset, int Length, string Value)
     {
         public int EndOffset => StartOffset + Length;
 
@@ -618,6 +704,11 @@ public class FindReplaceViewModel : ViewModelBase
         public bool IsMatch(Selection selection)
         {
             return selection.FrontOffset.Offset == StartOffset && selection.Length == Length;
+        }
+
+        public SearchMatchResult ToSearchMatchResult()
+        {
+            return new SearchMatchResult(StartOffset, Length, Value);
         }
     }
 }

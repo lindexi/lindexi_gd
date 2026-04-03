@@ -39,13 +39,25 @@
                          Grid.Column="1"
                          Watermark="输入要查找的内容"
                          Text="{Binding FindText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <CheckBox x:Name="FolderSearchScopeCheckBox"
-                          Grid.Column="2"
-                          Margin="12,0,0,0"
-                          VerticalAlignment="Center"
-                          Content="当前文件夹"
-                          IsEnabled="{Binding IsFolderSearchAvailable}"
-                          IsChecked="{Binding IsFolderSearchScope, Mode=TwoWay}" />
+                <StackPanel Grid.Column="2"
+                            Margin="12,0,0,0"
+                            Orientation="Horizontal">
+                    <CheckBox x:Name="FolderSearchScopeCheckBox"
+                              VerticalAlignment="Center"
+                              Content="当前文件夹"
+                              IsEnabled="{Binding IsFolderSearchAvailable}"
+                              IsChecked="{Binding IsFolderSearchScope, Mode=TwoWay}" />
+                    <CheckBox x:Name="CaseInsensitiveCheckBox"
+                              Margin="12,0,0,0"
+                              VerticalAlignment="Center"
+                              Content="忽略大小写"
+                              IsChecked="{Binding IsCaseInsensitive, Mode=TwoWay}" />
+                    <CheckBox x:Name="RegularExpressionCheckBox"
+                              Margin="12,0,0,0"
+                              VerticalAlignment="Center"
+                              Content="正则"
+                              IsChecked="{Binding UseRegularExpression, Mode=TwoWay}" />
+                </StackPanel>
                 <Button x:Name="FindPreviousButton"
                         Grid.Column="3"
                         Classes="InteractiveButton FindReplaceButton"

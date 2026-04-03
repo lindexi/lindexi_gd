@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using SimpleWrite.Business.FileHandlers;
+using SimpleWrite.Business.FindReplaces;
 
 namespace SimpleWrite.Business.FolderExplorers;
 
@@ -14,10 +15,10 @@ internal class FolderSearchService
     private const int PreviewRadius = 24;
     private const long MaxSearchFileSize = 2 * 1024 * 1024;
 
-    public async Task<IReadOnlyList<FolderSearchResult>> SearchAsync(DirectoryInfo rootDirectory, string searchText)
+    public async Task<IReadOnlyList<FolderSearchResult>> SearchAsync(DirectoryInfo rootDirectory, SearchMatcher searchMatcher)
     {
         ArgumentNullException.ThrowIfNull(rootDirectory);
-        ArgumentException.ThrowIfNullOrWhiteSpace(searchText);
+        ArgumentNullException.ThrowIfNull(searchMatcher);
 
         var resultList = new List<FolderSearchResult>();
         var textFileReader = new TextFileReader();
@@ -59,17 +60,17 @@ internal class FolderSearchService
                 continue;
             }
 
-            var firstMatchIndex = text.IndexOf(searchText, StringComparison.Ordinal);
-            if (firstMatchIndex < 0)
+            var matchList = searchMatcher.FindMatches(text);
+            if (matchList.Count == 0)
             {
                 continue;
             }
 
-            var matchCount = CountMatches(text, searchText);
+            var firstMatch = matchList[0];
             var relativePath = Path.GetRelativePath(rootDirectory.FullName, file.FullName);
-            var previewText = CreatePreview(text, firstMatchIndex, searchText.Length);
+            var previewText = CreatePreview(text, firstMatch.StartOffset, firstMatch.Length);
 
-            resultList.Add(new FolderSearchResult(file.FullName, relativePath, previewText, matchCount, firstMatchIndex, searchText.Length));
+            resultList.Add(new FolderSearchResult(file.FullName, relativePath, previewText, matchList.Count, firstMatch.StartOffset, firstMatch.Length));
         }
 
         return resultList;
@@ -126,27 +127,6 @@ internal class FolderSearchService
             }
         }
     }
-
-    private static int CountMatches(string text, string searchText)
-    {
-        var count = 0;
-        var startIndex = 0;
-
-        while (startIndex <= text.Length - searchText.Length)
-        {
-            var matchIndex = text.IndexOf(searchText, startIndex, StringComparison.Ordinal);
-            if (matchIndex < 0)
-            {
-                break;
-            }
-
-            count++;
-            startIndex = matchIndex + Math.Max(searchText.Length, 1);
-        }
-
-        return count;
-    }
-
     private static string CreatePreview(string text, int matchIndex, int matchLength)
     {
         var previewStart = Math.Max(0, matchIndex - PreviewRadius);
