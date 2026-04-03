@@ -262,7 +262,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     {
         if (other is null) return false;
 
-        if (!base.Equals(other))
+        if (!base.Equals(other, includeInvalid: includeRenderProperty))
         {
             return false;
         }
