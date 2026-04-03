@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 
 namespace SimpleWrite.Foundation.Primitive;
 
@@ -16,4 +17,21 @@ public readonly record struct DirectoryPath(string Path)
         new DirectoryInfo(directoryPath.Path);
 
     public static implicit operator string(DirectoryPath directoryPath) => directoryPath.Path;
+
+    public string GetFullPath() => System.IO.Path.GetFullPath(Path);
+
+    public DirectoryPath Join(string path)
+    {
+        var joinPath = System.IO.Path.Join(Path,path);
+        return new DirectoryPath(joinPath);
+    }
+
+    /// <summary>
+    /// 文件夹是否存在
+    /// </summary>
+    /// <returns></returns>
+    public bool IsExists()
+    {
+        return System.IO.Directory.Exists(Path);
+    }
 }
