@@ -38,12 +38,8 @@ var key = File.ReadAllText(keyFile);
               ]
             }
           ],
-            "stream":true,
-            "stream_options":{
-                "include_usage":true
-            },
-            "modalities":["text","audio"],
-            "audio":{"voice":"Tina","format":"wav"}
+            
+            "modalities":["text"]
         }
         """;
 
