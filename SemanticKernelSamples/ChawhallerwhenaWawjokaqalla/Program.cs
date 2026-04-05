@@ -30,10 +30,20 @@ var agent = chatClient.AsIChatClient()
         }
     });
 
-var testInput = new ChatMessage(ChatRole.User, "请问 mp3 的 MIME 类型字符串是什么？");
-_ = testInput;
+ChatMessage[] chatMessageList =
+[
+    new ChatMessage(ChatRole.System,"你是一个应用软件使用助手，你可以调用工具帮助用户实现电脑的操作"),
+    new ChatMessage(ChatRole.User,
+    [
+        //new TextContent("以下是我说话的内容"),
+        //new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwizqwnxhhqjjhnohwvvxlixjjphihhh.mp4", "video/mpeg")
+        new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3", "audio/mpeg"),
+    ]),
+];
+//var testInput = new ChatMessage(ChatRole.User, "请问 mp3 的 MIME 类型字符串是什么？");
+//_ = testInput;
 
-await foreach (var reasoningAgentResponseUpdate in agent.RunReasoningStreamingAsync(testInput))
+await foreach (var reasoningAgentResponseUpdate in agent.RunReasoningStreamingAsync(chatMessageList))
 {
     if (reasoningAgentResponseUpdate.IsFirstThinking)
     {
