@@ -45,8 +45,8 @@ ChatMessage[] chatMessageList =
     new ChatMessage(ChatRole.System,"你是一个应用软件使用助手，你可以调用工具帮助用户实现电脑的操作"),
     new ChatMessage(ChatRole.User,
         [
-            new TextContent("以下是我说话的内容"),
-            new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3", "audio/mpeg")
+            //new TextContent("以下是我说话的内容"),
+            new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3", "video/mpeg")
         ]),
 
 ];
