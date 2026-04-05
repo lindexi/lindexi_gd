@@ -14,7 +14,7 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
     Endpoint = new Uri("https://dashscope.aliyuncs.com/compatible-mode/v1"),
 });
 
-var chatClient = openAiClient.GetChatClient("qwen3-max");
+var chatClient = openAiClient.GetChatClient("qwen3-omni-flash");
 
 var agent = chatClient.AsIChatClient()
     .AsBuilder()
@@ -35,7 +35,7 @@ ChatMessage[] chatMessageList =
     new ChatMessage(ChatRole.System,"你是一个应用软件使用助手，你可以调用工具帮助用户实现电脑的操作"),
     new ChatMessage(ChatRole.User,
     [
-        //new TextContent("以下是我说话的内容"),
+        new TextContent("以下是我说话的内容"),
         //new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwizqwnxhhqjjhnohwvvxlixjjphihhh.mp4", "video/mpeg")
         new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3", "audio/mpeg"),
     ]),
