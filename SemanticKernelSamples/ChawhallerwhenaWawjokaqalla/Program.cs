@@ -14,7 +14,7 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
     Endpoint = new Uri("https://dashscope.aliyuncs.com/compatible-mode/v1"),
 });
 
-var chatClient = openAiClient.GetChatClient("qwen3.5-plus");
+var chatClient = openAiClient.GetChatClient("qwen3.5-omni-plus"); // System.ClientModel.ClientResultException:“HTTP 403 (access_denied: access_denied)
 
 var agent = chatClient.AsIChatClient()
     .AsBuilder()
@@ -36,7 +36,7 @@ ChatMessage[] chatMessageList =
     new ChatMessage(ChatRole.User,
     [
         //new TextContent("以下是我说话的内容"),
-        new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwizqwnxhhqjjhnohwvvxlixjjphihhh.mp4", "video/mpeg")
+        //new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwizqwnxhhqjjhnohwvvxlixjjphihhh.mp4", "video/mpeg"),
         //new UriContent("https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3", "audio/mpeg"),
     ]),
 ];
