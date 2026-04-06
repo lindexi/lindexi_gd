@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ChederehemculerlairLujurraqeldawjear.Contexts;
+namespace VolcEngineSdk.OpenSpeech.Contexts;
 
 /// <summary>
 /// 音频基础信息

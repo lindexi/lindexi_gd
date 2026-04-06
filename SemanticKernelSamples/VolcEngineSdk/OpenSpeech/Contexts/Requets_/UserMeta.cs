@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace ChederehemculerlairLujurraqeldawjear.Contexts;
+namespace VolcEngineSdk.OpenSpeech.Contexts;
 
 public class UserMeta
 {
