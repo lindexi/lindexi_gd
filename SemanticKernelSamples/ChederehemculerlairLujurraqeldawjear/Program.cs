@@ -52,7 +52,7 @@ var corpusContext = new CorpusContext()
         }, 
         new CorpusContextData()
         {
-            Text = "现在电脑上安装的程序有：哔哩哔哩直播姬、软媒魔方、腾讯课堂、微软OfficePLUS、希沃白板、向日葵、小狼毫输入法、QQ影音。请选择将打开的应用程序",
+            Text = "现在电脑上安装的程序有：哔哩哔哩直播姬、软媒魔方、腾讯课堂、微软OfficePLUS、西喔白板、向日葵、小狼毫输入法、QQ影音。请选择将打开的应用程序",
         },
     }
 };
