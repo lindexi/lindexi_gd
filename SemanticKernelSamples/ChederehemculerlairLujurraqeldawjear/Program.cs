@@ -1,9 +1,11 @@
 ﻿// 实验大模型录音文件识别带上下文识别功能
 
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+
 using VolcEngineSdk.OpenSpeech.Contexts;
 
 var keyFile = @"C:\lindexi\Work\Speech.txt";
@@ -44,10 +46,18 @@ var corpusContext = new CorpusContext()
 {
     ContextData =
     {
-        { "text", "我在和林黛玉聊天" },
+        new TextContextData()
+        {
+            Text = "我在和林黛玉聊天",
+        },
     }
 };
 
+var corpusContextJson = JsonSerializer.Serialize(corpusContext, new JsonSerializerOptions()
+{
+    WriteIndented = true,
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+});
 var asrRequest = new AsrRequest()
 {
     User = new UserMeta()
@@ -64,12 +74,15 @@ var asrRequest = new AsrRequest()
         ModelName = "bigmodel",
         Corpus = new CorpusMeta()
         {
-            Context = JsonSerializer.Serialize(corpusContext),   // 添加了之后，响应返回内部错误 [55000001] {}
+            Context = corpusContextJson,
         }
     }
 };
 
-var jsonString = JsonSerializer.Serialize(asrRequest);
+var jsonString = JsonSerializer.Serialize(asrRequest, new JsonSerializerOptions()
+{
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+});
 
 using var httpResponseMessage =
     await httpClient.PostAsync(url, new StringContent(jsonString, Encoding.UTF8, "application/json"));
