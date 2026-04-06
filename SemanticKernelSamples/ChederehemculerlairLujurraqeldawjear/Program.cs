@@ -29,19 +29,6 @@ httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Api-Sequence", "-1")
 
 var url = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/submit";
 
-//var jsonObject = new JsonObject();
-////JsonElement jsonElement = JsonSerializer.SerializeToElement(new Dictionary<string, string>());
-
-//var audioJsonObject = new JsonObject();
-//jsonObject.Add("audio", audioJsonObject);
-
-//Add(audioJsonObject, "url", "https://cstore-ali-study-pub.xbstatic.com/running-wechat-mp/uwizqwnxhhwljhohhwvwuolhpmhhihhh.wav");
-//Add(audioJsonObject, "format", "wav");
-
-//var requestJsonObject = new JsonObject();
-//jsonObject.Add("request", requestJsonObject);
-//requestJsonObject["model_name"] = "bigmodel";
-
 var corpusContext = new CorpusContext()
 {
     ContextData =
@@ -52,7 +39,7 @@ var corpusContext = new CorpusContext()
         }, 
         new CorpusContextData()
         {
-            Text = "现在电脑上安装的程序有：哔哩哔哩直播姬、软媒魔方、腾讯课堂、微软OfficePLUS、西喔白板、向日葵、小狼毫输入法、QQ影音。请选择将打开的应用程序",
+            Text = "现在电脑上安装的程序有：哔哩哔哩直播姬、软媒魔方、腾讯课堂、微软OfficePLUS、西娃白板、向日葵、小狼毫输入法、QQ影音。请选择将打开的应用程序",
         },
     }
 };
@@ -70,6 +57,9 @@ var asrRequest = new AsrRequest()
     },
     Audio = new AudioMeta()
     {
+        // - 打开西瓜白板录音.mp3: https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3 会被识别为 “打开西瓜白榜”，但可以提示正为 “西瓜白板”，但就是很难被正确识别为 “希沃白板”
+        // - 打开西wa白板录音.mp3: https://pro-en-ali-pub.en5static.com/easinote5_public/uwixkwvzhhqjjhnohwvyzzwnykhhihhh.mp3 可用提示词 “西娃白板” 或 “西喔白板” 来进行掰歪，但也可以用正确的 “希沃白板”定正
+
         Url = "https://pro-en-ali-pub.en5static.com/easinote5_public/uwixkwvzhhqjjhnohwvyzzwnykhhihhh.mp3",
         Format = "mp3",
     },
@@ -92,6 +82,7 @@ using var httpResponseMessage =
     await httpClient.PostAsync(url, new StringContent(jsonString, Encoding.UTF8, "application/json"));
 
 var responseText = await httpResponseMessage.Content.ReadAsStringAsync();
+_ = responseText; // 这是一个空内容
 
 var queryUrl = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/query";
 
@@ -130,16 +121,3 @@ while (true)
 }
 
 Console.WriteLine("Hello, World!");
-
-static void Add(JsonObject jsonObject, string propertyName, object obj)
-{
-    if (obj is string str)
-    {
-        jsonObject[propertyName] = str;
-    }
-    else
-    {
-        JsonElement jsonElement = JsonSerializer.SerializeToElement(obj);
-        jsonObject.Add(propertyName, JsonObject.Create(jsonElement));
-    }
-}
