@@ -16,3 +16,24 @@ public class CorpusMeta
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string Context { get; set; }
 }
+
+public class CorpusContext
+{
+    [JsonPropertyName("context_type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string ContextType { get; set; } = "dialog_ctx";
+
+    [JsonPropertyName("context_data")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<TextContextData> ContextData { get; set; } = [];
+}
+
+public interface IContextData
+{
+}
+
+public class TextContextData : IContextData
+{
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
+}

@@ -1,9 +1,11 @@
 ﻿// 实验大模型录音文件识别带上下文识别功能
 
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+
 using VolcEngineSdk.OpenSpeech.Contexts;
 
 var keyFile = @"C:\lindexi\Work\Speech.txt";
@@ -40,13 +42,28 @@ var url = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/submit";
 //jsonObject.Add("request", requestJsonObject);
 //requestJsonObject["model_name"] = "bigmodel";
 
+var corpusContext = new CorpusContext()
+{
+    ContextData =
+    {
+        new TextContextData()
+        {
+            Text = "我在和林黛玉聊天",
+        },
+    }
+};
 
+var corpusContextJson = JsonSerializer.Serialize(corpusContext, new JsonSerializerOptions()
+{
+    WriteIndented = true,
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+});
 var asrRequest = new AsrRequest()
 {
     User = new UserMeta()
     {
         Uid = "abc"
-    }                      ,
+    },
     Audio = new AudioMeta()
     {
         Url = "https://cstore-ali-study-pub.xbstatic.com/running-wechat-mp/uwizqwnxhhwljhohhwvwuolhpmhhihhh.wav",
@@ -55,12 +72,20 @@ var asrRequest = new AsrRequest()
     Request = new RequestMeta()
     {
         ModelName = "bigmodel",
+        Corpus = new CorpusMeta()
+        {
+            Context = corpusContextJson,
+        }
     }
 };
 
-var jsonString = JsonSerializer.Serialize(asrRequest);
+var jsonString = JsonSerializer.Serialize(asrRequest, new JsonSerializerOptions()
+{
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+});
 
-using var httpResponseMessage = await httpClient.PostAsync(url, new StringContent(jsonString, Encoding.UTF8, "application/json"));
+using var httpResponseMessage =
+    await httpClient.PostAsync(url, new StringContent(jsonString, Encoding.UTF8, "application/json"));
 
 var responseText = await httpResponseMessage.Content.ReadAsStringAsync();
 
@@ -68,15 +93,35 @@ var queryUrl = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/query";
 
 while (true)
 {
-    // {"header":{"reqid":"","code":45000000,"message":"unexpected end of JSON input"}}
-    using var queryHttpResponseMessage = await httpClient.PostAsync(queryUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
-    var queryHttpResponseText = await queryHttpResponseMessage.Content.ReadAsStringAsync();
-
-    // {"audio_info":{"duration":4223},"result":{"additions":{"duration":"4223"},"text":"打开西瓜白榜。","utterances":[{"end_time":2890,"start_time":1450,"text":"打开西瓜白榜。","words":[{"confidence":0,"end_time":1690,"start_time":1450,"text":"打"},{"confidence":0,"end_time":1890,"start_time":1690,"text":"开"},{"confidence":0,"end_time":2170,"start_time":1930,"text":"西"},{"confidence":0,"end_time":2410,"start_time":2170,"text":"瓜"},{"confidence":0,"end_time":2610,"start_time":2570,"text":"白"},{"confidence":0,"end_time":2890,"start_time":2850,"text":"榜"}]}]}}
-    var speechRecognitionResponse = JsonSerializer.Deserialize<SpeechRecognitionResponse>(queryHttpResponseText);
-    if (!string.IsNullOrEmpty(speechRecognitionResponse?.Result?.Text))
+    try
     {
-        break;
+        // {"header":{"reqid":"","code":45000000,"message":"unexpected end of JSON input"}}
+        using var queryHttpResponseMessage =
+            await httpClient.PostAsync(queryUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
+        var queryHttpResponseText = await queryHttpResponseMessage.Content.ReadAsStringAsync();
+
+        // {"audio_info":{"duration":4223},"result":{"additions":{"duration":"4223"},"text":"打开西瓜白榜。","utterances":[{"end_time":2890,"start_time":1450,"text":"打开西瓜白榜。","words":[{"confidence":0,"end_time":1690,"start_time":1450,"text":"打"},{"confidence":0,"end_time":1890,"start_time":1690,"text":"开"},{"confidence":0,"end_time":2170,"start_time":1930,"text":"西"},{"confidence":0,"end_time":2410,"start_time":2170,"text":"瓜"},{"confidence":0,"end_time":2610,"start_time":2570,"text":"白"},{"confidence":0,"end_time":2890,"start_time":2850,"text":"榜"}]}]}}
+        string statusCodeText = string.Empty;
+        if (queryHttpResponseMessage.Headers.TryGetValues("X-Api-Status-Code", out var statusCode) &&
+            statusCode is string[]
+            {
+                Length: > 0
+            } codeArray)
+        {
+            statusCodeText = codeArray[0];
+        }
+
+        Console.WriteLine($"[{statusCodeText}] {queryHttpResponseText}");
+
+        var speechRecognitionResponse = JsonSerializer.Deserialize<SpeechRecognitionResponse>(queryHttpResponseText);
+        if (!string.IsNullOrEmpty(speechRecognitionResponse?.Result?.Text))
+        {
+            break;
+        }
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e);
     }
 }
 
