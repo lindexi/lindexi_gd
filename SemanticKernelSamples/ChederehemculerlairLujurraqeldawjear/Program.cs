@@ -3,6 +3,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 var keyFile = @"C:\lindexi\Work\Speech.txt";
 var key = File.ReadAllText(keyFile).Trim();
@@ -15,7 +16,8 @@ var key = File.ReadAllText(keyFile).Trim();
 
 using var httpClient = new HttpClient();
 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Api-Key", key);
-httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Api-Resource-Id", "volc.seedasr.auc");
+var resourceId = "volc.seedasr.auc";
+httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Api-Resource-Id", resourceId);
 
 var requestId = Guid.NewGuid().ToString();
 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Api-Request-Id", requestId);
@@ -42,6 +44,21 @@ using var httpResponseMessage = await httpClient.PostAsync(url, new StringConten
 
 var responseText = await httpResponseMessage.Content.ReadAsStringAsync();
 
+var queryUrl = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/query";
+
+while (true)
+{
+    // {"header":{"reqid":"","code":45000000,"message":"unexpected end of JSON input"}}
+    using var queryHttpResponseMessage = await httpClient.PostAsync(queryUrl, null);
+    var queryHttpResponseText = await queryHttpResponseMessage.Content.ReadAsStringAsync();
+
+    var speechRecognitionResponse = JsonSerializer.Deserialize<SpeechRecognitionResponse>(queryHttpResponseText);
+    if (!string.IsNullOrEmpty(speechRecognitionResponse?.Result?.Text))
+    {
+        break;
+    }
+}
+
 Console.WriteLine("Hello, World!");
 
 static void Add(JsonObject jsonObject, string propertyName, object obj)
@@ -55,4 +72,119 @@ static void Add(JsonObject jsonObject, string propertyName, object obj)
         JsonElement jsonElement = JsonSerializer.SerializeToElement(obj);
         jsonObject.Add(propertyName, JsonObject.Create(jsonElement));
     }
+}
+
+
+/// <summary>
+/// 语音识别响应根对象
+/// </summary>
+public class SpeechRecognitionResponse
+{
+    /// <summary>
+    /// 音频信息
+    /// </summary>
+    [JsonPropertyName("audio_info")]
+    public AudioInfo AudioInfo { get; set; }
+
+    /// <summary>
+    /// 识别结果
+    /// </summary>
+    [JsonPropertyName("result")]
+    public RecognitionResult Result { get; set; }
+}
+
+/// <summary>
+/// 音频基础信息
+/// </summary>
+public class AudioInfo
+{
+    /// <summary>
+    /// 音频总时长（毫秒）
+    /// </summary>
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; }
+}
+
+/// <summary>
+/// 核心识别结果
+/// </summary>
+public class RecognitionResult
+{
+    /// <summary>
+    /// 完整识别文本
+    /// </summary>
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
+
+    /// <summary>
+    /// 分句识别结果列表
+    /// </summary>
+    [JsonPropertyName("utterances")]
+    public List<Utterance> Utterances { get; set; }
+}
+
+/// <summary>
+/// 分句识别单元
+/// </summary>
+public class Utterance
+{
+    /// <summary>
+    /// 是否为确定性识别结果
+    /// </summary>
+    [JsonPropertyName("definite")]
+    public bool Definite { get; set; }
+
+    /// <summary>
+    /// 分句结束时间（毫秒）
+    /// </summary>
+    [JsonPropertyName("end_time")]
+    public int EndTime { get; set; }
+
+    /// <summary>
+    /// 分句开始时间（毫秒）
+    /// </summary>
+    [JsonPropertyName("start_time")]
+    public int StartTime { get; set; }
+
+    /// <summary>
+    /// 分句文本
+    /// </summary>
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
+
+    /// <summary>
+    /// 单字识别结果列表
+    /// </summary>
+    [JsonPropertyName("words")]
+    public List<Word> Words { get; set; }
+}
+
+/// <summary>
+/// 单字识别单元
+/// </summary>
+public class Word
+{
+    /// <summary>
+    /// 字间空白时长（毫秒）
+    /// </summary>
+    [JsonPropertyName("blank_duration")]
+    public int BlankDuration { get; set; }
+
+    /// <summary>
+    /// 单字结束时间（毫秒）
+    /// </summary>
+    [JsonPropertyName("end_time")]
+    public int EndTime { get; set; }
+
+    /// <summary>
+    /// 单字开始时间（毫秒）
+    /// </summary>
+    [JsonPropertyName("start_time")]
+    public int StartTime { get; set; }
+
+    /// <summary>
+    /// 单字文本
+    /// </summary>
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
 }
