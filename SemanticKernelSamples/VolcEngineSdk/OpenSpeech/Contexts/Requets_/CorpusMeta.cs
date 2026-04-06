@@ -14,7 +14,7 @@ public class CorpusMeta
 
     [JsonPropertyName("context")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string Context { get; set; }
+    public string? Context { get; set; }
 }
 
 public class CorpusContext
@@ -25,15 +25,16 @@ public class CorpusContext
 
     [JsonPropertyName("context_data")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public List<TextContextData> ContextData { get; set; } = [];
+    public List<CorpusContextData> ContextData { get; set; } = [];
 }
 
-public interface IContextData
-{
-}
-
-public class TextContextData : IContextData
+public class CorpusContextData 
 {
     [JsonPropertyName("text")]
-    public string Text { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Text { get; set; }
+
+    [JsonPropertyName("image_url")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ImageUrl { get; set; }
 }

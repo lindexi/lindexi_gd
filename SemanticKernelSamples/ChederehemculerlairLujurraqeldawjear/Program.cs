@@ -46,7 +46,7 @@ var corpusContext = new CorpusContext()
 {
     ContextData =
     {
-        new TextContextData()
+        new CorpusContextData()
         {
             Text = "我在和林黛玉聊天",
         },
