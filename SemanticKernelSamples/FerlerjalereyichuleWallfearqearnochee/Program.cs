@@ -34,6 +34,7 @@ var agent = chatClient.AsIChatClient()
 // - 打开西瓜白板录音.mp3: https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3 失败，豆包看不到内容。 用户现在只说了“以下是我说话的内容”，但没说具体要干啥啊？不对，哦不对？不对，等下，用户还没给出具体的需求？不对不对，哦是不是用户没说完？不对不对，等下看，哦不对
 // - 打开西瓜白板录音.mp4: https://pro-en-ali-pub.en5static.com/easinote5_public/uwizqwnxhhqjjhnohwvvxlixjjphihhh.mp4
 // - wav: https://cstore-ali-study-pub.xbstatic.com/running-wechat-mp/uwizqwnxhhwljhohhwvwuolhpmhhihhh.wav
+// - 打开西wa白板录音.mp3: https://pro-en-ali-pub.en5static.com/easinote5_public/uwixkwvzhhqjjhnohwvyzzwnykhhihhh.mp3
 
 ChatMessage[] chatMessageList =
 [
