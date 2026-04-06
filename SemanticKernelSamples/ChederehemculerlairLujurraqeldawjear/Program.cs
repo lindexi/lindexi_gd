@@ -33,14 +33,14 @@ var audioJsonObject = new JsonObject();
 jsonObject.Add("audio", audioJsonObject);
 
 Add(audioJsonObject, "url", "https://cstore-ali-study-pub.xbstatic.com/running-wechat-mp/uwizqwnxhhwljhohhwvwuolhpmhhihhh.wav");
-Add(audioJsonObject, "format","wav");
+Add(audioJsonObject, "format", "wav");
 
 var requestJsonObject = new JsonObject();
 jsonObject.Add("request", requestJsonObject);
 requestJsonObject["model_name"] = "bigmodel";
 
 var jsonString = jsonObject.ToJsonString();
-using var httpResponseMessage = await httpClient.PostAsync(url, new StringContent(jsonString,Encoding.UTF8, "application/json"));
+using var httpResponseMessage = await httpClient.PostAsync(url, new StringContent(jsonString, Encoding.UTF8, "application/json"));
 
 var responseText = await httpResponseMessage.Content.ReadAsStringAsync();
 
@@ -49,9 +49,10 @@ var queryUrl = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/query";
 while (true)
 {
     // {"header":{"reqid":"","code":45000000,"message":"unexpected end of JSON input"}}
-    using var queryHttpResponseMessage = await httpClient.PostAsync(queryUrl, null);
+    using var queryHttpResponseMessage = await httpClient.PostAsync(queryUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
     var queryHttpResponseText = await queryHttpResponseMessage.Content.ReadAsStringAsync();
 
+    // {"audio_info":{"duration":4223},"result":{"additions":{"duration":"4223"},"text":"打开西瓜白榜。","utterances":[{"end_time":2890,"start_time":1450,"text":"打开西瓜白榜。","words":[{"confidence":0,"end_time":1690,"start_time":1450,"text":"打"},{"confidence":0,"end_time":1890,"start_time":1690,"text":"开"},{"confidence":0,"end_time":2170,"start_time":1930,"text":"西"},{"confidence":0,"end_time":2410,"start_time":2170,"text":"瓜"},{"confidence":0,"end_time":2610,"start_time":2570,"text":"白"},{"confidence":0,"end_time":2890,"start_time":2850,"text":"榜"}]}]}}
     var speechRecognitionResponse = JsonSerializer.Deserialize<SpeechRecognitionResponse>(queryHttpResponseText);
     if (!string.IsNullOrEmpty(speechRecognitionResponse?.Result?.Text))
     {
