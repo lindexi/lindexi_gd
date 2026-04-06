@@ -143,8 +143,8 @@ var asrRequest = new AsrRequest()
     },
     Audio = new AudioMeta()
     {
-        Url = "https://cstore-ali-study-pub.xbstatic.com/running-wechat-mp/uwizqwnxhhwljhohhwvwuolhpmhhihhh.wav",
-        Format = "wav",
+        Url = "https://pro-en-ali-pub.en5static.com/easinote5_public/uwixjonmhhqjjhnohwvvwyyhvzphihhh.mp3",
+        Format = "mp3",
     },
     Request = new RequestMeta()
     {
