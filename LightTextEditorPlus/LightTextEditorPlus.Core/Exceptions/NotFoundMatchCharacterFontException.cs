@@ -1,5 +1,4 @@
 ﻿using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -12,8 +11,7 @@ public class NotFoundMatchCharacterFontException : TextEditorException
     /// 创建没有找到可匹配字符渲染的字体异常
     /// </summary>
     /// <param name="unknownChar"></param>
-    public NotFoundMatchCharacterFontException(Utf32CodePoint unknownChar)
-        : base(ExceptionMessages.Format(nameof(NotFoundMatchCharacterFontException) + "_Message", unknownChar))
+    public NotFoundMatchCharacterFontException(Utf32CodePoint unknownChar) : base($"无法找到 '{unknownChar.ToString()}' 字符的可渲染字体，可能当前设备未安装任何一款字体")
     {
         UnknownChar = unknownChar;
     }

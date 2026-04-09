@@ -1,5 +1,4 @@
 using System;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -20,12 +19,10 @@ public class TextEditorDirtyException : TextEditorException
     {
         get
         {
-            string message = ExceptionMessages.Get(nameof(TextEditorDirtyException) + "_Message");
+            string message = "当前的文本被更改，还没有完成布局渲染，不能获取渲染布局相关内容。";
             if (_textEditor.IsFinishUpdateLayoutWithException)
             {
-                message += ExceptionMessages.Format(
-                    nameof(TextEditorDirtyException) + "_FinishUpdateLayoutWithExceptionSuffix",
-                    nameof(TextEditorCore.IsFinishUpdateLayoutWithException));
+                message += $"由于文本上次布局过程存在异常，则可能文本已经确实经过布局了，但被异常打断，不能完成布局。TextEditor.{nameof(TextEditorCore.IsFinishUpdateLayoutWithException)}=True";
             }
             return message;
         }

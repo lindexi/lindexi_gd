@@ -8,7 +8,6 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core;
 
@@ -70,9 +69,7 @@ partial class TextEditorCore
     /// 这个属性在这里只是为了告诉你，文本的水平布局是由段落控制的，不是由整个文本控制的
     /// </summary>
     [Obsolete("这个属性在这里只是为了告诉你，文本的水平布局是由段落控制的，不是由整个文本控制的", error: true)]
-    public HorizontalTextAlignment HorizontalTextAlignment =>
-        throw new NotSupportedException(ExceptionMessages.Get(
-            nameof(TextEditorCore) + "_HorizontalTextAlignment_NotSupported"));
+    public HorizontalTextAlignment HorizontalTextAlignment => throw new NotSupportedException("文本的水平布局是由段落控制的，不是由整个文本控制的");
 
     /// <summary>
     /// 获取或设置文本框的尺寸自适应模式

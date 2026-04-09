@@ -1,5 +1,4 @@
 ﻿using System;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -23,8 +22,7 @@ public sealed class LineBreakRun : IImmutableRun
     /// <inheritdoc />
     public ICharObject GetChar(int index)
     {
-        throw new ArgumentOutOfRangeException(nameof(index),
-            ExceptionMessages.Format(nameof(LineBreakRun) + "_GetChar_NotSupported", nameof(LineBreakRun)));
+        throw new ArgumentOutOfRangeException(nameof(index), $"禁止对{nameof(LineBreakRun)}获取字符对象");
     }
 
     /// <inheritdoc />

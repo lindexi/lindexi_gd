@@ -1,5 +1,4 @@
 using System;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -29,6 +28,6 @@ public class TextEditorDebugException : TextEditorException
     /// <inheritdoc />
     public override string ToString()
     {
-        return ExceptionMessages.Format(nameof(TextEditorDebugException) + "_ToString", base.ToString(), TextEditor);
+        return $"调试异常，仅调试下抛出。{base.ToString()}\r\nTextEditor={TextEditor}";
     }
 }

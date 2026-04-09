@@ -2,7 +2,6 @@
 
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Primitive;
 
@@ -60,8 +59,7 @@ public readonly record struct TextPointInParagraphCoordinateSystem
         Debug.Assert(ReferenceEquals(_paragraphData, paragraphData), "禁止拿其他段落获取相对的坐标点");
         if (_paragraphData.IsInDebugMode && !ReferenceEquals(_paragraphData, paragraphData))
         {
-            throw new TextEditorDebugException(
-                ExceptionMessages.Get(nameof(TextPointInParagraphCoordinateSystem) + "_OtherParagraphNotAllowed"));
+            throw new TextEditorDebugException("禁止拿其他段落获取相对的坐标点");
         }
 
         IParagraphLayoutData layoutData = paragraphData.ParagraphLayoutData;
@@ -77,8 +75,7 @@ public readonly record struct TextPointInParagraphCoordinateSystem
         {
             if (contentThickness.IsInvalid)
             {
-                throw new TextEditorDebugException(ExceptionMessages.Get(
-                    nameof(TextPointInParagraphCoordinateSystem) + "_ContentThicknessRequired"));
+                throw new TextEditorDebugException($"将段落坐标转换为文档坐标时，要求段落已经设置了正确的边距");
             }
         }
 

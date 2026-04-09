@@ -1,5 +1,4 @@
 using System;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -27,8 +26,7 @@ public readonly record struct RatioVerticalCharInLineAlignment
     {
         if (lineSpaceRatio is > 1 or < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(lineSpaceRatio),
-                ExceptionMessages.Get(nameof(RatioVerticalCharInLineAlignment) + "_Constructor_Range"));
+            throw new ArgumentOutOfRangeException(nameof(lineSpaceRatio), $"传入的行高比例只能是 0-1 范围");
         }
 
         LineSpaceRatio = lineSpaceRatio;

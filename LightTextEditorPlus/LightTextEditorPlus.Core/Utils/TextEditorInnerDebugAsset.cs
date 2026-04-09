@@ -1,5 +1,4 @@
 ﻿using LightTextEditorPlus.Core.Exceptions;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Utils;
@@ -18,8 +17,7 @@ internal static class TextEditorInnerDebugAsset
     {
         if (Nearly.Equals(expect, actual) is false)
         {
-            throw new TextEditorInnerDebugException(
-                ExceptionMessages.Format(nameof(TextEditorInnerDebugAsset) + "_AreEquals", name, expect, actual));
+            throw new TextEditorInnerDebugException($"对 {name} 的预期和实际值不符。预期：{expect}，实际：{actual}");
         }
     }
 }

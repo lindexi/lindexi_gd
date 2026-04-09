@@ -1,5 +1,4 @@
 using System;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -54,7 +53,6 @@ public static class TextLineSpacings
     internal static ITextLineSpacing AtLeastLineSpace(double lineSpacing)
     {
         // [What reasons make different Line spacing between "exact" and - Microsoft Community](https://answers.microsoft.com/en-us/msoffice/forum/all/what-reasons-make-different-line-spacing-between/ca1267f9-0cfe-4f26-8048-bbd7a6a46398 )
-        throw new NotImplementedException(
-            ExceptionMessages.Get(nameof(TextLineSpacings) + "_AtLeastLineSpace_NotImplemented"));
+        throw new NotImplementedException($"还没实现此功能");
     }
 }

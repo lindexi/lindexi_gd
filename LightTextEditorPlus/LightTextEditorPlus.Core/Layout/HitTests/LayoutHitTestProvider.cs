@@ -8,7 +8,6 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
@@ -251,9 +250,7 @@ class LayoutHitTestProvider
             DocumentOffset paragraphStartOffset = paragraphData.GetParagraphStartOffset();
             if (currentCharIndex != paragraphStartOffset)
             {
-                throw new TextEditorInnerDebugException(ExceptionMessages.Format(
-                    nameof(LayoutHitTestProvider) + "_ParagraphHitTest_ParagraphOffsetMismatch",
-                    currentCharIndex.Offset, paragraphStartOffset.Offset));
+                throw new TextEditorInnerDebugException($"命中测试传递的当前文档偏移量和段落的偏移量不相同 CurrentCharIndex={currentCharIndex.Offset} ParagraphStartOffset={paragraphStartOffset.Offset}");
             }
         }
 

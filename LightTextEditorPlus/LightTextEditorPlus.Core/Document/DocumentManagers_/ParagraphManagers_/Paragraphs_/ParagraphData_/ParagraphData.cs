@@ -8,7 +8,6 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -298,8 +297,7 @@ internal sealed class ParagraphData : ITextParagraph
         {
             // 超过段落了
             //todo 处理超过段落
-            throw new ArgumentOutOfRangeException(nameof(offset), ExceptionMessages.Format(
-                nameof(ParagraphData) + "_SplitRemoveByParagraphOffset_OutOfRange", CharCount, offset.Offset));
+            throw new ArgumentOutOfRangeException(nameof(offset), $"段落字符:{CharCount};参数Offset={offset.Offset}");
         }
         else
         {
@@ -368,14 +366,12 @@ internal sealed class ParagraphData : ITextParagraph
         // 加入多次将会让布局很乱
         if (charData.CharLayoutData is not null)
         {
-            throw new ArgumentException(
-                ExceptionMessages.Get(nameof(ParagraphData) + "_AppendCharData_AlreadyBelongsToParagraph"));
+            throw new ArgumentException($"此 CharData 已经被加入到某个段落，不能重复加入");
         }
 
         if (charData.IsLineBreakCharData)
         {
-            throw new ArgumentException(ExceptionMessages.Format(
-                nameof(ParagraphData) + "_AppendCharData_LineBreakNotAllowed", nameof(LineBreakCharObject)));
+            throw new ArgumentException($"禁止将 {nameof(LineBreakCharObject)} 加入到段落");
         }
 
         CharDataManager.Add(charData);
@@ -483,8 +479,7 @@ internal sealed class ParagraphData : ITextParagraph
     {
         if (cache.CurrentParagraphVersion == 0)
         {
-            throw new InvalidOperationException(ExceptionMessages.Format(
-                nameof(ParagraphData) + "_UpdateVersion_InitRequired", nameof(InitVersion)));
+            throw new InvalidOperationException($"初始化先调用 {nameof(InitVersion)} 方法");
         }
 
         cache.CurrentParagraphVersion = Version;
@@ -494,8 +489,7 @@ internal sealed class ParagraphData : ITextParagraph
     {
         if (cache.CurrentParagraphVersion != 0)
         {
-            throw new InvalidOperationException(
-                ExceptionMessages.Get(nameof(ParagraphData) + "_InitVersion_DuplicateInit"));
+            throw new InvalidOperationException($"禁止重复初始化");
         }
 
         cache.CurrentParagraphVersion = Version;

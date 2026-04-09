@@ -9,7 +9,6 @@ using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
-using LightTextEditorPlus.Resources;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering;
@@ -38,8 +37,7 @@ public static class RenderManagerExtension
             {
                 if (!lineDrawingArgument.CharList.Contains(charData, ReferenceEqualityComparer.Instance))
                 {
-                    throw new InvalidOperationException(
-                        ExceptionMessages.Get(nameof(RenderManagerExtension) + "_CharDataNotInLine"));
+                    throw new InvalidOperationException($"传入的 CharData 不在当前的 LineDrawingArgument 里面，不能用于获取四线格信息");
                 }
             }
             else
@@ -51,9 +49,7 @@ public static class RenderManagerExtension
                     count++;
                     if (count > 1)
                     {
-                        throw new ArgumentException(
-                            ExceptionMessages.Get(nameof(RenderManagerExtension) +
-                                                  "_MultipleRunPropertiesRequireCharData"), nameof(charData));
+                        throw new ArgumentException($"一行内存在多个不同的字符属性，必须传入 CharData 指定使用哪个字符属性信息", nameof(charData));
                     }
                 }
             }

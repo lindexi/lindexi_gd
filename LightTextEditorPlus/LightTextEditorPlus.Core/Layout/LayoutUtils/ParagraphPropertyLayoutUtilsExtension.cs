@@ -1,7 +1,6 @@
 ﻿using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
@@ -38,9 +37,7 @@ internal static class ParagraphPropertyLayoutUtilsExtension
         else
         {
             // 两端对齐 还不知道如何实现
-            throw new NotSupportedException(ExceptionMessages.Format(
-                nameof(ParagraphPropertyLayoutUtilsExtension) + "_HorizontalAlignmentNotSupported",
-                horizontalTextAlignment));
+            throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
         }
 
         return horizontalTextAlignmentGapThickness;

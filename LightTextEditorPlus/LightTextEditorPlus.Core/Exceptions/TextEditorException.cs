@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.Serialization;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -43,6 +42,6 @@ public abstract class TextEditorException : Exception
             return base.ToString();
         }
 
-        return ExceptionMessages.Format(nameof(TextEditorException) + "_ToString", TextEditor, base.ToString());
+        return $"TextEditor={TextEditor}\r\n{base.ToString()}";
     }
 }

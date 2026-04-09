@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Exceptions;
@@ -13,7 +12,7 @@ namespace LightTextEditorPlus.Core.Exceptions;
 public class GetCharDataOutOfRangeException : TextEditorException
 {
     internal GetCharDataOutOfRangeException(ParagraphData paragraph, List<CharData> charDataList, int offset,
-        ArgumentOutOfRangeException exception) : base(null, exception)
+        ArgumentOutOfRangeException exception) : base("获取字符时坐标超过字符数量", exception)
     {
         Paragraph = paragraph;
         CharDataList = charDataList;
@@ -45,7 +44,5 @@ public class GetCharDataOutOfRangeException : TextEditorException
     public int Count { get; }
 
     /// <inheritdoc />
-    public override string Message =>
-        ExceptionMessages.Format(nameof(GetCharDataOutOfRangeException) + "_Message", Count, InputOffset,
-            Paragraph.Index.Index, Paragraph.GetText().LimitTrim(20), TextEditor);
+    public override string Message => $"Count={Count};InputOffset={InputOffset};ParagraphIndex={Paragraph.Index.Index};CharDataList={Paragraph.GetText().LimitTrim(20)};TextEditor={TextEditor}";
 }

@@ -10,7 +10,6 @@ using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
 
@@ -47,9 +46,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var paragraph = argument.ParagraphData;
         if (argument.UpdateLayoutContext.IsInDebugMode && paragraph.IsDirty())
         {
-            throw new TextEditorInnerDebugException(ExceptionMessages.Get(
-                nameof(HorizontalArrangingLayoutProvider) +
-                "_UpdateNotDirtyParagraphStartPoint_ParagraphStillDirty"));
+            throw new TextEditorInnerDebugException("更新非脏的段落和行时，段落是脏的");
         }
 
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
@@ -486,9 +483,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 {
                     if (charData.IsSetStartPointInDebugMode == false)
                     {
-                        throw new TextEditorDebugException(ExceptionMessages.Get(
-                                nameof(HorizontalArrangingLayoutProvider) +
-                                "_UpdateParagraphLineLayoutData_CharStartPointMissing"),
+                        throw new TextEditorDebugException($"存在某个字符没有在布局时设置坐标",
                             (charData, currentLineLayoutData, i + index));
                     }
                 }
@@ -505,8 +500,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             {
                 // todo 理论上不可能，表示行布局出错了
                 // 支持文本宽度小于一个字符的宽度的布局
-                throw new TextEditorInnerException(ExceptionMessages.Get(
-                    nameof(HorizontalArrangingLayoutProvider) + "_UpdateParagraphLineLayoutData_ZeroCharLine"));
+                throw new TextEditorInnerException($"某一行在布局时，只采用了零个字符");
             }
 
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
@@ -1013,9 +1007,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             if (layoutData.OutlineSize == TextSize.Invalid)
             {
-                throw new TextEditorDebugException(ExceptionMessages.Get(
-                    nameof(HorizontalArrangingLayoutProvider) +
-                    "_GetNextParagraphLineStartPoint_OutlineSizeRequired"));
+                throw new TextEditorDebugException($"只有完全完成布局的段落才能进入此分支，获取下一段的行起始点");
             }
         }
 

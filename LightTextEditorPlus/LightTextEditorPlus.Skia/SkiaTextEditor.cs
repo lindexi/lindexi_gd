@@ -15,7 +15,6 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Platform;
-using LightTextEditorPlus.Resources;
 using LightTextEditorPlus.Rendering;
 
 using SkiaSharp;
@@ -48,9 +47,7 @@ public partial class SkiaTextEditor : IRenderManager
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (skiaTextEditorPlatformProvider.TextEditor != null)
             {
-                throw new InvalidOperationException(
-                    ExceptionMessages.Format(nameof(SkiaTextEditor) + "_PlatformProviderAlreadyBound",
-                        skiaTextEditorPlatformProvider.TextEditor.TextEditorCore.DebugName));
+                throw new InvalidOperationException($"每个 SkiaTextEditorPlatformProvider 只能和一个 SkiaTextEditor 关联，禁止跨文本框使用。当前传入的 SkiaTextEditorPlatformProvider 关联的文本框的 DebugName={skiaTextEditorPlatformProvider.TextEditor.TextEditorCore.DebugName}");
             }
         }
 
@@ -123,9 +120,7 @@ public partial class SkiaTextEditor : IRenderManager
     {
         if (!TextEditorCore.IsInDebugMode)
         {
-            throw new InvalidOperationException(
-                ExceptionMessages.Format(nameof(SkiaTextEditor) + "_DebugReRenderOnlyInDebugMode",
-                    nameof(DebugReRender)));
+            throw new InvalidOperationException($"此方法 {nameof(DebugReRender)} 只有调试模式下才能调用");
         }
 
         if (TextEditorCore.IsDirty)

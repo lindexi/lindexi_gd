@@ -4,7 +4,6 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
@@ -78,10 +77,7 @@ internal static class LayoutChecker
             if (!startPoint.NearlyEquals(currentExceptedStartPoint))
             {
                 // 如果不相等，则证明计算不正确
-                throw new TextEditorInnerDebugException(ExceptionMessages.Format(
-                    nameof(LayoutChecker) + "_EnsureNextStartPoint_GapBetweenParagraphs", paragraphIndex,
-                    lastParagraphLayoutData.StartPointInDocumentContentCoordinateSystem,
-                    lastParagraphLayoutData.OutlineSize.ToDebugText(), startPoint));
+                throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphLayoutData.StartPointInDocumentContentCoordinateSystem}  {lastParagraphLayoutData.OutlineSize.ToDebugText()}，当前段的起始点 {startPoint}");
             }
 
             lastParagraphLayoutData = paragraphData.ParagraphLayoutData;
@@ -133,28 +129,24 @@ internal static class LayoutChecker
 
             if (charDataList.Count == 0)
             {
-                throw new TextEditorInnerDebugException(
-                    ExceptionMessages.Get(nameof(LayoutChecker) + "_EnsureMarker_MarkerCharsRequired"));
+                throw new TextEditorInnerDebugException($"包含项目符号下，必定存在项目符号字符");
             }
 
             foreach (CharData charData in charDataList)
             {
                 if (charData.IsInvalidCharDataInfo)
                 {
-                    throw new TextEditorInnerDebugException(
-                        ExceptionMessages.Get(nameof(LayoutChecker) + "_EnsureMarker_MarkerCharSizeMissing"));
+                    throw new TextEditorInnerDebugException($"存在项目符号字符没有在布局时计算尺寸");
                 }
 
                 if (!charData.IsSetStartPointInDebugMode)
                 {
-                    throw new TextEditorInnerDebugException(
-                        ExceptionMessages.Get(nameof(LayoutChecker) + "_EnsureMarker_MarkerCharStartPointMissing"));
+                    throw new TextEditorInnerDebugException($"存在项目符号字符没有在布局时设置坐标");
                 }
 
                 if (charData.CharLayoutData!.IsInvalidVersion())
                 {
-                    throw new TextEditorInnerDebugException(
-                        ExceptionMessages.Get(nameof(LayoutChecker) + "_EnsureMarker_MarkerCharVersionInvalid"));
+                    throw new TextEditorInnerDebugException($"存在项目符号字符缓存版本错误");
                 }
             }
         }

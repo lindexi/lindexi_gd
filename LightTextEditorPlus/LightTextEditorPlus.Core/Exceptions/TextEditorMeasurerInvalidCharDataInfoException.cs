@@ -1,7 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -34,7 +33,5 @@ public class TextEditorMeasurerInvalidCharDataInfoException : TextEditorExceptio
     public int Index { get; }
 
     /// <inheritdoc />
-    public override string Message =>
-        ExceptionMessages.Format(nameof(TextEditorMeasurerInvalidCharDataInfoException) + "_Message", Index,
-            CharData.CharObject.ToText());
+    public override string Message => $"测量布局之后，字符依然没有尺寸。第 {Index} 个字符：'{CharData.CharObject.ToText()}'";
 }

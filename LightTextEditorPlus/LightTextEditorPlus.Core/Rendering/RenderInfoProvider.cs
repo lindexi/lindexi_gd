@@ -11,7 +11,6 @@ using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Rendering;
 
@@ -49,8 +48,7 @@ public class RenderInfoProvider
         {
             if (TextEditor.IsInDebugMode)
             {
-                throw new TextEditorDebugException(
-                    ExceptionMessages.Get(nameof(RenderInfoProvider) + "_GetSelectionBoundsList_EmptySelection"));
+                throw new TextEditorDebugException("获取选择对应的范围时，传入的选择范围是空");
             }
             else
             {
@@ -251,8 +249,7 @@ public class RenderInfoProvider
         }
 
         // 理论上不可能进入此分支
-        throw new TextEditorInnerException(
-            ExceptionMessages.Get(nameof(RenderInfoProvider) + "_GetCaretRenderInfo_CannotHitChar"));
+        throw new TextEditorInnerException("无法命中光标对应的字符");
     }
 
     //public Rect GetCharLayoutInfo(DocumentOffset documentOffset)

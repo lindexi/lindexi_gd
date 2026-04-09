@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core;
@@ -68,9 +67,7 @@ partial class TextEditorCore
     {
         if (!IsInDebugMode)
         {
-            throw new InvalidOperationException(ExceptionMessages.Format(
-                nameof(TextEditorCore) + "_DebugRequireReUpdateAllDocumentLayout_DebugOnly",
-                nameof(DebugRequireReUpdateAllDocumentLayout)));
+            throw new InvalidOperationException($"{nameof(DebugRequireReUpdateAllDocumentLayout)} can only be called in debug mode. 只能在调试模式下调用此方法");
         }
 
         RequireDispatchReUpdateAllDocumentLayout(nameof(DebugRequireReUpdateAllDocumentLayout));

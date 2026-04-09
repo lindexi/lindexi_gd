@@ -4,7 +4,6 @@ using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -319,8 +318,7 @@ internal class DocumentRunEditProvider
                 else
                 {
                     // 不知道是啥情况，理论上不会存在
-                    throw new TextEditorInnerException(ExceptionMessages.Get(
-                        nameof(DocumentRunEditProvider) + "_RemoveRange_EmptyParagraphButNotAtEnd"));
+                    throw new TextEditorInnerException($"一段里面没有任何可删除的字符，但是光标不在段末");
                 }
             }
 
@@ -364,8 +362,7 @@ internal class DocumentRunEditProvider
                 if (paragraphData.Index == paragraphList.Count - 1)
                 {
                     // 最后一段，理论上不会存在
-                    throw new TextEditorInnerException(
-                        ExceptionMessages.Get(nameof(DocumentRunEditProvider) + "_RemoveRange_LengthOutOfRange"));
+                    throw new TextEditorInnerException($"删除文本时，超过文本框所能提供的字符范围");
                 }
                 else
                 {

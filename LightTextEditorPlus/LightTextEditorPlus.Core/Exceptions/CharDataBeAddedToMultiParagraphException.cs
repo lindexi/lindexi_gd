@@ -1,5 +1,4 @@
 ﻿using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Exceptions;
@@ -39,8 +38,7 @@ public class CharDataBeAddedToMultiParagraphException : TextEditorException
 
     /// <inheritdoc />
     public override string Message =>
-        ExceptionMessages.Format(nameof(CharDataBeAddedToMultiParagraphException) + "_Message",
-            CharData.CharObject.ToText().LimitTrim(20), OldParagraph.Index.Index, NewParagraph.Index.Index, TextEditor);
+        $"The CharData be added to multi Paragraph. CharData={CharData.CharObject.ToText().LimitTrim(20)};OldParagraphIndex={OldParagraph.Index.Index};NewParagraphIndex={NewParagraph.Index.Index};TextEditor={TextEditor}";
 
     internal static void Throw
         (CharData charData, ParagraphData newParagraph) =>

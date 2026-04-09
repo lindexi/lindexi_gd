@@ -10,7 +10,6 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
-using LightTextEditorPlus.Resources;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
@@ -235,8 +234,7 @@ namespace LightTextEditorPlus
         {
             if (!IsEditable)
             {
-                throw new InvalidOperationException(
-                    ExceptionMessages.Get(nameof(TextEditor) + "_EnterEditMode_NotEditable"));
+                throw new InvalidOperationException($"当前文本不可编辑 IsEditable=false 不能进入编辑模式");
             }
 
             IsInEditingInputMode = true;

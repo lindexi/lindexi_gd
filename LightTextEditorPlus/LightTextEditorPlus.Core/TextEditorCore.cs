@@ -13,7 +13,6 @@ using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 
@@ -161,8 +160,7 @@ public partial class TextEditorCore :
         if (!IsDirty || !IsFinishUpdateLayoutWithException)
         {
             // 如果文本不是脏的，或者上次布局完成没有异常，则本次调用是错误的
-            throw new InvalidOperationException(ExceptionMessages.Get(
-                nameof(TextEditorCore) + "_RequireReUpdateAllDocumentWhenFinishWithException_InvalidState"));
+            throw new InvalidOperationException($"仅当文本是脏的，且上次布局存在异常时，才能调用此方法");
         }
 
         RequireDispatchReUpdateAllDocumentLayout(nameof(RequireReUpdateAllDocumentWhenFinishWithException));
@@ -258,8 +256,7 @@ public partial class TextEditorCore :
     {
         if (IsInDebugMode && !IsEmptyInitializingTextEditor())
         {
-            throw new TextEditorInnerDebugException(
-                ExceptionMessages.Get(nameof(TextEditorCore) + "_LayoutEmptyTextEditor_EmptyOnly"));
+            throw new TextEditorInnerDebugException($"只有空文本才能调用空文本布局");
         }
 
         AddLayoutReason(nameof(LayoutEmptyTextEditor) + "空文本布局");

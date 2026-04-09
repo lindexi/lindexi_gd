@@ -1,5 +1,4 @@
 using LightTextEditorPlus.Core.Exceptions;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -21,9 +20,7 @@ class SingleImmutableRunList : IImmutableRunList
     {
         if (index != 0)
         {
-            throw new TextEditorInnerException(ExceptionMessages.Format(
-                nameof(SingleImmutableRunList) + "_GetRun_IndexMustBeZero", nameof(SingleImmutableRunList),
-                nameof(index), index));
+            throw new TextEditorInnerException($"获取只有单个 Run 的 {nameof(SingleImmutableRunList)} 时，传入的 {nameof(index)} 参数是 {index} 而不是 0 的值");
         }
 
         return Run;

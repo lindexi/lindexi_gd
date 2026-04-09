@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Utils;
 
@@ -48,8 +47,6 @@ static class ReadOnlyRunListExtension
             }
         }
 
-        throw new ArgumentOutOfRangeException(nameof(charIndex),
-            ExceptionMessages.Format(nameof(ReadOnlyRunListExtension) + "_GetRunByCharIndex_OutOfRange",
-                currentCharCount, charIndex));
+        throw new ArgumentOutOfRangeException(nameof(charIndex), $"最大的字符数量是: {currentCharCount}；传入的字符索引是: {charIndex}");
     }
 }

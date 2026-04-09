@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document.Segments;
 
@@ -17,8 +16,7 @@ public readonly struct DocumentOffset : IEquatable<DocumentOffset>, IEquatable<i
     {
         if (offset < DefaultDocumentOffsetValue)
         {
-            throw new ArgumentOutOfRangeException(nameof(offset),
-                ExceptionMessages.Get(nameof(DocumentOffset) + "_Constructor_MinimumValue"));
+            throw new ArgumentOutOfRangeException(nameof(offset), "文档的偏移量最小值不能小于 -1 默认值");
         }
 
         Offset = offset;

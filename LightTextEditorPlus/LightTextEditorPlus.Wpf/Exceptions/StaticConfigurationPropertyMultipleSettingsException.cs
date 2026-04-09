@@ -1,5 +1,4 @@
 using System;
-using LightTextEditorPlus.Resources;
 
 namespace LightTextEditorPlus.Exceptions;
 
@@ -8,11 +7,7 @@ namespace LightTextEditorPlus.Exceptions;
 /// </summary>
 public class StaticConfigurationPropertyMultipleSettingsException : InvalidOperationException
 {
-    private StaticConfigurationPropertyMultipleSettingsException(string propertyName, string? message = null,
-        Exception? innerException = null)
-        : base(message ?? ExceptionMessages.Format(
-            nameof(StaticConfigurationPropertyMultipleSettingsException) + "_Message", propertyName),
-            innerException)
+    private StaticConfigurationPropertyMultipleSettingsException(string propertyName, string? message = null, Exception? innerException = null) : base(message, innerException)
     {
         PropertyName = propertyName;
     }

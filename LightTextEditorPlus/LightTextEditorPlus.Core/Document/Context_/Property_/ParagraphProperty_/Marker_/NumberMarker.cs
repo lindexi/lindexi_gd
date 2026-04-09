@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -129,8 +128,7 @@ public class NumberMarker : TextMarker
             //case AutoNumberType.HindiAlpha1Period:
             //    break;
             case AutoNumberType.Custom:
-                throw new InvalidOperationException(ExceptionMessages.Format(
-                    nameof(NumberMarker) + "_GetMarkerText_CustomRequiresOverride", nameof(GetMarkerText)));
+                throw new InvalidOperationException($"当 AutoNumberType 为 Custom 时，要求重写 GetMarkerText 方法");
                 break;
             default:
                 throw new NotSupportedException();

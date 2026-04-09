@@ -1,5 +1,4 @@
 using System;
-using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -13,7 +12,5 @@ public class TextEditorRenderInfoDirtyException : TextEditorException
     }
 
     /// <inheritdoc />
-    public override string Message =>
-        ExceptionMessages.Format(nameof(TextEditorRenderInfoDirtyException) + "_Message",
-            TextEditor?.GetLayoutUpdateReason(), TextEditor);
+    public override string Message => $"文本布局已更新，此渲染信息是脏的。请不要缓存 RenderInfoProvider 对象。当前请求更新理由： {TextEditor?.GetLayoutUpdateReason()} TextEditor={TextEditor}";
 }

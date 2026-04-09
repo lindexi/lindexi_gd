@@ -3,7 +3,6 @@
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
-using LightTextEditorPlus.Resources;
 using System;
 
 namespace LightTextEditorPlus;
@@ -52,9 +51,7 @@ partial class TextEditor
 
             if (notExistsHeight)
             {
-                throw new InvalidOperationException(ExceptionMessages.Format(
-                    nameof(TextEditor) + "_Platform_SizeToContentWidthRequiresFixedHeight",
-                    GetWidthAndHeightFormatMessage()));
+                throw new InvalidOperationException($"宽度自适应时，要求高度固定。{GetWidthAndHeightFormatMessage()}");
             }
 
             return new TextSize(width, availableSize.Height);
@@ -64,9 +61,7 @@ partial class TextEditor
             // 高度自适应，宽度固定
             if (notExistsWidth)
             {
-                throw new InvalidOperationException(ExceptionMessages.Format(
-                    nameof(TextEditor) + "_Platform_SizeToContentHeightRequiresFixedWidth",
-                    GetWidthAndHeightFormatMessage()));
+                throw new InvalidOperationException($"高度自适应，要求宽度固定。{GetWidthAndHeightFormatMessage()}");
             }
 
             if (notExistsHeight)
@@ -128,9 +123,7 @@ partial class TextEditor
         {
             if (notExistsWidth || notExistsHeight)
             {
-                throw new InvalidOperationException(ExceptionMessages.Format(
-                    nameof(TextEditor) + "_Platform_SizeToContentManualRequiresFiniteSize",
-                    GetWidthAndHeightFormatMessage()));
+                throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器。{GetWidthAndHeightFormatMessage()}");
             }
 
             // 手动的，有多少就要多少
