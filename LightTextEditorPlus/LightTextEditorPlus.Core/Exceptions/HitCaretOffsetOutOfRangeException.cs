@@ -1,4 +1,5 @@
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -40,5 +41,6 @@ public class HitCaretOffsetOutOfRangeException : TextEditorException
 
     /// <inheritdoc />
     public override string Message =>
-        $"[HitCaretOffsetOutOfRangeException] ArgumentName={ArgumentName};DocumentManagerCharCount={CurrentDocumentCharCount};CaretOffset={InputCaretOffset.Offset};TextEditor={TextEditor}";
+        ExceptionMessages.Format(nameof(HitCaretOffsetOutOfRangeException) + "_Message", ArgumentName,
+            CurrentDocumentCharCount, InputCaretOffset.Offset, TextEditor);
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Primitive;
 
@@ -83,7 +84,7 @@ public sealed class ReadOnlyParagraphList : IReadOnlyList<ITextParagraph>
 
         private static void ThrowEnumFailedVersionException()
         {
-            throw new InvalidOperationException($"枚举过程中，文本已经变更，不再可遍历");
+            throw new InvalidOperationException(ExceptionMessages.Get(nameof(ReadOnlyParagraphList) + "_EnumFailedVersion"));
         }
 
         private int _index = -1;

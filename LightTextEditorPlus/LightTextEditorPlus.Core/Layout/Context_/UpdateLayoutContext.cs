@@ -11,6 +11,7 @@ using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 
@@ -135,7 +136,8 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     {
         if (IsCurrentLayoutCompleted)
         {
-            throw new InvalidOperationException($"只有在布局过程才能设置 {nameof(charData)} 的布局属性");
+            throw new InvalidOperationException(ExceptionMessages.Format(
+                nameof(UpdateLayoutContext) + "_SetCharDataLayoutInfo_OnlyDuringLayout", nameof(charData)));
         }
 
         charData.SetLayoutCharLineStartPoint(point);
@@ -146,7 +148,8 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     {
         if (IsCurrentLayoutCompleted)
         {
-            throw new InvalidOperationException($"只有在布局过程才能设置 {nameof(charData)} 的布局属性");
+            throw new InvalidOperationException(ExceptionMessages.Format(
+                nameof(UpdateLayoutContext) + "_SetCharDataLayoutInfo_OnlyDuringLayout", nameof(charData)));
         }
 
         charData.SetCharDataInfo(charDataInfo);

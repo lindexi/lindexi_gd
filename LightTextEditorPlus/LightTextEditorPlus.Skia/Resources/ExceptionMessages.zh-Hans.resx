@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GradientSkiaTextBrushRelativePoint_RelativeValueOutOfRange" xml:space="preserve">
+    <value>当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内。</value>
+  </data>
+  <data name="TextEditor_EnterEditMode_NotEditable" xml:space="preserve">
+    <value>当前文本不可编辑 IsEditable=false 不能进入编辑模式。</value>
+  </data>
+  <data name="TextEditor_Platform_SizeToContentWidthRequiresFixedHeight" xml:space="preserve">
+    <value>宽度自适应时，要求高度固定。{0}</value>
+  </data>
+  <data name="TextEditor_Platform_SizeToContentHeightRequiresFixedWidth" xml:space="preserve">
+    <value>高度自适应，要求宽度固定。{0}</value>
+  </data>
+  <data name="TextEditor_Platform_SizeToContentManualRequiresFiniteSize" xml:space="preserve">
+    <value>设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 Width 和 Height 放入无限尺寸的容器。{0}</value>
+  </data>
+  <data name="TextEditorDecoration_GetDecorationLocationRecommendedBounds_VerticalNotSupported" xml:space="preserve">
+    <value>竖排的文本装饰暂时不支持。</value>
+  </data>
+  <data name="TextEditorDecoration_GetDecorationLocationRecommendedBounds_LocationNotSupported" xml:space="preserve">
+    <value>暂不支持。</value>
+  </data>
+  <data name="TextEditorImmutableDecorationCollection_IndexMustBeNonNegative" xml:space="preserve">
+    <value>传入的索引不能小于 0 的值。</value>
+  </data>
+  <data name="RenderManagerExtension_CharDataNotInLine" xml:space="preserve">
+    <value>传入的 CharData 不在当前的 LineDrawingArgument 里面，不能用于获取四线格信息。</value>
+  </data>
+  <data name="RenderManagerExtension_MultipleRunPropertiesRequireCharData" xml:space="preserve">
+    <value>一行内存在多个不同的字符属性，必须传入 CharData 指定使用哪个字符属性信息。</value>
+  </data>
+  <data name="SkiaCharInfoMeasurer_CurrentCharStillInvalidAfterMeasure" xml:space="preserve">
+    <value>测量之后，必然能够获取当前字符的尺寸。</value>
+  </data>
+  <data name="SkiaTextEditor_DebugReRenderOnlyInDebugMode" xml:space="preserve">
+    <value>此方法 {0} 只有调试模式下才能调用。</value>
+  </data>
+  <data name="SkiaTextEditor_PlatformProviderAlreadyBound" xml:space="preserve">
+    <value>每个 SkiaTextEditorPlatformProvider 只能和一个 SkiaTextEditor 关联，禁止跨文本框使用。当前传入的 SkiaTextEditorPlatformProvider 关联的文本框的 DebugName={0}</value>
+  </data>
+</root>

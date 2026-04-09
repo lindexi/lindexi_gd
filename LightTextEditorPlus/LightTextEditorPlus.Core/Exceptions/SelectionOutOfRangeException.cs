@@ -1,4 +1,5 @@
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -29,5 +30,6 @@ public class SelectionOutOfRangeException : TextEditorException
 
     /// <inheritdoc />
     public override string Message =>
-        $"Selection from {Selection.FrontOffset.Offset} to {Selection.BehindOffset.Offset} Length={Selection.Length} DocumentCharCount={DocumentCharCount};TextEditor={TextEditor}";
+        ExceptionMessages.Format(nameof(SelectionOutOfRangeException) + "_Message", Selection.FrontOffset.Offset,
+            Selection.BehindOffset.Offset, Selection.Length, DocumentCharCount, TextEditor);
 }

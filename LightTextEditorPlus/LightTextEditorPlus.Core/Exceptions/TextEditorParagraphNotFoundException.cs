@@ -1,4 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -21,5 +22,5 @@ public class TextEditorParagraphNotFoundException : TextEditorException
     public ITextParagraph Paragraph => ParagraphData;
 
     /// <inheritdoc />
-    public override string Message => "传入的段落没有从段落列表找到，段落被删除。方法不接受传入被删除段落";
+    public override string Message => ExceptionMessages.Get(nameof(TextEditorParagraphNotFoundException) + "_Message");
 }

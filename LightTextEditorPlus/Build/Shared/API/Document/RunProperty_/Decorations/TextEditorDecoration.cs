@@ -7,6 +7,7 @@ using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Resources;
 
 #if USE_WPF
 using Editor = LightTextEditorPlus.TextEditor;
@@ -131,7 +132,8 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
         if (!textEditor.TextEditorCore.ArrangingType.IsHorizontal)
         {
             // 现在还不能支持竖排
-            throw new NotSupportedException("竖排的文本装饰暂时不支持");
+            throw new NotSupportedException(ExceptionMessages.Get(
+                nameof(TextEditorDecoration) + "_GetDecorationLocationRecommendedBounds_VerticalNotSupported"));
         }
 
         CharData maxFontSizeCharData = CharDataLayoutHelper.GetMaxFontSizeCharData(in currentCharDataList);
@@ -156,7 +158,8 @@ public abstract class TextEditorDecoration : ITextEditorDecoration
         }
         else
         {
-            throw new NotSupportedException("暂不支持");
+            throw new NotSupportedException(ExceptionMessages.Get(
+                nameof(TextEditorDecoration) + "_GetDecorationLocationRecommendedBounds_LocationNotSupported"));
         }
 
 #if USE_WPF

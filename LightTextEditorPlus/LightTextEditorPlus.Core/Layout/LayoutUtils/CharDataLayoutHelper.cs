@@ -1,6 +1,7 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Resources;
 
 using System.Collections.Generic;
 
@@ -61,7 +62,8 @@ public static class CharDataLayoutHelper
             {
                 if (!paragraphData.IsDirty())
                 {
-                    throw new TextEditorInnerDebugException("清空全部的字符数据时，必然是段落脏的");
+                    throw new TextEditorInnerDebugException(
+                        ExceptionMessages.Get(nameof(CharDataLayoutHelper) + "_ClearAllCharDataInfo_ParagraphMustBeDirty"));
                 }
             }
 

@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 
 using System;
@@ -103,17 +104,20 @@ public sealed class CharData : ICharData, ILayoutCharData
     {
         if (CharLayoutData is null)
         {
-            throw new InvalidOperationException($"禁止在加入到段落之前获取");
+            throw new InvalidOperationException(
+                ExceptionMessages.Get(nameof(CharData) + "_GetStartPoint_BeforeAppend"));
         }
 
         if (CharLayoutData.CurrentLine is null)
         {
-            throw new InvalidOperationException($"禁止在开始布局之前获取");
+            throw new InvalidOperationException(
+                ExceptionMessages.Get(nameof(CharData) + "_GetStartPoint_BeforeLayout"));
         }
 
         if (CharLayoutData.IsInvalidVersion())
         {
-            throw new InvalidOperationException($"字符数据已失效");
+            throw new InvalidOperationException(
+                ExceptionMessages.Get(nameof(CharData) + "_GetStartPoint_InvalidVersion"));
         }
 
         var textPoint = CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);
@@ -132,7 +136,8 @@ public sealed class CharData : ICharData, ILayoutCharData
     {
         if (CharLayoutData is null)
         {
-            throw new InvalidOperationException("禁止在加入到段落之前设置字符的起始点信息");
+            throw new InvalidOperationException(
+                ExceptionMessages.Get(nameof(CharData) + "_SetLayoutCharLineStartPoint_BeforeAppend"));
         }
 
         CharLayoutData.CharLineStartPoint = point;
@@ -157,7 +162,8 @@ public sealed class CharData : ICharData, ILayoutCharData
     {
         if (charDataInfo.IsInvalid)
         {
-            throw new ArgumentException("禁止传入无效的字符信息", nameof(charDataInfo));
+            throw new ArgumentException(ExceptionMessages.Get(nameof(CharData) + "_SetCharDataInfo_InvalidInput"),
+                paramName: nameof(charDataInfo));
         }
 
         // 已经设置过值，且更新的不是连写字则抛出异常
@@ -191,7 +197,8 @@ public sealed class CharData : ICharData, ILayoutCharData
             }
             else
             {
-                throw new InvalidOperationException($"禁止重复给 {nameof(CharDataInfo)} 字符信息赋值");
+                throw new InvalidOperationException(ExceptionMessages.Format(
+                    nameof(CharData) + "_SetCharDataInfo_DuplicateSet", nameof(CharDataInfo)));
             }
         }
 
@@ -248,7 +255,8 @@ public sealed class CharData : ICharData, ILayoutCharData
         {
             if (!ReferenceEquals(CharLayoutData.CharData, this))
             {
-                throw new TextEditorDebugException($"此 CharData 存放的渲染数据对应的字符，不是当前的 CharData 数据");
+                throw new TextEditorDebugException(
+                    ExceptionMessages.Get(nameof(CharData) + "_DebugVerify_MismatchedReference"));
             }
         }
     }

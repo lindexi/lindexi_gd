@@ -12,6 +12,7 @@ using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
 
@@ -100,7 +101,8 @@ abstract class ArrangingLayoutProvider
             // 进入一些校验逻辑
             if (shouldClearCharSize && firstDirtyParagraphInfo.FirstDirtyParagraphIndex.Index != 0)
             {
-                throw new TextEditorInnerDebugException($"要求清理全部字符信息时，必定是全量更新");
+                throw new TextEditorInnerDebugException(ExceptionMessages.Get(
+                    nameof(ArrangingLayoutProvider) + "_UpdateDocumentLayout_ClearAllCharDataRequiresFullUpdate"));
             }
 
             EnsureFinishLayoutCompletedInDebugMode();
@@ -123,21 +125,25 @@ abstract class ArrangingLayoutProvider
         {
             if (paragraphData.IsDirty())
             {
-                throw new TextEditorInnerDebugException($"完成布局之后，段落还是脏的");
+                throw new TextEditorInnerDebugException(ExceptionMessages.Get(
+                    nameof(ArrangingLayoutProvider) + "_EnsureFinishLayoutCompleted_ParagraphStillDirty"));
             }
 
             IParagraphLayoutData paragraphLayoutData = paragraphData.ParagraphLayoutData;
             if (paragraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
             {
-                throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本起始点布局信息");
+                throw new TextEditorInnerDebugException(ExceptionMessages.Get(
+                    nameof(ArrangingLayoutProvider) + "_EnsureFinishLayoutCompleted_StartPointMissing"));
             }
             if (paragraphLayoutData.TextSize == TextSize.Invalid)
             {
-                throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本尺寸布局信息");
+                throw new TextEditorInnerDebugException(ExceptionMessages.Get(
+                    nameof(ArrangingLayoutProvider) + "_EnsureFinishLayoutCompleted_TextSizeMissing"));
             }
             if (paragraphLayoutData.OutlineSize == TextSize.Invalid)
             {
-                throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本外接尺寸布局信息");
+                throw new TextEditorInnerDebugException(ExceptionMessages.Get(
+                    nameof(ArrangingLayoutProvider) + "_EnsureFinishLayoutCompleted_OutlineSizeMissing"));
             }
         }
     }
@@ -182,7 +188,8 @@ abstract class ArrangingLayoutProvider
         TextPointInDocumentContentCoordinateSystem firstStartPoint = currentStartPoint;
         if (firstDirtyParagraphIndex == -1)
         {
-            throw new TextEditorInnerException($"进入布局时，没有任何一段需要布局");
+            throw new TextEditorInnerException(
+                ExceptionMessages.Get(nameof(ArrangingLayoutProvider) + "_FindFirstDirtyParagraph_NoDirtyParagraph"));
         }
 
         DebugAssert(!firstStartPoint.IsInvalid, "必定能获取到起始点");
@@ -259,12 +266,16 @@ abstract class ArrangingLayoutProvider
                 // 预期此时完成了起始点和文本尺寸的布局了，即已经有值了
                 if (paragraphData.ParagraphLayoutData.TextSize == TextSize.Invalid)
                 {
-                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本尺寸布局信息");
+                    throw new TextEditorInnerDebugException(ExceptionMessages.Format(
+                        nameof(ArrangingLayoutProvider) + "_PreUpdateDocumentLayout_TextSizeMissing",
+                        paragraphIndex));
                 }
 
                 if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
                 {
-                    throw new TextEditorInnerDebugException($"完成预布局第 {paragraphIndex} 段之后，没有更新段落的文本起始点布局信息");
+                    throw new TextEditorInnerDebugException(ExceptionMessages.Format(
+                        nameof(ArrangingLayoutProvider) + "_PreUpdateDocumentLayout_StartPointMissing",
+                        paragraphIndex));
                 }
 
                 var exceptedOffsetY = argument.GetParagraphBefore() +
@@ -273,7 +284,9 @@ abstract class ArrangingLayoutProvider
                 if (!nextParagraphStartPoint.NearlyEquals(excepted))
                 {
                     // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
-                    throw new TextEditorInnerDebugException($"预期下一个段落的起始点是 {excepted}，实际是 {nextParagraphStartPoint}");
+                    throw new TextEditorInnerDebugException(ExceptionMessages.Format(
+                        nameof(ArrangingLayoutProvider) + "_PreUpdateDocumentLayout_NextParagraphStartMismatch",
+                        excepted, nextParagraphStartPoint));
                 }
             }
         }

@@ -1,4 +1,5 @@
 using System;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -18,6 +19,7 @@ class SingleCharImmutableRun : IImmutableRun
 
     public (IImmutableRun FirstRun, IImmutableRun SecondRun) SplitAt(int index)
     {
-        throw new NotSupportedException($"对于 {nameof(SingleCharImmutableRun)} 只包含单个字符，不可再拆");
+        throw new NotSupportedException(ExceptionMessages.Format(
+            nameof(SingleCharImmutableRun) + "_SplitAt_NotSupported", nameof(SingleCharImmutableRun)));
     }
 }

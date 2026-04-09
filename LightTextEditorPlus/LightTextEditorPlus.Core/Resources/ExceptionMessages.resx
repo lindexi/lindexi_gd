@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ChangeDocumentOnUpdatingLayoutException_Message" xml:space="preserve">
+    <value>The document was modified while layout was updating. This leaves the layout state invalid. TextEditor={0}</value>
+  </data>
+  <data name="ArrangingLayoutProvider_FindFirstDirtyParagraph_NoDirtyParagraph" xml:space="preserve">
+    <value>No paragraph required layout when layout processing started.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_OutlineSizeMissing" xml:space="preserve">
+    <value>A paragraph did not update its outline size after layout completed.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_ParagraphStillDirty" xml:space="preserve">
+    <value>A paragraph is still dirty after layout completed.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_StartPointMissing" xml:space="preserve">
+    <value>A paragraph did not update its layout start point after layout completed.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_TextSizeMissing" xml:space="preserve">
+    <value>A paragraph did not update its text size after layout completed.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_PreUpdateDocumentLayout_NextParagraphStartMismatch" xml:space="preserve">
+    <value>The expected next paragraph start point is {0}, but the actual value is {1}.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_PreUpdateDocumentLayout_StartPointMissing" xml:space="preserve">
+    <value>Paragraph {0} did not update its layout start point after pre-layout.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_PreUpdateDocumentLayout_TextSizeMissing" xml:space="preserve">
+    <value>Paragraph {0} did not update its text size after pre-layout.</value>
+  </data>
+  <data name="ArrangingLayoutProvider_UpdateDocumentLayout_ClearAllCharDataRequiresFullUpdate" xml:space="preserve">
+    <value>Clearing all character layout info requires a full layout update.</value>
+  </data>
+  <data name="CharDataLayoutHelper_ClearAllCharDataInfo_ParagraphMustBeDirty" xml:space="preserve">
+    <value>All character data can be cleared only when the paragraph is dirty.</value>
+  </data>
+  <data name="CharData_DebugVerify_MismatchedReference" xml:space="preserve">
+    <value>The render data stored in this CharData belongs to a different CharData instance.</value>
+  </data>
+  <data name="CharData_GetStartPoint_BeforeAppend" xml:space="preserve">
+    <value>The start point cannot be read before the character is added to a paragraph.</value>
+  </data>
+  <data name="CharData_GetStartPoint_BeforeLayout" xml:space="preserve">
+    <value>The start point cannot be read before layout starts.</value>
+  </data>
+  <data name="CharData_GetStartPoint_InvalidVersion" xml:space="preserve">
+    <value>The character data is no longer valid.</value>
+  </data>
+  <data name="CharData_SetCharDataInfo_DuplicateSet" xml:space="preserve">
+    <value>{0} cannot be assigned more than once.</value>
+  </data>
+  <data name="CharData_SetCharDataInfo_InvalidInput" xml:space="preserve">
+    <value>Invalid character data info is not allowed.</value>
+  </data>
+  <data name="CharData_SetLayoutCharLineStartPoint_BeforeAppend" xml:space="preserve">
+    <value>The character start point cannot be set before the character is added to a paragraph.</value>
+  </data>
+  <data name="CharDataBeAddedToMultiParagraphException_Message" xml:space="preserve">
+    <value>The CharData was added to multiple paragraphs. CharData={0};OldParagraphIndex={1};NewParagraphIndex={2};TextEditor={3}</value>
+  </data>
+  <data name="DocumentOffset_Constructor_MinimumValue" xml:space="preserve">
+    <value>The minimum document offset value cannot be less than the default value -1.</value>
+  </data>
+  <data name="TextEditorCore_DebugRequireReUpdateAllDocumentLayout_DebugOnly" xml:space="preserve">
+    <value>{0} can be called only in debug mode.</value>
+  </data>
+  <data name="TextEditorCore_HorizontalTextAlignment_NotSupported" xml:space="preserve">
+    <value>Horizontal text alignment is controlled by paragraphs, not by the whole text editor.</value>
+  </data>
+  <data name="TextEditorCore_LayoutEmptyTextEditor_EmptyOnly" xml:space="preserve">
+    <value>Empty-text layout can be called only for an empty text editor.</value>
+  </data>
+  <data name="TextEditorCore_RequireReUpdateAllDocumentWhenFinishWithException_InvalidState" xml:space="preserve">
+    <value>This method can be called only when the text editor is dirty and the previous layout finished with an exception.</value>
+  </data>
+  <data name="LineBreakRun_GetChar_NotSupported" xml:space="preserve">
+    <value>{0} does not expose character objects.</value>
+  </data>
+  <data name="NumberMarker_GetMarkerText_CustomRequiresOverride" xml:space="preserve">
+    <value>Override {0} when AutoNumberType is Custom.</value>
+  </data>
+  <data name="RatioVerticalCharInLineAlignment_Constructor_Range" xml:space="preserve">
+    <value>The line space ratio must be within the range [0, 1].</value>
+  </data>
+  <data name="TextLineSpacings_AtLeastLineSpace_NotImplemented" xml:space="preserve">
+    <value>This feature is not implemented yet.</value>
+  </data>
+  <data name="TextSpanCharObject_Constructor_SurrogatePairOnly" xml:space="preserve">
+    <value>Only surrogate-pair characters can use two chars for representation.</value>
+  </data>
+  <data name="TextSpanCharObject_Constructor_UnsupportedCharCount" xml:space="preserve">
+    <value>Under the current Unicode definition and within the UTF-32 range, CharCount is normally 1 or 2. A value of {0} is not supported.</value>
+  </data>
+  <data name="DocumentManager_SetParagraphProperty_ParagraphNotInDocument" xml:space="preserve">
+    <value>The specified paragraph is not part of the document.</value>
+  </data>
+  <data name="DocumentManager_SetStyleParagraphProperty_InitializationOnly" xml:space="preserve">
+    <value>Style paragraph properties can be set only during initialization before any paragraph is created.</value>
+  </data>
+  <data name="DocumentManager_SetStyleTextRunProperty_InitializationOnly" xml:space="preserve">
+    <value>Style text run properties can be set only during initialization before any paragraph is created.</value>
+  </data>
+  <data name="DocumentRunEditProvider_RemoveRange_EmptyParagraphButNotAtEnd" xml:space="preserve">
+    <value>A paragraph has no removable characters even though the caret is not at the paragraph end.</value>
+  </data>
+  <data name="DocumentRunEditProvider_RemoveRange_LengthOutOfRange" xml:space="preserve">
+    <value>Removing text exceeded the number of characters available in the text editor.</value>
+  </data>
+  <data name="GetCharDataOutOfRangeException_Message" xml:space="preserve">
+    <value>The requested character offset is out of range. Count={0};InputOffset={1};ParagraphIndex={2};CharDataList={3};TextEditor={4}</value>
+  </data>
+  <data name="HitCaretOffsetOutOfRangeException_Message" xml:space="preserve">
+    <value>[HitCaretOffsetOutOfRangeException] ArgumentName={0};DocumentManagerCharCount={1};CaretOffset={2};TextEditor={3}</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_GetNextParagraphLineStartPoint_OutlineSizeRequired" xml:space="preserve">
+    <value>Only paragraphs with completed layout can be used to get the next paragraph line start point.</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_UpdateNotDirtyParagraphStartPoint_ParagraphStillDirty" xml:space="preserve">
+    <value>The paragraph is dirty while updating a non-dirty paragraph or line.</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_UpdateParagraphLineLayoutData_CharStartPointMissing" xml:space="preserve">
+    <value>A character did not receive a layout start point.</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_UpdateParagraphLineLayoutData_ZeroCharLine" xml:space="preserve">
+    <value>A layout line consumed zero characters.</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharSizeMissing" xml:space="preserve">
+    <value>The marker character size was not calculated during layout.</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharStartPointMissing" xml:space="preserve">
+    <value>The marker character position was not assigned during layout.</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharVersionInvalid" xml:space="preserve">
+    <value>The cached version for a marker character is invalid.</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharsRequired" xml:space="preserve">
+    <value>A marker layout must contain marker characters.</value>
+  </data>
+  <data name="LayoutChecker_EnsureNextStartPoint_GapBetweenParagraphs" xml:space="preserve">
+    <value>A gap was found between paragraph layouts. ParagraphIndex={0};PreviousStartPoint={1};PreviousOutlineSize={2};CurrentStartPoint={3}</value>
+  </data>
+  <data name="LayoutHitTestProvider_ParagraphHitTest_ParagraphOffsetMismatch" xml:space="preserve">
+    <value>The document offset passed to hit testing does not match the paragraph offset. CurrentCharIndex={0};ParagraphStartOffset={1}</value>
+  </data>
+  <data name="LigatureHelper_CannotFindLigatureStart" xml:space="preserve">
+    <value>The ligature start character could not be resolved from the provided list.</value>
+  </data>
+  <data name="NotFoundMatchCharacterFontException_Message" xml:space="preserve">
+    <value>No font that can render character '{0}' was found. The current device might not have any suitable font installed.</value>
+  </data>
+  <data name="ParagraphPropertyLayoutUtilsExtension_HorizontalAlignmentNotSupported" xml:space="preserve">
+    <value>Horizontal text alignment '{0}' is not supported.</value>
+  </data>
+  <data name="ParagraphData_AppendCharData_AlreadyBelongsToParagraph" xml:space="preserve">
+    <value>This CharData already belongs to a paragraph and cannot be added again.</value>
+  </data>
+  <data name="ParagraphData_AppendCharData_LineBreakNotAllowed" xml:space="preserve">
+    <value>{0} cannot be added to a paragraph.</value>
+  </data>
+  <data name="ParagraphData_InitVersion_DuplicateInit" xml:space="preserve">
+    <value>Repeated initialization is not allowed.</value>
+  </data>
+  <data name="ParagraphData_SplitRemoveByParagraphOffset_OutOfRange" xml:space="preserve">
+    <value>ParagraphCharCount={0};Offset={1}</value>
+  </data>
+  <data name="ParagraphData_UpdateVersion_InitRequired" xml:space="preserve">
+    <value>Call {0} before initialization.</value>
+  </data>
+  <data name="ParagraphIndex_Constructor_NonNegative" xml:space="preserve">
+    <value>Paragraph indexes cannot be negative.</value>
+  </data>
+  <data name="SingleCharImmutableRun_SplitAt_NotSupported" xml:space="preserve">
+    <value>{0} contains only one character and cannot be split further.</value>
+  </data>
+  <data name="SingleImmutableRunList_GetRun_IndexMustBeZero" xml:space="preserve">
+    <value>When getting a run from {0}, the {1} argument must be 0, but the actual value is {2}.</value>
+  </data>
+  <data name="ReadOnlyRunListExtension_GetRunByCharIndex_OutOfRange" xml:space="preserve">
+    <value>The maximum character count is {0}; the provided character index is {1}.</value>
+  </data>
+  <data name="TextRun_GetRun_IndexMustBeZero" xml:space="preserve">
+    <value>When getting a run from {0}, the {1} argument must be 0, but the actual value is {2}.</value>
+  </data>
+  <data name="ReadOnlyParagraphList_EnumFailedVersion" xml:space="preserve">
+    <value>The text changed during enumeration and can no longer be traversed.</value>
+  </data>
+  <data name="RenderInfoProvider_GetCaretRenderInfo_CannotHitChar" xml:space="preserve">
+    <value>Failed to resolve the character that corresponds to the caret.</value>
+  </data>
+  <data name="RenderInfoProvider_GetSelectionBoundsList_EmptySelection" xml:space="preserve">
+    <value>Selection bounds cannot be calculated for an empty selection.</value>
+  </data>
+  <data name="SelectionOutOfRangeException_Message" xml:space="preserve">
+    <value>Selection from {0} to {1} Length={2} DocumentCharCount={3};TextEditor={4}</value>
+  </data>
+  <data name="TextEditorDebugException_ToString" xml:space="preserve">
+    <value>Debug-only exception. {0}
+TextEditor={1}</value>
+  </data>
+  <data name="TextEditorDirtyException_FinishUpdateLayoutWithExceptionSuffix" xml:space="preserve">
+    <value>The previous layout pass ended with an exception, so layout might have started but could not complete. TextEditor.{0}=True</value>
+  </data>
+  <data name="TextEditorDirtyException_Message" xml:space="preserve">
+    <value>The text editor content changed and layout or rendering has not finished yet, so layout-related data cannot be accessed.</value>
+  </data>
+  <data name="TextEditorException_ToString" xml:space="preserve">
+    <value>TextEditor={0}
+{1}</value>
+  </data>
+  <data name="TextEditorInnerDebugAsset_AreEquals" xml:space="preserve">
+    <value>The expected and actual values for {0} do not match. Expected: {1}; Actual: {2}.</value>
+  </data>
+  <data name="TextEditorMeasurerInvalidCharDataInfoException_Message" xml:space="preserve">
+    <value>The character still has no size after measurement. Index={0};Character='{1}'</value>
+  </data>
+  <data name="TextEditorNotInUndoRedoModeException_Message" xml:space="preserve">
+    <value>A text-editor undo or redo specific method was called while the editor was not in undo or redo mode. TextEditor={0}</value>
+  </data>
+  <data name="TextEditorParagraphNotFoundException_Message" xml:space="preserve">
+    <value>The specified paragraph could not be found in the paragraph list because it has already been removed. Deleted paragraphs are not accepted.</value>
+  </data>
+  <data name="TextEditorRenderInfoDirtyException_Message" xml:space="preserve">
+    <value>The text layout has been updated and this render info is stale. Do not cache RenderInfoProvider instances. Current update reason: {0} TextEditor={1}</value>
+  </data>
+  <data name="UpdateLayoutContext_SetCharDataLayoutInfo_OnlyDuringLayout" xml:space="preserve">
+    <value>Layout properties for {0} can be set only during layout processing.</value>
+  </data>
+  <data name="ParagraphLayoutIndentInfoExtension_IndentTypeMismatch" xml:space="preserve">
+    <value>The expected and actual values for IndentType do not match. Expected: {0}; Actual: {1}.</value>
+  </data>
+  <data name="TextPointInParagraphCoordinateSystem_ContentThicknessRequired" xml:space="preserve">
+    <value>The paragraph must have valid content thickness before converting paragraph coordinates to document coordinates.</value>
+  </data>
+  <data name="TextPointInParagraphCoordinateSystem_OtherParagraphNotAllowed" xml:space="preserve">
+    <value>Coordinates from another paragraph cannot be used for this paragraph.</value>
+  </data>
+  <data name="TextEditorUndoRedoReentrantException_Message" xml:space="preserve">
+    <value>A new undo or redo operation was triggered while an undo or redo operation was already in progress.</value>
+  </data>
+</root>

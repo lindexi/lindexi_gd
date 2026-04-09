@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Markup;
 using System.Windows.Media;
+using LightTextEditorPlus.Resources;
 
 namespace LightTextEditorPlus.Document
 {
@@ -71,7 +72,7 @@ namespace LightTextEditorPlus.Document
 
         private static void ThrowInvalidUnicodeRange()
         {
-            throw new InvalidOperationException("无效的Unicode字符范围");
+            throw new InvalidOperationException(ExceptionMessages.Get(nameof(FontFamilyMapItem) + "_InvalidUnicodeRange"));
         }
 
         private static Range[] ParseUnicodeRanges(string unicodeRanges)

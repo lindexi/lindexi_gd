@@ -12,6 +12,7 @@ using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
 
@@ -229,7 +230,8 @@ namespace LightTextEditorPlus.Core.Document
             if (!isInit)
             {
                 // 可在 ParagraphManager.EnsureFirstParagraphExists 方法打断点，了解是哪个模块提前设置了
-                throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性");
+                throw new InvalidOperationException(ExceptionMessages.Get(
+                    nameof(DocumentManager) + "_SetStyleParagraphProperty_InitializationOnly"));
             }
 
             StyleParagraphProperty = paragraphProperty;
@@ -267,7 +269,8 @@ namespace LightTextEditorPlus.Core.Document
                 bool contains = ParagraphManager.GetParagraphList().Contains(paragraph);
                 if (!contains)
                 {
-                    throw new TextEditorDebugException("设置的段落不在文档中");
+                    throw new TextEditorDebugException(
+                        ExceptionMessages.Get(nameof(DocumentManager) + "_SetParagraphProperty_ParagraphNotInDocument"));
                 }
             }
 
@@ -514,7 +517,8 @@ namespace LightTextEditorPlus.Core.Document
             var isInit = IsInitializingTextEditor();
             if (!isInit)
             {
-                throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性");
+                throw new InvalidOperationException(ExceptionMessages.Get(
+                    nameof(DocumentManager) + "_SetStyleTextRunProperty_InitializationOnly"));
             }
 
             T runProperty = config((T) StyleRunProperty);

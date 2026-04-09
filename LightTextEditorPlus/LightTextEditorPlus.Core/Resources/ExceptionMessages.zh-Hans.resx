@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ChangeDocumentOnUpdatingLayoutException_Message" xml:space="preserve">
+    <value>在更新布局的过程中修改文档，此时将会导致布局错误。TextEditor={0}</value>
+  </data>
+  <data name="ArrangingLayoutProvider_FindFirstDirtyParagraph_NoDirtyParagraph" xml:space="preserve">
+    <value>进入布局时，没有任何一段需要布局。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_OutlineSizeMissing" xml:space="preserve">
+    <value>完成布局之后，没有更新段落的文本外接尺寸布局信息。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_ParagraphStillDirty" xml:space="preserve">
+    <value>完成布局之后，段落还是脏的。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_StartPointMissing" xml:space="preserve">
+    <value>完成布局之后，没有更新段落的文本起始点布局信息。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_EnsureFinishLayoutCompleted_TextSizeMissing" xml:space="preserve">
+    <value>完成布局之后，没有更新段落的文本尺寸布局信息。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_PreUpdateDocumentLayout_NextParagraphStartMismatch" xml:space="preserve">
+    <value>预期下一个段落的起始点是 {0}，实际是 {1}。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_PreUpdateDocumentLayout_StartPointMissing" xml:space="preserve">
+    <value>完成预布局第 {0} 段之后，没有更新段落的文本起始点布局信息。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_PreUpdateDocumentLayout_TextSizeMissing" xml:space="preserve">
+    <value>完成预布局第 {0} 段之后，没有更新段落的文本尺寸布局信息。</value>
+  </data>
+  <data name="ArrangingLayoutProvider_UpdateDocumentLayout_ClearAllCharDataRequiresFullUpdate" xml:space="preserve">
+    <value>要求清理全部字符信息时，必定是全量更新。</value>
+  </data>
+  <data name="CharDataLayoutHelper_ClearAllCharDataInfo_ParagraphMustBeDirty" xml:space="preserve">
+    <value>清空全部的字符数据时，必然是段落脏的。</value>
+  </data>
+  <data name="CharData_DebugVerify_MismatchedReference" xml:space="preserve">
+    <value>此 CharData 存放的渲染数据对应的字符，不是当前的 CharData 数据。</value>
+  </data>
+  <data name="CharData_GetStartPoint_BeforeAppend" xml:space="preserve">
+    <value>禁止在加入到段落之前获取。</value>
+  </data>
+  <data name="CharData_GetStartPoint_BeforeLayout" xml:space="preserve">
+    <value>禁止在开始布局之前获取。</value>
+  </data>
+  <data name="CharData_GetStartPoint_InvalidVersion" xml:space="preserve">
+    <value>字符数据已失效。</value>
+  </data>
+  <data name="CharData_SetCharDataInfo_DuplicateSet" xml:space="preserve">
+    <value>禁止重复给 {0} 字符信息赋值。</value>
+  </data>
+  <data name="CharData_SetCharDataInfo_InvalidInput" xml:space="preserve">
+    <value>禁止传入无效的字符信息。</value>
+  </data>
+  <data name="CharData_SetLayoutCharLineStartPoint_BeforeAppend" xml:space="preserve">
+    <value>禁止在加入到段落之前设置字符的起始点信息。</value>
+  </data>
+  <data name="CharDataBeAddedToMultiParagraphException_Message" xml:space="preserve">
+    <value>同一个 CharData 被加入到了多个段落。CharData={0};OldParagraphIndex={1};NewParagraphIndex={2};TextEditor={3}</value>
+  </data>
+  <data name="DocumentOffset_Constructor_MinimumValue" xml:space="preserve">
+    <value>文档的偏移量最小值不能小于 -1 默认值。</value>
+  </data>
+  <data name="TextEditorCore_DebugRequireReUpdateAllDocumentLayout_DebugOnly" xml:space="preserve">
+    <value>{0} 只能在调试模式下调用此方法。</value>
+  </data>
+  <data name="TextEditorCore_HorizontalTextAlignment_NotSupported" xml:space="preserve">
+    <value>文本的水平布局是由段落控制的，不是由整个文本控制的。</value>
+  </data>
+  <data name="TextEditorCore_LayoutEmptyTextEditor_EmptyOnly" xml:space="preserve">
+    <value>只有空文本才能调用空文本布局。</value>
+  </data>
+  <data name="TextEditorCore_RequireReUpdateAllDocumentWhenFinishWithException_InvalidState" xml:space="preserve">
+    <value>仅当文本是脏的，且上次布局存在异常时，才能调用此方法。</value>
+  </data>
+  <data name="LineBreakRun_GetChar_NotSupported" xml:space="preserve">
+    <value>禁止对 {0} 获取字符对象。</value>
+  </data>
+  <data name="NumberMarker_GetMarkerText_CustomRequiresOverride" xml:space="preserve">
+    <value>当 AutoNumberType 为 Custom 时，要求重写 {0} 方法。</value>
+  </data>
+  <data name="RatioVerticalCharInLineAlignment_Constructor_Range" xml:space="preserve">
+    <value>传入的行高比例只能是 0-1 范围。</value>
+  </data>
+  <data name="TextLineSpacings_AtLeastLineSpace_NotImplemented" xml:space="preserve">
+    <value>还没实现此功能。</value>
+  </data>
+  <data name="TextSpanCharObject_Constructor_SurrogatePairOnly" xml:space="preserve">
+    <value>只有高低代理对字符才能使用两个 char 表示。</value>
+  </data>
+  <data name="TextSpanCharObject_Constructor_UnsupportedCharCount" xml:space="preserve">
+    <value>按照当前 Unicode 的定义，完全在 Utf32 范围内，一般 CharCount 都是 1 或 2 的值，不可能需要有使用 {0} 个字符表示的情况。</value>
+  </data>
+  <data name="DocumentManager_SetParagraphProperty_ParagraphNotInDocument" xml:space="preserve">
+    <value>设置的段落不在文档中。</value>
+  </data>
+  <data name="DocumentManager_SetStyleParagraphProperty_InitializationOnly" xml:space="preserve">
+    <value>仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式段落属性。</value>
+  </data>
+  <data name="DocumentManager_SetStyleTextRunProperty_InitializationOnly" xml:space="preserve">
+    <value>仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性。</value>
+  </data>
+  <data name="DocumentRunEditProvider_RemoveRange_EmptyParagraphButNotAtEnd" xml:space="preserve">
+    <value>一段里面没有任何可删除的字符，但是光标不在段末。</value>
+  </data>
+  <data name="DocumentRunEditProvider_RemoveRange_LengthOutOfRange" xml:space="preserve">
+    <value>删除文本时，超过文本框所能提供的字符范围。</value>
+  </data>
+  <data name="GetCharDataOutOfRangeException_Message" xml:space="preserve">
+    <value>获取字符时坐标超过字符数量。Count={0};InputOffset={1};ParagraphIndex={2};CharDataList={3};TextEditor={4}</value>
+  </data>
+  <data name="HitCaretOffsetOutOfRangeException_Message" xml:space="preserve">
+    <value>[HitCaretOffsetOutOfRangeException] ArgumentName={0};DocumentManagerCharCount={1};CaretOffset={2};TextEditor={3}</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_GetNextParagraphLineStartPoint_OutlineSizeRequired" xml:space="preserve">
+    <value>只有完全完成布局的段落才能进入此分支，获取下一段的行起始点。</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_UpdateNotDirtyParagraphStartPoint_ParagraphStillDirty" xml:space="preserve">
+    <value>更新非脏的段落和行时，段落是脏的。</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_UpdateParagraphLineLayoutData_CharStartPointMissing" xml:space="preserve">
+    <value>存在某个字符没有在布局时设置坐标。</value>
+  </data>
+  <data name="HorizontalArrangingLayoutProvider_UpdateParagraphLineLayoutData_ZeroCharLine" xml:space="preserve">
+    <value>某一行在布局时，只采用了零个字符。</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharSizeMissing" xml:space="preserve">
+    <value>存在项目符号字符没有在布局时计算尺寸。</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharStartPointMissing" xml:space="preserve">
+    <value>存在项目符号字符没有在布局时设置坐标。</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharVersionInvalid" xml:space="preserve">
+    <value>存在项目符号字符缓存版本错误。</value>
+  </data>
+  <data name="LayoutChecker_EnsureMarker_MarkerCharsRequired" xml:space="preserve">
+    <value>包含项目符号下，必定存在项目符号字符。</value>
+  </data>
+  <data name="LayoutChecker_EnsureNextStartPoint_GapBetweenParagraphs" xml:space="preserve">
+    <value>文本段落计算之间存在空隙。当前第 {0} 段。上一段范围： {1}  {2}，当前段的起始点 {3}</value>
+  </data>
+  <data name="LayoutHitTestProvider_ParagraphHitTest_ParagraphOffsetMismatch" xml:space="preserve">
+    <value>命中测试传递的当前文档偏移量和段落的偏移量不相同 CurrentCharIndex={0} ParagraphStartOffset={1}</value>
+  </data>
+  <data name="LigatureHelper_CannotFindLigatureStart" xml:space="preserve">
+    <value>无法从传入的列表找到正确的连写字。</value>
+  </data>
+  <data name="NotFoundMatchCharacterFontException_Message" xml:space="preserve">
+    <value>无法找到 '{0}' 字符的可渲染字体，可能当前设备未安装任何一款字体。</value>
+  </data>
+  <data name="ParagraphPropertyLayoutUtilsExtension_HorizontalAlignmentNotSupported" xml:space="preserve">
+    <value>不支持 {0} 对齐方式。</value>
+  </data>
+  <data name="ParagraphData_AppendCharData_AlreadyBelongsToParagraph" xml:space="preserve">
+    <value>此 CharData 已经被加入到某个段落，不能重复加入。</value>
+  </data>
+  <data name="ParagraphData_AppendCharData_LineBreakNotAllowed" xml:space="preserve">
+    <value>禁止将 {0} 加入到段落。</value>
+  </data>
+  <data name="ParagraphData_InitVersion_DuplicateInit" xml:space="preserve">
+    <value>禁止重复初始化。</value>
+  </data>
+  <data name="ParagraphData_SplitRemoveByParagraphOffset_OutOfRange" xml:space="preserve">
+    <value>段落字符:{0};参数Offset={1}</value>
+  </data>
+  <data name="ParagraphData_UpdateVersion_InitRequired" xml:space="preserve">
+    <value>初始化先调用 {0} 方法。</value>
+  </data>
+  <data name="ParagraphIndex_Constructor_NonNegative" xml:space="preserve">
+    <value>段落的索引不允许负数。</value>
+  </data>
+  <data name="SingleCharImmutableRun_SplitAt_NotSupported" xml:space="preserve">
+    <value>对于 {0} 只包含单个字符，不可再拆。</value>
+  </data>
+  <data name="SingleImmutableRunList_GetRun_IndexMustBeZero" xml:space="preserve">
+    <value>获取只有单个 Run 的 {0} 时，传入的 {1} 参数是 {2} 而不是 0 的值。</value>
+  </data>
+  <data name="ReadOnlyRunListExtension_GetRunByCharIndex_OutOfRange" xml:space="preserve">
+    <value>最大的字符数量是: {0}；传入的字符索引是: {1}</value>
+  </data>
+  <data name="TextRun_GetRun_IndexMustBeZero" xml:space="preserve">
+    <value>获取只有单个 Run 的 {0} 时，传入的 {1} 参数是 {2} 而不是 0 的值。</value>
+  </data>
+  <data name="ReadOnlyParagraphList_EnumFailedVersion" xml:space="preserve">
+    <value>枚举过程中，文本已经变更，不再可遍历。</value>
+  </data>
+  <data name="RenderInfoProvider_GetCaretRenderInfo_CannotHitChar" xml:space="preserve">
+    <value>无法命中光标对应的字符。</value>
+  </data>
+  <data name="RenderInfoProvider_GetSelectionBoundsList_EmptySelection" xml:space="preserve">
+    <value>获取选择对应的范围时，传入的选择范围是空。</value>
+  </data>
+  <data name="SelectionOutOfRangeException_Message" xml:space="preserve">
+    <value>Selection 从 {0} 到 {1} Length={2} DocumentCharCount={3};TextEditor={4}</value>
+  </data>
+  <data name="TextEditorDebugException_ToString" xml:space="preserve">
+    <value>调试异常，仅调试下抛出。{0}
+TextEditor={1}</value>
+  </data>
+  <data name="TextEditorDirtyException_FinishUpdateLayoutWithExceptionSuffix" xml:space="preserve">
+    <value>由于文本上次布局过程存在异常，则可能文本已经确实经过布局了，但被异常打断，不能完成布局。TextEditor.{0}=True</value>
+  </data>
+  <data name="TextEditorDirtyException_Message" xml:space="preserve">
+    <value>当前的文本被更改，还没有完成布局渲染，不能获取渲染布局相关内容。</value>
+  </data>
+  <data name="TextEditorException_ToString" xml:space="preserve">
+    <value>TextEditor={0}
+{1}</value>
+  </data>
+  <data name="TextEditorInnerDebugAsset_AreEquals" xml:space="preserve">
+    <value>对 {0} 的预期和实际值不符。预期：{1}，实际：{2}。</value>
+  </data>
+  <data name="TextEditorMeasurerInvalidCharDataInfoException_Message" xml:space="preserve">
+    <value>测量布局之后，字符依然没有尺寸。第 {0} 个字符：'{1}'</value>
+  </data>
+  <data name="TextEditorNotInUndoRedoModeException_Message" xml:space="preserve">
+    <value>调用文本库的撤销恢复专用方法时，文本库没有进入撤销恢复模式。TextEditor={0}</value>
+  </data>
+  <data name="TextEditorParagraphNotFoundException_Message" xml:space="preserve">
+    <value>传入的段落没有从段落列表找到，段落被删除。方法不接受传入被删除段落。</value>
+  </data>
+  <data name="TextEditorRenderInfoDirtyException_Message" xml:space="preserve">
+    <value>文本布局已更新，此渲染信息是脏的。请不要缓存 RenderInfoProvider 对象。当前请求更新理由： {0} TextEditor={1}</value>
+  </data>
+  <data name="UpdateLayoutContext_SetCharDataLayoutInfo_OnlyDuringLayout" xml:space="preserve">
+    <value>只有在布局过程才能设置 {0} 的布局属性。</value>
+  </data>
+  <data name="ParagraphLayoutIndentInfoExtension_IndentTypeMismatch" xml:space="preserve">
+    <value>对 IndentType 的预期和实际值不符。预期：{0}，实际：{1}。</value>
+  </data>
+  <data name="TextPointInParagraphCoordinateSystem_ContentThicknessRequired" xml:space="preserve">
+    <value>将段落坐标转换为文档坐标时，要求段落已经设置了正确的边距。</value>
+  </data>
+  <data name="TextPointInParagraphCoordinateSystem_OtherParagraphNotAllowed" xml:space="preserve">
+    <value>禁止拿其他段落获取相对的坐标点。</value>
+  </data>
+  <data name="TextEditorUndoRedoReentrantException_Message" xml:space="preserve">
+    <value>在文本库撤销恢复过程中，产生了新的撤销恢复。</value>
+  </data>
+</root>

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Resources;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -37,13 +38,16 @@ public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
             }
             else
             {
-                throw new ArgumentException($"只有高低代理对字符才能使用两个 char 表示", nameof(charCount));
+                throw new ArgumentException(
+                    ExceptionMessages.Get(nameof(TextSpanCharObject) + "_Constructor_SurrogatePairOnly"),
+                    nameof(charCount));
             }
         }
         else
         {
             // 错误情况
-            throw new ArgumentException($"按照当前 Unicode 的定义，完全在 Utf32 范围内，一般 CharCount 都是 1 或 2 的值，不可能需要有使用 {charCount} 个字符表示的情况",
+            throw new ArgumentException(ExceptionMessages.Format(
+                    nameof(TextSpanCharObject) + "_Constructor_UnsupportedCharCount", charCount),
                 nameof(charCount));
         }
     }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -98,7 +99,8 @@ public class TextRun : IImmutableTextRun
     {
         if (index != 0)
         {
-            throw new TextEditorInnerException($"获取只有单个 Run 的 {nameof(TextRun)} 时，传入的 {nameof(index)} 参数是 {index} 而不是 0 的值");
+            throw new TextEditorInnerException(ExceptionMessages.Format(
+                nameof(TextRun) + "_GetRun_IndexMustBeZero", nameof(TextRun), nameof(index), index));
         }
 
         return this;

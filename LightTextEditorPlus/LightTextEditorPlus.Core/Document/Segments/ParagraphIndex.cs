@@ -1,4 +1,5 @@
 ﻿using System;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Document.Segments;
 
@@ -15,7 +16,8 @@ public readonly record struct ParagraphIndex : IEquatable<int>
     {
         if (index < 0)
         {
-            throw new ArgumentException($"段落的索引不允许负数", nameof(index));
+            throw new ArgumentException(ExceptionMessages.Get(nameof(ParagraphIndex) + "_Constructor_NonNegative"),
+                nameof(index));
         }
 
         Index = index;

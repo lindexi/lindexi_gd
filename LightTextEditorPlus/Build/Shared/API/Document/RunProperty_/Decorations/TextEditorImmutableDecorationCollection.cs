@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
+using LightTextEditorPlus.Resources;
 
 namespace LightTextEditorPlus.Document.Decorations;
 
@@ -73,7 +74,8 @@ public readonly struct TextEditorImmutableDecorationCollection : IEquatable<Text
 
             if (index < 0)
             {
-                throw new ArgumentException($"传入的索引不能小于 0 的值", nameof(index));
+                throw new ArgumentException(ExceptionMessages.Get(
+                    nameof(TextEditorImmutableDecorationCollection) + "_IndexMustBeNonNegative"), paramName: nameof(index));
             }
 
             if (index == 0 && _one is not null)

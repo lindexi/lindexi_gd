@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Resources;
 
 namespace LightTextEditorPlus.Core.Utils;
 
@@ -27,6 +28,7 @@ internal static class LigatureHelper
             }
         }
 
-        throw new TextEditorInnerException($"无法从传入的列表找到正确的连写字");
+        throw new TextEditorInnerException(
+            ExceptionMessages.Get(nameof(LigatureHelper) + "_CannotFindLigatureStart"));
     }
 }
