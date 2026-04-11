@@ -139,6 +139,8 @@ for (int i = 0; i < 100; i++)
                 csvWriter.NextRecord();
                 csvWriter.Flush();
             }
+
+            File.AppendAllLines("名称.txt", nameAndReasonList);
         }
     }
 }
@@ -165,7 +167,7 @@ async Task DoAsync(ChatMessage[] inputList)
     Console.WriteLine();
     Console.WriteLine($"结束");
     Console.WriteLine();
-    Console.ReadLine();
+    //Console.ReadLine();
 }
 
 Console.WriteLine("Hello, World!");
