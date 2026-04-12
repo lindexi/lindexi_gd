@@ -1,0 +1,56 @@
+<UserControl x:Class="DeepSeekWpf.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock FontSize="26"
+                       FontWeight="SemiBold"
+                       Text="设置界面" />
+            <TextBlock Margin="0,8,0,20"
+                       Foreground="#FF6B7280"
+                       Text="配置缓存目录、日志目录和模型名称。" />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Padding="20"
+                Background="White"
+                BorderBrush="#FFE5E7EB"
+                BorderThickness="1"
+                CornerRadius="12">
+            <StackPanel>
+                <TextBlock FontWeight="SemiBold" Text="缓存路径" />
+                <TextBox Margin="0,8,0,16"
+                         Text="{Binding CachePath, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock FontWeight="SemiBold" Text="日志路径" />
+                <TextBox Margin="0,8,0,16"
+                         Text="{Binding LogPath, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock FontWeight="SemiBold" Text="模型名称" />
+                <TextBox Margin="0,8,0,16"
+                         Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Foreground="#FF6B7280" Text="{Binding StatusMessage}" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="2"
+                    Margin="0,20,0,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <Button Margin="0,0,12,0"
+                    Command="{Binding RestoreDefaultsCommand}"
+                    Content="恢复默认" />
+            <Button Command="{Binding SaveSettingsCommand}" Content="保存设置" />
+        </StackPanel>
+    </Grid>
+</UserControl>
