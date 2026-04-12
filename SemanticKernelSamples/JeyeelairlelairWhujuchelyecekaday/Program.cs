@@ -135,6 +135,7 @@ for (int i = 0; i < 100; i++)
             {
                 if (IsSocketException(e))
                 {
+                    await Task.Delay(TimeSpan.FromMilliseconds(200));
                     continue;
                 }
                 else
