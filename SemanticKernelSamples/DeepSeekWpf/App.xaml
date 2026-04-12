@@ -1,0 +1,35 @@
+﻿<Application x:Class="DeepSeekWpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:DeepSeekWpf.ViewModels"
+             xmlns:views="clr-namespace:DeepSeekWpf.Views">
+    <Application.Resources>
+        <DataTemplate DataType="{x:Type viewModels:ChatWorkspaceViewModel}">
+            <views:ChatView />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModels:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#FF2563EB" />
+            <Setter Property="BorderBrush" Value="#FF1D4ED8" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="BorderBrush" Value="#FFD1D5DB" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+    </Application.Resources>
+</Application>
