@@ -80,21 +80,6 @@ void ShowQrCode(string qrCodeImageDownloadUrl)
     {
         UseShellExecute = true
     });
-
-    //Console.WriteLine($"二维码下载地址：{qrCodeImageDownloadUrl}");
-    //using var httpClient = new HttpClient();
-    //await using var response = await httpClient.GetStreamAsync(qrCodeImageDownloadUrl);
-    //var qrFile = Path.Join(AppContext.BaseDirectory, $"{Path.GetRandomFileName()}.png");
-    //var fileStream = File.Create(qrFile);
-    //await using (fileStream)
-    //{
-    //    await response.CopyToAsync(fileStream);
-    //}
-
-    //if (OperatingSystem.IsWindows())
-    //{
-    //    Process.Start("explorer", qrFile);
-    //}
 }
 
 void OnScanned()
