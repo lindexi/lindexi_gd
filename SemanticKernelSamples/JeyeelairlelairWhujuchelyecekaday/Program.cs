@@ -5,6 +5,7 @@ using OpenAI;
 using System.ClientModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Net.Sockets;
 using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -12,16 +13,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-var folder = @"C:\lindexi\Work\古典名著\庄子\内篇\";
+var folder = @"C:\lindexi\Work\古典名著\道德经译注\";
 
 var keyFile = @"C:\lindexi\Work\Doubao.txt";
 var key = File.ReadAllText(keyFile);
 
 var outputFile = "output.csv";
-using var streamWriter = new StreamWriter(outputFile, Encoding.UTF8,new FileStreamOptions()
+using var streamWriter = new StreamWriter(outputFile, Encoding.UTF8, new FileStreamOptions()
 {
     Access = FileAccess.ReadWrite,
     Share = FileShare.Read,
+    Mode = FileMode.Create,
 })
 {
 };
@@ -122,7 +124,65 @@ for (int i = 0; i < 100; i++)
                 }
             });
 
-        await DoAsync(inputList);
+        while (true)
+        {
+            try
+            {
+                await DoAsync(inputList);
+                break;
+            }
+            catch (Exception e)
+            {
+                if (IsSocketException(e))
+                {
+                    continue;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        static bool IsSocketException(Exception e)
+        {
+            if (e is SocketException socketException)
+            {
+                if (socketException.SocketErrorCode is SocketError.HostNotFound
+                    or SocketError.ConnectionReset)
+                {
+                    
+                }
+                else if (socketException.SocketErrorCode is 
+                         // 积极拒绝，再来多少次也是失败
+                         SocketError.ConnectionRefused)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            else if (e is AggregateException aggregateException)
+            {
+                foreach (var innerException in aggregateException.InnerExceptions)
+                {
+                    if (IsSocketException(innerException))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                if (e.InnerException is not null)
+                {
+                    return IsSocketException(e.InnerException);
+                }
+            }
+
+            return false;
+        }
+
 
         [Description("设置名称，需要传入所给的名字和其选择原因")]
         void SetName([Description("名称和其选择理由的列表。每项的格式为 名称：理由")] List<string> nameAndReasonList)
