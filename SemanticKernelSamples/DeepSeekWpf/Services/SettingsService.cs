@@ -30,7 +30,7 @@ public sealed class SettingsService : ISettingsService
 
     public void Save(AppSettings settings)
     {
-        CurrentSettings = settings.Clone();
+        CurrentSettings = settings with { };
         EnsureDirectories(CurrentSettings);
         Persist(CurrentSettings);
     }
@@ -68,6 +68,7 @@ public sealed class SettingsService : ISettingsService
     private static void EnsureDirectories(AppSettings settings)
     {
         Directory.CreateDirectory(settings.CachePath);
+        Directory.CreateDirectory(settings.DataPath);
         Directory.CreateDirectory(settings.LogPath);
     }
 }

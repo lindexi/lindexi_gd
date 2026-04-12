@@ -4,5 +4,9 @@ namespace DeepSeekWpf.Services;
 
 public interface IAiChatService
 {
-    Task<string> GetReplyAsync(ChatSession session, AppSettings settings, CancellationToken cancellationToken);
+    IAsyncEnumerable<AiResponseChunk> GetReplyAsync(
+        ChatSession session,
+        ChatMessage assistantMessage,
+        AppSettings settings,
+        CancellationToken cancellationToken);
 }

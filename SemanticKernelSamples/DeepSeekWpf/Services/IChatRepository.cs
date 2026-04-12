@@ -4,7 +4,9 @@ namespace DeepSeekWpf.Services;
 
 public interface IChatRepository
 {
-    IReadOnlyList<ChatSession> LoadSessions();
+    Task<IReadOnlyList<ChatSession>> LoadSessionsAsync(CancellationToken cancellationToken = default);
 
-    void SaveSessions(IEnumerable<ChatSession> sessions);
+    void SaveSession(ChatSession session);
+
+    void DeleteSession(Guid sessionId);
 }

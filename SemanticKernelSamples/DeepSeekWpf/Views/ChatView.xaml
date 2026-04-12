@@ -1,4 +1,4 @@
-<UserControl x:Class="DeepSeekWpf.Views.ChatView"
+﻿<UserControl x:Class="DeepSeekWpf.Views.ChatView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,9 +6,8 @@
              mc:Ignorable="d">
     <Grid Margin="16">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260" />
+            <ColumnDefinition Width="280" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="320" />
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0"
@@ -25,7 +24,7 @@
                                Text="历史会话" />
                     <TextBlock Margin="0,6,0,12"
                                Foreground="#FF6B7280"
-                               Text="新建、删除和继续之前的聊天。" />
+                               Text="异步加载历史对话，可继续之前的聊天。" />
 
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
@@ -75,7 +74,7 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Column="1" Margin="0,0,16,0">
+        <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -100,21 +99,157 @@
                     <DataTemplate>
                         <Border Margin="0,0,0,12"
                                 Padding="12"
-                                Background="#FFF9FAFB"
+                                Background="White"
                                 BorderBrush="#FFE5E7EB"
                                 BorderThickness="1"
                                 CornerRadius="10">
                             <StackPanel>
                                 <DockPanel>
-                                    <TextBlock FontWeight="SemiBold" Text="{Binding Role}" />
-                                    <TextBlock DockPanel.Dock="Right"
-                                               FontSize="12"
-                                               Foreground="#FF6B7280"
-                                               Text="{Binding CreatedAt, StringFormat={}{0:HH:mm:ss}}" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontWeight="SemiBold" Text="{Binding Role}" />
+                                        <TextBlock Margin="12,0,0,0"
+                                                   Foreground="#FF9CA3AF"
+                                                   Text="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" />
+                                    </StackPanel>
+
+                                    <Button DockPanel.Dock="Right"
+                                            Command="{Binding DataContext.BeginInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            CommandParameter="{Binding}"
+                                            Content="编辑">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                <Setter Property="Padding" Value="10,4" />
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
                                 </DockPanel>
-                                <TextBlock Margin="0,8,0,0"
-                                           TextWrapping="Wrap"
-                                           Text="{Binding Content}" />
+
+                                <StackPanel Margin="0,10,0,0">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <Border Margin="0,0,0,10"
+                                            Padding="10"
+                                            Background="#FFEEF2FF"
+                                            BorderBrush="#FFC7D2FE"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasThoughtContent}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" Text="思考内容" />
+                                            <TextBlock Margin="0,8,0,0"
+                                                       TextWrapping="Wrap"
+                                                       Text="{Binding ThoughtContent}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Padding="10"
+                                            Background="#FFF9FAFB"
+                                            BorderBrush="#FFE5E7EB"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" Text="消息内容" />
+                                            <TextBlock Margin="0,8,0,0"
+                                                       TextWrapping="Wrap"
+                                                       Text="{Binding Content}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Margin="0,10,0,0">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <Border Margin="0,0,0,10"
+                                            Padding="10"
+                                            Background="#FFEEF2FF"
+                                            BorderBrush="#FFC7D2FE"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAssistant}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" Text="思考内容" />
+                                            <TextBox Margin="0,8,0,0"
+                                                     AcceptsReturn="True"
+                                                     Text="{Binding EditingThoughtContent, UpdateSourceTrigger=PropertyChanged}"
+                                                     TextWrapping="Wrap"
+                                                     VerticalScrollBarVisibility="Auto" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Padding="10"
+                                            Background="#FFF9FAFB"
+                                            BorderBrush="#FFE5E7EB"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" Text="消息内容" />
+                                            <TextBox Margin="0,8,0,0"
+                                                     AcceptsReturn="True"
+                                                     Text="{Binding EditingContent, UpdateSourceTrigger=PropertyChanged}"
+                                                     TextWrapping="Wrap"
+                                                     VerticalScrollBarVisibility="Auto" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <StackPanel Margin="0,10,0,0"
+                                                HorizontalAlignment="Right"
+                                                Orientation="Horizontal">
+                                        <Button Margin="0,0,12,0"
+                                                Command="{Binding DataContext.CancelInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                CommandParameter="{Binding}"
+                                                Content="取消" />
+                                        <Button Command="{Binding DataContext.SaveInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                CommandParameter="{Binding}"
+                                                Content="保存" />
+                                    </StackPanel>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -129,7 +264,7 @@
                     CornerRadius="10">
                 <StackPanel>
                     <TextBlock FontWeight="SemiBold" Text="输入消息" />
-                    <TextBox MinHeight="100"
+                    <TextBox MinHeight="120"
                              Margin="0,8,0,0"
                              AcceptsReturn="True"
                              Text="{Binding PendingUserMessage, UpdateSourceTrigger=PropertyChanged}"
@@ -139,9 +274,11 @@
             </Border>
 
             <DockPanel Grid.Row="3" Margin="0,12,0,0">
-                <TextBlock VerticalAlignment="Center"
-                           Foreground="#FF6B7280"
-                           Text="选择历史会话即可继续聊天，选择消息即可在右侧编辑。" />
+                <StackPanel>
+                    <TextBlock Foreground="#FF6B7280" Text="悬停消息卡片时显示编辑按钮，编辑后直接在原消息位置保存。" />
+                    <TextBlock Foreground="#FF9CA3AF" Text="AI 回复会分开显示思考内容和消息内容。" />
+                </StackPanel>
+
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Margin="12,0,0,0"
                             Command="{Binding StopCommand}"
@@ -152,34 +289,5 @@
                 </StackPanel>
             </DockPanel>
         </Grid>
-
-        <Border Grid.Column="2"
-                Padding="16"
-                Background="White"
-                BorderBrush="#FFE5E7EB"
-                BorderThickness="1"
-                CornerRadius="10">
-            <StackPanel>
-                <TextBlock FontSize="20"
-                           FontWeight="SemiBold"
-                           Text="消息编辑器" />
-                <TextBlock Margin="0,6,0,0"
-                           Foreground="#FF6B7280"
-                           Text="{Binding SelectedMessageRoleDisplay, StringFormat=角色：{0}}" />
-                <TextBlock Margin="0,4,0,12"
-                           Foreground="#FF6B7280"
-                           Text="{Binding SelectedMessageTimeDisplay, StringFormat=时间：{0}}" />
-                <TextBox MinHeight="320"
-                         AcceptsReturn="True"
-                         Text="{Binding EditableMessageContent, UpdateSourceTrigger=PropertyChanged}"
-                         TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto" />
-                <Button Width="120"
-                        Margin="0,12,0,0"
-                        HorizontalAlignment="Left"
-                        Command="{Binding SaveMessageEditCommand}"
-                        Content="保存编辑" />
-            </StackPanel>
-        </Border>
     </Grid>
 </UserControl>
