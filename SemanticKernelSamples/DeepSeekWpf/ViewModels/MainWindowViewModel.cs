@@ -15,6 +15,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         _currentPage = chatPage;
         _showChatCommand = new RelayCommand(ShowChat);
         _showSettingsCommand = new RelayCommand(ShowSettings);
+        SettingsPage.SaveCompleted += OnSettingsSaved;
     }
 
     public ChatWorkspaceViewModel ChatPage { get; }
@@ -40,5 +41,10 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         SettingsPage.Reload();
         CurrentPage = SettingsPage;
+    }
+
+    private void OnSettingsSaved(object? sender, EventArgs e)
+    {
+        ShowChat();
     }
 }

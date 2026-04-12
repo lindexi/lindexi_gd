@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.IO;
+using System.Linq;
 using DeepSeekWpf.Models;
 
 namespace DeepSeekWpf.Services;
@@ -19,43 +20,63 @@ public sealed class FileChatRepository : IChatRepository
         _settingsService = settingsService;
     }
 
-    public IReadOnlyList<ChatSession> LoadSessions()
+    public async Task<IReadOnlyList<ChatSession>> LoadSessionsAsync(CancellationToken cancellationToken = default)
     {
-        var filePath = GetStorageFilePath();
-        if (!File.Exists(filePath))
+        var storageDirectory = GetStorageDirectory();
+        if (!Directory.Exists(storageDirectory))
         {
             return [];
         }
 
+        var files = Directory.EnumerateFiles(storageDirectory, "*.json", SearchOption.TopDirectoryOnly).ToList();
+        var loadTasks = files.Select(filePath => LoadSessionAsync(filePath, cancellationToken));
+        var sessions = await Task.WhenAll(loadTasks);
+
+        return sessions
+            .Where(session => session is not null)
+            .Cast<ChatSession>()
+            .OrderByDescending(session => session.UpdatedAt)
+            .ToList();
+    }
+
+    public void SaveSession(ChatSession session)
+    {
+        var filePath = GetSessionFilePath(session.Id);
+        using var stream = File.Create(filePath);
+        JsonSerializer.Serialize(stream, session, _serializerOptions);
+    }
+
+    public void DeleteSession(Guid sessionId)
+    {
+        var filePath = GetSessionFilePath(sessionId);
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+    }
+
+    private async Task<ChatSession?> LoadSessionAsync(string filePath, CancellationToken cancellationToken)
+    {
         try
         {
-            var json = File.ReadAllText(filePath);
-            var sessions = JsonSerializer.Deserialize<List<ChatSession>>(json, _serializerOptions);
-            return sessions?
-                .OrderByDescending(session => session.UpdatedAt)
-                .ToList() ?? [];
+            await using var stream = File.OpenRead(filePath);
+            return await JsonSerializer.DeserializeAsync<ChatSession>(stream, _serializerOptions, cancellationToken);
         }
         catch
         {
-            return [];
+            return null;
         }
     }
 
-    public void SaveSessions(IEnumerable<ChatSession> sessions)
+    private string GetStorageDirectory()
     {
-        var filePath = GetStorageFilePath();
-        var orderedSessions = sessions
-            .OrderByDescending(session => session.UpdatedAt)
-            .ToList();
-
-        var json = JsonSerializer.Serialize(orderedSessions, _serializerOptions);
-        File.WriteAllText(filePath, json);
+        var dataPath = Path.Combine(_settingsService.CurrentSettings.DataPath, "Sessions");
+        Directory.CreateDirectory(dataPath);
+        return dataPath;
     }
 
-    private string GetStorageFilePath()
+    private string GetSessionFilePath(Guid sessionId)
     {
-        var cachePath = _settingsService.CurrentSettings.CachePath;
-        Directory.CreateDirectory(cachePath);
-        return Path.Combine(cachePath, "chat-sessions.json");
+        return Path.Combine(GetStorageDirectory(), $"{sessionId}.json");
     }
 }

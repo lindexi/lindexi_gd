@@ -1,4 +1,4 @@
-<UserControl x:Class="DeepSeekWpf.Views.SettingsView"
+﻿<UserControl x:Class="DeepSeekWpf.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -17,7 +17,7 @@
                        Text="设置界面" />
             <TextBlock Margin="0,8,0,20"
                        Foreground="#FF6B7280"
-                       Text="配置缓存目录、日志目录和模型名称。" />
+                       Text="配置缓存目录、数据目录、日志目录和模型接入信息。保存后将返回主界面。" />
         </StackPanel>
 
         <Border Grid.Row="1"
@@ -26,21 +26,71 @@
                 BorderBrush="#FFE5E7EB"
                 BorderThickness="1"
                 CornerRadius="12">
-            <StackPanel>
-                <TextBlock FontWeight="SemiBold" Text="缓存路径" />
-                <TextBox Margin="0,8,0,16"
-                         Text="{Binding CachePath, UpdateSourceTrigger=PropertyChanged}" />
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="缓存路径" />
+                    <Grid Margin="0,8,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                <TextBlock FontWeight="SemiBold" Text="日志路径" />
-                <TextBox Margin="0,8,0,16"
-                         Text="{Binding LogPath, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Column="0"
+                                 Margin="0,0,12,0"
+                                 Text="{Binding CachePath, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Column="1"
+                                Command="{Binding OpenFolderCommand}"
+                                CommandParameter="{Binding CachePath}"
+                                Content="打开目录" />
+                    </Grid>
 
-                <TextBlock FontWeight="SemiBold" Text="模型名称" />
-                <TextBox Margin="0,8,0,16"
-                         Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock FontWeight="SemiBold" Text="数据路径" />
+                    <Grid Margin="0,8,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                <TextBlock Foreground="#FF6B7280" Text="{Binding StatusMessage}" />
-            </StackPanel>
+                        <TextBox Grid.Column="0"
+                                 Margin="0,0,12,0"
+                                 Text="{Binding DataPath, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Column="1"
+                                Command="{Binding OpenFolderCommand}"
+                                CommandParameter="{Binding DataPath}"
+                                Content="打开目录" />
+                    </Grid>
+
+                    <TextBlock FontWeight="SemiBold" Text="日志路径" />
+                    <Grid Margin="0,8,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                                 Margin="0,0,12,0"
+                                 Text="{Binding LogPath, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Column="1"
+                                Command="{Binding OpenFolderCommand}"
+                                CommandParameter="{Binding LogPath}"
+                                Content="打开目录" />
+                    </Grid>
+
+                    <TextBlock FontWeight="SemiBold" Text="模型名称" />
+                    <TextBox Margin="0,8,0,16"
+                             Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock FontWeight="SemiBold" Text="API 地址" />
+                    <TextBox Margin="0,8,0,16"
+                             Text="{Binding ApiAddress, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock FontWeight="SemiBold" Text="API Key" />
+                    <TextBox Margin="0,8,0,16"
+                             Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Foreground="#FF6B7280" Text="{Binding StatusMessage}" />
+                </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <StackPanel Grid.Row="2"
