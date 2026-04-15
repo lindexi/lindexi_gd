@@ -9,18 +9,17 @@ namespace VirtualFileExplorer;
 /// 比如当前所在的是 C:\Abc\Def 的路径，那 FolderLink 就是由 C:\ Abc\ Def\ 三个部分组成的
 public class VirtualFolderInfo : NotifyObject
 {
-    public VirtualFolderInfo(string id, string name, IReadOnlyList<VirtualFolderInfo> currentLinkList)
+    public VirtualFolderInfo(string id, string name, VirtualFolderInfo? upperLevelFolder)
     {
         _id = id;
         _name = name;
-        CurrentLinkList = currentLinkList;
+        UpperLevelFolder = upperLevelFolder;
     }
-
+    
     /// <summary>
-    /// 文件夹链，从上到下。相对的路径下，最底层是当前文件夹的上一层。最顶层文件夹此属性为空列表
-    /// 如果是正常的相对路径的最顶层，即相对于当前路径，则采用 `.` 表示 
+    /// 上一级的文件夹，可能为空，表示顶层
     /// </summary>
-    public IReadOnlyList<VirtualFolderInfo> CurrentLinkList { get; }
+    public VirtualFolderInfo? UpperLevelFolder { get; }
 
     private string _id;
     private string _name;
@@ -48,23 +47,5 @@ public class VirtualFolderInfo : NotifyObject
             _name = value;
             OnPropertyChanged();
         }
-    }
-
-    public override string ToString()
-    {
-        var result = new StringBuilder();
-
-        //result.Append($"{Name} > ");
-
-        for (var i = 0; i < CurrentLinkList.Count; i++)
-        {
-            var folder = CurrentLinkList[i];
-            result.Append($"{folder.Name}\\");
-        }
-
-        result.Append(Name);
-        result.Append(@"\");
-
-        return result.ToString();
     }
 }
