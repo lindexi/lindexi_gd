@@ -1,6 +1,8 @@
 using System.IO;
 
-namespace VirtualFileExplorer.PhysicalFileManagers;
+using VirtualFileExplorer.Core;
+
+namespace VirtualFileExplorer.Core.PhysicalFileManagers;
 
 /// <summary>
 /// 实际的物理地址

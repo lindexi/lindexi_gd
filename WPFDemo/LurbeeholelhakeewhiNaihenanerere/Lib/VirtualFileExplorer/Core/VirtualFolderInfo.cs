@@ -1,7 +1,7 @@
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace VirtualFileExplorer;
+namespace VirtualFileExplorer.Core;
 
 /// <summary>
 /// 虚拟的文件夹

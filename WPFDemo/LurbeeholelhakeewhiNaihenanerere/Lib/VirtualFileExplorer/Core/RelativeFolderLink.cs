@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace VirtualFileExplorer;
+namespace VirtualFileExplorer.Core;
 
 /// <summary>
 /// 表示相对路径的文件夹链接

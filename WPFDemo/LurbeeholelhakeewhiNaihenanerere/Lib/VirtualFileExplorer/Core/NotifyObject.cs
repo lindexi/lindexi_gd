@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace VirtualFileExplorer;
+namespace VirtualFileExplorer.Core;
 
 public class NotifyObject : INotifyPropertyChanged
 {

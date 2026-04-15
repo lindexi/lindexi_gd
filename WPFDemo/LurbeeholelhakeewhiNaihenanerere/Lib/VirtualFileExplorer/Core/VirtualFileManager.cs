@@ -1,4 +1,4 @@
-namespace VirtualFileExplorer;
+namespace VirtualFileExplorer.Core;
 
 public abstract class VirtualFileManager
 {
