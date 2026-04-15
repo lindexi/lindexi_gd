@@ -1,8 +1,6 @@
 ﻿using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-
 using OpenAI;
-
 using System.ClientModel;
 using System.ComponentModel;
 using System.IO.Enumeration;
@@ -19,6 +17,7 @@ var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientO
 });
 
 var chatClient = openAiClient.GetChatClient("ep-20260306101224-c8mtg");
+
 ChatClientAgent mainAgent = chatClient.AsIChatClient()
     .AsBuilder()
     .BuildAIAgent(new ChatClientAgentOptions()
@@ -27,21 +26,21 @@ ChatClientAgent mainAgent = chatClient.AsIChatClient()
         {
             Tools =
             [
-                AIFunctionFactory.Create(BuildDemandAnalyst,nameof(BuildDemandAnalyst)),
-                //AIFunctionFactory.Create(WriteFileInfo)
+                AIFunctionFactory.Create(BuildDemandAnalyst, "创建需求分析师", description: "创建需求分析师的工具，需要传入需求分析师的提示词内容"),
             ]
         }
     });
+ChatMessage message = new ChatMessage(ChatRole.System,
+    "你是一个辅助编写提示词的助手。现在你需要使用提示词技术制作一个需求分析师角色的 Agent，你需要先给出需求分析师的职责和任务的提示词内容，比如要求需求分析师进行多轮对话进行细致的需求分析，了解实质的需求，考虑周全问题，最后让需求分析师调用工具输出需求文档。你再根据需求分析师输出的需求分析文档和对话，对提示词进行优化，如此迭代已实现一个强大的需求分析师。");
 
-ChatMessage message = new ChatMessage(ChatRole.System, "你是一个辅助编写提示词的助手。现在你需要使用提示词技术制作一个需求分析师角色的 Agent，你需要先给出需求分析师的职责和任务的提示词内容，比如要求需求分析师进行多轮对话进行细致的需求分析，了解实质的需求，考虑周全问题，最后让需求分析师调用工具输出需求文档。你再根据需求分析师输出的需求分析文档和对话，对提示词进行优化，如此迭代已实现一个强大的需求分析师。");
-
-var demandAnalystPrompt = string.Empty;
 var mainSession = await mainAgent.CreateSessionAsync();
 IAsyncEnumerable<AgentResponseUpdate> agentResponseUpdates = mainAgent.RunStreamingAsync(message, mainSession);
 await RunStreamingAsync(agentResponseUpdates);
+var demandAnalystPrompt = string.Empty;
 
 var fileContentList = new List<(string FileSystemName, string Content)>();
 
+// 迭代 10 次，拍脑袋定的迭代次数
 for (int i = 0; i < 10; i++)
 {
     ChatClientAgent demandAnalystAgent = chatClient.AsIChatClient()
@@ -52,14 +51,15 @@ for (int i = 0; i < 10; i++)
             {
                 Tools =
                 [
-                    AIFunctionFactory.Create(WriteDocument,nameof(WriteDocument)),
-                    AIFunctionFactory.Create(FinishDemandAnalysis,nameof(FinishDemandAnalysis))
+                    AIFunctionFactory.Create(WriteDocument, "写需求文档"),
+                    AIFunctionFactory.Create(FinishDemandAnalysis, "标记需求分析完成")
                 ]
             }
         });
 
     var demandAnalystSession = await demandAnalystAgent.CreateSessionAsync();
 
+    // 传入 MainAgent 提供的提示词
     ChatMessage demandAnalystSystemPrompt = new ChatMessage(ChatRole.System, demandAnalystPrompt);
     demandAnalystSession.SetInMemoryChatHistory([demandAnalystSystemPrompt]);
 
@@ -72,7 +72,7 @@ for (int i = 0; i < 10; i++)
         Console.WriteLine($"开始处理");
 
         var userMessage = new ChatMessage(ChatRole.User, inputText);
-        while(true)
+        while (true)
         {
             try
             {
@@ -130,6 +130,7 @@ for (int i = 0; i < 10; i++)
                 return IsCanRetrySocketException(innerException);
             }
         }
+
         return false;
     }
 }
@@ -153,7 +154,6 @@ void WriteDocument(string fileName, string content)
 {
     fileContentList.Add((fileName, content));
 }
-
 
 
 async Task RunStreamingAsync(IAsyncEnumerable<AgentResponseUpdate> agentResponseUpdates)
@@ -193,7 +193,8 @@ async Task RunStreamingAsync(IAsyncEnumerable<AgentResponseUpdate> agentResponse
             {
                 Console.WriteLine();
                 var usage = usageContent.Details;
-                Console.WriteLine($"本次对话总Token消耗：{usage.TotalTokenCount};输入Token消耗：{usage.InputTokenCount};输出Token消耗：{usage.OutputTokenCount},其中思考占{usage.ReasoningTokenCount ?? 0}");
+                Console.WriteLine(
+                    $"本次对话总Token消耗：{usage.TotalTokenCount};输入Token消耗：{usage.InputTokenCount};输出Token消耗：{usage.OutputTokenCount},其中思考占{usage.ReasoningTokenCount ?? 0}");
             }
         }
     }
