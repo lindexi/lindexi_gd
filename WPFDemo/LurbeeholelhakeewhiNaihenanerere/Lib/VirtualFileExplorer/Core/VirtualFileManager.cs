@@ -4,6 +4,14 @@ public abstract class VirtualFileManager
 {
     public abstract VirtualFolderInfo RootFolder { get; }
 
+    /// <summary>
+    /// 创建当前管理器的异步包装器。
+    /// </summary>
+    public VirtualFileManagerAsyncAdapter AsAsync()
+    {
+        return new VirtualFileManagerAsyncAdapter(this);
+    }
+
     public abstract IReadOnlyList<VirtualFileInfo> GetFiles(VirtualFolderInfo folder);
 
     public abstract IReadOnlyList<VirtualFolderInfo> GetFolders(VirtualFolderInfo folder);

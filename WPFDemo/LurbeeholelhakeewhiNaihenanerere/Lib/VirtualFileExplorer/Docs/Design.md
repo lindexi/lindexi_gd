@@ -5,8 +5,8 @@
 项目分为三层：
 
 1. 领域层：`VirtualFileInfo`、`VirtualFolderInfo`、`VirtualFileSystemEntry` 等对象负责表达文件系统实体和能力状态。
-2. 管理层：`VirtualFileManager` 定义统一的枚举与操作接口，`PhysicalFileManager` 提供物理文件系统实现。
-3. 表现层：`FileExplorerViewModel` 负责导航、选择、命令和显示模式；`FileExplorerUserControl` 负责展示和模板扩展。
+2. 管理层：`VirtualFileManager` 定义统一的枚举与操作接口，`VirtualFileManagerAsyncAdapter` 提供异步包装，`PhysicalFileManager` 提供物理文件系统实现。
+3. 表现层：`FileExplorerViewModel` 负责导航、选择、命令、排序、筛选与搜索；`FileExplorerUserControl` 负责整体布局；`BreadcrumbBarControl` 与 `FileExplorerContentControl` 负责可复用子界面。
 
 ## 领域模型设计
 
@@ -34,6 +34,7 @@
 
 - `Extension`
 - `Length`
+- `IconGlyph`
 
 ### `VirtualFolderInfo`
 
@@ -62,7 +63,24 @@
 - `MoveEntry`
 - `CreateFolder`
 
-默认实现使用虚方法包装，让具体实现只需重写必要成员。
+同步能力继续保留，用于兼容原有实现。
+
+### `VirtualFileManagerAsyncAdapter`
+
+通过包装已有的同步 `VirtualFileManager` 提供以下异步入口：
+
+- `GetRootFolderAsync`
+- `GetEntriesAsync`
+- `GetFilesAsync`
+- `GetFoldersAsync`
+- `ResolveFolderAsync`
+- `RenameEntryAsync`
+- `DeleteEntryAsync`
+- `CopyEntryAsync`
+- `MoveEntryAsync`
+- `CreateFolderAsync`
+
+这样可以在不破坏原同步模型的情况下，让 WPF 界面端切换为异步刷新与异步文件操作。
 
 ### `PhysicalFileManager`
 
@@ -76,16 +94,23 @@
 
 ## 视图模型设计
 
-新增 `FileExplorerViewModel` 与 `RelayCommand`：
+新增 `FileExplorerViewModel`、`RelayCommand` 与 `AsyncRelayCommand`：
 
 ### 状态
 
 - `FileManager`
 - `CurrentFolder`
 - `Entries`
+- `_sourceEntries`
 - `Breadcrumbs`
 - `SelectedEntry`
+- `SelectedEntries`
 - `DisplayMode`
+- `SearchText`
+- `EntryFilter`
+- `SortField`
+- `SortDirection`
+- `SelectionMode`
 - `StatusText`
 
 ### 命令
@@ -93,20 +118,17 @@
 - `RefreshCommand`
 - `NavigateUpCommand`
 - `OpenEntryCommand`
+- `NavigateBreadcrumbCommand`
 - `SwitchToTileViewCommand`
 - `SwitchToDetailsViewCommand`
-- `RenameCommand`
-- `CopyCommand`
-- `MoveCommand`
-- `DeleteCommand`
-- `CreateFolderCommand`
 
 ### 交互策略
 
-- 控件以依赖属性接收 `VirtualFileManager`。
-- `FileManager` 变化后，视图模型自动加载根目录。
-- 对需要补充名称或目标目录的操作，先用简易对话框收集输入，再执行管理器操作。
-- 操作完成后刷新当前目录，并恢复合理的选中项。
+- 控件以依赖属性接收 `VirtualFileManager`，再通过异步包装层驱动视图模型。
+- `FileManager` 变化后，视图模型自动异步加载根目录。
+- 复制和移动通过 `FolderPickerWindow` 选择目标目录，而不是手输路径。
+- 搜索、筛选和排序都在视图模型层统一作用于 `_sourceEntries`。
+- 操作完成后刷新当前目录，并尽量恢复合理的选中项。
 
 ## 控件设计
 
@@ -115,23 +137,25 @@
 控件包含四个区域：
 
 1. 顶部工具栏：刷新、返回上级、创建文件夹、显示模式切换、操作按钮。
-2. 面包屑区域：显示当前路径链并允许点击跳转。
-3. 内容区域：使用 `ListBox` 展示条目。
+2. 面包屑区域：由独立的 `BreadcrumbBarControl` 呈现当前路径链并允许点击跳转。
+3. 内容区域：由独立的 `FileExplorerContentControl` 呈现条目。
 4. 状态区域：显示当前目录与数量统计。
 
 ### 视图切换
 
-- 使用同一个 `ListBox` 数据源。
-- 通过切换 `ItemsPanel` 与 `ItemTemplate` 风格实现平铺和详细模式。
-- 详细模式使用 `GridViewRowPresenter` 风格模板近似列表详情展示。
+- 平铺模式使用 `WrapPanel + ListBox`。
+- 详细模式使用 `ListView + GridView`，列宽可直接拖拽调整。
+- 两种视图共享同一批 `Entries` 数据，并同步多选状态。
 
 ### 可定制入口
 
 控件暴露依赖属性：
 
-- `EntryTemplate`
-- `DetailsEntryTemplate`
+- `TileEntryTemplate`
+- `TileFileTemplate`
+- `TileFolderTemplate`
 - `ToolBarContent`
+- `NavigationContent`
 - `EmptyContent`
 
 若宿主未提供，则使用控件内默认模板。
@@ -143,13 +167,11 @@
 1. 创建演示根目录。
 2. 准备若干子目录和文件。
 3. 构造 `PhysicalFileManager`。
-4. 赋值给 `FileExplorerUserControl.FileManager`。
-
-## 更改
-
-当前的 `VirtualFileManager` 为同步的 API 版本，需要将其更改为异步版本
+4. 将 `FileExplorerUserControl.TileFileTemplate` 替换为带图标的自定义模板。
+5. 赋值给 `FileExplorerUserControl.FileManager`。
 
 ## 风险与折中
 
-- WPF 原生没有跨平台输入对话框，本轮使用轻量窗口收集重命名和复制移动目标，保证库内自包含。
-- 为保持改动可控，本轮不引入完整资源字典主题拆分，而是在控件内提供基础样式和模板入口。
+- `VirtualFileManagerAsyncAdapter` 仍基于同步 I/O 包装，后续若性能需要可继续演进为原生异步实现。
+- 为保持改动可控，本轮优先提供文件夹选择器，独立文件选择器留待后续补充。
+- 浅色主题已经抽离到资源字典，但更完整的主题切换系统仍有继续演进空间。

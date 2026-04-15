@@ -1,14 +1,12 @@
-﻿using System.Windows;
+using System.ComponentModel;
+using System.IO;
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using VirtualFileExplorer.Core;
 using VirtualFileExplorer.ViewModels;
 
 namespace VirtualFileExplorer.Views;
 
-/// <summary>
-/// FileExplorerUserControl.xaml 的交互逻辑
-/// </summary>
 public partial class FileExplorerUserControl : UserControl
 {
     private readonly FileExplorerViewModel _viewModel;
@@ -18,38 +16,44 @@ public partial class FileExplorerUserControl : UserControl
         InitializeComponent();
         _viewModel = new FileExplorerViewModel();
         DataContext = _viewModel;
-
-        SetCurrentValue(TileEntryTemplateProperty, (DataTemplate) Resources["DefaultTileEntryTemplate"]);
-        SetCurrentValue(DetailsEntryTemplateProperty, (DataTemplate) Resources["DefaultDetailsEntryTemplate"]);
+        _viewModel.SelectionMode = SelectionMode.Extended;
     }
 
     public VirtualFileManager? FileManager
     {
-        get => (VirtualFileManager?) GetValue(FileManagerProperty);
+        get => (VirtualFileManager?)GetValue(FileManagerProperty);
         set => SetValue(FileManagerProperty, value);
     }
 
     public static readonly DependencyProperty FileManagerProperty = DependencyProperty.Register(
-        nameof(FileManager), typeof(VirtualFileManager), typeof(FileExplorerUserControl),
-        new PropertyMetadata(null, OnFileManagerChanged));
+        nameof(FileManager), typeof(VirtualFileManager), typeof(FileExplorerUserControl), new PropertyMetadata(null, OnFileManagerChanged));
 
     public DataTemplate? TileEntryTemplate
     {
-        get => (DataTemplate?) GetValue(TileEntryTemplateProperty);
+        get => (DataTemplate?)GetValue(TileEntryTemplateProperty);
         set => SetValue(TileEntryTemplateProperty, value);
     }
 
     public static readonly DependencyProperty TileEntryTemplateProperty = DependencyProperty.Register(
         nameof(TileEntryTemplate), typeof(DataTemplate), typeof(FileExplorerUserControl), new PropertyMetadata(null));
 
-    public DataTemplate? DetailsEntryTemplate
+    public DataTemplate? TileFileTemplate
     {
-        get => (DataTemplate?) GetValue(DetailsEntryTemplateProperty);
-        set => SetValue(DetailsEntryTemplateProperty, value);
+        get => (DataTemplate?)GetValue(TileFileTemplateProperty);
+        set => SetValue(TileFileTemplateProperty, value);
     }
 
-    public static readonly DependencyProperty DetailsEntryTemplateProperty = DependencyProperty.Register(
-        nameof(DetailsEntryTemplate), typeof(DataTemplate), typeof(FileExplorerUserControl), new PropertyMetadata(null));
+    public static readonly DependencyProperty TileFileTemplateProperty = DependencyProperty.Register(
+        nameof(TileFileTemplate), typeof(DataTemplate), typeof(FileExplorerUserControl), new PropertyMetadata(null));
+
+    public DataTemplate? TileFolderTemplate
+    {
+        get => (DataTemplate?)GetValue(TileFolderTemplateProperty);
+        set => SetValue(TileFolderTemplateProperty, value);
+    }
+
+    public static readonly DependencyProperty TileFolderTemplateProperty = DependencyProperty.Register(
+        nameof(TileFolderTemplate), typeof(DataTemplate), typeof(FileExplorerUserControl), new PropertyMetadata(null));
 
     public object? ToolBarContent
     {
@@ -59,6 +63,15 @@ public partial class FileExplorerUserControl : UserControl
 
     public static readonly DependencyProperty ToolBarContentProperty = DependencyProperty.Register(
         nameof(ToolBarContent), typeof(object), typeof(FileExplorerUserControl), new PropertyMetadata(null));
+
+    public object? NavigationContent
+    {
+        get => GetValue(NavigationContentProperty);
+        set => SetValue(NavigationContentProperty, value);
+    }
+
+    public static readonly DependencyProperty NavigationContentProperty = DependencyProperty.Register(
+        nameof(NavigationContent), typeof(object), typeof(FileExplorerUserControl), new PropertyMetadata(null));
 
     public object? EmptyContent
     {
@@ -71,104 +84,128 @@ public partial class FileExplorerUserControl : UserControl
 
     private static void OnFileManagerChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        var control = (FileExplorerUserControl) d;
-        control._viewModel.SetFileManager((VirtualFileManager?) e.NewValue);
+        var control = (FileExplorerUserControl)d;
+        control.ApplyFileManagerAsync((VirtualFileManager?)e.NewValue);
     }
 
-    private void OnBreadcrumbClick(object sender, RoutedEventArgs e)
+    private async void ApplyFileManagerAsync(VirtualFileManager? fileManager)
     {
-        if (sender is FrameworkElement { DataContext: RelativeFolderLink link })
-        {
-            ExecuteAction(() => _viewModel.NavigateToFolder(link.Folder));
-        }
+        await ExecuteActionAsync(() => _viewModel.SetFileManagerAsync(fileManager));
     }
 
-    private void OnEntryDoubleClick(object sender, MouseButtonEventArgs e)
+    private async void OnEntryInvoked(object sender, EntryInvokedEventArgs e)
     {
-        ExecuteAction(() => _viewModel.OpenEntry(_viewModel.SelectedEntry));
+        await ExecuteActionAsync(() => _viewModel.OpenEntryAsync(e.Entry));
     }
 
-    private void OnCreateFolderClick(object sender, RoutedEventArgs e)
+    private async void OnCreateFolderClick(object sender, RoutedEventArgs e)
     {
         var folderName = TextPromptWindow.ShowDialog(GetOwnerWindow(), "新建文件夹", "请输入新文件夹名称：");
-        if (folderName is null)
+        if (string.IsNullOrWhiteSpace(folderName))
         {
             return;
         }
 
-        ExecuteAction(() => _viewModel.CreateFolder(folderName));
+        await ExecuteActionAsync(() => _viewModel.CreateFolderAsync(folderName));
     }
 
-    private void OnRenameClick(object sender, RoutedEventArgs e)
+    private async void OnRenameClick(object sender, RoutedEventArgs e)
     {
-        var selectedEntry = _viewModel.SelectedEntry;
-        if (selectedEntry is null)
+        if (_viewModel.SelectedEntries.Count != 1 || _viewModel.SelectedEntry is null)
         {
             return;
         }
 
-        var newName = TextPromptWindow.ShowDialog(GetOwnerWindow(), "重命名", "请输入新名称：", selectedEntry.Name);
-        if (newName is null)
+        var newName = TextPromptWindow.ShowDialog(GetOwnerWindow(), "重命名", "请输入新名称：", _viewModel.SelectedEntry.Name);
+        if (string.IsNullOrWhiteSpace(newName))
         {
             return;
         }
 
-        ExecuteAction(() => _viewModel.RenameSelected(newName));
+        await ExecuteActionAsync(() => _viewModel.RenameSelectedAsync(newName));
     }
 
-    private void OnCopyClick(object sender, RoutedEventArgs e)
+    private async void OnCopyClick(object sender, RoutedEventArgs e)
     {
-        var defaultValue = _viewModel.CurrentFolderPath;
-        var targetFolderPath = TextPromptWindow.ShowDialog(GetOwnerWindow(), "复制到", "请输入目标文件夹路径：", defaultValue);
-        if (targetFolderPath is null)
+        if (FileManager is null || _viewModel.CurrentFolder is null)
         {
             return;
         }
 
-        ExecuteAction(() => _viewModel.CopySelected(targetFolderPath));
+        var targetFolder = FolderPickerWindow.PickFolder(GetOwnerWindow(), FileManager, _viewModel.CurrentFolder, "选择复制目标文件夹");
+        if (targetFolder is null)
+        {
+            return;
+        }
+
+        await ExecuteActionAsync(() => _viewModel.CopySelectedAsync(targetFolder));
     }
 
-    private void OnMoveClick(object sender, RoutedEventArgs e)
+    private async void OnMoveClick(object sender, RoutedEventArgs e)
     {
-        var defaultValue = _viewModel.CurrentFolderPath;
-        var targetFolderPath = TextPromptWindow.ShowDialog(GetOwnerWindow(), "移动到", "请输入目标文件夹路径：", defaultValue);
-        if (targetFolderPath is null)
+        if (FileManager is null || _viewModel.CurrentFolder is null)
         {
             return;
         }
 
-        ExecuteAction(() => _viewModel.MoveSelected(targetFolderPath));
+        var targetFolder = FolderPickerWindow.PickFolder(GetOwnerWindow(), FileManager, _viewModel.CurrentFolder, "选择移动目标文件夹");
+        if (targetFolder is null)
+        {
+            return;
+        }
+
+        await ExecuteActionAsync(() => _viewModel.MoveSelectedAsync(targetFolder));
     }
 
-    private void OnDeleteClick(object sender, RoutedEventArgs e)
+    private async void OnDeleteClick(object sender, RoutedEventArgs e)
     {
-        var selectedEntry = _viewModel.SelectedEntry;
-        if (selectedEntry is null)
+        if (_viewModel.SelectedEntries.Count == 0)
         {
             return;
         }
 
-        var messageBoxResult = MessageBox.Show(GetOwnerWindow(), $"确定删除“{selectedEntry.Name}”吗？", "删除确认",
-            MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (messageBoxResult != MessageBoxResult.Yes)
+        var itemNames = _viewModel.SelectedEntries.Take(3).Select(entry => entry.Name).ToList();
+        var summary = string.Join("、", itemNames);
+        if (_viewModel.SelectedEntries.Count > itemNames.Count)
+        {
+            summary += " 等项目";
+        }
+
+        var result = MessageBox.Show(GetOwnerWindow(), $"确定删除 {summary} 吗？", "删除确认", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (result != MessageBoxResult.Yes)
         {
             return;
         }
 
-        ExecuteAction(_viewModel.DeleteSelected);
+        await ExecuteActionAsync(() => _viewModel.DeleteSelectedAsync());
     }
 
-    private void ExecuteAction(Action action)
+    private void OnSortDirectionClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SortDirection = _viewModel.SortDirection == ListSortDirection.Ascending
+            ? ListSortDirection.Descending
+            : ListSortDirection.Ascending;
+    }
+
+    private async Task ExecuteActionAsync(Func<Task> action)
     {
         ArgumentNullException.ThrowIfNull(action);
 
         try
         {
-            action();
+            await action();
         }
-        catch (Exception exception)
+        catch (InvalidOperationException exception)
         {
-            MessageBox.Show(GetOwnerWindow(), exception.Message, "操作失败", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(GetOwnerWindow(), exception.Message, "操作失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (ArgumentException exception)
+        {
+            MessageBox.Show(GetOwnerWindow(), exception.Message, "输入无效", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (IOException exception)
+        {
+            MessageBox.Show(GetOwnerWindow(), exception.Message, "文件操作失败", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

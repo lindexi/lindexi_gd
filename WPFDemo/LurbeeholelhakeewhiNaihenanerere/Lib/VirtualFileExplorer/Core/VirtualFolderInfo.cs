@@ -11,6 +11,7 @@ public class VirtualFolderInfo : VirtualFileSystemEntry
     public VirtualFolderInfo(string id, string name, VirtualFolderInfo? upperLevelFolder)
         : base(id, name, upperLevelFolder)
     {
+        IconGlyph = FileIconGlyphHelper.FolderGlyph;
     }
 
     /// <summary>

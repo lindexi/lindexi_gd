@@ -10,6 +10,7 @@ public abstract class VirtualFileSystemEntry : NotifyObject
     private DateTimeOffset? _createdTime;
     private DateTimeOffset? _lastWriteTime;
     private DateTimeOffset? _lastAccessTime;
+    private string _iconGlyph = string.Empty;
     private bool _canRename = true;
     private bool _canMove = true;
     private bool _canCopy = true;
@@ -92,6 +93,12 @@ public abstract class VirtualFileSystemEntry : NotifyObject
     {
         get => _canDelete;
         internal set => SetField(ref _canDelete, value);
+    }
+
+    public string IconGlyph
+    {
+        get => _iconGlyph;
+        internal set => SetField(ref _iconGlyph, value);
     }
 
     public virtual string DisplayType => EntryType == VirtualFileSystemEntryType.Folder ? "文件夹" : "文件";

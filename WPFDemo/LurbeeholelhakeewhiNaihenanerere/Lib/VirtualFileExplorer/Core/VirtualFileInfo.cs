@@ -12,6 +12,7 @@ public class VirtualFileInfo : VirtualFileSystemEntry
         : base(id, name, ownerFolder)
     {
         _extension = Path.GetExtension(name);
+        IconGlyph = FileIconGlyphHelper.GetFileGlyph(_extension);
     }
 
     private string _extension;
@@ -27,6 +28,7 @@ public class VirtualFileInfo : VirtualFileSystemEntry
         {
             if (SetField(ref _extension, value))
             {
+                IconGlyph = FileIconGlyphHelper.GetFileGlyph(value);
                 OnPropertyChanged(nameof(DisplayType));
             }
         }

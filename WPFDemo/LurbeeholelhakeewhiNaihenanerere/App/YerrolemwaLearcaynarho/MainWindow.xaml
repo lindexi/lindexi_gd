@@ -1,4 +1,4 @@
-﻿<Window x:Class="YerrolemwaLearcaynarho.MainWindow"
+<Window x:Class="YerrolemwaLearcaynarho.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,8 +6,42 @@
         xmlns:local="clr-namespace:YerrolemwaLearcaynarho"
         xmlns:views="clr-namespace:VirtualFileExplorer.Views;assembly=VirtualFileExplorer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <views:FileExplorerUserControl x:Name="FileExplorerUserControl"/>
+        Title="VirtualFileExplorer Demo"
+        Height="720"
+        Width="1180"
+        Background="{StaticResource ExplorerSurfaceBrush}">
+    <Window.Resources>
+        <DataTemplate x:Key="IconFileTileTemplate">
+            <Border Style="{StaticResource ExplorerTileCardStyle}">
+                <StackPanel>
+                    <Border Width="52"
+                            Height="52"
+                            Background="{StaticResource ExplorerAccentSoftBrush}"
+                            CornerRadius="16">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="Segoe Fluent Icons"
+                                   FontSize="24"
+                                   Foreground="{StaticResource ExplorerAccentBrush}"
+                                   Text="{Binding IconGlyph}" />
+                    </Border>
+                    <TextBlock Margin="0,12,0,0"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource ExplorerTextBrush}"
+                               Text="{Binding Name}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Margin="0,6,0,0"
+                               Foreground="{StaticResource ExplorerMutedTextBrush}"
+                               Text="{Binding DisplayType}" />
+                    <TextBlock Foreground="{StaticResource ExplorerMutedTextBrush}"
+                               Text="{Binding DisplaySize}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <views:FileExplorerUserControl x:Name="FileExplorerUserControl"
+                                       TileFileTemplate="{StaticResource IconFileTileTemplate}" />
     </Grid>
 </Window>

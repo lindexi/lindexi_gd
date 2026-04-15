@@ -1,0 +1,171 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="ExplorerSurfaceColor">#FFF7F9FC</Color>
+    <Color x:Key="ExplorerPanelColor">#FFFFFFFF</Color>
+    <Color x:Key="ExplorerBorderColor">#FFD8E2F0</Color>
+    <Color x:Key="ExplorerAccentColor">#FF4F7DFF</Color>
+    <Color x:Key="ExplorerAccentSoftColor">#FFEFF4FF</Color>
+    <Color x:Key="ExplorerTextColor">#FF243145</Color>
+    <Color x:Key="ExplorerMutedTextColor">#FF607086</Color>
+    <Color x:Key="ExplorerDangerColor">#FFD64D66</Color>
+
+    <SolidColorBrush x:Key="ExplorerSurfaceBrush" Color="{StaticResource ExplorerSurfaceColor}" />
+    <SolidColorBrush x:Key="ExplorerPanelBrush" Color="{StaticResource ExplorerPanelColor}" />
+    <SolidColorBrush x:Key="ExplorerBorderBrush" Color="{StaticResource ExplorerBorderColor}" />
+    <SolidColorBrush x:Key="ExplorerAccentBrush" Color="{StaticResource ExplorerAccentColor}" />
+    <SolidColorBrush x:Key="ExplorerAccentSoftBrush" Color="{StaticResource ExplorerAccentSoftColor}" />
+    <SolidColorBrush x:Key="ExplorerTextBrush" Color="{StaticResource ExplorerTextColor}" />
+    <SolidColorBrush x:Key="ExplorerMutedTextBrush" Color="{StaticResource ExplorerMutedTextColor}" />
+    <SolidColorBrush x:Key="ExplorerDangerBrush" Color="{StaticResource ExplorerDangerColor}" />
+
+    <Style x:Key="ExplorerLightButtonStyle" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource ExplorerTextBrush}" />
+        <Setter Property="Background" Value="{StaticResource ExplorerPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource ExplorerAccentSoftBrush}" />
+                            <Setter TargetName="RootBorder" Property="BorderBrush" Value="{StaticResource ExplorerAccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="RootBorder" Property="Background" Value="#FFDDE7FF" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.55" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ExplorerDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ExplorerLightButtonStyle}">
+        <Setter Property="Foreground" Value="{StaticResource ExplorerDangerBrush}" />
+    </Style>
+
+    <Style x:Key="ExplorerLightTextBoxStyle" TargetType="TextBox">
+        <Setter Property="Foreground" Value="{StaticResource ExplorerTextBrush}" />
+        <Setter Property="Background" Value="{StaticResource ExplorerPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,7" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="0" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="RootBorder" Property="BorderBrush" Value="{StaticResource ExplorerAccentBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ExplorerLightComboBoxStyle" TargetType="ComboBox">
+        <Setter Property="Foreground" Value="{StaticResource ExplorerTextBrush}" />
+        <Setter Property="Background" Value="{StaticResource ExplorerPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+    </Style>
+
+    <Style x:Key="ExplorerToolbarCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ExplorerPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="14" />
+    </Style>
+
+    <Style x:Key="ExplorerTileCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ExplorerPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="Margin" Value="6" />
+    </Style>
+
+    <Style x:Key="ExplorerListViewStyle" TargetType="ListView">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource ExplorerTextBrush}" />
+    </Style>
+
+    <Style x:Key="ExplorerListBoxStyle" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource ExplorerTextBrush}" />
+    </Style>
+
+    <Style x:Key="ExplorerListItemStyle" TargetType="ListBoxItem">
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="ItemBorder"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="2">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ItemBorder" Property="Background" Value="#FFF7FAFF" />
+                            <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="ItemBorder" Property="Background" Value="{StaticResource ExplorerAccentSoftBrush}" />
+                            <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{StaticResource ExplorerAccentBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ExplorerGridViewColumnHeaderStyle" TargetType="GridViewColumnHeader">
+        <Setter Property="Foreground" Value="{StaticResource ExplorerMutedTextBrush}" />
+        <Setter Property="Background" Value="{StaticResource ExplorerPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="ExplorerBreadcrumbButtonStyle" TargetType="Button" BasedOn="{StaticResource ExplorerLightButtonStyle}">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+    </Style>
+</ResourceDictionary>
