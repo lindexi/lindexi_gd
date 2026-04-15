@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Lib/">
+    <Project Path="Lib/VirtualFileExplorer/VirtualFileExplorer.csproj" />
+  </Folder>
+  <Project Path="App/YerrolemwaLearcaynarho/YerrolemwaLearcaynarho.csproj" />
+</Solution>
