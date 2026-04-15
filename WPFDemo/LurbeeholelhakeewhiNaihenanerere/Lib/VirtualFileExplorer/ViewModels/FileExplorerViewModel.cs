@@ -102,7 +102,7 @@ public sealed class FileExplorerViewModel : NotifyObject
     public VirtualFileSystemEntry? SelectedEntry
     {
         get => _selectedEntry;
-        private set
+        set
         {
             if (SetField(ref _selectedEntry, value))
             {
