@@ -107,19 +107,48 @@ public partial class FileExplorerContentControl : UserControl
 
     private static void SyncSelection(ListBox listBox, HashSet<string> selectedIds, VirtualFileSystemEntry? primarySelection)
     {
-        listBox.SelectedItems.Clear();
-        foreach (var entry in listBox.Items.OfType<VirtualFileSystemEntry>())
+        ArgumentNullException.ThrowIfNull(listBox);
+        ArgumentNullException.ThrowIfNull(selectedIds);
+
+        var matchingEntries = listBox.Items.OfType<VirtualFileSystemEntry>()
+            .Where(entry => selectedIds.Contains(entry.Id))
+            .ToList();
+        var resolvedPrimarySelection = primarySelection is null
+            ? matchingEntries.FirstOrDefault()
+            : listBox.Items.OfType<VirtualFileSystemEntry>().FirstOrDefault(entry => string.Equals(entry.Id, primarySelection.Id, StringComparison.OrdinalIgnoreCase));
+
+        if (listBox.SelectionMode == SelectionMode.Single)
         {
-            if (selectedIds.Contains(entry.Id))
-            {
-                listBox.SelectedItems.Add(entry);
-            }
+            listBox.SelectedItem = resolvedPrimarySelection;
+            return;
         }
 
-        if (primarySelection is not null)
+        listBox.SelectedItems.Clear();
+        foreach (var entry in matchingEntries)
         {
-            listBox.SelectedItem = listBox.Items.OfType<VirtualFileSystemEntry>().FirstOrDefault(entry => string.Equals(entry.Id, primarySelection.Id, StringComparison.OrdinalIgnoreCase));
+            listBox.SelectedItems.Add(entry);
         }
+
+        listBox.SelectedItem = resolvedPrimarySelection;
+    }
+
+    private static IReadOnlyList<VirtualFileSystemEntry> GetSelectedEntries(Selector selector)
+    {
+        return selector switch
+        {
+            ListView listView when listView.SelectionMode == SelectionMode.Single => GetSingleSelectedEntry(listView.SelectedItem),
+            ListView listView => listView.SelectedItems.OfType<VirtualFileSystemEntry>().ToList(),
+            ListBox listBox when listBox.SelectionMode == SelectionMode.Single => GetSingleSelectedEntry(listBox.SelectedItem),
+            ListBox listBox => listBox.SelectedItems.OfType<VirtualFileSystemEntry>().ToList(),
+            _ => Array.Empty<VirtualFileSystemEntry>()
+        };
+    }
+
+    private static IReadOnlyList<VirtualFileSystemEntry> GetSingleSelectedEntry(object? selectedItem)
+    {
+        return selectedItem is VirtualFileSystemEntry entry
+            ? new[] { entry }
+            : Array.Empty<VirtualFileSystemEntry>();
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -130,12 +159,7 @@ public partial class FileExplorerContentControl : UserControl
         }
 
         var selector = (Selector)sender;
-        var selectedEntries = selector switch
-        {
-            ListView listView => listView.SelectedItems.OfType<VirtualFileSystemEntry>().ToList(),
-            ListBox listBox => listBox.SelectedItems.OfType<VirtualFileSystemEntry>().ToList(),
-            _ => new List<VirtualFileSystemEntry>()
-        };
+        var selectedEntries = GetSelectedEntries(selector);
 
         _viewModel.UpdateSelection(selectedEntries, selector.SelectedItem as VirtualFileSystemEntry);
     }
