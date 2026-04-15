@@ -4,17 +4,52 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             d:DesignHeight="60"
-             d:DesignWidth="640">
+             d:DesignHeight="52"
+             d:DesignWidth="700">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/VirtualFileExplorer;component/Themes/LightTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="BreadcrumbLinkStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource ExplorerMutedTextBrush}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="10,4" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="RootBorder"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="9"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="RootBorder" Property="Background" Value="#FFF2F6FD" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="RootBorder" Property="Background" Value="#FFE8EFFB" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border Style="{StaticResource ExplorerToolbarCardStyle}">
+    <Border Background="#FFFBFDFF"
+            BorderBrush="#FFE8EEF7"
+            BorderThickness="1"
+            CornerRadius="14"
+            Padding="10,6">
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
             <ItemsControl ItemsSource="{Binding Breadcrumbs}">
                 <ItemsControl.ItemsPanel>
@@ -24,39 +59,55 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Command="{Binding DataContext.NavigateBreadcrumbCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    Content="{Binding Name}">
+                                    CommandParameter="{Binding}">
+                                <Button.Content>
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding Name}" />
+                                </Button.Content>
                                 <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource ExplorerBreadcrumbButtonStyle}">
+                                    <Style TargetType="Button" BasedOn="{StaticResource BreadcrumbLinkStyle}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                <Setter Property="Foreground" Value="{StaticResource ExplorerAccentBrush}" />
-                                                <Setter Property="Background" Value="{StaticResource ExplorerAccentSoftBrush}" />
-                                                <Setter Property="BorderBrush" Value="{StaticResource ExplorerAccentBrush}" />
-                                                <Setter Property="IsEnabled" Value="False" />
+                                                <Setter Property="Foreground" Value="{StaticResource ExplorerTextBrush}" />
+                                                <Setter Property="Background" Value="#FFF3F7FD" />
+                                                <Setter Property="IsHitTestVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsCurrent}" Value="False">
+                                                <Setter Property="Foreground" Value="{StaticResource ExplorerMutedTextBrush}" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <TextBlock Margin="0,0,6,0"
-                                       VerticalAlignment="Center"
-                                       FontFamily="Segoe Fluent Icons"
-                                       Foreground="{StaticResource ExplorerMutedTextBrush}"
-                                       Text="&#xE974;">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+
+                            <Border Margin="6,0,8,0"
+                                    Width="18"
+                                    Height="18"
+                                    CornerRadius="9"
+                                    Background="#FFF4F7FB"
+                                    VerticalAlignment="Center">
+                                <TextBlock HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontFamily="Segoe Fluent Icons"
+                                           FontSize="8"
+                                           Foreground="#FF8EA2BC"
+                                           Text="&#xE974;">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
