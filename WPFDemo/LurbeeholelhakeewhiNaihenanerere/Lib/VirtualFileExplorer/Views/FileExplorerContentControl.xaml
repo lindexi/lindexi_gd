@@ -1,0 +1,130 @@
+<UserControl x:Class="VirtualFileExplorer.Views.FileExplorerContentControl"
+             x:Name="RootControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:VirtualFileExplorer.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="320"
+             d:DesignWidth="680">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/VirtualFileExplorer;component/Themes/LightTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <local:EntryTemplateSelector x:Key="TileTemplateSelector" />
+
+            <DataTemplate x:Key="DefaultTileFolderTemplate">
+                <Border Style="{StaticResource ExplorerTileCardStyle}">
+                    <StackPanel>
+                        <TextBlock FontFamily="Segoe Fluent Icons"
+                                   FontSize="28"
+                                   Foreground="{StaticResource ExplorerAccentBrush}"
+                                   Text="{Binding IconGlyph}" />
+                        <TextBlock Margin="0,10,0,0"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ExplorerTextBrush}"
+                                   Text="{Binding Name}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Foreground="{StaticResource ExplorerMutedTextBrush}"
+                                   Text="{Binding DisplayType}" />
+                    </StackPanel>
+                </Border>
+            </DataTemplate>
+
+            <DataTemplate x:Key="DefaultTileFileTemplate">
+                <Border Style="{StaticResource ExplorerTileCardStyle}">
+                    <StackPanel>
+                        <TextBlock FontFamily="Segoe Fluent Icons"
+                                   FontSize="28"
+                                   Foreground="{StaticResource ExplorerAccentBrush}"
+                                   Text="{Binding IconGlyph}" />
+                        <TextBlock Margin="0,10,0,0"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ExplorerTextBrush}"
+                                   Text="{Binding Name}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Foreground="{StaticResource ExplorerMutedTextBrush}"
+                                   Text="{Binding DisplayType}" />
+                        <TextBlock Foreground="{StaticResource ExplorerMutedTextBrush}"
+                                   Text="{Binding DisplaySize}" />
+                    </StackPanel>
+                </Border>
+            </DataTemplate>
+
+            <DataTemplate x:Key="DetailsNameTemplate">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Margin="0,0,8,0"
+                               VerticalAlignment="Center"
+                               FontFamily="Segoe Fluent Icons"
+                               Foreground="{StaticResource ExplorerAccentBrush}"
+                               Text="{Binding IconGlyph}" />
+                    <TextBlock VerticalAlignment="Center"
+                               Foreground="{StaticResource ExplorerTextBrush}"
+                               Text="{Binding Name}"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </DataTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <ListBox x:Name="TileListBox"
+                 ItemContainerStyle="{StaticResource ExplorerListItemStyle}"
+                 ItemTemplateSelector="{StaticResource TileTemplateSelector}"
+                 ItemsSource="{Binding Entries}"
+                 MouseDoubleClick="OnEntryDoubleClick"
+                 PreviewKeyDown="OnListPreviewKeyDown"
+                 SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                 SelectionChanged="OnSelectionChanged"
+                 SelectionMode="{Binding SelectionMode}">
+            <ListBox.Style>
+                <Style TargetType="ListBox" BasedOn="{StaticResource ExplorerListBoxStyle}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsTileView}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Style>
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+
+        <ListView x:Name="DetailsListView"
+                  ItemContainerStyle="{StaticResource ExplorerListItemStyle}"
+                  ItemsSource="{Binding Entries}"
+                  MouseDoubleClick="OnEntryDoubleClick"
+                  PreviewKeyDown="OnListPreviewKeyDown"
+                  SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                  SelectionChanged="OnSelectionChanged"
+                  SelectionMode="{Binding SelectionMode}">
+            <ListView.Style>
+                <Style TargetType="ListView" BasedOn="{StaticResource ExplorerListViewStyle}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsDetailsView}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.Style>
+            <ListView.View>
+                <GridView AllowsColumnReorder="True" ColumnHeaderContainerStyle="{StaticResource ExplorerGridViewColumnHeaderStyle}">
+                    <GridViewColumn Width="280" Header="名称" CellTemplate="{StaticResource DetailsNameTemplate}" />
+                    <GridViewColumn Width="120" Header="类型" DisplayMemberBinding="{Binding DisplayType}" />
+                    <GridViewColumn Width="120" Header="大小" DisplayMemberBinding="{Binding DisplaySize}" />
+                    <GridViewColumn Width="180" Header="修改时间" DisplayMemberBinding="{Binding DisplayModifiedTime}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

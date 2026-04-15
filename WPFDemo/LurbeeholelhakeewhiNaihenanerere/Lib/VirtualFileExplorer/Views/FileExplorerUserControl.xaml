@@ -1,13 +1,184 @@
-﻿<UserControl x:Class="VirtualFileExplorer.Views.FileExplorerUserControl"
+<UserControl x:Class="VirtualFileExplorer.Views.FileExplorerUserControl"
+             x:Name="RootControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:VirtualFileExplorer.Views"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <!-- 独立面包屑导航 -->
-        <!-- 独立面包屑导航 -->
-    </Grid>
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:VirtualFileExplorer.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="560"
+             d:DesignWidth="920">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/VirtualFileExplorer;component/Themes/LightTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="DefaultToolbarStyle" TargetType="FrameworkElement">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ToolBarContent, ElementName=RootControl}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="CustomToolbarStyle" TargetType="FrameworkElement">
+                <Setter Property="Visibility" Value="Visible" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ToolBarContent, ElementName=RootControl}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="DefaultNavigationStyle" TargetType="FrameworkElement">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding NavigationContent, ElementName=RootControl}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="CustomNavigationStyle" TargetType="FrameworkElement">
+                <Setter Property="Visibility" Value="Visible" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding NavigationContent, ElementName=RootControl}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="DefaultEmptyStyle" TargetType="FrameworkElement">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding HasEntries}" Value="False" />
+                            <Condition Binding="{Binding EmptyContent, ElementName=RootControl}" Value="{x:Null}" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter Property="Visibility" Value="Visible" />
+                    </MultiDataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="CustomEmptyStyle" TargetType="FrameworkElement">
+                <Setter Property="Visibility" Value="Visible" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding HasEntries}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding EmptyContent, ElementName=RootControl}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border Background="{StaticResource ExplorerSurfaceBrush}" Padding="14">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource ExplorerToolbarCardStyle}">
+                <Grid Style="{StaticResource DefaultToolbarStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                        <Button Command="{Binding NavigateUpCommand}" Content="返回上级" Style="{StaticResource ExplorerLightButtonStyle}" />
+                        <Button Command="{Binding RefreshCommand}" Content="刷新" Style="{StaticResource ExplorerLightButtonStyle}" />
+                        <Button Click="OnCreateFolderClick" Content="新建文件夹" Style="{StaticResource ExplorerLightButtonStyle}" />
+                        <Button Click="OnRenameClick" Content="重命名" Style="{StaticResource ExplorerLightButtonStyle}" />
+                        <Button Click="OnCopyClick" Content="复制" Style="{StaticResource ExplorerLightButtonStyle}" />
+                        <Button Click="OnMoveClick" Content="移动" Style="{StaticResource ExplorerLightButtonStyle}" />
+                        <Button Click="OnDeleteClick" Content="删除" Style="{StaticResource ExplorerDangerButtonStyle}" />
+                    </WrapPanel>
+
+                    <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBox MinWidth="220"
+                                 Style="{StaticResource ExplorerLightTextBoxStyle}"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                        <ComboBox DisplayMemberPath="DisplayName"
+                                  MinWidth="120"
+                                  SelectedValue="{Binding EntryFilter}"
+                                  SelectedValuePath="Value"
+                                  ItemsSource="{Binding FilterOptions}"
+                                  Style="{StaticResource ExplorerLightComboBoxStyle}" />
+                        <ComboBox DisplayMemberPath="DisplayName"
+                                  MinWidth="120"
+                                  SelectedValue="{Binding SortField}"
+                                  SelectedValuePath="Value"
+                                  ItemsSource="{Binding SortOptions}"
+                                  Style="{StaticResource ExplorerLightComboBoxStyle}" />
+                        <Button Click="OnSortDirectionClick">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ExplorerLightButtonStyle}">
+                                    <Setter Property="Content" Value="升序" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSortAscending}" Value="False">
+                                            <Setter Property="Content" Value="降序" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Command="{Binding SwitchToTileViewCommand}" Content="平铺" Style="{StaticResource ExplorerLightButtonStyle}" />
+                        <Button Command="{Binding SwitchToDetailsViewCommand}" Content="详细" Style="{StaticResource ExplorerLightButtonStyle}" />
+                    </WrapPanel>
+                </Grid>
+            </Border>
+
+            <ContentPresenter Grid.Row="0"
+                              Content="{Binding ToolBarContent, ElementName=RootControl}"
+                              Style="{StaticResource CustomToolbarStyle}" />
+
+            <views:BreadcrumbBarControl Grid.Row="1" Margin="0,14,0,14" Style="{StaticResource DefaultNavigationStyle}" />
+
+            <ContentPresenter Grid.Row="1"
+                              Margin="0,14,0,14"
+                              Content="{Binding NavigationContent, ElementName=RootControl}"
+                              Style="{StaticResource CustomNavigationStyle}" />
+
+            <Grid Grid.Row="2">
+                <Border Style="{StaticResource ExplorerToolbarCardStyle}">
+                    <views:FileExplorerContentControl x:Name="ExplorerContentControl"
+                                                      EntryInvoked="OnEntryInvoked"
+                                                      TileFallbackTemplate="{Binding TileEntryTemplate, ElementName=RootControl}"
+                                                      TileFileTemplate="{Binding TileFileTemplate, ElementName=RootControl}"
+                                                      TileFolderTemplate="{Binding TileFolderTemplate, ElementName=RootControl}" />
+                </Border>
+
+                <Border Style="{StaticResource DefaultEmptyStyle}">
+                    <Grid>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource ExplorerTextBrush}"
+                                       Text="当前没有可显示的项目" />
+                            <TextBlock Margin="0,8,0,0"
+                                       Foreground="{StaticResource ExplorerMutedTextBrush}"
+                                       Text="可以尝试切换筛选条件、搜索关键字，或创建新文件夹。" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ContentPresenter Content="{Binding EmptyContent, ElementName=RootControl}"
+                                  Style="{StaticResource CustomEmptyStyle}" />
+            </Grid>
+
+            <Border Grid.Row="3" Margin="0,14,0,0" Style="{StaticResource ExplorerToolbarCardStyle}">
+                <TextBlock Foreground="{StaticResource ExplorerMutedTextBrush}" Text="{Binding StatusText}" TextWrapping="Wrap" />
+            </Border>
+        </Grid>
+    </Border>
 </UserControl>
+

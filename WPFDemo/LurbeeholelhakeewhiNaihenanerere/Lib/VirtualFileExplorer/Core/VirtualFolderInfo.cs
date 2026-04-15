@@ -1,5 +1,4 @@
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace VirtualFileExplorer.Core;
 
@@ -7,45 +6,38 @@ namespace VirtualFileExplorer.Core;
 /// 虚拟的文件夹
 /// </summary>
 /// 比如当前所在的是 C:\Abc\Def 的路径，那 FolderLink 就是由 C:\ Abc\ Def\ 三个部分组成的
-public class VirtualFolderInfo : NotifyObject
+public class VirtualFolderInfo : VirtualFileSystemEntry
 {
     public VirtualFolderInfo(string id, string name, VirtualFolderInfo? upperLevelFolder)
+        : base(id, name, upperLevelFolder)
     {
-        _id = id;
-        _name = name;
-        UpperLevelFolder = upperLevelFolder;
+        IconGlyph = FileIconGlyphHelper.FolderGlyph;
     }
-    
+
     /// <summary>
     /// 上一级的文件夹，可能为空，表示顶层
     /// </summary>
-    public VirtualFolderInfo? UpperLevelFolder { get; }
+    public VirtualFolderInfo? UpperLevelFolder => OwnerFolder;
 
-    private string _id;
-    private string _name;
+    public override VirtualFileSystemEntryType EntryType => VirtualFileSystemEntryType.Folder;
 
-    [DataMember(Name = "id")]
-    public string Id
+    public override string DisplayType => "文件夹";
+
+    public IReadOnlyList<RelativeFolderLink> GetBreadcrumbs()
     {
-        get => _id;
-        set
+        var stack = new Stack<VirtualFolderInfo>();
+        for (VirtualFolderInfo? folder = this; folder is not null; folder = folder.UpperLevelFolder)
         {
-            // id 可能是空，对于相对路径来说，这个 id 可能没有意义
-            if (value == _id) return;
-            _id = value;
-            OnPropertyChanged();
+            stack.Push(folder);
         }
-    }
 
-    [DataMember(Name = "name")]
-    public string Name
-    {
-        get => _name;
-        set
+        var result = new List<RelativeFolderLink>(stack.Count);
+        while (stack.Count > 0)
         {
-            if (value == _name) return;
-            _name = value;
-            OnPropertyChanged();
+            var folder = stack.Pop();
+            result.Add(new RelativeFolderLink(folder.Name, folder, stack.Count == 0));
         }
+
+        return result;
     }
 }
