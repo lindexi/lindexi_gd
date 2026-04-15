@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-SetText("123");
+Delegate d = SetText;
 
 string t = "123";
 var l = t.Length;
