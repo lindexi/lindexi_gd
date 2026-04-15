@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace VirtualFileExplorer;
+namespace VirtualFileExplorer.Core;
 
 /// <summary>
 /// 表示一个虚拟的文件信息
