@@ -3,10 +3,189 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LeefayjehekijawlalWhichayfawcelhega"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="AI 多页课件生成工作台"
+        Width="1600"
+        Height="960"
+        MinWidth="1280"
+        MinHeight="720">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
+        <StackPanel>
+            <TextBlock FontSize="28"
+                       FontWeight="Bold"
+                       Text="AI 多页课件生成工作台" />
+            <TextBlock Margin="0,8,0,0"
+                       Foreground="#666"
+                       Text="先输入每页大纲并生成图片提示词，确认后再逐页生成候选图片。" />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Margin="0,16,0,16"
+                Padding="16"
+                BorderBrush="#DDD"
+                BorderThickness="1"
+                CornerRadius="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="2*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="PPT 大纲输入" />
+                    <TextBlock Margin="0,6,0,10"
+                               Foreground="#666"
+                               Text="建议每页内容使用空行分隔；如果没有空行，则默认按行拆分页面。" />
+                    <TextBox MinHeight="180"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             TextWrapping="Wrap"
+                             Text="{Binding OutlineText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock FontWeight="SemiBold" Text="导出目录" />
+                    <TextBox Margin="0,8,0,12"
+                             Text="{Binding ExportRootDirectory, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Button Width="180"
+                            Height="40"
+                            HorizontalAlignment="Left"
+                            Command="{Binding GeneratePromptsCommand}"
+                            Content="生成逐页图片提示词" />
+
+                    <TextBlock Margin="0,16,0,0"
+                               FontWeight="SemiBold"
+                               Text="当前状态" />
+                    <TextBlock Margin="0,8,0,0"
+                               TextWrapping="Wrap"
+                               Text="{Binding StatusMessage}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Slides}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,0,16"
+                                Padding="16"
+                                BorderBrush="#DDD"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2.4*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="3.2*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="160" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding PageNumber, StringFormat=第 {0} 页}" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               FontWeight="SemiBold"
+                                               Text="页面原始内容" />
+                                    <TextBox Margin="0,6,0,12"
+                                             IsReadOnly="True"
+                                             TextWrapping="Wrap"
+                                             BorderThickness="1"
+                                             MinHeight="70"
+                                             Text="{Binding OutlineContent}" />
+
+                                    <TextBlock FontWeight="SemiBold" Text="图片提示词" />
+                                    <TextBox Margin="0,6,0,0"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto"
+                                             MinHeight="180"
+                                             Text="{Binding PromptText, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Margin="0,10,0,0"
+                                               Foreground="#666"
+                                               Text="{Binding StageText}" />
+                                    <TextBlock Margin="0,6,0,0"
+                                               Foreground="#C62828"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding ErrorMessage}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock FontWeight="SemiBold" Text="候选图片（默认选中第一张）" />
+                                    <TextBlock Margin="0,6,0,10"
+                                               Foreground="#666"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding EmptyImageMessage}" />
+                                    <ListBox MinHeight="260"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             ItemsSource="{Binding ImageCandidates}"
+                                             SelectedItem="{Binding SelectedCandidate, Mode=TwoWay}">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Columns="2" />
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,12,12"
+                                                        Padding="8"
+                                                        BorderBrush="#CCC"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6">
+                                                    <StackPanel>
+                                                        <TextBlock FontWeight="SemiBold"
+                                                                   Text="{Binding DisplayName}" />
+                                                        <Image Margin="0,8,0,0"
+                                                               Height="170"
+                                                               Stretch="UniformToFill"
+                                                               Source="{Binding PreviewImage}" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4"
+                                            VerticalAlignment="Top">
+                                    <Button Height="44"
+                                            Margin="0,0,0,8"
+                                            Command="{Binding GenerateImagesCommand}"
+                                            Content="{Binding GenerateButtonText}" />
+                                    <TextBlock Foreground="#666"
+                                               TextWrapping="Wrap"
+                                               Text="用户点击当前按钮后，才会调用图片模型生成该页候选图。" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <DockPanel Grid.Row="3" Margin="0,16,0,0">
+            <TextBlock VerticalAlignment="Center"
+                       Foreground="#666"
+                       Text="导出时会将已选图片输出到预设目录下的时间命名子文件夹。" />
+            <Button Width="180"
+                    Height="44"
+                    HorizontalAlignment="Right"
+                    DockPanel.Dock="Right"
+                    Command="{Binding ExportCommand}"
+                    Content="导出已选图片" />
+        </DockPanel>
     </Grid>
 </Window>
