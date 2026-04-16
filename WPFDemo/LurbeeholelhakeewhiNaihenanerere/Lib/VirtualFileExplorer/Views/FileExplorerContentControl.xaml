@@ -18,56 +18,96 @@
 
             <DataTemplate x:Key="DefaultTileFolderTemplate">
                 <Border Style="{StaticResource ExplorerTileCardStyle}">
-                    <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
                         <TextBlock FontFamily="Segoe Fluent Icons"
-                                   FontSize="28"
+                                   FontSize="30"
                                    Foreground="{StaticResource ExplorerAccentBrush}"
                                    Text="{Binding IconGlyph}" />
-                        <TextBlock Margin="0,10,0,0"
+
+                        <TextBlock Grid.Row="1"
+                                   Margin="0,12,0,0"
+                                   VerticalAlignment="Top"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource ExplorerTextBrush}"
                                    Text="{Binding Name}"
-                                   TextTrimming="CharacterEllipsis" />
-                        <TextBlock Margin="0,6,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="Wrap"
+                                   LineHeight="20"
+                                   LineStackingStrategy="BlockLineHeight"
+                                   Height="40" />
+
+                        <TextBlock Grid.Row="2"
+                                   Margin="0,10,0,0"
                                    Foreground="{StaticResource ExplorerMutedTextBrush}"
                                    Text="{Binding DisplayType}" />
-                    </StackPanel>
+                    </Grid>
                 </Border>
             </DataTemplate>
 
             <DataTemplate x:Key="DefaultTileFileTemplate">
                 <Border Style="{StaticResource ExplorerTileCardStyle}">
-                    <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
                         <TextBlock FontFamily="Segoe Fluent Icons"
-                                   FontSize="28"
+                                   FontSize="30"
                                    Foreground="{StaticResource ExplorerAccentBrush}"
                                    Text="{Binding IconGlyph}" />
-                        <TextBlock Margin="0,10,0,0"
+
+                        <TextBlock Grid.Row="1"
+                                   Margin="0,12,0,0"
+                                   VerticalAlignment="Top"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource ExplorerTextBrush}"
                                    Text="{Binding Name}"
-                                   TextTrimming="CharacterEllipsis" />
-                        <TextBlock Margin="0,6,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="Wrap"
+                                   LineHeight="20"
+                                   LineStackingStrategy="BlockLineHeight"
+                                   Height="40" />
+
+                        <TextBlock Grid.Row="2"
+                                   Margin="0,8,0,0"
                                    Foreground="{StaticResource ExplorerMutedTextBrush}"
                                    Text="{Binding DisplayType}" />
-                        <TextBlock Foreground="{StaticResource ExplorerMutedTextBrush}"
+
+                        <TextBlock Grid.Row="3"
+                                   Margin="0,4,0,0"
+                                   Foreground="{StaticResource ExplorerMutedTextBrush}"
                                    Text="{Binding DisplaySize}" />
-                    </StackPanel>
+                    </Grid>
                 </Border>
             </DataTemplate>
 
             <DataTemplate x:Key="DetailsNameTemplate">
-                <StackPanel Orientation="Horizontal">
+                <Grid Margin="0,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
                     <TextBlock Margin="0,0,8,0"
                                VerticalAlignment="Center"
                                FontFamily="Segoe Fluent Icons"
                                Foreground="{StaticResource ExplorerAccentBrush}"
                                Text="{Binding IconGlyph}" />
-                    <TextBlock VerticalAlignment="Center"
+                    <TextBlock Grid.Column="1"
+                               VerticalAlignment="Center"
                                Foreground="{StaticResource ExplorerTextBrush}"
                                Text="{Binding Name}"
                                TextTrimming="CharacterEllipsis" />
-                </StackPanel>
+                </Grid>
             </DataTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -100,7 +140,7 @@
         </ListBox>
 
         <ListView x:Name="DetailsListView"
-                  ItemContainerStyle="{StaticResource ExplorerListItemStyle}"
+                  ItemContainerStyle="{StaticResource ExplorerDetailsListItemStyle}"
                   ItemsSource="{Binding Entries}"
                   MouseDoubleClick="OnEntryDoubleClick"
                   PreviewKeyDown="OnListPreviewKeyDown"
@@ -119,12 +159,13 @@
             </ListView.Style>
             <ListView.View>
                 <GridView AllowsColumnReorder="True" ColumnHeaderContainerStyle="{StaticResource ExplorerGridViewColumnHeaderStyle}">
-                    <GridViewColumn Width="280" Header="名称" CellTemplate="{StaticResource DetailsNameTemplate}" />
-                    <GridViewColumn Width="120" Header="类型" DisplayMemberBinding="{Binding DisplayType}" />
-                    <GridViewColumn Width="120" Header="大小" DisplayMemberBinding="{Binding DisplaySize}" />
-                    <GridViewColumn Width="180" Header="修改时间" DisplayMemberBinding="{Binding DisplayModifiedTime}" />
+                    <GridViewColumn Width="320" Header="名称" CellTemplate="{StaticResource DetailsNameTemplate}" />
+                    <GridViewColumn Width="140" Header="类型" DisplayMemberBinding="{Binding DisplayType}" />
+                    <GridViewColumn Width="130" Header="大小" DisplayMemberBinding="{Binding DisplaySize}" />
+                    <GridViewColumn Width="190" Header="修改时间" DisplayMemberBinding="{Binding DisplayModifiedTime}" />
                 </GridView>
             </ListView.View>
         </ListView>
     </Grid>
 </UserControl>
+
