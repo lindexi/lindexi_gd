@@ -7,9 +7,9 @@ using LeefayjehekijawlalWhichayfawcelhega.Models;
 
 namespace LeefayjehekijawlalWhichayfawcelhega.ViewModels;
 
-internal sealed class ImageCandidateViewModel : ObservableObject
+public sealed class ImageCandidateViewModel : ObservableObject
 {
-    public ImageCandidateViewModel(GeneratedImageResult generatedImageResult)
+    internal ImageCandidateViewModel(GeneratedImageResult generatedImageResult)
     {
         ArgumentNullException.ThrowIfNull(generatedImageResult);
 
