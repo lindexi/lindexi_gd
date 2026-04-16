@@ -105,12 +105,15 @@
     </Style>
 
     <Style x:Key="ExplorerTileCardStyle" TargetType="Border">
+        <Setter Property="Width" Value="180" />
+        <Setter Property="Height" Value="180" />
         <Setter Property="Background" Value="{StaticResource ExplorerPanelBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="14" />
-        <Setter Property="Padding" Value="12" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Padding" Value="14" />
         <Setter Property="Margin" Value="6" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
 
     <Style x:Key="ExplorerListViewStyle" TargetType="ListView">
@@ -148,6 +151,41 @@
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="ItemBorder" Property="Background" Value="{StaticResource ExplorerAccentSoftBrush}" />
                             <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{StaticResource ExplorerAccentBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ExplorerDetailsListItemStyle" TargetType="ListViewItem">
+        <Setter Property="Padding" Value="8,6" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListViewItem">
+                    <Border x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12"
+                            Padding="{TemplateBinding Padding}">
+                        <GridViewRowPresenter VerticalAlignment="Center"
+                                              Columns="{Binding Path=View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                              Content="{TemplateBinding Content}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RootBorder" Property="Background" Value="#FFF7FAFF" />
+                            <Setter TargetName="RootBorder" Property="BorderBrush" Value="{StaticResource ExplorerBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource ExplorerAccentSoftBrush}" />
+                            <Setter TargetName="RootBorder" Property="BorderBrush" Value="{StaticResource ExplorerAccentBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
