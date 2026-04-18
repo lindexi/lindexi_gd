@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.ClientModel;
+using System.Net.Http;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,7 +12,8 @@ namespace LeefayjehekijawlalWhichayfawcelhega.ViewModels;
 
 internal sealed class SlidePageViewModel : ObservableObject
 {
-    private readonly DoubaoImageGenerationService _doubaoImageGenerationService;
+    private readonly ImageGenerationService _imageGenerationService;
+    private readonly Action<SlidePageViewModel> _removeSlideAction;
 
     private string _promptText = string.Empty;
     private string? _errorMessage;
@@ -18,26 +21,30 @@ internal sealed class SlidePageViewModel : ObservableObject
     private bool _isGeneratingImages;
     private ImageCandidateViewModel? _selectedCandidate;
 
-    public SlidePageViewModel(int pageNumber, string outlineContent, DoubaoImageGenerationService doubaoImageGenerationService)
+    public SlidePageViewModel(
+        int pageNumber,
+        string promptText,
+        ImageGenerationService imageGenerationService,
+        Action<SlidePageViewModel> removeSlideAction)
     {
-        if (string.IsNullOrWhiteSpace(outlineContent))
-        {
-            throw new ArgumentException("页面内容不能为空。", nameof(outlineContent));
-        }
-
-        _doubaoImageGenerationService = doubaoImageGenerationService;
+        _imageGenerationService = imageGenerationService;
+        _removeSlideAction = removeSlideAction;
         PageNumber = pageNumber;
-        OutlineContent = outlineContent;
+        _promptText = promptText;
+        _stage = string.IsNullOrWhiteSpace(promptText)
+            ? PageGenerationStage.PendingPromptGeneration
+            : PageGenerationStage.AwaitingImageGeneration;
         GenerateImagesCommand = new AsyncRelayCommand(GenerateImagesAsync, CanGenerateImages);
+        DeleteSlideCommand = new RelayCommand(DeleteSlide);
     }
 
-    public int PageNumber { get; }
-
-    public string OutlineContent { get; }
+    public int PageNumber { get; private set; }
 
     public ObservableCollection<ImageCandidateViewModel> ImageCandidates { get; } = [];
 
     public IAsyncRelayCommand GenerateImagesCommand { get; }
+
+    public IRelayCommand DeleteSlideCommand { get; }
 
     public string PromptText
     {
@@ -46,6 +53,13 @@ internal sealed class SlidePageViewModel : ObservableObject
         {
             if (SetProperty(ref _promptText, value))
             {
+                if (!IsGeneratingImages)
+                {
+                    Stage = string.IsNullOrWhiteSpace(value)
+                        ? PageGenerationStage.PendingPromptGeneration
+                        : PageGenerationStage.AwaitingImageGeneration;
+                }
+
                 OnPropertyChanged(nameof(GenerateButtonText));
                 GenerateImagesCommand.NotifyCanExecuteChanged();
             }
@@ -111,10 +125,10 @@ internal sealed class SlidePageViewModel : ObservableObject
 
     public string EmptyImageMessage => HasImages ? string.Empty : "当前页还没有候选图片，请确认提示词后点击生成。";
 
-    public void MarkPromptGenerating()
+    public void UpdatePageNumber(int pageNumber)
     {
-        ErrorMessage = null;
-        Stage = PageGenerationStage.PendingPromptGeneration;
+        PageNumber = pageNumber;
+        OnPropertyChanged(nameof(PageNumber));
     }
 
     public void ApplyPrompt(string promptText)
@@ -173,7 +187,7 @@ internal sealed class SlidePageViewModel : ObservableObject
 
         try
         {
-            IReadOnlyList<GeneratedImageResult> generatedImages = await _doubaoImageGenerationService.GenerateImagesAsync(PromptText, CancellationToken.None);
+            IReadOnlyList<GeneratedImageResult> generatedImages = await _imageGenerationService.GenerateImagesAsync(PromptText, CancellationToken.None);
 
             ImageCandidates.Clear();
             foreach (GeneratedImageResult generatedImage in generatedImages)
@@ -187,7 +201,19 @@ internal sealed class SlidePageViewModel : ObservableObject
             OnPropertyChanged(nameof(EmptyImageMessage));
             OnPropertyChanged(nameof(GenerateButtonText));
         }
-        catch (Exception exception)
+        catch (ArgumentException exception)
+        {
+            MarkFailure($"图片生成失败：{exception.Message}");
+        }
+        catch (InvalidOperationException exception)
+        {
+            MarkFailure($"图片生成失败：{exception.Message}");
+        }
+        catch (HttpRequestException exception)
+        {
+            MarkFailure($"图片生成失败：{exception.Message}");
+        }
+        catch (ClientResultException exception)
         {
             MarkFailure($"图片生成失败：{exception.Message}");
         }
@@ -195,5 +221,10 @@ internal sealed class SlidePageViewModel : ObservableObject
         {
             IsGeneratingImages = false;
         }
+    }
+
+    private void DeleteSlide()
+    {
+        _removeSlideAction(this);
     }
 }
