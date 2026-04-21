@@ -1,9 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -11,9 +6,16 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 
-using LightTextEditorPlus.Demo.Business.RichTextCases;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Demo.Business.RichTextCases;
 using LightTextEditorPlus.FontManagers;
+
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
@@ -80,6 +82,7 @@ public partial class TextEditorDebugView : UserControl
         TextEditor = new TextEditor()
         {
             Width = 500,
+            Logger = new TextConsoleLogger(),
         };
         TextEditorGrid.Children.RemoveAll(TextEditorGrid.Children.OfType<TextEditor>().ToList());
         TextEditorGrid.Children.Insert(0, TextEditor);
@@ -174,5 +177,43 @@ public partial class TextEditorDebugView : UserControl
             TextEditor.IsEditable = true;
             TextEditor.Focus();
         }
+    }
+}
+
+public class TextConsoleLogger : ITextLogger
+{
+    public void LogDebug(string message)
+    {
+        RecordMessage($"[Debug] {message}");
+    }
+
+    public void LogException(Exception exception, string? message)
+    {
+        RecordMessage($"[Warn] {message} 异常:{exception}");
+    }
+
+    public void LogInfo(string message)
+    {
+        RecordMessage($"[Info] {message}");
+    }
+
+    public void LogWarning(string message)
+    {
+        RecordMessage($"[Warn] {message}");
+    }
+
+    public void Log<T>(T info) where T : notnull
+    {
+        RecordMessage($"[{info.GetType().Name}] {info.ToString()}");
+    }
+
+    private void RecordMessage(string message, bool outputToDebug = true)
+    {
+        if (outputToDebug)
+        {
+            Debug.WriteLine(message);
+        }
+
+        Console.WriteLine(message);
     }
 }
