@@ -192,7 +192,7 @@ public class FontNameManager //: IFontNameManager
             {
                 // 如果找到了精确匹配的字体，则直接返回
                 // 如果找到的字体和期望的字体一致，则不是回退字体
-                var isFallback = string.Equals(k, exactFontName, StringComparison.Ordinal);
+                var isFallback = !string.Equals(k, exactFontName, StringComparison.Ordinal);
                 return new FontFallbackInfo(exactFontName, isFallback, IsFallbackFailed: false/*回退成功*/);
             }
 
