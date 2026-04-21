@@ -126,6 +126,55 @@ namespace LightTextEditorPlus.Demo
             //    textStorePosition += textLine.Length;
             //    linePosition.Y += textLine.Height;
             //}
+
+            CreateFontAliasCode();
+        }
+
+        /// <summary>
+        /// 创建当前系统中所有字体的别名代码，方便在调试时使用
+        /// </summary>
+        private void CreateFontAliasCode()
+        {
+            // 第一层是各个字体，第二层是同一个字体的不同别名（如英文名、中文名等）
+            List<List<string>> fontFamilyAliasList = new List<List<string>>();
+            foreach (FontFamily fontFamily in Fonts.SystemFontFamilies)
+            {
+                List<string>? list = fontFamily.FamilyNames.Values?.Distinct().ToList();
+                if (list is { Count: > 1 })
+                {
+                    // 超过一个名字的才有意义
+                    fontFamilyAliasList.Add(list);
+                }
+            }
+
+            // 排列组合出所有字体的别名，写入到字典里面
+            // 先计算总数
+            var codeLineList = new List<string>();
+            foreach (List<string> fontNameList in fontFamilyAliasList)
+            {
+                // 生成这个字体的所有别名组合
+                foreach (string fontName in fontNameList)
+                {
+                    foreach (string alias in fontNameList)
+                    {
+                        if (fontName != alias)
+                        {
+                            codeLineList.Add($"{{\"{fontName}\", \"{alias}\"}},");
+                        }
+                    }
+                }
+            }
+
+            var codeStringBuilder = new StringBuilder();
+            codeStringBuilder.AppendLine($"FontAliasDictionary = new Dictionary<string, string>({codeLineList.Count})")
+                .AppendLine("{");
+
+            foreach (string codeLine in codeLineList)
+            {
+                codeStringBuilder.AppendLine(codeLine);
+            }
+
+            codeStringBuilder.AppendLine("}");
         }
 
         class SimpleTextParagraphProperties : TextParagraphProperties
