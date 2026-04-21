@@ -15,74 +15,42 @@ public class FontNameManager //: IFontNameManager
     /// </summary>
     public FontNameManager()
     {
-        FontAliasDictionary = new Dictionary<string, string>(68)
+        FontAliasDictionary = new Dictionary<string, string>(34)
         {
-            { "Malgun Gothic", "맑은 고딕" },
             { "맑은 고딕", "Malgun Gothic" },
-            { "Microsoft JhengHei", "微軟正黑體" },
             { "微軟正黑體", "Microsoft JhengHei" },
-            { "Microsoft YaHei", "微软雅黑" },
             { "微软雅黑", "Microsoft YaHei" },
-            { "MingLiU-ExtB", "細明體-ExtB" },
             { "細明體-ExtB", "MingLiU-ExtB" },
-            { "PMingLiU-ExtB", "新細明體-ExtB" },
             { "新細明體-ExtB", "PMingLiU-ExtB" },
-            { "MingLiU_HKSCS-ExtB", "細明體_HKSCS-ExtB" },
             { "細明體_HKSCS-ExtB", "MingLiU_HKSCS-ExtB" },
-            { "MingLiU_MSCS-ExtB", "細明體_MSCS-ExtB" },
             { "細明體_MSCS-ExtB", "MingLiU_MSCS-ExtB" },
-            { "MS Gothic", "ＭＳ ゴシック" },
             { "ＭＳ ゴシック", "MS Gothic" },
-            { "MS PGothic", "ＭＳ Ｐゴシック" },
             { "ＭＳ Ｐゴシック", "MS PGothic" },
-            { "SimSun", "宋体" },
             { "宋体", "SimSun" },
-            { "NSimSun", "新宋体" },
             { "新宋体", "NSimSun" },
-            { "Yu Gothic", "游ゴシック" },
             { "游ゴシック", "Yu Gothic" },
-            { "DengXian", "等线" },
             { "等线", "DengXian" },
-            { "FangSong", "仿宋" },
             { "仿宋", "FangSong" },
-            { "KaiTi", "楷体" },
             { "楷体", "KaiTi" },
-            { "SimHei", "黑体" },
             { "黑体", "SimHei" },
-            { "FZShuTi", "方正舒体" },
             { "方正舒体", "FZShuTi" },
-            { "FZYaoTi", "方正姚体" },
             { "方正姚体", "FZYaoTi" },
-            { "LiSu", "隶书" },
             { "隶书", "LiSu" },
-            { "YouYuan", "幼圆" },
             { "幼圆", "YouYuan" },
-            { "STCaiyun", "华文彩云" },
             { "华文彩云", "STCaiyun" },
-            { "STFangsong", "华文仿宋" },
             { "华文仿宋", "STFangsong" },
-            { "STHupo", "华文琥珀" },
             { "华文琥珀", "STHupo" },
-            { "STKaiti", "华文楷体" },
             { "华文楷体", "STKaiti" },
-            { "STLiti", "华文隶书" },
             { "华文隶书", "STLiti" },
-            { "STSong", "华文宋体" },
             { "华文宋体", "STSong" },
-            { "STXihei", "华文细黑" },
             { "华文细黑", "STXihei" },
-            { "STXingkai", "华文行楷" },
             { "华文行楷", "STXingkai" },
-            { "STXinwei", "华文新魏" },
             { "华文新魏", "STXinwei" },
-            { "STZhongsong", "华文中宋" },
             { "华文中宋", "STZhongsong" },
-            { "Sarasa Term SC Nerd", "更纱终端书呆黑体-简" },
             { "更纱终端书呆黑体-简", "Sarasa Term SC Nerd" },
-            { "HY DieYTJ", "汉仪蝶语体简" },
             { "汉仪蝶语体简", "HY DieYTJ" },
-            { "HY NanGTJ", "汉仪南宫体简" },
             { "汉仪南宫体简", "HY NanGTJ" },
+            { "方正硬笔行书简体_非压缩版", "FZYingBiXingShuS-S16_NCE" },
         };
     }
 
@@ -105,7 +73,8 @@ public class FontNameManager //: IFontNameManager
     /// 为什么不去读取字体获取别名呢？因为读取字体过程是耗时的，如果字体稍微多，则十分影响启动性能
     /// 由于这些字体的数量不多的，强行打一张表的效果会更好
     /// 现在这个字典是通过在 WPF 的 CreateFontAliasCode 方法里面，调试时创建的
-    public IReadOnlyDictionary<string,string> FontAliasDictionary { get; set; }
+    /// 全部只面向对英文的别名处理
+    public IReadOnlyDictionary<string, string/*英文名*/> FontAliasDictionary { get; set; }
 
     ///// <summary>
     ///// 获取默认的字体名。
@@ -223,7 +192,7 @@ public class FontNameManager //: IFontNameManager
             {
                 // 如果找到了精确匹配的字体，则直接返回
                 // 如果找到的字体和期望的字体一致，则不是回退字体
-                var isFallback = string.Equals(k, exactFontName, StringComparison.Ordinal);
+                var isFallback = !string.Equals(k, exactFontName, StringComparison.Ordinal);
                 return new FontFallbackInfo(exactFontName, isFallback, IsFallbackFailed: false/*回退成功*/);
             }
 
@@ -258,6 +227,18 @@ public class FontNameManager //: IFontNameManager
         const int maxFallbackCount = 100;
         while (!platformFontNameManager.CheckFontFamilyInstalled(fontName))
         {
+            if (fallbackCount == 0)
+            {
+                // 第一次回退时，尝试使用英文别名进行回退，以适配通过非英文名指定字体的场景
+                if (FontAliasDictionary.TryGetValue(desiredFontName, out var englishName))
+                {
+                    if (platformFontNameManager.CheckFontFamilyInstalled(englishName))
+                    {
+                        return englishName;
+                    }
+                }
+            }
+
             // 如果 A->B B->A 则会陷入死循环
             fallbackCount++;
             if (fallbackCount > maxFallbackCount)
