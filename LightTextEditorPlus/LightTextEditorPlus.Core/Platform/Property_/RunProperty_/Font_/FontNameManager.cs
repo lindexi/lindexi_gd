@@ -10,6 +10,82 @@ namespace LightTextEditorPlus.Core.Platform;
 /// 默认回滚可参阅： https://github.com/dotnet/wpf/blob/main/src/Microsoft.DotNet.Wpf/src/PresentationCore/Fonts/GlobalUserInterface.CompositeFont
 public class FontNameManager //: IFontNameManager
 {
+    /// <summary>
+    /// 创建管理文本使用的字体名称和字体回退策略
+    /// </summary>
+    public FontNameManager()
+    {
+        FontAliasDictionary = new Dictionary<string, string>(68)
+        {
+            { "Malgun Gothic", "맑은 고딕" },
+            { "맑은 고딕", "Malgun Gothic" },
+            { "Microsoft JhengHei", "微軟正黑體" },
+            { "微軟正黑體", "Microsoft JhengHei" },
+            { "Microsoft YaHei", "微软雅黑" },
+            { "微软雅黑", "Microsoft YaHei" },
+            { "MingLiU-ExtB", "細明體-ExtB" },
+            { "細明體-ExtB", "MingLiU-ExtB" },
+            { "PMingLiU-ExtB", "新細明體-ExtB" },
+            { "新細明體-ExtB", "PMingLiU-ExtB" },
+            { "MingLiU_HKSCS-ExtB", "細明體_HKSCS-ExtB" },
+            { "細明體_HKSCS-ExtB", "MingLiU_HKSCS-ExtB" },
+            { "MingLiU_MSCS-ExtB", "細明體_MSCS-ExtB" },
+            { "細明體_MSCS-ExtB", "MingLiU_MSCS-ExtB" },
+            { "MS Gothic", "ＭＳ ゴシック" },
+            { "ＭＳ ゴシック", "MS Gothic" },
+            { "MS PGothic", "ＭＳ Ｐゴシック" },
+            { "ＭＳ Ｐゴシック", "MS PGothic" },
+            { "SimSun", "宋体" },
+            { "宋体", "SimSun" },
+            { "NSimSun", "新宋体" },
+            { "新宋体", "NSimSun" },
+            { "Yu Gothic", "游ゴシック" },
+            { "游ゴシック", "Yu Gothic" },
+            { "DengXian", "等线" },
+            { "等线", "DengXian" },
+            { "FangSong", "仿宋" },
+            { "仿宋", "FangSong" },
+            { "KaiTi", "楷体" },
+            { "楷体", "KaiTi" },
+            { "SimHei", "黑体" },
+            { "黑体", "SimHei" },
+            { "FZShuTi", "方正舒体" },
+            { "方正舒体", "FZShuTi" },
+            { "FZYaoTi", "方正姚体" },
+            { "方正姚体", "FZYaoTi" },
+            { "LiSu", "隶书" },
+            { "隶书", "LiSu" },
+            { "YouYuan", "幼圆" },
+            { "幼圆", "YouYuan" },
+            { "STCaiyun", "华文彩云" },
+            { "华文彩云", "STCaiyun" },
+            { "STFangsong", "华文仿宋" },
+            { "华文仿宋", "STFangsong" },
+            { "STHupo", "华文琥珀" },
+            { "华文琥珀", "STHupo" },
+            { "STKaiti", "华文楷体" },
+            { "华文楷体", "STKaiti" },
+            { "STLiti", "华文隶书" },
+            { "华文隶书", "STLiti" },
+            { "STSong", "华文宋体" },
+            { "华文宋体", "STSong" },
+            { "STXihei", "华文细黑" },
+            { "华文细黑", "STXihei" },
+            { "STXingkai", "华文行楷" },
+            { "华文行楷", "STXingkai" },
+            { "STXinwei", "华文新魏" },
+            { "华文新魏", "STXinwei" },
+            { "STZhongsong", "华文中宋" },
+            { "华文中宋", "STZhongsong" },
+            { "Sarasa Term SC Nerd", "更纱终端书呆黑体-简" },
+            { "更纱终端书呆黑体-简", "Sarasa Term SC Nerd" },
+            { "HY DieYTJ", "汉仪蝶语体简" },
+            { "汉仪蝶语体简", "HY DieYTJ" },
+            { "HY NanGTJ", "汉仪南宫体简" },
+            { "汉仪南宫体简", "HY NanGTJ" },
+        };
+    }
+
     ///// <summary>
     ///// 默认渲染字体Arial，用于缺失字体的渲染恢复，与微软机制一致
     ///// WPF 强依赖此字体，如果不存在，任何 WPF 程序都无法启动。
@@ -22,6 +98,14 @@ public class FontNameManager //: IFontNameManager
     private readonly ConcurrentDictionary<string, string> _fallbackMapping = new();
     private readonly ConcurrentDictionary<string, string> _fuzzyFallbackMapping = new();
     private readonly ConcurrentDictionary<string/*FontName*/, FontFallbackInfo> _fallbackCache = new();
+
+    /// <summary>
+    /// 字体别名列表，允许业务端整个替换掉
+    /// </summary>
+    /// 为什么不去读取字体获取别名呢？因为读取字体过程是耗时的，如果字体稍微多，则十分影响启动性能
+    /// 由于这些字体的数量不多的，强行打一张表的效果会更好
+    /// 现在这个字典是通过在 WPF 的 CreateFontAliasCode 方法里面，调试时创建的
+    public IReadOnlyDictionary<string,string> FontAliasDictionary { get; set; }
 
     ///// <summary>
     ///// 获取默认的字体名。
