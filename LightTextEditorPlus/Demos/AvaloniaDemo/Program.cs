@@ -17,6 +17,8 @@ class Program
     {
         if (args.Length > 0 && args[0] == "-w")
         {
+            Console.WriteLine($"Waiting for the debugger to attach. 等待调试器附加");
+
             while (!Debugger.IsAttached)
             {
                 Thread.Sleep(1);
