@@ -33,6 +33,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Core\Resources\ExceptionMessages.resx">
+      <Link>Core\Resources\ExceptionMessages.resx</Link>
+      <WithCulture>false</WithCulture>
+      <LogicalName>LightTextEditorPlus.Core.Resources.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Core\Resources\ExceptionMessages.en-US.resx">
+      <Link>Core\Resources\ExceptionMessages.en-US.resx</Link>
+      <DependentUpon>ExceptionMessages.resx</DependentUpon>
+      <LogicalName>LightTextEditorPlus.Core.Resources.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

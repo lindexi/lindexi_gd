@@ -26,7 +26,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
 
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" GeneratePathProperty="true"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -38,4 +38,14 @@
     <None Update="Assets\Fonts\仓耳小丸子.ttf" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Assets\RichTextCaseImages\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Target Name="PatchCopySkiaSharpNativeAssets" AfterTargets="Publish">
+    <!-- 不知道是被谁总拷贝成 118 的版本，导致运行不通过 -->
+    <Message Importance="High" Text="补丁逻辑，强行手动拷贝 SkiaSharp 防止版本冲突导致运行不通过" />
+    <ItemGroup>
+      <PatchSkiaSharpNativeFile Include="$(PkgSkiaSharp_NativeAssets_Linux_NoDependencies)\runtimes\$(RuntimeIdentifier)\native\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PatchSkiaSharpNativeFile)" DestinationFolder="$(PublishDir)" />
+  </Target>
+
 </Project>

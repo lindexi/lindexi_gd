@@ -3,8 +3,6 @@ using LightTextEditorPlus.Core.Document;
 
 using MSTest.Extensions.Contracts;
 
-using static System.Net.Mime.MediaTypeNames;
-
 namespace LightTextEditorPlus.Core.Tests.Document;
 
 [TestClass()]
@@ -58,5 +56,48 @@ public class TextSpanCharObjectTests
             Assert.AreEqual(false, textSpanCharObject2.IsContinuousNextCharObject(textSpanCharObject1));
             Assert.AreEqual(false, textSpanCharObject1.IsContinuousNextCharObject(textSpanCharObject3));
         });
+    }
+
+    [ContractTestCase()]
+    public void LocalizedExceptionMessage()
+    {
+        "当 CurrentUICulture 是 en-US 时，TextSpanCharObject 抛出的异常消息使用英语资源".Test(() =>
+        {
+            using var _ = new CultureScope(new CultureInfo("en-US"));
+
+            var exception = Assert.ThrowsExactly<ArgumentException>(() => new TextSpanCharObject("A", 0, 2));
+
+            StringAssert.Contains(exception.Message, "Only surrogate pairs can be represented by two chars.");
+        });
+
+        "当 CurrentUICulture 没有对应资源时，TextSpanCharObject 抛出的异常消息回退到中文中性资源".Test(() =>
+        {
+            using var _ = new CultureScope(new CultureInfo("fr-FR"));
+
+            var exception = Assert.ThrowsExactly<ArgumentException>(() => new TextSpanCharObject("A", 0, 3));
+
+            StringAssert.Contains(exception.Message, "按照当前 Unicode 的定义");
+        });
+    }
+
+    private sealed class CultureScope : IDisposable
+    {
+        private readonly CultureInfo _originalCulture;
+        private readonly CultureInfo _originalUICulture;
+
+        public CultureScope(CultureInfo culture)
+        {
+            _originalCulture = CultureInfo.CurrentCulture;
+            _originalUICulture = CultureInfo.CurrentUICulture;
+
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+        }
+
+        public void Dispose()
+        {
+            CultureInfo.CurrentCulture = _originalCulture;
+            CultureInfo.CurrentUICulture = _originalUICulture;
+        }
     }
 }

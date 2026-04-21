@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TextSpanCharObject_CharCountMustBeOneOrTwo" xml:space="preserve">
+    <value>按照当前 Unicode 的定义，完全在 Utf32 范围内，一般 CharCount 都是 1 或 2 的值，不可能需要有使用 {0} 个字符表示的情况</value>
+  </data>
+  <data name="TextSpanCharObject_CharCountMustBeSurrogatePair" xml:space="preserve">
+    <value>只有高低代理对字符才能使用两个 char 表示</value>
+  </data>
+</root>
