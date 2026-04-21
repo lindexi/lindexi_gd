@@ -339,7 +339,7 @@ public class SkiaPlatformResourceManager :
             return typeface;
         }
 
-        // 正常一定不会走到这个分支，因为前置 NormalRunProperty 已确保字体存在且适配
+        // 正常一定不会走到这个分支，因为前置 NormalRunProperty 已确保字体存在且适配，除非是从 NormalRunProperty 进来的
         // 除非是继承类型乱传
 
         return null;
