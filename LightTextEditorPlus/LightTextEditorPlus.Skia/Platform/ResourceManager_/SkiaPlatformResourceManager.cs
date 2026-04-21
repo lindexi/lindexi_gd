@@ -309,6 +309,16 @@ public class SkiaPlatformResourceManager :
     private SKTypeface? TryResolveFont(SkiaTextRunProperty runProperty)
     {
         string fontName = runProperty.RenderFontName;
+
+        if (InstalledFontCache.TryGetValue(fontName, out var isInstalled))
+        {
+            // 有明确记录的，那就不用尝试了
+            if (!isInstalled)
+            {
+                return null;
+            }
+        }
+
         using SKFontStyle skFontStyle = runProperty.ToSKFontStyle();
 
         var typeface = TryResolveFont(fontName, skFontStyle);
@@ -323,6 +333,15 @@ public class SkiaPlatformResourceManager :
     /// <returns></returns>
     protected virtual SKTypeface? TryResolveFont(string fontName, SKFontStyle skFontStyle)
     {
+        if (InstalledFontCache.TryGetValue(fontName, out var isInstalled))
+        {
+            // 有明确记录的，那就不用尝试了
+            if (!isInstalled)
+            {
+                return null;
+            }
+        }
+
         var typeface = SKFontManager.Default.MatchFamily(fontName, skFontStyle);
         if (typeface != null)
         {
