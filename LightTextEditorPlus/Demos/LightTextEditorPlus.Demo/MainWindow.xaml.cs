@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.TextFormatting;
@@ -136,32 +137,36 @@ namespace LightTextEditorPlus.Demo
         private void CreateFontAliasCode()
         {
             // 第一层是各个字体，第二层是同一个字体的不同别名（如英文名、中文名等）
-            List<List<string>> fontFamilyAliasList = new List<List<string>>();
+            var fontFamilyAliasList = new List<(string EnglishName, List<string> Aliases)>();
             foreach (FontFamily fontFamily in Fonts.SystemFontFamilies)
             {
-                List<string>? list = fontFamily.FamilyNames.Values?.Distinct().ToList();
-                if (list is { Count: > 1 })
+                if (fontFamily.FamilyNames.Count <= 1)
                 {
-                    // 超过一个名字的才有意义
-                    fontFamilyAliasList.Add(list);
+                    // 忽略
+                    continue;
+                }
+
+                if (fontFamily.FamilyNames.TryGetValue(XmlLanguage.GetLanguage("en-us"), out var englishName))
+                {
+                    List<string>? list = fontFamily.FamilyNames.Values?.Distinct().ToList();
+                    list?.Remove(englishName);
+
+                    if (list is { Count: > 0 })
+                    {
+                        fontFamilyAliasList.Add((englishName, list));
+                    }
                 }
             }
 
             // 排列组合出所有字体的别名，写入到字典里面
             // 先计算总数
             var codeLineList = new List<string>();
-            foreach (List<string> fontNameList in fontFamilyAliasList)
+            foreach ((string englishName, List<string> aliases) in fontFamilyAliasList)
             {
                 // 生成这个字体的所有别名组合
-                foreach (string fontName in fontNameList)
+                foreach (string fontName in aliases)
                 {
-                    foreach (string alias in fontNameList)
-                    {
-                        if (fontName != alias)
-                        {
-                            codeLineList.Add($"{{\"{fontName}\", \"{alias}\"}},");
-                        }
-                    }
+                    codeLineList.Add($"{{\"{fontName}\", \"{englishName}\"}},");
                 }
             }
 
@@ -174,7 +179,7 @@ namespace LightTextEditorPlus.Demo
                 codeStringBuilder.AppendLine(codeLine);
             }
 
-            codeStringBuilder.AppendLine("}");
+            codeStringBuilder.AppendLine("};");
         }
 
         class SimpleTextParagraphProperties : TextParagraphProperties
