@@ -1,0 +1,84 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <StackPanel Margin="20" Spacing="12">
+            <CheckBox Classes="DarkCheckBox" Content="未选中" />
+            <CheckBox Classes="DarkCheckBox" IsChecked="True" Content="已选中" />
+            <CheckBox Classes="DarkCheckBox" IsEnabled="False" Content="禁用" />
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <Style Selector="CheckBox.DarkCheckBox">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Control}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Strong}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="16,Auto"
+                      ColumnSpacing="8">
+                    <Border x:Name="CheckBorder"
+                            Width="16"
+                            Height="16"
+                            VerticalAlignment="Center"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                        <TextBlock x:Name="CheckGlyph"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{StaticResource Brush.Foreground.Primary}"
+                                   Opacity="0"
+                                   Text="✓" />
+                    </Border>
+                    <ContentPresenter x:Name="ContentPresenter"
+                                      Grid.Column="1"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      RecognizesAccessKey="True" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:pointerover /template/ Border#CheckBorder">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.InteractiveHover}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Strong}" />
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:pressed /template/ Border#CheckBorder">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.InteractiveHover}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Strong}" />
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:checked /template/ Border#CheckBorder">
+        <Setter Property="Background" Value="{StaticResource Brush.Theme.Accent}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Theme.Accent}" />
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:checked /template/ TextBlock#CheckGlyph">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:disabled">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Disabled}" />
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:disabled /template/ Border#CheckBorder">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Control}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Subtle}" />
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:disabled:checked /template/ Border#CheckBorder">
+        <Setter Property="Background" Value="{StaticResource Brush.Border.Subtle}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Subtle}" />
+    </Style>
+
+    <Style Selector="CheckBox.DarkCheckBox:disabled:checked /template/ TextBlock#CheckGlyph">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Disabled}" />
+    </Style>
+</Styles>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using SimpleWrite.Business.FileHandlers;
@@ -15,7 +16,7 @@ internal class FolderSearchService
     private const int PreviewRadius = 24;
     private const long MaxSearchFileSize = 2 * 1024 * 1024;
 
-    public async Task<IReadOnlyList<FolderSearchResult>> SearchAsync(DirectoryInfo rootDirectory, SearchMatcher searchMatcher)
+    public async Task<FolderSearchSummary> SearchAsync(DirectoryInfo rootDirectory, SearchMatcher searchMatcher)
     {
         ArgumentNullException.ThrowIfNull(rootDirectory);
         ArgumentNullException.ThrowIfNull(searchMatcher);
@@ -60,7 +61,13 @@ internal class FolderSearchService
                 continue;
             }
 
-            var matchList = searchMatcher.FindMatches(text);
+            var searchExecutionResult = await searchMatcher.FindMatchesAsync(text, CancellationToken.None);
+            if (searchExecutionResult.IsTimedOut)
+            {
+                return new FolderSearchSummary(resultList, true);
+            }
+
+            var matchList = searchExecutionResult.MatchList;
             if (matchList.Count == 0)
             {
                 continue;
@@ -73,7 +80,7 @@ internal class FolderSearchService
             resultList.Add(new FolderSearchResult(file.FullName, relativePath, previewText, matchList.Count, firstMatch.StartOffset, firstMatch.Length));
         }
 
-        return resultList;
+        return new FolderSearchSummary(resultList, false);
     }
 
     private static IEnumerable<FileInfo> EnumerateFiles(DirectoryInfo directoryInfo)
@@ -127,6 +134,7 @@ internal class FolderSearchService
             }
         }
     }
+
     private static string CreatePreview(string text, int matchIndex, int matchLength)
     {
         var previewStart = Math.Max(0, matchIndex - PreviewRadius);
@@ -157,3 +165,5 @@ internal readonly record struct FolderSearchResult(
     int MatchCount,
     int FirstMatchOffset,
     int MatchLength);
+
+internal readonly record struct FolderSearchSummary(IReadOnlyList<FolderSearchResult> ResultList, bool IsTimedOut);

@@ -43,16 +43,19 @@
                             Margin="12,0,0,0"
                             Orientation="Horizontal">
                     <CheckBox x:Name="FolderSearchScopeCheckBox"
+                              Classes="DarkCheckBox"
                               VerticalAlignment="Center"
                               Content="当前文件夹"
                               IsEnabled="{Binding IsFolderSearchAvailable}"
                               IsChecked="{Binding IsFolderSearchScope, Mode=TwoWay}" />
                     <CheckBox x:Name="CaseInsensitiveCheckBox"
+                              Classes="DarkCheckBox"
                               Margin="12,0,0,0"
                               VerticalAlignment="Center"
                               Content="忽略大小写"
                               IsChecked="{Binding IsCaseInsensitive, Mode=TwoWay}" />
                     <CheckBox x:Name="RegularExpressionCheckBox"
+                              Classes="DarkCheckBox"
                               Margin="12,0,0,0"
                               VerticalAlignment="Center"
                               Content="正则"

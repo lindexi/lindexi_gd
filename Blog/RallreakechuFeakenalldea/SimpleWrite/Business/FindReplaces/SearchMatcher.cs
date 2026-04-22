@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
 namespace SimpleWrite.Business.FindReplaces;
 
 internal sealed class SearchMatcher
 {
+    private static readonly TimeSpan DefaultRegexMatchTimeout = TimeSpan.FromSeconds(3);
+
     private SearchMatcher(string searchText, bool useRegularExpression, bool isCaseInsensitive, Regex? regex)
     {
         SearchText = searchText;
@@ -22,16 +26,22 @@ internal sealed class SearchMatcher
 
     public static bool TryCreate(string searchText, bool useRegularExpression, bool isCaseInsensitive, out SearchMatcher? searchMatcher)
     {
-        ArgumentNullException.ThrowIfNull(searchText);
-        if (searchText.Length == 0)
+        if (string.IsNullOrEmpty(searchText))
         {
-            throw new ArgumentException("Value cannot be empty.", nameof(searchText));
+            searchMatcher = null;
+            return false;
         }
 
         if (!useRegularExpression)
         {
             searchMatcher = new SearchMatcher(searchText, useRegularExpression, isCaseInsensitive, regex: null);
             return true;
+        }
+
+        if (!LooksLikeCompleteRegularExpression(searchText))
+        {
+            searchMatcher = null;
+            return false;
         }
 
         try
@@ -42,7 +52,7 @@ internal sealed class SearchMatcher
                 regexOptions |= RegexOptions.IgnoreCase;
             }
 
-            searchMatcher = new SearchMatcher(searchText, useRegularExpression, isCaseInsensitive, new Regex(searchText, regexOptions));
+            searchMatcher = new SearchMatcher(searchText, useRegularExpression, isCaseInsensitive, new Regex(searchText, regexOptions, DefaultRegexMatchTimeout));
             return true;
         }
         catch (ArgumentException)
@@ -52,21 +62,15 @@ internal sealed class SearchMatcher
         }
     }
 
-    public IReadOnlyList<SearchMatchResult> FindMatches(string text)
+    public Task<SearchExecutionResult> FindMatchesAsync(string text, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(text);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (text.Length == 0)
-        {
-            return [];
-        }
-
-        return _regex is null
-            ? FindLiteralMatches(text)
-            : FindRegexMatches(text);
+        return Task.Run(() => FindMatchesCore(text, cancellationToken), cancellationToken);
     }
 
-    public string GetReplacementText(string sourceText, SearchMatchResult match, string replaceText)
+    public bool TryGetReplacementText(string sourceText, SearchMatchResult match, string replaceText, out string replacementText)
     {
         ArgumentNullException.ThrowIfNull(sourceText);
         ArgumentNullException.ThrowIfNull(match.Value);
@@ -74,33 +78,65 @@ internal sealed class SearchMatcher
 
         if (_regex is null)
         {
-            return replaceText;
+            replacementText = replaceText;
+            return true;
         }
 
-        for (var regexMatch = _regex.Match(sourceText, match.StartOffset);
-             regexMatch.Success;
-             regexMatch = regexMatch.NextMatch())
+        try
         {
-            if (regexMatch.Length == 0)
+            for (var regexMatch = _regex.Match(sourceText, match.StartOffset);
+                 regexMatch.Success;
+                 regexMatch = regexMatch.NextMatch())
             {
-                continue;
-            }
+                if (regexMatch.Length == 0)
+                {
+                    continue;
+                }
 
-            if (regexMatch.Index == match.StartOffset && regexMatch.Length == match.Length)
-            {
-                return regexMatch.Result(replaceText);
-            }
+                if (regexMatch.Index == match.StartOffset && regexMatch.Length == match.Length)
+                {
+                    replacementText = regexMatch.Result(replaceText);
+                    return true;
+                }
 
-            if (regexMatch.Index > match.StartOffset)
-            {
-                break;
+                if (regexMatch.Index > match.StartOffset)
+                {
+                    break;
+                }
             }
         }
+        catch (RegexMatchTimeoutException)
+        {
+            replacementText = string.Empty;
+            return false;
+        }
 
-        return match.Value;
+        replacementText = match.Value;
+        return true;
     }
 
-    private IReadOnlyList<SearchMatchResult> FindLiteralMatches(string text)
+    private SearchExecutionResult FindMatchesCore(string text, CancellationToken cancellationToken)
+    {
+        if (text.Length == 0)
+        {
+            return new SearchExecutionResult([], false);
+        }
+
+        try
+        {
+            var matchList = _regex is null
+                ? FindLiteralMatches(text, cancellationToken)
+                : FindRegexMatches(text);
+
+            return new SearchExecutionResult(matchList, false);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return new SearchExecutionResult([], true);
+        }
+    }
+
+    private IReadOnlyList<SearchMatchResult> FindLiteralMatches(string text, CancellationToken cancellationToken)
     {
         var matchList = new List<SearchMatchResult>();
         var startIndex = 0;
@@ -108,6 +144,8 @@ internal sealed class SearchMatcher
 
         while (startIndex <= text.Length - SearchText.Length)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var matchIndex = text.IndexOf(SearchText, startIndex, stringComparison);
             if (matchIndex < 0)
             {
@@ -119,6 +157,70 @@ internal sealed class SearchMatcher
         }
 
         return matchList;
+    }
+
+    private static bool LooksLikeCompleteRegularExpression(string searchText)
+    {
+        var isEscaped = false;
+        var groupDepth = 0;
+        var bracketDepth = 0;
+        var braceDepth = 0;
+
+        foreach (var character in searchText)
+        {
+            if (isEscaped)
+            {
+                isEscaped = false;
+                continue;
+            }
+
+            if (character == '\\')
+            {
+                isEscaped = true;
+                continue;
+            }
+
+            if (character == '[')
+            {
+                bracketDepth++;
+                continue;
+            }
+
+            if (character == ']' && bracketDepth > 0)
+            {
+                bracketDepth--;
+                continue;
+            }
+
+            if (bracketDepth > 0)
+            {
+                continue;
+            }
+
+            switch (character)
+            {
+                case '(':
+                    groupDepth++;
+                    break;
+                case ')':
+                    if (groupDepth > 0)
+                    {
+                        groupDepth--;
+                    }
+                    break;
+                case '{':
+                    braceDepth++;
+                    break;
+                case '}':
+                    if (braceDepth > 0)
+                    {
+                        braceDepth--;
+                    }
+                    break;
+            }
+        }
+
+        return !isEscaped && groupDepth == 0 && bracketDepth == 0 && braceDepth == 0;
     }
 
     private IReadOnlyList<SearchMatchResult> FindRegexMatches(string text)
@@ -140,5 +242,7 @@ internal sealed class SearchMatcher
 
     private readonly Regex? _regex;
 }
+
+internal readonly record struct SearchExecutionResult(IReadOnlyList<SearchMatchResult> MatchList, bool IsTimedOut);
 
 internal readonly record struct SearchMatchResult(int StartOffset, int Length, string Value);
