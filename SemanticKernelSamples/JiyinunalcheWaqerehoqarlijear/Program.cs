@@ -37,6 +37,7 @@ ChatClientAgent mainAgent = chatClient.AsIChatClient()
     });
 
 var pptFilePath = @"C:\lindexi\Work\示例文档.pptx";
+
 var powerPointReader = new PowerPointReader();
 var powerPointSlideInfoList = await powerPointReader.ReadSlidesAsync(new FileInfo(pptFilePath));
 var fullPptTextBuilder = new StringBuilder();
@@ -71,74 +72,105 @@ ChatMessage initializePromptEngineerMessage = new(ChatRole.System, $$"""
 
 await ExecuteMainAgentAsync(initializePromptEngineerMessage);
 
+
 if (string.IsNullOrWhiteSpace(pptPagePrompt))
 {
     throw new InvalidOperationException("主代理未生成 PPT 页面分析子代理提示词。");
 }
 
+
+var subAgentPromptTemplate = pptPagePrompt;
+
 while (true)
 {
-    Console.Write("请输入当前页页码，直接回车表示结束：");
-    var pageNumberText = Console.ReadLine();
-    if (string.IsNullOrWhiteSpace(pageNumberText))
+    var previousResults = new StringBuilder();
+    var subAgentResults = new List<(int PageNumber, string PageContains, string ContextRole, string RawResponse)>();
+    pageAnalysisResults.Clear();
+
+    for (int i = 0; i < powerPointSlideInfoList.Count; i++)
+    {
+        var slideInfo = powerPointSlideInfoList[i];
+        var pageNumber = slideInfo.SlideIndex;
+        var currentPageText = slideInfo.SlideText;
+        var screenshotPath = slideInfo.SlideImageFile.FullName;
+
+        // 组织 previousResults 字符串
+        var prevResultsText = previousResults.ToString();
+
+        // 替换模板参数
+        var subAgentPrompt = subAgentPromptTemplate
+            .Replace("{{allPptText}}", fullPptText)
+            .Replace("{{pageNumber}}", pageNumber.ToString())
+            .Replace("{{currentPageText}}", currentPageText)
+            .Replace("{{previousResults}}", prevResultsText);
+
+        var analysisResult = await AnalyzeCurrentPageAsync(subAgentPrompt, fullPptText, pageNumber, currentPageText, prevResultsText, screenshotPath);
+        subAgentResults.Add((pageNumber, analysisResult.PageContains, analysisResult.ContextRole, analysisResult.RawResponse));
+        pageAnalysisResults.Add((pageNumber, analysisResult.PageContains, analysisResult.ContextRole));
+
+        // 累加 previousResults
+        previousResults.AppendLine($"---第 {pageNumber} 页---");
+        previousResults.AppendLine($"这页面包含了啥：{analysisResult.PageContains}");
+        previousResults.AppendLine($"在页面上下文的作用：{analysisResult.ContextRole}");
+    }
+
+    // 1. 由中立Agent对本轮所有页面SubAgent输出进行评价
+    var neutralEvalPrompt =
+        "你是一个中立的AI评估者。请根据以下所有页面的分析结果，评价SubAgent的整体表现，包括但不限于：事实描述的准确性、上下文作用分析的合理性、表达的清晰性、幻觉/编造内容等。请输出结构化评价意见。\n\n" +
+        "所有页面分析结果：\n" + previousResults.ToString();
+    var neutralEvalMessage = new ChatMessage(ChatRole.User, neutralEvalPrompt);
+    var neutralAgent = chatClient.AsIChatClient().AsBuilder().BuildAIAgent();
+    var neutralEvalSession = await neutralAgent.CreateSessionAsync();
+    var neutralEvalUpdates = neutralAgent.RunStreamingAsync(neutralEvalMessage, neutralEvalSession);
+    var (_, neutralEvalResult) = await RunStreamingAsync(neutralEvalUpdates);
+
+    Console.WriteLine();
+    Console.WriteLine("---------");
+    Console.WriteLine("中立Agent评价：");
+    Console.WriteLine(neutralEvalResult);
+
+    // 2. 人类输入本轮SubAgent表现评价
+    Console.WriteLine();
+    Console.WriteLine("请对本轮SubAgent表现进行评价（可空，直接回车跳过）：");
+    var humanEval = Console.ReadLine() ?? string.Empty;
+
+    // 3. MainAgent根据SubAgent输出+中立Agent评价+人类评价优化提示词
+    var lastPage = subAgentResults.LastOrDefault();
+    if (lastPage != default)
+    {
+        var optimizePrompt =
+            "请根据本次所有页面的执行表现、中立Agent的评价和人类评价继续优化子代理提示词，并通过工具输出新的完整系统提示词。\n\n" +
+            "固定任务不要变化：\n- 输入仍然是整份 PPT 文本、当前页文本、当前页截图。\n- 输出仍然是“这页面包含了啥”和“在页面上下文的作用”两个维度。\n\n" +
+            "本次所有页面分析结果：\n" + previousResults.ToString() +
+            "\n中立Agent评价：\n" + neutralEvalResult +
+            "\n人类评价：\n" + humanEval +
+            "\n优化重点：\n- 继续提升“页面事实描述”和“上下文作用判断”的区分度。\n- 继续强调忠实描述截图与文本，不要幻觉。\n- 继续强调基于整份 PPT 文本理解当前页作用。\n- 如果当前提示词已经足够好，也请通过工具重新输出一份完整提示词。";
+        var optimizePromptMessage = new ChatMessage(ChatRole.User, optimizePrompt);
+        await ExecuteMainAgentAsync(optimizePromptMessage);
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("---------");
+    Console.WriteLine("最终生成的子代理提示词：");
+    Console.WriteLine(pptPagePrompt);
+    Console.WriteLine();
+    Console.WriteLine("本次页面分析结果汇总：");
+    foreach (var pageAnalysisResult in pageAnalysisResults)
+    {
+        Console.WriteLine($"第 {pageAnalysisResult.PageNumber} 页");
+        Console.WriteLine($"- 这页面包含了啥：{pageAnalysisResult.PageContains}");
+        Console.WriteLine($"- 在页面上下文的作用：{pageAnalysisResult.ContextRole}");
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("是否继续优化？输入 y 继续，其他任意键退出：");
+    var input = Console.ReadLine();
+    if (!string.Equals(input, "y", StringComparison.OrdinalIgnoreCase))
     {
         break;
     }
-
-    if (!int.TryParse(pageNumberText, out var pageNumber))
-    {
-        Console.WriteLine("页码输入不合法，请重新输入。");
-        continue;
-    }
-
-    Console.WriteLine($"请输入第 {pageNumber} 页文本内容，输入完成后单独输入 END：");
-    var currentPageText = ReadMultilineInput();
-
-    Console.Write($"请输入第 {pageNumber} 页截图路径：");
-    var screenshotPath = Console.ReadLine();
-    if (string.IsNullOrWhiteSpace(screenshotPath))
-    {
-        Console.WriteLine("截图路径不能为空，请重新开始当前页处理。");
-        continue;
-    }
-
-    screenshotPath = Path.GetFullPath(screenshotPath);
-    if (!File.Exists(screenshotPath))
-    {
-        Console.WriteLine($"未找到截图文件：{screenshotPath}");
-        continue;
-    }
-
-    var analysisResult = await AnalyzeCurrentPageAsync(fullPptText, pageNumber, screenshotPath);
-    pageAnalysisResults.Add((pageNumber, analysisResult.PageContains, analysisResult.ContextRole));
-
-    ChatMessage optimizePromptMessage = new(ChatRole.User, $$"""
-请根据刚才这一页的执行表现继续优化子代理提示词，并通过工具输出新的完整系统提示词。
-
-固定任务不要变化：
-- 输入仍然是整份 PPT 文本、当前页文本、当前页截图。
-- 输出仍然是“这页面包含了啥”和“在页面上下文的作用”两个维度。
-
-本轮页面信息：
-- 页码：{{pageNumber}}
-- 当前页文本：
-{{currentPageText}}
-
-子代理工具输出：
-- 这页面包含了啥：{{analysisResult.PageContains}}
-- 在页面上下文的作用：{{analysisResult.ContextRole}}
-
-子代理直接文本回复：
-{{analysisResult.RawResponse}}
-
-优化重点：
-- 继续提升“页面事实描述”和“上下文作用判断”的区分度。
-- 继续强调忠实描述截图与文本，不要幻觉。
-- 继续强调基于整份 PPT 文本理解当前页作用。
-- 如果当前提示词已经足够好，也请通过工具重新输出一份完整提示词。
-""");
-
-    await ExecuteMainAgentAsync(optimizePromptMessage);
+    // 使用最新的 pptPagePrompt 作为下一轮 subAgentPromptTemplate
+    subAgentPromptTemplate = pptPagePrompt;
 }
 
 Console.WriteLine();
@@ -189,7 +221,14 @@ async Task ExecuteMainAgentAsync(ChatMessage message)
     }
 }
 
-async Task<(string PageContains, string ContextRole, string RawResponse)> AnalyzeCurrentPageAsync(string allPptText, int pageNumber, string screenshotPath)
+
+async Task<(string PageContains, string ContextRole, string RawResponse)> AnalyzeCurrentPageAsync(
+    string subAgentPrompt,
+    string allPptText,
+    int pageNumber,
+    string currentPageText,
+    string previousResults,
+    string screenshotPath)
 {
     var pageContains = string.Empty;
     var contextRole = string.Empty;
@@ -208,7 +247,7 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
         });
 
     var pageAnalystSession = await pageAnalystAgent.CreateSessionAsync();
-    pageAnalystSession.SetInMemoryChatHistory([new ChatMessage(ChatRole.System, pptPagePrompt)]);
+    pageAnalystSession.SetInMemoryChatHistory([new ChatMessage(ChatRole.System, subAgentPrompt)]);
 
     ChatMessage userMessage = new(ChatRole.User,
     [
@@ -220,8 +259,19 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
 
 当前页页码：{{pageNumber}}
 
+当前页文本：
+{{currentPageText}}
+
+前序页面分析结果：
+{{previousResults}}
+
 请结合当前页截图，完成分析并调用工具输出结果。
-"""),
+"""
+            .Replace("{{allPptText}}", allPptText)
+            .Replace("{{pageNumber}}", pageNumber.ToString())
+            .Replace("{{currentPageText}}", currentPageText)
+            .Replace("{{previousResults}}", previousResults)
+        ),
         CreateScreenshotContent(screenshotPath)
     ]);
 
