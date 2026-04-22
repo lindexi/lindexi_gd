@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using LightTextEditorPlus;
 
 namespace SimpleWrite.Business.TextEditors.CommandPatterns;
 
@@ -19,8 +20,9 @@ public class DelegateCommandPattern(string title, Func<string, Task> doFunc, boo
 
         return new ValueTask<bool>(true);
     }
-    public Task DoAsync(string text)
+    public Task DoAsync(string text, TextEditor textEditor)
     {
+        _ = textEditor;
         return DoFunc(text);
     }
 }

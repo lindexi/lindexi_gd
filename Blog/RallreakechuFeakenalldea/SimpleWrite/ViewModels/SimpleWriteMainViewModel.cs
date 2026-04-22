@@ -1,14 +1,16 @@
-﻿using SimpleWrite.Models;
+﻿using AvaloniaAgentLib.ViewModel;
+
+using SimpleWrite.Business;
+using SimpleWrite.Business.PluginCommandPatterns;
+using SimpleWrite.Business.SimpleWriteConfigurations;
+using SimpleWrite.Business.TextEditors.CommandPatterns;
+using SimpleWrite.Foundation;
+using SimpleWrite.Models;
 
 using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
-using AvaloniaAgentLib.ViewModel;
-using SimpleWrite.Business;
-using SimpleWrite.Business.SimpleWriteConfigurations;
-using SimpleWrite.Business.TextEditors.CommandPatterns;
-using SimpleWrite.Foundation;
 
 namespace SimpleWrite.ViewModels;
 
@@ -43,6 +45,9 @@ public class SimpleWriteMainViewModel
         AddSaveStatusChanged(EditorViewModel.CurrentEditorModel);
         FindReplaceViewModel.RefreshCurrentEditor();
         StatusViewModel.SetFindStatusText(FindReplaceViewModel.SearchStatusText);
+
+        var pluginCommandPatternProvider = new PluginCommandPatternProvider();
+        pluginCommandPatternProvider.AddPatterns(CommandPatternManager);
 
         void AddSaveStatusChanged(EditorModel editorModel)
         {

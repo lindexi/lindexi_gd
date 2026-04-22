@@ -115,7 +115,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
                                 Header = commandPattern.Title
                             };
                             menuItems.Add(menuItem);
-                            menuItem.Click += (sender, eventArgs) => _ = commandPattern.DoAsync(selectedText);
+                            menuItem.Click += (sender, eventArgs) => _ = commandPattern.DoAsync(selectedText, this);
                         }
                     }
                 }

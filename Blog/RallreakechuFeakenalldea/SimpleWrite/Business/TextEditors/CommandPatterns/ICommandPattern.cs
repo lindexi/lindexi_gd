@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using LightTextEditorPlus;
 
 namespace SimpleWrite.Business.TextEditors.CommandPatterns;
 
@@ -13,5 +14,5 @@ public interface ICommandPattern
 
     string Title { get; }
 
-    Task DoAsync(string text);
+    Task DoAsync(string text, TextEditor textEditor);
 }
