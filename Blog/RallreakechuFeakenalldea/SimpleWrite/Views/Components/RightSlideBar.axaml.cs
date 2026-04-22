@@ -75,9 +75,10 @@ public partial class RightSlideBar : UserControl
             const string keyHelpText = "请填充密码";
             const string modelNameHelpText = "请填充模型名";
 
+            mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
+
             if (IsIsInvalid())
             {
-                mainViewModel.SidebarConversationPresenter = null;
                 agentApiConfiguration.EndPoint ??= endPointHelpText;
                 agentApiConfiguration.Key ??= keyHelpText;
                 agentApiConfiguration.ModelName ??= modelNameHelpText;
@@ -88,7 +89,6 @@ public partial class RightSlideBar : UserControl
             {
                 copilotViewModel.AgentApiEndpointManager.CurrentEndpoint = new ApiEndpoint(
                     agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
-                mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
 
                 var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel);
                 copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
