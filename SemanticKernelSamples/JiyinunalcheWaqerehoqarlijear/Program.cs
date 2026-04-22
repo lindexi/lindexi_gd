@@ -67,11 +67,10 @@ ChatMessage initializePromptEngineerMessage = new(ChatRole.System, $$"""
 - 必须要求结合整份 PPT 文本去判断当前页的上下文作用。
 - 必须要求优先输出结构化、稳定、可复用的结果。
 - 必须要求子代理调用工具提交两个维度的结果。
-- 你输出的内容必须是可直接使用的完整 System Prompt，不要额外输出解释。
+- 你输出的内容必须是可直接使用的完整 Prompt，不要额外输出解释。
 """);
 
-await ExecuteMainAgentAsync(initializePromptEngineerMessage);
-
+await ExecuteMainAgentAsync(initializePromptEngineerMessage, mainSession);
 
 if (string.IsNullOrWhiteSpace(pptPagePrompt))
 {
@@ -139,14 +138,28 @@ while (true)
     if (lastPage != default)
     {
         var optimizePrompt =
-            "请根据本次所有页面的执行表现、中立Agent的评价和人类评价继续优化子代理提示词，并通过工具输出新的完整系统提示词。\n\n" +
-            "固定任务不要变化：\n- 输入仍然是整份 PPT 文本、当前页文本、当前页截图。\n- 输出仍然是“这页面包含了啥”和“在页面上下文的作用”两个维度。\n\n" +
-            "本次所有页面分析结果：\n" + previousResults.ToString() +
-            "\n中立Agent评价：\n" + neutralEvalResult +
-            "\n人类评价：\n" + humanEval +
-            "\n优化重点：\n- 继续提升“页面事实描述”和“上下文作用判断”的区分度。\n- 继续强调忠实描述截图与文本，不要幻觉。\n- 继续强调基于整份 PPT 文本理解当前页作用。\n- 如果当前提示词已经足够好，也请通过工具重新输出一份完整提示词。";
+            $@"请根据本次所有页面的执行表现、中立Agent的评价和人类评价继续优化子代理提示词，并通过工具输出新的完整系统提示词。
+
+固定任务不要变化：
+- 输入仍然是整份 PPT 文本、当前页文本、当前页截图。
+- 输出仍然是“这页面包含了啥”和“在页面上下文的作用”两个维度。
+
+本次所有页面分析结果：
+{previousResults}
+中立Agent评价：
+{neutralEvalResult}
+人类评价：
+{humanEval}
+优化重点：
+- 继续提升“页面事实描述”和“上下文作用判断”的区分度。
+- 继续强调忠实描述截图与文本，不要幻觉。
+- 继续强调基于整份 PPT 文本理解当前页作用。";
+
+        mainSession = await mainAgent.CreateSessionAsync();
+        mainSession.SetInMemoryChatHistory([initializePromptEngineerMessage]);
+
         var optimizePromptMessage = new ChatMessage(ChatRole.User, optimizePrompt);
-        await ExecuteMainAgentAsync(optimizePromptMessage);
+        await ExecuteMainAgentAsync(optimizePromptMessage, mainSession);
     }
 
     Console.WriteLine();
@@ -199,13 +212,13 @@ void SavePptPageAnalystPrompt([Description("完整的子代理系统提示词内
     Console.WriteLine(pptPagePrompt);
 }
 
-async Task ExecuteMainAgentAsync(ChatMessage message)
+async Task ExecuteMainAgentAsync(ChatMessage message, AgentSession session)
 {
     while (true)
     {
         try
         {
-            var agentResponseUpdates = mainAgent.RunStreamingAsync(message, mainSession);
+            var agentResponseUpdates = mainAgent.RunStreamingAsync(message, session);
             await RunStreamingAsync(agentResponseUpdates);
             return;
         }
@@ -246,32 +259,16 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
             }
         });
 
+    var prompt = subAgentPrompt.Replace("{{AllPptText}}", allPptText)
+        .Replace("{{SlideIndex}}", pageNumber.ToString())
+        .Replace("{{CurrentPageText}}", currentPageText)
+        .Replace("{{PreviousResults}}", previousResults);
+
     var pageAnalystSession = await pageAnalystAgent.CreateSessionAsync();
-    pageAnalystSession.SetInMemoryChatHistory([new ChatMessage(ChatRole.System, subAgentPrompt)]);
 
     ChatMessage userMessage = new(ChatRole.User,
     [
-        new TextContent($$"""
-请分析当前 PPT 页面。
-
-整份 PPT 的全部文本：
-{{allPptText}}
-
-当前页页码：{{pageNumber}}
-
-当前页文本：
-{{currentPageText}}
-
-前序页面分析结果：
-{{previousResults}}
-
-请结合当前页截图，完成分析并调用工具输出结果。
-"""
-            .Replace("{{allPptText}}", allPptText)
-            .Replace("{{pageNumber}}", pageNumber.ToString())
-            .Replace("{{currentPageText}}", currentPageText)
-            .Replace("{{previousResults}}", previousResults)
-        ),
+        new TextContent(prompt),
         CreateScreenshotContent(screenshotPath)
     ]);
 
