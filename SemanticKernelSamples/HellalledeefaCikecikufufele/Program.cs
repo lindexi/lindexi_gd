@@ -5,6 +5,8 @@ using OpenAI;
 
 using System.ClientModel;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 
 var keyFile = @"C:\lindexi\Work\Doubao.txt";
 var key = File.ReadAllText(keyFile);
@@ -431,6 +433,9 @@ var blog3 =
 var message = prompt.Replace("$(Blog1)", blog1)
     .Replace("$(Blog2)", blog2)
     .Replace("$(Blog3)", blog3);
+
+var xElement = new XElement("Content", message);
+var xmlText = xElement.ToString(SaveOptions.None);
 
 var input =
     """"
