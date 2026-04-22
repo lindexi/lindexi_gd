@@ -10,6 +10,7 @@ sealed class TextToBase64CommandPattern(PluginCommandPatternProvider pluginComma
 {
     private static readonly UTF8Encoding Utf8Encoding = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
+    public int Priority => 0;
     public bool SupportSingleLine => true;
 
     public ValueTask<bool> IsMatchAsync(string text)

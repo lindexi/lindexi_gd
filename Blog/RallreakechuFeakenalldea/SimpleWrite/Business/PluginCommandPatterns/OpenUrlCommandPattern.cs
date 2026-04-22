@@ -8,6 +8,7 @@ namespace SimpleWrite.Business.PluginCommandPatterns;
 
 sealed class OpenUrlCommandPattern : ICommandPattern
 {
+    public int Priority => 10;
     public bool SupportSingleLine => true;
 
     public ValueTask<bool> IsMatchAsync(string text)
