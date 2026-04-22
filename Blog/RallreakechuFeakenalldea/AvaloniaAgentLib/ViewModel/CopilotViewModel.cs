@@ -107,6 +107,22 @@ public class CopilotViewModel : INotifyPropertyChanged
             : new FileCopilotChatLogger(chatLogFolder);
     }
 
+    public async Task AddLocalConversationAsync(string userText, string assistantText,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userText);
+        ArgumentNullException.ThrowIfNull(assistantText);
+
+        CopilotChatSession currentSession = SelectedSession;
+
+        var userChatMessage = CopilotChatMessage.CreateUser(userText);
+        userChatMessage.IsPresetInfo = true;
+        await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
+
+        var assistantChatMessage = CopilotChatMessage.CreateAssistant(assistantText, isPresetInfo: true);
+        await AppendMessageAsync(currentSession, assistantChatMessage, cancellationToken);
+    }
+
     public async Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(inputText))
@@ -122,8 +138,7 @@ public class CopilotViewModel : INotifyPropertyChanged
             cancellationToken.ThrowIfCancellationRequested();
 
             var userChatMessage = CopilotChatMessage.CreateUser(inputText);
-            currentSession.AddMessage(userChatMessage);
-            await ChatLogger.LogMessageAsync(currentSession.SessionId, userChatMessage);
+            await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
@@ -203,19 +218,26 @@ public class CopilotViewModel : INotifyPropertyChanged
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             var canceledMessage = CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true);
-            currentSession.AddMessage(canceledMessage);
-            await ChatLogger.LogMessageAsync(currentSession.SessionId, canceledMessage);
+            await AppendMessageAsync(currentSession, canceledMessage, cancellationToken);
         }
         catch (Exception exception)
         {
             var exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
-            currentSession.AddMessage(exceptionMessage);
-            await ChatLogger.LogMessageAsync(currentSession.SessionId, exceptionMessage);
+            await AppendMessageAsync(currentSession, exceptionMessage, cancellationToken);
         }
         finally
         {
             IsChatting = false;
         }
+    }
+
+    private async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        session.AddMessage(chatMessage);
+        await ChatLogger.LogMessageAsync(session.SessionId, chatMessage);
     }
 
     private static void AddAssistantWelcomeMessage(CopilotChatSession session)

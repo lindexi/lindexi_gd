@@ -13,6 +13,7 @@ using SimpleWrite.Business.SimpleWriteConfigurations;
 using SimpleWrite.ViewModels;
 
 using System;
+using System.Text;
 using System.Threading.Tasks;
 using Avalonia;
 using SimpleWrite.Business.TextEditors.CommandPatterns;
@@ -228,8 +229,12 @@ public partial class RightSlideBar : UserControl
 
 file class CopilotPatternProvider(CopilotViewModel copilotViewModel)
 {
+    private static readonly UTF8Encoding Utf8Encoding = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
     public void AddCopilotPatterns(CommandPatternManager commandPatternManager)
     {
+        ArgumentNullException.ThrowIfNull(commandPatternManager);
+
         commandPatternManager.AddCommandPattern("发送选中内容到 Copilot 聊天", text => copilotViewModel.SendMessageAsync(text, withHistory: false));
 
         commandPatternManager.AddCommandPattern("翻译为计算机英文", text =>
@@ -251,5 +256,140 @@ file class CopilotPatternProvider(CopilotViewModel copilotViewModel)
                      """;
             return copilotViewModel.SendMessageAsync(prompt, withHistory: false);
         }, supportSingleLine: false);
+
+        commandPatternManager.AddCommandPattern("文本转 Base64", text =>
+        {
+            string result = Convert.ToBase64String(Utf8Encoding.GetBytes(text));
+            return AddLocalConversionAsync("请将以下内容转换为 Base64：", text, result);
+        });
+
+        commandPatternManager.AddCommandPattern("Base64 转文本", text =>
+        {
+            _ = TryDecodeBase64(text, out string result);
+            return AddLocalConversionAsync("请将以下 Base64 内容转换为文本：", text, result);
+        }, isMatchFunc: static text => ValueTask.FromResult(TryDecodeBase64(text, out _)));
+
+        commandPatternManager.AddCommandPattern("文本转二进制", text =>
+        {
+            string result = ConvertTextToBinary(text);
+            return AddLocalConversionAsync("请将以下文本转换为二进制（UTF-8）：", text, result);
+        });
+
+        commandPatternManager.AddCommandPattern("二进制转文本", text =>
+        {
+            _ = TryDecodeBinaryText(text, out string result);
+            return AddLocalConversionAsync("请将以下二进制内容转换为文本：", text, result);
+        }, isMatchFunc: static text => ValueTask.FromResult(TryDecodeBinaryText(text, out _)));
+    }
+
+    private Task AddLocalConversionAsync(string instruction, string text, string result)
+    {
+        var prompt =
+            $"""
+             {instruction}
+             {text}
+             """;
+
+        var response =
+            $"""
+             结果：
+             {result}
+             """;
+
+        return copilotViewModel.AddLocalConversationAsync(prompt, response);
+    }
+
+    private static bool TryDecodeBase64(string text, out string result)
+    {
+        result = string.Empty;
+
+        string normalizedText = RemoveWhitespace(text);
+        if (string.IsNullOrWhiteSpace(normalizedText) || normalizedText.Length % 4 != 0)
+        {
+            return false;
+        }
+
+        byte[] buffer = new byte[normalizedText.Length];
+        if (!Convert.TryFromBase64String(normalizedText, buffer, out int bytesWritten))
+        {
+            return false;
+        }
+
+        try
+        {
+            result = Utf8Encoding.GetString(buffer, 0, bytesWritten);
+            return true;
+        }
+        catch (DecoderFallbackException)
+        {
+            return false;
+        }
+    }
+
+    private static string ConvertTextToBinary(string text)
+    {
+        byte[] byteArray = Utf8Encoding.GetBytes(text);
+        var stringBuilder = new StringBuilder(byteArray.Length * 9);
+        for (int i = 0; i < byteArray.Length; i++)
+        {
+            if (i > 0)
+            {
+                stringBuilder.Append(' ');
+            }
+
+            stringBuilder.Append(Convert.ToString(byteArray[i], 2).PadLeft(8, '0'));
+        }
+
+        return stringBuilder.ToString();
+    }
+
+    private static bool TryDecodeBinaryText(string text, out string result)
+    {
+        result = string.Empty;
+
+        string normalizedText = RemoveWhitespace(text);
+        if (string.IsNullOrWhiteSpace(normalizedText) || normalizedText.Length % 8 != 0)
+        {
+            return false;
+        }
+
+        byte[] byteArray = new byte[normalizedText.Length / 8];
+        for (int i = 0; i < normalizedText.Length; i += 8)
+        {
+            ReadOnlySpan<char> byteSpan = normalizedText.AsSpan(i, 8);
+            for (int j = 0; j < byteSpan.Length; j++)
+            {
+                if (byteSpan[j] is not ('0' or '1'))
+                {
+                    return false;
+                }
+            }
+
+            byteArray[i / 8] = Convert.ToByte(byteSpan.ToString(), 2);
+        }
+
+        try
+        {
+            result = Utf8Encoding.GetString(byteArray);
+            return true;
+        }
+        catch (DecoderFallbackException)
+        {
+            return false;
+        }
+    }
+
+    private static string RemoveWhitespace(string text)
+    {
+        var stringBuilder = new StringBuilder(text.Length);
+        foreach (char c in text)
+        {
+            if (!char.IsWhiteSpace(c))
+            {
+                stringBuilder.Append(c);
+            }
+        }
+
+        return stringBuilder.ToString();
     }
 }

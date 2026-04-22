@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SimpleWrite.Business.TextEditors.CommandPatterns;
 
 namespace SimpleWrite.Business.PluginCommandPatterns;
@@ -14,8 +10,10 @@ internal class PluginCommandPatternProvider
 {
     public void AddPatterns(CommandPatternManager commandPatternManager)
     {
-        var manager = commandPatternManager;
+        ArgumentNullException.ThrowIfNull(commandPatternManager);
 
         // 添加插件提供器
+        commandPatternManager.AddCommandPattern(new RunCommandLineCommandPattern());
+        commandPatternManager.AddCommandPattern(new OpenUrlCommandPattern());
     }
 }
