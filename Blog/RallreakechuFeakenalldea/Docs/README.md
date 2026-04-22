@@ -17,6 +17,7 @@
 
 | 主题 | 文档 |
 |---|---|
+| 编辑器右键命令模式与本地转换 | `Knowledge/Avalonia/Command-Pattern-And-Local-Transform.md` |
 | 左侧目录树与文件夹查找 | `Knowledge/Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | 目录树选中联动与深色主题 | `Knowledge/Avalonia/Folder-TreeView-Selection-And-Theme.md` |
 | 编辑器选区发送到 Copilot | `Knowledge/Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md` |

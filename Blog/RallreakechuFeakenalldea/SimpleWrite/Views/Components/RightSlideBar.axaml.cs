@@ -15,7 +15,6 @@ using SimpleWrite.ViewModels;
 using System;
 using System.Threading.Tasks;
 using Avalonia;
-using SimpleWrite.Business.TextEditors.CommandPatterns;
 
 namespace SimpleWrite.Views.Components;
 
@@ -78,6 +77,7 @@ public partial class RightSlideBar : UserControl
 
             if (IsIsInvalid())
             {
+                mainViewModel.SidebarConversationPresenter = null;
                 agentApiConfiguration.EndPoint ??= endPointHelpText;
                 agentApiConfiguration.Key ??= keyHelpText;
                 agentApiConfiguration.ModelName ??= modelNameHelpText;
@@ -88,6 +88,7 @@ public partial class RightSlideBar : UserControl
             {
                 copilotViewModel.AgentApiEndpointManager.CurrentEndpoint = new ApiEndpoint(
                     agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
+                mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
 
                 var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel);
                 copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
@@ -226,29 +227,39 @@ public partial class RightSlideBar : UserControl
     }
 }
 
-file class CopilotPatternProvider(CopilotViewModel copilotViewModel)
+file sealed class SidebarConversationPresenter(CopilotViewModel copilotViewModel) : ISidebarConversationPresenter
 {
-    public void AddCopilotPatterns(CommandPatternManager commandPatternManager)
+    public Task ShowConversationAsync(string userText, string assistantText)
     {
+        return copilotViewModel.AddLocalConversationAsync(userText, assistantText);
+    }
+}
+
+file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel)
+{
+    public void AddCopilotPatterns(SimpleWrite.Business.TextEditors.CommandPatterns.CommandPatternManager commandPatternManager)
+    {
+        ArgumentNullException.ThrowIfNull(commandPatternManager);
+
         commandPatternManager.AddCommandPattern("发送选中内容到 Copilot 聊天", text => copilotViewModel.SendMessageAsync(text, withHistory: false));
 
         commandPatternManager.AddCommandPattern("翻译为计算机英文", text =>
         {
             var prompt =
-                     $"""
-                     请帮我将以下内容转述为地道的计算机英文，我将在即时聊天中使用：
-                     {text}
-                     """;
+                $"""
+                 请帮我将以下内容转述为地道的计算机英文，我将在即时聊天中使用：
+                 {text}
+                 """;
             return copilotViewModel.SendMessageAsync(prompt, withHistory: false);
         });
 
         commandPatternManager.AddCommandPattern("Json转C#类", text =>
         {
             var prompt =
-                    $"""
-                     将以下 json 转换为 C# 的类型，要求使用 System.Text.Json 作为 Json 特性定义。要求 C# 属性命名符合 .NET 规范，采用帕斯卡风格：
-                     {text}
-                     """;
+                $"""
+                 将以下 json 转换为 C# 的类型，要求使用 System.Text.Json 作为 Json 特性定义。要求 C# 属性命名符合 .NET 规范，采用帕斯卡风格：
+                 {text}
+                 """;
             return copilotViewModel.SendMessageAsync(prompt, withHistory: false);
         }, supportSingleLine: false);
     }

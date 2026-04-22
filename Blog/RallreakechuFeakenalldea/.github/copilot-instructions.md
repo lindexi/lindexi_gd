@@ -54,6 +54,12 @@
 - 共享控件样式统一从 `SimpleWrite/Styles/MainStyles.axaml` 聚合。
 - 已声明 `x:Name` 的控件直接使用生成字段，不再通过 `FindControl` 查找。
 
+### 插件命令模式
+
+- 在此仓库中，`PluginCommandPatternProvider` 不应通过多个委托注入能力，而应直接感知 `SimpleWriteMainViewModel`。
+- 仅与模型无关的命令放在该提供器中。
+- 用于侧边栏显示对话的接口命名应强调侧边栏会话展示，而非 Copilot。
+
 ## 常见扩展入口
 
 | 场景 | 入口 |
