@@ -125,6 +125,15 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     public async Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
     {
+        await SendMessageAsync(inputText, withHistory, tools: null, toolMode: null, cancellationToken);
+    }
+
+    /// <summary>
+    /// 发送消息并允许附加 Agent 工具调用。
+    /// </summary>
+    public async Task SendMessageAsync(string? inputText, bool withHistory, IEnumerable<AITool>? tools,
+        ChatToolMode? toolMode, CancellationToken cancellationToken = default)
+    {
         if (string.IsNullOrWhiteSpace(inputText))
         {
             return;
@@ -141,11 +150,13 @@ public class CopilotViewModel : INotifyPropertyChanged
             await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
+            List<AITool>? toolList = tools?.ToList();
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
                 {
-
+                    Tools = toolList,
+                    ToolMode = toolList is { Count: > 0 } ? toolMode : null,
                 }
             });
 

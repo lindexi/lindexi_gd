@@ -9,7 +9,9 @@ using AvaloniaAgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
 using SimpleWrite.Business;
+using SimpleWrite.Business.CopilotCommandPatterns;
 using SimpleWrite.Business.SimpleWriteConfigurations;
+using SimpleWrite.Business.TextEditors.CommandPatterns;
 using SimpleWrite.ViewModels;
 
 using System;
@@ -75,9 +77,10 @@ public partial class RightSlideBar : UserControl
             const string keyHelpText = "请填充密码";
             const string modelNameHelpText = "请填充模型名";
 
+            mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
+
             if (IsIsInvalid())
             {
-                mainViewModel.SidebarConversationPresenter = null;
                 agentApiConfiguration.EndPoint ??= endPointHelpText;
                 agentApiConfiguration.Key ??= keyHelpText;
                 agentApiConfiguration.ModelName ??= modelNameHelpText;
@@ -88,7 +91,6 @@ public partial class RightSlideBar : UserControl
             {
                 copilotViewModel.AgentApiEndpointManager.CurrentEndpoint = new ApiEndpoint(
                     agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
-                mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
 
                 var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel);
                 copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
@@ -237,11 +239,13 @@ file sealed class SidebarConversationPresenter(CopilotViewModel copilotViewModel
 
 file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel)
 {
-    public void AddCopilotPatterns(SimpleWrite.Business.TextEditors.CommandPatterns.CommandPatternManager commandPatternManager)
+    public void AddCopilotPatterns(CommandPatternManager commandPatternManager)
     {
         ArgumentNullException.ThrowIfNull(commandPatternManager);
 
-        commandPatternManager.AddCommandPattern("发送选中内容到 Copilot 聊天", text => copilotViewModel.SendMessageAsync(text, withHistory: false));
+        commandPatternManager.AddCommandPattern(new PolishSelectedTextCommandPattern(copilotViewModel));
+
+        commandPatternManager.AddCommandPattern("发送选中内容到 Copilot 聊天", text => copilotViewModel.SendMessageAsync(text, withHistory: false), priority: 200);
 
         commandPatternManager.AddCommandPattern("翻译为计算机英文", text =>
         {
@@ -251,7 +255,7 @@ file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel)
                  {text}
                  """;
             return copilotViewModel.SendMessageAsync(prompt, withHistory: false);
-        });
+        }, priority: 180);
 
         commandPatternManager.AddCommandPattern("Json转C#类", text =>
         {
@@ -261,6 +265,6 @@ file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel)
                  {text}
                  """;
             return copilotViewModel.SendMessageAsync(prompt, withHistory: false);
-        }, supportSingleLine: false);
+        }, supportSingleLine: false, priority: 160);
     }
 }

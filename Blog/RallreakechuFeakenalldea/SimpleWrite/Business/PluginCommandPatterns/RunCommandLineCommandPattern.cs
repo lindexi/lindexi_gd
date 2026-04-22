@@ -94,6 +94,7 @@ sealed class RunCommandLineCommandPattern : ICommandPattern
 
     private readonly PlatformTerminalRunner? _platformTerminalRunner = PlatformTerminalRunner.CreateCurrent();
 
+    public int Priority => 20;
     public bool SupportSingleLine => true;
 
     public ValueTask<bool> IsMatchAsync(string text)
