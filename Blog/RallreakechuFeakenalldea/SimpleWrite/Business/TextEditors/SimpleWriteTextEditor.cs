@@ -18,6 +18,7 @@ using SkiaSharp;
 
 using System;
 using System.Threading.Tasks;
+using SimpleWrite.Business.TextEditors.CommandPatterns;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -58,75 +59,72 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         };
     }
 
-    protected override void OnRaisePrepareContextMenuEvent(PrepareContextMenuEventArgs args)
+    public CommandPatternManager? CommandPatternManager { get; init; }
+
+    protected override async void OnRaisePrepareContextMenuEvent(PrepareContextMenuEventArgs args)
     {
-        if (ContextMenu?.Items is { } menuItems && RequestSendTextToCopilot != null)
+        try
         {
-            var selection = CurrentSelection;
+            base.OnRaisePrepareContextMenuEvent(args);
 
-            if (!selection.IsEmpty)
+            if (ContextMenu?.Items is { } menuItems && CommandPatternManager != null)
             {
-                var selectedText = GetText(in selection);
+                var selection = CurrentSelection;
+                string selectedText;
+                bool isSingleLine;
 
-                Add("发送选中内容到 Copilot 聊天", () =>
+                if (!selection.IsEmpty)
                 {
-                    RaiseRequestSendTextToCopilot(selectedText);
-                });
-
-                Add("翻译为计算机英文", () =>
-                {
-                    var prompt =
-                        $"""
-                         请帮我将以下内容转述为地道的计算机英文，我将在即时聊天中使用：
-                         {selectedText}
-                         """;
-                    RaiseRequestSendTextToCopilot(prompt);
-                });
-
-                Add("Json转C#类", () =>
-                {
-                    var prompt =
-                        $"""
-                         将以下 json 转换为 C# 的类型，要求使用 System.Text.Json 作为 Json 特性定义。要求 C# 属性命名符合 .NET 规范，采用帕斯卡风格：
-                         {selectedText}
-                         """;
-                    RaiseRequestSendTextToCopilot(prompt);
-                });
-
-                void Add(string header, Action action)
-                {
-                    var menuItem = new MenuItem()
-                    {
-                        Header = header
-                    };
-                    menuItems.Add(menuItem);
-                    menuItem.Click += (sender, eventArgs) => action();
+                    selectedText = GetText(in selection);
+                    isSingleLine = false;
                 }
-            }
-            else if (args.TryHitTest(out var result))
-            {
-                var hitParagraphData = result.HitParagraphData;
-                if (hitParagraphData.IsEmptyParagraph)
+                else if (args.TryHitTest(out var result))
                 {
-                    // 空段落啥都不干
+                    isSingleLine = true;
+
+                    var hitParagraphData = result.HitParagraphData;
+                    if (hitParagraphData.IsEmptyParagraph)
+                    {
+                        // 空段落啥都不干
+                        selectedText = string.Empty;
+                    }
+                    else
+                    {
+                        selectedText = hitParagraphData.GetText();
+                    }
                 }
                 else
                 {
-                    var sendTextToCopilotMenuItem = new MenuItem()
+                    isSingleLine = true;
+                    selectedText = string.Empty;
+                }
+
+                if (!string.IsNullOrEmpty(selectedText))
+                {
+                    foreach (var commandPattern in CommandPatternManager.CommandPatternList)
                     {
-                        Header = "发送当前段落内容到 Copilot 聊天"
-                    };
-                    sendTextToCopilotMenuItem.Click += (sender, eventArgs) =>
-                    {
-                        var text = hitParagraphData.GetText();
-                        RequestSendTextToCopilot?.Invoke(this, text);
-                    };
-                    menuItems.Add(sendTextToCopilotMenuItem);
+                        if (isSingleLine && !commandPattern.SupportSingleLine)
+                        {
+                            continue;
+                        }
+
+                        if (await commandPattern.IsMatchAsync(selectedText))
+                        {
+                            var menuItem = new MenuItem()
+                            {
+                                Header = commandPattern.Title
+                            };
+                            menuItems.Add(menuItem);
+                            menuItem.Click += (sender, eventArgs) => _ = commandPattern.DoAsync(selectedText, this);
+                        }
+                    }
                 }
             }
         }
-
-        base.OnRaisePrepareContextMenuEvent(args);
+        catch (Exception e)
+        {
+            // 先忽略
+        }
     }
 
 
@@ -158,12 +156,6 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     /// 代码片管理器
     /// </summary>
     public required SnippetManager SnippetManager { get; init; }
-
-    public event EventHandler<string>? RequestSendTextToCopilot;
-    private void RaiseRequestSendTextToCopilot(string text)
-    {
-        RequestSendTextToCopilot?.Invoke(this, text);
-    }
 
     public IDocumentHighlighter DocumentHighlighter { get; private set; }
 

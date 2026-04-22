@@ -169,17 +169,13 @@ public class EditorViewModel : ViewModelBase
         {
             ShortcutExecutor = ShortcutExecutor,
             SnippetManager = SnippetManager,
+            CommandPatternManager = MainViewModel.CommandPatternManager,
         };
         textEditor.TextEditorCore.SetExitDebugMode();
 
         textEditor.TextEditorCore.TextChanged += (sender, args) =>
         {
             UpdateEditorModel(textEditor, editorModel);
-        };
-
-        textEditor.RequestSendTextToCopilot += (sender, selectedText) =>
-        {
-            _ = MainViewModel.SendMessageToCopilotAsync(selectedText);
         };
 
         return textEditor;
