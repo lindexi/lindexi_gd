@@ -84,6 +84,44 @@
 
 ## Copilot 本地转换约定
 
+除了代码里内置的命令外，`RightSlideBar` 侧的 `CopilotPatternProvider` 现在还会从本地能力文件夹加载额外的 Copilot 命令。
+
+### 能力文件夹约定
+
+- 应用级配置类：`SimpleWrite/Business/SimpleWriteConfigurations/SimpleWriteAppConfiguration.cs`
+- 配置入口：`ConfigurationManager.SimpleWriteAppConfiguration.CopilotAbilityDirectory`
+- 默认目录：`%LocalAppData%/SimpleWrite/CopilotAbilities`
+
+默认目录与 `Configurations`、`Logs` 文件夹同级。如果配置里写的是相对路径，会基于 `SimpleWrite` 的数据根目录解析。
+
+### 能力文件格式
+
+能力文件夹下每个 `*.xml` 文件表示一个独立能力。当前解析器支持“同名 XML 属性”或“同名 XML 元素”两种写法，但为了便于编写多行提示词，推荐使用元素配合 `CDATA`：
+
+```xml
+<CopilotAbility>
+  <Title>翻译为简体中文</Title>
+  <Content><![CDATA[
+请将以下内容翻译为简体中文，保留原有 Markdown 结构：
+$(Input)
+]]></Content>
+  <Priority>170</Priority>
+  <SupportSingleLine>false</SupportSingleLine>
+</CopilotAbility>
+```
+
+其中有两个硬性约束：
+
+1. `Title` 不能为空，它会直接显示在右键菜单里。
+2. `Content` 必须包含 `$(Input)` 占位符；执行命令时会把当前选中文本或命中的单段文本替换进去，再作为 prompt 发送给 `CopilotViewModel.SendMessageAsync(...)`。
+
+其余属性当前已支持：
+
+- `Priority`：命令优先级，默认 `0`；
+- `SupportSingleLine`：是否允许在“无选区，仅命中当前段落”时显示，默认 `true`。
+
+如果某个 XML 文件格式错误、缺少关键属性，或者 `Content` 没有包含 `$(Input)`，该文件会被跳过，并在 Copilot 侧边栏追加一条预设提示，说明哪些文件没有成功加载。
+
 以下转换不需要调用模型：
 
 - 文本转 Base64；

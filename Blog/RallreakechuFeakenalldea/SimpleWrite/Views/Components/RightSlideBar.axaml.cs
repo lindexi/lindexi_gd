@@ -15,7 +15,13 @@ using SimpleWrite.Business.TextEditors.CommandPatterns;
 using SimpleWrite.ViewModels;
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 using Avalonia;
 
 namespace SimpleWrite.Views.Components;
@@ -92,7 +98,7 @@ public partial class RightSlideBar : UserControl
                 copilotViewModel.AgentApiEndpointManager.CurrentEndpoint = new ApiEndpoint(
                     agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
 
-                var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel);
+                var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
                 copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
             }
 
@@ -237,7 +243,7 @@ file sealed class SidebarConversationPresenter(CopilotViewModel copilotViewModel
     }
 }
 
-file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel)
+file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel, ConfigurationManager configurationManager)
 {
     public void AddCopilotPatterns(CommandPatternManager commandPatternManager)
     {
@@ -266,5 +272,161 @@ file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel)
                  """;
             return copilotViewModel.SendMessageAsync(prompt, withHistory: false);
         }, supportSingleLine: false, priority: 160);
+
+        AddXmlAbilityPatterns(commandPatternManager);
+    }
+
+    private void AddXmlAbilityPatterns(CommandPatternManager commandPatternManager)
+    {
+        var loadErrorList = new List<string>();
+        foreach (var ability in CopilotAbilityLoader.Load(configurationManager, loadErrorList))
+        {
+            commandPatternManager.AddCommandPattern(ability.Title, text =>
+            {
+                string prompt = ability.CreatePrompt(text);
+                return copilotViewModel.SendMessageAsync(prompt, withHistory: false);
+            }, supportSingleLine: ability.SupportSingleLine, priority: ability.Priority);
+        }
+
+        if (loadErrorList.Count > 0)
+        {
+            string message = "以下 Copilot 能力文件未成功加载：" + Environment.NewLine + string.Join(Environment.NewLine, loadErrorList);
+            copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant(message, isPresetInfo: true));
+        }
+    }
+}
+
+file sealed class CopilotAbilityLoader
+{
+    public static IEnumerable<CopilotAbilityDefinition> Load(ConfigurationManager configurationManager, List<string> loadErrorList)
+    {
+        ArgumentNullException.ThrowIfNull(configurationManager);
+        ArgumentNullException.ThrowIfNull(loadErrorList);
+
+        string abilityDirectory = configurationManager.GetCopilotAbilityDirectory().Path;
+        Directory.CreateDirectory(abilityDirectory);
+
+        foreach (var file in Directory.EnumerateFiles(abilityDirectory, "*.xml", SearchOption.TopDirectoryOnly)
+                     .OrderBy(static file => file, StringComparer.OrdinalIgnoreCase))
+        {
+            CopilotAbilityDefinition? ability = TryParse(file, loadErrorList);
+            if (ability is not null)
+            {
+                yield return ability;
+            }
+        }
+    }
+
+    private static CopilotAbilityDefinition? TryParse(string file, List<string> loadErrorList)
+    {
+        try
+        {
+            return Parse(file);
+        }
+        catch (InvalidOperationException ex)
+        {
+            loadErrorList.Add($"- {Path.GetFileName(file)}：{ex.Message}");
+            return null;
+        }
+        catch (FormatException ex)
+        {
+            loadErrorList.Add($"- {Path.GetFileName(file)}：{ex.Message}");
+            return null;
+        }
+        catch (XmlException ex)
+        {
+            loadErrorList.Add($"- {Path.GetFileName(file)}：XML 格式无效，{ex.Message}");
+            return null;
+        }
+        catch (IOException ex)
+        {
+            loadErrorList.Add($"- {Path.GetFileName(file)}：读取失败，{ex.Message}");
+            return null;
+        }
+    }
+
+    private static CopilotAbilityDefinition Parse(string file)
+    {
+        var document = XDocument.Load(file, LoadOptions.PreserveWhitespace);
+        XElement root = document.Root ?? throw new InvalidOperationException("XML 缺少根节点。");
+
+        string title = ReadRequiredValue(root, nameof(CopilotAbilityDefinition.Title));
+        string content = ReadRequiredValue(root, nameof(CopilotAbilityDefinition.Content));
+
+        if (!content.Contains(CopilotAbilityDefinition.InputPlaceholder, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"`{nameof(CopilotAbilityDefinition.Content)}` 必须包含 `{CopilotAbilityDefinition.InputPlaceholder}` 占位符。");
+        }
+
+        int priority = ReadInt32Value(root, nameof(CopilotAbilityDefinition.Priority), defaultValue: 0);
+        bool supportSingleLine = ReadBooleanValue(root, nameof(CopilotAbilityDefinition.SupportSingleLine), defaultValue: true);
+        return new CopilotAbilityDefinition(title, content, priority, supportSingleLine);
+    }
+
+    private static string ReadRequiredValue(XElement root, string propertyName)
+    {
+        string? value = ReadOptionalValue(root, propertyName);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException($"缺少 `{propertyName}` 配置。");
+        }
+
+        return value.Trim();
+    }
+
+    private static int ReadInt32Value(XElement root, string propertyName, int defaultValue)
+    {
+        string? value = ReadOptionalValue(root, propertyName);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return defaultValue;
+        }
+
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result))
+        {
+            return result;
+        }
+
+        throw new FormatException($"`{propertyName}` 必须是整数。");
+    }
+
+    private static bool ReadBooleanValue(XElement root, string propertyName, bool defaultValue)
+    {
+        string? value = ReadOptionalValue(root, propertyName);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return defaultValue;
+        }
+
+        if (bool.TryParse(value, out bool result))
+        {
+            return result;
+        }
+
+        throw new FormatException($"`{propertyName}` 必须是 `true` 或 `false`。");
+    }
+
+    private static string? ReadOptionalValue(XElement root, string propertyName)
+    {
+        return (string?) root.Attribute(propertyName) ?? root.Element(propertyName)?.Value;
+    }
+}
+
+file sealed class CopilotAbilityDefinition(string title, string content, int priority, bool supportSingleLine)
+{
+    public const string InputPlaceholder = "$(Input)";
+
+    public string Title { get; } = title;
+
+    public string Content { get; } = content;
+
+    public int Priority { get; } = priority;
+
+    public bool SupportSingleLine { get; } = supportSingleLine;
+
+    public string CreatePrompt(string input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return Content.Replace(InputPlaceholder, input, StringComparison.Ordinal);
     }
 }
