@@ -3,6 +3,8 @@ using JiyinunalcheWaqerehoqarlijear;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using OllamaSharp;
+
 using OpenAI;
 
 using System.ClientModel;
@@ -259,6 +261,8 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
     var pageContains = string.Empty;
     var contextRole = string.Empty;
 
+    var tool = AIFunctionFactory.Create(SubmitPageAnalysis, "提交页面分析结果", description: "提交当前 PPT 页面分析结果，包含页面事实描述和页面上下文作用");
+
     ChatClientAgent pageAnalystAgent = chatClient.AsIChatClient()
         .AsBuilder()
         .UseFunctionInvocation(configure: client =>
@@ -276,10 +280,16 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
             {
                 Tools =
                 [
-                    AIFunctionFactory.Create(SubmitPageAnalysis, "提交页面分析结果", description: "提交当前 PPT 页面分析结果，包含页面事实描述和页面上下文作用")
+                    tool
                 ]
             }
         });
+
+    // 替换为使用本地的 ollama 的模型方案测试
+    var ollamaEndpoint = new Uri("http://172.20.113.28:11434");
+    const string modelId = "qwen3-vl:8b";
+    var ollamaApiClient = new OllamaApiClient(ollamaEndpoint, modelId);
+    pageAnalystAgent = ollamaApiClient.AsAIAgent(tools: [tool]);
 
     var prompt = subAgentPrompt.Replace("$(AllPptText)", allPptText)
         .Replace("$(SlideIndex)", slideIndex.ToString())
