@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui">
     <StyleInclude Source="./Brushes.axaml" />
     <StyleInclude Source="./ButtonStyles.axaml" />
+    <StyleInclude Source="./CheckBoxStyles.axaml" />
     <StyleInclude Source="./TreeViewStyles.axaml" />
 </Styles>
