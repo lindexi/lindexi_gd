@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,7 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Office.Interop.PowerPoint" Version="15.0.4420.1018" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="office">
+      <HintPath>C:\lindexi\Library\Office.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
