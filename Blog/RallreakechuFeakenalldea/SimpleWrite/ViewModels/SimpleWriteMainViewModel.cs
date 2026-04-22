@@ -11,7 +11,6 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
-
 namespace SimpleWrite.ViewModels;
 
 public class SimpleWriteMainViewModel
@@ -46,7 +45,7 @@ public class SimpleWriteMainViewModel
         FindReplaceViewModel.RefreshCurrentEditor();
         StatusViewModel.SetFindStatusText(FindReplaceViewModel.SearchStatusText);
 
-        var pluginCommandPatternProvider = new PluginCommandPatternProvider();
+        var pluginCommandPatternProvider = new PluginCommandPatternProvider(this);
         pluginCommandPatternProvider.AddPatterns(CommandPatternManager);
 
         void AddSaveStatusChanged(EditorModel editorModel)
@@ -92,4 +91,6 @@ public class SimpleWriteMainViewModel
     }
 
     public CommandPatternManager CommandPatternManager { get; } = new();
+
+    internal ISidebarConversationPresenter? SidebarConversationPresenter { get; set; }
 }
