@@ -1,9 +1,8 @@
-﻿using System.Text;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
-using Microsoft.SemanticKernel.ChatCompletion;
+﻿using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 
-#pragma warning disable SKEXP0070
+using OllamaSharp;
+using System.Text;
 
 Console.OutputEncoding = Encoding.UTF8;
 
@@ -35,51 +34,34 @@ var prompt = """
 var imageBytes = await File.ReadAllBytesAsync(imagePath);
 var mimeType = GetImageMimeType(imagePath);
 
-IKernelBuilder builder = Kernel.CreateBuilder();
-builder.AddOllamaChatCompletion(modelId: modelId, endpoint: ollamaEndpoint);
+var ollamaApiClient = new OllamaApiClient(ollamaEndpoint, modelId);
+AIAgent agent = new ChatClientAgent
+(
+    ollamaApiClient,
+    instructions:
+    """
+    You analyze desktop screenshots.
+    Reply in Chinese with 1-2 sentences.
+    Name the visible application, page, or document whenever it can be identified.
+    Describe the current task and include only details that are actually visible.
+    If a detail is unclear, say so instead of guessing.
+    """
+    );
 
-Kernel kernel = builder.Build();
-
-ChatCompletionAgent agent = new()
+var message = new ChatMessage
 {
-    Name = "ScreenshotInspector",
-    Instructions = """
-                   You analyze desktop screenshots.
-                   Reply in Chinese with 1-2 sentences.
-                   Name the visible application, page, or document whenever it can be identified.
-                   Describe the current task and include only details that are actually visible.
-                   If a detail is unclear, say so instead of guessing.
-                   """,
-    Kernel = kernel
-};
-
-var message = new ChatMessageContent
-{
-    Role = AuthorRole.User,
-    Items =
+    Role = ChatRole.User,
+    Contents = 
     [
         new TextContent(prompt),
-        new ImageContent(imageBytes, mimeType)
+        new DataContent(imageBytes, mimeType)
     ]
 };
 
-using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-AgentThread thread = new ChatHistoryAgentThread();
-ChatMessageContent? finalResponse = null;
-
-await foreach (ChatMessageContent response in agent.InvokeAsync([message], thread, cancellationToken: cancellationTokenSource.Token))
-{
-    finalResponse = response;
-}
-
-if (string.IsNullOrWhiteSpace(finalResponse?.Content))
-{
-    Console.WriteLine("模型没有返回可显示的文本结果。");
-    return;
-}
+var agentResponse = await agent.RunAsync(message);
 
 Console.WriteLine("识别结果：");
-Console.WriteLine(finalResponse.Content);
+Console.WriteLine(agentResponse.Text);
 
 return;
 
