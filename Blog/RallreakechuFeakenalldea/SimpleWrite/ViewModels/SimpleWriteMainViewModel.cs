@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AvaloniaAgentLib.ViewModel;
 using SimpleWrite.Business;
 using SimpleWrite.Business.SimpleWriteConfigurations;
+using SimpleWrite.Business.TextEditors.CommandPatterns;
 using SimpleWrite.Foundation;
 
 namespace SimpleWrite.ViewModels;
@@ -85,15 +86,5 @@ public class SimpleWriteMainViewModel
         await EditorViewModel.OpenFileAsync(file);
     }
 
-    public Task SendMessageToCopilotAsync(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return Task.CompletedTask;
-        }
-
-        return CopilotHandler?.SendMessageToCopilotAsync(text, withHistory:false) ?? Task.CompletedTask;
-    }
-
-    public ICopilotHandler? CopilotHandler { get; set; }
+    public CommandPatternManager CommandPatternManager { get; } = new();
 }
