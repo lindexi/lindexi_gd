@@ -50,13 +50,22 @@ var fullPptText = fullPptTextBuilder.ToString();
 
 var mainSession = await mainAgent.CreateSessionAsync();
 
-ChatMessage initializePromptEngineerMessage = new(ChatRole.System, $$"""
-你是一个提示词生成工程师。你的任务是编写并持续优化一个“PPT 页面分析子代理”的系统提示词。
+ChatMessage initializePromptEngineerMessage = new(ChatRole.System, $$$"""
+你是一个提示词生成工程师。你的任务是编写并持续优化一个“PPT 页面分析子代理”的提示词。
 
 子代理的固定输入：
 1. 一整份 PPT 的全部文本，文本内容会明确标注页码。
 2. 当前页面的文本。
 3. 当前页面的截图。
+
+子代理将被以下 C# 代码进行替换提示词内容，请确保你编写的提示词中包含正确的占位符，以便代码正确替换并传入相应内容：
+
+```csharp
+var prompt = subAgentPrompt.Replace("$(AllPptText)", allPptText)
+    .Replace("$(SlideIndex)", slideIndex.ToString())
+    .Replace("$(CurrentPageText)", currentPageText)
+    .Replace("$(PreviousResults)", previousResults);
+```
 
 子代理的固定输出：
 1. 这页面包含了啥：如实描述页面中实际出现的标题、正文、图表、结构、重点元素，不要编造。
@@ -67,49 +76,54 @@ ChatMessage initializePromptEngineerMessage = new(ChatRole.System, $$"""
 - 必须要求结合整份 PPT 文本去判断当前页的上下文作用。
 - 必须要求优先输出结构化、稳定、可复用的结果。
 - 必须要求子代理调用工具提交两个维度的结果。
-- 你输出的内容必须是可直接使用的完整 System Prompt，不要额外输出解释。
+- 你输出的内容必须是可直接使用的完整 Prompt，不要额外输出解释。
+
+参数说明：
+其中 SlideIndex 为页面序号，从 1 开始
+PreviousResults 为之前页面解析到的结果
+CurrentPageText 为当前页面的文本内容，示例内容如下：
+
+[示例开始]
+{{{powerPointSlideInfoList[0].SlideText}}}
+[示例结束]
+
+AllPptText 为整个 PPT 页面的所有文本内容，示例内容如下：
+
+[示例开始]
+{{{fullPptText}}}
+[示例结束]
 """);
 
-await ExecuteMainAgentAsync(initializePromptEngineerMessage);
-
+await ExecuteMainAgentAsync(initializePromptEngineerMessage, mainSession);
 
 if (string.IsNullOrWhiteSpace(pptPagePrompt))
 {
     throw new InvalidOperationException("主代理未生成 PPT 页面分析子代理提示词。");
 }
 
-
-var subAgentPromptTemplate = pptPagePrompt;
-
 while (true)
 {
     var previousResults = new StringBuilder();
-    var subAgentResults = new List<(int PageNumber, string PageContains, string ContextRole, string RawResponse)>();
+    var subAgentResults = new List<(int SlideIndex, string PageContains, string ContextRole, string RawResponse)>();
     pageAnalysisResults.Clear();
 
     for (int i = 0; i < powerPointSlideInfoList.Count; i++)
     {
         var slideInfo = powerPointSlideInfoList[i];
-        var pageNumber = slideInfo.SlideIndex;
-        var currentPageText = slideInfo.SlideText;
         var screenshotPath = slideInfo.SlideImageFile.FullName;
 
         // 组织 previousResults 字符串
         var prevResultsText = previousResults.ToString();
 
         // 替换模板参数
-        var subAgentPrompt = subAgentPromptTemplate
-            .Replace("{{allPptText}}", fullPptText)
-            .Replace("{{pageNumber}}", pageNumber.ToString())
-            .Replace("{{currentPageText}}", currentPageText)
-            .Replace("{{previousResults}}", prevResultsText);
+        var subAgentPrompt = pptPagePrompt;
 
-        var analysisResult = await AnalyzeCurrentPageAsync(subAgentPrompt, fullPptText, pageNumber, currentPageText, prevResultsText, screenshotPath);
-        subAgentResults.Add((pageNumber, analysisResult.PageContains, analysisResult.ContextRole, analysisResult.RawResponse));
-        pageAnalysisResults.Add((pageNumber, analysisResult.PageContains, analysisResult.ContextRole));
+        var analysisResult = await AnalyzeCurrentPageAsync(subAgentPrompt, fullPptText, slideInfo.SlideIndex, slideInfo.SlideText, prevResultsText, screenshotPath);
+        subAgentResults.Add((slideInfo.SlideIndex, analysisResult.PageContains, analysisResult.ContextRole, analysisResult.RawResponse));
+        pageAnalysisResults.Add((slideInfo.SlideIndex, analysisResult.PageContains, analysisResult.ContextRole));
 
         // 累加 previousResults
-        previousResults.AppendLine($"---第 {pageNumber} 页---");
+        previousResults.AppendLine($"---第 {slideInfo.SlideIndex} 页---");
         previousResults.AppendLine($"这页面包含了啥：{analysisResult.PageContains}");
         previousResults.AppendLine($"在页面上下文的作用：{analysisResult.ContextRole}");
     }
@@ -139,19 +153,33 @@ while (true)
     if (lastPage != default)
     {
         var optimizePrompt =
-            "请根据本次所有页面的执行表现、中立Agent的评价和人类评价继续优化子代理提示词，并通过工具输出新的完整系统提示词。\n\n" +
-            "固定任务不要变化：\n- 输入仍然是整份 PPT 文本、当前页文本、当前页截图。\n- 输出仍然是“这页面包含了啥”和“在页面上下文的作用”两个维度。\n\n" +
-            "本次所有页面分析结果：\n" + previousResults.ToString() +
-            "\n中立Agent评价：\n" + neutralEvalResult +
-            "\n人类评价：\n" + humanEval +
-            "\n优化重点：\n- 继续提升“页面事实描述”和“上下文作用判断”的区分度。\n- 继续强调忠实描述截图与文本，不要幻觉。\n- 继续强调基于整份 PPT 文本理解当前页作用。\n- 如果当前提示词已经足够好，也请通过工具重新输出一份完整提示词。";
+            $@"请根据本次所有页面的执行表现、中立Agent的评价和人类评价继续优化子代理提示词，并通过工具输出新的完整系统提示词。
+
+固定任务不要变化：
+- 输入仍然是整份 PPT 文本、当前页文本、当前页截图。
+- 输出仍然是“这页面包含了啥”和“在页面上下文的作用”两个维度。
+
+本次所有页面分析结果：
+{previousResults}
+中立Agent评价：
+{neutralEvalResult}
+人类评价：
+{humanEval}
+优化重点：
+- 继续提升“页面事实描述”和“上下文作用判断”的区分度。
+- 继续强调忠实描述截图与文本，不要幻觉。
+- 继续强调基于整份 PPT 文本理解当前页作用。";
+
+        mainSession = await mainAgent.CreateSessionAsync();
+        mainSession.SetInMemoryChatHistory([initializePromptEngineerMessage]);
+
         var optimizePromptMessage = new ChatMessage(ChatRole.User, optimizePrompt);
-        await ExecuteMainAgentAsync(optimizePromptMessage);
+        await ExecuteMainAgentAsync(optimizePromptMessage, mainSession);
     }
 
     Console.WriteLine();
     Console.WriteLine("---------");
-    Console.WriteLine("最终生成的子代理提示词：");
+    Console.WriteLine("本次优化生成的子代理提示词：");
     Console.WriteLine(pptPagePrompt);
     Console.WriteLine();
     Console.WriteLine("本次页面分析结果汇总：");
@@ -169,8 +197,6 @@ while (true)
     {
         break;
     }
-    // 使用最新的 pptPagePrompt 作为下一轮 subAgentPromptTemplate
-    subAgentPromptTemplate = pptPagePrompt;
 }
 
 Console.WriteLine();
@@ -199,13 +225,13 @@ void SavePptPageAnalystPrompt([Description("完整的子代理系统提示词内
     Console.WriteLine(pptPagePrompt);
 }
 
-async Task ExecuteMainAgentAsync(ChatMessage message)
+async Task ExecuteMainAgentAsync(ChatMessage message, AgentSession session)
 {
     while (true)
     {
         try
         {
-            var agentResponseUpdates = mainAgent.RunStreamingAsync(message, mainSession);
+            var agentResponseUpdates = mainAgent.RunStreamingAsync(message, session);
             await RunStreamingAsync(agentResponseUpdates);
             return;
         }
@@ -225,7 +251,7 @@ async Task ExecuteMainAgentAsync(ChatMessage message)
 async Task<(string PageContains, string ContextRole, string RawResponse)> AnalyzeCurrentPageAsync(
     string subAgentPrompt,
     string allPptText,
-    int pageNumber,
+    int slideIndex,
     string currentPageText,
     string previousResults,
     string screenshotPath)
@@ -235,6 +261,15 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
 
     ChatClientAgent pageAnalystAgent = chatClient.AsIChatClient()
         .AsBuilder()
+        .UseFunctionInvocation(configure: client =>
+        {
+            client.FunctionInvoker = (context, token) =>
+            {
+                // 写入属性，即可在调用函数之后退出
+                context.Terminate = true;
+                return context.Function.InvokeAsync(context.Arguments, token);
+            };
+        })
         .BuildAIAgent(new ChatClientAgentOptions()
         {
             ChatOptions = new ChatOptions()
@@ -246,37 +281,21 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
             }
         });
 
+    var prompt = subAgentPrompt.Replace("$(AllPptText)", allPptText)
+        .Replace("$(SlideIndex)", slideIndex.ToString())
+        .Replace("$(CurrentPageText)", currentPageText)
+        .Replace("$(PreviousResults)", previousResults);
+
     var pageAnalystSession = await pageAnalystAgent.CreateSessionAsync();
-    pageAnalystSession.SetInMemoryChatHistory([new ChatMessage(ChatRole.System, subAgentPrompt)]);
 
     ChatMessage userMessage = new(ChatRole.User,
     [
-        new TextContent($$"""
-请分析当前 PPT 页面。
-
-整份 PPT 的全部文本：
-{{allPptText}}
-
-当前页页码：{{pageNumber}}
-
-当前页文本：
-{{currentPageText}}
-
-前序页面分析结果：
-{{previousResults}}
-
-请结合当前页截图，完成分析并调用工具输出结果。
-"""
-            .Replace("{{allPptText}}", allPptText)
-            .Replace("{{pageNumber}}", pageNumber.ToString())
-            .Replace("{{currentPageText}}", currentPageText)
-            .Replace("{{previousResults}}", previousResults)
-        ),
+        new TextContent(prompt),
         CreateScreenshotContent(screenshotPath)
     ]);
 
     Console.WriteLine();
-    Console.WriteLine($"开始分析第 {pageNumber} 页");
+    Console.WriteLine($"开始分析第 {slideIndex} 页");
 
     var runResult = await ExecuteSubAgentAsync(pageAnalystAgent, pageAnalystSession, userMessage);
 
@@ -302,7 +321,7 @@ async Task<(string PageContains, string ContextRole, string RawResponse)> Analyz
 
         Console.WriteLine();
         Console.WriteLine("---------");
-        Console.WriteLine($"第 {pageNumber} 页工具输出：");
+        Console.WriteLine($"第 {slideIndex} 页工具输出：");
         Console.WriteLine($"这页面包含了啥：{pageContains}");
         Console.WriteLine($"在页面上下文的作用：{contextRole}");
     }
@@ -455,3 +474,44 @@ async Task<(string ThinkingText, string ContentText)> RunStreamingAsync(IAsyncEn
 
     return (thinkingText, contentText);
 }
+
+/*
+以下记录炼丹的提示词：
+
+# 分析 PPT 内容的带视觉的提示词内容
+
+你是专业的PPT页面分析子代理，需严格基于给定的所有材料完成分析，禁止任何形式的编造、臆测。
+你可获取的分析材料如下：
+
+1. 整份PPT的全部文本：$(AllPptText)
+2. 当前分析的页面序号：$(SlideIndex)
+3. 当前页面的提取文本：$(CurrentPageText)
+4. 此前所有页面的分析结果：$(PreviousResults)
+5. 当前页面的完整截图
+
+## 核心规则
+
+1. 如实描述优先：所有内容必须完全来自当前页文本和截图，未明确标注的信息、不存在的内容绝对不能提及，不得对用途不明的元素主观脑补其作用；
+2. 模块严格区分：两个输出模块边界清晰，【这页面包含了啥】仅做客观事实还原，不得加入任何作用、意义类的主观判断；【在页面上下文的作用】仅做逻辑关联分析，不得重复描述页面已有的元素细节；
+3. 上下文分析必须锚定整份PPT：所有作用判断必须结合$(AllPptText)的整体结构和$(PreviousResults)的前后承接关系，逻辑必须符合PPT的实际内容排布，不得编造关联。
+
+## 输出要求（严格按照以下两个维度结构化输出，不得增减模块）
+
+### 1. 这页面包含了啥
+
+客观罗列当前页所有实际存在的元素，包含但不限于：
+- 各级标题、正文内容、知识点条目、标注的教材页码、特殊要求（如“背诵”）、高亮/下划线等格式属性；
+- 所有图片、图表、插画、设计风格、背景元素；
+- 引导问题、留白区域、空白文本框等元素；
+- 与页面核心主题无关的冗余内容、突兀内容，需明确标注「未说明该内容与当前页面核心主题的关联」；
+- 用途未明确的元素，需明确标注「用途未明确」。
+
+### 2. 在页面上下文的作用
+
+结合整份PPT的整体结构、前后页的内容承接关系，精准说明当前页的定位，禁止使用同质化套话，需明确包含以下信息：
+
+- 该页在整个PPT的叙事/教学/结构逻辑中所属的模块（如单元目录页、单课导入页、知识点引入页、知识点总结页、自学引导页等）；
+- 该页承接了前面哪些已讲内容/提出的问题/设定的框架；
+- 该页为后续哪些内容做了铺垫/引出了什么新的知识点模块；
+- 若该页存在前后呼应的内容（如解答前面提出的问题、呼应前面给出的框架），需明确说明对应关系。
+ */
