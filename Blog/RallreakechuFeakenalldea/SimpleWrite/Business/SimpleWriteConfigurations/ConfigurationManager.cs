@@ -10,17 +10,30 @@ using System.Threading.Tasks;
 using dotnetCampus.Configurations;
 using dotnetCampus.Configurations.Core;
 
+using SimpleWrite.Foundation.Primitive;
+
 namespace SimpleWrite.Business.SimpleWriteConfigurations;
 
 public class ConfigurationManager
 {
+    private readonly AppPathManager _appPathManager;
+
     public ConfigurationManager(AppPathManager appPathManager)
     {
+        ArgumentNullException.ThrowIfNull(appPathManager);
+
+        _appPathManager = appPathManager;
         var applicationConfigurationFile = appPathManager.ApplicationConfigurationFile;
         _isUserApplicationConfigurationFileExists = applicationConfigurationFile.IsExists();
         var fileConfigurationRepo = ConfigurationFactory.FromFile(applicationConfigurationFile, RepoSyncingBehavior.Sync);
         FileConfigurationRepo = fileConfigurationRepo;
         AppConfigurator = fileConfigurationRepo.CreateAppConfigurator();
+        SimpleWriteAppConfiguration = AppConfigurator.Of<SimpleWriteAppConfiguration>();
+
+        if (string.IsNullOrWhiteSpace(SimpleWriteAppConfiguration.CopilotAbilityDirectory))
+        {
+            SimpleWriteAppConfiguration.CopilotAbilityDirectory = appPathManager.CopilotAbilityDirectory.Path;
+        }
 
         if (!_isUserApplicationConfigurationFileExists)
         {
@@ -48,6 +61,11 @@ public class ConfigurationManager
     public IAppConfigurator AppConfigurator { get; }
 
     /// <summary>
+    /// 整个 SimpleWrite 应用的配置。
+    /// </summary>
+    public SimpleWriteAppConfiguration SimpleWriteAppConfiguration { get; }
+
+    /// <summary>
     /// 用户的配置文件是否存在
     /// </summary>
     private bool _isUserApplicationConfigurationFileExists;
@@ -55,5 +73,25 @@ public class ConfigurationManager
     public void ReadConfiguration()
     {
         // 不需要明确写读取，将会在后台自动读取
+    }
+
+    /// <summary>
+    /// 获取 Copilot 能力文件夹路径。
+    /// </summary>
+    public DirectoryPath GetCopilotAbilityDirectory()
+    {
+        string? configuredDirectory = SimpleWriteAppConfiguration.CopilotAbilityDirectory;
+        if (string.IsNullOrWhiteSpace(configuredDirectory))
+        {
+            return _appPathManager.CopilotAbilityDirectory;
+        }
+
+        if (Path.IsPathRooted(configuredDirectory))
+        {
+            return new DirectoryPath(Path.GetFullPath(configuredDirectory));
+        }
+
+        string fullPath = Path.GetFullPath(Path.Join(_appPathManager.DataDirectory.Path, configuredDirectory));
+        return new DirectoryPath(fullPath);
     }
 }

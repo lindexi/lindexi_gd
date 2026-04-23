@@ -5,6 +5,7 @@ using LightTextEditorPlus;
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.Snippets;
+using SimpleWrite.Business.TempFiles;
 using SimpleWrite.Business.TextEditors;
 using SimpleWrite.Models;
 
@@ -176,6 +177,7 @@ public class EditorViewModel : ViewModelBase
         textEditor.TextEditorCore.TextChanged += (sender, args) =>
         {
             UpdateEditorModel(textEditor, editorModel);
+            TempDocumentAutoSaveService.ScheduleAutoSave(editorModel);
         };
 
         return textEditor;
@@ -225,44 +227,62 @@ public class EditorViewModel : ViewModelBase
     /// <summary>
     /// 保存当前文档
     /// </summary>
-    public async Task SaveDocument()
+    public Task<bool> SaveDocument()
     {
-        SetSaveStatus(SaveStatus.Saving);
-
-        if (CurrentEditorModel.FileInfo is null)
-        {
-            // 尚未保存过，执行另存为逻辑
-            await SaveDocumentAs();
-        }
-        else
-        {
-            await SaveEditorModelToFileAsync(CurrentEditorModel, CurrentEditorModel.FileInfo);
-            SetSaveStatus(SaveStatus.Saved);
-        }
+        return SaveEditorModelAsync(CurrentEditorModel);
     }
 
     /// <summary>
     /// 当前文档另存为
     /// </summary>
-    public async Task SaveDocumentAs()
+    public Task<bool> SaveDocumentAs()
     {
-        SetSaveStatus(SaveStatus.Saving);
+        return SaveEditorModelAsAsync(CurrentEditorModel);
+    }
+
+    private async Task<bool> SaveEditorModelAsync(EditorModel editorModel)
+    {
+        var previousSaveStatus = editorModel.SaveStatus;
+        SetSaveStatus(editorModel, SaveStatus.Saving);
+
+        if (editorModel.FileInfo is null)
+        {
+            return await SaveEditorModelAsAsync(editorModel, previousSaveStatus).ConfigureAwait(false);
+        }
+
+        await SaveEditorModelToFileAsync(editorModel, editorModel.FileInfo).ConfigureAwait(false);
+        SetSaveStatus(editorModel, SaveStatus.Saved);
+        await TempDocumentAutoSaveService.FlushAsync(editorModel).ConfigureAwait(false);
+        return true;
+    }
+
+    private async Task<bool> SaveEditorModelAsAsync(EditorModel editorModel)
+    {
+        return await SaveEditorModelAsAsync(editorModel, editorModel.SaveStatus).ConfigureAwait(false);
+    }
+
+    private async Task<bool> SaveEditorModelAsAsync(EditorModel editorModel, SaveStatus previousSaveStatus)
+    {
+        SetSaveStatus(editorModel, SaveStatus.Saving);
+
         if (FilePickerHandler is null)
         {
-            SetSaveStatus(SaveStatus.Error);
-            return;
+            SetSaveStatus(editorModel, SaveStatus.Error);
+            return false;
         }
 
         var saveFile = await FilePickerHandler.PickSaveFileAsync();
         if (saveFile is null)
         {
-            SetSaveStatus(SaveStatus.Error);
-            return;
+            SetSaveStatus(editorModel, previousSaveStatus);
+            return false;
         }
 
-        CurrentEditorModel.FileInfo = saveFile;
-        await SaveEditorModelToFileAsync(CurrentEditorModel, saveFile);
-        SetSaveStatus(SaveStatus.Saved);
+        editorModel.FileInfo = saveFile;
+        await SaveEditorModelToFileAsync(editorModel, saveFile).ConfigureAwait(false);
+        SetSaveStatus(editorModel, SaveStatus.Saved);
+        await TempDocumentAutoSaveService.FlushAsync(editorModel).ConfigureAwait(false);
+        return true;
     }
 
     /// <summary>
@@ -302,13 +322,65 @@ public class EditorViewModel : ViewModelBase
     /// <summary>
     /// 关闭文档
     /// </summary>
-    public void CloseDocument(EditorModel editorModel)
+    public async Task RequestCloseDocumentAsync(EditorModel editorModel)
+    {
+        ArgumentNullException.ThrowIfNull(editorModel);
+
+        if (!editorModel.IsEmptyText())
+        {
+            await TempDocumentAutoSaveService.FlushAsync(editorModel)
+                // 后续逻辑要在 UI 中实现
+                .ConfigureAwait(true);
+        }
+
+        if (!ShouldConfirmClose(editorModel))
+        {
+            CloseDocumentCore(editorModel);
+            return;
+        }
+
+        var closeDocumentDecision = await MainViewModel.ShowCloseConfirmationAsync(editorModel)
+            // 后续逻辑要在 UI 中实现
+            .ConfigureAwait(true);
+        switch (closeDocumentDecision)
+        {
+            case SimpleWriteMainViewModel.CloseDocumentDecision.SaveAndClose:
+            {
+                var saveResult = await SaveEditorModelAsync(editorModel)
+                    // 后续逻辑要在 UI 中实现
+                    .ConfigureAwait(true);
+                if (saveResult)
+                {
+                    CloseDocumentCore(editorModel);
+                }
+
+                break;
+            }
+            case SimpleWriteMainViewModel.CloseDocumentDecision.DiscardAndClose:
+                CloseDocumentCore(editorModel);
+                break;
+            case SimpleWriteMainViewModel.CloseDocumentDecision.Cancel:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    /// <summary>
+    /// 关闭当前文档
+    /// </summary>
+    public Task RequestCloseCurrentDocumentAsync()
+    {
+        return RequestCloseDocumentAsync(CurrentEditorModel);
+    }
+
+    private void CloseDocumentCore(EditorModel editorModel)
     {
         if (ReferenceEquals(editorModel, CurrentEditorModel))
         {
             // 如果是关闭当前文档，则需要调用 CloseCurrentDocument 方法
             // 这是因为当前的文档需要处理焦点问题，比较特殊
-            CloseCurrentDocument();
+            CloseCurrentDocumentCore();
             return;
         }
 
@@ -349,7 +421,7 @@ public class EditorViewModel : ViewModelBase
     /// <summary>
     /// 关闭当前文档
     /// </summary>
-    public void CloseCurrentDocument()
+    private void CloseCurrentDocumentCore()
     {
         var currentEditorModel = CurrentEditorModel;
 
@@ -440,13 +512,18 @@ public class EditorViewModel : ViewModelBase
 
     internal IFilePickerHandler? FilePickerHandler { get; set; }
 
-    private void SetSaveStatus(SaveStatus saveStatus)
+    private bool ShouldConfirmClose(EditorModel editorModel)
     {
-        //if (StatusViewModel != null)
-        //{
-        //    StatusViewModel.SaveStatus = saveStatus;
-        //}
-
-        CurrentEditorModel.SaveStatus = saveStatus;
+        return editorModel.SaveStatus != SaveStatus.Saved && !editorModel.IsEmptyText();
     }
+
+    private void SetSaveStatus(EditorModel editorModel, SaveStatus saveStatus)
+    {
+        editorModel.SaveStatus = saveStatus;
+    }
+
+    private TempDocumentAutoSaveService TempDocumentAutoSaveService =>
+        _tempDocumentAutoSaveService ??= new TempDocumentAutoSaveService(MainViewModel.AppPathManager);
+
+    private TempDocumentAutoSaveService? _tempDocumentAutoSaveService;
 }

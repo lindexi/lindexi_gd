@@ -2,5 +2,6 @@
     <StyleInclude Source="./Brushes.axaml" />
     <StyleInclude Source="./ButtonStyles.axaml" />
     <StyleInclude Source="./CheckBoxStyles.axaml" />
+    <StyleInclude Source="./DialogStyles.axaml" />
     <StyleInclude Source="./TreeViewStyles.axaml" />
 </Styles>
