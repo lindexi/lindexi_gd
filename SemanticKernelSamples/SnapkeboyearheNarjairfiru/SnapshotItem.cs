@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 
 namespace SnapkeboyearheNarjairfiru;
 
@@ -10,7 +11,7 @@ internal sealed record SnapshotRecord(
     string DisplayName,
     DateTimeOffset CapturedAt,
     string ImagePath,
-    string TextPath,
+    string AnalysisPath,
     string AnalysisText)
 {
     private const string DisplayPrefix = "屏幕：";
@@ -24,9 +25,14 @@ internal sealed record SnapshotRecord(
             DisplayName,
             CapturedAt,
             ImagePath,
-            TextPath,
+            AnalysisPath,
             AnalysisText,
             LoadPreviewImage(ImagePath));
+    }
+
+    public SnapshotAnalysisContext ToAnalysisContext()
+    {
+        return new SnapshotAnalysisContext(CapturedAt, DisplayName, AnalysisText);
     }
 
     public static string CreateBaseFileName(DateTimeOffset capturedAt, string displayKey)
@@ -35,33 +41,120 @@ internal sealed record SnapshotRecord(
         return $"{capturedAt:yyyyMMdd_HHmmss_fff}_{displayKey}";
     }
 
-    public static string CreateTextContent(string displayName, DateTimeOffset capturedAt, string analysisText)
+    public string CreateXmlContent()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(analysisText);
+        ArgumentException.ThrowIfNullOrWhiteSpace(DisplayKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(DisplayName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(AnalysisText);
 
-        return $"{DisplayPrefix}{displayName}{Environment.NewLine}{TimePrefix}{capturedAt:O}{Environment.NewLine}{AnalysisPrefix}{Environment.NewLine}{analysisText}";
+        var document = new XDocument(
+            new XDeclaration("1.0", "utf-8", null),
+            new XElement("snapshot",
+                new XAttribute("key", Key),
+                new XAttribute("capturedAt", CapturedAt.ToString("O", CultureInfo.InvariantCulture)),
+                new XElement("display",
+                    new XAttribute("key", DisplayKey),
+                    new XAttribute("name", DisplayName)),
+                new XElement("image",
+                    new XAttribute("fileName", Path.GetFileName(ImagePath))),
+                new XElement("analysis", AnalysisText)));
+
+        return document.ToString();
     }
 
-    public static bool TryLoad(string textPath, out SnapshotRecord? record)
+    public static bool TryLoad(string analysisPath, out SnapshotRecord? record)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(textPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(analysisPath);
 
+        return Path.GetExtension(analysisPath).ToLowerInvariant() switch
+        {
+            ".xml" => TryLoadFromXml(analysisPath, out record),
+            ".txt" => TryLoadFromLegacyText(analysisPath, out record),
+            _ => TrySetNull(out record)
+        };
+    }
+
+    private static bool TryLoadFromXml(string analysisPath, out SnapshotRecord? record)
+    {
         record = null;
-        var textFile = new FileInfo(textPath);
-        var imagePath = Path.ChangeExtension(textPath, ".png");
+        var analysisFile = new FileInfo(analysisPath);
 
-        if (!textFile.Exists || !File.Exists(imagePath))
+        if (!analysisFile.Exists)
         {
             return false;
         }
 
-        var lines = File.ReadAllLines(textPath);
-        var key = Path.GetFileNameWithoutExtension(textPath);
+        var document = XDocument.Load(analysisPath, LoadOptions.None);
+        var root = document.Element("snapshot");
+        if (root is null)
+        {
+            return false;
+        }
+
+        var key = root.Attribute("key")?.Value;
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            key = Path.GetFileNameWithoutExtension(analysisPath);
+        }
+
+        var displayElement = root.Element("display");
+        var displayKey = displayElement?.Attribute("key")?.Value;
+        if (string.IsNullOrWhiteSpace(displayKey))
+        {
+            displayKey = ExtractDisplayKey(key);
+        }
+
+        var displayName = displayElement?.Attribute("name")?.Value;
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            displayName = key;
+        }
+
+        DateTimeOffset capturedAt = analysisFile.CreationTimeUtc;
+        var capturedAtAttribute = root.Attribute("capturedAt")?.Value;
+        if (!string.IsNullOrWhiteSpace(capturedAtAttribute)
+            && DateTimeOffset.TryParse(capturedAtAttribute, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedCapturedAt))
+        {
+            capturedAt = parsedCapturedAt;
+        }
+
+        var imageFileName = root.Element("image")?.Attribute("fileName")?.Value;
+        var imagePath = string.IsNullOrWhiteSpace(imageFileName)
+            ? Path.ChangeExtension(analysisPath, ".png")
+            : Path.Combine(analysisFile.DirectoryName ?? string.Empty, imageFileName);
+
+        var analysisText = root.Element("analysis")?.Value.Trim() ?? string.Empty;
+
+        record = new SnapshotRecord(
+            key,
+            displayKey,
+            displayName,
+            capturedAt,
+            imagePath,
+            analysisPath,
+            analysisText);
+        return true;
+    }
+
+    private static bool TryLoadFromLegacyText(string analysisPath, out SnapshotRecord? record)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(analysisPath);
+
+        record = null;
+        var textFile = new FileInfo(analysisPath);
+        var imagePath = Path.ChangeExtension(analysisPath, ".png");
+
+        if (!textFile.Exists)
+        {
+            return false;
+        }
+
+        var lines = File.ReadAllLines(analysisPath);
+        var key = Path.GetFileNameWithoutExtension(analysisPath);
         var displayKey = ExtractDisplayKey(key);
         var displayName = key;
         DateTimeOffset capturedAt = textFile.CreationTimeUtc;
-        var analysisText = File.ReadAllText(textPath).Trim();
+        var analysisText = File.ReadAllText(analysisPath).Trim();
 
         if (lines.Length >= 4
             && lines[0].StartsWith(DisplayPrefix, StringComparison.Ordinal)
@@ -80,9 +173,15 @@ internal sealed record SnapshotRecord(
             displayName,
             capturedAt,
             imagePath,
-            textPath,
+            analysisPath,
             analysisText);
         return true;
+    }
+
+    private static bool TrySetNull(out SnapshotRecord? record)
+    {
+        record = null;
+        return false;
     }
 
     private static string ExtractDisplayKey(string key)
@@ -93,8 +192,13 @@ internal sealed record SnapshotRecord(
             : key;
     }
 
-    private static BitmapImage LoadPreviewImage(string imagePath)
+    private static BitmapImage? LoadPreviewImage(string imagePath)
     {
+        if (!File.Exists(imagePath))
+        {
+            return null;
+        }
+
         var bitmap = new BitmapImage();
         using var stream = File.OpenRead(imagePath);
         bitmap.BeginInit();
@@ -106,15 +210,20 @@ internal sealed record SnapshotRecord(
     }
 }
 
+internal sealed record SnapshotAnalysisContext(
+    DateTimeOffset CapturedAt,
+    string DisplayName,
+    string AnalysisText);
+
 public sealed class SnapshotListItem
 (
     string key,
     string displayName,
     DateTimeOffset capturedAt,
     string imagePath,
-    string textPath,
+    string analysisPath,
     string analysisText,
-    BitmapImage image
+    BitmapImage? image
 )
 {
     public string Key { get; } = key;
@@ -122,7 +231,7 @@ public sealed class SnapshotListItem
     public DateTimeOffset CapturedAt { get; } = capturedAt;
     public string CapturedAtText { get; } = capturedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
     public string ImagePath { get; } = imagePath;
-    public string TextPath { get; } = textPath;
+    public string AnalysisPath { get; } = analysisPath;
     public string AnalysisText { get; } = analysisText;
-    public BitmapImage Image { get; } = image;
+    public BitmapImage? Image { get; } = image;
 }

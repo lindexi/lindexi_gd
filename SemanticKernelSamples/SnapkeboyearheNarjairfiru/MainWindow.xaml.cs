@@ -16,9 +16,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private const int MaxVisibleItems = 100;
     private const int HistoryPageSize = 20;
+    private const int RecentContextCount = 10;
+    private const long StorageLimitBytes = 1024L * 1024L * 1024L;
     private static readonly TimeSpan MinimumCaptureInterval = TimeSpan.FromSeconds(10);
+    private static readonly SearchOption FileSearchOption = SearchOption.TopDirectoryOnly;
     private static readonly Uri OllamaEndpoint = new("http://172.20.113.28:11434");
     private const string ModelId = "qwen3-vl:8b";
+    private static readonly HashSet<string> SnapshotImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".webp",
+        ".gif",
+        ".bmp"
+    };
 
     private readonly ObservableCollection<SnapshotListItem> _items = [];
     private readonly List<SnapshotRecord> _historyRecords = [];
@@ -177,15 +189,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var capturedAt = DateTimeOffset.Now;
         var fileBaseName = SnapshotRecord.CreateBaseFileName(capturedAt, display.Key);
         var imagePath = Path.Combine(StorageFolderPath, $"{fileBaseName}.png");
-        var textPath = Path.Combine(StorageFolderPath, $"{fileBaseName}.txt");
+        var analysisPath = Path.Combine(StorageFolderPath, $"{fileBaseName}.xml");
 
         await _screenSnapshotProvider.TakeSnapshotAsync(display, new FileInfo(imagePath), cancellationToken);
 
         string analysisText;
+        var recentContexts = GetRecentAnalysisContexts();
 
         try
         {
-            analysisText = await _analysisService.AnalyzeAsync(imagePath, cancellationToken);
+            analysisText = await _analysisService.AnalyzeAsync(imagePath, capturedAt, recentContexts, cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -202,24 +215,28 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             display.Name,
             capturedAt,
             imagePath,
-            textPath,
+            analysisPath,
             analysisText);
 
         await File.WriteAllTextAsync(
-            textPath,
-            SnapshotRecord.CreateTextContent(display.Name, capturedAt, analysisText),
+            analysisPath,
+            record.CreateXmlContent(),
             cancellationToken);
 
         var listItem = await Task.Run(record.ToListItem, cancellationToken);
-        await Dispatcher.InvokeAsync(() => AddLiveItem(record, listItem));
+        var cleanupResult = await CleanupStorageIfNeededAsync(cancellationToken);
+        await Dispatcher.InvokeAsync(() => AddLiveItem(record, listItem, cleanupResult));
     }
 
     private async Task LoadHistoryIndexAsync()
     {
         var records = await Task.Run(() =>
-            Directory.EnumerateFiles(StorageFolderPath, "*.txt", SearchOption.TopDirectoryOnly)
+            Directory.EnumerateFiles(StorageFolderPath, "*.*", FileSearchOption)
+                .Where(path => IsAnalysisFile(path))
                 .Select(path => SnapshotRecord.TryLoad(path, out var record) ? record : null)
                 .OfType<SnapshotRecord>()
+                .GroupBy(record => record.Key, StringComparer.Ordinal)
+                .Select(group => group.OrderBy(record => GetAnalysisFilePriority(record.AnalysisPath)).First())
                 .OrderByDescending(record => record.CapturedAt)
                 .ToList());
 
@@ -292,7 +309,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void AddLiveItem(SnapshotRecord record, SnapshotListItem listItem)
+    private void AddLiveItem(SnapshotRecord record, SnapshotListItem listItem, StorageCleanupResult cleanupResult)
     {
         lock (_historySyncRoot)
         {
@@ -329,7 +346,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             TrimVisibleItems();
         }
 
-        StatusText = $"已完成 {record.DisplayName} 的截图与解读。当前显示 {_items.Count} 项。";
+        StatusText = cleanupResult.DeletedFileCount == 0
+            ? $"已完成 {record.DisplayName} 的截图与解读。当前显示 {_items.Count} 项。"
+            : $"已完成 {record.DisplayName} 的截图与解读。当前显示 {_items.Count} 项，并清理了 {cleanupResult.DeletedFileCount} 张旧截图，释放 {FormatFileSize(cleanupResult.ReleasedBytes)}。";
     }
 
     private void TrimVisibleItems()
@@ -338,6 +357,63 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             _items.RemoveAt(_items.Count - 1);
         }
+    }
+
+    private List<SnapshotAnalysisContext> GetRecentAnalysisContexts()
+    {
+        lock (_historySyncRoot)
+        {
+            return _historyRecords
+                .Where(record => !string.IsNullOrWhiteSpace(record.AnalysisText))
+                .Where(record => !record.AnalysisText.StartsWith("解读失败：", StringComparison.Ordinal))
+                .Take(RecentContextCount)
+                .Select(record => record.ToAnalysisContext())
+                .ToList();
+        }
+    }
+
+    private async Task<StorageCleanupResult> CleanupStorageIfNeededAsync(CancellationToken cancellationToken)
+    {
+        return await Task.Run(() =>
+        {
+            DirectoryInfo directoryInfo = new(StorageFolderPath);
+            if (!directoryInfo.Exists)
+            {
+                return StorageCleanupResult.Empty;
+            }
+
+            var files = directoryInfo.EnumerateFiles("*", FileSearchOption).ToList();
+            var totalSize = files.Sum(file => file.Length);
+            if (totalSize <= StorageLimitBytes)
+            {
+                return StorageCleanupResult.Empty;
+            }
+
+            var filesToDelete = files
+                .Where(file => SnapshotImageExtensions.Contains(file.Extension))
+                .OrderBy(file => file.CreationTimeUtc)
+                .ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var deletedFileCount = 0;
+            long releasedBytes = 0;
+
+            foreach (var file in filesToDelete)
+            {
+                if (totalSize <= StorageLimitBytes)
+                {
+                    break;
+                }
+
+                var fileLength = file.Length;
+                file.Delete();
+                totalSize -= fileLength;
+                releasedBytes += fileLength;
+                deletedFileCount++;
+            }
+
+            return new StorageCleanupResult(deletedFileCount, releasedBytes);
+        }, cancellationToken);
     }
 
     private async Task WaitWhilePausedAsync(CancellationToken cancellationToken)
@@ -390,5 +466,40 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         storage = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    private static int GetAnalysisFilePriority(string analysisPath)
+    {
+        return string.Equals(Path.GetExtension(analysisPath), ".xml", StringComparison.OrdinalIgnoreCase) ? 0 : 1;
+    }
+
+    private static bool IsAnalysisFile(string path)
+    {
+        return Path.GetExtension(path).ToLowerInvariant() is ".xml" or ".txt";
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes >= 1024L * 1024L * 1024L)
+        {
+            return $"{bytes / 1024d / 1024d / 1024d:F2} GB";
+        }
+
+        if (bytes >= 1024L * 1024L)
+        {
+            return $"{bytes / 1024d / 1024d:F2} MB";
+        }
+
+        if (bytes >= 1024L)
+        {
+            return $"{bytes / 1024d:F2} KB";
+        }
+
+        return $"{bytes} B";
+    }
+
+    private sealed record StorageCleanupResult(int DeletedFileCount, long ReleasedBytes)
+    {
+        public static StorageCleanupResult Empty { get; } = new(0, 0);
     }
 }
