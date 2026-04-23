@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Threading;
 
 using LightTextEditorPlus;
 
@@ -20,8 +21,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SimpleWrite.ViewModels;
 
@@ -387,6 +386,8 @@ public class EditorViewModel : ViewModelBase
         // 非当前文档，直接干掉，无需处理复杂的焦点
         EditorModelList.Remove(editorModel);
 
+        TryReleaseTempDocument(editorModel);
+
         //var currentIndex = EditorModelList.IndexOf(editorModel);
         //if (currentIndex < 0)
         //{
@@ -418,6 +419,15 @@ public class EditorViewModel : ViewModelBase
         //}
     }
 
+    private void TryReleaseTempDocument(EditorModel editorModel)
+    {
+        // 如果有关联好了本地文件了，则可以调用释放
+        if (editorModel.FileInfo is not null)
+        {
+            TempDocumentAutoSaveService.Release(editorModel);
+        }
+    }
+
     /// <summary>
     /// 关闭当前文档
     /// </summary>
@@ -445,6 +455,7 @@ public class EditorViewModel : ViewModelBase
                     EditorModelList.Add(emptyTextEditorModel);
                     CurrentEditorModel = emptyTextEditorModel;
                     EditorModelList.Remove(currentEditorModel);
+                    TryReleaseTempDocument(currentEditorModel);
                 }
             }
             else
@@ -454,6 +465,7 @@ public class EditorViewModel : ViewModelBase
                 Debug.Assert(nextIndex == 1);
                 CurrentEditorModel = EditorModelList[nextIndex];
                 EditorModelList.Remove(currentEditorModel);
+                TryReleaseTempDocument(currentEditorModel);
             }
         }
         else
@@ -465,6 +477,7 @@ public class EditorViewModel : ViewModelBase
             }
             CurrentEditorModel = EditorModelList[nextIndex];
             EditorModelList.Remove(currentEditorModel);
+            TryReleaseTempDocument(currentEditorModel);
         }
     }
 
@@ -492,13 +505,13 @@ public class EditorViewModel : ViewModelBase
     {
         if (editorModel.TextEditor is { } textEditor)
         {
-            var allText = textEditor.Text;
-
             if (!ReferenceEquals(editorModel.FileInfo, saveFile))
             {
                 // 要求必定是一样的。传入的这个参数只是为了减少可空判断而已
                 throw new ArgumentException();
             }
+
+            var allText = await Dispatcher.UIThread.InvokeAsync(() => textEditor.Text);
 
             await using var fileStream = saveFile.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
             await using var streamWriter = new StreamWriter(fileStream, Encoding.UTF8, leaveOpen: true);
