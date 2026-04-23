@@ -1,10 +1,16 @@
-﻿using Microsoft.Agents.AI;
+﻿using JalfijefallKelweehelhelwellu;
+
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using OllamaSharp;
+
 using System.Text;
 
 Console.OutputEncoding = Encoding.UTF8;
+
+var screenSnapshotProvider = new ScreenSnapshotProvider();
+await screenSnapshotProvider.TakeSnapshot();
 
 var ollamaEndpoint = new Uri("http://172.20.113.28:11434");
 const string modelId = "qwen3-vl:8b";
