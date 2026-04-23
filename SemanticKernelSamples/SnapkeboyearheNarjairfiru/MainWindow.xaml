@@ -6,119 +6,201 @@
         xmlns:local="clr-namespace:SnapkeboyearheNarjairfiru"
         mc:Ignorable="d"
         Title="屏幕截图解读"
-        Width="1400"
-        Height="900"
-        MinWidth="1000"
-        MinHeight="700">
-    <Grid Margin="12">
+        Width="1440"
+        Height="960"
+        MinWidth="1080"
+        MinHeight="720"
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        d:DesignWidth="1440"
+        d:DesignHeight="960">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Padding="12"
-                BorderBrush="#FFE0E0E0"
-                BorderThickness="1"
-                CornerRadius="8">
-            <StackPanel>
-                <TextBlock FontSize="16"
-                           FontWeight="SemiBold"
-                           Text="截图存储目录" />
+        <Grid Grid.Row="2"
+              Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-                <DockPanel Margin="0,8,0,0">
-                    <Button DockPanel.Dock="Right"
-                            Margin="12,0,0,0"
-                            Padding="16,6"
-                            Click="OpenFolderButton_OnClick"
-                            Content="打开文件夹" />
-                    <TextBox IsReadOnly="True"
-                             Text="{Binding StorageFolderPath,Mode=OneWay}" />
-                </DockPanel>
+            <Border Style="{StaticResource CardBorderStyle}"
+                    Padding="22">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                               Text="存储目录" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}"
+                               Margin="0,8,0,0"
+                               Text="截图以 PNG 保存，解读以 XML 保存。当目录总大小超过 1 GB 时，将优先删除最旧的截图文件，并保留 XML 解读记录。" />
 
-                <WrapPanel Margin="0,12,0,0">
-                    <CheckBox Margin="0,0,16,0"
-                              VerticalAlignment="Center"
+                    <DockPanel Margin="0,16,0,0"
+                               LastChildFill="True">
+                        <Button DockPanel.Dock="Right"
+                                Margin="12,0,0,0"
+                                Click="OpenFolderButton_OnClick"
+                                Content="打开文件夹"
+                                Style="{StaticResource PrimaryButtonStyle}" />
+                        <TextBox IsReadOnly="True"
+                                 Text="{Binding StorageFolderPath,Mode=OneWay}"
+                                 d:Text="C:\Users\Demo\AppData\Local\SnapkeboyearheNarjairfiru\Snapshots" />
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Style="{StaticResource CardBorderStyle}"
+                    Padding="10">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                               Text="运行控制" />
+                    <TextBlock Style="{StaticResource CaptionTextStyle}"
+                               Margin="0,8,0,0"
+                               Text="建议在需要持续观察工作流时保持运行；界面会保留最近 100 个可见项，历史记录可按需继续加载。" />
+
+                    <CheckBox Margin="0,16,0,0"
                               Content="自动保持最多 100 项"
-                              IsChecked="{Binding AutoTrimEnabled}" />
-                    <Button Margin="0,0,8,0"
-                            Padding="16,6"
-                            Click="PauseButton_OnClick"
-                            Content="暂停" />
-                    <Button Margin="0,0,8,0"
-                            Padding="16,6"
-                            Click="ResumeButton_OnClick"
-                            Content="恢复" />
-                    <Button Padding="16,6"
-                            Click="LoadHistoryButton_OnClick"
-                            Content="加载以前的项"
-                            IsEnabled="{Binding CanLoadMoreHistory}" />
-                </WrapPanel>
-            </StackPanel>
+                              IsChecked="{Binding AutoTrimEnabled}"
+                              d:IsChecked="True" />
+
+                    <WrapPanel Margin="0,18,0,0"
+                               ItemHeight="40">
+                        <Button Margin="0,0,8,0"
+                                Click="PauseButton_OnClick"
+                                Content="暂停"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button Margin="0,0,8,0"
+                                Click="ResumeButton_OnClick"
+                                Content="恢复"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button Margin="0,0,0,0"
+                                Click="LoadHistoryButton_OnClick"
+                                Content="加载以前的项"
+                                IsEnabled="{Binding CanLoadMoreHistory}"
+                                d:IsEnabled="True"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Margin="0,0,0,10"
+                Style="{StaticResource CardBorderStyle}"
+                Padding="18,16">
+            <DockPanel LastChildFill="True">
+                <Ellipse DockPanel.Dock="Left"
+                         Width="10"
+                         Height="10"
+                         Margin="0,4,12,0"
+                         Fill="{StaticResource AccentBrush}"
+                         VerticalAlignment="Top" />
+                <TextBlock FontSize="14"
+                           Text="{Binding StatusText}"
+                           TextWrapping="Wrap"
+                           d:Text="已索引 36 条历史记录，最近 10 个画面会自动加入模型提示词，上方目录卡片展示当前存储路径。" />
+            </DockPanel>
         </Border>
 
-        <TextBlock Grid.Row="1"
-                   Margin="0,12,0,12"
-                   FontSize="14"
-                   Text="{Binding StatusText}"
-                   TextWrapping="Wrap" />
-
-        <ListView Grid.Row="2"
+        <ListView Grid.Row="0"
+                  Margin="0,0,0,10"
                   ItemsSource="{Binding Items}"
                   ScrollViewer.CanContentScroll="True"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.ScrollUnit="Pixel"
-                  VirtualizingPanel.VirtualizationMode="Recycling">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Padding" Value="0" />
-                    <Setter Property="Margin" Value="0,0,0,12" />
-                </Style>
-            </ListView.ItemContainerStyle>
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  d:ItemsSource="{d:SampleData ItemCount=3}">
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:SnapshotListItem}">
-                    <Border Padding="12"
-                            BorderBrush="#FFE0E0E0"
-                            BorderThickness="1"
-                            CornerRadius="8">
+                    <Border Style="{StaticResource CardBorderStyle}"
+                            Padding="20">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="420" />
-                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="360" />
+                                <ColumnDefinition Width="20" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
                             <Border Grid.Column="0"
-                                    Background="#FFF7F7F7"
-                                    BorderBrush="#FFD8D8D8"
+                                    Background="{StaticResource ImagePlaceholderBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="4">
-                                <Image Source="{Binding Image}"
-                                       Height="240"
-                                       Stretch="Uniform" />
+                                    CornerRadius="14"
+                                    Padding="12">
+                                <Grid>
+                                    <Image Source="{Binding Image}"
+                                           Height="228"
+                                           Stretch="Uniform" />
+                                    <TextBlock HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Text="截图已清理，仅保留 XML 解读"
+                                               Visibility="Collapsed">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock"
+                                                   BasedOn="{StaticResource CaptionTextStyle}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Image}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
                             </Border>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock FontSize="15"
+                                <TextBlock FontSize="17"
                                            FontWeight="SemiBold"
-                                           Text="{Binding DisplayName}" />
+                                           Text="{Binding DisplayName}"
+                                           d:Text="屏幕 0（主屏幕，DISPLAY1）" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                           Margin="0,6,0,0"
+                                           Text="{Binding CapturedAtText}"
+                                           d:Text="2026-01-18 09:41:22.137" />
+
+                                <Border Margin="0,16,0,0"
+                                        Padding="14,12"
+                                        Background="{StaticResource SurfaceSecondaryBrush}"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="12">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                                   FontSize="14"
+                                                   Text="解读内容" />
+                                        <TextBlock Margin="0,10,0,0"
+                                                   FontSize="14"
+                                                   LineHeight="22"
+                                                   Text="{Binding AnalysisText}"
+                                                   TextWrapping="Wrap"
+                                                   d:Text="Visual Studio 正在查看 `MainWindow.xaml` 的界面布局，右侧属性和控件区域显示正在调整 WPF 页面结构。" />
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBlock Margin="0,16,0,0"
+                                           Style="{StaticResource CaptionTextStyle}"
+                                           Text="截图路径" />
                                 <TextBlock Margin="0,4,0,0"
-                                           Foreground="DimGray" TextWrapping="Wrap"
-                                           Text="{Binding CapturedAtText}" />
-                                <TextBlock Margin="0,12,0,0"
-                                           FontSize="14"
-                                           Text="{Binding AnalysisText}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,12,0,0"
-                                           Foreground="DimGray"
+                                           Style="{StaticResource PathTextStyle}"
                                            Text="{Binding ImagePath}"
-                                           TextWrapping="Wrap" />
+                                           d:Text="C:\Users\Demo\AppData\Local\SnapkeboyearheNarjairfiru\Snapshots\20260118_094122_137_screen00.png" />
+
+                                <TextBlock Margin="0,12,0,0"
+                                           Style="{StaticResource CaptionTextStyle}"
+                                           Text="解读 XML" />
                                 <TextBlock Margin="0,4,0,0"
-                                           Foreground="DimGray"
-                                           Text="{Binding TextPath}"
-                                           TextWrapping="Wrap" />
+                                           Style="{StaticResource PathTextStyle}"
+                                           Text="{Binding AnalysisPath}"
+                                           d:Text="C:\Users\Demo\AppData\Local\SnapkeboyearheNarjairfiru\Snapshots\20260118_094122_137_screen00.xml" />
                             </StackPanel>
                         </Grid>
                     </Border>
