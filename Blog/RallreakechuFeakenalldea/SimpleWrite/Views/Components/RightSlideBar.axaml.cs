@@ -251,7 +251,7 @@ file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel, Conf
 
         commandPatternManager.AddCommandPattern(new PolishSelectedTextCommandPattern(copilotViewModel));
 
-        commandPatternManager.AddCommandPattern("发送选中内容到 Copilot 聊天", text => copilotViewModel.SendMessageAsync(text, withHistory: false), priority: 200);
+        commandPatternManager.AddCommandPattern("发送内容到 Copilot 聊天", text => copilotViewModel.SendMessageAsync(text, withHistory: false), priority: 200);
 
         commandPatternManager.AddCommandPattern("翻译为计算机英文", text =>
         {
