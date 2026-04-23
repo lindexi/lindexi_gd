@@ -5,8 +5,125 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SnapkeboyearheNarjairfiru"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="屏幕截图解读"
+        Width="1400"
+        Height="900"
+        MinWidth="1000"
+        MinHeight="700">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <Border Padding="12"
+                BorderBrush="#FFE0E0E0"
+                BorderThickness="1"
+                CornerRadius="8">
+            <StackPanel>
+                <TextBlock FontSize="16"
+                           FontWeight="SemiBold"
+                           Text="截图存储目录" />
+
+                <DockPanel Margin="0,8,0,0">
+                    <Button DockPanel.Dock="Right"
+                            Margin="12,0,0,0"
+                            Padding="16,6"
+                            Click="OpenFolderButton_OnClick"
+                            Content="打开文件夹" />
+                    <TextBox IsReadOnly="True"
+                             Text="{Binding StorageFolderPath,Mode=OneWay}" />
+                </DockPanel>
+
+                <WrapPanel Margin="0,12,0,0">
+                    <CheckBox Margin="0,0,16,0"
+                              VerticalAlignment="Center"
+                              Content="自动保持最多 100 项"
+                              IsChecked="{Binding AutoTrimEnabled}" />
+                    <Button Margin="0,0,8,0"
+                            Padding="16,6"
+                            Click="PauseButton_OnClick"
+                            Content="暂停" />
+                    <Button Margin="0,0,8,0"
+                            Padding="16,6"
+                            Click="ResumeButton_OnClick"
+                            Content="恢复" />
+                    <Button Padding="16,6"
+                            Click="LoadHistoryButton_OnClick"
+                            Content="加载以前的项"
+                            IsEnabled="{Binding CanLoadMoreHistory}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="1"
+                   Margin="0,12,0,12"
+                   FontSize="14"
+                   Text="{Binding StatusText}"
+                   TextWrapping="Wrap" />
+
+        <ListView Grid.Row="2"
+                  ItemsSource="{Binding Items}"
+                  ScrollViewer.CanContentScroll="True"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.ScrollUnit="Pixel"
+                  VirtualizingPanel.VirtualizationMode="Recycling">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0,0,0,12" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type local:SnapshotListItem}">
+                    <Border Padding="12"
+                            BorderBrush="#FFE0E0E0"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="420" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="#FFF7F7F7"
+                                    BorderBrush="#FFD8D8D8"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+                                <Image Source="{Binding Image}"
+                                       Height="240"
+                                       Stretch="Uniform" />
+                            </Border>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Text="{Binding DisplayName}" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Foreground="DimGray" TextWrapping="Wrap"
+                                           Text="{Binding CapturedAtText}" />
+                                <TextBlock Margin="0,12,0,0"
+                                           FontSize="14"
+                                           Text="{Binding AnalysisText}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Margin="0,12,0,0"
+                                           Foreground="DimGray"
+                                           Text="{Binding ImagePath}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Foreground="DimGray"
+                                           Text="{Binding TextPath}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Window>
