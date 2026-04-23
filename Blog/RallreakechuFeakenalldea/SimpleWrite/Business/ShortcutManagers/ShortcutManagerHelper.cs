@@ -35,7 +35,7 @@ static class ShortcutManagerHelper
 
         shortcutManager.AddShortcut(KeyModifiers.Control, Key.W, "CloseCurrentDocument", () =>
         {
-            viewModel.CloseCurrentDocument();
+            _ = viewModel.RequestCloseCurrentDocumentAsync();
         });
 
         shortcutManager.AddShortcut(KeyModifiers.Control, Key.Tab, "SwitchToNextDocument", () =>

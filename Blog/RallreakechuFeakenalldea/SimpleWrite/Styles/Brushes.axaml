@@ -8,6 +8,9 @@
         <SolidColorBrush x:Key="Brush.Background.Panel" Color="#FF2E2E2E" />
         <SolidColorBrush x:Key="Brush.Background.Control" Color="#FF2A2A2A" />
         <SolidColorBrush x:Key="Brush.Background.Toggle" Color="#FF1B1B1B" />
+        <SolidColorBrush x:Key="Brush.Background.Dialog" Color="#FF242424" />
+        <SolidColorBrush x:Key="Brush.Background.DialogBadge" Color="#1F2F6FED" />
+        <SolidColorBrush x:Key="Brush.Background.Overlay" Color="#B20B0B0B" />
         <SolidColorBrush x:Key="Brush.Background.InteractiveHover" Color="#FF5F5F5D" />
         <SolidColorBrush x:Key="Brush.Background.TreeItemHover" Color="#FF373737" />
         <SolidColorBrush x:Key="Brush.Background.TreeItemSelected" Color="#FF23407A" />

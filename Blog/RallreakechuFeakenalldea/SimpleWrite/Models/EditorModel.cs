@@ -13,6 +13,8 @@ namespace SimpleWrite.Models;
 
 public class EditorModel : INotifyPropertyChanged
 {
+    public Guid DocumentId { get; } = Guid.NewGuid();
+
     /// <summary>
     /// 标题内容
     /// </summary>

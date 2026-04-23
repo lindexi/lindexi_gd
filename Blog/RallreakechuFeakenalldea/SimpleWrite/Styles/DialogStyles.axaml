@@ -1,0 +1,47 @@
+<Styles xmlns="https://github.com/avaloniaui">
+    <Style Selector="Border.DialogOverlay">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Overlay}" />
+    </Style>
+
+    <Style Selector="Border.DialogPanel">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Dialog}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Strong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="24" />
+    </Style>
+
+    <Style Selector="Border.DialogBadge">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.DialogBadge}" />
+        <Setter Property="CornerRadius" Value="999" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <Style Selector="TextBlock.DialogBadgeText">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Theme.Accent}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.DialogTitle">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Primary}" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.DialogBody">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Secondary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="Border.DialogHintCard">
+        <Setter Property="Background" Value="{StaticResource Brush.Background.Control}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Subtle}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="12" />
+    </Style>
+</Styles>

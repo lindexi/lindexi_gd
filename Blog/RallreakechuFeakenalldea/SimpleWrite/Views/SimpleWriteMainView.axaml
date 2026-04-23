@@ -37,5 +37,45 @@
         <components:RightSlideBar Grid.Row="1" Grid.Column="2" Width="300">
             <!-- 右侧边栏 -->
         </components:RightSlideBar>
+
+        <Grid Grid.RowSpan="2" Grid.ColumnSpan="3" IsVisible="{Binding IsCloseConfirmationVisible}">
+            <Border Classes="DialogOverlay" />
+            <Border Classes="DialogPanel"
+                    Width="520"
+                    MaxWidth="520"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <Border Classes="DialogBadge">
+                        <TextBlock Classes="DialogBadgeText" Text="未保存更改" />
+                    </Border>
+
+                    <TextBlock Classes="DialogTitle" Text="{Binding CloseConfirmationTitle}" />
+                    <TextBlock Classes="DialogBody" Text="{Binding CloseConfirmationDescription}" />
+
+                    <Border Classes="DialogHintCard">
+                        <TextBlock Classes="DialogBody" Text="{Binding CloseConfirmationFileHint}" />
+                    </Border>
+
+                    <Border Classes="DialogHintCard">
+                        <TextBlock Classes="DialogBody" Text="{Binding CloseConfirmationRecoveryHint}" />
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right">
+                        <Button Classes="SecondaryButton InteractiveButton"
+                                Click="ContinueEditingButton_OnClick"
+                                Content="继续编辑" />
+                        <Button Classes="SecondaryButton InteractiveButton"
+                                Click="DiscardCloseButton_OnClick"
+                                Content="直接关闭" />
+                        <Button Classes="PrimaryButton InteractiveButton"
+                                Click="SaveAndCloseButton_OnClick"
+                                Content="{Binding CloseConfirmationSaveButtonText}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

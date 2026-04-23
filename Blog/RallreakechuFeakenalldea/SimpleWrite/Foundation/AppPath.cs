@@ -23,6 +23,8 @@ public class AppPathManager
 
         CopilotAbilityDirectory = Directory.CreateDirectory(Path.Join(DataDirectory, "CopilotAbilities"));
 
+        TempDirectory = Directory.CreateDirectory(Path.Join(DataDirectory, "Temp"));
+
         RootLogDirectory = Directory.CreateDirectory(Path.Join(DataDirectory, "Logs"));
 
         // 日志文件夹，命名格式 年月日_时分秒-进程号
@@ -40,6 +42,8 @@ public class AppPathManager
     public DirectoryPath ConfigurationDirectory { get; }
 
     public DirectoryPath CopilotAbilityDirectory { get; }
+
+    public DirectoryPath TempDirectory { get; }
 
     public DirectoryPath RootLogDirectory { get; }
     public DirectoryPath LogDirectory { get; }

@@ -20,6 +20,7 @@
 | 编辑器右键命令模式与本地转换 | `Knowledge/Avalonia/Command-Pattern-And-Local-Transform.md` |
 | 左侧目录树与文件夹查找 | `Knowledge/Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | 目录树选中联动与深色主题 | `Knowledge/Avalonia/Folder-TreeView-Selection-And-Theme.md` |
+| 标签关闭确认与临时快照自动保存 | `Knowledge/Avalonia/Unsaved-Tab-Close-And-Temp-Autosave.md` |
 | 编辑器选区发送到 Copilot | `Knowledge/Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md` |
 | 快捷键与文件选择器 | `Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md` |
 | 功能交付自检 | `Knowledge/Workflow/Feature-Delivery-Checklist.md` |

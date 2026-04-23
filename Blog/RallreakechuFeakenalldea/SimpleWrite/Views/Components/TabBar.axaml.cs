@@ -46,6 +46,6 @@ public partial class TabBar : UserControl
             return;
         }
 
-        MainViewModel.EditorViewModel.CloseDocument(editorModel);
+        _ = MainViewModel.EditorViewModel.RequestCloseDocumentAsync(editorModel);
     }
 }

@@ -15,6 +15,7 @@
 | Markdown 链接为何能高亮并支持命中测试 | `Avalonia/Markdown-Url-Highlighting.md` |
 | 默认快捷键和文件选择器在哪里接入 | `Avalonia/Shortcut-Defaults-And-FilePicker.md` |
 | 标签页右键菜单如何定位到文件资源管理器 | `Avalonia/TabBar-ContextMenu-And-Explorer.md` |
+| 标签关闭前如何提示未保存内容并写入临时快照 | `Avalonia/Unsaved-Tab-Close-And-Temp-Autosave.md` |
 | XAML 命名有哪些额外约束 | `Avalonia/Xaml-Naming-Notes.md` |
 | 功能开发完成后如何自检 | `Workflow/Feature-Delivery-Checklist.md` |
 
@@ -32,6 +33,7 @@
 | `Markdown-Url-Highlighting.md` | Markdown 正文 URL 高亮与命中信息记录 | 需要识别链接、命中链接、准备点击打开能力时 |
 | `Shortcut-Defaults-And-FilePicker.md` | 快捷键默认方案与文件选择器注入 | 新增命令、调整快捷键、接入打开/保存对话框时 |
 | `TabBar-ContextMenu-And-Explorer.md` | 标签栏右键菜单与文件资源管理器联动 | 扩展标签交互入口、定位文件时 |
+| `Unsaved-Tab-Close-And-Temp-Autosave.md` | 标签关闭确认与临时快照自动保存 | 需要避免草稿丢失、扩展关闭确认或恢复策略时 |
 | `TextEditor-Selection-To-Copilot-ContextMenu.md` | 文本选区发送到 Copilot 聊天的完整链路 | 理解编辑器与 Copilot 侧栏的协作边界时 |
 | `Xaml-Naming-Notes.md` | XAML 命名补充约束 | 新增或重构视图、补 `x:Name` 时 |
 
