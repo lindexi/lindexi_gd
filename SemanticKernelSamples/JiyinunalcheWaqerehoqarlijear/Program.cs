@@ -52,7 +52,7 @@ var fullPptText = fullPptTextBuilder.ToString();
 
 var mainSession = await mainAgent.CreateSessionAsync();
 
-ChatMessage initializePromptEngineerMessage = new(ChatRole.System, $$$"""
+ChatMessage initializePromptEngineerMessage = new(ChatRole.System, $"""
 你是一个提示词生成工程师。你的任务是编写并持续优化一个“PPT 页面分析子代理”的提示词。
 
 子代理的固定输入：
@@ -86,13 +86,13 @@ PreviousResults 为之前页面解析到的结果
 CurrentPageText 为当前页面的文本内容，示例内容如下：
 
 [示例开始]
-{{{powerPointSlideInfoList[0].SlideText}}}
+{powerPointSlideInfoList[0].SlideText}
 [示例结束]
 
 AllPptText 为整个 PPT 页面的所有文本内容，示例内容如下：
 
 [示例开始]
-{{{fullPptText}}}
+{fullPptText}
 [示例结束]
 """);
 
