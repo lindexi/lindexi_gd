@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 
 using SimpleWrite.ViewModels;
 
@@ -21,20 +20,5 @@ public partial class SimpleWriteMainView : UserControl
     public async Task OpenFileAsync(FileInfo file)
     {
         await ViewModel.OpenFileAsync(file);
-    }
-
-    private void SaveAndCloseButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        ViewModel.ConfirmCloseBySaving();
-    }
-
-    private void DiscardCloseButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        ViewModel.ConfirmCloseWithoutSaving();
-    }
-
-    private void ContinueEditingButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        ViewModel.CancelCloseConfirmation();
     }
 }

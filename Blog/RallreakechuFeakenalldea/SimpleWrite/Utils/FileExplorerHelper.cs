@@ -49,4 +49,43 @@ internal static class FileExplorerHelper
 
         return false;
     }
+
+    public static bool TryOpenDirectoryInFileExplorer(DirectoryInfo directoryInfo)
+    {
+        ArgumentNullException.ThrowIfNull(directoryInfo);
+
+        if (!directoryInfo.Exists)
+        {
+            return false;
+        }
+
+        if (OperatingSystem.IsWindows())
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{directoryInfo.FullName}\"")
+            {
+                UseShellExecute = true
+            });
+            return true;
+        }
+
+        if (OperatingSystem.IsMacOS())
+        {
+            Process.Start(new ProcessStartInfo("open", $"\"{directoryInfo.FullName}\"")
+            {
+                UseShellExecute = false
+            });
+            return true;
+        }
+
+        if (OperatingSystem.IsLinux())
+        {
+            Process.Start(new ProcessStartInfo("xdg-open", $"\"{directoryInfo.FullName}\"")
+            {
+                UseShellExecute = false
+            });
+            return true;
+        }
+
+        return false;
+    }
 }

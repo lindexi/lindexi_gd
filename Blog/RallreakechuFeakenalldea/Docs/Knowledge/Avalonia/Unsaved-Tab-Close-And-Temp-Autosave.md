@@ -31,12 +31,13 @@
 
 ### 3. 窗口内确认面板
 
-- 确认 UI 放在 `SimpleWriteMainView.axaml` 顶层 `Grid` 的覆盖层里，不新开窗口。
+- 确认 UI 已抽成独立控件 `CloseConfirmationDialog`，由 `SimpleWriteMainView.axaml` 负责挂载在顶层覆盖层位置，不新开窗口。
 - 面板状态由 `SimpleWriteMainViewModel` 持有。
-- View 只负责按钮点击事件转发：
+- 对话框控件只负责按钮点击事件转发：
   - 保存并关闭
   - 直接关闭
   - 继续编辑
+  - 打开 `AppPathManager.TempDirectory`
 
 ### 4. 深色主题样式
 
@@ -67,6 +68,7 @@
 - 版本清理：每组只保留最近 10 个文件，超出的最旧文件自动删除
 - 标签真正关闭后，要同步释放 `TempDocumentAutoSaveService` 内部的状态项，避免 `_entryMap` 持有已关闭文档造成内存泄露。
 - 对已关联本地文件的标签，关闭时直接清空该文档的临时快照目录；未正式保存到本地的草稿则保留快照，方便后续恢复。
+- 关闭确认面板的“打开 Temp 文件夹”入口会直接调用 `FileExplorerHelper.TryOpenDirectoryInFileExplorer`，方便用户查看自动恢复副本实际落盘位置。
 
 ## 注意事项
 
