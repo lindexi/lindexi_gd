@@ -38,7 +38,9 @@
             <!-- 右侧边栏 -->
         </components:RightSlideBar>
 
-        <Grid Grid.RowSpan="2" Grid.ColumnSpan="3" IsVisible="{Binding IsCloseConfirmationVisible}">
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="3" Grid.Column="0"
+              IsVisible="{Binding IsCloseConfirmationVisible}">
+            <!-- 这是弹出的对话框，用来询问是否保存 -->
             <Border Classes="DialogOverlay" />
             <Border Classes="DialogPanel"
                     Width="520"
