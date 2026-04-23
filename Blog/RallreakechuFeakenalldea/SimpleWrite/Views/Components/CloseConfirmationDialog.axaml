@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="520"
+             d:DesignHeight="320"
+             x:Class="SimpleWrite.Views.Components.CloseConfirmationDialog"
+             x:DataType="viewModels:SimpleWriteMainViewModel">
+    <Design.DataContext>
+        <viewModels:SimpleWriteMainViewModel />
+    </Design.DataContext>
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
+    </Design.DesignStyle>
+
+    <Grid IsVisible="{Binding IsCloseConfirmationVisible}">
+        <Border Classes="DialogOverlay" />
+        <Border Classes="DialogPanel"
+                Width="520"
+                MaxWidth="520"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <StackPanel Spacing="16">
+                <Border Classes="DialogBadge">
+                    <TextBlock Classes="DialogBadgeText" Text="未保存更改" />
+                </Border>
+
+                <TextBlock Classes="DialogTitle" Text="{Binding CloseConfirmationTitle}" />
+                <TextBlock Classes="DialogBody" Text="{Binding CloseConfirmationDescription}" />
+
+                <Border Classes="DialogHintCard">
+                    <TextBlock Classes="DialogBody" Text="{Binding CloseConfirmationFileHint}" />
+                </Border>
+
+                <Border Classes="DialogHintCard">
+                    <StackPanel Spacing="8">
+                        <TextBlock Classes="DialogBody" Text="{Binding CloseConfirmationRecoveryHint}" />
+                        <Button Classes="SimpleTextButton"
+                                HorizontalAlignment="Left"
+                                Click="OpenTempFolderButton_OnClick"
+                                Content="打开 Temp 文件夹" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Orientation="Horizontal"
+                            Spacing="12"
+                            HorizontalAlignment="Right">
+                    <Button Classes="SecondaryButton InteractiveButton"
+                            Click="ContinueEditingButton_OnClick"
+                            Content="继续编辑" />
+                    <Button Classes="SecondaryButton InteractiveButton"
+                            Click="DiscardCloseButton_OnClick"
+                            Content="直接关闭" />
+                    <Button Classes="PrimaryButton InteractiveButton"
+                            Click="SaveAndCloseButton_OnClick"
+                            Content="{Binding CloseConfirmationSaveButtonText}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

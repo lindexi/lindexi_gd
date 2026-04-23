@@ -27,6 +27,7 @@ public partial class MainEditorView : UserControl
     public MainEditorView()
     {
         InitializeComponent();
+        TextEditorScrollViewer.ScrollChanged += TextEditorScrollViewer_OnScrollChanged;
     }
 
     public EditorViewModel ViewModel => DataContext as EditorViewModel
@@ -63,6 +64,11 @@ public partial class MainEditorView : UserControl
 
     private void UpdateCurrentEditorMode(EditorModel editorModel)
     {
+        if (_currentEditorModel is { } currentEditorModel)
+        {
+            CaptureRuntimeState(currentEditorModel);
+        }
+
         var textEditor = editorModel.TextEditor;
         if (textEditor is null)
         {
@@ -77,8 +83,14 @@ public partial class MainEditorView : UserControl
             textEditor = ViewModel.EnsureTextEditor(editorModel);
         }
 
+        _currentEditorModel = editorModel;
         CurrentTextEditor = textEditor;
+        RestoreRuntimeState(editorModel, textEditor);
     }
+
+    private EditorModel? _currentEditorModel;
+
+    private bool _isRestoringEditorRuntimeState;
 
     private TextEditor _currentTextEditor = null!;
 
@@ -110,6 +122,13 @@ public partial class MainEditorView : UserControl
     {
         var currentTextEditor = _currentTextEditor;
 
+        if (!_isRestoringEditorRuntimeState
+            && ReferenceEquals(sender, currentTextEditor)
+            && _currentEditorModel is not null)
+        {
+            _currentEditorModel.RuntimeSelection = e.NewValue;
+        }
+
         if (currentTextEditor.TextEditorCore.TryGetRenderInfo(out var renderInfo, autoLayoutEmptyTextEditor: false))
         {
             UpdateTextEditorScrollViewer(currentTextEditor.CurrentCaretOffset, renderInfo);
@@ -136,6 +155,106 @@ public partial class MainEditorView : UserControl
                 // 等待的方法就是啥都不干，等下一次事件进入
             }
         }
+    }
+
+    private void TextEditorScrollViewer_OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (_isRestoringEditorRuntimeState || _currentEditorModel is null)
+        {
+            return;
+        }
+
+        var offset = TextEditorScrollViewer.Offset;
+        _currentEditorModel.RuntimeScrollOffsetX = offset.X;
+        _currentEditorModel.RuntimeScrollOffsetY = offset.Y;
+    }
+
+    private void CaptureRuntimeState(EditorModel editorModel)
+    {
+        if (editorModel.TextEditor is { } textEditor)
+        {
+            editorModel.RuntimeSelection = textEditor.CurrentSelection;
+        }
+
+        if (ReferenceEquals(editorModel, _currentEditorModel))
+        {
+            var offset = TextEditorScrollViewer.Offset;
+            editorModel.RuntimeScrollOffsetX = offset.X;
+            editorModel.RuntimeScrollOffsetY = offset.Y;
+        }
+    }
+
+    private void RestoreRuntimeState(EditorModel editorModel, TextEditor textEditor)
+    {
+        _isRestoringEditorRuntimeState = true;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            textEditor.CurrentSelection = editorModel.RuntimeSelection;
+            RestoreScrollOffset(editorModel, textEditor);
+            _isRestoringEditorRuntimeState = false;
+
+        }, DispatcherPriority.Background);
+    }
+
+    private void RestoreScrollOffset(EditorModel editorModel, TextEditor textEditor)
+    {
+        if (!ReferenceEquals(editorModel, _currentEditorModel) || !ReferenceEquals(textEditor, _currentTextEditor))
+        {
+            return;
+        }
+
+        if (!TryApplyScrollOffset(editorModel))
+        {
+            textEditor.LayoutCompleted += OnLayoutCompleted;
+        }
+
+        void OnLayoutCompleted(object? sender, LayoutCompletedEventArgs e)
+        {
+            if (!ReferenceEquals(editorModel, _currentEditorModel) || !ReferenceEquals(textEditor, _currentTextEditor))
+            {
+                textEditor.LayoutCompleted -= OnLayoutCompleted;
+                return;
+            }
+
+            if (TryApplyScrollOffset(editorModel))
+            {
+                textEditor.LayoutCompleted -= OnLayoutCompleted;
+            }
+        }
+    }
+
+    private bool TryApplyScrollOffset(EditorModel editorModel)
+    {
+        var viewport = TextEditorScrollViewer.Viewport;
+        if (viewport.Width <= 0 || viewport.Height <= 0)
+        {
+            return false;
+        }
+
+        var extent = TextEditorScrollViewer.Extent;
+        var maxOffsetX = Math.Max(0, extent.Width - viewport.Width);
+        var maxOffsetY = Math.Max(0, extent.Height - viewport.Height);
+        var targetOffset = new Avalonia.Vector(
+            Math.Clamp(editorModel.RuntimeScrollOffsetX, 0, maxOffsetX),
+            Math.Clamp(editorModel.RuntimeScrollOffsetY, 0, maxOffsetY));
+
+        if (TextEditorScrollViewer.Offset == targetOffset)
+        {
+            return true;
+        }
+
+        _isRestoringEditorRuntimeState = true;
+        try
+        {
+            TextEditorScrollViewer.Offset = targetOffset;
+        }
+        finally
+        {
+            _isRestoringEditorRuntimeState = false;
+        }
+
+        return true;
     }
 
     /// <summary>

@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus;
+using LightTextEditorPlus.Core.Carets;
 
 namespace SimpleWrite.Models;
 
@@ -48,6 +49,39 @@ public class EditorModel : INotifyPropertyChanged
     private FileInfo? _fileInfo;
 
     public TextEditor? TextEditor { get; set; }
+
+    /// <summary>
+    /// 当前标签页对应编辑器的运行时选区。
+    /// </summary>
+    public Selection RuntimeSelection
+    {
+        get => _runtimeSelection;
+        set => SetField(ref _runtimeSelection, value);
+    }
+
+    private Selection _runtimeSelection = new(new CaretOffset(0), 0);
+
+    /// <summary>
+    /// 当前标签页对应滚动区域的水平偏移。
+    /// </summary>
+    public double RuntimeScrollOffsetX
+    {
+        get => _runtimeScrollOffsetX;
+        set => SetField(ref _runtimeScrollOffsetX, value);
+    }
+
+    private double _runtimeScrollOffsetX;
+
+    /// <summary>
+    /// 当前标签页对应滚动区域的垂直偏移。
+    /// </summary>
+    public double RuntimeScrollOffsetY
+    {
+        get => _runtimeScrollOffsetY;
+        set => SetField(ref _runtimeScrollOffsetY, value);
+    }
+
+    private double _runtimeScrollOffsetY;
 
     public SaveStatus SaveStatus
     {

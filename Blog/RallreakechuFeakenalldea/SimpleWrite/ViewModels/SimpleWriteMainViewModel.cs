@@ -6,6 +6,7 @@ using SimpleWrite.Business.SimpleWriteConfigurations;
 using SimpleWrite.Business.TextEditors.CommandPatterns;
 using SimpleWrite.Foundation;
 using SimpleWrite.Models;
+using SimpleWrite.Utils;
 
 using System;
 using System.ComponentModel;
@@ -171,11 +172,16 @@ public class SimpleWriteMainViewModel : ViewModelBase
             CloseConfirmationSaveButtonText = "另存并关闭";
         }
 
-        CloseConfirmationRecoveryHint = "自动恢复：停止编辑 3 秒后会写入 Temp 副本，并仅保留最近 10 个版本。";
+        CloseConfirmationRecoveryHint = "自动恢复：停止编辑 3 秒后会写入 Temp 副本，并仅保留最近 10 个版本。可点击下方入口打开 Temp 文件夹查看副本。";
         IsCloseConfirmationVisible = true;
 
         _closeConfirmationTaskCompletionSource = new TaskCompletionSource<CloseDocumentDecision>(TaskCreationOptions.RunContinuationsAsynchronously);
         return _closeConfirmationTaskCompletionSource.Task;
+    }
+
+    public void OpenTempDirectory()
+    {
+        FileExplorerHelper.TryOpenDirectoryInFileExplorer(AppPathManager.TempDirectory);
     }
 
     public void ConfirmCloseBySaving()
