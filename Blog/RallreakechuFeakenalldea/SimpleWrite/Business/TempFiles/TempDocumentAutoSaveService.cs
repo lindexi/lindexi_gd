@@ -1,3 +1,5 @@
+using Avalonia.Threading;
+
 using SimpleWrite.Foundation;
 using SimpleWrite.Models;
 
@@ -5,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace SimpleWrite.Business.TempFiles;
@@ -32,96 +33,163 @@ internal sealed class TempDocumentAutoSaveService
             return;
         }
 
-        var entry = GetOrCreateEntry(editorModel);
-        entry.DebounceCancellationTokenSource?.Cancel();
-        entry.DebounceCancellationTokenSource?.Dispose();
-
-        var cancellationTokenSource = new CancellationTokenSource();
-        entry.DebounceCancellationTokenSource = cancellationTokenSource;
-
-        _ = RunAutoSaveAsync(editorModel, entry, cancellationTokenSource.Token);
+        _ = QueueSaveAsync(editorModel, forceImmediateSave: false);
     }
 
     public async Task FlushAsync(EditorModel editorModel)
     {
         ArgumentNullException.ThrowIfNull(editorModel);
 
-        if (editorModel.TextEditor is null || editorModel.IsEmptyText())
+        if (editorModel.TextEditor is null)
         {
             return;
         }
 
+        await QueueSaveAsync(editorModel, forceImmediateSave: true).ConfigureAwait(false);
+    }
+
+    public void Release(EditorModel editorModel)
+    {
+        ArgumentNullException.ThrowIfNull(editorModel);
+
+        _entryMap.Remove(editorModel.DocumentId);
+
+        if (editorModel.FileInfo is null)
+        {
+            return;
+        }
+
+        var documentDirectoryPath = GetDocumentDirectoryPath(editorModel);
+        if (Directory.Exists(documentDirectoryPath))
+        {
+            Directory.Delete(documentDirectoryPath, recursive: true);
+        }
+    }
+
+    private Task QueueSaveAsync(EditorModel editorModel, bool forceImmediateSave)
+    {
         var entry = GetOrCreateEntry(editorModel);
-        entry.DebounceCancellationTokenSource?.Cancel();
-        entry.DebounceCancellationTokenSource?.Dispose();
-        entry.DebounceCancellationTokenSource = null;
+        Task processingTask;
 
-        await SaveSnapshotAsync(editorModel, entry, CancellationToken.None).ConfigureAwait(false);
+        lock (entry.SyncRoot)
+        {
+            entry.HasPendingChange = true;
+            entry.LastChangedAtUtc = forceImmediateSave ? DateTime.UtcNow - AutoSaveDelay : DateTime.UtcNow;
+            entry.PendingSignal.TrySetResult(true);
+
+            if (!entry.IsProcessing)
+            {
+                entry.IsProcessing = true;
+                entry.ProcessingTask = Task.Run(() => RunAutoSaveLoopAsync(editorModel, entry));
+            }
+
+            processingTask = entry.ProcessingTask;
+        }
+
+        return processingTask;
     }
 
-    private async Task RunAutoSaveAsync(EditorModel editorModel, DocumentAutoSaveEntry entry, CancellationToken cancellationToken)
+    private async Task RunAutoSaveLoopAsync(EditorModel editorModel, DocumentAutoSaveEntry entry)
     {
         try
         {
-            await Task.Delay(AutoSaveDelay, cancellationToken).ConfigureAwait(false);
-            await SaveSnapshotAsync(editorModel, entry, cancellationToken).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-        }
-    }
-
-    private async Task SaveSnapshotAsync(EditorModel editorModel, DocumentAutoSaveEntry entry, CancellationToken cancellationToken)
-    {
-        await entry.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            if (editorModel.TextEditor is null || editorModel.IsEmptyText())
+            while (true)
             {
-                return;
+                Task? waitTask = null;
+
+                lock (entry.SyncRoot)
+                {
+                    if (!entry.HasPendingChange)
+                    {
+                        return;
+                    }
+
+                    var dueTime = entry.LastChangedAtUtc + AutoSaveDelay;
+                    var delay = dueTime - DateTime.UtcNow;
+                    if (delay > TimeSpan.Zero)
+                    {
+                        waitTask = Task.WhenAny(Task.Delay(delay), entry.PendingSignal.Task);
+                    }
+                    else
+                    {
+                        entry.HasPendingChange = false;
+                    }
+                }
+
+                if (waitTask is not null)
+                {
+                    await waitTask.ConfigureAwait(false);
+
+                    lock (entry.SyncRoot)
+                    {
+                        if (entry.PendingSignal.Task.IsCompleted)
+                        {
+                            entry.PendingSignal = CreatePendingSignal();
+                        }
+                    }
+
+                    continue;
+                }
+
+                await SaveSnapshotAsync(editorModel).ConfigureAwait(false);
             }
-
-            var text = editorModel.TextEditor.Text;
-            var contentHash = StringComparer.Ordinal.GetHashCode(text);
-            var contentLength = text.Length;
-            if (entry.LastSavedContentHash == contentHash && entry.LastSavedContentLength == contentLength)
-            {
-                return;
-            }
-
-            var documentDirectory = Directory.CreateDirectory(Path.Join(_appPathManager.TempDirectory, editorModel.DocumentId.ToString("N")));
-            var snapshotFilePath = Path.Join(documentDirectory.FullName, BuildSnapshotFileName(editorModel));
-            await File.WriteAllTextAsync(snapshotFilePath, text, cancellationToken).ConfigureAwait(false);
-
-            entry.LastSavedContentHash = contentHash;
-            entry.LastSavedContentLength = contentLength;
-
-            TrimSnapshotFiles(documentDirectory);
         }
         finally
         {
-            entry.Gate.Release();
+            lock (entry.SyncRoot)
+            {
+                entry.IsProcessing = false;
+                entry.ProcessingTask = Task.CompletedTask;
+            }
         }
     }
 
-    private static string BuildSnapshotFileName(EditorModel editorModel)
+    private async Task SaveSnapshotAsync(EditorModel editorModel)
     {
-        var extension = editorModel.FileInfo?.Extension;
-        if (string.IsNullOrWhiteSpace(extension))
+        var snapshot = await CreateSnapshotAsync(editorModel).ConfigureAwait(false);
+        if (snapshot is null)
         {
-            extension = ".txt";
+            return;
         }
 
-        var baseName = editorModel.FileInfo is { } fileInfo
-            ? Path.GetFileNameWithoutExtension(fileInfo.Name)
-            : editorModel.Title;
-        baseName = SanitizeFileName(baseName);
-        if (string.IsNullOrWhiteSpace(baseName))
-        {
-            baseName = "Document";
-        }
+        var documentDirectory = Directory.CreateDirectory(GetDocumentDirectoryPath(editorModel));
+        var snapshotFilePath = Path.Join(documentDirectory.FullName, BuildSnapshotFileName(snapshot));
+        await File.WriteAllTextAsync(snapshotFilePath, snapshot.Text).ConfigureAwait(false);
 
-        return $"{DateTime.Now:yyyyMMdd_HHmmss_fff}__{baseName}{extension}";
+        TrimSnapshotFiles(documentDirectory);
+    }
+
+    private static async Task<SnapshotContent?> CreateSnapshotAsync(EditorModel editorModel)
+    {
+        return await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (editorModel.TextEditor is null || editorModel.IsEmptyText())
+            {
+                return null;
+            }
+
+            var extension = editorModel.FileInfo?.Extension;
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                extension = ".txt";
+            }
+
+            var baseName = editorModel.FileInfo is { } fileInfo
+                ? Path.GetFileNameWithoutExtension(fileInfo.Name)
+                : editorModel.Title;
+            baseName = SanitizeFileName(baseName);
+            if (string.IsNullOrWhiteSpace(baseName))
+            {
+                baseName = "Document";
+            }
+
+            return new SnapshotContent(editorModel.TextEditor.Text, baseName, extension);
+        });
+    }
+
+    private static string BuildSnapshotFileName(SnapshotContent snapshot)
+    {
+        return $"{DateTime.Now:yyyyMMdd_HHmmss_fff}__{snapshot.BaseName}{snapshot.Extension}";
     }
 
     private static void TrimSnapshotFiles(DirectoryInfo documentDirectory)
@@ -142,6 +210,16 @@ internal sealed class TempDocumentAutoSaveService
         return new string(fileName.Select(c => invalidFileNameCharSet.Contains(c) ? '_' : c).ToArray());
     }
 
+    private static TaskCompletionSource<bool> CreatePendingSignal()
+    {
+        return new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    private string GetDocumentDirectoryPath(EditorModel editorModel)
+    {
+        return Path.Join(_appPathManager.TempDirectory, editorModel.DocumentId.ToString("N"));
+    }
+
     private DocumentAutoSaveEntry GetOrCreateEntry(EditorModel editorModel)
     {
         if (_entryMap.TryGetValue(editorModel.DocumentId, out var entry))
@@ -156,12 +234,18 @@ internal sealed class TempDocumentAutoSaveService
 
     private sealed class DocumentAutoSaveEntry
     {
-        public CancellationTokenSource? DebounceCancellationTokenSource { get; set; }
+        public object SyncRoot { get; } = new();
 
-        public SemaphoreSlim Gate { get; } = new(1, 1);
+        public bool HasPendingChange { get; set; }
 
-        public int LastSavedContentHash { get; set; }
+        public bool IsProcessing { get; set; }
 
-        public int LastSavedContentLength { get; set; } = -1;
+        public DateTime LastChangedAtUtc { get; set; }
+
+        public TaskCompletionSource<bool> PendingSignal { get; set; } = CreatePendingSignal();
+
+        public Task ProcessingTask { get; set; } = Task.CompletedTask;
     }
+
+    private sealed record SnapshotContent(string Text, string BaseName, string Extension);
 }
