@@ -71,10 +71,20 @@ internal sealed class ScreenshotAnalysisService
             ]
         };
 
-        var response = await _agent.RunAsync(message);
-        return string.IsNullOrWhiteSpace(response.Text)
-            ? "模型没有返回可用的解读内容。"
-            : response.Text.Trim();
+        try
+        {
+            var response = await _agent.RunAsync(message);
+            if (!string.IsNullOrEmpty(response.Text))
+            {
+                return response.Text.Trim();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        return "模型没有返回可用的解读内容。";
     }
 
     private static string BuildPrompt(DateTimeOffset capturedAt, IReadOnlyCollection<SnapshotAnalysisContext> recentContexts)

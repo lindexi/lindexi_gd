@@ -95,7 +95,8 @@
                             CornerRadius="10">
                         <ContentPresenter HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
-                                          Margin="2" />
+                                          Margin="2" 
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -126,6 +127,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}"
                             CornerRadius="10">
                         <ContentPresenter HorizontalAlignment="Center"
                                           VerticalAlignment="Center"

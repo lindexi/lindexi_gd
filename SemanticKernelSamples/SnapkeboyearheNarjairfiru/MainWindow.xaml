@@ -17,47 +17,13 @@
         d:DesignHeight="960">
     <Grid Margin="24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource CardBorderStyle}"
-                Padding="28">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel>
-                    <TextBlock Style="{StaticResource HeroTitleTextStyle}"
-                               Text="屏幕截图解读中心" />
-                    <TextBlock Style="{StaticResource HeroSubtitleTextStyle}"
-                               Text="持续采集屏幕画面，使用最近 10 个画面的时间线增强上下文，并以结构化 XML 保留解读结果。" />
-                </StackPanel>
-
-                <Border Grid.Column="1"
-                        Padding="14,10"
-                        Background="{StaticResource SurfaceSecondaryBrush}"
-                        BorderBrush="{StaticResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="12">
-                    <StackPanel>
-                        <TextBlock FontSize="13"
-                                   FontWeight="SemiBold"
-                                   Text="浅色主题" />
-                        <TextBlock Style="{StaticResource CaptionTextStyle}"
-                                   Margin="0,4,0,0"
-                                   Text="资源字典已统一定义窗口、卡片、按钮与文本样式。" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Border>
-
-        <Grid Grid.Row="1"
-              Margin="0,20,0,0">
+        <Grid Grid.Row="2"
+              Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="16" />
@@ -89,7 +55,7 @@
 
             <Border Grid.Column="2"
                     Style="{StaticResource CardBorderStyle}"
-                    Padding="22">
+                    Padding="10">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitleTextStyle}"
                                Text="运行控制" />
@@ -104,15 +70,15 @@
 
                     <WrapPanel Margin="0,18,0,0"
                                ItemHeight="40">
-                        <Button Margin="0,0,8,8"
+                        <Button Margin="0,0,8,0"
                                 Click="PauseButton_OnClick"
                                 Content="暂停"
                                 Style="{StaticResource SecondaryButtonStyle}" />
-                        <Button Margin="0,0,8,8"
+                        <Button Margin="0,0,8,0"
                                 Click="ResumeButton_OnClick"
                                 Content="恢复"
                                 Style="{StaticResource SecondaryButtonStyle}" />
-                        <Button Margin="0,0,0,8"
+                        <Button Margin="0,0,0,0"
                                 Click="LoadHistoryButton_OnClick"
                                 Content="加载以前的项"
                                 IsEnabled="{Binding CanLoadMoreHistory}"
@@ -123,8 +89,8 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="2"
-                Margin="0,20,0,0"
+        <Border Grid.Row="1"
+                Margin="0,0,0,10"
                 Style="{StaticResource CardBorderStyle}"
                 Padding="18,16">
             <DockPanel LastChildFill="True">
@@ -141,8 +107,8 @@
             </DockPanel>
         </Border>
 
-        <ListView Grid.Row="3"
-                  Margin="0,20,0,0"
+        <ListView Grid.Row="0"
+                  Margin="0,0,0,10"
                   ItemsSource="{Binding Items}"
                   ScrollViewer.CanContentScroll="True"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
