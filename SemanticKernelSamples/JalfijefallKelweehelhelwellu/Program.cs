@@ -9,8 +9,16 @@ using System.Text;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-var screenSnapshotProvider = new ScreenSnapshotProvider();
-await screenSnapshotProvider.TakeSnapshot();
+using var screenSnapshotProvider = new ScreenSnapshotProvider();
+var folderPath = $@"f:\temp\JaniderebenelraHiwaicellelle\{Path.GetRandomFileName()}";
+Directory.CreateDirectory(folderPath);
+
+for (int i = 0; i < 100; i++)
+{
+    var tempFile = Path.Join(folderPath, $"screenshot_{i:D4}.png");
+    await screenSnapshotProvider.TakeSnapshotAsync(new FileInfo(tempFile));
+    await Task.Delay(TimeSpan.FromSeconds(1));
+}
 
 var ollamaEndpoint = new Uri("http://172.20.113.28:11434");
 const string modelId = "qwen3-vl:8b";
