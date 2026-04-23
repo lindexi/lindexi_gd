@@ -31,7 +31,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Style="{StaticResource CardBorderStyle}"
-                    Padding="22">
+                    Padding="10">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitleTextStyle}"
                                Text="存储目录" />
@@ -68,7 +68,7 @@
                               IsChecked="{Binding AutoTrimEnabled}"
                               d:IsChecked="True" />
 
-                    <WrapPanel Margin="0,18,0,0"
+                    <WrapPanel Margin="0,10,0,0"
                                ItemHeight="40">
                         <Button Margin="0,0,8,0"
                                 Click="PauseButton_OnClick"
