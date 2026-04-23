@@ -2,10 +2,21 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\JalfijefallKelweehelhelwellu\ScreenSnapshotProvider.cs" Link="ScreenSnapshotProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.2" />
+    <PackageReference Include="Vortice.Win32" Version="2.3.0" />
+
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.2.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260416003" />
+    <PackageReference Include="OllamaSharp" Version="5.4.25" />
+  </ItemGroup>
 </Project>

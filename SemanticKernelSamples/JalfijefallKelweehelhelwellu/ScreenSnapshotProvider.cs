@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.IO;
+using System.Runtime.InteropServices;
 
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -85,10 +86,10 @@ class ScreenSnapshotProvider : IDisposable
 
     private FileInfo? _saveFile;
     private TaskCompletionSource? _snapshotTakenTaskCompletionSource;
-    private Direct3D11CaptureFramePool _direct3D11CaptureFramePool;
-    private GraphicsCaptureSession _graphicsCaptureSession;
-    private IDirect3DDevice _direct3DDevice;
-    private ID3D11Device _id3D11Device;
+    private readonly Direct3D11CaptureFramePool _direct3D11CaptureFramePool;
+    private readonly GraphicsCaptureSession _graphicsCaptureSession;
+    private readonly IDirect3DDevice _direct3DDevice;
+    private readonly ID3D11Device _id3D11Device;
 
     private static async Task SaveFrameToFileAsync(Direct3D11CaptureFrame direct3D11CaptureFrame, FileInfo saveFile)
     {
