@@ -70,11 +70,23 @@
 - 对已关联本地文件的标签，关闭时直接清空该文档的临时快照目录；未正式保存到本地的草稿则保留快照，方便后续恢复。
 - 关闭确认面板的“打开 Temp 文件夹”入口会直接调用 `FileExplorerHelper.TryOpenDirectoryInFileExplorer`，方便用户查看自动恢复副本实际落盘位置。
 
+### 7. 标签切换时保留运行时状态
+
+- `MainEditorView` 复用了同一个 `ScrollViewer` 承载当前 `TextEditor`，因此切换标签时不能只替换 `Content`，还需要显式恢复运行时状态。
+- 当前做法是把运行时状态直接挂在 `EditorModel` 上，包括：
+  - `RuntimeSelection`
+  - `RuntimeScrollOffsetX`
+  - `RuntimeScrollOffsetY`
+- 选区变化时，`MainEditorView` 通过 `CurrentSelectionChanged` 把最新选区写回当前 `EditorModel`。
+- 滚动条变化时，`MainEditorView` 通过 `ScrollViewer.ScrollChanged` 记录当前偏移量。
+- 切换到目标标签后，先恢复选区，再在布局完成后恢复滚动条位置，避免“光标可见性滚动”把用户原来的视口覆盖掉。
+
 ## 注意事项
 
 - `SaveDocument` / `SaveDocumentAs` 改为返回 `Task<bool>`，用于关闭流程判断“是否真的保存成功”。
 - `另存为` 被用户取消时，应恢复原先的保存状态，而不是把文档误标成错误。
 - 涉及 `TextEditor` 文本读取的后台保存链路，都要先切回 UI 线程取值，再继续文件 I/O。
+- 任何标签切换相关的新增状态，只要依赖共享 `ScrollViewer` 或会在脱离可视树后丢失，都应优先考虑记录到 `EditorModel` 并在切换回来时恢复。
 - 新增 UI 交互后，要优先运行一次构建，及时发现 XAML 样式或绑定问题。
 
 ## 适用场景
