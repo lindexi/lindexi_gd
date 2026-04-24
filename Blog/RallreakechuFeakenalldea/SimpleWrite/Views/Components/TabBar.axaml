@@ -17,6 +17,7 @@
     </Design.DesignStyle>
     <Border x:Name="TabBarBorder" Background="{StaticResource Brush.Background.TabBar}" BorderThickness="0,0,0,1" BorderBrush="{StaticResource Brush.Border.Subtle}">
       <ListBox x:Name="EditorTabListBox" SelectionMode="Single" Background="Transparent"
+               PointerWheelChanged="EditorTabListBox_OnPointerWheelChanged"
                ScrollViewer.HorizontalScrollBarVisibility="Auto"
                ScrollViewer.VerticalScrollBarVisibility="Disabled"
                ItemsSource="{Binding Path=EditorViewModel.EditorModelList}"

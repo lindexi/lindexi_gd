@@ -13,15 +13,17 @@
 2. 直接给 `ListBox` 设置：
    - `ScrollViewer.HorizontalScrollBarVisibility="Auto"`
    - `ScrollViewer.VerticalScrollBarVisibility="Disabled"`
-3. 保持 `ItemsPanelTemplate` 为横向 `StackPanel`，让标签自然按水平方向扩展。
-4. 通过 `ListBox.Styles` 定位模板内的横向 `ScrollBar` 和 `Thumb`，把高度压缩到较小像素值。
-5. 当前实现选择“细条可见”的方案，而不是完全隐藏滚动条，原因是它更容易被用户发现可滚动。
+3. 给 `ListBox` 挂 `PointerWheelChanged`，把鼠标竖向滚轮量映射到 `ScrollViewer.Offset.X`，让用户无需把指针精确移到细滚动条上也能浏览标签。
+4. 保持 `ItemsPanelTemplate` 为横向 `StackPanel`，让标签自然按水平方向扩展。
+5. 通过 `ListBox.Styles` 定位模板内的横向 `ScrollBar` 和 `Thumb`，把高度压缩到较小像素值。
+6. 当前实现选择“细条可见”的方案，而不是完全隐藏滚动条，原因是它更容易被用户发现可滚动。
 
 ## 横向滚动样式建议
 
 - 优先只压缩横向 `ScrollBar` 的高度，例如 `4` 像素。
 - `Thumb` 颜色复用 `Brushes.axaml` 中已有画刷，避免局部硬编码颜色。
 - `pointerover` 时再提高透明度或对比度，平时保持弱存在感，减少对标签内容的干扰。
+- 竖向滚轮转横向滚动时，要先判断 `Extent.Width > Viewport.Width`，避免在没有溢出时错误吞掉滚轮事件。
 - 若后续确实要做“可滚动但不显示滚动条”，可以继续沿用同一结构，只把横向滚动条改成隐藏策略；但需要额外评估鼠标、触控板和触摸场景下的可发现性。
 
 ## 实现要点
