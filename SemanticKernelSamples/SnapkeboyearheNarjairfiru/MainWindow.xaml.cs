@@ -157,29 +157,42 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             await WaitWhilePausedAsync(cancellationToken);
 
-            var displays = _screenSnapshotProvider.GetDisplays();
-            if (displays.Count == 0)
+            try
             {
-                await UpdateStatusAsync("未检测到可用屏幕，5 秒后重试。");
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-                continue;
+                await CaptureAsync(cancellationToken);
             }
-
-            foreach (var display in displays)
+            catch (Exception e)
             {
-                await WaitWhilePausedAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
+                await UpdateStatusAsync("截图和解读异常。" + e.Message);
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            }
+        }
+    }
 
-                var stopwatch = Stopwatch.StartNew();
-                await UpdateStatusAsync($"正在截图并解读 {display.Name}。");
-                await CaptureAndAnalyzeDisplayAsync(display, cancellationToken);
+    private async Task CaptureAsync(CancellationToken cancellationToken)
+    {
+        var displays = _screenSnapshotProvider.GetDisplays();
+        if (displays.Count == 0)
+        {
+            await UpdateStatusAsync("未检测到可用屏幕，5 秒后重试。");
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            return;
+        }
 
-                var remainingDelay = MinimumCaptureInterval - stopwatch.Elapsed;
-                if (remainingDelay > TimeSpan.Zero)
-                {
-                    await UpdateStatusAsync($"{display.Name} 已完成，等待 {remainingDelay.TotalSeconds:F0} 秒后继续。");
-                    await Task.Delay(remainingDelay, cancellationToken);
-                }
+        foreach (var display in displays)
+        {
+            await WaitWhilePausedAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var stopwatch = Stopwatch.StartNew();
+            await UpdateStatusAsync($"正在截图并解读 {display.Name}。");
+            await CaptureAndAnalyzeDisplayAsync(display, cancellationToken);
+
+            var remainingDelay = MinimumCaptureInterval - stopwatch.Elapsed;
+            if (remainingDelay > TimeSpan.Zero)
+            {
+                await UpdateStatusAsync($"{display.Name} 已完成，等待 {remainingDelay.TotalSeconds:F0} 秒后继续。");
+                await Task.Delay(remainingDelay, cancellationToken);
             }
         }
     }
