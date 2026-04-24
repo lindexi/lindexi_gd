@@ -67,6 +67,7 @@
 2. `FindReplaceBar` 的焦点逻辑不能只看 `IsReplaceMode`，否则切到文件夹模式时会错误聚焦已经隐藏的替换输入框，应该改用 `IsReplaceAvailable`。
 3. 文件夹搜索再次执行前要先清空旧结果，否则用户会在“搜索中”阶段看到上一轮结果，误以为没有刷新。
 4. 任何新增 `x:Name`、`TreeView` 模板、事件处理之后，都应立即构建一次，优先抓出 Avalonia XAML 编译错误。
+5. `FindReplaceViewModel` 的文档命中集合如果既被异步搜索刷新，又被 `ReplaceAll` 这类同步流程遍历，不能继续共享可变 `List<T>`；改成“每次搜索完成后整体替换快照”的不可变读法，才能避免替换过程中被 `TextChanged` 重入清空。
 
 ## 主题资源与设计时预览补充
 

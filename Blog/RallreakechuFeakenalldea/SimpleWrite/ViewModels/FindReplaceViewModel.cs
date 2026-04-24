@@ -70,7 +70,7 @@ public class FindReplaceViewModel : ViewModelBase
             ClearFolderSearchResults();
             CancelPendingDocumentSearch();
             IsSearchingDocument = false;
-            _searchMatchList.Clear();
+            _searchMatchList = [];
             _isDocumentSearchTimedOut = false;
             NotifyMatchStateChanged();
             _hasExecutedFolderSearch = false;
@@ -142,7 +142,7 @@ public class FindReplaceViewModel : ViewModelBase
 
     public bool HasValidSearchPattern => string.IsNullOrEmpty(FindText) || _searchMatcher is not null;
 
-    public bool HasMatches => _searchMatchList.Count > 0;
+    public bool HasMatches => _searchMatchList.Length > 0;
 
     public bool HasFolderSearchResults => FolderSearchResultList.Count > 0;
 
@@ -301,37 +301,40 @@ public class FindReplaceViewModel : ViewModelBase
 
     public void FindNext()
     {
-        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        var searchMatches = _searchMatchList;
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || searchMatches.Length == 0)
         {
             return;
         }
 
-        var nextIndex = GetNextMatchIndex(textEditor.CurrentSelection);
-        ApplyMatch(textEditor, nextIndex);
+        var nextIndex = GetNextMatchIndex(searchMatches, textEditor.CurrentSelection);
+        ApplyMatch(textEditor, searchMatches[nextIndex]);
     }
 
     public void FindPrevious()
     {
-        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        var searchMatches = _searchMatchList;
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || searchMatches.Length == 0)
         {
             return;
         }
 
-        var previousIndex = GetPreviousMatchIndex(textEditor.CurrentSelection);
-        ApplyMatch(textEditor, previousIndex);
+        var previousIndex = GetPreviousMatchIndex(searchMatches, textEditor.CurrentSelection);
+        ApplyMatch(textEditor, searchMatches[previousIndex]);
     }
 
     public void ReplaceCurrent()
     {
-        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        var searchMatches = _searchMatchList;
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || searchMatches.Length == 0)
         {
             return;
         }
 
-        var matchIndex = TryGetExactMatchIndex(textEditor.CurrentSelection);
+        var matchIndex = TryGetExactMatchIndex(searchMatches, textEditor.CurrentSelection);
         if (matchIndex < 0)
         {
-            matchIndex = GetNextMatchIndex(textEditor.CurrentSelection);
+            matchIndex = GetNextMatchIndex(searchMatches, textEditor.CurrentSelection);
         }
 
         var searchMatcher = _searchMatcher;
@@ -341,7 +344,7 @@ public class FindReplaceViewModel : ViewModelBase
         }
 
         var documentText = textEditor.Text;
-        var match = _searchMatchList[matchIndex];
+        var match = searchMatches[matchIndex];
         if (!searchMatcher.TryGetReplacementText(documentText, match.ToSearchMatchResult(), ReplaceText, out var replacementText))
         {
             _isDocumentSearchTimedOut = true;
@@ -354,19 +357,21 @@ public class FindReplaceViewModel : ViewModelBase
 
         RefreshSearchMatches();
 
-        if (_searchMatchList.Count == 0)
+        var refreshedSearchMatches = _searchMatchList;
+        if (refreshedSearchMatches.Length == 0)
         {
             textEditor.CurrentCaretOffset = new CaretOffset(nextAnchorOffset);
             return;
         }
 
-        var nextIndex = FindNextMatchIndexFromOffset(nextAnchorOffset);
-        ApplyMatch(textEditor, nextIndex);
+        var nextIndex = FindNextMatchIndexFromOffset(refreshedSearchMatches, nextAnchorOffset);
+        ApplyMatch(textEditor, refreshedSearchMatches[nextIndex]);
     }
 
     public void ReplaceAll()
     {
-        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || _searchMatchList.Count == 0)
+        var searchMatches = _searchMatchList;
+        if (IsFolderSearchScope || !TryGetCurrentTextEditor(out var textEditor) || searchMatches.Length == 0)
         {
             return;
         }
@@ -378,9 +383,9 @@ public class FindReplaceViewModel : ViewModelBase
         }
 
         var documentText = textEditor.Text;
-        for (var i = _searchMatchList.Count - 1; i >= 0; i--)
+        for (var i = searchMatches.Length - 1; i >= 0; i--)
         {
-            var match = _searchMatchList[i];
+            var match = searchMatches[i];
             if (!searchMatcher.TryGetReplacementText(documentText, match.ToSearchMatchResult(), ReplaceText, out var replacementText))
             {
                 _isDocumentSearchTimedOut = true;
@@ -445,7 +450,7 @@ public class FindReplaceViewModel : ViewModelBase
         textEditor = _currentTextEditor ?? EditorViewModel.CurrentEditorModel.TextEditor;
         if (textEditor is null)
         {
-            _searchMatchList.Clear();
+            _searchMatchList = [];
             NotifyMatchStateChanged();
             SetSearchStatusText(string.Empty);
             return false;
@@ -457,7 +462,7 @@ public class FindReplaceViewModel : ViewModelBase
     private void RefreshSearchMatches()
     {
         CancelPendingDocumentSearch();
-        _searchMatchList.Clear();
+        _searchMatchList = [];
         _isDocumentSearchTimedOut = false;
         NotifyMatchStateChanged();
 
@@ -496,45 +501,39 @@ public class FindReplaceViewModel : ViewModelBase
         RunDocumentSearchAsync(searchMatcher, documentText, searchVersion, cancellationTokenSource);
     }
 
-    private void ApplyMatch(TextEditor textEditor, int matchIndex)
+    private void ApplyMatch(TextEditor textEditor, SearchMatch searchMatch)
     {
-        if (_searchMatchList.Count == 0)
-        {
-            return;
-        }
-
-        var searchMatch = _searchMatchList[matchIndex];
         textEditor.CurrentSelection = searchMatch.ToSelection();
         UpdateSearchStatus();
     }
 
-    private int GetNextMatchIndex(Selection selection)
+    private int GetNextMatchIndex(SearchMatch[] searchMatches, Selection selection)
     {
-        var exactMatchIndex = TryGetExactMatchIndex(selection);
+        var exactMatchIndex = TryGetExactMatchIndex(searchMatches, selection);
         if (exactMatchIndex >= 0)
         {
-            return (exactMatchIndex + 1) % _searchMatchList.Count;
+            return (exactMatchIndex + 1) % searchMatches.Length;
         }
 
-        return FindNextMatchIndexFromOffset(selection.BehindOffset.Offset);
+        return FindNextMatchIndexFromOffset(searchMatches, selection.BehindOffset.Offset);
     }
 
-    private int GetPreviousMatchIndex(Selection selection)
+    private int GetPreviousMatchIndex(SearchMatch[] searchMatches, Selection selection)
     {
-        var exactMatchIndex = TryGetExactMatchIndex(selection);
+        var exactMatchIndex = TryGetExactMatchIndex(searchMatches, selection);
         if (exactMatchIndex >= 0)
         {
-            return (exactMatchIndex - 1 + _searchMatchList.Count) % _searchMatchList.Count;
+            return (exactMatchIndex - 1 + searchMatches.Length) % searchMatches.Length;
         }
 
-        return FindPreviousMatchIndexFromOffset(selection.FrontOffset.Offset);
+        return FindPreviousMatchIndexFromOffset(searchMatches, selection.FrontOffset.Offset);
     }
 
-    private int FindNextMatchIndexFromOffset(int offset)
+    private int FindNextMatchIndexFromOffset(SearchMatch[] searchMatches, int offset)
     {
-        for (var i = 0; i < _searchMatchList.Count; i++)
+        for (var i = 0; i < searchMatches.Length; i++)
         {
-            if (_searchMatchList[i].StartOffset >= offset)
+            if (searchMatches[i].StartOffset >= offset)
             {
                 return i;
             }
@@ -543,24 +542,24 @@ public class FindReplaceViewModel : ViewModelBase
         return 0;
     }
 
-    private int FindPreviousMatchIndexFromOffset(int offset)
+    private int FindPreviousMatchIndexFromOffset(SearchMatch[] searchMatches, int offset)
     {
-        for (var i = _searchMatchList.Count - 1; i >= 0; i--)
+        for (var i = searchMatches.Length - 1; i >= 0; i--)
         {
-            if (_searchMatchList[i].StartOffset < offset)
+            if (searchMatches[i].StartOffset < offset)
             {
                 return i;
             }
         }
 
-        return _searchMatchList.Count - 1;
+        return searchMatches.Length - 1;
     }
 
-    private int TryGetExactMatchIndex(Selection selection)
+    private int TryGetExactMatchIndex(SearchMatch[] searchMatches, Selection selection)
     {
-        for (var i = 0; i < _searchMatchList.Count; i++)
+        for (var i = 0; i < searchMatches.Length; i++)
         {
-            if (_searchMatchList[i].IsMatch(selection))
+            if (searchMatches[i].IsMatch(selection))
             {
                 return i;
             }
@@ -631,7 +630,8 @@ public class FindReplaceViewModel : ViewModelBase
             return;
         }
 
-        var matchCount = _searchMatchList.Count;
+        var searchMatches = _searchMatchList;
+        var matchCount = searchMatches.Length;
         if (matchCount == 0)
         {
             SetSearchStatusText("[查找: 0 项]");
@@ -641,10 +641,10 @@ public class FindReplaceViewModel : ViewModelBase
         var currentMatchIndex = -1;
         if (TryGetCurrentTextEditor(out var textEditor))
         {
-            currentMatchIndex = TryGetExactMatchIndex(textEditor.CurrentSelection);
+            currentMatchIndex = TryGetExactMatchIndex(searchMatches, textEditor.CurrentSelection);
             if (currentMatchIndex < 0)
             {
-                currentMatchIndex = FindNextMatchIndexFromOffset(textEditor.CurrentSelection.FrontOffset.Offset);
+                currentMatchIndex = FindNextMatchIndexFromOffset(searchMatches, textEditor.CurrentSelection.FrontOffset.Offset);
             }
         }
 
@@ -747,12 +747,9 @@ public class FindReplaceViewModel : ViewModelBase
             }
 
             _isDocumentSearchTimedOut = searchExecutionResult.IsTimedOut;
-            _searchMatchList.Clear();
-
-            foreach (var searchMatch in searchExecutionResult.MatchList)
-            {
-                _searchMatchList.Add(new SearchMatch(searchMatch.StartOffset, searchMatch.Length, searchMatch.Value));
-            }
+            _searchMatchList = searchExecutionResult.MatchList
+                .Select(searchMatch => new SearchMatch(searchMatch.StartOffset, searchMatch.Length, searchMatch.Value))
+                .ToArray();
 
             NotifyMatchStateChanged();
         }
@@ -785,7 +782,7 @@ public class FindReplaceViewModel : ViewModelBase
         cancellationTokenSource.Cancel();
     }
 
-    private readonly List<SearchMatch> _searchMatchList = [];
+    private volatile SearchMatch[] _searchMatchList = [];
     private TextEditor? _currentTextEditor;
     private CancellationTokenSource? _documentSearchCancellationTokenSource;
     private int _documentSearchVersion;
