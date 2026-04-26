@@ -77,9 +77,9 @@ public readonly record struct Utf32CodePoint(int Value) : IEquatable<char>
     {
         get
         {
-            Span<char> buffer = stackalloc char[2];
-            int length = Rune.EncodeToUtf16(buffer);
-            return length;
+            //Span<char> buffer = stackalloc char[2];
+            //int length = Rune.EncodeToUtf16(buffer);
+            return Rune.Utf16SequenceLength;
         }
     }
 
