@@ -19,4 +19,23 @@
     <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\ExceptionMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ExceptionMessages.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>LightTextEditorPlus.Resources.Skia</CustomToolNamespace>
+      <LogicalName>LightTextEditorPlus.Resources.Skia.ExceptionMessages.resources</LogicalName>
+      <WithCulture>false</WithCulture>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\ExceptionMessages.en-US.resx">
+      <DependentUpon>ExceptionMessages.resx</DependentUpon>
+      <LogicalName>LightTextEditorPlus.Resources.Skia.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+    <Compile Update="Resources\ExceptionMessages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExceptionMessages.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

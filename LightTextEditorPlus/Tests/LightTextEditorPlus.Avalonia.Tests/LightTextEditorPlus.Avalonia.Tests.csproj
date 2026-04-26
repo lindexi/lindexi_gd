@@ -28,6 +28,10 @@
 
   <ItemGroup>
     <None Update="Assets\TestImage\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\LightTextEditorPlus.Avalonia\bin\$(Configuration)\net8.0\en-US\*.resources.dll"
+          LinkBase="en-US"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false" />
   </ItemGroup>
 
 </Project>
