@@ -574,30 +574,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         double GlyphAdvance,
         (float OffsetX, float OffsetY) GlyphOffset = default);
 
-    /// <summary>
-    /// 字符尺寸信息
-    /// </summary>
-    /// <param name="GlyphRunBounds">字符的外框，字外框</param>
-    readonly record struct CharRenderInfo(TextRect GlyphRunBounds)
-    {
-        /// <summary>
-        /// cluster 属性是一个整数，你可以使用它来帮助识别当字形重排、拆分或组合码点时的情况
-        /// See https://harfbuzz.github.io/shaping-and-shape-plans.html
-        /// </summary>
-        public required uint GlyphCluster { get; init; }
 
-        /// <summary>
-        /// 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
-        /// </summary>
-        public TextSize TextFaceSize => CharDataInfo.FaceSize;
-
-        public required CharDataInfo CharDataInfo { get; init; }
-
-        /// <summary>
-        /// 文字外框，字外框尺寸
-        /// </summary>
-        public TextSize TextFrameSize => GlyphRunBounds.TextSize;
-    }
 
     /// <summary>
     /// 字符边框
@@ -624,4 +601,29 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             _widths.Dispose();
         }
     }
+}
+
+/// <summary>
+/// 字符尺寸信息
+/// </summary>
+/// <param name="GlyphRunBounds">字符的外框，字外框</param>
+readonly record struct CharRenderInfo(TextRect GlyphRunBounds)
+{
+    /// <summary>
+    /// cluster 属性是一个整数，你可以使用它来帮助识别当字形重排、拆分或组合码点时的情况
+    /// See https://harfbuzz.github.io/shaping-and-shape-plans.html
+    /// </summary>
+    public required uint GlyphCluster { get; init; }
+
+    /// <summary>
+    /// 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
+    /// </summary>
+    public TextSize TextFaceSize => CharDataInfo.FaceSize;
+
+    public required CharDataInfo CharDataInfo { get; init; }
+
+    /// <summary>
+    /// 文字外框，字外框尺寸
+    /// </summary>
+    public TextSize TextFrameSize => GlyphRunBounds.TextSize;
 }

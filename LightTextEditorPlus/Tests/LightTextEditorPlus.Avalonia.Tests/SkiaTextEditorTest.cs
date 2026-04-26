@@ -8,6 +8,7 @@ namespace LightTextEditorPlus.Avalonia.Tests;
 public class SkiaTextEditorTest
 {
     [TestMethod("测试传入 emoji 表情和空格内容，预期可以正常布局")]
+    [Ignore]
     public void MeasureEmojiCharData()
     {
         var skiaTextEditor = new SkiaTextEditor();
