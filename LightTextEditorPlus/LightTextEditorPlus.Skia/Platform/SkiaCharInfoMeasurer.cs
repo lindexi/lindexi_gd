@@ -10,6 +10,7 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.TextArrayPools;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Resources.Skia;
 
 using MS.Internal;
 
@@ -124,7 +125,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         if (currentCharData.IsInvalidCharDataInfo)
         {
-            throw new TextEditorInnerException($"测量之后，必然能够获取当前字符的尺寸");
+            throw new TextEditorInnerException(ExceptionMessages.SkiaCharInfoMeasurer_CurrentCharSizeMustBeAvailableAfterMeasure);
         }
     }
 

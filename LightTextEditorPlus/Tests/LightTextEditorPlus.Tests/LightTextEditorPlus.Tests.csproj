@@ -32,6 +32,10 @@
 
   <ItemGroup>
     <None Update="Assets\TestImage\**\*.png" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\LightTextEditorPlus.Wpf\bin\$(Configuration)\net6.0-windows\en-US\*.resources.dll"
+          LinkBase="en-US"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false" />
   </ItemGroup>
 
 </Project>

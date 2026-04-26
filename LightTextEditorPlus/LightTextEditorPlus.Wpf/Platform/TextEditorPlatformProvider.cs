@@ -5,6 +5,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Utils.Threading;
+using LightTextEditorPlus.Resources.Wpf;
 
 using System;
 using System.Diagnostics;
@@ -96,7 +97,7 @@ public class TextEditorPlatformProvider : PlatformProvider
     {
         if (_updatingLayout)
         {
-            throw new InvalidOperationException($"正在布局的过程中触发立刻布局，可能出现无限递归炸堆栈");
+            throw new InvalidOperationException(ExceptionMessages.TextEditorPlatformProvider_ReentrantEnsureLayoutUpdated);
         }
 
         if (_layoutUpdateAction is null)

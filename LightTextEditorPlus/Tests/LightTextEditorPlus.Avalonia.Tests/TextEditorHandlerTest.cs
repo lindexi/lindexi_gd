@@ -1,7 +1,10 @@
 using Avalonia.Threading;
+
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
 
 namespace LightTextEditorPlus.Avalonia.Tests;
