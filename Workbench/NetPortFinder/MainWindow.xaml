@@ -59,6 +59,19 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="#FF64748B" />
+            <Setter Property="MinWidth" Value="180" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF475569" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#FF9AA8B8" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid Background="{StaticResource WindowBackgroundBrush}">
@@ -90,7 +103,7 @@
                                FontSize="14"
                                Foreground="#EAF2FF"
                                TextWrapping="Wrap"
-                               Text="输入端口后，程序将依次尝试监听 127.0.0.1 / 0.0.0.0 的 TCP 与 UDP，并在下方输出检测过程与可能占用端口的进程。" />
+                               Text="输入端口后，程序将依次尝试监听 127.0.0.1 / 0.0.0.0 的 TCP 与 UDP，并自动分析 AccessDenied 等异常原因。也可一键自动寻找可用监听端口。" />
                 </StackPanel>
 
                 <Border Grid.Column="1"
@@ -113,6 +126,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Margin="0,0,20,0">
@@ -128,16 +142,24 @@
                              VerticalContentAlignment="Center" />
                     <TextBlock FontSize="12"
                                Foreground="#FF6B768A"
-                               Text="支持 1 ~ 65535，例如 80、443、5000。" />
+                               Text="支持 1 ~ 65535，例如 80、443、5000。检测失败时会自动给出可能原因分析。" />
                 </StackPanel>
 
                 <Button x:Name="DetectButton"
                         Grid.Column="1"
+                        Margin="0,0,12,0"
                         VerticalAlignment="Center"
                         Style="{StaticResource PrimaryButtonStyle}"
                         IsDefault="True"
                         Click="DetectButton_OnClick"
                         Content="开始检测" />
+
+                <Button x:Name="FindAvailablePortButton"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Click="FindAvailablePortButton_OnClick"
+                        Content="自动找可用端口" />
             </Grid>
         </Border>
 
