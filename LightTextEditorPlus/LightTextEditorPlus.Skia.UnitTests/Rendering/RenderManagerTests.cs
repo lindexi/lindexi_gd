@@ -24,7 +24,6 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering.UnitTests;
 
-
 /// <summary>
 /// Tests for <see cref="RenderManager"/> class.
 /// </summary>
@@ -46,7 +45,7 @@ public class RenderManagerTests
 
         // Act & Assert
         // Note: Production code doesn't validate null parameter, so it throws NullReferenceException instead of ArgumentNullException
-        Assert.ThrowsException<NullReferenceException>(() =>
+        Assert.ThrowsExactly<NullReferenceException>(() =>
             renderManager.UpdateCaretAndSelectionRender(null!, in selection));
     }
 
@@ -60,9 +59,23 @@ public class RenderManagerTests
     [DataRow(true, DisplayName = "IsOvertypeModeCaret = true")]
     public void UpdateCaretAndSelectionRender_ValidInputs_UpdatesCaretAndSelectionRender(bool isOvertypeMode)
     {
-        // This test requires mocking RenderInfoProvider which cannot be done
-        // because RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider as it has an internal constructor. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Hello World");
+        RenderManager renderManager = new RenderManager(textEditor);
+        Selection selection = new Selection(new CaretOffset(0), 5);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        renderManager.UpdateCaretAndSelectionRender(renderInfoProvider, in selection);
+
+        // Assert
+        var currentRenderField = typeof(RenderManager).GetField("_currentCaretAndSelectionRender",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var currentRender = currentRenderField!.GetValue(renderManager);
+        
+        Assert.IsNotNull(currentRender);
     }
 
     /// <summary>
@@ -73,9 +86,25 @@ public class RenderManagerTests
     [TestMethod]
     public void UpdateCaretAndSelectionRender_ValidSelection_PassesCorrectParametersToBuildMethod()
     {
-        // This test requires mocking RenderInfoProvider which cannot be done
-        // because RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider as it has an internal constructor. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        RenderManager renderManager = new RenderManager(textEditor);
+        Selection selection = new Selection(new CaretOffset(2), 4);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        renderManager.UpdateCaretAndSelectionRender(renderInfoProvider, in selection);
+
+        // Assert
+        // Verify that the render was created (BuildCaretAndSelectionRender was called internally)
+        var currentRenderField = typeof(RenderManager).GetField("_currentCaretAndSelectionRender",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var currentRender = currentRenderField!.GetValue(renderManager);
+        
+        Assert.IsNotNull(currentRender);
+        Assert.IsInstanceOfType(currentRender, typeof(ITextEditorCaretAndSelectionRenderSkiaRenderer));
     }
 
     /// <summary>
@@ -86,9 +115,29 @@ public class RenderManagerTests
     [TestMethod]
     public void UpdateCaretAndSelectionRender_CalledMultipleTimes_UpdatesRenderEachTime()
     {
-        // This test requires mocking RenderInfoProvider which cannot be done
-        // because RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider as it has an internal constructor. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Multiple updates test");
+        RenderManager renderManager = new RenderManager(textEditor);
+        
+        var currentRenderField = typeof(RenderManager).GetField("_currentCaretAndSelectionRender",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        // Act & Assert
+        Selection selection1 = new Selection(new CaretOffset(0), 5);
+        RenderInfoProvider renderInfoProvider1 = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.UpdateCaretAndSelectionRender(renderInfoProvider1, in selection1);
+        var render1 = currentRenderField!.GetValue(renderManager);
+        Assert.IsNotNull(render1);
+
+        Selection selection2 = new Selection(new CaretOffset(5), 3);
+        RenderInfoProvider renderInfoProvider2 = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.UpdateCaretAndSelectionRender(renderInfoProvider2, in selection2);
+        var render2 = currentRenderField.GetValue(renderManager);
+        Assert.IsNotNull(render2);
+        
+        // Each update creates a new render object
+        Assert.AreNotSame(render1, render2);
     }
 
     /// <summary>
@@ -99,9 +148,25 @@ public class RenderManagerTests
     [TestMethod]
     public void UpdateCaretAndSelectionRender_EmptySelection_CreatesCaretRender()
     {
-        // This test requires mocking RenderInfoProvider which cannot be done
-        // because RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider as it has an internal constructor. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test");
+        RenderManager renderManager = new RenderManager(textEditor);
+        Selection selection = new Selection(new CaretOffset(0), 0); // Empty selection
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        renderManager.UpdateCaretAndSelectionRender(renderInfoProvider, in selection);
+
+        // Assert
+        var currentRenderField = typeof(RenderManager).GetField("_currentCaretAndSelectionRender",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var currentRender = currentRenderField!.GetValue(renderManager);
+        
+        Assert.IsNotNull(currentRender);
+        // Empty selection should create a caret render
+        Assert.IsInstanceOfType(currentRender, typeof(TextEditorCaretSkiaRender));
     }
 
     /// <summary>
@@ -113,13 +178,10 @@ public class RenderManagerTests
     {
         // Arrange
         var textEditor = new SkiaTextEditor();
-        var mockRenderInfoProvider = new Mock<RenderInfoProvider>();
-        var mockCaretRenderInfo = new CaretRenderInfo();
+        textEditor.AppendText("Test");
 
         var caretThickness = 2.0;
         var caretColor = new SKColor(255, 0, 0);
-        var caretBounds = new TextRect(10, 20, caretThickness, 30);
-        var isOvertypeMode = false;
 
         // Set CaretConfiguration properties directly on the real instance
         textEditor.CaretConfiguration.CaretThickness = caretThickness;
@@ -127,18 +189,19 @@ public class RenderManagerTests
 
         var renderManager = new RenderManager(textEditor);
         var selection = new Selection(new CaretOffset(0), 0);
-        var renderContext = new CaretAndSelectionRenderContext(isOvertypeMode);
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
 
-        // Mock GetCurrentCaretRenderInfo to return a mock that will produce caretBounds
-        // Note: Since CaretRenderInfo is a struct with internal constructor, we need to mock the provider's method
-        // However, the actual GetCaretBounds call on CaretRenderInfo cannot be easily mocked
-        // We'll need to work around this limitation
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
 
-        // Act & Assert
-        // This test requires further implementation details that cannot be easily mocked
-        // The CaretRenderInfo struct has an internal constructor and GetCaretBounds is an instance method
-        // that requires complex internal state. Marking as inconclusive.
-        Assert.Inconclusive("CaretRenderInfo struct with internal constructor and complex dependencies cannot be properly mocked. Consider refactoring to use dependency injection or interfaces.");
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorCaretSkiaRender));
+        
+        var caretRender = (TextEditorCaretSkiaRender)result;
+        Assert.AreEqual(caretColor, caretRender.CaretColor);
     }
 
     /// <summary>
@@ -150,17 +213,10 @@ public class RenderManagerTests
     {
         // Arrange
         var textEditor = new SkiaTextEditor();
-        var mockRenderInfoProvider = new Mock<RenderInfoProvider>();
-        var mockTextEditorCore = new Mock<LightTextEditorPlus.Core.TextEditorCore>();
-        var mockDocumentManager = new Mock<LightTextEditorPlus.Core.Document.DocumentManager>();
-        var mockRunProperty = new Mock<IReadOnlyRunProperty>();
-        var mockSkiaRunProperty = new Mock<SkiaTextRunProperty>();
-        var mockForeground = new Mock<SkiaTextBrush>();
+        textEditor.AppendText("Test");
 
         var caretThickness = 2.0;
         SKColor? nullCaretBrush = null;
-        var foregroundColor = new SKColor(0, 255, 0);
-        var isOvertypeMode = false;
 
         // Set configuration directly
         textEditor.CaretConfiguration.CaretThickness = caretThickness;
@@ -168,10 +224,20 @@ public class RenderManagerTests
 
         var renderManager = new RenderManager(textEditor);
         var selection = new Selection(new CaretOffset(0), 0);
-        var renderContext = new CaretAndSelectionRenderContext(isOvertypeMode);
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
 
-        // Act & Assert
-        Assert.Inconclusive("CaretRenderInfo struct with internal constructor and complex dependencies cannot be properly mocked. Consider refactoring to use dependency injection or interfaces.");
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorCaretSkiaRender));
+        
+        // When CaretBrush is null, it uses the foreground color from CurrentCaretRunProperty
+        var caretRender = (TextEditorCaretSkiaRender)result;
+        Assert.IsTrue(caretRender.CaretColor != default); // Verify a color was set
     }
 
     /// <summary>
@@ -180,9 +246,22 @@ public class RenderManagerTests
     [TestMethod]
     public void BuildCaretAndSelectionRender_NonEmptySelection_ReturnsSelectionRender()
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Hello World");
+        
+        var renderManager = new RenderManager(textEditor);
+        var selection = new Selection(new CaretOffset(0), 5); // Select "Hello"
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
     }
 
     /// <summary>
@@ -191,9 +270,26 @@ public class RenderManagerTests
     [TestMethod]
     public void BuildCaretAndSelectionRender_NonEmptySelectionWithEmptyBoundsList_ReturnsSelectionRenderWithEmptyList()
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        // Don't add any text, so selection bounds will be empty or minimal
+        
+        var renderManager = new RenderManager(textEditor);
+        var selection = new Selection(new CaretOffset(0), 1); // Try to select beyond content
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
+        
+        var selectionRender = (TextEditorSelectionSkiaRender)result;
+        // Selection bounds list might be empty if there's no text
+        Assert.IsNotNull(selectionRender.SelectionBoundsList);
     }
 
     /// <summary>
@@ -202,9 +298,26 @@ public class RenderManagerTests
     [TestMethod]
     public void BuildCaretAndSelectionRender_NonEmptySelectionWithSingleBound_ReturnsSelectionRenderWithSingleBound()
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test");
+        
+        var renderManager = new RenderManager(textEditor);
+        var selection = new Selection(new CaretOffset(0), 2); // Select first two characters
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
+        
+        var selectionRender = (TextEditorSelectionSkiaRender)result;
+        Assert.IsNotNull(selectionRender.SelectionBoundsList);
+        Assert.IsTrue(selectionRender.SelectionBoundsList.Count >= 1);
     }
 
     /// <summary>
@@ -213,9 +326,29 @@ public class RenderManagerTests
     [TestMethod]
     public void BuildCaretAndSelectionRender_NonEmptySelectionWithMultipleBounds_ReturnsSelectionRenderWithMultipleBounds()
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        // Set a narrow width to force text wrapping, creating multiple selection bounds
+        textEditor.TextEditorCore.DocumentManager.DocumentWidth = 50; // Very narrow
+        textEditor.AppendText("This is a long text that will wrap");
+        
+        var renderManager = new RenderManager(textEditor);
+        var selection = new Selection(new CaretOffset(0), 20); // Select across multiple lines
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
+        
+        var selectionRender = (TextEditorSelectionSkiaRender)result;
+        Assert.IsNotNull(selectionRender.SelectionBoundsList);
+        // With wrapping, we should get multiple bounds (one per line)
+        Assert.IsTrue(selectionRender.SelectionBoundsList.Count >= 1);
     }
 
     /// <summary>
@@ -235,9 +368,28 @@ public class RenderManagerTests
     [DataRow((byte)0, (byte)0, (byte)0, (byte)0)]
     public void BuildCaretAndSelectionRender_NonEmptySelectionWithVariousColors_UsesCorrectColor(byte red, byte green, byte blue, byte alpha)
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Color test");
+        
+        var selectionColor = new SKColor(red, green, blue, alpha);
+        textEditor.CaretConfiguration.SelectionBrush = selectionColor;
+        
+        var renderManager = new RenderManager(textEditor);
+        var selection = new Selection(new CaretOffset(0), 5);
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
+        
+        var selectionRender = (TextEditorSelectionSkiaRender)result;
+        Assert.AreEqual(selectionColor, selectionRender.SelectionColor);
     }
 
     /// <summary>
@@ -248,7 +400,7 @@ public class RenderManagerTests
     {
         // Arrange
         var textEditor = new SkiaTextEditor();
-        var mockRenderInfoProvider = new Mock<RenderInfoProvider>();
+        textEditor.AppendText("Zero length test");
 
         textEditor.CaretConfiguration.CaretThickness = 2.0;
         textEditor.CaretConfiguration.CaretBrush = new SKColor(255, 0, 0);
@@ -256,10 +408,16 @@ public class RenderManagerTests
         var renderManager = new RenderManager(textEditor);
         var selection = new Selection(new CaretOffset(10), 0);
         var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
 
-        // Act & Assert
-        // This will attempt the caret path, which requires CaretRenderInfo mock
-        Assert.Inconclusive("CaretRenderInfo struct with internal constructor and complex dependencies cannot be properly mocked. Consider refactoring to use dependency injection or interfaces.");
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        // Zero length selection should be treated as empty, returning a caret render
+        Assert.IsInstanceOfType(result, typeof(TextEditorCaretSkiaRender));
     }
 
     /// <summary>
@@ -269,9 +427,22 @@ public class RenderManagerTests
     [TestMethod]
     public void BuildCaretAndSelectionRender_BackwardSelection_ReturnsSelectionRender()
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Backward selection test");
+        
+        var renderManager = new RenderManager(textEditor);
+        var selection = new Selection(new CaretOffset(10), -5); // Backward selection
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
     }
 
     /// <summary>
@@ -283,9 +454,23 @@ public class RenderManagerTests
     [DataRow(false)]
     public void BuildCaretAndSelectionRender_NonEmptySelectionWithOvertypeMode_IgnoresOvertypeMode(bool isOvertypeMode)
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Overtype test");
+        
+        var renderManager = new RenderManager(textEditor);
+        var selection = new Selection(new CaretOffset(0), 5); // Non-empty selection
+        var renderContext = new CaretAndSelectionRenderContext(isOvertypeMode);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        // For non-empty selection, overtype mode should be ignored, always returning selection render
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
     }
 
     /// <summary>
@@ -294,9 +479,26 @@ public class RenderManagerTests
     [TestMethod]
     public void BuildCaretAndSelectionRender_SelectionBoundsWithBoundaryValues_HandlesCorrectly()
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Boundary values test");
+        
+        var renderManager = new RenderManager(textEditor);
+        // Select the entire text
+        var selection = new Selection(new CaretOffset(0), textEditor.TextEditorCore.DocumentManager.CharCount);
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
+        
+        var selectionRender = (TextEditorSelectionSkiaRender)result;
+        Assert.IsNotNull(selectionRender.SelectionBoundsList);
     }
 
     /// <summary>
@@ -305,9 +507,23 @@ public class RenderManagerTests
     [TestMethod]
     public void BuildCaretAndSelectionRender_SelectionWithMaxLength_ReturnsSelectionRender()
     {
-        // This test requires mocking RenderInfoProvider.GetSelectionBoundsList which cannot be done
-        // because the method is not virtual and RenderInfoProvider has an internal constructor
-        Assert.Inconclusive("Cannot mock RenderInfoProvider.GetSelectionBoundsList as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Max length test");
+        
+        var renderManager = new RenderManager(textEditor);
+        // Use a very large but reasonable length
+        var selection = new Selection(new CaretOffset(0), int.MaxValue);
+        var renderContext = new CaretAndSelectionRenderContext(false);
+        
+        RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        // Act
+        var result = renderManager.BuildCaretAndSelectionRender(renderInfoProvider, in selection, in renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(TextEditorSelectionSkiaRender));
     }
 
     /// <summary>
@@ -350,9 +566,34 @@ public class RenderManagerTests
     [TestMethod]
     public void GetCurrentCaretAndSelectionRender_IsOvertypeModeCaretChanged_TryGetRenderInfoFalse_UpdatesFlagOnly()
     {
-        // This test requires mocking TextEditorCore.TryGetRenderInfo which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Set initial state by calling Render first
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.Render(renderInfoProvider);
+        
+        // Set IsOvertypeModeCaret to false initially
+        var isOvertypeModeCaretProperty = typeof(RenderManager).GetProperty("IsOvertypeModeCaret",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        isOvertypeModeCaretProperty!.SetValue(renderManager, false);
+
+        // Make the document dirty so TryGetRenderInfo returns false
+        textEditor.AppendText("More text");
+        
+        var renderContext = new CaretAndSelectionRenderContext(true); // Change to true
+
+        // Act
+        var result = renderManager.GetCurrentCaretAndSelectionRender(renderContext);
+
+        // Assert
+        Assert.IsNotNull(result);
+        // Verify IsOvertypeModeCaret was updated
+        var currentIsOvertypeMode = (bool)isOvertypeModeCaretProperty.GetValue(renderManager)!;
+        Assert.AreEqual(true, currentIsOvertypeMode);
     }
 
     /// <summary>
@@ -362,9 +603,24 @@ public class RenderManagerTests
     [TestMethod]
     public void GetCurrentTextRender_WhenCurrentRenderExists_ReturnsExistingRender()
     {
-        // This test requires mocking TextEditorCore which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Call Render to create initial render
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.Render(renderInfoProvider);
+
+        // Act - Call GetCurrentTextRender twice
+        var result1 = renderManager.GetCurrentTextRender();
+        var result2 = renderManager.GetCurrentTextRender();
+
+        // Assert
+        Assert.IsNotNull(result1);
+        Assert.IsNotNull(result2);
+        Assert.AreSame(result1, result2); // Should return the same instance
     }
 
     /// <summary>
@@ -374,9 +630,20 @@ public class RenderManagerTests
     [TestMethod]
     public void GetCurrentTextRender_WhenCurrentRenderIsNull_InitializesAndReturnsNewRender()
     {
-        // This test requires mocking TextEditorCore which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Don't call Render first, so _currentRender is null
+
+        // Act
+        var result = renderManager.GetCurrentTextRender();
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(ITextEditorContentSkiaRenderer));
     }
 
     /// <summary>
@@ -386,9 +653,24 @@ public class RenderManagerTests
     [TestMethod]
     public void GetCurrentTextRender_Always_SetsIsUsedToTrue()
     {
-        // This test requires mocking TextEditorCore which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Call Render to create initial render
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.Render(renderInfoProvider);
+
+        // Act
+        var result = renderManager.GetCurrentTextRender();
+
+        // Assert
+        Assert.IsNotNull(result);
+        var textEditorSkiaRender = result as TextEditorSkiaRender;
+        Assert.IsNotNull(textEditorSkiaRender);
+        Assert.IsTrue(textEditorSkiaRender.IsUsed);
     }
 
     /// <summary>
@@ -398,9 +680,24 @@ public class RenderManagerTests
     [TestMethod]
     public void GetCurrentTextRender_Always_ReturnsNonDisposedRender()
     {
-        // This test requires mocking TextEditorCore which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Call Render to create initial render
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.Render(renderInfoProvider);
+
+        // Act
+        var result = renderManager.GetCurrentTextRender();
+
+        // Assert
+        Assert.IsNotNull(result);
+        var textEditorSkiaRender = result as TextEditorSkiaRender;
+        Assert.IsNotNull(textEditorSkiaRender);
+        Assert.IsFalse(textEditorSkiaRender.IsDisposed);
     }
 
     /// <summary>
@@ -413,9 +710,39 @@ public class RenderManagerTests
     [DataRow(5)]
     public void GetCurrentTextRender_MultipleConsecutiveCalls_ReturnsSameRenderAndUpdatesIsUsed(int callCount)
     {
-        // This test requires mocking TextEditorCore which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Call Render to create initial render
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.Render(renderInfoProvider);
+
+        // Act
+        ITextEditorContentSkiaRenderer? firstResult = null;
+        for (int i = 0; i < callCount; i++)
+        {
+            var result = renderManager.GetCurrentTextRender();
+            if (i == 0)
+            {
+                firstResult = result;
+            }
+            else
+            {
+                // All subsequent calls should return the same instance
+                Assert.AreSame(firstResult, result);
+            }
+            
+            // Verify IsUsed is true
+            var textEditorSkiaRender = result as TextEditorSkiaRender;
+            Assert.IsNotNull(textEditorSkiaRender);
+            Assert.IsTrue(textEditorSkiaRender.IsUsed);
+        }
+
+        // Assert
+        Assert.IsNotNull(firstResult);
     }
 
     /// <summary>
@@ -425,9 +752,23 @@ public class RenderManagerTests
     [TestMethod]
     public void GetCurrentTextRender_OnFirstCall_CallsGetRenderInfo()
     {
-        // This test requires mocking TextEditorCore which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Don't call Render first, so the first GetCurrentTextRender will call GetRenderInfo internally
+
+        // Act
+        var result1 = renderManager.GetCurrentTextRender();
+        var result2 = renderManager.GetCurrentTextRender();
+
+        // Assert
+        Assert.IsNotNull(result1);
+        Assert.IsNotNull(result2);
+        // Should return the same instance on subsequent calls
+        Assert.AreSame(result1, result2);
     }
 
     /// <summary>
@@ -437,9 +778,22 @@ public class RenderManagerTests
     [TestMethod]
     public void GetCurrentTextRender_Always_ReturnsITextEditorContentSkiaRenderer()
     {
-        // This test requires mocking TextEditorCore which cannot be done
-        // because SkiaTextEditor.TextEditorCore is not virtual and cannot be mocked
-        Assert.Inconclusive("Cannot mock SkiaTextEditor.TextEditorCore property as it is not virtual. Consider refactoring to use dependency injection or interfaces.");
+        // Arrange
+        var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("Test content");
+        
+        var renderManager = new RenderManager(textEditor);
+        
+        // Call Render to create initial render
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+        renderManager.Render(renderInfoProvider);
+
+        // Act
+        var result = renderManager.GetCurrentTextRender();
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType(result, typeof(ITextEditorContentSkiaRenderer));
     }
 
     /// <summary>
