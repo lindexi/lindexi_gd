@@ -41,6 +41,43 @@ public class EditorViewModel : ViewModelBase
                 Title = "文档a",
                 FileInfo = new FileInfo(@"C:\Document\Text2.txt"),
             });
+
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
+            EditorModelList.Add(new EditorModel()
+            {
+                Title = "文档标题长长",
+            });
         }
 
         EditorModelList.Add(_currentEditorModel);

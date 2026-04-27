@@ -12,6 +12,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Events;
+using LightTextEditorPlus.Resources.Wpf;
 
 namespace LightTextEditorPlus;
 
@@ -264,7 +265,8 @@ public partial class TextEditor
                 SetFontVariants(TextFontVariant.Subscript);
                 break;
             default:
-                throw new NotSupportedException($"Only support Normal, Superscript, Subscript. 只支持正常、上标、下标。当前传入是 {fontVariants}");
+                throw new NotSupportedException(string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                    ExceptionMessages.TextEditor_SetFontVariantsOnlySupportsNormalSuperscriptSubscript, fontVariants));
         }
     }
 

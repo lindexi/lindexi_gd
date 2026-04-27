@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GradientSkiaTextBrushRelativePoint_RelativeCoordinateMustBeInRange" xml:space="preserve">
+    <value>When RelativeUnit is Relative, the coordinate must be in the range [0, 1].</value>
+  </data>
+  <data name="RenderManagerExtension_CharDataMustBelongToCurrentLine" xml:space="preserve">
+    <value>The provided CharData does not belong to the current LineDrawingArgument and cannot be used to get handwriting paper information.</value>
+  </data>
+  <data name="RenderManagerExtension_MustSpecifyCharDataWhenMultipleRunPropertiesExist" xml:space="preserve">
+    <value>When a line contains multiple run properties, CharData must be specified to indicate which run property should be used.</value>
+  </data>
+  <data name="SkiaCharInfoMeasurer_CurrentCharSizeMustBeAvailableAfterMeasure" xml:space="preserve">
+    <value>The current character size must be available after measurement.</value>
+  </data>
+  <data name="SkiaTextEditor_DebugReRenderOnlyAvailableInDebugMode" xml:space="preserve">
+    <value>The method {0} can only be called in debug mode.</value>
+  </data>
+  <data name="SkiaTextEditor_PlatformProviderAlreadyBoundToTextEditor" xml:space="preserve">
+    <value>Each SkiaTextEditorPlatformProvider can only be associated with one SkiaTextEditor and must not be reused across editors. The provided platform provider is already bound to an editor whose DebugName is {0}.</value>
+  </data>
+</root>

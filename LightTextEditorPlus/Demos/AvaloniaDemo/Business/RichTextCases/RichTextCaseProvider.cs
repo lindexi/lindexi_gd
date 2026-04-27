@@ -533,6 +533,16 @@ partial class RichTextCaseProvider
             }));
         }, "测试1d0299-使用 rr.导致字符宽度计算错误");
 
+        Add(editor =>
+        {
+            editor.UseWpfLineSpacingStyle();
+            editor.AppendRun(new SkiaTextRun("adj", editor.StyleRunProperty with
+            {
+                FontSize = 24,
+                FontName = new FontName("宋体")
+            }));
+        }, "测试字体运行渲染效果");
+
         //Add(editor =>
         //{
         //    editor.UseWpfLineSpacingStyle();

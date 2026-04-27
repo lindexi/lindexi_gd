@@ -16,10 +16,30 @@
         <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
     </Design.DesignStyle>
     <Border x:Name="TabBarBorder" Background="{StaticResource Brush.Background.TabBar}" BorderThickness="0,0,0,1" BorderBrush="{StaticResource Brush.Border.Subtle}">
-      <ListBox x:Name="EditorTabListBox" SelectionMode="Single" Background="Transparent" 
+      <ListBox x:Name="EditorTabListBox" SelectionMode="Single" Background="Transparent"
+               PointerWheelChanged="EditorTabListBox_OnPointerWheelChanged"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled"
                ItemsSource="{Binding Path=EditorViewModel.EditorModelList}"
                SelectedItem="{Binding Path=EditorViewModel.CurrentEditorModel}">
           <ListBox.Styles>
+              <Style Selector="ListBox#EditorTabListBox /template/ ScrollViewer#PART_ScrollViewer /template/ ScrollBar:horizontal">
+                  <Setter Property="Height" Value="4" />
+                  <Setter Property="MinHeight" Value="4" />
+                  <Setter Property="Margin" Value="6,0,6,1" />
+                  <Setter Property="Opacity" Value="0.7" />
+              </Style>
+              <Style Selector="ListBox#EditorTabListBox /template/ ScrollViewer#PART_ScrollViewer /template/ ScrollBar:horizontal:pointerover">
+                  <Setter Property="Opacity" Value="1" />
+              </Style>
+              <Style Selector="ListBox#EditorTabListBox /template/ ScrollViewer#PART_ScrollViewer /template/ ScrollBar:horizontal /template/ Thumb">
+                  <Setter Property="Height" Value="4" />
+                  <Setter Property="MinHeight" Value="4" />
+                  <Setter Property="Background" Value="{StaticResource Brush.Thumb.Background}" />
+              </Style>
+              <Style Selector="ListBox#EditorTabListBox /template/ ScrollViewer#PART_ScrollViewer /template/ ScrollBar:horizontal /template/ Thumb:pointerover">
+                  <Setter Property="Background" Value="{StaticResource Brush.Thumb.Background}" />
+              </Style>
               <Style Selector="Border.Tab-Main-Style">
                   <Setter Property="Background" Value="{StaticResource Brush.Background.TabBar}" />
               </Style>

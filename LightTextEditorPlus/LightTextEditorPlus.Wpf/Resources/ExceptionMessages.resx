@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FontFamilyMapItem_InvalidUnicodeRange" xml:space="preserve">
+    <value>无效的 Unicode 字符范围。</value>
+  </data>
+  <data name="StaticConfigurationPropertyMultipleSettingsException_PropertyHasAlreadyBeenSet" xml:space="preserve">
+    <value>静态配置属性“{0}”只允许设置一次。</value>
+  </data>
+  <data name="TextEditor_SetFontVariantsOnlySupportsNormalSuperscriptSubscript" xml:space="preserve">
+    <value>只支持 Normal、Superscript、Subscript。当前传入值为 {0}。</value>
+  </data>
+  <data name="TextEditorPlatformProvider_ReentrantEnsureLayoutUpdated" xml:space="preserve">
+    <value>正在布局的过程中触发立刻布局，可能出现无限递归并导致堆栈溢出。</value>
+  </data>
+</root>

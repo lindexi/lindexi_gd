@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants);USE_AllInOne</DefineConstants>
     <UseUIFramework>Wpf</UseUIFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
@@ -22,11 +23,23 @@
       <Link>Core\Resources\ExceptionMessages.resx</Link>
       <WithCulture>false</WithCulture>
       <LogicalName>LightTextEditorPlus.Core.Resources.ExceptionMessages.resources</LogicalName>
+      <CustomToolNamespace>LightTextEditorPlus.Core.Resources</CustomToolNamespace>
     </EmbeddedResource>
     <EmbeddedResource Include="..\LightTextEditorPlus.Core\Resources\ExceptionMessages.en-US.resx">
       <Link>Core\Resources\ExceptionMessages.en-US.resx</Link>
       <DependentUpon>ExceptionMessages.resx</DependentUpon>
       <LogicalName>LightTextEditorPlus.Core.Resources.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Wpf\Resources\ExceptionMessages.resx">
+      <Link>Wpf\Resources\ExceptionMessages.resx</Link>
+      <WithCulture>false</WithCulture>
+      <CustomToolNamespace>LightTextEditorPlus.Resources.Wpf</CustomToolNamespace>
+      <LogicalName>LightTextEditorPlus.Resources.Wpf.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Wpf\Resources\ExceptionMessages.en-US.resx">
+      <Link>Wpf\Resources\ExceptionMessages.en-US.resx</Link>
+      <DependentUpon>ExceptionMessages.resx</DependentUpon>
+      <LogicalName>LightTextEditorPlus.Resources.Wpf.ExceptionMessages.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

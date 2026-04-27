@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using LightTextEditorPlus.Resources.Avalonia;
 
 namespace LightTextEditorPlus.FontManagers;
 
@@ -34,7 +35,8 @@ public class TextEditorFontResourceManager
                 fontFile.Refresh();
                 if (!fontFile.Exists)
                 {
-                    throw new FileNotFoundException($"Font file not found: {fontFile.FullName}");
+                    throw new FileNotFoundException(string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                        ExceptionMessages.TextEditorFontResourceManager_FontFileNotFound, fontFile.FullName));
                 }
             }
 

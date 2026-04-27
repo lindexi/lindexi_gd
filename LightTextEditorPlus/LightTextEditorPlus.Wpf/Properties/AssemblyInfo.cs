@@ -1,3 +1,4 @@
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Windows;
 
@@ -9,6 +10,10 @@ using System.Windows;
                                               //(used if a resource is not found in the page,
                                               // app, or any theme specific resource dictionaries)
 )]
+
+#if !USE_AllInOne
+[assembly: NeutralResourcesLanguage("zh-Hans")]
+#endif
 
 [assembly: InternalsVisibleTo("LightTextEditorPlus.Tests")]
 [assembly: InternalsVisibleTo("LightTextEditorPlus.Core.Tests")]

@@ -37,11 +37,34 @@
       <Link>Core\Resources\ExceptionMessages.resx</Link>
       <WithCulture>false</WithCulture>
       <LogicalName>LightTextEditorPlus.Core.Resources.ExceptionMessages.resources</LogicalName>
+      <CustomToolNamespace>LightTextEditorPlus.Core.Resources</CustomToolNamespace>
     </EmbeddedResource>
     <EmbeddedResource Include="..\LightTextEditorPlus.Core\Resources\ExceptionMessages.en-US.resx">
       <Link>Core\Resources\ExceptionMessages.en-US.resx</Link>
       <DependentUpon>ExceptionMessages.resx</DependentUpon>
       <LogicalName>LightTextEditorPlus.Core.Resources.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Skia\Resources\ExceptionMessages.resx">
+      <Link>Skia\Resources\ExceptionMessages.resx</Link>
+      <WithCulture>false</WithCulture>
+      <LogicalName>LightTextEditorPlus.Resources.Skia.ExceptionMessages.resources</LogicalName>
+      <CustomToolNamespace>LightTextEditorPlus.Resources.Skia</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Skia\Resources\ExceptionMessages.en-US.resx">
+      <Link>Skia\Resources\ExceptionMessages.en-US.resx</Link>
+      <DependentUpon>ExceptionMessages.resx</DependentUpon>
+      <LogicalName>LightTextEditorPlus.Resources.Skia.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Avalonia\Resources\ExceptionMessages.resx">
+      <Link>Avalonia\Resources\ExceptionMessages.resx</Link>
+      <WithCulture>false</WithCulture>
+      <CustomToolNamespace>LightTextEditorPlus.Resources.Avalonia</CustomToolNamespace>
+      <LogicalName>LightTextEditorPlus.Resources.Avalonia.ExceptionMessages.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\LightTextEditorPlus.Avalonia\Resources\ExceptionMessages.en-US.resx">
+      <Link>Avalonia\Resources\ExceptionMessages.en-US.resx</Link>
+      <DependentUpon>ExceptionMessages.resx</DependentUpon>
+      <LogicalName>LightTextEditorPlus.Resources.Avalonia.ExceptionMessages.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

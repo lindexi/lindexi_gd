@@ -1,5 +1,6 @@
 ﻿using System;
 
+using LightTextEditorPlus.Resources.Skia;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Primitive;
@@ -26,12 +27,12 @@ public readonly record struct GradientSkiaTextBrushRelativePoint
         {
             if (x is < 0 or > 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(x), x, $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
+                throw new ArgumentOutOfRangeException(nameof(x), x, ExceptionMessages.GradientSkiaTextBrushRelativePoint_RelativeCoordinateMustBeInRange);
             }
 
             if (y is < 0 or > 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(y), y, $"当 RelativeUnit 为 Relative 时，应该是在 [0-1] 范围内");
+                throw new ArgumentOutOfRangeException(nameof(y), y, ExceptionMessages.GradientSkiaTextBrushRelativePoint_RelativeCoordinateMustBeInRange);
             }
         }
     }
