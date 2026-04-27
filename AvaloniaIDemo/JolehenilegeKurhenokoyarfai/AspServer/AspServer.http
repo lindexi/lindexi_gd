@@ -1,0 +1,11 @@
+@AspServer_HostAddress = http://localhost:5227
+
+GET {{AspServer_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{AspServer_HostAddress}}/todos/1
+Accept: application/json
+
+###
