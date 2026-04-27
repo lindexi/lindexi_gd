@@ -24,15 +24,24 @@ namespace LightTextEditorPlus.Document.UnitTests;
 public partial class SkiaTextRunPropertyTests
 {
     /// <summary>
+    /// Helper method to create a SkiaPlatformResourceManager instance for testing.
+    /// </summary>
+    private static SkiaPlatformResourceManager CreateResourceManager()
+    {
+        var textEditor = new SkiaTextEditor();
+        return new SkiaPlatformResourceManager(textEditor);
+    }
+
+    /// <summary>
     /// Tests that FontName getter returns the value set during initialization.
     /// </summary>
     [TestMethod]
     public void FontName_GetAfterInit_ReturnsSetValue()
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var testFontName = new FontName("Arial");
-        var runProperty = new SkiaTextRunProperty(mockResourceManager.Object)
+        var runProperty = new SkiaTextRunProperty(resourceManager)
         {
             FontName = testFontName
         };
@@ -52,10 +61,10 @@ public partial class SkiaTextRunPropertyTests
     public void FontName_SetWithExpression_UpdatesValue()
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var originalFontName = new FontName("Times New Roman");
         var newFontName = new FontName("Calibri");
-        var originalProperty = new SkiaTextRunProperty(mockResourceManager.Object)
+        var originalProperty = new SkiaTextRunProperty(resourceManager)
         {
             FontName = originalFontName
         };
@@ -77,10 +86,10 @@ public partial class SkiaTextRunPropertyTests
     public void FontName_SetSameValue_NoChangeToRenderFontName()
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var fontName = new FontName("Segoe UI");
         var renderFontName = "Custom Render Font";
-        var runProperty = new SkiaTextRunProperty(mockResourceManager.Object)
+        var runProperty = new SkiaTextRunProperty(resourceManager)
         {
             FontName = fontName,
             RenderFontName = renderFontName
@@ -102,11 +111,11 @@ public partial class SkiaTextRunPropertyTests
     public void FontName_SetDifferentValue_ResetsRenderFontName()
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var originalFontName = new FontName("Verdana");
         var newFontName = new FontName("Georgia");
         var customRenderFont = "CustomRenderFont";
-        var runProperty = new SkiaTextRunProperty(mockResourceManager.Object)
+        var runProperty = new SkiaTextRunProperty(resourceManager)
         {
             FontName = originalFontName,
             RenderFontName = customRenderFont
@@ -129,9 +138,9 @@ public partial class SkiaTextRunPropertyTests
     public void FontName_SetEmptyString_AcceptsValue()
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var emptyFontName = new FontName(string.Empty);
-        var runProperty = new SkiaTextRunProperty(mockResourceManager.Object);
+        var runProperty = new SkiaTextRunProperty(resourceManager);
 
         // Act
         var updatedProperty = runProperty with { FontName = emptyFontName };
@@ -164,9 +173,9 @@ public partial class SkiaTextRunPropertyTests
     public void FontName_SetVariousStringValues_AcceptsAllValues(string fontNameValue)
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var fontName = new FontName(fontNameValue);
-        var runProperty = new SkiaTextRunProperty(mockResourceManager.Object);
+        var runProperty = new SkiaTextRunProperty(resourceManager);
 
         // Act
         var updatedProperty = runProperty with { FontName = fontName };
@@ -183,10 +192,10 @@ public partial class SkiaTextRunPropertyTests
     public void FontName_SetVeryLongString_AcceptsValue()
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var longFontName = new string('A', 10000);
         var fontName = new FontName(longFontName);
-        var runProperty = new SkiaTextRunProperty(mockResourceManager.Object);
+        var runProperty = new SkiaTextRunProperty(resourceManager);
 
         // Act
         var updatedProperty = runProperty with { FontName = fontName };
@@ -204,11 +213,11 @@ public partial class SkiaTextRunPropertyTests
     public void FontName_SetMultipleTimesWithDifferentValues_UpdatesCorrectly()
     {
         // Arrange
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>();
+        var resourceManager = CreateResourceManager();
         var fontName1 = new FontName("Font1");
         var fontName2 = new FontName("Font2");
         var fontName3 = new FontName("Font3");
-        var runProperty = new SkiaTextRunProperty(mockResourceManager.Object)
+        var runProperty = new SkiaTextRunProperty(resourceManager)
         {
             FontName = fontName1
         };
