@@ -1,0 +1,59 @@
+using System.Threading;
+using System.Threading.Tasks;
+
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Embedding;
+using Avalonia.Markup.Xaml;
+
+namespace AvaloniaApp;
+
+public partial class App : Application
+{
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+    }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        }
+
+        base.OnFrameworkInitializationCompleted();
+
+        AppLaunchedTaskCompletionSource.SetResult();
+    }
+
+    public static Task WaitAppLaunched()
+    {
+        if (AppLaunchedTaskCompletionSource.Task.IsCompleted)
+        {
+            return AppLaunchedTaskCompletionSource.Task;
+        }
+
+        var locker = AppLaunchedTaskCompletionSource;
+        lock (locker)
+        {
+            if (!Program.IsStarted)
+            {
+                Program.IsStarted = true;
+                var thread = new Thread(() =>
+                 {
+                     Program.Main(["--Xvfb", ":0"]);
+                 })
+                {
+                    IsBackground = true
+                };
+                thread.Start();
+            }
+        }
+
+        return AppLaunchedTaskCompletionSource.Task;
+    }
+
+    private static readonly TaskCompletionSource AppLaunchedTaskCompletionSource = new();
+}
