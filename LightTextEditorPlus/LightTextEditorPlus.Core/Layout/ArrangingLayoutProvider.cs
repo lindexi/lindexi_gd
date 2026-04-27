@@ -63,6 +63,26 @@ abstract class ArrangingLayoutProvider
     /// 入口方法
     public DocumentLayoutResult UpdateLayout(UpdateLayoutContext updateLayoutContext)
     {
+        try
+        {
+            return UpdateLayoutInner(updateLayoutContext);
+        }
+        catch (TextEditorDebugException e)
+        {
+            // 调试下再给一次机会
+            IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
+            foreach (ParagraphData paragraphData in paragraphList)
+            {
+                paragraphData.SetDirty();
+            }
+            CharDataLayoutHelper.ClearAllCharDataInfo(paragraphList, updateLayoutContext);
+
+            return UpdateLayoutInner(updateLayoutContext);
+        }
+    }
+
+    private DocumentLayoutResult UpdateLayoutInner(UpdateLayoutContext updateLayoutContext)
+    {
         // 布局逻辑：
         // - 01 获取需要更新布局段落的逻辑
         // - 02 预布局阶段

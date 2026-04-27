@@ -32,4 +32,8 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="LightTextEditorPlus.Skia.UnitTests" />
+  </ItemGroup>
+
 </Project>
