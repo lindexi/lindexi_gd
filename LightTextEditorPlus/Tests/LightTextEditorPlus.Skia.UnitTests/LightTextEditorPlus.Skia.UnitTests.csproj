@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj" />
+    <ProjectReference Include="..\..\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj" />
   </ItemGroup>
 
   <ItemGroup>
