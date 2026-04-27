@@ -1,5 +1,7 @@
 ﻿using JalfijefallKelweehelhelwellu;
 
+using Microsoft.Win32;
+
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -42,7 +44,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private int _nextHistoryIndex;
     private bool _autoTrimEnabled = true;
     private bool _canLoadMoreHistory;
+    private bool _isSessionLocked;
     private bool _isCapturePaused;
+    private bool _isUserPauseRequested;
     private string _statusText = "正在初始化。";
 
     public MainWindow()
@@ -57,6 +61,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         Directory.CreateDirectory(StorageFolderPath);
 
+        SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
         Loaded += MainWindow_Loaded;
         Closed += MainWindow_Closed;
     }
@@ -119,6 +124,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void MainWindow_Closed(object? sender, EventArgs e)
     {
+        SystemEvents.SessionSwitch -= SystemEvents_SessionSwitch;
         _captureLoopCancellationTokenSource?.Cancel();
         _captureLoopCancellationTokenSource?.Dispose();
         _historyLoadLock.Dispose();
@@ -433,7 +439,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         while (IsCapturePaused)
         {
-            await UpdateStatusAsync("截图和解读已暂停。");
+            var pausedStatusText = GetPausedStatusText();
+            if (!string.Equals(StatusText, pausedStatusText, StringComparison.Ordinal))
+            {
+                await UpdateStatusAsync(pausedStatusText);
+            }
+
             await Task.Delay(TimeSpan.FromMilliseconds(300), cancellationToken);
         }
     }
@@ -445,14 +456,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void PauseButton_OnClick(object sender, RoutedEventArgs e)
     {
-        IsCapturePaused = true;
-        StatusText = "截图和解读已暂停。";
+        _isUserPauseRequested = true;
+        ApplyPauseState();
+        StatusText = GetPausedStatusText();
     }
 
     private void ResumeButton_OnClick(object sender, RoutedEventArgs e)
     {
-        IsCapturePaused = false;
-        StatusText = "截图和解读已恢复。";
+        _isUserPauseRequested = false;
+        ApplyPauseState();
+        StatusText = IsCapturePaused
+            ? GetPausedStatusText()
+            : "截图和解读已恢复。";
     }
 
     private async void LoadHistoryButton_OnClick(object sender, RoutedEventArgs e)
@@ -479,6 +494,52 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         storage = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    private void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
+    {
+        switch (e.Reason)
+        {
+            case SessionSwitchReason.SessionLock:
+                _ = Dispatcher.InvokeAsync(() =>
+                {
+                    _isSessionLocked = true;
+                    ApplyPauseState();
+                    StatusText = GetPausedStatusText();
+                });
+                break;
+
+            case SessionSwitchReason.SessionUnlock:
+                _ = Dispatcher.InvokeAsync(() =>
+                {
+                    _isSessionLocked = false;
+                    ApplyPauseState();
+                    StatusText = IsCapturePaused
+                        ? GetPausedStatusText()
+                        : "系统已解锁，截图和解读已恢复。";
+                });
+                break;
+        }
+    }
+
+    private void ApplyPauseState()
+    {
+        IsCapturePaused = _isUserPauseRequested || _isSessionLocked;
+    }
+
+    private string GetPausedStatusText()
+    {
+        if (_isSessionLocked && _isUserPauseRequested)
+        {
+            return "系统已锁屏，截图和解读保持暂停。";
+        }
+
+        if (_isSessionLocked)
+        {
+            return "系统已锁屏，截图和解读已自动暂停。";
+        }
+
+        return "截图和解读已暂停。";
     }
 
     private static int GetAnalysisFilePriority(string analysisPath)
