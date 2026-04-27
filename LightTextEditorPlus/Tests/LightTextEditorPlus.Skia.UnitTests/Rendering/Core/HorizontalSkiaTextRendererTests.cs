@@ -59,6 +59,25 @@ public partial class HorizontalSkiaTextRendererTests
         return default;
     }
 
+    private static (RenderManager RenderManager, SkiaTextRenderArgument RenderArgument) CreateRenderContext(TextRect renderBounds, TextRect? viewport = null)
+    {
+        var textEditor = new SkiaTextEditor();
+        var renderManager = new RenderManager(textEditor);
+        var bitmap = new SKBitmap(100, 100);
+        var canvas = new SKCanvas(bitmap);
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+
+        var renderArgument = new SkiaTextRenderArgument
+        {
+            Canvas = canvas,
+            RenderInfoProvider = renderInfoProvider,
+            RenderBounds = renderBounds,
+            Viewport = viewport
+        };
+
+        return (renderManager, renderArgument);
+    }
+
     #endregion
 
     /// <summary>
@@ -68,19 +87,7 @@ public partial class HorizontalSkiaTextRendererTests
     public void Constructor_ValidParameters_CreatesInstance()
     {
         // Arrange
-        var mockTextEditor = new Mock<SkiaTextEditor>();
-        var renderManager = new RenderManager(mockTextEditor.Object);
-
-        var mockCanvas = new Mock<SKCanvas>();
-        var mockRenderInfoProvider = new Mock<RenderInfoProvider>();
-        var renderBounds = new TextRect(0, 0, 100, 100);
-
-        var renderArgument = new SkiaTextRenderArgument
-        {
-            Canvas = mockCanvas.Object,
-            RenderInfoProvider = mockRenderInfoProvider.Object,
-            RenderBounds = renderBounds
-        };
+        var (renderManager, renderArgument) = CreateRenderContext(new TextRect(0, 0, 100, 100));
 
         // Act
         var renderer = new HorizontalSkiaTextRenderer(renderManager, in renderArgument);
@@ -102,13 +109,14 @@ public partial class HorizontalSkiaTextRendererTests
 
         using var bitmap = new SKBitmap(100, 100);
         using var canvas = new SKCanvas(bitmap);
-        var mockRenderInfoProvider = new Mock<RenderInfoProvider>();
+        var textEditor = new SkiaTextEditor();
+        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
         var renderBounds = new TextRect(0, 0, 100, 100);
 
         var renderArgument = new SkiaTextRenderArgument
         {
             Canvas = canvas,
-            RenderInfoProvider = mockRenderInfoProvider.Object,
+            RenderInfoProvider = renderInfoProvider,
             RenderBounds = renderBounds
         };
 
@@ -123,21 +131,8 @@ public partial class HorizontalSkiaTextRendererTests
     public void Constructor_ValidParametersWithViewport_CreatesInstance()
     {
         // Arrange
-        var mockTextEditor = new Mock<SkiaTextEditor>();
-        var renderManager = new RenderManager(mockTextEditor.Object);
-
-        var mockCanvas = new Mock<SKCanvas>();
-        var mockRenderInfoProvider = new Mock<RenderInfoProvider>();
-        var renderBounds = new TextRect(0, 0, 100, 100);
         var viewport = new TextRect(10, 10, 50, 50);
-
-        var renderArgument = new SkiaTextRenderArgument
-        {
-            Canvas = mockCanvas.Object,
-            RenderInfoProvider = mockRenderInfoProvider.Object,
-            RenderBounds = renderBounds,
-            Viewport = viewport
-        };
+        var (renderManager, renderArgument) = CreateRenderContext(new TextRect(0, 0, 100, 100), viewport);
 
         // Act
         var renderer = new HorizontalSkiaTextRenderer(renderManager, in renderArgument);
@@ -157,19 +152,7 @@ public partial class HorizontalSkiaTextRendererTests
     public void Constructor_ExtremeBoundaryValues_CreatesInstance(double x, double y, double width, double height)
     {
         // Arrange
-        var mockTextEditor = new Mock<SkiaTextEditor>();
-        var renderManager = new RenderManager(mockTextEditor.Object);
-
-        var mockCanvas = new Mock<SKCanvas>();
-        var mockRenderInfoProvider = new Mock<RenderInfoProvider>();
-        var renderBounds = new TextRect(x, y, width, height);
-
-        var renderArgument = new SkiaTextRenderArgument
-        {
-            Canvas = mockCanvas.Object,
-            RenderInfoProvider = mockRenderInfoProvider.Object,
-            RenderBounds = renderBounds
-        };
+        var (renderManager, renderArgument) = CreateRenderContext(new TextRect(x, y, width, height));
 
         // Act
         var renderer = new HorizontalSkiaTextRenderer(renderManager, in renderArgument);

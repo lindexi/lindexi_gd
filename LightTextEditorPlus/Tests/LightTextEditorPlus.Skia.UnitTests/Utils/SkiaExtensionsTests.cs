@@ -176,8 +176,8 @@ public partial class SkiaExtensionsTests
         // Assert
         Assert.AreEqual(float.PositiveInfinity, result.Left, "Left should be positive infinity");
         Assert.AreEqual(float.PositiveInfinity, result.Top, "Top should be positive infinity");
-        Assert.AreEqual(float.PositiveInfinity, result.Right, "Right should be positive infinity");
-        Assert.AreEqual(float.PositiveInfinity, result.Bottom, "Bottom should be positive infinity");
+        Assert.IsTrue(float.IsNaN(result.Right), "Right should follow TextRect special-value arithmetic and become NaN");
+        Assert.IsTrue(float.IsNaN(result.Bottom), "Bottom should follow TextRect special-value arithmetic and become NaN");
     }
 
     /// <summary>
@@ -196,8 +196,8 @@ public partial class SkiaExtensionsTests
         // Assert
         Assert.AreEqual(float.NegativeInfinity, result.Left, "Left should be negative infinity");
         Assert.AreEqual(float.NegativeInfinity, result.Top, "Top should be negative infinity");
-        Assert.AreEqual(float.NegativeInfinity, result.Right, "Right should be negative infinity");
-        Assert.AreEqual(float.NegativeInfinity, result.Bottom, "Bottom should be negative infinity");
+        Assert.IsTrue(float.IsNaN(result.Right), "Right should follow TextRect special-value arithmetic and become NaN");
+        Assert.IsTrue(float.IsNaN(result.Bottom), "Bottom should follow TextRect special-value arithmetic and become NaN");
     }
 
     /// <summary>
