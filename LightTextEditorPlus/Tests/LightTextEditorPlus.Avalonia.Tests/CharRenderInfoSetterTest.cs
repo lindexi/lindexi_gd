@@ -17,12 +17,17 @@ public class CharRenderInfoSetterTest
         CharData emojiCharData = CreateRuneCharData(0x1F9EA);
         CharData spaceCharData = CreateCharData(' ');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [emojiCharData, spaceCharData],
-            [CreateCharRenderInfo(0, 1), CreateCharRenderInfo(2, 2)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1),
+                CreateCharRenderInfo(glyphCluster: 2, glyphIndex: 2)
+            ]
+        );
 
-        AssertCharDataInfo(setter, emojiCharData, 1, CharDataInfoStatus.Normal);
-        AssertCharDataInfo(setter, spaceCharData, 2, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, emojiCharData, glyphIndex: 1, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, spaceCharData, glyphIndex: 2, CharDataInfoStatus.Normal);
     }
 
     [TestMethod("测试从右到左字符的 Cluster 倒序内容，预期可以正确设置到对应 CharData")]
@@ -32,9 +37,15 @@ public class CharRenderInfoSetterTest
         CharData charData2 = CreateCharData('B');
         CharData charData3 = CreateCharData('C');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [charData1, charData2, charData3],
-            [CreateCharRenderInfo(2, 3), CreateCharRenderInfo(1, 2), CreateCharRenderInfo(0, 1)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 2, glyphIndex: 3),
+                CreateCharRenderInfo(glyphCluster: 1, glyphIndex: 2),
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1)
+            ]
+        );
 
         AssertCharDataInfo(setter, charData1, 1, CharDataInfoStatus.Normal);
         AssertCharDataInfo(setter, charData2, 2, CharDataInfoStatus.Normal);
@@ -48,13 +59,19 @@ public class CharRenderInfoSetterTest
         CharData charDataA = CreateCharData('A');
         CharData charDataB = CreateCharData('B');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [emojiCharData, charDataA, charDataB],
-            [CreateCharRenderInfo(0, 1), CreateCharRenderInfo(2, 2), CreateCharRenderInfo(3, 3)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1),
+                CreateCharRenderInfo(glyphCluster: 2, glyphIndex: 2),
+                CreateCharRenderInfo(glyphCluster: 3, glyphIndex: 3)
+            ]
+        );
 
-        AssertCharDataInfo(setter, emojiCharData, 1, CharDataInfoStatus.Normal);
-        AssertCharDataInfo(setter, charDataA, 2, CharDataInfoStatus.Normal);
-        AssertCharDataInfo(setter, charDataB, 3, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, emojiCharData, glyphIndex: 1, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, charDataA, glyphIndex: 2, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, charDataB, glyphIndex: 3, CharDataInfoStatus.Normal);
     }
 
     [TestMethod("测试普通字符加 emoji 再加普通字符，预期可以正确回填中间 emoji 的 Cluster")]
@@ -64,13 +81,19 @@ public class CharRenderInfoSetterTest
         CharData emojiCharData = CreateRuneCharData(0x1F9EA);
         CharData charDataB = CreateCharData('B');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [charDataA, emojiCharData, charDataB],
-            [CreateCharRenderInfo(0, 1), CreateCharRenderInfo(1, 2), CreateCharRenderInfo(3, 3)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1),
+                CreateCharRenderInfo(glyphCluster: 1, glyphIndex: 2),
+                CreateCharRenderInfo(glyphCluster: 3, glyphIndex: 3)
+            ]
+        );
 
-        AssertCharDataInfo(setter, charDataA, 1, CharDataInfoStatus.Normal);
-        AssertCharDataInfo(setter, emojiCharData, 2, CharDataInfoStatus.Normal);
-        AssertCharDataInfo(setter, charDataB, 3, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, charDataA, glyphIndex: 1, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, emojiCharData, glyphIndex: 2, CharDataInfoStatus.Normal);
+        AssertCharDataInfo(setter, charDataB, glyphIndex: 3, CharDataInfoStatus.Normal);
     }
 
     [TestMethod("测试 emoji 加连字加普通字符，预期连字状态可以和 emoji 共存")]
@@ -81,9 +104,15 @@ public class CharRenderInfoSetterTest
         CharData charDataI = CreateCharData('i');
         CharData charDataX = CreateCharData('x');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [emojiCharData, charDataF, charDataI, charDataX],
-            [CreateCharRenderInfo(0, 1), CreateCharRenderInfo(2, 2), CreateCharRenderInfo(4, 3)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1),
+                CreateCharRenderInfo(glyphCluster: 2, glyphIndex: 2),
+                CreateCharRenderInfo(glyphCluster: 4, glyphIndex: 3)
+            ]
+        );
 
         AssertCharDataInfo(setter, emojiCharData, 1, CharDataInfoStatus.Normal);
         AssertCharDataInfo(setter, charDataF, 2, CharDataInfoStatus.LigatureStart);
@@ -97,9 +126,14 @@ public class CharRenderInfoSetterTest
         CharData charDataA = CreateCharData('A');
         CharData charDataB = CreateCharData('B');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [charDataA, charDataB],
-            [CreateCharRenderInfo(1, 2), CreateCharRenderInfo(0, 1)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 1, glyphIndex: 2),
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1)
+            ]
+        );
 
         AssertCharDataInfo(setter, charDataA, 1, CharDataInfoStatus.Normal);
         AssertCharDataInfo(setter, charDataB, 2, CharDataInfoStatus.Normal);
@@ -112,9 +146,15 @@ public class CharRenderInfoSetterTest
         CharData charDataA = CreateCharData('A');
         CharData charDataB = CreateCharData('B');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [emojiCharData, charDataA, charDataB],
-            [CreateCharRenderInfo(3, 3), CreateCharRenderInfo(2, 2), CreateCharRenderInfo(0, 1)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 3, glyphIndex: 3),
+                CreateCharRenderInfo(glyphCluster: 2, glyphIndex: 2),
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1)
+            ]
+        );
 
         AssertCharDataInfo(setter, emojiCharData, 1, CharDataInfoStatus.Normal);
         AssertCharDataInfo(setter, charDataA, 2, CharDataInfoStatus.Normal);
@@ -127,9 +167,15 @@ public class CharRenderInfoSetterTest
         CharData charDataA = CreateCharData('A');
         CharData charDataB = CreateCharData('B');
 
-        var setter = Apply(
+        var setter = Apply
+        (
             [charDataA, charDataB],
-            [CreateCharRenderInfo(0, 1), CreateCharRenderInfo(0, 1), CreateCharRenderInfo(1, 2)]);
+            [
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1),
+                CreateCharRenderInfo(glyphCluster: 0, glyphIndex: 1),
+                CreateCharRenderInfo(glyphCluster: 1, glyphIndex: 2)
+            ]
+        );
 
         AssertCharDataInfo(setter, charDataA, 1, CharDataInfoStatus.Normal);
         AssertCharDataInfo(setter, charDataB, 2, CharDataInfoStatus.Normal);
