@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.3.32901.215
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11702.344 oobstable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{5F8FEFD7-226B-4821-8087-5EF1086A6164}"
 EndProject
@@ -60,6 +60,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Skia.AotLayer", "LightTextEditorPlus.Skia.AotLayer\LightTextEditorPlus.Skia.AotLayer.csproj", "{7366EB10-7710-B13F-AAAD-FE96C1131002}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Avalonia.Tests", "Tests\LightTextEditorPlus.Avalonia.Tests\LightTextEditorPlus.Avalonia.Tests.csproj", "{EDC2A4EF-2069-EF13-243F-B7E351B69E41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Skia.UnitTests", "LightTextEditorPlus.Skia.UnitTests\LightTextEditorPlus.Skia.UnitTests.csproj", "{5C89400E-119E-4200-A21E-8A73A8967EAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -139,6 +141,10 @@ Global
 		{EDC2A4EF-2069-EF13-243F-B7E351B69E41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDC2A4EF-2069-EF13-243F-B7E351B69E41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDC2A4EF-2069-EF13-243F-B7E351B69E41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C89400E-119E-4200-A21E-8A73A8967EAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C89400E-119E-4200-A21E-8A73A8967EAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C89400E-119E-4200-A21E-8A73A8967EAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C89400E-119E-4200-A21E-8A73A8967EAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

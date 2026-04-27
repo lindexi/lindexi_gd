@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="LightTextEditorPlus.Avalonia.Tests" />
+    <InternalsVisibleTo Include="LightTextEditorPlus.Skia.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
