@@ -1053,6 +1053,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextSize documentContentSize = preUpdateDocumentLayoutResult.DocumentContentSize;
         TextSize documentOutlineSize = CalculateDocumentOutlineSize(in documentContentSize);
 
+        if (documentOutlineSize.Height >= documentContentSize.Height)
+        {
+            // 最符合预期的情况是外接尺寸和内容尺寸高度相等，说明没有被撑大文档范围
+            DebugAssert(true, "外接的尺寸高度肯定大于等于内容尺寸");
+        }
+        else
+        {
+            // 什么情况？被撑大了
+            updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 文档外接尺寸小于内容尺寸，文本被撑大文档范围。文档内容高度：{documentContentSize.Height} 文档外接高度：{documentOutlineSize.Height}", LayoutDebugCategory.FinalDocument);
+        }
+
         var documentWidth = documentOutlineSize.Width;
 
 #if DEBUG
@@ -1265,7 +1276,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         double documentHeight = documentContentSize.Height;
         double outlineHeight = documentOutlineSize.Height;
         var gapHeight = outlineHeight - documentHeight;
-        DebugAssert(gapHeight >= 0, "外接的尺寸高度肯定大于等于内容尺寸");
+        // 去掉这条判断，因为确实有可能。比如文本撑开高度的情况
+        //DebugAssert(gapHeight >= 0, "外接的尺寸高度肯定大于等于内容尺寸");
 
         const int left = 0; // 水平方向不需要处理
         var top = verticalTextAlignment switch
@@ -1336,6 +1348,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         if (!double.IsFinite(documentHeight))
         {
             documentHeight = documentContentSize.Height;
+        }
+        else
+        {
+            if (documentHeight < documentContentSize.Height)
+            {
+                // 这是文档被撑大的情况，暂不知道可以如何处理
+            }
         }
 
         return new TextSize(documentWidth, documentHeight);
