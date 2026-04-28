@@ -10,19 +10,17 @@ namespace AvaloniaAgentLib.Core;
 
 public class AgentApiEndpointManager
 {
-    public ApiEndpoint CurrentEndpoint { get; set; }
-
     public IApiEndpointProvider? ApiEndpointProvider { get; set; }
 
     public IChatClient CreateOpenAIClient()
     {
-        var apiEndpoint = ApiEndpointProvider?.GetApiEndpoint() ?? CurrentEndpoint;
-        if (string.IsNullOrEmpty(apiEndpoint.EndPoint))
+        var apiEndpoint = ApiEndpointProvider?.GetApiEndpoint();
+        if (apiEndpoint is null)
         {
             throw new InvalidOperationException($"必须先设置才能创建");
         }
 
-        return CreateOpenAIClient(apiEndpoint);
+        return CreateOpenAIClient(apiEndpoint.Value);
     }
 
     public static IChatClient CreateOpenAIClient(ApiEndpoint apiEndpoint)
