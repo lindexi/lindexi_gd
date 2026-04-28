@@ -2,28 +2,18 @@ using Avalonia.Controls;
 using Avalonia.Animation;
 using Avalonia.Interactivity;
 using Avalonia.Input;
-
-using AvaloniaAgentLib.Core;
 using AvaloniaAgentLib.Logging;
 using AvaloniaAgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
 using SimpleWrite.Business;
-using SimpleWrite.Business.CopilotCommandPatterns;
 using SimpleWrite.Business.SimpleWriteConfigurations;
-using SimpleWrite.Business.TextEditors.CommandPatterns;
 using SimpleWrite.ViewModels;
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using Avalonia;
-using dotnetCampus.Configurations;
+using SimpleWrite.Business.AgentConnectors;
 
 namespace SimpleWrite.Views.Components;
 
@@ -32,9 +22,9 @@ public partial class RightSlideBar : UserControl
     private const double DefaultExpandedWidth = 300;
     private const double CollapsedWidth = 2;
     private const double MinimumExpandedWidth = 160;
-    private const string EndPointHelpText = "填充 OpenAI 兼容 API 的地址，如  https://ark.cn-beijing.volces.com/api/v3";
-    private const string KeyHelpText = "请填充密码";
-    private const string ModelNameHelpText = "请填充模型名";
+    private const string EndPointHelpText = AgentApiConfigurationVerifier.EndPointHelpText;
+    private const string KeyHelpText = AgentApiConfigurationVerifier.KeyHelpText;
+    private const string ModelNameHelpText = AgentApiConfigurationVerifier.ModelNameHelpText;
 
     private bool _isExpanded = true;
     private bool _isInitialized;
@@ -88,7 +78,7 @@ public partial class RightSlideBar : UserControl
 
             mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
 
-            if (IsInvalidAgentApiConfiguration(agentApiConfiguration))
+            if (agentApiConfiguration.IsInvalidAgentApiConfiguration())
             {
                 agentApiConfiguration.EndPoint ??= EndPointHelpText;
                 agentApiConfiguration.Key ??= KeyHelpText;
@@ -105,41 +95,6 @@ public partial class RightSlideBar : UserControl
             copilotViewModel.SettingOpened -= CopilotViewModel_OnSettingOpened;
             copilotViewModel.SettingOpened += CopilotViewModel_OnSettingOpened;
         }
-    }
-
-    internal static bool IsInvalidAgentApiConfiguration(AgentApiConfiguration agentApiConfiguration)
-    {
-        ArgumentNullException.ThrowIfNull(agentApiConfiguration);
-
-        if (string.IsNullOrEmpty(agentApiConfiguration.EndPoint)
-            || string.IsNullOrEmpty(agentApiConfiguration.Key)
-            || string.IsNullOrEmpty(agentApiConfiguration.ModelName))
-        {
-            return true;
-        }
-
-        if (agentApiConfiguration.EndPoint == EndPointHelpText)
-        {
-            return true;
-        }
-
-        string endPoint = agentApiConfiguration.EndPoint;
-        if (!endPoint.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (agentApiConfiguration.Key == KeyHelpText)
-        {
-            return true;
-        }
-
-        if (agentApiConfiguration.ModelName == ModelNameHelpText)
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private void BindWorkspacePath(FolderExplorerViewModel folderExplorerViewModel, CopilotViewModel copilotViewModel)
@@ -269,212 +224,5 @@ file sealed class SidebarConversationPresenter(CopilotViewModel copilotViewModel
     public Task ShowConversationAsync(string userText, string assistantText)
     {
         return copilotViewModel.AddConversationAsync(userText, assistantText, isPresetInfo: false);
-    }
-}
-
-file sealed class CopilotPatternProvider(CopilotViewModel copilotViewModel, ConfigurationManager configurationManager)
-{
-    public void AddCopilotPatterns(CommandPatternManager commandPatternManager)
-    {
-        ArgumentNullException.ThrowIfNull(commandPatternManager);
-
-        commandPatternManager.AddCommandPattern(new PolishSelectedTextCommandPattern(copilotViewModel));
-
-        commandPatternManager.AddCommandPattern("发送内容到 Copilot 聊天", text => copilotViewModel.SendMessageInNewSessionAsync(text), priority: 200);
-
-        commandPatternManager.AddCommandPattern("翻译为计算机英文", text =>
-        {
-            var prompt =
-                $"""
-                 请帮我将以下内容转述为地道的计算机英文，我将在即时聊天中使用：
-                 {text}
-                 """;
-            return copilotViewModel.SendMessageInNewSessionAsync(prompt);
-        }, priority: 180);
-
-        commandPatternManager.AddCommandPattern("Json转C#类", text =>
-        {
-            var prompt =
-                $"""
-                 将以下 json 转换为 C# 的类型，要求使用 System.Text.Json 作为 Json 特性定义。要求 C# 属性命名符合 .NET 规范，采用帕斯卡风格：
-                 {text}
-                 """;
-            return copilotViewModel.SendMessageInNewSessionAsync(prompt);
-        }, supportSingleLine: false, priority: 160);
-
-        AddXmlAbilityPatterns(commandPatternManager);
-    }
-
-    private void AddXmlAbilityPatterns(CommandPatternManager commandPatternManager)
-    {
-        var loadErrorList = new List<string>();
-        foreach (var ability in CopilotAbilityLoader.Load(configurationManager, loadErrorList))
-        {
-            commandPatternManager.AddCommandPattern(ability.Title, text =>
-            {
-                string prompt = ability.CreatePrompt(text);
-                return copilotViewModel.SendMessageInNewSessionAsync(prompt);
-            }, supportSingleLine: ability.SupportSingleLine, priority: ability.Priority);
-        }
-
-        if (loadErrorList.Count > 0)
-        {
-            string message = "以下 Copilot 能力文件未成功加载：" + Environment.NewLine + string.Join(Environment.NewLine, loadErrorList);
-            copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant(message, isPresetInfo: true));
-        }
-    }
-}
-
-file sealed class CopilotAbilityLoader
-{
-    public static IEnumerable<CopilotAbilityDefinition> Load(ConfigurationManager configurationManager, List<string> loadErrorList)
-    {
-        ArgumentNullException.ThrowIfNull(configurationManager);
-        ArgumentNullException.ThrowIfNull(loadErrorList);
-
-        string abilityDirectory = configurationManager.GetCopilotAbilityDirectory().Path;
-        Directory.CreateDirectory(abilityDirectory);
-
-        foreach (var file in Directory.EnumerateFiles(abilityDirectory, "*.xml", SearchOption.TopDirectoryOnly)
-                     .OrderBy(static file => file, StringComparer.OrdinalIgnoreCase))
-        {
-            CopilotAbilityDefinition? ability = TryParse(file, loadErrorList);
-            if (ability is not null)
-            {
-                yield return ability;
-            }
-        }
-    }
-
-    private static CopilotAbilityDefinition? TryParse(string file, List<string> loadErrorList)
-    {
-        try
-        {
-            return Parse(file);
-        }
-        catch (InvalidOperationException ex)
-        {
-            loadErrorList.Add($"- {Path.GetFileName(file)}：{ex.Message}");
-            return null;
-        }
-        catch (FormatException ex)
-        {
-            loadErrorList.Add($"- {Path.GetFileName(file)}：{ex.Message}");
-            return null;
-        }
-        catch (XmlException ex)
-        {
-            loadErrorList.Add($"- {Path.GetFileName(file)}：XML 格式无效，{ex.Message}");
-            return null;
-        }
-        catch (IOException ex)
-        {
-            loadErrorList.Add($"- {Path.GetFileName(file)}：读取失败，{ex.Message}");
-            return null;
-        }
-    }
-
-    private static CopilotAbilityDefinition Parse(string file)
-    {
-        var document = XDocument.Load(file, LoadOptions.PreserveWhitespace);
-        XElement root = document.Root ?? throw new InvalidOperationException("XML 缺少根节点。");
-
-        string title = ReadRequiredValue(root, nameof(CopilotAbilityDefinition.Title));
-        string content = ReadRequiredValue(root, nameof(CopilotAbilityDefinition.Content));
-
-        if (!content.Contains(CopilotAbilityDefinition.InputPlaceholder, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException($"`{nameof(CopilotAbilityDefinition.Content)}` 必须包含 `{CopilotAbilityDefinition.InputPlaceholder}` 占位符。");
-        }
-
-        int priority = ReadInt32Value(root, nameof(CopilotAbilityDefinition.Priority), defaultValue: 0);
-        bool supportSingleLine = ReadBooleanValue(root, nameof(CopilotAbilityDefinition.SupportSingleLine), defaultValue: true);
-        return new CopilotAbilityDefinition(title, content, priority, supportSingleLine);
-    }
-
-    private static string ReadRequiredValue(XElement root, string propertyName)
-    {
-        string? value = ReadOptionalValue(root, propertyName);
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new InvalidOperationException($"缺少 `{propertyName}` 配置。");
-        }
-
-        return value.Trim();
-    }
-
-    private static int ReadInt32Value(XElement root, string propertyName, int defaultValue)
-    {
-        string? value = ReadOptionalValue(root, propertyName);
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return defaultValue;
-        }
-
-        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result))
-        {
-            return result;
-        }
-
-        throw new FormatException($"`{propertyName}` 必须是整数。");
-    }
-
-    private static bool ReadBooleanValue(XElement root, string propertyName, bool defaultValue)
-    {
-        string? value = ReadOptionalValue(root, propertyName);
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return defaultValue;
-        }
-
-        if (bool.TryParse(value, out bool result))
-        {
-            return result;
-        }
-
-        throw new FormatException($"`{propertyName}` 必须是 `true` 或 `false`。");
-    }
-
-    private static string? ReadOptionalValue(XElement root, string propertyName)
-    {
-        return (string?) root.Attribute(propertyName) ?? root.Element(propertyName)?.Value;
-    }
-}
-
-file sealed class CopilotAbilityDefinition(string title, string content, int priority, bool supportSingleLine)
-{
-    public const string InputPlaceholder = "$(Input)";
-
-    public string Title { get; } = title;
-
-    public string Content { get; } = content;
-
-    public int Priority { get; } = priority;
-
-    public bool SupportSingleLine { get; } = supportSingleLine;
-
-    public string CreatePrompt(string input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        return Content.Replace(InputPlaceholder, input, StringComparison.Ordinal);
-    }
-}
-
-file sealed class AgentApiConfigurationApiEndpointProvider(IAppConfigurator appConfigurator) : IApiEndpointProvider
-{
-    /// <summary>
-    /// 从当前配置读取 API 终结点。
-    /// </summary>
-    public ApiEndpoint GetApiEndpoint()
-    {
-        ArgumentNullException.ThrowIfNull(appConfigurator);
-
-        AgentApiConfiguration agentApiConfiguration = appConfigurator.Of<AgentApiConfiguration>();
-        if (RightSlideBar.IsInvalidAgentApiConfiguration(agentApiConfiguration))
-        {
-            return default;
-        }
-
-        return new ApiEndpoint(agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
     }
 }
