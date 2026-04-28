@@ -419,12 +419,11 @@ public partial class SkiaTextEditorTests
     /// Expected: No exception thrown.
     /// </summary>
     [TestMethod]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void EditAndReplaceRun_WithNegativeLengthSelection_ExecutesSuccessfully()
     {
         // Arrange
         var textEditor = new SkiaTextEditor();
+        textEditor.AppendText("1234567890");
         var textRun = new SkiaTextRun("Test");
         var selection = new Selection(new CaretOffset(5), -3);
 
@@ -468,15 +467,13 @@ public partial class SkiaTextEditorTests
     /// Expected: ArgumentNullException or NullReferenceException.
     /// </summary>
     [TestMethod]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void EditAndReplaceRun_WithNullTextRun_ThrowsException()
     {
         // Arrange
         var textEditor = new SkiaTextEditor();
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
         {
             textEditor.EditAndReplaceRun(null!, null);
         });
@@ -510,7 +507,7 @@ public partial class SkiaTextEditorTests
         SkiaTextRun textRun = null!;
 
         // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() => textEditor.AppendRun(textRun));
+        Assert.ThrowsExactly<NullReferenceException>(() => textEditor.AppendRun(textRun));
     }
 
     /// <summary>
@@ -575,11 +572,10 @@ public partial class SkiaTextEditorTests
     }
 
     /// <summary>
-    /// Tests that AppendRun with control characters throws an appropriate exception.
-    /// Control characters (U+0000 to U+001F) are non-printable and should not be rendered in the text editor.
+    /// Tests that AppendRun with control characters does not throw an exception.
+    /// Control characters should be handled consistently with AppendText.
     /// </summary>
     [TestMethod]
-    [ExpectedException(typeof(LightTextEditorPlus.Core.Exceptions.TextEditorInnerDebugException))]
     public void AppendRun_ControlCharacters_ExecutesSuccessfully()
     {
         // Arrange
@@ -966,8 +962,6 @@ public partial class SkiaTextEditorTests
     /// Tests that AppendText with text containing control characters does not throw an exception.
     /// </summary>
     [TestMethod]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void AppendText_ControlCharacters_DoesNotThrow()
     {
         // Arrange

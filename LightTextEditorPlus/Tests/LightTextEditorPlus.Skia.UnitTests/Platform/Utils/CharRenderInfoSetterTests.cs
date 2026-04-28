@@ -67,8 +67,6 @@ public partial class CharRenderInfoSetterTests
     /// Expected: Method handles it gracefully by clamping to totalUtf16Length.
     /// </summary>
     [TestMethod]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void SetCharDataInfo_GlyphClusterExceedsTotalLength_ClampsToValidRange()
     {
         // Arrange
@@ -103,7 +101,7 @@ public partial class CharRenderInfoSetterTests
         setter.SetCharDataInfo(charRenderInfoSpan, charDataSpan);
 
         // Assert
-        mockSetter.Verify(s => s.SetCharDataInfo(charData, It.IsAny<CharDataInfo>()), Times.Once);
+        mockSetter.Verify(s => s.SetCharDataInfo(charData, It.Ref<CharDataInfo>.IsAny), Times.Once);
     }
 
     /// <summary>

@@ -213,7 +213,7 @@ public class SkiaImmutableRunTests
         // Assert
         Assert.IsNotNull(run);
         Assert.AreEqual(runProperty, run.RunProperty);
-        Assert.ThrowsException<NullReferenceException>(() => { var count = run.Count; });
+        Assert.ThrowsExactly<NullReferenceException>(() => { var count = run.Count; });
     }
 
     /// <summary>
@@ -765,7 +765,7 @@ public class SkiaImmutableRunTests
         IEnumerable<ICharObject>? charObjects = null;
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new SkiaImmutableRun(runProperty, charObjects!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new SkiaImmutableRun(runProperty, charObjects!));
     }
 
     /// <summary>

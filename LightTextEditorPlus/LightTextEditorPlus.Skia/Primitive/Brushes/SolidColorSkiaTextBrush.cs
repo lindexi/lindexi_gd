@@ -17,7 +17,7 @@ public sealed record SolidColorSkiaTextBrush(SKColor Color) : SkiaTextBrush, IEq
 
         skPaint.Color = Color;
 
-        if (context.Opacity < 1)
+        if (double.IsFinite(context.Opacity) && context.Opacity >= 0 && context.Opacity < 1)
         {
             // 处理透明度
             skPaint.Color = skPaint.Color.WithAlpha((byte) (skPaint.Color.Alpha * context.Opacity));

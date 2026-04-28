@@ -37,7 +37,7 @@ public partial class RunPropertyExtensionTests
         var mockRunProperty = new Mock<IReadOnlyRunProperty>();
         IReadOnlyRunProperty runProperty = mockRunProperty.Object;
         // Act & Assert
-        Assert.ThrowsException<InvalidCastException>(() => runProperty.AsSkiaRunProperty());
+        Assert.ThrowsExactly<InvalidCastException>(() => runProperty.AsSkiaRunProperty());
     }
 
     /// <summary>

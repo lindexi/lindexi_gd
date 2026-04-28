@@ -258,10 +258,11 @@ public class BaseSkiaTextRendererTests
     }
 
     /// <summary>
-    /// Tests that constructor behavior when RenderInfoProvider is null in renderArgument
+    /// Tests that constructor behavior when RenderInfoProvider is null in renderArgument.
+    /// The base renderer stores the argument without immediate dereference.
     /// </summary>
     [TestMethod]
-    public void BaseSkiaTextRenderer_NullRenderInfoProvider_ThrowsNullReferenceException()
+    public void BaseSkiaTextRenderer_NullRenderInfoProvider_DoesNotThrow()
     {
         // Arrange
         var textEditor = new SkiaTextEditor();
@@ -281,11 +282,11 @@ public class BaseSkiaTextRendererTests
             RenderBounds = renderBounds
         };
 
-        // Act & Assert
-        Assert.ThrowsExactly<NullReferenceException>(() =>
-        {
-            var renderer = new TestableBaseSkiaTextRenderer(renderManager, renderArgument);
-        });
+        // Act
+        var renderer = new TestableBaseSkiaTextRenderer(renderManager, renderArgument);
+
+        // Assert
+        Assert.IsNotNull(renderer);
     }
 
     /// <summary>

@@ -25,12 +25,12 @@ public readonly record struct GradientSkiaTextBrushRelativePoint
 
         if (unit != RelativeUnit.Relative)
         {
-            if (x is < 0 or > 1)
+            if (float.IsNaN(x) || x is < 0 or > 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(x), x, ExceptionMessages.GradientSkiaTextBrushRelativePoint_RelativeCoordinateMustBeInRange);
             }
 
-            if (y is < 0 or > 1)
+            if (float.IsNaN(y) || y is < 0 or > 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(y), y, ExceptionMessages.GradientSkiaTextBrushRelativePoint_RelativeCoordinateMustBeInRange);
             }

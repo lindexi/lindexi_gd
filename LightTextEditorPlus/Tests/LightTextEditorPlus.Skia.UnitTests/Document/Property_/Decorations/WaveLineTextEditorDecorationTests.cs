@@ -58,7 +58,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(charCount);
+        var charDataList = CreateCharDataList(charCount, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -96,7 +96,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(10, 20, 100, 30);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -135,7 +135,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -174,7 +174,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(5);
+        var charDataList = CreateCharDataList(5, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -202,8 +202,6 @@ public partial class WaveLineTextEditorDecorationTests
     /// Expected: Returns valid result with correct TakeCharCount.
     /// </summary>
     [TestMethod]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void BuildDecoration_ZeroHeightBounds_ReturnsValidResult()
     {
         // Arrange
@@ -215,7 +213,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(3);
+        var charDataList = CreateCharDataList(3, runProperty);
         var bounds = new TextRect(0, 0, 100, 0);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -253,7 +251,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(2);
+        var charDataList = CreateCharDataList(2, runProperty);
         var bounds = new TextRect(0, 0, 100, double.MaxValue / 10);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -291,7 +289,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(4);
+        var charDataList = CreateCharDataList(4, runProperty);
         var bounds = new TextRect(-100, -50, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -329,7 +327,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(0);
+        var charDataList = CreateCharDataList(0, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -370,7 +368,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -408,7 +406,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(0, 0, 100, 0.001);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -449,12 +447,12 @@ public partial class WaveLineTextEditorDecorationTests
     /// <summary>
     /// Helper method to create a TextReadOnlyListSpan with the specified count of CharData items.
     /// </summary>
-    private static TextReadOnlyListSpan<CharData> CreateCharDataList(int count)
+    private static TextReadOnlyListSpan<CharData> CreateCharDataList(int count, IReadOnlyRunProperty runProperty)
     {
         var list = new List<CharData>();
         for (int i = 0; i < count; i++)
         {
-            list.Add(default);
+            list.Add(new CharData(new SingleCharObject('a'), runProperty));
         }
 
         return new TextReadOnlyListSpan<CharData>(list);

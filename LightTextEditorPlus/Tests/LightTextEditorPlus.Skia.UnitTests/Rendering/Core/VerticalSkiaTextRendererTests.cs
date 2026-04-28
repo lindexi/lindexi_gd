@@ -69,7 +69,7 @@ public partial class VerticalSkiaTextRendererTests
         RenderManager? nullRenderManager = null;
         var (_, renderArgument) = CreateRenderContext(new TextRect(0, 0, 100, 100));
         // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() => new VerticalSkiaTextRenderer(nullRenderManager!, in renderArgument));
+        Assert.ThrowsExactly<NullReferenceException>(() => new VerticalSkiaTextRenderer(nullRenderManager!, in renderArgument));
     }
 
     /// <summary>

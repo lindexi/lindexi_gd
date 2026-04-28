@@ -169,7 +169,7 @@ public class SkiaTextEditorPlatformProviderTests
         var provider = new SkiaTextEditorPlatformProvider();
 
         // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() => provider.GetFontLineSpacing(null!));
+        Assert.ThrowsExactly<NullReferenceException>(() => provider.GetFontLineSpacing(null!));
     }
 
     #region Helper Methods

@@ -19,8 +19,16 @@ public readonly struct Selection : IEquatable<Selection>
         StartOffset = startOffset;
         EndOffset = new CaretOffset(startOffset.Offset + length);
 
-        FrontOffset = startOffset;
-        BehindOffset = EndOffset;
+        if (length >= 0)
+        {
+            FrontOffset = startOffset;
+            BehindOffset = EndOffset;
+        }
+        else
+        {
+            FrontOffset = EndOffset;
+            BehindOffset = startOffset;
+        }
     }
 
     /// <summary>

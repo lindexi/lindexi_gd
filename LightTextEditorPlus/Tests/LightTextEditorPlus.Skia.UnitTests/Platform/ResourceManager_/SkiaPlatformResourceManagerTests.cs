@@ -316,8 +316,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackDefaultFontName_WhenCalled_ReturnsKnownPlatformFontName()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>(null);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
         string[] expectedFontNames = new[] { "微软雅黑", "Noto Sans CJK SC", "PingFang SC" };
 
         // Act
@@ -510,8 +510,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_CalledTwiceWithSameFontName_ReturnsConsistentResult(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>(null);
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool firstResult = manager.CheckFontFamilyInstalled(fontName);
@@ -690,7 +690,7 @@ public partial class SkiaPlatformResourceManagerTests
         SkiaTextEditor? textEditor = null;
 
         // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() =>
+        Assert.ThrowsExactly<NullReferenceException>(() =>
         {
             var manager = new SkiaPlatformResourceManager(textEditor!);
         });

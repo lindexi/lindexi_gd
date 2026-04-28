@@ -93,7 +93,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var bounds = new SKRect(0f, 0f, 100f, 100f);
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() => point.ToSKPoint(bounds));
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => point.ToSKPoint(bounds));
         Assert.AreEqual("Unit", exception.ParamName, "Exception should specify Unit as the parameter name");
     }
 
@@ -116,21 +116,14 @@ public partial class GradientSkiaTextBrushRelativePointTests
     }
 
     /// <summary>
-    /// Tests that ToSKPoint correctly handles NaN values in absolute coordinates.
+    /// Tests that Absolute unit rejects NaN values during construction.
     /// </summary>
     [TestMethod]
-    public void ToSKPoint_AbsoluteUnitWithNaNCoordinates_ReturnsNaNResult()
+    public void ToSKPoint_AbsoluteUnitWithNaNCoordinates_ThrowsArgumentOutOfRangeException()
     {
-        // Arrange
-        var point = new GradientSkiaTextBrushRelativePoint(float.NaN, float.NaN, GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute);
-        var bounds = new SKRect(10f, 20f, 110f, 220f);
-
-        // Act
-        var result = point.ToSKPoint(bounds);
-
-        // Assert
-        Assert.IsTrue(float.IsNaN(result.X), "X coordinate should be NaN");
-        Assert.IsTrue(float.IsNaN(result.Y), "Y coordinate should be NaN");
+        // Act & Assert
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            new GradientSkiaTextBrushRelativePoint(float.NaN, float.NaN, GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute));
     }
 
     /// <summary>
@@ -382,7 +375,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, unit));
         Assert.AreEqual("x", exception.ParamName);
         Assert.AreEqual(x, exception.ActualValue);
@@ -403,7 +396,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, unit));
         Assert.AreEqual("x", exception.ParamName);
         Assert.AreEqual(x, exception.ActualValue);
@@ -424,7 +417,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, unit));
         Assert.AreEqual("y", exception.ParamName);
         Assert.AreEqual(y, exception.ActualValue);
@@ -445,7 +438,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, unit));
         Assert.AreEqual("y", exception.ParamName);
         Assert.AreEqual(y, exception.ActualValue);
@@ -456,8 +449,6 @@ public partial class GradientSkiaTextBrushRelativePointTests
     /// NaN is outside the valid range [0, 1].
     /// </summary>
     [TestMethod]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void Constructor_WithAbsoluteUnitAndXIsNaN_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
@@ -466,7 +457,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, unit));
         Assert.AreEqual("x", exception.ParamName);
     }
@@ -476,8 +467,6 @@ public partial class GradientSkiaTextBrushRelativePointTests
     /// NaN is outside the valid range [0, 1].
     /// </summary>
     [TestMethod]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void Constructor_WithAbsoluteUnitAndYIsNaN_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
@@ -486,7 +475,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, unit));
         Assert.AreEqual("y", exception.ParamName);
     }
@@ -565,7 +554,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var undefinedUnit = (GradientSkiaTextBrushRelativePoint.RelativeUnit)99;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, undefinedUnit));
         Assert.AreEqual("x", exception.ParamName);
     }
@@ -583,7 +572,7 @@ public partial class GradientSkiaTextBrushRelativePointTests
         var unit = GradientSkiaTextBrushRelativePoint.RelativeUnit.Absolute;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<ArgumentOutOfRangeException>(() =>
+        var exception = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
             new GradientSkiaTextBrushRelativePoint(x, y, unit));
         Assert.AreEqual("x", exception.ParamName);
     }

@@ -95,7 +95,6 @@ public partial class FontCharHelperTests
     /// This tests the error condition where the RenderingRunPropertyInfo contains a null Font.
     /// </summary>
     [TestMethod]
-    [ExpectedException(typeof(NullReferenceException))]
     public void GetBaseline_WithNullFont_ThrowsNullReferenceException()
     {
         // Arrange
@@ -104,9 +103,7 @@ public partial class FontCharHelperTests
         var renderingRunPropertyInfo = new RenderingRunPropertyInfo(typeface, null!, paint);
 
         // Act
-        renderingRunPropertyInfo.GetBaseline();
-
-        // Assert is handled by ExpectedException
+        Assert.ThrowsExactly<NullReferenceException>(() => renderingRunPropertyInfo.GetBaseline());
     }
 
     /// <summary>

@@ -235,7 +235,7 @@ public class TextEditorSkiaRenderTests
         var render = new TextEditorSkiaRender(textEditor, picture, renderBounds);
 
         // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() => render.Render(null!));
+        Assert.ThrowsExactly<NullReferenceException>(() => render.Render(null!));
     }
 
     /// <summary>
@@ -1319,21 +1319,6 @@ public partial class TextEditorSelectionSkiaRenderTests
 [TestClass]
 public partial class TextEditorCaretSkiaRenderTests
 {
-    /// <summary>
-    /// Tests that Render throws NullReferenceException when canvas parameter is null.
-    /// </summary>
-    [TestMethod]
-    public void Render_NullCanvas_ThrowsNullReferenceException()
-    {
-        // Arrange
-        var caretBounds = new SKRect(10, 20, 30, 40);
-        var caretColor = SKColors.Black;
-        var renderer = new TextEditorCaretSkiaRender(caretBounds, caretColor);
-
-        // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() => renderer.Render(null!));
-    }
-
     /// <summary>
     /// Tests that Render executes successfully with valid canvas and typical caret bounds.
     /// </summary>

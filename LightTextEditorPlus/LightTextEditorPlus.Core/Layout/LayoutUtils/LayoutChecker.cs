@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
@@ -43,7 +44,7 @@ internal static class LayoutChecker
 
                 if (charData.RunProperty.IsInvalidRunProperty)
                 {
-                    if (charDataInfo.Status == CharDataInfoStatus.Undefined)
+                    if (charDataInfo.Status == CharDataInfoStatus.Undefined || Rune.IsControl(charData.CharObject.CodePoint.Rune))
                     {
                         // 符合预期，此时就应该是未定义的字符
                     }

@@ -180,7 +180,6 @@ public partial class SkiaCharInfoMeasurerTests
     /// Expected: Appropriate exception or handling behavior.
     /// </summary>
     [TestMethod]
-    [ExpectedException(typeof(ArgumentOutOfRangeException))]
     public void MeasureAndFillSizeOfCharData_EmptyCharDataList_HandlesAppropriately()
     {
         // Arrange
@@ -194,10 +193,7 @@ public partial class SkiaCharInfoMeasurerTests
 
         // Act - accessing CurrentCharData or calling the method should throw
         // The CurrentCharData property accesses ToMeasureCharDataList[0], which throws on empty list
-        measurer.MeasureAndFillSizeOfCharData(in argument);
-        
-        // Assert
-        // ExpectedException attribute handles the assertion
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => measurer.MeasureAndFillSizeOfCharData(in argument));
     }
 
     /// <summary>

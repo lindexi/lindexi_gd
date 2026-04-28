@@ -31,9 +31,9 @@ namespace LightTextEditorPlus.Rendering.UnitTests;
 public class RenderManagerTests
 {
     /// <summary>
-    /// Tests that UpdateCaretAndSelectionRender throws NullReferenceException when renderInfoProvider is null.
+    /// Tests that UpdateCaretAndSelectionRender throws ArgumentNullException when renderInfoProvider is null.
     /// Input: null renderInfoProvider, default Selection
-    /// Expected: NullReferenceException is thrown (note: production code doesn't validate null parameter)
+    /// Expected: ArgumentNullException is thrown.
     /// </summary>
     [TestMethod]
     public void UpdateCaretAndSelectionRender_NullRenderInfoProvider_ThrowsArgumentNullException()
@@ -44,8 +44,7 @@ public class RenderManagerTests
         Selection selection = default;
 
         // Act & Assert
-        // Note: Production code doesn't validate null parameter, so it throws NullReferenceException instead of ArgumentNullException
-        Assert.ThrowsExactly<NullReferenceException>(() =>
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
             renderManager.UpdateCaretAndSelectionRender(null!, in selection));
     }
 

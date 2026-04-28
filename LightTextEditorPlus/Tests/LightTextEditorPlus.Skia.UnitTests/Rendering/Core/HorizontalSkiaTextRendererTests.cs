@@ -101,7 +101,6 @@ public partial class HorizontalSkiaTextRendererTests
     /// as the base constructor attempts to access renderManager.TextEditor.
     /// </summary>
     [TestMethod]
-    [ExpectedException(typeof(NullReferenceException))]
     public void Constructor_NullRenderManager_ThrowsNullReferenceException()
     {
         // Arrange
@@ -121,7 +120,7 @@ public partial class HorizontalSkiaTextRendererTests
         };
 
         // Act
-        var renderer = new HorizontalSkiaTextRenderer(renderManager, in renderArgument);
+        Assert.ThrowsExactly<NullReferenceException>(() => new HorizontalSkiaTextRenderer(renderManager, in renderArgument));
     }
 
     /// <summary>
