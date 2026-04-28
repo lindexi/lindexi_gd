@@ -15,7 +15,7 @@ public class AgentApiEndpointManager
     public IChatClient CreateOpenAIClient()
     {
         var apiEndpoint = ApiEndpointProvider?.GetApiEndpoint();
-        if (apiEndpoint is null)
+        if (string.IsNullOrEmpty(apiEndpoint?.EndPoint))
         {
             throw new InvalidOperationException($"必须先设置才能创建");
         }

@@ -18,12 +18,34 @@ sealed class AgentApiConfigurationApiEndpointProvider(IAppConfigurator appConfig
     {
         ArgumentNullException.ThrowIfNull(appConfigurator);
 
-        AgentApiConfiguration agentApiConfiguration = appConfigurator.Of<AgentApiConfiguration>();
-        if (RightSlideBar.IsInvalidAgentApiConfiguration(agentApiConfiguration))
+        AgentApiConfiguration agentApiConfiguration = GetAgentApiConfiguration();
+        if (agentApiConfiguration.IsInvalidAgentApiConfiguration())
         {
             return default;
         }
 
         return new ApiEndpoint(agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
+    }
+
+    private AgentApiConfiguration GetAgentApiConfiguration()
+    {
+        AgentApiConfiguration agentApiConfiguration = appConfigurator.Of<AgentApiConfiguration>();
+
+        if (agentApiConfiguration.SelectedVendor is null)
+        {
+            return agentApiConfiguration;
+        }
+
+        if (!Enum.TryParse(agentApiConfiguration.SelectedVendor.ToString(),ignoreCase:true,out ModelVendor modelVendor))
+        {
+            return agentApiConfiguration;
+        }
+
+        return modelVendor switch
+        {
+            ModelVendor.DouBao => appConfigurator.Of<DouBaoAgentApiConfiguration>(),
+            ModelVendor.Deepseek => appConfigurator.Of<DeepSeekAgentApiConfiguration>(),
+            _ => agentApiConfiguration
+        };
     }
 }

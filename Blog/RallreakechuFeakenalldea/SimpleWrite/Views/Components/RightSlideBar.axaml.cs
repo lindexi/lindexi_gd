@@ -22,9 +22,9 @@ public partial class RightSlideBar : UserControl
     private const double DefaultExpandedWidth = 300;
     private const double CollapsedWidth = 2;
     private const double MinimumExpandedWidth = 160;
-    private const string EndPointHelpText = "填充 OpenAI 兼容 API 的地址，如  https://ark.cn-beijing.volces.com/api/v3";
-    private const string KeyHelpText = "请填充密码";
-    private const string ModelNameHelpText = "请填充模型名";
+    private const string EndPointHelpText = AgentApiConfigurationVerifier.EndPointHelpText;
+    private const string KeyHelpText = AgentApiConfigurationVerifier.KeyHelpText;
+    private const string ModelNameHelpText = AgentApiConfigurationVerifier.ModelNameHelpText;
 
     private bool _isExpanded = true;
     private bool _isInitialized;
@@ -78,7 +78,7 @@ public partial class RightSlideBar : UserControl
 
             mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
 
-            if (IsInvalidAgentApiConfiguration(agentApiConfiguration))
+            if (agentApiConfiguration.IsInvalidAgentApiConfiguration())
             {
                 agentApiConfiguration.EndPoint ??= EndPointHelpText;
                 agentApiConfiguration.Key ??= KeyHelpText;
@@ -95,41 +95,6 @@ public partial class RightSlideBar : UserControl
             copilotViewModel.SettingOpened -= CopilotViewModel_OnSettingOpened;
             copilotViewModel.SettingOpened += CopilotViewModel_OnSettingOpened;
         }
-    }
-
-    internal static bool IsInvalidAgentApiConfiguration(AgentApiConfiguration agentApiConfiguration)
-    {
-        ArgumentNullException.ThrowIfNull(agentApiConfiguration);
-
-        if (string.IsNullOrEmpty(agentApiConfiguration.EndPoint)
-            || string.IsNullOrEmpty(agentApiConfiguration.Key)
-            || string.IsNullOrEmpty(agentApiConfiguration.ModelName))
-        {
-            return true;
-        }
-
-        if (agentApiConfiguration.EndPoint == EndPointHelpText)
-        {
-            return true;
-        }
-
-        string endPoint = agentApiConfiguration.EndPoint;
-        if (!endPoint.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (agentApiConfiguration.Key == KeyHelpText)
-        {
-            return true;
-        }
-
-        if (agentApiConfiguration.ModelName == ModelNameHelpText)
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private void BindWorkspacePath(FolderExplorerViewModel folderExplorerViewModel, CopilotViewModel copilotViewModel)
