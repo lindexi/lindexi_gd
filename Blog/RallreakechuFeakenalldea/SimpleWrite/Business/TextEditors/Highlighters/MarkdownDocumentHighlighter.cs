@@ -45,6 +45,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     private readonly SolidColorBrush _codeBackgroundColorBrush = new SolidColorBrush(0xFF3B3C37);
     private readonly List<SourceSpan> _codeBlockList = [];
     private readonly List<MarkdownUrlInfo> _urlInfoList = [];
+    private IReadOnlyList<HighlightSegmentSnapshot> _lastHighlightSnapshotList = [];
     public IReadOnlyList<MarkdownUrlInfo> UrlInfoList => _urlInfoList;
 
     public MarkdownDocumentHighlighter(SimpleWriteTextEditor textEditor)
@@ -110,24 +111,36 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     {
         var setter = new TextRunPropertySetter(_textEditor);
 
-        setter.TrySetRunProperty(_normalTextRunProperty, _textEditor.TextEditorCore.GetAllDocumentSelection());
-
         var markdownDocument = Markdown.Parse(markdownText, MarkdownPipeline);
+        var currentHighlightSnapshotList = new List<HighlightSegmentSnapshot>();
         _codeBlockList.Clear();
         _urlInfoList.Clear();
+        int lastBlockEnd = -1;
 
         foreach (var block in markdownDocument)
         {
+            var blockSpan = block.Span;
+            if (!TryCreateGapSourceSpan(lastBlockEnd + 1, blockSpan.Start - 1, out var gapSpan))
+            {
+                gapSpan = default;
+            }
+            else
+            {
+                currentHighlightSnapshotList.Add(CreateNormalSegmentSnapshot(gapSpan));
+            }
+
             if (block is ParagraphBlock paragraphBlock)
             {
-                setter.TrySetRunProperty(_normalTextRunProperty, paragraphBlock.Span);
-                ApplyUrlHighlight(paragraphBlock.Span);
+                currentHighlightSnapshotList.Add(CreateParagraphSegmentSnapshot(paragraphBlock.Span));
+                lastBlockEnd = Math.Max(lastBlockEnd, paragraphBlock.Span.End);
                 continue;
             }
 
             if (block is HeadingBlock headingBlock)
             {
-                setter.TrySetRunProperty(GetTitleLevelRunProperty(headingBlock.Level), headingBlock.Span);
+                currentHighlightSnapshotList.Add(CreateSingleOperationSegmentSnapshot(blockSpan,
+                    new HighlightOperation(GetTitleLevelRunProperty(headingBlock.Level), headingBlock.Span)));
+                lastBlockEnd = Math.Max(lastBlockEnd, headingBlock.Span.End);
                 continue;
             }
 
@@ -137,21 +150,21 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 _codeBlockList.Add(sourceSpan);
 
                 string codeText = ToText(sourceSpan);
-                var codeSetter = setter with
-                {
-                    StartOffset = sourceSpan.Start
-                };
-
                 var lineReader = new LineReader(codeText);
                 SourceSpan firstLine = lineReader.ReadLine();
                 var closingFencedCharCount = fencedCodeBlock.ClosingFencedCharCount;
                 var langInfoLength = fencedCodeBlock.Info?.Length ?? 0;
+                var operationList = new List<HighlightOperation>
+                {
+                    new HighlightOperation(_normalTextRunProperty, sourceSpan)
+                };
 
                 ReadOnlySpan<char> codeLang = [];
                 if (langInfoLength > 0 && firstLine.Length == closingFencedCharCount + langInfoLength)
                 {
                     var span = new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfoLength - 1);
-                    codeSetter.TrySetRunProperty(_codeLangInfoRunProperty, span);
+                    operationList.Add(new HighlightOperation(_codeLangInfoRunProperty,
+                        new SourceSpan(span.Start + sourceSpan.Start, span.End + sourceSpan.Start)));
 
                     codeLang = codeText.AsSpan(span.Start, span.Length);
                 }
@@ -171,19 +184,39 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 var relativeOffset = sourceSpan.Start;
                 var innerCodeSpan = new SourceSpan(firstLine.End + 1 + relativeOffset, lastLine.Start + relativeOffset - 1);
                 var innerCodeText = ToText(innerCodeSpan);
+                var codeLangText = codeLang.ToString();
 
-                if (codeLang.Equals("csharp", StringComparison.OrdinalIgnoreCase)
-                    || codeLang.Equals("cs", StringComparison.OrdinalIgnoreCase)
-                    || codeLang.Equals("C#", StringComparison.OrdinalIgnoreCase))
-                {
-                    var csharpCodeHighlighter = new CsharpCodeHighlighter();
+                currentHighlightSnapshotList.Add(new HighlightSegmentSnapshot(sourceSpan, operationList,
+                    IsCsharpCodeLanguage(codeLang)
+                        ? new CodeBlockHighlightSnapshot(innerCodeSpan, codeLangText, innerCodeText)
+                        : null));
 
-                    var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(innerCodeSpan.Start));
-                    var highlightCodeContext = new HighlightCodeContext(innerCodeText, colorCode);
-                    csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
-                }
+                lastBlockEnd = Math.Max(lastBlockEnd, sourceSpan.End);
+                continue;
             }
+
+            currentHighlightSnapshotList.Add(CreateNormalSegmentSnapshot(blockSpan));
+            lastBlockEnd = Math.Max(lastBlockEnd, blockSpan.End);
         }
+
+        if (TryCreateGapSourceSpan(lastBlockEnd + 1, markdownText.Length - 1, out var tailSpan))
+        {
+            currentHighlightSnapshotList.Add(CreateNormalSegmentSnapshot(tailSpan));
+        }
+
+        for (int i = 0; i < currentHighlightSnapshotList.Count; i++)
+        {
+            var currentSnapshot = currentHighlightSnapshotList[i];
+            if (i < _lastHighlightSnapshotList.Count
+                && HighlightSegmentSnapshotEquals(_lastHighlightSnapshotList[i], currentSnapshot))
+            {
+                continue;
+            }
+
+            ApplyHighlightSegment(currentSnapshot);
+        }
+
+        _lastHighlightSnapshotList = currentHighlightSnapshotList;
 
         string ToText(SourceSpan span)
         {
@@ -204,12 +237,22 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
             }
         }
 
-        void ApplyUrlHighlight(SourceSpan sourceSpan)
+        HighlightSegmentSnapshot CreateNormalSegmentSnapshot(SourceSpan sourceSpan)
         {
+            return CreateSingleOperationSegmentSnapshot(sourceSpan, new HighlightOperation(_normalTextRunProperty, sourceSpan));
+        }
+
+        HighlightSegmentSnapshot CreateParagraphSegmentSnapshot(SourceSpan sourceSpan)
+        {
+            var operationList = new List<HighlightOperation>
+            {
+                new HighlightOperation(_normalTextRunProperty, sourceSpan)
+            };
+
             string text = ToText(sourceSpan);
             if (string.IsNullOrEmpty(text))
             {
-                return;
+                return new HighlightSegmentSnapshot(sourceSpan, operationList, null);
             }
 
             foreach (Match match in GetUrlRegex().Matches(text))
@@ -228,9 +271,34 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 int start = sourceSpan.Start + match.Index;
                 var urlSourceSpan = new SourceSpan(start, start + urlText.Length - 1);
 
-                setter.TrySetRunProperty(_urlRunProperty, urlSourceSpan);
+                operationList.Add(new HighlightOperation(_urlRunProperty, urlSourceSpan));
                 _urlInfoList.Add(new MarkdownUrlInfo(urlSourceSpan, urlText.ToString()));
             }
+
+            return new HighlightSegmentSnapshot(sourceSpan, operationList, null);
+        }
+
+        HighlightSegmentSnapshot CreateSingleOperationSegmentSnapshot(SourceSpan sourceSpan, HighlightOperation operation)
+        {
+            return new HighlightSegmentSnapshot(sourceSpan, [operation], null);
+        }
+
+        void ApplyHighlightSegment(HighlightSegmentSnapshot snapshot)
+        {
+            foreach (var operation in snapshot.OperationList)
+            {
+                setter.TrySetRunProperty(operation.RunProperty, operation.SourceSpan);
+            }
+
+            if (snapshot.CodeBlockHighlightSnapshot is not { } codeBlockHighlightSnapshot)
+            {
+                return;
+            }
+
+            var csharpCodeHighlighter = new CsharpCodeHighlighter();
+            var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(codeBlockHighlightSnapshot.InnerCodeSpan.Start));
+            var highlightCodeContext = new HighlightCodeContext(codeBlockHighlightSnapshot.InnerCodeText, colorCode);
+            csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
         }
 
         static ReadOnlySpan<char> TrimUrl(ReadOnlySpan<char> urlText)
@@ -249,6 +317,48 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
             return ch is '.' or ',' or ';' or ':' or '!' or '?' or ')' or ']' or '}' or '>' or '"' or '\''
                 or '。' or '，' or '；' or '：' or '！' or '？' or '）' or '】' or '}' or '、';
         }
+
+        static bool TryCreateGapSourceSpan(int start, int end, out SourceSpan sourceSpan)
+        {
+            if (start <= end)
+            {
+                sourceSpan = new SourceSpan(start, end);
+                return true;
+            }
+
+            sourceSpan = default;
+            return false;
+        }
+
+        static bool IsCsharpCodeLanguage(ReadOnlySpan<char> codeLang)
+        {
+            return codeLang.Equals("csharp", StringComparison.OrdinalIgnoreCase)
+                   || codeLang.Equals("cs", StringComparison.OrdinalIgnoreCase)
+                   || codeLang.Equals("C#", StringComparison.OrdinalIgnoreCase);
+        }
+
+        static bool HighlightSegmentSnapshotEquals(HighlightSegmentSnapshot left, HighlightSegmentSnapshot right)
+        {
+            if (left.SourceSpan != right.SourceSpan)
+            {
+                return false;
+            }
+
+            if (left.OperationList.Count != right.OperationList.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < left.OperationList.Count; i++)
+            {
+                if (left.OperationList[i] != right.OperationList[i])
+                {
+                    return false;
+                }
+            }
+
+            return left.CodeBlockHighlightSnapshot == right.CodeBlockHighlightSnapshot;
+        }
     }
 
     public void RenderBackground(in AvaloniaTextEditorDrawingContext context)
@@ -258,28 +368,38 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         var renderInfoProvider = context.GetRenderInfo();
         TextRect? mergedCodeBlockBounds = null;
+        ParagraphIndex? lastCodeParagraphIndex = null;
 
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
             var paragraphBounds = paragraphRenderInfo.ParagraphLayoutData.TextContentBounds;
+            var textParagraph = paragraphRenderInfo.Paragraph;
+            bool isInCodeBlock = IsInCodeBlock(textParagraph);
+
+            if (!isInCodeBlock)
+            {
+                DrawMergedCodeBlock();
+                lastCodeParagraphIndex = null;
+                continue;
+            }
+
+            if (lastCodeParagraphIndex is { } previousCodeParagraphIndex
+                && paragraphRenderInfo.Index != previousCodeParagraphIndex + 1)
+            {
+                DrawMergedCodeBlock();
+            }
+
+            lastCodeParagraphIndex = paragraphRenderInfo.Index;
 
             if (viewport != null && !viewport.Value.IntersectsWith(paragraphBounds))
             {
                 continue;
             }
 
-            var textParagraph = paragraphRenderInfo.Paragraph;
-            if (IsInCodeBlock(textParagraph))
-            {
-                var outlineBounds = paragraphRenderInfo.ParagraphLayoutData.OutlineBounds;
-                mergedCodeBlockBounds = mergedCodeBlockBounds is { } currentMergedBounds
-                    ? currentMergedBounds.Union(outlineBounds)
-                    : outlineBounds;
-            }
-            else
-            {
-                DrawMergedCodeBlock();
-            }
+            var outlineBounds = paragraphRenderInfo.ParagraphLayoutData.OutlineBounds;
+            mergedCodeBlockBounds = mergedCodeBlockBounds is { } currentMergedBounds
+                ? currentMergedBounds.Union(outlineBounds)
+                : outlineBounds;
         }
 
         DrawMergedCodeBlock();
@@ -337,4 +457,13 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     }
 
     public readonly record struct MarkdownUrlInfo(SourceSpan SourceSpan, string Url);
+
+    private readonly record struct HighlightOperation(SkiaTextRunProperty RunProperty, SourceSpan SourceSpan);
+
+    private readonly record struct CodeBlockHighlightSnapshot(SourceSpan InnerCodeSpan, string CodeLang, string InnerCodeText);
+
+    private readonly record struct HighlightSegmentSnapshot(
+        SourceSpan SourceSpan,
+        IReadOnlyList<HighlightOperation> OperationList,
+        CodeBlockHighlightSnapshot? CodeBlockHighlightSnapshot);
 }
