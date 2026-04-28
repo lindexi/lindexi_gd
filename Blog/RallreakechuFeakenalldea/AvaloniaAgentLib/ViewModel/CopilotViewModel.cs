@@ -107,8 +107,8 @@ public class CopilotViewModel : INotifyPropertyChanged
             : new FileCopilotChatLogger(chatLogFolder);
     }
 
-    public async Task AddLocalConversationAsync(string userText, string assistantText,
-        CancellationToken cancellationToken = default)
+    public async Task AddConversationAsync(string userText, string assistantText,
+         bool isPresetInfo = true, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userText);
         ArgumentNullException.ThrowIfNull(assistantText);
@@ -116,27 +116,38 @@ public class CopilotViewModel : INotifyPropertyChanged
         CopilotChatSession currentSession = SelectedSession;
 
         var userChatMessage = CopilotChatMessage.CreateUser(userText);
-        userChatMessage.IsPresetInfo = true;
+        userChatMessage.IsPresetInfo = isPresetInfo;
         await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
-        var assistantChatMessage = CopilotChatMessage.CreateAssistant(assistantText, isPresetInfo: true);
+        var assistantChatMessage = CopilotChatMessage.CreateAssistant(assistantText, isPresetInfo);
         await AppendMessageAsync(currentSession, assistantChatMessage, cancellationToken);
     }
 
     public async Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
     {
-        await SendMessageAsync(inputText, withHistory, tools: null, toolMode: null, cancellationToken);
+        await SendMessageAsync(inputText, withHistory, createNewSession: false, null, null, cancellationToken);
+    }
+
+    public Task SendMessageInNewSessionAsync(string? inputText, CancellationToken cancellationToken = default)
+    {
+        return SendMessageAsync(inputText, withHistory: false, createNewSession: true, tools: null, toolMode: null,
+            cancellationToken);
     }
 
     /// <summary>
     /// 发送消息并允许附加 Agent 工具调用。
     /// </summary>
-    public async Task SendMessageAsync(string? inputText, bool withHistory, IEnumerable<AITool>? tools,
+    public async Task SendMessageAsync(string? inputText, bool withHistory, bool createNewSession, IEnumerable<AITool>? tools,
         ChatToolMode? toolMode, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(inputText))
         {
             return;
+        }
+
+        if (createNewSession)
+        {
+            CreateNewSession();
         }
 
         CopilotChatSession currentSession = SelectedSession;
@@ -173,6 +184,13 @@ public class CopilotViewModel : INotifyPropertyChanged
 
             var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             currentSession.AddMessage(copilotChatMessage);
+
+            // 以下是调试逻辑
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                
+            }
+
             bool isFirst = true;
 
             await foreach (var agentRunResponseUpdate in chatClientAgent.RunReasoningStreamingAsync(messages, cancellationToken: cancellationToken))

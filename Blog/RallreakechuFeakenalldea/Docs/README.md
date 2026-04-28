@@ -22,6 +22,7 @@
 | 目录树选中联动与深色主题 | `Knowledge/Avalonia/Folder-TreeView-Selection-And-Theme.md` |
 | 标签关闭确认与临时快照自动保存 | `Knowledge/Avalonia/Unsaved-Tab-Close-And-Temp-Autosave.md` |
 | 编辑器选区发送到 Copilot | `Knowledge/Avalonia/TextEditor-Selection-To-Copilot-ContextMenu.md` |
+| Copilot 派生命令为何会新建会话 | `Knowledge/Avalonia/Copilot-New-Session-Command-Behavior.md` |
 | 快捷键与文件选择器 | `Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md` |
 | 功能交付自检 | `Knowledge/Workflow/Feature-Delivery-Checklist.md` |
 
