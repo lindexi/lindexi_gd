@@ -58,24 +58,25 @@ sealed class PolishSelectedTextCommandPattern(CopilotViewModel copilotViewModel)
              {selectedText}
              """;
 
-        await copilotViewModel.SendMessageAsync(prompt, withHistory: false, toolList, ChatToolMode.RequireAny);
+        await copilotViewModel.SendMessageAsync(prompt, withHistory: false, createNewSession: true, toolList,
+            ChatToolMode.RequireAny);
 
         if (!generatedTextSubmissionTool.HasSubmittedText || string.IsNullOrWhiteSpace(generatedTextSubmissionTool.SubmittedText))
         {
-            await copilotViewModel.AddLocalConversationAsync("润色选中文本", "未替换：大模型没有通过工具返回润色结果。");
+            await copilotViewModel.AddConversationAsync("润色选中文本", "未替换：大模型没有通过工具返回润色结果。");
             return;
         }
 
         if (!trackedSelectionSnapshot.TryResolveCurrentSelection(textEditor, out Selection currentSelection, out string reason))
         {
-            await copilotViewModel.AddLocalConversationAsync("润色选中文本", reason);
+            await copilotViewModel.AddConversationAsync("润色选中文本", reason);
             return;
         }
 
         string currentText = textEditor.GetText(in currentSelection);
         if (!string.Equals(currentText, trackedSelectionSnapshot.OriginalText, StringComparison.Ordinal))
         {
-            await copilotViewModel.AddLocalConversationAsync("润色选中文本", "未替换：原始选中文本在等待润色期间已经发生变化。");
+            await copilotViewModel.AddConversationAsync("润色选中文本", "未替换：原始选中文本在等待润色期间已经发生变化。");
             return;
         }
 

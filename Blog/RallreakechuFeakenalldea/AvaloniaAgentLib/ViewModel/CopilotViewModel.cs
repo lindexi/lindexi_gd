@@ -1,6 +1,7 @@
 ﻿using AvaloniaAgentLib.Core;
 using AvaloniaAgentLib.Logging;
 using AvaloniaAgentLib.Model;
+using AvaloniaAgentLib.Tools;
 
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Reasoning;
@@ -27,6 +28,7 @@ public class CopilotViewModel : INotifyPropertyChanged
     public CopilotViewModel(ICopilotChatLogger chatLogger)
     {
         ChatLogger = chatLogger;
+        _toolManager = new CopilotToolManager();
         CreateNewSession();
     }
 
@@ -65,6 +67,7 @@ public class CopilotViewModel : INotifyPropertyChanged
     private bool _isChatting;
     private ICopilotChatLogger _chatLogger = null!;
     private CopilotChatSession _selectedSession = null!;
+    private readonly CopilotToolManager _toolManager;
 
     /// <summary>
     /// 能否编辑输入
@@ -92,6 +95,25 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     public Guid CurrentSessionId => SelectedSession.SessionId;
 
+    public string? WorkspacePath
+    {
+        get => _toolManager.WorkspacePath;
+        set
+        {
+            string? normalizedPath = string.IsNullOrWhiteSpace(value)
+                ? null
+                : value;
+
+            if (string.Equals(_toolManager.WorkspacePath, normalizedPath, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _toolManager.WorkspacePath = normalizedPath;
+            OnPropertyChanged();
+        }
+    }
+
     public void CreateNewSession()
     {
         var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
@@ -107,8 +129,8 @@ public class CopilotViewModel : INotifyPropertyChanged
             : new FileCopilotChatLogger(chatLogFolder);
     }
 
-    public async Task AddLocalConversationAsync(string userText, string assistantText,
-        CancellationToken cancellationToken = default)
+    public async Task AddConversationAsync(string userText, string assistantText,
+         bool isPresetInfo = true, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userText);
         ArgumentNullException.ThrowIfNull(assistantText);
@@ -116,27 +138,38 @@ public class CopilotViewModel : INotifyPropertyChanged
         CopilotChatSession currentSession = SelectedSession;
 
         var userChatMessage = CopilotChatMessage.CreateUser(userText);
-        userChatMessage.IsPresetInfo = true;
+        userChatMessage.IsPresetInfo = isPresetInfo;
         await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
-        var assistantChatMessage = CopilotChatMessage.CreateAssistant(assistantText, isPresetInfo: true);
+        var assistantChatMessage = CopilotChatMessage.CreateAssistant(assistantText, isPresetInfo);
         await AppendMessageAsync(currentSession, assistantChatMessage, cancellationToken);
     }
 
     public async Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
     {
-        await SendMessageAsync(inputText, withHistory, tools: null, toolMode: null, cancellationToken);
+        await SendMessageAsync(inputText, withHistory, createNewSession: false, null, null, cancellationToken);
+    }
+
+    public Task SendMessageInNewSessionAsync(string? inputText, CancellationToken cancellationToken = default)
+    {
+        return SendMessageAsync(inputText, withHistory: false, createNewSession: true, tools: null, toolMode: null,
+            cancellationToken);
     }
 
     /// <summary>
     /// 发送消息并允许附加 Agent 工具调用。
     /// </summary>
-    public async Task SendMessageAsync(string? inputText, bool withHistory, IEnumerable<AITool>? tools,
+    public async Task SendMessageAsync(string? inputText, bool withHistory, bool createNewSession, IEnumerable<AITool>? tools,
         ChatToolMode? toolMode, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(inputText))
         {
             return;
+        }
+
+        if (createNewSession)
+        {
+            CreateNewSession();
         }
 
         CopilotChatSession currentSession = SelectedSession;
@@ -150,7 +183,7 @@ public class CopilotViewModel : INotifyPropertyChanged
             await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
-            List<AITool>? toolList = tools?.ToList();
+            List<AITool>? toolList = ResolveTools(tools);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
@@ -173,6 +206,7 @@ public class CopilotViewModel : INotifyPropertyChanged
 
             var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             currentSession.AddMessage(copilotChatMessage);
+
             bool isFirst = true;
 
             await foreach (var agentRunResponseUpdate in chatClientAgent.RunReasoningStreamingAsync(messages, cancellationToken: cancellationToken))
@@ -240,6 +274,17 @@ public class CopilotViewModel : INotifyPropertyChanged
         {
             IsChatting = false;
         }
+    }
+
+    private List<AITool>? ResolveTools(IEnumerable<AITool>? tools)
+    {
+        List<AITool>? toolList = tools?.ToList();
+        if (toolList is { Count: > 0 })
+        {
+            return toolList;
+        }
+
+        return _toolManager.CreateDefaultTools().ToList();
     }
 
     private async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage,
