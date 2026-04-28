@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Avalonia;
+using dotnetCampus.Configurations;
 
 namespace SimpleWrite.Views.Components;
 
@@ -31,6 +32,9 @@ public partial class RightSlideBar : UserControl
     private const double DefaultExpandedWidth = 300;
     private const double CollapsedWidth = 2;
     private const double MinimumExpandedWidth = 160;
+    private const string EndPointHelpText = "填充 OpenAI 兼容 API 的地址，如  https://ark.cn-beijing.volces.com/api/v3";
+    private const string KeyHelpText = "请填充密码";
+    private const string ModelNameHelpText = "请填充模型名";
 
     private bool _isExpanded = true;
     private bool _isInitialized;
@@ -79,67 +83,63 @@ public partial class RightSlideBar : UserControl
 
             CopilotViewModel copilotViewModel = CopilotSlideBar.ViewModel;
             copilotViewModel.ChatLogger = new FileCopilotChatLogger(mainViewModel.AppPathManager.CopilotChatLogDirectory);
+            copilotViewModel.AgentApiEndpointManager.ApiEndpointProvider = new AgentApiConfigurationApiEndpointProvider(appConfigurator);
             BindWorkspacePath(mainViewModel.FolderExplorerViewModel, copilotViewModel);
-
-            const string endPointHelpText = "填充 OpenAI 兼容 API 的地址，如  https://ark.cn-beijing.volces.com/api/v3";
-            const string keyHelpText = "请填充密码";
-            const string modelNameHelpText = "请填充模型名";
 
             mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
 
-            if (IsIsInvalid())
+            if (IsInvalidAgentApiConfiguration(agentApiConfiguration))
             {
-                agentApiConfiguration.EndPoint ??= endPointHelpText;
-                agentApiConfiguration.Key ??= keyHelpText;
-                agentApiConfiguration.ModelName ??= modelNameHelpText;
+                agentApiConfiguration.EndPoint ??= EndPointHelpText;
+                agentApiConfiguration.Key ??= KeyHelpText;
+                agentApiConfiguration.ModelName ??= ModelNameHelpText;
 
                 copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接", isPresetInfo: true));
             }
             else
             {
-                copilotViewModel.AgentApiEndpointManager.CurrentEndpoint = new ApiEndpoint(
-                    agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
-
                 var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
                 copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
             }
 
             copilotViewModel.SettingOpened -= CopilotViewModel_OnSettingOpened;
             copilotViewModel.SettingOpened += CopilotViewModel_OnSettingOpened;
-
-            bool IsIsInvalid()
-            {
-                if (string.IsNullOrEmpty(agentApiConfiguration.EndPoint)
-                    || string.IsNullOrEmpty(agentApiConfiguration.Key)
-                    || string.IsNullOrEmpty(agentApiConfiguration.ModelName))
-                {
-                    return true;
-                }
-
-                if (agentApiConfiguration.EndPoint == endPointHelpText)
-                {
-                    return true;
-                }
-
-                string endPoint = agentApiConfiguration.EndPoint;
-                if (!endPoint.StartsWith("http"))
-                {
-                    return true;
-                }
-
-                if (agentApiConfiguration.Key == keyHelpText)
-                {
-                    return true;
-                }
-
-                if (agentApiConfiguration.ModelName == modelNameHelpText)
-                {
-                    return true;
-                }
-
-                return false;
-            }
         }
+    }
+
+    internal static bool IsInvalidAgentApiConfiguration(AgentApiConfiguration agentApiConfiguration)
+    {
+        ArgumentNullException.ThrowIfNull(agentApiConfiguration);
+
+        if (string.IsNullOrEmpty(agentApiConfiguration.EndPoint)
+            || string.IsNullOrEmpty(agentApiConfiguration.Key)
+            || string.IsNullOrEmpty(agentApiConfiguration.ModelName))
+        {
+            return true;
+        }
+
+        if (agentApiConfiguration.EndPoint == EndPointHelpText)
+        {
+            return true;
+        }
+
+        string endPoint = agentApiConfiguration.EndPoint;
+        if (!endPoint.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (agentApiConfiguration.Key == KeyHelpText)
+        {
+            return true;
+        }
+
+        if (agentApiConfiguration.ModelName == ModelNameHelpText)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private void BindWorkspacePath(FolderExplorerViewModel folderExplorerViewModel, CopilotViewModel copilotViewModel)
@@ -457,5 +457,24 @@ file sealed class CopilotAbilityDefinition(string title, string content, int pri
     {
         ArgumentNullException.ThrowIfNull(input);
         return Content.Replace(InputPlaceholder, input, StringComparison.Ordinal);
+    }
+}
+
+file sealed class AgentApiConfigurationApiEndpointProvider(IAppConfigurator appConfigurator) : IApiEndpointProvider
+{
+    /// <summary>
+    /// 从当前配置读取 API 终结点。
+    /// </summary>
+    public ApiEndpoint GetApiEndpoint()
+    {
+        ArgumentNullException.ThrowIfNull(appConfigurator);
+
+        AgentApiConfiguration agentApiConfiguration = appConfigurator.Of<AgentApiConfiguration>();
+        if (RightSlideBar.IsInvalidAgentApiConfiguration(agentApiConfiguration))
+        {
+            return default;
+        }
+
+        return new ApiEndpoint(agentApiConfiguration.EndPoint, agentApiConfiguration.Key, agentApiConfiguration.ModelName);
     }
 }
