@@ -1,6 +1,7 @@
 ﻿using AvaloniaAgentLib.Core;
 using AvaloniaAgentLib.Logging;
 using AvaloniaAgentLib.Model;
+using AvaloniaAgentLib.Tools;
 
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Reasoning;
@@ -27,6 +28,7 @@ public class CopilotViewModel : INotifyPropertyChanged
     public CopilotViewModel(ICopilotChatLogger chatLogger)
     {
         ChatLogger = chatLogger;
+        _toolManager = new CopilotToolManager();
         CreateNewSession();
     }
 
@@ -65,6 +67,7 @@ public class CopilotViewModel : INotifyPropertyChanged
     private bool _isChatting;
     private ICopilotChatLogger _chatLogger = null!;
     private CopilotChatSession _selectedSession = null!;
+    private readonly CopilotToolManager _toolManager;
 
     /// <summary>
     /// 能否编辑输入
@@ -91,6 +94,25 @@ public class CopilotViewModel : INotifyPropertyChanged
     }
 
     public Guid CurrentSessionId => SelectedSession.SessionId;
+
+    public string? WorkspacePath
+    {
+        get => _toolManager.WorkspacePath;
+        set
+        {
+            string? normalizedPath = string.IsNullOrWhiteSpace(value)
+                ? null
+                : value;
+
+            if (string.Equals(_toolManager.WorkspacePath, normalizedPath, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _toolManager.WorkspacePath = normalizedPath;
+            OnPropertyChanged();
+        }
+    }
 
     public void CreateNewSession()
     {
@@ -161,7 +183,7 @@ public class CopilotViewModel : INotifyPropertyChanged
             await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
-            List<AITool>? toolList = tools?.ToList();
+            List<AITool>? toolList = ResolveTools(tools);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
@@ -184,12 +206,6 @@ public class CopilotViewModel : INotifyPropertyChanged
 
             var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             currentSession.AddMessage(copilotChatMessage);
-
-            // 以下是调试逻辑
-            for (int i = 0; i < int.MaxValue; i++)
-            {
-                
-            }
 
             bool isFirst = true;
 
@@ -258,6 +274,17 @@ public class CopilotViewModel : INotifyPropertyChanged
         {
             IsChatting = false;
         }
+    }
+
+    private List<AITool>? ResolveTools(IEnumerable<AITool>? tools)
+    {
+        List<AITool>? toolList = tools?.ToList();
+        if (toolList is { Count: > 0 })
+        {
+            return toolList;
+        }
+
+        return _toolManager.CreateDefaultTools().ToList();
     }
 
     private async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage,

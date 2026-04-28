@@ -8,6 +8,7 @@
 |---|---|
 | Copilot 聊天日志如何注入与按会话落盘 | `Avalonia/Copilot-Chat-Logging.md` |
 | Copilot 派生命令为什么会进入新会话 | `Avalonia/Copilot-New-Session-Command-Behavior.md` |
+| Copilot 如何拿到当前工作路径默认工具 | `Avalonia/Copilot-Workspace-Default-Tools.md` |
 | 编辑器右键命令模式与本地转换能力如何扩展 | `Avalonia/Command-Pattern-And-Local-Transform.md` |
 | 左侧文件夹树与文件夹查找怎么接进来 | `Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | 目录树如何跟随当前文档并适配深色主题 | `Avalonia/Folder-TreeView-Selection-And-Theme.md` |

@@ -39,6 +39,7 @@ public partial class RightSlideBar : UserControl
     private double _resizeStartPointerX;
     private double _resizeStartWidth;
     private Transitions? _widthTransitions;
+    private FolderExplorerViewModel? _subscribedFolderExplorerViewModel;
 
     public RightSlideBar()
     {
@@ -78,6 +79,7 @@ public partial class RightSlideBar : UserControl
 
             CopilotViewModel copilotViewModel = CopilotSlideBar.ViewModel;
             copilotViewModel.ChatLogger = new FileCopilotChatLogger(mainViewModel.AppPathManager.CopilotChatLogDirectory);
+            BindWorkspacePath(mainViewModel.FolderExplorerViewModel, copilotViewModel);
 
             const string endPointHelpText = "填充 OpenAI 兼容 API 的地址，如  https://ark.cn-beijing.volces.com/api/v3";
             const string keyHelpText = "请填充密码";
@@ -138,6 +140,33 @@ public partial class RightSlideBar : UserControl
                 return false;
             }
         }
+    }
+
+    private void BindWorkspacePath(FolderExplorerViewModel folderExplorerViewModel, CopilotViewModel copilotViewModel)
+    {
+        if (_subscribedFolderExplorerViewModel is not null)
+        {
+            _subscribedFolderExplorerViewModel.CurrentFolderChanged -= FolderExplorerViewModel_OnCurrentFolderChanged;
+        }
+
+        _subscribedFolderExplorerViewModel = folderExplorerViewModel;
+        _subscribedFolderExplorerViewModel.CurrentFolderChanged += FolderExplorerViewModel_OnCurrentFolderChanged;
+        UpdateWorkspacePath(copilotViewModel, folderExplorerViewModel);
+    }
+
+    private void FolderExplorerViewModel_OnCurrentFolderChanged(object? sender, EventArgs e)
+    {
+        if (sender is not FolderExplorerViewModel folderExplorerViewModel)
+        {
+            return;
+        }
+
+        UpdateWorkspacePath(CopilotSlideBar.ViewModel, folderExplorerViewModel);
+    }
+
+    private static void UpdateWorkspacePath(CopilotViewModel copilotViewModel, FolderExplorerViewModel folderExplorerViewModel)
+    {
+        copilotViewModel.WorkspacePath = folderExplorerViewModel.CurrentFolder?.FullName;
     }
 
     private void CopilotViewModel_OnSettingOpened(object? sender, EventArgs e)
