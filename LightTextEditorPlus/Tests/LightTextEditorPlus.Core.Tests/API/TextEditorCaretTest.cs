@@ -1,4 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -300,6 +301,102 @@ public class TextEditorCaretTest
             Assert.AreEqual("abc ".Length, textEditor.CurrentSelection.FrontOffset.Offset);
             Assert.AreEqual("abc 123".Length, textEditor.CurrentSelection.BehindOffset.Offset);
             Assert.AreEqual("abc ".Length, textEditor.CurrentCaretOffset.Offset);
+        });
+
+        "[SelectByKeyboard] 传入 ShiftHome，应该从当前光标选择到当前行行首".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abcdefg");
+            var startOffset = new CaretOffset("abcdef".Length);
+            textEditor.CurrentCaretOffset = startOffset;
+
+            // Action
+            textEditor.Select(SelectionType.LineStart);
+
+            // Assert
+            Assert.AreEqual(new Selection(startOffset, new CaretOffset("abcde".Length, isAtLineStart: true)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset("abcde".Length, isAtLineStart: true), textEditor.CurrentCaretOffset);
+        });
+
+        "[SelectByKeyboard] 传入 ShiftEnd，应该从当前光标选择到当前行行尾".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abcdefg");
+            var startOffset = new CaretOffset("abc".Length);
+            textEditor.CurrentCaretOffset = startOffset;
+
+            // Action
+            textEditor.Select(SelectionType.LineEnd);
+
+            // Assert
+            Assert.AreEqual(new Selection(startOffset, new CaretOffset("abcde".Length)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset("abcde".Length), textEditor.CurrentCaretOffset);
+        });
+
+        "[SelectByKeyboard] 传入 CtrlShiftHome，应该跨段选择到文档开始".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abc\ndef");
+            var startOffset = new CaretOffset("abc".Length + ParagraphData.DelimiterLength + "de".Length);
+            textEditor.CurrentCaretOffset = startOffset;
+
+            // Action
+            textEditor.Select(SelectionType.DocumentStart);
+
+            // Assert
+            Assert.AreEqual(new Selection(startOffset, new CaretOffset(0, isAtLineStart: true)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset(0, isAtLineStart: true), textEditor.CurrentCaretOffset);
+        });
+
+        "[SelectByKeyboard] 传入 CtrlShiftEnd，应该跨段选择到文档结束".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abc\ndef");
+            var startOffset = new CaretOffset("ab".Length);
+            textEditor.CurrentCaretOffset = startOffset;
+
+            // Action
+            textEditor.Select(SelectionType.DocumentEnd);
+
+            // Assert
+            Assert.AreEqual(new Selection(startOffset, new CaretOffset("abc\ndef".Length)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset("abc\ndef".Length), textEditor.CurrentCaretOffset);
+        });
+
+        "[SelectByKeyboard] 已有跨段反向选择时，继续 ShiftRight 应该跨段收缩且保持原锚点".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abc\ndef");
+            var selectionAnchor = new CaretOffset("abc".Length + ParagraphData.DelimiterLength + "de".Length);
+            textEditor.CurrentSelection = new Selection(selectionAnchor, new CaretOffset("abc".Length));
+
+            // Action
+            textEditor.Select(SelectionType.ShiftRight);
+
+            // Assert
+            Assert.AreEqual(new Selection(selectionAnchor, new CaretOffset("abc".Length + ParagraphData.DelimiterLength, isAtLineStart: true)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset("abc".Length + ParagraphData.DelimiterLength, isAtLineStart: true), textEditor.CurrentCaretOffset);
+        });
+
+        "[SelectByKeyboard] 已有跨段反向选择时，继续 ShiftEnd 应该反向收缩到当前行行尾".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abc\ndef");
+            var selectionAnchor = new CaretOffset("abc".Length + ParagraphData.DelimiterLength + "ef".Length);
+            textEditor.CurrentSelection = new Selection(selectionAnchor, new CaretOffset("ab".Length));
+
+            // Action
+            textEditor.Select(SelectionType.LineEnd);
+
+            // Assert
+            Assert.AreEqual(new Selection(selectionAnchor, new CaretOffset("abc".Length)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset("abc".Length), textEditor.CurrentCaretOffset);
         });
     }
 }

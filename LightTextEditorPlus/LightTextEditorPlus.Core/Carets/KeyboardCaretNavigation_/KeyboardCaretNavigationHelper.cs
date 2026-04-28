@@ -92,6 +92,7 @@ internal static class KeyboardCaretNavigationHelper
     /// 方向键：Home 获取行首的光标位置
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
     /// <returns></returns>
     private static CaretOffset GetLineStartCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
@@ -106,6 +107,7 @@ internal static class KeyboardCaretNavigationHelper
     /// 方向键：End 获取行末的光标位置
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
     /// <returns></returns>
     private static CaretOffset GetLineEndCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
@@ -121,6 +123,7 @@ internal static class KeyboardCaretNavigationHelper
     /// 方向键：下
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
     /// <returns></returns>
     private static CaretOffset GetNextLineCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
@@ -165,6 +168,7 @@ internal static class KeyboardCaretNavigationHelper
     /// 方向键：上
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
     /// <returns></returns>
     /// 上下行也许后续需要考虑通过命中测试，因为可能不同的行的文本的字符宽度不相同，例如以下情况
     /// 123一123
@@ -215,6 +219,8 @@ internal static class KeyboardCaretNavigationHelper
     /// 向左一个单词
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
+    /// <param name="ignoreCurrentSelection"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
     private static CaretOffset GetPreviousWordCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
@@ -269,6 +275,8 @@ internal static class KeyboardCaretNavigationHelper
     /// 向右一个单词
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
+    /// <param name="ignoreCurrentSelection"></param>
     /// <returns></returns>
     private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
         bool ignoreCurrentSelection)
@@ -328,6 +336,8 @@ internal static class KeyboardCaretNavigationHelper
     /// 方向键：右
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
+    /// <param name="ignoreCurrentSelection"></param>
     /// <returns></returns>
     private static CaretOffset GetNextCharacterCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
         bool ignoreCurrentSelection)
@@ -356,6 +366,8 @@ internal static class KeyboardCaretNavigationHelper
     /// 方向键：左
     /// </summary>
     /// <param name="textEditorCore"></param>
+    /// <param name="currentCaretOffset"></param>
+    /// <param name="ignoreCurrentSelection"></param>
     /// <returns></returns>
     private static CaretOffset GetPreviousCharacterCaretOffset(TextEditorCore textEditorCore,
         CaretOffset currentCaretOffset, bool ignoreCurrentSelection)

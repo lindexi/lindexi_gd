@@ -266,7 +266,7 @@ public partial class TextEditorHandler
     protected internal virtual partial void Select(SelectionType type)
     {
         type = TransformSelectionType(type);
-        TextEditor.Select(type);
+        TextEditor.TextEditorCore.Select(type);
     }
 
     /// <summary>
