@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
+using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Document;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,6 +18,12 @@ namespace LightTextEditorPlus.Document.UnitTests;
 [TestClass]
 public class SkiaImmutableRunTests
 {
+    private static SkiaTextRunProperty CreateRunProperty()
+    {
+        var textEditor = new SkiaTextEditor();
+        return textEditor.TextEditorCore.DocumentManager.StyleRunProperty.AsSkiaRunProperty();
+    }
+
     /// <summary>
     /// Tests that Count property returns the correct number of elements for various array sizes.
     /// </summary>
@@ -31,11 +38,11 @@ public class SkiaImmutableRunTests
     public void Count_WithVariousArraySizes_ReturnsCorrectLength(int elementCount)
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjects = Enumerable.Range(0, elementCount)
             .Select(_ => Mock.Of<ICharObject>())
             .ToImmutableArray();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjects);
+        var run = new SkiaImmutableRun(runProperty, charObjects);
 
         // Act
         var actualCount = run.Count;
@@ -51,9 +58,9 @@ public class SkiaImmutableRunTests
     public void Count_WithEmptyEnumerable_ReturnsZero()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var emptyEnumerable = Enumerable.Empty<ICharObject>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, emptyEnumerable);
+        var run = new SkiaImmutableRun(runProperty, emptyEnumerable);
 
         // Act
         var actualCount = run.Count;
@@ -69,14 +76,14 @@ public class SkiaImmutableRunTests
     public void Count_WithIEnumerableConstructor_ReturnsCorrectLength()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjects = new List<ICharObject>
         {
             Mock.Of<ICharObject>(),
             Mock.Of<ICharObject>(),
             Mock.Of<ICharObject>()
         };
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjects);
+        var run = new SkiaImmutableRun(runProperty, charObjects);
 
         // Act
         var actualCount = run.Count;
@@ -115,9 +122,9 @@ public class SkiaImmutableRunTests
     public void Count_WithEmptyImmutableArray_ReturnsZero()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var emptyArray = ImmutableArray<ICharObject>.Empty;
-        var run = new SkiaImmutableRun(mockRunProperty.Object, emptyArray);
+        var run = new SkiaImmutableRun(runProperty, emptyArray);
 
         // Act
         var actualCount = run.Count;
@@ -134,17 +141,17 @@ public class SkiaImmutableRunTests
     public void Constructor_WithValidParametersAndNonEmptyArray_CreatesInstanceSuccessfully()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var mockCharObject1 = new Mock<ICharObject>();
         var mockCharObject2 = new Mock<ICharObject>();
         var charObjectArray = ImmutableArray.Create(mockCharObject1.Object, mockCharObject2.Object);
 
         // Act
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjectArray);
+        var run = new SkiaImmutableRun(runProperty, charObjectArray);
 
         // Assert
         Assert.IsNotNull(run);
-        Assert.AreEqual(mockRunProperty.Object, run.RunProperty);
+        Assert.AreEqual(runProperty, run.RunProperty);
         Assert.AreEqual(2, run.Count);
     }
 
@@ -156,15 +163,15 @@ public class SkiaImmutableRunTests
     public void Constructor_WithEmptyImmutableArray_CreatesInstanceWithZeroCount()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjectArray = ImmutableArray<ICharObject>.Empty;
 
         // Act
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjectArray);
+        var run = new SkiaImmutableRun(runProperty, charObjectArray);
 
         // Assert
         Assert.IsNotNull(run);
-        Assert.AreEqual(mockRunProperty.Object, run.RunProperty);
+        Assert.AreEqual(runProperty, run.RunProperty);
         Assert.AreEqual(0, run.Count);
     }
 
@@ -176,16 +183,16 @@ public class SkiaImmutableRunTests
     public void Constructor_WithSingleElementArray_CreatesInstanceWithCountOne()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var mockCharObject = new Mock<ICharObject>();
         var charObjectArray = ImmutableArray.Create(mockCharObject.Object);
 
         // Act
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjectArray);
+        var run = new SkiaImmutableRun(runProperty, charObjectArray);
 
         // Assert
         Assert.IsNotNull(run);
-        Assert.AreEqual(mockRunProperty.Object, run.RunProperty);
+        Assert.AreEqual(runProperty, run.RunProperty);
         Assert.AreEqual(1, run.Count);
     }
 
@@ -197,16 +204,16 @@ public class SkiaImmutableRunTests
     public void Constructor_WithDefaultImmutableArray_CreatesInstanceButCountThrows()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjectArray = default(ImmutableArray<ICharObject>);
 
         // Act
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjectArray);
+        var run = new SkiaImmutableRun(runProperty, charObjectArray);
 
         // Assert
         Assert.IsNotNull(run);
-        Assert.AreEqual(mockRunProperty.Object, run.RunProperty);
-        Assert.ThrowsException<InvalidOperationException>(() => { var count = run.Count; });
+        Assert.AreEqual(runProperty, run.RunProperty);
+        Assert.ThrowsExactly<NullReferenceException>(() => { var count = run.Count; });
     }
 
     /// <summary>
@@ -237,7 +244,7 @@ public class SkiaImmutableRunTests
     public void Constructor_WithLargeImmutableArray_CreatesInstanceSuccessfully()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjects = new ICharObject[1000];
         for (int i = 0; i < charObjects.Length; i++)
         {
@@ -246,11 +253,11 @@ public class SkiaImmutableRunTests
         var charObjectArray = ImmutableArray.Create(charObjects);
 
         // Act
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjectArray);
+        var run = new SkiaImmutableRun(runProperty, charObjectArray);
 
         // Assert
         Assert.IsNotNull(run);
-        Assert.AreEqual(mockRunProperty.Object, run.RunProperty);
+        Assert.AreEqual(runProperty, run.RunProperty);
         Assert.AreEqual(1000, run.Count);
     }
 
@@ -262,13 +269,13 @@ public class SkiaImmutableRunTests
     public void Constructor_VerifyCharObjectArrayAssignment_GetCharReturnsCorrectObject()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var mockCharObject1 = new Mock<ICharObject>();
         var mockCharObject2 = new Mock<ICharObject>();
         var charObjectArray = ImmutableArray.Create(mockCharObject1.Object, mockCharObject2.Object);
 
         // Act
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjectArray);
+        var run = new SkiaImmutableRun(runProperty, charObjectArray);
 
         // Assert
         Assert.AreEqual(mockCharObject1.Object, run.GetChar(0));
@@ -290,7 +297,7 @@ public class SkiaImmutableRunTests
     public void Constructor_WithVariousArraySizes_CreatesInstanceWithCorrectCount(int arraySize)
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjects = new ICharObject[arraySize];
         for (int i = 0; i < charObjects.Length; i++)
         {
@@ -299,7 +306,7 @@ public class SkiaImmutableRunTests
         var charObjectArray = arraySize == 0 ? ImmutableArray<ICharObject>.Empty : ImmutableArray.Create(charObjects);
 
         // Act
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjectArray);
+        var run = new SkiaImmutableRun(runProperty, charObjectArray);
 
         // Assert
         Assert.IsNotNull(run);
@@ -320,8 +327,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(5);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(splitIndex);
@@ -344,8 +351,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(3);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(0);
@@ -367,8 +374,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(3);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(3);
@@ -389,8 +396,8 @@ public class SkiaImmutableRunTests
     public void SplitAt_WithEmptyRun_ReturnsTwoEmptyRuns()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, ImmutableArray<ICharObject>.Empty);
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, ImmutableArray<ICharObject>.Empty);
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(0);
@@ -412,8 +419,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(1);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(0);
@@ -435,8 +442,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(1);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(1);
@@ -458,8 +465,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(3);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(-1);
@@ -481,8 +488,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(3);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(10);
@@ -504,8 +511,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(3);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(int.MaxValue);
@@ -527,8 +534,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(3);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(int.MinValue);
@@ -550,8 +557,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(4);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(2);
@@ -561,8 +568,8 @@ public class SkiaImmutableRunTests
         Assert.IsNotNull(secondRun);
         Assert.IsTrue(firstRun is SkiaImmutableRun);
         Assert.IsTrue(secondRun is SkiaImmutableRun);
-        Assert.AreSame(mockRunProperty.Object, ((SkiaImmutableRun)firstRun).RunProperty);
-        Assert.AreSame(mockRunProperty.Object, ((SkiaImmutableRun)secondRun).RunProperty);
+        Assert.AreSame(runProperty, ((SkiaImmutableRun)firstRun).RunProperty);
+        Assert.AreSame(runProperty, ((SkiaImmutableRun)secondRun).RunProperty);
     }
 
     /// <summary>
@@ -575,8 +582,8 @@ public class SkiaImmutableRunTests
     {
         // Arrange
         var mockCharObjects = CreateMockCharObjects(5);
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var run = new SkiaImmutableRun(mockRunProperty.Object, mockCharObjects.Select(m => m.Object).ToImmutableArray());
+        var runProperty = CreateRunProperty();
+        var run = new SkiaImmutableRun(runProperty, mockCharObjects.Select(m => m.Object).ToImmutableArray());
 
         // Act
         var (firstRun, secondRun) = run.SplitAt(3);
@@ -622,9 +629,9 @@ public class SkiaImmutableRunTests
     public void RunProperty_WhenAccessedThroughInterface_ReturnsSameInstanceAsPublicProperty()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjects = ImmutableArray<ICharObject>.Empty;
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjects);
+        var run = new SkiaImmutableRun(runProperty, charObjects);
         var interfaceRun = (IImmutableRun)run;
 
         // Act
@@ -643,8 +650,7 @@ public class SkiaImmutableRunTests
     public void RunProperty_WhenAccessedThroughInterface_ReturnsSameInstancePassedToConstructor()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var expectedRunProperty = mockRunProperty.Object;
+        var expectedRunProperty = CreateRunProperty();
         var charObjects = ImmutableArray<ICharObject>.Empty;
         var run = new SkiaImmutableRun(expectedRunProperty, charObjects);
         var interfaceRun = (IImmutableRun)run;
@@ -664,17 +670,17 @@ public class SkiaImmutableRunTests
     public void RunProperty_WhenAccessedThroughInterface_ReturnsIReadOnlyRunPropertyType()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
+        var expectedRunProperty = CreateRunProperty();
         var charObjects = ImmutableArray<ICharObject>.Empty;
-        var run = new SkiaImmutableRun(mockRunProperty.Object, charObjects);
+        var run = new SkiaImmutableRun(expectedRunProperty, charObjects);
         var interfaceRun = (IImmutableRun)run;
 
         // Act
-        var runProperty = interfaceRun.RunProperty;
+        var actualRunProperty = interfaceRun.RunProperty;
 
         // Assert
-        Assert.IsNotNull(runProperty, "RunProperty should not be null.");
-        Assert.IsInstanceOfType(runProperty, typeof(IReadOnlyRunProperty), "RunProperty should be of type IReadOnlyRunProperty.");
+        Assert.IsNotNull(actualRunProperty, "RunProperty should not be null.");
+        Assert.IsInstanceOfType(actualRunProperty, typeof(IReadOnlyRunProperty), "RunProperty should be of type IReadOnlyRunProperty.");
     }
 
     /// <summary>
@@ -684,8 +690,7 @@ public class SkiaImmutableRunTests
     public void RunProperty_Public_ReturnsSameInstancePassedToConstructor()
     {
         // Arrange
-        var mockRunProperty = new Mock<SkiaTextRunProperty>();
-        var expectedRunProperty = mockRunProperty.Object;
+        var expectedRunProperty = CreateRunProperty();
         var charObjects = ImmutableArray<ICharObject>.Empty;
         var run = new SkiaImmutableRun(expectedRunProperty, charObjects);
 
@@ -709,17 +714,17 @@ public class SkiaImmutableRunTests
     public void SkiaImmutableRun_ValidInputsWithVaryingCollectionSizes_CreatesInstanceSuccessfully(int charCount)
     {
         // Arrange
-        var mockRunProperty = Mock.Of<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var charObjects = Enumerable.Range(0, charCount)
             .Select(_ => Mock.Of<ICharObject>())
             .ToList();
 
         // Act
-        var result = new SkiaImmutableRun(mockRunProperty, charObjects);
+        var result = new SkiaImmutableRun(runProperty, charObjects);
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreSame(mockRunProperty, result.RunProperty);
+        Assert.AreSame(runProperty, result.RunProperty);
         Assert.AreEqual(charCount, result.Count);
     }
 
@@ -732,14 +737,14 @@ public class SkiaImmutableRunTests
     public void SkiaImmutableRun_ValidInputs_GetCharReturnsCorrectCharObjects()
     {
         // Arrange
-        var mockRunProperty = Mock.Of<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var char1 = Mock.Of<ICharObject>();
         var char2 = Mock.Of<ICharObject>();
         var char3 = Mock.Of<ICharObject>();
         var charObjects = new List<ICharObject> { char1, char2, char3 };
 
         // Act
-        var result = new SkiaImmutableRun(mockRunProperty, charObjects);
+        var result = new SkiaImmutableRun(runProperty, charObjects);
 
         // Assert
         Assert.AreSame(char1, result.GetChar(0));
@@ -756,11 +761,11 @@ public class SkiaImmutableRunTests
     public void SkiaImmutableRun_NullCharObjects_ThrowsArgumentNullException()
     {
         // Arrange
-        var mockRunProperty = Mock.Of<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         IEnumerable<ICharObject>? charObjects = null;
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new SkiaImmutableRun(mockRunProperty, charObjects!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new SkiaImmutableRun(runProperty, charObjects!));
     }
 
     /// <summary>
@@ -793,7 +798,7 @@ public class SkiaImmutableRunTests
     public void SkiaImmutableRun_DifferentEnumerableTypes_CreatesInstanceSuccessfully()
     {
         // Arrange
-        var mockRunProperty = Mock.Of<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var char1 = Mock.Of<ICharObject>();
         var char2 = Mock.Of<ICharObject>();
 
@@ -808,7 +813,7 @@ public class SkiaImmutableRunTests
         // Act & Assert
         foreach (var charObjects in enumerableTypes)
         {
-            var result = new SkiaImmutableRun(mockRunProperty, charObjects);
+            var result = new SkiaImmutableRun(runProperty, charObjects);
             Assert.IsNotNull(result);
             Assert.AreEqual(2, result.Count);
         }
@@ -823,7 +828,7 @@ public class SkiaImmutableRunTests
     public void SkiaImmutableRun_LazyEnumerable_MaterializesCorrectly()
     {
         // Arrange
-        var mockRunProperty = Mock.Of<SkiaTextRunProperty>();
+        var runProperty = CreateRunProperty();
         var sourceList = new List<ICharObject>
         {
             Mock.Of<ICharObject>(),
@@ -833,7 +838,7 @@ public class SkiaImmutableRunTests
         var lazyEnumerable = sourceList.Where(c => c != null);
 
         // Act
-        var result = new SkiaImmutableRun(mockRunProperty, lazyEnumerable);
+        var result = new SkiaImmutableRun(runProperty, lazyEnumerable);
 
         // Assert
         Assert.IsNotNull(result);

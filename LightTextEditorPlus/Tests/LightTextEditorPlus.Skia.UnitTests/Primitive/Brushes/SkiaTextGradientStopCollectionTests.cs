@@ -619,12 +619,8 @@ public class SkiaTextGradientStopCollectionTests
     public void GetEnumerator_EmptyCollection_ReturnsFalseOnFirstMoveNext()
     {
         // Arrange
-        var mockCollection = new Mock<IReadOnlyList<SkiaTextGradientStop>>();
         var emptyList = new List<SkiaTextGradientStop>();
-        mockCollection.Setup(c => c.GetEnumerator()).Returns(emptyList.GetEnumerator());
-        mockCollection.Setup(c => ((IEnumerable)c).GetEnumerator()).Returns(((IEnumerable)emptyList).GetEnumerator());
-        mockCollection.Setup(c => c.Count).Returns(0);
-        var collection = new SkiaTextGradientStopCollection(mockCollection.Object);
+        var collection = new SkiaTextGradientStopCollection(emptyList);
 
         // Act
         var enumerator = ((IEnumerable)collection).GetEnumerator();
@@ -644,13 +640,8 @@ public class SkiaTextGradientStopCollectionTests
     {
         // Arrange
         var gradientStop = new SkiaTextGradientStop(SKColors.Red, 0.5f);
-        var mockCollection = new Mock<IReadOnlyList<SkiaTextGradientStop>>();
         var singleItemList = new List<SkiaTextGradientStop> { gradientStop };
-        mockCollection.Setup(c => c.GetEnumerator()).Returns(singleItemList.GetEnumerator());
-        mockCollection.Setup(c => ((IEnumerable)c).GetEnumerator()).Returns(((IEnumerable)singleItemList).GetEnumerator());
-        mockCollection.Setup(c => c.Count).Returns(1);
-        mockCollection.Setup(c => c[0]).Returns(gradientStop);
-        var collection = new SkiaTextGradientStopCollection(mockCollection.Object);
+        var collection = new SkiaTextGradientStopCollection(singleItemList);
 
         // Act
         var enumerator = ((IEnumerable)collection).GetEnumerator();
@@ -676,15 +667,8 @@ public class SkiaTextGradientStopCollectionTests
         var gradientStop1 = new SkiaTextGradientStop(SKColors.Red, 0.0f);
         var gradientStop2 = new SkiaTextGradientStop(SKColors.Green, 0.5f);
         var gradientStop3 = new SkiaTextGradientStop(SKColors.Blue, 1.0f);
-        var mockCollection = new Mock<IReadOnlyList<SkiaTextGradientStop>>();
         var multiItemList = new List<SkiaTextGradientStop> { gradientStop1, gradientStop2, gradientStop3 };
-        mockCollection.Setup(c => c.GetEnumerator()).Returns(multiItemList.GetEnumerator());
-        mockCollection.Setup(c => ((IEnumerable)c).GetEnumerator()).Returns(((IEnumerable)multiItemList).GetEnumerator());
-        mockCollection.Setup(c => c.Count).Returns(3);
-        mockCollection.Setup(c => c[0]).Returns(gradientStop1);
-        mockCollection.Setup(c => c[1]).Returns(gradientStop2);
-        mockCollection.Setup(c => c[2]).Returns(gradientStop3);
-        var collection = new SkiaTextGradientStopCollection(mockCollection.Object);
+        var collection = new SkiaTextGradientStopCollection(multiItemList);
 
         // Act
         var enumerator = ((IEnumerable)collection).GetEnumerator();
@@ -711,12 +695,8 @@ public class SkiaTextGradientStopCollectionTests
     {
         // Arrange
         var gradientStop = new SkiaTextGradientStop(SKColors.Red, 0.5f);
-        var mockCollection = new Mock<IReadOnlyList<SkiaTextGradientStop>>();
         var singleItemList = new List<SkiaTextGradientStop> { gradientStop };
-        mockCollection.Setup(c => c.GetEnumerator()).Returns(singleItemList.GetEnumerator());
-        mockCollection.Setup(c => ((IEnumerable)c).GetEnumerator()).Returns(((IEnumerable)singleItemList).GetEnumerator());
-        mockCollection.Setup(c => c.Count).Returns(1);
-        var collection = new SkiaTextGradientStopCollection(mockCollection.Object);
+        var collection = new SkiaTextGradientStopCollection(singleItemList);
 
         // Act
         var enumerator = ((IEnumerable)collection).GetEnumerator();

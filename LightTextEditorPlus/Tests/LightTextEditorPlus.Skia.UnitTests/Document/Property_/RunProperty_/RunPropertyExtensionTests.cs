@@ -18,15 +18,13 @@ public partial class RunPropertyExtensionTests
     public void AsSkiaRunProperty_ValidSkiaTextRunProperty_ReturnsSameInstance()
     {
         // Arrange
-        var mockTextEditor = new Mock<SkiaTextEditor>();
-        var mockResourceManager = new Mock<SkiaPlatformResourceManager>(mockTextEditor.Object);
-        var mockSkiaProperty = new Mock<SkiaTextRunProperty>(MockBehavior.Strict, mockResourceManager.Object);
-        IReadOnlyRunProperty runProperty = mockSkiaProperty.Object;
+        var textEditor = new SkiaTextEditor();
+        IReadOnlyRunProperty runProperty = textEditor.TextEditorCore.DocumentManager.StyleRunProperty.AsSkiaRunProperty();
         // Act
         var result = runProperty.AsSkiaRunProperty();
         // Assert
         Assert.IsNotNull(result);
-        Assert.AreSame(mockSkiaProperty.Object, result);
+        Assert.AreSame(runProperty, result);
     }
 
     /// <summary>
@@ -39,7 +37,7 @@ public partial class RunPropertyExtensionTests
         var mockRunProperty = new Mock<IReadOnlyRunProperty>();
         IReadOnlyRunProperty runProperty = mockRunProperty.Object;
         // Act & Assert
-        Assert.ThrowsException<InvalidCastException>(() => runProperty.AsSkiaRunProperty());
+        Assert.ThrowsExactly<InvalidCastException>(() => runProperty.AsSkiaRunProperty());
     }
 
     /// <summary>

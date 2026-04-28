@@ -129,8 +129,6 @@ public partial class SolidColorSkiaTextBrushTests
     [DataRow(-0.5)]
     [DataRow(-1.0)]
     [DataRow(-100.0)]
-    [TestCategory("ProductionBugSuspected")]
-    [Ignore("ProductionBugSuspected")]
     public void Apply_NegativeOpacity_NoAlphaAdjustment(double opacity)
     {
         // Arrange

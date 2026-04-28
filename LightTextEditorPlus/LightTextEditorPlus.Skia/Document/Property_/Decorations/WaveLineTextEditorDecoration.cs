@@ -28,6 +28,14 @@ public class WaveLineTextEditorDecoration() : TextEditorDecoration(TextEditorDec
         if (argument.TextEditor.TextEditorCore.ArrangingType.IsHorizontal)
         {
             var bounds = argument.RecommendedBounds;
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                return new BuildDecorationResult()
+                {
+                    TakeCharCount = argument.CharDataList.Count,
+                };
+            }
+
             var waveLine = new WaveLine()
             {
                 WaveHeight = bounds.Height,
@@ -82,6 +90,11 @@ file struct WaveLine()
 
         var angle = CalculateAngle(p1, p2);
         var waveLength = WaveLength;
+        if (waveLength <= 0)
+        {
+            return;
+        }
+
         var waveHeight = WaveHeight;
         var howManyWaves = distance / waveLength;
         //var waveInterval = distance / howManyWaves;
@@ -112,6 +125,11 @@ file struct WaveLine()
 
             polarity *= -1;
             prevFlexPt = flexPt;
+        }
+
+        if (wigglePoints.Count == 0)
+        {
+            return;
         }
 
         using SKPath skPath = new SKPath();

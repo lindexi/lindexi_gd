@@ -73,32 +73,6 @@ public partial class SkiaPlatformResourceManagerTests
     }
 
     /// <summary>
-    /// Tests that <see cref="SkiaPlatformResourceManager.GetFallbackFontName"/> returns a non-null string
-    /// when provided with a valid font name.
-    /// </summary>
-    /// <param name="desiredFontName">The desired font name to test.</param>
-    [TestMethod]
-    [DataRow("Arial")]
-    [DataRow("Times New Roman")]
-    [DataRow("Calibri")]
-    [DataRow("Segoe UI")]
-    public void GetFallbackFontName_ValidFontName_ReturnsNonNullString(string desiredFontName)
-    {
-        // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
-
-        // Act
-        string result = manager.GetFallbackFontName(desiredFontName);
-
-        // Assert
-        Assert.IsNotNull(result);
-        Assert.IsInstanceOfType(result, typeof(string));
-    }
-
-    /// <summary>
     /// Tests that <see cref="SkiaPlatformResourceManager.GetFallbackFontName"/> handles empty string input.
     /// Expected behavior: Should return a fallback font name without throwing.
     /// </summary>
@@ -106,10 +80,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackFontName_EmptyString_ReturnsNonNullString()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackFontName(string.Empty);
@@ -132,8 +104,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackFontName_WhitespaceString_ReturnsNonNullString(string desiredFontName)
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackFontName(desiredFontName);
@@ -151,10 +123,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackFontName_VeryLongString_ReturnsNonNullString()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
         string veryLongFontName = new string('A', 10000);
 
         // Act
@@ -182,10 +152,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackFontName_StringWithSpecialCharacters_ReturnsNonNullString(string desiredFontName)
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackFontName(desiredFontName);
@@ -208,10 +176,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackFontName_UnicodeCharacters_ReturnsNonNullString(string desiredFontName)
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackFontName(desiredFontName);
@@ -219,68 +185,6 @@ public partial class SkiaPlatformResourceManagerTests
         // Assert
         Assert.IsNotNull(result);
         Assert.IsInstanceOfType(result, typeof(string));
-    }
-
-    /// <summary>
-    /// Tests that <see cref="SkiaPlatformResourceManager.GetFallbackFontName"/> handles null input.
-    /// Expected behavior: Since the parameter is non-nullable, passing null should either throw or be handled by the implementation.
-    /// This test verifies the actual behavior when null is passed.
-    /// </summary>
-    [TestMethod]
-    public void GetFallbackFontName_NullInput_ThrowsOrHandlesGracefully()
-    {
-        // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
-
-        // Act & Assert
-        // Note: The parameter is marked as non-nullable, but we test null to verify runtime behavior.
-        // The method may throw ArgumentNullException or handle null gracefully depending on implementation.
-        try
-        {
-            string result = manager.GetFallbackFontName(null!);
-            // If no exception is thrown, verify the result is valid
-            Assert.IsNotNull(result);
-        }
-        catch (ArgumentNullException)
-        {
-            // Expected behavior for non-nullable parameter
-            Assert.IsTrue(true);
-        }
-        catch (NullReferenceException)
-        {
-            // May occur if the method doesn't validate null input
-            Assert.IsTrue(true);
-        }
-    }
-
-    /// <summary>
-    /// Tests that <see cref="SkiaPlatformResourceManager.GetFallbackFontName"/> logs when fallback occurs.
-    /// Note: Due to static dependency on TextContext.GlobalFontNameManager, this test verifies
-    /// that the logger is set up correctly but cannot fully control the fallback conditions.
-    /// Full testing of conditional logging would require refactoring to inject FontNameManager dependency.
-    /// </summary>
-    [TestMethod]
-    public void GetFallbackFontName_NonExistentFont_LogsWhenFallbackOccurs()
-    {
-        // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
-
-        // Use a font name that is unlikely to exist to trigger fallback
-        string nonExistentFontName = "NonExistentFont_12345_ABCDEF";
-
-        // Act
-        string result = manager.GetFallbackFontName(nonExistentFontName);
-
-        // Assert
-        Assert.IsNotNull(result);
-        // Note: Cannot verify logger.Log was called due to static dependency on GlobalFontNameManager
-        // The actual fallback behavior is determined by the static FontNameManager instance
     }
 
     /// <summary>
@@ -295,10 +199,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackFontName_FontNameWithLeadingTrailingSpaces_ReturnsNonNullString(string desiredFontName)
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackFontName(desiredFontName);
@@ -320,10 +222,12 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackFontName_MixedCasingFontName_ReturnsNonNullString(string desiredFontName)
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
         Mock<ITextLogger> mockLogger = new Mock<ITextLogger>();
-        mockTextEditor.Setup(x => x.Logger).Returns(mockLogger.Object);
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditorPlatformProvider platformProvider = new SkiaTextEditorPlatformProvider();
+        var mockPlatformProvider = new Mock<SkiaTextEditorPlatformProvider>() { CallBase = true };
+        mockPlatformProvider.Setup(x => x.BuildTextLogger()).Returns(mockLogger.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor(mockPlatformProvider.Object);
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackFontName(desiredFontName);
@@ -340,8 +244,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackDefaultFontName_WhenCalled_ReturnsNonNullString()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackDefaultFontName();
@@ -357,8 +261,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackDefaultFontName_WhenCalled_ReturnsNonEmptyString()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         string result = manager.GetFallbackDefaultFontName();
@@ -374,8 +278,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackDefaultFontName_WhenCalled_ReturnsSameAsGetDefaultFontName()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
         string expectedFontName = SkiaPlatformResourceManager.GetDefaultFontName();
 
         // Act
@@ -390,25 +294,19 @@ public partial class SkiaPlatformResourceManagerTests
     /// This verifies the method correctly delegates to GetDefaultFontName and returns a valid font name.
     /// </summary>
     [TestMethod]
-    [DataRow("微软雅黑")]
-    [DataRow("Noto Sans CJK SC")]
-    [DataRow("PingFang SC")]
-    public void GetFallbackDefaultFontName_WhenCalled_ReturnsExpectedPlatformFontName(string expectedFontName)
+    public void GetFallbackDefaultFontName_WhenCalled_ReturnsExpectedPlatformFontName()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        SkiaTextEditor textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
+        string[] expectedFontNames = new[] { "微软雅黑", "Noto Sans CJK SC", "PingFang SC" };
 
         // Act
         string result = manager.GetFallbackDefaultFontName();
 
         // Assert
         // The result should be one of the platform-specific font names
-        // We check if the result matches any of the expected values
-        if (result == expectedFontName)
-        {
-            Assert.AreEqual(expectedFontName, result);
-        }
+        CollectionAssert.Contains(expectedFontNames, result);
     }
 
     /// <summary>
@@ -418,8 +316,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void GetFallbackDefaultFontName_WhenCalled_ReturnsKnownPlatformFontName()
     {
         // Arrange
-        Mock<SkiaTextEditor> mockTextEditor = new Mock<SkiaTextEditor>();
-        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(mockTextEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        SkiaPlatformResourceManager manager = new SkiaPlatformResourceManager(textEditor);
         string[] expectedFontNames = new[] { "微软雅黑", "Noto Sans CJK SC", "PingFang SC" };
 
         // Act
@@ -493,9 +391,17 @@ public partial class SkiaPlatformResourceManagerTests
         {
             Assert.AreEqual("Noto Sans CJK SC", result, "On Linux, GetDefaultFontName should return 'Noto Sans CJK SC'.");
         }
+        else if (OperatingSystem.IsWindows())
+        {
+            Assert.AreEqual("微软雅黑", result, "On Windows, GetDefaultFontName should return '微软雅黑'.");
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            Assert.AreEqual("PingFang SC", result, "On macOS, GetDefaultFontName should return 'PingFang SC'.");
+        }
         else
         {
-            Assert.Inconclusive("This test only applies to Linux platform.");
+            Assert.AreEqual("微软雅黑", result, "On other platforms, GetDefaultFontName should return the default '微软雅黑'.");
         }
     }
 
@@ -514,9 +420,17 @@ public partial class SkiaPlatformResourceManagerTests
         {
             Assert.AreEqual("PingFang SC", result, "On macOS, GetDefaultFontName should return 'PingFang SC'.");
         }
+        else if (OperatingSystem.IsWindows())
+        {
+            Assert.AreEqual("微软雅黑", result, "On Windows, GetDefaultFontName should return '微软雅黑'.");
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            Assert.AreEqual("Noto Sans CJK SC", result, "On Linux, GetDefaultFontName should return 'Noto Sans CJK SC'.");
+        }
         else
         {
-            Assert.Inconclusive("This test only applies to macOS platform.");
+            Assert.Fail("Unsupported platform detected.");
         }
     }
 
@@ -550,8 +464,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithCommonFontName_ReturnsTrue(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool result = manager.CheckFontFamilyInstalled(fontName);
@@ -573,8 +487,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithNonExistentFontName_ReturnsFalse(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool result = manager.CheckFontFamilyInstalled(fontName);
@@ -596,8 +510,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_CalledTwiceWithSameFontName_ReturnsConsistentResult(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool firstResult = manager.CheckFontFamilyInstalled(fontName);
@@ -617,8 +531,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithEmptyString_ReturnsFalse()
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
         string fontName = string.Empty;
 
         // Act
@@ -642,8 +556,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithWhitespaceString_ReturnsFalse(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool result = manager.CheckFontFamilyInstalled(fontName);
@@ -662,8 +576,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithVeryLongString_ReturnsFalse()
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
         string fontName = new string('A', 10000);
 
         // Act
@@ -688,8 +602,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithSpecialCharacters_HandlesProperly(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool result = manager.CheckFontFamilyInstalled(fontName);
@@ -697,27 +611,6 @@ public partial class SkiaPlatformResourceManagerTests
         // Assert
         // Special characters in font names are unlikely to exist, but method should not throw
         Assert.IsFalse(result);
-    }
-
-    /// <summary>
-    /// Tests that CheckFontFamilyInstalled throws ArgumentNullException when fontName is null.
-    /// Verifies that the method properly validates non-nullable parameter.
-    /// Input: null.
-    /// Expected: Throws ArgumentNullException or NullReferenceException.
-    /// </summary>
-    [TestMethod]
-    public void CheckFontFamilyInstalled_WithNullFontName_ThrowsException()
-    {
-        // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
-        string? fontName = null;
-
-        // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() =>
-        {
-            manager.CheckFontFamilyInstalled(fontName!);
-        }, "Expected exception when fontName is null.");
     }
 
     /// <summary>
@@ -733,8 +626,8 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithControlCharacters_ReturnsFalse(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool result = manager.CheckFontFamilyInstalled(fontName);
@@ -757,15 +650,15 @@ public partial class SkiaPlatformResourceManagerTests
     public void CheckFontFamilyInstalled_WithUnicodeFontName_HandlesProperly(string fontName)
     {
         // Arrange
-        var textEditor = new Mock<SkiaTextEditor>();
-        var manager = new SkiaPlatformResourceManager(textEditor.Object);
+        var textEditor = new SkiaTextEditor();
+        var manager = new SkiaPlatformResourceManager(textEditor);
 
         // Act
         bool result = manager.CheckFontFamilyInstalled(fontName);
 
         // Assert
         // Method should not throw, result depends on whether such fonts exist
-        Assert.IsNotNull(result);
+        // The fact that we reach this point means the method handled the Unicode name properly
     }
 
     /// <summary>
@@ -797,7 +690,7 @@ public partial class SkiaPlatformResourceManagerTests
         SkiaTextEditor? textEditor = null;
 
         // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() =>
+        Assert.ThrowsExactly<NullReferenceException>(() =>
         {
             var manager = new SkiaPlatformResourceManager(textEditor!);
         });

@@ -103,11 +103,8 @@ public class SkiaTextEditorPlatformProviderTests
     public void GetPlatformFontNameManager_FirstCall_ReturnsNonNullInstance()
     {
         // Arrange
-        var mockTextEditor = new Mock<SkiaTextEditor>();
-        var provider = new SkiaTextEditorPlatformProvider
-        {
-            TextEditor = mockTextEditor.Object
-        };
+        var textEditor = new SkiaTextEditor();
+        var provider = textEditor.SkiaTextEditorPlatformProvider;
 
         // Act
         var result = provider.GetPlatformFontNameManager();
@@ -126,11 +123,8 @@ public class SkiaTextEditorPlatformProviderTests
     public void GetPlatformFontNameManager_MultipleCalls_ReturnsSameCachedInstance()
     {
         // Arrange
-        var mockTextEditor = new Mock<SkiaTextEditor>();
-        var provider = new SkiaTextEditorPlatformProvider
-        {
-            TextEditor = mockTextEditor.Object
-        };
+        var provider = new SkiaTextEditorPlatformProvider();
+        var textEditor = new SkiaTextEditor(provider);
 
         // Act
         var firstCall = provider.GetPlatformFontNameManager();
@@ -175,7 +169,7 @@ public class SkiaTextEditorPlatformProviderTests
         var provider = new SkiaTextEditorPlatformProvider();
 
         // Act & Assert
-        Assert.ThrowsException<NullReferenceException>(() => provider.GetFontLineSpacing(null!));
+        Assert.ThrowsExactly<NullReferenceException>(() => provider.GetFontLineSpacing(null!));
     }
 
     #region Helper Methods

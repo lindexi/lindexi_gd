@@ -67,7 +67,7 @@ abstract class ArrangingLayoutProvider
         {
             return UpdateLayoutInner(updateLayoutContext);
         }
-        catch (TextEditorDebugException e)
+        catch (TextEditorDebugException)
         {
             // 调试下再给一次机会
             IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;

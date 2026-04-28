@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Document;
+using System;
 
 namespace LightTextEditorPlus;
 
@@ -30,6 +31,7 @@ partial class SkiaTextEditor
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplaceRun"/>
     public void EditAndReplaceRun(SkiaTextRun textRun, Selection? selection = null)
     {
+        ArgumentNullException.ThrowIfNull(textRun);
         TextEditorCore.EditAndReplaceRun(textRun, selection);
     }
 

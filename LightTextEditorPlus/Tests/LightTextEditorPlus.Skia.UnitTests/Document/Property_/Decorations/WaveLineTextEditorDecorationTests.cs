@@ -29,188 +29,6 @@ namespace LightTextEditorPlus.Document.Decorations.UnitTests;
 [TestClass]
 public class WaveLineTests
 {
-    /// <summary>
-    /// Tests that DrawWaveLine draws a valid wave between two points with default properties.
-    /// This test cannot execute until WaveLine is made accessible from external assemblies.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_ValidPointsWithDefaultProperties_DrawsWaveLine()
-    {
-        // Arrange
-        // Cannot instantiate file-scoped WaveLine struct from external assembly
-
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests that DrawWaveLine handles identical start and end points (distance = 0).
-    /// Expected behavior: Should handle gracefully, potentially drawing no waves or a point.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_IdenticalStartAndEndPoints_HandlesGracefully()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with very small distance between points.
-    /// Expected behavior: Should calculate and draw proportionally small waves.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_VerySmallDistance_DrawsProportionalWaves()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with very large distance between points.
-    /// Expected behavior: Should calculate and draw many waves without overflow.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_VeryLargeDistance_DrawsManyWaves()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with WaveLength set to zero.
-    /// Expected behavior: May cause division by zero or infinite loop in wave calculation.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_ZeroWaveLength_HandlesEdgeCase()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with negative WaveLength value.
-    /// Expected behavior: Should either throw exception or handle gracefully.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_NegativeWaveLength_HandlesInvalidInput()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with WaveHeight set to zero.
-    /// Expected behavior: Should draw a straight line with no wave amplitude.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_ZeroWaveHeight_DrawsStraightLine()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with negative WaveHeight value.
-    /// Expected behavior: Should either throw exception or draw inverted waves.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_NegativeWaveHeight_HandlesInvalidInput()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with CurveSquaring set to zero.
-    /// Expected behavior: Should affect bezier curve control point lengths.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_ZeroCurveSquaring_ModifiesCurveShape()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with CurveSquaring set to negative value.
-    /// Expected behavior: Should either throw exception or produce unusual curve shapes.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_NegativeCurveSquaring_HandlesInvalidInput()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with double.NaN coordinates in start or end points.
-    /// Expected behavior: Should throw exception or handle invalid coordinates.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_NaNCoordinates_HandlesInvalidInput()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with double.PositiveInfinity coordinates.
-    /// Expected behavior: Should throw exception or handle infinite coordinates.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_InfiniteCoordinates_HandlesInvalidInput()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with extremely large coordinate values.
-    /// Expected behavior: Should handle without overflow in distance calculations.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_ExtremelyLargeCoordinates_HandlesWithoutOverflow()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with various angles between points (horizontal, vertical, diagonal).
-    /// Expected behavior: Should correctly calculate and draw waves at any angle.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_VariousAngles_DrawsCorrectlyOrientedWaves()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
-
-    /// <summary>
-    /// Tests DrawWaveLine with custom property values for WaveLength, WaveHeight, and CurveSquaring.
-    /// Expected behavior: Should draw waves according to custom specifications.
-    /// </summary>
-    [TestMethod]
-    public void DrawWaveLine_CustomPropertyValues_DrawsCustomWaves()
-    {
-        Assert.Inconclusive(
-            "Cannot test file-scoped WaveLine struct. " +
-            "Remove 'file' modifier from struct declaration to enable testing.");
-    }
 }
 
 /// <summary>
@@ -240,7 +58,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(charCount);
+        var charDataList = CreateCharDataList(charCount, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -278,7 +96,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(10, 20, 100, 30);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -317,7 +135,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -356,7 +174,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(5);
+        var charDataList = CreateCharDataList(5, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -395,7 +213,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(3);
+        var charDataList = CreateCharDataList(3, runProperty);
         var bounds = new TextRect(0, 0, 100, 0);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -433,7 +251,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(2);
+        var charDataList = CreateCharDataList(2, runProperty);
         var bounds = new TextRect(0, 0, 100, double.MaxValue / 10);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -471,7 +289,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(4);
+        var charDataList = CreateCharDataList(4, runProperty);
         var bounds = new TextRect(-100, -50, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -509,7 +327,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(0);
+        var charDataList = CreateCharDataList(0, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -550,7 +368,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(0, 0, 100, 20);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -588,7 +406,7 @@ public partial class WaveLineTextEditorDecorationTests
         using var canvas = new SKCanvas(bitmap);
         var paint = new SKPaint();
 
-        var charDataList = CreateCharDataList(1);
+        var charDataList = CreateCharDataList(1, runProperty);
         var bounds = new TextRect(0, 0, 100, 0.001);
         var argument = new BuildDecorationArgument(
             runProperty,
@@ -629,12 +447,12 @@ public partial class WaveLineTextEditorDecorationTests
     /// <summary>
     /// Helper method to create a TextReadOnlyListSpan with the specified count of CharData items.
     /// </summary>
-    private static TextReadOnlyListSpan<CharData> CreateCharDataList(int count)
+    private static TextReadOnlyListSpan<CharData> CreateCharDataList(int count, IReadOnlyRunProperty runProperty)
     {
         var list = new List<CharData>();
         for (int i = 0; i < count; i++)
         {
-            list.Add(default);
+            list.Add(new CharData(new SingleCharObject('a'), runProperty));
         }
 
         return new TextReadOnlyListSpan<CharData>(list);

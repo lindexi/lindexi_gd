@@ -43,6 +43,8 @@ class RenderManager
     public ITextEditorCaretAndSelectionRenderSkiaRenderer BuildCaretAndSelectionRender
         (RenderInfoProvider renderInfoProvider, in Selection selection, in CaretAndSelectionRenderContext renderContext)
     {
+        ArgumentNullException.ThrowIfNull(renderInfoProvider);
+
         if (selection.IsEmpty)
         {
             // 无选择，只有光标
