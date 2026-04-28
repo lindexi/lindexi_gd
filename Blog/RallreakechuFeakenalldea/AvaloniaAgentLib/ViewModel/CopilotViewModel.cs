@@ -184,14 +184,24 @@ public class CopilotViewModel : INotifyPropertyChanged
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
             List<AITool>? toolList = ResolveTools(tools);
-            ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
-            {
-                ChatOptions = new ChatOptions()
+            ChatClientAgent chatClientAgent = chatClient.AsBuilder()
+                .UseFunctionInvocation(configure: functionInvokingChatClient =>
                 {
-                    Tools = toolList,
-                    ToolMode = toolList is { Count: > 0 } ? toolMode : null,
-                }
-            });
+                    functionInvokingChatClient.FunctionInvoker = (context, token) =>
+                    {
+                        // 写入属性，即可在调用函数之后退出
+                        context.Terminate = true;
+                        return context.Function.InvokeAsync(context.Arguments, token);
+                    };
+                })
+                .BuildAIAgent(new ChatClientAgentOptions()
+                {
+                    ChatOptions = new ChatOptions()
+                    {
+                        Tools = toolList,
+                        ToolMode = toolList is { Count: > 0 } ? toolMode : null,
+                    }
+                });
 
             ChatMessage[] messages = withHistory
                 ?
