@@ -82,8 +82,11 @@
                         Click="SearchFolderButton_OnClick">搜索文件夹</Button>
                 <TextBlock x:Name="FindStatusTextBlock"
                            Grid.Column="5"
+                           IsVisible="False"
                            Classes="FindReplaceStatusTextBlock"
-                           Text="{Binding SearchStatusText}" />
+                           Text="{Binding SearchStatusText}" >
+                    <!-- 在状态栏显示了，就不要占用这里的空间 -->
+                </TextBlock>
                 <Button x:Name="CloseFindReplaceButton"
                         Grid.Column="6"
                         Classes="InteractiveButton FindReplaceButton"
