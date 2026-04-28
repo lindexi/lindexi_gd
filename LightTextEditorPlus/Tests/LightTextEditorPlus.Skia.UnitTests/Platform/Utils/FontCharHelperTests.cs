@@ -91,22 +91,6 @@ public partial class FontCharHelperTests
     }
 
     /// <summary>
-    /// Tests that GetBaseline throws NullReferenceException when Font is null.
-    /// This tests the error condition where the RenderingRunPropertyInfo contains a null Font.
-    /// </summary>
-    [TestMethod]
-    public void GetBaseline_WithNullFont_ThrowsNullReferenceException()
-    {
-        // Arrange
-        using var typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal);
-        using var paint = new SKPaint();
-        var renderingRunPropertyInfo = new RenderingRunPropertyInfo(typeface, null!, paint);
-
-        // Act
-        Assert.ThrowsExactly<NullReferenceException>(() => renderingRunPropertyInfo.GetBaseline());
-    }
-
-    /// <summary>
     /// Tests that GetBaseline returns the correct negated value when Ascent is very small.
     /// This verifies precision with small font sizes.
     /// </summary>

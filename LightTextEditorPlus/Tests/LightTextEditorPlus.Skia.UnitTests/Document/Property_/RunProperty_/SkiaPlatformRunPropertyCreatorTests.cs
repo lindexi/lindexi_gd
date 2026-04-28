@@ -20,21 +20,6 @@ namespace LightTextEditorPlus.Document.UnitTests;
 public class SkiaPlatformRunPropertyCreatorTests
 {
     /// <summary>
-    /// Helper class to expose protected methods for testing.
-    /// </summary>
-    private class TestableSkiaPlatformRunPropertyCreator : SkiaPlatformRunPropertyCreator
-    {
-        public TestableSkiaPlatformRunPropertyCreator(SkiaPlatformResourceManager skiaPlatformResourceManager, SkiaTextEditor textEditor) : base(skiaPlatformResourceManager, textEditor)
-        {
-        }
-
-        public SkiaTextRunProperty PublicOnUpdateMarkerRunProperty(SkiaTextRunProperty? markerRunProperty, SkiaTextRunProperty styleRunProperty)
-        {
-            return OnUpdateMarkerRunProperty(markerRunProperty, styleRunProperty);
-        }
-    }
-
-    /// <summary>
     /// Tests that ToPlatformRunProperty returns the SkiaTextRunProperty directly when
     /// the ResourceManager matches and charObject is null.
     /// </summary>

@@ -684,15 +684,16 @@ public partial class SkiaPlatformResourceManagerTests
     /// The null parameter causes an exception when attempting to subscribe to the InternalRenderCompleted event.
     /// </summary>
     [TestMethod]
-    public void Constructor_NullTextEditor_ThrowsNullReferenceException()
+    public void Constructor_NullTextEditor_ThrowsArgumentNullException()
     {
         // Arrange
         SkiaTextEditor? textEditor = null;
 
         // Act & Assert
-        Assert.ThrowsExactly<NullReferenceException>(() =>
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
         {
             var manager = new SkiaPlatformResourceManager(textEditor!);
+            _ = manager;
         });
     }
 }

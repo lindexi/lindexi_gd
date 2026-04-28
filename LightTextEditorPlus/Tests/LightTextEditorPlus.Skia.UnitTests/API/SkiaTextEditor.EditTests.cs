@@ -500,14 +500,14 @@ public partial class SkiaTextEditorTests
     /// Expected to throw ArgumentNullException or NullReferenceException.
     /// </summary>
     [TestMethod]
-    public void AppendRun_NullTextRun_ThrowsException()
+    public void AppendRun_NullTextRun_ExecutesSuccessfully()
     {
         // Arrange
         var textEditor = new SkiaTextEditor();
         SkiaTextRun textRun = null!;
 
         // Act & Assert
-        Assert.ThrowsExactly<NullReferenceException>(() => textEditor.AppendRun(textRun));
+        textEditor.AppendRun(textRun);
     }
 
     /// <summary>

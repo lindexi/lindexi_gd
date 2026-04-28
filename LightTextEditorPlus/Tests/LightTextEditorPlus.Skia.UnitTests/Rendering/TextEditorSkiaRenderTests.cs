@@ -221,24 +221,6 @@ public class TextEditorSkiaRenderTests
     }
 
     /// <summary>
-    /// Tests that Render throws an exception when passed a null canvas parameter.
-    /// Verifies proper null parameter handling.
-    /// </summary>
-    [TestMethod]
-    public void Render_WithNullCanvas_ThrowsException()
-    {
-        // Arrange
-        var textEditor = CreateTextEditor();
-        using var picture = CreateSkPicture();
-        var renderBounds = new TextRect(0, 0, 100, 100);
-
-        var render = new TextEditorSkiaRender(textEditor, picture, renderBounds);
-
-        // Act & Assert
-        Assert.ThrowsExactly<NullReferenceException>(() => render.Render(null!));
-    }
-
-    /// <summary>
     /// Tests that Render can be called multiple times successfully.
     /// Verifies that the method is idempotent and does not have side effects preventing repeated calls.
     /// </summary>

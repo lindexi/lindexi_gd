@@ -33,6 +33,12 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void AppendRun(IImmutableRun run)
     {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (run is null || run.Count == 0)
+        {
+            // 保持和 AppendText 相同行为，传入 null 或空文本都不进行任何操作
+            return;
+        }
         AddLayoutReason($"TextEditorCore.AppendRun(IImmutableRun run = {run})");
         DocumentManager.AppendText(run);
     }
