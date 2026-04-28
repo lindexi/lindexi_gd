@@ -37,6 +37,16 @@ partial class TextEditor
     /// <param name="selection"></param>
     public Selection Select(in Selection selection) => CurrentSelection = selection;
 
+    /// <summary>
+    /// 按键盘选择类型扩展当前选择范围
+    /// </summary>
+    /// <param name="selectionType"></param>
+    public Selection Select(SelectionType selectionType)
+    {
+        TextEditorCore.Select(selectionType);
+        return CurrentSelection;
+    }
+
     #region 光标事件
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.CurrentCaretOffsetChanging"/>

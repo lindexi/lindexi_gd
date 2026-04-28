@@ -263,6 +263,12 @@ public partial class TextEditorHandler
         TextEditor.TextEditorCore.MoveCaret(type);
     }
 
+    protected internal virtual partial void Select(SelectionType type)
+    {
+        type = TransformSelectionType(type);
+        TextEditor.Select(type);
+    }
+
     /// <summary>
     /// 根据文本框实际的视觉上的旋转角度，优化键盘方向。让键盘方向控制的光标符合正视觉方向
     /// </summary>
@@ -272,6 +278,13 @@ public partial class TextEditorHandler
     private CaretMoveType TransformCaretMove(CaretMoveType type)
     {
         CaretMoveType returnValue = (CaretMoveType) CaretTransformDirectionHelper.TransformDirection((int) type, TextEditor);
+
+        return returnValue;
+    }
+
+    private SelectionType TransformSelectionType(SelectionType type)
+    {
+        SelectionType returnValue = (SelectionType) CaretTransformDirectionHelper.TransformDirection((int) type, TextEditor);
 
         return returnValue;
     }

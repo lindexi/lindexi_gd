@@ -359,6 +359,12 @@ public partial class TextEditorHandler
     protected internal virtual partial void MoveCaret(CaretMoveType type);
 
     /// <summary>
+    /// 扩展选择范围
+    /// </summary>
+    /// <param name="type"></param>
+    protected internal virtual partial void Select(SelectionType type);
+
+    /// <summary>
     /// 全选
     /// </summary>
     protected internal void OnSelectAll()

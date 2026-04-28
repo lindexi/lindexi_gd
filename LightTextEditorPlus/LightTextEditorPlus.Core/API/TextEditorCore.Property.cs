@@ -286,6 +286,41 @@ partial class TextEditorCore
     public void Select(in Selection selection) => CaretManager.SetSelection(in selection);
 
     /// <summary>
+    /// 按键盘选择类型扩展当前选择范围
+    /// </summary>
+    /// <param name="selectionType"></param>
+    [TextEditorPublicAPI]
+    public void Select(SelectionType selectionType)
+    {
+        if (CheckFeaturesDisableWithLog(TextFeatures.SelectionEnable))
+        {
+            return;
+        }
+
+        var currentSelection = CaretManager.CurrentSelection;
+        var selectionAnchor = currentSelection.IsEmpty ? CaretManager.CurrentCaretOffset : currentSelection.StartOffset;
+        var currentCaretOffset = CaretManager.CurrentCaretOffset;
+        var caretMoveType = selectionType switch
+        {
+            SelectionType.LeftByCharacter or SelectionType.ShiftLeft => CaretMoveType.LeftByCharacter,
+            SelectionType.RightByCharacter or SelectionType.ShiftRight => CaretMoveType.RightByCharacter,
+            SelectionType.LeftByWord or SelectionType.ControlShiftLeft => CaretMoveType.LeftByWord,
+            SelectionType.RightByWord or SelectionType.ControlShiftRight => CaretMoveType.RightByWord,
+            SelectionType.UpByLine or SelectionType.ShiftUp => CaretMoveType.UpByLine,
+            SelectionType.DownByLine or SelectionType.ShiftDown => CaretMoveType.DownByLine,
+            SelectionType.LineStart => CaretMoveType.LineStart,
+            SelectionType.LineEnd => CaretMoveType.LineEnd,
+            SelectionType.DocumentStart => CaretMoveType.DocumentStart,
+            SelectionType.DocumentEnd => CaretMoveType.DocumentEnd,
+            _ => throw new ArgumentOutOfRangeException(nameof(selectionType), selectionType, null)
+        };
+
+        var selectionEnd = KeyboardCaretNavigationHelper.GetNewCaretOffset(this, caretMoveType, currentCaretOffset,
+            ignoreCurrentSelection: true);
+        CaretManager.SetSelection(new Selection(selectionAnchor, selectionEnd));
+    }
+
+    /// <summary>
     /// 移动光标。如已知 <see cref="CaretOffset"/> 可直接给 <see cref="CurrentCaretOffset"/> 属性赋值
     /// </summary>
     /// <param name="type"></param>
