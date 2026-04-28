@@ -27,7 +27,7 @@ public class AgentApiEndpointManager
     {
         var openAiClient = new OpenAIClient(new ApiKeyCredential(apiEndpoint.Key), new OpenAIClientOptions()
         {
-            Endpoint = new Uri(apiEndpoint.EndPoint),
+            Endpoint = new Uri(apiEndpoint.EndPoint)
         });
 
         ChatClient chatClient = openAiClient.GetChatClient(apiEndpoint.ModelName);
