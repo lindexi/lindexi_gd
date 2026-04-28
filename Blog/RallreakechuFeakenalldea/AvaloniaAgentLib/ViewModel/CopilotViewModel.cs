@@ -116,9 +116,7 @@ public class CopilotViewModel : INotifyPropertyChanged
 
     public void CreateNewSession()
     {
-        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
-        AddAssistantWelcomeMessage(session);
-        ChatSessions.Insert(0, session);
+        CopilotChatSession session = FindReusableEmptySession() ?? CreateSession();
         SelectedSession = session;
     }
 
@@ -285,6 +283,25 @@ public class CopilotViewModel : INotifyPropertyChanged
         }
 
         return _toolManager.CreateDefaultTools().ToList();
+    }
+
+    private CopilotChatSession CreateSession()
+    {
+        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        AddAssistantWelcomeMessage(session);
+        ChatSessions.Insert(0, session);
+        return session;
+    }
+
+    private CopilotChatSession? FindReusableEmptySession()
+    {
+        return ChatSessions.FirstOrDefault(IsEmptySession);
+    }
+
+    private static bool IsEmptySession(CopilotChatSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return session.ChatMessages.Count < 2 && session.ChatMessages.All(chatMessage => chatMessage.IsPresetInfo);
     }
 
     private async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage,

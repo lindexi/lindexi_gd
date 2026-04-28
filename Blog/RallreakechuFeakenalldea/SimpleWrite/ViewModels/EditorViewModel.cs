@@ -98,6 +98,8 @@ public class EditorViewModel : ViewModelBase
         set
         {
             if (Equals(value, _currentEditorModel)) return;
+
+            UpdateLastLocalDocumentDirectory(_currentEditorModel);
             _currentEditorModel = value;
 
             if (value.TextEditor is null)
@@ -115,6 +117,8 @@ public class EditorViewModel : ViewModelBase
     }
 
     private EditorModel _currentEditorModel = new EditorModel();
+
+    private DirectoryInfo? _lastLocalDocumentDirectory;
 
     public event EventHandler? EditorModelChanged;
 
@@ -307,7 +311,8 @@ public class EditorViewModel : ViewModelBase
             return false;
         }
 
-        var saveFile = await FilePickerHandler.PickSaveFileAsync();
+        var suggestedStartLocation = editorModel.FileInfo?.Directory ?? _lastLocalDocumentDirectory;
+        var saveFile = await FilePickerHandler.PickSaveFileAsync(suggestedStartLocation);
         if (saveFile is null)
         {
             SetSaveStatus(editorModel, previousSaveStatus);
@@ -315,6 +320,7 @@ public class EditorViewModel : ViewModelBase
         }
 
         editorModel.FileInfo = saveFile;
+        UpdateLastLocalDocumentDirectory(editorModel);
         await SaveEditorModelToFileAsync(editorModel, saveFile).ConfigureAwait(false);
         SetSaveStatus(editorModel, SaveStatus.Saved);
         await TempDocumentAutoSaveService.FlushAsync(editorModel).ConfigureAwait(false);
@@ -570,6 +576,14 @@ public class EditorViewModel : ViewModelBase
     private void SetSaveStatus(EditorModel editorModel, SaveStatus saveStatus)
     {
         editorModel.SaveStatus = saveStatus;
+    }
+
+    private void UpdateLastLocalDocumentDirectory(EditorModel? editorModel)
+    {
+        if (editorModel?.FileInfo?.Directory is { } directory)
+        {
+            _lastLocalDocumentDirectory = directory;
+        }
     }
 
     private TempDocumentAutoSaveService TempDocumentAutoSaveService =>

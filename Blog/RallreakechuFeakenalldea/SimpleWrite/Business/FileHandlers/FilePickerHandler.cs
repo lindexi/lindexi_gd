@@ -14,11 +14,17 @@ class FilePickerHandler : IFilePickerHandler
 
     private readonly TopLevel _topLevel;
 
-    public async Task<FileInfo?> PickSaveFileAsync()
+    public async Task<FileInfo?> PickSaveFileAsync(DirectoryInfo? suggestedStartLocation = null)
     {
         var filePickerSaveOptions = new FilePickerSaveOptions()
         {
         };
+
+        if (suggestedStartLocation is not null)
+        {
+            filePickerSaveOptions.SuggestedStartLocation = await _topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedStartLocation.FullName);
+        }
+
         var pickResult = await _topLevel.StorageProvider.SaveFilePickerAsync(filePickerSaveOptions);
         var localFilePath = pickResult?.TryGetLocalPath();
         if (localFilePath is null)

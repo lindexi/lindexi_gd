@@ -29,3 +29,5 @@
 
 - 快捷键触发异步方法时，显式丢弃返回任务（`_ = ...`），避免编译器告警。
 - `CloseCurrentDocument` 需保证始终至少保留一个可编辑标签，避免 UI 落入无文档状态。
+- 标签切换如果命中了已关联本地文件的文档，可顺手记录其目录到 `EditorViewModel`。这样无本地路径的草稿标签在执行 `Ctrl+S` / `Ctrl+Shift+S` 时，保存对话框就能优先落到用户最近一次工作目录。
+- 文件选择器抽象如果要支持“默认打开到某个文件夹”，优先继续在 `IFilePickerHandler` 上扩展可选参数，再由 `FilePickerHandler` 使用 Avalonia `SuggestedStartLocation` 落地，避免让 ViewModel 直接感知 `TopLevel` 或 `StorageProvider`。
