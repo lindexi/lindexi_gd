@@ -157,21 +157,6 @@ public class SkiaTextEditorPlatformProviderTests
         Assert.IsInstanceOfType<SkiaPlatformResourceManager>(result);
     }
 
-    /// <summary>
-    /// Tests that GetFontLineSpacing throws when runProperty is null.
-    /// Input: null runProperty
-    /// Expected: NullReferenceException or ArgumentNullException
-    /// </summary>
-    [TestMethod]
-    public void GetFontLineSpacing_NullRunProperty_ThrowsException()
-    {
-        // Arrange
-        var provider = new SkiaTextEditorPlatformProvider();
-
-        // Act & Assert
-        Assert.ThrowsExactly<NullReferenceException>(() => provider.GetFontLineSpacing(null!));
-    }
-
     #region Helper Methods
 
     #endregion

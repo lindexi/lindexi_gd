@@ -36,6 +36,7 @@ public class SkiaPlatformResourceManager :
     /// <param name="textEditor"></param>
     public SkiaPlatformResourceManager(SkiaTextEditor textEditor)
     {
+        ArgumentNullException.ThrowIfNull(textEditor);
         SkiaTextEditor = textEditor;
         textEditor.InternalRenderCompleted += TextEditor_InternalRenderCompleted;
     }

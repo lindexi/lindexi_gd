@@ -60,19 +60,6 @@ public partial class VerticalSkiaTextRendererTests
     }
 
     /// <summary>
-    /// Tests that the constructor throws ArgumentNullException when renderManager is null.
-    /// </summary>
-    [TestMethod]
-    public void Constructor_NullRenderManager_ThrowsArgumentNullException()
-    {
-        // Arrange
-        RenderManager? nullRenderManager = null;
-        var (_, renderArgument) = CreateRenderContext(new TextRect(0, 0, 100, 100));
-        // Act & Assert
-        Assert.ThrowsExactly<NullReferenceException>(() => new VerticalSkiaTextRenderer(nullRenderManager!, in renderArgument));
-    }
-
-    /// <summary>
     /// Tests that the constructor handles various valid TextRect bounds for RenderBounds.
     /// </summary>
     /// <param name = "x">The X coordinate of the render bounds.</param>

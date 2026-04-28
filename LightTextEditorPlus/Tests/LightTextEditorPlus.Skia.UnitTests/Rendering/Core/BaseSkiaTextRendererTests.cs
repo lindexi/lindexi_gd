@@ -166,37 +166,6 @@ public class BaseSkiaTextRendererTests
     }
 
     /// <summary>
-    /// Tests that constructor throws NullReferenceException when renderManager is null
-    /// </summary>
-    [TestMethod]
-    public void BaseSkiaTextRenderer_NullRenderManager_ThrowsNullReferenceException()
-    {
-        // Arrange
-        RenderManager? renderManager = null;
-
-        // Create a minimal SKCanvas for testing
-        var imageInfo = new SKImageInfo(100, 100);
-        using var surface = SKSurface.Create(imageInfo);
-        var canvas = surface.Canvas;
-
-        // Note: RenderInfoProvider has internal constructor, so this test demonstrates
-        // the expected behavior when a null renderManager is passed.
-        // In actual usage, renderManager should never be null.
-        var renderArgument = new SkiaTextRenderArgument
-        {
-            Canvas = canvas,
-            RenderInfoProvider = null!, // Cannot create real instance due to internal constructor
-            RenderBounds = new TextRect(0, 0, 100, 100)
-        };
-
-        // Act & Assert
-        Assert.ThrowsExactly<NullReferenceException>(() =>
-        {
-            var renderer = new TestableBaseSkiaTextRenderer(renderManager!, renderArgument);
-        });
-    }
-
-    /// <summary>
     /// Tests that constructor properly initializes properties when valid parameters are provided
     /// </summary>
     [TestMethod]

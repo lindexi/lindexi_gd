@@ -213,7 +213,13 @@ public class SkiaImmutableRunTests
         // Assert
         Assert.IsNotNull(run);
         Assert.AreEqual(runProperty, run.RunProperty);
-        Assert.ThrowsExactly<NullReferenceException>(() => { var count = run.Count; });
+        Assert.ThrowsExactly<NullReferenceException>(() =>
+        {
+            // 这个 NullReferenceException 是 ImmutableArray 的不良实现导致的
+            // https://github.com/dotnet/runtime/issues/115104
+            var count = run.Count;
+            _ = count;
+        });
     }
 
     /// <summary>

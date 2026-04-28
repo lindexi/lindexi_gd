@@ -250,7 +250,7 @@ public class RenderManagerTests
         textEditor.AppendText("Hello World");
         
         var renderManager = new RenderManager(textEditor);
-        var selection = new Selection(new CaretOffset(0), 5); // Select "Hello"
+        var selection = new Selection(new CaretOffset(0), "Hello".Length); // Select "Hello"
         var renderContext = new CaretAndSelectionRenderContext(false);
         
         RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();

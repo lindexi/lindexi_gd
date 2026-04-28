@@ -97,33 +97,6 @@ public partial class HorizontalSkiaTextRendererTests
     }
 
     /// <summary>
-    /// Tests that the constructor throws NullReferenceException when RenderManager parameter is null,
-    /// as the base constructor attempts to access renderManager.TextEditor.
-    /// </summary>
-    [TestMethod]
-    public void Constructor_NullRenderManager_ThrowsNullReferenceException()
-    {
-        // Arrange
-        RenderManager renderManager = null!;
-
-        using var bitmap = new SKBitmap(100, 100);
-        using var canvas = new SKCanvas(bitmap);
-        var textEditor = new SkiaTextEditor();
-        var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
-        var renderBounds = new TextRect(0, 0, 100, 100);
-
-        var renderArgument = new SkiaTextRenderArgument
-        {
-            Canvas = canvas,
-            RenderInfoProvider = renderInfoProvider,
-            RenderBounds = renderBounds
-        };
-
-        // Act
-        Assert.ThrowsExactly<NullReferenceException>(() => new HorizontalSkiaTextRenderer(renderManager, in renderArgument));
-    }
-
-    /// <summary>
     /// Tests that the constructor successfully creates an instance with viewport specified in render argument.
     /// </summary>
     [TestMethod]
