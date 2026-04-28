@@ -60,6 +60,26 @@ public class TextEditorHandlerTest
         });
     }
 
+    [TestMethod("键盘 Shift + Right 处理应通过处理器扩展选择")]
+    public async Task ShiftRightShouldExtendSelectionFromHandler()
+    {
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "abcdefg";
+            await textEditor.WaitForRenderCompletedAsync();
+
+            var startOffset = new CaretOffset(2);
+            textEditor.CurrentCaretOffset = startOffset;
+            var handler = new TestTextEditorHandler(textEditor);
+
+            handler.Select(SelectionType.ShiftRight);
+
+            Assert.AreEqual(new Selection(startOffset, new CaretOffset(3)), textEditor.CurrentSelection);
+        });
+    }
+
     private static TextPoint GetClickPoint(TextEditor textEditor, CaretOffset caretOffset)
     {
         RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
@@ -71,6 +91,11 @@ public class TextEditorHandlerTest
         public bool SingleClick(in TextPoint clickPoint, bool isExtendSelection)
         {
             return HandleSingleClick(clickPoint, isExtendSelection);
+        }
+
+        public new void Select(SelectionType selectionType)
+        {
+            base.Select(selectionType);
         }
     }
 }

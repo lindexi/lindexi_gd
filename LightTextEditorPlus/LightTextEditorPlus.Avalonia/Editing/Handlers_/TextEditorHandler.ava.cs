@@ -238,6 +238,42 @@ public partial class TextEditorHandler
                 return;
             }
         }
+        else if (e.KeyModifiers == KeyModifiers.Shift)
+        {
+            if (e.Key == Key.Up)
+            {
+                Select(SelectionType.ShiftUp);
+                return;
+            }
+            else if (e.Key == Key.Down)
+            {
+                Select(SelectionType.ShiftDown);
+                return;
+            }
+            else if (e.Key == Key.Left)
+            {
+                Select(SelectionType.ShiftLeft);
+                return;
+            }
+            else if (e.Key == Key.Right)
+            {
+                Select(SelectionType.ShiftRight);
+                return;
+            }
+        }
+        else if (e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
+        {
+            if (e.Key == Key.Left)
+            {
+                Select(SelectionType.ControlShiftLeft);
+                return;
+            }
+            else if (e.Key == Key.Right)
+            {
+                Select(SelectionType.ControlShiftRight);
+                return;
+            }
+        }
     }
 
     /// <summary>
@@ -265,6 +301,11 @@ public partial class TextEditorHandler
     protected internal virtual partial void MoveCaret(CaretMoveType type)
     {
         TextEditor.TextEditorCore.MoveCaret(type);
+    }
+
+    protected internal virtual partial void Select(SelectionType type)
+    {
+        TextEditor.TextEditorCore.Select(type);
     }
 
     #endregion 方向键

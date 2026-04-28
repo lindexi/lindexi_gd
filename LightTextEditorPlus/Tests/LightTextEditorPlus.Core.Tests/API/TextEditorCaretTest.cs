@@ -235,4 +235,71 @@ public class TextEditorCaretTest
             Assert.AreEqual("abc| 123".IndexOf('|'), textEditor.CurrentCaretOffset.Offset);
         });
     }
+
+    [ContractTestCase]
+    public void TestSelectByKeyboard()
+    {
+        "[SelectByKeyboard] 传入 ShiftRight，应该从当前光标扩展一个字符".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abc");
+            var startOffset = new CaretOffset(1);
+            textEditor.CurrentCaretOffset = startOffset;
+
+            // Action
+            textEditor.Select(SelectionType.ShiftRight);
+
+            // Assert
+            Assert.AreEqual(new Selection(startOffset, new CaretOffset(2)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset(2), textEditor.CurrentCaretOffset);
+        });
+
+        "[SelectByKeyboard] 已有反向选择时，继续 ShiftRight 应保持原锚点".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abcdef");
+            textEditor.CurrentSelection = new Selection(new CaretOffset(4), new CaretOffset(2));
+
+            // Action
+            textEditor.Select(SelectionType.ShiftRight);
+
+            // Assert
+            Assert.AreEqual(new Selection(new CaretOffset(4), new CaretOffset(3)), textEditor.CurrentSelection);
+            Assert.AreEqual(new CaretOffset(3), textEditor.CurrentCaretOffset);
+        });
+
+        "[SelectByKeyboard] 传入 ControlShiftRight，应该向右选择整个单词".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abc 123");
+            var startOffset = new CaretOffset(0);
+            textEditor.CurrentCaretOffset = startOffset;
+
+            // Action
+            textEditor.Select(SelectionType.ControlShiftRight);
+
+            // Assert
+            Assert.AreEqual(new Selection(startOffset, new CaretOffset("abc".Length)), textEditor.CurrentSelection);
+        });
+
+        "[SelectByKeyboard] 传入 ControlShiftLeft，应该向左选择整个单词".Test(() =>
+        {
+            // Arrange
+            TextEditorCore textEditor = TestHelper.GetLayoutTestTextEditor();
+            textEditor.AppendText("abc 123");
+            var startOffset = new CaretOffset("abc 123".Length);
+            textEditor.CurrentCaretOffset = startOffset;
+
+            // Action
+            textEditor.Select(SelectionType.ControlShiftLeft);
+
+            // Assert
+            Assert.AreEqual("abc ".Length, textEditor.CurrentSelection.FrontOffset.Offset);
+            Assert.AreEqual("abc 123".Length, textEditor.CurrentSelection.BehindOffset.Offset);
+            Assert.AreEqual("abc ".Length, textEditor.CurrentCaretOffset.Offset);
+        });
+    }
 }

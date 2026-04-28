@@ -26,8 +26,17 @@ internal class KeyboardHandler
         Add(Key.Up, EditingCommands.MoveUpByLine, MoveCaret(CaretMoveType.UpByLine));
         Add(Key.Down, EditingCommands.MoveDownByLine, MoveCaret(CaretMoveType.DownByLine));
 
+        Add(Key.Left, ModifierKeys.Shift, EditingCommands.SelectLeftByCharacter, Select(SelectionType.ShiftLeft));
+        Add(Key.Right, ModifierKeys.Shift, EditingCommands.SelectRightByCharacter, Select(SelectionType.ShiftRight));
+        Add(Key.Up, ModifierKeys.Shift, EditingCommands.SelectUpByLine, Select(SelectionType.ShiftUp));
+        Add(Key.Down, ModifierKeys.Shift, EditingCommands.SelectDownByLine, Select(SelectionType.ShiftDown));
+
         Add(Key.Left, ModifierKeys.Control, EditingCommands.MoveLeftByWord, MoveCaret(CaretMoveType.LeftByWord));
         Add(Key.Right, ModifierKeys.Control, EditingCommands.MoveRightByWord, MoveCaret(CaretMoveType.RightByWord));
+        Add(Key.Left, ModifierKeys.Control | ModifierKeys.Shift, EditingCommands.SelectLeftByWord,
+            Select(SelectionType.ControlShiftLeft));
+        Add(Key.Right, ModifierKeys.Control | ModifierKeys.Shift, EditingCommands.SelectRightByWord,
+            Select(SelectionType.ControlShiftRight));
 
         Add(Key.Home, EditingCommands.MoveToLineStart, MoveCaret(CaretMoveType.LineStart));
         Add(Key.End, EditingCommands.MoveToLineEnd, MoveCaret(CaretMoveType.LineEnd));
@@ -136,6 +145,14 @@ internal class KeyboardHandler
         {
             //var textEditor = (TextEditor)args.Source; // 就是从 TextEditor 订阅的
             TextEditorHandler.MoveCaret(moveType);
+        };
+    }
+
+    private ExecutedRoutedEventHandler Select(SelectionType selectionType)
+    {
+        return (o, args) =>
+        {
+            TextEditorHandler.Select(selectionType);
         };
     }
 

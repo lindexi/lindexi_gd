@@ -21,6 +21,13 @@ internal static class KeyboardCaretNavigationHelper
     /// <returns></returns>
     public static CaretOffset GetNewCaretOffset(TextEditorCore textEditor, CaretMoveType caretMoveType)
     {
+        return GetNewCaretOffset(textEditor, caretMoveType, textEditor.CaretManager.CurrentCaretOffset,
+            ignoreCurrentSelection: false);
+    }
+
+    public static CaretOffset GetNewCaretOffset(TextEditorCore textEditor, CaretMoveType caretMoveType,
+        CaretOffset currentCaretOffset, bool ignoreCurrentSelection)
+    {
         if (textEditor.IsDirty)
         {
             // 理论上不能进来，必须等待文本布局完成才能进入
@@ -31,44 +38,43 @@ internal static class KeyboardCaretNavigationHelper
         switch (caretMoveType)
         {
             case CaretMoveType.Left:
-                return GetLeftCaretOffset(textEditor);
+                return GetLeftCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.Right:
-                return GetRightCaretOffset(textEditor);
+                return GetRightCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.Up:
-                return GetUpCaretOffset(textEditor);
+                return GetUpCaretOffset(textEditor, currentCaretOffset);
             case CaretMoveType.Down:
-                return GetDownCaretOffset(textEditor);
+                return GetDownCaretOffset(textEditor, currentCaretOffset);
             case CaretMoveType.ControlLeft:
-                return GetCtrlLeftCaretOffset(textEditor);
+                return GetCtrlLeftCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.ControlRight:
-                return GetCtrlRightCaretOffset(textEditor);
+                return GetCtrlRightCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.ControlUp:
                 return GetCtrlUpCaretOffset(textEditor);
             case CaretMoveType.ControlDown:
                 return GetCtrlDownCaretOffset(textEditor);
             case CaretMoveType.LeftByCharacter:
-                return GetPreviousCharacterCaretOffset(textEditor);
+                return GetPreviousCharacterCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.RightByCharacter:
-                return GetNextCharacterCaretOffset(textEditor);
+                return GetNextCharacterCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.LeftByWord:
-                return GetPreviousWordCaretOffset(textEditor);
+                return GetPreviousWordCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.RightByWord:
-                return GetNextWordCaretOffset(textEditor);
+                return GetNextWordCaretOffset(textEditor, currentCaretOffset, ignoreCurrentSelection);
             case CaretMoveType.UpByLine:
-                return GetPreviousLineCaretOffset(textEditor);
+                return GetPreviousLineCaretOffset(textEditor, currentCaretOffset);
             case CaretMoveType.DownByLine:
-                return GetNextLineCaretOffset(textEditor);
+                return GetNextLineCaretOffset(textEditor, currentCaretOffset);
             case CaretMoveType.LineStart:
-                return GetLineStartCaretOffset(textEditor);
+                return GetLineStartCaretOffset(textEditor, currentCaretOffset);
             case CaretMoveType.LineEnd:
-                return GetLineEndCaretOffset(textEditor);
+                return GetLineEndCaretOffset(textEditor, currentCaretOffset);
             case CaretMoveType.DocumentStart:
                 return GetDocumentStartCaretOffset(textEditor);
             case CaretMoveType.DocumentEnd:
                 return GetDocumentEndCaretOffset(textEditor);
             default:
-                // 不知道传入啥，那就返回当前的光标即可
-                return textEditor.CaretManager.CurrentCaretOffset;
+                return currentCaretOffset;
         }
     }
 
@@ -87,9 +93,8 @@ internal static class KeyboardCaretNavigationHelper
     /// </summary>
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
-    private static CaretOffset GetLineStartCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetLineStartCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
-        var currentCaretOffset = textEditorCore.CaretManager.CurrentCaretOffset;
         var renderInfoProvider = textEditorCore.GetRenderInfo();
         var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
 
@@ -102,9 +107,8 @@ internal static class KeyboardCaretNavigationHelper
     /// </summary>
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
-    private static CaretOffset GetLineEndCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetLineEndCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
-        var currentCaretOffset = textEditorCore.CaretManager.CurrentCaretOffset;
         var renderInfoProvider = textEditorCore.GetRenderInfo();
         var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
 
@@ -118,10 +122,9 @@ internal static class KeyboardCaretNavigationHelper
     /// </summary>
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
-    private static CaretOffset GetNextLineCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetNextLineCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
         // 先获取当前光标是在这一行的哪里，接着将其对应到下一行
-        var currentCaretOffset = textEditorCore.CaretManager.CurrentCaretOffset;
         var renderInfoProvider = textEditorCore.GetRenderInfo();
         var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
 
@@ -167,10 +170,9 @@ internal static class KeyboardCaretNavigationHelper
     /// 123一123
     /// 1231|23
     /// 以上光标向上，需要考虑放在字符 一 的左右
-    private static CaretOffset GetPreviousLineCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetPreviousLineCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
         // 先获取当前光标是在这一行的哪里，接着将其对应到上一行
-        var currentCaretOffset = textEditorCore.CaretManager.CurrentCaretOffset;
         var renderInfoProvider = textEditorCore.GetRenderInfo();
         var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
 
@@ -215,15 +217,16 @@ internal static class KeyboardCaretNavigationHelper
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    private static CaretOffset GetPreviousWordCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetPreviousWordCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
     {
-        var currentSelection = textEditorCore.CaretManager.CurrentSelection;
+        var currentSelection = GetCurrentSelection(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
         if (!currentSelection.IsEmpty)
         {
             return currentSelection.FrontOffset;
         }
 
-        var currentCaretOffset = currentSelection.FrontOffset;
+        currentCaretOffset = currentSelection.FrontOffset;
         if (currentCaretOffset.Offset == 0)
         {
             // 文档开头，不能再往前跳了
@@ -258,7 +261,7 @@ internal static class KeyboardCaretNavigationHelper
         else
         {
             // 不知道什么情况
-            return GetPreviousCharacterCaretOffset(textEditorCore);
+            return GetPreviousCharacterCaretOffset(textEditorCore, currentCaretOffset, ignoreCurrentSelection: true);
         }
     }
 
@@ -267,16 +270,17 @@ internal static class KeyboardCaretNavigationHelper
     /// </summary>
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
-    private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetNextWordCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
     {
-        var currentSelection = textEditorCore.CaretManager.CurrentSelection;
+        var currentSelection = GetCurrentSelection(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
         if (!currentSelection.IsEmpty)
         {
             return currentSelection.BehindOffset;
         }
 
         // 这里 BehindOffset 和 FrontOffset 是一样的。只是取 BehindOffset 更符合逻辑
-        var currentCaretOffset = currentSelection.BehindOffset;
+        currentCaretOffset = currentSelection.BehindOffset;
 
         if (currentCaretOffset.Offset >= textEditorCore.DocumentManager.CharCount)
         {
@@ -301,7 +305,7 @@ internal static class KeyboardCaretNavigationHelper
         {
             Debug.Assert(currentParagraphCharCaret == textParagraph.CharCount, "不可能超过当前段落的字符数量");
             // 已经在段末了，不能再往后跳了。直接去到下一段的开头好了
-            return GetNextCharacterCaretOffset(textEditorCore);
+            return GetNextCharacterCaretOffset(textEditorCore, currentCaretOffset, ignoreCurrentSelection: true);
         }
 
         // 取出这一段的字符列表
@@ -316,7 +320,7 @@ internal static class KeyboardCaretNavigationHelper
         else
         {
             // 不知道什么情况。理论上不应该遇到下一个单词才对
-            return GetPreviousCharacterCaretOffset(textEditorCore);
+            return GetPreviousCharacterCaretOffset(textEditorCore, currentCaretOffset, ignoreCurrentSelection: true);
         }
     }
 
@@ -325,16 +329,17 @@ internal static class KeyboardCaretNavigationHelper
     /// </summary>
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
-    private static CaretOffset GetNextCharacterCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetNextCharacterCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
     {
         //如果有选择，则直接返回选择的BehindOffset
-        var currentSelection = textEditorCore.CaretManager.CurrentSelection;
+        var currentSelection = GetCurrentSelection(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
         //如果当前选择不为空，则直接返回选择的FrontOffset
         if (!currentSelection.IsEmpty)
         {
             return currentSelection.BehindOffset;
         }
-        CaretOffset currentCaretOffset = currentSelection.FrontOffset;
+        currentCaretOffset = currentSelection.FrontOffset;
 
         var newOffset = currentCaretOffset.Offset + 1;
         if (newOffset > textEditorCore.DocumentManager.CharCount)
@@ -352,16 +357,17 @@ internal static class KeyboardCaretNavigationHelper
     /// </summary>
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
-    private static CaretOffset GetPreviousCharacterCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetPreviousCharacterCaretOffset(TextEditorCore textEditorCore,
+        CaretOffset currentCaretOffset, bool ignoreCurrentSelection)
     {
-        var currentSelection = textEditorCore.CaretManager.CurrentSelection;
+        var currentSelection = GetCurrentSelection(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
         //如果当前选择不为空，则直接返回选择的FrontOffset
         if (!currentSelection.IsEmpty)
         {
             return currentSelection.FrontOffset;
         }
 
-        CaretOffset currentCaretOffset = currentSelection.FrontOffset;
+        currentCaretOffset = currentSelection.FrontOffset;
         if (currentCaretOffset.Offset == 0)
         {
             // 特殊值，文档开头，不能继续往前
@@ -395,34 +401,38 @@ internal static class KeyboardCaretNavigationHelper
         throw new NotImplementedException();
     }
 
-    private static CaretOffset GetCtrlRightCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetCtrlRightCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
     {
-        return GetNextWordCaretOffset(textEditorCore);
+        return GetNextWordCaretOffset(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
     }
 
-    private static CaretOffset GetCtrlLeftCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetCtrlLeftCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
     {
-        return GetPreviousWordCaretOffset(textEditorCore);
+        return GetPreviousWordCaretOffset(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
     }
 
-    private static CaretOffset GetDownCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetDownCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
-        return GetNextLineCaretOffset(textEditorCore);
+        return GetNextLineCaretOffset(textEditorCore, currentCaretOffset);
     }
 
-    private static CaretOffset GetUpCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetUpCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset)
     {
-        return GetPreviousLineCaretOffset(textEditorCore);
+        return GetPreviousLineCaretOffset(textEditorCore, currentCaretOffset);
     }
 
-    private static CaretOffset GetRightCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetRightCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
     {
-        return GetNextCharacterCaretOffset(textEditorCore);
+        return GetNextCharacterCaretOffset(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
     }
 
-    private static CaretOffset GetLeftCaretOffset(TextEditorCore textEditorCore)
+    private static CaretOffset GetLeftCaretOffset(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
     {
-        return GetPreviousCharacterCaretOffset(textEditorCore);
+        return GetPreviousCharacterCaretOffset(textEditorCore, currentCaretOffset, ignoreCurrentSelection);
     }
 
     #region 辅助方法
@@ -454,6 +464,18 @@ internal static class KeyboardCaretNavigationHelper
         }
 
         return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Selection GetCurrentSelection(TextEditorCore textEditorCore, CaretOffset currentCaretOffset,
+        bool ignoreCurrentSelection)
+    {
+        if (ignoreCurrentSelection)
+        {
+            return currentCaretOffset.ToSelection();
+        }
+
+        return textEditorCore.CaretManager.CurrentSelection;
     }
 
     /// <summary>
