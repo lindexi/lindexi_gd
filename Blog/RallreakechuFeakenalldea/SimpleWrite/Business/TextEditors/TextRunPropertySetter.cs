@@ -2,10 +2,9 @@
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
 using Markdig.Syntax;
-
-using SimpleWrite.Business.TextEditors.Highlighters.CodeHighlighters;
 
 using System;
 using System.Collections.Generic;

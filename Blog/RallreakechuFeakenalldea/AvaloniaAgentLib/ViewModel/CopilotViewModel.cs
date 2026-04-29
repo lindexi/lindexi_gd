@@ -181,7 +181,7 @@ public class CopilotViewModel : INotifyPropertyChanged
             await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
             var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
-            List<AITool>? toolList = ResolveTools(tools);
+            List<AITool> toolList = ResolveTools(tools);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
@@ -274,15 +274,16 @@ public class CopilotViewModel : INotifyPropertyChanged
         }
     }
 
-    private List<AITool>? ResolveTools(IEnumerable<AITool>? tools)
+    private List<AITool> ResolveTools(IEnumerable<AITool>? tools)
     {
-        List<AITool>? toolList = tools?.ToList();
-        if (toolList is { Count: > 0 })
+        List<AITool> toolList = [];
+        if (tools != null)
         {
-            return toolList;
+            toolList.AddRange(tools);
         }
+        toolList.AddRange(_toolManager.CreateDefaultTools());
 
-        return _toolManager.CreateDefaultTools().ToList();
+        return toolList;
     }
 
     private CopilotChatSession CreateSession()

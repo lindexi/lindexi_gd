@@ -8,11 +8,11 @@ using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Events;
+using LightTextEditorPlus.Highlighters;
 using LightTextEditorPlus.Primitive;
 
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.Snippets;
-using SimpleWrite.Business.TextEditors.Highlighters;
 
 using SkiaSharp;
 
