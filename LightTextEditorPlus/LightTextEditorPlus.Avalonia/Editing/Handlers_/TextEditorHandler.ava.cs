@@ -260,6 +260,16 @@ public partial class TextEditorHandler
                 Select(SelectionType.ShiftRight);
                 return;
             }
+            else if (e.Key == Key.Home)
+            {
+                Select(SelectionType.LineStart);
+                return;
+            }
+            else if (e.Key == Key.End)
+            {
+                Select(SelectionType.LineEnd);
+                return;
+            }
         }
         else if (e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift))
         {
@@ -271,6 +281,16 @@ public partial class TextEditorHandler
             else if (e.Key == Key.Right)
             {
                 Select(SelectionType.ControlShiftRight);
+                return;
+            }
+            else if (e.Key == Key.Home)
+            {
+                Select(SelectionType.DocumentStart);
+                return;
+            }
+            else if (e.Key == Key.End)
+            {
+                Select(SelectionType.DocumentEnd);
                 return;
             }
         }

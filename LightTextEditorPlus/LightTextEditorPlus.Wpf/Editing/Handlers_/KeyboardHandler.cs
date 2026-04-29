@@ -40,9 +40,13 @@ internal class KeyboardHandler
 
         Add(Key.Home, EditingCommands.MoveToLineStart, MoveCaret(CaretMoveType.LineStart));
         Add(Key.End, EditingCommands.MoveToLineEnd, MoveCaret(CaretMoveType.LineEnd));
+        Add(Key.Home, ModifierKeys.Shift, new RoutedCommand(), Select(SelectionType.LineStart));
+        Add(Key.End, ModifierKeys.Shift, new RoutedCommand(), Select(SelectionType.LineEnd));
 
         Add(Key.Home, ModifierKeys.Control, EditingCommands.MoveToDocumentStart, MoveCaret(CaretMoveType.DocumentStart));
         Add(Key.End, ModifierKeys.Control, EditingCommands.MoveToDocumentEnd, MoveCaret(CaretMoveType.DocumentEnd));
+        Add(Key.Home, ModifierKeys.Control | ModifierKeys.Shift, new RoutedCommand(), Select(SelectionType.DocumentStart));
+        Add(Key.End, ModifierKeys.Control | ModifierKeys.Shift, new RoutedCommand(), Select(SelectionType.DocumentEnd));
 
         // 编辑
         Add(Key.Back, EditingCommands.Backspace, OnBackspace);

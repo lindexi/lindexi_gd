@@ -24,9 +24,13 @@ internal class KeyboardHandler
 
         AddShortCut(new KeyGesture(Key.Home, KeyModifiers.None), MoveToLineStart);
         AddShortCut(new KeyGesture(Key.End, KeyModifiers.None), MoveToLineEnd);
+        AddShortCut(new KeyGesture(Key.Home, KeyModifiers.Shift), SelectToLineStart);
+        AddShortCut(new KeyGesture(Key.End, KeyModifiers.Shift), SelectToLineEnd);
 
         AddShortCut(new KeyGesture(Key.Home, KeyModifiers.Control), MoveToDocumentStart);
         AddShortCut(new KeyGesture(Key.End, KeyModifiers.Control), MoveToDocumentEnd);
+        AddShortCut(new KeyGesture(Key.Home, KeyModifiers.Control | KeyModifiers.Shift), SelectToDocumentStart);
+        AddShortCut(new KeyGesture(Key.End, KeyModifiers.Control | KeyModifiers.Shift), SelectToDocumentEnd);
 
         // 剪贴板
         AddShortCut(new KeyGesture(Key.C, KeyModifiers.Control), TextEditorHandler.OnCopy);
@@ -84,6 +88,30 @@ internal class KeyboardHandler
     {
         TextEditorHandler.InputEnsureLayout();
         TextEditorHandler.MoveCaret(CaretMoveType.LineEnd);
+    }
+
+    private void SelectToLineStart()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.Select(SelectionType.LineStart);
+    }
+
+    private void SelectToLineEnd()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.Select(SelectionType.LineEnd);
+    }
+
+    private void SelectToDocumentStart()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.Select(SelectionType.DocumentStart);
+    }
+
+    private void SelectToDocumentEnd()
+    {
+        TextEditorHandler.InputEnsureLayout();
+        TextEditorHandler.Select(SelectionType.DocumentEnd);
     }
 
     private TextEditorHandler TextEditorHandler => TextEditor.TextEditorHandler;

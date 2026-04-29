@@ -7,10 +7,12 @@
     <Nullable>enable</Nullable>
     <Platforms>x86</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SkiaAotPublishOutputPath>..\..\LightTextEditorPlus.Skia.AotLayer\bin\Release\net9.0\win-x86\publish\*.dll</SkiaAotPublishOutputPath>
+    <SkiaAotPublishOutputPath Condition="'$(UseArtifactsOutput)' == 'true'">$(ArtifactsPath)\publish\LightTextEditorPlus.Skia.AotLayer\release_win-x86\*.dll</SkiaAotPublishOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\LightTextEditorPlus.Skia.AotLayer\bin\Release\net9.0\win-x86\publish\*.dll" LinkBase="" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(SkiaAotPublishOutputPath)" LinkBase="" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
