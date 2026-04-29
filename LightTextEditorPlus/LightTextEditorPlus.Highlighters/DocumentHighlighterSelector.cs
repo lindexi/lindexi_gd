@@ -6,6 +6,9 @@ using ColorCode.Common;
 
 namespace LightTextEditorPlus.Highlighters;
 
+/// <summary>
+/// 根据文件信息选择合适的文档高亮定义。
+/// </summary>
 public static class DocumentHighlighterSelector
 {
     private static readonly Dictionary<string, DocumentHighlightDefinition> ExtensionMapping = new(StringComparer.OrdinalIgnoreCase)
@@ -79,6 +82,11 @@ public static class DocumentHighlighterSelector
         [".cshtml"] = DocumentHighlightDefinition.CreateOther(LanguageId.AspxCs),
     };
 
+    /// <summary>
+    /// 根据文件信息获取文档高亮定义。
+    /// </summary>
+    /// <param name="fileInfo">文件信息。</param>
+    /// <returns>匹配的高亮定义。</returns>
     public static DocumentHighlightDefinition GetDocumentHighlightDefinition(FileInfo? fileInfo)
     {
         if (fileInfo is null)
@@ -89,6 +97,11 @@ public static class DocumentHighlighterSelector
         return GetDocumentHighlightDefinition(fileInfo.Extension);
     }
 
+    /// <summary>
+    /// 根据扩展名或文件路径获取文档高亮定义。
+    /// </summary>
+    /// <param name="extension">扩展名或文件路径。</param>
+    /// <returns>匹配的高亮定义。</returns>
     public static DocumentHighlightDefinition GetDocumentHighlightDefinition(string? extension)
     {
         if (string.IsNullOrWhiteSpace(extension))
