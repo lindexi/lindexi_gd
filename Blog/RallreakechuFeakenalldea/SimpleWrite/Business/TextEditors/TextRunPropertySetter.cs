@@ -1,11 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using LightTextEditorPlus;
+﻿using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Document;
+
 using Markdig.Syntax;
+
+using SimpleWrite.Business.TextEditors.Highlighters.CodeHighlighters;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -29,8 +33,10 @@ readonly record struct TextRunPropertySetter(TextEditor TextEditor)
         TextEditor.TextEditorCore.SetUndoRedoEnable(true, "完成框架内部设置文本样式，启用撤销恢复");
     }
 
-    public void TrySetRunProperty(SkiaTextRunProperty runProperty, SourceSpan span)
+    public void TrySetRunProperty(ScopeType scopeType, SkiaTextRunProperty runProperty, SourceSpan span)
     {
+        _ = scopeType;
+
         span = span with
         {
             Start = span.Start + StartOffset,
@@ -41,6 +47,7 @@ readonly record struct TextRunPropertySetter(TextEditor TextEditor)
 #if DEBUG
         var text = TextEditor.GetText(in selection);
         GC.KeepAlive(text);
+        GC.KeepAlive(scopeType);
 #endif
 
         TrySetRunProperty(runProperty, in selection);
