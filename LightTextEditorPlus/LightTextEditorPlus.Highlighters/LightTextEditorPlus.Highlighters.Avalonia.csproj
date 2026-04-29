@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>LightTextEditorPlus</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="**\*.wpf.cs" />
+  </ItemGroup>
+</Project>
