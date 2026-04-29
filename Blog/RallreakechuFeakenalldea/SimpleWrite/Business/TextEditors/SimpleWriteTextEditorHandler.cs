@@ -10,9 +10,9 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Editing;
+using LightTextEditorPlus.Highlighters;
 
 using SimpleWrite.Business.ShortcutManagers;
-using SimpleWrite.Business.TextEditors.Highlighters;
 
 namespace SimpleWrite.Business.TextEditors;
 

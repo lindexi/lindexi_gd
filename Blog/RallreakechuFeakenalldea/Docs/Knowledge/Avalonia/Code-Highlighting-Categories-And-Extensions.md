@@ -45,6 +45,21 @@
    - VB.NET
    - XML
 
+## 迁移补充
+
+- 高亮实现现在归属 `LightTextEditorPlus.Highlighters`，不再放在 `SimpleWrite.Business.TextEditors.Highlighters`。
+- 迁移时不要继续依赖 `SimpleWriteTextEditor`，高亮器统一只依赖库内公开的 `TextEditor` API。
+- 与高亮直接相关的辅助类型也需要一起迁移，例如：
+  - `TextRunPropertySetter`
+  - `LineReader`
+  - `MarkdownUrlInfo` 等高亮器内部快照类型
+- `SimpleWrite` 侧只保留业务接入：
+  - `SimpleWriteTextEditor` 负责创建和切换 `IDocumentHighlighter`
+  - `SimpleWriteTextEditorHandler` 继续基于 `MarkdownDocumentHighlighter.UrlInfoList` 处理 Ctrl+点击链接
+- 迁移后优先检查两类残留：
+  - 命名空间是否还停留在 `SimpleWrite.Business.*`
+  - 辅助类型是否还散落在应用工程，导致库内编译缺少依赖
+
 ## 适用场景
 
 - 新增文件类型与代码着色支持

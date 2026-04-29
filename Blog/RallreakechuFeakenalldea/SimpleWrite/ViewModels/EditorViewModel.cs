@@ -2,13 +2,13 @@
 using Avalonia.Threading;
 
 using LightTextEditorPlus;
+using LightTextEditorPlus.Highlighters;
 
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.Snippets;
 using SimpleWrite.Business.TempFiles;
 using SimpleWrite.Business.TextEditors;
-using SimpleWrite.Business.TextEditors.Highlighters;
 using SimpleWrite.Models;
 
 using System;
