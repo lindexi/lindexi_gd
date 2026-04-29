@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefineConstants>$(DefineConstants);USE_Avalonia;</DefineConstants>
+    <ArtifactsConfiguration>$([System.String]::Copy('$(Configuration)').ToLowerInvariant())</ArtifactsConfiguration>
+    <AvaloniaResourceAssemblyPath>..\..\LightTextEditorPlus.Avalonia\bin\$(Configuration)\net8.0\en-US\*.resources.dll</AvaloniaResourceAssemblyPath>
+    <AvaloniaResourceAssemblyPath Condition="'$(UseArtifactsOutput)' == 'true'">$(ArtifactsPath)\bin\LightTextEditorPlus.Avalonia\$(ArtifactsConfiguration)_net8.0\en-US\*.resources.dll</AvaloniaResourceAssemblyPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,7 +31,7 @@
 
   <ItemGroup>
     <None Update="Assets\TestImage\**\*" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\LightTextEditorPlus.Avalonia\bin\$(Configuration)\net8.0\en-US\*.resources.dll"
+    <None Include="$(AvaloniaResourceAssemblyPath)"
           LinkBase="en-US"
           CopyToOutputDirectory="PreserveNewest"
           Visible="false" />
