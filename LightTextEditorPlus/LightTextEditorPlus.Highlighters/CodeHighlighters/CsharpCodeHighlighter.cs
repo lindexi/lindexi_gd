@@ -9,8 +9,15 @@ using System.Linq;
 
 namespace LightTextEditorPlus.Highlighters.CodeHighlighters;
 
+/// <summary>
+/// 基于 Roslyn 为 C# 代码应用语法高亮。
+/// </summary>
 public class CsharpCodeHighlighter : ICodeHighlighter
 {
+    /// <summary>
+    /// 对代码上下文应用 C# 高亮。
+    /// </summary>
+    /// <param name="context">代码内容与着色输出上下文。</param>
     public void ApplyHighlight(in HighlightCodeContext context)
     {
         var code = context.PlainCode;

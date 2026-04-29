@@ -33,6 +33,9 @@ using FontWeightValue = System.Windows.FontWeight;
 
 namespace LightTextEditorPlus.Highlighters;
 
+/// <summary>
+/// 为 Markdown 文本提供标题、链接和代码块高亮。
+/// </summary>
 public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 {
     private static readonly Regex UrlRegex = new(@"https?://[^\s<>\u3000]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
@@ -51,8 +54,15 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     private readonly List<SourceSpan> _codeBlockList = [];
     private readonly List<MarkdownUrlInfo> _urlInfoList = [];
     private IReadOnlyList<HighlightSegmentSnapshot> _lastHighlightSnapshotList = [];
+    /// <summary>
+    /// 获取最近一次高亮后识别出的 URL 信息。
+    /// </summary>
     public IReadOnlyList<MarkdownUrlInfo> UrlInfoList => _urlInfoList;
 
+    /// <summary>
+    /// 创建 Markdown 文档高亮器。
+    /// </summary>
+    /// <param name="textEditor">要应用高亮的文本编辑器。</param>
     public MarkdownDocumentHighlighter(TextEditor textEditor)
     {
         ArgumentNullException.ThrowIfNull(textEditor);
@@ -114,6 +124,10 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         });
     }
 
+    /// <summary>
+    /// 对当前 Markdown 文本应用高亮。
+    /// </summary>
+    /// <param name="markdownText">要高亮的 Markdown 文本。</param>
     public void ApplyHighlight(string markdownText)
     {
         var setter = new TextRunPropertySetter(_textEditor);
@@ -159,21 +173,18 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 string codeText = ToText(sourceSpan);
                 var lineReader = new LineReader(codeText);
                 SourceSpan firstLine = lineReader.ReadLine();
-                var closingFencedCharCount = fencedCodeBlock.ClosingFencedCharCount;
-                var langInfoLength = fencedCodeBlock.Info?.Length ?? 0;
                 var operationList = new List<HighlightOperation>
                 {
                     new HighlightOperation(_normalTextRunProperty, sourceSpan)
                 };
 
                 ReadOnlySpan<char> codeLang = [];
-                if (langInfoLength > 0 && firstLine.Length == closingFencedCharCount + langInfoLength)
+                if (TryGetCodeLanguageSpan(codeText, firstLine, out var codeLangSpan))
                 {
-                    var span = new SourceSpan(closingFencedCharCount, closingFencedCharCount + langInfoLength - 1);
                     operationList.Add(new HighlightOperation(_codeLangInfoRunProperty,
-                        new SourceSpan(span.Start + sourceSpan.Start, span.End + sourceSpan.Start)));
+                        new SourceSpan(codeLangSpan.Start + sourceSpan.Start, codeLangSpan.End + sourceSpan.Start)));
 
-                    codeLang = codeText.AsSpan(span.Start, span.Length);
+                    codeLang = codeText.AsSpan(codeLangSpan.Start, codeLangSpan.Length);
                 }
 
                 // 取出方法体
@@ -188,9 +199,21 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                     lastLine = currentLine;
                 }
 
+                var innerCodeStart = firstLine.End + 1;
+                while (innerCodeStart < codeText.Length && codeText[innerCodeStart] is '\r' or '\n')
+                {
+                    innerCodeStart++;
+                }
+
+                var innerCodeEnd = lastLine.Start - 1;
+                while (innerCodeEnd >= innerCodeStart && codeText[innerCodeEnd] is '\r' or '\n')
+                {
+                    innerCodeEnd--;
+                }
+
                 var relativeOffset = sourceSpan.Start;
-                var innerCodeSpan = new SourceSpan(firstLine.End + 1 + relativeOffset, lastLine.Start + relativeOffset - 1);
-                var innerCodeText = ToText(innerCodeSpan);
+                var innerCodeSpan = new SourceSpan(innerCodeStart + relativeOffset, innerCodeEnd + relativeOffset);
+                var innerCodeText = innerCodeStart <= innerCodeEnd ? ToText(innerCodeSpan) : string.Empty;
                 var codeLangText = codeLang.ToString();
 
                 currentHighlightSnapshotList.Add(new HighlightSegmentSnapshot(sourceSpan, operationList,
@@ -322,6 +345,55 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 or '。' or '，' or '；' or '：' or '！' or '？' or '）' or '】' or '}' or '、';
         }
 
+        static bool TryGetCodeLanguageSpan(string codeText, SourceSpan firstLine, out SourceSpan codeLanguageSpan)
+        {
+            if (firstLine.Length <= 0)
+            {
+                codeLanguageSpan = default;
+                return false;
+            }
+
+            var firstLineText = codeText.AsSpan(firstLine.Start, firstLine.Length);
+            var position = 0;
+            while (position < firstLineText.Length && (firstLineText[position] == ' ' || firstLineText[position] == '\t'))
+            {
+                position++;
+            }
+
+            if (position >= firstLineText.Length)
+            {
+                codeLanguageSpan = default;
+                return false;
+            }
+
+            var fenceChar = firstLineText[position];
+            while (position < firstLineText.Length && firstLineText[position] == fenceChar)
+            {
+                position++;
+            }
+
+            while (position < firstLineText.Length && char.IsWhiteSpace(firstLineText[position]))
+            {
+                position++;
+            }
+
+            var codeLanguageStart = position;
+            var codeLanguageEnd = firstLineText.Length;
+            while (codeLanguageEnd > codeLanguageStart && char.IsWhiteSpace(firstLineText[codeLanguageEnd - 1]))
+            {
+                codeLanguageEnd--;
+            }
+
+            if (codeLanguageStart >= codeLanguageEnd)
+            {
+                codeLanguageSpan = default;
+                return false;
+            }
+
+            codeLanguageSpan = new SourceSpan(firstLine.Start + codeLanguageStart, firstLine.Start + codeLanguageEnd - 1);
+            return true;
+        }
+
         static bool TryCreateGapSourceSpan(int start, int end, out SourceSpan sourceSpan)
         {
             if (start <= end)
@@ -431,6 +503,10 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         }
     }
 
+    /// <summary>
+    /// 渲染 Markdown 代码块背景。
+    /// </summary>
+    /// <param name="context">绘制上下文。</param>
     public void RenderBackground(in TextEditorDrawingContext context)
     {
         var viewport = context.Viewport;
@@ -486,6 +562,10 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         }
     }
 
+    /// <summary>
+    /// 渲染 Markdown 前景内容。
+    /// </summary>
+    /// <param name="context">绘制上下文。</param>
     public void RenderForeground(in TextEditorDrawingContext context)
     {
     }
@@ -526,6 +606,11 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         return false;
     }
 
+    /// <summary>
+    /// 表示 Markdown 中识别出的 URL 信息。
+    /// </summary>
+    /// <param name="SourceSpan">URL 在文档中的范围。</param>
+    /// <param name="Url">URL 文本。</param>
     public readonly record struct MarkdownUrlInfo(SourceSpan SourceSpan, string Url);
 
     private readonly record struct HighlightOperation(RunProperty RunProperty, SourceSpan SourceSpan);

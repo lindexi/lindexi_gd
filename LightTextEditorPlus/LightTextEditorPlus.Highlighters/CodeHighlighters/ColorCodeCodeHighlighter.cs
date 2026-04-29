@@ -11,6 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace LightTextEditorPlus.Highlighters.CodeHighlighters;
 
+/// <summary>
+/// 基于 ColorCode 为文本应用语法高亮。
+/// </summary>
 public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
 {
     private readonly record struct ColoredSegment(TextSpan Span, ScopeType Scope, int Order);
@@ -19,8 +22,15 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
     private static readonly ILanguageRepository LanguageRepository = CreateLanguageRepository();
     private static readonly LanguageParser LanguageParser = new(LanguageCompiler, LanguageRepository);
 
+    /// <summary>
+    /// 获取用于解析代码的语言标识。
+    /// </summary>
     public required string LanguageId { get; init; }
 
+    /// <summary>
+    /// 对代码上下文应用 ColorCode 高亮。
+    /// </summary>
+    /// <param name="context">代码内容与着色输出上下文。</param>
     public void ApplyHighlight(in HighlightCodeContext context)
     {
         var language = LanguageRepository.FindById(LanguageId);

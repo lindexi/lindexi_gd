@@ -15,11 +15,18 @@ using TextEditorDrawingContext = LightTextEditorPlus.WpfTextEditorDrawingContext
 
 namespace LightTextEditorPlus.Highlighters;
 
+/// <summary>
+/// 为纯文本应用默认样式。
+/// </summary>
 public sealed class PlainTextDocumentHighlighter : IDocumentHighlighter
 {
     private readonly TextEditor _textEditor;
     private readonly RunProperty _normalTextRunProperty;
 
+    /// <summary>
+    /// 创建纯文本高亮器。
+    /// </summary>
+    /// <param name="textEditor">要应用高亮的文本编辑器。</param>
     public PlainTextDocumentHighlighter(TextEditor textEditor)
     {
         ArgumentNullException.ThrowIfNull(textEditor);
@@ -28,6 +35,10 @@ public sealed class PlainTextDocumentHighlighter : IDocumentHighlighter
         _normalTextRunProperty = textEditor.StyleRunProperty;
     }
 
+    /// <summary>
+    /// 将整个文档恢复为默认文本样式。
+    /// </summary>
+    /// <param name="text">当前文档文本。</param>
     public void ApplyHighlight(string text)
     {
         var allDocumentSelection = _textEditor.TextEditorCore.GetAllDocumentSelection();
@@ -40,10 +51,18 @@ public sealed class PlainTextDocumentHighlighter : IDocumentHighlighter
         }
     }
 
+    /// <summary>
+    /// 渲染纯文本背景。
+    /// </summary>
+    /// <param name="context">绘制上下文。</param>
     public void RenderBackground(in TextEditorDrawingContext context)
     {
     }
 
+    /// <summary>
+    /// 渲染纯文本前景。
+    /// </summary>
+    /// <param name="context">绘制上下文。</param>
     public void RenderForeground(in TextEditorDrawingContext context)
     {
     }
