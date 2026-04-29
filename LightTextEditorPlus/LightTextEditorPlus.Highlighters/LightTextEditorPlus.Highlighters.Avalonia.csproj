@@ -20,4 +20,7 @@
   <ItemGroup>
     <Compile Include="WpfTextEditorDrawingContext.wpf.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="LightTextEditorPlus.Highlighters.Avalonia.UnitTests" />
+  </ItemGroup>
 </Project>
