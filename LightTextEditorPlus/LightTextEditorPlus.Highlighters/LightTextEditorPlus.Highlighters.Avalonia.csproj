@@ -7,6 +7,10 @@
     <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Markdig" Version="1.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+    <PackageReference Include="ColorCode.Core" Version="2.0.15" />
+
     <ProjectReference Include="..\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
