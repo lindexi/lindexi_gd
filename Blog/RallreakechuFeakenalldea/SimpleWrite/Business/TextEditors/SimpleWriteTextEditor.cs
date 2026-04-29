@@ -44,8 +44,6 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
         });
 
-        DocumentHighlighter = new MarkdownDocumentHighlighter(this);
-
         ContextMenu = new ContextMenu();
         //ContextMenu.Items.Add(new MenuItem()
         //{
@@ -57,6 +55,8 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             // 每次都清理，等待下一次再重新加入内容
             ContextMenu.Items.Clear();
         };
+
+        SetDocumentHighlightDefinition(DocumentHighlightDefinition.Markdown);
     }
 
     public CommandPatternManager? CommandPatternManager { get; init; }
@@ -128,13 +128,11 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     }
 
 
-    //public void SetDocumentHighlighter(IDocumentHighlighter documentHighlighter)
-    //{
-    //    ArgumentNullException.ThrowIfNull(documentHighlighter);
-
-    //    _documentHighlighter = documentHighlighter;
-    //    ApplyHighlight();
-    //}
+    public void SetDocumentHighlightDefinition(DocumentHighlightDefinition definition)
+    {
+        DocumentHighlighter = CreateDocumentHighlighter(definition);
+        ApplyHighlight();
+    }
 
     private void TextEditorCore_TextChanged(object? sender, EventArgs e)
     {
@@ -158,6 +156,18 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     public required SnippetManager SnippetManager { get; init; }
 
     public IDocumentHighlighter DocumentHighlighter { get; private set; }
+
+    private IDocumentHighlighter CreateDocumentHighlighter(DocumentHighlightDefinition definition)
+    {
+        return definition.Category switch
+        {
+            DocumentHighlightCategory.Markdown => new MarkdownDocumentHighlighter(this),
+            DocumentHighlightCategory.CSharp => new CSharpDocumentHighlighter(this),
+            DocumentHighlightCategory.Other => new OtherCodeDocumentHighlighter(this,
+                definition.LanguageId ?? throw new InvalidOperationException("Other highlighter requires language id.")),
+            _ => throw new ArgumentOutOfRangeException(nameof(definition))
+        };
+    }
 
     protected override TextEditorHandler CreateTextEditorHandler()
     {

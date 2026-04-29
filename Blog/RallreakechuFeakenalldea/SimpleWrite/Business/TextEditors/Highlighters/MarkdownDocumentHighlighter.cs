@@ -42,6 +42,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     private readonly IReadOnlyList<SkiaTextRunProperty> _titleLevelRunPropertyList;
     private readonly SkiaTextRunProperty _codeLangInfoRunProperty;
     private readonly SkiaTextRunProperty _urlRunProperty;
+    private readonly CsharpCodeHighlighter _csharpCodeHighlighter = new();
     private readonly SolidColorBrush _codeBackgroundColorBrush = new SolidColorBrush(0xFF3B3C37);
     private readonly List<SourceSpan> _codeBlockList = [];
     private readonly List<MarkdownUrlInfo> _urlInfoList = [];
@@ -187,9 +188,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 var codeLangText = codeLang.ToString();
 
                 currentHighlightSnapshotList.Add(new HighlightSegmentSnapshot(sourceSpan, operationList,
-                    IsCsharpCodeLanguage(codeLang)
-                        ? new CodeBlockHighlightSnapshot(innerCodeSpan, codeLangText, innerCodeText)
-                        : null));
+                    TryCreateCodeBlockHighlightSnapshot(innerCodeSpan, codeLangText, innerCodeText)));
 
                 lastBlockEnd = Math.Max(lastBlockEnd, sourceSpan.End);
                 continue;
@@ -295,10 +294,9 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
-            var csharpCodeHighlighter = new CsharpCodeHighlighter();
             var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(codeBlockHighlightSnapshot.InnerCodeSpan.Start));
             var highlightCodeContext = new HighlightCodeContext(codeBlockHighlightSnapshot.InnerCodeText, colorCode);
-            csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
+            codeBlockHighlightSnapshot.CodeHighlighter.ApplyHighlight(highlightCodeContext);
         }
 
         static ReadOnlySpan<char> TrimUrl(ReadOnlySpan<char> urlText)
@@ -330,11 +328,77 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
             return false;
         }
 
-        static bool IsCsharpCodeLanguage(ReadOnlySpan<char> codeLang)
+        CodeBlockHighlightSnapshot? TryCreateCodeBlockHighlightSnapshot(SourceSpan innerCodeSpan, string codeLangText, string innerCodeText)
         {
-            return codeLang.Equals("csharp", StringComparison.OrdinalIgnoreCase)
-                   || codeLang.Equals("cs", StringComparison.OrdinalIgnoreCase)
-                   || codeLang.Equals("C#", StringComparison.OrdinalIgnoreCase);
+            if (TryCreateCodeHighlighter(codeLangText) is not { } codeHighlighter)
+            {
+                return null;
+            }
+
+            return new CodeBlockHighlightSnapshot(innerCodeSpan, codeLangText, innerCodeText, codeHighlighter);
+        }
+
+        ICodeHighlighter? TryCreateCodeHighlighter(string codeLangText)
+        {
+            if (string.IsNullOrWhiteSpace(codeLangText))
+            {
+                return null;
+            }
+
+            if (IsCsharpCodeLanguage(codeLangText))
+            {
+                return _csharpCodeHighlighter;
+            }
+
+            if (TryGetOtherLanguageId(codeLangText) is not { } languageId)
+            {
+                return null;
+            }
+
+            return new ColorCodeCodeHighlighter
+            {
+                LanguageId = languageId
+            };
+        }
+
+        static string? TryGetOtherLanguageId(string codeLangText)
+        {
+            return codeLangText.Trim().ToLowerInvariant() switch
+            {
+                "asax" => ColorCode.Common.LanguageId.Asax,
+                "ashx" => ColorCode.Common.LanguageId.Ashx,
+                "aspx" => ColorCode.Common.LanguageId.Aspx,
+                "aspx-cs" or "aspxcs" or "cshtml" => ColorCode.Common.LanguageId.AspxCs,
+                "aspx-vb" or "aspxvb" or "vbhtml" => ColorCode.Common.LanguageId.AspxVb,
+                "c" or "cpp" or "c++" or "cc" or "cxx" or "hpp" or "h" => ColorCode.Common.LanguageId.Cpp,
+                "css" => ColorCode.Common.LanguageId.Css,
+                "f#" or "fsharp" or "fs" => ColorCode.Common.LanguageId.FSharp,
+                "fortran" or "f90" or "f95" => ColorCode.Common.LanguageId.Fortran,
+                "haskell" or "hs" => ColorCode.Common.LanguageId.Haskell,
+                "html" or "htm" => ColorCode.Common.LanguageId.Html,
+                "java" => ColorCode.Common.LanguageId.Java,
+                "javascript" or "js" or "node" => ColorCode.Common.LanguageId.JavaScript,
+                "json" => "json",
+                "koka" => ColorCode.Common.LanguageId.Koka,
+                "markdown" or "md" => ColorCode.Common.LanguageId.Markdown,
+                "matlab" => ColorCode.Common.LanguageId.MatLab,
+                "php" => ColorCode.Common.LanguageId.Php,
+                "powershell" or "pwsh" or "ps1" => ColorCode.Common.LanguageId.PowerShell,
+                "python" or "py" => ColorCode.Common.LanguageId.Python,
+                "sql" => ColorCode.Common.LanguageId.Sql,
+                "typescript" or "ts" or "tsx" => ColorCode.Common.LanguageId.TypeScript,
+                "vb" or "vbnet" or "vb.net" => ColorCode.Common.LanguageId.VbDotNet,
+                "xml" or "xaml" or "axaml" or "svg" => ColorCode.Common.LanguageId.Xml,
+                _ => null
+            };
+        }
+
+        static bool IsCsharpCodeLanguage(string codeLangText)
+        {
+            return codeLangText.Equals("csharp", StringComparison.OrdinalIgnoreCase)
+                   || codeLangText.Equals("cs", StringComparison.OrdinalIgnoreCase)
+                   || codeLangText.Equals("C#", StringComparison.OrdinalIgnoreCase)
+                   || codeLangText.Equals("dotnet", StringComparison.OrdinalIgnoreCase);
         }
 
         static bool HighlightSegmentSnapshotEquals(HighlightSegmentSnapshot left, HighlightSegmentSnapshot right)
@@ -460,7 +524,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 
     private readonly record struct HighlightOperation(SkiaTextRunProperty RunProperty, SourceSpan SourceSpan);
 
-    private readonly record struct CodeBlockHighlightSnapshot(SourceSpan InnerCodeSpan, string CodeLang, string InnerCodeText);
+    private readonly record struct CodeBlockHighlightSnapshot(SourceSpan InnerCodeSpan, string CodeLang, string InnerCodeText, ICodeHighlighter CodeHighlighter);
 
     private readonly record struct HighlightSegmentSnapshot(
         SourceSpan SourceSpan,

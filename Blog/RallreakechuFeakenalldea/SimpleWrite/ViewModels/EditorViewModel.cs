@@ -8,6 +8,7 @@ using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.Snippets;
 using SimpleWrite.Business.TempFiles;
 using SimpleWrite.Business.TextEditors;
+using SimpleWrite.Business.TextEditors.Highlighters;
 using SimpleWrite.Models;
 
 using System;
@@ -212,6 +213,7 @@ public class EditorViewModel : ViewModelBase
             SnippetManager = SnippetManager,
             CommandPatternManager = MainViewModel.CommandPatternManager,
         };
+        textEditor.SetDocumentHighlightDefinition(DocumentHighlighterSelector.GetDocumentHighlightDefinition(editorModel.FileInfo));
         textEditor.TextEditorCore.SetExitDebugMode();
 
         textEditor.TextEditorCore.TextChanged += (sender, args) =>
@@ -320,6 +322,10 @@ public class EditorViewModel : ViewModelBase
         }
 
         editorModel.FileInfo = saveFile;
+        if (editorModel.TextEditor is SimpleWriteTextEditor textEditor)
+        {
+            textEditor.SetDocumentHighlightDefinition(DocumentHighlighterSelector.GetDocumentHighlightDefinition(saveFile));
+        }
         UpdateLastLocalDocumentDirectory(editorModel);
         await SaveEditorModelToFileAsync(editorModel, saveFile).ConfigureAwait(false);
         SetSaveStatus(editorModel, SaveStatus.Saved);
