@@ -286,7 +286,7 @@ internal sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         {
             foreach (var operation in snapshot.OperationList)
             {
-                setter.TrySetRunProperty(operation.RunProperty, operation.SourceSpan);
+                setter.TrySetRunProperty(ScopeType.PlainText, operation.RunProperty, operation.SourceSpan);
             }
 
             if (snapshot.CodeBlockHighlightSnapshot is not { } codeBlockHighlightSnapshot)

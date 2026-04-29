@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
+    <ProjectReference Include="..\..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Highlighters\LightTextEditorPlus.Highlighters.Avalonia.csproj" />
     <ProjectReference Include="..\AvaloniaAgentLib\AvaloniaAgentLib.csproj" />
   </ItemGroup>
 </Project>

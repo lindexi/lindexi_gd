@@ -41,7 +41,7 @@ internal record TextEditorColorCode : IColorCode
     {
         var runProperty = _styleManager.GetRunProperty(scope);
 
-        _textRunPropertySetter.TrySetRunProperty(runProperty, new SourceSpan(span.Start, span.End - 1/*为什么要减1呢？这是因为 SourceSpan 是左右都闭，而TextSpan 是左闭右开的*/));
+        _textRunPropertySetter.TrySetRunProperty(scope, runProperty, new SourceSpan(span.Start, span.End - 1/*为什么要减1呢？这是因为 SourceSpan 是左右都闭，而TextSpan 是左闭右开的*/));
     }
 }
 
