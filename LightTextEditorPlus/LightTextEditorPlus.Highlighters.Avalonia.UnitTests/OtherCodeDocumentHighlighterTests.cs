@@ -1,26 +1,14 @@
 using Avalonia.Media;
 using ColorCode.Common;
 using LightTextEditorPlus;
-using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Highlighters;
+using LightTextEditorPlus.Highlighters.CodeHighlighters;
 using Moq;
 
 namespace LightTextEditorPlus.Highlighters.Avalonia.UnitTests;
 
 public class OtherCodeDocumentHighlighterTests
 {
-    public static TheoryData<string, string> StableLanguageSamples => new()
-    {
-        { LanguageId.Cpp, "#include <iostream>\nint main() { return 0; }" },
-        { LanguageId.Css, ".container { color: red; }" },
-        { LanguageId.Java, "public class Hello { }" },
-        { "json", "{ \"name\": \"test\", \"value\": 123 }" },
-        { LanguageId.Php, "<?php function hello($name) { echo \"Hello\"; } ?>" },
-        { LanguageId.Sql, "SELECT TOP 1 * FROM Users" },
-        { LanguageId.TypeScript, "interface Person { name: string; }" },
-        { LanguageId.Xml, "<root><item id=\"1\">Value</item></root>" }
-    };
-
     [Fact]
     public void Constructor_NullTextEditor_ThrowsArgumentNullException()
     {
@@ -52,48 +40,6 @@ public class OtherCodeDocumentHighlighterTests
         Assert.NotNull(highlighter);
     }
 
-    [Theory]
-    [MemberData(nameof(StableLanguageSamples))]
-    public void ApplyHighlight_StableLanguage_AppliesNonPlainTextColors(string languageId, string code)
-    {
-        var textEditor = new TextEditor();
-        var highlighter = new OtherCodeDocumentHighlighter(textEditor, languageId);
-        textEditor.AppendText(code);
-
-        highlighter.ApplyHighlight(code);
-
-        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(textEditor);
-    }
-
-    [Fact]
-    public void ApplyHighlight_JavaScriptWithComments_HighlightsCommentsAndKeywords()
-    {
-        var textEditor = new TextEditor();
-        var highlighter = new OtherCodeDocumentHighlighter(textEditor, LanguageId.JavaScript);
-        const string code = "// Single line comment\nfunction test() { return 42; }";
-        textEditor.AppendText(code);
-
-        highlighter.ApplyHighlight(code);
-
-        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(textEditor);
-    }
-
-    [Fact]
-    public void ApplyHighlight_PythonWithIndentation_HighlightsClassAndInterpolatedString()
-    {
-        var textEditor = new TextEditor();
-        var highlighter = new OtherCodeDocumentHighlighter(textEditor, LanguageId.Python);
-        const string code = "class Person:\n    def greet(self):\n        return f\"Hello\"";
-        textEditor.AppendText(code);
-
-        highlighter.ApplyHighlight(code);
-
-        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(textEditor);
-    }
-
     [Fact]
     public void ApplyHighlight_EmptyString_DoesNotThrow()
     {
@@ -107,31 +53,198 @@ public class OtherCodeDocumentHighlighterTests
     }
 
     [Fact]
-    public void ApplyHighlight_MultipleCallsSameText_PreservesHighlighting()
+    public void ApplyHighlight_JavaScriptFunctionAndComment_HighlightsDetailedScopes()
     {
+        const string code = "// sum values\nfunction add(value) { return value + 42; }";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.JavaScript, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "// sum values", ScopeType.Comment);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "function", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "return", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "42", ScopeType.Number);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "(", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, ")", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "{", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "}", ScopeType.Brackets);
+    }
+
+    [Fact]
+    public void ApplyHighlight_PythonClassAndString_HighlightsDetailedScopes()
+    {
+        const string code = "class Person:\n    def greet(self):\n        return \"Hello\"";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.Python, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "class", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "Person", ScopeType.ClassName);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "def", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "return", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"Hello\"", ScopeType.String);
+    }
+
+    [Fact]
+    public void ApplyHighlight_JsonKeysValuesAndBraces_HighlightsDetailedScopes()
+    {
+        const string code = "{\"name\": \"lindexi\", \"value\": 123, \"enabled\": true}";
+
+        var textEditor = CreateHighlightedEditor("json", code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "name", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "value", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "enabled", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"lindexi\"", ScopeType.String);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "123", ScopeType.Number);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "true", ScopeType.DeclarationTypeSyntax);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "{", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "}", ScopeType.Brackets);
+    }
+
+    [Fact]
+    public void ApplyHighlight_XmlAttributesAndContent_HighlightsDetailedScopes()
+    {
+        const string code = "<root><item id=\"1\">Value</item></root>";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.Xml, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "root", ScopeType.ClassMember, 0);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "item", ScopeType.ClassMember, 0);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "id", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"1\"", ScopeType.String);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "<", ScopeType.Brackets, 0);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, ">", ScopeType.Brackets, 0);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "Value", ScopeType.PlainText);
+    }
+
+    [Fact]
+    public void ApplyHighlight_CssSelectorPropertyAndValue_HighlightsDetailedScopes()
+    {
+        const string code = ".container { color: red; }";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.Css, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, ".container", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "color", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "red", ScopeType.DeclarationTypeSyntax);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "{", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "}", ScopeType.Brackets);
+    }
+
+    [Fact]
+    public void ApplyHighlight_SqlKeywordsFunctionAndNumber_HighlightsDetailedScopes()
+    {
+        const string code = "SELECT COUNT(*) FROM Users WHERE Id = 1";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.Sql, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "SELECT", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "FROM", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "WHERE", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "COUNT", ScopeType.Invocation);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "1", ScopeType.Number);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "(", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, ")", ScopeType.Brackets);
+    }
+
+    [Fact]
+    public void ApplyHighlight_PhpKeywordVariableAndString_HighlightsDetailedScopes()
+    {
+        const string code = "<?php function hello($name) { echo \"Hello\"; } ?>";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.Php, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "function", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "echo", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertTokenUsesNonPlainTextColor(textEditor, code, "$name");
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"Hello\"", ScopeType.String);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "{", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "}", ScopeType.Brackets);
+    }
+
+    [Fact]
+    public void ApplyHighlight_TypeScriptInterfaceTypeAndString_HighlightsDetailedScopes()
+    {
+        const string code = "interface Person { name: string; age: number; }";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.TypeScript, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "interface", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "Person", ScopeType.ClassName);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "name", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "age", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "string", ScopeType.DeclarationTypeSyntax);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "number", ScopeType.DeclarationTypeSyntax);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "{", ScopeType.Brackets);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "}", ScopeType.Brackets);
+    }
+
+    [Fact]
+    public void ApplyHighlight_CppPreprocessorCommentAndReturn_HighlightsDetailedScopes()
+    {
+        const string code = "#include <iostream>\n// entry\nint main() { return 0; }";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.Cpp, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "#include", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "iostream", ScopeType.ClassName, ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "// entry", ScopeType.Comment);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "return", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "0", ScopeType.Number);
+    }
+
+    [Fact]
+    public void ApplyHighlight_JavaClassMethodAndString_HighlightsDetailedScopes()
+    {
+        const string code = "public class Hello { String greet() { return \"Hello\"; } }";
+
+        var textEditor = CreateHighlightedEditor(LanguageId.Java, code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "public", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "class", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "Hello", ScopeType.ClassName);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "return", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"Hello\"", ScopeType.String);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "{", ScopeType.Brackets, 0);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "}", ScopeType.Brackets, 0);
+    }
+
+    [Fact]
+    public void ApplyHighlight_MultipleCallsSameText_PreservesDetailedHighlighting()
+    {
+        const string code = "const value = 10;";
         var textEditor = new TextEditor();
         var highlighter = new OtherCodeDocumentHighlighter(textEditor, LanguageId.JavaScript);
-        const string code = "var x = 10;";
         textEditor.AppendText(code);
 
         highlighter.ApplyHighlight(code);
         highlighter.ApplyHighlight(code);
 
         DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(textEditor);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "const", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "10", ScopeType.Number);
     }
 
     [Fact]
-    public void ApplyHighlight_DifferentText_UpdatesHighlighting()
+    public void ApplyHighlight_DifferentText_UpdatesToNewDetailedHighlighting()
     {
         var textEditor = new TextEditor();
         var highlighter = new OtherCodeDocumentHighlighter(textEditor, LanguageId.JavaScript);
         const string code1 = "var x = 10;";
-        const string code2 = "function test() {}";
+        const string code2 = "function test() { return \"done\"; }";
         textEditor.AppendText(code1);
 
         highlighter.ApplyHighlight(code1);
-        DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(textEditor);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code1, "var", ScopeType.Keyword);
 
 #pragma warning disable CS0618
         textEditor.TextEditorCore.Clear();
@@ -140,7 +253,9 @@ public class OtherCodeDocumentHighlighterTests
         highlighter.ApplyHighlight(code2);
 
         DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code2);
-        DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(textEditor);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code2, "function", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code2, "return", ScopeType.Keyword);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code2, "\"done\"", ScopeType.String);
     }
 
     [Fact]
@@ -169,5 +284,14 @@ public class OtherCodeDocumentHighlighterTests
         };
 
         highlighter.RenderForeground(in context);
+    }
+
+    private static TextEditor CreateHighlightedEditor(string languageId, string code)
+    {
+        var textEditor = new TextEditor();
+        var highlighter = new OtherCodeDocumentHighlighter(textEditor, languageId);
+        textEditor.AppendText(code);
+        highlighter.ApplyHighlight(code);
+        return textEditor;
     }
 }

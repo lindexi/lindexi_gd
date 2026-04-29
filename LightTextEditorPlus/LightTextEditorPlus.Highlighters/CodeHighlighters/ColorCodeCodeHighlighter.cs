@@ -13,6 +13,8 @@ namespace LightTextEditorPlus.Highlighters.CodeHighlighters;
 
 public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
 {
+    private readonly record struct ColoredSegment(TextSpan Span, ScopeType Scope, int Order);
+
     private static readonly ILanguageCompiler LanguageCompiler = new LanguageCompiler([], new ReaderWriterLockSlim());
     private static readonly ILanguageRepository LanguageRepository = CreateLanguageRepository();
     private static readonly LanguageParser LanguageParser = new(LanguageCompiler, LanguageRepository);
@@ -28,14 +30,15 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
         }
 
         string code = context.PlainCode;
-        var coloredSegmentList = new List<(TextSpan Span, ScopeType Scope)>();
+        var coloredSegmentList = new List<ColoredSegment>();
 
         LanguageParser.Parse(code, language, (parsedSourceCode, scopes) =>
         {
-            CollectScope(scopes, coloredSegmentList);
+            var order = 0;
+            CollectScope(scopes, coloredSegmentList, ref order);
         });
 
-        FillPlainTextSegments(code.Length, coloredSegmentList, context.ColorCode);
+        FillTextSegments(code.Length, coloredSegmentList, context.ColorCode);
     }
 
     private static ILanguageRepository CreateLanguageRepository()
@@ -49,58 +52,138 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
         return languageRepository;
     }
 
-    private static void CollectScope(IEnumerable<Scope> scopeList, List<(TextSpan Span, ScopeType Scope)> coloredSegmentList)
+    private static void CollectScope(IEnumerable<Scope> scopeList, List<ColoredSegment> coloredSegmentList, ref int order)
     {
         foreach (var scope in scopeList)
         {
             if (scope.Length > 0)
             {
-                coloredSegmentList.Add((new TextSpan(scope.Index, scope.Length), MapScopeType(scope.Name)));
+                coloredSegmentList.Add(new ColoredSegment(new TextSpan(scope.Index, scope.Length), MapScopeType(scope.Name), order));
+                order++;
             }
 
             if (scope.Children.Count > 0)
             {
-                CollectScope(scope.Children, coloredSegmentList);
+                CollectScope(scope.Children, coloredSegmentList, ref order);
             }
         }
     }
 
-    private static void FillPlainTextSegments(int textLength, List<(TextSpan Span, ScopeType Scope)> coloredSegmentList, IColorCode colorCode)
+    private static void FillTextSegments(int textLength, List<ColoredSegment> coloredSegmentList, IColorCode colorCode)
     {
         if (textLength <= 0)
         {
             return;
         }
 
-        coloredSegmentList.Sort(static (left, right) =>
+        var flattenedSegments = FlattenSegments(textLength, coloredSegmentList);
+        foreach (var (span, scope, _) in flattenedSegments)
         {
-            int startComparison = left.Span.Start.CompareTo(right.Span.Start);
-            return startComparison != 0 ? startComparison : left.Span.Length.CompareTo(right.Span.Length);
-        });
+            colorCode.FillCodeColor(span, scope);
+        }
+    }
 
-        int currentPosition = 0;
-        foreach (var (span, scope) in coloredSegmentList)
+    private static List<ColoredSegment> FlattenSegments(int textLength, List<ColoredSegment> coloredSegmentList)
+    {
+        var boundaryList = new List<int>(coloredSegmentList.Count * 2 + 2)
         {
-            if (span.End <= currentPosition)
+            0,
+            textLength
+        };
+
+        foreach (var (span, _, _) in coloredSegmentList)
+        {
+            if (span.Length <= 0)
             {
                 continue;
             }
 
-            if (span.Start > currentPosition)
+            boundaryList.Add(span.Start);
+            boundaryList.Add(span.End);
+        }
+
+        boundaryList.Sort();
+
+        var distinctBoundaries = new List<int>(boundaryList.Count);
+        int? previousBoundary = null;
+        foreach (var boundary in boundaryList)
+        {
+            if (previousBoundary == boundary)
             {
-                colorCode.FillCodeColor(TextSpan.FromBounds(currentPosition, span.Start), ScopeType.PlainText);
+                continue;
             }
 
-            int start = Math.Max(span.Start, currentPosition);
-            var currentSpan = TextSpan.FromBounds(start, span.End);
-            colorCode.FillCodeColor(currentSpan, scope);
-            currentPosition = currentSpan.End;
+            distinctBoundaries.Add(boundary);
+            previousBoundary = boundary;
         }
 
-        if (currentPosition < textLength)
+        var flattenedSegments = new List<ColoredSegment>();
+
+        for (var i = 0; i < distinctBoundaries.Count - 1; i++)
         {
-            colorCode.FillCodeColor(TextSpan.FromBounds(currentPosition, textLength), ScopeType.PlainText);
+            int start = distinctBoundaries[i];
+            int end = distinctBoundaries[i + 1];
+            if (start >= end)
+            {
+                continue;
+            }
+
+            var currentSpan = TextSpan.FromBounds(start, end);
+            var segment = SelectBestSegment(currentSpan, coloredSegmentList);
+
+            if (flattenedSegments.Count > 0)
+            {
+                var last = flattenedSegments[^1];
+                if (last.Scope == segment.Scope && last.Span.End == segment.Span.Start)
+                {
+                    flattenedSegments[^1] = last with
+                    {
+                        Span = TextSpan.FromBounds(last.Span.Start, segment.Span.End)
+                    };
+                    continue;
+                }
+            }
+
+            flattenedSegments.Add(segment);
         }
+
+        return flattenedSegments;
+    }
+
+    private static ColoredSegment SelectBestSegment(TextSpan currentSpan, List<ColoredSegment> coloredSegmentList)
+    {
+        ColoredSegment? bestSegment = null;
+
+        foreach (var segment in coloredSegmentList)
+        {
+            if (segment.Span.Start > currentSpan.Start || segment.Span.End < currentSpan.End)
+            {
+                continue;
+            }
+
+            if (bestSegment is null || IsBetter(segment, bestSegment.Value))
+            {
+                bestSegment = segment;
+            }
+        }
+
+        if (bestSegment is null)
+        {
+            return new ColoredSegment(currentSpan, ScopeType.PlainText, -1);
+        }
+
+        return new ColoredSegment(currentSpan, bestSegment.Value.Scope, bestSegment.Value.Order);
+    }
+
+    private static bool IsBetter(ColoredSegment current, ColoredSegment existing)
+    {
+        int lengthComparison = current.Span.Length.CompareTo(existing.Span.Length);
+        if (lengthComparison != 0)
+        {
+            return lengthComparison < 0;
+        }
+
+        return current.Order > existing.Order;
     }
 
     private static ScopeType MapScopeType(string? scopeName)

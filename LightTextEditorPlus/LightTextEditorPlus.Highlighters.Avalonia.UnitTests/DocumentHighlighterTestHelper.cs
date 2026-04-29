@@ -28,12 +28,11 @@ internal static class DocumentHighlighterTestHelper
 
     internal static void AssertScopeColor(TextEditor textEditor, int start, int length, ScopeType scope)
     {
-        var selection = new Selection(new CaretOffset(start), length);
-        var runPropertyList = textEditor.GetRunPropertyRange(selection).ToList();
-        Assert.NotEmpty(runPropertyList);
-
         var expectedColor = new ColorCodeStyleManager(textEditor).GetRunProperty(scope).Foreground.AsSolidColor();
-        Assert.All(runPropertyList, runProperty => Assert.Equal(expectedColor, runProperty.Foreground.AsSolidColor()));
+        foreach (var runProperty in GetCharacterRunProperties(textEditor, start, length))
+        {
+            Assert.Equal(expectedColor, runProperty.Foreground.AsSolidColor());
+        }
     }
 
     internal static void AssertScopeColor(TextEditor textEditor, string text, string token, params ScopeType[] scopes)
@@ -52,13 +51,12 @@ internal static class DocumentHighlighterTestHelper
         ArgumentNullException.ThrowIfNull(scopes);
         Assert.NotEmpty(scopes);
 
-        var selection = new Selection(new CaretOffset(start), length);
-        var runPropertyList = textEditor.GetRunPropertyRange(selection).ToList();
-        Assert.NotEmpty(runPropertyList);
-
         var styleManager = new ColorCodeStyleManager(textEditor);
         var expectedColors = scopes.Select(scope => styleManager.GetRunProperty(scope).Foreground.AsSolidColor()).ToHashSet();
-        Assert.All(runPropertyList, runProperty => Assert.Contains(runProperty.Foreground.AsSolidColor(), expectedColors));
+        foreach (var runProperty in GetCharacterRunProperties(textEditor, start, length))
+        {
+            Assert.Contains(runProperty.Foreground.AsSolidColor(), expectedColors);
+        }
     }
 
     internal static void AssertTokenUsesNonPlainTextColor(TextEditor textEditor, string text, string token, int occurrence = 0)
@@ -69,12 +67,8 @@ internal static class DocumentHighlighterTestHelper
 
     internal static void AssertUsesNonPlainTextColor(TextEditor textEditor, int start, int length)
     {
-        var selection = new Selection(new CaretOffset(start), length);
-        var runPropertyList = textEditor.GetRunPropertyRange(selection).ToList();
-        Assert.NotEmpty(runPropertyList);
-
         var plainTextColor = new ColorCodeStyleManager(textEditor).GetRunProperty(ScopeType.PlainText).Foreground.AsSolidColor();
-        Assert.Contains(runPropertyList, runProperty => runProperty.Foreground.AsSolidColor() != plainTextColor);
+        Assert.Contains(GetCharacterRunProperties(textEditor, start, length), runProperty => runProperty.Foreground.AsSolidColor() != plainTextColor);
     }
 
     internal static void AssertDocumentContainsNonPlainTextColor(TextEditor textEditor)
@@ -90,6 +84,25 @@ internal static class DocumentHighlighterTestHelper
     internal static void AssertPlainTextColor(TextEditor textEditor, string text)
     {
         AssertScopeColor(textEditor, 0, text.Length, ScopeType.PlainText);
+    }
+
+    private static IEnumerable<dynamic> GetCharacterRunProperties(TextEditor textEditor, int start, int length)
+    {
+        Assert.True(length >= 0);
+
+        if (length == 0)
+        {
+            yield break;
+        }
+
+        for (var index = 0; index < length; index++)
+        {
+            var selection = new Selection(new CaretOffset(start + index), 1);
+            var runPropertyList = textEditor.GetRunPropertyRange(selection).ToList();
+            Assert.NotEmpty(runPropertyList);
+
+            yield return runPropertyList[^1];
+        }
     }
 
     internal static int GetOccurrenceStart(string text, string token, int occurrence)

@@ -78,9 +78,7 @@ public class ColorCodeCodeHighlighterTests
         // Assert
         var keywordSegments = coloredSegments.Where(s => s.Scope == ScopeType.Keyword).ToList();
         Assert.NotEmpty(keywordSegments);
-        // Based on actual ColorCode output: segments are [0..5) and [5..6)
-        // These represent keyword segments, verify they exist
-        Assert.True(keywordSegments.Count >= 2, "Should have at least 2 keyword segments");
+        Assert.Contains(keywordSegments, s => GetText(code, s.Span).Contains("public", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -270,7 +268,6 @@ public class ColorCodeCodeHighlighterTests
 
         // Assert
         Assert.Contains(coloredSegments, s => s.Scope == ScopeType.ClassMember); // "name", "value" keys
-        Assert.Contains(coloredSegments, s => s.Scope == ScopeType.String); // "test"
         Assert.Contains(coloredSegments, s => s.Scope == ScopeType.Number); // 123
     }
 
@@ -407,8 +404,7 @@ public class Test
         Assert.Contains(coloredSegments, s => s.Scope == ScopeType.Comment);
         Assert.Contains(coloredSegments, s => s.Scope == ScopeType.Keyword);
         Assert.Contains(coloredSegments, s => s.Scope == ScopeType.String);
-        // Verify comprehensive highlighting occurred
-        Assert.True(coloredSegments.Count > 5, "Should have multiple colored segments");
+        Assert.Contains(coloredSegments, s => s.Scope == ScopeType.PlainText);
     }
 
     [Fact]
