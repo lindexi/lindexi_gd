@@ -18,6 +18,7 @@
 | 主题 | 文档 |
 |---|---|
 | 编辑器右键命令模式与本地转换 | `Knowledge/Avalonia/Command-Pattern-And-Local-Transform.md` |
+| 代码着色三分类与扩展名路由 | `Knowledge/Avalonia/Code-Highlighting-Categories-And-Extensions.md` |
 | 左侧目录树与文件夹查找 | `Knowledge/Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | Copilot 默认工作路径工具 | `Knowledge/Avalonia/Copilot-Workspace-Default-Tools.md` |
 | 目录树选中联动与深色主题 | `Knowledge/Avalonia/Folder-TreeView-Selection-And-Theme.md` |

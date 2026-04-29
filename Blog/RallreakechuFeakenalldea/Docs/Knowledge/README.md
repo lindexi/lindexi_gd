@@ -7,6 +7,7 @@
 | 我想了解什么 | 先看哪篇 |
 |---|---|
 | Copilot 聊天日志如何注入与按会话落盘 | `Avalonia/Copilot-Chat-Logging.md` |
+| 代码着色三分类与扩展名路由如何工作 | `Avalonia/Code-Highlighting-Categories-And-Extensions.md` |
 | Copilot 派生命令为什么会进入新会话 | `Avalonia/Copilot-New-Session-Command-Behavior.md` |
 | Copilot 如何拿到当前工作路径默认工具 | `Avalonia/Copilot-Workspace-Default-Tools.md` |
 | 编辑器右键命令模式与本地转换能力如何扩展 | `Avalonia/Command-Pattern-And-Local-Transform.md` |
@@ -28,6 +29,7 @@
 | 文档 | 主题 | 适用场景 |
 |---|---|---|
 | `Command-Pattern-And-Local-Transform.md` | 编辑器右键命令模式与 Copilot 本地转换 | 扩展右键菜单能力、增加 URL/命令/编码转换处理时 |
+| `Code-Highlighting-Categories-And-Extensions.md` | 代码着色三分类与扩展名路由 | 扩展文件类型高亮、排查 Markdown 代码块或整篇代码文档着色时 |
 | `Copilot-Chat-Logging.md` | Copilot 聊天日志注入与按会话文件落盘 | 需要替换日志实现、调整日志目录、排查某个会话记录时 |
 | `Copilot-New-Session-Command-Behavior.md` | Copilot 派生命令的新会话策略 | 调整右键发送、翻译、润色、本地展示结果的会话归属时 |
 | `Folder-Explorer-And-Folder-Find.md` | 左侧文件夹树与文件夹查找的组织方式 | 增加资源管理器、扩展文件夹查找、排查结果定位链路时 |
