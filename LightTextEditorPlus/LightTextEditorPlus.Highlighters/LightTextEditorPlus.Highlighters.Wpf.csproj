@@ -12,5 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Compile Remove="**\*.ava.cs" />
+  </ItemGroup>
 </Project>

@@ -9,5 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Compile Remove="**\*.wpf.cs" />
+  </ItemGroup>
 </Project>
