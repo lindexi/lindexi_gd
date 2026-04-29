@@ -188,9 +188,21 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                     lastLine = currentLine;
                 }
 
+                var innerCodeStart = firstLine.End + 1;
+                while (innerCodeStart < codeText.Length && codeText[innerCodeStart] is '\r' or '\n')
+                {
+                    innerCodeStart++;
+                }
+
+                var innerCodeEnd = lastLine.Start - 1;
+                while (innerCodeEnd >= innerCodeStart && codeText[innerCodeEnd] is '\r' or '\n')
+                {
+                    innerCodeEnd--;
+                }
+
                 var relativeOffset = sourceSpan.Start;
-                var innerCodeSpan = new SourceSpan(firstLine.End + 1 + relativeOffset, lastLine.Start + relativeOffset - 1);
-                var innerCodeText = ToText(innerCodeSpan);
+                var innerCodeSpan = new SourceSpan(innerCodeStart + relativeOffset, innerCodeEnd + relativeOffset);
+                var innerCodeText = innerCodeStart <= innerCodeEnd ? ToText(innerCodeSpan) : string.Empty;
                 var codeLangText = codeLang.ToString();
 
                 currentHighlightSnapshotList.Add(new HighlightSegmentSnapshot(sourceSpan, operationList,

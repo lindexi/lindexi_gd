@@ -81,6 +81,21 @@ internal static class DocumentHighlighterTestHelper
         Assert.Contains(runPropertyList, runProperty => runProperty.Foreground.AsSolidColor() != plainTextColor);
     }
 
+    internal static void AssertSameForegroundColors(TextEditor expectedEditor, int expectedStart, TextEditor actualEditor, int actualStart, int length)
+    {
+        Assert.True(length >= 0);
+
+        var expectedRunPropertyList = GetCharacterRunProperties(expectedEditor, expectedStart, length).ToList();
+        var actualRunPropertyList = GetCharacterRunProperties(actualEditor, actualStart, length).ToList();
+
+        Assert.Equal(expectedRunPropertyList.Count, actualRunPropertyList.Count);
+
+        for (var index = 0; index < expectedRunPropertyList.Count; index++)
+        {
+            Assert.Equal(expectedRunPropertyList[index].Foreground.AsSolidColor(), actualRunPropertyList[index].Foreground.AsSolidColor());
+        }
+    }
+
     internal static void AssertPlainTextColor(TextEditor textEditor, string text)
     {
         AssertScopeColor(textEditor, 0, text.Length, ScopeType.PlainText);
