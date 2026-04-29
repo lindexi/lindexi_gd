@@ -6,6 +6,12 @@ using LightTextEditorPlus.Core.Document.Segments;
 
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
+#if USE_AVALONIA
+using TextEditorDrawingContext = LightTextEditorPlus.AvaloniaTextEditorDrawingContext;
+#elif USE_WPF
+using TextEditorDrawingContext = LightTextEditorPlus.WpfTextEditorDrawingContext;
+#endif
+
 namespace LightTextEditorPlus.Highlighters;
 
 public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
@@ -16,7 +22,10 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
     public OtherCodeDocumentHighlighter(TextEditor textEditor, string languageId)
     {
         ArgumentNullException.ThrowIfNull(textEditor);
-        ArgumentException.ThrowIfNullOrWhiteSpace(languageId);
+        if (string.IsNullOrWhiteSpace(languageId))
+        {
+            throw new ArgumentException($"{nameof(languageId)} cannot be null or whitespace.", nameof(languageId));
+        }
 
         _textEditor = textEditor;
         _plainTextDocumentHighlighter = new PlainTextDocumentHighlighter(textEditor);
@@ -36,12 +45,12 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
         _codeHighlighter.ApplyHighlight(highlightCodeContext);
     }
 
-    public void RenderBackground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderBackground(in TextEditorDrawingContext context)
     {
         _plainTextDocumentHighlighter.RenderBackground(in context);
     }
 
-    public void RenderForeground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderForeground(in TextEditorDrawingContext context)
     {
         _plainTextDocumentHighlighter.RenderForeground(in context);
     }

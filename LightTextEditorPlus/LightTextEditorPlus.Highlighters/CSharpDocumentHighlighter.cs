@@ -6,6 +6,12 @@ using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
 using System;
 
+#if USE_AVALONIA
+using TextEditorDrawingContext = LightTextEditorPlus.AvaloniaTextEditorDrawingContext;
+#elif USE_WPF
+using TextEditorDrawingContext = LightTextEditorPlus.WpfTextEditorDrawingContext;
+#endif
+
 namespace LightTextEditorPlus.Highlighters;
 
 public sealed class CSharpDocumentHighlighter : IDocumentHighlighter
@@ -31,12 +37,12 @@ public sealed class CSharpDocumentHighlighter : IDocumentHighlighter
         _csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
     }
 
-    public void RenderBackground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderBackground(in TextEditorDrawingContext context)
     {
         _plainTextDocumentHighlighter.RenderBackground(in context);
     }
 
-    public void RenderForeground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderForeground(in TextEditorDrawingContext context)
     {
         _plainTextDocumentHighlighter.RenderForeground(in context);
     }

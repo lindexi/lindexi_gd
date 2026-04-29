@@ -2,16 +2,21 @@
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
-using LightTextEditorPlus.Primitive;
 
 using Markdig.Syntax;
 
 using Microsoft.CodeAnalysis.Text;
 
-using SkiaSharp;
-
 using System;
 using System.Collections.Generic;
+
+#if USE_AVALONIA
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+using LightTextEditorPlus.Primitive;
+using SkiaSharp;
+#elif USE_WPF
+using RunProperty = LightTextEditorPlus.Document.RunProperty;
+#endif
 
 namespace LightTextEditorPlus.Highlighters;
 
@@ -69,20 +74,33 @@ internal sealed class ColorCodeStyleManager
         _dictionary[ScopeType.PlainText] = _plaintTextRunProperty = textEditor.StyleRunProperty;
 
 
-        SkiaTextRunProperty CreateRunProperty(string color)
+        RunProperty CreateRunProperty(string color)
         {
             return textEditor.StyleRunProperty with
             {
-                Foreground = new SolidColorSkiaTextBrush(SKColor.Parse(color))
+                Foreground = CreateForeground(color)
             };
         }
     }
 
-    private readonly SkiaTextRunProperty _plaintTextRunProperty;
-    private readonly Dictionary<ScopeType, SkiaTextRunProperty> _dictionary;
+    private readonly RunProperty _plaintTextRunProperty;
+    private readonly Dictionary<ScopeType, RunProperty> _dictionary;
 
-    public SkiaTextRunProperty GetRunProperty(ScopeType scope)
+    public RunProperty GetRunProperty(ScopeType scope)
     {
         return _dictionary.GetValueOrDefault(scope, _plaintTextRunProperty);
     }
+
+#if USE_AVALONIA
+    private static SolidColorSkiaTextBrush CreateForeground(string color)
+        => new(SKColor.Parse(color));
+#elif USE_WPF
+    private static ImmutableBrush CreateForeground(string color)
+    {
+        var mediaColor = (System.Windows.Media.Color) System.Windows.Media.ColorConverter.ConvertFromString(color)!;
+        var brush = new System.Windows.Media.SolidColorBrush(mediaColor);
+        brush.Freeze();
+        return new ImmutableBrush(brush);
+    }
+#endif
 }

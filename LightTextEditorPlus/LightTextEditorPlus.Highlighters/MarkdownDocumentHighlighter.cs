@@ -2,10 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using Avalonia.Controls.Shapes;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Skia;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
@@ -15,16 +11,25 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
-using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
 using Markdig;
 using Markdig.Syntax;
 
-using SkiaSharp;
-
+#if USE_AVALONIA
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+using TextEditorDrawingContext = LightTextEditorPlus.AvaloniaTextEditorDrawingContext;
+using BackgroundBrush = Avalonia.Media.SolidColorBrush;
+using FontWeightValue = SkiaSharp.SKFontStyleWeight;
+using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Utils;
-using Path = System.IO.Path;
+using SkiaSharp;
+#elif USE_WPF
+using RunProperty = LightTextEditorPlus.Document.RunProperty;
+using TextEditorDrawingContext = LightTextEditorPlus.WpfTextEditorDrawingContext;
+using BackgroundBrush = System.Windows.Media.SolidColorBrush;
+using FontWeightValue = System.Windows.FontWeight;
+#endif
 
 namespace LightTextEditorPlus.Highlighters;
 
@@ -37,12 +42,12 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         .Build();
 
     private readonly TextEditor _textEditor;
-    private readonly SkiaTextRunProperty _normalTextRunProperty;
-    private readonly IReadOnlyList<SkiaTextRunProperty> _titleLevelRunPropertyList;
-    private readonly SkiaTextRunProperty _codeLangInfoRunProperty;
-    private readonly SkiaTextRunProperty _urlRunProperty;
+    private readonly RunProperty _normalTextRunProperty;
+    private readonly IReadOnlyList<RunProperty> _titleLevelRunPropertyList;
+    private readonly RunProperty _codeLangInfoRunProperty;
+    private readonly RunProperty _urlRunProperty;
     private readonly CsharpCodeHighlighter _csharpCodeHighlighter = new();
-    private readonly SolidColorBrush _codeBackgroundColorBrush = new SolidColorBrush(0xFF3B3C37);
+    private readonly BackgroundBrush _codeBackgroundColorBrush = CreateCodeBackgroundBrush();
     private readonly List<SourceSpan> _codeBlockList = [];
     private readonly List<MarkdownUrlInfo> _urlInfoList = [];
     private IReadOnlyList<HighlightSegmentSnapshot> _lastHighlightSnapshotList = [];
@@ -61,31 +66,31 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         var titleLevel1RunProperty = _textEditor.CreateRunProperty(property => property with
         {
             FontSize = normalFontSize + 10,
-            FontWeight = SKFontStyleWeight.Bold,
+            FontWeight = GetBoldFontWeight(),
         });
 
         var titleLevel2RunProperty = _textEditor.CreateRunProperty(property => property with
         {
             FontSize = normalFontSize + 7,
-            FontWeight = SKFontStyleWeight.Bold,
+            FontWeight = GetBoldFontWeight(),
         });
 
         var titleLevel3RunProperty = _textEditor.CreateRunProperty(property => property with
         {
             FontSize = normalFontSize + 5,
-            FontWeight = SKFontStyleWeight.Bold,
+            FontWeight = GetBoldFontWeight(),
         });
 
         var titleLevel4RunProperty = _textEditor.CreateRunProperty(property => property with
         {
             FontSize = normalFontSize + 3,
-            FontWeight = SKFontStyleWeight.Bold,
+            FontWeight = GetBoldFontWeight(),
         });
 
         var titleLevel5RunProperty = _textEditor.CreateRunProperty(property => property with
         {
             FontSize = normalFontSize + 1,
-            FontWeight = SKFontStyleWeight.Bold,
+            FontWeight = GetBoldFontWeight(),
         });
 
         _titleLevelRunPropertyList =
@@ -99,12 +104,12 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 
         _codeLangInfoRunProperty = _textEditor.CreateRunProperty(property => property with
         {
-            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFFAC90DE))
+            Foreground = CreateCodeLanguageForeground()
         });
 
         _urlRunProperty = _textEditor.CreateRunProperty(property => property with
         {
-            Foreground = new LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush(new SKColor(0xFF67D9E0)),
+            Foreground = CreateUrlForeground(),
             DecorationCollection = UnderlineTextEditorDecoration.Instance,
         });
     }
@@ -230,7 +235,7 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
             {
                 return markdownText.Substring(span.Start, span.Length);
             }
-            catch (ArgumentOutOfRangeException e)
+            catch (ArgumentOutOfRangeException)
             {
                 GC.KeepAlive(span);
                 throw;
@@ -426,7 +431,7 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         }
     }
 
-    public void RenderBackground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderBackground(in TextEditorDrawingContext context)
     {
         var viewport = context.Viewport;
         var drawingContext = context.DrawingContext;
@@ -476,16 +481,16 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
-            drawingContext.DrawRectangle(_codeBackgroundColorBrush, null, bounds.ToSKRect().ToAvaloniaRect());
+            DrawCodeBlockBackground(drawingContext, bounds);
             mergedCodeBlockBounds = null;
         }
     }
 
-    public void RenderForeground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderForeground(in TextEditorDrawingContext context)
     {
     }
 
-    private SkiaTextRunProperty GetTitleLevelRunProperty(int level)
+    private RunProperty GetTitleLevelRunProperty(int level)
     {
         var levelIndex = level - 1;
         if (levelIndex < 0)
@@ -523,7 +528,7 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 
     public readonly record struct MarkdownUrlInfo(SourceSpan SourceSpan, string Url);
 
-    private readonly record struct HighlightOperation(SkiaTextRunProperty RunProperty, SourceSpan SourceSpan);
+    private readonly record struct HighlightOperation(RunProperty RunProperty, SourceSpan SourceSpan);
 
     private readonly record struct CodeBlockHighlightSnapshot(SourceSpan InnerCodeSpan, string CodeLang, string InnerCodeText, ICodeHighlighter CodeHighlighter);
 
@@ -531,4 +536,50 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         SourceSpan SourceSpan,
         IReadOnlyList<HighlightOperation> OperationList,
         CodeBlockHighlightSnapshot? CodeBlockHighlightSnapshot);
+
+    private static FontWeightValue GetBoldFontWeight()
+#if USE_AVALONIA
+        => SKFontStyleWeight.Bold;
+#else
+        => System.Windows.FontWeights.Bold;
+#endif
+
+#if USE_AVALONIA
+    private static LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush CreateCodeLanguageForeground()
+        => new(new SKColor(0xFFAC90DE));
+
+    private static LightTextEditorPlus.Primitive.SolidColorSkiaTextBrush CreateUrlForeground()
+        => new(new SKColor(0xFF67D9E0));
+
+    private static BackgroundBrush CreateCodeBackgroundBrush()
+        => new(Avalonia.Media.Color.FromArgb(0xFF, 0x3B, 0x3C, 0x37));
+
+    private static void DrawCodeBlockBackground(Avalonia.Media.DrawingContext drawingContext, TextRect bounds)
+        => drawingContext.DrawRectangle(CreateCodeBackgroundBrush(), null,
+            new Avalonia.Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height));
+#elif USE_WPF
+    private static LightTextEditorPlus.Document.ImmutableBrush CreateCodeLanguageForeground()
+        => CreateImmutableBrush(0xFF, 0xAC, 0x90, 0xDE);
+
+    private static LightTextEditorPlus.Document.ImmutableBrush CreateUrlForeground()
+        => CreateImmutableBrush(0xFF, 0x67, 0xD9, 0xE0);
+
+    private static BackgroundBrush CreateCodeBackgroundBrush()
+    {
+        var brush = new BackgroundBrush(System.Windows.Media.Color.FromArgb(0xFF, 0x3B, 0x3C, 0x37));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static LightTextEditorPlus.Document.ImmutableBrush CreateImmutableBrush(byte alpha, byte red, byte green, byte blue)
+    {
+        var brush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(alpha, red, green, blue));
+        brush.Freeze();
+        return new LightTextEditorPlus.Document.ImmutableBrush(brush);
+    }
+
+    private void DrawCodeBlockBackground(System.Windows.Media.DrawingContext drawingContext, TextRect bounds)
+        => drawingContext.DrawRectangle(_codeBackgroundColorBrush, null,
+            new System.Windows.Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height));
+#endif
 }

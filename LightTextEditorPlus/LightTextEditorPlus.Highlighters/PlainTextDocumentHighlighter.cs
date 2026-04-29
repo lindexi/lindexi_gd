@@ -1,21 +1,24 @@
-using Avalonia.Skia;
-
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Document;
-using LightTextEditorPlus.Primitive;
-
-using SkiaSharp;
 
 using System;
+
+#if USE_AVALONIA
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+using TextEditorDrawingContext = LightTextEditorPlus.AvaloniaTextEditorDrawingContext;
+#elif USE_WPF
+using RunProperty = LightTextEditorPlus.Document.RunProperty;
+using TextEditorDrawingContext = LightTextEditorPlus.WpfTextEditorDrawingContext;
+#endif
 
 namespace LightTextEditorPlus.Highlighters;
 
 public sealed class PlainTextDocumentHighlighter : IDocumentHighlighter
 {
     private readonly TextEditor _textEditor;
-    private readonly SkiaTextRunProperty _normalTextRunProperty;
+    private readonly RunProperty _normalTextRunProperty;
 
     public PlainTextDocumentHighlighter(TextEditor textEditor)
     {
@@ -37,11 +40,11 @@ public sealed class PlainTextDocumentHighlighter : IDocumentHighlighter
         }
     }
 
-    public void RenderBackground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderBackground(in TextEditorDrawingContext context)
     {
     }
 
-    public void RenderForeground(in AvaloniaTextEditorDrawingContext context)
+    public void RenderForeground(in TextEditorDrawingContext context)
     {
     }
 }

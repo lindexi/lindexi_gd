@@ -10,6 +10,12 @@ using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
 using Markdig.Syntax;
 
+#if USE_AVALONIA
+using RunProperty = LightTextEditorPlus.Document.SkiaTextRunProperty;
+#elif USE_WPF
+using RunProperty = LightTextEditorPlus.Document.RunProperty;
+#endif
+
 namespace LightTextEditorPlus.Highlighters;
 
 internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
@@ -32,7 +38,7 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
         TextEditor.TextEditorCore.SetUndoRedoEnable(true, "完成框架内部设置文本样式，启用撤销恢复");
     }
 
-    public void TrySetRunProperty(ScopeType scopeType, SkiaTextRunProperty runProperty, SourceSpan span)
+    public void TrySetRunProperty(ScopeType scopeType, RunProperty runProperty, SourceSpan span)
     {
         _ = scopeType;
 
@@ -57,12 +63,11 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
     /// </summary>
     /// <param name="runProperty"></param>
     /// <param name="selection">绝对坐标，不会叠加 <see cref="StartOffset"/> 属性</param>
-    public void TrySetRunProperty(SkiaTextRunProperty runProperty, in Selection selection)
+    public void TrySetRunProperty(RunProperty runProperty, in Selection selection)
     {
         TextEditor.TextEditorCore.SetUndoRedoEnable(false, "框架内部设置文本样式，防止将内容动作记录");
-        IEnumerable<SkiaTextRunProperty> runPropertyRange = TextEditor.GetRunPropertyRange(selection);
-        var same = runPropertyRange.All(t =>
-            SkiaTextRunPropertyEqualityComparers.IgnoreRenderPropertyComparer.Equals(t, runProperty));
+        IEnumerable<RunProperty> runPropertyRange = TextEditor.GetRunPropertyRange(selection);
+        var same = runPropertyRange.All(t => t.Equals(runProperty));
         if (!same)
         {
             TextEditor.SetRunProperty(runProperty, selection);

@@ -21,8 +21,6 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
 
     public void ApplyHighlight(in HighlightCodeContext context)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(LanguageId);
-
         var language = LanguageRepository.FindById(LanguageId);
         if (language is null)
         {
