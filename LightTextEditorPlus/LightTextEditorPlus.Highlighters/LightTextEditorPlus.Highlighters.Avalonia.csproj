@@ -5,6 +5,7 @@
     <RootNamespace>LightTextEditorPlus</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsTrimmable>true</IsTrimmable>
+    <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="1.0.0" />
@@ -15,5 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="**\*.wpf.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="WpfTextEditorDrawingContext.wpf.cs" />
   </ItemGroup>
 </Project>
