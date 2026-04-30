@@ -1,13 +1,12 @@
 ﻿using Microsoft.Extensions.AI;
 
-using OpenAI.Chat;
-
 using System;
+
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace AvaloniaAgentLib.Model;
 
-public sealed class CopilotChatMessage: NotifyBase
+public sealed class CopilotChatMessage : NotifyBase
 {
     public CopilotChatMessage(ChatRole role, string content)
     {
