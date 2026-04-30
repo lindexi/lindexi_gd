@@ -50,6 +50,7 @@ MVVM 的核心目标是：
 
 - `CopilotChatMessage` 仅保留消息语义字段，不再包含气泡背景、前景色、对齐方式。
 - 对于助手消息，思考链与最终正文属于不同语义，分别使用 `Reason` 与 `Content` 承载；需要整体复制或落盘时，再通过组合属性统一输出。
+- 助手消息如果带有 `UsageDetails`，继续由 Model 暴露语义化统计字段，由 `CopilotSlideBar.axaml` 决定是否渲染“用量”摘要卡片；不要把颜色、圆角和徽章布局塞回 Model。
 - `CopilotSlideBar.axaml` 中定义用户/助手消息模板。
 - 助手模板负责把“思考”和“正文”拆成两个可视区块，不把这类展示结构塞回 Model。
 - 聊天气泡右键复制菜单直接基于 `Content` 与 `FullContent` 两个现有语义字段组合，不额外引入新的 ViewModel 包装层。

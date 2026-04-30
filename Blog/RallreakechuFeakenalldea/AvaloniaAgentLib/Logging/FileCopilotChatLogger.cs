@@ -52,6 +52,17 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
                 .AppendLine("]");
             builder.Append(chatMessage.Author).AppendLine(":");
             builder.AppendLine(chatMessage.FullContent);
+
+            if (chatMessage.UsageDetails is { } usageDetails)
+            {
+                builder.AppendLine("用量:");
+                AppendUsageLine(builder, "总计", usageDetails.TotalTokenCount);
+                AppendUsageLine(builder, "输入", usageDetails.InputTokenCount);
+                AppendUsageLine(builder, "输出", usageDetails.OutputTokenCount);
+                AppendUsageLine(builder, "思考", usageDetails.ReasoningTokenCount);
+                AppendUsageLine(builder, "缓存", usageDetails.CachedInputTokenCount);
+            }
+
             builder.AppendLine();
 
             await File.AppendAllTextAsync(logFilePath, builder.ToString(), Encoding.UTF8).ConfigureAwait(false);
@@ -75,5 +86,18 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         logFilePath = Path.Join(dayFolderPath, $"{createdTime:yyyyMMdd_HHmmss}_{sessionId:N}.log");
         _sessionLogFilePathMap[sessionId] = logFilePath;
         return logFilePath;
+    }
+
+    private static void AppendUsageLine(StringBuilder builder, string label, long? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        builder.Append("- ")
+            .Append(label)
+            .Append(": ")
+            .AppendLine(value.Value.ToString("N0"));
     }
 }

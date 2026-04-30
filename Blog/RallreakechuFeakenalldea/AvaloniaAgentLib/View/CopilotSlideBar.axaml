@@ -59,6 +59,33 @@
                     </StackPanel>
                 </Border>
                 <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
+                <Border Classes="UsageSummaryBorder"
+                        IsVisible="{Binding HasUsageDetails}"
+                        Margin="4,6,4,0"
+                        HorizontalAlignment="Left">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Classes="UsageSummaryTitle" Text="本次用量" />
+                            <Border Classes="UsageChip" IsVisible="{Binding HasTotalTokenCount}">
+                                <TextBlock Classes="UsageChipText" Text="{Binding TotalTokenCountText}" />
+                            </Border>
+                        </StackPanel>
+                        <WrapPanel Orientation="Horizontal" ItemHeight="26">
+                            <Border Classes="UsageChip" Margin="0,0,6,6" IsVisible="{Binding HasInputTokenCount}">
+                                <TextBlock Classes="UsageChipText" Text="{Binding InputTokenCountText}" />
+                            </Border>
+                            <Border Classes="UsageChip" Margin="0,0,6,6" IsVisible="{Binding HasOutputTokenCount}">
+                                <TextBlock Classes="UsageChipText" Text="{Binding OutputTokenCountText}" />
+                            </Border>
+                            <Border Classes="UsageChip" Margin="0,0,6,6" IsVisible="{Binding HasReasoningTokenCount}">
+                                <TextBlock Classes="UsageChipText" Text="{Binding ReasoningTokenCountText}" />
+                            </Border>
+                            <Border Classes="UsageChip" Margin="0,0,6,6" IsVisible="{Binding HasCachedInputTokenCount}">
+                                <TextBlock Classes="UsageChipText" Text="{Binding CachedInputTokenCountText}" />
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </DataTemplate>
 
@@ -82,6 +109,30 @@
         <Style Selector="TextBlock.SecondaryText">
             <Setter Property="Foreground" Value="#FF9F9F9F" />
             <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Border.UsageSummaryBorder">
+            <Setter Property="Background" Value="#FF181E29" />
+            <Setter Property="BorderBrush" Value="#FF33445F" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="10,8" />
+        </Style>
+        <Style Selector="TextBlock.UsageSummaryTitle">
+            <Setter Property="Foreground" Value="#FFD6E6FF" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="Border.UsageChip">
+            <Setter Property="Background" Value="#FF243246" />
+            <Setter Property="BorderBrush" Value="#FF3A567A" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="8,3" />
+        </Style>
+        <Style Selector="TextBlock.UsageChipText">
+            <Setter Property="Foreground" Value="#FFE8F1FF" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Medium" />
         </Style>
         <Style Selector="TextBox.MessageInputTextBox">
             <Setter Property="Background" Value="#FF222222" />
