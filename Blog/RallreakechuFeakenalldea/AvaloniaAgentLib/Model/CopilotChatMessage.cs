@@ -12,6 +12,7 @@ public sealed class CopilotChatMessage: NotifyBase
     public CopilotChatMessage(ChatRole role, string content)
     {
         Role = role;
+        Reason = string.Empty;
         Content = content;
         CreatedTime = DateTimeOffset.Now;
         TimeText = CreatedTime.ToString("HH:mm");
@@ -53,6 +54,47 @@ public sealed class CopilotChatMessage: NotifyBase
             if (value == field) return;
             field = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(HasContent));
+            OnPropertyChanged(nameof(HasReasonAndContent));
+            OnPropertyChanged(nameof(FullContent));
+        }
+    }
+
+    public string Reason
+    {
+        get;
+        set
+        {
+            if (value == field) return;
+            field = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasReason));
+            OnPropertyChanged(nameof(HasReasonAndContent));
+            OnPropertyChanged(nameof(FullContent));
+        }
+    }
+
+    public bool HasContent => !string.IsNullOrEmpty(Content);
+
+    public bool HasReason => !string.IsNullOrEmpty(Reason);
+
+    public bool HasReasonAndContent => HasReason && HasContent;
+
+    public string FullContent
+    {
+        get
+        {
+            if (!HasReason)
+            {
+                return Content;
+            }
+
+            if (!HasContent)
+            {
+                return $"思考：{Environment.NewLine}{Reason}";
+            }
+
+            return $"思考：{Environment.NewLine}{Reason}{Environment.NewLine}--------{Environment.NewLine}{Content}";
         }
     }
 

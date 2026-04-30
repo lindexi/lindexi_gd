@@ -174,7 +174,7 @@ public partial class CopilotSlideBar : UserControl
             return;
         }
 
-        await SetClipboardTextAsync($"{message.Author} {message.TimeText}{Environment.NewLine}{message.Content}");
+        await SetClipboardTextAsync($"{message.Author} {message.TimeText}{Environment.NewLine}{message.FullContent}");
     }
 
     private async Task SetClipboardTextAsync(string text)

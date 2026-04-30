@@ -51,7 +51,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
                 .Append(chatMessage.CreatedTime.ToString("yyyy-MM-dd HH:mm:ss.fff zzz"))
                 .AppendLine("]");
             builder.Append(chatMessage.Author).AppendLine(":");
-            builder.AppendLine(chatMessage.Content);
+            builder.AppendLine(chatMessage.FullContent);
             builder.AppendLine();
 
             await File.AppendAllTextAsync(logFilePath, builder.ToString(), Encoding.UTF8).ConfigureAwait(false);
