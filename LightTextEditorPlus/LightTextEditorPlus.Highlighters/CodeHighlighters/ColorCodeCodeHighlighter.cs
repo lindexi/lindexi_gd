@@ -89,6 +89,11 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
         var flattenedSegments = FlattenSegments(textLength, coloredSegmentList);
         foreach (var (span, scope, _) in flattenedSegments)
         {
+            if (span.Start < 0 || span.End > textLength || span.Length <= 0)
+            {
+                continue;
+            }
+
             colorCode.FillCodeColor(span, scope);
         }
     }
@@ -103,7 +108,7 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
 
         foreach (var (span, _, _) in coloredSegmentList)
         {
-            if (span.Length <= 0)
+            if (span.Length <= 0 || span.Start < 0 || span.End > textLength)
             {
                 continue;
             }

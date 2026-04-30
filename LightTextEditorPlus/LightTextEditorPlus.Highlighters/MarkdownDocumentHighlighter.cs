@@ -50,6 +50,7 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     private readonly RunProperty _codeLangInfoRunProperty;
     private readonly RunProperty _urlRunProperty;
     private readonly CsharpCodeHighlighter _csharpCodeHighlighter = new();
+    private readonly JsonCodeHighlighter _jsonCodeHighlighter = new();
     private readonly BackgroundBrush _codeBackgroundColorBrush = CreateCodeBackgroundBrush();
     private readonly List<SourceSpan> _codeBlockList = [];
     private readonly List<MarkdownUrlInfo> _urlInfoList = [];
@@ -325,6 +326,13 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
 
             var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(codeBlockHighlightSnapshot.InnerCodeSpan.Start));
             var highlightCodeContext = new HighlightCodeContext(codeBlockHighlightSnapshot.InnerCodeText, colorCode);
+
+            if (IsJsonLanguage(codeBlockHighlightSnapshot.CodeLang)
+                && _jsonCodeHighlighter.TryApplyHighlight(highlightCodeContext))
+            {
+                return;
+            }
+
             codeBlockHighlightSnapshot.CodeHighlighter.ApplyHighlight(highlightCodeContext);
         }
 
@@ -477,6 +485,11 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                    || codeLangText.Equals("cs", StringComparison.OrdinalIgnoreCase)
                    || codeLangText.Equals("C#", StringComparison.OrdinalIgnoreCase)
                    || codeLangText.Equals("dotnet", StringComparison.OrdinalIgnoreCase);
+        }
+
+        static bool IsJsonLanguage(string codeLangText)
+        {
+            return codeLangText.Trim().Equals("json", StringComparison.OrdinalIgnoreCase);
         }
 
         static bool HighlightSegmentSnapshotEquals(HighlightSegmentSnapshot left, HighlightSegmentSnapshot right)

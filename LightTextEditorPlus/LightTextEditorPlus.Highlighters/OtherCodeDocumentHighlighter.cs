@@ -23,6 +23,8 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
 {
     private readonly PlainTextDocumentHighlighter _plainTextDocumentHighlighter;
     private readonly TextEditor _textEditor;
+    private readonly string _languageId;
+    private readonly JsonCodeHighlighter _jsonCodeHighlighter = new();
 
     /// <summary>
     /// 创建其他语言文档高亮器。
@@ -38,6 +40,7 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
         }
 
         _textEditor = textEditor;
+        _languageId = languageId;
         _plainTextDocumentHighlighter = new PlainTextDocumentHighlighter(textEditor);
         _codeHighlighter = new ColorCodeCodeHighlighter
         {
@@ -56,6 +59,13 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
         _plainTextDocumentHighlighter.ApplyHighlight(text);
         var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(0));
         var highlightCodeContext = new HighlightCodeContext(text, colorCode);
+
+        if (string.Equals(_languageId, "json", StringComparison.OrdinalIgnoreCase)
+            && _jsonCodeHighlighter.TryApplyHighlight(highlightCodeContext))
+        {
+            return;
+        }
+
         _codeHighlighter.ApplyHighlight(highlightCodeContext);
     }
 

@@ -119,6 +119,40 @@ public class MarkdownCodeBlockHighlightingTests
         AssertCodeBlockMatchesStandaloneHighlight(markdown, secondCode, secondStandaloneEditor, markdownEditor);
     }
 
+    [Fact]
+    public void ApplyHighlight_CodeBlockWithMultiLineJson_HighlightsJsonScopes()
+    {
+        var code = """
+        {
+          "catalog": {
+            "name": "Widget Set",
+            "revision": 7,
+            "entries": [
+              {
+                "id": "w-01",
+                "enabled": true
+              },
+              {
+                "id": "w-02",
+                "enabled": false,
+                "note": null
+              }
+            ]
+          }
+        }
+        """.Replace("\r\n", "\n");
+
+        var markdown = CreateCodeBlock("json", code);
+        var markdownEditor = CreateHighlightedEditor(markdown);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(markdownEditor, markdown);
+        AssertJsonHighlight(markdownEditor, markdown,
+            keyTokenList: ["\"catalog\"", "\"name\"", "\"revision\"", "\"entries\"", "\"id\"", "\"enabled\"", "\"note\""],
+            stringValueTokenList: ["\"Widget Set\"", "\"w-01\"", "\"w-02\""],
+            numberTokenList: ["7"],
+            constantTokenList: ["true", "false", "null"]);
+    }
+
     private static string CreateCodeBlock(string language, string code)
     {
         return $"```{language}\n{code}\n```";
@@ -200,5 +234,29 @@ public class MarkdownCodeBlockHighlightingTests
             "f#" or "fsharp" or "fs" => LanguageId.FSharp,
             _ => throw new InvalidOperationException($"Unsupported test language '{language}'.")
         };
+    }
+
+    private static void AssertJsonHighlight(TextEditor textEditor, string text, IEnumerable<string> keyTokenList,
+        IEnumerable<string> stringValueTokenList, IEnumerable<string> numberTokenList, IEnumerable<string> constantTokenList)
+    {
+        foreach (var keyToken in keyTokenList)
+        {
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, keyToken, ScopeType.ClassMember);
+        }
+
+        foreach (var stringValueToken in stringValueTokenList)
+        {
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, stringValueToken, ScopeType.String);
+        }
+
+        foreach (var numberToken in numberTokenList)
+        {
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, numberToken, ScopeType.Number);
+        }
+
+        foreach (var constantToken in constantTokenList)
+        {
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, constantToken, ScopeType.DeclarationTypeSyntax);
+        }
     }
 }

@@ -56,6 +56,7 @@ internal sealed class ColorCodeStyleManager
         [
             (ScopeType.Comment,"#579A4C"),
             (ScopeType.ClassName,"#4EC9B0"),
+            (ScopeType.ClassMember,"#DCDCAA"),
             (ScopeType.Comment,"#579A4C"),
             (ScopeType.Keyword,"#569CD1"),
             (ScopeType.String,"#BD9283"),

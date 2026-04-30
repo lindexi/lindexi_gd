@@ -76,17 +76,6 @@ public class OtherCodeDocumentHighlighterTests
         DocumentHighlighterTestHelper.AssertSameForegroundColors(expectedEditor, 0, textEditor, 0, code.Length);
     }
 
-    [Fact]
-    public void ApplyHighlight_JsonKeysValuesAndBraces_HighlightsDetailedScopes()
-    {
-        const string code = "{\"name\": \"lindexi\", \"value\": 123, \"enabled\": true}";
-
-        var textEditor = CreateHighlightedEditor("json", code);
-        var expectedEditor = CreateColorCodeHighlightedEditor("json", code);
-
-        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertSameForegroundColors(expectedEditor, 0, textEditor, 0, code.Length);
-    }
 
     [Fact]
     public void ApplyHighlight_XmlAttributesAndContent_HighlightsDetailedScopes()
