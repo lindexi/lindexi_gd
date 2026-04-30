@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus;
+using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Highlighters;
 using Moq;
@@ -60,7 +60,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -181,7 +181,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class PlainTextDocumentHighlighterTests
         const string text1 = "First text";
         textEditor.AppendText(text1);
         highlighter.ApplyHighlight(text1);
-        Assert.Equal(text1, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text1, GetEditorText(textEditor));
 
         // Clear and apply new text
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -204,7 +204,7 @@ public class PlainTextDocumentHighlighterTests
         const string text2 = "Second text with numbers 123";
         textEditor.AppendText(text2);
         highlighter.ApplyHighlight(text2);
-        Assert.Equal(text2, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text2, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -236,7 +236,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class PlainTextDocumentHighlighterTests
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -275,7 +275,7 @@ Unicode: 你好";
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -342,7 +342,7 @@ Unicode: 你好";
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -359,6 +359,6 @@ Unicode: 你好";
 
         // Assert
         var documentText = GetEditorText(textEditor);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 }

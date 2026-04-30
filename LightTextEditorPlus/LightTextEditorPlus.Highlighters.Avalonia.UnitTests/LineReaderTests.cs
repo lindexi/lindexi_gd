@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Highlighters;
+using LightTextEditorPlus.Highlighters;
 using Markdig.Syntax;
 
 namespace LightTextEditorPlus.Highlighters.Avalonia.UnitTests;

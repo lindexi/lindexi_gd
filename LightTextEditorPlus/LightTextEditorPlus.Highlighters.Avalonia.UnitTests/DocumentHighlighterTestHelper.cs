@@ -17,7 +17,12 @@ internal static class DocumentHighlighterTestHelper
 
     internal static void AssertTextPreserved(TextEditor textEditor, string expectedText)
     {
-        Assert.Equal(expectedText, GetEditorText(textEditor));
+        AssertTextEqual(expectedText, GetEditorText(textEditor));
+    }
+
+    internal static void AssertTextEqual(string expectedText, string actualText)
+    {
+        Assert.Equal(NormalizeLineEndings(expectedText), NormalizeLineEndings(actualText));
     }
 
     internal static void AssertScopeColor(TextEditor textEditor, string text, string token, ScopeType scope, int occurrence = 0)
@@ -142,5 +147,12 @@ internal static class DocumentHighlighterTestHelper
         }
 
         throw new InvalidOperationException("Unreachable.");
+    }
+
+    private static string NormalizeLineEndings(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+
+        return text.Replace("\r\n", "\n").Replace('\r', '\n');
     }
 }

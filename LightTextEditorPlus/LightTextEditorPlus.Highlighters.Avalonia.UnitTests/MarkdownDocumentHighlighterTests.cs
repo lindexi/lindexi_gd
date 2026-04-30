@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus;
+using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Highlighters;
 using Markdig.Syntax;
@@ -140,7 +140,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     #endregion
@@ -176,7 +176,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     #endregion
@@ -276,7 +276,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -292,7 +292,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -308,7 +308,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -356,7 +356,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -372,7 +372,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -388,7 +388,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -404,7 +404,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -420,7 +420,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -436,7 +436,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -452,7 +452,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -468,7 +468,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -484,7 +484,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -500,7 +500,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -516,7 +516,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -532,7 +532,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -548,7 +548,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -564,7 +564,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -580,7 +580,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -596,7 +596,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -612,7 +612,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -628,7 +628,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     #endregion
@@ -648,7 +648,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("http://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -666,7 +666,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -684,7 +684,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -702,7 +702,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -720,7 +720,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -738,7 +738,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -756,7 +756,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -774,7 +774,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com", highlighter.UrlInfoList[0].Url);
     }
@@ -792,7 +792,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com/path/to/page", highlighter.UrlInfoList[0].Url);
     }
@@ -810,7 +810,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
         Assert.Equal("https://example.com?query=value&other=123", highlighter.UrlInfoList[0].Url);
     }
@@ -832,7 +832,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
         Assert.Single(highlighter.UrlInfoList);
     }
 
@@ -855,7 +855,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text2);
 
         // Assert
-        Assert.Equal(text2, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text2, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -871,7 +871,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     [Fact]
@@ -887,7 +887,7 @@ public class MarkdownDocumentHighlighterTests
         highlighter.ApplyHighlight(text);
 
         // Assert
-        Assert.Equal(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
     }
 
     #endregion
