@@ -26,7 +26,6 @@
                     <Border.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="复制正文" Click="CopyContentMenuItem_OnClick" CommandParameter="{Binding}" />
-                            <MenuItem Header="复制正文和思考内容" Click="CopyContentAndReasonMenuItem_OnClick" CommandParameter="{Binding}" />
                             <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
                         </ContextMenu>
                     </Border.ContextMenu>
@@ -42,7 +41,7 @@
                 <Border Background="#FF2A2A2A" CornerRadius="8" Padding="10,8">
                     <Border.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="只复制正文" Click="CopyContentMenuItem_OnClick" CommandParameter="{Binding}" />
+                            <MenuItem Header="复制正文" Click="CopyContentMenuItem_OnClick" CommandParameter="{Binding}" />
                             <MenuItem Header="复制正文和思考内容" Click="CopyContentAndReasonMenuItem_OnClick" CommandParameter="{Binding}" />
                             <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
                         </ContextMenu>
