@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <None Include="..\JiyinunalcheWaqerehoqarlijear\Program.cs" Link="ReferenceProgram.cs" />
-    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.3" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.3.0" />
   </ItemGroup>
 
 </Project>
