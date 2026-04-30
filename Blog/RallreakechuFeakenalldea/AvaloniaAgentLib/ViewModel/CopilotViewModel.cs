@@ -216,6 +216,7 @@ public class CopilotViewModel : INotifyPropertyChanged
                 }
 
                 isFirst = false;
+                copilotChatMessage.AppendUsageDetails(agentRunResponseUpdate.Origin.Contents);
 
                 if (agentRunResponseUpdate.Reasoning is not null)
                 {

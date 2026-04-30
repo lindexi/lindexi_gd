@@ -58,6 +58,14 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
+                <Border Classes="UsageSummaryBorder"
+                        IsVisible="{Binding HasUsageDetails}"
+                        Margin="4,6,4,0"
+                        HorizontalAlignment="Right">
+                    <TextBlock Classes="UsageSummaryText"
+                               Text="{Binding UsageSummaryText}"
+                               TextWrapping="NoWrap" />
+                </Border>
                 <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
             </StackPanel>
         </DataTemplate>
@@ -82,6 +90,17 @@
         <Style Selector="TextBlock.SecondaryText">
             <Setter Property="Foreground" Value="#FF9F9F9F" />
             <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Border.UsageSummaryBorder">
+            <Setter Property="Background" Value="#FF1A2330" />
+            <Setter Property="BorderBrush" Value="#FF31465F" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="8,2" />
+        </Style>
+        <Style Selector="TextBlock.UsageSummaryText">
+            <Setter Property="Foreground" Value="#FFE8F1FF" />
+            <Setter Property="FontSize" Value="10" />
         </Style>
         <Style Selector="TextBox.MessageInputTextBox">
             <Setter Property="Background" Value="#FF222222" />
