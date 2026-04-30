@@ -157,14 +157,24 @@ public partial class CopilotSlideBar : UserControl
         ChatScrollViewer.ScrollToEnd();
     }
 
-    private async void CopyMessageMenuItem_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    private async void CopyContentMenuItem_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (sender is not MenuItem { CommandParameter: string messageText })
+        if (sender is not MenuItem { CommandParameter: CopilotChatMessage message })
         {
             return;
         }
 
-        await SetClipboardTextAsync(messageText);
+        await SetClipboardTextAsync(message.Content);
+    }
+
+    private async void CopyContentAndReasonMenuItem_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { CommandParameter: CopilotChatMessage message })
+        {
+            return;
+        }
+
+        await SetClipboardTextAsync(message.FullContent);
     }
 
     private async void CopyFullMessageMenuItem_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
