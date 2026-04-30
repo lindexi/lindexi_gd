@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Highlighters;
+using LightTextEditorPlus.Highlighters;
 
 namespace LightTextEditorPlus.Highlighters.Avalonia.UnitTests;
 

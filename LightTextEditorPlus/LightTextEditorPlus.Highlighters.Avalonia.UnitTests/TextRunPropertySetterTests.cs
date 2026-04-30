@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus;
+using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Document;
@@ -343,7 +343,7 @@ public class TextRunPropertySetterTests
         // Assert - Text content should remain unchanged
         var allSelection = textEditor.GetAllDocumentSelection();
         var documentText = textEditor.GetText(in allSelection);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]
@@ -364,7 +364,7 @@ public class TextRunPropertySetterTests
         // Assert - Text content should remain unchanged
         var allSelection = textEditor.GetAllDocumentSelection();
         var documentText = textEditor.GetText(in allSelection);
-        Assert.Equal(text, documentText);
+        DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
     }
 
     [Fact]

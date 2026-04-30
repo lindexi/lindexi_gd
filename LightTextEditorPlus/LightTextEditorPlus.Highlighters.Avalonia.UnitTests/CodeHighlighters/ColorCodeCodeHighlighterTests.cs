@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Highlighters.CodeHighlighters;
+using LightTextEditorPlus.Highlighters.CodeHighlighters;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 

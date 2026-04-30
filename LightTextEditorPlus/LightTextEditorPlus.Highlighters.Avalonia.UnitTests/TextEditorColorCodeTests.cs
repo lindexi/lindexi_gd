@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus;
+using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Highlighters;
