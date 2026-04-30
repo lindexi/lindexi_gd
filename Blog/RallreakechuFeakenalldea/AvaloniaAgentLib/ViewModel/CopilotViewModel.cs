@@ -206,6 +206,7 @@ public class CopilotViewModel : INotifyPropertyChanged
             currentSession.AddMessage(copilotChatMessage);
 
             bool isFirst = true;
+            bool isFirstReasoning = true;
 
             await foreach (var agentRunResponseUpdate in chatClientAgent.RunReasoningStreamingAsync(messages, cancellationToken: cancellationToken))
             {
@@ -216,19 +217,16 @@ public class CopilotViewModel : INotifyPropertyChanged
 
                 isFirst = false;
 
-                if (agentRunResponseUpdate.IsFirstThinking)
-                {
-                    copilotChatMessage.Content = "思考：";
-                }
-
                 if (agentRunResponseUpdate.Reasoning is not null)
                 {
-                    copilotChatMessage.Content += agentRunResponseUpdate.Reasoning;
-                }
+                    string reasoning = agentRunResponseUpdate.Reasoning;
+                    if (isFirstReasoning)
+                    {
+                        reasoning = reasoning.TrimStart();
+                        isFirstReasoning = false;
+                    }
 
-                if (agentRunResponseUpdate.IsThinkingEnd)
-                {
-                    copilotChatMessage.Content += "\r\n--------\r\n";
+                    copilotChatMessage.Reason += reasoning;
                 }
 
                 var text = agentRunResponseUpdate.Text;
