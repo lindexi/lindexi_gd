@@ -53,7 +53,6 @@
                         </StackPanel>
                         <Border IsVisible="{Binding HasReasonAndContent}" Height="1" Background="#FF454545" />
                         <StackPanel IsVisible="{Binding HasContent}" Spacing="4">
-                            <TextBlock Classes="SecondaryText" Text="正文" />
                             <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#FFF0F0F0" />
                         </StackPanel>
                     </StackPanel>
