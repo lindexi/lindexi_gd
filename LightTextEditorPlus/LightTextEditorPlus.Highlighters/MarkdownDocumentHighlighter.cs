@@ -51,6 +51,7 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
     private readonly RunProperty _urlRunProperty;
     private readonly CsharpCodeHighlighter _csharpCodeHighlighter = new();
     private readonly JsonCodeHighlighter _jsonCodeHighlighter = new();
+    private readonly XmlCodeHighlighter _xmlCodeHighlighter = new();
     private readonly BackgroundBrush _codeBackgroundColorBrush = CreateCodeBackgroundBrush();
     private readonly List<SourceSpan> _codeBlockList = [];
     private readonly List<MarkdownUrlInfo> _urlInfoList = [];
@@ -333,6 +334,12 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
+            if (IsXmlLanguage(codeBlockHighlightSnapshot.CodeLang)
+                && _xmlCodeHighlighter.TryApplyHighlight(highlightCodeContext))
+            {
+                return;
+            }
+
             codeBlockHighlightSnapshot.CodeHighlighter.ApplyHighlight(highlightCodeContext);
         }
 
@@ -490,6 +497,11 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         static bool IsJsonLanguage(string codeLangText)
         {
             return codeLangText.Trim().Equals("json", StringComparison.OrdinalIgnoreCase);
+        }
+
+        static bool IsXmlLanguage(string codeLangText)
+        {
+            return codeLangText.Trim().ToLowerInvariant() is "xml" or "xaml" or "axaml" or "svg";
         }
 
         static bool HighlightSegmentSnapshotEquals(HighlightSegmentSnapshot left, HighlightSegmentSnapshot right)

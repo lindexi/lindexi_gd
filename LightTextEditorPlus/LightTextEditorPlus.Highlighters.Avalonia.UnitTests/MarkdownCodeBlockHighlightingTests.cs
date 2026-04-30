@@ -60,6 +60,53 @@ public class MarkdownCodeBlockHighlightingTests
         AssertCodeBlockMatchesStandaloneHighlight(markdown, code, standaloneEditor, markdownEditor);
     }
 
+    [Fact]
+    public void ApplyHighlight_CodeBlockWithMultiLineXml_HighlightsXmlScopes()
+    {
+        var code = """
+        <workspace title="Demo Board">
+          <group id="card-001" enabled="true">
+            <item>98.5</item>
+            <item>中文</item>
+          </group>
+        </workspace>
+        """.Replace("\r\n", "\n");
+
+        var markdown = CreateCodeBlock("xml", code);
+        var markdownEditor = CreateHighlightedEditor(markdown);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(markdownEditor, markdown);
+
+        AssertMarkdownXmlHighlight(markdownEditor, markdown, code,
+            classMemberTokenList: [("workspace", 0), ("group", 0), ("item", 0), ("item", 1), ("item", 2), ("item", 3), ("group", 1), ("workspace", 1), ("title", 0), ("id", 0), ("enabled", 0)],
+            stringTokenList: ["\"Demo Board\"", "\"card-001\"", "\"true\""],
+            plainTextTokenList: [("98.5", 0), ("中文", 0)]);
+    }
+
+    [Fact]
+    public void ApplyHighlight_MultipleXmlCodeBlocksWithTextBetween_UsesMatchingHighlightForEachBlock()
+    {
+        const string firstCode = "<bb>123</bb>";
+        const string secondCode = "<root><item id=\"2\">next</item></root>";
+        var markdown = $"intro\n\n{CreateCodeBlock("xml", firstCode)}\n\nbridge\n\n{CreateCodeBlock("xml", secondCode)}\n\noutro";
+
+        var markdownEditor = CreateHighlightedEditor(markdown);
+        DocumentHighlighterTestHelper.AssertTextPreserved(markdownEditor, markdown);
+        DocumentHighlighterTestHelper.AssertScopeColor(markdownEditor, markdown, "intro", ScopeType.PlainText);
+        DocumentHighlighterTestHelper.AssertScopeColor(markdownEditor, markdown, "bridge", ScopeType.PlainText);
+        DocumentHighlighterTestHelper.AssertScopeColor(markdownEditor, markdown, "outro", ScopeType.PlainText);
+
+        AssertMarkdownXmlHighlight(markdownEditor, markdown, firstCode,
+            classMemberTokenList: [("bb", 0), ("bb", 1)],
+            stringTokenList: [],
+            plainTextTokenList: [("123", 0)]);
+
+        AssertMarkdownXmlHighlight(markdownEditor, markdown, secondCode,
+            classMemberTokenList: [("root", 0), ("item", 0), ("id", 0), ("item", 1), ("root", 1)],
+            stringTokenList: ["\"2\""],
+            plainTextTokenList: [("next", 0)]);
+    }
+
     [Theory]
     [MemberData(nameof(OtherLanguageCodeBlockData))]
     public void ApplyHighlight_CodeBlockWithOtherLanguage_HighlightsInnerCode(string language, string code)
@@ -194,6 +241,25 @@ public class MarkdownCodeBlockHighlightingTests
         DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(markdownEditor);
     }
 
+    private static void AssertMarkdownCodeTokenMatchesStandalone(string markdown, TextEditor standaloneEditor, TextEditor markdownEditor, string token, int occurrence = 0)
+    {
+        var standaloneStart = DocumentHighlighterTestHelper.GetOccurrenceStart(DocumentHighlighterTestHelper.GetEditorText(standaloneEditor), token, occurrence);
+        var markdownStart = DocumentHighlighterTestHelper.GetOccurrenceStart(markdown, token, occurrence);
+        DocumentHighlighterTestHelper.AssertSameForegroundColors(standaloneEditor, standaloneStart, markdownEditor, markdownStart, token.Length);
+    }
+
+    private static void AssertMarkdownCodeTokenMatchesStandalone(string markdown, string code, TextEditor standaloneEditor, TextEditor markdownEditor, string token, int occurrence = 0)
+    {
+        var standaloneText = DocumentHighlighterTestHelper.GetEditorText(standaloneEditor);
+        var standaloneStart = DocumentHighlighterTestHelper.GetOccurrenceStart(standaloneText, token, occurrence);
+
+        var codeStart = markdown.IndexOf(code, StringComparison.Ordinal);
+        Assert.True(codeStart >= 0);
+
+        var codeTokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, occurrence);
+        DocumentHighlighterTestHelper.AssertSameForegroundColors(standaloneEditor, standaloneStart, markdownEditor, codeStart + codeTokenStart, token.Length);
+    }
+
     private static bool IsCsharpCodeLanguage(string language)
     {
         language = language.Trim();
@@ -257,6 +323,43 @@ public class MarkdownCodeBlockHighlightingTests
         foreach (var constantToken in constantTokenList)
         {
             DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, constantToken, ScopeType.DeclarationTypeSyntax);
+        }
+    }
+
+    private static void AssertMarkdownXmlHighlight(TextEditor textEditor, string markdown, string code,
+        IEnumerable<(string Token, int Occurrence)> classMemberTokenList, IEnumerable<string> stringTokenList,
+        IEnumerable<(string Token, int Occurrence)> plainTextTokenList, IEnumerable<(string Token, int Occurrence)>? commentTokenList = null)
+    {
+        var codeStart = markdown.IndexOf(code, StringComparison.Ordinal);
+        Assert.True(codeStart >= 0);
+
+        foreach (var (token, occurrence) in classMemberTokenList)
+        {
+            var tokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, occurrence);
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, codeStart + tokenStart, token.Length, ScopeType.ClassMember);
+        }
+
+        foreach (var token in stringTokenList)
+        {
+            var tokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, 0);
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, codeStart + tokenStart, token.Length, ScopeType.String);
+        }
+
+        foreach (var (token, occurrence) in plainTextTokenList)
+        {
+            var tokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, occurrence);
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, codeStart + tokenStart, token.Length, ScopeType.PlainText);
+        }
+
+        if (commentTokenList is null)
+        {
+            return;
+        }
+
+        foreach (var (token, occurrence) in commentTokenList)
+        {
+            var tokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, occurrence);
+            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, codeStart + tokenStart, token.Length, ScopeType.Comment);
         }
     }
 }
