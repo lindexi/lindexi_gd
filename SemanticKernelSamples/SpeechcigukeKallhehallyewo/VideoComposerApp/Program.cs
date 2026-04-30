@@ -2,17 +2,6 @@
 
 using System.Text.Json.Serialization;
 
-// 获取当前本地时间
-DateTime now = DateTime.Now;
-// 构造今日21:00的时间点
-DateTime tonight9Pm = DateTime.Today.AddHours(21);
-// 计算时间差
-TimeSpan diff = tonight9Pm - now;
-// 取总秒数（负数表示已经过了今日21点）
-double totalSeconds = diff.TotalSeconds;
-
-Console.WriteLine($"距离今日21点的秒数：{Math.Round(totalSeconds, 2)}");
-
 var jsonText =
     """
     {
