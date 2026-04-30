@@ -83,10 +83,15 @@ public class OtherCodeDocumentHighlighterTests
         const string code = "<root><item id=\"1\">Value</item></root>";
 
         var textEditor = CreateHighlightedEditor(LanguageId.Xml, code);
-        var expectedEditor = CreateColorCodeHighlightedEditor(LanguageId.Xml, code);
 
         DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertSameForegroundColors(expectedEditor, 0, textEditor, 0, code.Length);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "root", 0, ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "item", 0, ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "id", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"1\"", ScopeType.String);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "Value", ScopeType.PlainText);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "item", 1, ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "root", 1, ScopeType.ClassMember);
     }
 
     [Fact]

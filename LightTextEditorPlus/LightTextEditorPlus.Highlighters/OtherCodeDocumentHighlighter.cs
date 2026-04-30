@@ -25,6 +25,7 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
     private readonly TextEditor _textEditor;
     private readonly string _languageId;
     private readonly JsonCodeHighlighter _jsonCodeHighlighter = new();
+    private readonly XmlCodeHighlighter _xmlCodeHighlighter = new();
 
     /// <summary>
     /// 创建其他语言文档高亮器。
@@ -62,6 +63,12 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
 
         if (string.Equals(_languageId, "json", StringComparison.OrdinalIgnoreCase)
             && _jsonCodeHighlighter.TryApplyHighlight(highlightCodeContext))
+        {
+            return;
+        }
+
+        if (string.Equals(_languageId, LanguageId.Xml, StringComparison.OrdinalIgnoreCase)
+            && _xmlCodeHighlighter.TryApplyHighlight(highlightCodeContext))
         {
             return;
         }
