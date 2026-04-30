@@ -194,6 +194,24 @@ public class CsharpCodeHighlighter : ICodeHighlighter
             return ScopeType.ClassMember;
         }
 
+        if (token.GetNextToken().IsKind(SyntaxKind.OpenParenToken))
+        {
+            var previousToken = token.GetPreviousToken();
+            if (!previousToken.IsKind(SyntaxKind.DotToken)
+                && !previousToken.IsKind(SyntaxKind.NewKeyword)
+                && !previousToken.IsKind(SyntaxKind.IfKeyword)
+                && !previousToken.IsKind(SyntaxKind.ForKeyword)
+                && !previousToken.IsKind(SyntaxKind.ForEachKeyword)
+                && !previousToken.IsKind(SyntaxKind.WhileKeyword)
+                && !previousToken.IsKind(SyntaxKind.SwitchKeyword)
+                && !previousToken.IsKind(SyntaxKind.CatchKeyword)
+                && !previousToken.IsKind(SyntaxKind.UsingKeyword)
+                && !previousToken.IsKind(SyntaxKind.LockKeyword))
+            {
+                return ScopeType.ClassMember;
+            }
+        }
+
         if (token.Parent is ParameterSyntax parameter && parameter.Identifier == token
             || token.Parent is VariableDeclaratorSyntax variable && variable.Identifier == token
                 && variable.Parent?.Parent is not FieldDeclarationSyntax
