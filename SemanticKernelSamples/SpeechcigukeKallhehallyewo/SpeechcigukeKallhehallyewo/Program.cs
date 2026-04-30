@@ -423,7 +423,7 @@ async Task<(string ThinkingText, string ContentText)> RunStreamingAsync(IAsyncEn
             }
         }
     }
-
+    
     var thinkingText = thinkingStringBuilder.ToString();
     var contentText = contentStringBuilder.ToString();
 
