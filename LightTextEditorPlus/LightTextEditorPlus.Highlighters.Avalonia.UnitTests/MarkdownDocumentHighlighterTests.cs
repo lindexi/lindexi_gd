@@ -1,6 +1,7 @@
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Highlighters;
+using LightTextEditorPlus.Highlighters.CodeHighlighters;
 using Markdig.Syntax;
 using Moq;
 using Avalonia.Media;
@@ -141,6 +142,26 @@ public class MarkdownDocumentHighlighterTests
 
         // Assert
         DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
+    }
+
+    [Fact]
+    public void ApplyHighlight_CodeBlockWithJsonChineseString_HighlightsAsJson()
+    {
+        // Arrange
+        var textEditor = new TextEditor();
+        var highlighter = new MarkdownDocumentHighlighter(textEditor);
+        const string text = "```json\n{   \"Key1\": \"中文\",   \"Key2\": 5 }\n```";
+        textEditor.AppendText(text);
+
+        // Act
+        highlighter.ApplyHighlight(text);
+
+        // Assert
+        DocumentHighlighterTestHelper.AssertTextEqual(text, GetEditorText(textEditor));
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, "\"Key1\"", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, "\"中文\"", ScopeType.String);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, "\"Key2\"", ScopeType.ClassMember);
+        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, text, "5", ScopeType.Number);
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Text.Json;
 
 using Microsoft.CodeAnalysis.Text;
@@ -31,12 +32,12 @@ internal sealed class JsonCodeHighlighter
 
         try
         {
-            var utf8Bytes = System.Text.Encoding.UTF8.GetBytes(code);
+            var utf8Bytes = Encoding.UTF8.GetBytes(code);
             var reader = new Utf8JsonReader(utf8Bytes, JsonReaderOptions);
 
             while (reader.Read())
             {
-                HighlightToken(code, in reader, context.ColorCode);
+                HighlightToken(utf8Bytes, in reader, context.ColorCode);
             }
 
             return true;
@@ -47,7 +48,7 @@ internal sealed class JsonCodeHighlighter
         }
     }
 
-    private static void HighlightToken(string code, in Utf8JsonReader reader, IColorCode colorCode)
+    private static void HighlightToken(byte[] utf8Bytes, in Utf8JsonReader reader, IColorCode colorCode)
     {
         var scopeType = reader.TokenType switch
         {
@@ -63,7 +64,7 @@ internal sealed class JsonCodeHighlighter
             return;
         }
 
-        if (!TryGetTokenSpan(code, in reader, out var span))
+        if (!TryGetTokenSpan(utf8Bytes, in reader, out var span))
         {
             return;
         }
@@ -71,18 +72,18 @@ internal sealed class JsonCodeHighlighter
         colorCode.FillCodeColor(span, scopeType.Value);
     }
 
-    private static bool TryGetTokenSpan(string code, in Utf8JsonReader reader, out TextSpan span)
+    private static bool TryGetTokenSpan(byte[] utf8Bytes, in Utf8JsonReader reader, out TextSpan span)
     {
-        int start = checked((int) reader.TokenStartIndex);
-        if ((uint) start >= (uint) code.Length)
+        int byteStart = checked((int) reader.TokenStartIndex);
+        if ((uint) byteStart >= (uint) utf8Bytes.Length)
         {
             span = default;
             return false;
         }
 
-        int length = reader.TokenType switch
+        int byteLength = reader.TokenType switch
         {
-            JsonTokenType.PropertyName or JsonTokenType.String => GetQuotedTokenLength(code, start),
+            JsonTokenType.PropertyName or JsonTokenType.String => GetQuotedTokenByteLength(utf8Bytes, byteStart),
             JsonTokenType.Number => reader.ValueSpan.Length,
             JsonTokenType.True => 4,
             JsonTokenType.False => 5,
@@ -90,34 +91,36 @@ internal sealed class JsonCodeHighlighter
             _ => 0
         };
 
-        if (length <= 0 || start + length > code.Length)
+        if (byteLength <= 0 || byteStart + byteLength > utf8Bytes.Length)
         {
             span = default;
             return false;
         }
 
-        span = new TextSpan(start, length);
+        int charStart = Encoding.UTF8.GetCharCount(utf8Bytes, 0, byteStart);
+        int charLength = Encoding.UTF8.GetCharCount(utf8Bytes, byteStart, byteLength);
+        span = new TextSpan(charStart, charLength);
         return true;
     }
 
-    private static int GetQuotedTokenLength(string code, int start)
+    private static int GetQuotedTokenByteLength(byte[] utf8Bytes, int byteStart)
     {
-        if (code[start] != '"')
+        if (utf8Bytes[byteStart] != '"')
         {
             return 0;
         }
 
-        for (int index = start + 1; index < code.Length; index++)
+        for (int index = byteStart + 1; index < utf8Bytes.Length; index++)
         {
-            if (code[index] == '\\')
+            if (utf8Bytes[index] == '\\')
             {
                 index++;
                 continue;
             }
 
-            if (code[index] == '"')
+            if (utf8Bytes[index] == '"')
             {
-                return index - start + 1;
+                return index - byteStart + 1;
             }
         }
 

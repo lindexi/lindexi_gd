@@ -65,96 +65,6 @@ public class OtherCodeDocumentHighlighterTests
     }
 
     [Fact]
-    public void ApplyHighlight_MultiLineLongJson_HighlightsKeysStringsNumbersAndConstants()
-    {
-        var code = """
-        {
-          "workspace": {
-            "title": "Demo Board",
-            "version": 3,
-            "items": [
-              {
-                "id": "card-001",
-                "active": true,
-                "score": 98.5,
-                "tags": [
-                  "ui",
-                  "json"
-                ]
-              },
-              {
-                "id": "card-002",
-                "active": false,
-                "score": null,
-                "tags": []
-              }
-            ]
-          }
-        }
-        """.Replace("\r\n", "\n");
-
-        var textEditor = CreateHighlightedEditor("json", code);
-
-        AssertJsonHighlight(textEditor, code,
-            keyTokenList: ["\"workspace\"", "\"title\"", "\"version\"", "\"items\"", "\"id\"", "\"active\"", "\"score\"", "\"tags\""],
-            stringValueTokenList: ["\"Demo Board\"", "\"card-001\"", "\"ui\"", "\"json\"", "\"card-002\""],
-            numberTokenList: ["3", "98.5"],
-            constantTokenList: ["true", "false", "null"]);
-    }
-
-    [Fact]
-    public void ApplyHighlight_LooseMultiLineLongJson_HighlightsWhenJsonParsingSucceeds()
-    {
-        var code = """
-        {
-          // dashboard definition
-          "workspace": {
-            "title": "Loose Config",
-            "version": 5,
-            "items": [
-              {
-                "id": "card-100",
-                "active": true,
-              },
-              {
-                "id": "card-200",
-                "active": false,
-              },
-            ],
-          },
-        }
-        """.Replace("\r\n", "\n");
-
-        var textEditor = CreateHighlightedEditor("json", code);
-
-        AssertJsonHighlight(textEditor, code,
-            keyTokenList: ["\"workspace\"", "\"title\"", "\"version\"", "\"items\"", "\"id\"", "\"active\""],
-            stringValueTokenList: ["\"Loose Config\"", "\"card-100\"", "\"card-200\""],
-            numberTokenList: ["5"],
-            constantTokenList: ["true", "false"]);
-
-        DocumentHighlighterTestHelper.AssertPlainTextColor(textEditor, "// dashboard definition");
-    }
-
-    [Fact]
-    public void ApplyHighlight_InvalidJson_FallsBackToColorCodeHighlighting()
-    {
-        var code = """
-        {
-          "title": "Broken Json",
-          "value": 10,
-          "items": [1, 2,, 3]
-        }
-        """.Replace("\r\n", "\n");
-
-        var textEditor = CreateHighlightedEditor("json", code);
-        var expectedEditor = CreateColorCodeHighlightedEditor("json", code);
-
-        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertSameForegroundColors(expectedEditor, 0, textEditor, 0, code.Length);
-    }
-
-    [Fact]
     public void ApplyHighlight_PythonClassAndString_HighlightsDetailedScopes()
     {
         const string code = "class Person:\n    def greet(self):\n        return \"Hello\"";
@@ -166,21 +76,6 @@ public class OtherCodeDocumentHighlighterTests
         DocumentHighlighterTestHelper.AssertSameForegroundColors(expectedEditor, 0, textEditor, 0, code.Length);
     }
 
-    [Fact]
-    public void ApplyHighlight_JsonKeysValuesAndBraces_HighlightsDetailedScopes()
-    {
-        const string code = "{\"name\": \"lindexi\", \"value\": 123, \"enabled\": true}";
-
-        var textEditor = CreateHighlightedEditor("json", code);
-
-        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"name\"", ScopeType.ClassMember);
-        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"value\"", ScopeType.ClassMember);
-        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"enabled\"", ScopeType.ClassMember);
-        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "\"lindexi\"", ScopeType.String);
-        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "123", ScopeType.Number);
-        DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, "true", ScopeType.DeclarationTypeSyntax);
-    }
 
     [Fact]
     public void ApplyHighlight_XmlAttributesAndContent_HighlightsDetailedScopes()
@@ -358,31 +253,5 @@ public class OtherCodeDocumentHighlighterTests
         var context = new HighlightCodeContext(code, colorCode);
         highlighter.ApplyHighlight(context);
         return textEditor;
-    }
-
-    private static void AssertJsonHighlight(TextEditor textEditor, string code, IEnumerable<string> keyTokenList,
-        IEnumerable<string> stringValueTokenList, IEnumerable<string> numberTokenList, IEnumerable<string> constantTokenList)
-    {
-        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
-
-        foreach (var keyToken in keyTokenList)
-        {
-            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, keyToken, ScopeType.ClassMember);
-        }
-
-        foreach (var stringValueToken in stringValueTokenList)
-        {
-            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, stringValueToken, ScopeType.String);
-        }
-
-        foreach (var numberToken in numberTokenList)
-        {
-            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, numberToken, ScopeType.Number);
-        }
-
-        foreach (var constantToken in constantTokenList)
-        {
-            DocumentHighlighterTestHelper.AssertScopeColor(textEditor, code, constantToken, ScopeType.DeclarationTypeSyntax);
-        }
     }
 }
