@@ -9,8 +9,6 @@ namespace AvaloniaAgentLib.Model;
 
 public sealed class CopilotChatMessage : NotifyBase
 {
-    private UsageDetails? _usageDetails;
-
     public CopilotChatMessage(ChatRole role, string content)
     {
         Role = role;
@@ -96,7 +94,8 @@ public sealed class CopilotChatMessage : NotifyBase
             OnUsageDetailsChanged();
         }
     }
-
+    private UsageDetails? _usageDetails;
+    private const string UsageSummarySeparator = " ";
     public bool HasUsageDetails => UsageDetails is not null;
 
     public bool HasTotalTokenCount => UsageDetails?.TotalTokenCount is not null;
@@ -146,6 +145,51 @@ public sealed class CopilotChatMessage : NotifyBase
     public string CachedInputTokenCountText => UsageDetails?.CachedInputTokenCount is { } cachedInputTokenCount
         ? $"缓存 {cachedInputTokenCount:N0}"
         : string.Empty;
+
+    public string UsageSummaryText
+    {
+        get
+        {
+            if (UsageDetails is null)
+            {
+                return string.Empty;
+            }
+
+            var parts = new List<string>();
+
+            if (HasTotalTokenCount)
+            {
+                parts.Add(TotalTokenCountText);
+            }
+
+            if (HasInputTokenCount)
+            {
+                parts.Add(InputTokenCountText);
+            }
+
+            if (HasOutputTokenCount)
+            {
+                parts.Add(OutputTokenCountText);
+            }
+
+            if (HasReasoningTokenCount)
+            {
+                parts.Add(ReasoningTokenCountText);
+            }
+
+            if (HasCachedInputTokenCount)
+            {
+                parts.Add(CachedInputTokenCountText);
+            }
+
+            if (parts.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            return $"本次用量 {string.Join(UsageSummarySeparator, parts)}";
+        }
+    }
 
     public string FullContent
     {
@@ -237,5 +281,6 @@ public sealed class CopilotChatMessage : NotifyBase
         OnPropertyChanged(nameof(ReasoningTokenCountText));
         OnPropertyChanged(nameof(HasCachedInputTokenCount));
         OnPropertyChanged(nameof(CachedInputTokenCountText));
+        OnPropertyChanged(nameof(UsageSummaryText));
     }
 }
