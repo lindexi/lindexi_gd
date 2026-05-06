@@ -236,7 +236,7 @@ public class TextRunPropertySetterTests
     }
 
     [Fact]
-    public void SetRunProperty_SpanExceedsDocumentLength_ThrowsException()
+    public void SetRunProperty_SpanExceedsDocumentLength_ClampsToDocumentEnd()
     {
         // Arrange
         var textEditor = new TextEditor();
@@ -246,9 +246,13 @@ public class TextRunPropertySetterTests
         var setter = new TextRunPropertySetter(textEditor);
         var span = new SourceSpan(0, 99); // 0 to 99 inclusive = 100 chars (larger than document)
         
-        // Act & Assert - Should throw SelectionOutOfRangeException
-        Assert.Throws<LightTextEditorPlus.Core.Exceptions.SelectionOutOfRangeException>(() =>
-            setter.SetRunProperty(property => property with { FontSize = 14 }, span));
+        // Act
+        setter.SetRunProperty(property => property with { FontSize = 14 }, span);
+
+        // Assert
+        var selection = new Selection(new CaretOffset(0), text.Length);
+        var appliedProperties = textEditor.GetRunPropertyRange(selection);
+        Assert.All(appliedProperties, p => Assert.Equal(14, p.FontSize));
     }
 
     [Fact]
@@ -344,6 +348,27 @@ public class TextRunPropertySetterTests
         var allSelection = textEditor.GetAllDocumentSelection();
         var documentText = textEditor.GetText(in allSelection);
         DocumentHighlighterTestHelper.AssertTextEqual(text, documentText);
+    }
+
+    [Fact]
+    public void TrySetRunProperty_WithSpanAfterEmoji_MapsUtf16SpanToDocumentCharacterOffset()
+    {
+        // Arrange
+        var textEditor = new TextEditor();
+        const string text = "A😊BC";
+        textEditor.AppendText(text);
+
+        var setter = new TextRunPropertySetter(textEditor);
+        var targetProperty = SkiaTextRunProperty.FromTextEditor(textEditor.TextEditorCore) with { FontSize = 28 };
+
+        // Act
+        setter.TrySetRunProperty(ScopeType.Keyword, targetProperty, new SourceSpan(3, 4));
+
+        // Assert
+        var expectedSelection = new Selection(new CaretOffset(2), 2);
+        var expectedProperties = textEditor.GetRunPropertyRange(expectedSelection).ToList();
+        Assert.Equal(2, expectedProperties.Count);
+        Assert.All(expectedProperties, p => Assert.Equal(28, p.FontSize));
     }
 
     [Fact]

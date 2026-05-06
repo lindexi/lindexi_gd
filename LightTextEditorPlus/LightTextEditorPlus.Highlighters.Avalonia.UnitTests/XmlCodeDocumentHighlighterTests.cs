@@ -78,6 +78,38 @@ public class XmlCodeDocumentHighlighterTests
     }
 
     [Fact]
+    public void ApplyHighlight_XmlWithEmojiText_HighlightsEmojiAsPlainText()
+    {
+        const string code = "<CopilotChatSessionHistory><Messages>😊</Messages></CopilotChatSessionHistory>";
+
+        var textEditor = CreateHighlightedEditor(code);
+
+        AssertXmlHighlight(textEditor, code,
+            classMemberTokenList:
+            [
+                ("CopilotChatSessionHistory", 0),
+                ("Messages", 0),
+                ("Messages", 1),
+                ("CopilotChatSessionHistory", 1)
+            ],
+            stringTokenList: [],
+            plainTextTokenList: [("😊", 0)]);
+    }
+
+    [Fact]
+    public void ApplyHighlight_XmlWithEmojiBeforeFollowingText_PreservesFollowingPlainTextHighlightAlignment()
+    {
+        const string code = "<root><item>😊next</item></root>";
+
+        var textEditor = CreateHighlightedEditor(code);
+
+        AssertXmlHighlight(textEditor, code,
+            classMemberTokenList: [("root", 0), ("item", 0), ("item", 1), ("root", 1)],
+            stringTokenList: [],
+            plainTextTokenList: [("😊next", 0)]);
+    }
+
+    [Fact]
     public void ApplyHighlight_MultipleCallsSameText_PreservesDetailedHighlighting()
     {
         const string code = "<root><item>中文</item></root>";
@@ -166,7 +198,7 @@ public class XmlCodeDocumentHighlighterTests
         {
             LanguageId = LanguageId.Xml
         };
-        var colorCode = new TextEditorColorCode(textEditor, new LightTextEditorPlus.Core.Document.Segments.DocumentOffset(0));
+        var colorCode = new TextEditorColorCode(textEditor, new LightTextEditorPlus.Core.Document.Segments.DocumentOffset(0), code);
         var context = new HighlightCodeContext(code, colorCode);
         highlighter.ApplyHighlight(context);
         return textEditor;

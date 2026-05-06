@@ -325,7 +325,7 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
-            var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(codeBlockHighlightSnapshot.InnerCodeSpan.Start));
+            var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(codeBlockHighlightSnapshot.InnerCodeSpan.Start), codeBlockHighlightSnapshot.InnerCodeText);
             var highlightCodeContext = new HighlightCodeContext(codeBlockHighlightSnapshot.InnerCodeText, colorCode);
 
             if (IsJsonLanguage(codeBlockHighlightSnapshot.CodeLang)

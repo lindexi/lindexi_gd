@@ -43,7 +43,7 @@ public sealed class CSharpDocumentHighlighter : IDocumentHighlighter
     {
         _plainTextDocumentHighlighter.ApplyHighlight(text);
 
-        var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(0));
+        var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(0), text);
         var highlightCodeContext = new HighlightCodeContext(text, colorCode);
         _csharpCodeHighlighter.ApplyHighlight(highlightCodeContext);
     }
