@@ -3,10 +3,322 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:JawjeleceeYairlubelhearrene"
+        xmlns:properties="clr-namespace:JawjeleceeYairlubelhearrene.Properties"
+        xmlns:jawjeleceeYairlubelhearrene="clr-namespace:JawjeleceeYairlubelhearrene"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="{x:Static properties:Resources.AppTitle}"
+        Height="980"
+        Width="1600"
+        MinHeight="800"
+        MinWidth="1280"
+        AllowDrop="True"
+        Drop="Window_Drop"
+        DragOver="Window_DragOver">
+    <Window.DataContext>
+        <jawjeleceeYairlubelhearrene:MainWindowViewModel />
+    </Window.DataContext>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Visibility="Collapsed" CornerRadius="24" Padding="28" Margin="0,0,0,18"
+                Background="{StaticResource HeroBackgroundBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{x:Static properties:Resources.HeaderTitle}" FontSize="30" FontWeight="Bold"
+                               Foreground="White" />
+                    <TextBlock Text="{x:Static properties:Resources.HeaderSubtitle}" Margin="0,8,0,0"
+                               Foreground="#E5E7EB" FontSize="14" TextWrapping="Wrap" />
+                </StackPanel>
+                <Border Grid.Column="1" Background="#22FFFFFF" CornerRadius="18" Padding="18,14"
+                        VerticalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="状态" Foreground="#E9D5FF" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding StatusMessage}" Width="340" TextWrapping="Wrap" Margin="0,8,0,0"
+                                   Foreground="White" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="480" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.InputSectionTitle}" />
+                            <Border Background="#FFF8FAFC" BorderBrush="#554F46E5" BorderThickness="1.5"
+                                    CornerRadius="16" Padding="18" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <TextBlock Text="{x:Static properties:Resources.DropHintTitle}" FontSize="16"
+                                               FontWeight="SemiBold" />
+                                    <!-- <TextBlock Text="{x:Static properties:Resources.DropHintDescription}" Margin="0,6,0,0" Foreground="{StaticResource MutedForegroundBrush}" TextWrapping="Wrap" /> -->
+                                    <TextBox Text="{Binding PptFilePath, UpdateSourceTrigger=PropertyChanged}"
+                                             Margin="0,16,0,12" />
+                                    <Button Content="{x:Static properties:Resources.BrowsePptButton}"
+                                            Command="{Binding BrowsePptCommand}" Width="120" />
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Foreground="{StaticResource MutedForegroundBrush}" TextWrapping="Wrap"
+                                       Text="{x:Static properties:Resources.ComFailureHint}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OutputSectionTitle}" />
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.FfmpegPathLabel}" />
+                            <DockPanel Margin="0,0,0,12">
+                                <Button DockPanel.Dock="Right"
+                                        Content="{x:Static properties:Resources.BrowseFfmpegButton}"
+                                        Command="{Binding BrowseFfmpegCommand}" Margin="12,0,0,0" Width="120" />
+                                <TextBox Text="{Binding FfmpegExecutablePath, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0" />
+                            </DockPanel>
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OutputDirectoryLabel}" />
+                            <TextBox Text="{Binding OutputDirectoryPath, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.SpeakerLabel}" />
+                            <ComboBox ItemsSource="{Binding SpeakerOptions}" SelectedItem="{Binding SelectedSpeaker}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding VoiceType}" FontSize="12"
+                                                       Foreground="{StaticResource MutedForegroundBrush}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                <ComboBox.Template>
+                                    <ControlTemplate TargetType="ComboBox">
+                                        <Grid>
+                                            <ToggleButton Name="ToggleButton" Background="{TemplateBinding Background}"
+                                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                                          Focusable="False"
+                                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                                          ClickMode="Press">
+                                                <Border CornerRadius="12" Padding="12,8">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
+                                                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                                          VerticalAlignment="Center" />
+                                                        <Path Grid.Column="1" Margin="12,0,0,0"
+                                                              VerticalAlignment="Center"
+                                                              Fill="{StaticResource ForegroundBrush}"
+                                                              Data="M 0 0 L 4 4 L 8 0 Z" />
+                                                    </Grid>
+                                                </Border>
+                                            </ToggleButton>
+                                            <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
+                                                   AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                                                <Border Margin="0,4,0,0"
+                                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        Background="White" BorderBrush="#220F172A" BorderThickness="1"
+                                                        CornerRadius="12">
+                                                    <ScrollViewer MaxHeight="320">
+                                                        <ItemsPresenter />
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ComboBox.Template>
+                            </ComboBox>
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OpenSpeechSectionTitle}" />
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OpenSpeechApiKeyLabel}" />
+                            <TextBox Text="{Binding OpenSpeechApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.ResourceIdLabel}" />
+                            <TextBox Text="{Binding ResourceId, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OpenAiSectionTitle}" />
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OpenAiApiKeyLabel}" />
+                            <TextBox Text="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OpenAiEndpointLabel}" />
+                            <TextBox Text="{Binding OpenAiEndpoint, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OpenAiModelLabel}" />
+                            <TextBox Text="{Binding OpenAiModel, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="340" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,20,0">
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.PreviewSectionTitle}" />
+                            <Border Height="250" Background="#FF0F172A" CornerRadius="16">
+                                <Grid>
+                                    <MediaElement x:Name="PreviewMediaElement"
+                                                  Source="{Binding GeneratedVideoPath, Converter={StaticResource FilePathToUriConverter}}"
+                                                  LoadedBehavior="Manual" UnloadedBehavior="Manual" Stretch="Uniform"
+                                                  MediaOpened="PreviewMediaElement_MediaOpened" />
+                                    <TextBlock Text="{x:Static properties:Resources.PreviewPlaceholder}"
+                                               Foreground="#CBD5E1" FontSize="14" TextWrapping="Wrap"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" Width="260"
+                                               Visibility="{Binding GeneratedVideoPath, Converter={StaticResource StringNullOrWhiteSpaceToVisibilityConverter}}" />
+                                </Grid>
+                            </Border>
+                            <WrapPanel Margin="0,16,0,0">
+                                <Button Content="{x:Static properties:Resources.PlayButton}" Click="PlayButton_Click" />
+                                <Button Content="{x:Static properties:Resources.PauseButton}" Click="PauseButton_Click"
+                                        Background="White" Foreground="{StaticResource AccentBrush}"
+                                        BorderBrush="#554F46E5" />
+                                <Button Content="{x:Static properties:Resources.StopButton}" Click="StopButton_Click"
+                                        Background="White" Foreground="{StaticResource AccentBrush}"
+                                        BorderBrush="#554F46E5" />
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <Border Grid.Column="1" Background="#FFF8FAFC" CornerRadius="16" Padding="16">
+                            <StackPanel MaxHeight="250">
+                                <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                           Text="{x:Static properties:Resources.LogsSectionTitle}" Margin="0,0,0,10" />
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="220">
+                                    <TextBlock Text="{Binding LogText}" TextWrapping="Wrap" FontFamily="Consolas"
+                                               FontSize="12" Foreground="{StaticResource MutedForegroundBrush}" />
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}"
+                        VerticalAlignment="Stretch">
+                    <Grid>
+                        <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                   Text="{x:Static properties:Resources.SlidesSectionTitle}" />
+                        <TextBlock Margin="0,48,0,0" Text="{x:Static properties:Resources.NoSlidesPlaceholder}"
+                                   Foreground="{StaticResource MutedForegroundBrush}"
+                                   Visibility="{Binding HasSlides, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Invert}" />
+                        <ScrollViewer Margin="0,42,0,0" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Slides}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,16" Padding="16" Background="#FFF8FAFC" CornerRadius="16"
+                                                BorderBrush="#220F172A" BorderThickness="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="260" />
+                                                    <ColumnDefinition Width="16" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding SlideNumber, StringFormat=第 {0} 页}"
+                                                               FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
+                                                    <Border CornerRadius="12" ClipToBounds="True"
+                                                            Background="#FFE2E8F0">
+                                                        <Image
+                                                            Source="{Binding ImageFilePath, Converter={StaticResource FilePathToImageSourceConverter}}"
+                                                            Stretch="Uniform" Height="170" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <Grid Grid.Column="2">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="120" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="160" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Grid.Row="0"
+                                                               Style="{StaticResource FieldLabelTextBlockStyle}"
+                                                               Text="{x:Static properties:Resources.SlideTextLabel}" />
+                                                    <TextBox Grid.Row="1" Text="{Binding SlideText,Mode=OneWay}"
+                                                             IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                                                             VerticalScrollBarVisibility="Auto" />
+                                                    <TextBlock Grid.Row="2"
+                                                               Style="{StaticResource FieldLabelTextBlockStyle}"
+                                                               Text="{x:Static properties:Resources.GeneratedScriptLabel}"
+                                                               Margin="0,8,0,6" />
+                                                    <TextBox Grid.Row="3" Text="{Binding GeneratedScript,Mode=OneWay}"
+                                                             IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                                                             VerticalScrollBarVisibility="Auto" />
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="#FFFFFFFF" CornerRadius="16" Padding="16" BorderBrush="#220F172A"
+                    BorderThickness="1">
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}"
+                    Margin="5 0 0 0">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                               Text="{x:Static properties:Resources.ActionSectionTitle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="{x:Static properties:Resources.GenerateButton}"
+                                Command="{Binding GenerateCommand}" />
+                        <Button Content="{x:Static properties:Resources.OpenOutputFolderButton}"
+                                Command="{Binding OpenOutputFolderCommand}"
+                                Foreground="{StaticResource AccentBrush}"
+                                BorderBrush="#554F46E5" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
 
     </Grid>
 </Window>
