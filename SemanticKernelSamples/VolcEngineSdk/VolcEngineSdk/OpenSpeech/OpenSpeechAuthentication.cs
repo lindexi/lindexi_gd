@@ -21,12 +21,25 @@ public sealed class OpenSpeechAuthentication
 
     public string? AccessKey { get; }
 
+    /// <summary>
+    /// 新版控制台
+    /// </summary>
+    /// <param name="apiKey"></param>
+    /// <param name="resourceId"></param>
+    /// <returns></returns>
     public static OpenSpeechAuthentication CreateWithApiKey(string apiKey, string resourceId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         return new OpenSpeechAuthentication(resourceId, apiKey, null, null);
     }
 
+    /// <summary>
+    /// 旧版控制台
+    /// </summary>
+    /// <param name="appId"></param>
+    /// <param name="accessKey"></param>
+    /// <param name="resourceId"></param>
+    /// <returns></returns>
     public static OpenSpeechAuthentication CreateWithLegacyCredentials(string appId, string accessKey, string resourceId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(appId);
