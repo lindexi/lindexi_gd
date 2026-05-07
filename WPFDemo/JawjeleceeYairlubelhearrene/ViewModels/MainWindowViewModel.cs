@@ -220,10 +220,11 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private void LoadDefaults()
     {
-        var defaults = LocalDefaultsProvider.Load();
-        OpenSpeechApiKey = defaults.OpenSpeechApiKey;
+        LocalDefaultValues defaults = LocalDefaultsProvider.Load();
+        _localDefaultValues = defaults;
+        //OpenSpeechApiKey = defaults.OpenSpeechApiKey;
         ResourceId = defaults.ResourceId;
-        OpenAiApiKey = defaults.OpenAiApiKey;
+        //OpenAiApiKey = defaults.OpenAiApiKey;
         OpenAiEndpoint = defaults.OpenAiEndpoint;
         OpenAiModel = defaults.OpenAiModel;
         FfmpegExecutablePath = defaults.FfmpegExecutablePath;
@@ -231,6 +232,8 @@ internal sealed class MainWindowViewModel : ObservableObject
         SelectedSpeaker = SpeakerOptions.FirstOrDefault(t => string.Equals(t.VoiceType, defaults.Speaker, StringComparison.Ordinal))
             ?? SpeakerOptions.FirstOrDefault();
     }
+
+    private LocalDefaultValues? _localDefaultValues;
 
     private async Task BrowsePptAsync()
     {
@@ -280,12 +283,28 @@ internal sealed class MainWindowViewModel : ObservableObject
             var outputDirectory = new System.IO.DirectoryInfo(System.IO.Path.Combine(OutputDirectoryPath, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
             outputDirectory.Create();
 
+            var openAiApiKey = OpenAiApiKey;
+            var openSpeechApiKey = OpenSpeechApiKey;
+
+            if (_localDefaultValues is not null)
+            {
+                if (string.IsNullOrEmpty(openAiApiKey))
+                {
+                    openAiApiKey = _localDefaultValues.OpenAiApiKey;
+                }
+
+                if (string.IsNullOrEmpty(openSpeechApiKey))
+                {
+                    openSpeechApiKey = _localDefaultValues.OpenSpeechApiKey;
+                }
+            }
+
             var generationOptions = new SpeechVideoGenerationOptions(
                 new System.IO.FileInfo(FfmpegExecutablePath),
-                OpenSpeechApiKey,
+                openSpeechApiKey,
                 ResourceId,
                 SelectedSpeaker!.VoiceType,
-                OpenAiApiKey,
+                openAiApiKey,
                 new Uri(OpenAiEndpoint, UriKind.Absolute),
                 OpenAiModel,
                 outputDirectory);
@@ -370,7 +389,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             return Resources.ValidationSelectPpt;
         }
 
-        if (string.IsNullOrWhiteSpace(OpenSpeechApiKey))
+        if (string.IsNullOrWhiteSpace(OpenSpeechApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenSpeechApiKey))
         {
             return Resources.ValidationOpenSpeechApiKey;
         }
@@ -385,7 +404,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             return Resources.ValidationSpeaker;
         }
 
-        if (string.IsNullOrWhiteSpace(OpenAiApiKey))
+        if (string.IsNullOrWhiteSpace(OpenAiApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenAiApiKey))
         {
             return Resources.ValidationOpenAiApiKey;
         }
