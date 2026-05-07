@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppTitle" xml:space="preserve"><value>PPT 讲稿视频生成器</value></data>
+  <data name="HeaderTitle" xml:space="preserve"><value>PPT 转讲稿视频工作台</value></data>
+  <data name="HeaderSubtitle" xml:space="preserve"><value>读取 PowerPoint 页面文本与截图，生成逐页讲稿并合成完整讲稿视频。</value></data>
+  <data name="InputSectionTitle" xml:space="preserve"><value>输入课件</value></data>
+  <data name="DropHintTitle" xml:space="preserve"><value>拖入或选择 PPT 文件</value></data>
+  <data name="DropHintDescription" xml:space="preserve"><value>支持 .ppt、.pptx、.pptm、.ppsx 等 PowerPoint 文件。</value></data>
+  <data name="BrowsePptButton" xml:space="preserve"><value>选择 PPT</value></data>
+  <data name="BrowseFfmpegButton" xml:space="preserve"><value>选择 FFmpeg</value></data>
+  <data name="OpenSpeechSectionTitle" xml:space="preserve"><value>OpenSpeech 配置</value></data>
+  <data name="OpenSpeechApiKeyLabel" xml:space="preserve"><value>OpenSpeech API Key</value></data>
+  <data name="ResourceIdLabel" xml:space="preserve"><value>Resource Id</value></data>
+  <data name="SpeakerLabel" xml:space="preserve"><value>演讲者 Speaker</value></data>
+  <data name="OpenAiSectionTitle" xml:space="preserve"><value>OpenAI 兼容配置</value></data>
+  <data name="OpenAiApiKeyLabel" xml:space="preserve"><value>API Key</value></data>
+  <data name="OpenAiEndpointLabel" xml:space="preserve"><value>EndPoint</value></data>
+  <data name="OpenAiModelLabel" xml:space="preserve"><value>模型</value></data>
+  <data name="OutputSectionTitle" xml:space="preserve"><value>输出配置</value></data>
+  <data name="FfmpegPathLabel" xml:space="preserve"><value>FFmpeg 路径</value></data>
+  <data name="OutputDirectoryLabel" xml:space="preserve"><value>输出目录</value></data>
+  <data name="ActionSectionTitle" xml:space="preserve"><value>执行操作</value></data>
+  <data name="GenerateButton" xml:space="preserve"><value>开始生成讲稿视频</value></data>
+  <data name="OpenOutputFolderButton" xml:space="preserve"><value>打开输出目录</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>准备就绪，请先选择一个 PPT 文件。</value></data>
+  <data name="PreviewSectionTitle" xml:space="preserve"><value>生成结果</value></data>
+  <data name="PreviewPlaceholder" xml:space="preserve"><value>生成完成后即可在这里预览最终视频。</value></data>
+  <data name="PlayButton" xml:space="preserve"><value>播放</value></data>
+  <data name="PauseButton" xml:space="preserve"><value>暂停</value></data>
+  <data name="StopButton" xml:space="preserve"><value>停止</value></data>
+  <data name="SlidesSectionTitle" xml:space="preserve"><value>页面解析与讲稿</value></data>
+  <data name="LogsSectionTitle" xml:space="preserve"><value>执行日志</value></data>
+  <data name="NoSlidesPlaceholder" xml:space="preserve"><value>读取 PPT 后，这里会展示页面截图、提取文本和生成的讲稿。</value></data>
+  <data name="SpeakerPreviewFormat" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="SlideHeaderFormat" xml:space="preserve"><value>第 {0} 页</value></data>
+  <data name="SlideTextLabel" xml:space="preserve"><value>提取文本</value></data>
+  <data name="GeneratedScriptLabel" xml:space="preserve"><value>生成讲稿</value></data>
+  <data name="ValidationSelectPpt" xml:space="preserve"><value>请先选择一个有效的 PPT 文件。</value></data>
+  <data name="ValidationOpenSpeechApiKey" xml:space="preserve"><value>请输入 OpenSpeech API Key。</value></data>
+  <data name="ValidationResourceId" xml:space="preserve"><value>请输入可用的 Resource Id。</value></data>
+  <data name="ValidationSpeaker" xml:space="preserve"><value>请选择一个演讲者 Speaker。</value></data>
+  <data name="ValidationOpenAiApiKey" xml:space="preserve"><value>请输入 OpenAI 兼容 API Key。</value></data>
+  <data name="ValidationOpenAiEndpoint" xml:space="preserve"><value>请输入有效的 OpenAI 兼容 EndPoint。</value></data>
+  <data name="ValidationOpenAiModel" xml:space="preserve"><value>请输入可用的模型名称。</value></data>
+  <data name="ValidationFfmpegPath" xml:space="preserve"><value>请提供有效的 FFmpeg 可执行文件路径。</value></data>
+  <data name="ValidationOutputDirectory" xml:space="preserve"><value>请输入输出目录。</value></data>
+  <data name="ComFailureHint" xml:space="preserve"><value>如果页面截图导出失败，请确认本机已安装 Microsoft PowerPoint 且 COM 组件可用。</value></data>
+  <data name="GenerationCompletedFormat" xml:space="preserve"><value>生成完成，视频文件：{0}</value></data>
+  <data name="DroppedFileInvalid" xml:space="preserve"><value>拖入的文件不是支持的 PowerPoint 文档。</value></data>
+</root>
