@@ -5,6 +5,7 @@ using KadefihalldokaiChairwedone;
 using KadefihalldokaiChairwedone.CoursewareSpeechGenerators;
 using VideoComposerLib;
 using VolcEngineSdk.OpenSpeech;
+using CoursewareSpeechGenerator = KadefihalldokaiChairwedone.CoursewareSpeechGenerators.CoursewareSpeechGenerator;
 
 // 提示词：
 /*
@@ -327,7 +328,7 @@ await using var ffmpegVideoComposer = new FFmpegVideoComposer(
 
 var generator = new CoursewareSpeechGenerator
 {
-    WorkingDirectory = new DirectoryInfo(Path.Combine(outputDirectory.FullName, "Working")),
+    WorkingDirectory = new DirectoryInfo(Path.Join(outputDirectory.FullName, "Working")),
     FFmpegVideoComposer = ffmpegVideoComposer,
     OpenSpeechClient = openSpeechClient,
     SpeechSynthesisOptions = new CoursewareSpeechSynthesisOptions(authentication, speaker, model)
@@ -338,20 +339,12 @@ var slideInfoList = coursewareMaterialInfo.SlideMaterialInfoList
     .ToList();
 
 var outputVideoFile = new FileInfo(Path.Combine(outputDirectory.FullName, "courseware-speech.mp4"));
-await generator.GeneratorCoursewareSpeechVideo(new CoursewareSpeechInput(slideInfoList, outputVideoFile));
+await generator.GeneratorCoursewareSpeechVideoAsync(new CoursewareSpeechInfo(slideInfoList), outputVideoFile);
 
 Console.WriteLine($"视频文件已生成：{outputVideoFile.FullName}");
 
 static OpenSpeechAuthentication CreateAuthentication(string appId, string accessTokenFile, string resourceId)
 {
-    var apiKey = Environment.GetEnvironmentVariable("OPENSPEECH_API_KEY");
-    if (!string.IsNullOrWhiteSpace(apiKey))
-    {
-        return OpenSpeechAuthentication.CreateWithApiKey(apiKey.Trim(), resourceId);
-    }
-
-    ArgumentException.ThrowIfNullOrWhiteSpace(appId);
-
     var accessKey = ReadRequiredText(accessTokenFile);
     return OpenSpeechAuthentication.CreateWithLegacyCredentials(appId, accessKey, resourceId);
 }
@@ -372,6 +365,6 @@ static string ReadRequiredText(string filePath)
     return text;
 }
 
-record SavableCoursewareSlideMaterialInfo(string SlideThumbnailFilePath, string ContentText);
+public record SavableCoursewareSlideMaterialInfo(string SlideThumbnailFilePath, string ContentText);
 
-record SavableCoursewareMaterialInfo(List<SavableCoursewareSlideMaterialInfo> SlideMaterialInfoList);
+public record SavableCoursewareMaterialInfo(List<SavableCoursewareSlideMaterialInfo> SlideMaterialInfoList);

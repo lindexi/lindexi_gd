@@ -11,10 +11,12 @@ namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators;
 /// <param name="AudioFormat">输出音频格式。</param>
 /// <param name="SampleRate">输出采样率。</param>
 /// <param name="UsageTokensToReturn">返回的用量标记。</param>
-public record CoursewareSpeechSynthesisOptions(
+public record CoursewareSpeechSynthesisOptions
+(
     OpenSpeechAuthentication Authentication,
     string Speaker,
     string Model,
     string AudioFormat = "mp3",
     int SampleRate = 24000,
-    string UsageTokensToReturn = "text_words");
+    string UsageTokensToReturn = "text_words"
+);

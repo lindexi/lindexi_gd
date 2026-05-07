@@ -1,4 +1,4 @@
-﻿namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators;
+﻿namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators.ScriptParsers;
 
 /// <summary>
 /// 讲话的段落

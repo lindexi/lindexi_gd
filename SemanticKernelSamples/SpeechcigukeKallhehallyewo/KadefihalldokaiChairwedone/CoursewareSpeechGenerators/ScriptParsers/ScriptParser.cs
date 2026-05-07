@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators;
+namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators.ScriptParsers;
 
 class ScriptParser
 {

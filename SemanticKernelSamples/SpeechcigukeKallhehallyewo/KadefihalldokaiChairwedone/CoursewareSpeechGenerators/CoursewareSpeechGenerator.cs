@@ -1,4 +1,9 @@
-﻿using System.Net.Http;
+﻿using KadefihalldokaiChairwedone.CoursewareSpeechGenerators.ScriptParsers;
+
+using Microsoft.Extensions.AI;
+
+using System.Net.Http;
+
 using VideoComposerLib;
 
 using VolcEngineSdk.OpenSpeech;
@@ -26,26 +31,53 @@ public class CoursewareSpeechGenerator
     public required CoursewareSpeechSynthesisOptions SpeechSynthesisOptions { get; init; }
 
     /// <summary>
+    /// 生成讲稿脚本
+    /// </summary>
+    /// <param name="coursewareMaterialInfo"></param>
+    /// <param name="chatClient"></param>
+    /// <returns></returns>
+    public async Task<CoursewareSpeechInfo> GenerateSpeechAsync(CoursewareMaterialInfo coursewareMaterialInfo, IChatClient chatClient)
+    {
+        // 调用大模型输出脚本
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 生成课件讲稿视频
+    /// </summary>
+    /// <param name="coursewareMaterialInfo"></param>
+    /// <param name="chatClient"></param>
+    /// <returns>讲稿视频</returns>
+    public async Task<FileInfo> GeneratorCoursewareSpeechVideoAsync(CoursewareMaterialInfo coursewareMaterialInfo,
+        IChatClient chatClient)
+    {
+        var coursewareSpeechInfo = await GenerateSpeechAsync(coursewareMaterialInfo, chatClient);
+        var outputVideoFile = new FileInfo(Path.Join(WorkingDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
+        await GeneratorCoursewareSpeechVideoAsync(coursewareSpeechInfo, outputVideoFile);
+        return outputVideoFile;
+    }
+
+    /// <summary>
     /// 生成课件讲稿视频，输入是每一页的讲稿文本和页面截图，输出是合成好的视频文件
     /// </summary>
-    public async Task GeneratorCoursewareSpeechVideo(CoursewareSpeechInput coursewareSpeechInput)
+    public async Task GeneratorCoursewareSpeechVideoAsync(CoursewareSpeechInfo coursewareSpeechInfo, FileInfo outputVideoFile)
     {
-        ArgumentNullException.ThrowIfNull(coursewareSpeechInput);
+        ArgumentNullException.ThrowIfNull(coursewareSpeechInfo);
 
-        if (coursewareSpeechInput.SlideInfoList.Count == 0)
+        if (coursewareSpeechInfo.SlideInfoList.Count == 0)
         {
-            throw new ArgumentException("页面列表不能为空。", nameof(coursewareSpeechInput));
+            throw new ArgumentException("页面列表不能为空。", nameof(coursewareSpeechInfo));
         }
 
         WorkingDirectory.Create();
-        coursewareSpeechInput.OutputVideoFile.Directory?.Create();
+        outputVideoFile.Directory?.Create();
 
         var parser = new ScriptParser();
-        var videoSegments = new List<VideoSegment>(coursewareSpeechInput.SlideInfoList.Count);
+        var videoSegments = new List<VideoSegment>(coursewareSpeechInfo.SlideInfoList.Count);
 
-        for (var i = 0; i < coursewareSpeechInput.SlideInfoList.Count; i++)
+        for (var i = 0; i < coursewareSpeechInfo.SlideInfoList.Count; i++)
         {
-            var slideInfo = coursewareSpeechInput.SlideInfoList[i];
+            var slideInfo = coursewareSpeechInfo.SlideInfoList[i];
             if (!slideInfo.SlideThumbnailFile.Exists)
             {
                 throw new FileNotFoundException("页面截图文件不存在。", slideInfo.SlideThumbnailFile.FullName);
@@ -59,10 +91,10 @@ public class CoursewareSpeechGenerator
             videoSegments.Add(new VideoSegment(slideInfo.SlideThumbnailFile, audioFileList));
         }
 
-        var composeResult = await FFmpegVideoComposer.ComposeAsync(videoSegments, coursewareSpeechInput.OutputVideoFile).ConfigureAwait(false);
-        if (!composeResult || !coursewareSpeechInput.OutputVideoFile.Exists)
+        var composeResult = await FFmpegVideoComposer.ComposeAsync(videoSegments, outputVideoFile).ConfigureAwait(false);
+        if (!composeResult || !File.Exists(outputVideoFile.FullName))
         {
-            throw new InvalidOperationException($"生成课件视频失败：{coursewareSpeechInput.OutputVideoFile.FullName}");
+            throw new InvalidOperationException($"生成课件视频失败：{outputVideoFile.FullName}");
         }
     }
 
@@ -127,3 +159,12 @@ public class CoursewareSpeechGenerator
         };
     }
 }
+
+/// <summary>
+/// 课件页面材料信息，包括页面截图和页面内容文本
+/// </summary>
+/// <param name="SlideThumbnailFilePath"></param>
+/// <param name="ContentText"></param>
+public record CoursewareSlideMaterialInfo(FileInfo SlideThumbnailFilePath, string ContentText);
+
+public record CoursewareMaterialInfo(List<CoursewareSlideMaterialInfo> SlideMaterialInfoList);

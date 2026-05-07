@@ -1,4 +1,4 @@
-﻿namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators;
+﻿namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators.ScriptParsers;
 
 /// <summary>
 /// 脚本信息
