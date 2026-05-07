@@ -1,33 +1,15 @@
-using JawjeleceeYairlubelhearrene.Properties;
-using System.IO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
+using JawjeleceeYairlubelhearrene.Infrastructure;
+using JawjeleceeYairlubelhearrene.Models;
+using JawjeleceeYairlubelhearrene.Properties;
+using JawjeleceeYairlubelhearrene.Services;
 
-namespace JawjeleceeYairlubelhearrene;
+namespace JawjeleceeYairlubelhearrene.ViewModels;
 
 internal sealed class MainWindowViewModel : ObservableObject
 {
-    private readonly PowerPointReader _powerPointReader = new();
-    private readonly CoursewareSpeechVideoGenerator _coursewareSpeechVideoGenerator = new();
-    private readonly AsyncRelayCommand _browsePptCommand;
-    private readonly RelayCommand _browseFfmpegCommand;
-    private readonly AsyncRelayCommand _generateCommand;
-    private readonly RelayCommand _openOutputFolderCommand;
-    private string _pptFilePath = string.Empty;
-    private string _openSpeechApiKey = string.Empty;
-    private string _resourceId = string.Empty;
-    private SpeakerOption? _selectedSpeaker;
-    private string _openAiApiKey = string.Empty;
-    private string _openAiEndpoint = string.Empty;
-    private string _openAiModel = string.Empty;
-    private string _ffmpegExecutablePath = string.Empty;
-    private string _outputDirectoryPath = string.Empty;
-    private string _statusMessage = Resources.StatusReady;
-    private string _logText = string.Empty;
-    private string _generatedVideoPath = string.Empty;
-    private bool _isBusy;
-    private PowerPointReadResult? _currentReadResult;
-
     public MainWindowViewModel()
     {
         SpeakerOptions = new ObservableCollection<SpeakerOption>(SpeakerCatalogService.LoadSpeakerOptions());
@@ -39,6 +21,46 @@ internal sealed class MainWindowViewModel : ObservableObject
 
         LoadDefaults();
     }
+
+    private readonly PowerPointReader _powerPointReader = new();
+
+    private readonly CoursewareSpeechVideoGenerator _coursewareSpeechVideoGenerator = new();
+
+    private readonly AsyncRelayCommand _browsePptCommand;
+
+    private readonly RelayCommand _browseFfmpegCommand;
+
+    private readonly AsyncRelayCommand _generateCommand;
+
+    private readonly RelayCommand _openOutputFolderCommand;
+
+    private string _pptFilePath = string.Empty;
+
+    private string _openSpeechApiKey = string.Empty;
+
+    private string _resourceId = string.Empty;
+
+    private SpeakerOption? _selectedSpeaker;
+
+    private string _openAiApiKey = string.Empty;
+
+    private string _openAiEndpoint = string.Empty;
+
+    private string _openAiModel = string.Empty;
+
+    private string _ffmpegExecutablePath = string.Empty;
+
+    private string _outputDirectoryPath = string.Empty;
+
+    private string _statusMessage = Resources.StatusReady;
+
+    private string _logText = string.Empty;
+
+    private string _generatedVideoPath = string.Empty;
+
+    private bool _isBusy;
+
+    private PowerPointReadResult? _currentReadResult;
 
     public ObservableCollection<SpeakerOption> SpeakerOptions { get; }
 
@@ -491,12 +513,6 @@ internal sealed class MainWindowViewModel : ObservableObject
         }
 
         var extension = Path.GetExtension(filePath);
-        return extension.Equals(".ppt", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".pptx", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".pptm", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".ppsx", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".ppsm", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".potx", StringComparison.OrdinalIgnoreCase)
-               || extension.Equals(".potm", StringComparison.OrdinalIgnoreCase);
+        return extension.Equals(".pptx", StringComparison.OrdinalIgnoreCase);
     }
 }

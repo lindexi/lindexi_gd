@@ -2,12 +2,13 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:JawjeleceeYairlubelhearrene"
+             xmlns:converters="clr-namespace:JawjeleceeYairlubelhearrene.Converters"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <local:FilePathToImageSourceConverter x:Key="FilePathToImageSourceConverter" />
-        <local:FilePathToUriConverter x:Key="FilePathToUriConverter" />
-        <local:StringNullOrWhiteSpaceToVisibilityConverter x:Key="StringNullOrWhiteSpaceToVisibilityConverter" />
-        <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:FilePathToImageSourceConverter x:Key="FilePathToImageSourceConverter" />
+        <converters:FilePathToUriConverter x:Key="FilePathToUriConverter" />
+        <converters:StringNullOrWhiteSpaceToVisibilityConverter x:Key="StringNullOrWhiteSpaceToVisibilityConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF3F6FB" />
         <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#CCFFFFFF" />

@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
-namespace JawjeleceeYairlubelhearrene;
+namespace JawjeleceeYairlubelhearrene.Infrastructure;
 
 internal abstract class ObservableObject : INotifyPropertyChanged
 {

@@ -1,0 +1,3 @@
+namespace JawjeleceeYairlubelhearrene.Models;
+
+internal sealed record CoursewareSpeechInfo(IReadOnlyList<CoursewareSpeechSlideInfo> SlideInfoList);

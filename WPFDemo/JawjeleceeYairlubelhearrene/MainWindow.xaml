@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:properties="clr-namespace:JawjeleceeYairlubelhearrene.Properties"
-        xmlns:jawjeleceeYairlubelhearrene="clr-namespace:JawjeleceeYairlubelhearrene"
+        xmlns:viewModels="clr-namespace:JawjeleceeYairlubelhearrene.ViewModels"
         mc:Ignorable="d"
         Title="{x:Static properties:Resources.AppTitle}"
         Height="980"
@@ -15,7 +15,7 @@
         Drop="Window_Drop"
         DragOver="Window_DragOver">
     <Window.DataContext>
-        <jawjeleceeYairlubelhearrene:MainWindowViewModel />
+        <viewModels:MainWindowViewModel />
     </Window.DataContext>
     <Grid Margin="24">
         <Grid.RowDefinitions>

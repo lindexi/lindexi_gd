@@ -1,8 +1,6 @@
-using System.IO;
-using System.IO;
-using System.Text.RegularExpressions;
+using JawjeleceeYairlubelhearrene.Models;
 
-namespace JawjeleceeYairlubelhearrene;
+namespace JawjeleceeYairlubelhearrene.Services;
 
 internal static partial class SpeakerCatalogService
 {

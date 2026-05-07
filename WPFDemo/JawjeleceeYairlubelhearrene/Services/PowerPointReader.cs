@@ -1,10 +1,11 @@
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Presentation;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Presentation;
+using JawjeleceeYairlubelhearrene.Models;
 
-namespace JawjeleceeYairlubelhearrene;
+namespace JawjeleceeYairlubelhearrene.Services;
 
 internal sealed class PowerPointReader
 {
