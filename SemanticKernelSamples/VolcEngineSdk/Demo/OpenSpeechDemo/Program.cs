@@ -195,6 +195,5 @@ static string ReadRequiredText(string filePath)
     return text;
 }
 
-internal sealed record SpeechStyle(string Name, string? ContextText);
 internal sealed record ScriptInput(string? ContextText, IReadOnlyList<SpeechSegment> Segments);
 internal sealed record SpeechSegment(string Text, int? PauseAfterMilliseconds);
