@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\VideoComposer\VideoComposerLib\VideoComposerLib.csproj" />
+    <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\VolcEngineSdk\VolcEngineSdk\VolcEngineSdk.csproj" />
+  </ItemGroup>
+
 </Project>

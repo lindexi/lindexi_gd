@@ -1,8 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Globalization;
-using System.Text.RegularExpressions;
+using System.Text.Json;
 using KadefihalldokaiChairwedone;
+using VideoComposerLib;
+using VolcEngineSdk.OpenSpeech;
 
 // 提示词：
 /*
@@ -285,16 +286,91 @@ var plainScriptTextList = new List<string>()
 大家都读准了吗？要是还有拿不准的字音，可以再多读几遍巩固一下。[停顿: 1秒]掌握了这些字词，接下来我们就一起来梳理课文围绕腊八粥讲了什么故事吧。"
 };
 
-// 先解析转换为 List<List<ScriptFormatInfo>> 格式
-// 然后再解析 ScriptFormatInfo 里面的 FormatDictionary 转换为 ScriptInfo 格式
+var coursewareJsonFile = @"C:\lindexi\Work\CoursewareMaterialInfo.json";
+// 现在还是测试阶段，不需要和 SpeechcigukeKallhehallyewo 项目一样，调用大模型进行转换脚本的过程，上面已经拿到了纯脚本文本列表了，只需要和对应的页面截图混合即可
 
-// 解析细节： 将用 `[]` 包起来，并采用 `Key: Value` 格式的内容取出来，作为 FormatDictionary 的内容。与原始的文本是一对多的关系，将按照 `[]` 包起来的内容进行风格
+var ffmpegFile = @"C:\lindexi\Application\ffmpeg.exe";
 
-var scriptParser = new ScriptParser();
-var scriptParseResultList = plainScriptTextList.Select(scriptParser.Parse).ToList();
+// 调用 CoursewareSpeechGenerator 生成讲稿视频
+var accessTokenFile = @"C:\lindexi\Work\Key\OpenSpeech TTS Access Token.txt";
+const string appId = "5866932789";
+const string resourceId = "seed-tts-2.0";
+const string model = "seed-tts-2.0-expressive";
+const string speaker = "zh_female_vv_uranus_bigtts";
 
-for (var i = 0; i < scriptParseResultList.Count; i++)
+var coursewareMaterialInfo = JsonSerializer.Deserialize<SavableCoursewareMaterialInfo>(File.ReadAllText(coursewareJsonFile), new JsonSerializerOptions()
 {
-    Console.WriteLine($"第 {i + 1} 页解析结果：{scriptParseResultList[i]}");
+    PropertyNameCaseInsensitive = true,
+}) ?? throw new InvalidOperationException("课件 JSON 反序列化失败，未能读取到课件页面信息。");
+
+if (coursewareMaterialInfo.SlideMaterialInfoList.Count == 0)
+{
+    throw new InvalidOperationException("课件 JSON 中没有任何页面信息。");
 }
 
+if (coursewareMaterialInfo.SlideMaterialInfoList.Count != plainScriptTextList.Count)
+{
+    throw new InvalidOperationException($"脚本数量与页面数量不匹配。页面数：{coursewareMaterialInfo.SlideMaterialInfoList.Count}，脚本数：{plainScriptTextList.Count}");
+}
+
+var outputDirectory = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "GeneratedCoursewareSpeech"));
+outputDirectory.Create();
+
+var authentication = CreateAuthentication(appId, accessTokenFile, resourceId);
+using var httpClient = new HttpClient();
+var openSpeechClient = new OpenSpeechClient(httpClient);
+await using var ffmpegVideoComposer = new FFmpegVideoComposer(
+    new FileInfo(ffmpegFile),
+    workingDirectory: outputDirectory,
+    logHandler: (level, message) => Console.WriteLine($"[{level}] {message}"));
+
+var generator = new CoursewareSpeechGenerator
+{
+    WorkingDirectory = new DirectoryInfo(Path.Combine(outputDirectory.FullName, "Working")),
+    FFmpegVideoComposer = ffmpegVideoComposer,
+    OpenSpeechClient = openSpeechClient,
+    SpeechSynthesisOptions = new CoursewareSpeechSynthesisOptions(authentication, speaker, model)
+};
+
+var slideInfoList = coursewareMaterialInfo.SlideMaterialInfoList
+    .Select((slideMaterialInfo, index) => new CoursewareSpeechSlideInfo(plainScriptTextList[index], new FileInfo(slideMaterialInfo.SlideThumbnailFilePath)))
+    .ToList();
+
+var outputVideoFile = new FileInfo(Path.Combine(outputDirectory.FullName, "courseware-speech.mp4"));
+await generator.GeneratorCoursewareSpeechVideo(new CoursewareSpeechInput(slideInfoList, outputVideoFile));
+
+Console.WriteLine($"视频文件已生成：{outputVideoFile.FullName}");
+
+static OpenSpeechAuthentication CreateAuthentication(string appId, string accessTokenFile, string resourceId)
+{
+    var apiKey = Environment.GetEnvironmentVariable("OPENSPEECH_API_KEY");
+    if (!string.IsNullOrWhiteSpace(apiKey))
+    {
+        return OpenSpeechAuthentication.CreateWithApiKey(apiKey.Trim(), resourceId);
+    }
+
+    ArgumentException.ThrowIfNullOrWhiteSpace(appId);
+
+    var accessKey = ReadRequiredText(accessTokenFile);
+    return OpenSpeechAuthentication.CreateWithLegacyCredentials(appId, accessKey, resourceId);
+}
+
+static string ReadRequiredText(string filePath)
+{
+    if (!File.Exists(filePath))
+    {
+        throw new FileNotFoundException($"找不到密钥文件：{filePath}", filePath);
+    }
+
+    var text = File.ReadAllText(filePath).Trim();
+    if (string.IsNullOrWhiteSpace(text))
+    {
+        throw new InvalidOperationException($"密钥文件内容为空：{filePath}");
+    }
+
+    return text;
+}
+
+record SavableCoursewareSlideMaterialInfo(string SlideThumbnailFilePath, string ContentText);
+
+record SavableCoursewareMaterialInfo(List<SavableCoursewareSlideMaterialInfo> SlideMaterialInfoList);
