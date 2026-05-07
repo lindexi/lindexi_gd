@@ -2,6 +2,7 @@
 
 using System.Text.Json;
 using KadefihalldokaiChairwedone;
+using KadefihalldokaiChairwedone.CoursewareSpeechGenerators;
 using VideoComposerLib;
 using VolcEngineSdk.OpenSpeech;
 
