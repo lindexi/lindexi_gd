@@ -193,7 +193,6 @@ public class CoursewareSpeechGenerator
             RequestParameters = new SpeechSynthesisRequestParameters
             {
                 Text = text,
-                Model = SpeechSynthesisOptions.Model,
                 Speaker = SpeechSynthesisOptions.Speaker,
                 AudioParameters = new SpeechSynthesisAudioParameters
                 {
