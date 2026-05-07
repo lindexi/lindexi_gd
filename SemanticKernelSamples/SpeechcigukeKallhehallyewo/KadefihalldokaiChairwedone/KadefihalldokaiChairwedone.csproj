@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.3.0" />
     <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\VideoComposer\VideoComposerLib\VideoComposerLib.csproj" />
     <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\VolcEngineSdk\VolcEngineSdk\VolcEngineSdk.csproj" />
   </ItemGroup>

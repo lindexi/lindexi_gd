@@ -1,0 +1,3 @@
+﻿namespace KadefihalldokaiChairwedone.CoursewareSpeechGenerators.ScriptParsers;
+
+record ScriptParseResult(List<ScriptFormatInfo> ScriptFormatInfoList, List<ScriptInput> ScriptInputList);
