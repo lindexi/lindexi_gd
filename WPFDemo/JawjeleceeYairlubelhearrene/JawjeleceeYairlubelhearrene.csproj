@@ -18,12 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Docs\VolcEngineSdk\在线音色列表.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="office">
       <HintPath>C:\lindexi\Library\Office.dll</HintPath>
     </Reference>
