@@ -1,10 +1,18 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Text.Json;
 using KadefihalldokaiChairwedone;
 using KadefihalldokaiChairwedone.CoursewareSpeechGenerators;
+
+using OpenAI;
+
+using System.ClientModel;
+using System.Text.Json;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using VideoComposerLib;
+
 using VolcEngineSdk.OpenSpeech;
+
 using CoursewareSpeechGenerator = KadefihalldokaiChairwedone.CoursewareSpeechGenerators.CoursewareSpeechGenerator;
 
 // 提示词：
@@ -187,109 +195,7 @@ using CoursewareSpeechGenerator = KadefihalldokaiChairwedone.CoursewareSpeechGen
 7. **提交脚本**：调用 `SubmitSlideScript` 工具提交最终脚本。
  */
 
-// 脚本
-/*
-第 1 页
-[上下文: 用轻松亲切的语气，语速适中]
-同学们好，欢迎来到今天的六年级语文下册课堂。[停顿: 1秒]
-大家先看页面上的这幅插画，慈祥的奶奶和开心的小孙子围在冒着热气的大锅旁，是不是一下子就让你感受到了满满的烟火气和节日暖意呀？[停顿: 1.5秒]
-没错，今天我们要学习的就是第二课，《腊八粥》。[停顿: 1秒]
-这篇课文我们会分成两个课时来完成学习，分别是第1课时和第2课时。[停顿: 1秒]
-在第1课时，我们会先了解作者的相关知识，初读课文梳理故事情节，还要学习本课的生字新词。[停顿: 1秒]
-在第2课时，我们会深入品读课文细节，感受腊八粥里藏着的浓浓亲情和传统民俗的独特魅力。[停顿: 1.5秒]
-那现在，我们就正式开启第1课时的学习吧。
-第 2 页
-[上下文: 用轻松活泼的启发式语气，语速适中]
-刚才我们已经明确了第1课时的学习任务，现在我们就正式进入“激发兴趣，导入新课”的环节。[停顿: 1秒]
-大家首先看到页面上的“儿歌欣赏”板块，旁边的这个播放按钮，点击就能收听这首和腊八粥相关的儿歌啦。[停顿: 1秒]
-我们先来看第一个问题：这是一首关于什么的儿歌？没错，答案就是腊八粥。[停顿: 1秒]
-再来看第二个问题：腊八粥是哪个节日吃的美食呀？对啦，就是腊八节，每年农历腊月初八，很多家庭都会熬上一锅香喷喷的腊八粥，一家人热热闹闹地分着喝。[停顿: 1.5秒]
-大家还记得我们之前学过老舍先生的《北京的春节》吗？里面是怎样介绍腊八粥的呢？[停顿: 2秒]
-很好，不少同学都想起来了，在《北京的春节》的第1自然段，就详细介绍了腊八粥丰富多样的食材，字里行间都透着年节的暖意。[停顿: 1秒]
-大家再看页面底部冒着热气的腊八粥插画，看起来是不是就特别香甜诱人呀？[停顿: 1秒]
-那除了我们刚才说到的这些，你对腊八粥还有更多的了解吗？大家可以先开动脑筋想一想，也可以和身边的同学交流一下哦。[停顿: 2秒]
-带着对腊八粥的满满好奇，接下来我们就先来认识一下今天这篇课文的作者，沈从文先生。
-第 3 页
-[上下文: 用沉稳清晰的介绍语气，语速适中]
-上一页我们提到要认识《腊八粥》这篇课文的作者，现在大家看页面上的介绍，还有右下角冒着热气的腊八粥背景插画，是不是一下就把作者和我们今天的学习主题联系起来了呀？[停顿: 1秒]
-我们先来了解沈从文先生的基本信息：他生于1902年，逝于1988年，原名沈岳焕，是湖南凤凰人，属于苗族。[停顿: 1秒]
-大家要重点记住，沈从文先生的创作中，影响最大的就是乡土小说，他的作品大多描写士兵、船夫还有湘西少数民族的生活，字里行间都充满了动人的人情美和独特的风俗美，这种创作风格和我们今天要学的《腊八粥》里充满生活气息、满是家庭温情的特点是一脉相承的哦。[停顿: 1.5秒]
-他的代表作也有很多，比如经典小说《边城》《长河》，还有散文集《从文自传》《湘行散记》，感兴趣的同学课后也可以找这些作品来读一读，感受一下沈从文先生笔下鲜活的湘西风情。[停顿: 1.5秒]
-了解完作者的相关信息，接下来我们就带着对作者创作风格的认识，一起走进课文，先来看看初读课文的具体要求吧。
-第 4 页
-[上下文: 用清晰温和的引导式语气，语速适中]
-刚才我们已经了解了《腊八粥》的作者沈从文先生的相关创作背景，现在我们就正式进入“初读课文，学习字词”的环节啦。[停顿:1秒]
-大家看页面顶部的标题，还有底部淡淡的腊八粥背景插画，是不是感觉读课文的时候都好像能闻到甜香的粥味啦？[停顿:1秒]
-接下来我们来看这一页的自读提示，老师给大家明确两个朗读要求哦。[停顿:0.5秒]
-第一个要求，请大家自由地朗读课文，朗读过程中一定要注意读准每个字的字音，把句子读通顺，遇到拿不准的生字词可以先圈出来，等下我们会专门讲解本课的字词，大家不用担心。[停顿:1秒]
-第二个要求，大家要边读边思考：围绕“腊八粥”这一线索，作者为我们讲了一个什么样的故事呢？读完之后，大家可以试着用简洁的小标题来概括出整个故事情节，写在自己的练习本上哦。[停顿:2秒]
-现在大家就可以按下暂停键，开始朗读课文啦，等大家读完之后，我们就一起来学习本课的生字新词。
-第 5 页
-[上下文: 吐字清晰，语速适中，用引导学生认读的温和语气]
-刚才大家已经完成了课文的初读，现在我们就正式进入字词学习环节，这些词语都选自页面右下角标注的“课前预学单”第1题，大家之前预习的时候有没有都读准呀？[停顿: 1秒]
-首先看页面上方的要求：读一读下面的词语，注意读准字音，不会认读的生字词可以圈出来多读几遍。[停顿: 1秒]
-现在老师先带着大家逐行认读，大家可以跟着小声读哦：
-第一行：腊八粥[停顿: 0.5秒]、吞咽[停顿: 0.5秒]、汤匙[停顿: 0.5秒]、碗盏[停顿: 0.5秒]、搅和[停顿: 1秒]。
-这里要提醒大家几个重点读音：首先是翘舌音的字，“粥”“匙”“盏”还有后面“肿胀”的“胀”都是翘舌音，读的时候要把舌尖翘起来，不要读成平舌音哦。[停顿: 1秒]
-另外还有几个轻声和多音字要特别记牢：“搅和”的“和”在这里读轻声huo，“钥匙”的“匙”读轻声shi，只有表示舀东西的工具时才读chí，大家可不要搞混啦。[停顿: 1.5秒]
-我们接着读第二行：肿胀[停顿: 0.5秒]、熬粥[停顿: 0.5秒]、褐色[停顿: 0.5秒]、染缸[停顿: 0.5秒]、脏水[停顿: 1秒]。这里的“脏”是平舌音，大家读的时候要注意舌尖放平。[停顿: 0.5秒]
-第三行：筷子[停顿: 0.5秒]、陈旧[停顿: 0.5秒]、感觉[停顿: 0.5秒]、沸腾[停顿: 0.5秒]、何况[停顿: 1秒]。
-第四行：资格[停顿: 0.5秒]、可靠[停顿: 0.5秒]、罢了[停顿: 0.5秒]、要不然[停顿: 0.5秒]、猜想[停顿: 1秒]。
-第五行：惊异[停顿: 0.5秒]、总之[停顿: 0.5秒]、解释[停顿: 0.5秒]、浪漫[停顿: 0.5秒]、奈何[停顿: 1.5秒]。
-大家都读准了吗？要是还有拿不准的字音，可以再多读几遍巩固一下。[停顿: 1秒]掌握了这些字词，接下来我们就一起来梳理课文围绕腊八粥讲了什么故事吧。
- */
-
-// - 脚本中必须嵌入操作符，操作符必须使用 `[]` 包起来，并采用 `Key: Value` 格式。
-// - 操作符示例：`[上下文: 你可以说慢一点吗？]`、`[停顿: 2秒]`。
-var plainScriptTextList = new List<string>()
-{
-    @"[上下文: 用轻松亲切的语气，语速适中]
-同学们好，欢迎来到今天的六年级语文下册课堂。[停顿: 1秒]
-大家先看页面上的这幅插画，慈祥的奶奶和开心的小孙子围在冒着热气的大锅旁，是不是一下子就让你感受到了满满的烟火气和节日暖意呀？[停顿: 1.5秒]
-没错，今天我们要学习的就是第二课，《腊八粥》。[停顿: 1秒]
-这篇课文我们会分成两个课时来完成学习，分别是第1课时和第2课时。[停顿: 1秒]
-在第1课时，我们会先了解作者的相关知识，初读课文梳理故事情节，还要学习本课的生字新词。[停顿: 1秒]
-在第2课时，我们会深入品读课文细节，感受腊八粥里藏着的浓浓亲情和传统民俗的独特魅力。[停顿: 1.5秒]
-那现在，我们就正式开启第1课时的学习吧。",
-    @"[上下文: 用轻松活泼的启发式语气，语速适中]
-刚才我们已经明确了第1课时的学习任务，现在我们就正式进入“激发兴趣，导入新课”的环节。[停顿: 1秒]
-大家首先看到页面上的“儿歌欣赏”板块，旁边的这个播放按钮，点击就能收听这首和腊八粥相关的儿歌啦。[停顿: 1秒]
-我们先来看第一个问题：这是一首关于什么的儿歌？没错，答案就是腊八粥。[停顿: 1秒]
-再来看第二个问题：腊八粥是哪个节日吃的美食呀？对啦，就是腊八节，每年农历腊月初八，很多家庭都会熬上一锅香喷喷的腊八粥，一家人热热闹闹地分着喝。[停顿: 1.5秒]
-大家还记得我们之前学过老舍先生的《北京的春节》吗？里面是怎样介绍腊八粥的呢？[停顿: 2秒]
-很好，不少同学都想起来了，在《北京的春节》的第1自然段，就详细介绍了腊八粥丰富多样的食材，字里行间都透着年节的暖意。[停顿: 1秒]
-大家再看页面底部冒着热气的腊八粥插画，看起来是不是就特别香甜诱人呀？[停顿: 1秒]
-那除了我们刚才说到的这些，你对腊八粥还有更多的了解吗？大家可以先开动脑筋想一想，也可以和身边的同学交流一下哦。[停顿: 2秒]
-带着对腊八粥的满满好奇，接下来我们就先来认识一下今天这篇课文的作者，沈从文先生。",
-    @"[上下文: 用沉稳清晰的介绍语气，语速适中]
-上一页我们提到要认识《腊八粥》这篇课文的作者，现在大家看页面上的介绍，还有右下角冒着热气的腊八粥背景插画，是不是一下就把作者和我们今天的学习主题联系起来了呀？[停顿: 1秒]
-我们先来了解沈从文先生的基本信息：他生于1902年，逝于1988年，原名沈岳焕，是湖南凤凰人，属于苗族。[停顿: 1秒]
-大家要重点记住，沈从文先生的创作中，影响最大的就是乡土小说，他的作品大多描写士兵、船夫还有湘西少数民族的生活，字里行间都充满了动人的人情美和独特的风俗美，这种创作风格和我们今天要学的《腊八粥》里充满生活气息、满是家庭温情的特点是一脉相承的哦。[停顿: 1.5秒]
-他的代表作也有很多，比如经典小说《边城》《长河》，还有散文集《从文自传》《湘行散记》，感兴趣的同学课后也可以找这些作品来读一读，感受一下沈从文先生笔下鲜活的湘西风情。[停顿: 1.5秒]
-了解完作者的相关信息，接下来我们就带着对作者创作风格的认识，一起走进课文，先来看看初读课文的具体要求吧。",
-    @"[上下文: 用清晰温和的引导式语气，语速适中]
-刚才我们已经了解了《腊八粥》的作者沈从文先生的相关创作背景，现在我们就正式进入“初读课文，学习字词”的环节啦。[停顿:1秒]
-大家看页面顶部的标题，还有底部淡淡的腊八粥背景插画，是不是感觉读课文的时候都好像能闻到甜香的粥味啦？[停顿:1秒]
-接下来我们来看这一页的自读提示，老师给大家明确两个朗读要求哦。[停顿:0.5秒]
-第一个要求，请大家自由地朗读课文，朗读过程中一定要注意读准每个字的字音，把句子读通顺，遇到拿不准的生字词可以先圈出来，等下我们会专门讲解本课的字词，大家不用担心。[停顿:1秒]
-第二个要求，大家要边读边思考：围绕“腊八粥”这一线索，作者为我们讲了一个什么样的故事呢？读完之后，大家可以试着用简洁的小标题来概括出整个故事情节，写在自己的练习本上哦。[停顿:2秒]
-现在大家就可以按下暂停键，开始朗读课文啦，等大家读完之后，我们就一起来学习本课的生字新词。",
-    @"[上下文: 吐字清晰，语速适中，用引导学生认读的温和语气]
-刚才大家已经完成了课文的初读，现在我们就正式进入字词学习环节，这些词语都选自页面右下角标注的“课前预学单”第1题，大家之前预习的时候有没有都读准呀？[停顿: 1秒]
-首先看页面上方的要求：读一读下面的词语，注意读准字音，不会认读的生字词可以圈出来多读几遍。[停顿: 1秒]
-现在老师先带着大家逐行认读，大家可以跟着小声读哦：
-第一行：腊八粥[停顿: 0.5秒]、吞咽[停顿: 0.5秒]、汤匙[停顿: 0.5秒]、碗盏[停顿: 0.5秒]、搅和[停顿: 1秒]。
-这里要提醒大家几个重点读音：首先是翘舌音的字，“粥”“匙”“盏”还有后面“肿胀”的“胀”都是翘舌音，读的时候要把舌尖翘起来，不要读成平舌音哦。[停顿: 1秒]
-另外还有几个轻声和多音字要特别记牢：“搅和”的“和”在这里读轻声huo，“钥匙”的“匙”读轻声shi，只有表示舀东西的工具时才读chí，大家可不要搞混啦。[停顿: 1.5秒]
-我们接着读第二行：肿胀[停顿: 0.5秒]、熬粥[停顿: 0.5秒]、褐色[停顿: 0.5秒]、染缸[停顿: 0.5秒]、脏水[停顿: 1秒]。这里的“脏”是平舌音，大家读的时候要注意舌尖放平。[停顿: 0.5秒]
-第三行：筷子[停顿: 0.5秒]、陈旧[停顿: 0.5秒]、感觉[停顿: 0.5秒]、沸腾[停顿: 0.5秒]、何况[停顿: 1秒]。
-第四行：资格[停顿: 0.5秒]、可靠[停顿: 0.5秒]、罢了[停顿: 0.5秒]、要不然[停顿: 0.5秒]、猜想[停顿: 1秒]。
-第五行：惊异[停顿: 0.5秒]、总之[停顿: 0.5秒]、解释[停顿: 0.5秒]、浪漫[停顿: 0.5秒]、奈何[停顿: 1.5秒]
-大家都读准了吗？要是还有拿不准的字音，可以再多读几遍巩固一下。[停顿: 1秒]掌握了这些字词，接下来我们就一起来梳理课文围绕腊八粥讲了什么故事吧。"
-};
-
 var coursewareJsonFile = @"C:\lindexi\Work\CoursewareMaterialInfo.json";
-// 现在还是测试阶段，不需要和 SpeechcigukeKallhehallyewo 项目一样，调用大模型进行转换脚本的过程，上面已经拿到了纯脚本文本列表了，只需要和对应的页面截图混合即可
 
 var ffmpegFile = @"C:\lindexi\Application\ffmpeg.exe";
 
@@ -300,22 +206,19 @@ const string resourceId = "seed-tts-2.0";
 const string model = "seed-tts-2.0-expressive";
 const string speaker = "zh_female_vv_uranus_bigtts";
 
-var coursewareMaterialInfo = JsonSerializer.Deserialize<SavableCoursewareMaterialInfo>(File.ReadAllText(coursewareJsonFile), new JsonSerializerOptions()
+var keyFile = @"C:\lindexi\Work\Doubao.txt";
+var key = File.ReadAllText(keyFile);
+var openAiClient = new OpenAIClient(new ApiKeyCredential(key), new OpenAIClientOptions()
 {
-    PropertyNameCaseInsensitive = true,
-}) ?? throw new InvalidOperationException("课件 JSON 反序列化失败，未能读取到课件页面信息。");
+    Endpoint = new Uri("https://ark.cn-beijing.volces.com/api/v3"),
+    NetworkTimeout = TimeSpan.FromHours(1),
+});
 
-if (coursewareMaterialInfo.SlideMaterialInfoList.Count == 0)
-{
-    throw new InvalidOperationException("课件 JSON 中没有任何页面信息。");
-}
+var chatClient = openAiClient.GetChatClient("ep-20260306101224-c8mtg").AsIChatClient();
 
-if (coursewareMaterialInfo.SlideMaterialInfoList.Count != plainScriptTextList.Count)
-{
-    throw new InvalidOperationException($"脚本数量与页面数量不匹配。页面数：{coursewareMaterialInfo.SlideMaterialInfoList.Count}，脚本数：{plainScriptTextList.Count}");
-}
+var coursewareMaterialInfo = LoadCoursewareMaterialInfo(coursewareJsonFile);
 
-var outputDirectory = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "GeneratedCoursewareSpeech"));
+var outputDirectory = new DirectoryInfo(Path.Join(AppContext.BaseDirectory, $"GeneratedCoursewareSpeech_{DateTime.Now:yyyy_MM_dd_HH_mm_ss}"));
 outputDirectory.Create();
 
 var authentication = CreateAuthentication(appId, accessTokenFile, resourceId);
@@ -331,17 +234,29 @@ var generator = new CoursewareSpeechGenerator
     WorkingDirectory = new DirectoryInfo(Path.Join(outputDirectory.FullName, "Working")),
     FFmpegVideoComposer = ffmpegVideoComposer,
     OpenSpeechClient = openSpeechClient,
-    SpeechSynthesisOptions = new CoursewareSpeechSynthesisOptions(authentication, speaker, model)
+    SpeechSynthesisOptions = new CoursewareSpeechSynthesisOptions(authentication, speaker, model),
+    Logger = new ConsoleLogger(),
 };
 
-var slideInfoList = coursewareMaterialInfo.SlideMaterialInfoList
-    .Select((slideMaterialInfo, index) => new CoursewareSpeechSlideInfo(plainScriptTextList[index], new FileInfo(slideMaterialInfo.SlideThumbnailFilePath)))
-    .ToList();
-
-var outputVideoFile = new FileInfo(Path.Combine(outputDirectory.FullName, "courseware-speech.mp4"));
-await generator.GeneratorCoursewareSpeechVideoAsync(new CoursewareSpeechInfo(slideInfoList), outputVideoFile);
+var outputVideoFile = await generator.GeneratorCoursewareSpeechVideoAsync(coursewareMaterialInfo, chatClient);
 
 Console.WriteLine($"视频文件已生成：{outputVideoFile.FullName}");
+
+static CoursewareMaterialInfo LoadCoursewareMaterialInfo(string coursewareJsonFile)
+{
+    var savableCoursewareMaterialInfo = JsonSerializer.Deserialize<SavableCoursewareMaterialInfo>(File.ReadAllText(coursewareJsonFile), new JsonSerializerOptions()
+    {
+        PropertyNameCaseInsensitive = true,
+    }) ?? throw new InvalidOperationException("课件 JSON 反序列化失败，未能读取到课件页面信息。");
+
+    if (savableCoursewareMaterialInfo.SlideMaterialInfoList.Count == 0)
+    {
+        throw new InvalidOperationException("课件 JSON 中没有任何页面信息。");
+    }
+
+    var coursewareSlideMaterialInfoList = savableCoursewareMaterialInfo.SlideMaterialInfoList.Select(t => new CoursewareSlideMaterialInfo(new FileInfo(t.SlideThumbnailFilePath), t.ContentText)).ToList();
+    return new CoursewareMaterialInfo(coursewareSlideMaterialInfoList);
+}
 
 static OpenSpeechAuthentication CreateAuthentication(string appId, string accessTokenFile, string resourceId)
 {
@@ -368,3 +283,22 @@ static string ReadRequiredText(string filePath)
 public record SavableCoursewareSlideMaterialInfo(string SlideThumbnailFilePath, string ContentText);
 
 public record SavableCoursewareMaterialInfo(List<SavableCoursewareSlideMaterialInfo> SlideMaterialInfoList);
+
+class ConsoleLogger : ILogger
+{
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        var message = formatter(state, exception);
+        Console.WriteLine($"[{logLevel}] {message}");
+    }
+
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return true;
+    }
+
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    {
+        return null;
+    }
+}
