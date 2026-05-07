@@ -1,10 +1,10 @@
-using Microsoft.Office.Core;
-using Microsoft.Office.Interop.PowerPoint;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.Office.Core;
+using Microsoft.Office.Interop.PowerPoint;
 
-namespace JawjeleceeYairlubelhearrene;
+namespace JawjeleceeYairlubelhearrene.Services;
 
 internal sealed class PowerPresentationProvider : IDisposable
 {

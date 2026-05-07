@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace JawjeleceeYairlubelhearrene;
+namespace JawjeleceeYairlubelhearrene.Services;
 
 internal static class FileDialogService
 {
@@ -9,7 +9,7 @@ internal static class FileDialogService
         var dialog = new OpenFileDialog
         {
             Title = "选择 PowerPoint 文件",
-            Filter = "PowerPoint 文件|*.pptx;*.pptm;*.ppsx;*.ppsm;*.potx;*.potm;*.ppt|所有文件|*.*",
+            Filter = "PowerPoint 文件|*.pptx",
             CheckFileExists = true,
             Multiselect = false
         };

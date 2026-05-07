@@ -1,16 +1,16 @@
+using System.ClientModel;
+using System.IO;
+using System.Net.Sockets;
+using System.Text;
+using JawjeleceeYairlubelhearrene.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenAI;
-using System.ClientModel;
-using System.IO;
-using System.Net.Http;
-using System.Net.Sockets;
-using System.Text;
 using VideoComposerLib;
 using VolcEngineSdk.OpenSpeech;
 using VolcEngineSdk.OpenSpeech.Contexts;
 
-namespace JawjeleceeYairlubelhearrene;
+namespace JawjeleceeYairlubelhearrene.Services;
 
 internal sealed class CoursewareSpeechVideoGenerator
 {
