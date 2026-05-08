@@ -75,10 +75,14 @@ public static class DocumentHighlighterSelector
         [".tsx"] = DocumentHighlightDefinition.CreateOther(LanguageId.TypeScript),
         [".vb"] = DocumentHighlightDefinition.CreateOther(LanguageId.VbDotNet),
         [".vbhtml"] = DocumentHighlightDefinition.CreateOther(LanguageId.AspxVb),
+
         [".xml"] = DocumentHighlightDefinition.CreateOther(LanguageId.Xml),
         [".xaml"] = DocumentHighlightDefinition.CreateOther(LanguageId.Xml),
         [".axaml"] = DocumentHighlightDefinition.CreateOther(LanguageId.Xml),
         [".svg"] = DocumentHighlightDefinition.CreateOther(LanguageId.Xml),
+        [".csproj"] = DocumentHighlightDefinition.CreateOther(LanguageId.Xml),
+        [".slnx"] = DocumentHighlightDefinition.CreateOther(LanguageId.Xml),
+
         [".cshtml"] = DocumentHighlightDefinition.CreateOther(LanguageId.AspxCs),
     };
 
