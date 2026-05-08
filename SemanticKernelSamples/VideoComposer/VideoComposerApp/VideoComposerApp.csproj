@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\TestFile\**\*" LinkBase="TestFile" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\VideoComposerLib\VideoComposerLib.csproj" />
   </ItemGroup>
 
