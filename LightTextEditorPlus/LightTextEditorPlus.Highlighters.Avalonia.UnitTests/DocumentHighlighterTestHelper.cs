@@ -4,6 +4,7 @@ using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Highlighters;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
+using System.Text;
 
 namespace LightTextEditorPlus.Highlighters.Avalonia.UnitTests;
 
@@ -27,8 +28,10 @@ internal static class DocumentHighlighterTestHelper
 
     internal static void AssertScopeColor(TextEditor textEditor, string text, string token, ScopeType scope, int occurrence = 0)
     {
-        var start = GetOccurrenceStart(text, token, occurrence);
-        AssertScopeColor(textEditor, start, token.Length, scope);
+        var utf16Start = GetOccurrenceUtf16Start(text, token, occurrence);
+        var start = GetDocumentOffsetFromUtf16Index(text, utf16Start);
+        var length = GetDocumentLength(text, utf16Start, token.Length);
+        AssertScopeColor(textEditor, start, length, scope);
     }
 
     internal static void AssertScopeColor(TextEditor textEditor, int start, int length, ScopeType scope)
@@ -47,8 +50,10 @@ internal static class DocumentHighlighterTestHelper
 
     internal static void AssertScopeColor(TextEditor textEditor, string text, string token, int occurrence, params ScopeType[] scopes)
     {
-        var start = GetOccurrenceStart(text, token, occurrence);
-        AssertScopeColor(textEditor, start, token.Length, scopes);
+        var utf16Start = GetOccurrenceUtf16Start(text, token, occurrence);
+        var start = GetDocumentOffsetFromUtf16Index(text, utf16Start);
+        var length = GetDocumentLength(text, utf16Start, token.Length);
+        AssertScopeColor(textEditor, start, length, scopes);
     }
 
     internal static void AssertScopeColor(TextEditor textEditor, int start, int length, params ScopeType[] scopes)
@@ -66,8 +71,10 @@ internal static class DocumentHighlighterTestHelper
 
     internal static void AssertTokenUsesNonPlainTextColor(TextEditor textEditor, string text, string token, int occurrence = 0)
     {
-        var start = GetOccurrenceStart(text, token, occurrence);
-        AssertUsesNonPlainTextColor(textEditor, start, token.Length);
+        var utf16Start = GetOccurrenceUtf16Start(text, token, occurrence);
+        var start = GetDocumentOffsetFromUtf16Index(text, utf16Start);
+        var length = GetDocumentLength(text, utf16Start, token.Length);
+        AssertUsesNonPlainTextColor(textEditor, start, length);
     }
 
     internal static void AssertUsesNonPlainTextColor(TextEditor textEditor, int start, int length)
@@ -126,6 +133,9 @@ internal static class DocumentHighlighterTestHelper
     }
 
     internal static int GetOccurrenceStart(string text, string token, int occurrence)
+        => GetDocumentOffsetFromUtf16Index(text, GetOccurrenceUtf16Start(text, token, occurrence));
+
+    private static int GetOccurrenceUtf16Start(string text, string token, int occurrence)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(token);
@@ -147,6 +157,66 @@ internal static class DocumentHighlighterTestHelper
         }
 
         throw new InvalidOperationException("Unreachable.");
+    }
+
+    private static int GetDocumentLength(string text, int utf16Start, int utf16Length)
+    {
+        var utf16EndExclusive = utf16Start + utf16Length;
+        return GetDocumentOffsetFromUtf16Index(text, utf16EndExclusive) - GetDocumentOffsetFromUtf16Index(text, utf16Start);
+    }
+
+    private static int GetDocumentOffsetFromUtf16Index(string text, int utf16Index)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+
+        if (utf16Index <= 0)
+        {
+            return 0;
+        }
+
+        if (utf16Index > text.Length)
+        {
+            utf16Index = text.Length;
+        }
+
+        var documentOffset = 0;
+        var currentUtf16Index = 0;
+        var isLastCharCarriageReturn = false;
+
+        foreach (var rune in text.EnumerateRunes())
+        {
+            if (currentUtf16Index >= utf16Index)
+            {
+                break;
+            }
+
+            if (rune.Value is '\r')
+            {
+                isLastCharCarriageReturn = true;
+                documentOffset++;
+                currentUtf16Index += rune.Utf16SequenceLength;
+                continue;
+            }
+
+            if (rune.Value is '\n')
+            {
+                currentUtf16Index += rune.Utf16SequenceLength;
+                if (isLastCharCarriageReturn)
+                {
+                    isLastCharCarriageReturn = false;
+                    continue;
+                }
+
+                documentOffset++;
+                continue;
+            }
+
+            isLastCharCarriageReturn = false;
+            documentOffset++;
+            currentUtf16Index += rune.Utf16SequenceLength;
+        }
+
+        return documentOffset;
     }
 
     private static string NormalizeLineEndings(string text)

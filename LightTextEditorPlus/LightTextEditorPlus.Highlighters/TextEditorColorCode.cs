@@ -23,10 +23,16 @@ namespace LightTextEditorPlus.Highlighters;
 internal sealed record TextEditorColorCode : IColorCode
 {
     public TextEditorColorCode(TextEditor textEditor, DocumentOffset startOffset)
+        : this(textEditor, startOffset, GetPlainText(textEditor, startOffset))
+    {
+    }
+
+    public TextEditorColorCode(TextEditor textEditor, DocumentOffset startOffset, string plainCode)
     {
         var setter = new TextRunPropertySetter(textEditor)
         {
-            StartOffset = startOffset
+            StartOffset = startOffset,
+            PlainText = plainCode
         };
         _textRunPropertySetter = setter;
 
@@ -36,6 +42,13 @@ internal sealed record TextEditorColorCode : IColorCode
     private readonly ColorCodeStyleManager _styleManager;
 
     private readonly TextRunPropertySetter _textRunPropertySetter;
+
+    private static string GetPlainText(TextEditor textEditor, DocumentOffset startOffset)
+    {
+        var allSelection = textEditor.GetAllDocumentSelection();
+        var selection = new LightTextEditorPlus.Core.Carets.Selection(new LightTextEditorPlus.Core.Carets.CaretOffset(startOffset), allSelection.BehindOffset);
+        return textEditor.GetText(in selection);
+    }
 
     public void FillCodeColor(TextSpan span, ScopeType scope)
     {

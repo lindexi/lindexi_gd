@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
@@ -22,13 +23,10 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
 {
     public DocumentOffset StartOffset { get; init; } = 0;
 
+    public string? PlainText { get; init; }
+
     public void SetRunProperty(ConfigRunProperty config, SourceSpan span)
     {
-        span = span with
-        {
-            Start = span.Start + StartOffset,
-            End = span.End + StartOffset
-        };
         var selection = SourceSpanToSelection(span);
 
         TextEditor.TextEditorCore.SetUndoRedoEnable(false, "框架内部设置文本样式，防止将内容动作记录");
@@ -41,12 +39,6 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
     public void TrySetRunProperty(ScopeType scopeType, RunProperty runProperty, SourceSpan span)
     {
         _ = scopeType;
-
-        span = span with
-        {
-            Start = span.Start + StartOffset,
-            End = span.End + StartOffset
-        };
         var selection = SourceSpanToSelection(span);
 
 #if DEBUG
@@ -75,5 +67,78 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
         TextEditor.TextEditorCore.SetUndoRedoEnable(true, "完成框架内部设置文本样式，启用撤销恢复");
     }
 
-    private Selection SourceSpanToSelection(SourceSpan span) => new(new CaretOffset(span.Start), span.Length);
+    private Selection SourceSpanToSelection(SourceSpan span)
+    {
+        var absoluteStartOffset = StartOffset.Offset;
+
+        if (span.IsEmpty)
+        {
+            var caretOffset = new CaretOffset(absoluteStartOffset + GetDocumentCharOffset(span.Start));
+            return new Selection(caretOffset, 0);
+        }
+
+        var start = absoluteStartOffset + GetDocumentCharOffset(span.Start);
+        var endExclusive = absoluteStartOffset + GetDocumentCharOffset(span.End + 1);
+        return new Selection(new CaretOffset(start), endExclusive - start);
+    }
+
+    private int GetDocumentCharOffset(int utf16Index)
+    {
+        var plainText = PlainText;
+        if (string.IsNullOrEmpty(plainText))
+        {
+            var allSelection = TextEditor.GetAllDocumentSelection();
+            var selection = new Selection(new CaretOffset(StartOffset.Offset), allSelection.BehindOffset);
+            plainText = TextEditor.GetText(in selection);
+        }
+
+        if (string.IsNullOrEmpty(plainText) || utf16Index <= 0)
+        {
+            return utf16Index;
+        }
+
+        if (utf16Index >= plainText.Length)
+        {
+            utf16Index = plainText.Length;
+        }
+
+        var documentCharOffset = 0;
+        var currentUtf16Index = 0;
+        var isLastCharCarriageReturn = false;
+
+        foreach (Rune rune in plainText.EnumerateRunes())
+        {
+            if (currentUtf16Index >= utf16Index)
+            {
+                break;
+            }
+
+            if (rune.Value is '\r')
+            {
+                isLastCharCarriageReturn = true;
+                documentCharOffset++;
+                currentUtf16Index += rune.Utf16SequenceLength;
+                continue;
+            }
+
+            if (rune.Value is '\n')
+            {
+                currentUtf16Index += rune.Utf16SequenceLength;
+                if (isLastCharCarriageReturn)
+                {
+                    isLastCharCarriageReturn = false;
+                    continue;
+                }
+
+                documentCharOffset++;
+                continue;
+            }
+
+            isLastCharCarriageReturn = false;
+            documentCharOffset++;
+            currentUtf16Index += rune.Utf16SequenceLength;
+        }
+
+        return documentCharOffset;
+    }
 }

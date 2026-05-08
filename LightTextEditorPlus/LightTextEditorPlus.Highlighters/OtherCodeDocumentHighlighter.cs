@@ -58,7 +58,7 @@ public sealed class OtherCodeDocumentHighlighter : IDocumentHighlighter
     public void ApplyHighlight(string text)
     {
         _plainTextDocumentHighlighter.ApplyHighlight(text);
-        var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(0));
+        var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(0), text);
         var highlightCodeContext = new HighlightCodeContext(text, colorCode);
 
         if (string.Equals(_languageId, "json", StringComparison.OrdinalIgnoreCase)
