@@ -75,11 +75,12 @@ internal sealed class CoursewareSpeechVideoGenerator
             workingDirectory: cacheDirectory,
             logHandler: (level, message) => progress?.Report($"[{level}] {message}"));
 
-        var outputVideoDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Videos"));
+        var outputVideoDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Video"));
         outputVideoDirectory.Create();
-        var outputVideoFile = new System.IO.FileInfo(Path.Join(outputVideoDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
-        await GenerateVideoCoreAsync(coursewareSpeechInfo, outputVideoFile, synthesisOptions, ffmpegVideoComposer, cacheDirectory, logger, progress, cancellationToken);
-        return new SpeechVideoGenerationResult(outputVideoFile, options.OutputDirectory, coursewareSpeechInfo);
+        var archivedVideoFile = new System.IO.FileInfo(Path.Join(outputVideoDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
+        await GenerateVideoCoreAsync(coursewareSpeechInfo, archivedVideoFile, synthesisOptions, ffmpegVideoComposer, cacheDirectory, logger, progress, cancellationToken);
+        var latestVideoFile = PublishLatestVideoToOutputRoot(archivedVideoFile, options.OutputDirectory);
+        return new SpeechVideoGenerationResult(latestVideoFile, options.OutputDirectory, coursewareSpeechInfo);
     }
 
     /// <summary>
@@ -119,11 +120,12 @@ internal sealed class CoursewareSpeechVideoGenerator
             logHandler: (level, message) => progress?.Report($"[{level}] {message}"));
 
         var speechInfo = await GenerateSpeechCoreAsync(coursewareMaterialInfo, chatClient, logger, progress, speechProgress, cancellationToken);
-        var outputVideoDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Videos"));
+        var outputVideoDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Video"));
         outputVideoDirectory.Create();
-        var outputVideoFile = new System.IO.FileInfo(Path.Join(outputVideoDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
-        await GenerateVideoCoreAsync(speechInfo, outputVideoFile, synthesisOptions, ffmpegVideoComposer, cacheDirectory, logger, progress, cancellationToken);
-        return new SpeechVideoGenerationResult(outputVideoFile, options.OutputDirectory, speechInfo);
+        var archivedVideoFile = new System.IO.FileInfo(Path.Join(outputVideoDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
+        await GenerateVideoCoreAsync(speechInfo, archivedVideoFile, synthesisOptions, ffmpegVideoComposer, cacheDirectory, logger, progress, cancellationToken);
+        var latestVideoFile = PublishLatestVideoToOutputRoot(archivedVideoFile, options.OutputDirectory);
+        return new SpeechVideoGenerationResult(latestVideoFile, options.OutputDirectory, speechInfo);
     }
 
     private async Task<CoursewareSpeechInfo> GenerateSpeechCoreAsync(
@@ -372,6 +374,26 @@ internal sealed class CoursewareSpeechVideoGenerator
             .Append(fileInfo.Exists ? fileInfo.Length : 0)
             .Append(':')
             .Append(fileInfo.Exists ? fileInfo.LastWriteTimeUtc.Ticks : 0);
+    }
+
+    private static FileInfo PublishLatestVideoToOutputRoot(FileInfo archivedVideoFile, DirectoryInfo outputDirectory)
+    {
+        ArgumentNullException.ThrowIfNull(archivedVideoFile);
+        ArgumentNullException.ThrowIfNull(outputDirectory);
+
+        outputDirectory.Create();
+        var latestVideoFile = new FileInfo(Path.Join(outputDirectory.FullName, archivedVideoFile.Name));
+
+        foreach (var existingVideoFile in outputDirectory.EnumerateFiles("courseware_speech_*.mp4", SearchOption.TopDirectoryOnly))
+        {
+            if (!string.Equals(existingVideoFile.FullName, latestVideoFile.FullName, StringComparison.OrdinalIgnoreCase))
+            {
+                existingVideoFile.Delete();
+            }
+        }
+
+        archivedVideoFile.CopyTo(latestVideoFile.FullName, overwrite: true);
+        return latestVideoFile;
     }
 
     private static async Task<string> GenerateSlideScriptAsync(

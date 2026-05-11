@@ -260,10 +260,16 @@ internal sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _generatedVideoPath, value))
             {
+                OnPropertyChanged(nameof(HasGeneratedVideo));
+                OnPropertyChanged(nameof(CanControlGeneratedVideo));
                 UpdateCommandStates();
             }
         }
     }
+
+    public bool HasGeneratedVideo => !string.IsNullOrWhiteSpace(GeneratedVideoPath) && File.Exists(GeneratedVideoPath);
+
+    public bool CanControlGeneratedVideo => !IsBusy && HasGeneratedVideo;
 
     public bool IsBusy
     {
@@ -272,6 +278,7 @@ internal sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _isBusy, value))
             {
+                OnPropertyChanged(nameof(CanControlGeneratedVideo));
                 UpdateCommandStates();
             }
         }
@@ -465,6 +472,7 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private async Task GenerateVideoFromScriptsAsync()
     {
+        StatusMessage = "开始生成视频";
         var validationMessage = ValidateBeforeGenerateVideoFromScripts();
         if (!string.IsNullOrWhiteSpace(validationMessage))
         {

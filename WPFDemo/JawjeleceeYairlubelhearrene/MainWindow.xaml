@@ -228,15 +228,22 @@
                                                Visibility="{Binding GeneratedVideoPath, Converter={StaticResource StringNullOrWhiteSpaceToVisibilityConverter}}" />
                                 </Grid>
                             </Border>
-                            <WrapPanel Margin="0,16,0,0">
-                                <Button Content="{x:Static properties:Resources.PlayButton}" Click="PlayButton_Click" />
+
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                <Button Content="{x:Static properties:Resources.PlayButton}" Click="PlayButton_Click"
+                                        IsEnabled="{Binding CanControlGeneratedVideo}" />
                                 <Button Content="{x:Static properties:Resources.PauseButton}" Click="PauseButton_Click"
-                                        Background="White" Foreground="{StaticResource AccentBrush}"
+                                        IsEnabled="{Binding CanControlGeneratedVideo}"
+                                        Foreground="{StaticResource AccentBrush}"
                                         BorderBrush="#554F46E5" />
                                 <Button Content="{x:Static properties:Resources.StopButton}" Click="StopButton_Click"
-                                        Background="White" Foreground="{StaticResource AccentBrush}"
+                                        IsEnabled="{Binding CanControlGeneratedVideo}"
+                                        Foreground="{StaticResource AccentBrush}"
                                         BorderBrush="#554F46E5" />
-                            </WrapPanel>
+                                <Border Margin="0 2 0 2" BorderThickness="2 0 0 0" BorderBrush="Gray"/>
+                                <Button Content="使用外部播放器打开视频" Margin="12 0 0 0" Click="OpenWithExternalPlayerButton_Click"
+                                        IsEnabled="{Binding CanControlGeneratedVideo}"></Button>
+                            </StackPanel>
                         </StackPanel>
 
                         <Border Grid.Column="1" Background="#FFF8FAFC" CornerRadius="16" Padding="16">
@@ -299,8 +306,8 @@
                                                                Style="{StaticResource FieldLabelTextBlockStyle}"
                                                                Text="{x:Static properties:Resources.GeneratedScriptLabel}"
                                                                Margin="0,8,0,6" />
-                                                    <TextBox Grid.Row="3" Text="{Binding GeneratedScript,Mode=OneWay}"
-                                                             IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                                                    <TextBox Grid.Row="3" Text="{Binding GeneratedScript,Mode=TwoWay}"
+                                                             TextWrapping="Wrap" AcceptsReturn="True"
                                                              VerticalScrollBarVisibility="Auto" />
                                                 </Grid>
                                             </Grid>
