@@ -499,14 +499,14 @@ public sealed class WorkspaceToolProvider
             int readLength = reader.Read(buffer, 0, currentReadLength);
             if (readLength == 0)
             {
-                return (builder.ToString(), isTruncated: false);
+                return (builder.ToString(), IsTruncated: false);
             }
 
             builder.Append(buffer, 0, readLength);
             remainingCharacters -= readLength;
         }
 
-        return (builder.ToString(), isTruncated: reader.Peek() >= 0);
+        return (builder.ToString(), IsTruncated: reader.Peek() >= 0);
     }
 
     private string GetDisplayPath(string fullPath)
