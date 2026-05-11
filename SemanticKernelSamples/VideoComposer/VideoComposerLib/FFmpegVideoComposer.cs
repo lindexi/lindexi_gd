@@ -144,6 +144,7 @@ public class FFmpegVideoComposer : IAsyncDisposable
 
         Log(VideoComposerLogLevel.Debug, $"分段执行命令：ffmpeg {args}");
         int exitCode = await RunFFmpegCommandAsync(args, cancellationToken);
+        outputFile.Refresh();
         return exitCode == 0 && outputFile.Exists;
     }
 
