@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -49,18 +50,47 @@ public partial class MainWindow : Window
 
     private void PlayButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!ViewModel.HasGeneratedVideo)
+        {
+            return;
+        }
+
         PreviewMediaElement.Play();
         ViewModel.PlayVideoRequested();
     }
 
     private void PauseButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!ViewModel.HasGeneratedVideo)
+        {
+            return;
+        }
+
         PreviewMediaElement.Pause();
     }
 
     private void StopButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!ViewModel.HasGeneratedVideo)
+        {
+            return;
+        }
+
         PreviewMediaElement.Stop();
+    }
+
+    private void OpenWithExternalPlayerButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ViewModel.HasGeneratedVideo)
+        {
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = ViewModel.GeneratedVideoPath,
+            UseShellExecute = true
+        });
     }
 
     private void PreviewMediaElement_MediaOpened(object sender, RoutedEventArgs e)

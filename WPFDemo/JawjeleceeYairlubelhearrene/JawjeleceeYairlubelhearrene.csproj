@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- [dotnet 9 已知问题 默认开启 CET 导致进程崩溃 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18700406 ) -->
+    <CETCompat>false</CETCompat>
   </PropertyGroup>
 
   <ItemGroup>
