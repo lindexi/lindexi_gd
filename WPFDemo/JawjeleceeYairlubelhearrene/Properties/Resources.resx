@@ -28,6 +28,11 @@
   <data name="OpenAiApiKeyLabel" xml:space="preserve"><value>API Key</value></data>
   <data name="OpenAiEndpointLabel" xml:space="preserve"><value>EndPoint</value></data>
   <data name="OpenAiModelLabel" xml:space="preserve"><value>模型</value></data>
+  <data name="VideoEncoderSectionTitle" xml:space="preserve"><value>视频编码器配置</value></data>
+  <data name="WatermarkEnableLabel" xml:space="preserve"><value>添加水印</value></data>
+  <data name="WatermarkContentLabel" xml:space="preserve"><value>水印内容</value></data>
+  <data name="ApplyWatermarkButton" xml:space="preserve"><value>应用水印内容</value></data>
+  <data name="WatermarkHint" xml:space="preserve"><value>启用后会在页面右下角生成半透明水印，并自动缓存处理后的图片。</value></data>
   <data name="OutputSectionTitle" xml:space="preserve"><value>输出配置</value></data>
   <data name="FfmpegPathLabel" xml:space="preserve"><value>FFmpeg 路径</value></data>
   <data name="OutputDirectoryLabel" xml:space="preserve"><value>输出目录</value></data>
@@ -65,6 +70,8 @@
   <data name="ValidationOpenAiEndpointInvalid" xml:space="preserve"><value>OpenAI 兼容 EndPoint 不是有效的绝对地址。</value></data>
   <data name="ValidationFfmpegPathRequired" xml:space="preserve"><value>请选择 FFmpeg 可执行文件。</value></data>
   <data name="ValidationFfmpegPathNotFoundFormat" xml:space="preserve"><value>找不到 FFmpeg 可执行文件：{0}</value></data>
+  <data name="ValidationWatermarkTextRequired" xml:space="preserve"><value>请填写水印内容。</value></data>
+  <data name="ValidationApplyWatermarkFirst" xml:space="preserve"><value>水印配置已变更，请先点击“应用水印内容”。</value></data>
   <data name="ComFailureHint" xml:space="preserve"><value>如果页面截图导出失败，请确认本机已安装 Microsoft PowerPoint 且 COM 组件可用。</value></data>
   <data name="GenerationCompletedFormat" xml:space="preserve"><value>生成完成，视频文件：{0}</value></data>
   <data name="ScriptGenerationCompleted" xml:space="preserve"><value>页面讲稿生成完成，可以继续根据讲稿生成视频。</value></data>

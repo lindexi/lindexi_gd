@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Windows;
+using System.Windows.Threading;
 using JawjeleceeYairlubelhearrene.Infrastructure;
 using JawjeleceeYairlubelhearrene.Models;
 using JawjeleceeYairlubelhearrene.Properties;
@@ -16,6 +18,7 @@ internal sealed class MainWindowViewModel : ObservableObject
         Slides = new ObservableCollection<SlidePreviewViewModel>();
         _browsePptCommand = new AsyncRelayCommand(BrowsePptAsync, () => !IsBusy);
         _browseFfmpegCommand = new RelayCommand(BrowseFfmpeg, () => !IsBusy);
+        _applyWatermarkCommand = new AsyncRelayCommand(ApplyWatermarkAsync, CanApplyWatermark);
         _generateScriptsCommand = new AsyncRelayCommand(GenerateScriptsAsync, CanGenerateScripts);
         _generateVideoFromScriptsCommand = new AsyncRelayCommand(GenerateVideoFromScriptsAsync, CanGenerateVideoFromScripts);
         _generateCommand = new AsyncRelayCommand(GenerateAsync, CanGenerate);
@@ -26,11 +29,15 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private readonly PowerPointReader _powerPointReader = new();
 
+    private readonly SlideImageWatermarkService _slideImageWatermarkService = new();
+
     private readonly CoursewareSpeechVideoGenerator _coursewareSpeechVideoGenerator = new();
 
     private readonly AsyncRelayCommand _browsePptCommand;
 
     private readonly RelayCommand _browseFfmpegCommand;
+
+    private readonly AsyncRelayCommand _applyWatermarkCommand;
 
     private readonly AsyncRelayCommand _generateScriptsCommand;
 
@@ -56,6 +63,12 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private string _ffmpegExecutablePath = string.Empty;
 
+    private bool _enableWatermark;
+
+    private string _watermarkText = string.Empty;
+
+    private bool _hasPendingWatermarkChanges;
+
     private string _outputDirectoryPath = string.Empty;
 
     private string _statusMessage = Resources.StatusReady;
@@ -72,6 +85,8 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private string _lastGenerationOutputDirectoryPath = string.Empty;
 
+    private System.IO.DirectoryInfo? _currentWorkingDirectory;
+
     public ObservableCollection<SpeakerOption> SpeakerOptions { get; }
 
     public ObservableCollection<SlidePreviewViewModel> Slides { get; }
@@ -79,6 +94,8 @@ internal sealed class MainWindowViewModel : ObservableObject
     public AsyncRelayCommand BrowsePptCommand => _browsePptCommand;
 
     public RelayCommand BrowseFfmpegCommand => _browseFfmpegCommand;
+
+    public AsyncRelayCommand ApplyWatermarkCommand => _applyWatermarkCommand;
 
     public AsyncRelayCommand GenerateCommand => _generateCommand;
 
@@ -96,6 +113,32 @@ internal sealed class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _pptFilePath, value))
             {
                 UpdateCommandStates();
+            }
+        }
+    }
+
+    public bool EnableWatermark
+    {
+        get => _enableWatermark;
+        set
+        {
+            if (SetProperty(ref _enableWatermark, value))
+            {
+                UpdateCommandStates();
+                _hasPendingWatermarkChanges = true;
+            }
+        }
+    }
+
+    public string WatermarkText
+    {
+        get => _watermarkText;
+        set
+        {
+            if (SetProperty(ref _watermarkText, value))
+            {
+                UpdateCommandStates();
+                _hasPendingWatermarkChanges = true;
             }
         }
     }
@@ -264,6 +307,9 @@ internal sealed class MainWindowViewModel : ObservableObject
         OpenAiEndpoint = defaults.OpenAiEndpoint;
         OpenAiModel = defaults.OpenAiModel;
         FfmpegExecutablePath = defaults.FfmpegExecutablePath;
+        EnableWatermark = false;
+        WatermarkText = string.Empty;
+        _hasPendingWatermarkChanges = false;
         OutputDirectoryPath = defaults.OutputDirectoryPath;
         SelectedSpeaker = SpeakerOptions.FirstOrDefault(t => string.Equals(t.VoiceType, defaults.Speaker, StringComparison.Ordinal))
             ?? SpeakerOptions.FirstOrDefault();
@@ -316,8 +362,13 @@ internal sealed class MainWindowViewModel : ObservableObject
                 throw new InvalidOperationException(Resources.ValidationSelectPpt);
             }
 
+            if (_hasPendingWatermarkChanges)
+            {
+                await ApplyWatermarkAsync();
+            }
+
             var generationOptions = CreateGenerationOptions(requireOpenAi: true, requireOpenSpeech: true, requireFfmpeg: true);
-            var coursewareMaterialInfo = new CoursewareMaterialInfo(_currentReadResult.Slides.Select(t => new CoursewareSlideMaterialInfo(t.SlideImageFile, t.SlideText)).ToArray());
+            var coursewareMaterialInfo = BuildCoursewareMaterialInfo();
             var progress = new Progress<string>(message =>
             {
                 StatusMessage = message;
@@ -362,8 +413,13 @@ internal sealed class MainWindowViewModel : ObservableObject
                 throw new InvalidOperationException(Resources.ValidationSelectPpt);
             }
 
+            if (_hasPendingWatermarkChanges)
+            {
+                await ApplyWatermarkAsync();
+            }
+
             var generationOptions = CreateGenerationOptions(requireOpenAi: true, requireOpenSpeech: false, requireFfmpeg: false);
-            var coursewareMaterialInfo = new CoursewareMaterialInfo(_currentReadResult.Slides.Select(t => new CoursewareSlideMaterialInfo(t.SlideImageFile, t.SlideText)).ToArray());
+            var coursewareMaterialInfo = BuildCoursewareMaterialInfo();
             var progress = new Progress<string>(message =>
             {
                 StatusMessage = message;
@@ -387,6 +443,22 @@ internal sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private CoursewareMaterialInfo BuildCoursewareMaterialInfo()
+    {
+        if (_currentReadResult is null || Slides.Count == 0)
+        {
+            throw new InvalidOperationException(Resources.ValidationSelectPpt);
+        }
+
+        var slideMaterialInfoList = new CoursewareSlideMaterialInfo[Slides.Count];
+        for (var i = 0; i < Slides.Count; i++)
+        {
+            slideMaterialInfoList[i] = new CoursewareSlideMaterialInfo(new System.IO.FileInfo(Slides[i].ImageFilePath), Slides[i].SlideText);
+        }
+
+        return new CoursewareMaterialInfo(slideMaterialInfoList);
+    }
+
     private async Task GenerateVideoFromScriptsAsync()
     {
         var validationMessage = ValidateBeforeGenerateVideoFromScripts();
@@ -400,6 +472,13 @@ internal sealed class MainWindowViewModel : ObservableObject
         {
             IsBusy = true;
             AppendLog(StatusMessage);
+
+            if (_hasPendingWatermarkChanges)
+            {
+                await ApplyWatermarkAsync();
+            }
+
+            UpdateCoursewareSpeechInfoPreviewImages();
 
             var generationOptions = CreateGenerationOptions(requireOpenAi: false, requireOpenSpeech: true, requireFfmpeg: true);
             var progress = new Progress<string>(message =>
@@ -437,6 +516,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             GeneratedVideoPath = string.Empty;
             _currentCoursewareSpeechInfo = null;
             _lastGenerationOutputDirectoryPath = string.Empty;
+            _currentWorkingDirectory = null;
             var progress = new Progress<string>(message =>
             {
                 StatusMessage = message;
@@ -444,11 +524,21 @@ internal sealed class MainWindowViewModel : ObservableObject
             });
             var readResult = await _powerPointReader.ReadSlidesAsync(new System.IO.FileInfo(PptFilePath), progress, CancellationToken.None);
             _currentReadResult = readResult;
+            _currentWorkingDirectory = CreatePresentationWorkingDirectory(readResult.SourceFile);
 
+            var slidePreviewItems = new List<SlidePreviewViewModel>(readResult.Slides.Count);
             foreach (var slide in readResult.Slides)
             {
-                Slides.Add(new SlidePreviewViewModel(slide.SlideIndex, slide.SlideText, slide.SlideImageFile.FullName));
+                var previewImagePath = GetSlidePreviewImage(slide.SlideImageFile);
+                slidePreviewItems.Add(new SlidePreviewViewModel(slide.SlideIndex, slide.SlideText, slide.SlideImageFile.FullName, previewImagePath.FullName));
             }
+
+            foreach (var slidePreviewItem in slidePreviewItems)
+            {
+                Slides.Add(slidePreviewItem);
+            }
+
+            _hasPendingWatermarkChanges = false;
 
             OnPropertyChanged(nameof(HasSlides));
 
@@ -525,6 +615,11 @@ internal sealed class MainWindowViewModel : ObservableObject
         return !IsBusy;
     }
 
+    private bool CanApplyWatermark()
+    {
+        return !IsBusy && EnableWatermark;
+    }
+
     private bool CanOpenOutputFolder()
     {
         return !string.IsNullOrWhiteSpace(GetOutputFolderToOpen());
@@ -572,6 +667,7 @@ internal sealed class MainWindowViewModel : ObservableObject
     {
         _browsePptCommand.RaiseCanExecuteChanged();
         _browseFfmpegCommand.RaiseCanExecuteChanged();
+        _applyWatermarkCommand.RaiseCanExecuteChanged();
         _generateScriptsCommand.RaiseCanExecuteChanged();
         _generateVideoFromScriptsCommand.RaiseCanExecuteChanged();
         _generateCommand.RaiseCanExecuteChanged();
@@ -608,6 +704,8 @@ internal sealed class MainWindowViewModel : ObservableObject
         {
             AddFfmpegValidationIssues(issues);
         }
+
+        AddWatermarkValidationIssues(issues);
 
         if (requireOutputDirectory)
         {
@@ -695,6 +793,135 @@ internal sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private void AddWatermarkValidationIssues(List<string> issues)
+    {
+        if (!EnableWatermark)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(WatermarkText))
+        {
+            issues.Add(Resources.ValidationWatermarkTextRequired);
+            return;
+        }
+
+        if (_hasPendingWatermarkChanges)
+        {
+            issues.Add(Resources.ValidationApplyWatermarkFirst);
+        }
+    }
+
+    private async Task ApplyWatermarkAsync()
+    {
+        if (_currentReadResult is null || Slides.Count == 0)
+        {
+            _hasPendingWatermarkChanges = false;
+            UpdateCommandStates();
+            return;
+        }
+
+        if (_currentWorkingDirectory is null)
+        {
+            throw new InvalidOperationException(Resources.ValidationSelectPpt);
+        }
+
+        if (EnableWatermark && string.IsNullOrWhiteSpace(WatermarkText))
+        {
+            StatusMessage = Resources.ValidationWatermarkTextRequired;
+            return;
+        }
+
+        var slideCount = Math.Min(Slides.Count, _currentReadResult.Slides.Count);
+        for (var i = 0; i < slideCount; i++)
+        {
+            var slide = _currentReadResult.Slides[i];
+            var previewImagePath = GetSlidePreviewImage(slide.SlideImageFile);
+            Slides[i].ImageFilePath = previewImagePath.FullName;
+
+            await Application.Current.Dispatcher.InvokeAsync(
+                static () => { },
+                DispatcherPriority.Background);
+        }
+
+        _hasPendingWatermarkChanges = false;
+        UpdateCoursewareSpeechInfoPreviewImages();
+        UpdateCommandStates();
+    }
+
+    private void RefreshSlidePreviewImages()
+    {
+        _hasPendingWatermarkChanges = true;
+        UpdateCommandStates();
+    }
+
+    private System.IO.DirectoryInfo CreatePresentationWorkingDirectory(System.IO.FileInfo sourceFile)
+    {
+        ArgumentNullException.ThrowIfNull(sourceFile);
+
+        var cacheRoot = GetWorkingCacheRootDirectory();
+        var presentationKey = string.Concat(
+            Path.GetFileNameWithoutExtension(sourceFile.Name),
+            "_",
+            sourceFile.LastWriteTimeUtc.Ticks.ToString());
+        var safeDirectoryName = string.Join("_", presentationKey.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
+        var directory = new System.IO.DirectoryInfo(Path.Join(cacheRoot.FullName, safeDirectoryName));
+        directory.Create();
+        return directory;
+    }
+
+    private System.IO.DirectoryInfo GetWorkingCacheRootDirectory()
+    {
+        if (!string.IsNullOrWhiteSpace(_lastGenerationOutputDirectoryPath) && Directory.Exists(_lastGenerationOutputDirectoryPath))
+        {
+            var workingDirectory = new System.IO.DirectoryInfo(Path.Join(_lastGenerationOutputDirectoryPath, "WorkspaceCache"));
+            workingDirectory.Create();
+            return workingDirectory;
+        }
+
+        if (!string.IsNullOrWhiteSpace(OutputDirectoryPath))
+        {
+            var configuredDirectory = new System.IO.DirectoryInfo(Path.Join(OutputDirectoryPath, "WorkspaceCache"));
+            configuredDirectory.Create();
+            return configuredDirectory;
+        }
+
+        var fallbackDirectory = new System.IO.DirectoryInfo(Path.Join(Path.GetTempPath(), "JawjeleceeYairlubelhearrene", "WorkspaceCache"));
+        fallbackDirectory.Create();
+        return fallbackDirectory;
+    }
+
+    private System.IO.FileInfo GetSlidePreviewImage(System.IO.FileInfo slideImageFile)
+    {
+        ArgumentNullException.ThrowIfNull(slideImageFile);
+
+        if (_currentWorkingDirectory is null)
+        {
+            throw new InvalidOperationException(Resources.ValidationSelectPpt);
+        }
+
+        return _slideImageWatermarkService.GetOutputImage(
+            slideImageFile,
+            _currentWorkingDirectory,
+            new SlideWatermarkOptions(EnableWatermark, WatermarkText));
+    }
+
+    private void UpdateCoursewareSpeechInfoPreviewImages()
+    {
+        if (_currentCoursewareSpeechInfo is null)
+        {
+            return;
+        }
+
+        var slideInfoList = new List<CoursewareSpeechSlideInfo>(_currentCoursewareSpeechInfo.SlideInfoList.Count);
+        for (var i = 0; i < _currentCoursewareSpeechInfo.SlideInfoList.Count && i < Slides.Count; i++)
+        {
+            slideInfoList.Add(new CoursewareSpeechSlideInfo(_currentCoursewareSpeechInfo.SlideInfoList[i].PlainScriptText, new System.IO.FileInfo(Slides[i].ImageFilePath)));
+        }
+
+        _currentCoursewareSpeechInfo = new CoursewareSpeechInfo(slideInfoList);
+    }
+
     private void AddOutputDirectoryValidationIssues(List<string> issues)
     {
         if (string.IsNullOrWhiteSpace(OutputDirectoryPath))
@@ -731,11 +958,13 @@ internal sealed class MainWindowViewModel : ObservableObject
 
         var outputDirectory = GetOrCreateCurrentOutputDirectory();
         return new SpeechVideoGenerationOptions(
-            requireFfmpeg ? new System.IO.FileInfo(FfmpegExecutablePath) : new System.IO.FileInfo(FfmpegExecutablePath),
-            requireOpenSpeech ? openSpeechApiKey : openSpeechApiKey,
+            new System.IO.FileInfo(FfmpegExecutablePath),
+            EnableWatermark,
+            WatermarkText,
+            openSpeechApiKey,
             ResourceId,
             SelectedSpeaker?.VoiceType ?? string.Empty,
-            requireOpenAi ? openAiApiKey : openAiApiKey,
+            openAiApiKey,
             new Uri(OpenAiEndpoint, UriKind.Absolute),
             OpenAiModel,
             outputDirectory);

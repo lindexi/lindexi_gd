@@ -32,6 +32,11 @@ public static class Resources
     public static string OpenAiApiKeyLabel => GetString(nameof(OpenAiApiKeyLabel));
     public static string OpenAiEndpointLabel => GetString(nameof(OpenAiEndpointLabel));
     public static string OpenAiModelLabel => GetString(nameof(OpenAiModelLabel));
+    public static string VideoEncoderSectionTitle => GetString(nameof(VideoEncoderSectionTitle));
+    public static string WatermarkEnableLabel => GetString(nameof(WatermarkEnableLabel));
+    public static string WatermarkContentLabel => GetString(nameof(WatermarkContentLabel));
+    public static string ApplyWatermarkButton => GetString(nameof(ApplyWatermarkButton));
+    public static string WatermarkHint => GetString(nameof(WatermarkHint));
     public static string OutputSectionTitle => GetString(nameof(OutputSectionTitle));
     public static string FfmpegPathLabel => GetString(nameof(FfmpegPathLabel));
     public static string OutputDirectoryLabel => GetString(nameof(OutputDirectoryLabel));
@@ -69,6 +74,8 @@ public static class Resources
     public static string ValidationOpenAiEndpointInvalid => GetString(nameof(ValidationOpenAiEndpointInvalid));
     public static string ValidationFfmpegPathRequired => GetString(nameof(ValidationFfmpegPathRequired));
     public static string ValidationFfmpegPathNotFoundFormat => GetString(nameof(ValidationFfmpegPathNotFoundFormat));
+    public static string ValidationWatermarkTextRequired => GetString(nameof(ValidationWatermarkTextRequired));
+    public static string ValidationApplyWatermarkFirst => GetString(nameof(ValidationApplyWatermarkFirst));
     public static string ComFailureHint => GetString(nameof(ComFailureHint));
     public static string GenerationCompletedFormat => GetString(nameof(GenerationCompletedFormat));
     public static string ScriptGenerationCompleted => GetString(nameof(ScriptGenerationCompleted));
