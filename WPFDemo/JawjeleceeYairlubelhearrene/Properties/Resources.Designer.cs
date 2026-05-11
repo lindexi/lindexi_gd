@@ -62,6 +62,13 @@ public static class Resources
     public static string ValidationOpenAiModel => GetString(nameof(ValidationOpenAiModel));
     public static string ValidationFfmpegPath => GetString(nameof(ValidationFfmpegPath));
     public static string ValidationOutputDirectory => GetString(nameof(ValidationOutputDirectory));
+    public static string ActionValidationSummaryFormat => GetString(nameof(ActionValidationSummaryFormat));
+    public static string ValidationPptFileRequired => GetString(nameof(ValidationPptFileRequired));
+    public static string ValidationPptFileNotFoundFormat => GetString(nameof(ValidationPptFileNotFoundFormat));
+    public static string ValidationOpenAiEndpointRequired => GetString(nameof(ValidationOpenAiEndpointRequired));
+    public static string ValidationOpenAiEndpointInvalid => GetString(nameof(ValidationOpenAiEndpointInvalid));
+    public static string ValidationFfmpegPathRequired => GetString(nameof(ValidationFfmpegPathRequired));
+    public static string ValidationFfmpegPathNotFoundFormat => GetString(nameof(ValidationFfmpegPathNotFoundFormat));
     public static string ComFailureHint => GetString(nameof(ComFailureHint));
     public static string GenerationCompletedFormat => GetString(nameof(GenerationCompletedFormat));
     public static string ScriptGenerationCompleted => GetString(nameof(ScriptGenerationCompleted));

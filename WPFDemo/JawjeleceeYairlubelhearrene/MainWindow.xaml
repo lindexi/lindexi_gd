@@ -308,20 +308,36 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
                                Text="{x:Static properties:Resources.ActionSectionTitle}" />
-                    <WrapPanel>
-                        <Button Content="{x:Static properties:Resources.GenerateScriptsButton}"
-                                Command="{Binding GenerateScriptsCommand}" />
-                        <Button Content="{x:Static properties:Resources.GenerateVideoFromScriptsButton}"
-                                Command="{Binding GenerateVideoFromScriptsCommand}"
-                                Background="White" Foreground="{StaticResource AccentBrush}"
+                    <Grid Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Row="0" Grid.Column="0"
+                                Content="{x:Static properties:Resources.GenerateButton}"
+                                Command="{Binding GenerateCommand}"
+                                Margin="0,0,8,8"
+                                Foreground="{StaticResource AccentBrush}"
                                 BorderBrush="#554F46E5" />
-                        <Button Content="{x:Static properties:Resources.GenerateButton}"
-                                Command="{Binding GenerateCommand}" />
-                        <Button Content="{x:Static properties:Resources.OpenOutputFolderButton}"
+                        <Button Grid.Row="0" Grid.Column="1"
+                                Content="{x:Static properties:Resources.GenerateScriptsButton}"
+                                Command="{Binding GenerateScriptsCommand}"
+                                Margin="0,0,0,8" />
+                        <Button Grid.Row="1" Grid.Column="0"
+                                Content="{x:Static properties:Resources.GenerateVideoFromScriptsButton}"
+                                Command="{Binding GenerateVideoFromScriptsCommand}"
+                                Margin="0,0,8,0" />
+                        <Button Grid.Row="1" Grid.Column="1"
+                                Content="{x:Static properties:Resources.OpenOutputFolderButton}"
                                 Command="{Binding OpenOutputFolderCommand}"
                                 Foreground="{StaticResource AccentBrush}"
                                 BorderBrush="#554F46E5" />
-                    </WrapPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
         </Grid>
