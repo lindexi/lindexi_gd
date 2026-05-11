@@ -1,11 +1,9 @@
-﻿using System.ClientModel.Primitives;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
-using OpenAI.Chat;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Microsoft.Agents.AI.Reasoning;
@@ -35,56 +33,52 @@ public static class ReasoningAIAgentExtension
             Debug.WriteLine(type.FullName);
 
             var contentIsEmpty = string.IsNullOrEmpty(agentRunResponseUpdate.Text);
+            var hasReasoningContent = false;
 
-            //foreach (var aiContent in agentRunResponseUpdate.Contents)
-            //{
-            //    if (aiContent is FunctionCallContent functionCallContent)
-            //    {
-            //        Debug.WriteLine($"FunctionCallContent {functionCallContent.Name}");
-            //    }
-            //}
-
-            if (contentIsEmpty && agentRunResponseUpdate.RawRepresentation is Microsoft.Extensions.AI.ChatResponseUpdate streamingChatCompletionUpdate)
+            foreach (var aiContent in agentRunResponseUpdate.Contents)
             {
-                if (streamingChatCompletionUpdate.RawRepresentation is StreamingChatCompletionUpdate chatCompletionUpdate)
+                if (aiContent is FunctionCallContent functionCallContent)
                 {
-                    // System.Text.Encoding.UTF8.GetString(chatCompletionUpdate._patch._rawJson.Value.Span)
-#pragma warning disable SCME0001 // Patch 属性是实验性内容
-                    ref JsonPatch patch = ref chatCompletionUpdate.Patch;
-                    
-                    if (patch.TryGetJson("$.choices[0].delta"u8, out var data))
-                    {
-                        var jsonElement = JsonElement.Parse(data.Span);
-                        if (jsonElement.TryGetProperty("reasoning_content", out var reasoningContent))
-                        {
-                            // 拿到的 reasoningContent 就是思考内容
-                            bool isFirstThinking = false;
-                            if (isThinking is null)
-                            {
-                                isThinking = true;
-                                isFirstThinking = true;
-                            }
+                    Debug.WriteLine($"FunctionCallContent {functionCallContent.Name}");
+                }
+                else if (aiContent is TextReasoningContent textReasoningContent)
+                {
+                    hasReasoningContent = true;
 
-                            if (isThinking is true)
-                            {
-                                yield return new ReasoningAgentResponseUpdate(agentRunResponseUpdate)
-                                {
-                                    Reasoning = reasoningContent.ToString(),
-                                    IsFirstThinking = isFirstThinking,
-                                    IsFirstOutputContent = false,
-                                    IsThinkingEnd = false,
-                                };
-                                continue;
-                            }
-                            else
-                            {
-                                Debug.Fail("不能在输出内容之后，再次进入思考");
-                            }
-                        }
+                    bool isFirstThinking = false;
+                    if (isThinking is null)
+                    {
+                        isThinking = true;
+                        isFirstThinking = true;
                     }
 
-#pragma warning restore SCME0001
+                    if (isThinking is true)
+                    {
+                        yield return new ReasoningAgentResponseUpdate(agentRunResponseUpdate)
+                        {
+                            Reasoning = textReasoningContent.Text,
+                            IsFirstThinking = isFirstThinking,
+                            IsFirstOutputContent = false,
+                            IsThinkingEnd = false,
+                        };
+                    }
+                    else
+                    {
+                        Debug.Fail("不能在输出内容之后，再次进入思考");
+                    }
                 }
+                else if (aiContent is TextContent textContent)
+                {
+                    if (!string.IsNullOrEmpty(textContent.Text))
+                    {
+                        contentIsEmpty = false;
+                    }
+                }
+            }
+
+            if (contentIsEmpty && hasReasoningContent)
+            {
+                continue;
             }
 
             var responseUpdate = new ReasoningAgentResponseUpdate(agentRunResponseUpdate);
