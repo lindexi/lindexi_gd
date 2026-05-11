@@ -241,7 +241,7 @@
                                         Foreground="{StaticResource AccentBrush}"
                                         BorderBrush="#554F46E5" />
                                 <Border Margin="0 2 0 2" BorderThickness="2 0 0 0" BorderBrush="Gray"/>
-                                <Button Content="使用外部播放器打开视频" Margin="12 0 0 0" Click="OpenWithExternalPlayerButton_Click"
+                                 <Button Content="{x:Static properties:Resources.OpenWithExternalPlayerButton}" Margin="12 0 0 0" Click="OpenWithExternalPlayerButton_Click"
                                         IsEnabled="{Binding CanControlGeneratedVideo}"></Button>
                             </StackPanel>
                         </StackPanel>
@@ -306,7 +306,7 @@
                                                                Style="{StaticResource FieldLabelTextBlockStyle}"
                                                                Text="{x:Static properties:Resources.GeneratedScriptLabel}"
                                                                Margin="0,8,0,6" />
-                                                    <TextBox Grid.Row="3" Text="{Binding GeneratedScript,Mode=TwoWay}"
+                                                     <TextBox Grid.Row="3" Text="{Binding GeneratedScript,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                                                              TextWrapping="Wrap" AcceptsReturn="True"
                                                              VerticalScrollBarVisibility="Auto" />
                                                 </Grid>
