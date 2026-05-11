@@ -98,6 +98,8 @@
                     </Border>
                     <Border Style="{StaticResource CardBorderStyle}">
                         <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OpenSpeechSectionTitle}" />
                             <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
                                        Text="{x:Static properties:Resources.SpeakerLabel}" />
                             <ComboBox ItemsSource="{Binding SpeakerOptions}" SelectedItem="{Binding SelectedSpeaker}">
@@ -150,8 +152,6 @@
                                     </ControlTemplate>
                                 </ComboBox.Template>
                             </ComboBox>
-                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
-                                       Text="{x:Static properties:Resources.OpenSpeechSectionTitle}" />
                             <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
                                        Text="{x:Static properties:Resources.OpenSpeechApiKeyLabel}" />
                             <TextBox Text="{Binding OpenSpeechApiKey, UpdateSourceTrigger=PropertyChanged}" />
