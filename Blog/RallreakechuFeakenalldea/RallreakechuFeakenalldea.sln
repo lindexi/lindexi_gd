@@ -34,6 +34,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaAgentLib", "Avaloni
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Highlighters.Avalonia", "..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Highlighters\LightTextEditorPlus.Highlighters.Avalonia.csproj", "{24D34E7D-B257-7594-E3F9-881189515940}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Extensions.AI.DeepSeek", "..\..\..\SemanticKernelLib\SemanticKernelSamples\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj", "{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{C23153C1-2B65-426F-99D8-6799CFDD8746}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -188,11 +192,24 @@ Global
 		{24D34E7D-B257-7594-E3F9-881189515940}.Release|x64.Build.0 = Release|Any CPU
 		{24D34E7D-B257-7594-E3F9-881189515940}.Release|x86.ActiveCfg = Release|Any CPU
 		{24D34E7D-B257-7594-E3F9-881189515940}.Release|x86.Build.0 = Release|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Debug|x64.Build.0 = Debug|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Debug|x86.Build.0 = Debug|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Release|x64.ActiveCfg = Release|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Release|x64.Build.0 = Release|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Release|x86.ActiveCfg = Release|Any CPU
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{3D707768-4819-FEEE-C7CB-19A0D2006F3C} = {C23153C1-2B65-426F-99D8-6799CFDD8746}
 		{E09F84FA-4818-F6E7-5A5C-8EE5BDDB879A} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
 		{64CA93F8-DB80-64E8-D757-4340B9D79990} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
 		{9E9D8E05-9D5A-8E38-493B-D32C5611BC93} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
@@ -200,6 +217,7 @@ Global
 		{97D539E7-7DC5-4770-EB0C-52E8686713C6} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
 		{6840F139-0DF3-A88E-68C4-576C9D565C5C} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
 		{24D34E7D-B257-7594-E3F9-881189515940} = {3D707768-4819-FEEE-C7CB-19A0D2006F3C}
+		{8888707A-B9FA-CCFF-F6B8-D99B22CF60CC} = {C23153C1-2B65-426F-99D8-6799CFDD8746}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {641F0F5E-844D-463D-B96C-A178B61BBD0A}

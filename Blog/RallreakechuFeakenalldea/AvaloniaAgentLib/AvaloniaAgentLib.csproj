@@ -24,4 +24,8 @@
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.3.0" />
     <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj" />
+  </ItemGroup>
 </Project>
