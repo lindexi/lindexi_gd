@@ -32,6 +32,8 @@
   <data name="FfmpegPathLabel" xml:space="preserve"><value>FFmpeg 路径</value></data>
   <data name="OutputDirectoryLabel" xml:space="preserve"><value>输出目录</value></data>
   <data name="ActionSectionTitle" xml:space="preserve"><value>执行操作</value></data>
+  <data name="GenerateScriptsButton" xml:space="preserve"><value>生成页面讲稿内容</value></data>
+  <data name="GenerateVideoFromScriptsButton" xml:space="preserve"><value>根据页面讲稿内容生成视频</value></data>
   <data name="GenerateButton" xml:space="preserve"><value>开始生成讲稿视频</value></data>
   <data name="OpenOutputFolderButton" xml:space="preserve"><value>打开输出目录</value></data>
   <data name="StatusReady" xml:space="preserve"><value>准备就绪，请先选择一个 PPT 文件。</value></data>
@@ -58,5 +60,7 @@
   <data name="ValidationOutputDirectory" xml:space="preserve"><value>请输入输出目录。</value></data>
   <data name="ComFailureHint" xml:space="preserve"><value>如果页面截图导出失败，请确认本机已安装 Microsoft PowerPoint 且 COM 组件可用。</value></data>
   <data name="GenerationCompletedFormat" xml:space="preserve"><value>生成完成，视频文件：{0}</value></data>
+  <data name="ScriptGenerationCompleted" xml:space="preserve"><value>页面讲稿生成完成，可以继续根据讲稿生成视频。</value></data>
+  <data name="ValidationGenerateScriptsFirst" xml:space="preserve"><value>请先生成页面讲稿内容，再根据讲稿生成视频。</value></data>
   <data name="DroppedFileInvalid" xml:space="preserve"><value>拖入的文件不是支持的 PowerPoint 文档。</value></data>
 </root>

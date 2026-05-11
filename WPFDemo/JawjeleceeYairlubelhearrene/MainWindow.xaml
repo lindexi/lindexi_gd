@@ -308,14 +308,20 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
                                Text="{x:Static properties:Resources.ActionSectionTitle}" />
-                    <StackPanel Orientation="Horizontal">
+                    <WrapPanel>
+                        <Button Content="{x:Static properties:Resources.GenerateScriptsButton}"
+                                Command="{Binding GenerateScriptsCommand}" />
+                        <Button Content="{x:Static properties:Resources.GenerateVideoFromScriptsButton}"
+                                Command="{Binding GenerateVideoFromScriptsCommand}"
+                                Background="White" Foreground="{StaticResource AccentBrush}"
+                                BorderBrush="#554F46E5" />
                         <Button Content="{x:Static properties:Resources.GenerateButton}"
                                 Command="{Binding GenerateCommand}" />
                         <Button Content="{x:Static properties:Resources.OpenOutputFolderButton}"
                                 Command="{Binding OpenOutputFolderCommand}"
                                 Foreground="{StaticResource AccentBrush}"
                                 BorderBrush="#554F46E5" />
-                    </StackPanel>
+                    </WrapPanel>
                 </StackPanel>
             </Border>
         </Grid>

@@ -1,6 +1,8 @@
 using System.ClientModel;
+using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using JawjeleceeYairlubelhearrene.Models;
 using Microsoft.Extensions.AI;
@@ -15,6 +17,69 @@ namespace JawjeleceeYairlubelhearrene.Services;
 internal sealed class CoursewareSpeechVideoGenerator
 {
     private readonly System.Net.Http.HttpClient _httpClient = new();
+
+    /// <summary>
+    /// 根据页面文本和截图生成讲稿。
+    /// </summary>
+    public async Task<CoursewareSpeechInfo> GenerateSpeechAsync(
+        CoursewareMaterialInfo coursewareMaterialInfo,
+        SpeechVideoGenerationOptions options,
+        IProgress<string>? progress,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(coursewareMaterialInfo);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (coursewareMaterialInfo.SlideMaterialInfoList.Count == 0)
+        {
+            throw new ArgumentException("页面列表不能为空。", nameof(coursewareMaterialInfo));
+        }
+
+        var openAiClient = new OpenAIClient(new ApiKeyCredential(options.OpenAiApiKey), new OpenAIClientOptions
+        {
+            Endpoint = options.OpenAiEndpoint,
+            NetworkTimeout = TimeSpan.FromHours(1)
+        });
+
+        var chatClient = openAiClient.GetChatClient(options.OpenAiModel).AsIChatClient();
+        var logger = new ProgressLogger(progress);
+        return await GenerateSpeechCoreAsync(coursewareMaterialInfo, chatClient, logger, progress, cancellationToken);
+    }
+
+    /// <summary>
+    /// 根据已有页面讲稿生成视频。
+    /// </summary>
+    public async Task<SpeechVideoGenerationResult> GenerateVideoAsync(
+        CoursewareSpeechInfo coursewareSpeechInfo,
+        SpeechVideoGenerationOptions options,
+        IProgress<string>? progress,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(coursewareSpeechInfo);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (coursewareSpeechInfo.SlideInfoList.Count == 0)
+        {
+            throw new ArgumentException("页面讲稿列表不能为空。", nameof(coursewareSpeechInfo));
+        }
+
+        var authentication = OpenSpeechAuthentication.CreateWithApiKey(options.OpenSpeechApiKey, options.ResourceId);
+        var synthesisOptions = new CoursewareSpeechSynthesisOptions(authentication, options.Speaker);
+        var logger = new ProgressLogger(progress);
+        var cacheDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Cache"));
+        cacheDirectory.Create();
+
+        await using var ffmpegVideoComposer = new FFmpegVideoComposer(
+            options.FfmpegExecutableFile,
+            workingDirectory: cacheDirectory,
+            logHandler: (level, message) => progress?.Report($"[{level}] {message}"));
+
+        var outputVideoDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Videos"));
+        outputVideoDirectory.Create();
+        var outputVideoFile = new System.IO.FileInfo(Path.Join(outputVideoDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
+        await GenerateVideoCoreAsync(coursewareSpeechInfo, outputVideoFile, synthesisOptions, ffmpegVideoComposer, cacheDirectory, logger, progress, cancellationToken);
+        return new SpeechVideoGenerationResult(outputVideoFile, options.OutputDirectory, coursewareSpeechInfo);
+    }
 
     /// <summary>
     /// 根据页面文本和截图生成讲稿视频。
@@ -43,19 +108,23 @@ internal sealed class CoursewareSpeechVideoGenerator
         var authentication = OpenSpeechAuthentication.CreateWithApiKey(options.OpenSpeechApiKey, options.ResourceId);
         var synthesisOptions = new CoursewareSpeechSynthesisOptions(authentication, options.Speaker);
         var logger = new ProgressLogger(progress);
+        var cacheDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Cache"));
+        cacheDirectory.Create();
 
         await using var ffmpegVideoComposer = new FFmpegVideoComposer(
             options.FfmpegExecutableFile,
-            workingDirectory: options.OutputDirectory,
+            workingDirectory: cacheDirectory,
             logHandler: (level, message) => progress?.Report($"[{level}] {message}"));
 
-        var speechInfo = await GenerateSpeechAsync(coursewareMaterialInfo, chatClient, logger, progress, cancellationToken);
-        var outputVideoFile = new System.IO.FileInfo(System.IO.Path.Combine(options.OutputDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
-        await GenerateVideoAsync(speechInfo, outputVideoFile, synthesisOptions, ffmpegVideoComposer, logger, progress, cancellationToken);
+        var speechInfo = await GenerateSpeechCoreAsync(coursewareMaterialInfo, chatClient, logger, progress, cancellationToken);
+        var outputVideoDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Videos"));
+        outputVideoDirectory.Create();
+        var outputVideoFile = new System.IO.FileInfo(Path.Join(outputVideoDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
+        await GenerateVideoCoreAsync(speechInfo, outputVideoFile, synthesisOptions, ffmpegVideoComposer, cacheDirectory, logger, progress, cancellationToken);
         return new SpeechVideoGenerationResult(outputVideoFile, options.OutputDirectory, speechInfo);
     }
 
-    private async Task<CoursewareSpeechInfo> GenerateSpeechAsync(
+    private async Task<CoursewareSpeechInfo> GenerateSpeechCoreAsync(
         CoursewareMaterialInfo coursewareMaterialInfo,
         IChatClient chatClient,
         ILogger logger,
@@ -92,23 +161,27 @@ internal sealed class CoursewareSpeechVideoGenerator
         return new CoursewareSpeechInfo(slideInfoList);
     }
 
-    private async Task GenerateVideoAsync(
+    private async Task GenerateVideoCoreAsync(
         CoursewareSpeechInfo coursewareSpeechInfo,
         System.IO.FileInfo outputVideoFile,
         CoursewareSpeechSynthesisOptions synthesisOptions,
         FFmpegVideoComposer ffmpegVideoComposer,
+        System.IO.DirectoryInfo cacheDirectory,
         ILogger logger,
         IProgress<string>? progress,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(coursewareSpeechInfo);
+        ArgumentNullException.ThrowIfNull(cacheDirectory);
 
-        var workingDirectory = new System.IO.DirectoryInfo(System.IO.Path.Combine(outputVideoFile.DirectoryName!, "Working"));
+        var workingDirectory = new System.IO.DirectoryInfo(Path.Join(cacheDirectory.FullName, "SlideAudio"));
+        var segmentCacheDirectory = new System.IO.DirectoryInfo(Path.Join(cacheDirectory.FullName, "SegmentVideo"));
         workingDirectory.Create();
+        segmentCacheDirectory.Create();
         outputVideoFile.Directory?.Create();
 
         var parser = new ScriptParser();
-        var videoSegments = new List<VideoSegment>(coursewareSpeechInfo.SlideInfoList.Count);
+        var segmentVideoFiles = new List<FileInfo>(coursewareSpeechInfo.SlideInfoList.Count);
         var openSpeechClient = new OpenSpeechClient(_httpClient);
 
         for (var i = 0; i < coursewareSpeechInfo.SlideInfoList.Count; i++)
@@ -116,17 +189,36 @@ internal sealed class CoursewareSpeechVideoGenerator
             cancellationToken.ThrowIfCancellationRequested();
             var slideInfo = coursewareSpeechInfo.SlideInfoList[i];
             var scriptParseResult = parser.Parse(slideInfo.PlainScriptText);
-            var slideDirectory = new System.IO.DirectoryInfo(System.IO.Path.Combine(workingDirectory.FullName, $"slide_{i + 1:D4}"));
+            var slideDirectory = new System.IO.DirectoryInfo(Path.Join(workingDirectory.FullName, $"slide_{i + 1:D4}"));
             slideDirectory.Create();
 
             progress?.Report($"正在合成第 {i + 1}/{coursewareSpeechInfo.SlideInfoList.Count} 页语音...");
             logger.LogInformation($"开始合成第 {i + 1} 页语音。");
             var audioFileList = await GenerateSlideAudioFilesAsync(scriptParseResult, slideDirectory, synthesisOptions, openSpeechClient, logger, cancellationToken);
-            videoSegments.Add(new VideoSegment(slideInfo.SlideThumbnailFile, audioFileList));
+
+            var videoSegment = new VideoSegment(slideInfo.SlideThumbnailFile, audioFileList);
+            var segmentCacheKey = ComputeSegmentCacheKey(videoSegment, synthesisOptions, ffmpegVideoComposer);
+            var segmentVideoFile = new FileInfo(Path.Join(segmentCacheDirectory.FullName, $"segment_{i + 1:D4}_{segmentCacheKey}.mp4"));
+            if (segmentVideoFile.Exists && segmentVideoFile.Length > 0)
+            {
+                logger.LogInformation($"复用缓存视频分段：{segmentVideoFile.Name}");
+            }
+            else
+            {
+                progress?.Report($"正在合成第 {i + 1}/{coursewareSpeechInfo.SlideInfoList.Count} 页视频分段...");
+                logger.LogInformation($"开始合成第 {i + 1} 页视频分段。");
+                var segmentGenerated = await ffmpegVideoComposer.GenerateSegmentVideoAsync(videoSegment, segmentVideoFile, cancellationToken);
+                if (!segmentGenerated || !segmentVideoFile.Exists)
+                {
+                    throw new InvalidOperationException($"生成视频分段失败：{segmentVideoFile.FullName}");
+                }
+            }
+
+            segmentVideoFiles.Add(segmentVideoFile);
         }
 
         progress?.Report("正在使用 FFmpeg 合成最终视频...");
-        var composeResult = await ffmpegVideoComposer.ComposeAsync(videoSegments, outputVideoFile, cancellationToken);
+        var composeResult = await ffmpegVideoComposer.ConcatVideosAsync(segmentVideoFiles, outputVideoFile, cancellationToken);
         if (!composeResult || !File.Exists(outputVideoFile.FullName))
         {
             throw new InvalidOperationException($"生成讲稿视频失败：{outputVideoFile.FullName}");
@@ -149,7 +241,15 @@ internal sealed class CoursewareSpeechVideoGenerator
             foreach (var segment in scriptInput.Segments)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var audioFile = new System.IO.FileInfo(System.IO.Path.Combine(slideDirectory.FullName, $"audio_{audioIndex++:D4}.{synthesisOptions.AudioFormat}"));
+                var cacheKey = ComputeAudioCacheKey(segment.Text, scriptInput.ContextText, segment.PauseAfter, synthesisOptions);
+                var audioFile = new System.IO.FileInfo(Path.Join(slideDirectory.FullName, $"audio_{audioIndex++:D4}_{cacheKey}.{synthesisOptions.AudioFormat}"));
+                if (audioFile.Exists && audioFile.Length > 0)
+                {
+                    logger.LogInformation($"复用缓存语音：{audioFile.Name}");
+                    audioFileList.Add(audioFile);
+                    continue;
+                }
+
                 var request = CreateSpeechRequest(segment.Text, scriptInput.ContextText, segment.PauseAfter, synthesisOptions);
                 var requestId = Guid.NewGuid().ToString();
                 var options = new SpeechSynthesisRequestOptions(synthesisOptions.Authentication)
@@ -204,6 +304,70 @@ internal sealed class CoursewareSpeechVideoGenerator
                 }
             }
         };
+    }
+
+    private static string ComputeAudioCacheKey(
+        string text,
+        string? contextText,
+        TimeSpan? pauseAfter,
+        CoursewareSpeechSynthesisOptions synthesisOptions)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        ArgumentNullException.ThrowIfNull(synthesisOptions);
+
+        var payload = string.Join("|",
+            synthesisOptions.Speaker,
+            synthesisOptions.AudioFormat,
+            synthesisOptions.SampleRate.ToString(CultureInfo.InvariantCulture),
+            pauseAfter?.TotalMilliseconds.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+            contextText ?? string.Empty,
+            text);
+
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(payload));
+        return Convert.ToHexStringLower(hashBytes);
+    }
+
+    private static string ComputeSegmentCacheKey(
+        VideoSegment videoSegment,
+        CoursewareSpeechSynthesisOptions synthesisOptions,
+        FFmpegVideoComposer ffmpegVideoComposer)
+    {
+        ArgumentNullException.ThrowIfNull(videoSegment);
+        ArgumentNullException.ThrowIfNull(synthesisOptions);
+        ArgumentNullException.ThrowIfNull(ffmpegVideoComposer);
+
+        var builder = new StringBuilder();
+        AppendFileFingerprint(builder, videoSegment.ImageFile);
+        builder.Append('|')
+            .Append(synthesisOptions.Speaker)
+            .Append('|')
+            .Append(synthesisOptions.AudioFormat)
+            .Append('|')
+            .Append(synthesisOptions.SampleRate.ToString(CultureInfo.InvariantCulture))
+            .Append('|')
+            .Append(ffmpegVideoComposer.GetType().Assembly.FullName);
+
+        foreach (var audioFile in videoSegment.AudioFiles)
+        {
+            builder.Append('|');
+            AppendFileFingerprint(builder, audioFile);
+        }
+
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString()));
+        return Convert.ToHexStringLower(hashBytes);
+    }
+
+    private static void AppendFileFingerprint(StringBuilder builder, FileInfo fileInfo)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(fileInfo);
+
+        fileInfo.Refresh();
+        builder.Append(fileInfo.FullName)
+            .Append(':')
+            .Append(fileInfo.Exists ? fileInfo.Length : 0)
+            .Append(':')
+            .Append(fileInfo.Exists ? fileInfo.LastWriteTimeUtc.Ticks : 0);
     }
 
     private static async Task<string> GenerateSlideScriptAsync(
