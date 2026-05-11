@@ -25,6 +25,7 @@ internal sealed class CoursewareSpeechVideoGenerator
         CoursewareMaterialInfo coursewareMaterialInfo,
         SpeechVideoGenerationOptions options,
         IProgress<string>? progress,
+        IProgress<CoursewareSpeechGenerationProgress>? speechProgress,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(coursewareMaterialInfo);
@@ -43,7 +44,7 @@ internal sealed class CoursewareSpeechVideoGenerator
 
         var chatClient = openAiClient.GetChatClient(options.OpenAiModel).AsIChatClient();
         var logger = new ProgressLogger(progress);
-        return await GenerateSpeechCoreAsync(coursewareMaterialInfo, chatClient, logger, progress, cancellationToken);
+        return await GenerateSpeechCoreAsync(coursewareMaterialInfo, chatClient, logger, progress, speechProgress, cancellationToken);
     }
 
     /// <summary>
@@ -88,6 +89,7 @@ internal sealed class CoursewareSpeechVideoGenerator
         CoursewareMaterialInfo coursewareMaterialInfo,
         SpeechVideoGenerationOptions options,
         IProgress<string>? progress,
+        IProgress<CoursewareSpeechGenerationProgress>? speechProgress,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(coursewareMaterialInfo);
@@ -116,7 +118,7 @@ internal sealed class CoursewareSpeechVideoGenerator
             workingDirectory: cacheDirectory,
             logHandler: (level, message) => progress?.Report($"[{level}] {message}"));
 
-        var speechInfo = await GenerateSpeechCoreAsync(coursewareMaterialInfo, chatClient, logger, progress, cancellationToken);
+        var speechInfo = await GenerateSpeechCoreAsync(coursewareMaterialInfo, chatClient, logger, progress, speechProgress, cancellationToken);
         var outputVideoDirectory = new System.IO.DirectoryInfo(Path.Join(options.OutputDirectory.FullName, "Videos"));
         outputVideoDirectory.Create();
         var outputVideoFile = new System.IO.FileInfo(Path.Join(outputVideoDirectory.FullName, $"courseware_speech_{DateTime.Now:yyyyMMddHHmmss}.mp4"));
@@ -129,6 +131,7 @@ internal sealed class CoursewareSpeechVideoGenerator
         IChatClient chatClient,
         ILogger logger,
         IProgress<string>? progress,
+        IProgress<CoursewareSpeechGenerationProgress>? speechProgress,
         CancellationToken cancellationToken)
     {
         var allCoursewareText = BuildAllCoursewareText(coursewareMaterialInfo);
@@ -153,6 +156,7 @@ internal sealed class CoursewareSpeechVideoGenerator
                 cancellationToken);
 
             slideInfoList.Add(new CoursewareSpeechSlideInfo(plainScriptText, slideMaterialInfo.SlideThumbnailFilePath));
+            speechProgress?.Report(new CoursewareSpeechGenerationProgress(slideIndex, plainScriptText));
             previousScriptsBuilder.AppendLine($"---第 {slideIndex} 页---");
             previousScriptsBuilder.AppendLine(plainScriptText);
             logger.LogInformation($"完成生成第 {slideIndex} 页讲稿。");

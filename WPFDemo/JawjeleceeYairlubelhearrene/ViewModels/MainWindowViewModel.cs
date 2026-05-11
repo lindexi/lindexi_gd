@@ -374,8 +374,10 @@ internal sealed class MainWindowViewModel : ObservableObject
                 StatusMessage = message;
                 AppendLog(message);
             });
+            var speechProgress = new Progress<CoursewareSpeechGenerationProgress>(ApplyGeneratedScriptProgress);
 
-            var result = await _coursewareSpeechVideoGenerator.GenerateAsync(coursewareMaterialInfo, generationOptions, progress, CancellationToken.None);
+            ClearGeneratedScripts();
+            var result = await _coursewareSpeechVideoGenerator.GenerateAsync(coursewareMaterialInfo, generationOptions, progress, speechProgress, CancellationToken.None);
             ApplyGenerationResult(result);
         }
         catch (Exception exception)
@@ -425,8 +427,10 @@ internal sealed class MainWindowViewModel : ObservableObject
                 StatusMessage = message;
                 AppendLog(message);
             });
+            var speechProgress = new Progress<CoursewareSpeechGenerationProgress>(ApplyGeneratedScriptProgress);
 
-            var speechInfo = await _coursewareSpeechVideoGenerator.GenerateSpeechAsync(coursewareMaterialInfo, generationOptions, progress, CancellationToken.None);
+            ClearGeneratedScripts();
+            var speechInfo = await _coursewareSpeechVideoGenerator.GenerateSpeechAsync(coursewareMaterialInfo, generationOptions, progress, speechProgress, CancellationToken.None);
             _currentCoursewareSpeechInfo = speechInfo;
             ApplyGeneratedScripts(speechInfo);
             StatusMessage = Resources.ScriptGenerationCompleted;
@@ -995,6 +999,27 @@ internal sealed class MainWindowViewModel : ObservableObject
         }
 
         UpdateCommandStates();
+    }
+
+    private void ApplyGeneratedScriptProgress(CoursewareSpeechGenerationProgress progress)
+    {
+        ArgumentNullException.ThrowIfNull(progress);
+
+        var slideIndex = progress.SlideNumber - 1;
+        if ((uint)slideIndex >= (uint)Slides.Count)
+        {
+            return;
+        }
+
+        Slides[slideIndex].GeneratedScript = progress.PlainScriptText;
+    }
+
+    private void ClearGeneratedScripts()
+    {
+        foreach (var slide in Slides)
+        {
+            slide.GeneratedScript = string.Empty;
+        }
     }
 
     private void ApplyGenerationResult(SpeechVideoGenerationResult result)
