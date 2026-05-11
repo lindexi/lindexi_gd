@@ -181,7 +181,7 @@ public class CopilotViewModel : INotifyPropertyChanged
             var userChatMessage = CopilotChatMessage.CreateUser(inputText);
             await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
-            var chatClient = AgentApiEndpointManager.CreateOpenAIClient();
+            var chatClient = AgentApiEndpointManager.CreateChatClient();
             List<AITool> toolList = ResolveTools(tools);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {

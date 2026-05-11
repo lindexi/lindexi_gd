@@ -36,7 +36,7 @@ sealed class AgentApiConfigurationApiEndpointProvider(IAppConfigurator appConfig
             return agentApiConfiguration;
         }
 
-        if (!Enum.TryParse(agentApiConfiguration.SelectedVendor.ToString(),ignoreCase:true,out ModelVendor modelVendor))
+        if (!Enum.TryParse(agentApiConfiguration.SelectedVendor.ToString(), ignoreCase: true, out ModelVendor modelVendor))
         {
             return agentApiConfiguration;
         }
