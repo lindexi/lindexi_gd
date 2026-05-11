@@ -472,7 +472,7 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private async Task GenerateVideoFromScriptsAsync()
     {
-        StatusMessage = "开始生成视频";
+        StatusMessage = Resources.GenerateVideoStarted;
         var validationMessage = ValidateBeforeGenerateVideoFromScripts();
         if (!string.IsNullOrWhiteSpace(validationMessage))
         {
@@ -490,7 +490,7 @@ internal sealed class MainWindowViewModel : ObservableObject
                 await ApplyWatermarkAsync();
             }
 
-            UpdateCoursewareSpeechInfoPreviewImages();
+            UpdateCoursewareSpeechInfoFromSlides();
 
             var generationOptions = CreateGenerationOptions(requireOpenAi: false, requireOpenSpeech: true, requireFfmpeg: true);
             var progress = new Progress<string>(message =>
@@ -857,7 +857,7 @@ internal sealed class MainWindowViewModel : ObservableObject
         }
 
         _hasPendingWatermarkChanges = false;
-        UpdateCoursewareSpeechInfoPreviewImages();
+        UpdateCoursewareSpeechInfoFromSlides();
         UpdateCommandStates();
     }
 
@@ -918,7 +918,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             new SlideWatermarkOptions(EnableWatermark, WatermarkText));
     }
 
-    private void UpdateCoursewareSpeechInfoPreviewImages()
+    private void UpdateCoursewareSpeechInfoFromSlides()
     {
         if (_currentCoursewareSpeechInfo is null)
         {
@@ -928,7 +928,7 @@ internal sealed class MainWindowViewModel : ObservableObject
         var slideInfoList = new List<CoursewareSpeechSlideInfo>(_currentCoursewareSpeechInfo.SlideInfoList.Count);
         for (var i = 0; i < _currentCoursewareSpeechInfo.SlideInfoList.Count && i < Slides.Count; i++)
         {
-            slideInfoList.Add(new CoursewareSpeechSlideInfo(_currentCoursewareSpeechInfo.SlideInfoList[i].PlainScriptText, new System.IO.FileInfo(Slides[i].ImageFilePath)));
+            slideInfoList.Add(new CoursewareSpeechSlideInfo(Slides[i].GeneratedScript, new System.IO.FileInfo(Slides[i].ImageFilePath)));
         }
 
         _currentCoursewareSpeechInfo = new CoursewareSpeechInfo(slideInfoList);

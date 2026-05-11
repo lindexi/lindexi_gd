@@ -51,6 +51,7 @@ public static class Resources
     public static string PlayButton => GetString(nameof(PlayButton));
     public static string PauseButton => GetString(nameof(PauseButton));
     public static string StopButton => GetString(nameof(StopButton));
+    public static string OpenWithExternalPlayerButton => GetString(nameof(OpenWithExternalPlayerButton));
     public static string SlidesSectionTitle => GetString(nameof(SlidesSectionTitle));
     public static string LogsSectionTitle => GetString(nameof(LogsSectionTitle));
     public static string NoSlidesPlaceholder => GetString(nameof(NoSlidesPlaceholder));
@@ -78,6 +79,7 @@ public static class Resources
     public static string ValidationApplyWatermarkFirst => GetString(nameof(ValidationApplyWatermarkFirst));
     public static string ComFailureHint => GetString(nameof(ComFailureHint));
     public static string GenerationCompletedFormat => GetString(nameof(GenerationCompletedFormat));
+    public static string GenerateVideoStarted => GetString(nameof(GenerateVideoStarted));
     public static string ScriptGenerationCompleted => GetString(nameof(ScriptGenerationCompleted));
     public static string ValidationGenerateScriptsFirst => GetString(nameof(ValidationGenerateScriptsFirst));
     public static string DroppedFileInvalid => GetString(nameof(DroppedFileInvalid));
