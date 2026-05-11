@@ -4,10 +4,11 @@ namespace JawjeleceeYairlubelhearrene.ViewModels;
 
 internal sealed class SlidePreviewViewModel : ObservableObject
 {
-    public SlidePreviewViewModel(int slideNumber, string slideText, string imageFilePath)
+    public SlidePreviewViewModel(int slideNumber, string slideText, string originalImageFilePath, string imageFilePath)
     {
         SlideNumber = slideNumber;
         SlideText = slideText;
+        OriginalImageFilePath = originalImageFilePath;
         ImageFilePath = imageFilePath;
     }
 
@@ -16,7 +17,13 @@ internal sealed class SlidePreviewViewModel : ObservableObject
 
     public string SlideText { get; }
 
-    public string ImageFilePath { get; }
+    public string OriginalImageFilePath { get; }
+
+    public string ImageFilePath
+    {
+        get => _imageFilePath;
+        set => SetProperty(ref _imageFilePath, value);
+    }
 
     public string GeneratedScript
     {
@@ -25,4 +32,6 @@ internal sealed class SlidePreviewViewModel : ObservableObject
     }
 
     private string _generatedScript = string.Empty;
+
+    private string _imageFilePath;
 }

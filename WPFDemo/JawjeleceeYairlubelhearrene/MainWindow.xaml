@@ -81,7 +81,7 @@
                     <Border Style="{StaticResource CardBorderStyle}">
                         <StackPanel>
                             <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
-                                       Text="{x:Static properties:Resources.OutputSectionTitle}" />
+                                       Text="{x:Static properties:Resources.VideoEncoderSectionTitle}" />
                             <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
                                        Text="{x:Static properties:Resources.FfmpegPathLabel}" />
                             <DockPanel Margin="0,0,0,12">
@@ -91,9 +91,30 @@
                                 <TextBox Text="{Binding FfmpegExecutablePath, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0" />
                             </DockPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitleTextBlockStyle}"
+                                       Text="{x:Static properties:Resources.OutputSectionTitle}" />
                             <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
                                        Text="{x:Static properties:Resources.OutputDirectoryLabel}" />
-                            <TextBox Text="{Binding OutputDirectoryPath, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Text="{Binding OutputDirectoryPath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                            <Border Background="#FFF8FAFC" BorderBrush="#220F172A" BorderThickness="1" CornerRadius="14" Padding="14">
+                                <StackPanel>
+                                    <CheckBox IsChecked="{Binding EnableWatermark}" Content="{x:Static properties:Resources.WatermarkEnableLabel}"
+                                              Margin="0,0,0,10" FontWeight="SemiBold" />
+                                    <TextBlock Style="{StaticResource FieldLabelTextBlockStyle}"
+                                               Text="{x:Static properties:Resources.WatermarkContentLabel}" />
+                                    <TextBox Text="{Binding WatermarkText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                                    <Button Content="{x:Static properties:Resources.ApplyWatermarkButton}"
+                                            Command="{Binding ApplyWatermarkCommand}"
+                                            Margin="0,0,0,8" />
+                                    <TextBlock Foreground="{StaticResource MutedForegroundBrush}" TextWrapping="Wrap"
+                                               Text="{x:Static properties:Resources.WatermarkHint}" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource CardBorderStyle}">
