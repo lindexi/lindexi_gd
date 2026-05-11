@@ -476,117 +476,38 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private string ValidateBeforeGenerateAll()
     {
-        if (!File.Exists(PptFilePath))
-        {
-            return Resources.ValidationSelectPpt;
-        }
-
-        if (string.IsNullOrWhiteSpace(OpenSpeechApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenSpeechApiKey))
-        {
-            return Resources.ValidationOpenSpeechApiKey;
-        }
-
-        if (string.IsNullOrWhiteSpace(ResourceId))
-        {
-            return Resources.ValidationResourceId;
-        }
-
-        if (SelectedSpeaker is null)
-        {
-            return Resources.ValidationSpeaker;
-        }
-
-        if (string.IsNullOrWhiteSpace(OpenAiApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenAiApiKey))
-        {
-            return Resources.ValidationOpenAiApiKey;
-        }
-
-        if (!Uri.TryCreate(OpenAiEndpoint, UriKind.Absolute, out _))
-        {
-            return Resources.ValidationOpenAiEndpoint;
-        }
-
-        if (string.IsNullOrWhiteSpace(OpenAiModel))
-        {
-            return Resources.ValidationOpenAiModel;
-        }
-
-        if (!File.Exists(FfmpegExecutablePath))
-        {
-            return Resources.ValidationFfmpegPath;
-        }
-
-        if (string.IsNullOrWhiteSpace(OutputDirectoryPath))
-        {
-            return Resources.ValidationOutputDirectory;
-        }
-
-        return string.Empty;
+        return BuildValidationMessage(
+            Resources.GenerateButton,
+            requirePpt: true,
+            requireOpenAi: true,
+            requireOpenSpeech: true,
+            requireFfmpeg: true,
+            requireOutputDirectory: true,
+            requireGeneratedScripts: false);
     }
 
     private string ValidateBeforeGenerateScripts()
     {
-        if (!File.Exists(PptFilePath))
-        {
-            return Resources.ValidationSelectPpt;
-        }
-
-        if (string.IsNullOrWhiteSpace(OpenAiApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenAiApiKey))
-        {
-            return Resources.ValidationOpenAiApiKey;
-        }
-
-        if (!Uri.TryCreate(OpenAiEndpoint, UriKind.Absolute, out _))
-        {
-            return Resources.ValidationOpenAiEndpoint;
-        }
-
-        if (string.IsNullOrWhiteSpace(OpenAiModel))
-        {
-            return Resources.ValidationOpenAiModel;
-        }
-
-        if (string.IsNullOrWhiteSpace(OutputDirectoryPath))
-        {
-            return Resources.ValidationOutputDirectory;
-        }
-
-        return string.Empty;
+        return BuildValidationMessage(
+            Resources.GenerateScriptsButton,
+            requirePpt: true,
+            requireOpenAi: true,
+            requireOpenSpeech: false,
+            requireFfmpeg: false,
+            requireOutputDirectory: true,
+            requireGeneratedScripts: false);
     }
 
     private string ValidateBeforeGenerateVideoFromScripts()
     {
-        if (_currentCoursewareSpeechInfo is null || _currentCoursewareSpeechInfo.SlideInfoList.Count == 0)
-        {
-            return Resources.ValidationGenerateScriptsFirst;
-        }
-
-        if (string.IsNullOrWhiteSpace(OpenSpeechApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenSpeechApiKey))
-        {
-            return Resources.ValidationOpenSpeechApiKey;
-        }
-
-        if (string.IsNullOrWhiteSpace(ResourceId))
-        {
-            return Resources.ValidationResourceId;
-        }
-
-        if (SelectedSpeaker is null)
-        {
-            return Resources.ValidationSpeaker;
-        }
-
-        if (!File.Exists(FfmpegExecutablePath))
-        {
-            return Resources.ValidationFfmpegPath;
-        }
-
-        if (string.IsNullOrWhiteSpace(OutputDirectoryPath))
-        {
-            return Resources.ValidationOutputDirectory;
-        }
-
-        return string.Empty;
+        return BuildValidationMessage(
+            Resources.GenerateVideoFromScriptsButton,
+            requirePpt: true,
+            requireOpenAi: false,
+            requireOpenSpeech: true,
+            requireFfmpeg: true,
+            requireOutputDirectory: true,
+            requireGeneratedScripts: true);
     }
 
     private bool CanGenerate()
@@ -601,22 +522,17 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private bool CanGenerateVideoFromScripts()
     {
-        return !IsBusy && _currentCoursewareSpeechInfo is not null && _currentCoursewareSpeechInfo.SlideInfoList.Count > 0;
+        return !IsBusy;
     }
 
     private bool CanOpenOutputFolder()
     {
-        return !string.IsNullOrWhiteSpace(GeneratedVideoPath) && File.Exists(GeneratedVideoPath);
+        return !string.IsNullOrWhiteSpace(GetOutputFolderToOpen());
     }
 
     private void OpenOutputFolder()
     {
-        if (!CanOpenOutputFolder())
-        {
-            return;
-        }
-
-        var directory = Path.GetDirectoryName(GeneratedVideoPath);
+        var directory = GetOutputFolderToOpen();
         if (string.IsNullOrWhiteSpace(directory))
         {
             return;
@@ -628,6 +544,16 @@ internal sealed class MainWindowViewModel : ObservableObject
             Arguments = $"\"{directory}\"",
             UseShellExecute = true
         });
+    }
+
+    private string GetOutputFolderToOpen()
+    {
+        if (!string.IsNullOrWhiteSpace(_lastGenerationOutputDirectoryPath))
+        {
+            return _lastGenerationOutputDirectoryPath;
+        }
+
+        return string.IsNullOrWhiteSpace(OutputDirectoryPath) ? string.Empty : OutputDirectoryPath;
     }
 
     private void AppendLog(string message)
@@ -650,6 +576,139 @@ internal sealed class MainWindowViewModel : ObservableObject
         _generateVideoFromScriptsCommand.RaiseCanExecuteChanged();
         _generateCommand.RaiseCanExecuteChanged();
         _openOutputFolderCommand.RaiseCanExecuteChanged();
+    }
+
+    private string BuildValidationMessage(
+        string actionName,
+        bool requirePpt,
+        bool requireOpenAi,
+        bool requireOpenSpeech,
+        bool requireFfmpeg,
+        bool requireOutputDirectory,
+        bool requireGeneratedScripts)
+    {
+        List<string> issues = [];
+
+        if (requirePpt)
+        {
+            AddPptValidationIssues(issues);
+        }
+
+        if (requireOpenAi)
+        {
+            AddOpenAiValidationIssues(issues);
+        }
+
+        if (requireOpenSpeech)
+        {
+            AddOpenSpeechValidationIssues(issues);
+        }
+
+        if (requireFfmpeg)
+        {
+            AddFfmpegValidationIssues(issues);
+        }
+
+        if (requireOutputDirectory)
+        {
+            AddOutputDirectoryValidationIssues(issues);
+        }
+
+        if (requireGeneratedScripts)
+        {
+            AddGeneratedScriptsValidationIssues(issues);
+        }
+
+        if (issues.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        return $"{string.Format(Resources.ActionValidationSummaryFormat, actionName)}{Environment.NewLine}{string.Join(Environment.NewLine, issues.Select((issue, index) => $"{index + 1}. {issue}"))}";
+    }
+
+    private void AddPptValidationIssues(List<string> issues)
+    {
+        if (string.IsNullOrWhiteSpace(PptFilePath))
+        {
+            issues.Add(Resources.ValidationPptFileRequired);
+            return;
+        }
+
+        if (!File.Exists(PptFilePath))
+        {
+            issues.Add(string.Format(Resources.ValidationPptFileNotFoundFormat, PptFilePath));
+        }
+    }
+
+    private void AddOpenAiValidationIssues(List<string> issues)
+    {
+        if (string.IsNullOrWhiteSpace(OpenAiApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenAiApiKey))
+        {
+            issues.Add(Resources.ValidationOpenAiApiKey);
+        }
+
+        if (string.IsNullOrWhiteSpace(OpenAiEndpoint))
+        {
+            issues.Add(Resources.ValidationOpenAiEndpointRequired);
+        }
+        else if (!Uri.TryCreate(OpenAiEndpoint, UriKind.Absolute, out _))
+        {
+            issues.Add(Resources.ValidationOpenAiEndpointInvalid);
+        }
+
+        if (string.IsNullOrWhiteSpace(OpenAiModel))
+        {
+            issues.Add(Resources.ValidationOpenAiModel);
+        }
+    }
+
+    private void AddOpenSpeechValidationIssues(List<string> issues)
+    {
+        if (string.IsNullOrWhiteSpace(OpenSpeechApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenSpeechApiKey))
+        {
+            issues.Add(Resources.ValidationOpenSpeechApiKey);
+        }
+
+        if (string.IsNullOrWhiteSpace(ResourceId))
+        {
+            issues.Add(Resources.ValidationResourceId);
+        }
+
+        if (SelectedSpeaker is null)
+        {
+            issues.Add(Resources.ValidationSpeaker);
+        }
+    }
+
+    private void AddFfmpegValidationIssues(List<string> issues)
+    {
+        if (string.IsNullOrWhiteSpace(FfmpegExecutablePath))
+        {
+            issues.Add(Resources.ValidationFfmpegPathRequired);
+            return;
+        }
+
+        if (!File.Exists(FfmpegExecutablePath))
+        {
+            issues.Add(string.Format(Resources.ValidationFfmpegPathNotFoundFormat, FfmpegExecutablePath));
+        }
+    }
+
+    private void AddOutputDirectoryValidationIssues(List<string> issues)
+    {
+        if (string.IsNullOrWhiteSpace(OutputDirectoryPath))
+        {
+            issues.Add(Resources.ValidationOutputDirectory);
+        }
+    }
+
+    private void AddGeneratedScriptsValidationIssues(List<string> issues)
+    {
+        if (_currentCoursewareSpeechInfo is null || _currentCoursewareSpeechInfo.SlideInfoList.Count == 0)
+        {
+            issues.Add(Resources.ValidationGenerateScriptsFirst);
+        }
     }
 
     private SpeechVideoGenerationOptions CreateGenerationOptions(bool requireOpenAi, bool requireOpenSpeech, bool requireFfmpeg)

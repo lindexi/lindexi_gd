@@ -32,9 +32,9 @@
   <data name="FfmpegPathLabel" xml:space="preserve"><value>FFmpeg 路径</value></data>
   <data name="OutputDirectoryLabel" xml:space="preserve"><value>输出目录</value></data>
   <data name="ActionSectionTitle" xml:space="preserve"><value>执行操作</value></data>
-  <data name="GenerateScriptsButton" xml:space="preserve"><value>生成页面讲稿内容</value></data>
-  <data name="GenerateVideoFromScriptsButton" xml:space="preserve"><value>根据页面讲稿内容生成视频</value></data>
-  <data name="GenerateButton" xml:space="preserve"><value>开始生成讲稿视频</value></data>
+  <data name="GenerateScriptsButton" xml:space="preserve"><value>仅生成讲稿</value></data>
+  <data name="GenerateVideoFromScriptsButton" xml:space="preserve"><value>仅生成视频</value></data>
+  <data name="GenerateButton" xml:space="preserve"><value>一键生成讲稿和视频</value></data>
   <data name="OpenOutputFolderButton" xml:space="preserve"><value>打开输出目录</value></data>
   <data name="StatusReady" xml:space="preserve"><value>准备就绪，请先选择一个 PPT 文件。</value></data>
   <data name="PreviewSectionTitle" xml:space="preserve"><value>生成结果</value></data>
@@ -58,6 +58,13 @@
   <data name="ValidationOpenAiModel" xml:space="preserve"><value>请输入可用的模型名称。</value></data>
   <data name="ValidationFfmpegPath" xml:space="preserve"><value>请提供有效的 FFmpeg 可执行文件路径。</value></data>
   <data name="ValidationOutputDirectory" xml:space="preserve"><value>请输入输出目录。</value></data>
+  <data name="ActionValidationSummaryFormat" xml:space="preserve"><value>点击“{0}”前，请先完成以下配置：</value></data>
+  <data name="ValidationPptFileRequired" xml:space="preserve"><value>请选择要处理的 PPT 文件。</value></data>
+  <data name="ValidationPptFileNotFoundFormat" xml:space="preserve"><value>找不到要处理的 PPT 文件：{0}</value></data>
+  <data name="ValidationOpenAiEndpointRequired" xml:space="preserve"><value>请输入 OpenAI 兼容 EndPoint。</value></data>
+  <data name="ValidationOpenAiEndpointInvalid" xml:space="preserve"><value>OpenAI 兼容 EndPoint 不是有效的绝对地址。</value></data>
+  <data name="ValidationFfmpegPathRequired" xml:space="preserve"><value>请选择 FFmpeg 可执行文件。</value></data>
+  <data name="ValidationFfmpegPathNotFoundFormat" xml:space="preserve"><value>找不到 FFmpeg 可执行文件：{0}</value></data>
   <data name="ComFailureHint" xml:space="preserve"><value>如果页面截图导出失败，请确认本机已安装 Microsoft PowerPoint 且 COM 组件可用。</value></data>
   <data name="GenerationCompletedFormat" xml:space="preserve"><value>生成完成，视频文件：{0}</value></data>
   <data name="ScriptGenerationCompleted" xml:space="preserve"><value>页面讲稿生成完成，可以继续根据讲稿生成视频。</value></data>
