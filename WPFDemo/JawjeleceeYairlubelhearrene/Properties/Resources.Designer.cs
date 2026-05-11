@@ -36,6 +36,8 @@ public static class Resources
     public static string FfmpegPathLabel => GetString(nameof(FfmpegPathLabel));
     public static string OutputDirectoryLabel => GetString(nameof(OutputDirectoryLabel));
     public static string ActionSectionTitle => GetString(nameof(ActionSectionTitle));
+    public static string GenerateScriptsButton => GetString(nameof(GenerateScriptsButton));
+    public static string GenerateVideoFromScriptsButton => GetString(nameof(GenerateVideoFromScriptsButton));
     public static string GenerateButton => GetString(nameof(GenerateButton));
     public static string OpenOutputFolderButton => GetString(nameof(OpenOutputFolderButton));
     public static string StatusReady => GetString(nameof(StatusReady));
@@ -62,5 +64,7 @@ public static class Resources
     public static string ValidationOutputDirectory => GetString(nameof(ValidationOutputDirectory));
     public static string ComFailureHint => GetString(nameof(ComFailureHint));
     public static string GenerationCompletedFormat => GetString(nameof(GenerationCompletedFormat));
+    public static string ScriptGenerationCompleted => GetString(nameof(ScriptGenerationCompleted));
+    public static string ValidationGenerateScriptsFirst => GetString(nameof(ValidationGenerateScriptsFirst));
     public static string DroppedFileInvalid => GetString(nameof(DroppedFileInvalid));
 }

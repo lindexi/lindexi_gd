@@ -67,8 +67,9 @@ public class FFmpegVideoComposer : IAsyncDisposable
                 var segment = segments[i];
                 Log(VideoComposerLogLevel.Info, $"开始处理第{i + 1}/{segments.Count}个分段");
 
-                var segmentVideo = await GenerateSegmentVideoAsync(segment, i, cancellationToken);
-                if (segmentVideo == null)
+                var segmentVideo = new FileInfo(Path.Join(_tempDirectory.FullName, $"seg_{i}_{Path.GetRandomFileName()}.mp4"));
+                var segmentSuccess = await GenerateSegmentVideoAsync(segment, segmentVideo, cancellationToken);
+                if (!segmentSuccess)
                 {
                     Log(VideoComposerLogLevel.Error, $"第{i + 1}个分段生成失败");
                     return false;
@@ -104,21 +105,27 @@ public class FFmpegVideoComposer : IAsyncDisposable
     #region 内部实现方法
 
     /// <summary>
-    /// 生成单个分段的临时视频
+    /// 生成单个分段视频。
     /// </summary>
-    private async Task<FileInfo?> GenerateSegmentVideoAsync(VideoSegment segment, int index,
-        CancellationToken cancellationToken)
+    public async Task<bool> GenerateSegmentVideoAsync(
+        VideoSegment segment,
+        FileInfo outputFile,
+        CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(segment);
+        ArgumentNullException.ThrowIfNull(outputFile);
+        outputFile.Directory?.Create();
+
         // 生成临时音频拼接列表
         var audioListFile =
-            new FileInfo(Path.Join(_tempDirectory.FullName, $"audio_{index}_{Path.GetRandomFileName()}.txt"));
+            new FileInfo(Path.Join(_tempDirectory.FullName, $"audio_{Path.GetRandomFileName()}.txt"));
         var sb = new List<string>();
         foreach (var audio in segment.AudioFiles)
         {
             if (!audio.Exists)
             {
                 Log(VideoComposerLogLevel.Error, $"音频文件不存在：{audio.FullName}");
-                return null;
+                return false;
             }
 
             // 路径转义处理特殊字符
@@ -128,30 +135,32 @@ public class FFmpegVideoComposer : IAsyncDisposable
 
         await File.WriteAllLinesAsync(audioListFile.FullName, sb, cancellationToken);
 
-        // 生成分段视频临时文件
-        var segmentVideoFile =
-            new FileInfo(Path.Join(_tempDirectory.FullName, $"seg_{index}_{Path.GetRandomFileName()}.mp4"));
-
         // 构造FFmpeg参数
         var args = $"-loop 1 -r {_encodeSettings.Fps} -i \"{segment.ImageFile.FullName}\" " +
                    $"-f concat -safe 0 -i \"{audioListFile.FullName}\" " +
                    $"-vf \"scale={_encodeSettings.Width}:{_encodeSettings.Height}:force_original_aspect_ratio=decrease,pad={_encodeSettings.Width}:{_encodeSettings.Height}:(ow-iw)/2:(oh-ih)/2:black\" " +
                    $"-c:v libx264 -b:v {_encodeSettings.VideoBitrate} -c:a aac -b:a {_encodeSettings.AudioBitrate} -pix_fmt yuv420p " +
-                   $"-shortest -y \"{segmentVideoFile.FullName}\"";
+                   $"-shortest -y \"{outputFile.FullName}\"";
 
-        Log(VideoComposerLogLevel.Debug, $"分段{index}执行命令：ffmpeg {args}");
+        Log(VideoComposerLogLevel.Debug, $"分段执行命令：ffmpeg {args}");
         int exitCode = await RunFFmpegCommandAsync(args, cancellationToken);
-        if (exitCode != 0) return null;
-
-        return segmentVideoFile.Exists ? segmentVideoFile : null;
+        return exitCode == 0 && outputFile.Exists;
     }
 
     /// <summary>
     /// 拼接多个视频为一个
     /// </summary>
-    private async Task<bool> ConcatVideosAsync(IReadOnlyList<FileInfo> segmentVideos, FileInfo outputFile,
-        CancellationToken cancellationToken)
+    public async Task<bool> ConcatVideosAsync(
+        IReadOnlyList<FileInfo> segmentVideos,
+        FileInfo outputFile,
+        CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(segmentVideos);
+        ArgumentNullException.ThrowIfNull(outputFile);
+        if (segmentVideos.Count == 0) throw new ArgumentException("分段列表不能为空", nameof(segmentVideos));
+
+        outputFile.Directory?.Create();
+
         // 生成拼接列表文件
         var concatListFile = new FileInfo(Path.Join(_tempDirectory.FullName, $"concat_{Path.GetRandomFileName()}.txt"));
         var sb = new List<string>();

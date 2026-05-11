@@ -16,6 +16,8 @@ internal sealed class MainWindowViewModel : ObservableObject
         Slides = new ObservableCollection<SlidePreviewViewModel>();
         _browsePptCommand = new AsyncRelayCommand(BrowsePptAsync, () => !IsBusy);
         _browseFfmpegCommand = new RelayCommand(BrowseFfmpeg, () => !IsBusy);
+        _generateScriptsCommand = new AsyncRelayCommand(GenerateScriptsAsync, CanGenerateScripts);
+        _generateVideoFromScriptsCommand = new AsyncRelayCommand(GenerateVideoFromScriptsAsync, CanGenerateVideoFromScripts);
         _generateCommand = new AsyncRelayCommand(GenerateAsync, CanGenerate);
         _openOutputFolderCommand = new RelayCommand(OpenOutputFolder, CanOpenOutputFolder);
 
@@ -29,6 +31,10 @@ internal sealed class MainWindowViewModel : ObservableObject
     private readonly AsyncRelayCommand _browsePptCommand;
 
     private readonly RelayCommand _browseFfmpegCommand;
+
+    private readonly AsyncRelayCommand _generateScriptsCommand;
+
+    private readonly AsyncRelayCommand _generateVideoFromScriptsCommand;
 
     private readonly AsyncRelayCommand _generateCommand;
 
@@ -62,6 +68,10 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private PowerPointReadResult? _currentReadResult;
 
+    private CoursewareSpeechInfo? _currentCoursewareSpeechInfo;
+
+    private string _lastGenerationOutputDirectoryPath = string.Empty;
+
     public ObservableCollection<SpeakerOption> SpeakerOptions { get; }
 
     public ObservableCollection<SlidePreviewViewModel> Slides { get; }
@@ -71,6 +81,10 @@ internal sealed class MainWindowViewModel : ObservableObject
     public RelayCommand BrowseFfmpegCommand => _browseFfmpegCommand;
 
     public AsyncRelayCommand GenerateCommand => _generateCommand;
+
+    public AsyncRelayCommand GenerateScriptsCommand => _generateScriptsCommand;
+
+    public AsyncRelayCommand GenerateVideoFromScriptsCommand => _generateVideoFromScriptsCommand;
 
     public RelayCommand OpenOutputFolderCommand => _openOutputFolderCommand;
 
@@ -280,7 +294,7 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private async Task GenerateAsync()
     {
-        var validationMessage = ValidateBeforeGenerate();
+        var validationMessage = ValidateBeforeGenerateAll();
         if (!string.IsNullOrWhiteSpace(validationMessage))
         {
             StatusMessage = validationMessage;
@@ -302,35 +316,7 @@ internal sealed class MainWindowViewModel : ObservableObject
                 throw new InvalidOperationException(Resources.ValidationSelectPpt);
             }
 
-            var outputDirectory = new System.IO.DirectoryInfo(System.IO.Path.Combine(OutputDirectoryPath, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
-            outputDirectory.Create();
-
-            var openAiApiKey = OpenAiApiKey;
-            var openSpeechApiKey = OpenSpeechApiKey;
-
-            if (_localDefaultValues is not null)
-            {
-                if (string.IsNullOrEmpty(openAiApiKey))
-                {
-                    openAiApiKey = _localDefaultValues.OpenAiApiKey;
-                }
-
-                if (string.IsNullOrEmpty(openSpeechApiKey))
-                {
-                    openSpeechApiKey = _localDefaultValues.OpenSpeechApiKey;
-                }
-            }
-
-            var generationOptions = new SpeechVideoGenerationOptions(
-                new System.IO.FileInfo(FfmpegExecutablePath),
-                openSpeechApiKey,
-                ResourceId,
-                SelectedSpeaker!.VoiceType,
-                openAiApiKey,
-                new Uri(OpenAiEndpoint, UriKind.Absolute),
-                OpenAiModel,
-                outputDirectory);
-
+            var generationOptions = CreateGenerationOptions(requireOpenAi: true, requireOpenSpeech: true, requireFfmpeg: true);
             var coursewareMaterialInfo = new CoursewareMaterialInfo(_currentReadResult.Slides.Select(t => new CoursewareSlideMaterialInfo(t.SlideImageFile, t.SlideText)).ToArray());
             var progress = new Progress<string>(message =>
             {
@@ -339,14 +325,91 @@ internal sealed class MainWindowViewModel : ObservableObject
             });
 
             var result = await _coursewareSpeechVideoGenerator.GenerateAsync(coursewareMaterialInfo, generationOptions, progress, CancellationToken.None);
-            GeneratedVideoPath = result.OutputVideoFile.FullName;
-            for (var i = 0; i < Math.Min(Slides.Count, result.CoursewareSpeechInfo.SlideInfoList.Count); i++)
+            ApplyGenerationResult(result);
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = exception.Message;
+            AppendLog(exception.ToString());
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task GenerateScriptsAsync()
+    {
+        var validationMessage = ValidateBeforeGenerateScripts();
+        if (!string.IsNullOrWhiteSpace(validationMessage))
+        {
+            StatusMessage = validationMessage;
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            AppendLog(StatusMessage);
+
+            if (_currentReadResult is null || !string.Equals(_currentReadResult.SourceFile.FullName, PptFilePath, StringComparison.OrdinalIgnoreCase))
             {
-                Slides[i].GeneratedScript = result.CoursewareSpeechInfo.SlideInfoList[i].PlainScriptText;
+                await LoadPresentationAsync();
             }
 
-            StatusMessage = string.Format(Resources.GenerationCompletedFormat, result.OutputVideoFile.FullName);
+            if (_currentReadResult is null)
+            {
+                throw new InvalidOperationException(Resources.ValidationSelectPpt);
+            }
+
+            var generationOptions = CreateGenerationOptions(requireOpenAi: true, requireOpenSpeech: false, requireFfmpeg: false);
+            var coursewareMaterialInfo = new CoursewareMaterialInfo(_currentReadResult.Slides.Select(t => new CoursewareSlideMaterialInfo(t.SlideImageFile, t.SlideText)).ToArray());
+            var progress = new Progress<string>(message =>
+            {
+                StatusMessage = message;
+                AppendLog(message);
+            });
+
+            var speechInfo = await _coursewareSpeechVideoGenerator.GenerateSpeechAsync(coursewareMaterialInfo, generationOptions, progress, CancellationToken.None);
+            _currentCoursewareSpeechInfo = speechInfo;
+            ApplyGeneratedScripts(speechInfo);
+            StatusMessage = Resources.ScriptGenerationCompleted;
             AppendLog(StatusMessage);
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = exception.Message;
+            AppendLog(exception.ToString());
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task GenerateVideoFromScriptsAsync()
+    {
+        var validationMessage = ValidateBeforeGenerateVideoFromScripts();
+        if (!string.IsNullOrWhiteSpace(validationMessage))
+        {
+            StatusMessage = validationMessage;
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            AppendLog(StatusMessage);
+
+            var generationOptions = CreateGenerationOptions(requireOpenAi: false, requireOpenSpeech: true, requireFfmpeg: true);
+            var progress = new Progress<string>(message =>
+            {
+                StatusMessage = message;
+                AppendLog(message);
+            });
+
+            var result = await _coursewareSpeechVideoGenerator.GenerateVideoAsync(_currentCoursewareSpeechInfo!, generationOptions, progress, CancellationToken.None);
+            ApplyGenerationResult(result);
         }
         catch (Exception exception)
         {
@@ -372,6 +435,8 @@ internal sealed class MainWindowViewModel : ObservableObject
             Slides.Clear();
             OnPropertyChanged(nameof(HasSlides));
             GeneratedVideoPath = string.Empty;
+            _currentCoursewareSpeechInfo = null;
+            _lastGenerationOutputDirectoryPath = string.Empty;
             var progress = new Progress<string>(message =>
             {
                 StatusMessage = message;
@@ -405,6 +470,11 @@ internal sealed class MainWindowViewModel : ObservableObject
     }
 
     private string ValidateBeforeGenerate()
+    {
+        return ValidateBeforeGenerateAll();
+    }
+
+    private string ValidateBeforeGenerateAll()
     {
         if (!File.Exists(PptFilePath))
         {
@@ -454,9 +524,84 @@ internal sealed class MainWindowViewModel : ObservableObject
         return string.Empty;
     }
 
+    private string ValidateBeforeGenerateScripts()
+    {
+        if (!File.Exists(PptFilePath))
+        {
+            return Resources.ValidationSelectPpt;
+        }
+
+        if (string.IsNullOrWhiteSpace(OpenAiApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenAiApiKey))
+        {
+            return Resources.ValidationOpenAiApiKey;
+        }
+
+        if (!Uri.TryCreate(OpenAiEndpoint, UriKind.Absolute, out _))
+        {
+            return Resources.ValidationOpenAiEndpoint;
+        }
+
+        if (string.IsNullOrWhiteSpace(OpenAiModel))
+        {
+            return Resources.ValidationOpenAiModel;
+        }
+
+        if (string.IsNullOrWhiteSpace(OutputDirectoryPath))
+        {
+            return Resources.ValidationOutputDirectory;
+        }
+
+        return string.Empty;
+    }
+
+    private string ValidateBeforeGenerateVideoFromScripts()
+    {
+        if (_currentCoursewareSpeechInfo is null || _currentCoursewareSpeechInfo.SlideInfoList.Count == 0)
+        {
+            return Resources.ValidationGenerateScriptsFirst;
+        }
+
+        if (string.IsNullOrWhiteSpace(OpenSpeechApiKey) && string.IsNullOrEmpty(_localDefaultValues?.OpenSpeechApiKey))
+        {
+            return Resources.ValidationOpenSpeechApiKey;
+        }
+
+        if (string.IsNullOrWhiteSpace(ResourceId))
+        {
+            return Resources.ValidationResourceId;
+        }
+
+        if (SelectedSpeaker is null)
+        {
+            return Resources.ValidationSpeaker;
+        }
+
+        if (!File.Exists(FfmpegExecutablePath))
+        {
+            return Resources.ValidationFfmpegPath;
+        }
+
+        if (string.IsNullOrWhiteSpace(OutputDirectoryPath))
+        {
+            return Resources.ValidationOutputDirectory;
+        }
+
+        return string.Empty;
+    }
+
     private bool CanGenerate()
     {
         return !IsBusy;
+    }
+
+    private bool CanGenerateScripts()
+    {
+        return !IsBusy;
+    }
+
+    private bool CanGenerateVideoFromScripts()
+    {
+        return !IsBusy && _currentCoursewareSpeechInfo is not null && _currentCoursewareSpeechInfo.SlideInfoList.Count > 0;
     }
 
     private bool CanOpenOutputFolder()
@@ -501,8 +646,79 @@ internal sealed class MainWindowViewModel : ObservableObject
     {
         _browsePptCommand.RaiseCanExecuteChanged();
         _browseFfmpegCommand.RaiseCanExecuteChanged();
+        _generateScriptsCommand.RaiseCanExecuteChanged();
+        _generateVideoFromScriptsCommand.RaiseCanExecuteChanged();
         _generateCommand.RaiseCanExecuteChanged();
         _openOutputFolderCommand.RaiseCanExecuteChanged();
+    }
+
+    private SpeechVideoGenerationOptions CreateGenerationOptions(bool requireOpenAi, bool requireOpenSpeech, bool requireFfmpeg)
+    {
+        var openAiApiKey = OpenAiApiKey;
+        var openSpeechApiKey = OpenSpeechApiKey;
+
+        if (_localDefaultValues is not null)
+        {
+            if (string.IsNullOrEmpty(openAiApiKey))
+            {
+                openAiApiKey = _localDefaultValues.OpenAiApiKey;
+            }
+
+            if (string.IsNullOrEmpty(openSpeechApiKey))
+            {
+                openSpeechApiKey = _localDefaultValues.OpenSpeechApiKey;
+            }
+        }
+
+        var outputDirectory = GetOrCreateCurrentOutputDirectory();
+        return new SpeechVideoGenerationOptions(
+            requireFfmpeg ? new System.IO.FileInfo(FfmpegExecutablePath) : new System.IO.FileInfo(FfmpegExecutablePath),
+            requireOpenSpeech ? openSpeechApiKey : openSpeechApiKey,
+            ResourceId,
+            SelectedSpeaker?.VoiceType ?? string.Empty,
+            requireOpenAi ? openAiApiKey : openAiApiKey,
+            new Uri(OpenAiEndpoint, UriKind.Absolute),
+            OpenAiModel,
+            outputDirectory);
+    }
+
+    private System.IO.DirectoryInfo GetOrCreateCurrentOutputDirectory()
+    {
+        if (!string.IsNullOrWhiteSpace(_lastGenerationOutputDirectoryPath) && Directory.Exists(_lastGenerationOutputDirectoryPath))
+        {
+            return new System.IO.DirectoryInfo(_lastGenerationOutputDirectoryPath);
+        }
+
+        var outputDirectory = new System.IO.DirectoryInfo(Path.Join(OutputDirectoryPath, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
+        outputDirectory.Create();
+        _lastGenerationOutputDirectoryPath = outputDirectory.FullName;
+        return outputDirectory;
+    }
+
+    private void ApplyGeneratedScripts(CoursewareSpeechInfo speechInfo)
+    {
+        ArgumentNullException.ThrowIfNull(speechInfo);
+
+        for (var i = 0; i < Slides.Count; i++)
+        {
+            Slides[i].GeneratedScript = i < speechInfo.SlideInfoList.Count
+                ? speechInfo.SlideInfoList[i].PlainScriptText
+                : string.Empty;
+        }
+
+        UpdateCommandStates();
+    }
+
+    private void ApplyGenerationResult(SpeechVideoGenerationResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        _currentCoursewareSpeechInfo = result.CoursewareSpeechInfo;
+        GeneratedVideoPath = result.OutputVideoFile.FullName;
+        _lastGenerationOutputDirectoryPath = result.OutputDirectory.FullName;
+        ApplyGeneratedScripts(result.CoursewareSpeechInfo);
+        StatusMessage = string.Format(Resources.GenerationCompletedFormat, result.OutputVideoFile.FullName);
+        AppendLog(StatusMessage);
     }
 
     private static bool IsSupportedPowerPointFile(string filePath)
