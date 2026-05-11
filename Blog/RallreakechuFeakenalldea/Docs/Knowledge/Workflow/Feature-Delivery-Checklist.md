@@ -23,3 +23,4 @@
 - 先做最小改动达成目标，再根据构建反馈迭代修正。
 - 涉及第三方库 API 差异时，先确认“已还原”的真实 NuGet 版本，再写代码；不要只看在线文档或记忆里的版本信息。
 - 排查这类问题时，优先执行 `dotnet list package --include-transitive`，必要时直接反射本地 NuGet 缓存中的程序集成员，避免按错版本实现。
+- 第三方流式 AI SDK 提供了稳定的强类型内容对象后，优先消费 `TextReasoningContent`、`TextContent` 这类模型，不再依赖原始 JSON Patch 字段解析。
