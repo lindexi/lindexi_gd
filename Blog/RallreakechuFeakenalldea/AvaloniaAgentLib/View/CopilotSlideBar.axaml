@@ -99,6 +99,16 @@
                              <Setter Property="StrokeThickness" Value="3"></Setter>
                              <!--<Setter Property="Fill" Value="Red"></Setter>-->
                          </Style> 
+                        <Style Selector="^:unchecked /template/ Path"> 
+                            <Setter Property="Stroke" Value="#FFE9FFFE">
+                                <!-- 原因是被 unchecked 给限制了 -->
+                            </Setter> 
+                        </Style> 
+                        <Style Selector="^:checked /template/ Path"> 
+                            <Setter Property="Stroke" Value="#FFE9FFFE">
+                                <!-- 原因是被 unchecked 给限制了 -->
+                            </Setter> 
+                        </Style> 
                     </Style>
                     <!-- <Style Selector="Path"> -->
                     <!--     <Setter Property="Stroke" Value="#FFE9FFFE"></Setter> -->
