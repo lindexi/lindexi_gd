@@ -9,7 +9,7 @@
              x:Class="AvaloniaAgentLib.View.CopilotSlideBar"
              x:DataType="viewModel:CopilotViewModel">
     <UserControl.DataContext>
-        <viewModel:CopilotViewModel/>
+        <viewModel:CopilotViewModel />
     </UserControl.DataContext>
     <Design.DesignStyle>
         <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml"></StyleInclude>
@@ -20,33 +20,38 @@
         </DataTemplate>
 
         <DataTemplate x:Key="UserMessageTemplate" x:DataType="model:CopilotChatMessage">
-            <StackPanel HorizontalAlignment="Right" Margin="0,0,0,10" >
+            <StackPanel HorizontalAlignment="Right" Margin="0,0,0,10">
                 <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" HorizontalAlignment="Right" />
                 <Border Background="#FF2F6FED" CornerRadius="8" Padding="10,8">
                     <Border.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="复制正文" Click="CopyContentMenuItem_OnClick" CommandParameter="{Binding}" />
-                            <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
+                            <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick"
+                                      CommandParameter="{Binding}" />
                         </ContextMenu>
                     </Border.ContextMenu>
                     <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#FFFFFFFF" />
                 </Border>
-                <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
+                <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right"
+                           Margin="4,2,4,0" />
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate x:Key="AssistantMessageTemplate" x:DataType="model:CopilotChatMessage">
-            <StackPanel HorizontalAlignment="Left" Margin="0,0,0,10" >
+            <StackPanel HorizontalAlignment="Left" Margin="0,0,0,10">
                 <TextBlock Classes="SecondaryText" Text="{Binding Author}" Margin="4,0,4,2" />
                 <Border Background="#FF2A2A2A" CornerRadius="8" Padding="10,8">
                     <Border.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="复制正文" Click="CopyContentMenuItem_OnClick" CommandParameter="{Binding}" />
-                            <MenuItem Header="复制正文和思考内容" Click="CopyContentAndReasonMenuItem_OnClick" CommandParameter="{Binding}" />
-                            <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
+                            <MenuItem Header="复制正文和思考内容" Click="CopyContentAndReasonMenuItem_OnClick"
+                                      CommandParameter="{Binding}" />
+                            <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick"
+                                      CommandParameter="{Binding}" />
                         </ContextMenu>
                     </Border.ContextMenu>
-                    <ItemsControl ItemsSource="{Binding MessageItems}" ItemTemplate="{StaticResource CopilotChatMessageItemTemplateSelector}" />
+                    <ItemsControl ItemsSource="{Binding MessageItems}"
+                                  ItemTemplate="{StaticResource CopilotChatMessageItemTemplateSelector}" />
                 </Border>
                 <Border Classes="UsageSummaryBorder"
                         IsVisible="{Binding HasUsageDetails}"
@@ -57,7 +62,8 @@
                                Text="{Binding UsageSummaryText}"
                                TextWrapping="Wrap" />
                 </Border>
-                <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right" Margin="4,2,4,0" />
+                <TextBlock Classes="SecondaryText" Text="{Binding TimeText}" HorizontalAlignment="Right"
+                           Margin="4,2,4,0" />
             </StackPanel>
         </DataTemplate>
 
@@ -83,41 +89,18 @@
                     <Style Selector="ToggleButton#ExpanderHeader">
                         <Setter Property="Background" Value="#FF141414"></Setter>
                         <Setter Property="Foreground" Value="White"></Setter>
-                        <!-- <Style Selector="^:pointerover"> -->
-                        <!--     <Setter Property="Background" Value="#FF242424"></Setter> -->
-                        <!-- </Style> -->
-                        <!-- <Style Selector="^ /template/ Border#ToggleButtonBackground /template/ Path#ExpandCollapseChevron"> -->
-                        <!--     <Setter Property="Stroke" Value="#FFE9FFFE"></Setter> -->
-                        <!-- </Style> -->
                         <Style Selector="^ /template/ Border#ToggleButtonBackground:pointerover">
                             <Setter Property="Background" Value="#FF242424"></Setter>
                         </Style>
-                         <Style Selector="^ /template/ Path"> 
-                             <Setter Property="Stroke" Value="#FFE9FFFE">
-                                 <!-- 不知道为什么不听，明明 Fill 是听的 -->
-                             </Setter> 
-                             <Setter Property="StrokeThickness" Value="3"></Setter>
-                             <!--<Setter Property="Fill" Value="Red"></Setter>-->
-                         </Style> 
-                        <Style Selector="^:unchecked /template/ Path"> 
+                        <Style Selector="^:unchecked /template/ Path">
                             <Setter Property="Stroke" Value="#FFE9FFFE">
-                                <!-- 原因是被 unchecked 给限制了 -->
-                            </Setter> 
-                        </Style> 
-                        <Style Selector="^:checked /template/ Path"> 
-                            <Setter Property="Stroke" Value="#FFE9FFFE">
-                                <!-- 原因是被 unchecked 给限制了 -->
-                            </Setter> 
-                        </Style> 
+                                <!-- 比如分开 unchecked 和 checked 分别设置，否则将设置无效。原因是被 unchecked 等给限制了 -->
+                            </Setter>
+                        </Style>
+                        <Style Selector="^:checked /template/ Path">
+                            <Setter Property="Stroke" Value="#FFE9FFFE" />
+                        </Style>
                     </Style>
-                    <!-- <Style Selector="Path"> -->
-                    <!--     <Setter Property="Stroke" Value="#FFE9FFFE"></Setter> -->
-                    <!-- </Style> -->
-                    <!--Avalonia.Controls.Shapes|Path#ExpandCollapseChevron-->
-                    <!-- <Style Selector="Border#ToggleButtonBackground:pointerover"> -->
-                    <!--     <Setter Property="Background" Value="#FF242424"></Setter> -->
-                    <!-- </Style> -->
-                    <!-- Avalonia.Controls|Expander:down /template/ Avalonia.Controls.Primitives|ToggleButton#ExpanderHeader:unchecked /template/ Avalonia.Controls|Border#ToggleButtonBackground -->
                 </Expander.Styles>
                 <Expander.Header>
                     <TextBlock Text="{Binding DisplayName}" Foreground="#FFE5E5E5" />
@@ -195,10 +178,10 @@
                               SelectionChanged="SessionSelector_OnSelectionChanged" />
                     <StackPanel Margin="0,5,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Classes="InteractiveButton SecondaryButton"
-                            VerticalAlignment="Center"
-                            IsEnabled="{Binding CanEditInput}"
-                            Click="NewSessionButton_OnClick"
-                            Content="新建会话" />
+                                VerticalAlignment="Center"
+                                IsEnabled="{Binding CanEditInput}"
+                                Click="NewSessionButton_OnClick"
+                                Content="新建会话" />
                         <Button x:Name="SettingButton"
                                 Classes="InteractiveButton SecondaryButton"
                                 Margin="5,0,0,0"
@@ -210,8 +193,10 @@
             </Border>
 
             <Border Grid.Row="1" Classes="CardBorder" Margin="10,0,10,6" Padding="8">
-                <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl ItemsSource="{Binding ChatMessages}" ItemTemplate="{StaticResource CopilotChatMessageTemplateSelector}" />
+                <ScrollViewer x:Name="ChatScrollViewer" VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding ChatMessages}"
+                                  ItemTemplate="{StaticResource CopilotChatMessageTemplateSelector}" />
                 </ScrollViewer>
             </Border>
 
@@ -228,8 +213,7 @@
                             Classes="InteractiveButton PrimaryButton"
                             x:Name="SendButton"
                             Content="{Binding SendButtonText}"
-                            Click="SendButton_OnClick"
-                            />
+                            Click="SendButton_OnClick" />
                 </Grid>
             </Border>
         </Grid>
