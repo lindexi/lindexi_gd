@@ -118,6 +118,17 @@ public class CopilotViewModel : INotifyPropertyChanged
     {
         CopilotChatSession session = FindReusableEmptySession() ?? CreateSession();
         SelectedSession = session;
+
+        //if (Design.IsDesignMode)
+        {
+            var copilotChatMessage = new CopilotChatMessage(ChatRole.Assistant,"测试测试测试");
+            copilotChatMessage.MessageItems.Add(new CopilotChatReasoningItem("这是思考内容，这是思考内容"));
+            copilotChatMessage.MessageItems.Add(new CopilotChatToolItem("asdasdasd","ToolName","输入的文本内容")
+            {
+                OutputText = "工具输出内容"
+            });
+            session.ChatMessages.Add(copilotChatMessage);
+        }
     }
 
     public void SetChatLogFolder(string? chatLogFolder)
