@@ -8,6 +8,7 @@
 |---|---|
 | Copilot 聊天历史 XML 如何按会话落盘 | `Avalonia/Copilot-Chat-History-Xml.md` |
 | Copilot 聊天日志如何注入与按会话落盘 | `Avalonia/Copilot-Chat-Logging.md` |
+| Copilot 流式思考、工具调用和正文为何改成消息片段集合 | `Avalonia/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | 代码着色三分类与扩展名路由如何工作 | `Avalonia/Code-Highlighting-Categories-And-Extensions.md` |
 | Copilot 派生命令为什么会进入新会话 | `Avalonia/Copilot-New-Session-Command-Behavior.md` |
 | Copilot 如何拿到当前工作路径默认工具 | `Avalonia/Copilot-Workspace-Default-Tools.md` |
@@ -33,6 +34,7 @@
 | `Code-Highlighting-Categories-And-Extensions.md` | 代码着色三分类与扩展名路由 | 扩展文件类型高亮、排查 Markdown 代码块或整篇代码文档着色时 |
 | `Copilot-Chat-History-Xml.md` | Copilot 聊天历史 XML 落盘约定 | 需要查会话归档结构、补历史浏览或反序列化读取时 |
 | `Copilot-Chat-Logging.md` | Copilot 聊天日志注入与按会话文件落盘 | 需要替换日志实现、调整日志目录、排查某个会话记录时 |
+| `Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` | Copilot 流式消息片段与工作区工具异步化 | 调整思考/工具/正文交错输出、排查工具执行卡顿时 |
 | `Copilot-New-Session-Command-Behavior.md` | Copilot 派生命令的新会话策略 | 调整右键发送、翻译、润色、本地展示结果的会话归属时 |
 | `Folder-Explorer-And-Folder-Find.md` | 左侧文件夹树与文件夹查找的组织方式 | 增加资源管理器、扩展文件夹查找、排查结果定位链路时 |
 | `Folder-TreeView-Selection-And-Theme.md` | 目录树跟随当前文档与深色主题样式 | 调整目录树联动、选中态、Chevron 配色时 |

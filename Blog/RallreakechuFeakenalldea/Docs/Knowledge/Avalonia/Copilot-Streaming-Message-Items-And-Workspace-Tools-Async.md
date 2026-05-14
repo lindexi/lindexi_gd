@@ -1,0 +1,83 @@
+# Copilot 流式消息片段与工作区工具异步化
+
+## 场景
+
+当模型已经支持交错思考、工具调用以及工具执行后继续输出时，继续把 `CopilotChatMessage` 固定拆成 `Reason` 和 `Content` 两段就不够用了。
+
+同时，`WorkspaceToolProvider` 里如果仍使用同步文件 I/O，在 Avalonia UI 线程触发工具执行时容易造成界面卡顿。
+
+## 当前约定
+
+### 1. `CopilotChatMessage` 改为维护可观测片段集合
+
+助手消息内部现在使用 `ObservableCollection<ICopilotChatMessageItem>` 表达流式片段，当前片段类型包括：
+
+- `CopilotChatTextItem`：正文输出；
+- `CopilotChatReasoningItem`：思考输出；
+- `CopilotChatToolItem`：工具调用与结果。
+
+`Content`、`Reason`、`FullContent` 仍然保留，但都由片段集合聚合计算得到，主要用于：
+
+- 兼容历史调用链；
+- 支持复制菜单；
+- 支持日志和 XML 落盘。
+
+### 2. 发送流程直接走 `RunStreamingAsync`
+
+`CopilotViewModel.SendMessageAsync(...)` 不再额外调用 `RunReasoningStreamingAsync(...)`。
+
+现在直接遍历 `RunStreamingAsync(...)` 的 `AgentResponseUpdate.Contents`，按内容类型写入片段集合：
+
+- `TextReasoningContent` -> 思考片段；
+- `TextContent` -> 正文片段；
+- `FunctionCallContent` -> 工具片段输入；
+- `FunctionResultContent` -> 工具片段输出；
+- `UsageContent` -> 用量统计。
+
+这样既能支持思考与正文交错，也能支持工具调用后回到正文继续输出。
+
+### 3. UI 依靠片段类型做模板选择
+
+`CopilotChatMessageTemplateSelector` 现在同时支持：
+
+- 整条 `CopilotChatMessage`；
+- 单个 `ICopilotChatMessageItem`。
+
+助手消息模板内部不再手工写死“思考区 + 正文区”，而是对 `MessageItems` 做 `ItemsControl` 绑定，再交给模板选择器分发。
+
+其中工具片段使用折叠区域显示：
+
+- Header 显示工具名；
+- 展开后显示输入参数；
+- 再显示工具输出。
+
+### 4. `WorkspaceToolProvider` 的文件读取接口改为异步
+
+当前默认文件工具里涉及文件读取和逐行扫描的 API 改为 `Task<string>`：
+
+- `ReadFile`；
+- `FindFilesContainingText`；
+- `ReadFileLines`。
+
+其余主要做内存内目录枚举和字符串拼装的方法也统一改为 `Task<string>`，保持工具调用风格一致。
+
+实现时要求使用真正异步 I/O，不能再包一层同步实现返回 `Task`。
+
+### 5. 聊天历史 XML 保留旧字段并追加新结构
+
+为了兼容旧日志查看方式，XML 中原有 `Content`、`Reason` 仍继续写入。
+
+同时新增 `MessageItems` 节点，把每个片段按类型分别记录：
+
+- `TextItem`；
+- `ReasoningItem`；
+- `ToolItem`。
+
+这样后续如果要做更精细的聊天历史回放，就可以直接按结构恢复，而不是再从聚合文本里反推。
+
+## 适用场景
+
+- 扩展 Copilot 聊天 UI 展示更丰富的流式内容时；
+- 排查工具调用过程中为什么会出现多段输出时；
+- 继续增加消息片段类型或历史记录字段时；
+- 优化默认工作区工具执行卡顿问题时。

@@ -4,7 +4,6 @@ using AvaloniaAgentLib.Model;
 using AvaloniaAgentLib.Tools;
 
 using Microsoft.Agents.AI;
-using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
 using System;
@@ -207,53 +206,16 @@ public class CopilotViewModel : INotifyPropertyChanged
             currentSession.AddMessage(copilotChatMessage);
 
             bool isFirst = true;
-            bool isFirstReasoning = true;
 
-            await foreach (var agentRunResponseUpdate in chatClientAgent.RunReasoningStreamingAsync(messages, cancellationToken: cancellationToken))
+            await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: cancellationToken))
             {
                 if (isFirst)
                 {
-                    copilotChatMessage.Content = "";
+                    copilotChatMessage.ClearMessageItems();
                 }
 
                 isFirst = false;
-                copilotChatMessage.AppendUsageDetails(agentRunResponseUpdate.Origin.Contents);
-
-                if (agentRunResponseUpdate.Reasoning is not null)
-                {
-                    string reasoning = agentRunResponseUpdate.Reasoning;
-                    if (isFirstReasoning)
-                    {
-                        reasoning = reasoning.TrimStart();
-                        isFirstReasoning = false;
-                    }
-
-                    copilotChatMessage.Reason += reasoning;
-                }
-
-                var text = agentRunResponseUpdate.Text;
-                if (!string.IsNullOrEmpty(text))
-                {
-                    copilotChatMessage.Content += text;
-                }
-                else
-                {
-                    foreach (var content in agentRunResponseUpdate.Origin.Contents)
-                    {
-                        if (content is FunctionCallContent functionCallContent)
-                        {
-                            copilotChatMessage.Content += $"Function Call: {functionCallContent}\r\n";
-                        }
-
-                        /*
-                         * TextContent	文本内容可以是输入，例如，来自用户或开发人员，以及代理的输出。 通常包含代理的文本结果。
-                           DataContent	可以是输入和输出的二进制内容。 可用于向代理传入和传出图像、音频或视频数据（其中受支持）。
-                           UriContent	通常指向托管内容（如图像、音频或视频）的 URL。
-                           FunctionCallContent	推理服务调用函数工具的请求。
-                           FunctionResultContent	函数工具调用的结果。
-                         */
-                    }
-                }
+                AppendAssistantResponseUpdate(copilotChatMessage, agentRunResponseUpdate);
             }
 
             await ChatLogger.LogMessageAsync(currentSession.SessionId, copilotChatMessage);
@@ -284,6 +246,36 @@ public class CopilotViewModel : INotifyPropertyChanged
         toolList.AddRange(_toolManager.CreateDefaultTools());
 
         return toolList;
+    }
+
+    private static void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
+    {
+        ArgumentNullException.ThrowIfNull(copilotChatMessage);
+        ArgumentNullException.ThrowIfNull(responseUpdate);
+
+        foreach (AIContent content in responseUpdate.Contents)
+        {
+            switch (content)
+            {
+                case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
+                    copilotChatMessage.AppendReasoning(textReasoningContent.Text);
+                    break;
+
+                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
+                    copilotChatMessage.AppendText(textContent.Text);
+                    break;
+
+                case FunctionCallContent functionCallContent:
+                    copilotChatMessage.AppendFunctionCall(functionCallContent);
+                    break;
+
+                case FunctionResultContent functionResultContent:
+                    copilotChatMessage.AppendFunctionResult(functionResultContent);
+                    break;
+            }
+        }
+
+        copilotChatMessage.AppendUsageDetails(responseUpdate.Contents);
     }
 
     private CopilotChatSession CreateSession()

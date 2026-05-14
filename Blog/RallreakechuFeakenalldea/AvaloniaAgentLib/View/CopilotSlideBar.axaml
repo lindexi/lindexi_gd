@@ -46,16 +46,7 @@
                             <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
                         </ContextMenu>
                     </Border.ContextMenu>
-                    <StackPanel Spacing="8">
-                        <StackPanel IsVisible="{Binding HasReason}" Spacing="4">
-                            <TextBlock Classes="SecondaryText" Text="思考" />
-                            <SelectableTextBlock Text="{Binding Reason}" TextWrapping="Wrap" Foreground="#FFD0D0D0" />
-                        </StackPanel>
-                        <Border IsVisible="{Binding HasReasonAndContent}" Height="1" Background="#FF454545" />
-                        <StackPanel IsVisible="{Binding HasContent}" Spacing="4">
-                            <SelectableTextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#FFF0F0F0" />
-                        </StackPanel>
-                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding MessageItems}" ItemTemplate="{StaticResource CopilotChatMessageItemTemplateSelector}" />
                 </Border>
                 <Border Classes="UsageSummaryBorder"
                         IsVisible="{Binding HasUsageDetails}"
@@ -70,10 +61,49 @@
             </StackPanel>
         </DataTemplate>
 
+        <DataTemplate x:Key="AssistantTextItemTemplate" x:DataType="model:CopilotChatTextItem">
+            <StackPanel Margin="0,0,0,8"
+                        IsVisible="{Binding HasText}">
+                <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#FFF0F0F0" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AssistantReasoningItemTemplate" x:DataType="model:CopilotChatReasoningItem">
+            <StackPanel Margin="0,0,0,8"
+                        IsVisible="{Binding HasText}"
+                        Spacing="4">
+                <TextBlock Classes="SecondaryText" Text="思考" />
+                <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#FFD0D0D0" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AssistantToolItemTemplate" x:DataType="model:CopilotChatToolItem">
+            <Expander Margin="0,0,0,8" Background="#FF242424">
+                <Expander.Header>
+                    <TextBlock Text="{Binding DisplayName}" Foreground="#FFE5E5E5" />
+                </Expander.Header>
+                <StackPanel Margin="0,8,0,0" Spacing="8">
+                    <StackPanel IsVisible="{Binding HasInputText}" Spacing="4">
+                        <TextBlock Classes="SecondaryText" Text="输入参数" />
+                        <SelectableTextBlock Text="{Binding InputText}" TextWrapping="Wrap" Foreground="#FFDFDFDF" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding HasOutputText}" Spacing="4">
+                        <TextBlock Classes="SecondaryText" Text="工具输出" />
+                        <SelectableTextBlock Text="{Binding OutputText}" TextWrapping="Wrap" Foreground="#FFF0F0F0" />
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+        </DataTemplate>
+
         <view:CopilotChatMessageTemplateSelector x:Key="CopilotChatMessageTemplateSelector"
-                                                UserTemplate="{StaticResource UserMessageTemplate}"
-                                                AssistantTemplate="{StaticResource AssistantMessageTemplate}"
-                                                SystemTemplate="{StaticResource AssistantMessageTemplate}" />
+                                                 UserTemplate="{StaticResource UserMessageTemplate}"
+                                                 AssistantTemplate="{StaticResource AssistantMessageTemplate}"
+                                                 SystemTemplate="{StaticResource AssistantMessageTemplate}" />
+
+        <view:CopilotChatMessageItemTemplateSelector x:Key="CopilotChatMessageItemTemplateSelector"
+                                                     TextItemTemplate="{StaticResource AssistantTextItemTemplate}"
+                                                     ReasoningItemTemplate="{StaticResource AssistantReasoningItemTemplate}"
+                                                     ToolItemTemplate="{StaticResource AssistantToolItemTemplate}" />
     </UserControl.Resources>
     <UserControl.Styles>
         <Style Selector="Border.CardBorder">
