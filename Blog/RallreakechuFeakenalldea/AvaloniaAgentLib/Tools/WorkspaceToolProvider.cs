@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AvaloniaAgentLib.Tools;
 
@@ -41,7 +42,7 @@ public sealed class WorkspaceToolProvider
     }
 
     [Description("列出工作路径下指定目录中的文件与子目录。")]
-    public string ListDirectory(
+    public Task<string> ListDirectory(
         [Description("要访问的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示工作路径根目录。")]
         string? directoryPath = null,
         [Description("是否递归列出子目录。false 表示只列出当前目录。")]
@@ -56,7 +57,7 @@ public sealed class WorkspaceToolProvider
 
         if (!TryResolveDirectory(directoryPath, out var directory, out var errorMessage))
         {
-            return errorMessage;
+            return Task.FromResult(errorMessage);
         }
 
         List<FileSystemInfo> entries = recursive
@@ -75,7 +76,7 @@ public sealed class WorkspaceToolProvider
         if (entries.Count == 0)
         {
             builder.Append("没有找到任何子项。");
-            return builder.ToString();
+            return Task.FromResult(builder.ToString());
         }
 
         foreach (var entry in entries.Take(maxResults))
@@ -88,11 +89,11 @@ public sealed class WorkspaceToolProvider
             builder.Append($"已截断，仍有 {entries.Count - maxResults} 个结果未显示。");
         }
 
-        return builder.ToString().TrimEnd();
+        return Task.FromResult(builder.ToString().TrimEnd());
     }
 
     [Description("读取工作路径下指定文件的开头内容。")]
-    public string ReadFile(
+    public async Task<string> ReadFile(
         [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")]
         string filePath,
         [Description("最多返回多少个字符。")]
@@ -110,7 +111,7 @@ public sealed class WorkspaceToolProvider
             return errorMessage;
         }
 
-        var (content, isTruncated) = ReadFileSnippet(file.FullName, maxCharacters);
+        var (content, isTruncated) = await ReadFileSnippetAsync(file.FullName, maxCharacters).ConfigureAwait(false);
         var builder = new StringBuilder();
         builder.AppendLine($"文件: {GetDisplayPath(file.FullName)}");
         builder.AppendLine();
@@ -126,7 +127,7 @@ public sealed class WorkspaceToolProvider
     }
 
     [Description("在工作路径下递归查找名称包含指定关键字的文件或文件夹。")]
-    public string FindEntriesByName(
+    public Task<string> FindEntriesByName(
         [Description("名称中要包含的关键字。")]
         string query,
         [Description("要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。")]
@@ -152,7 +153,7 @@ public sealed class WorkspaceToolProvider
 
         if (!TryResolveDirectory(directoryPath, out var directory, out var errorMessage))
         {
-            return errorMessage;
+            return Task.FromResult(errorMessage);
         }
 
         List<FileSystemInfo> entries = EnumerateEntriesRecursively(directory)
@@ -171,7 +172,7 @@ public sealed class WorkspaceToolProvider
         if (entries.Count == 0)
         {
             builder.Append("没有找到匹配项。");
-            return builder.ToString();
+            return Task.FromResult(builder.ToString());
         }
 
         foreach (var entry in entries.Take(maxResults))
@@ -184,11 +185,11 @@ public sealed class WorkspaceToolProvider
             builder.Append($"已截断，仍有至少 1 个匹配项未显示。");
         }
 
-        return builder.ToString().TrimEnd();
+        return Task.FromResult(builder.ToString().TrimEnd());
     }
 
     [Description("在工作路径下递归查找包含指定文本的文件，并返回命中文件路径与行号。")]
-    public string FindFilesContainingText(
+    public async Task<string> FindFilesContainingText(
         [Description("要搜索的文本。")]
         string query,
         [Description("要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。")]
@@ -217,7 +218,7 @@ public sealed class WorkspaceToolProvider
             try
             {
                 using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
-                while (reader.ReadLine() is { } line)
+                while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
                 {
                     lineNumber++;
                     if (!line.Contains(query, StringComparison.OrdinalIgnoreCase))
@@ -283,11 +284,11 @@ public sealed class WorkspaceToolProvider
             builder.AppendLine();
         }
 
-        return builder.ToString().TrimEnd();
+            return builder.ToString().TrimEnd();
     }
 
     [Description("读取工作路径下指定文件的某一段行内容。")]
-    public string ReadFileLines(
+    public async Task<string> ReadFileLines(
         [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")]
         string filePath,
         [Description("起始行号，从 1 开始。")]
@@ -326,7 +327,7 @@ public sealed class WorkspaceToolProvider
         bool hasContent = false;
 
         using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
-        while (reader.ReadLine() is { } line)
+        while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
         {
             currentLine++;
             if (currentLine < startLine)
@@ -486,7 +487,7 @@ public sealed class WorkspaceToolProvider
         }
     }
 
-    private static (string Content, bool IsTruncated) ReadFileSnippet(string filePath, int maxCharacters)
+    private static async Task<(string Content, bool IsTruncated)> ReadFileSnippetAsync(string filePath, int maxCharacters)
     {
         using var reader = new StreamReader(filePath, detectEncodingFromByteOrderMarks: true);
         char[] buffer = new char[Math.Min(1024, maxCharacters)];
@@ -496,7 +497,7 @@ public sealed class WorkspaceToolProvider
         while (remainingCharacters > 0)
         {
             int currentReadLength = Math.Min(buffer.Length, remainingCharacters);
-            int readLength = reader.Read(buffer, 0, currentReadLength);
+            int readLength = await reader.ReadAsync(buffer.AsMemory(0, currentReadLength)).ConfigureAwait(false);
             if (readLength == 0)
             {
                 return (builder.ToString(), IsTruncated: false);

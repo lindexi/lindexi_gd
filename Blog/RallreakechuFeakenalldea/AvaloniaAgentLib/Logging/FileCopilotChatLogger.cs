@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -253,7 +254,8 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
             new XAttribute("CreatedTime", chatMessage.CreatedTime.ToString("o")),
             new XAttribute("IsPresetInfo", chatMessage.IsPresetInfo),
             new XElement("Content", chatMessage.Content),
-            new XElement("Reason", chatMessage.Reason));
+            new XElement("Reason", chatMessage.Reason),
+            new XElement("MessageItems", chatMessage.MessageItems.Select(CreateMessageItemElement)));
 
         if (chatMessage.UsageDetails is { } usageDetails)
         {
@@ -261,6 +263,25 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         }
 
         return messageElement;
+    }
+
+    private static XElement CreateMessageItemElement(ICopilotChatMessageItem messageItem)
+    {
+        ArgumentNullException.ThrowIfNull(messageItem);
+
+        return messageItem switch
+        {
+            CopilotChatTextItem textItem => new XElement("TextItem",
+                new XAttribute("Text", textItem.Text)),
+            CopilotChatReasoningItem reasoningItem => new XElement("ReasoningItem",
+                new XAttribute("Text", reasoningItem.Text)),
+            CopilotChatToolItem toolItem => new XElement("ToolItem",
+                new XAttribute("CallId", toolItem.CallId),
+                new XAttribute("ToolName", toolItem.ToolName),
+                new XElement("Input", toolItem.InputText),
+                new XElement("Output", toolItem.OutputText)),
+            _ => throw new InvalidOperationException($"不支持的聊天消息片段类型: {messageItem.GetType().FullName}")
+        };
     }
 
     private static XElement CreateUsageDetailsElement(Microsoft.Extensions.AI.UsageDetails usageDetails)

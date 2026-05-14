@@ -2,6 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
 
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
@@ -12,8 +17,13 @@ public sealed class CopilotChatMessage : NotifyBase
     public CopilotChatMessage(ChatRole role, string content)
     {
         Role = role;
-        Reason = string.Empty;
-        Content = content;
+        MessageItems.CollectionChanged += MessageItems_CollectionChanged;
+
+        if (!string.IsNullOrEmpty(content))
+        {
+            MessageItems.Add(new CopilotChatTextItem(content));
+        }
+
         CreatedTime = DateTimeOffset.Now;
         TimeText = CreatedTime.ToString("HH:mm");
     }
@@ -46,33 +56,11 @@ public sealed class CopilotChatMessage : NotifyBase
         }
     }
 
-    public string Content
-    {
-        get;
-        set
-        {
-            if (value == field) return;
-            field = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasContent));
-            OnPropertyChanged(nameof(HasReasonAndContent));
-            OnPropertyChanged(nameof(FullContent));
-        }
-    }
+    public ObservableCollection<ICopilotChatMessageItem> MessageItems { get; } = [];
 
-    public string Reason
-    {
-        get;
-        set
-        {
-            if (value == field) return;
-            field = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasReason));
-            OnPropertyChanged(nameof(HasReasonAndContent));
-            OnPropertyChanged(nameof(FullContent));
-        }
-    }
+    public string Content => string.Concat(MessageItems.OfType<CopilotChatTextItem>().Select(item => item.Text));
+
+    public string Reason => string.Concat(MessageItems.OfType<CopilotChatReasoningItem>().Select(item => item.Text));
 
     public bool HasContent => !string.IsNullOrEmpty(Content);
 
@@ -195,17 +183,31 @@ public sealed class CopilotChatMessage : NotifyBase
     {
         get
         {
-            if (!HasReason)
+            if (MessageItems.Count == 0)
             {
-                return Content;
+                return string.Empty;
             }
 
-            if (!HasContent)
+            var builder = new StringBuilder();
+
+            foreach (ICopilotChatMessageItem messageItem in MessageItems)
             {
-                return $"思考：{Environment.NewLine}{Reason}";
+                string? itemText = FormatMessageItem(messageItem);
+                if (string.IsNullOrEmpty(itemText))
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.AppendLine();
+                    builder.AppendLine("--------");
+                }
+
+                builder.Append(itemText);
             }
 
-            return $"思考：{Environment.NewLine}{Reason}{Environment.NewLine}--------{Environment.NewLine}{Content}";
+            return builder.ToString();
         }
     }
 
@@ -248,6 +250,87 @@ public sealed class CopilotChatMessage : NotifyBase
         return new ChatMessage(chatMessage.Role, chatMessage.Content);
     }
 
+    internal void ClearMessageItems()
+    {
+        foreach (INotifyPropertyChanged messageItem in MessageItems.OfType<INotifyPropertyChanged>())
+        {
+            messageItem.PropertyChanged -= MessageItem_PropertyChanged;
+        }
+
+        MessageItems.Clear();
+        _toolItemsByCallId.Clear();
+    }
+
+    internal void AppendText(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        if (MessageItems.LastOrDefault() is CopilotChatTextItem lastTextItem)
+        {
+            lastTextItem.Text += text;
+            return;
+        }
+
+        MessageItems.Add(new CopilotChatTextItem(text));
+    }
+
+    internal void AppendReasoning(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        if (MessageItems.LastOrDefault() is CopilotChatReasoningItem lastReasoningItem)
+        {
+            lastReasoningItem.Text += text;
+            return;
+        }
+
+        MessageItems.Add(new CopilotChatReasoningItem(text));
+    }
+
+    internal void AppendFunctionCall(FunctionCallContent functionCallContent)
+    {
+        ArgumentNullException.ThrowIfNull(functionCallContent);
+
+        string callId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
+            ? Guid.NewGuid().ToString("N")
+            : functionCallContent.CallId;
+
+        if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
+        {
+            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent));
+            _toolItemsByCallId[callId] = toolItem;
+            MessageItems.Add(toolItem);
+            return;
+        }
+
+        toolItem.ToolName = functionCallContent.Name;
+        toolItem.InputText = CopilotChatMessageItemFormatter.FormatArguments(functionCallContent) ?? string.Empty;
+    }
+
+    internal void AppendFunctionResult(FunctionResultContent functionResultContent)
+    {
+        ArgumentNullException.ThrowIfNull(functionResultContent);
+
+        string callId = string.IsNullOrWhiteSpace(functionResultContent.CallId)
+            ? Guid.NewGuid().ToString("N")
+            : functionResultContent.CallId;
+
+        if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
+        {
+            toolItem = new CopilotChatToolItem(callId, "工具", null);
+            _toolItemsByCallId[callId] = toolItem;
+            MessageItems.Add(toolItem);
+        }
+
+        toolItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
+    }
+
     private void AppendUsageDetails(UsageContent usageContent)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -288,5 +371,78 @@ public sealed class CopilotChatMessage : NotifyBase
         OnPropertyChanged(nameof(HasCachedInputTokenCount));
         OnPropertyChanged(nameof(CachedInputTokenCountText));
         OnPropertyChanged(nameof(UsageSummaryText));
+    }
+
+    private readonly Dictionary<string, CopilotChatToolItem> _toolItemsByCallId = new(StringComparer.Ordinal);
+
+    private static string? FormatMessageItem(ICopilotChatMessageItem messageItem)
+    {
+        return messageItem switch
+        {
+            CopilotChatTextItem textItem => textItem.Text,
+            CopilotChatReasoningItem reasoningItem => $"思考：{Environment.NewLine}{reasoningItem.Text}",
+            CopilotChatToolItem toolItem => FormatToolItem(toolItem),
+            _ => null
+        };
+    }
+
+    private static string FormatToolItem(CopilotChatToolItem toolItem)
+    {
+        var builder = new StringBuilder();
+        builder.Append("工具：").Append(toolItem.ToolName);
+
+        if (toolItem.HasInputText)
+        {
+            builder.AppendLine()
+                .Append("输入：")
+                .AppendLine()
+                .Append(toolItem.InputText);
+        }
+
+        if (toolItem.HasOutputText)
+        {
+            builder.AppendLine()
+                .Append("输出：")
+                .AppendLine()
+                .Append(toolItem.OutputText);
+        }
+
+        return builder.ToString();
+    }
+
+    private void MessageItems_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems is not null)
+        {
+            foreach (INotifyPropertyChanged messageItem in e.OldItems.OfType<INotifyPropertyChanged>())
+            {
+                messageItem.PropertyChanged -= MessageItem_PropertyChanged;
+            }
+        }
+
+        if (e.NewItems is not null)
+        {
+            foreach (INotifyPropertyChanged messageItem in e.NewItems.OfType<INotifyPropertyChanged>())
+            {
+                messageItem.PropertyChanged += MessageItem_PropertyChanged;
+            }
+        }
+
+        OnMessageItemsChanged();
+    }
+
+    private void MessageItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnMessageItemsChanged();
+    }
+
+    private void OnMessageItemsChanged()
+    {
+        OnPropertyChanged(nameof(Content));
+        OnPropertyChanged(nameof(Reason));
+        OnPropertyChanged(nameof(HasContent));
+        OnPropertyChanged(nameof(HasReason));
+        OnPropertyChanged(nameof(HasReasonAndContent));
+        OnPropertyChanged(nameof(FullContent));
     }
 }
