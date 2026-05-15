@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Code/PptxGenerator/PptxGenerator.csproj" />
+  <Project Path="Docs/Docs.csproj" />
+</Solution>
