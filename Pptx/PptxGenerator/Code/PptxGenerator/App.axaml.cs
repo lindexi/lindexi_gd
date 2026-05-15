@@ -15,7 +15,13 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            var chatClientCreator = new ChatClientCreator();
+            var slideRenderer = new SlideRenderer();
+            var slideGenerationService = new SlideGenerationService(chatClientCreator, slideRenderer);
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = new MainWindowViewModel(slideGenerationService)
+            };
         }
 
         base.OnFrameworkInitializationCompleted();
