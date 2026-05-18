@@ -18,6 +18,8 @@ using SkiaSharp;
 
 using System;
 using System.Threading.Tasks;
+using Avalonia.Threading;
+using LightTextEditorPlus.Platform;
 using SimpleWrite.Business.TextEditors.CommandPatterns;
 
 namespace SimpleWrite.Business.TextEditors;
@@ -29,6 +31,10 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 {
     public SimpleWriteTextEditor()
     {
+        _dispatcherRequiring =
+            new AvaloniaTextEditorDispatcherRequiring(ApplyHighlight, Dispatcher.UIThread,
+                DispatcherPriority.Background);
+
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
         CaretConfiguration.ShowCaretAndSelectionInReadonlyMode = true;
 
@@ -57,7 +63,10 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         };
 
         SetDocumentHighlightDefinition(DocumentHighlightDefinition.Markdown);
+
     }
+
+    private AvaloniaTextEditorDispatcherRequiring _dispatcherRequiring;
 
     public CommandPatternManager? CommandPatternManager { get; init; }
 
@@ -131,18 +140,21 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     public void SetDocumentHighlightDefinition(DocumentHighlightDefinition definition)
     {
         DocumentHighlighter = CreateDocumentHighlighter(definition);
-        ApplyHighlight();
+        _dispatcherRequiring.Require();
     }
 
     private void TextEditorCore_TextChanged(object? sender, EventArgs e)
     {
-        ApplyHighlight();
+        _dispatcherRequiring.Require();
     }
 
     private void ApplyHighlight()
     {
-        DocumentHighlighter.ApplyHighlight(Text);
-        InvalidateVisual();
+        if (DocumentHighlighter is {} documentHighlighter)
+        {
+            documentHighlighter.ApplyHighlight(Text);
+            InvalidateVisual();
+        }
     }
 
     /// <summary>
@@ -155,7 +167,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     /// </summary>
     public required SnippetManager SnippetManager { get; init; }
 
-    public IDocumentHighlighter DocumentHighlighter { get; private set; }
+    public IDocumentHighlighter? DocumentHighlighter { get; private set; }
 
     private IDocumentHighlighter CreateDocumentHighlighter(DocumentHighlightDefinition definition)
     {
@@ -176,10 +188,17 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     protected override void Render(in AvaloniaTextEditorDrawingContext context)
     {
-        DocumentHighlighter.RenderBackground(in context);
+        if (DocumentHighlighter is {} documentHighlighter)
+        {
+            documentHighlighter.RenderBackground(in context);
 
-        base.Render(in context);
+            base.Render(in context);
 
-        DocumentHighlighter.RenderForeground(in context);
+            documentHighlighter.RenderForeground(in context);
+        }
+        else
+        {
+            base.Render(in context);
+        }
     }
 }

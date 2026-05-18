@@ -6,6 +6,9 @@
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Avalonia\Platform\AvaloniaTextEditorDispatcherRequiring.cs" Link="Utils\AvaloniaTextEditorDispatcherRequiring.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
