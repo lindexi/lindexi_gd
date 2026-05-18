@@ -141,8 +141,11 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     private void ApplyHighlight()
     {
-        DocumentHighlighter.ApplyHighlight(Text);
-        InvalidateVisual();
+        if (DocumentHighlighter is {} documentHighlighter)
+        {
+            documentHighlighter.ApplyHighlight(Text);
+            InvalidateVisual();
+        }
     }
 
     /// <summary>
@@ -155,7 +158,7 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     /// </summary>
     public required SnippetManager SnippetManager { get; init; }
 
-    public IDocumentHighlighter DocumentHighlighter { get; private set; }
+    public IDocumentHighlighter? DocumentHighlighter { get; private set; }
 
     private IDocumentHighlighter CreateDocumentHighlighter(DocumentHighlightDefinition definition)
     {
@@ -176,10 +179,17 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     protected override void Render(in AvaloniaTextEditorDrawingContext context)
     {
-        DocumentHighlighter.RenderBackground(in context);
+        if (DocumentHighlighter is {} documentHighlighter)
+        {
+            documentHighlighter.RenderBackground(in context);
 
-        base.Render(in context);
+            base.Render(in context);
 
-        DocumentHighlighter.RenderForeground(in context);
+            documentHighlighter.RenderForeground(in context);
+        }
+        else
+        {
+            base.Render(in context);
+        }
     }
 }
