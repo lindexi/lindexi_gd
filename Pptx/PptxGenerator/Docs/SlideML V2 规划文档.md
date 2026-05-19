@@ -65,8 +65,10 @@ Span 属性子集：`FontSize`, `FontName`, `Foreground`, `FontWeight`（Bold/No
 
 ```xml
 <!-- 样式定义（放在 Page 开头） -->
-<TextStyle Id="style.title" FontSize="36" FontWeight="Bold" Foreground="#1A1A2E" />
-<TextStyle Id="style.body" FontSize="15" Foreground="#666" LineHeight="1.6" />
+<Page.Styles>
+  <TextStyle Id="style.title" FontSize="36" FontWeight="Bold" Foreground="#1A1A2E" />
+  <TextStyle Id="style.body" FontSize="15" Foreground="#666" LineHeight="1.6" />
+</Page.Styles>
 
 <!-- 使用 -->
 <TextElement Style="style.title" Text="Hello" />
