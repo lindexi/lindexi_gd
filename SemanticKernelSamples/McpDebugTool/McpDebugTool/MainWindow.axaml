@@ -2,8 +2,159 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="using:McpDebugTool.ViewModels"
         x:Class="McpDebugTool.MainWindow"
-        Title="McpDebugTool">
-    Welcome to Avalonia!
+        x:DataType="vm:MainWindowViewModel"
+        mc:Ignorable="d"
+        d:DesignWidth="1380"
+        d:DesignHeight="900"
+        Title="MCP 调试工具"
+        MinWidth="1100"
+        MinHeight="720">
+    <Design.DataContext>
+        <vm:DesignMainWindowViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20">
+        <Border Grid.Row="0"
+                Padding="20"
+                Background="{DynamicResource SystemControlAcrylicWindowBrush}"
+                CornerRadius="16">
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="14">
+                <StackPanel Grid.ColumnSpan="2" Spacing="6">
+                    <TextBlock FontSize="28"
+                               FontWeight="SemiBold"
+                               Text="MCP 调试工具" />
+                    <TextBlock Classes="secondary"
+                               Text="输入 MCP HTTP 地址，连接服务后浏览工具、填写参数并直接调用。" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Spacing="6">
+                    <TextBlock FontWeight="SemiBold" Text="MCP HTTP 地址" />
+                    <TextBox Watermark="例如：https://localhost:5001/mcp"
+                             Text="{Binding ServerUrl}" />
+                </StackPanel>
+
+                <Button Grid.Row="1"
+                        Grid.Column="1"
+                        MinWidth="120"
+                        Height="40"
+                        VerticalAlignment="Bottom"
+                        Command="{Binding ConnectCommand}"
+                        Content="连接" />
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                Margin="0,16,0,16"
+                Padding="14,10"
+                Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                CornerRadius="12">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <TextBlock VerticalAlignment="Center"
+                           FontWeight="SemiBold"
+                           Text="状态" />
+                <TextBlock Grid.Column="1"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"
+                           Text="{Binding StatusText}" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="2*,3*" ColumnSpacing="16">
+            <Border Grid.Column="0"
+                    Padding="16"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="16">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <TextBlock FontSize="20"
+                               FontWeight="SemiBold"
+                               Text="工具列表" />
+
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding Tools}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:McpToolViewModel">
+                                    <Expander IsExpanded="{Binding IsExpanded}" Margin="0,0,0,12">
+                                        <Expander.Header>
+                                            <StackPanel Spacing="4">
+                                                <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                <TextBlock Classes="secondary"
+                                                           TextWrapping="Wrap"
+                                                           Text="{Binding Description}" />
+                                            </StackPanel>
+                                        </Expander.Header>
+
+                                        <StackPanel Spacing="12" Margin="0,8,0,0">
+                                            <ItemsControl ItemsSource="{Binding Parameters}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:McpToolParameterViewModel">
+                                                        <Border Padding="12"
+                                                                Background="{DynamicResource SystemControlBackgroundAltMediumBrush}"
+                                                                CornerRadius="10">
+                                                            <StackPanel Spacing="6">
+                                                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                                    <TextBlock Grid.Column="1"
+                                                                               Classes="secondary"
+                                                                               Text="{Binding DisplayType}" />
+                                                                </Grid>
+                                                                <TextBlock Classes="secondary"
+                                                                           IsVisible="{Binding HasDescription}"
+                                                                           TextWrapping="Wrap"
+                                                                           Text="{Binding Description}" />
+                                                                <TextBox AcceptsReturn="True"
+                                                                         MinHeight="72"
+                                                                         TextWrapping="Wrap"
+                                                                         Watermark="{Binding Placeholder}"
+                                                                         Text="{Binding RawValue}" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <TextBlock IsVisible="{Binding HasNoParameters}"
+                                                       Classes="secondary"
+                                                       Text="该工具没有输入参数。" />
+
+                                            <Button HorizontalAlignment="Left"
+                                                    MinWidth="140"
+                                                    Command="{Binding $parent[Window].DataContext.CallToolCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="调用工具" />
+                                        </StackPanel>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Padding="16"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="16">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <TextBlock FontSize="20"
+                               FontWeight="SemiBold"
+                               Text="工具返回" />
+                    <TextBox Grid.Row="1"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalContentAlignment="Top"
+                             HorizontalContentAlignment="Left"
+                             Text="{Binding ResultText}" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <TextBlock Grid.Row="3"
+                   Margin="4,16,4,0"
+                   Classes="secondary"
+                   TextWrapping="Wrap"
+                   Text="参数输入统一采用字符串形式。对于 integer、number、boolean 类型会自动转换；array 和 object 类型请直接输入 JSON。" />
+    </Grid>
 </Window>
