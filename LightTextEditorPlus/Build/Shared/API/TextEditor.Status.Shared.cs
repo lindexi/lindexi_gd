@@ -94,13 +94,13 @@ partial class TextEditor
     [TextEditorPublicAPI]
     public bool IsUpdatingLayout => TextEditorCore.IsUpdatingLayout;
 
-    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.GetGuidingLayoutInfo"/>
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.GetCurrentGuidingLayoutInfo"/>
     [TextEditorPublicAPI]
-    public GuidingLayoutInfo GetGuidingLayoutInfo() => TextEditorCore.GetGuidingLayoutInfo();
+    public GuidingLayoutInfo GetCurrentGuidingLayoutInfo() => TextEditorCore.GetCurrentGuidingLayoutInfo();
 
-    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.SetGuidingLayoutInfo"/>
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.SetGuidingLayoutInfoForNextUpdateLayout"/>
     [TextEditorPublicAPI]
-    public bool SetGuidingLayoutInfo(GuidingLayoutInfo guidingLayoutInfo) => TextEditorCore.SetGuidingLayoutInfo(guidingLayoutInfo);
+    public bool SetGuidingLayoutInfoForNextUpdateLayout(GuidingLayoutInfo guidingLayoutInfo) => TextEditorCore.SetGuidingLayoutInfoForNextUpdateLayout(guidingLayoutInfo);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.IsInDebugMode"/>
     [TextEditorPublicAPI]

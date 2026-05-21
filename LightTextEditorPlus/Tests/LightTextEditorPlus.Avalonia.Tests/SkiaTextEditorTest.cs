@@ -37,7 +37,7 @@ public class SkiaTextEditorTest
 
             await textEditor.WaitForRenderCompletedAsync();
 
-            var guidingLayoutInfo = textEditor.TextEditorCore.GetGuidingLayoutInfo();
+            var guidingLayoutInfo = textEditor.TextEditorCore.GetCurrentGuidingLayoutInfo();
             Assert.AreEqual(5, guidingLayoutInfo.ParagraphCount);
             Assert.IsTrue(guidingLayoutInfo.LineCount > guidingLayoutInfo.ParagraphCount);
             Assert.AreEqual(0, guidingLayoutInfo.ParagraphList[0].CharCount);
@@ -47,14 +47,14 @@ public class SkiaTextEditorTest
             textEditor.ArrangingType = ArrangingType.Vertical;
             await textEditor.WaitForRenderCompletedAsync();
 
-            var verticalGuidingLayoutInfo = textEditor.TextEditorCore.GetGuidingLayoutInfo();
+            var verticalGuidingLayoutInfo = textEditor.TextEditorCore.GetCurrentGuidingLayoutInfo();
             Assert.AreEqual(ArrangingType.Vertical, verticalGuidingLayoutInfo.ArrangingType);
             Assert.IsTrue(verticalGuidingLayoutInfo.LineCount >= verticalGuidingLayoutInfo.ParagraphCount);
 
             textEditor.ArrangingType = ArrangingType.Mongolian;
             await textEditor.WaitForRenderCompletedAsync();
 
-            var mongolianGuidingLayoutInfo = textEditor.TextEditorCore.GetGuidingLayoutInfo();
+            var mongolianGuidingLayoutInfo = textEditor.TextEditorCore.GetCurrentGuidingLayoutInfo();
             Assert.AreEqual(ArrangingType.Mongolian, mongolianGuidingLayoutInfo.ArrangingType);
             Assert.IsTrue(mongolianGuidingLayoutInfo.LineCount >= verticalGuidingLayoutInfo.ParagraphCount);
         });
@@ -74,7 +74,7 @@ public class SkiaTextEditorTest
                 sourceTextEditor.SetFontSize(20);
                 sourceTextEditor.Text = "一二三四五六";
                 await sourceTextEditor.WaitForRenderCompletedAsync();
-                guidingLayoutInfo = sourceTextEditor.TextEditorCore.GetGuidingLayoutInfo();
+                guidingLayoutInfo = sourceTextEditor.TextEditorCore.GetCurrentGuidingLayoutInfo();
             }
 
             using var targetContext = TestFramework.CreateTextEditorInNewWindow();
@@ -85,11 +85,11 @@ public class SkiaTextEditorTest
             targetTextEditor.Text = "一二三四五六";
             await targetTextEditor.WaitForRenderCompletedAsync();
 
-            targetTextEditor.TextEditorCore.SetGuidingLayoutInfo(guidingLayoutInfo);
+            targetTextEditor.TextEditorCore.SetGuidingLayoutInfoForNextUpdateLayout(guidingLayoutInfo);
 
             await targetTextEditor.WaitForRenderCompletedAsync();
 
-            GuidingLayoutInfo appliedGuidingLayoutInfo = targetTextEditor.TextEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo appliedGuidingLayoutInfo = targetTextEditor.TextEditorCore.GetCurrentGuidingLayoutInfo();
             CollectionAssert.AreEqual(
                 guidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray(),
                 appliedGuidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray());

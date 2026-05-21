@@ -23,7 +23,7 @@ public class LayoutTest
         {
             TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor();
 
-            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetCurrentGuidingLayoutInfo();
 
             Assert.AreEqual(1, guidingLayoutInfo.ParagraphCount);
             Assert.AreEqual(1, guidingLayoutInfo.LineCount);
@@ -50,7 +50,7 @@ public class LayoutTest
                     HorizontalTextAlignment = HorizontalTextAlignment.Right
                 });
 
-            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetCurrentGuidingLayoutInfo();
 
             Assert.AreEqual(5, guidingLayoutInfo.ParagraphCount);
             Assert.AreEqual(7, guidingLayoutInfo.LineCount);
@@ -73,7 +73,7 @@ public class LayoutTest
             TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor();
             textEditorCore.AppendText("123456");
 
-            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetCurrentGuidingLayoutInfo();
             Assert.IsTrue(guidingLayoutInfo.LineCount > 1);
         });
 
@@ -84,14 +84,14 @@ public class LayoutTest
             textEditorCore.AppendText("甲乙丙丁\nABCD");
 
             textEditorCore.ArrangingType = ArrangingType.Vertical;
-            GuidingLayoutInfo verticalGuidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo verticalGuidingLayoutInfo = textEditorCore.GetCurrentGuidingLayoutInfo();
             Assert.AreEqual(ArrangingType.Vertical, verticalGuidingLayoutInfo.ArrangingType);
             Assert.AreEqual(4, verticalGuidingLayoutInfo.LineCount);
             CollectionAssert.AreEqual(new[] { 2, 2 }, verticalGuidingLayoutInfo.ParagraphList.Select(t => t.LineCount).ToArray());
             Assert.IsTrue(verticalGuidingLayoutInfo.ParagraphList[0].LineList[1].StartPoint.X < verticalGuidingLayoutInfo.ParagraphList[0].LineList[0].StartPoint.X);
 
             textEditorCore.ArrangingType = ArrangingType.Mongolian;
-            GuidingLayoutInfo mongolianGuidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo mongolianGuidingLayoutInfo = textEditorCore.GetCurrentGuidingLayoutInfo();
             Assert.AreEqual(ArrangingType.Mongolian, mongolianGuidingLayoutInfo.ArrangingType);
             Assert.AreEqual(4, mongolianGuidingLayoutInfo.LineCount);
             Assert.IsTrue(mongolianGuidingLayoutInfo.ParagraphList[0].LineList[1].StartPoint.X > mongolianGuidingLayoutInfo.ParagraphList[0].LineList[0].StartPoint.X);
@@ -101,17 +101,17 @@ public class LayoutTest
         {
             TextEditorCore sourceTextEditor = TestHelper.GetLayoutTestTextEditor();
             sourceTextEditor.AppendText("123456789");
-            GuidingLayoutInfo guidingLayoutInfo = sourceTextEditor.GetGuidingLayoutInfo();
+            GuidingLayoutInfo guidingLayoutInfo = sourceTextEditor.GetCurrentGuidingLayoutInfo();
 
             TextEditorCore targetTextEditor = TestHelper.GetLayoutTestTextEditor(lineCharCount: 10, fontSize: 10);
             targetTextEditor.DocumentManager.DocumentWidth = sourceTextEditor.DocumentManager.DocumentWidth;
             targetTextEditor.AppendText("123456789");
 
-            bool isSet = targetTextEditor.SetGuidingLayoutInfo(guidingLayoutInfo);
+            bool isSet = targetTextEditor.SetGuidingLayoutInfoForNextUpdateLayout(guidingLayoutInfo);
 
             Assert.IsTrue(isSet);
 
-            GuidingLayoutInfo appliedGuidingLayoutInfo = targetTextEditor.GetGuidingLayoutInfo();
+            GuidingLayoutInfo appliedGuidingLayoutInfo = targetTextEditor.GetCurrentGuidingLayoutInfo();
             CollectionAssert.AreEqual(
                 guidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray(),
                 appliedGuidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray());
@@ -129,7 +129,7 @@ public class LayoutTest
 
             TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor(testPlatformProvider: testPlatformProvider);
             textEditorCore.AppendText("12345");
-            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetCurrentGuidingLayoutInfo();
 
             GuidingLayoutInfo invalidGuidingLayoutInfo = guidingLayoutInfo with
             {
@@ -142,10 +142,10 @@ public class LayoutTest
                 ]
             };
 
-            bool isSet = textEditorCore.SetGuidingLayoutInfo(invalidGuidingLayoutInfo);
+            bool isSet = textEditorCore.SetGuidingLayoutInfoForNextUpdateLayout(invalidGuidingLayoutInfo);
 
             Assert.IsTrue(isSet);
-            GuidingLayoutInfo appliedGuidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            GuidingLayoutInfo appliedGuidingLayoutInfo = textEditorCore.GetCurrentGuidingLayoutInfo();
             CollectionAssert.AreEqual(
                 guidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray(),
                 appliedGuidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray());

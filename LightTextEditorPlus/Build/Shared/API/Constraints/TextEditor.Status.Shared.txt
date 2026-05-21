@@ -8,8 +8,8 @@ CurrentSelectionChanged
 // 文本状态
 IsDirty
 IsUpdatingLayout
-GetGuidingLayoutInfo
-SetGuidingLayoutInfo
+GetCurrentGuidingLayoutInfo
+SetGuidingLayoutInfoForNextUpdateLayout
 // 调试
 IsInDebugMode
 SetInDebugMode

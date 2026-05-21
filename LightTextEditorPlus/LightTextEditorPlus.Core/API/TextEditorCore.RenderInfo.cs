@@ -71,9 +71,9 @@ public partial class TextEditorCore
     /// 获取当前文本的指导布局信息，必须在布局完成之后才能获取。
     /// </summary>
     /// <returns></returns>
-    public GuidingLayoutInfo GetGuidingLayoutInfo()
+    public GuidingLayoutInfo GetCurrentGuidingLayoutInfo()
     {
-        return GetRenderInfo().GetGuidingLayoutInfo();
+        return GetRenderInfo().GetCurrentGuidingLayoutInfo();
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public partial class TextEditorCore
     /// </summary>
     /// <param name="guidingLayoutInfo"></param>
     /// <returns>设置是否成功</returns>
-    public bool SetGuidingLayoutInfo(GuidingLayoutInfo guidingLayoutInfo)
+    public bool SetGuidingLayoutInfoForNextUpdateLayout(GuidingLayoutInfo guidingLayoutInfo)
     {
         ArgumentNullException.ThrowIfNull(guidingLayoutInfo);
 
