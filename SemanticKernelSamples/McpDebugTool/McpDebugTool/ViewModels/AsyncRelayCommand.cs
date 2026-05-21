@@ -8,26 +8,28 @@ public sealed class AsyncRelayCommand : ICommand
 {
     private readonly Func<object?, Task> _executeAsync;
     private readonly Func<object?, bool>? _canExecute;
-    private bool _isExecuting;
+    private readonly bool _allowConcurrentExecutions;
+    private int _executionCount;
 
     public AsyncRelayCommand(Func<Task> executeAsync, Func<bool>? canExecute = null)
         : this(_ => executeAsync(), canExecute is null ? null : _ => canExecute())
     {
     }
 
-    public AsyncRelayCommand(Func<object?, Task> executeAsync, Func<object?, bool>? canExecute = null)
+    public AsyncRelayCommand(Func<object?, Task> executeAsync, Func<object?, bool>? canExecute = null, bool allowConcurrentExecutions = false)
     {
         ArgumentNullException.ThrowIfNull(executeAsync);
 
         _executeAsync = executeAsync;
         _canExecute = canExecute;
+        _allowConcurrentExecutions = allowConcurrentExecutions;
     }
 
     public event EventHandler? CanExecuteChanged;
 
     public bool CanExecute(object? parameter)
     {
-        return !_isExecuting && (_canExecute?.Invoke(parameter) ?? true);
+        return (_allowConcurrentExecutions || _executionCount == 0) && (_canExecute?.Invoke(parameter) ?? true);
     }
 
     public async void Execute(object? parameter)
@@ -39,13 +41,13 @@ public sealed class AsyncRelayCommand : ICommand
 
         try
         {
-            _isExecuting = true;
+            _executionCount++;
             NotifyCanExecuteChanged();
             await _executeAsync(parameter);
         }
         finally
         {
-            _isExecuting = false;
+            _executionCount--;
             NotifyCanExecuteChanged();
         }
     }

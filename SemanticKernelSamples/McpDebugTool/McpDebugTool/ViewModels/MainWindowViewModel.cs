@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -13,18 +15,20 @@ namespace McpDebugTool.ViewModels;
 public class MainWindowViewModel : ObservableObject, IAsyncDisposable
 {
     private readonly McpClientService? _mcpClientService;
-    private CancellationTokenSource? _requestCancellationTokenSource;
+    private readonly List<McpToolViewModel> _allTools = [];
+    private CancellationTokenSource? _connectCancellationTokenSource;
     private string _serverUrl = string.Empty;
+    private string _searchText = string.Empty;
     private string _statusText = "请输入 MCP HTTP 地址并连接。";
-    private string _resultText = "连接后可在此查看工具返回内容。";
-    private bool _isBusy;
+    private bool _isConnecting;
     private McpToolViewModel? _selectedTool;
 
     public MainWindowViewModel()
     {
         Tools = [];
         ConnectCommand = new AsyncRelayCommand(ConnectAsync, CanConnect);
-        CallToolCommand = new AsyncRelayCommand(CallToolAsync, CanCallTool);
+        CallToolCommand = new AsyncRelayCommand(CallToolAsync, CanCallTool, allowConcurrentExecutions: true);
+        StopToolCommand = new AsyncRelayCommand(StopToolAsync, CanStopTool, allowConcurrentExecutions: true);
         LoadDesignData();
     }
 
@@ -35,7 +39,8 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
         _mcpClientService = mcpClientService;
         Tools = [];
         ConnectCommand = new AsyncRelayCommand(ConnectAsync, CanConnect);
-        CallToolCommand = new AsyncRelayCommand(CallToolAsync, CanCallTool);
+        CallToolCommand = new AsyncRelayCommand(CallToolAsync, CanCallTool, allowConcurrentExecutions: true);
+        StopToolCommand = new AsyncRelayCommand(StopToolAsync, CanStopTool, allowConcurrentExecutions: true);
         ServerUrl = "https://localhost:5001/mcp";
     }
 
@@ -44,6 +49,8 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public AsyncRelayCommand ConnectCommand { get; }
 
     public AsyncRelayCommand CallToolCommand { get; }
+
+    public AsyncRelayCommand StopToolCommand { get; }
 
     public string ServerUrl
     {
@@ -63,21 +70,28 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
         private set => SetProperty(ref _statusText, value);
     }
 
-    public string ResultText
+    public string SearchText
     {
-        get => _resultText;
-        private set => SetProperty(ref _resultText, value);
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                ApplyToolFilter();
+            }
+        }
     }
 
-    public bool IsBusy
+    public bool IsConnecting
     {
-        get => _isBusy;
+        get => _isConnecting;
         private set
         {
-            if (SetProperty(ref _isBusy, value))
+            if (SetProperty(ref _isConnecting, value))
             {
                 ConnectCommand.NotifyCanExecuteChanged();
                 CallToolCommand.NotifyCanExecuteChanged();
+                StopToolCommand.NotifyCanExecuteChanged();
             }
         }
     }
@@ -86,6 +100,10 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     public bool HasNoTools => !HasTools;
 
+    public bool HasSelectedTool => SelectedTool is not null;
+
+    public bool HasNoSelectedTool => !HasSelectedTool;
+
     public McpToolViewModel? SelectedTool
     {
         get => _selectedTool;
@@ -93,21 +111,24 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
         {
             if (SetProperty(ref _selectedTool, value))
             {
-                foreach (McpToolViewModel tool in Tools)
-                {
-                    tool.IsExpanded = ReferenceEquals(tool, value);
-                }
-
+                OnPropertyChanged(nameof(HasSelectedTool));
+                OnPropertyChanged(nameof(HasNoSelectedTool));
                 CallToolCommand.NotifyCanExecuteChanged();
+                StopToolCommand.NotifyCanExecuteChanged();
             }
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        _requestCancellationTokenSource?.Cancel();
-        _requestCancellationTokenSource?.Dispose();
-        _requestCancellationTokenSource = null;
+        _connectCancellationTokenSource?.Cancel();
+        _connectCancellationTokenSource?.Dispose();
+        _connectCancellationTokenSource = null;
+
+        foreach (McpToolViewModel tool in _allTools)
+        {
+            tool.CancelInvocation();
+        }
 
         if (_mcpClientService is not null)
         {
@@ -124,9 +145,9 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
         _serverUrl = "https://localhost:5001/mcp";
         _statusText = "已连接到本地调试服务";
-        _resultText = "{\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"Hello MCP\"\n    }\n  ],\n  \"isError\": false\n}";
+        SearchText = string.Empty;
 
-        Tools.Add(new McpToolViewModel(
+        McpToolViewModel echoTool = new(
             "echo",
             "返回输入的文本内容。",
             JsonDocument.Parse("""
@@ -149,11 +170,12 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
               "required": ["message"]
             }
             """).RootElement.Clone())
-        {
-            IsExpanded = true,
-        });
+        ;
+        echoTool.CompleteInvocation("最近一次调用成功。", "{\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"Hello MCP\"\n    }\n  ],\n  \"isError\": false\n}");
 
-        Tools.Add(new McpToolViewModel(
+        RegisterTool(echoTool);
+
+        RegisterTool(new McpToolViewModel(
             "sum",
             "计算输入数字的总和。",
             JsonDocument.Parse("""
@@ -169,27 +191,33 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
             }
             """).RootElement.Clone()));
 
-        SelectedTool = Tools.FirstOrDefault();
+        ApplyToolFilter();
     }
 
     private bool CanConnect()
     {
-        return !IsBusy && !string.IsNullOrWhiteSpace(ServerUrl);
-    }
-
-    private bool CanCallTool()
-    {
-        return !IsBusy && SelectedTool?.Tool is not null;
+        return !IsConnecting && !string.IsNullOrWhiteSpace(ServerUrl) && _allTools.All(tool => !tool.IsCalling);
     }
 
     private bool CanCallTool(object? parameter)
     {
-        if (IsBusy)
+        if (IsConnecting)
         {
             return false;
         }
 
-        return ResolveTool(parameter)?.Tool is not null;
+        McpToolViewModel? tool = ResolveTool(parameter);
+        return tool?.Tool is not null && !tool.IsCalling;
+    }
+
+    private bool CanStopTool(object? parameter)
+    {
+        if (IsConnecting)
+        {
+            return false;
+        }
+
+        return ResolveTool(parameter)?.IsCalling is true;
     }
 
     private async Task ConnectAsync()
@@ -199,27 +227,22 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
             return;
         }
 
-        IsBusy = true;
+        IsConnecting = true;
         StatusText = "正在连接 MCP 服务...";
-        ResultText = "";
-
-        CancellationToken cancellationToken = ResetCancellation().Token;
+        CancellationToken cancellationToken = ResetConnectCancellation().Token;
 
         try
         {
             var tools = await _mcpClientService.ConnectAsync(ServerUrl, cancellationToken);
 
-            Tools.Clear();
+            _allTools.Clear();
             foreach (var tool in tools)
             {
-                Tools.Add(new McpToolViewModel(tool));
+                RegisterTool(new McpToolViewModel(tool));
             }
 
-            SelectedTool = Tools.FirstOrDefault();
-            OnPropertyChanged(nameof(HasTools));
-            OnPropertyChanged(nameof(HasNoTools));
-            StatusText = string.Format(CultureInfo.CurrentCulture, "连接成功，共发现 {0} 个工具。", Tools.Count);
-            ResultText = Tools.Count == 0 ? "当前 MCP 服务未声明任何工具。" : "请选择工具并填写参数后调用。";
+            ApplyToolFilter();
+            StatusText = string.Format(CultureInfo.CurrentCulture, "连接成功，共发现 {0} 个工具。", _allTools.Count);
         }
         catch (OperationCanceledException)
         {
@@ -227,16 +250,21 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
         }
         catch (Exception ex)
         {
+            McpToolViewModel? selectedTool = SelectedTool;
+            _allTools.Clear();
             Tools.Clear();
             SelectedTool = null;
             OnPropertyChanged(nameof(HasTools));
             OnPropertyChanged(nameof(HasNoTools));
             StatusText = "连接失败";
-            ResultText = ex.Message;
+            if (selectedTool is not null)
+            {
+                selectedTool.CompleteInvocation("连接失败。", ex.Message);
+            }
         }
         finally
         {
-            IsBusy = false;
+            IsConnecting = false;
         }
     }
 
@@ -249,35 +277,53 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
         }
 
         SelectedTool = toolViewModel;
-
-        IsBusy = true;
         StatusText = string.Format(CultureInfo.CurrentCulture, "正在调用工具 {0} ...", toolViewModel.Name);
-
-        CancellationToken cancellationToken = ResetCancellation().Token;
+        CancellationToken cancellationToken = toolViewModel.StartInvocation();
+        ConnectCommand.NotifyCanExecuteChanged();
 
         try
         {
             var arguments = toolViewModel.BuildArguments();
             CallToolResult result = await _mcpClientService.CallToolAsync(toolViewModel.Tool, arguments, cancellationToken);
 
-            StatusText = result.IsError is true
+            string status = result.IsError is true
                 ? string.Format(CultureInfo.CurrentCulture, "工具 {0} 返回错误。", toolViewModel.Name)
                 : string.Format(CultureInfo.CurrentCulture, "工具 {0} 调用完成。", toolViewModel.Name);
-            ResultText = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            string resultText = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+
+            StatusText = status;
+            toolViewModel.CompleteInvocation(status, resultText);
         }
         catch (OperationCanceledException)
         {
-            StatusText = "调用已取消。";
+            StatusText = string.Format(CultureInfo.CurrentCulture, "工具 {0} 的调用已停止。", toolViewModel.Name);
+            toolViewModel.CompleteInvocation("调用已停止。", toolViewModel.ResultText);
         }
         catch (Exception ex)
         {
-            StatusText = string.Format(CultureInfo.CurrentCulture, "工具 {0} 调用失败。", toolViewModel.Name);
-            ResultText = ex.Message;
+            string status = string.Format(CultureInfo.CurrentCulture, "工具 {0} 调用失败。", toolViewModel.Name);
+            StatusText = status;
+            toolViewModel.CompleteInvocation(status, ex.Message);
         }
         finally
         {
-            IsBusy = false;
+            ConnectCommand.NotifyCanExecuteChanged();
+            CallToolCommand.NotifyCanExecuteChanged();
+            StopToolCommand.NotifyCanExecuteChanged();
         }
+    }
+
+    private Task StopToolAsync(object? parameter)
+    {
+        McpToolViewModel? toolViewModel = ResolveTool(parameter);
+        if (toolViewModel is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        toolViewModel.CancelInvocation();
+        StatusText = string.Format(CultureInfo.CurrentCulture, "已向工具 {0} 发送停止请求。", toolViewModel.Name);
+        return Task.CompletedTask;
     }
 
     private McpToolViewModel? ResolveTool(object? parameter)
@@ -285,11 +331,55 @@ public class MainWindowViewModel : ObservableObject, IAsyncDisposable
         return parameter as McpToolViewModel ?? SelectedTool;
     }
 
-    private CancellationTokenSource ResetCancellation()
+    private void RegisterTool(McpToolViewModel tool)
     {
-        _requestCancellationTokenSource?.Cancel();
-        _requestCancellationTokenSource?.Dispose();
-        _requestCancellationTokenSource = new CancellationTokenSource();
-        return _requestCancellationTokenSource;
+        ArgumentNullException.ThrowIfNull(tool);
+
+        tool.PropertyChanged += OnToolPropertyChanged;
+        _allTools.Add(tool);
+    }
+
+    private void ApplyToolFilter()
+    {
+        string keyword = SearchText.Trim();
+
+        IEnumerable<McpToolViewModel> filteredTools = string.IsNullOrWhiteSpace(keyword)
+            ? _allTools
+            : _allTools.Where(tool =>
+                tool.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+                || (!string.IsNullOrWhiteSpace(tool.Description)
+                    && tool.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase)));
+
+        Tools.Clear();
+        foreach (McpToolViewModel tool in filteredTools)
+        {
+            Tools.Add(tool);
+        }
+
+        if (SelectedTool is null || !Tools.Contains(SelectedTool))
+        {
+            SelectedTool = Tools.FirstOrDefault();
+        }
+
+        OnPropertyChanged(nameof(HasTools));
+        OnPropertyChanged(nameof(HasNoTools));
+    }
+
+    private CancellationTokenSource ResetConnectCancellation()
+    {
+        _connectCancellationTokenSource?.Cancel();
+        _connectCancellationTokenSource?.Dispose();
+        _connectCancellationTokenSource = new CancellationTokenSource();
+        return _connectCancellationTokenSource;
+    }
+
+    private void OnToolPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(McpToolViewModel.IsCalling))
+        {
+            ConnectCommand.NotifyCanExecuteChanged();
+            CallToolCommand.NotifyCanExecuteChanged();
+            StopToolCommand.NotifyCanExecuteChanged();
+        }
     }
 }
