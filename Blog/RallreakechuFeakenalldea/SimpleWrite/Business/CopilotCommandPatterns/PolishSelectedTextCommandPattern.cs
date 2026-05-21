@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using AvaloniaAgentLib.Tools;
+using AgentLib.Tools;
 using AvaloniaAgentLib.ViewModel;
 
 using LightTextEditorPlus;

@@ -1,6 +1,6 @@
 using System;
 
-using AvaloniaAgentLib.Core;
+using AgentLib.Core;
 
 using dotnetCampus.Configurations;
 

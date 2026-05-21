@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-using AvaloniaAgentLib.Model;
+using AgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
 using SimpleWrite.Business.AgentConnectors.CopilotAbilityLoaders;
