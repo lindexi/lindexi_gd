@@ -77,7 +77,7 @@ public sealed class McpToolParameterViewModel : ObservableObject
     {
         if (TryGetType(schema, out string? schemaType))
         {
-            return schemaType;
+            return schemaType ?? "json";
         }
 
         if (schema.ValueKind == JsonValueKind.Object && schema.TryGetProperty("enum", out _))
