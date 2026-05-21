@@ -1,9 +1,10 @@
+using AgentLib.Logging;
+using AgentLib.Model;
+
 using Avalonia.Controls;
 using Avalonia.Animation;
 using Avalonia.Interactivity;
 using Avalonia.Input;
-using AvaloniaAgentLib.Logging;
-using AvaloniaAgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
 using SimpleWrite.Business;

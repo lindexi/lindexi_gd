@@ -1,7 +1,7 @@
+using AgentLib.Model;
+
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-
-using AvaloniaAgentLib.Model;
 
 using Microsoft.Extensions.AI;
 

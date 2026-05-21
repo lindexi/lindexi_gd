@@ -9,7 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-using AvaloniaAgentLib.Model;
+using AgentLib.Model;
 using AvaloniaAgentLib.ViewModel;
 
 namespace AvaloniaAgentLib.View;

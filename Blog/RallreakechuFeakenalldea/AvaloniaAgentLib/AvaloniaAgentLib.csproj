@@ -21,11 +21,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.3.0" />
-    <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\AgentLib\AgentLib\AgentLib.csproj" />
     <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Core\AgentApiEndpointManager.cs" />
+    <Compile Remove="Core\ApiEndpoint.cs" />
+    <Compile Remove="Core\IApiEndpointProvider.cs" />
+    <Compile Remove="Logging\FileCopilotChatLogger.cs" />
+    <Compile Remove="Logging\ICopilotChatLogger.cs" />
+    <Compile Remove="Model\CopilotChatMessage.cs" />
+    <Compile Remove="Model\CopilotChatMessageItem.cs" />
+    <Compile Remove="Model\CopilotChatSession.cs" />
+    <Compile Remove="Model\NotifyBase.cs" />
+    <Compile Remove="Tools\CopilotToolManager.cs" />
+    <Compile Remove="Tools\GeneratedTextSubmissionTool.cs" />
+    <Compile Remove="Tools\WorkspaceToolProvider.cs" />
   </ItemGroup>
 </Project>
