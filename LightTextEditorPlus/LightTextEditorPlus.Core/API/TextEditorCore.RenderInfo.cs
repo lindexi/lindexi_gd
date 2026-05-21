@@ -67,6 +67,32 @@ public partial class TextEditorCore
         return _renderInfoProvider!;
     }
 
+    /// <summary>
+    /// 获取当前文本的指导布局信息，必须在布局完成之后才能获取。
+    /// </summary>
+    /// <returns></returns>
+    public GuidingLayoutInfo GetCurrentGuidingLayoutInfo()
+    {
+        return GetRenderInfo().GetCurrentGuidingLayoutInfo();
+    }
+
+    /// <summary>
+    /// 设置指导布局信息。设置成功后，将优先按照指导布局信息进行布局。
+    /// </summary>
+    /// <param name="guidingLayoutInfo"></param>
+    /// <returns>设置是否成功</returns>
+    public bool SetGuidingLayoutInfoForNextUpdateLayout(GuidingLayoutInfo guidingLayoutInfo)
+    {
+        ArgumentNullException.ThrowIfNull(guidingLayoutInfo);
+
+        _layoutManager.NextUpdateLayoutConfiguration = _layoutManager.NextUpdateLayoutConfiguration with
+        {
+            GuidingLayoutInfo = guidingLayoutInfo
+        };
+        RequireDispatchReUpdateAllDocumentLayout("GuidingLayout Changed");
+        return true;
+    }
+
     #region WaitLayoutCompleted
 
     /// <summary>

@@ -16,6 +16,8 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="UpdateLayoutContext"></param>
 readonly record struct ParagraphLayoutArgument(ParagraphIndex ParagraphIndex, TextPointInDocumentContentCoordinateSystem CurrentStartPoint, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList, ParagraphLayoutIndentInfo IndentInfo, UpdateLayoutContext UpdateLayoutContext)
 {
+    public GuidingParagraphLayoutInfo? GuidingParagraphLayoutInfo { get; init; }
+
     /// <summary>
     /// 是否首段
     /// </summary>
