@@ -13,6 +13,32 @@ namespace LightTextEditorPlus.Core.Tests.Primitive;
 [TestClass]
 public class TextLoggerTest
 {
+    internal sealed class TestTextLogger : ITextLogger
+    {
+        public List<string> WarningList { get; } = [];
+
+        public void LogDebug(string message)
+        {
+        }
+
+        public void LogException(Exception exception, string? message)
+        {
+        }
+
+        public void LogInfo(string message)
+        {
+        }
+
+        public void LogWarning(string message)
+        {
+            WarningList.Add(message);
+        }
+
+        public void Log<T>(T info) where T : notnull
+        {
+        }
+    }
+
     [ContractTestCase]
     public void BuildTextLogger()
     {

@@ -376,6 +376,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //// 测量和获取空段的字符信息
         // 段落的字符信息不是必要的，就不要放在这里立刻计算了
 
+        GuidingParagraphLayoutInfo? guidingParagraphLayoutInfo = argument.GuidingParagraphLayoutInfo;
+        if (guidingParagraphLayoutInfo is { LineCount: 1 } == false && guidingParagraphLayoutInfo is not null)
+        {
+            argument.UpdateLayoutContext.Logger.LogWarning($"指导布局要求第 {argument.ParagraphIndex.Index} 段空段拥有 {guidingParagraphLayoutInfo.LineCount} 行，已回退默认空段布局");
+        }
+
         var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
             new EmptyParagraphLineHeightMeasureArgument(paragraph, argument.ParagraphIndex, argument.UpdateLayoutContext));
         double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
@@ -425,6 +431,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 开始行布局
             // 第一个 Run 就是行的开始
             TextReadOnlyListSpan<CharData> charDataList = paragraph.ToReadOnlyListSpan(new ParagraphCharOffset(i));
+            GuidingParagraphLayoutInfo? guidingParagraphLayoutInfo = argument.GuidingParagraphLayoutInfo;
 
             if (IsInDebugMode)
             {
@@ -450,6 +457,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 usableLineMaxWidth, currentStartPoint, argument.UpdateLayoutContext)
             {
                 MarkerRuntimeInfo = paragraph.MarkerRuntimeInfo,
+                GuidingLineLayoutInfo = guidingParagraphLayoutInfo is not null && lineIndex < guidingParagraphLayoutInfo.LineList.Count
+                    ? guidingParagraphLayoutInfo.LineList[lineIndex]
+                    : null,
             };
             if (wholeRunLineLayouter != null)
             {
@@ -661,6 +671,27 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextReadOnlyListSpan<CharData> charDataList = argument.CharDataList;
         double lineMaxWidth = argument.LineMaxWidth;
         UpdateLayoutContext context = argument.UpdateLayoutContext;
+
+        if (argument.GuidingLineLayoutInfo is { } guidingLineLayoutInfo)
+        {
+            int guidingWholeCharCount = guidingLineLayoutInfo.CharCount;
+            if (guidingWholeCharCount <= 0 || guidingWholeCharCount > charDataList.Count)
+            {
+                context.Logger.LogWarning($"指导布局要求第 {argument.ParagraphIndex.Index} 段第 {argument.LineIndex} 行字符数量为 {guidingWholeCharCount}，已回退默认分行算法");
+            }
+            else
+            {
+                EnsureMeasureAndFillSizeOfCharDataList(charDataList.Slice(0, guidingWholeCharCount), context);
+
+                var guidingCurrentSize = TextSize.Zero;
+                for (int i = 0; i < guidingWholeCharCount; i++)
+                {
+                    guidingCurrentSize = guidingCurrentSize.HorizontalUnion(charDataList[i].Size);
+                }
+
+                return new WholeLineCharsLayoutResult(guidingCurrentSize, guidingWholeCharCount);
+            }
+        }
 
 #if DEBUG
         // 调试下显示当前这一行的文本，方便了解当前在哪一行

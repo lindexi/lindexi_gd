@@ -22,6 +22,8 @@ public readonly record struct WholeLineLayoutArgument(ParagraphIndex ParagraphIn
 {
     internal MarkerRuntimeInfo? MarkerRuntimeInfo { get; init; }
 
+    internal GuidingLineLayoutInfo? GuidingLineLayoutInfo { get; init; }
+
     /// <summary>
     /// 段落属性
     /// </summary>

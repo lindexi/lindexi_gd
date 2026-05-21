@@ -55,6 +55,16 @@ class LayoutManager
         var currentConfiguration = NextUpdateLayoutConfiguration;
         NextUpdateLayoutConfiguration = default; // 清空配置
 
+        if (currentConfiguration.GuidingLayoutInfo is { } guidingLayoutInfo
+            && !GuidingLayoutInfoValidator.TryValidate(TextEditor, guidingLayoutInfo, out string message))
+        {
+            TextEditor.Logger.LogWarning($"设置指导布局失败：{message}");
+            currentConfiguration = currentConfiguration with
+            {
+                GuidingLayoutInfo = null
+            };
+        }
+
         TextEditor.Logger.Log(new StartLayoutLogInfo());
         var arrangingLayoutProvider = ArrangingLayoutProvider;
         var updateLayoutContext = new UpdateLayoutContext(this, arrangingLayoutProvider, currentConfiguration);

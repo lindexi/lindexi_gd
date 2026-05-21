@@ -2,6 +2,7 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
@@ -15,6 +16,143 @@ namespace LightTextEditorPlus.Core.Tests.Layout;
 [TestClass]
 public class LayoutTest
 {
+    [ContractTestCase]
+    public void GuidingLayoutInfoTest()
+    {
+        "获取指导布局信息时，空文本至少表现为一段一行且行内无字符".Test(() =>
+        {
+            TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor();
+
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+
+            Assert.AreEqual(1, guidingLayoutInfo.ParagraphCount);
+            Assert.AreEqual(1, guidingLayoutInfo.LineCount);
+            Assert.AreEqual(0, guidingLayoutInfo.CharCount);
+            Assert.AreEqual(1, guidingLayoutInfo.ParagraphList.Count);
+            Assert.AreEqual(1, guidingLayoutInfo.ParagraphList[0].LineCount);
+            Assert.AreEqual(0, guidingLayoutInfo.ParagraphList[0].CharCount);
+            Assert.AreEqual(0, guidingLayoutInfo.ParagraphList[0].LineList[0].CharCount);
+        });
+
+        "获取指导布局信息时，可以覆盖空段、多段、多行、符号、宽度和对齐组合场景".Test(() =>
+        {
+            TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor();
+            textEditorCore.AppendText("\n12,34\n\nABCDE12345\n符号!?（）AB");
+
+            textEditorCore.DocumentManager.SetParagraphProperty(new ParagraphIndex(1),
+                textEditorCore.DocumentManager.StyleParagraphProperty with
+                {
+                    HorizontalTextAlignment = HorizontalTextAlignment.Center
+                });
+            textEditorCore.DocumentManager.SetParagraphProperty(new ParagraphIndex(3),
+                textEditorCore.DocumentManager.StyleParagraphProperty with
+                {
+                    HorizontalTextAlignment = HorizontalTextAlignment.Right
+                });
+
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+
+            Assert.AreEqual(5, guidingLayoutInfo.ParagraphCount);
+            Assert.AreEqual(7, guidingLayoutInfo.LineCount);
+            CollectionAssert.AreEqual(new[] { 1, 1, 1, 2, 2 }, guidingLayoutInfo.ParagraphList.Select(t => t.LineCount).ToArray());
+            CollectionAssert.AreEqual(new[] { 0, 5, 0, 10, 8 }, guidingLayoutInfo.ParagraphList.Select(t => t.CharCount).ToArray());
+            CollectionAssert.AreEqual(new[] { 0, 5, 0, 5, 5, 4, 4 }, guidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray());
+
+            GuidingParagraphLayoutInfo centerParagraph = guidingLayoutInfo.ParagraphList[1];
+            Assert.IsTrue(centerParagraph.LineList[0].ContentStartPoint.X > centerParagraph.LineList[0].StartPoint.X);
+
+            GuidingParagraphLayoutInfo rightParagraph = guidingLayoutInfo.ParagraphList[3];
+            Assert.IsTrue(rightParagraph.LineList[0].ContentStartPoint.X > centerParagraph.LineList[0].ContentStartPoint.X);
+
+            GuidingLineLayoutInfo shortLine = guidingLayoutInfo.ParagraphList[1].LineList[0];
+            Assert.IsTrue(shortLine.ContentBounds.Width > 0);
+        });
+
+        "获取指导布局信息时，文本宽度大于给定文本框宽度时会被布局为多行".Test(() =>
+        {
+            TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor();
+            textEditorCore.AppendText("123456");
+
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            Assert.IsTrue(guidingLayoutInfo.LineCount > 1);
+        });
+
+        "获取指导布局信息时，可以覆盖竖排和蒙文竖排场景".Test(() =>
+        {
+            TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor();
+            textEditorCore.DocumentManager.DocumentHeight = TestHelper.LayoutTestFontSize * 3 + 0.1;
+            textEditorCore.AppendText("甲乙丙丁\nABCD");
+
+            textEditorCore.ArrangingType = ArrangingType.Vertical;
+            GuidingLayoutInfo verticalGuidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            Assert.AreEqual(ArrangingType.Vertical, verticalGuidingLayoutInfo.ArrangingType);
+            Assert.AreEqual(4, verticalGuidingLayoutInfo.LineCount);
+            CollectionAssert.AreEqual(new[] { 2, 2 }, verticalGuidingLayoutInfo.ParagraphList.Select(t => t.LineCount).ToArray());
+            Assert.IsTrue(verticalGuidingLayoutInfo.ParagraphList[0].LineList[1].StartPoint.X < verticalGuidingLayoutInfo.ParagraphList[0].LineList[0].StartPoint.X);
+
+            textEditorCore.ArrangingType = ArrangingType.Mongolian;
+            GuidingLayoutInfo mongolianGuidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            Assert.AreEqual(ArrangingType.Mongolian, mongolianGuidingLayoutInfo.ArrangingType);
+            Assert.AreEqual(4, mongolianGuidingLayoutInfo.LineCount);
+            Assert.IsTrue(mongolianGuidingLayoutInfo.ParagraphList[0].LineList[1].StartPoint.X > mongolianGuidingLayoutInfo.ParagraphList[0].LineList[0].StartPoint.X);
+        });
+
+        "设置指导布局信息之后，将优先按照指导布局的行字符数进行布局".Test(() =>
+        {
+            TextEditorCore sourceTextEditor = TestHelper.GetLayoutTestTextEditor();
+            sourceTextEditor.AppendText("123456789");
+            GuidingLayoutInfo guidingLayoutInfo = sourceTextEditor.GetGuidingLayoutInfo();
+
+            TextEditorCore targetTextEditor = TestHelper.GetLayoutTestTextEditor(lineCharCount: 10, fontSize: 10);
+            targetTextEditor.DocumentManager.DocumentWidth = sourceTextEditor.DocumentManager.DocumentWidth;
+            targetTextEditor.AppendText("123456789");
+
+            bool isSet = targetTextEditor.SetGuidingLayoutInfo(guidingLayoutInfo);
+
+            Assert.IsTrue(isSet);
+
+            GuidingLayoutInfo appliedGuidingLayoutInfo = targetTextEditor.GetGuidingLayoutInfo();
+            CollectionAssert.AreEqual(
+                guidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray(),
+                appliedGuidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray());
+        });
+
+        "设置无效的指导布局信息时，将记录日志并回退默认布局".Test(() =>
+        {
+            var logger = new Primitive.TextLoggerTest.TestTextLogger();
+            var testPlatformProvider = new TestPlatformProvider()
+            {
+                TextLogger = logger
+            };
+            testPlatformProvider.UsingFixedCharSizeCharInfoMeasurer();
+            testPlatformProvider.UseFakeLineSpacingCalculator();
+
+            TextEditorCore textEditorCore = TestHelper.GetLayoutTestTextEditor(testPlatformProvider: testPlatformProvider);
+            textEditorCore.AppendText("12345");
+            GuidingLayoutInfo guidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+
+            GuidingLayoutInfo invalidGuidingLayoutInfo = guidingLayoutInfo with
+            {
+                ParagraphList =
+                [
+                    guidingLayoutInfo.ParagraphList[0] with
+                    {
+                        LineList = [guidingLayoutInfo.ParagraphList[0].LineList[0] with { CharCount = 4 }]
+                    }
+                ]
+            };
+
+            bool isSet = textEditorCore.SetGuidingLayoutInfo(invalidGuidingLayoutInfo);
+
+            Assert.IsTrue(isSet);
+            GuidingLayoutInfo appliedGuidingLayoutInfo = textEditorCore.GetGuidingLayoutInfo();
+            CollectionAssert.AreEqual(
+                guidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray(),
+                appliedGuidingLayoutInfo.ParagraphList.SelectMany(t => t.LineList).Select(t => t.CharCount).ToArray());
+            Assert.AreEqual(1, logger.WarningList.Count);
+        });
+    }
+
     [ContractTestCase]
     public void LayoutParagraph()
     {

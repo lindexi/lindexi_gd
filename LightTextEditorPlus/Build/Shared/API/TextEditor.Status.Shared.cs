@@ -4,6 +4,7 @@ using System;
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Rendering;
 
 namespace LightTextEditorPlus;
@@ -93,7 +94,15 @@ partial class TextEditor
     [TextEditorPublicAPI]
     public bool IsUpdatingLayout => TextEditorCore.IsUpdatingLayout;
 
-    /// <inheritdoc cref="P:LightTextEditorPlus.Core.TextEditorCore.IsInDebugMode"/>
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.GetGuidingLayoutInfo"/>
+    [TextEditorPublicAPI]
+    public GuidingLayoutInfo GetGuidingLayoutInfo() => TextEditorCore.GetGuidingLayoutInfo();
+
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.SetGuidingLayoutInfo"/>
+    [TextEditorPublicAPI]
+    public bool SetGuidingLayoutInfo(GuidingLayoutInfo guidingLayoutInfo) => TextEditorCore.SetGuidingLayoutInfo(guidingLayoutInfo);
+
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.IsInDebugMode"/>
     [TextEditorPublicAPI]
     public bool IsInDebugMode => TextEditorCore.IsInDebugMode;
 

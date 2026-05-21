@@ -265,6 +265,13 @@ abstract class ArrangingLayoutProvider
 
             var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData,
                 paragraphList, indentInfo, updateLayoutContext);
+            if (updateLayoutContext.CurrentConfiguration.GuidingLayoutInfo is { } guidingLayoutInfo)
+            {
+                argument = argument with
+                {
+                    GuidingParagraphLayoutInfo = guidingLayoutInfo.ParagraphList[paragraphIndex]
+                };
+            }
 
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;

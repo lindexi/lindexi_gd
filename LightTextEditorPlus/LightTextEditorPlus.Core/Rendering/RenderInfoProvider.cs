@@ -266,6 +266,16 @@ public class RenderInfoProvider
     }
 
     /// <summary>
+    /// 获取当前渲染信息对应的指导布局快照。
+    /// </summary>
+    /// <returns></returns>
+    public GuidingLayoutInfo GetGuidingLayoutInfo()
+    {
+        VerifyNotDirty();
+        return GuidingLayoutInfo.Create(this);
+    }
+
+    /// <summary>
     /// 确保当前渲染信息不是脏的
     /// </summary>
     /// <exception cref="TextEditorRenderInfoDirtyException"></exception>
