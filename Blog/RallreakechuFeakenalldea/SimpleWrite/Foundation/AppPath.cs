@@ -37,6 +37,8 @@ public class AppPathManager
 
         var applicationConfigurationFile = Path.Join(ConfigurationDirectory, ApplicationConfigurationFileName);
         ApplicationConfigurationFile = new FilePath(applicationConfigurationFile);
+
+        AgentConfigurationFile = new FilePath(Path.Join(ConfigurationDirectory, "AgentConfiguration.json"));
     }
 
     public DirectoryPath DataDirectory { get; }
@@ -58,6 +60,11 @@ public class AppPathManager
     /// 应用程序配置文件
     /// </summary>
     public FilePath ApplicationConfigurationFile { get; }
+
+    /// <summary>
+    /// 智能体配置文件
+    /// </summary>
+    public FilePath AgentConfigurationFile { get; }
 
     public const string ApplicationConfigurationFileName = "ApplicationConfiguration.coin";
 }
