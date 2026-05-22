@@ -1,10 +1,8 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-
 using AgentLib.Core.AgentApiManagers.Contexts;
 
-namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders.JsonConfigurations;
+namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocolLanguageModelConfiguration configuration) : OpenAIProtocolLanguageModelProviderBase(configuration.EndPoint, configuration.Key)
 {
@@ -41,15 +39,4 @@ public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocol
     }
 
     private static JsonTypeInfo<OpenAIProtocolLanguageModelConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.OpenAIProtocolLanguageModelConfiguration;
-}
-
-public record OpenAIProtocolLanguageModelConfiguration(string EndPoint, string Key)
-{
-    public IReadOnlyList<ModelDefinition>? ModelDefinitions { get; init; }
-}
-
-[JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true, PropertyNamingPolicy = JsonKnownNamingPolicy.Unspecified, WriteIndented = true)]
-[JsonSerializable(typeof(OpenAIProtocolLanguageModelConfiguration))]
-public partial class JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext : JsonSerializerContext
-{
 }

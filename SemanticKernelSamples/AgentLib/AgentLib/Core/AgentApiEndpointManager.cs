@@ -14,6 +14,30 @@ namespace AgentLib.Core;
 
 public class AgentApiEndpointManager
 {
+    public void LoadConfiguration(AgentApiManagerConfiguration configuration)
+    {
+        if (configuration.OpenAIConfigurationList is not null)
+        {
+            foreach (var languageModelConfiguration in configuration.OpenAIConfigurationList)
+            {
+                var provider = JsonConfigurationOpenAIProtocolLanguageModelProvider
+                    .FromConfiguration(languageModelConfiguration);
+                RegisterLanguageModelProvider(provider);
+            }
+        }
+
+        if (configuration.PrimaryModel is { } primaryModel)
+        {
+            var supportedModels = GetSupportedModels();
+            var languageModel = supportedModels.FirstOrDefault(t => t.ModelDefinition.ModelName == primaryModel || t.ModelDefinition.ModelId == primaryModel);
+            if (languageModel is null)
+            {
+                throw new ArgumentException($"Can not find PrimaryModel('{primaryModel}') in SupportedModels");
+            }
+            PrimaryModel = languageModel;
+        }
+    }
+
     public void RegisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
     {
         var languageModels = languageModelProvider.GetSupportedModels();
