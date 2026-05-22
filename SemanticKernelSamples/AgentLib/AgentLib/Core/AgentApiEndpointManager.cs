@@ -22,11 +22,14 @@ public class AgentApiEndpointManager
             {
                 var provider = JsonConfigurationOpenAIProtocolLanguageModelProvider
                     .FromConfiguration(languageModelConfiguration);
-                RegisterLanguageModelProvider(provider);
+                if (!string.IsNullOrEmpty(provider.Key))
+                {
+                    RegisterLanguageModelProvider(provider);
+                }
             }
         }
 
-        if (configuration.PrimaryModel is { } primaryModel)
+        if (configuration.PrimaryModel is var primaryModel && !string.IsNullOrEmpty(primaryModel))
         {
             var supportedModels = GetSupportedModels();
             var languageModel = supportedModels.FirstOrDefault(t => t.ModelDefinition.ModelName == primaryModel || t.ModelDefinition.ModelId == primaryModel);
@@ -98,65 +101,4 @@ public class AgentApiEndpointManager
     /// 用户没有设置的前提下，自动决定的首选模型
     /// </summary>
     private ILanguageModel? _autoSetPrimaryLanguageModel;
-
-    public IApiEndpointProvider? ApiEndpointProvider { get; set; }
-
-    /// <summary>
-    /// 根据当前配置创建聊天客户端。
-    /// </summary>
-    public IChatClient CreateChatClient()
-    {
-        var apiEndpoint = ApiEndpointProvider?.GetApiEndpoint();
-        if (string.IsNullOrWhiteSpace(apiEndpoint?.EndPoint))
-        {
-            throw new InvalidOperationException("必须先设置才能创建");
-        }
-
-        return CreateChatClient(apiEndpoint.Value);
-    }
-
-    /// <summary>
-    /// 根据 API 终结点配置创建聊天客户端。
-    /// </summary>
-    public static IChatClient CreateChatClient(ApiEndpoint apiEndpoint)
-    {
-        if (string.IsNullOrWhiteSpace(apiEndpoint.EndPoint))
-        {
-            throw new ArgumentException("API 终结点不能为空。", nameof(apiEndpoint));
-        }
-
-        if (string.IsNullOrWhiteSpace(apiEndpoint.Key))
-        {
-            throw new ArgumentException("API Key 不能为空。", nameof(apiEndpoint));
-        }
-
-        if (string.IsNullOrWhiteSpace(apiEndpoint.ModelId))
-        {
-            throw new ArgumentException("模型名称不能为空。", nameof(apiEndpoint));
-        }
-
-        if (!Uri.TryCreate(apiEndpoint.EndPoint, UriKind.Absolute, out var endpointUri))
-        {
-            throw new ArgumentException("API 终结点必须是绝对地址。", nameof(apiEndpoint));
-        }
-
-        if (IsDeepSeekEndpoint(endpointUri))
-        {
-            return new DeepSeekChatClient(apiEndpoint.Key, apiEndpoint.ModelId, apiEndpoint.EndPoint);
-        }
-
-        var openAiClient = new OpenAIClient(new ApiKeyCredential(apiEndpoint.Key), new OpenAIClientOptions()
-        {
-            Endpoint = endpointUri
-        });
-
-        ChatClient chatClient = openAiClient.GetChatClient(apiEndpoint.ModelId);
-        return chatClient.AsIChatClient();
-    }
-
-    private static bool IsDeepSeekEndpoint(Uri endpointUri)
-    {
-        return endpointUri.Host.Equals("api.deepseek.com", StringComparison.OrdinalIgnoreCase)
-               || endpointUri.Host.Contains(".deepseek.com", StringComparison.OrdinalIgnoreCase);
-    }
 }

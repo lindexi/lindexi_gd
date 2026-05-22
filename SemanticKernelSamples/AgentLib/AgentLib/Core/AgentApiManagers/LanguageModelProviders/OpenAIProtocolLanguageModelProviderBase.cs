@@ -7,6 +7,9 @@ namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 /// </summary>
 public abstract class OpenAIProtocolLanguageModelProviderBase(string endPoint, string key) : ILanguageModelProvider
 {
+    public string EndPoint => endPoint;
+    public string Key => key;
+
     public virtual IModelNameToIdMap? ModelNameToIdMap { get; init; }
 
     /// <inheritdoc/>
