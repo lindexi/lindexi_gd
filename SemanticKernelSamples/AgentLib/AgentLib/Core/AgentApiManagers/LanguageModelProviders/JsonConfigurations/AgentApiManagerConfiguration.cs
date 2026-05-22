@@ -9,6 +9,12 @@ public record AgentApiManagerConfiguration
 
     public IReadOnlyList<OpenAIProtocolLanguageModelConfiguration>? OpenAIConfigurationList { get; init; }
 
+    public async Task SaveToFileAsync(FileInfo file)
+    {
+        await using var fileStream = file.OpenWrite();
+        await JsonSerializer.SerializeAsync(fileStream,this, JsonTypeInfo);
+    }
+
     public static async Task<AgentApiManagerConfiguration> FromJsonFileAsync(FileInfo file)
     {
         await using var fileStream = file.OpenRead();

@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Agents.AI.Reasoning\Microsoft.Agents.AI.Reasoning.csproj" />
   </ItemGroup>
 
 </Project>
