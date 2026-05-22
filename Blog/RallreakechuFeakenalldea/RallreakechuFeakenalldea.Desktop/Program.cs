@@ -1,6 +1,11 @@
+using AgentLib.Core.AgentApiManagers;
+using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+
 using Avalonia;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -16,6 +21,10 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        //var agentApiManagerConfiguration = LindexiAgentConfiguration.LoadDefault();
+        //var configFile = @"C:\lindexi\Work\Key\AgentConfig.json";
+        //agentApiManagerConfiguration.SaveToFileAsync(new FileInfo(configFile)).Wait();
+
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         RunAvalonia(args);
     }
