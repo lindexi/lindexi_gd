@@ -1,20 +1,24 @@
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
 using AgentLib.Model;
 
-using Avalonia.Controls;
+using Avalonia;
 using Avalonia.Animation;
-using Avalonia.Interactivity;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+
 using AvaloniaAgentLib.ViewModel;
 
 using SimpleWrite.Business;
+using SimpleWrite.Business.AgentConnectors;
 using SimpleWrite.Business.SimpleWriteConfigurations;
+using SimpleWrite.Foundation;
 using SimpleWrite.ViewModels;
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
-using Avalonia;
-using SimpleWrite.Business.AgentConnectors;
 
 namespace SimpleWrite.Views.Components;
 
@@ -23,9 +27,6 @@ public partial class RightSlideBar : UserControl
     private const double DefaultExpandedWidth = 300;
     private const double CollapsedWidth = 2;
     private const double MinimumExpandedWidth = 160;
-    private const string EndPointHelpText = AgentApiConfigurationVerifier.EndPointHelpText;
-    private const string KeyHelpText = AgentApiConfigurationVerifier.KeyHelpText;
-    private const string ModelNameHelpText = AgentApiConfigurationVerifier.ModelNameHelpText;
 
     private bool _isExpanded = true;
     private bool _isInitialized;
@@ -68,38 +69,53 @@ public partial class RightSlideBar : UserControl
         var dataContext = DataContext;
         if (dataContext is SimpleWriteMainViewModel mainViewModel)
         {
-            var configurationManager = mainViewModel.ConfigurationManager;
-            var appConfigurator = configurationManager.AppConfigurator;
-            var agentApiConfiguration = appConfigurator.Of<AgentApiConfiguration>();
-
             CopilotViewModel copilotViewModel = CopilotSlideBar.ViewModel;
             copilotViewModel.ChatLogger = new FileCopilotChatLogger(
                 mainViewModel.AppPathManager.CopilotChatLogDirectory,
                 mainViewModel.AppPathManager.CopilotChatHistoryDirectory);
-            copilotViewModel.AgentApiEndpointManager.ApiEndpointProvider = new AgentApiConfigurationApiEndpointProvider(appConfigurator);
+
+            _ = LoadConfigAsync(copilotViewModel);
+
             BindWorkspacePath(mainViewModel.FolderExplorerViewModel, copilotViewModel);
 
             mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
-
-            if (agentApiConfiguration.IsInvalidAgentApiConfiguration())
-            {
-                agentApiConfiguration.EndPoint ??= EndPointHelpText;
-                agentApiConfiguration.Key ??= KeyHelpText;
-                agentApiConfiguration.ModelName ??= ModelNameHelpText;
-
-                copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接", isPresetInfo: true));
-            }
-            else
-            {
-                var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
-                copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
-            }
 
             copilotViewModel.SettingOpened -= CopilotViewModel_OnSettingOpened;
             copilotViewModel.SettingOpened += CopilotViewModel_OnSettingOpened;
         }
     }
 
+    private async Task LoadConfigAsync(CopilotViewModel copilotViewModel)
+    {
+        await EnsureAgentConfigurationFileExistsAsync();
+
+        var mainViewModel = MainViewModel;
+
+        // 加载配置文件
+        var agentConfigurationFile = mainViewModel.AppPathManager.AgentConfigurationFile;
+        var agentApiManagerConfiguration = await AgentApiManagerConfiguration.FromJsonFileAsync(agentConfigurationFile);
+        copilotViewModel.AgentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
+
+        // 完成加载之后，即可了解到是否完成配置。判断条件就是判断是否有模型加载进去了
+        var finishConfig = copilotViewModel.AgentApiEndpointManager.GetSupportedModels().Count > 0;
+        if (finishConfig)
+        {
+            // 完成配置，可以建立联系
+            var configurationManager = mainViewModel.ConfigurationManager; var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
+            copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
+        }
+        else
+        {
+            // 提示可以配置
+            copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接", isPresetInfo: true));
+        }
+    }
+
+    /// <summary>
+    /// 绑定工作空间
+    /// </summary>
+    /// <param name="folderExplorerViewModel"></param>
+    /// <param name="copilotViewModel"></param>
     private void BindWorkspacePath(FolderExplorerViewModel folderExplorerViewModel, CopilotViewModel copilotViewModel)
     {
         if (_subscribedFolderExplorerViewModel is not null)
@@ -129,8 +145,28 @@ public partial class RightSlideBar : UserControl
 
     private void CopilotViewModel_OnSettingOpened(object? sender, EventArgs e)
     {
-        var applicationConfigurationFile = MainViewModel.AppPathManager.ApplicationConfigurationFile;
-        _ = MainViewModel.OpenFileAsync(applicationConfigurationFile);
+        _ = OpenSettingFileAsync();
+
+        async Task OpenSettingFileAsync()
+        {
+            await EnsureAgentConfigurationFileExistsAsync();
+
+            var agentConfigurationFile = MainViewModel.AppPathManager.AgentConfigurationFile;
+
+            await MainViewModel.OpenFileAsync(agentConfigurationFile);
+        }
+    }
+
+    private async Task EnsureAgentConfigurationFileExistsAsync()
+    {
+        var agentConfigurationFile = MainViewModel.AppPathManager.AgentConfigurationFile;
+
+        if (!agentConfigurationFile.IsExists())
+        {
+            const string templateFileContent = AgentApiManagerConfiguration.DefaultTemplateFileContent;
+            await using var streamWriter = File.CreateText(agentConfigurationFile);
+            await streamWriter.WriteAsync(templateFileContent);
+        }
     }
 
     private void ToggleSidebarButton_OnClick(object? sender, RoutedEventArgs e)
