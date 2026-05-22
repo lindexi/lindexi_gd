@@ -23,8 +23,9 @@ public class CopilotChatManager : NotifyBase
     private readonly CopilotToolManager _toolManager;
 
     public CopilotChatManager()
-        : this(new FileCopilotChatLogger())
+        : this(new EmptyCopilotChatLogger())
     {
+        // 无参构造，让 XAML 系开森
     }
 
     public CopilotChatManager(ICopilotChatLogger chatLogger)

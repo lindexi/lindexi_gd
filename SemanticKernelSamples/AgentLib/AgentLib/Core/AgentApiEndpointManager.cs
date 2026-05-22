@@ -1,3 +1,6 @@
+using AgentLib.Core.AgentApiManagers;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.DeepSeek;
 
@@ -11,6 +14,67 @@ namespace AgentLib.Core;
 
 public class AgentApiEndpointManager
 {
+    public void RegisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
+    {
+        var languageModels = languageModelProvider.GetSupportedModels();
+        SupportedModels.AddRange(languageModels);
+        // 有更新内容了，需要重新评估自动选择首选模型
+        _autoSetPrimaryLanguageModel = null;
+    }
+
+    public IReadOnlyList<ILanguageModel> GetSupportedModels() => SupportedModels;
+
+    private List<ILanguageModel> SupportedModels { get; } = [];
+
+    public ILanguageModel PrimaryModel
+    {
+        get
+        {
+            if (_userSetPrimaryLanguageModel != null)
+            {
+                return _userSetPrimaryLanguageModel;
+            }
+
+            if (_autoSetPrimaryLanguageModel == null)
+            {
+                var supportedModels = GetSupportedModels();
+                if (supportedModels.Count == 0)
+                {
+                    throw new InvalidOperationException($"尚未调用 {nameof(RegisterLanguageModelProvider)} 完成任何注册，无法获取到模型列表");
+                }
+                else if (supportedModels.Count == 1)
+                {
+                    return supportedModels[0];
+                }
+
+                // 全模态优先 Omni
+                _autoSetPrimaryLanguageModel = supportedModels.ToList().OrderDescending(new LanguageModelCapabilityComparer()).First();
+            }
+
+            return _autoSetPrimaryLanguageModel;
+        }
+        set
+        {
+            var supportedModels = GetSupportedModels();
+            if (!supportedModels.Contains(field))
+            {
+                throw new ArgumentException($"只能设置 {nameof(GetSupportedModels)} 支持的模型");
+            }
+
+            _userSetPrimaryLanguageModel = value;
+            _autoSetPrimaryLanguageModel = null; // 用户设置后，自动选择的模型不再生效，直到用户取消设置
+        }
+    }
+
+    /// <summary>
+    /// 用户设置的首选模型
+    /// </summary>
+    private ILanguageModel? _userSetPrimaryLanguageModel;
+    /// <summary>
+    /// 用户没有设置的前提下，自动决定的首选模型
+    /// </summary>
+    private ILanguageModel? _autoSetPrimaryLanguageModel;
+
     public IApiEndpointProvider? ApiEndpointProvider { get; set; }
 
     /// <summary>
@@ -42,7 +106,7 @@ public class AgentApiEndpointManager
             throw new ArgumentException("API Key 不能为空。", nameof(apiEndpoint));
         }
 
-        if (string.IsNullOrWhiteSpace(apiEndpoint.ModelName))
+        if (string.IsNullOrWhiteSpace(apiEndpoint.ModelId))
         {
             throw new ArgumentException("模型名称不能为空。", nameof(apiEndpoint));
         }
@@ -54,7 +118,7 @@ public class AgentApiEndpointManager
 
         if (IsDeepSeekEndpoint(endpointUri))
         {
-            return new DeepSeekChatClient(apiEndpoint.Key, apiEndpoint.ModelName, apiEndpoint.EndPoint);
+            return new DeepSeekChatClient(apiEndpoint.Key, apiEndpoint.ModelId, apiEndpoint.EndPoint);
         }
 
         var openAiClient = new OpenAIClient(new ApiKeyCredential(apiEndpoint.Key), new OpenAIClientOptions()
@@ -62,7 +126,7 @@ public class AgentApiEndpointManager
             Endpoint = endpointUri
         });
 
-        ChatClient chatClient = openAiClient.GetChatClient(apiEndpoint.ModelName);
+        ChatClient chatClient = openAiClient.GetChatClient(apiEndpoint.ModelId);
         return chatClient.AsIChatClient();
     }
 
