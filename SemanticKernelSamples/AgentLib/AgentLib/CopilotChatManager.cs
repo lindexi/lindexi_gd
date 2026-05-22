@@ -168,7 +168,7 @@ public class CopilotChatManager : NotifyBase
             var userChatMessage = CopilotChatMessage.CreateUser(inputText);
             await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
-            var chatClient = AgentApiEndpointManager.CreateChatClient();
+            var chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
             List<AITool> toolList = ResolveTools(tools);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
