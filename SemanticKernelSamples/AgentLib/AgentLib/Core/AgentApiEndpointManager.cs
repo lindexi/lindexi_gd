@@ -56,7 +56,7 @@ public class AgentApiEndpointManager
         set
         {
             var supportedModels = GetSupportedModels();
-            if (!supportedModels.Contains(field))
+            if (!supportedModels.Contains(value))
             {
                 throw new ArgumentException($"只能设置 {nameof(GetSupportedModels)} 支持的模型");
             }
