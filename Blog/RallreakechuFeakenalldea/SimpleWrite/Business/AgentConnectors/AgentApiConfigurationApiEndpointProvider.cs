@@ -1,6 +1,7 @@
 using System;
 
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers;
 
 using dotnetCampus.Configurations;
 
