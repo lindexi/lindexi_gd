@@ -27,9 +27,6 @@ public partial class RightSlideBar : UserControl
     private const double DefaultExpandedWidth = 300;
     private const double CollapsedWidth = 2;
     private const double MinimumExpandedWidth = 160;
-    //private const string EndPointHelpText = AgentApiConfigurationVerifier.EndPointHelpText;
-    //private const string KeyHelpText = AgentApiConfigurationVerifier.KeyHelpText;
-    //private const string ModelNameHelpText = AgentApiConfigurationVerifier.ModelNameHelpText;
 
     private bool _isExpanded = true;
     private bool _isInitialized;
@@ -72,17 +69,12 @@ public partial class RightSlideBar : UserControl
         var dataContext = DataContext;
         if (dataContext is SimpleWriteMainViewModel mainViewModel)
         {
-            var configurationManager = mainViewModel.ConfigurationManager;
-            //var appConfigurator = configurationManager.AppConfigurator;
-            //var agentApiConfiguration = appConfigurator.Of<AgentApiConfiguration>();
-
             CopilotViewModel copilotViewModel = CopilotSlideBar.ViewModel;
             copilotViewModel.ChatLogger = new FileCopilotChatLogger(
                 mainViewModel.AppPathManager.CopilotChatLogDirectory,
                 mainViewModel.AppPathManager.CopilotChatHistoryDirectory);
 
-            //copilotViewModel.AgentApiEndpointManager.ApiEndpointProvider = new AgentApiConfigurationApiEndpointProvider(appConfigurator);
-            _ = LoadConfigAsync();
+            _ = LoadConfigAsync(copilotViewModel);
 
             BindWorkspacePath(mainViewModel.FolderExplorerViewModel, copilotViewModel);
 
@@ -90,28 +82,32 @@ public partial class RightSlideBar : UserControl
 
             copilotViewModel.SettingOpened -= CopilotViewModel_OnSettingOpened;
             copilotViewModel.SettingOpened += CopilotViewModel_OnSettingOpened;
+        }
+    }
 
-            async Task LoadConfigAsync()
-            {
-                await EnsureAgentConfigurationFileExistsAsync();
-                var agentConfigurationFile = MainViewModel.AppPathManager.AgentConfigurationFile;
-                var agentApiManagerConfiguration = await AgentApiManagerConfiguration.FromJsonFileAsync(agentConfigurationFile);
-                copilotViewModel.AgentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
+    private async Task LoadConfigAsync(CopilotViewModel copilotViewModel)
+    {
+        await EnsureAgentConfigurationFileExistsAsync();
 
-                // 完成加载之后，即可了解到是否完成配置
-                var finishConfig = copilotViewModel.AgentApiEndpointManager.GetSupportedModels().Count>0;
-                if (finishConfig)
-                {
-                    // 完成配置，可以建立联系
-                    var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
-                    copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
-                }
-                else
-                {
-                    // 提示可以配置
-                    copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接", isPresetInfo: true));
-                }
-            }
+        var mainViewModel = MainViewModel;
+
+        // 加载配置文件
+        var agentConfigurationFile = mainViewModel.AppPathManager.AgentConfigurationFile;
+        var agentApiManagerConfiguration = await AgentApiManagerConfiguration.FromJsonFileAsync(agentConfigurationFile);
+        copilotViewModel.AgentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
+
+        // 完成加载之后，即可了解到是否完成配置。判断条件就是判断是否有模型加载进去了
+        var finishConfig = copilotViewModel.AgentApiEndpointManager.GetSupportedModels().Count > 0;
+        if (finishConfig)
+        {
+            // 完成配置，可以建立联系
+            var configurationManager = mainViewModel.ConfigurationManager; var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
+            copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
+        }
+        else
+        {
+            // 提示可以配置
+            copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接", isPresetInfo: true));
         }
     }
 
