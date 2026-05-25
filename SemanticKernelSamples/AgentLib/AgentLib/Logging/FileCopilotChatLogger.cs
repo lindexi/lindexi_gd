@@ -272,6 +272,12 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
                 new XAttribute("ToolName", toolItem.ToolName),
                 new XElement("Input", toolItem.InputText),
                 new XElement("Output", toolItem.OutputText)),
+            CopilotChatSubAgentItem subAgentItem => new XElement("SubAgentItem",
+                new XAttribute("CallId", subAgentItem.CallId),
+                new XAttribute("ToolName", subAgentItem.ToolName),
+                new XElement("Input", subAgentItem.InputText),
+                new XElement("Output", subAgentItem.OutputText),
+                new XElement("MessageItems", subAgentItem.MessageItems.Select(CreateMessageItemElement))),
             _ => throw new InvalidOperationException($"不支持的聊天消息片段类型: {messageItem.GetType().FullName}")
         };
     }
