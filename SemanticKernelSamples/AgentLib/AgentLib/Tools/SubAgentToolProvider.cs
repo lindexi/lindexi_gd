@@ -17,13 +17,13 @@ using System.Threading.Tasks;
 namespace AgentLib.Tools;
 
 /// <summary>
-/// 提供子代理委托工具。
+/// 提供子智能体委托工具。
 /// </summary>
 public sealed class SubAgentToolProvider
 {
     internal const string InvokeSubAgentToolName = "InvokeSubAgent";
     internal const string ReturnOutputToParentToolName = "ReturnOutputToParent";
-    internal const string InvokeSubAgentDisplayName = "调用子代理";
+    internal const string InvokeSubAgentDisplayName = "调用子智能体";
 
     private readonly AgentApiEndpointManager _agentApiEndpointManager;
     private readonly WorkspaceToolProvider _workspaceToolProvider;
@@ -77,15 +77,15 @@ public sealed class SubAgentToolProvider
         }
 
         /// <summary>
-        /// 调用子代理执行任务。
+        /// 调用子智能体执行任务。
         /// </summary>
-        [Description("调用一个子代理执行独立任务。只有确定性处理、总结输出、了解文件组织结构或大文件内容、意图识别等无需思考决策的任务才可使用 Flash；涉及思考和决策时不要使用 Flash。")]
+        [Description("调用一个子智能体执行独立任务。只有确定性处理、总结输出、了解文件组织结构或大文件内容、意图识别等无需思考决策的任务才可使用 Flash；涉及思考和决策时不要使用 Flash。")]
         public async Task<string> InvokeSubAgentAsync(
-            [Description("给子代理的提示词信息。应描述明确任务与期望输出。")]
+            [Description("给子智能体的提示词信息。应描述明确任务与期望输出。")]
             string prompt,
-            [Description("给子代理的系统提示词信息。可以为空；为空时不传系统提示词。")]
+            [Description("给子智能体的系统提示词信息。可以为空；为空时不传系统提示词。")]
             string? systemPrompt = null,
-            [Description("选择的子代理类型，使用 `;` 分号分割。可选值：Flash、ImageInput、VideoInput、ImageOutput。不写时默认使用非 Flash 文本模型。Flash 仅可用于确定性工作、总结输出、了解文件组织结构或大文件内容、意图识别等场景；涉及思考和决策的内容不要使用 Flash。")]
+            [Description("选择的子智能体类型，使用 `;` 分号分割。可选值：Flash、ImageInput、VideoInput、ImageOutput。不写时默认使用非 Flash 文本模型。Flash 仅可用于确定性工作、总结输出、了解文件组织结构或大文件内容、意图识别等场景；涉及思考和决策的内容不要使用 Flash。")]
             string? subAgentType = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
@@ -127,15 +127,15 @@ public sealed class SubAgentToolProvider
         }
 
         /// <summary>
-        /// 显式将子代理输出返回给上一级代理。
+        /// 显式将子智能体输出返回给上一级代理。
         /// </summary>
-        [Description("显式将子代理输出返回给上一级代理。不需要向上级返回结果时不要调用。")]
+        [Description("显式将子智能体输出返回给上一级代理。不需要向上级返回结果时不要调用。")]
         public Task<string> ReturnOutputToParentAsync(
-            [Description("需要返回给上一级代理的文本内容。")]
+            [Description("需要返回给上一级智能体的文本内容。")]
             string output)
         {
             _outputCollector.SetOutput(output);
-            return Task.FromResult("已将结果返回给上一级代理。");
+            return Task.FromResult("已将结果返回给上一级智能体。");
         }
 
         public AITool CreateTool(string methodName, string toolName, string description)

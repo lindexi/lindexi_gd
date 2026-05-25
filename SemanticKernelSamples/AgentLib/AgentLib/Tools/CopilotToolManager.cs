@@ -1,4 +1,5 @@
 using AgentLib.Core;
+using AgentLib.Model;
 
 using Microsoft.Extensions.AI;
 
@@ -31,11 +32,11 @@ public sealed class CopilotToolManager
         set => WorkspaceTools.WorkspacePath = value;
     }
 
-    public IReadOnlyList<AITool> CreateDefaultTools()
+    internal IReadOnlyList<AITool> CreateDefaultTools(ISubAgentProgressContainer? progressContainer)
     {
         List<AITool> tools = [];
         tools.AddRange(WorkspaceTools.CreateDefaultTools());
-        tools.AddRange(SubAgentTools.CreateDefaultTools());
+        tools.AddRange(SubAgentTools.CreateDefaultTools(progressContainer));
         return tools;
     }
 }
