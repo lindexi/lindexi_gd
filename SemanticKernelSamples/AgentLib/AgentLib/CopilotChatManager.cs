@@ -172,7 +172,8 @@ public class CopilotChatManager : NotifyBase
             OnBeforeSendStreaming(currentSession, copilotChatMessage);
 
             var chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-            List<AITool> toolList = ResolveTools(tools, copilotChatMessage);
+            CopilotChatContext chatContext = new(currentSession.ChatMessages, copilotChatMessage);
+            List<AITool> toolList = ResolveTools(tools, chatContext);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
@@ -226,7 +227,7 @@ public class CopilotChatManager : NotifyBase
     {
     }
 
-    private List<AITool> ResolveTools(IEnumerable<AITool>? tools, ISubAgentProgressContainer? progressContainer = null)
+    private List<AITool> ResolveTools(IEnumerable<AITool>? tools, CopilotChatContext? chatContext = null)
     {
         List<AITool> toolList = [];
         if (tools != null)
@@ -234,7 +235,7 @@ public class CopilotChatManager : NotifyBase
             toolList.AddRange(tools);
         }
 
-        toolList.AddRange(_toolManager.CreateDefaultTools(progressContainer));
+        toolList.AddRange(_toolManager.CreateDefaultTools(chatContext));
         return toolList;
     }
 

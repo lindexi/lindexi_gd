@@ -12,7 +12,7 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace AgentLib.Model;
 
-public sealed class CopilotChatMessage : NotifyBase, ISubAgentProgressContainer
+public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 {
     public CopilotChatMessage(ChatRole role, string content)
     {
@@ -371,7 +371,7 @@ public sealed class CopilotChatMessage : NotifyBase, ISubAgentProgressContainer
         OnUsageDetailsChanged();
     }
 
-    public CopilotChatSubAgentItem AppendSubAgentCall(string toolName, string? inputText, string? callId = null)
+    public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -388,67 +388,6 @@ public sealed class CopilotChatMessage : NotifyBase, ISubAgentProgressContainer
         subAgentItem.ToolName = toolName;
         subAgentItem.InputText = inputText ?? string.Empty;
         return subAgentItem;
-    }
-
-    public void AppendSubAgentText(string callId, string text)
-    {
-        if (string.IsNullOrWhiteSpace(callId) || string.IsNullOrEmpty(text))
-        {
-            return;
-        }
-
-        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
-        {
-            subAgentItem.AppendText(text);
-        }
-    }
-
-    public void AppendSubAgentReasoning(string callId, string text)
-    {
-        if (string.IsNullOrWhiteSpace(callId) || string.IsNullOrEmpty(text))
-        {
-            return;
-        }
-
-        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
-        {
-            subAgentItem.AppendReasoning(text);
-        }
-    }
-
-    public void AppendSubAgentFunctionCall(string callId, FunctionCallContent functionCallContent)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(callId);
-        ArgumentNullException.ThrowIfNull(functionCallContent);
-
-        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
-        {
-            subAgentItem.AppendFunctionCall(functionCallContent);
-        }
-    }
-
-    public void AppendSubAgentFunctionResult(string callId, FunctionResultContent functionResultContent)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(callId);
-        ArgumentNullException.ThrowIfNull(functionResultContent);
-
-        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
-        {
-            subAgentItem.AppendFunctionResult(functionResultContent);
-        }
-    }
-
-    public void AppendSubAgentOutput(string callId, string? outputText)
-    {
-        if (string.IsNullOrWhiteSpace(callId))
-        {
-            return;
-        }
-
-        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
-        {
-            subAgentItem.OutputText = outputText ?? string.Empty;
-        }
     }
 
     private void OnUsageDetailsChanged()
@@ -551,7 +490,7 @@ public sealed class CopilotChatMessage : NotifyBase, ISubAgentProgressContainer
             ? Guid.NewGuid().ToString("N")
             : functionCallContent.CallId;
 
-        CopilotChatSubAgentItem subAgentItem = AppendSubAgentCall(functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent), callId);
+        CopilotChatSubAgentItem subAgentItem = CreateSubAgentItem(functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent), callId);
         subAgentItem.ToolName = functionCallContent.Name;
     }
 
@@ -561,7 +500,10 @@ public sealed class CopilotChatMessage : NotifyBase, ISubAgentProgressContainer
             ? Guid.NewGuid().ToString("N")
             : functionResultContent.CallId;
 
-        AppendSubAgentOutput(callId, CopilotChatMessageItemFormatter.FormatResult(functionResultContent));
+        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
+        {
+            subAgentItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
+        }
     }
 
     private void MessageItems_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
