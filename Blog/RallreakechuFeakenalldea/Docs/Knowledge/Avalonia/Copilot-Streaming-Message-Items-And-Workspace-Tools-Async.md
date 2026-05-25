@@ -15,7 +15,7 @@
 - `CopilotChatTextItem`：正文输出；
 - `CopilotChatReasoningItem`：思考输出；
 - `CopilotChatToolItem`：工具调用与结果。
-- `CopilotChatSubAgentItem`：子代理调用、逐步进度与向上级返回的最终输出。
+- `CopilotChatSubAgentItem`：子智能体调用、逐步进度与向上级返回的最终输出。
 
 `Content`、`Reason`、`FullContent` 仍然保留，但都由片段集合聚合计算得到，主要用于：
 
@@ -52,19 +52,25 @@
 - 展开后显示输入参数；
 - 再显示工具输出。
 
-子代理片段同样使用独立折叠区域，但内部继续绑定自己的 `MessageItems`，因此可以直接显示多级嵌套的子代理进度，不再只能看到一次性返回结果。
+子智能体片段同样使用独立折叠区域，但内部继续绑定自己的 `MessageItems`，因此可以直接显示多级嵌套的子智能体进度，不再只能看到一次性返回结果。
 
 ### 3.1 `SubAgent` 约定改成显式返回输出
 
-当前子代理默认工具名改为带动词语义的 `InvokeSubAgent`。
+当前子智能体默认工具名改为带动词语义的 `InvokeSubAgent`。
 
-子代理执行时允许继续拿到：
+子智能体执行时允许继续拿到：
 
 - 默认工作区工具；
 - `InvokeSubAgent` 本身，用于继续向下委托；
 - `ReturnOutputToParent`，仅在确实需要给上一级代理返回结果时才调用。
 
-也就是说，子代理流里产生的普通文本和思考只用于进度展示，不会自动作为工具返回值交给上一级代理。只有显式调用 `ReturnOutputToParent`，传入的文本才会成为上一级代理拿到的结果。
+也就是说，子智能体流里产生的普通文本和思考只用于进度展示，不会自动作为工具返回值交给上一级智能体。只有显式调用 `ReturnOutputToParent`，传入的文本才会成为上一级智能体拿到的结果。
+
+### 3.2 顶层助手消息承担子智能体进度容器
+
+`CopilotChatMessage` 与 `CopilotChatSubAgentItem` 都实现了 `ISubAgentProgressContainer`。
+
+当前发送流程会先创建顶层助手消息，再把该消息传给 `CopilotToolManager.CreateDefaultTools(...)`，让默认 `SubAgent` 工具把一级子智能体进度直接写进当前助手消息；后续嵌套的子智能体，再继续由各自的 `CopilotChatSubAgentItem` 负责承接内部进度。
 
 ### 4. `WorkspaceToolProvider` 的文件读取接口改为异步
 
