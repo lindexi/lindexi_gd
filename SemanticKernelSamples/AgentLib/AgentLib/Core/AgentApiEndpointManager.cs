@@ -9,6 +9,7 @@ using OpenAI.Chat;
 
 using System;
 using System.ClientModel;
+using System.Linq;
 
 namespace AgentLib.Core;
 
@@ -50,6 +51,19 @@ public class AgentApiEndpointManager
     }
 
     public IReadOnlyList<ILanguageModel> GetSupportedModels() => SupportedModels;
+
+    public ILanguageModel GetBestModel(Func<ILanguageModel, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        var matchedModel = GetSupportedModels().Where(predicate).OrderDescending(new LanguageModelCapabilityComparer()).FirstOrDefault();
+        if (matchedModel is null)
+        {
+            throw new InvalidOperationException("当前没有符合要求的模型。请检查模型能力配置或调整子代理类型。");
+        }
+
+        return matchedModel;
+    }
 
     private List<ILanguageModel> SupportedModels { get; } = [];
 

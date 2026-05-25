@@ -12,7 +12,7 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace AgentLib.Model;
 
-public sealed class CopilotChatMessage : NotifyBase
+public sealed class CopilotChatMessage : NotifyBase, ISubAgentProgressContainer
 {
     public CopilotChatMessage(ChatRole role, string content)
     {
@@ -260,6 +260,7 @@ public sealed class CopilotChatMessage : NotifyBase
 
         MessageItems.Clear();
         _toolItemsByCallId.Clear();
+        _subAgentItemsByCallId.Clear();
     }
 
     public void AppendText(string text)
@@ -298,6 +299,12 @@ public sealed class CopilotChatMessage : NotifyBase
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
 
+        if (string.Equals(functionCallContent.Name, "InvokeSubAgent", StringComparison.Ordinal))
+        {
+            AppendSubAgentCall(functionCallContent);
+            return;
+        }
+
         string callId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
             ? Guid.NewGuid().ToString("N")
             : functionCallContent.CallId;
@@ -317,6 +324,12 @@ public sealed class CopilotChatMessage : NotifyBase
     public void AppendFunctionResult(FunctionResultContent functionResultContent)
     {
         ArgumentNullException.ThrowIfNull(functionResultContent);
+
+        if (_subAgentItemsByCallId.ContainsKey(functionResultContent.CallId ?? string.Empty))
+        {
+            AppendSubAgentResult(functionResultContent);
+            return;
+        }
 
         string callId = string.IsNullOrWhiteSpace(functionResultContent.CallId)
             ? Guid.NewGuid().ToString("N")
@@ -358,6 +371,86 @@ public sealed class CopilotChatMessage : NotifyBase
         OnUsageDetailsChanged();
     }
 
+    public CopilotChatSubAgentItem AppendSubAgentCall(string toolName, string? inputText, string? callId = null)
+    {
+        string resolvedCallId = string.IsNullOrWhiteSpace(callId)
+            ? Guid.NewGuid().ToString("N")
+            : callId;
+
+        if (!_subAgentItemsByCallId.TryGetValue(resolvedCallId, out CopilotChatSubAgentItem? subAgentItem))
+        {
+            subAgentItem = new CopilotChatSubAgentItem(resolvedCallId, toolName, inputText);
+            _subAgentItemsByCallId[resolvedCallId] = subAgentItem;
+            MessageItems.Add(subAgentItem);
+            return subAgentItem;
+        }
+
+        subAgentItem.ToolName = toolName;
+        subAgentItem.InputText = inputText ?? string.Empty;
+        return subAgentItem;
+    }
+
+    public void AppendSubAgentText(string callId, string text)
+    {
+        if (string.IsNullOrWhiteSpace(callId) || string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
+        {
+            subAgentItem.AppendText(text);
+        }
+    }
+
+    public void AppendSubAgentReasoning(string callId, string text)
+    {
+        if (string.IsNullOrWhiteSpace(callId) || string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
+        {
+            subAgentItem.AppendReasoning(text);
+        }
+    }
+
+    public void AppendSubAgentFunctionCall(string callId, FunctionCallContent functionCallContent)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(callId);
+        ArgumentNullException.ThrowIfNull(functionCallContent);
+
+        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
+        {
+            subAgentItem.AppendFunctionCall(functionCallContent);
+        }
+    }
+
+    public void AppendSubAgentFunctionResult(string callId, FunctionResultContent functionResultContent)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(callId);
+        ArgumentNullException.ThrowIfNull(functionResultContent);
+
+        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
+        {
+            subAgentItem.AppendFunctionResult(functionResultContent);
+        }
+    }
+
+    public void AppendSubAgentOutput(string callId, string? outputText)
+    {
+        if (string.IsNullOrWhiteSpace(callId))
+        {
+            return;
+        }
+
+        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
+        {
+            subAgentItem.OutputText = outputText ?? string.Empty;
+        }
+    }
+
     private void OnUsageDetailsChanged()
     {
         OnPropertyChanged(nameof(UsageDetails));
@@ -376,6 +469,7 @@ public sealed class CopilotChatMessage : NotifyBase
     }
 
     private readonly Dictionary<string, CopilotChatToolItem> _toolItemsByCallId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, CopilotChatSubAgentItem> _subAgentItemsByCallId = new(StringComparer.Ordinal);
 
     private static string? FormatMessageItem(ICopilotChatMessageItem messageItem)
     {
@@ -384,6 +478,7 @@ public sealed class CopilotChatMessage : NotifyBase
             CopilotChatTextItem textItem => textItem.Text,
             CopilotChatReasoningItem reasoningItem => $"思考：{Environment.NewLine}{reasoningItem.Text}",
             CopilotChatToolItem toolItem => FormatToolItem(toolItem),
+            CopilotChatSubAgentItem subAgentItem => FormatSubAgentItem(subAgentItem),
             _ => null
         };
     }
@@ -410,6 +505,63 @@ public sealed class CopilotChatMessage : NotifyBase
         }
 
         return builder.ToString();
+    }
+
+    private static string FormatSubAgentItem(CopilotChatSubAgentItem subAgentItem)
+    {
+        var builder = new StringBuilder();
+        builder.Append("子代理：").Append(subAgentItem.ToolName);
+
+        if (subAgentItem.HasInputText)
+        {
+            builder.AppendLine()
+                .Append("输入：")
+                .AppendLine()
+                .Append(subAgentItem.InputText);
+        }
+
+        foreach (ICopilotChatMessageItem messageItem in subAgentItem.MessageItems)
+        {
+            string? itemText = FormatMessageItem(messageItem);
+            if (string.IsNullOrEmpty(itemText))
+            {
+                continue;
+            }
+
+            builder.AppendLine()
+                .Append("进度：")
+                .AppendLine()
+                .Append(itemText);
+        }
+
+        if (subAgentItem.HasOutputText)
+        {
+            builder.AppendLine()
+                .Append("输出：")
+                .AppendLine()
+                .Append(subAgentItem.OutputText);
+        }
+
+        return builder.ToString();
+    }
+
+    private void AppendSubAgentCall(FunctionCallContent functionCallContent)
+    {
+        string callId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
+            ? Guid.NewGuid().ToString("N")
+            : functionCallContent.CallId;
+
+        CopilotChatSubAgentItem subAgentItem = AppendSubAgentCall(functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent), callId);
+        subAgentItem.ToolName = functionCallContent.Name;
+    }
+
+    private void AppendSubAgentResult(FunctionResultContent functionResultContent)
+    {
+        string callId = string.IsNullOrWhiteSpace(functionResultContent.CallId)
+            ? Guid.NewGuid().ToString("N")
+            : functionResultContent.CallId;
+
+        AppendSubAgentOutput(callId, CopilotChatMessageItemFormatter.FormatResult(functionResultContent));
     }
 
     private void MessageItems_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

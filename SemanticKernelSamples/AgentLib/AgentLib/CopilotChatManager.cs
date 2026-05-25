@@ -31,7 +31,7 @@ public class CopilotChatManager : NotifyBase
     public CopilotChatManager(ICopilotChatLogger chatLogger)
     {
         ChatLogger = chatLogger;
-        _toolManager = new CopilotToolManager();
+        _toolManager = new CopilotToolManager(this.AgentApiEndpointManager);
         CreateNewSession();
     }
 
