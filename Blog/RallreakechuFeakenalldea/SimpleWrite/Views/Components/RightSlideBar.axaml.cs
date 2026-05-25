@@ -107,7 +107,7 @@ public partial class RightSlideBar : UserControl
         else
         {
             // 提示可以配置
-            copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接", isPresetInfo: true));
+            copilotViewModel.ChatMessages.Add(CopilotChatMessage.CreateAssistant($"请点击设置，设置模型的连接。设置完成之后，重启应用", isPresetInfo: true));
         }
     }
 

@@ -13,6 +13,8 @@ public sealed class CopilotChatMessageItemTemplateSelector : IDataTemplate
 
     public IDataTemplate? ToolItemTemplate { get; set; }
 
+    public IDataTemplate? SubAgentItemTemplate { get; set; }
+
     public Control? Build(object? param)
     {
         IDataTemplate? template = param switch
@@ -20,6 +22,7 @@ public sealed class CopilotChatMessageItemTemplateSelector : IDataTemplate
             CopilotChatTextItem => TextItemTemplate,
             CopilotChatReasoningItem => ReasoningItemTemplate,
             CopilotChatToolItem => ToolItemTemplate,
+            CopilotChatSubAgentItem => SubAgentItemTemplate,
             _ => null
         };
 
