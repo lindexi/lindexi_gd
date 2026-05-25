@@ -36,17 +36,17 @@ public sealed class SubAgentToolProvider
 
     public IReadOnlyList<AITool> CreateDefaultTools()
     {
-        return CreateTools(progressContainer: null, includeReturnOutputTool: false);
+        return CreateTools(chatContext: null, includeReturnOutputTool: false);
     }
 
-    internal IReadOnlyList<AITool> CreateDefaultTools(ISubAgentProgressContainer? progressContainer)
+    internal IReadOnlyList<AITool> CreateDefaultTools(CopilotChatContext? chatContext)
     {
-        return CreateTools(progressContainer, includeReturnOutputTool: false);
+        return CreateTools(chatContext, includeReturnOutputTool: false);
     }
 
-    private IReadOnlyList<AITool> CreateTools(ISubAgentProgressContainer? progressContainer, bool includeReturnOutputTool)
+    private IReadOnlyList<AITool> CreateTools(CopilotChatContext? chatContext, bool includeReturnOutputTool)
     {
-        var executor = new SubAgentToolExecutor(_agentApiEndpointManager, _workspaceToolProvider, progressContainer, this);
+        var executor = new SubAgentToolExecutor(_agentApiEndpointManager, _workspaceToolProvider, chatContext, this);
         List<AITool> tools =
         [
             executor.CreateTool(nameof(SubAgentToolExecutor.InvokeSubAgentAsync), InvokeSubAgentToolName, "委托一个子代理执行独立任务。可通过子代理类型选择快速模型或多模态能力；只有确定性处理、总结输出、了解文件组织结构或大文件内容、意图识别等无需思考决策的任务才可使用 Flash，涉及分析、判断、设计或决策时不要使用 Flash。")
@@ -64,15 +64,15 @@ public sealed class SubAgentToolProvider
     {
         private readonly AgentApiEndpointManager _agentApiEndpointManager;
         private readonly WorkspaceToolProvider _workspaceToolProvider;
-        private readonly ISubAgentProgressContainer? _progressContainer;
+        private readonly CopilotChatContext? _chatContext;
         private readonly SubAgentToolProvider _provider;
         private readonly SubAgentOutputCollector _outputCollector = new();
 
-        public SubAgentToolExecutor(AgentApiEndpointManager agentApiEndpointManager, WorkspaceToolProvider workspaceToolProvider, ISubAgentProgressContainer? progressContainer, SubAgentToolProvider provider)
+        public SubAgentToolExecutor(AgentApiEndpointManager agentApiEndpointManager, WorkspaceToolProvider workspaceToolProvider, CopilotChatContext? chatContext, SubAgentToolProvider provider)
         {
             _agentApiEndpointManager = agentApiEndpointManager;
             _workspaceToolProvider = workspaceToolProvider;
-            _progressContainer = progressContainer;
+            _chatContext = chatContext;
             _provider = provider;
         }
 
@@ -93,14 +93,15 @@ public sealed class SubAgentToolProvider
             SubAgentSelection selection = SubAgentSelection.Parse(subAgentType);
             ILanguageModel model = _agentApiEndpointManager.GetBestModel(languageModel => selection.IsMatch(languageModel));
             IChatClient chatClient = await model.GetChatClientAsync().ConfigureAwait(false);
-            CopilotChatSubAgentItem? subAgentItem = _progressContainer?.AppendSubAgentCall(InvokeSubAgentDisplayName, CreateInvocationInputText(prompt, systemPrompt, subAgentType));
+            CopilotChatSubAgentItem? subAgentItem = _chatContext?.CurrentContent.CreateSubAgentItem(InvokeSubAgentDisplayName, CreateInvocationInputText(prompt, systemPrompt, subAgentType));
             _outputCollector.Attach(subAgentItem);
+            CopilotChatContext? subAgentChatContext = subAgentItem is not null ? _chatContext?.CreateSubAgentContext(subAgentItem) : null;
 
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
                 {
-                    Tools = [.. CreateSubAgentTools(subAgentItem)],
+                    Tools = [.. CreateSubAgentTools(subAgentChatContext)],
                 }
             });
 
@@ -145,11 +146,11 @@ public sealed class SubAgentToolProvider
             return AIFunctionFactory.Create(methodInfo, this, toolName, description, serializerOptions: null);
         }
 
-        private IReadOnlyList<AITool> CreateSubAgentTools(CopilotChatSubAgentItem? currentSubAgentItem)
+        private IReadOnlyList<AITool> CreateSubAgentTools(CopilotChatContext? chatContext)
         {
             List<AITool> tools = [];
             tools.AddRange(_workspaceToolProvider.CreateDefaultTools());
-            tools.AddRange(_provider.CreateTools(currentSubAgentItem, includeReturnOutputTool: true));
+            tools.AddRange(_provider.CreateTools(chatContext, includeReturnOutputTool: true));
             return tools;
         }
 
@@ -199,7 +200,8 @@ public sealed class SubAgentToolProvider
 
             if (string.Equals(functionCallContent.Name, InvokeSubAgentToolName, StringComparison.Ordinal))
             {
-                subAgentItem.AppendSubAgentCall(InvokeSubAgentDisplayName, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent), functionCallContent.CallId);
+                CopilotChatSubAgentItem nestedSubAgentItem = subAgentItem.CreateSubAgentItem(InvokeSubAgentDisplayName, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent), functionCallContent.CallId);
+                nestedSubAgentItem.ToolName = InvokeSubAgentDisplayName;
                 return;
             }
 
@@ -213,7 +215,10 @@ public sealed class SubAgentToolProvider
 
             if (!string.IsNullOrWhiteSpace(functionResultContent.CallId) && subAgentItem.MessageItems.OfType<CopilotChatSubAgentItem>().Any(item => string.Equals(item.CallId, functionResultContent.CallId, StringComparison.Ordinal)))
             {
-                subAgentItem.AppendSubAgentOutput(functionResultContent.CallId, CopilotChatMessageItemFormatter.FormatResult(functionResultContent));
+                CopilotChatSubAgentItem nestedSubAgentItem = subAgentItem.MessageItems
+                    .OfType<CopilotChatSubAgentItem>()
+                    .First(item => string.Equals(item.CallId, functionResultContent.CallId, StringComparison.Ordinal));
+                nestedSubAgentItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
                 return;
             }
 

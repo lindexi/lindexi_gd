@@ -32,11 +32,11 @@ public sealed class CopilotToolManager
         set => WorkspaceTools.WorkspacePath = value;
     }
 
-    internal IReadOnlyList<AITool> CreateDefaultTools(ISubAgentProgressContainer? progressContainer)
+    internal IReadOnlyList<AITool> CreateDefaultTools(CopilotChatContext? chatContext)
     {
         List<AITool> tools = [];
         tools.AddRange(WorkspaceTools.CreateDefaultTools());
-        tools.AddRange(SubAgentTools.CreateDefaultTools(progressContainer));
+        tools.AddRange(SubAgentTools.CreateDefaultTools(chatContext));
         return tools;
     }
 }
