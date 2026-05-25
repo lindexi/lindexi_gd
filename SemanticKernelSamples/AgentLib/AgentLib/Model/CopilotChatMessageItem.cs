@@ -164,14 +164,14 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
 }
 
 /// <summary>
-/// 表示子代理调用片段。
+/// 表示子智能体调用片段。
 /// </summary>
 public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageItem, ISubAgentProgressContainer
 {
     public CopilotChatSubAgentItem(string callId, string toolName, string? inputText, string? outputText = null)
     {
         CallId = callId;
-        ToolName = string.IsNullOrWhiteSpace(toolName) ? "子代理" : toolName;
+        ToolName = string.IsNullOrWhiteSpace(toolName) ? "子智能体" : toolName;
         InputText = inputText ?? string.Empty;
         OutputText = outputText ?? string.Empty;
         MessageItems.CollectionChanged += MessageItems_CollectionChanged;
@@ -184,7 +184,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         get => _toolName;
         internal set
         {
-            string normalizedValue = string.IsNullOrWhiteSpace(value) ? "子代理" : value;
+            string normalizedValue = string.IsNullOrWhiteSpace(value) ? "子智能体" : value;
             if (!SetField(ref _toolName, normalizedValue))
             {
                 return;

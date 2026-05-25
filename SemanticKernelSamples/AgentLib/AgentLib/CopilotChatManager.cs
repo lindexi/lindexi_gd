@@ -168,8 +168,11 @@ public class CopilotChatManager : NotifyBase
             var userChatMessage = CopilotChatMessage.CreateUser(inputText);
             await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
 
+            var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
+            OnBeforeSendStreaming(currentSession, copilotChatMessage);
+
             var chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-            List<AITool> toolList = ResolveTools(tools);
+            List<AITool> toolList = ResolveTools(tools, copilotChatMessage);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
@@ -183,7 +186,6 @@ public class CopilotChatManager : NotifyBase
                 ? [.. currentSession.ChatMessages.Where(chatMessage => !chatMessage.IsPresetInfo).Select(chatMessage => chatMessage.ToChatMessage())]
                 : [userChatMessage.ToChatMessage()];
 
-            var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             currentSession.AddMessage(copilotChatMessage);
 
             bool isFirst = true;
@@ -224,7 +226,7 @@ public class CopilotChatManager : NotifyBase
     {
     }
 
-    private List<AITool> ResolveTools(IEnumerable<AITool>? tools)
+    private List<AITool> ResolveTools(IEnumerable<AITool>? tools, ISubAgentProgressContainer? progressContainer = null)
     {
         List<AITool> toolList = [];
         if (tools != null)
@@ -232,7 +234,7 @@ public class CopilotChatManager : NotifyBase
             toolList.AddRange(tools);
         }
 
-        toolList.AddRange(_toolManager.CreateDefaultTools());
+        toolList.AddRange(_toolManager.CreateDefaultTools(progressContainer));
         return toolList;
     }
 
