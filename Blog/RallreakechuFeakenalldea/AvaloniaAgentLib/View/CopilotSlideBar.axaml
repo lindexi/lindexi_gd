@@ -118,6 +118,45 @@
             </Expander>
         </DataTemplate>
 
+        <DataTemplate x:Key="AssistantSubAgentItemTemplate" x:DataType="model:CopilotChatSubAgentItem">
+            <Expander Margin="0,0,0,8" Background="#FF1F2430" IsExpanded="True">
+                <Expander.Styles>
+                    <Style Selector="ToggleButton#ExpanderHeader">
+                        <Setter Property="Background" Value="#FF162033"></Setter>
+                        <Setter Property="Foreground" Value="White"></Setter>
+                        <Style Selector="^ /template/ Border#ToggleButtonBackground:pointerover">
+                            <Setter Property="Background" Value="#FF243149"></Setter>
+                        </Style>
+                        <Style Selector="^:unchecked /template/ Path">
+                            <Setter Property="Stroke" Value="#FFD9E7FF" />
+                        </Style>
+                        <Style Selector="^:checked /template/ Path">
+                            <Setter Property="Stroke" Value="#FFD9E7FF" />
+                        </Style>
+                    </Style>
+                </Expander.Styles>
+                <Expander.Header>
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding DisplayName}" Foreground="#FFF2F6FF" />
+                        <TextBlock Classes="SecondaryText" Text="子代理进度" />
+                    </StackPanel>
+                </Expander.Header>
+                <StackPanel Margin="0,8,0,0" Spacing="8">
+                    <StackPanel IsVisible="{Binding HasInputText}" Spacing="4">
+                        <TextBlock Classes="SecondaryText" Text="任务输入" />
+                        <SelectableTextBlock Text="{Binding InputText}" TextWrapping="Wrap" Foreground="#FFE1E9F8" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding MessageItems}"
+                                  IsVisible="{Binding HasMessageItems}"
+                                  ItemTemplate="{StaticResource CopilotChatMessageItemTemplateSelector}" />
+                    <StackPanel IsVisible="{Binding HasOutputText}" Spacing="4">
+                        <TextBlock Classes="SecondaryText" Text="返回上级代理的输出" />
+                        <SelectableTextBlock Text="{Binding OutputText}" TextWrapping="Wrap" Foreground="#FFF7FBFF" />
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+        </DataTemplate>
+
         <view:CopilotChatMessageTemplateSelector x:Key="CopilotChatMessageTemplateSelector"
                                                  UserTemplate="{StaticResource UserMessageTemplate}"
                                                  AssistantTemplate="{StaticResource AssistantMessageTemplate}"
@@ -126,7 +165,8 @@
         <view:CopilotChatMessageItemTemplateSelector x:Key="CopilotChatMessageItemTemplateSelector"
                                                      TextItemTemplate="{StaticResource AssistantTextItemTemplate}"
                                                      ReasoningItemTemplate="{StaticResource AssistantReasoningItemTemplate}"
-                                                     ToolItemTemplate="{StaticResource AssistantToolItemTemplate}" />
+                                                     ToolItemTemplate="{StaticResource AssistantToolItemTemplate}"
+                                                     SubAgentItemTemplate="{StaticResource AssistantSubAgentItemTemplate}" />
     </UserControl.Resources>
     <UserControl.Styles>
         <Style Selector="Border.CardBorder">

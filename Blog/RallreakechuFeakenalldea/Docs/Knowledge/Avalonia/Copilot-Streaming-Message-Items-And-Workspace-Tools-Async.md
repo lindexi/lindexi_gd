@@ -15,6 +15,7 @@
 - `CopilotChatTextItem`：正文输出；
 - `CopilotChatReasoningItem`：思考输出；
 - `CopilotChatToolItem`：工具调用与结果。
+- `CopilotChatSubAgentItem`：子代理调用、逐步进度与向上级返回的最终输出。
 
 `Content`、`Reason`、`FullContent` 仍然保留，但都由片段集合聚合计算得到，主要用于：
 
@@ -51,6 +52,20 @@
 - 展开后显示输入参数；
 - 再显示工具输出。
 
+子代理片段同样使用独立折叠区域，但内部继续绑定自己的 `MessageItems`，因此可以直接显示多级嵌套的子代理进度，不再只能看到一次性返回结果。
+
+### 3.1 `SubAgent` 约定改成显式返回输出
+
+当前子代理默认工具名改为带动词语义的 `InvokeSubAgent`。
+
+子代理执行时允许继续拿到：
+
+- 默认工作区工具；
+- `InvokeSubAgent` 本身，用于继续向下委托；
+- `ReturnOutputToParent`，仅在确实需要给上一级代理返回结果时才调用。
+
+也就是说，子代理流里产生的普通文本和思考只用于进度展示，不会自动作为工具返回值交给上一级代理。只有显式调用 `ReturnOutputToParent`，传入的文本才会成为上一级代理拿到的结果。
+
 ### 4. `WorkspaceToolProvider` 的文件读取接口改为异步
 
 当前默认文件工具里涉及文件读取和逐行扫描的 API 改为 `Task<string>`：
@@ -72,6 +87,7 @@
 - `TextItem`；
 - `ReasoningItem`；
 - `ToolItem`。
+- `SubAgentItem`（内部继续递归包含 `MessageItems`）。
 
 这样后续如果要做更精细的聊天历史回放，就可以直接按结构恢复，而不是再从聚合文本里反推。
 
