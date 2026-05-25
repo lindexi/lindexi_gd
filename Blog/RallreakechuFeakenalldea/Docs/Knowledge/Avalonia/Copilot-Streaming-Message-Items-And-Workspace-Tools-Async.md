@@ -66,11 +66,22 @@
 
 也就是说，子智能体流里产生的普通文本和思考只用于进度展示，不会自动作为工具返回值交给上一级智能体。只有显式调用 `ReturnOutputToParent`，传入的文本才会成为上一级智能体拿到的结果。
 
-### 3.2 顶层助手消息承担子智能体进度容器
+### 3.2 默认工具改为共享聊天上下文
 
-`CopilotChatMessage` 与 `CopilotChatSubAgentItem` 都实现了 `ISubAgentProgressContainer`。
+当前默认工具不再直接拿 `CopilotChatMessage` 或 `ISubAgentProgressContainer`，而是统一拿一个 `CopilotChatContext`。
 
-当前发送流程会先创建顶层助手消息，再把该消息传给 `CopilotToolManager.CreateDefaultTools(...)`，让默认 `SubAgent` 工具把一级子智能体进度直接写进当前助手消息；后续嵌套的子智能体，再继续由各自的 `CopilotChatSubAgentItem` 负责承接内部进度。
+这个上下文只保留两类状态：
+
+- 当前聊天历史；
+- 当前聊天内容承载器。
+
+其中当前聊天内容由 `ICopilotChatCurrentContent` 抽象，`CopilotChatMessage` 与 `CopilotChatSubAgentItem` 都实现该接口。
+
+当前发送流程会先创建顶层助手消息，再基于当前会话历史和该助手消息构造 `CopilotChatContext`，再传给 `CopilotToolManager.CreateDefaultTools(...)`。这样默认 `SubAgent` 工具拿到的就不再是某个具体消息类型，而是一份可继续派生的聊天状态。
+
+当子智能体再次调用子智能体时，会先在当前聊天内容里创建新的 `CopilotChatSubAgentItem`，再基于该项派生新的 `CopilotChatContext` 继续向下传递。于是嵌套层级不再依赖外部额外查找进度容器，只需要沿着当前上下文继续向下写入即可。
+
+这次也一并移除了 `ISubAgentProgressContainer`。子智能体的进度、工具调用和最终输出都直接落到当前 `CopilotChatSubAgentItem` 上，不再额外暴露一组带 `callId` 的进度写入接口。
 
 ### 4. `WorkspaceToolProvider` 的文件读取接口改为异步
 
@@ -92,7 +103,7 @@
 
 - `TextItem`；
 - `ReasoningItem`；
-- `ToolItem`。
+- `ToolItem`；
 - `SubAgentItem`（内部继续递归包含 `MessageItems`）。
 
 这样后续如果要做更精细的聊天历史回放，就可以直接按结构恢复，而不是再从聚合文本里反推。
