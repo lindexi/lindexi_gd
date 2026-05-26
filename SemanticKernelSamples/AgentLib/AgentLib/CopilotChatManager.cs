@@ -18,8 +18,10 @@ namespace AgentLib;
 public class CopilotChatManager : NotifyBase
 {
     private bool _isChatting;
+    private bool _wasLastChatCanceled;
     private ICopilotChatLogger _chatLogger = null!;
     private CopilotChatSession _selectedSession = null!;
+    private CancellationTokenSource? _currentChatCancellationTokenSource;
     private readonly CopilotToolManager _toolManager;
 
     public CopilotChatManager()
@@ -67,6 +69,12 @@ public class CopilotChatManager : NotifyBase
     }
 
     public bool CanEditInput => !IsChatting;
+
+    public bool WasLastChatCanceled
+    {
+        get => _wasLastChatCanceled;
+        private set => SetField(ref _wasLastChatCanceled, value);
+    }
 
     public string SendButtonText => IsChatting ? "停止" : "发送";
 
@@ -119,6 +127,11 @@ public class CopilotChatManager : NotifyBase
             : new FileCopilotChatLogger(chatLogFolder);
     }
 
+    public void CancelCurrentChat()
+    {
+        _currentChatCancellationTokenSource?.Cancel();
+    }
+
     public async Task AddConversationAsync(string userText, string assistantText,
         bool isPresetInfo = true, CancellationToken cancellationToken = default)
     {
@@ -153,6 +166,11 @@ public class CopilotChatManager : NotifyBase
             return;
         }
 
+        using CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource(cancellationToken);
+        CancellationToken currentChatCancellationToken = currentChatCancellationTokenSource.Token;
+        _currentChatCancellationTokenSource = currentChatCancellationTokenSource;
+        WasLastChatCanceled = false;
+
         if (createNewSession)
         {
             CreateNewSession();
@@ -163,10 +181,10 @@ public class CopilotChatManager : NotifyBase
 
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            currentChatCancellationToken.ThrowIfCancellationRequested();
 
             var userChatMessage = CopilotChatMessage.CreateUser(inputText);
-            await AppendMessageAsync(currentSession, userChatMessage, cancellationToken);
+            await AppendMessageAsync(currentSession, userChatMessage, currentChatCancellationToken);
 
             var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             OnBeforeSendStreaming(currentSession, copilotChatMessage);
@@ -190,7 +208,7 @@ public class CopilotChatManager : NotifyBase
             currentSession.AddMessage(copilotChatMessage);
 
             bool isFirst = true;
-            await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: cancellationToken))
+            await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: currentChatCancellationToken))
             {
                 if (isFirst)
                 {
@@ -203,8 +221,9 @@ public class CopilotChatManager : NotifyBase
 
             await ChatLogger.LogMessageAsync(currentSession.SessionId, copilotChatMessage);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (currentChatCancellationToken.IsCancellationRequested)
         {
+            WasLastChatCanceled = true;
             var canceledMessage = CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true);
             await AppendMessageAsync(currentSession, canceledMessage);
         }
@@ -215,6 +234,11 @@ public class CopilotChatManager : NotifyBase
         }
         finally
         {
+            if (ReferenceEquals(_currentChatCancellationTokenSource, currentChatCancellationTokenSource))
+            {
+                _currentChatCancellationTokenSource = null;
+            }
+
             IsChatting = false;
         }
     }
@@ -298,5 +322,12 @@ public class CopilotChatManager : NotifyBase
     private static void AddAssistantWelcomeMessage(CopilotChatSession session)
     {
         session.AddMessage(CopilotChatMessage.CreateAssistant("你好，我是 Copilot。请开始输入你的问题。", isPresetInfo: true));
+    }
+
+    private static CancellationTokenSource CreateCurrentChatCancellationTokenSource(CancellationToken cancellationToken)
+    {
+        return cancellationToken.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : new CancellationTokenSource();
     }
 }

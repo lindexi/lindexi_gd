@@ -98,4 +98,24 @@ public class CopilotChatManagerCancellationTests
         Assert.AreEqual("已取消", context.ChatManager.ChatMessages[^1].Content);
         Assert.IsTrue(context.ChatManager.ChatMessages[^1].IsPresetInfo);
     }
+
+    [TestMethod]
+    [Description("调用聊天管理层取消当前聊天时应中断新会话流式处理并追加已取消提示")]
+    public async Task CancelCurrentChat_WhenNewSessionChatIsRunning_AppendsCancelledMessage()
+    {
+        var primaryChatClient = new FakeChatClient();
+        var blockingResponse = new BlockingStreamingResponse();
+        primaryChatClient.EnqueueStreamingResponse((_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken));
+        var context = CopilotChatManagerTestContext.Create(primaryChatClient);
+
+        Task sendTask = context.ChatManager.SendMessageInNewSessionAsync("新会话取消测试");
+        await blockingResponse.Started;
+        context.ChatManager.CancelCurrentChat();
+        blockingResponse.Release();
+        await sendTask;
+
+        Assert.IsFalse(context.ChatManager.IsChatting);
+        Assert.AreEqual("已取消", context.ChatManager.ChatMessages[^1].Content);
+        Assert.IsTrue(context.ChatManager.ChatMessages[^1].IsPresetInfo);
+    }
 }
