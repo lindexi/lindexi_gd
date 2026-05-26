@@ -173,7 +173,7 @@ public class CopilotChatManager : NotifyBase
 
             var chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
             CopilotChatContext chatContext = new(currentSession.ChatMessages, copilotChatMessage);
-            List<AITool> toolList = ResolveTools(tools, chatContext);
+            List<AITool> toolList = ResolveTools(tools, chatContext, cancellationToken);
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
@@ -206,12 +206,12 @@ public class CopilotChatManager : NotifyBase
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             var canceledMessage = CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true);
-            await AppendMessageAsync(currentSession, canceledMessage, cancellationToken);
+            await AppendMessageAsync(currentSession, canceledMessage);
         }
         catch (Exception exception)
         {
             var exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
-            await AppendMessageAsync(currentSession, exceptionMessage, cancellationToken);
+            await AppendMessageAsync(currentSession, exceptionMessage);
         }
         finally
         {
@@ -227,7 +227,8 @@ public class CopilotChatManager : NotifyBase
     {
     }
 
-    private List<AITool> ResolveTools(IEnumerable<AITool>? tools, CopilotChatContext? chatContext = null)
+    private List<AITool> ResolveTools(IEnumerable<AITool>? tools, CopilotChatContext? chatContext = null,
+        CancellationToken cancellationToken = default)
     {
         List<AITool> toolList = [];
         if (tools != null)
@@ -235,7 +236,7 @@ public class CopilotChatManager : NotifyBase
             toolList.AddRange(tools);
         }
 
-        toolList.AddRange(_toolManager.CreateDefaultTools(chatContext));
+        toolList.AddRange(_toolManager.CreateDefaultTools(chatContext, cancellationToken));
         return toolList;
     }
 
