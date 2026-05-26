@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Avalonia;
@@ -10,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 
 using AgentLib.Model;
+
 using AvaloniaAgentLib.ViewModel;
 
 namespace AvaloniaAgentLib.View;
@@ -19,7 +19,6 @@ public partial class CopilotSlideBar : UserControl
     public static readonly StyledProperty<string?> ChatLogFolderProperty =
         AvaloniaProperty.Register<CopilotSlideBar, string?>(nameof(ChatLogFolder));
 
-    private CancellationTokenSource? _sendMessageCts;
     private INotifyCollectionChanged? _currentChatMessages;
 
     public CopilotSlideBar()
@@ -28,6 +27,8 @@ public partial class CopilotSlideBar : UserControl
 
         ViewModel.PropertyChanged += ViewModel_PropertyChanged;
         SubscribeChatMessages(ViewModel.ChatMessages);
+
+        InputTextBox.AddHandler(TextBox.KeyDownEvent, InputTextBox_OnKeyDown, handledEventsToo: true, routes: RoutingStrategies.Tunnel);
     }
 
     public CopilotViewModel ViewModel => (CopilotViewModel) DataContext!;
@@ -52,7 +53,7 @@ public partial class CopilotSlideBar : UserControl
     {
         if (ViewModel.IsChatting)
         {
-            _sendMessageCts?.Cancel();
+            ViewModel.CancelCurrentChat();
             return;
         }
 
@@ -61,13 +62,11 @@ public partial class CopilotSlideBar : UserControl
 
     private void InputTextBox_OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        if (e.Key == Key.Enter && e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
-            return;
+            _ = SendMessageAsync();
+            e.Handled = true;
         }
-
-        _ = SendMessageAsync();
-        e.Handled = true;
     }
 
     private async Task SendMessageAsync()
@@ -84,31 +83,19 @@ public partial class CopilotSlideBar : UserControl
             return;
         }
 
-        _sendMessageCts?.Dispose();
-        var sendMessageCts = new CancellationTokenSource();
-        _sendMessageCts = sendMessageCts;
-
         try
         {
-            await ViewModel.SendMessageAsync(inputText, withHistory: true, sendMessageCts.Token);
-            InputTextBox.Text = null;
+            await ViewModel.SendMessageAsync(inputText, withHistory: true);
+            if (!ViewModel.WasLastChatCanceled)
+            {
+                InputTextBox.Text = null;
+            }
+
             await ScrollToBottomAsync();
-        }
-        catch (OperationCanceledException) when (sendMessageCts.IsCancellationRequested)
-        {
-            InputTextBox.Text = originalInputText;
         }
         catch (Exception)
         {
             InputTextBox.Text = originalInputText;
-        }
-        finally
-        {
-            sendMessageCts.Dispose();
-            if (ReferenceEquals(_sendMessageCts, sendMessageCts))
-            {
-                _sendMessageCts = null;
-            }
         }
     }
 

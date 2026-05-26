@@ -69,6 +69,15 @@
 
 - `SimpleWrite/Business/CopilotCommandPatterns/PolishSelectedTextCommandPattern.cs`
 
+### 5. 停止按钮改为取消当前聊天管线
+
+现在“停止”不再依赖 `CopilotSlideBar` 自己保存的 `CancellationTokenSource`。
+
+- `CopilotChatManager` 会为每次发送统一创建当前聊天的取消源。
+- 侧栏输入框发送与“发送内容到 Copilot 聊天”这类派生命令，共享同一套取消状态。
+- 用户在侧栏点击“停止”时，实际调用的是聊天管理层的 `CancelCurrentChat()`，因此无论本次聊天是从哪个入口触发，都能正确中断。
+- 侧栏输入框仍然保留原有体验：如果本次发送是被取消的，输入框文本不会被清空。
+
 ## 为什么不用预设消息
 
 之前本地展示类命令通过 `AddLocalConversationAsync` 把用户问题和结果都标记成 `IsPresetInfo = true`。

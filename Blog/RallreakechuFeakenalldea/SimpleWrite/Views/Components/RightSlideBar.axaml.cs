@@ -1,4 +1,5 @@
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Logging;
 using AgentLib.Model;
 
@@ -17,8 +18,12 @@ using SimpleWrite.Foundation;
 using SimpleWrite.ViewModels;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.AI;
 
 namespace SimpleWrite.Views.Components;
 
@@ -94,7 +99,24 @@ public partial class RightSlideBar : UserControl
         // 加载配置文件
         var agentConfigurationFile = mainViewModel.AppPathManager.AgentConfigurationFile;
         var agentApiManagerConfiguration = await AgentApiManagerConfiguration.FromJsonFileAsync(agentConfigurationFile);
+        copilotViewModel.AgentApiEndpointManager
+            .RegisterLanguageModelProvider(new FakeLanguageModelProvider(new FakeChatClient()
+            {
+                OnGetStreamingResponseAsync = FakeGetStreamingResponseAsync
+            }));
         copilotViewModel.AgentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
+
+        static async IAsyncEnumerable<ChatResponseUpdate> FakeGetStreamingResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options, [EnumeratorCancellation] CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromHours(10), token);
+            }
+            catch (TaskCanceledException)
+            {
+               yield break;
+            }
+        }
 
         // 完成加载之后，即可了解到是否完成配置。判断条件就是判断是否有模型加载进去了
         var finishConfig = copilotViewModel.AgentApiEndpointManager.GetSupportedModels().Count > 0;
