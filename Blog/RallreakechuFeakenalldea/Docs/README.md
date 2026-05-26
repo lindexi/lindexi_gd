@@ -29,6 +29,7 @@
 | Copilot 派生命令为何会新建会话 | `Knowledge/Avalonia/Copilot-New-Session-Command-Behavior.md` |
 | 快捷键与文件选择器 | `Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md` |
 | 功能交付自检 | `Knowledge/Workflow/Feature-Delivery-Checklist.md` |
+| AgentLib 单元测试补齐 | `Knowledge/Workflow/AgentLib-Tests-Coverage-And-MSTest-Notes.md` |
 
 ## 维护原则
 
