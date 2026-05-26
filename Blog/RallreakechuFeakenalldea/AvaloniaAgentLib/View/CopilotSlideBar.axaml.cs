@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Avalonia;
@@ -20,7 +19,6 @@ public partial class CopilotSlideBar : UserControl
     public static readonly StyledProperty<string?> ChatLogFolderProperty =
         AvaloniaProperty.Register<CopilotSlideBar, string?>(nameof(ChatLogFolder));
 
-    private CancellationTokenSource? _sendMessageCts;
     private INotifyCollectionChanged? _currentChatMessages;
 
     public CopilotSlideBar()
@@ -55,7 +53,7 @@ public partial class CopilotSlideBar : UserControl
     {
         if (ViewModel.IsChatting)
         {
-            _sendMessageCts?.Cancel();
+            ViewModel.CancelCurrentChat();
             return;
         }
 
@@ -85,31 +83,19 @@ public partial class CopilotSlideBar : UserControl
             return;
         }
 
-        _sendMessageCts?.Dispose();
-        var sendMessageCts = new CancellationTokenSource();
-        _sendMessageCts = sendMessageCts;
-
         try
         {
-            await ViewModel.SendMessageAsync(inputText, withHistory: true, sendMessageCts.Token);
-            InputTextBox.Text = null;
+            await ViewModel.SendMessageAsync(inputText, withHistory: true);
+            if (!ViewModel.WasLastChatCanceled)
+            {
+                InputTextBox.Text = null;
+            }
+
             await ScrollToBottomAsync();
-        }
-        catch (OperationCanceledException) when (sendMessageCts.IsCancellationRequested)
-        {
-            InputTextBox.Text = originalInputText;
         }
         catch (Exception)
         {
             InputTextBox.Text = originalInputText;
-        }
-        finally
-        {
-            sendMessageCts.Dispose();
-            if (ReferenceEquals(_sendMessageCts, sendMessageCts))
-            {
-                _sendMessageCts = null;
-            }
         }
     }
 
