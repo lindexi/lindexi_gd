@@ -1,0 +1,32 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Lib/">
+    <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
+    <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+  </Folder>
+  <Folder Name="/Lib/AgentLib/">
+    <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib.Tests/AgentLib.Tests.csproj" />
+    <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib/AgentLib.csproj" />
+  </Folder>
+  <Folder Name="/Lib/LightTextEditorPlus/">
+    <Project Path="../../../LightTextEditorPlus/LightTextEditorPlus/Analyzers/TextEditorInternalAnalyzer/TextEditorInternalAnalyzer.csproj" />
+    <Project Path="../../../LightTextEditorPlus/LightTextEditorPlus/Docs/Docs.csproj" />
+    <Project Path="../../../LightTextEditorPlus/LightTextEditorPlus/LightTextEditorPlus.Avalonia/LightTextEditorPlus.Avalonia.csproj" />
+    <Project Path="../../../LightTextEditorPlus/LightTextEditorPlus/LightTextEditorPlus.Core/LightTextEditorPlus.Core.csproj" />
+    <Project Path="../../../LightTextEditorPlus/LightTextEditorPlus/LightTextEditorPlus.Highlighters/LightTextEditorPlus.Highlighters.Avalonia.csproj" />
+    <Project Path="../../../LightTextEditorPlus/LightTextEditorPlus/LightTextEditorPlus.Skia/LightTextEditorPlus.Skia.csproj" />
+    <Project Path="../../../LightTextEditorPlus/LightTextEditorPlus/LightTextEditorPlus.Wpf/LightTextEditorPlus.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Project Path="AvaloniaAgentLib/AvaloniaAgentLib.csproj" />
+  <Project Path="Docs/Docs.csproj" />
+  <Project Path="RallreakechuFeakenalldea.Desktop/RallreakechuFeakenalldea.Desktop.csproj" />
+  <Project Path="RallreakechuFeakenalldea/RallreakechuFeakenalldea.csproj" />
+  <Project Path="SimpleWrite/SimpleWrite.csproj" />
+</Solution>

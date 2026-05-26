@@ -51,6 +51,7 @@
 | 文档 | 主题 | 适用场景 |
 |---|---|---|
 | `Feature-Delivery-Checklist.md` | 功能交付检查清单 | 实现完成后做构建、自测、回归与文档收口时 |
+| `AgentLib-Tests-Coverage-And-MSTest-Notes.md` | AgentLib 单元测试覆盖与 MSTest 注意事项 | 重新搭建 AgentLib.Tests、补纯逻辑测试、排查 MSTest 常见实现问题时 |
 
 ## 阅读建议
 
