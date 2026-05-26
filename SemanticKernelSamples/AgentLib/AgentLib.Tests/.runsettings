@@ -1,0 +1,5 @@
+﻿<RunSettings>
+  <MSTest>
+    <TestTimeout>10000</TestTimeout>
+  </MSTest>
+</RunSettings>

@@ -6,6 +6,7 @@ using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace AgentLib.Tools;
 
@@ -32,11 +33,11 @@ public sealed class CopilotToolManager
         set => WorkspaceTools.WorkspacePath = value;
     }
 
-    internal IReadOnlyList<AITool> CreateDefaultTools(CopilotChatContext? chatContext)
+    internal IReadOnlyList<AITool> CreateDefaultTools(CopilotChatContext? chatContext, CancellationToken cancellationToken = default)
     {
         List<AITool> tools = [];
         tools.AddRange(WorkspaceTools.CreateDefaultTools());
-        tools.AddRange(SubAgentTools.CreateDefaultTools(chatContext));
+        tools.AddRange(SubAgentTools.CreateDefaultTools(chatContext, cancellationToken));
         return tools;
     }
 }

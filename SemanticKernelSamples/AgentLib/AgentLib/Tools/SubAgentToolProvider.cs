@@ -34,19 +34,19 @@ public sealed class SubAgentToolProvider
         _workspaceToolProvider = workspaceToolProvider ?? throw new ArgumentNullException(nameof(workspaceToolProvider));
     }
 
-    public IReadOnlyList<AITool> CreateDefaultTools()
+    public IReadOnlyList<AITool> CreateDefaultTools(CancellationToken cancellationToken = default)
     {
-        return CreateTools(chatContext: null, includeReturnOutputTool: false);
+        return CreateTools(chatContext: null, includeReturnOutputTool: false, cancellationToken);
     }
 
-    internal IReadOnlyList<AITool> CreateDefaultTools(CopilotChatContext? chatContext)
+    internal IReadOnlyList<AITool> CreateDefaultTools(CopilotChatContext? chatContext, CancellationToken cancellationToken = default)
     {
-        return CreateTools(chatContext, includeReturnOutputTool: false);
+        return CreateTools(chatContext, includeReturnOutputTool: false, cancellationToken);
     }
 
-    private IReadOnlyList<AITool> CreateTools(CopilotChatContext? chatContext, bool includeReturnOutputTool)
+    private IReadOnlyList<AITool> CreateTools(CopilotChatContext? chatContext, bool includeReturnOutputTool, CancellationToken cancellationToken)
     {
-        var executor = new SubAgentToolExecutor(_agentApiEndpointManager, _workspaceToolProvider, chatContext, this);
+        var executor = new SubAgentToolExecutor(_agentApiEndpointManager, _workspaceToolProvider, chatContext, this, cancellationToken);
         List<AITool> tools =
         [
             executor.CreateTool(nameof(SubAgentToolExecutor.InvokeSubAgentAsync), InvokeSubAgentToolName, "委托一个子代理执行独立任务。可通过子代理类型选择快速模型或多模态能力；只有确定性处理、总结输出、了解文件组织结构或大文件内容、意图识别等无需思考决策的任务才可使用 Flash，涉及分析、判断、设计或决策时不要使用 Flash。")
@@ -66,14 +66,16 @@ public sealed class SubAgentToolProvider
         private readonly WorkspaceToolProvider _workspaceToolProvider;
         private readonly CopilotChatContext? _chatContext;
         private readonly SubAgentToolProvider _provider;
+        private readonly CancellationToken _cancellationToken;
         private readonly SubAgentOutputCollector _outputCollector = new();
 
-        public SubAgentToolExecutor(AgentApiEndpointManager agentApiEndpointManager, WorkspaceToolProvider workspaceToolProvider, CopilotChatContext? chatContext, SubAgentToolProvider provider)
+        public SubAgentToolExecutor(AgentApiEndpointManager agentApiEndpointManager, WorkspaceToolProvider workspaceToolProvider, CopilotChatContext? chatContext, SubAgentToolProvider provider, CancellationToken cancellationToken)
         {
             _agentApiEndpointManager = agentApiEndpointManager;
             _workspaceToolProvider = workspaceToolProvider;
             _chatContext = chatContext;
             _provider = provider;
+            _cancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -89,6 +91,7 @@ public sealed class SubAgentToolProvider
             string? subAgentType = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
+            _cancellationToken.ThrowIfCancellationRequested();
 
             SubAgentSelection selection = SubAgentSelection.Parse(subAgentType);
             ILanguageModel model = _agentApiEndpointManager.GetBestModel(languageModel => selection.IsMatch(languageModel));
@@ -113,8 +116,9 @@ public sealed class SubAgentToolProvider
 
             messages.Add(new ChatMessage(ChatRole.User, prompt));
 
-            await foreach (AgentResponseUpdate responseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: CancellationToken.None).ConfigureAwait(false))
+            await foreach (AgentResponseUpdate responseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: _cancellationToken).ConfigureAwait(false))
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 AppendSubAgentResponseUpdate(subAgentItem, responseUpdate);
             }
 
@@ -150,7 +154,7 @@ public sealed class SubAgentToolProvider
         {
             List<AITool> tools = [];
             tools.AddRange(_workspaceToolProvider.CreateDefaultTools());
-            tools.AddRange(_provider.CreateTools(chatContext, includeReturnOutputTool: true));
+            tools.AddRange(_provider.CreateTools(chatContext, includeReturnOutputTool: true, cancellationToken: _cancellationToken));
             return tools;
         }
 
