@@ -10,6 +10,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 
 using AgentLib.Model;
+
 using AvaloniaAgentLib.ViewModel;
 
 namespace AvaloniaAgentLib.View;
@@ -28,6 +29,8 @@ public partial class CopilotSlideBar : UserControl
 
         ViewModel.PropertyChanged += ViewModel_PropertyChanged;
         SubscribeChatMessages(ViewModel.ChatMessages);
+
+        InputTextBox.AddHandler(TextBox.KeyDownEvent, InputTextBox_OnKeyDown, handledEventsToo: true, routes: RoutingStrategies.Tunnel);
     }
 
     public CopilotViewModel ViewModel => (CopilotViewModel) DataContext!;
@@ -61,13 +64,11 @@ public partial class CopilotSlideBar : UserControl
 
     private void InputTextBox_OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        if (e.Key == Key.Enter && e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
-            return;
+            _ = SendMessageAsync();
+            e.Handled = true;
         }
-
-        _ = SendMessageAsync();
-        e.Handled = true;
     }
 
     private async Task SendMessageAsync()
