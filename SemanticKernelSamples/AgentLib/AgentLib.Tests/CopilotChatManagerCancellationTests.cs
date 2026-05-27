@@ -1,6 +1,9 @@
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Tests.Fakes;
 using AgentLib.Tools;
 using Microsoft.Extensions.AI;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace AgentLib.Tests;
 
@@ -13,7 +16,7 @@ public class CopilotChatManagerCancellationTests
     {
         var primaryChatClient = new FakeChatClient();
         var blockingResponse = new BlockingStreamingResponse();
-        primaryChatClient.EnqueueStreamingResponse((_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken));
+        primaryChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken);
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
         using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -35,11 +38,9 @@ public class CopilotChatManagerCancellationTests
         var primaryChatClient = new FakeChatClient();
         var blockingTool = new BlockingTool();
         string toolName = "BlockingTool";
-        primaryChatClient.EnqueueStreamingResponseWithToolInvocation(
-            callId: "tool-call-1",
-            toolName: toolName,
-            arguments: null,
-            CopilotChatManagerTestContext.AssistantText("不会到达的结果"));
+        primaryChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
+            CreateToolInvocationAsyncEnumerable(options, "tool-call-1", toolName, null, cancellationToken,
+                CopilotChatManagerTestContext.AssistantText("不会到达的结果"));
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
         using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -64,20 +65,17 @@ public class CopilotChatManagerCancellationTests
     public async Task SendMessageAsync_WhenSubAgentInvocationIsCancelled_AppendsCancelledMessage()
     {
         var primaryChatClient = new FakeChatClient();
-        primaryChatClient.EnqueueStreamingResponseWithToolInvocation(
-            callId: "sub-agent-call-1",
-            toolName: "InvokeSubAgent",
-            arguments: new Dictionary<string, object?>
+        primaryChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
+            CreateToolInvocationAsyncEnumerable(options, "sub-agent-call-1", "InvokeSubAgent", new Dictionary<string, object?>
             {
                 ["prompt"] = "请处理子任务",
                 ["systemPrompt"] = null,
                 ["subAgentType"] = "Flash"
-            },
-            CopilotChatManagerTestContext.AssistantText("不会到达的主结果"));
+            }, cancellationToken, CopilotChatManagerTestContext.AssistantText("不会到达的主结果"));
 
         var flashChatClient = new FakeChatClient();
         var blockingResponse = new BlockingStreamingResponse();
-        flashChatClient.EnqueueStreamingResponse((_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken));
+        flashChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken);
 
         var context = CopilotChatManagerTestContext.Create(primaryChatClient, flashChatClient);
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -105,7 +103,7 @@ public class CopilotChatManagerCancellationTests
     {
         var primaryChatClient = new FakeChatClient();
         var blockingResponse = new BlockingStreamingResponse();
-        primaryChatClient.EnqueueStreamingResponse((_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken));
+        primaryChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken);
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         Task sendTask = context.ChatManager.SendMessageInNewSessionAsync("新会话取消测试");
@@ -117,5 +115,50 @@ public class CopilotChatManagerCancellationTests
         Assert.IsFalse(context.ChatManager.IsChatting);
         Assert.AreEqual("已取消", context.ChatManager.ChatMessages[^1].Content);
         Assert.IsTrue(context.ChatManager.ChatMessages[^1].IsPresetInfo);
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolInvocationAsyncEnumerable(
+        ChatOptions? options,
+        string callId,
+        string toolName,
+        IDictionary<string, object?>? arguments,
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        params ChatResponseUpdate[] trailingUpdates)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantFunctionCall(callId, toolName, arguments);
+
+        AITool tool = options?.Tools?.FirstOrDefault(candidate => string.Equals(candidate.Name, toolName, StringComparison.Ordinal))
+                      ?? throw new InvalidOperationException($"未找到名为 {toolName} 的工具。");
+
+        if (tool is not AIFunction function)
+        {
+            throw new InvalidOperationException($"工具 {toolName} 不是可调用函数。");
+        }
+
+        object? result = await function.InvokeAsync(new AIFunctionArguments(arguments?.ToDictionary(pair => pair.Key, pair => pair.Value)), cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantFunctionResult(callId, NormalizeResult(result));
+
+        foreach (ChatResponseUpdate update in trailingUpdates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return update;
+            await Task.Yield();
+        }
+    }
+
+    private static object? NormalizeResult(object? result)
+    {
+        if (result is JsonElement jsonElement)
+        {
+            return jsonElement.ValueKind switch
+            {
+                JsonValueKind.String => jsonElement.GetString(),
+                _ => jsonElement.ToString()
+            };
+        }
+
+        return result;
     }
 }
