@@ -64,7 +64,7 @@ public static class ReasoningAIAgentExtension
                     }
                     else
                     {
-                        Debug.Fail("不能在输出内容之后，再次进入思考");
+                        //Debug.Fail("不能在输出内容之后，再次进入思考");
                     }
                 }
                 else if (aiContent is TextContent textContent)
