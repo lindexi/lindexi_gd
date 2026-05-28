@@ -58,6 +58,12 @@ internal sealed class CopilotChatManagerTestContext
         return new ChatResponseUpdate(ChatRole.Assistant, [new FunctionResultContent(callId, result)]);
     }
 
+    public static ChatResponseUpdate AssistantUsage(UsageDetails usageDetails)
+    {
+        ArgumentNullException.ThrowIfNull(usageDetails);
+        return new ChatResponseUpdate(ChatRole.Assistant, [new UsageContent(usageDetails)]);
+    }
+
     public static string GetWorkspaceToolName(string methodName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
