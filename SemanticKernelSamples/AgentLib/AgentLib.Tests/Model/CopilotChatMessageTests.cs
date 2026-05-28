@@ -54,6 +54,20 @@ public class CopilotChatMessageTests
     }
 
     [TestMethod]
+    [Description("创建审批工具片段后应保留在消息片段集合中并可按调用 Id 复用")]
+    public void CreateApprovalToolItem_WhenCreated_AddsAndReusesApprovalItem()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+
+        CopilotChatApprovalToolItem first = message.CreateApprovalToolItem("DeleteFile", "demo.txt", "需要审批", "approval-1");
+        CopilotChatApprovalToolItem second = message.CreateApprovalToolItem("DeleteFile", "demo.txt", "需要审批", "approval-1");
+
+        Assert.AreSame(first, second);
+        Assert.HasCount(1, message.MessageItems);
+        Assert.IsInstanceOfType<CopilotChatApprovalToolItem>(message.MessageItems[0]);
+    }
+
+    [TestMethod]
     [Description("追加子智能体调用与结果时应生成包含进度与输出的子代理片段")]
     public void AppendFunctionCallAndResult_WhenUsingSubAgent_CreatesSubAgentItem()
     {

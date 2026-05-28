@@ -8,9 +8,14 @@ internal interface ICopilotChatCurrentContent
 
     void AppendReasoning(string text);
 
+    void RegisterApprovalTool(string toolName, string? approvalDescription = null);
+
     void AppendFunctionCall(FunctionCallContent functionCallContent);
 
     void AppendFunctionResult(FunctionResultContent functionResultContent);
+
+    CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
+        string? callId = null);
 
     CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null);
 }
