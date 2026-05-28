@@ -295,6 +295,16 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         MessageItems.Add(new CopilotChatReasoningItem(text));
     }
 
+    public void RegisterApprovalTool(string toolName, string? approvalDescription = null)
+    {
+        if (string.IsNullOrWhiteSpace(toolName))
+        {
+            return;
+        }
+
+        _approvalToolDescriptions[toolName] = approvalDescription;
+    }
+
     public void AppendFunctionCall(FunctionCallContent functionCallContent)
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
@@ -305,20 +315,26 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             return;
         }
 
+        if (IsApprovalTool(functionCallContent.Name))
+        {
+            AppendApprovalToolCall(functionCallContent);
+            return;
+        }
+
         string callId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
             ? Guid.NewGuid().ToString("N")
             : functionCallContent.CallId;
 
         if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
         {
-            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent));
+            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent));
             _toolItemsByCallId[callId] = toolItem;
             MessageItems.Add(toolItem);
             return;
         }
 
         toolItem.ToolName = functionCallContent.Name;
-        toolItem.InputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent) ?? string.Empty;
+        toolItem.InputText = CopilotChatMessageItemFormatter.FormatArguments(functionCallContent) ?? string.Empty;
     }
 
     public void AppendFunctionResult(FunctionResultContent functionResultContent)
@@ -328,6 +344,12 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         if (_subAgentItemsByCallId.ContainsKey(functionResultContent.CallId ?? string.Empty))
         {
             AppendSubAgentResult(functionResultContent);
+            return;
+        }
+
+        if (_approvalToolItemsByCallId.ContainsKey(functionResultContent.CallId ?? string.Empty))
+        {
+            AppendApprovalToolResult(functionResultContent);
             return;
         }
 
@@ -343,6 +365,48 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
 
         toolItem.OutputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionResultContent) ?? string.Empty;
+    }
+
+    public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
+        string? callId = null)
+    {
+        string resolvedCallId = string.IsNullOrWhiteSpace(callId)
+            ? Guid.NewGuid().ToString("N")
+            : callId;
+        string normalizedToolName = string.IsNullOrWhiteSpace(toolName) ? "工具" : toolName;
+        string normalizedInputText = inputText ?? string.Empty;
+        string? resolvedApprovalDescription = ResolveApprovalDescription(normalizedToolName, approvalDescription);
+
+        if (!string.IsNullOrWhiteSpace(callId) && _approvalToolItemsByCallId.TryGetValue(resolvedCallId, out CopilotChatApprovalToolItem? existingItem))
+        {
+            existingItem.ToolName = normalizedToolName;
+            existingItem.InputText = normalizedInputText;
+            existingItem.ApprovalDescription = resolvedApprovalDescription;
+            return existingItem;
+        }
+
+        CopilotChatApprovalToolItem? pendingItem = MessageItems
+            .OfType<CopilotChatApprovalToolItem>()
+            .LastOrDefault(item => item.IsPendingApproval
+                                  && string.Equals(item.ToolName, normalizedToolName, StringComparison.Ordinal)
+                                  && string.Equals(item.InputText, normalizedInputText, StringComparison.Ordinal));
+
+        if (pendingItem is not null)
+        {
+            if (!_approvalToolItemsByCallId.ContainsKey(resolvedCallId))
+            {
+                pendingItem.CallId = resolvedCallId;
+                _approvalToolItemsByCallId[resolvedCallId] = pendingItem;
+            }
+
+            pendingItem.ApprovalDescription = resolvedApprovalDescription;
+            return pendingItem;
+        }
+
+        var approvalToolItem = new CopilotChatApprovalToolItem(resolvedCallId, normalizedToolName, normalizedInputText, resolvedApprovalDescription);
+        _approvalToolItemsByCallId[resolvedCallId] = approvalToolItem;
+        MessageItems.Add(approvalToolItem);
+        return approvalToolItem;
     }
 
     private void AppendUsageDetails(UsageContent usageContent)
@@ -408,7 +472,9 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     }
 
     private readonly Dictionary<string, CopilotChatToolItem> _toolItemsByCallId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, CopilotChatApprovalToolItem> _approvalToolItemsByCallId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CopilotChatSubAgentItem> _subAgentItemsByCallId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string?> _approvalToolDescriptions = new(StringComparer.Ordinal);
 
     private static string? FormatMessageItem(ICopilotChatMessageItem messageItem)
     {
@@ -416,10 +482,54 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         {
             CopilotChatTextItem textItem => textItem.Text,
             CopilotChatReasoningItem reasoningItem => $"思考：{Environment.NewLine}{reasoningItem.Text}",
+            CopilotChatApprovalToolItem approvalToolItem => FormatApprovalToolItem(approvalToolItem),
             CopilotChatToolItem toolItem => FormatToolItem(toolItem),
             CopilotChatSubAgentItem subAgentItem => FormatSubAgentItem(subAgentItem),
             _ => null
         };
+    }
+
+    private static string FormatApprovalToolItem(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        var builder = new StringBuilder();
+        builder.Append("审批工具：").Append(approvalToolItem.ToolName);
+        builder.AppendLine()
+            .Append("审批状态：")
+            .Append(approvalToolItem.ApprovalStateText);
+
+        if (approvalToolItem.HasApprovalDescription)
+        {
+            builder.AppendLine()
+                .Append("审批说明：")
+                .AppendLine()
+                .Append(approvalToolItem.ApprovalDescription);
+        }
+
+        if (approvalToolItem.HasInputText)
+        {
+            builder.AppendLine()
+                .Append("输入：")
+                .AppendLine()
+                .Append(approvalToolItem.InputText);
+        }
+
+        if (approvalToolItem.HasDecisionReason)
+        {
+            builder.AppendLine()
+                .Append("审批备注：")
+                .AppendLine()
+                .Append(approvalToolItem.DecisionReason);
+        }
+
+        if (approvalToolItem.HasOutputText)
+        {
+            builder.AppendLine()
+                .Append("输出：")
+                .AppendLine()
+                .Append(approvalToolItem.OutputText);
+        }
+
+        return builder.ToString();
     }
 
     private static string FormatToolItem(CopilotChatToolItem toolItem)
@@ -504,6 +614,43 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         {
             subAgentItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
         }
+    }
+
+    private void AppendApprovalToolCall(FunctionCallContent functionCallContent)
+    {
+        string callId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
+            ? Guid.NewGuid().ToString("N")
+            : functionCallContent.CallId;
+
+        _ = CreateApprovalToolItem(functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent),
+            ResolveApprovalDescription(functionCallContent.Name), callId);
+    }
+
+    private void AppendApprovalToolResult(FunctionResultContent functionResultContent)
+    {
+        string callId = string.IsNullOrWhiteSpace(functionResultContent.CallId)
+            ? Guid.NewGuid().ToString("N")
+            : functionResultContent.CallId;
+
+        if (_approvalToolItemsByCallId.TryGetValue(callId, out CopilotChatApprovalToolItem? approvalToolItem))
+        {
+            approvalToolItem.OutputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionResultContent) ?? string.Empty;
+        }
+    }
+
+    private bool IsApprovalTool(string? toolName)
+    {
+        return !string.IsNullOrWhiteSpace(toolName) && _approvalToolDescriptions.ContainsKey(toolName);
+    }
+
+    private string? ResolveApprovalDescription(string? toolName, string? fallbackApprovalDescription = null)
+    {
+        if (!string.IsNullOrWhiteSpace(toolName) && _approvalToolDescriptions.TryGetValue(toolName, out string? approvalDescription))
+        {
+            return approvalDescription;
+        }
+
+        return fallbackApprovalDescription;
     }
 
     private void MessageItems_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

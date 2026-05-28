@@ -132,6 +132,24 @@ public class CopilotChatManager : NotifyBase
         _currentChatCancellationTokenSource?.Cancel();
     }
 
+    /// <summary>
+    /// 同意指定审批工具继续执行。
+    /// </summary>
+    public void ApproveToolExecution(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        approvalToolItem.Approve();
+    }
+
+    /// <summary>
+    /// 拒绝指定审批工具继续执行。
+    /// </summary>
+    public void RejectToolExecution(CopilotChatApprovalToolItem approvalToolItem, string? reason = null)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        approvalToolItem.Reject(reason);
+    }
+
     public async Task AddConversationAsync(string userText, string assistantText,
         bool isPresetInfo = true, CancellationToken cancellationToken = default)
     {
@@ -257,10 +275,26 @@ public class CopilotChatManager : NotifyBase
         List<AITool> toolList = [];
         if (tools != null)
         {
-            toolList.AddRange(tools);
+            foreach (AITool tool in tools)
+            {
+                toolList.Add(HumanApprovalTool.BindRuntimeTool(tool, chatContext, cancellationToken));
+            }
         }
 
-        toolList.AddRange(_toolManager.CreateDefaultTools(chatContext, cancellationToken));
+        toolList.AddRange(_toolManager.CreateDefaultTools(chatContext, cancellationToken)
+            .Select(tool => HumanApprovalTool.BindRuntimeTool(tool, chatContext, cancellationToken)));
+
+        if (chatContext is not null)
+        {
+            foreach (AITool tool in toolList)
+            {
+                if (HumanApprovalTool.TryGetApprovalDescription(tool, out string? approvalDescription))
+                {
+                    chatContext.CurrentContent.RegisterApprovalTool(tool.Name, approvalDescription);
+                }
+            }
+        }
+
         return toolList;
     }
 
