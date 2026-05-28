@@ -118,6 +118,67 @@
             </Expander>
         </DataTemplate>
 
+        <DataTemplate x:Key="AssistantApprovalToolItemTemplate" x:DataType="model:CopilotChatApprovalToolItem">
+            <Expander Margin="0,0,0,8" Background="#FF2A2220" IsExpanded="True">
+                <Expander.Styles>
+                    <Style Selector="ToggleButton#ExpanderHeader">
+                        <Setter Property="Background" Value="#FF1F1715"></Setter>
+                        <Setter Property="Foreground" Value="White"></Setter>
+                        <Style Selector="^ /template/ Border#ToggleButtonBackground:pointerover">
+                            <Setter Property="Background" Value="#FF342724"></Setter>
+                        </Style>
+                        <Style Selector="^:unchecked /template/ Path">
+                            <Setter Property="Stroke" Value="#FFFFE2D8" />
+                        </Style>
+                        <Style Selector="^:checked /template/ Path">
+                            <Setter Property="Stroke" Value="#FFFFE2D8" />
+                        </Style>
+                    </Style>
+                </Expander.Styles>
+                <Expander.Header>
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding DisplayName}" Foreground="#FFFFF2EC" />
+                        <TextBlock Classes="SecondaryText" Text="{Binding ApprovalStateText}" />
+                    </StackPanel>
+                </Expander.Header>
+                <StackPanel Margin="0,8,0,0" Spacing="8">
+                    <Border Background="#FF3A2B27"
+                            CornerRadius="6"
+                            Padding="8,6"
+                            IsVisible="{Binding HasApprovalDescription}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Classes="SecondaryText" Text="审批说明" />
+                            <SelectableTextBlock Text="{Binding ApprovalDescription}" TextWrapping="Wrap" Foreground="#FFFFEFE8" />
+                        </StackPanel>
+                    </Border>
+                    <StackPanel IsVisible="{Binding HasInputText}" Spacing="4">
+                        <TextBlock Classes="SecondaryText" Text="输入参数" />
+                        <SelectableTextBlock Text="{Binding InputText}" TextWrapping="Wrap" Foreground="#FFFFE8DF" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding CanRespondToApproval}">
+                        <Button Classes="InteractiveButton PrimaryButton"
+                                Content="同意"
+                                Click="ApproveToolButton_OnClick"
+                                CommandParameter="{Binding}" />
+                        <Button Classes="InteractiveButton SecondaryButton"
+                                Content="拒绝"
+                                Click="RejectToolButton_OnClick"
+                                CommandParameter="{Binding}" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding HasDecisionReason}" Spacing="4">
+                        <TextBlock Classes="SecondaryText" Text="审批备注" />
+                        <SelectableTextBlock Text="{Binding DecisionReason}" TextWrapping="Wrap" Foreground="#FFFFEAE2" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding HasOutputText}" Spacing="4">
+                        <TextBlock Classes="SecondaryText" Text="工具输出" />
+                        <SelectableTextBlock Text="{Binding OutputText}" TextWrapping="Wrap" Foreground="#FFF8F1EE" />
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+        </DataTemplate>
+
         <DataTemplate x:Key="AssistantSubAgentItemTemplate" x:DataType="model:CopilotChatSubAgentItem">
             <Expander Margin="0,0,0,8" Background="#FF1F2430" IsExpanded="True">
                 <Expander.Styles>
@@ -165,6 +226,7 @@
         <view:CopilotChatMessageItemTemplateSelector x:Key="CopilotChatMessageItemTemplateSelector"
                                                      TextItemTemplate="{StaticResource AssistantTextItemTemplate}"
                                                      ReasoningItemTemplate="{StaticResource AssistantReasoningItemTemplate}"
+                                                     ApprovalToolItemTemplate="{StaticResource AssistantApprovalToolItemTemplate}"
                                                      ToolItemTemplate="{StaticResource AssistantToolItemTemplate}"
                                                      SubAgentItemTemplate="{StaticResource AssistantSubAgentItemTemplate}" />
     </UserControl.Resources>

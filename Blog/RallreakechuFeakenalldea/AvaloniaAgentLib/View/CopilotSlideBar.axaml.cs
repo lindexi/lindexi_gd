@@ -194,4 +194,24 @@ public partial class CopilotSlideBar : UserControl
     {
         _ = ScrollToBottomAsync();
     }
+
+    private void ApproveToolButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { CommandParameter: CopilotChatApprovalToolItem approvalToolItem })
+        {
+            return;
+        }
+
+        ViewModel.ApproveTool(approvalToolItem);
+    }
+
+    private void RejectToolButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { CommandParameter: CopilotChatApprovalToolItem approvalToolItem })
+        {
+            return;
+        }
+
+        ViewModel.RejectTool(approvalToolItem);
+    }
 }

@@ -10,11 +10,12 @@
 
 ### 1. `CopilotChatMessage` 改为维护可观测片段集合
 
-助手消息内部现在使用 `ObservableCollection<ICopilotChatMessageItem>` 表达流式片段，当前片段类型包括：
+当前片段类型包括：
 
 - `CopilotChatTextItem`：正文输出；
 - `CopilotChatReasoningItem`：思考输出；
 - `CopilotChatToolItem`：工具调用与结果。
+- `CopilotChatApprovalToolItem`：需要人工审批后才能继续执行的工具调用。
 - `CopilotChatSubAgentItem`：子智能体调用、逐步进度与向上级返回的最终输出。
 
 `Content`、`Reason`、`FullContent` 仍然保留，但都由片段集合聚合计算得到，主要用于：
@@ -66,7 +67,7 @@
 
 也就是说，子智能体流里产生的普通文本和思考只用于进度展示，不会自动作为工具返回值交给上一级智能体。只有显式调用 `ReturnOutputToParent`，传入的文本才会成为上一级智能体拿到的结果。
 
-### 3.2 默认工具改为共享聊天上下文
+### 3.3 默认工具改为共享聊天上下文
 
 当前默认工具不再直接拿 `CopilotChatMessage` 或 `ISubAgentProgressContainer`，而是统一拿一个 `CopilotChatContext`。
 

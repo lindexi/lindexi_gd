@@ -25,6 +25,7 @@ public class CopilotViewModel : CopilotChatManager
             var copilotChatMessage = new CopilotChatMessage(ChatRole.Assistant, "测试测试测试");
             copilotChatMessage.MessageItems.Add(new CopilotChatReasoningItem("这是思考内容，这是思考内容"));
             copilotChatMessage.MessageItems.Add(new CopilotChatToolItem("asdasdasd", "ToolName", "输入的文本内容", "工具输出内容"));
+            copilotChatMessage.MessageItems.Add(new CopilotChatApprovalToolItem("approval-demo", "DeleteFile", "{\n  \"filePath\": \"temp/demo.txt\"\n}", "该操作会删除文件，请确认是否继续。"));
             var subAgentItem = new CopilotChatSubAgentItem("sub-agent-demo", "调用子智能体", "请总结当前文件结构", "项目由主应用、AgentLib 和 Avalonia 界面组成。");
             subAgentItem.MessageItems.Add(new CopilotChatReasoningItem("先查看目录，再总结重点。"));
             subAgentItem.MessageItems.Add(new CopilotChatTextItem("正在读取项目结构..."));
@@ -40,6 +41,18 @@ public class CopilotViewModel : CopilotChatManager
     public void OpenSetting()
     {
         SettingOpened?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void ApproveTool(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        ApproveToolExecution(approvalToolItem);
+    }
+
+    public void RejectTool(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        RejectToolExecution(approvalToolItem);
     }
 
     public event EventHandler? SettingOpened;
