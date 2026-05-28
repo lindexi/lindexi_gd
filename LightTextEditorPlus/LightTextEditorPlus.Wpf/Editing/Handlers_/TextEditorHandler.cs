@@ -293,38 +293,9 @@ public partial class TextEditorHandler
 
     #region 剪贴板
 
-    /// <summary>
-    /// 当拷贝时
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    protected internal virtual void OnCopy(object sender, ExecutedRoutedEventArgs e)
+    protected virtual partial void SetClipboardText(string text)
     {
-        if (TextEditor.CurrentSelection.IsEmpty)
-        {
-            return;
-        }
-
-        string text = TextEditor.GetSelectedText();
         Clipboard.SetText(text);
-    }
-
-    /// <summary>
-    /// 当剪切时
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    protected internal virtual void OnCut(object sender, ExecutedRoutedEventArgs e)
-    {
-        Selection currentSelection = TextEditor.CurrentSelection;
-        if (currentSelection.IsEmpty)
-        {
-            return;
-        }
-
-        string text = TextEditor.GetText(in currentSelection);
-        Clipboard.SetText(text);
-        TextEditor.Remove(in currentSelection);
     }
 
     /// <summary>

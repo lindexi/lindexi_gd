@@ -19,3 +19,5 @@ GetCurrentCaretOffsetParagraphProperty
 // 段落样式
 StyleParagraphProperty
 SetStyleParagraphProperty
+// 段落编辑
+RemoveParagraph

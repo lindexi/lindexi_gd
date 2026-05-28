@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
@@ -46,6 +47,163 @@ public class TextEditorEditTest
             // Assert
             // 不会删除字符
             Assert.AreEqual(2, textEditorCore.DocumentManager.CharCount);
+        });
+    }
+
+    [ContractTestCase]
+    public void RemoveParagraphTest()
+    {
+        "空文本删除空段，不会抛异常且依然保留一个空段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(0));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual(string.Empty, textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.DocumentManager.CharCount);
+            Assert.AreEqual(1, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "仅一段文本时删除该段，会清空文本但依然保留一个空段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("abc");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(0));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual(string.Empty, textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.DocumentManager.CharCount);
+            Assert.AreEqual(1, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "多段文本删除首段，会连同段尾换行一起删除".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(0));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("cd\nef", textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+            Assert.AreEqual(2, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
+        });
+
+        "多段文本删除非首段非末段，会连同段尾换行一起删除".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\nef", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+            Assert.AreEqual(2, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
+        });
+
+        "删除中间段落时，如果光标在被删除段落中，光标会落到删除范围起点".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(4);
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\nef", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "删除中间段落时，如果光标在被删除段落末尾，光标会落到删除范围起点".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(5);
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\nef", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "删除中间段落时，如果光标在被删除段落之后，光标会落到删除范围起点".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(7);
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\nef", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "多段文本删除末段，会删除前置换行且光标落在上一段末尾".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(2));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\ncd", textEditorCore.GetText());
+            Assert.AreEqual(5, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(false, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+            Assert.AreEqual(2, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
+        });
+
+        "多段文本删除空段，可以删除空段并保留相邻段内容".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\n\ncd");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\ncd", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+            Assert.AreEqual(2, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
         });
     }
 
