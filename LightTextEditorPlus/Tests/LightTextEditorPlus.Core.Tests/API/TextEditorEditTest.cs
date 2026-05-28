@@ -121,6 +121,57 @@ public class TextEditorEditTest
             Assert.AreEqual(2, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
         });
 
+        "删除中间段落时，如果光标在被删除段落中，光标会落到删除范围起点".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(4);
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\nef", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "删除中间段落时，如果光标在被删除段落末尾，光标会落到删除范围起点".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(5);
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\nef", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "删除中间段落时，如果光标在被删除段落之后，光标会落到删除范围起点".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.AppendText("ab\ncd\nef");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(7);
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual("ab\nef", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
         "多段文本删除末段，会删除前置换行且光标落在上一段末尾".Test(() =>
         {
             // Arrange

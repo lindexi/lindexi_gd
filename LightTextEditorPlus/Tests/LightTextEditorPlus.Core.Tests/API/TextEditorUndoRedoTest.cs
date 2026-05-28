@@ -242,6 +242,138 @@ public class TextEditorUndoRedoTest
             Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
         });
 
+        "删除仅有一段的文本后，可以通过撤销重做恢复文本与光标状态".Test(() =>
+        {
+            // Arrange
+            var testTextEditorUndoRedoProvider = new TestTextEditorUndoRedoProvider();
+            var textEditorCore = TestHelper.GetTextEditorCore(new TestPlatformProvider()
+            {
+                UndoRedoProvider = testTextEditorUndoRedoProvider
+            });
+            textEditorCore.SetUndoRedoEnable(false, "test");
+            textEditorCore.AppendText("abc");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(2);
+            textEditorCore.SetUndoRedoEnable(true, "test");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(0));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual(1, testTextEditorUndoRedoProvider.UndoOperationList.Count);
+            Assert.AreEqual(string.Empty, textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Undo();
+            Assert.AreEqual("abc", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(false, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Redo();
+            Assert.AreEqual(string.Empty, textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "删除末段且光标位于被删段之后时，可以通过撤销重做恢复文本与光标状态".Test(() =>
+        {
+            // Arrange
+            var testTextEditorUndoRedoProvider = new TestTextEditorUndoRedoProvider();
+            var textEditorCore = TestHelper.GetTextEditorCore(new TestPlatformProvider()
+            {
+                UndoRedoProvider = testTextEditorUndoRedoProvider
+            });
+            textEditorCore.SetUndoRedoEnable(false, "test");
+            textEditorCore.AppendText("ab\ncd\nef");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(8, isAtLineStart: true);
+            textEditorCore.SetUndoRedoEnable(true, "test");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(2));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual(1, testTextEditorUndoRedoProvider.UndoOperationList.Count);
+            Assert.AreEqual("ab\ncd", textEditorCore.GetText());
+            Assert.AreEqual(5, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(false, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Undo();
+            Assert.AreEqual("ab\ncd\nef", textEditorCore.GetText());
+            Assert.AreEqual(8, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(false, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Redo();
+            Assert.AreEqual("ab\ncd", textEditorCore.GetText());
+            Assert.AreEqual(5, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(false, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "删除空文本的唯一段落后，可以通过撤销重做保持空文本与光标状态".Test(() =>
+        {
+            // Arrange
+            var testTextEditorUndoRedoProvider = new TestTextEditorUndoRedoProvider();
+            var textEditorCore = TestHelper.GetTextEditorCore(new TestPlatformProvider()
+            {
+                UndoRedoProvider = testTextEditorUndoRedoProvider
+            });
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(0));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual(0, testTextEditorUndoRedoProvider.UndoOperationList.Count);
+            Assert.AreEqual(string.Empty, textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Undo();
+            Assert.AreEqual(string.Empty, textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Redo();
+            Assert.AreEqual(string.Empty, textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "删除中间空段且光标位于后续段落时，可以通过撤销重做恢复文本与光标状态".Test(() =>
+        {
+            // Arrange
+            var testTextEditorUndoRedoProvider = new TestTextEditorUndoRedoProvider();
+            var textEditorCore = TestHelper.GetTextEditorCore(new TestPlatformProvider()
+            {
+                UndoRedoProvider = testTextEditorUndoRedoProvider
+            });
+            textEditorCore.SetUndoRedoEnable(false, "test");
+            textEditorCore.AppendText("ab\n\ncd");
+            textEditorCore.CurrentCaretOffset = new CaretOffset(4);
+            textEditorCore.SetUndoRedoEnable(true, "test");
+            ITextParagraph paragraph = textEditorCore.DocumentManager.GetParagraph(new ParagraphIndex(1));
+
+            // Action
+            textEditorCore.RemoveParagraph(paragraph);
+
+            // Assert
+            Assert.AreEqual(1, testTextEditorUndoRedoProvider.UndoOperationList.Count);
+            Assert.AreEqual("ab\ncd", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Undo();
+            Assert.AreEqual("ab\n\ncd", textEditorCore.GetText());
+            Assert.AreEqual(4, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+
+            testTextEditorUndoRedoProvider.Redo();
+            Assert.AreEqual("ab\ncd", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
         "追加带样式的文本之后，可以通过撤销撤回更改，再次调用恢复可以回到原本样式的文本".Test(() =>
         {
             // Arrange

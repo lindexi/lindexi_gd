@@ -168,12 +168,12 @@ internal class KeyboardHandler
 
     private void OnCopy(object sender, ExecutedRoutedEventArgs e)
     {
-        TextEditorHandler.OnCopy(sender, e);
+        TextEditorHandler.OnCopy();
     }
 
     private void OnCut(object sender, ExecutedRoutedEventArgs e)
     {
-        TextEditorHandler.OnCut(sender, e);
+        TextEditorHandler.OnCut();
     }
 
     private void OnPaste(object sender, ExecutedRoutedEventArgs e)

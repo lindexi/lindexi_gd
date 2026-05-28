@@ -1,16 +1,20 @@
 ﻿#if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
-using System;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Editing;
-using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Utils.Patterns;
-using LightTextEditorPlus.Utils;
-using System.Diagnostics;
 using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Events;
+using LightTextEditorPlus.Utils;
+
+using System;
+using System.Diagnostics;
+using System.Text;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -348,6 +352,67 @@ public partial class TextEditorHandler
     protected void OnPastePlainText(string text)
     {
         PerformInput(text);
+    }
+
+    /// <summary>
+    /// 当拷贝时
+    /// </summary>
+    protected internal virtual void OnCopy()
+    {
+        if (TextEditor.CurrentSelection.IsEmpty)
+        {
+            return;
+        }
+
+        string text = TextEditor.GetSelectedText();
+        SetClipboardText(text);
+    }
+
+    /// <summary>
+    /// 当剪切时
+    /// </summary>
+    protected internal virtual void OnCut()
+    {
+        Selection currentSelection = TextEditor.CurrentSelection;
+        if (currentSelection.IsEmpty)
+        {
+            return;
+        }
+
+        string text = TextEditor.GetText(in currentSelection);
+        SetClipboardText(text);
+        TextEditor.Remove(in currentSelection);
+    }
+
+    /// <summary>
+    /// 设置剪贴板文本
+    /// </summary>
+    /// <param name="text"></param>
+    protected virtual partial void SetClipboardText(string text);
+
+    /// <summary>
+    /// 复制段落，包含末尾换行符
+    /// </summary>
+    /// <param name="paragraph"></param>
+    protected void CopyParagraph(ITextParagraph paragraph)
+    {
+        Selection paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
+        var stringBuilder = new StringBuilder();
+        TextEditor.GetText(in paragraphSelection, stringBuilder);
+        stringBuilder.Append(TextContext.NewLine);
+        var text = stringBuilder.ToString();
+        SetClipboardText(text);
+    }
+
+    /// <summary>
+    /// 剪贴段落，包含末尾换行符
+    /// </summary>
+    /// <param name="paragraph"></param>
+    protected void CutParagraph(ITextParagraph paragraph)
+    {
+        // 剪贴就是先拷贝然后删除文本
+        CopyParagraph(paragraph);
+        TextEditor.RemoveParagraph(paragraph);
     }
 
     #endregion
