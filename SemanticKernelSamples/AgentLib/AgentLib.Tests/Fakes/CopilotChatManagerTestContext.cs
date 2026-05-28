@@ -1,4 +1,5 @@
 using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Tools;
 
 using Microsoft.Extensions.AI;
@@ -13,11 +14,11 @@ internal sealed class CopilotChatManagerTestContext
         FlashChatClient = flashChatClient;
 
         ChatManager = new CopilotChatManager();
-        ChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider(CreatePrimaryModel()));
+        ChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([CreatePrimaryModel()]));
 
         if (flashChatClient is not null)
         {
-            ChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider(CreateFlashModel(flashChatClient)));
+            ChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([CreateFlashModel(flashChatClient)]));
         }
     }
 
@@ -66,36 +67,42 @@ internal sealed class CopilotChatManagerTestContext
 
     private FakeLanguageModel CreatePrimaryModel()
     {
-        return new FakeLanguageModel(new ModelDefinition
+        return new FakeLanguageModel(PrimaryChatClient)
         {
-            Provider = "test",
-            ModelName = "primary-model",
-            ModelId = "primary-model",
-            Capabilities = new LlmModelCapabilities
+            ModelDefinition = new ModelDefinition
             {
-                ToolCall = true,
-                Reasoning = true,
-                Input = new LlmModalityCapability { Text = true },
-                Output = new LlmModalityCapability { Text = true }
+                Provider = "test",
+                ModelName = "primary-model",
+                ModelId = "primary-model",
+                Capabilities = new LlmModelCapabilities
+                {
+                    ToolCall = true,
+                    Reasoning = true,
+                    Input = new LlmModalityCapability { Text = true },
+                    Output = new LlmModalityCapability { Text = true }
+                }
             }
-        }, PrimaryChatClient);
+        };
     }
 
     private static FakeLanguageModel CreateFlashModel(FakeChatClient flashChatClient)
     {
-        return new FakeLanguageModel(new ModelDefinition
+        return new FakeLanguageModel(flashChatClient)
         {
-            Provider = "test",
-            ModelName = "flash-model",
-            ModelId = "flash-model",
-            Capabilities = new LlmModelCapabilities
+            ModelDefinition = new ModelDefinition
             {
-                ToolCall = true,
-                Reasoning = true,
-                IsFlash = true,
-                Input = new LlmModalityCapability { Text = true },
-                Output = new LlmModalityCapability { Text = true }
+                Provider = "test",
+                ModelName = "flash-model",
+                ModelId = "flash-model",
+                Capabilities = new LlmModelCapabilities
+                {
+                    ToolCall = true,
+                    Reasoning = true,
+                    IsFlash = true,
+                    Input = new LlmModalityCapability { Text = true },
+                    Output = new LlmModalityCapability { Text = true }
+                }
             }
-        }, flashChatClient);
+        };
     }
 }
