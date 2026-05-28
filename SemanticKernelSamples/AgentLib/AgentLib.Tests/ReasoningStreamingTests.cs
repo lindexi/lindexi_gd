@@ -86,6 +86,44 @@ public class ReasoningStreamingTests
         Assert.AreEqual($"思考：{Environment.NewLine}思考1{Environment.NewLine}-------------{Environment.NewLine}内容1{Environment.NewLine}-------------{Environment.NewLine}思考：{Environment.NewLine}思考2{Environment.NewLine}-------------{Environment.NewLine}内容2", output.ToString());
     }
 
+    [TestMethod]
+    [Description("控制台输出在流结束后应打印累计用量统计")]
+    public async Task RunStreamingAndLogToConsoleAsync_WhenUsageContentExists_PrintsTotalUsageAtEnd()
+    {
+        var chatClient = new FakeChatClient();
+        chatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateStreamingUpdatesAsync(cancellationToken,
+            CopilotChatManagerTestContext.AssistantText("内容1"),
+            CopilotChatManagerTestContext.AssistantUsage(new UsageDetails
+            {
+                InputTokenCount = 10,
+                OutputTokenCount = 3,
+                TotalTokenCount = 13
+            }),
+            CopilotChatManagerTestContext.AssistantText("内容2"),
+            CopilotChatManagerTestContext.AssistantUsage(new UsageDetails
+            {
+                InputTokenCount = 5,
+                OutputTokenCount = 7,
+                TotalTokenCount = 12
+            }));
+        AIAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions());
+
+        var output = new StringWriter(new StringBuilder());
+        TextWriter original = Console.Out;
+
+        try
+        {
+            Console.SetOut(output);
+            await agent.RunStreamingAndLogToConsoleAsync([new ChatMessage(ChatRole.User, "测试用量输出")]);
+        }
+        finally
+        {
+            Console.SetOut(original);
+        }
+
+        Assert.AreEqual($"内容1内容2{Environment.NewLine}-------------{Environment.NewLine}用量统计：输入 Token=15，输出 Token=10，总 Token=25{Environment.NewLine}", output.ToString());
+    }
+
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(CancellationToken cancellationToken, params ChatResponseUpdate[] updates)
     {
         foreach (ChatResponseUpdate update in updates)
