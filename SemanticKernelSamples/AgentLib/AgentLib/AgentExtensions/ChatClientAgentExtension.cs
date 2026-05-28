@@ -18,12 +18,19 @@ public static class AIAgentExtension
     {
         await foreach (var reasoningAgentResponseUpdate in agent.RunReasoningStreamingAsync(messages, session, options, cancellationToken))
         {
-            if (reasoningAgentResponseUpdate.IsFirstThinking)
+            if (reasoningAgentResponseUpdate.IsFirstThinking || reasoningAgentResponseUpdate.IsReenterThinking)
             {
+                if (reasoningAgentResponseUpdate.IsReenterThinking)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("-------------");
+                }
+
                 Console.WriteLine($"思考：");
             }
 
-            if (reasoningAgentResponseUpdate.IsThinkingEnd && reasoningAgentResponseUpdate.IsFirstOutputContent)
+            if (reasoningAgentResponseUpdate.IsThinkingEnd
+                && (reasoningAgentResponseUpdate.IsFirstOutputContent || reasoningAgentResponseUpdate.IsReenterOutputContent))
             {
                 Console.WriteLine();
                 Console.WriteLine("-------------");
