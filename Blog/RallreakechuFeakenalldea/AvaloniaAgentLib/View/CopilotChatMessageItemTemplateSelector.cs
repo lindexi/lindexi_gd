@@ -11,6 +11,8 @@ public sealed class CopilotChatMessageItemTemplateSelector : IDataTemplate
 
     public IDataTemplate? ReasoningItemTemplate { get; set; }
 
+    public IDataTemplate? ApprovalToolItemTemplate { get; set; }
+
     public IDataTemplate? ToolItemTemplate { get; set; }
 
     public IDataTemplate? SubAgentItemTemplate { get; set; }
@@ -21,6 +23,7 @@ public sealed class CopilotChatMessageItemTemplateSelector : IDataTemplate
         {
             CopilotChatTextItem => TextItemTemplate,
             CopilotChatReasoningItem => ReasoningItemTemplate,
+            CopilotChatApprovalToolItem => ApprovalToolItemTemplate,
             CopilotChatToolItem => ToolItemTemplate,
             CopilotChatSubAgentItem => SubAgentItemTemplate,
             _ => null
