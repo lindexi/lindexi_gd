@@ -33,6 +33,14 @@ public sealed class CopilotToolManager
         set => WorkspaceTools.WorkspacePath = value;
     }
 
+    internal string? PrimaryWorkspacePath => WorkspaceTools.PrimaryWorkspacePath;
+
+    public string? SecondaryWorkspacePath
+    {
+        get => WorkspaceTools.SecondaryWorkspacePath;
+        set => WorkspaceTools.SecondaryWorkspacePath = value;
+    }
+
     internal IReadOnlyList<AITool> CreateDefaultTools(CopilotChatContext? chatContext, CancellationToken cancellationToken = default)
     {
         List<AITool> tools = [];

@@ -104,13 +104,31 @@ public class CopilotChatManager : NotifyBase
         {
             string? normalizedPath = string.IsNullOrWhiteSpace(value) ? null : value;
 
-            if (string.Equals(_toolManager.WorkspacePath, normalizedPath, StringComparison.Ordinal))
+            if (string.Equals(_toolManager.PrimaryWorkspacePath, normalizedPath, StringComparison.Ordinal))
             {
                 return;
             }
 
             _toolManager.WorkspacePath = normalizedPath;
             OnPropertyChanged();
+        }
+    }
+
+    public string? SecondaryWorkspacePath
+    {
+        get => _toolManager.SecondaryWorkspacePath;
+        set
+        {
+            string? normalizedPath = string.IsNullOrWhiteSpace(value) ? null : value;
+
+            if (string.Equals(_toolManager.SecondaryWorkspacePath, normalizedPath, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _toolManager.SecondaryWorkspacePath = normalizedPath;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(WorkspacePath));
         }
     }
 

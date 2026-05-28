@@ -20,12 +20,21 @@ public sealed class WorkspaceToolProvider
     private const int DefaultMaxCharacters = 4000;
     private const int DefaultMaxRangeLines = 400;
     private const int DefaultMaxLineHitsPerFile = 20;
-    private string? _workspacePath;
+    private string? _primaryWorkspacePath;
+    private string? _secondaryWorkspacePath;
 
     public string? WorkspacePath
     {
-        get => _workspacePath;
-        set => _workspacePath = string.IsNullOrWhiteSpace(value) ? null : value;
+        get => _primaryWorkspacePath ?? _secondaryWorkspacePath;
+        set => _primaryWorkspacePath = NormalizeWorkspacePath(value);
+    }
+
+    internal string? PrimaryWorkspacePath => _primaryWorkspacePath;
+
+    public string? SecondaryWorkspacePath
+    {
+        get => _secondaryWorkspacePath;
+        set => _secondaryWorkspacePath = NormalizeWorkspacePath(value);
     }
 
     public IReadOnlyList<AITool> CreateDefaultTools()
@@ -344,7 +353,7 @@ public sealed class WorkspaceToolProvider
 
     private bool TryResolveDirectory(string? path, out DirectoryInfo directory, out string errorMessage)
     {
-        if (!TryResolvePath(path, out string fullPath, out errorMessage))
+        if (!TryResolveDirectoryPath(path, out string fullPath, out errorMessage))
         {
             directory = null!;
             return false;
@@ -362,34 +371,43 @@ public sealed class WorkspaceToolProvider
 
     private bool TryResolveFile(string path, out FileInfo file, out string errorMessage)
     {
-        if (!TryResolvePath(path, out string fullPath, out errorMessage))
+        if (Path.IsPathRooted(path))
+        {
+            string fullPath = NormalizePath(path);
+            file = new FileInfo(fullPath);
+            if (!file.Exists)
+            {
+                errorMessage = $"文件不存在: {fullPath}";
+                return false;
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        if (!TryResolveRelativeFilePath(path, out string resolvedPath, out errorMessage))
         {
             file = null!;
             return false;
         }
 
-        file = new FileInfo(fullPath);
-        if (!file.Exists)
-        {
-            errorMessage = $"文件不存在: {GetDisplayPath(fullPath)}";
-            return false;
-        }
-
+        file = new FileInfo(resolvedPath);
         return true;
     }
 
-    private bool TryResolvePath(string? path, out string fullPath, out string errorMessage)
+    private bool TryResolveDirectoryPath(string? path, out string fullPath, out string errorMessage)
     {
+        var workspacePath = GetWorkspacePath();
         if (string.IsNullOrWhiteSpace(path))
         {
-            if (string.IsNullOrWhiteSpace(WorkspacePath))
+            if (string.IsNullOrWhiteSpace(workspacePath))
             {
                 fullPath = string.Empty;
-                errorMessage = "当前未设置工作路径，无法使用默认文件工具。";
+                errorMessage = "当前未设置主工作路径，无法使用目录工具。";
                 return false;
             }
 
-            fullPath = NormalizePath(WorkspacePath);
+            fullPath = workspacePath;
             errorMessage = string.Empty;
             return true;
         }
@@ -401,14 +419,14 @@ public sealed class WorkspaceToolProvider
             return true;
         }
 
-        if (string.IsNullOrWhiteSpace(WorkspacePath))
+        if (string.IsNullOrWhiteSpace(workspacePath))
         {
             fullPath = string.Empty;
-            errorMessage = $"当前未设置工作路径，无法解析相对路径: {path}";
+            errorMessage = $"当前未设置主工作路径，无法解析目录相对路径: {path}";
             return false;
         }
 
-        string workspaceRoot = NormalizePath(WorkspacePath);
+        string workspaceRoot = workspacePath;
         fullPath = Path.GetFullPath(Path.Combine(workspaceRoot, path));
 
         if (!IsPathInsideWorkspace(workspaceRoot, fullPath))
@@ -419,6 +437,61 @@ public sealed class WorkspaceToolProvider
 
         errorMessage = string.Empty;
         return true;
+
+        string? GetWorkspacePath()
+        {
+            if (!string.IsNullOrWhiteSpace(_primaryWorkspacePath))
+            {
+                return _primaryWorkspacePath;
+            }
+            else
+            {
+                return _secondaryWorkspacePath;
+            }
+        }
+    }
+
+    private bool TryResolveRelativeFilePath(string path, out string fullPath, out string errorMessage)
+    {
+        List<string> candidatePaths = [];
+        bool hasWorkspaceRoot = false;
+
+        foreach (string workspaceRoot in EnumerateFileWorkspaceRoots())
+        {
+            hasWorkspaceRoot = true;
+            string candidatePath = Path.GetFullPath(Path.Combine(workspaceRoot, path));
+            if (!IsPathInsideWorkspace(workspaceRoot, candidatePath))
+            {
+                continue;
+            }
+
+            if (File.Exists(candidatePath))
+            {
+                fullPath = candidatePath;
+                errorMessage = string.Empty;
+                return true;
+            }
+
+            candidatePaths.Add(candidatePath);
+        }
+
+        fullPath = string.Empty;
+        if (!hasWorkspaceRoot)
+        {
+            errorMessage = $"当前未设置工作路径，无法解析相对路径: {path}";
+            return false;
+        }
+
+        if (candidatePaths.Count == 0)
+        {
+            errorMessage = $"路径超出了当前工作路径范围: {path}";
+            return false;
+        }
+
+        errorMessage = candidatePaths.Count == 1
+            ? $"文件不存在: {GetDisplayPath(candidatePaths[0])}"
+            : $"文件不存在: {GetDisplayPath(candidatePaths[0])}；副工作路径也未找到: {GetDisplayPath(candidatePaths[1])}";
+        return false;
     }
 
     private static IEnumerable<FileSystemInfo> GetDirectoryEntries(DirectoryInfo directory)
@@ -495,20 +568,50 @@ public sealed class WorkspaceToolProvider
 
     private string GetDisplayPath(string fullPath)
     {
-        string? workspacePath = WorkspacePath;
-        if (string.IsNullOrWhiteSpace(workspacePath))
+        if (!string.IsNullOrWhiteSpace(_primaryWorkspacePath)
+            && IsPathInsideWorkspace(_primaryWorkspacePath, fullPath))
         {
-            return fullPath;
+            string relativePath = Path.GetRelativePath(_primaryWorkspacePath, fullPath);
+            return relativePath == "." ? "." : relativePath;
         }
 
-        string relativePath = Path.GetRelativePath(NormalizePath(workspacePath), fullPath);
-        return relativePath == "." ? "." : relativePath;
+        if (!string.IsNullOrWhiteSpace(_secondaryWorkspacePath)
+            && IsPathInsideWorkspace(_secondaryWorkspacePath, fullPath))
+        {
+            string relativePath = Path.GetRelativePath(_secondaryWorkspacePath, fullPath);
+            return string.IsNullOrWhiteSpace(_primaryWorkspacePath) ? relativePath : $"[副工作区] {relativePath}";
+        }
+
+        return fullPath;
     }
 
     private string GetWorkspaceRootDisplayText()
     {
-        string? workspacePath = WorkspacePath;
-        return string.IsNullOrWhiteSpace(workspacePath) ? "<未设置>" : NormalizePath(workspacePath);
+        string? workspacePath = _primaryWorkspacePath;
+        if (string.IsNullOrEmpty(workspacePath))
+        {
+            workspacePath = _secondaryWorkspacePath;
+        }
+        return string.IsNullOrWhiteSpace(workspacePath) ? "<未设置>" : workspacePath;
+    }
+
+    private IEnumerable<string> EnumerateFileWorkspaceRoots()
+    {
+        if (!string.IsNullOrWhiteSpace(_primaryWorkspacePath))
+        {
+            yield return _primaryWorkspacePath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_secondaryWorkspacePath)
+            && (string.IsNullOrWhiteSpace(_primaryWorkspacePath) || !PathsEqual(_primaryWorkspacePath, _secondaryWorkspacePath)))
+        {
+            yield return _secondaryWorkspacePath;
+        }
+    }
+
+    private static string? NormalizeWorkspacePath(string? path)
+    {
+        return string.IsNullOrWhiteSpace(path) ? null : NormalizePath(path);
     }
 
     private static string GetEntryKind(FileSystemInfo entry)
