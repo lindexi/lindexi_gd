@@ -12,11 +12,18 @@
 
 ## 当前实现
 
-### 1. `CopilotViewModel` 暴露工作路径
+### 1. `CopilotViewModel` 暴露主副工作路径
 
-`CopilotViewModel` 新增了可空的 `WorkspacePath` 属性。
+`CopilotViewModel` 现在同时暴露：
 
-它只表达“当前允许 Copilot 默认文件工具访问的根目录”，不关心这个路径是如何被 UI 选中的。
+- `WorkspacePath`：主工作路径；
+- `SecondaryWorkspacePath`：副工作路径。
+
+其中：
+
+- 主工作路径优先代表“当前打开文件夹”的根目录；
+- 副工作路径代表“当前文档所在文件夹”；
+- 当主工作路径为空时，对外读取 `WorkspacePath` 仍会回落到副工作路径，保证默认文件工具还能解析当前文档附近的相对文件。
 
 ### 2. 默认工具通过 `CopilotToolManager` 管理
 
@@ -39,7 +46,11 @@
 5. 按行范围读取文件内容；
 6. `SubAgent`：把某个相对独立的任务委托给子代理执行。
 
-对于相对路径，这些工具仍然会把访问范围限制在 `WorkspacePath` 内，防止跳出当前工作目录。
+对于相对路径，这些工具会区分主副工作区：
+
+- 列目录、按名称递归搜索、按内容递归搜索，只允许使用主工作路径；
+- 读取文件开头、按行读取文件，会先尝试主工作路径；若主路径为空，或主路径下不存在目标文件，则回退到副工作路径；
+- 无论主副哪条路径生效，都仍然要求解析后的相对路径不能跳出各自根目录。
 
 对于绝对路径，工具会按绝对路径直接解析；如果传入的是相对路径而当前又没有 `WorkspacePath`，则返回明确错误信息。
 
@@ -91,12 +102,15 @@
 
 实际桥接点在 `SimpleWrite/Views/Components/RightSlideBar.axaml.cs`：
 
-- 右侧栏初始化 `CopilotViewModel` 时，订阅 `FolderExplorerViewModel.CurrentFolderChanged`；
-- 每次左侧已打开文件夹变化时，同步把 `CurrentFolder?.FullName` 写入 `copilotViewModel.WorkspacePath`。
+- 右侧栏初始化 `CopilotViewModel` 时，同时订阅：
+  - `FolderExplorerViewModel.CurrentFolderChanged`
+  - `EditorViewModel.EditorModelChanged`
+- 每次左侧已打开文件夹变化时，同步把 `CurrentFolder?.FullName` 写入 `copilotViewModel.WorkspacePath`；
+- 每次当前文档切换时，同步把 `CurrentEditorModel.FileInfo?.DirectoryName` 写入 `copilotViewModel.SecondaryWorkspacePath`。
 
 这样左侧栏仍然只知道 `FolderExplorerViewModel`，不会直接感知 `CopilotViewModel`。
 
-`CopilotViewModel.WorkspacePath` 本身也不再维护一份独立副本，而是直接代理到 `CopilotToolManager.WorkspacePath`，后者再同步到 `WorkspaceToolProvider.WorkspacePath`。
+`CopilotViewModel.WorkspacePath` / `SecondaryWorkspacePath` 本身都不再维护独立副本，而是直接代理到 `CopilotToolManager`，后者再同步到 `WorkspaceToolProvider`。
 
 这种做法比“在 Provider 构造函数里传入 `Func<string?>` 回调”更稳妥，因为状态归属是明确的，读写路径也更容易追踪。
 
@@ -122,6 +136,7 @@
 3. 工具返回内容都做了范围限制，例如最大结果数、最大字符数、最大行数，避免一次返回过大。
 4. 如果当前没有打开文件夹，工具只会在需要解析相对路径时返回“未设置工作路径”的提示；若调用方给的是绝对路径，则仍可直接访问该路径。
 5. 这次同时移除了 `SendMessageAsync` 里的调试死循环，否则会阻塞正常聊天流程。
+6. 现在“工作路径”不再只等于左侧文件夹树：目录类工具只认主工作区，文件读取类工具则支持当前文档目录作为副工作区兜底。
 
 ## 适用场景
 
