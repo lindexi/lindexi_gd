@@ -41,6 +41,7 @@ public partial class RightSlideBar : UserControl
     private double _resizeStartWidth;
     private Transitions? _widthTransitions;
     private FolderExplorerViewModel? _subscribedFolderExplorerViewModel;
+    private EditorViewModel? _subscribedEditorViewModel;
 
     public RightSlideBar()
     {
@@ -81,7 +82,7 @@ public partial class RightSlideBar : UserControl
 
             _ = LoadConfigAsync(copilotViewModel);
 
-            BindWorkspacePath(mainViewModel.FolderExplorerViewModel, copilotViewModel);
+            BindWorkspacePath(mainViewModel.FolderExplorerViewModel, mainViewModel.EditorViewModel, copilotViewModel);
 
             mainViewModel.SidebarConversationPresenter = new SidebarConversationPresenter(copilotViewModel);
 
@@ -137,17 +138,28 @@ public partial class RightSlideBar : UserControl
     /// 绑定工作空间
     /// </summary>
     /// <param name="folderExplorerViewModel"></param>
+    /// <param name="editorViewModel"></param>
     /// <param name="copilotViewModel"></param>
-    private void BindWorkspacePath(FolderExplorerViewModel folderExplorerViewModel, CopilotViewModel copilotViewModel)
+    private void BindWorkspacePath(FolderExplorerViewModel folderExplorerViewModel, EditorViewModel editorViewModel, CopilotViewModel copilotViewModel)
     {
         if (_subscribedFolderExplorerViewModel is not null)
         {
             _subscribedFolderExplorerViewModel.CurrentFolderChanged -= FolderExplorerViewModel_OnCurrentFolderChanged;
         }
 
+        if (_subscribedEditorViewModel is not null)
+        {
+            _subscribedEditorViewModel.EditorModelChanged -= EditorViewModel_OnEditorModelChanged;
+        }
+
         _subscribedFolderExplorerViewModel = folderExplorerViewModel;
         _subscribedFolderExplorerViewModel.CurrentFolderChanged += FolderExplorerViewModel_OnCurrentFolderChanged;
+
+        _subscribedEditorViewModel = editorViewModel;
+        _subscribedEditorViewModel.EditorModelChanged += EditorViewModel_OnEditorModelChanged;
+
         UpdateWorkspacePath(copilotViewModel, folderExplorerViewModel);
+        UpdateSecondaryWorkspacePath(copilotViewModel, editorViewModel);
     }
 
     private void FolderExplorerViewModel_OnCurrentFolderChanged(object? sender, EventArgs e)
@@ -160,9 +172,32 @@ public partial class RightSlideBar : UserControl
         UpdateWorkspacePath(CopilotSlideBar.ViewModel, folderExplorerViewModel);
     }
 
+    private void EditorViewModel_OnEditorModelChanged(object? sender, EventArgs e)
+    {
+        if (sender is not EditorViewModel editorViewModel)
+        {
+            return;
+        }
+
+        UpdateSecondaryWorkspacePath(CopilotSlideBar.ViewModel, editorViewModel);
+    }
+
     private static void UpdateWorkspacePath(CopilotViewModel copilotViewModel, FolderExplorerViewModel folderExplorerViewModel)
     {
         copilotViewModel.WorkspacePath = folderExplorerViewModel.CurrentFolder?.FullName;
+    }
+
+    private static void UpdateSecondaryWorkspacePath(CopilotViewModel copilotViewModel, EditorViewModel editorViewModel)
+    {
+        var directoryName = editorViewModel.CurrentEditorModel.FileInfo?.DirectoryName;
+        if (directoryName != null)
+        {
+            copilotViewModel.SecondaryWorkspacePath = directoryName;
+        }
+        else
+        {
+            // 比如没有保存的文件，没有路径，此时不要影响
+        }
     }
 
     private void CopilotViewModel_OnSettingOpened(object? sender, EventArgs e)
