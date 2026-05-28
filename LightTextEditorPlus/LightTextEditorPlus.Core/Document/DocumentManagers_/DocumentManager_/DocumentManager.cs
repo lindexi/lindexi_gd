@@ -1037,6 +1037,58 @@ namespace LightTextEditorPlus.Core.Document
             RemoveInner(selection);
         }
 
+        /// <summary>
+        /// 删除指定段落。
+        /// </summary>
+        /// <param name="paragraph">需要删除的段落</param>
+        /// <exception cref="ArgumentNullException"><paramref name="paragraph"/> 为 <see langword="null"/> 时抛出</exception>
+        /// <exception cref="ArgumentException"><paramref name="paragraph"/> 不是当前文档的段落实例时抛出</exception>
+        public void RemoveParagraph(ITextParagraph paragraph)
+        {
+            ArgumentNullException.ThrowIfNull(paragraph);
+
+            if (paragraph is not ParagraphData paragraphData)
+            {
+                throw new ArgumentException("传入的段落不是当前文档支持的段落实例", nameof(paragraph));
+            }
+
+            ParagraphIndex paragraphIndex = ParagraphManager.GetParagraphIndex(paragraphData);
+            Debug.Assert(paragraphIndex == paragraph.Index);
+
+            IReadOnlyList<ParagraphData> paragraphList = ParagraphManager.GetParagraphList();
+            int paragraphCount = paragraphList.Count;
+
+            Selection selection;
+            if (paragraphCount == 1)
+            {
+                // 仅一段的情况
+                selection = this.GetParagraphSelection(paragraph);
+            }
+            else if (paragraphIndex.Index == paragraphCount - 1)
+            {
+                // 末段的情况
+                DocumentOffset paragraphStartOffset = paragraphData.GetParagraphStartOffset();
+                var startOffset = paragraphStartOffset.Offset - ParagraphData.DelimiterLength;
+                var startCaretOffset = new CaretOffset(startOffset);
+                selection = new Selection(startCaretOffset, ParagraphData.DelimiterLength + paragraphData.CharCount);
+            }
+            else
+            {
+                // 非末段的情况
+                Selection paragraphSelection = this.GetParagraphSelection(paragraph);
+                selection = new Selection(paragraphSelection.FrontOffset,
+                    paragraphSelection.Length + ParagraphData.DelimiterLength);
+            }
+
+            if (selection.IsEmpty)
+            {
+                return;
+            }
+
+            TextEditor.AddLayoutReason(nameof(RemoveParagraph) + $" 删除段落 ParagraphIndex={paragraphIndex.Index}");
+            RemoveInner(selection);
+        }
+
         private void RemoveInner(in Selection selection)
         {
             // 删除范围内的文本，等价于将范围内的文本替换为空

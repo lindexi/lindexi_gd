@@ -154,4 +154,14 @@ public partial class TextEditorCore
     {
         DocumentManager.Remove(selection);
     }
+
+    /// <summary>
+    /// 删除指定段落。
+    /// </summary>
+    /// 这是对外调用的，非框架内使用
+    [TextEditorPublicAPI]
+    public void RemoveParagraph(ITextParagraph paragraph)
+    {
+        DocumentManager.RemoveParagraph(paragraph);
+    }
 }

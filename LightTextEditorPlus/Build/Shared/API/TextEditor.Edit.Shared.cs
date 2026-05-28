@@ -740,6 +740,15 @@ namespace LightTextEditorPlus
         public ITextParagraph GetCurrentCaretOffsetParagraph()
             => TextEditorCore.DocumentManager.GetParagraph(TextEditorCore.CurrentCaretOffset);
 
+        /// <summary>
+        /// 删除指定段落。
+        /// </summary>
+        /// <param name="paragraph"></param>
+        public void RemoveParagraph(ITextParagraph paragraph)
+        {
+            TextEditorCore.RemoveParagraph(paragraph);
+        }
+
         #endregion
 
         /// <summary>
