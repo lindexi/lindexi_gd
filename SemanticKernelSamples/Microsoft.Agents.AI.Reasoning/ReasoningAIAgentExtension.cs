@@ -25,6 +25,7 @@ public static class ReasoningAIAgentExtension
         CancellationToken cancellationToken = default)
     {
         bool? isThinking = null;
+        bool hasOutputContent = false;
         bool isFirstOutputContent = true;
 
         await foreach (AgentResponseUpdate agentRunResponseUpdate in agent.RunStreamingAsync(messages, session, options, cancellationToken))
@@ -45,27 +46,28 @@ public static class ReasoningAIAgentExtension
                 {
                     hasReasoningContent = true;
 
-                    bool isFirstThinking = false;
+                    bool isFirstThinking = isThinking is null;
+                    bool isReenterThinking = isThinking is false && hasOutputContent;
+
                     if (isThinking is null)
                     {
                         isThinking = true;
-                        isFirstThinking = true;
                     }
 
-                    if (isThinking is true)
+                    if (isThinking is false)
                     {
-                        yield return new ReasoningAgentResponseUpdate(agentRunResponseUpdate)
-                        {
-                            Reasoning = textReasoningContent.Text,
-                            IsFirstThinking = isFirstThinking,
-                            IsFirstOutputContent = false,
-                            IsThinkingEnd = false,
-                        };
+                        isThinking = true;
                     }
-                    else
+
+                    yield return new ReasoningAgentResponseUpdate(agentRunResponseUpdate)
                     {
-                        //Debug.Fail("不能在输出内容之后，再次进入思考");
-                    }
+                        Reasoning = textReasoningContent.Text,
+                        IsFirstThinking = isFirstThinking,
+                        IsReenterThinking = isReenterThinking,
+                        IsFirstOutputContent = false,
+                        IsReenterOutputContent = false,
+                        IsThinkingEnd = false,
+                    };
                 }
                 else if (aiContent is TextContent textContent)
                 {
@@ -85,24 +87,31 @@ public static class ReasoningAIAgentExtension
 
             if (!contentIsEmpty)
             {
+                bool isEnteringOutputFromThinking = isThinking is true;
+
                 if (isFirstOutputContent)
                 {
                     responseUpdate.IsFirstOutputContent = true;
                 }
+                else if (isEnteringOutputFromThinking)
+                {
+                    responseUpdate.IsReenterOutputContent = true;
+                }
 
-                if (isThinking is true && isFirstOutputContent)
+                if (isEnteringOutputFromThinking)
                 {
                     responseUpdate.IsThinkingEnd = true;
                 }
 
                 isFirstOutputContent = false;
+                hasOutputContent = true;
                 isThinking = false;
 
                 yield return responseUpdate;
             }
             else
             {
-                // 有内容，直接输出即可
+                // 无文本内容，直接输出即可
                 yield return responseUpdate;
             }
         }
