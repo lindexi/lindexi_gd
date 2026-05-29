@@ -607,8 +607,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         IReadOnlyRunProperty maxFontSizeCharRunProperty = maxFontSizeCharData.RunProperty;
 
         // 处理行距
-        var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex, argument.LineIndex, argument.ParagraphProperty, maxFontSizeCharRunProperty);
-        LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
+        var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex, argument.LineIndex, argument.ParagraphProperty, maxFontSizeCharRunProperty, argument.UpdateLayoutContext);
+        LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(in lineSpacingCalculateArgument);
 
         // 获取到行高，行高的意思是整行的高度，包括空白行距+字符高度
         double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
@@ -616,8 +616,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             lineHeight = currentTextSize.Height;
         }
-        else if (lineHeight < currentTextSize.Height && TextEditor.LineSpacingConfiguration.LineSpacingAlgorithm == LineSpacingAlgorithm.PPT)
+        else if (lineHeight < currentTextSize.Height && updateLayoutContext.AllowReSizeLineHeightByTextSize)
         {
+            // 修复 6de0f5e9-行高选择高度未覆盖字符
             updateLayoutContext.RecordDebugLayoutInfo($"行距算法计算出的行高 {lineHeight:0.##} 小于字符高度 {currentTextSize.Height:0.##}，改用字符高度避免字符和选择范围越出行范围",
                 LayoutDebugCategory.PreLineSpacingInWholeLine);
             lineHeight = currentTextSize.Height;
@@ -630,7 +631,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var maxFontHeight = maxFontSizeCharData.Size.Height;
         // 行距的空白。正常 MaxFontHeight 小于 LineHeight 的情况下，可以认为这就是行距的空白
         var lineSpacingGap = lineHeight - maxFontHeight;
-        RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
+        RatioVerticalCharInLineAlignment verticalCharInLineAlignment = updateLayoutContext.VerticalCharInLineAlignment;
         // 计算出行距的顶部空白
         var topLineSpacingGap = lineSpacingGap * verticalCharInLineAlignment.LineSpaceRatio;
         var bottomLineSpacingGap = lineSpacingGap - topLineSpacingGap;
