@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 
 using LightTextEditorPlus.Demo.Business.RichTextCases;
+using SkiaSharp;
 
 using System;
 using System.Collections.Generic;
@@ -73,13 +74,29 @@ public class IntegrationTest
                 if (!result.Success || !result.IsSimilar())
                 {
 #if DEBUG
-                    Debugger.Break();
+                    if (!ReNewMode)
+                    {
+                        Debugger.Break();
+                    }
 #endif
                     Debug.WriteLine($"视觉识别存在差异，如符合预期，可将 '{imageFilePath}' 拷贝到 '{assertImageFilePath}' ");
 
-                    await TestFramework.FreezeTestToDebug();
-                    throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath,
-                        imageFilePath);
+                    if (ReNewMode)
+                    {
+                        CopyReNewFolder();
+                    }
+                    else
+                    {
+                        await TestFramework.FreezeTestToDebug();
+                        throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath,
+                            imageFilePath);
+                    }
+
+                    // 绘制差异图片。差异图片是由四张图片组成的，按照两行两列的形式存放。前面一行，分别是原图、当前截图。后面一行，分别是原图和当前截图的差异圈选图，即在图片上方，根据 VisionCompareRect 给定范围，用红色框选出来
+                    var outputFolder = Path.Join(AppContext.BaseDirectory, "Difference");
+                    Directory.CreateDirectory(outputFolder);
+                    var diffImageFile = Path.Join(outputFolder, fileName);
+                    SaveDifferenceImage(assertImageFilePath, imageFilePath, result.CompareRectList, diffImageFile);
                 }
             }
             else
@@ -88,12 +105,36 @@ public class IntegrationTest
                 Debugger.Break();
 #endif
 
-                Debug.WriteLine($"测试 '{testName}' 未找到对比图片 '{assertImageFilePath}'，已将测试结果保存到 '{imageFilePath}'，请确认是否符合预期，如符合预期，可将其拷贝到 '{assertImageFilePath}' ");
+                Debug.WriteLine(
+                    $"测试 '{testName}' 未找到对比图片 '{assertImageFilePath}'，已将测试结果保存到 '{imageFilePath}'，请确认是否符合预期，如符合预期，可将其拷贝到 '{assertImageFilePath}' ");
+                CopyReNewFolder();
+            }
+
+            void CopyReNewFolder()
+            {
+                var outputFolder = Path.Join(AppContext.BaseDirectory, "VisionDifference");
+                Directory.CreateDirectory(outputFolder);
+                var newAssertImageFilePath = Path.Join(outputFolder, fileName);
+                File.Copy(imageFilePath, newAssertImageFilePath, true);
             }
         });
 
+        if (ReNewMode)
+        {
+            context.CloseTestWindow();
+            // 更新模式下，就不要等待调试了，直接结束测试就行了
+            return;
+        }
+
         await context.DebugWaitWindowClose();
     }
+
+    /// <summary>
+    /// 重新更新的模式
+    /// </summary>
+    private static bool ReNewMode { get; } 
+    // 代码审查注意，这个参数必须是 false 值
+        = false;
 
     public static IEnumerable<object[]> AdditionData
     {
@@ -133,5 +174,67 @@ public class IntegrationTest
         grid.Background = Brushes.Transparent;
 
         return filePath;
+    }
+
+    private static void SaveDifferenceImage(string assertImageFilePath, string imageFilePath,
+        IReadOnlyList<VisionCompareRect> compareRectList, string diffImageFilePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(assertImageFilePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(imageFilePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(diffImageFilePath);
+        ArgumentNullException.ThrowIfNull(compareRectList);
+
+        using SKBitmap assertBitmap = SKBitmap.Decode(assertImageFilePath)
+                                     ?? throw new InvalidOperationException($"无法读取基准图片 '{assertImageFilePath}'");
+        using SKBitmap currentBitmap = SKBitmap.Decode(imageFilePath)
+                                      ?? throw new InvalidOperationException($"无法读取当前截图 '{imageFilePath}'");
+
+        int cellWidth = Math.Max(assertBitmap.Width, currentBitmap.Width);
+        int cellHeight = Math.Max(assertBitmap.Height, currentBitmap.Height);
+
+        using SKBitmap diffBitmap = new SKBitmap(cellWidth * 2, cellHeight * 2, assertBitmap.ColorType,
+            assertBitmap.AlphaType, assertBitmap.ColorSpace);
+        using SKCanvas canvas = new SKCanvas(diffBitmap);
+        canvas.Clear(SKColors.White);
+
+        DrawImage(canvas, assertBitmap, 0, 0);
+        DrawImage(canvas, currentBitmap, cellWidth, 0);
+        DrawImage(canvas, assertBitmap, 0, cellHeight);
+        DrawImage(canvas, currentBitmap, cellWidth, cellHeight);
+
+        using SKPaint borderPaint = new SKPaint
+        {
+            Color = SKColors.Red,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 2,
+            IsAntialias = true
+        };
+
+        foreach (VisionCompareRect compareRect in compareRectList)
+        {
+            SKRect rect = CreateRect(compareRect);
+            //canvas.DrawRect(rect, borderPaint);
+
+            rect.Offset(0, cellHeight);
+            canvas.DrawRect(rect, borderPaint);
+
+            rect.Offset(cellWidth, 0);
+            canvas.DrawRect(rect, borderPaint);
+        }
+
+        using SKImage image = SKImage.FromBitmap(diffBitmap);
+        using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+        using FileStream fileStream = File.Open(diffImageFilePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+        data.SaveTo(fileStream);
+
+        static void DrawImage(SKCanvas canvas, SKBitmap bitmap, float x, float y)
+        {
+            canvas.DrawBitmap(bitmap, x, y);
+        }
+
+        static SKRect CreateRect(VisionCompareRect compareRect)
+        {
+            return SKRect.Create(compareRect.X, compareRect.Y, compareRect.Width, compareRect.Height);
+        }
     }
 }
