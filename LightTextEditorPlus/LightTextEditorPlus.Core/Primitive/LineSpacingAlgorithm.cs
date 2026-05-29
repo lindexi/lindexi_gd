@@ -7,7 +7,7 @@
 public enum LineSpacingAlgorithm : byte
 {
     /// <summary>
-    /// 使用 WPF 的行距计算方法。使用此算法即可计算出 TextBlock 的行距
+    /// 使用 WPF 的行距计算方法。使用此算法即可计算出 TextBlock 的行距。简单说明为行距根据字号（字体大小）与字体名进行计算，不同字体名在相同字号下行距不同
     /// <para>
     /// 算法 LineHeight = FontSize * FontFamilyLineSpacing * (LineSpace - 1) / 10 + FontSize * FontFamilyLineSpacing
     /// </para>
@@ -21,7 +21,7 @@ public enum LineSpacingAlgorithm : byte
     WPF = 0,
 
     /// <summary>
-    /// 使用 PPT 的行距计算方法。可以计算出和 PPT 文本布局差不多的行距
+    /// 使用 PPT 的行距计算方法。可以计算出和 PPT 文本布局差不多的行距。简单说明就是采用线性的算法来计算行距，行距仅靠字号（字体大小）参与计算，与字体名无关。不同字体名在相同字号下行距相同
     /// <para>
     /// 算法 LineHeight = PPTPixelLineSpacing = (PPTFL * LineSpace + b) * FontSize
     /// </para>
