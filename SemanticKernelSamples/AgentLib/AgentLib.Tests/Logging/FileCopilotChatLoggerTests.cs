@@ -60,6 +60,7 @@ public class FileCopilotChatLoggerTests
         Assert.AreEqual("Copilot", messageElement.Attribute("Author")?.Value);
         Assert.AreEqual("测试内容", messageElement.Element("Content")?.Value);
         Assert.AreEqual("推理内容", messageElement.Element("Reason")?.Value);
+        Assert.IsNull(root.Element("AgentSessionState"));
     }
 
     [TestMethod]
@@ -101,6 +102,25 @@ public class FileCopilotChatLoggerTests
 
         Assert.HasCount(1, Directory.GetFiles(logPath, "*.log", SearchOption.AllDirectories));
         Assert.IsFalse(Directory.Exists(CreatePath("history")));
+    }
+
+    [TestMethod]
+    [Description("记录会话状态时应把最新的机器会话状态写入聊天历史 XML 文件")]
+    public async Task LogMessageAsync_WhenAgentSessionStateProvided_WritesAgentSessionStateToHistory()
+    {
+        string logPath = CreatePath("logs");
+        string historyPath = CreatePath("history");
+        var logger = new FileCopilotChatLogger(logPath, historyPath);
+        Guid sessionId = Guid.NewGuid();
+
+        await logger.LogMessageAsync(sessionId, new CopilotChatMessage(ChatRole.User, "第一条消息"), "conversation-1");
+        await logger.LogMessageAsync(sessionId, new CopilotChatMessage(ChatRole.Assistant, "第二条消息"), "conversation-2");
+
+        string historyFile = GetSingleFile(historyPath, "*.xml");
+        XDocument historyDocument = XDocument.Load(historyFile);
+
+        Assert.AreEqual("conversation-2", historyDocument.Root?.Element("AgentSessionState")?.Value);
+        Assert.HasCount(2, historyDocument.Root?.Element("Messages")?.Elements("Message")?.ToArray() ?? []);
     }
 
     private string CreatePath(string name)

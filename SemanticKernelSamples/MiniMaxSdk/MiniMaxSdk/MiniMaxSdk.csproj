@@ -8,4 +8,8 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Images\Internal\Serialization\" />
+  </ItemGroup>
+
 </Project>

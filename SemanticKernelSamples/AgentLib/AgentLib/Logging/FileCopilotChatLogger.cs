@@ -47,7 +47,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
 
     public string? ChatHistoryFolder { get; }
 
-    public async Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage)
+    public async Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage, string? serializedAgentSessionState = null)
     {
         ArgumentNullException.ThrowIfNull(chatMessage);
 
@@ -83,7 +83,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
             builder.AppendLine();
 
             await File.AppendAllTextAsync(logFilePath, builder.ToString(), Encoding.UTF8).ConfigureAwait(false);
-            await WriteChatHistoryAsync(sessionId, chatMessage).ConfigureAwait(false);
+            await WriteChatHistoryAsync(sessionId, chatMessage, serializedAgentSessionState).ConfigureAwait(false);
         }
         finally
         {
@@ -106,7 +106,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         return logFilePath;
     }
 
-    private async Task WriteChatHistoryAsync(Guid sessionId, CopilotChatMessage chatMessage)
+    private async Task WriteChatHistoryAsync(Guid sessionId, CopilotChatMessage chatMessage, string? serializedAgentSessionState)
     {
         if (string.IsNullOrWhiteSpace(ChatHistoryFolder))
         {
@@ -117,11 +117,11 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
 
         if (!File.Exists(chatHistoryFileInfo.FilePath))
         {
-            await CreateChatHistoryFileAsync(chatHistoryFileInfo.FilePath, sessionId, chatMessage).ConfigureAwait(false);
+            await CreateChatHistoryFileAsync(chatHistoryFileInfo.FilePath, sessionId, chatMessage, serializedAgentSessionState).ConfigureAwait(false);
             return;
         }
 
-        await AppendChatHistoryMessageAsync(chatHistoryFileInfo.FilePath, chatMessage).ConfigureAwait(false);
+        await AppendChatHistoryMessageAsync(chatHistoryFileInfo.FilePath, chatMessage, serializedAgentSessionState).ConfigureAwait(false);
     }
 
     private ChatHistoryFileInfo GetSessionHistoryFileInfo(Guid sessionId, DateTimeOffset createdTime)
@@ -137,34 +137,41 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         return historyFileInfo;
     }
 
-    private static Task CreateChatHistoryFileAsync(string historyFilePath, Guid sessionId, CopilotChatMessage chatMessage)
+    private static Task CreateChatHistoryFileAsync(string historyFilePath, Guid sessionId, CopilotChatMessage chatMessage,
+        string? serializedAgentSessionState)
     {
-        var document = new XDocument(
-            new XElement("CopilotChatSessionHistory",
-                new XAttribute("SessionId", sessionId),
-                new XAttribute("CreatedTime", chatMessage.CreatedTime.ToString("o")),
-                new XElement("Messages", CreateMessageElement(chatMessage))));
+        var rootElement = new XElement("CopilotChatSessionHistory",
+            new XAttribute("SessionId", sessionId),
+            new XAttribute("CreatedTime", chatMessage.CreatedTime.ToString("o")));
+
+        AppendAgentSessionStateElement(rootElement, serializedAgentSessionState);
+        rootElement.Add(new XElement("Messages", CreateMessageElement(chatMessage)));
+
+        var document = new XDocument(rootElement);
 
         return SaveFormattedChatHistoryDocumentAsync(historyFilePath, document);
     }
 
-    private static async Task AppendChatHistoryMessageAsync(string historyFilePath, CopilotChatMessage chatMessage)
+    private static async Task AppendChatHistoryMessageAsync(string historyFilePath, CopilotChatMessage chatMessage,
+        string? serializedAgentSessionState)
     {
-        await using var fileStream = new FileStream(historyFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
-        string closingFragment = await GetChatHistoryClosingFragmentAsync(fileStream).ConfigureAwait(false);
-        int trailingClosingFragmentByteCount = Utf8EncodingWithoutBom.GetByteCount(closingFragment);
-        if (fileStream.Length < trailingClosingFragmentByteCount)
-        {
-            throw new InvalidDataException($"聊天历史文件 '{historyFilePath}' 的内容格式无效，无法追加消息。");
-        }
+        var document = await LoadChatHistoryDocumentAsync(historyFilePath).ConfigureAwait(false);
+        XElement rootElement = document.Root ?? throw new InvalidDataException($"聊天历史文件 '{historyFilePath}' 的内容格式无效，无法追加消息。");
 
-        fileStream.SetLength(fileStream.Length - trailingClosingFragmentByteCount);
-        fileStream.Seek(0, SeekOrigin.End);
+        rootElement.Element("AgentSessionState")?.Remove();
+        AppendAgentSessionStateElement(rootElement, serializedAgentSessionState);
 
-        await using var streamWriter = new StreamWriter(fileStream, Utf8EncodingWithoutBom);
-        string appendedXml = $"{Environment.NewLine}{CreateIndentedMessageElementXml(chatMessage)}{FormattedChatHistoryClosingFragment}";
-        await streamWriter.WriteAsync(appendedXml).ConfigureAwait(false);
-        await streamWriter.FlushAsync().ConfigureAwait(false);
+        XElement messagesElement = rootElement.Element("Messages")
+                                   ?? throw new InvalidDataException($"聊天历史文件 '{historyFilePath}' 的内容格式无效，无法追加消息。");
+        messagesElement.Add(CreateMessageElement(chatMessage));
+
+        await SaveFormattedChatHistoryDocumentAsync(historyFilePath, document).ConfigureAwait(false);
+    }
+
+    private static async Task<XDocument> LoadChatHistoryDocumentAsync(string historyFilePath)
+    {
+        await using var fileStream = new FileStream(historyFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        return await XDocument.LoadAsync(fileStream, LoadOptions.None, CancellationToken.None).ConfigureAwait(false);
     }
 
     private static async Task SaveFormattedChatHistoryDocumentAsync(string historyFilePath, XDocument document)
@@ -189,55 +196,15 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         };
     }
 
-    private static async Task<string> GetChatHistoryClosingFragmentAsync(FileStream fileStream)
+    private static void AppendAgentSessionStateElement(XElement rootElement, string? serializedAgentSessionState)
     {
-        if (await EndsWithAsync(fileStream, FormattedChatHistoryClosingFragment).ConfigureAwait(false))
+        if (string.IsNullOrWhiteSpace(serializedAgentSessionState))
         {
-            return FormattedChatHistoryClosingFragment;
+            return;
         }
 
-        if (await EndsWithAsync(fileStream, CompactChatHistoryClosingFragment).ConfigureAwait(false))
-        {
-            return CompactChatHistoryClosingFragment;
-        }
-
-        throw new InvalidDataException($"聊天历史文件 '{fileStream.Name}' 的内容格式无效，无法追加消息。");
-    }
-
-    private static async Task<bool> EndsWithAsync(FileStream fileStream, string fragment)
-    {
-        byte[] expectedBytes = Utf8EncodingWithoutBom.GetBytes(fragment);
-        if (fileStream.Length < expectedBytes.Length)
-        {
-            return false;
-        }
-
-        byte[] buffer = new byte[expectedBytes.Length];
-        fileStream.Seek(-expectedBytes.Length, SeekOrigin.End);
-        int readLength = await fileStream.ReadAsync(buffer).ConfigureAwait(false);
-        return readLength == expectedBytes.Length && buffer.AsSpan().SequenceEqual(expectedBytes);
-    }
-
-    private static string CreateIndentedMessageElementXml(CopilotChatMessage chatMessage)
-    {
-        string messageXml = CreateMessageElement(chatMessage).ToString(SaveOptions.None);
-        using var stringReader = new StringReader(messageXml);
-        var builder = new StringBuilder();
-        bool isFirstLine = true;
-
-        while (stringReader.ReadLine() is { } line)
-        {
-            if (!isFirstLine)
-            {
-                builder.AppendLine();
-            }
-
-            builder.Append(MessageElementIndent)
-                .Append(line);
-            isFirstLine = false;
-        }
-
-        return builder.ToString();
+        rootElement.AddFirst(new XElement("AgentSessionState",
+            new XCData(serializedAgentSessionState)));
     }
 
     private static XElement CreateMessageElement(CopilotChatMessage chatMessage)

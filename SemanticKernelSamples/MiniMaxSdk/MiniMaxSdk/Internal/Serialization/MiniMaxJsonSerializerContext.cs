@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using MiniMaxSdk.Images.Internal.Payloads;
 
-namespace MiniMaxSdk.Images.Internal.Serialization;
+namespace MiniMaxSdk.Internal.Serialization;
 
 [JsonSourceGenerationOptions(JsonSerializerDefaults.Web, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(ImageGenerationRequestPayload))]
@@ -11,6 +11,7 @@ namespace MiniMaxSdk.Images.Internal.Serialization;
 [JsonSerializable(typeof(MetadataPayload))]
 [JsonSerializable(typeof(BaseResponsePayload))]
 [JsonSerializable(typeof(StylePayload))]
-internal sealed partial class MiniMaxImageJsonSerializerContext : JsonSerializerContext
+[JsonSerializable(typeof(ImageSubjectReferencePayload))]
+internal sealed partial class MiniMaxJsonSerializerContext : JsonSerializerContext
 {
 }
