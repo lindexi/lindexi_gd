@@ -24,9 +24,16 @@ Task<object?> ScriptRunner(AgentFileSkill skill, AgentFileSkillScript script, Js
     return Task.FromResult<object?>(null);
 }
 
+var outputFolder = Path.Join(AppContext.BaseDirectory, $"Output_{Path.GetRandomFileName()}");
+Directory.CreateDirectory(outputFolder);
+
 ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
 {
-    AIContextProviders = [agentSkillsProvider]
+    AIContextProviders = [agentSkillsProvider],
+    ChatOptions = new ChatOptions()
+    {
+        Tools = [AIFunctionFactory.Create(WriteFile)]
+    }
 });
 
 await agent.RunStreamingAndLogToConsoleAsync([new ChatMessage(ChatRole.User, "你好，我准备开发 MCP 服务器，请你给我一些建议")]);
@@ -34,7 +41,8 @@ await agent.RunStreamingAndLogToConsoleAsync([new ChatMessage(ChatRole.User, "�
 Console.WriteLine("Hello, World!");
 
 
-class F : AIContextProvider
+
+static void WriteFile(string fileName, string content)
 {
 
 }
