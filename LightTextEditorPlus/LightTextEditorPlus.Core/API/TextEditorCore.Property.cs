@@ -110,6 +110,8 @@ partial class TextEditorCore
         }
     }
 
+    internal ref DocumentLineSpacingConfiguration GetLineSpacingConfiguration() => ref _lineSpacingConfiguration;
+
     private DocumentLineSpacingConfiguration _lineSpacingConfiguration = new();
 
     /// <summary>

@@ -128,6 +128,38 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         IsCurrentLayoutCompleted = true;
     }
 
+    #region 各项配置
+
+    /// <summary>
+    /// 行距的配置
+    /// </summary>
+    public ref DocumentLineSpacingConfiguration LineSpacingConfiguration
+        => ref TextEditor.GetLineSpacingConfiguration();
+
+    /// <summary>
+    /// 是否允许根据文本大小调整行高。当前仅固定的行距算法（非字体名相关），如 PPT 算法时才允许
+    /// </summary>
+    public bool AllowReSizeLineHeightByTextSize
+        => _allowReSizeLineHeightByTextSize ??=
+            LineSpacingConfiguration.LineSpacingAlgorithm == LineSpacingAlgorithm.PPT;
+
+    /// <summary>
+    /// 热路径，缓存起来
+    /// </summary>
+    private bool? _allowReSizeLineHeightByTextSize;
+
+    /// <inheritdoc cref="DocumentLineSpacingConfiguration.VerticalCharInLineAlignment"/>
+    public RatioVerticalCharInLineAlignment VerticalCharInLineAlignment
+    {
+        get
+        {
+           ref var lineSpacingConfiguration = ref LineSpacingConfiguration;
+           return lineSpacingConfiguration.VerticalCharInLineAlignment;
+        }
+    } 
+
+    #endregion
+
     #region ICharDataLayoutInfoSetter
 
     /// <inheritdoc />
