@@ -110,6 +110,10 @@ partial class TextEditorCore
         }
     }
 
+    /// <summary>
+    /// 内部使用的行距配置，外部请勿使用。只是为了提供 ref 直接引用而已
+    /// </summary>
+    /// <returns></returns>
     internal ref DocumentLineSpacingConfiguration GetLineSpacingConfiguration() => ref _lineSpacingConfiguration;
 
     private DocumentLineSpacingConfiguration _lineSpacingConfiguration = new();
@@ -120,6 +124,7 @@ partial class TextEditorCore
     /// <remarks>
     /// 如需更高级的配置，请使用 <see cref="LineSpacingConfiguration"/> 属性
     /// </remarks>
+    [TextEditorPublicAPI]
     public LineSpacingStrategy LineSpacingStrategy
     {
         set
@@ -138,6 +143,7 @@ partial class TextEditorCore
     /// <remarks>
     /// 如需更高级的配置，请使用 <see cref="LineSpacingConfiguration"/> 属性
     /// </remarks>
+    [TextEditorPublicAPI]
     public LineSpacingAlgorithm LineSpacingAlgorithm
     {
         set

@@ -30,6 +30,13 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
         IReadOnlyList<ParagraphData> paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
         InternalParagraphList = paragraphList;
+
+        // 一些配置内容
+        ref var lineSpacingConfiguration = ref TextEditor.GetLineSpacingConfiguration();
+        // 是否允许根据文本大小调整行高。当前仅固定的行距算法（非字体名相关），如 PPT 算法时才允许
+        AllowReSizeLineHeightByTextSize = lineSpacingConfiguration.LineSpacingAlgorithm == LineSpacingAlgorithm.PPT;
+        VerticalCharInLineAlignment = lineSpacingConfiguration.VerticalCharInLineAlignment;
+        LineSpacingStrategy = lineSpacingConfiguration.LineSpacingStrategy;
     }
 
     /// <summary>
@@ -139,24 +146,13 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// <summary>
     /// 是否允许根据文本大小调整行高。当前仅固定的行距算法（非字体名相关），如 PPT 算法时才允许
     /// </summary>
-    public bool AllowReSizeLineHeightByTextSize
-        => _allowReSizeLineHeightByTextSize ??=
-            LineSpacingConfiguration.LineSpacingAlgorithm == LineSpacingAlgorithm.PPT;
-
-    /// <summary>
-    /// 热路径，缓存起来
-    /// </summary>
-    private bool? _allowReSizeLineHeightByTextSize;
+    public bool AllowReSizeLineHeightByTextSize { get; }
 
     /// <inheritdoc cref="DocumentLineSpacingConfiguration.VerticalCharInLineAlignment"/>
-    public RatioVerticalCharInLineAlignment VerticalCharInLineAlignment
-    {
-        get
-        {
-           ref var lineSpacingConfiguration = ref LineSpacingConfiguration;
-           return lineSpacingConfiguration.VerticalCharInLineAlignment;
-        }
-    } 
+    public RatioVerticalCharInLineAlignment VerticalCharInLineAlignment { get; }
+
+    /// <inheritdoc cref="DocumentLineSpacingConfiguration.LineSpacingStrategy"/>
+    public LineSpacingStrategy LineSpacingStrategy { get; }
 
     #endregion
 

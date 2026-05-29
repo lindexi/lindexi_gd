@@ -569,8 +569,8 @@ abstract class ArrangingLayoutProvider
             var runProperty = argument.ParagraphStartRunProperty;
 
             var lineSpacingCalculateArgument =
-                new LineSpacingCalculateArgument(argument.ParagraphIndex, 0, paragraphProperty, runProperty);
-            var lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
+                new LineSpacingCalculateArgument(argument.ParagraphIndex, 0, paragraphProperty, runProperty, argument.UpdateLayoutContext);
+            var lineSpacingCalculateResult = CalculateLineSpacing(in lineSpacingCalculateArgument);
             double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
             if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
             {
@@ -653,9 +653,9 @@ abstract class ArrangingLayoutProvider
             var needNotCalculateLineSpacing =
                 // 处理首行不展开，文档的首段首行不加上行距
                 // 也就是不需要处理 lineHeight 的值
-                TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink
-                && argument.ParagraphIndex == 0
-                && argument.LineIndex == 0;
+                argument.ParagraphIndex == 0
+                && argument.LineIndex == 0
+                && argument.UpdateLayoutContext.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink;
 
             if (needNotCalculateLineSpacing)
             {
