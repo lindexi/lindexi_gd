@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MiniMaxSdk;
+namespace MiniMaxSdk.Images.Internal.Payloads;
 
 internal sealed record ImageDataPayload(
     [property: JsonPropertyName("image_urls")] IReadOnlyList<string>? ImageUrls,

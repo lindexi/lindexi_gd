@@ -1,5 +1,24 @@
-namespace MiniMaxSdk;
+namespace MiniMaxSdk.Images.Models;
 
+/// <summary>
+/// 表示一次 MiniMax 文生图请求。
+/// </summary>
+/// <param name="Prompt">图像的文本描述，最长 1500 字符。</param>
+/// <param name="Model">模型名称，可选值为 <c>image-01</c> 和 <c>image-01-live</c>。</param>
+/// <param name="AspectRatio">图像宽高比，默认由服务端处理，可选值参考 <see cref="MiniMaxImageAspectRatios"/>。</param>
+/// <param name="Width">生成图片的宽度（像素），仅当模型为 <c>image-01</c> 时生效。</param>
+/// <param name="Height">生成图片的高度（像素），仅当模型为 <c>image-01</c> 时生效。</param>
+/// <param name="ResponseFormat">返回图片的形式，可选值为 <c>url</c> 或 <c>base64</c>。</param>
+/// <param name="Seed">随机种子，使用相同参数与相同种子可生成内容相近的图片。</param>
+/// <param name="Count">单次请求生成的图片数量，取值范围为 1 到 9。</param>
+/// <param name="PromptOptimizer">是否开启 Prompt 自动优化。</param>
+/// <param name="AigcWatermark">是否在生成的图片中添加水印。</param>
+/// <param name="Style">画风设置，仅当模型为 <c>image-01-live</c> 时生效。</param>
+/// <remarks>
+/// <para>当同时设置 <paramref name="AspectRatio"/> 与 <paramref name="Width"/>、<paramref name="Height"/> 时，服务端优先使用宽高比参数。</para>
+/// <para><paramref name="Width"/> 与 <paramref name="Height"/> 需要同时设置，取值范围为 512 到 2048，且必须是 8 的倍数。</para>
+/// <para>当 <paramref name="ResponseFormat"/> 为 <c>url</c> 时，返回链接有效期为 24 小时。</para>
+/// </remarks>
 public sealed record MiniMaxImageGenerationRequest(
     string Prompt,
     string Model = MiniMaxImageGenerationModels.Image01,

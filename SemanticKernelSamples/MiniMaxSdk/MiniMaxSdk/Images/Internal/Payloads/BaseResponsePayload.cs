@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MiniMaxSdk;
+namespace MiniMaxSdk.Images.Internal.Payloads;
 
 internal sealed record BaseResponsePayload(
     [property: JsonPropertyName("status_code")] int StatusCode,

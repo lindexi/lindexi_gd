@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
+using MiniMaxSdk.Images.Models;
 
-namespace MiniMaxSdk;
+namespace MiniMaxSdk.Images.Internal.Payloads;
 
 internal sealed record ImageGenerationRequestPayload(
     [property: JsonPropertyName("model")] string Model,
