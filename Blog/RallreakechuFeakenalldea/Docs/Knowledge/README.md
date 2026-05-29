@@ -8,6 +8,7 @@
 |---|---|
 | Copilot 聊天历史 XML 如何按会话落盘 | `Avalonia/Copilot-Chat-History-Xml.md` |
 | Copilot 聊天日志如何注入与按会话落盘 | `Avalonia/Copilot-Chat-Logging.md` |
+| Copilot 如何同时维护人类会话和 AgentSession | `Avalonia/Copilot-AgentSession-And-HumanSession-Split.md` |
 | Copilot 流式思考、工具调用和正文为何改成消息片段集合 | `Avalonia/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | Copilot 工具调用如何接入人工审批按钮与执行等待 | `Avalonia/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | 代码着色三分类与扩展名路由如何工作 | `Avalonia/Code-Highlighting-Categories-And-Extensions.md` |
@@ -36,6 +37,7 @@
 | `Code-Highlighting-Categories-And-Extensions.md` | 代码着色三分类与扩展名路由 | 扩展文件类型高亮、排查 Markdown 代码块或整篇代码文档着色时 |
 | `Copilot-Chat-History-Xml.md` | Copilot 聊天历史 XML 落盘约定 | 需要查会话归档结构、补历史浏览或反序列化读取时 |
 | `Copilot-Chat-Logging.md` | Copilot 聊天日志注入与按会话文件落盘 | 需要替换日志实现、调整日志目录、排查某个会话记录时 |
+| `Copilot-AgentSession-And-HumanSession-Split.md` | Copilot 人类会话与 AgentSession 分层 | 需要让模型上下文改走 `AgentSession`、恢复机器记忆、准备对话压缩时 |
 | `Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` | Copilot 流式消息片段、人工审批工具与工作区工具异步化 | 调整思考/工具/正文交错输出、接入人工审批工具、排查工具执行卡顿时 |
 | `Copilot-New-Session-Command-Behavior.md` | Copilot 派生命令的新会话策略 | 调整右键发送、翻译、润色、本地展示结果的会话归属时 |
 | `Copilot-Workspace-Primary-And-Secondary-Paths.md` | Copilot 主副工作区路径协同规则 | 需要区分目录工作区与当前文档目录、排查相对路径解析时 |
