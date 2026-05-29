@@ -14,8 +14,14 @@ public sealed class MiniMaxClient : IDisposable
     /// <param name="httpClient">可选的 <see cref="HttpClient"/> 实例。</param>
     public MiniMaxClient(string apiKey, HttpClient? httpClient = null)
     {
+        _disposeHttpClient = httpClient is null;
+        httpClient ??= new HttpClient();
+        _httpClient = httpClient;
         ImageGeneration = new MiniMaxImageGenerationClient(apiKey, httpClient);
     }
+
+    private readonly bool _disposeHttpClient;
+    private readonly HttpClient _httpClient;
 
     /// <summary>
     /// 图片生成客户端。
@@ -28,5 +34,10 @@ public sealed class MiniMaxClient : IDisposable
     public void Dispose()
     {
         ImageGeneration.Dispose();
+
+        if (_disposeHttpClient)
+        {
+            _httpClient.Dispose();
+        }
     }
 }
