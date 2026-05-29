@@ -1,4 +1,5 @@
 ﻿using MiniMaxSdk;
+using MiniMaxSdk.Images.Models;
 
 var miniMaxKeyFile = @"C:\lindexi\Work\Key\MiniMax.txt";
 var miniMaxKey = File.ReadAllText(miniMaxKeyFile).Trim();
@@ -18,7 +19,7 @@ for (var i = 0; i < result.Images.Count; i++)
         throw new InvalidOperationException("当前示例期望返回 Base64 图片数据。\n");
     }
 
-    var outputFile = Path.Combine(outputDirectory, $"minimax-image-{i + 1}{image.SuggestedFileExtension}");
+    var outputFile = Path.Join(outputDirectory, $"minimax-image-{i + 1}{image.SuggestedFileExtension}");
     await File.WriteAllBytesAsync(outputFile, image.Bytes);
     Console.WriteLine($"图片已输出：{outputFile}");
 }

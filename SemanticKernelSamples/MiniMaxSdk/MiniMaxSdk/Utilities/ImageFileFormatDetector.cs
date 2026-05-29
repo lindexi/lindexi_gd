@@ -1,4 +1,4 @@
-namespace MiniMaxSdk;
+namespace MiniMaxSdk.Utilities;
 
 internal static class ImageFileFormatDetector
 {

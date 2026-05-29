@@ -1,17 +1,22 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using MiniMaxSdk.Images.Internal.Payloads;
+using MiniMaxSdk.Images.Internal.Serialization;
+using MiniMaxSdk.Images.Models;
+using MiniMaxSdk.Utilities;
 
-namespace MiniMaxSdk;
+namespace MiniMaxSdk.Images.Clients;
 
+/// <summary>
+/// MiniMax 文生图客户端。
+/// </summary>
 public sealed class MiniMaxImageGenerationClient : IDisposable
 {
-    private static readonly Uri ImageGenerationEndpoint = new("https://api.minimaxi.com/v1/image_generation");
-    private static readonly MiniMaxImageJsonSerializerContext SerializerContext = MiniMaxImageJsonSerializerContext.Default;
-
-    private readonly HttpClient _httpClient;
-    private readonly bool _disposeHttpClient;
-    private readonly string _apiKey;
-
+    /// <summary>
+    /// 初始化 <see cref="MiniMaxImageGenerationClient"/> 实例。
+    /// </summary>
+    /// <param name="apiKey">用于验证账户信息的 MiniMax API Key。</param>
+    /// <param name="httpClient">可选的 <see cref="HttpClient"/> 实例。</param>
     public MiniMaxImageGenerationClient(string apiKey, HttpClient? httpClient = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -24,9 +29,22 @@ public sealed class MiniMaxImageGenerationClient : IDisposable
         _disposeHttpClient = httpClient is null;
     }
 
+    private static readonly Uri ImageGenerationEndpoint = new("https://api.minimaxi.com/v1/image_generation");
+
+    private static MiniMaxImageJsonSerializerContext SerializerContext => MiniMaxImageJsonSerializerContext.Default;
+
+    private readonly HttpClient _httpClient;
+
+    private readonly bool _disposeHttpClient;
+
+    private readonly string _apiKey;
+
     /// <summary>
     /// 调用 MiniMax 文生图接口生成图片。
     /// </summary>
+    /// <param name="request">图片生成请求。</param>
+    /// <param name="cancellationToken">用于取消异步操作的取消令牌。</param>
+    /// <returns>包含任务标识、生成结果与统计信息的图片生成结果。</returns>
     public async Task<MiniMaxImageGenerationResult> GenerateAsync(MiniMaxImageGenerationRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -78,6 +96,9 @@ public sealed class MiniMaxImageGenerationClient : IDisposable
             apiResponse.Metadata?.FailedCount ?? 0);
     }
 
+    /// <summary>
+    /// 释放当前客户端持有的资源。
+    /// </summary>
     public void Dispose()
     {
         if (_disposeHttpClient)
