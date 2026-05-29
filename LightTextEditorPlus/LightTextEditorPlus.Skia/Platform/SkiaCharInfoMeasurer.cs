@@ -20,6 +20,7 @@ using SkiaSharp;
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -128,6 +129,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         {
             throw new TextEditorInnerException(ExceptionMessages.SkiaCharInfoMeasurer_CurrentCharSizeMustBeAvailableAfterMeasure);
         }
+
+        DebugWriteCharMeasureResult(argument.ToMeasureCharDataList, updateLayoutContext);
     }
 
     /// <summary>
@@ -467,6 +470,39 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var charRenderInfoSetter = new CharRenderInfoSetter(charDataLayoutInfoSetter); // PS: 这是一个结构体，创建是不要钱的
 
         charRenderInfoSetter.SetCharDataInfo(charSizeInfoSpan, charDataList);
+    }
+
+    [Conditional("DEBUG")]
+    private static void DebugWriteCharMeasureResult(TextReadOnlyListSpan<CharData> charDataList, UpdateLayoutContext updateLayoutContext)
+    {
+        if (!updateLayoutContext.IsInDebugMode)
+        {
+            return;
+        }
+
+        Console.WriteLine($"[SkiaCharInfoMeasurer][Measure] Text=\"{ToDebugText(charDataList)}\" Count={charDataList.Count} ArrangingType={updateLayoutContext.TextEditor.ArrangingType} Culture={updateLayoutContext.TextEditor.CurrentCulture.Name}");
+
+        for (int i = 0; i < charDataList.Count; i++)
+        {
+            CharData charData = charDataList[i];
+            CharDataInfo charDataInfo = charData.CharDataInfo;
+            Console.WriteLine($"  [Char] Index={i} Text=\"{charData.CharObject.ToText()}\" Frame={FormatSize(charDataInfo.FrameSize)} Face={FormatSize(charDataInfo.FaceSize)} Baseline={FormatDouble(charDataInfo.Baseline)} GlyphIndex={charDataInfo.GlyphIndex} Status={charDataInfo.Status}");
+        }
+    }
+
+    private static string ToDebugText(TextReadOnlyListSpan<CharData> charDataList)
+    {
+        return string.Concat(charDataList.Select(static charData => charData.CharObject.ToText()));
+    }
+
+    private static string FormatSize(TextSize textSize)
+    {
+        return $"({FormatDouble(textSize.Width)},{FormatDouble(textSize.Height)})";
+    }
+
+    private static string FormatDouble(double value)
+    {
+        return value.ToString("0.###", CultureInfo.InvariantCulture);
     }
 
     /// <summary>

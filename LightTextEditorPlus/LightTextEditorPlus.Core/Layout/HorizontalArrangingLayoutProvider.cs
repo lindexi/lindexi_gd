@@ -616,6 +616,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             lineHeight = currentTextSize.Height;
         }
+        else if (lineHeight < currentTextSize.Height)
+        {
+            updateLayoutContext.RecordDebugLayoutInfo($"行距算法计算出的行高 {lineHeight:0.##} 小于字符高度 {currentTextSize.Height:0.##}，改用字符高度避免字符和选择范围越出行范围",
+                LayoutDebugCategory.PreLineSpacingInWholeLine);
+            lineHeight = currentTextSize.Height;
+        }
 
         var lineSpacing = lineHeight - currentTextSize.Height; // 行距值，现在仅调试用途
         GC.KeepAlive(lineSpacing);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 
 using LightTextEditorPlus.Core.Carets;
@@ -48,18 +49,17 @@ public class RenderInfoProvider
         {
             if (TextEditor.IsInDebugMode)
             {
-                throw new TextEditorDebugException("获取选择对应的范围时，传入的选择范围是空");
+                TextEditor.Logger.LogDebug("获取选择对应的范围时，传入的选择范围是空");
             }
-            else
-            {
-                // 框架层还是能处理的，那就返回一个空集合好了
+
+            // 框架层还是能处理的，那就返回一个空集合好了
 #pragma warning disable IDE0300 // 简化集合初始化。因为几乎不可能进入此分支，所以不简化
-                return new TextRect[0];
-#pragma warning restore IDE0300 // 简化集合初始化                
-            }
+            return new TextRect[0];
+#pragma warning restore IDE0300 // 简化集合初始化
         }
 
         var result = new List<TextRect>();
+        Selection selectionSnapshot = selection;
         LineLayoutData? currentLineLayoutData = null;
         TextRect currentBounds = default;
         CharData? lastCharData = null;
@@ -111,14 +111,30 @@ public class RenderInfoProvider
             var lastBounds = lastCharData.GetBounds();
             TextRect textRect = currentBounds.Union(lastBounds);
 
-            // 限制高度，防止选择的两行重叠了
-            textRect = textRect with
-            {
-                Height = Math.Min(textRect.Height, currentLineLayoutData.LineContentSize.Height)
-            };
+            TextRect lineBounds = currentLineLayoutData.GetLineContentBounds();
+            textRect = textRect.Intersect(lineBounds);
 
+            DebugWriteSelectionBounds(selectionSnapshot, currentLineLayoutData, currentBounds, lastBounds, textRect);
             result.Add(textRect);
         }
+    }
+
+    [Conditional("DEBUG")]
+    private void DebugWriteSelectionBounds(Selection selection, LineLayoutData currentLineLayoutData, TextRect firstBounds,
+        TextRect lastBounds, TextRect selectionBounds)
+    {
+        if (!TextEditor.IsInDebugMode)
+        {
+            return;
+        }
+
+        TextPoint lineContentStartPoint = currentLineLayoutData.LineContentStartPoint.ToCurrentArrangingTypePoint();
+        Console.WriteLine($"[RenderInfoProvider][Selection] Selection={selection.FrontOffset.Offset}-{selection.BehindOffset.Offset} Paragraph={currentLineLayoutData.CurrentParagraph.Index.Index} Line={currentLineLayoutData.LineInParagraphIndex} First={FormatRect(firstBounds)} Last={FormatRect(lastBounds)} Result={FormatRect(selectionBounds)} LineContentHeight={currentLineLayoutData.LineContentSize.Height.ToString("0.###", CultureInfo.InvariantCulture)} LineContentStartY={lineContentStartPoint.Y.ToString("0.###", CultureInfo.InvariantCulture)}");
+    }
+
+    private static string FormatRect(TextRect rect)
+    {
+        return $"X={rect.X.ToString("0.###", CultureInfo.InvariantCulture)},Y={rect.Y.ToString("0.###", CultureInfo.InvariantCulture)},W={rect.Width.ToString("0.###", CultureInfo.InvariantCulture)},H={rect.Height.ToString("0.###", CultureInfo.InvariantCulture)}";
     }
 
     /// <summary>
