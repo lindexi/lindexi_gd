@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Globalization;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -268,41 +266,12 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        DebugWriteLineLayout();
         return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint.ToCurrentArrangingTypePoint(),
             GetCharList())
         {
             LineContentSize = LineContentSize,
             LineCharTextSize = LineCharTextSize,
         };
-    }
-
-    [Conditional("DEBUG")]
-    private void DebugWriteLineLayout()
-    {
-        if (!CurrentParagraph.IsInDebugMode)
-        {
-            return;
-        }
-
-        TextPoint startPoint = CharStartPoint.ToCurrentArrangingTypePoint();
-        TextPoint lineContentStartPoint = LineContentStartPoint.ToCurrentArrangingTypePoint();
-        Console.WriteLine($"[LineLayoutData][Line] Paragraph={CurrentParagraph.Index.Index} Line={LineInParagraphIndex} Text=\"{GetText()}\" CharRange={CharStartParagraphIndex}-{CharEndParagraphIndex} CharStart={FormatPoint(startPoint)} LineContentStart={FormatPoint(lineContentStartPoint)} LineCharSize={FormatSize(LineCharTextSize)} LineContentSize={FormatSize(LineContentSize)} Outline={FormatRect(OutlineBounds)} Indent={IndentationThickness} AlignGap={HorizontalTextAlignmentGapThickness} LineSpacing={LineSpacingThickness}");
-    }
-
-    private static string FormatPoint(TextPoint point)
-    {
-        return $"({point.X.ToString("0.###", CultureInfo.InvariantCulture)},{point.Y.ToString("0.###", CultureInfo.InvariantCulture)})";
-    }
-
-    private static string FormatSize(TextSize textSize)
-    {
-        return $"({textSize.Width.ToString("0.###", CultureInfo.InvariantCulture)},{textSize.Height.ToString("0.###", CultureInfo.InvariantCulture)})";
-    }
-
-    private static string FormatRect(TextRect rect)
-    {
-        return $"X={rect.X.ToString("0.###", CultureInfo.InvariantCulture)},Y={rect.Y.ToString("0.###", CultureInfo.InvariantCulture)},W={rect.Width.ToString("0.###", CultureInfo.InvariantCulture)},H={rect.Height.ToString("0.###", CultureInfo.InvariantCulture)}";
     }
 
     #endregion

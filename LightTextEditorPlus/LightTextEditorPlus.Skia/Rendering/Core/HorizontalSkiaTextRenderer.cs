@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Runtime.InteropServices;
 
 using LightTextEditorPlus.Configurations;
@@ -100,8 +99,6 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
         // 由于 Skia 的 DrawText 传入的 Point 是文本的基线，因此需要调整 Y 值
         y += baselineY;
 
-        DebugWriteRenderInfo(charList, lineInfo, x, y, width, height, baselineY, skFont);
-
         using SKTextBlob skTextBlob = ToSKTextBlob(in charList, skFont);
         //SKRect skTextBlobBounds = skTextBlob.Bounds;
         //_ = skTextBlobBounds;
@@ -129,34 +126,6 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
 
         return -skFont.Metrics.Ascent;
     }
-
-    [System.Diagnostics.Conditional("DEBUG")]
-    private void DebugWriteRenderInfo(in TextReadOnlyListSpan<CharData> charList, in ParagraphLineRenderInfo lineInfo, float x, float y,
-        float width, float height, float baselineY, SKFont skFont)
-    {
-        if (!TextEditor.TextEditorCore.IsInDebugMode)
-        {
-            return;
-        }
-
-        SKFontMetrics metrics = skFont.Metrics;
-        TextRect firstBounds = charList[0].GetBounds();
-        var textBuilder = new System.Text.StringBuilder();
-        foreach (CharData charData in charList)
-        {
-            textBuilder.Append(charData.CharObject.ToText());
-        }
-
-        string text = textBuilder.ToString();
-        Console.WriteLine($"[HorizontalSkiaTextRenderer][Render] Paragraph={lineInfo.ParagraphIndex.Index} Line={lineInfo.LineIndex} Text=\"{text}\" Start={FormatPoint(lineInfo.Argument.StartPoint)} FirstBounds={FormatRect(firstBounds)} DrawPoint=({FormatFloat(x)},{FormatFloat(y)}) Width={FormatFloat(width)} Height={FormatFloat(height)} BaselineOffset={FormatFloat(baselineY)} Ascent={FormatFloat(metrics.Ascent)} Descent={FormatFloat(metrics.Descent)} Top={FormatFloat(metrics.Top)} Bottom={FormatFloat(metrics.Bottom)}");
-    }
-
-    private static string FormatFloat(float value) => value.ToString("0.###", CultureInfo.InvariantCulture);
-
-    private static string FormatPoint(TextPoint point) => $"({point.X.ToString("0.###", CultureInfo.InvariantCulture)},{point.Y.ToString("0.###", CultureInfo.InvariantCulture)})";
-
-    private static string FormatRect(TextRect rect)
-        => $"X={rect.X.ToString("0.###", CultureInfo.InvariantCulture)},Y={rect.Y.ToString("0.###", CultureInfo.InvariantCulture)},W={rect.Width.ToString("0.###", CultureInfo.InvariantCulture)},H={rect.Height.ToString("0.###", CultureInfo.InvariantCulture)}";
 
     /// <inheritdoc />
     protected override void RenderBackground(in ParagraphLineRenderInfo lineRenderInfo)
