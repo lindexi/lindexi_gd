@@ -21,6 +21,7 @@
 | 代码着色三分类与扩展名路由 | `Knowledge/Avalonia/Code-Highlighting-Categories-And-Extensions.md` |
 | Copilot 聊天历史 XML 落盘 | `Knowledge/Avalonia/Copilot-Chat-History-Xml.md` |
 | Copilot 流式消息片段与工作区工具异步化 | `Knowledge/Avalonia/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
+| Copilot 人类会话与 AgentSession 分层 | `Knowledge/Avalonia/Copilot-AgentSession-And-HumanSession-Split.md` |
 | 左侧目录树与文件夹查找 | `Knowledge/Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | Copilot 默认工作路径工具 | `Knowledge/Avalonia/Copilot-Workspace-Default-Tools.md` |
 | Copilot 主副工作区路径 | `Knowledge/Avalonia/Copilot-Workspace-Primary-And-Secondary-Paths.md` |

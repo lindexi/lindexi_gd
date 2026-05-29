@@ -38,6 +38,8 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         CaretConfiguration.SelectionBrush = new Color(0x9F, 0x26, 0x3F, 0xC7);
         CaretConfiguration.ShowCaretAndSelectionInReadonlyMode = true;
 
+        this.UseWpfLineSpacingStyle();
+
         TextEditorCore.TextChanged += TextEditorCore_TextChanged;
 
         SizeToContent = SizeToContent.Height;
