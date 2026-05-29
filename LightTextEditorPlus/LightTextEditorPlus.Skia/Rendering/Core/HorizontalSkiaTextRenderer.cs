@@ -94,7 +94,7 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
         //float x = skiaTextRenderInfo.X;
         //float y = skiaTextRenderInfo.Y;
 
-        var baselineY = /*skFont.Metrics.Leading +*/ (-skFont.Metrics.Ascent);
+        float baselineY = GetRenderBaselineY(firstCharData.CharDataInfo, skFont);
 
         // 由于 Skia 的 DrawText 传入的 Point 是文本的基线，因此需要调整 Y 值
         y += baselineY;
@@ -115,6 +115,16 @@ class HorizontalSkiaTextRenderer : BaseSkiaTextRenderer
         foreground.Apply(brushRenderContext);
 
         Canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
+    }
+
+    internal static float GetRenderBaselineY(CharDataInfo charDataInfo, SKFont skFont)
+    {
+        if (!double.IsNaN(charDataInfo.Baseline))
+        {
+            return (float) charDataInfo.Baseline;
+        }
+
+        return -skFont.Metrics.Ascent;
     }
 
     /// <inheritdoc />

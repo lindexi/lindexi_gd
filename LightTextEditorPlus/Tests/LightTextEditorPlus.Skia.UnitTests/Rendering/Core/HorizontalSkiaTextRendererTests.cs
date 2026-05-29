@@ -132,4 +132,46 @@ public partial class HorizontalSkiaTextRendererTests
         // Assert
         Assert.IsNotNull(renderer);
     }
+
+    /// <summary>
+    /// Tests that horizontal Skia rendering prefers the measured CharDataInfo baseline instead of recalculating it from SKFont metrics.
+    /// </summary>
+    [TestMethod]
+    public void GetRenderBaselineY_ValidCharDataInfoBaseline_PrefersMeasuredBaseline()
+    {
+        // Arrange
+        using SKTypeface typeface = SKFontManager.Default.MatchCharacter('a') ?? SKTypeface.Default;
+        using SKFont skFont = new(typeface, 16);
+        const double measuredBaseline = 123.45;
+        CharDataInfo charDataInfo = new(new TextSize(10, 20), new TextSize(8, 12), measuredBaseline)
+        {
+            GlyphIndex = 1,
+            Status = CharDataInfoStatus.Normal,
+        };
+
+        // Act
+        float baseline = HorizontalSkiaTextRenderer.GetRenderBaselineY(charDataInfo, skFont);
+
+        // Assert
+        Assert.AreEqual((float) measuredBaseline, baseline, 0.001f);
+    }
+
+    /// <summary>
+    /// Tests that horizontal Skia rendering falls back to SKFont metrics only when CharDataInfo baseline is unavailable.
+    /// </summary>
+    [TestMethod]
+    public void GetRenderBaselineY_InvalidCharDataInfoBaseline_FallsBackToFontMetrics()
+    {
+        // Arrange
+        using SKTypeface typeface = SKFontManager.Default.MatchCharacter('a') ?? SKTypeface.Default;
+        using SKFont skFont = new(typeface, 16);
+        CharDataInfo charDataInfo = CharDataInfo.Invalid;
+        float expected = -skFont.Metrics.Ascent;
+
+        // Act
+        float baseline = HorizontalSkiaTextRenderer.GetRenderBaselineY(charDataInfo, skFont);
+
+        // Assert
+        Assert.AreEqual(expected, baseline, 0.001f);
+    }
 }
