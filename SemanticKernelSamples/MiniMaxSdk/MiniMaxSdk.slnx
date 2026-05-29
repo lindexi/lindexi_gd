@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="MiniMaxDemo/MiniMaxDemo.csproj" />
   <Project Path="MiniMaxSdk/MiniMaxSdk.csproj" />
 </Solution>
