@@ -1,17 +1,12 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace MiniMaxSdk;
 
 public sealed class MiniMaxImageGenerationClient : IDisposable
 {
     private static readonly Uri ImageGenerationEndpoint = new("https://api.minimaxi.com/v1/image_generation");
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    private static readonly MiniMaxImageJsonSerializerContext SerializerContext = MiniMaxImageJsonSerializerContext.Default;
 
     private readonly HttpClient _httpClient;
     private readonly bool _disposeHttpClient;
@@ -39,17 +34,17 @@ public sealed class MiniMaxImageGenerationClient : IDisposable
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ImageGenerationEndpoint);
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        httpRequest.Content = JsonContent.Create(ImageGenerationRequestPayload.FromRequest(request), options: SerializerOptions);
+        httpRequest.Content = JsonContent.Create(ImageGenerationRequestPayload.FromRequest(request), SerializerContext.ImageGenerationRequestPayload);
 
         using var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-        var responseContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             throw new HttpRequestException($"MiniMax 文生图请求失败，HTTP {(int)response.StatusCode} {response.ReasonPhrase}。响应内容：{responseContent}");
         }
 
-        var apiResponse = JsonSerializer.Deserialize<ImageGenerationResponsePayload>(responseContent, SerializerOptions)
+        var apiResponse = await response.Content.ReadFromJsonAsync(SerializerContext.ImageGenerationResponsePayload, cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidOperationException("MiniMax 文生图响应为空。");
 
         if (apiResponse.BaseResp?.StatusCode is int statusCode && statusCode != 0)
