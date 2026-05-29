@@ -1,6 +1,5 @@
 ﻿using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +14,11 @@ public class LindexiAgentConfiguration
     {
         var doubaoKeyFile = @"c:\lindexi\Work\Doubao.txt";
         var deepseekKeyFile = @"c:\lindexi\Work\deepseek.txt";
+        var miniMaxKeyFile = @"C:\lindexi\Work\Key\MiniMax.txt";
 
         var doubaoKey = File.ReadAllText(doubaoKeyFile);
         var deepseekKey = File.ReadAllText(deepseekKeyFile);
+        var miniMaxKey = File.ReadAllText(miniMaxKeyFile);
 
         var agentApiManagerConfiguration = new AgentApiManagerConfiguration()
         {
@@ -108,6 +109,17 @@ public class LindexiAgentConfiguration
                             }
                         },
                     }
+                },
+
+                new OpenAIProtocolLanguageModelConfiguration("https://api.minimaxi.com/v1", miniMaxKey)
+                {
+                    ModelDefinitions =
+                    [
+                        new ModelDefinition()
+                        {
+                            ModelName = "MiniMax-M2.7"
+                        }
+                    ]
                 }
             }
         };
