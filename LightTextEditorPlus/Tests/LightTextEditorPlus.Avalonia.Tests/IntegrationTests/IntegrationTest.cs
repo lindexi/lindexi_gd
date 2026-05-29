@@ -73,13 +73,23 @@ public class IntegrationTest
                 if (!result.Success || !result.IsSimilar())
                 {
 #if DEBUG
-                    Debugger.Break();
+                    if (!ReNewMode)
+                    {
+                        Debugger.Break();
+                    }
 #endif
                     Debug.WriteLine($"视觉识别存在差异，如符合预期，可将 '{imageFilePath}' 拷贝到 '{assertImageFilePath}' ");
 
-                    await TestFramework.FreezeTestToDebug();
-                    throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath,
-                        imageFilePath);
+                    if (ReNewMode)
+                    {
+                        CopyReNewFolder();
+                    }
+                    else
+                    {
+                        await TestFramework.FreezeTestToDebug();
+                        throw new VisionCompareResultException(richTextCase.Name, result, assertImageFilePath,
+                            imageFilePath);
+                    }
                 }
             }
             else
@@ -88,12 +98,36 @@ public class IntegrationTest
                 Debugger.Break();
 #endif
 
-                Debug.WriteLine($"测试 '{testName}' 未找到对比图片 '{assertImageFilePath}'，已将测试结果保存到 '{imageFilePath}'，请确认是否符合预期，如符合预期，可将其拷贝到 '{assertImageFilePath}' ");
+                Debug.WriteLine(
+                    $"测试 '{testName}' 未找到对比图片 '{assertImageFilePath}'，已将测试结果保存到 '{imageFilePath}'，请确认是否符合预期，如符合预期，可将其拷贝到 '{assertImageFilePath}' ");
+                CopyReNewFolder();
+            }
+
+            void CopyReNewFolder()
+            {
+                var outputFolder = Path.Join(AppContext.BaseDirectory, "VisionDifference");
+                Directory.CreateDirectory(outputFolder);
+                var newAssertImageFilePath = Path.Join(outputFolder, fileName);
+                File.Copy(imageFilePath, newAssertImageFilePath, true);
             }
         });
 
+        if (ReNewMode)
+        {
+            context.CloseTestWindow();
+            // 更新模式下，就不要等待调试了，直接结束测试就行了
+            return;
+        }
+
         await context.DebugWaitWindowClose();
     }
+
+    /// <summary>
+    /// 重新更新的模式
+    /// </summary>
+    private static bool ReNewMode { get; } 
+    // 代码审查注意，这个参数必须是 false 值
+        = false;
 
     public static IEnumerable<object[]> AdditionData
     {
