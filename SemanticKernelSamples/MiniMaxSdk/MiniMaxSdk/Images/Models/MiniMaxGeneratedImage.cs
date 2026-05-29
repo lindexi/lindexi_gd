@@ -12,4 +12,27 @@ public sealed record MiniMaxGeneratedImage(string? Url, byte[]? Bytes, string Su
     /// 获取当前图片是否包含二进制内容。
     /// </summary>
     public bool HasBinaryContent => Bytes is { Length: > 0 };
+
+    /// <summary>
+    /// 将当前图片保存到指定文件。
+    /// </summary>
+    /// <param name="outputFile">输出文件。</param>
+    /// <param name="cancellationToken">用于取消异步操作的取消令牌。</param>
+    /// <returns>表示异步保存操作的任务。</returns>
+    public async Task SaveAsync(FileInfo outputFile, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(outputFile);
+
+        if (!HasBinaryContent || Bytes is null)
+        {
+            throw new InvalidOperationException("当前图片不包含可保存的二进制内容。请在请求时使用 base64 返回格式。");
+        }
+
+        if (outputFile.Directory is DirectoryInfo directory)
+        {
+            directory.Create();
+        }
+
+        await File.WriteAllBytesAsync(outputFile.FullName, Bytes, cancellationToken).ConfigureAwait(false);
+    }
 }
