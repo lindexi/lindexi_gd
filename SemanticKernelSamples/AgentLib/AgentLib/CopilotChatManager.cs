@@ -237,14 +237,18 @@ public class CopilotChatManager : NotifyBase
                 }
             });
 
-            ChatMessage[] messages = withHistory
-                ? [.. currentSession.ChatMessages.Where(chatMessage => !chatMessage.IsPresetInfo).Select(chatMessage => chatMessage.ToChatMessage())]
-                : [userChatMessage.ToChatMessage()];
+            AgentSession agentSession = await GetOrCreateAgentSessionAsync(chatClientAgent, currentSession, currentChatCancellationToken);
+            currentSession.SetAgentSession(agentSession, SerializeAgentSession(agentSession));
+
+            IReadOnlyList<ChatMessage> messages = ShouldSendOnlyCurrentMessage(currentSession, withHistory)
+                ? [userChatMessage.ToChatMessage()]
+                : [];
 
             currentSession.AddMessage(copilotChatMessage);
+           
 
             bool isFirst = true;
-            await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: currentChatCancellationToken))
+            await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgent.RunStreamingAsync(messages, agentSession, cancellationToken: currentChatCancellationToken))
             {
                 if (isFirst)
                 {
@@ -255,7 +259,8 @@ public class CopilotChatManager : NotifyBase
                 AppendAssistantResponseUpdate(copilotChatMessage, agentRunResponseUpdate);
             }
 
-            await ChatLogger.LogMessageAsync(currentSession.SessionId, copilotChatMessage);
+            currentSession.SetAgentSession(agentSession, SerializeAgentSession(agentSession));
+            await ChatLogger.LogMessageAsync(currentSession.SessionId, copilotChatMessage, currentSession.SerializedAgentSessionState);
         }
         catch (OperationCanceledException) when (currentChatCancellationToken.IsCancellationRequested)
         {
@@ -343,6 +348,16 @@ public class CopilotChatManager : NotifyBase
         copilotChatMessage.AppendUsageDetails(responseUpdate.Contents);
     }
 
+    private static bool ShouldSendOnlyCurrentMessage(CopilotChatSession currentSession, bool withHistory)
+    {
+        if (!withHistory)
+        {
+            return true;
+        }
+
+        return !currentSession.HasSerializedAgentSessionState;
+    }
+
     private CopilotChatSession CreateSession()
     {
         var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
@@ -368,7 +383,50 @@ public class CopilotChatManager : NotifyBase
         cancellationToken.ThrowIfCancellationRequested();
 
         session.AddMessage(chatMessage);
-        await ChatLogger.LogMessageAsync(session.SessionId, chatMessage);
+        await ChatLogger.LogMessageAsync(session.SessionId, chatMessage, session.SerializedAgentSessionState);
+    }
+
+    private static string? SerializeAgentSession(AgentSession? agentSession)
+    {
+        return agentSession is ChatClientAgentSession { ConversationId: { Length: > 0 } conversationId }
+            ? conversationId
+            : null;
+    }
+
+    private static Task<AgentSession?> DeserializeAgentSessionAsync(ChatClientAgent chatClientAgent, string? serializedAgentSessionState,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(chatClientAgent);
+
+        if (string.IsNullOrWhiteSpace(serializedAgentSessionState))
+        {
+            return Task.FromResult<AgentSession?>(null);
+        }
+
+        return chatClientAgent.CreateSessionAsync(serializedAgentSessionState, cancellationToken).AsTask();
+    }
+
+    private static async Task<AgentSession> GetOrCreateAgentSessionAsync(ChatClientAgent chatClientAgent, CopilotChatSession currentSession,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(chatClientAgent);
+        ArgumentNullException.ThrowIfNull(currentSession);
+
+        AgentSession? agentSession = currentSession.AgentSession;
+        if (agentSession is null)
+        {
+            agentSession = await DeserializeAgentSessionAsync(chatClientAgent, currentSession.SerializedAgentSessionState, cancellationToken);
+        }
+
+        if (agentSession is not null)
+        {
+            currentSession.SetAgentSession(agentSession, currentSession.SerializedAgentSessionState);
+            return agentSession;
+        }
+
+        agentSession = await chatClientAgent.CreateSessionAsync(cancellationToken);
+        currentSession.SetAgentSession(agentSession, SerializeAgentSession(agentSession));
+        return agentSession;
     }
 
     private static void AddAssistantWelcomeMessage(CopilotChatSession session)
