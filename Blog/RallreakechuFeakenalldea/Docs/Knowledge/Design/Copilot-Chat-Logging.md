@@ -9,7 +9,7 @@
 1. 日志能力由 `CopilotViewModel.ChatLogger` 提供，外部可以在初始化阶段替换实现。
 2. `FileCopilotChatLogger` 允许在构造时分别指定文本日志文件夹与聊天历史文件夹。
 3. 每个会话按 `CurrentSessionId` 单独落一个可读文本日志文件，文件里顺序追加“时间 + 说话人 + 内容”；如果助手消息同时带有思考链和正文，则按统一组合文本一起写入；若带有 `UsageDetails`，则继续追加用量摘要。
-4. 同一个会话还会在 `CopilotChatHistory` 文件夹里维护一份 XML 文件，文件名为 `yyyyMMdd_HHmmss_{SessionId:N}.xml`，内容按会话聚合全部消息，并在可用时额外保存机器侧 `AgentSessionState`，方便后续恢复机器记忆与查阅历史。
+4. 同一个会话还会在 `CopilotChatHistory` 文件夹里维护一份 XML 文件，文件名为 `yyyyMMdd_HHmmss_{SessionId:N}.xml`，内容按会话聚合全部消息，并在可用时额外保存机器侧 `AgentSessionState` JSON，方便后续查阅历史与单独实现会话恢复。
 5. 编辑器右键发送、翻译、本地转换结果展示等派生操作会先新建会话，再把文本按正常用户/助手消息写入该会话历史。
 
 ## 当前接线位置
@@ -42,15 +42,15 @@
 
 当前会话模型也分成了两层：
 
-- `CopilotChatSession`：继续承载面向人的标题、消息列表和 UI 展示状态；
-- `AgentSession`：承载面向模型的对话上下文与记忆；当前日志链路至少会把可稳定恢复的机器侧会话状态写入 `AgentSessionState`。
+- `CopilotChatSession`：继续承载面向人的标题、消息列表、UI 展示状态和运行期 `AgentSession` 引用；
+- `AgentSession`：承载面向模型的对话上下文与记忆；日志链路需要时会通过状态提供器调用 `ChatClientAgent.SerializeSessionAsync(...)`，把当前机器侧会话状态写入 `AgentSessionState`。
 
 ## 记录时机
 
 当前实现只在真正进入聊天链路时记录：
 
 - 用户消息加入 `ChatMessages` 后立即记录。
-- 助手流式回复结束后，按最终汇总内容记录一次，并同步刷新当前会话对应的机器侧会话状态。
+- 助手流式回复结束后，按最终汇总内容记录一次；如果当前运行传入了 `AgentSession`，则在这一刻按需序列化并刷新机器侧会话状态。
 - 取消或异常时，会把最终显示给用户的助手消息一并写入日志。
 
 预设欢迎语和“请先设置模型连接”这类引导文案，不属于正式会话输入输出，不在 `CopilotViewModel` 的默认日志路径里自动落盘。
@@ -68,7 +68,7 @@
 
 1. 不要让 `AvaloniaAgentLib` 直接依赖 `SimpleWrite` 的路径类型。
 2. 不要在流式输出每个分片都落盘，否则很容易把单次回复拆成大量碎片日志。
-3. 如果要调整 XML 结构，优先保持元素名和属性名稳定，避免后续反序列化历史时需要兼容太多版本。
+3. 如果要调整 XML 结构，优先保持元素名和属性名稳定，避免后续单独实现历史恢复时需要兼容太多版本。
 4. 调整 AI 用量统计前，先核对 `Microsoft.Agents.AI.OpenAI` 及其传递依赖 `Microsoft.Extensions.AI*` 的实际解析版本，再决定使用哪些 `UsageDetails` 字段。
 
 ## 适用场景

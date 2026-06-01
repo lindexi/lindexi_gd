@@ -9,7 +9,7 @@
 
 1. `Docs/README.md`：文档入口与阅读顺序。
 2. `Docs/Knowledge/README.md`：按主题定位经验文档。
-3. 当前任务相关的 `Docs/Knowledge/Avalonia/*.md` 或 `Docs/Knowledge/Workflow/*.md`。
+3. 当前任务相关的 `Docs/Knowledge/Avalonia/*.md`、`Docs/Knowledge/Design/*.md` 或 `Docs/Knowledge/Workflow/*.md`。
 
 任务完成后，记得把新增经验补充到 `Docs/Knowledge/`。
 
@@ -77,4 +77,5 @@
 - 目录树与文件夹查找：`Docs/Knowledge/Avalonia/Folder-Explorer-And-Folder-Find.md`
 - 目录树选中联动与主题：`Docs/Knowledge/Avalonia/Folder-TreeView-Selection-And-Theme.md`
 - 快捷键与文件选择器：`Docs/Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md`
+- Copilot 会话与命令链路：`Docs/Knowledge/Design/Command-Pattern-And-Local-Transform.md`
 - 交付自检：`Docs/Knowledge/Workflow/Feature-Delivery-Checklist.md`
