@@ -1,15 +1,4 @@
-using AgentLib.Core.AgentApiManagers;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.AI.DeepSeek;
-
-using OpenAI;
-using OpenAI.Chat;
-
-using System;
-using System.ClientModel;
-using System.Linq;
 
 namespace AgentLib.Core;
 
@@ -33,11 +22,13 @@ public class AgentApiEndpointManager
         if (configuration.PrimaryModel is var primaryModel && !string.IsNullOrEmpty(primaryModel))
         {
             var supportedModels = GetSupportedModels();
-            var languageModel = supportedModels.FirstOrDefault(t => t.ModelDefinition.ModelName == primaryModel || t.ModelDefinition.ModelId == primaryModel);
+            var languageModel = supportedModels.FirstOrDefault(t =>
+                t.ModelDefinition.ModelName == primaryModel || t.ModelDefinition.ModelId == primaryModel);
             if (languageModel is null)
             {
                 throw new ArgumentException($"Can not find PrimaryModel('{primaryModel}') in SupportedModels");
             }
+
             PrimaryModel = languageModel;
         }
     }
@@ -56,7 +47,8 @@ public class AgentApiEndpointManager
     {
         ArgumentNullException.ThrowIfNull(predicate);
 
-        var matchedModel = GetSupportedModels().Where(predicate).OrderDescending(new LanguageModelCapabilityComparer()).FirstOrDefault();
+        var matchedModel = GetSupportedModels().Where(predicate).OrderDescending(new LanguageModelCapabilityComparer())
+            .FirstOrDefault();
         if (matchedModel is null)
         {
             throw new InvalidOperationException("当前没有符合要求的模型。请检查模型能力配置或调整子代理类型。");
@@ -81,7 +73,8 @@ public class AgentApiEndpointManager
                 var supportedModels = GetSupportedModels();
                 if (supportedModels.Count == 0)
                 {
-                    throw new InvalidOperationException($"尚未调用 {nameof(RegisterLanguageModelProvider)} 完成任何注册，无法获取到模型列表");
+                    throw new InvalidOperationException(
+                        $"尚未调用 {nameof(RegisterLanguageModelProvider)} 完成任何注册，无法获取到模型列表");
                 }
                 else if (supportedModels.Count == 1)
                 {
@@ -89,7 +82,8 @@ public class AgentApiEndpointManager
                 }
 
                 // 全模态优先 Omni
-                _autoSetPrimaryLanguageModel = supportedModels.ToList().OrderDescending(new LanguageModelCapabilityComparer()).First();
+                _autoSetPrimaryLanguageModel = supportedModels.ToList()
+                    .OrderDescending(new LanguageModelCapabilityComparer()).First();
             }
 
             return _autoSetPrimaryLanguageModel;
@@ -111,6 +105,7 @@ public class AgentApiEndpointManager
     /// 用户设置的首选模型
     /// </summary>
     private ILanguageModel? _userSetPrimaryLanguageModel;
+
     /// <summary>
     /// 用户没有设置的前提下，自动决定的首选模型
     /// </summary>
