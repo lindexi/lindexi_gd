@@ -22,9 +22,20 @@ public sealed class WorkspaceToolProvider
     private string? _primaryWorkspacePath;
     private string? _secondaryWorkspacePath;
 
+    /// <summary>
+    /// 工作路径
+    /// </summary>
     public string? WorkspacePath
     {
-        get => _primaryWorkspacePath ?? _secondaryWorkspacePath;
+        get
+        {
+            if (!string.IsNullOrEmpty(_primaryWorkspacePath))
+            {
+                return _primaryWorkspacePath;
+            }
+            
+            return _secondaryWorkspacePath;
+        }
         set => _primaryWorkspacePath = NormalizeWorkspacePath(value);
     }
 
