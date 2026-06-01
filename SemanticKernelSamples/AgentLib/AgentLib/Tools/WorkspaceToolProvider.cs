@@ -52,7 +52,7 @@ public sealed class WorkspaceToolProvider
         return
         [
             AIFunctionFactory.Create(ListDirectory, name: nameof(ListDirectory), description: "列出工作路径下指定目录中的文件与子目录。"),
-            AIFunctionFactory.Create(ReadFile, name: nameof(ReadFile), description: "读取工作路径下指定文件的开头内容。"),
+            //AIFunctionFactory.Create(ReadFile, name: nameof(ReadFile), description: "读取工作路径下指定文件的开头内容。"),
             AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "在工作路径下递归查找名称包含指定关键字的文件或文件夹。"),
             AIFunctionFactory.Create(FindFilesContainingText, name: nameof(FindFilesContainingText), description: "在工作路径下递归查找包含指定文本的文件，并返回命中文件路径与行号。"),
             AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取工作路径下指定文件的某一段行内容。")
@@ -107,37 +107,37 @@ public sealed class WorkspaceToolProvider
         return Task.FromResult(builder.ToString().TrimEnd());
     }
 
-    [Description("读取工作路径下指定文件的开头内容。")] 
-    public async Task<string> ReadFile(
-        [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
-        [Description("最多返回多少个字符。")] int maxCharacters = DefaultMaxCharacters)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+    //[Description("读取工作路径下指定文件的开头内容。")] 
+    //public async Task<string> ReadFile(
+    //    [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
+    //    [Description("最多返回多少个字符。")] int maxCharacters = DefaultMaxCharacters)
+    //{
+    //    ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
-        if (maxCharacters <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maxCharacters));
-        }
+    //    if (maxCharacters <= 0)
+    //    {
+    //        throw new ArgumentOutOfRangeException(nameof(maxCharacters));
+    //    }
 
-        if (!TryResolveFile(filePath, out var file, out var errorMessage))
-        {
-            return errorMessage;
-        }
+    //    if (!TryResolveFile(filePath, out var file, out var errorMessage))
+    //    {
+    //        return errorMessage;
+    //    }
 
-        var (content, isTruncated) = await ReadFileSnippetAsync(file.FullName, maxCharacters).ConfigureAwait(false);
-        var builder = new StringBuilder();
-        builder.AppendLine($"文件: {GetDisplayPath(file.FullName)}");
-        builder.AppendLine();
-        builder.Append(content);
+    //    var (content, isTruncated) = await ReadFileSnippetAsync(file.FullName, maxCharacters).ConfigureAwait(false);
+    //    var builder = new StringBuilder();
+    //    builder.AppendLine($"文件: {GetDisplayPath(file.FullName)}");
+    //    builder.AppendLine();
+    //    builder.Append(content);
 
-        if (isTruncated)
-        {
-            builder.AppendLine();
-            builder.Append($"已截断，文件后续内容未显示。可使用 {nameof(ReadFileLines)} 继续读取指定行范围。");
-        }
+    //    if (isTruncated)
+    //    {
+    //        builder.AppendLine();
+    //        builder.Append($"已截断，文件后续内容未显示。可使用 {nameof(ReadFileLines)} 继续读取指定行范围。");
+    //    }
 
-        return builder.ToString().TrimEnd();
-    }
+    //    return builder.ToString().TrimEnd();
+    //}
 
     [Description("在工作路径下递归查找名称包含指定关键字的文件或文件夹。")] 
     public Task<string> FindEntriesByName(
@@ -295,8 +295,8 @@ public sealed class WorkspaceToolProvider
     [Description("读取工作路径下指定文件的某一段行内容。")] 
     public async Task<string> ReadFileLines(
         [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
-        [Description("起始行号，从 1 开始。")] int startLine,
-        [Description("结束行号，包含该行。")] int endLine)
+        [Description("起始行号，从 1 开始(1-based)。")] int startLine,
+        [Description("结束行号，包含该行(1-based)。")] int endLine)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
@@ -646,4 +646,9 @@ public sealed class WorkspaceToolProvider
     {
         return OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     }
+
+    //public string WriteFileContent(string filePath, string content)
+    //{
+
+    //}
 }

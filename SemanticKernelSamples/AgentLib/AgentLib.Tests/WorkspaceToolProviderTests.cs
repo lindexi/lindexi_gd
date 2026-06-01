@@ -20,7 +20,7 @@ public class WorkspaceToolProviderTests
             SecondaryWorkspacePath = secondaryWorkspacePath
         };
 
-        string result = await provider.ReadFile("note.txt");
+        string result = await provider.ReadFileLines("note.txt", 1, 100);
 
         StringAssert.Contains(result, "secondary-content");
         StringAssert.Contains(result, "文件: note.txt");
