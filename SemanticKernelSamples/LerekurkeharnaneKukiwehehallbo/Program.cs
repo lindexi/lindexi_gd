@@ -9,6 +9,8 @@ using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
+#pragma warning disable MAAI001
+
 var configFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
 var agentApiEndpointManager = new AgentApiEndpointManager();
@@ -64,7 +66,8 @@ ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             AIFunctionFactory.Create(Tool, "Tool"),
             AIFunctionFactory.Create(Tool, "Tool1"),
         ],
-    }
+    },
+    RequirePerServiceCallChatHistoryPersistence = true,
 });
 
 string Tool() => $"Ok {count++}";
