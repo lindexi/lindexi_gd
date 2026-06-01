@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -47,7 +48,8 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
 
     public string? ChatHistoryFolder { get; }
 
-    public async Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage, string? serializedAgentSessionState = null)
+    public async Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage,
+        ICopilotChatSessionStateProvider? agentSessionStateProvider = null)
     {
         ArgumentNullException.ThrowIfNull(chatMessage);
 
@@ -83,7 +85,10 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
             builder.AppendLine();
 
             await File.AppendAllTextAsync(logFilePath, builder.ToString(), Encoding.UTF8).ConfigureAwait(false);
-            await WriteChatHistoryAsync(sessionId, chatMessage, serializedAgentSessionState).ConfigureAwait(false);
+            JsonElement? agentSessionState = agentSessionStateProvider is null
+                ? null
+                : await agentSessionStateProvider.GetSerializedSessionStateAsync().ConfigureAwait(false);
+            await WriteChatHistoryAsync(sessionId, chatMessage, agentSessionState).ConfigureAwait(false);
         }
         finally
         {
@@ -106,7 +111,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         return logFilePath;
     }
 
-    private async Task WriteChatHistoryAsync(Guid sessionId, CopilotChatMessage chatMessage, string? serializedAgentSessionState)
+    private async Task WriteChatHistoryAsync(Guid sessionId, CopilotChatMessage chatMessage, JsonElement? agentSessionState)
     {
         if (string.IsNullOrWhiteSpace(ChatHistoryFolder))
         {
@@ -117,11 +122,11 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
 
         if (!File.Exists(chatHistoryFileInfo.FilePath))
         {
-            await CreateChatHistoryFileAsync(chatHistoryFileInfo.FilePath, sessionId, chatMessage, serializedAgentSessionState).ConfigureAwait(false);
+            await CreateChatHistoryFileAsync(chatHistoryFileInfo.FilePath, sessionId, chatMessage, agentSessionState).ConfigureAwait(false);
             return;
         }
 
-        await AppendChatHistoryMessageAsync(chatHistoryFileInfo.FilePath, chatMessage, serializedAgentSessionState).ConfigureAwait(false);
+        await AppendChatHistoryMessageAsync(chatHistoryFileInfo.FilePath, chatMessage, agentSessionState).ConfigureAwait(false);
     }
 
     private ChatHistoryFileInfo GetSessionHistoryFileInfo(Guid sessionId, DateTimeOffset createdTime)
@@ -138,13 +143,13 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
     }
 
     private static Task CreateChatHistoryFileAsync(string historyFilePath, Guid sessionId, CopilotChatMessage chatMessage,
-        string? serializedAgentSessionState)
+        JsonElement? agentSessionState)
     {
         var rootElement = new XElement("CopilotChatSessionHistory",
             new XAttribute("SessionId", sessionId),
             new XAttribute("CreatedTime", chatMessage.CreatedTime.ToString("o")));
 
-        AppendAgentSessionStateElement(rootElement, serializedAgentSessionState);
+        AppendAgentSessionStateElement(rootElement, agentSessionState);
         rootElement.Add(new XElement("Messages", CreateMessageElement(chatMessage)));
 
         var document = new XDocument(rootElement);
@@ -153,13 +158,13 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
     }
 
     private static async Task AppendChatHistoryMessageAsync(string historyFilePath, CopilotChatMessage chatMessage,
-        string? serializedAgentSessionState)
+        JsonElement? agentSessionState)
     {
         var document = await LoadChatHistoryDocumentAsync(historyFilePath).ConfigureAwait(false);
         XElement rootElement = document.Root ?? throw new InvalidDataException($"聊天历史文件 '{historyFilePath}' 的内容格式无效，无法追加消息。");
 
         rootElement.Element("AgentSessionState")?.Remove();
-        AppendAgentSessionStateElement(rootElement, serializedAgentSessionState);
+        AppendAgentSessionStateElement(rootElement, agentSessionState);
 
         XElement messagesElement = rootElement.Element("Messages")
                                    ?? throw new InvalidDataException($"聊天历史文件 '{historyFilePath}' 的内容格式无效，无法追加消息。");
@@ -196,15 +201,15 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         };
     }
 
-    private static void AppendAgentSessionStateElement(XElement rootElement, string? serializedAgentSessionState)
+    private static void AppendAgentSessionStateElement(XElement rootElement, JsonElement? agentSessionState)
     {
-        if (string.IsNullOrWhiteSpace(serializedAgentSessionState))
+        if (agentSessionState is not JsonElement serializedAgentSessionState)
         {
             return;
         }
 
         rootElement.AddFirst(new XElement("AgentSessionState",
-            new XCData(serializedAgentSessionState)));
+            new XCData(serializedAgentSessionState.GetRawText())));
     }
 
     private static XElement CreateMessageElement(CopilotChatMessage chatMessage)

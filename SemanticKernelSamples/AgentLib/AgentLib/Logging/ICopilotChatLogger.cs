@@ -10,5 +10,6 @@ public interface ICopilotChatLogger
     /// <summary>
     /// 记录一条 Copilot 聊天消息。
     /// </summary>
-    Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage, string? serializedAgentSessionState = null);
+    Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage,
+        ICopilotChatSessionStateProvider? agentSessionStateProvider = null);
 }

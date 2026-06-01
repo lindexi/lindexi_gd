@@ -3,6 +3,7 @@ using AgentLib.Model;
 
 using Microsoft.Extensions.AI;
 
+using System.Text.Json;
 using System.Xml.Linq;
 
 namespace AgentLib.Tests.Logging;
@@ -112,15 +113,38 @@ public class FileCopilotChatLoggerTests
         string historyPath = CreatePath("history");
         var logger = new FileCopilotChatLogger(logPath, historyPath);
         Guid sessionId = Guid.NewGuid();
+        var firstStateProvider = new TestSessionStateProvider("{\"conversationId\":\"conversation-1\"}");
+        var secondStateProvider = new TestSessionStateProvider("{\"conversationId\":\"conversation-2\",\"turn\":2}");
 
-        await logger.LogMessageAsync(sessionId, new CopilotChatMessage(ChatRole.User, "第一条消息"), "conversation-1");
-        await logger.LogMessageAsync(sessionId, new CopilotChatMessage(ChatRole.Assistant, "第二条消息"), "conversation-2");
+        await logger.LogMessageAsync(sessionId, new CopilotChatMessage(ChatRole.User, "第一条消息"), firstStateProvider);
+        await logger.LogMessageAsync(sessionId, new CopilotChatMessage(ChatRole.Assistant, "第二条消息"), secondStateProvider);
 
         string historyFile = GetSingleFile(historyPath, "*.xml");
         XDocument historyDocument = XDocument.Load(historyFile);
 
-        Assert.AreEqual("conversation-2", historyDocument.Root?.Element("AgentSessionState")?.Value);
+        Assert.AreEqual("{" + "\"conversationId\":\"conversation-2\",\"turn\":2}", historyDocument.Root?.Element("AgentSessionState")?.Value);
         Assert.HasCount(2, historyDocument.Root?.Element("Messages")?.Elements("Message")?.ToArray() ?? []);
+        Assert.AreEqual(1, firstStateProvider.CallCount);
+        Assert.AreEqual(1, secondStateProvider.CallCount);
+    }
+
+    private sealed class TestSessionStateProvider : ICopilotChatSessionStateProvider
+    {
+        private readonly JsonElement _sessionState;
+
+        public TestSessionStateProvider(string json)
+        {
+            using JsonDocument document = JsonDocument.Parse(json);
+            _sessionState = document.RootElement.Clone();
+        }
+
+        public int CallCount { get; private set; }
+
+        public Task<JsonElement?> GetSerializedSessionStateAsync(CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            return Task.FromResult<JsonElement?>(_sessionState);
+        }
     }
 
     private string CreatePath(string name)
