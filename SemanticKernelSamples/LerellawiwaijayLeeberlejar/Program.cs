@@ -1,7 +1,6 @@
 using System.Text.Json;
 using AgentLib.AgentExtensions;
 using AgentLib.Core;
-using AgentLib.Core.AgentApiManagers;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using Microsoft.Agents.AI;
@@ -9,10 +8,6 @@ using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
 var agentApiEndpointManager = new AgentApiEndpointManager();
-
-var agentApiManagerConfiguration = LindexiAgentConfiguration.LoadDefault();
-var configFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
-await agentApiManagerConfiguration.SaveToFileAsync(new FileInfo(configFile));
 
 var miniMaxKeyFile = @"C:\lindexi\Work\Key\MiniMax.txt";
 var miniMaxKey = await File.ReadAllTextAsync(miniMaxKeyFile);
