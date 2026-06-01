@@ -82,7 +82,7 @@ class FakeChatReducer : IChatReducer
     public Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(messages);
+        return Task.FromResult(messages.Take(2));
     }
 }
 
