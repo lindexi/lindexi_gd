@@ -184,18 +184,29 @@ public class CopilotChatManager : NotifyBase
         await AppendMessageAsync(currentSession, assistantChatMessage, cancellationToken);
     }
 
-    public Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
-    {
-        return SendMessageAsync(inputText, withHistory, createNewSession: false, tools: null, toolMode: null, cancellationToken);
-    }
-
+    /// <summary>
+    /// 开启新的会话并发送消息。新会话适用于需要清晰上下文的场景
+    /// </summary>
+    /// <param name="inputText"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task SendMessageInNewSessionAsync(string? inputText, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync(inputText, withHistory: false, createNewSession: true, tools: null, toolMode: null, cancellationToken);
+        return SendMessageAsync(inputText, withHistory: true, createNewSession: true, tools: null, toolMode: null, cancellationToken);
     }
 
-    public async Task SendMessageAsync(string? inputText, bool withHistory, bool createNewSession, IEnumerable<AITool>? tools,
-        ChatToolMode? toolMode, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// 发送消息并开始聊天。可以选择是否携带历史消息，是否创建新会话，以及使用哪些工具。
+    /// </summary>
+    /// <param name="inputText"></param>
+    /// <param name="withHistory">是否携带历史消息</param>
+    /// <param name="createNewSession">是否创建新会话</param>
+    /// <param name="tools">使用的工具</param>
+    /// <param name="toolMode">工具模式</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
+    public async Task SendMessageAsync(string? inputText, bool withHistory = true, bool createNewSession = false, IEnumerable<AITool>? tools = null,
+        ChatToolMode? toolMode = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(inputText))
         {
