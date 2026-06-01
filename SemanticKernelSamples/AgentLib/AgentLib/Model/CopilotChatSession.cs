@@ -12,7 +12,6 @@ public sealed class CopilotChatSession : NotifyBase
     private string _title = "新会话";
     private bool _hasCustomTitle;
     private AgentSession? _agentSession;
-    private string? _serializedAgentSessionState;
 
     public CopilotChatSession()
         : this(Guid.NewGuid(), DateTimeOffset.Now)
@@ -37,12 +36,6 @@ public sealed class CopilotChatSession : NotifyBase
         private set => SetField(ref _agentSession, value);
     }
 
-    public string? SerializedAgentSessionState
-    {
-        get => _serializedAgentSessionState;
-        private set => SetField(ref _serializedAgentSessionState, value);
-    }
-
     public string Title
     {
         get => _title;
@@ -59,8 +52,6 @@ public sealed class CopilotChatSession : NotifyBase
 
     public string DisplayText => $"{Title} {StartedTime:MM-dd HH:mm}";
 
-    public bool HasSerializedAgentSessionState => !string.IsNullOrWhiteSpace(SerializedAgentSessionState);
-
     public void AddMessage(CopilotChatMessage chatMessage)
     {
         ArgumentNullException.ThrowIfNull(chatMessage);
@@ -69,12 +60,9 @@ public sealed class CopilotChatSession : NotifyBase
         TryUpdateTitle(chatMessage);
     }
 
-    public void SetAgentSession(AgentSession? agentSession, string? serializedAgentSessionState)
+    public void SetAgentSession(AgentSession? agentSession)
     {
         AgentSession = agentSession;
-        SerializedAgentSessionState = string.IsNullOrWhiteSpace(serializedAgentSessionState)
-            ? null
-            : serializedAgentSessionState;
     }
 
     private void TryUpdateTitle(CopilotChatMessage chatMessage)
