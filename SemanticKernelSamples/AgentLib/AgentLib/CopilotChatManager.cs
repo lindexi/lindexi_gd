@@ -184,30 +184,54 @@ public class CopilotChatManager : NotifyBase
         await AppendMessageAsync(currentSession, assistantChatMessage, cancellationToken);
     }
 
-    public Task SendMessageAsync(string? inputText, bool withHistory = true, CancellationToken cancellationToken = default)
-    {
-        return SendMessageAsync(inputText, withHistory, createNewSession: false, tools: null, toolMode: null, cancellationToken);
-    }
-
+    /// <summary>
+    /// 开启新的会话并发送消息。新会话适用于需要清晰上下文的场景
+    /// </summary>
+    /// <param name="inputText"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task SendMessageInNewSessionAsync(string? inputText, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync(inputText, withHistory: false, createNewSession: true, tools: null, toolMode: null, cancellationToken);
+        return SendMessageAsync(inputText, withHistory: true, createNewSession: true, tools: null, toolMode: null, cancellationToken);
     }
 
-    public async Task SendMessageAsync(string? inputText, bool withHistory, bool createNewSession, IEnumerable<AITool>? tools,
-        ChatToolMode? toolMode, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// 发送消息并开始聊天。可以选择是否携带历史消息，是否创建新会话，以及使用哪些工具。
+    /// </summary>
+    /// <param name="inputText"></param>
+    /// <param name="withHistory">是否携带历史消息</param>
+    /// <param name="createNewSession">是否创建新会话</param>
+    /// <param name="tools">使用的工具</param>
+    /// <param name="toolMode">工具模式</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
+    public async Task SendMessageAsync(string? inputText, bool withHistory = true, bool createNewSession = false, IEnumerable<AITool>? tools = null,
+        ChatToolMode? toolMode = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(inputText))
         {
             return;
         }
 
-        using CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource(cancellationToken);
+        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(inputText, withHistory, createNewSession, tools, toolMode, cancellationToken));
+        await sendMessageResult.RunTask;
+    }
+
+    /// <summary>
+    /// 发送消息并开始聊天
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns>需要等待才能获取结果的任务</returns>
+    public SendMessageResult SendMessage(SendMessageRequest request)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.InputText);
+
+        CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource(request.CancellationToken);
         CancellationToken currentChatCancellationToken = currentChatCancellationTokenSource.Token;
         _currentChatCancellationTokenSource = currentChatCancellationTokenSource;
         WasLastChatCanceled = false;
 
-        if (createNewSession)
+        if (request.CreateNewSession)
         {
             CreateNewSession();
         }
@@ -215,70 +239,94 @@ public class CopilotChatManager : NotifyBase
         CopilotChatSession currentSession = SelectedSession;
         IsChatting = true;
 
-        try
+        CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(request.InputText);
+        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
+        OnBeforeSendStreaming(currentSession, assistantChatMessage);
+
+        CopilotChatContext chatContext = new(currentSession.ChatMessages, assistantChatMessage);
+        List<AITool> toolList = ResolveTools(request.Tools, chatContext, currentChatCancellationToken);
+
+        Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync(request.WithHistory, request.ToolMode);
+
+        async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync(
+            bool withHistory, ChatToolMode? toolMode)
         {
             currentChatCancellationToken.ThrowIfCancellationRequested();
 
-            var userChatMessage = CopilotChatMessage.CreateUser(inputText);
-            await AppendMessageAsync(currentSession, userChatMessage, currentChatCancellationToken);
-
-            var copilotChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
-            OnBeforeSendStreaming(currentSession, copilotChatMessage);
-
-            var chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-            CopilotChatContext chatContext = new(currentSession.ChatMessages, copilotChatMessage);
-            List<AITool> toolList = ResolveTools(tools, chatContext, cancellationToken);
+            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
                 {
-                    Tools = toolList,
-                    ToolMode = toolList is { Count: > 0 } ? toolMode : null,
+                    Tools = [.. toolList],
+                    ToolMode = toolList.Count > 0 ? toolMode : null,
                 }
             });
 
-            var chatMessage = userChatMessage.ToChatMessage();
+            // 决定是否追加历史消息
             AgentSession? runSession = withHistory
                 ? await GetOrCreateAgentSessionAsync(chatClientAgent, currentSession, currentChatCancellationToken)
                 : null;
 
-            currentSession.AddMessage(copilotChatMessage);
-           
+            return new ChatClientAgentCreatedResult(chatClient, chatClientAgent, runSession);
+        }
 
-            bool isFirst = true;
-            await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgent.RunStreamingAsync(chatMessage, runSession, cancellationToken: currentChatCancellationToken))
+        Task<SendMessageRunState> runTask = RunAsync();
+
+        return new SendMessageResult(userChatMessage, assistantChatMessage, toolList, createChatClientAgentTask, runTask);
+
+        async Task<SendMessageRunState> RunAsync()
+        {
+            try
             {
-                if (isFirst)
+                currentChatCancellationToken.ThrowIfCancellationRequested();
+
+                await AppendMessageAsync(currentSession, userChatMessage, currentChatCancellationToken);
+
+                ChatClientAgentCreatedResult chatClientAgentCreatedResult = await createChatClientAgentTask;
+                currentSession.AddMessage(assistantChatMessage);
+
+                bool isFirst = true;
+                ChatMessage chatMessage = userChatMessage.ToChatMessage();
+                await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgentCreatedResult.ChatClientAgent.RunStreamingAsync(
+                    chatMessage, chatClientAgentCreatedResult.AgentSession, cancellationToken: currentChatCancellationToken))
                 {
-                    copilotChatMessage.ClearMessageItems();
+                    if (isFirst)
+                    {
+                        assistantChatMessage.ClearMessageItems();
+                    }
+
+                    isFirst = false;
+                    AppendAssistantResponseUpdate(assistantChatMessage, agentRunResponseUpdate);
                 }
 
-                isFirst = false;
-                AppendAssistantResponseUpdate(copilotChatMessage, agentRunResponseUpdate);
+                await ChatLogger.LogMessageAsync(currentSession.SessionId, assistantChatMessage,
+                    CreateAgentSessionStateProvider(chatClientAgentCreatedResult.ChatClientAgent, chatClientAgentCreatedResult.AgentSession));
+                return new SendMessageRunState(IsSuccess: true, WasCanceled: false);
             }
-
-            await ChatLogger.LogMessageAsync(currentSession.SessionId, copilotChatMessage,
-                CreateAgentSessionStateProvider(chatClientAgent, runSession));
-        }
-        catch (OperationCanceledException) when (currentChatCancellationToken.IsCancellationRequested)
-        {
-            WasLastChatCanceled = true;
-            var canceledMessage = CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true);
-            await AppendMessageAsync(currentSession, canceledMessage);
-        }
-        catch (Exception exception)
-        {
-            var exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
-            await AppendMessageAsync(currentSession, exceptionMessage);
-        }
-        finally
-        {
-            if (ReferenceEquals(_currentChatCancellationTokenSource, currentChatCancellationTokenSource))
+            catch (OperationCanceledException) when (currentChatCancellationToken.IsCancellationRequested)
             {
-                _currentChatCancellationTokenSource = null;
+                WasLastChatCanceled = true;
+                CopilotChatMessage canceledMessage = CopilotChatMessage.CreateAssistant("已取消", isPresetInfo: true);
+                await AppendMessageAsync(currentSession, canceledMessage);
+                return new SendMessageRunState(IsSuccess: false, WasCanceled: true);
             }
+            catch (Exception exception)
+            {
+                CopilotChatMessage exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
+                await AppendMessageAsync(currentSession, exceptionMessage);
+                throw;
+            }
+            finally
+            {
+                if (ReferenceEquals(_currentChatCancellationTokenSource, currentChatCancellationTokenSource))
+                {
+                    _currentChatCancellationTokenSource = null;
+                }
 
-            IsChatting = false;
+                IsChatting = false;
+                currentChatCancellationTokenSource.Dispose();
+            }
         }
     }
 
