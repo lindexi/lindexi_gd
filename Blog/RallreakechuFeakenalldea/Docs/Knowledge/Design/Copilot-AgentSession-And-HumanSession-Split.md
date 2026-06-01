@@ -14,13 +14,9 @@
 - `StartedTime`
 - `ChatMessages`
 - `Title`
+- 运行期 `AgentSession`
 
-同时新增两项机器侧状态：
-
-- `AgentSession`
-- `SerializedAgentSessionState`
-
-这两项只用于恢复与复用模型会话，不参与 UI 标题和消息展示逻辑。
+其中 `AgentSession` 仅作为运行期机器侧会话引用，用于连续对话时把服务端上下文继续传给模型；它不参与 UI 标题和消息展示逻辑，也不再在 `CopilotChatSession` 内缓存额外的字符串化状态。
 
 ### 2. 发送消息优先复用 `AgentSession`
 
@@ -29,39 +25,49 @@
 当前策略是：
 
 1. 先从 `CopilotChatSession.AgentSession` 取运行中的会话；
-2. 如果内存里没有，再尝试从 `SerializedAgentSessionState` 恢复；
-3. 如果仍没有，再调用 `chatClientAgent.CreateSessionAsync(...)` 创建新会话；
-4. 后续 `RunStreamingAsync(...)` 始终传入该 `AgentSession`。
+2. 仅在 `withHistory == true` 且内存里没有时，调用 `chatClientAgent.CreateSessionAsync(...)` 创建新会话；
+3. 首次创建后通过 `currentSession.SetAgentSession(agentSession)` 保存一次；
+4. 后续 `RunStreamingAsync(...)` 直接传入当前 `AgentSession`，不再在发送前后重复同步状态。
 
-### 3. 当前持久化状态以 `ConversationId` 为主
+### 3. `withHistory` 只控制是否传入 `AgentSession`
 
-由于当前解析到的 `Microsoft.Agents.AI` 版本里，`ChatClientAgentSession.Serialize/Deserialize` 不能直接从业务代码访问，当前落盘采取保守方案：
+`withHistory` 现在只表达一个语义：
 
-- 若 `ChatClientAgentSession.ConversationId` 可用，则把它保存到 `SerializedAgentSessionState`；
-- 恢复时调用 `chatClientAgent.CreateSessionAsync(conversationId, ...)` 重建机器会话；
-- 如果后续包版本允许直接访问完整序列化 API，再把该字段升级为完整 `AgentSession` JSON。
+- `withHistory == true`：本次运行传入当前 `AgentSession`
+- `withHistory == false`：本次运行不传 `AgentSession`
 
-### 4. `withHistory` 的语义调整
+它不再负责：
 
-当前如果已经有可恢复的机器会话状态，则 `withHistory` 主要影响“是否只发送当前输入消息”：
+- 决定是否改发消息数组；
+- 决定是否只传最后一条消息；
+- 从本地 `ChatMessages` 回退拼历史。
 
-- `withHistory == false`：只发送当前用户输入；
-- `withHistory == true` 且已有机器会话：同样只发送当前输入，历史由 `AgentSession` 负责；
-- `withHistory == true` 且尚无机器会话：首次仍发送当前输入，由新建 `AgentSession` 接管后续上下文。
-
-也就是说，历史上下文的主来源已经从本地 `ChatMessages` 切到了机器侧 `AgentSession`。
-
-### 5. 聊天日志同时保存人类消息与机器状态
+### 4. 聊天日志按需序列化机器状态
 
 `FileCopilotChatLogger` 现在会继续写：
 
 - 文本日志 `.log`
 - 结构化历史 `.xml`
 
-其中 XML 根节点下新增可选的 `AgentSessionState`，用于保存当前可恢复的机器侧会话状态。
+其中 XML 根节点下继续保留可选的 `AgentSessionState`，但新的边界是：
+
+- `ICopilotChatLogger` 不再接收字符串化状态；
+- 聊天管理器只传入一个 `ICopilotChatSessionStateProvider`；
+- 提供器在真正落盘时才调用 `ChatClientAgent.SerializeSessionAsync(...)` 生成 `JsonElement`；
+- XML 中的 `AgentSessionState` 使用 JSON 原文 `CDATA` 保存。
+
+### 5. 会话恢复改为独立功能点
+
+当前 `SendMessageAsync(...)` 不再隐式从历史日志恢复 `AgentSession`。
+
+也就是说，本次改造后：
+
+- 运行期仍支持连续聊天记忆；
+- 日志里仍会保存结构化 `AgentSessionState`；
+- 但从历史文件恢复机器会话需要单独的显式加载流程，而不是藏在发送链路里。
 
 ## 适用场景
 
 - 调整 Copilot 聊天上下文来源时；
-- 后续接入会话压缩或服务端聊天历史时；
+- 后续单独实现会话恢复或服务端聊天历史接续时；
 - 排查“为什么 UI 历史完整，但模型记忆没有延续”这类问题时。

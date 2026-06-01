@@ -22,6 +22,7 @@
 | Copilot 聊天历史 XML 落盘 | `Knowledge/Design/Copilot-Chat-History-Xml.md` |
 | Copilot 流式消息片段与工作区工具异步化 | `Knowledge/Design/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | Copilot 人类会话与 AgentSession 分层 | `Knowledge/Design/Copilot-AgentSession-And-HumanSession-Split.md` |
+| Copilot AgentSession 状态提供器与日志边界 | `Knowledge/Design/Copilot-AgentSession-State-Provider-And-Logging.md` |
 | 左侧目录树与文件夹查找 | `Knowledge/Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | Copilot 默认工作路径工具 | `Knowledge/Design/Copilot-Workspace-Default-Tools.md` |
 | Copilot 主副工作区路径 | `Knowledge/Design/Copilot-Workspace-Primary-And-Secondary-Paths.md` |

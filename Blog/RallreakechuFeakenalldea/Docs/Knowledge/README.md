@@ -9,6 +9,7 @@
 | Copilot 聊天历史 XML 如何按会话落盘 | `Design/Copilot-Chat-History-Xml.md` |
 | Copilot 聊天日志如何注入与按会话落盘 | `Design/Copilot-Chat-Logging.md` |
 | Copilot 如何同时维护人类会话和 AgentSession | `Design/Copilot-AgentSession-And-HumanSession-Split.md` |
+| Copilot 如何延迟序列化 AgentSession 并写入日志 | `Design/Copilot-AgentSession-State-Provider-And-Logging.md` |
 | Copilot 流式思考、工具调用和正文为何改成消息片段集合 | `Design/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | Copilot 工具调用如何接入人工审批按钮与执行等待 | `Design/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | 代码着色三分类与扩展名路由如何工作 | `Avalonia/Code-Highlighting-Categories-And-Extensions.md` |
@@ -49,6 +50,7 @@
 |---|---|---|
 | `Command-Pattern-And-Local-Transform.md` | 编辑器右键命令模式与 Copilot 本地转换 | 扩展右键菜单能力、增加 URL/命令/编码转换处理时 |
 | `Copilot-AgentSession-And-HumanSession-Split.md` | Copilot 人类会话与 AgentSession 分层 | 需要让模型上下文改走 `AgentSession`、恢复机器记忆、准备对话压缩时 |
+| `Copilot-AgentSession-State-Provider-And-Logging.md` | Copilot AgentSession 延迟序列化与日志边界 | 调整日志接口、排查 `AgentSessionState` 落盘时机、准备独立会话恢复能力时 |
 | `Copilot-Chat-History-Xml.md` | Copilot 聊天历史 XML 落盘约定 | 需要查会话归档结构、补历史浏览或反序列化读取时 |
 | `Copilot-Chat-Logging.md` | Copilot 聊天日志注入与按会话文件落盘 | 需要替换日志实现、调整日志目录、排查某个会话记录时 |
 | `Copilot-New-Session-Command-Behavior.md` | Copilot 派生命令的新会话策略 | 调整右键发送、翻译、润色、本地展示结果的会话归属时 |
