@@ -12,7 +12,7 @@ public record AgentApiManagerConfiguration
     public async Task SaveToFileAsync(FileInfo file)
     {
         await using var fileStream = file.OpenWrite();
-        await JsonSerializer.SerializeAsync(fileStream,this, JsonTypeInfo);
+        await JsonSerializer.SerializeAsync(fileStream, this, JsonTypeInfo);
     }
 
     public static async Task<AgentApiManagerConfiguration> FromJsonFileAsync(FileInfo file)
@@ -40,7 +40,7 @@ public record AgentApiManagerConfiguration
         return configuration;
     }
 
-    private static JsonTypeInfo<AgentApiManagerConfiguration> JsonTypeInfo=> JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.AgentApiManagerConfiguration;
+    private static JsonTypeInfo<AgentApiManagerConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.AgentApiManagerConfiguration;
 
     /// <summary>
     /// 默认的模版内容

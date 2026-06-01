@@ -117,6 +117,29 @@ public class LindexiAgentConfiguration
                     [
                         new ModelDefinition()
                         {
+                            ModelName = "MiniMax-M3",
+                            Capabilities = new LlmModelCapabilities()
+                            {
+                                Reasoning = true,
+                                ToolCall = true,
+                                Temperature = true,
+                                Attachment = false,
+                                Interleaved = true,
+                                Input = new LlmModalityCapability()
+                                {
+                                    Text = true,
+                                    Audio = false,
+                                    Image = true,
+                                    Video = true,
+                                    Pdf = false,
+                                },
+                                ResponseFormat = false,
+                            },
+                            ContextWindowSize = 100_0000,
+                        },
+
+                        new ModelDefinition()
+                        {
                             ModelName = "MiniMax-M2.7"
                         }
                     ]
