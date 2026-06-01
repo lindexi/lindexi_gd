@@ -1,30 +1,21 @@
 using System.Text.Json;
 using AgentLib.AgentExtensions;
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
+var configFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
+
 var agentApiEndpointManager = new AgentApiEndpointManager();
 
-var miniMaxKeyFile = @"C:\lindexi\Work\Key\MiniMax.txt";
-var miniMaxKey = await File.ReadAllTextAsync(miniMaxKeyFile);
+await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(configFile));
 
-var languageModelProvider = JsonConfigurationOpenAIProtocolLanguageModelProvider.FromConfiguration(
-    new OpenAIProtocolLanguageModelConfiguration("https://api.minimaxi.com/v1", miniMaxKey)
-    {
-        ModelDefinitions =
-        [
-            new ModelDefinition()
-            {
-                ModelName = "MiniMax-M2.7"
-            }
-        ]
-    });
-
-agentApiEndpointManager.RegisterLanguageModelProvider(languageModelProvider);
+agentApiEndpointManager.PrimaryModel =
+    agentApiEndpointManager.GetBestModel(model => model.ModelDefinition.ModelName.Contains("M3"));
 
 IChatClient chatClient = await agentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
@@ -49,10 +40,3 @@ await agent.RunStreamingAndLogToConsoleAsync([new ChatMessage(ChatRole.User, "ä½
 Console.WriteLine("Hello, World!");
 
 
-class F : AIContextProvider
-{
-}
-
-class MiniMaxProtocolLanguageModelProvider
-{
-}
