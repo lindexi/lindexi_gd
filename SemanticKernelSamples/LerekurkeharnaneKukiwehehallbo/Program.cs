@@ -9,6 +9,8 @@ using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
+#pragma warning disable MAAI001
+
 var configFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
 var agentApiEndpointManager = new AgentApiEndpointManager();
@@ -31,7 +33,7 @@ async IAsyncEnumerable<ChatResponseUpdate> OnGetStreamingResponseAsync(IEnumerab
     for (int i = 0; i < int.MaxValue; i++)
     {
         var callId = $"Tool{i}";
-        var toolName = Random.Shared.Next(2)== 0 ? "Tool" : "Tool1";
+        var toolName = Random.Shared.Next(2) == 0 ? "Tool" : "Tool1";
 
         yield return new ChatResponseUpdate(ChatRole.Assistant, new List<AIContent>()
         {
@@ -52,11 +54,11 @@ var count = 0;
 
 ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
 {
-    ChatHistoryProvider = new FakeChatHistoryProvider(),
-    //    new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
-    //{
-    //    ChatReducer = new FakeChatReducer()
-    //}),
+    ChatHistoryProvider = // new FakeChatHistoryProvider(),
+        new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
+        {
+            ChatReducer = new FakeChatReducer()
+        }),
     ChatOptions = new ChatOptions()
     {
         Tools =
@@ -64,7 +66,8 @@ ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
             AIFunctionFactory.Create(Tool, "Tool"),
             AIFunctionFactory.Create(Tool, "Tool1"),
         ],
-    }
+    },
+    RequirePerServiceCallChatHistoryPersistence = true,
 });
 
 string Tool() => $"Ok {count++}";
@@ -79,18 +82,20 @@ class FakeChatReducer : IChatReducer
     public Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(messages);
+        return Task.FromResult(messages.Take(2));
     }
 }
 
 class FakeChatHistoryProvider : ChatHistoryProvider
 {
-    protected override ValueTask<IEnumerable<ChatMessage>> InvokingCoreAsync(InvokingContext context, CancellationToken cancellationToken = new CancellationToken())
+    protected override ValueTask<IEnumerable<ChatMessage>> InvokingCoreAsync(InvokingContext context,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         return base.InvokingCoreAsync(context, cancellationToken);
     }
 
-    protected override ValueTask InvokedCoreAsync(InvokedContext context, CancellationToken cancellationToken = new CancellationToken())
+    protected override ValueTask InvokedCoreAsync(InvokedContext context,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         return base.InvokedCoreAsync(context, cancellationToken);
     }
