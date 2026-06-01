@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -41,11 +40,11 @@ public sealed class WorkspaceToolProvider
     {
         return
         [
-            CreateTool(nameof(ListDirectory), "列出工作路径下指定目录中的文件与子目录。"),
-            CreateTool(nameof(ReadFile), "读取工作路径下指定文件的开头内容。"),
-            CreateTool(nameof(FindEntriesByName), "在工作路径下递归查找名称包含指定关键字的文件或文件夹。"),
-            CreateTool(nameof(FindFilesContainingText), "在工作路径下递归查找包含指定文本的文件，并返回命中文件路径与行号。"),
-            CreateTool(nameof(ReadFileLines), "读取工作路径下指定文件的某一段行内容。")
+            AIFunctionFactory.Create(ListDirectory, name: nameof(ListDirectory), description: "列出工作路径下指定目录中的文件与子目录。"),
+            AIFunctionFactory.Create(ReadFile, name: nameof(ReadFile), description: "读取工作路径下指定文件的开头内容。"),
+            AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "在工作路径下递归查找名称包含指定关键字的文件或文件夹。"),
+            AIFunctionFactory.Create(FindFilesContainingText, name: nameof(FindFilesContainingText), description: "在工作路径下递归查找包含指定文本的文件，并返回命中文件路径与行号。"),
+            AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取工作路径下指定文件的某一段行内容。")
         ];
     }
 
@@ -342,13 +341,6 @@ public sealed class WorkspaceToolProvider
         }
 
         return builder.ToString().TrimEnd();
-    }
-
-    private AITool CreateTool(string methodName, string description)
-    {
-        MethodInfo methodInfo = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public)
-                                ?? throw new InvalidOperationException($"未找到 {methodName} 方法。");
-        return AIFunctionFactory.Create(methodInfo, this, methodName, description, serializerOptions: null);
     }
 
     private bool TryResolveDirectory(string? path, out DirectoryInfo directory, out string errorMessage)
