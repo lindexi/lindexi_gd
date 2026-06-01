@@ -33,7 +33,7 @@ async IAsyncEnumerable<ChatResponseUpdate> OnGetStreamingResponseAsync(IEnumerab
     for (int i = 0; i < int.MaxValue; i++)
     {
         var callId = $"Tool{i}";
-        var toolName = Random.Shared.Next(2)== 0 ? "Tool" : "Tool1";
+        var toolName = Random.Shared.Next(2) == 0 ? "Tool" : "Tool1";
 
         yield return new ChatResponseUpdate(ChatRole.Assistant, new List<AIContent>()
         {
@@ -54,11 +54,11 @@ var count = 0;
 
 ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
 {
-    ChatHistoryProvider = new FakeChatHistoryProvider(),
-    //    new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
-    //{
-    //    ChatReducer = new FakeChatReducer()
-    //}),
+    ChatHistoryProvider = // new FakeChatHistoryProvider(),
+        new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
+        {
+            ChatReducer = new FakeChatReducer()
+        }),
     ChatOptions = new ChatOptions()
     {
         Tools =
@@ -88,12 +88,14 @@ class FakeChatReducer : IChatReducer
 
 class FakeChatHistoryProvider : ChatHistoryProvider
 {
-    protected override ValueTask<IEnumerable<ChatMessage>> InvokingCoreAsync(InvokingContext context, CancellationToken cancellationToken = new CancellationToken())
+    protected override ValueTask<IEnumerable<ChatMessage>> InvokingCoreAsync(InvokingContext context,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         return base.InvokingCoreAsync(context, cancellationToken);
     }
 
-    protected override ValueTask InvokedCoreAsync(InvokedContext context, CancellationToken cancellationToken = new CancellationToken())
+    protected override ValueTask InvokedCoreAsync(InvokedContext context,
+        CancellationToken cancellationToken = new CancellationToken())
     {
         return base.InvokedCoreAsync(context, cancellationToken);
     }
