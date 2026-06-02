@@ -296,7 +296,8 @@ public sealed class WorkspaceToolProvider
     public async Task<string> ReadFileLines(
         [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
         [Description("起始行号，从 1 开始(1-based)。")] int startLine,
-        [Description("结束行号，包含该行(1-based)。")] int endLine)
+        [Description("结束行号，包含该行(1-based)。")] int endLine,
+        [Description("是否在每一行前面包含行号。true 表示添加行号，false 表示只返回原始行内容。")] bool includeLineNumbers = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
@@ -321,12 +322,12 @@ public sealed class WorkspaceToolProvider
         }
 
         var builder = new StringBuilder();
-        builder.AppendLine($"文件: {GetDisplayPath(file.FullName)}");
-        builder.AppendLine($"行范围: {startLine}-{endLine}");
-        builder.AppendLine();
-
         int currentLine = 0;
         bool hasContent = false;
+        bool reachedCharacterLimit = false;
+        bool reachedEndOfFile = true;
+        int actualEndLine = startLine - 1;
+        var contentBuilder = new StringBuilder();
 
         using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
         while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
@@ -339,19 +340,72 @@ public sealed class WorkspaceToolProvider
 
             if (currentLine > endLine)
             {
+                reachedEndOfFile = false;
                 break;
             }
 
-            builder.AppendLine($"{currentLine}: {line}");
+            string outputLine = includeLineNumbers ? $"{currentLine}: {line}" : line;
+            int appendedLength = outputLine.Length + Environment.NewLine.Length;
+            if (contentBuilder.Length + appendedLength > DefaultMaxCharacters)
+            {
+                int remainingCharacters = DefaultMaxCharacters - contentBuilder.Length;
+                if (remainingCharacters > 0)
+                {
+                    int lineCharactersToAppend = Math.Min(outputLine.Length, remainingCharacters);
+                    if (lineCharactersToAppend > 0)
+                    {
+                        contentBuilder.Append(outputLine.AsSpan(0, lineCharactersToAppend));
+                        hasContent = true;
+                        actualEndLine = currentLine;
+                    }
+
+                }
+
+                reachedCharacterLimit = true;
+                break;
+            }
+
+            if (hasContent)
+            {
+                contentBuilder.Append(Environment.NewLine);
+            }
+
+            contentBuilder.Append(outputLine);
             hasContent = true;
+            actualEndLine = currentLine;
         }
+
+        builder.AppendLine("<MetaData>");
+        builder.AppendLine($"文件: {GetDisplayPath(file.FullName)}");
+        string actualRangeText = hasContent ? $"{startLine}-{actualEndLine}" : "无";
+        string statusSuffix = "";
+        if (reachedCharacterLimit)
+        {
+            statusSuffix = "【超长截断】";
+        }
+        else if (reachedEndOfFile && currentLine < endLine)
+        {
+            statusSuffix = "【已读完】";
+        }
+
+        builder.AppendLine($"行范围: {actualRangeText}{statusSuffix}");
+        builder.AppendLine("</MetaData>");
 
         if (!hasContent)
         {
             builder.Append("指定范围内没有可读取的内容。");
         }
+        else
+        {
+            builder.Append(contentBuilder.ToString());
 
-        return builder.ToString().TrimEnd();
+            if (reachedCharacterLimit)
+            {
+                builder.Append($" 【已达到最大字符数限制 {DefaultMaxCharacters}，后续内容未显示。】");
+            }
+        }
+
+        return builder.ToString();
     }
 
     private bool TryResolveDirectory(string? path, out DirectoryInfo directory, out string errorMessage)
