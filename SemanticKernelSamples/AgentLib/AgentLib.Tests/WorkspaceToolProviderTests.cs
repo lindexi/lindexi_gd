@@ -45,7 +45,7 @@ public class WorkspaceToolProviderTests
 
         string result = await provider.ReadFileLines("note.txt", 1, 2, includeLineNumbers: false);
 
-        StringAssert.Contains(result, $"行范围: 1-2{Environment.NewLine}</MetaData>{Environment.NewLine}first{Environment.NewLine}second");
+        StringAssert.Contains(result, $"行范围: 1-2【已读完】{Environment.NewLine}</MetaData>{Environment.NewLine}first{Environment.NewLine}second");
         Assert.IsFalse(result.Contains("1: first", StringComparison.Ordinal));
     }
 
@@ -171,6 +171,93 @@ public class WorkspaceToolProviderTests
 
         StringAssert.Contains(result, $"工作路径: {secondaryWorkspacePath}");
         StringAssert.Contains(result, "[文件] note.txt");
+    }
+
+    [TestMethod]
+    [Description("读取部分行时应显示剩余行数")]
+    public async Task ReadFileLines_WhenHasRemainingLines_ShowsRemainingLineCount()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        string content = string.Join(Environment.NewLine, Enumerable.Range(1, 10).Select(i => $"line{i}"));
+        await File.WriteAllTextAsync(filePath, content);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.ReadFileLines("note.txt", 1, 5, includeLineNumbers: false);
+
+        // 读取 1-5 行后，剩余 6-10 行共 5 行
+        StringAssert.Contains(result, "行范围: 1-5【剩余 5 行未读取】");
+    }
+
+    [TestMethod]
+    [Description("读取部分行时，剩余行数刚好为0时应显示已读完")]
+    public async Task ReadFileLines_WhenNoRemainingLines_ShowsEndOfFile()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        string content = string.Join(Environment.NewLine, Enumerable.Range(1, 5).Select(i => $"line{i}"));
+        await File.WriteAllTextAsync(filePath, content);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.ReadFileLines("note.txt", 1, 5, includeLineNumbers: false);
+
+        Assert.IsFalse(result.Contains("剩余", StringComparison.Ordinal));
+        StringAssert.Contains(result, "行范围: 1-5【已读完】");
+    }
+
+    [TestMethod]
+    [Description("读取部分行时，剩余行数超过500行应显示大于500行提示")]
+    public async Task ReadFileLines_WhenRemainingLinesExceed500_ShowsExceedsLimitMessage()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        string content = string.Join(Environment.NewLine, Enumerable.Range(1, 600).Select(i => $"line{i}"));
+        await File.WriteAllTextAsync(filePath, content);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.ReadFileLines("note.txt", 1, 50, includeLineNumbers: false);
+
+        StringAssert.Contains(result, "行范围: 1-50【剩余大于 500 行未读取】");
+    }
+
+    [TestMethod]
+    [Description("读取部分行时，剩余行数刚好为500行应显示具体行数")]
+    public async Task ReadFileLines_WhenRemainingLinesExactly500_ShowsExactCount()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        // 读取 1-50 行，剩余 51-550 行共 500 行，总共 550 行
+        string content = string.Join(Environment.NewLine, Enumerable.Range(1, 550).Select(i => $"line{i}"));
+        await File.WriteAllTextAsync(filePath, content);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.ReadFileLines("note.txt", 1, 50, includeLineNumbers: false);
+
+        StringAssert.Contains(result, "行范围: 1-50【剩余 500 行未读取】");
     }
 
     private static string CreateTestDirectory()

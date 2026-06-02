@@ -19,6 +19,7 @@ public sealed class WorkspaceToolProvider
     private const int DefaultMaxCharacters = 4000;
     private const int DefaultMaxRangeLines = 400;
     private const int DefaultMaxLineHitsPerFile = 20;
+    private const int DefaultMaxRemainingLinesToCount = 500;
     private string? _primaryWorkspacePath;
     private string? _secondaryWorkspacePath;
 
@@ -321,91 +322,8 @@ public sealed class WorkspaceToolProvider
             return errorMessage;
         }
 
-        var builder = new StringBuilder();
-        int currentLine = 0;
-        bool hasContent = false;
-        bool reachedCharacterLimit = false;
-        bool reachedEndOfFile = true;
-        int actualEndLine = startLine - 1;
-        var contentBuilder = new StringBuilder();
-
-        using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
-        while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
-        {
-            currentLine++;
-            if (currentLine < startLine)
-            {
-                continue;
-            }
-
-            if (currentLine > endLine)
-            {
-                reachedEndOfFile = false;
-                break;
-            }
-
-            string outputLine = includeLineNumbers ? $"{currentLine}: {line}" : line;
-            int appendedLength = outputLine.Length + Environment.NewLine.Length;
-            if (contentBuilder.Length + appendedLength > DefaultMaxCharacters)
-            {
-                int remainingCharacters = DefaultMaxCharacters - contentBuilder.Length;
-                if (remainingCharacters > 0)
-                {
-                    int lineCharactersToAppend = Math.Min(outputLine.Length, remainingCharacters);
-                    if (lineCharactersToAppend > 0)
-                    {
-                        contentBuilder.Append(outputLine.AsSpan(0, lineCharactersToAppend));
-                        hasContent = true;
-                        actualEndLine = currentLine;
-                    }
-
-                }
-
-                reachedCharacterLimit = true;
-                break;
-            }
-
-            if (hasContent)
-            {
-                contentBuilder.Append(Environment.NewLine);
-            }
-
-            contentBuilder.Append(outputLine);
-            hasContent = true;
-            actualEndLine = currentLine;
-        }
-
-        builder.AppendLine("<MetaData>");
-        builder.AppendLine($"文件: {GetDisplayPath(file.FullName)}");
-        string actualRangeText = hasContent ? $"{startLine}-{actualEndLine}" : "无";
-        string statusSuffix = "";
-        if (reachedCharacterLimit)
-        {
-            statusSuffix = "【超长截断】";
-        }
-        else if (reachedEndOfFile && currentLine < endLine)
-        {
-            statusSuffix = "【已读完】";
-        }
-
-        builder.AppendLine($"行范围: {actualRangeText}{statusSuffix}");
-        builder.AppendLine("</MetaData>");
-
-        if (!hasContent)
-        {
-            builder.Append("指定范围内没有可读取的内容。");
-        }
-        else
-        {
-            builder.Append(contentBuilder.ToString());
-
-            if (reachedCharacterLimit)
-            {
-                builder.Append($" 【已达到最大字符数限制 {DefaultMaxCharacters}，后续内容未显示。】");
-            }
-        }
-
-        return builder.ToString();
+        var reader = new WorkspaceFileLineReader(DefaultMaxCharacters, DefaultMaxRemainingLinesToCount);
+        return await reader.ReadAsync(file, startLine, endLine, includeLineNumbers, GetDisplayPath).ConfigureAwait(false);
     }
 
     private bool TryResolveDirectory(string? path, out DirectoryInfo directory, out string errorMessage)
