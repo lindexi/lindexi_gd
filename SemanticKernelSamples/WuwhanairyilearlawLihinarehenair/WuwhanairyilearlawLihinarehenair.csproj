@@ -9,7 +9,4 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.7.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\SemanticKernelLib\SemanticKernelSamples\AgentLib\AgentLib\AgentLib.csproj" />
-  </ItemGroup>
 </Project>

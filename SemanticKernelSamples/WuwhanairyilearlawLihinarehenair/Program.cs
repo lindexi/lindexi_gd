@@ -1,8 +1,7 @@
-﻿using AgentLib.AgentExtensions;
-using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
-using Microsoft.Agents.AI;
+﻿using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+namespace WuwhanairyilearlawLihinarehenair;
 #pragma warning disable MAAI001
 
 /// <summary>
@@ -257,5 +256,112 @@ sealed class LoggingChatReducer : IChatReducer
         }
 
         return Task.FromResult<IEnumerable<ChatMessage>>(messageList);
+    }
+}
+
+/// <summary>
+/// 简化的流式运行扩展方法，直接调用 agent.RunStreamingAsync() 输出文本和工具调用信息。
+/// 推理处理对于本演示不重要，故略去。
+/// </summary>
+public static class AIAgentStreamingExtensions
+{
+    /// <summary>
+    /// 对流式运行 Agent 并将输出写入控制台。
+    /// </summary>
+    /// <param name="agent">要运行的 AIAgent</param>
+    /// <param name="messages">初始消息列表</param>
+    /// <param name="session">可选会话</param>
+    /// <param name="options">可选运行选项</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public static async Task RunStreamingAndLogToConsoleAsync(
+        this AIAgent agent,
+        IEnumerable<ChatMessage> messages,
+        AgentSession? session = null,
+        AgentRunOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        await foreach (var update in agent.RunStreamingAsync(messages, session, options, cancellationToken))
+        {
+            Console.Write(update.Text);
+        }
+
+        Console.WriteLine();
+    }
+}
+
+/// <summary>
+/// 简单的 FakeChatClient，通过委托注入响应流，方便单元测试和演示。
+/// </summary>
+public sealed class FakeChatClient : IChatClient
+{
+    /// <summary>
+    /// 获取或设置 GetResponseAsync 的委托。
+    /// </summary>
+    public Func<IEnumerable<ChatMessage>, ChatOptions?, CancellationToken, Task<ChatResponse>>?
+        OnGetResponseAsync
+    { get; set; }
+
+    /// <summary>
+    /// 获取或设置 GetStreamingResponseAsync 的委托。
+    /// </summary>
+    public Func<IEnumerable<ChatMessage>, ChatOptions?, CancellationToken, IAsyncEnumerable<ChatResponseUpdate>>?
+        OnGetStreamingResponseAsync
+    { get; set; }
+
+    /// <summary>
+    /// 获取或设置 GetService 的委托。
+    /// </summary>
+    public Func<Type, object?, object?>? OnGetService { get; set; }
+
+    /// <summary>
+    /// 获取或设置 Dispose 的委托。
+    /// </summary>
+    public Action? OnDispose { get; set; }
+
+    /// <inheritdoc />
+    public Task<ChatResponse> GetResponseAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (OnGetResponseAsync is null)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(FakeChatClient)}.{nameof(OnGetResponseAsync)} has not been configured.");
+        }
+
+        return OnGetResponseAsync(messages, options, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (OnGetStreamingResponseAsync is null)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(FakeChatClient)}.{nameof(OnGetStreamingResponseAsync)} has not been configured.");
+        }
+
+        return OnGetStreamingResponseAsync(messages, options, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public object? GetService(Type serviceType, object? serviceKey = null)
+    {
+        if (OnGetService is null)
+        {
+            return null;
+        }
+
+        return OnGetService(serviceType, serviceKey);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        OnDispose?.Invoke();
     }
 }
