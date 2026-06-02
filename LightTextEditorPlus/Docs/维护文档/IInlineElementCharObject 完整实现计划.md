@@ -58,23 +58,23 @@ TextEditor (FrameworkElement)
                           │
           ┌───────────────┼───────────────┐
           ▼               ▼               ▼
-┌──────────────┐  ┌──────────────┐  ┌───────────────┐
-│ WPF 平台      │  │ Avalonia     │  │ 纯 Skia        │
-│              │  │ (Skia 路径)  │  │ (无UI框架)     │
-│ 在视觉树中    │  │              │  │               │
-│ 添加真正的    │  │ 回调接口     │  │ IInline       │
-│ UIElement     │  │ 在 Canvas    │  │ Element       │
-│ 子元素        │  │ 上绘制       │  │ Renderer      │
-│ Arrange       │  │              │  │ 回调绘制      │
-│ Override 定位 │  │              │  │               │
-└──────────────┘  └──────────────┘  └───────────────┘
+┌──────────────┐  ┌──────────────┐  ┌───────────────────┐
+│ WPF 平台      │  │ Avalonia     │  │ 纯 Skia            │
+│              │  │ (有 UI 框架) │  │ (无 UI 框架)       │
+│ 在视觉树中    │  │              │  │                   │
+│ 添加真正的    │  │ 走 IInline   │  │ 若实现 ISkiaText  │
+│ UIElement     │  │ ElementHost  │  │ InlineElement     │
+│ 子元素        │  │ 管理控件树   │  │ CharObject → 回调 │
+│ Arrange       │  │              │  │ 绘制              │
+│ Override 定位 │  │              │  │ 否则：镂空跳过     │
+└──────────────┘  └──────────────┘  └───────────────────┘
 ```
 
 **WPF 平台**：将 `TextEditor` 视为"带特殊布局逻辑的 Panel"，内联元素对应的 `UIElement` 直接加入 `TextEditor` 的视觉树，在 `ArrangeOverride` 中根据 `CharData` 坐标定位。这直接对标 WPF 原生 `InlineUIContainer` 的设计——`InlineUIContainer` 正是将任意 `UIElement` 嵌入到 `TextBlock`/`FlowDocument` 的流内容中的机制。
 
-**Avalonia/Skia 平台**：若无原生 `InlineUIContainer` 等价机制，通过 `IInlineElementRenderer` 回调接口在 `SKCanvas` 上完成绘制。
+**Avalonia 平台（有 UI 框架）**：同 WPF，走 `IInlineElementHost` 管理控件树。不使用 Skia 层的 `ISkiaTextInlineElementCharObject` 接口——Avalonia 的输入系统（命中测试、焦点）和控件体系需要真正的 Avalonia 控件，在 Skia 画布上绘制无法满足交互需求。
 
-**纯 Skia（无 UI 框架）**：必须走 `IInlineElementRenderer` 回调，在 `SKCanvas` 上完成绘制。
+**纯 Skia（无 UI 框架）**：仅求不崩溃。若内联元素额外实现了 `ISkiaTextInlineElementCharObject`（定义在 Skia 项目中），Skia 文本渲染器通过此接口回调 `Render(SKCanvas, TextRect)` 完成绘制；若未实现，则镂空跳过（调试模式下可绘制占位矩形）。此接口专为纯 Skia 路径设计，UI 框架不应依赖。
 
 **Z 序**：内联元素应在文本 `DrawingVisual` 之上、`SelectionAndCaretLayer` 之下。
 
@@ -323,12 +323,17 @@ private void MeasureInlineElement(CharData charData, FillCharDataInfoListArgumen
 **Skia 渲染**（`BaseSkiaTextRenderer.RenderTextLine` + `HorizontalSkiaTextRenderer.RenderCharList`）：
 
 在 `RenderTextLine` 中遍历 `argument.CharList` 时，检查每个 `CharData.IsInlineElementCharData`：
-- 如果是 → 跳过，不调用 `RenderCharList`
-- 如果是且处于调试模式 → 可选绘制占位矩形（浅灰背景 + 边框），帮助开发者识别内联元素位置
+- 如果 `CharObject` 实现了 `ISkiaTextInlineElementCharObject` → 回调 `Render(SKCanvas, TextRect)` 完成 Skia 自绘制
+- 如果未实现 → 跳过，不调用 `RenderCharList`（镂空，不崩溃）
+- 如果处于调试模式 → 可选绘制占位矩形（浅灰背景 + 边框），帮助开发者识别内联元素位置
+
+> **设计理由**：纯 Skia（无 UI 框架）路径不追求完整实现 inline 元素渲染。`ISkiaTextInlineElementCharObject` 是可选接口，放在 `LightTextEditorPlus.Skia` 项目中。如果 inline 元素需要在此路径下正确渲染，实现该接口即可；否则镂空跳过，不崩溃。
 
 **WPF 渲染**（`HorizontalTextRenderer` / `VerticalTextRenderer`）：
 
 在 `GetCharSpanContinuous` 或等效的 Run 遍历逻辑中，遇到 `IsInlineElementCharData` 时跳过，不在 `DrawingVisual` 中绘制。
+
+> **`GetCharSpanContinuous` 分组决策**：一个 inline 元素只占一个 `CharData`，`GetCharSpanContinuous` 按 RunProperty 连续性分组时，inline 元素的 RunProperty 与相邻文本字符不同，会被自然单独分组为一个 span，渲染器处理起来足够干净。唯一需要注意：若 inline 元素与相邻文本的 RunProperty 恰好相同，`GetCharSpanContinuous` 会将它们合并到一个 span。渲染器需在遍历 span 时额外检查其中是否混入 `IsInlineElementCharData`，若混入则拆分处理（inline 部分镂空/回调，文本部分正常渲染）。
 
 #### 6.2 Core 层新增 `IInlineElementHost` 接口
 
@@ -406,11 +411,86 @@ partial class TextEditor : IInlineElementHost
 
 **`ArrangeOverride`**：`TextEditor.ArrangeOverride` 中，对内联元素子 `UIElement` 调用 `Arrange` 定位到正确坐标。
 
-#### 6.4 Avalonia / Skia 平台适配
+#### 6.4 `ISkiaTextInlineElementCharObject` 接口（Skia 项目，可选）
 
-**Avalonia（Skia 路径）**：`SkiaTextEditor` 在渲染回调中，收到 `InlineElementRenderInfo` 后，通过 `IInlineElementRenderer` 接口在 `SKCanvas` 上绘制。
+**文件**：`LightTextEditorPlus.Skia\Rendering\ISkiaTextInlineElementCharObject.cs`
 
-**纯 Skia（无 UI 框架）**：同上，必须通过 `IInlineElementRenderer` 回调接口完成绘制。
+```csharp
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
+using SkiaSharp;
+
+namespace LightTextEditorPlus.Rendering;
+
+/// <summary>
+/// 让内联元素在纯 Skia 渲染路径下自绘制的可选接口。
+/// 仅当 <see cref="IInlineElementCharObject"/> 同时实现此接口时，
+/// Skia 文本渲染器才会回调此方法进行绘制。
+/// UI 框架（WPF/Avalonia）不应依赖此接口。
+/// </summary>
+public interface ISkiaTextInlineElementCharObject
+{
+    /// <summary>
+    /// 在指定区域绘制内联元素。
+    /// </summary>
+    /// <param name="canvas">Skia 画布</param>
+    /// <param name="bounds">内联元素在文档中的布局区域</param>
+    void Render(SKCanvas canvas, TextRect bounds);
+}
+```
+
+**Skia 渲染器中的处理逻辑**（`BaseSkiaTextRenderer.RenderTextLine`）：
+
+```csharp
+// 在 GetCharSpanContinuous 遍历中
+foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+{
+    if (charList[0].IsInlineElementCharData)
+    {
+        RenderInlineElementIfSupported(in charList, in lineRenderInfo);
+        continue;
+    }
+
+    RenderCharList(charList, lineRenderInfo);
+    // ...
+}
+
+private void RenderInlineElementIfSupported(
+    in TextReadOnlyListSpan<CharData> charList,
+    in ParagraphLineRenderInfo lineInfo)
+{
+    var charData = charList[0];
+    if (charData.CharObject is ISkiaTextInlineElementCharObject skiaElement)
+    {
+        var bounds = charData.GetBounds();
+        skiaElement.Render(Canvas, bounds);
+    }
+    // 否则：什么都不做（镂空），不崩溃
+}
+```
+
+> **设计原则**：纯 Skia（无 UI 框架）路径下不追求完整实现。`ISkiaTextInlineElementCharObject` 是 Skia 项目中的可选接口，inline 元素有需要时可实现它；不实现则镂空跳过、不崩溃。
+
+> **接口位置决策**：`ISkiaTextInlineElementCharObject` 放在 `LightTextEditorPlus.Skia` 项目中，不创建额外的 Skia 抽象项目。理由：
+> - 该接口依赖 `SKCanvas`（SkiaSharp），只有 Skia 项目引用了 SkiaSharp，Core 项目无法定义含 `SKCanvas` 参数的接口
+> - 当前 Skia 项目已经是 Core 之上的薄层，再拆一层会过度设计
+> - Avalonia 虽然引用 Skia 项目能"看到"此接口，但 Avalonia 走 `IInlineElementHost` 路径，不使用此接口，没有冲突
+
+#### 6.5 Avalonia 平台适配
+
+**Avalonia 走 `IInlineElementHost` 路径**（同 WPF），不用 `ISkiaTextInlineElementCharObject`。理由：
+
+- Avalonia 的输入系统（命中测试、焦点管理）依赖控件树中的真实控件
+- 在 Skia 画布上直接绘制内联元素会导致鼠标点击、无障碍（UIA）等交互无法正常工作
+- `IInlineElementHost` 在 Avalonia 控件树中管理内联元素对应的 `Control`，由其自有渲染管线绘制
+
+**Avalonia 中的 `SkiaTextEditor`** 作为渲染底层引擎时，其 `BaseSkiaTextRenderer` 镂空跳过 inline 元素（同 6.1），实际渲染由 Avalonia 控件层完成。
+
+> **Avalonia 实现方式决策**：走 `IInlineElementHost` + `ArrangeOverride` 定位，与 WPF 方案一致。理由：
+> - Avalonia 没有 `InlineUIContainer` 等价物——Avalonia 的 `TextBlock`/`SelectableTextBlock` 不支持嵌入任意控件
+> - Avalonia 的输入系统（命中测试、焦点、无障碍 UIA）依赖控件树中的真实 `Control`，不能只在 Skia 画布上绘制
+> - 内联元素对应的 `Control` 作为 `TextEditor` 的逻辑/视觉子元素加入控件树，在 `ArrangeOverride` 中根据 `CharData` 坐标调用 `Arrange` 定位
+> - 需在 `MeasureOverride` 中测量内联元素子控件，Z 序通过 Avalonia 的 ZIndex 或控件顺序控制（文本层之上、选择/光标层之下）
 
 #### 6.5 布局完成后的同步流程
 
@@ -585,7 +665,8 @@ protected override Size MeasureOverride(Size availableSize)
 - [ ] WPF `IInlineElementHost` 正确管理内联元素视觉树（添加/移除/更新位置）
 - [ ] WPF `ArrangeOverride` 正确将内联元素 `UIElement` 定位到 `CharData` 坐标
 - [ ] 内联元素 Z 序正确：文本之上、选择/光标层之下
-- [ ] 纯 Skia 渲染通过 `IInlineElementRenderer` 回调正确绘制
+- [ ] 纯 Skia 路径：`ISkiaTextInlineElementCharObject` 实现时正确回调绘制；未实现时镂空跳过不崩溃
+- [ ] Skia 文本渲染器调试模式下内联元素占位矩形正确绘制
 - [ ] 未实现 `IInlineElementCursorInteractable` 的内联元素：方向键跳过（原子光标位）
 - [ ] 实现 `IInlineElementCursorInteractable` 的内联元素：`CanCursorEnter = false` 时降级为原子光标位
 - [ ] 实现 `IInlineElementCursorInteractable` 的内联元素：光标正确进入/内部移动/脱出
@@ -607,8 +688,8 @@ protected override Size MeasureOverride(Size availableSize)
 | `LightTextEditorPlus.Core\Layout\HorizontalArrangingLayoutProvider.cs` | 分行逻辑适配 |
 | `LightTextEditorPlus.Core\Layout\VerticalArrangingLayoutProvider.cs` | 垂直布局适配 |
 | `LightTextEditorPlus.Core\Rendering\IInlineElementHost.cs` | 内联元素宿主接口 + `InlineElementRenderInfo` |
-| `LightTextEditorPlus.Core\Rendering\IInlineElementRenderer.cs` | 纯 Skia 绘制回调接口 |
 | `LightTextEditorPlus.Core\Rendering\IInlineElementCursorInteractable.cs` | 光标可进入内联元素接口 + `InlineElementCursorState` + `InlineElementCursorResult` + `InlineElementLayoutInfo` |
+| `LightTextEditorPlus.Skia\Rendering\ISkiaTextInlineElementCharObject.cs` | Skia 项目可选接口：纯 Skia 路径下内联元素自绘制回调 |
 | `LightTextEditorPlus.Core\Carets\KeyboardCaretNavigationHelper.cs` | 光标方向键导航，增加 `IInlineElementCursorInteractable` 进入/脱出逻辑 |
 | `LightTextEditorPlus.Core\Carets\CaretManager.cs` | 光标管理，增加 `InsideInlineElement` 模式 |
 | `LightTextEditorPlus.Wpf\Platform\CharInfoMeasurer.cs` | WPF 测量适配 |
@@ -618,7 +699,7 @@ protected override Size MeasureOverride(Size availableSize)
 | `LightTextEditorPlus.Wpf\Rendering\VerticalTextRenderer.cs` | WPF 垂直渲染镂空 |
 | `LightTextEditorPlus.Skia\Rendering\Core\BaseSkiaTextRenderer.cs` | Skia 渲染镂空（`RenderTextLine` 跳过 inline 元素） |
 | `LightTextEditorPlus.Skia\Rendering\Core\HorizontalSkiaTextRenderer.cs` | Skia 渲染镂空 |
-| `LightTextEditorPlus.Avalonia\...` | Avalonia 测量适配 + 渲染适配 |
+| `LightTextEditorPlus.Avalonia\...` | Avalonia 走 `IInlineElementHost` 路径管理内联元素控件树 |
 | `Tests\...\FixedCharSizeCharInfoMeasurer.cs` | 测试测量适配 |
 
 ---
@@ -641,7 +722,6 @@ protected override Size MeasureOverride(Size availableSize)
 | WinUI `InlineUIContainer` | 同上，用于 `RichTextBlock` |
 | WPF `TextFormatter` + `TextEmbeddedObject` | 低级 API：`TextSource.GetTextRun()` 返回 `TextEmbeddedObject`，由 `TextFormatter` 调用其 `ComputeBoundingBox`/`Draw` 方法 |
 | DirectWrite `IDWriteInlineObject` | 回调接口：`Draw`、`GetMetrics`、`GetOverhangMetrics`、`GetBreakConditions` |
-| Web (HTML/CSS) `inline-block` / `<img>` | CSS 布局为 replaced element 分配盒模型空间，渲染由浏览器引擎的 paint 阶段处理 |
 | Word/Office 对象模型 | 内联图片/公式作为文档流中的特殊 run，有自己的布局和渲染回调 |
 
 ### 7.2 Microsoft 官方文档
@@ -658,6 +738,6 @@ protected override Size MeasureOverride(Size availableSize)
 |---|---|---|
 | 嵌入对象表示 | `InlineUIContainer` 是 `Inline` 子类，在 XAML 树中 | `IInlineElementCharObject` 是 `ICharObject` 实现，在文档字符流中 |
 | 布局 | WPF 内部 `TextFormatter` 处理 | Core 层 `HorizontalArrangingLayoutProvider` 处理，与文本字符走相同路径 |
-| 渲染 | WPF 视觉树自动渲染 | WPF 平台通过 `IInlineElementHost` 加入视觉树；Skia 平台通过 `IInlineElementRenderer` 回调 |
+| 渲染 | WPF 视觉树自动渲染 | WPF/Avalonia 通过 `IInlineElementHost` 加入视觉树；纯 Skia 通过 `ISkiaTextInlineElementCharObject` 可选回调 |
 | 测量 | WPF 内部测量 | `ICharInfoMeasurer` 平台适配，支持预填入和延迟测量两种策略 |
 | 可扩展性 | 仅 WPF | 跨平台（WPF / Avalonia / Skia / MAUI） |
