@@ -427,10 +427,110 @@ UpdateLayout() 完成
 
 ### 步骤 7：光标系统
 
+#### 7.1 默认行为：原子光标位
+
+**未实现 `IInlineElementCursorInteractable` 的内联元素**（如图片）使用此默认行为：
+
 - 内联元素 = **一个原子的光标位置**（`CaretOffset` 前后各 1 位）
 - 方向键移动：`←` 到元素前，`→` 到元素后，不进入元素内部
 - `Delete`/`Backspace`：删除整个 inline 元素（1 个字符原子）
 - 选择范围：包含 inline 元素时视为整体
+
+**判定逻辑**（在 `KeyboardCaretNavigationHelper` 方向键处理中）：
+
+```csharp
+// 光标在 inline 元素左侧，按 →：
+//   1. 检查 charData.IsInlineElementCharData
+//   2. 检查 charData.CharObject is IInlineElementCursorInteractable interactable
+//   3. 否 → 光标跳到元素右侧（+1 偏移）
+//   4. 是 → 尝试 interactable.EnterCursor(Direction.Right, ...)
+```
+
+#### 7.2 可选增强：`IInlineElementCursorInteractable`（光标可进入）
+
+**实现了 `IInlineElementCursorInteractable` 的内联元素**（如行内公式）允许光标进入其内部导航。
+
+**接口定义**（见 `LightTextEditorPlus.Core\Rendering\IInlineElementCursorInteractable.cs`）：
+
+```csharp
+public interface IInlineElementCursorInteractable
+{
+    bool CanCursorEnter { get; }
+    InlineElementCursorState? EnterCursor(Direction direction, InlineElementLayoutInfo layoutInfo);
+    InlineElementCursorResult MoveCursor(Direction direction, InlineElementCursorState currentState);
+    InlineElementCursorResult HandleMouseClick(TextPoint localPoint, InlineElementCursorState? currentState);
+    TextRect GetCaretRect(InlineElementCursorState currentState);
+}
+```
+
+**关键类型**：
+
+| 类型 | 角色 |
+|---|---|
+| `InlineElementCursorState` (abstract record) | Core 层透明传递的不透明状态，由实现方定义具体子类型 |
+| `InlineElementCursorResult` (readonly struct) | 光标移动/点击结果：`Stay(NewState)` 仍在内部 或 `Exit(Direction)` 脱出 |
+| `InlineElementLayoutInfo` (readonly record struct) | 布局信息，仅含 `Bounds`（`TextRect`） |
+
+**光标系统状态机变化**：
+
+现有光标状态只有一种模式（`InText`）。引入此接口后，`CaretManager` 需新增一个光标模式：
+
+```
+enum CursorMode
+{
+    InText,               // 原有：在正常文本中
+    InsideInlineElement,  // 新增：在 IInlineElementCursorInteractable 内部
+}
+```
+
+状态转换：
+
+```
+                   方向键碰到 inline 元素
+                   且实现了 IInlineElementCursorInteractable
+  InText ────────────────────────────────────────→ InsideInlineElement
+    ↑                                                    │
+    │                                                    │ MoveCursor 返回 Exit
+    │                                                    │
+    └────────────────────────────────────────────────────┘
+                       恢复为 InText
+```
+
+**`InsideInlineElement` 模式下的行为**：
+
+- 方向键 → 委托给 `IInlineElementCursorInteractable.MoveCursor`
+  - 返回 `Stay(newState)` → 保持 `InsideInlineElement`，更新内部状态
+  - 返回 `Exit(direction)` → 恢复 `InText`，光标移到元素前/后对应 `CaretOffset`
+- 鼠标点击 → 委托给 `HandleMouseClick`
+- `Delete`/`Backspace` → 由光标系统决定：若光标在 `InsideInlineElement` 模式，由实现方定义语义（可能删除内部一个符号，或整体删除元素）；可后续扩展接口增加 `HandleDelete` 方法
+- Caret 渲染 → 调用 `GetCaretRect(currentState)` 获取相对于元素左上角的 Caret 矩形，再由平台层转换为文档坐标
+
+**进入方向决定初始内部光标位置**：
+
+| 进入方向 | 含义 | 典型的 `EnterCursor` 行为 |
+|---|---|---|
+| `Direction.Right` | 从左向右（从元素左侧文本按 `→` 进入） | 光标置于元素内部第一个位置 |
+| `Direction.Left` | 从右向左（从元素右侧文本按 `←` 进入） | 光标置于元素内部最后一个位置 |
+| `Direction.Up` | 从上方行移入 | 按 X 坐标做命中测试确定内部位置 |
+| `Direction.Down` | 从下方行移入 | 按 X 坐标做命中测试确定内部位置 |
+
+**光标脱出后内部状态不保留**：
+
+光标从 `InsideInlineElement` 脱出回到 `InText` 后，`InlineElementCursorState` 立即丢弃。当光标再次进入该元素时，由 `EnterCursor` 根据当前进入方向重新计算初始内部光标位置。这避免了内部状态序列化/持留的复杂度，同时大多数使用场景下（从左侧进入通常在首个位置，从右侧进入通常在末尾位置）不会造成明显的用户体验损失。
+
+**`IInlineElementCursorInteractable` 与 `IInlineElementCharObject` 的关系**：
+
+两个接口正交：
+
+```
+IInlineElementCharObject  IInlineElementCursorInteractable
+  ↑                        ↑
+  │                        │
+  ├── 图片：只实现此接口      ├── 行内公式：两个都实现
+  │   (原子光标位)           │   (光标可进入内部)
+  ├── 徽章：只实现此接口      │
+  │   (原子光标位)           │
+```
 
 ### 步骤 8：测试
 
@@ -486,6 +586,13 @@ protected override Size MeasureOverride(Size availableSize)
 - [ ] WPF `ArrangeOverride` 正确将内联元素 `UIElement` 定位到 `CharData` 坐标
 - [ ] 内联元素 Z 序正确：文本之上、选择/光标层之下
 - [ ] 纯 Skia 渲染通过 `IInlineElementRenderer` 回调正确绘制
+- [ ] 未实现 `IInlineElementCursorInteractable` 的内联元素：方向键跳过（原子光标位）
+- [ ] 实现 `IInlineElementCursorInteractable` 的内联元素：`CanCursorEnter = false` 时降级为原子光标位
+- [ ] 实现 `IInlineElementCursorInteractable` 的内联元素：光标正确进入/内部移动/脱出
+- [ ] 进入方向对应的初始内部光标位置正确（`Left`→末尾，`Right`→开头）
+- [ ] 光标脱出后内部状态丢弃，再次进入时重新计算
+- [ ] 鼠标点击内联元素内部命中测试正确
+- [ ] `InsideInlineElement` 模式下 Caret 渲染正确（坐标转换）
 - [ ] 知识库文件写入 `Docs/Knowledge/`
 
 ---
@@ -501,6 +608,9 @@ protected override Size MeasureOverride(Size availableSize)
 | `LightTextEditorPlus.Core\Layout\VerticalArrangingLayoutProvider.cs` | 垂直布局适配 |
 | `LightTextEditorPlus.Core\Rendering\IInlineElementHost.cs` | 内联元素宿主接口 + `InlineElementRenderInfo` |
 | `LightTextEditorPlus.Core\Rendering\IInlineElementRenderer.cs` | 纯 Skia 绘制回调接口 |
+| `LightTextEditorPlus.Core\Rendering\IInlineElementCursorInteractable.cs` | 光标可进入内联元素接口 + `InlineElementCursorState` + `InlineElementCursorResult` + `InlineElementLayoutInfo` |
+| `LightTextEditorPlus.Core\Carets\KeyboardCaretNavigationHelper.cs` | 光标方向键导航，增加 `IInlineElementCursorInteractable` 进入/脱出逻辑 |
+| `LightTextEditorPlus.Core\Carets\CaretManager.cs` | 光标管理，增加 `InsideInlineElement` 模式 |
 | `LightTextEditorPlus.Wpf\Platform\CharInfoMeasurer.cs` | WPF 测量适配 |
 | `LightTextEditorPlus.Wpf\Layers\InlineElementLayer.cs` | WPF 内联元素视觉树管理层 |
 | `LightTextEditorPlus.Wpf\Platform\TextEditor.Platform.cs` | WPF `IInlineElementHost` 实现 + `ArrangeOverride` 适配 |
