@@ -5,6 +5,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 内联元素字符
 /// </summary>
+/// 参阅 `ICharObject 扩展类型命名决策文档.md` 文档
 public interface IInlineElementCharObject : ICharObject
 {
     // 是否允许跨行
