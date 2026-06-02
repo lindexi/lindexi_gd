@@ -19,6 +19,7 @@ public sealed class WorkspaceToolProvider
     private const int DefaultMaxCharacters = 4000;
     private const int DefaultMaxRangeLines = 400;
     private const int DefaultMaxLineHitsPerFile = 20;
+    private const int DefaultMaxRemainingLinesToCount = 500;
     private string? _primaryWorkspacePath;
     private string? _secondaryWorkspacePath;
 
@@ -330,6 +331,7 @@ public sealed class WorkspaceToolProvider
         var contentBuilder = new StringBuilder();
 
         using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
+
         while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
         {
             currentLine++;
@@ -373,6 +375,53 @@ public sealed class WorkspaceToolProvider
             contentBuilder.Append(outputLine);
             hasContent = true;
             actualEndLine = currentLine;
+
+            // 读完请求范围后立即跳出，避免消耗下一行
+            if (currentLine == endLine)
+            {
+                // 尝试读取下一行来判断是否还有剩余内容
+                if (await reader.ReadLineAsync().ConfigureAwait(false) is null)
+                {
+                    // 后面没有行了，文件已读完
+                    reachedEndOfFile = true;
+                }
+                else
+                {
+                    reachedEndOfFile = false;
+                }
+                break;
+            }
+        }
+
+        // 统计剩余行数（如果已读取完用户请求的范围且未因字符限制中断）
+        int? remainingLines = null;
+        bool remainingLinesExceedsLimit = false;
+        if (!reachedCharacterLimit && !reachedEndOfFile)
+        {
+            // 此时已消耗了一行（用于判断是否有剩余），从 1 开始计数
+            int countedRemainingLines = 1;
+            while (countedRemainingLines < DefaultMaxRemainingLinesToCount 
+                   && await reader.ReadLineAsync().ConfigureAwait(false) is not null)
+            {
+                countedRemainingLines++;
+            }
+
+            if (countedRemainingLines == DefaultMaxRemainingLinesToCount)
+            {
+                // 检查是否还有更多行
+                if (await reader.ReadLineAsync().ConfigureAwait(false) is not null)
+                {
+                    remainingLinesExceedsLimit = true;
+                }
+                else
+                {
+                    remainingLines = countedRemainingLines;
+                }
+            }
+            else
+            {
+                remainingLines = countedRemainingLines;
+            }
         }
 
         builder.AppendLine("<MetaData>");
@@ -383,9 +432,17 @@ public sealed class WorkspaceToolProvider
         {
             statusSuffix = "【超长截断】";
         }
-        else if (reachedEndOfFile && currentLine < endLine)
+        else if (reachedEndOfFile)
         {
             statusSuffix = "【已读完】";
+        }
+        else if (remainingLinesExceedsLimit)
+        {
+            statusSuffix = $"【剩余大于 {DefaultMaxRemainingLinesToCount} 行未读取】";
+        }
+        else if (remainingLines.HasValue && remainingLines.Value > 0)
+        {
+            statusSuffix = $"【剩余 {remainingLines.Value} 行未读取】";
         }
 
         builder.AppendLine($"行范围: {actualRangeText}{statusSuffix}");
