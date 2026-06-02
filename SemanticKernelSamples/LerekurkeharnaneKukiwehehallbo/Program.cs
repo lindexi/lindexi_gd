@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AgentLib.AgentExtensions;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers;
@@ -6,7 +5,6 @@ using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using Microsoft.Agents.AI;
-using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
 #pragma warning disable MAAI001
@@ -30,29 +28,18 @@ async IAsyncEnumerable<ChatResponseUpdate> OnGetStreamingResponseAsync(IEnumerab
 {
     yield return new ChatResponseUpdate(ChatRole.Assistant, "Message");
 
-    for (int i = 0; i < int.MaxValue; i++)
+    yield return new ChatResponseUpdate(ChatRole.Assistant, new List<AIContent>()
     {
-        var callId = $"Tool{i}";
-        var toolName = Random.Shared.Next(2) == 0 ? "Tool" : "Tool1";
-
-        yield return new ChatResponseUpdate(ChatRole.Assistant, new List<AIContent>()
-        {
-            new FunctionCallContent(callId, toolName)
-            {
-            },
-        })
-        {
-            FinishReason = ChatFinishReason.ToolCalls,
-        };
-        yield break;
-    }
+        new FunctionCallContent("Tool0", Random.Shared.Next(2) == 0 ? "Tool" : "Tool1"),
+    })
+    {
+        FinishReason = ChatFinishReason.ToolCalls,
+    };
 }
-
-IChatClient chatClient = fakeChatClient;
 
 var count = 0;
 
-ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
+ChatClientAgent agent = fakeChatClient.AsAIAgent(new ChatClientAgentOptions()
 {
     ChatHistoryProvider = // new FakeChatHistoryProvider(),
         new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
@@ -80,10 +67,8 @@ Console.WriteLine("Hello, World!");
 class FakeChatReducer : IChatReducer
 {
     public Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages,
-        CancellationToken cancellationToken)
-    {
-        return Task.FromResult(messages.Take(2));
-    }
+        CancellationToken cancellationToken) =>
+        Task.FromResult(messages.Take(2));
 }
 
 class FakeChatHistoryProvider : ChatHistoryProvider
