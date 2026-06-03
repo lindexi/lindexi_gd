@@ -39,6 +39,12 @@ public static class TextContext
     public const char UnknownChar = '\uFFFD';
 
     /// <summary>
+    /// Object Replacement Character (U+FFFC)，用于表示内联对象（图片、公式等）的占位字符。
+    /// 区别于 <see cref="UnknownChar"/>（\uFFFD）——后者表示"无法识别的字符"，语义不同。
+    /// </summary>
+    public const char ObjectReplacementChar = '\uFFFC';
+
+    /// <summary>
     /// 文本库统一写入的换行符，此换行符和平台无关，所有平台写入相同的值
     /// </summary>
     public const string NewLine = "\n";
