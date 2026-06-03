@@ -50,18 +50,24 @@ public interface IInlineElementMeasurer
     /// 实现方保证调用后 <paramref name="charData"/> 的
     /// <see cref="CharData.IsInvalidCharDataInfo"/> 为 false。
     /// </summary>
-    /// <param name="charData">当前内联元素字符数据</param>
+    /// <param name="inlineElement">内联元素。调用方已通过 <see cref="CharData.IsInlineElementCharData"/> 判断，
+    /// 实现方无需再次转型。</param>
+    /// <param name="charData">当前内联元素字符数据，用于写回测量结果、读取 <see cref="CharData.RunProperty"/> 等</param>
     /// <param name="setter">用于将测量结果写入 CharData 的 setter</param>
-    void MeasureInlineElement(CharData charData, ICharDataLayoutInfoSetter setter);
+    void MeasureInlineElement(
+        IInlineElementCharObject inlineElement,
+        CharData charData,
+        ICharDataLayoutInfoSetter setter);
 }
 ```
 
 ### 设计要点
 
 - 接口放在 Core 层，不依赖任何平台（不依赖 SkiaSharp、WPF、Avalonia）
-- 参数只传单个 `CharData`（内联元素每次只出现一个，不像文本需要批量 shaping）
+- `inlineElement` 参数：调用方在 `EnsureMeasureAndFillSizeOfCharDataList` 中已确认 `charData.IsInlineElementCharData`，顺手转型传入，实现方无需重复转型，签名即文档
+- `charData` 参数：仍需要，用于写回 `CharDataInfo`（通过 `setter`）以及读取 `RunProperty.FontSize` 等上下文
+- 参数只传单个元素（内联元素每次只出现一个，不像文本需要批量 shaping）
 - 通过 `ICharDataLayoutInfoSetter` 写入结果，与现有 `MeasureAndFillCharData` fallback 使用相同的写入路径
-- 不传 `UpdateLayoutContext`：inline 测量不需要 shaping 上下文，只需要 `CharData` 自身的信息（`CharObject`、`RunProperty`）
 
 ### 与 `PlatformProvider` 的集成
 
@@ -91,9 +97,11 @@ protected void EnsureMeasureAndFillSizeOfCharDataList(
         CharData charData = toMeasureCharDataList[i];
         if (charData.IsInlineElementCharData && charData.IsInvalidCharDataInfo)
         {
+            var inlineElement = (IInlineElementCharObject) charData.CharObject;
+
             if (inlineMeasurer is not null)
             {
-                inlineMeasurer.MeasureInlineElement(charData, updateLayoutContext);
+                inlineMeasurer.MeasureInlineElement(inlineElement, charData, updateLayoutContext);
             }
             else
             {
