@@ -18,7 +18,7 @@ public record AgentApiManagerConfiguration
     public static async Task<AgentApiManagerConfiguration> FromJsonFileAsync(FileInfo file)
     {
         await using var fileStream = file.OpenRead();
-        var configuration = await JsonSerializer.DeserializeAsync(fileStream, JsonTypeInfo);
+        var configuration = await JsonSerializer.DeserializeAsync(fileStream, JsonTypeInfo).ConfigureAwait(false);
         return FromConfiguration(configuration);
     }
 
