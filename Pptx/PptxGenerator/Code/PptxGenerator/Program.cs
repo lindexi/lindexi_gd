@@ -3,6 +3,8 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using Avalonia;
 
+using Microsoft.Extensions.AI;
+
 using System;
 using System.IO;
 using System.Linq;
@@ -39,6 +41,25 @@ class Program
         BuildAvaloniaApp().SetupWithoutStarting();
         var prompt = string.Join(' ', args.Where(t => !string.IsNullOrWhiteSpace(t)));
 
+        var chatClient = await CreateChatClientFromAgentConfigAsync().ConfigureAwait(false);
+        if (chatClient is null)
+        {
+            return 1;
+        }
+
+        var slideRenderer = new SlideRenderer();
+        var slideGenerationService = new SlideGenerationService(chatClient, slideRenderer);
+        var cliRunner = new SlideCliRunner(slideGenerationService);
+        return await cliRunner.RunAsync(prompt).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 从 Agent 配置文件加载模型并创建 <see cref="IChatClient"/>。
+    /// 供 CLI 和 GUI 路径共用。
+    /// </summary>
+    /// <returns>创建成功的 <see cref="IChatClient"/>；如果模型未找到则返回 null。</returns>
+    public static async Task<IChatClient?> CreateChatClientFromAgentConfigAsync()
+    {
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
         AgentApiManagerConfiguration agentApiManagerConfiguration = await AgentApiManagerConfiguration.FromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
@@ -46,12 +67,13 @@ class Program
         var agentApiEndpointManager = new AgentApiEndpointManager();
         agentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
 
-        var languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
+        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
+        if (languageModel is null)
+        {
+            Console.Error.WriteLine("未找到指定的语言模型。");
+            return null;
+        }
 
-        var chatClientCreator = new ChatClientCreator();
-        var slideRenderer = new SlideRenderer();
-        var slideGenerationService = new SlideGenerationService(chatClientCreator, slideRenderer);
-        var cliRunner = new SlideCliRunner(slideGenerationService);
-        return await cliRunner.RunAsync(prompt).ConfigureAwait(false);
+        return await languageModel.GetChatClientAsync().ConfigureAwait(false);
     }
 }

@@ -13,12 +13,12 @@ public sealed class SlideGenerationService
 {
     private const int MaxAttempts = 4;
 
-    private readonly ChatClientCreator _chatClientCreator;
+    private readonly IChatClient _chatClient;
     private readonly SlideRenderer _slideRenderer;
 
-    public SlideGenerationService(ChatClientCreator chatClientCreator, SlideRenderer slideRenderer)
+    public SlideGenerationService(IChatClient chatClient, SlideRenderer slideRenderer)
     {
-        _chatClientCreator = chatClientCreator ?? throw new ArgumentNullException(nameof(chatClientCreator));
+        _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
         _slideRenderer = slideRenderer ?? throw new ArgumentNullException(nameof(slideRenderer));
     }
 
@@ -29,7 +29,6 @@ public sealed class SlideGenerationService
             throw new ArgumentException("提示词不能为空。", nameof(userPrompt));
         }
 
-        var chatClient = _chatClientCreator.GetChatClient();
         var history = new List<ChatMessage>
         {
             new(ChatRole.System, BuildSystemPrompt()),
@@ -50,7 +49,7 @@ public sealed class SlideGenerationService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var response = await chatClient.GetResponseAsync(history, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await _chatClient.GetResponseAsync(history, cancellationToken: cancellationToken).ConfigureAwait(false);
             var responseText = response.Text ?? response.ToString() ?? string.Empty;
             history.AddMessages(response);
             conversationLog.Add($"[Assistant]\n{responseText}");
@@ -107,7 +106,6 @@ public sealed class SlideGenerationService
             throw new ArgumentException("对话内容不能为空。", nameof(userMessage));
         }
 
-        var chatClient = _chatClientCreator.GetChatClient();
         var history = new List<ChatMessage>
         {
             new(ChatRole.System, BuildSystemPrompt()),
@@ -130,7 +128,7 @@ public sealed class SlideGenerationService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var response = await chatClient.GetResponseAsync(history, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await _chatClient.GetResponseAsync(history, cancellationToken: cancellationToken).ConfigureAwait(false);
             var responseText = response.Text ?? response.ToString() ?? string.Empty;
             history.AddMessages(response);
             conversationLog.Add($"[Assistant]\n{responseText}");
