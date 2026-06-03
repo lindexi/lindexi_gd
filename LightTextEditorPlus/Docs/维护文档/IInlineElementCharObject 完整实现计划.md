@@ -6,6 +6,23 @@
 
 ---
 
+## 任务进度
+
+| 步骤 | 内容 | 状态 |
+|---|---|---|
+| 步骤 1 | `TextContext` 添加 `ObjectReplacementChar` | ✅ 已完成 |
+| 步骤 2 | 确定 `IInlineElementCharObject` 接口 | ⬜ 待开始 |
+| 步骤 3 | `CharData` 添加 `IsInlineElementCharData` | ⬜ 待开始 |
+| 步骤 4 | Core 布局层处理 inline 元素分行 | ⬜ 待开始 |
+| 步骤 5 | `ICharInfoMeasurer` 平台适配 | ⬜ 待开始 |
+| 步骤 6 | 渲染管线适配 | ⬜ 待开始 |
+| 步骤 7 | 光标系统 | ⬜ 待开始 |
+| 步骤 8 | 测试 | ⬜ 待开始 |
+
+> **状态说明**：✅ 已完成 / 🔄 进行中 / ⬜ 待开始 / ⏸️ 暂缓
+
+---
+
 ## 1. 架构分析总结
 
 ### 1.1 现有字符体系
@@ -263,56 +280,16 @@ public bool IsInlineElementCharData => CharObject is IInlineElementCharObject;
 
 ### 步骤 5：`ICharInfoMeasurer` 平台适配
 
-每平台（WPF `CharInfoMeasurer`、Avalonia 对应实现、测试用 `FixedCharSizeCharInfoMeasurer`）的 `FillCharDataInfoList` 实现中增加 inline 元素分支：
+**详细方案见**：[内联元素测量器 `IInlineElementMeasurer` 平台分离方案](./内联元素测量器_IInlineElementMeasurer_平台分离方案.md)
 
-```csharp
-public void FillCharDataInfoList(in FillCharDataInfoListArgument argument)
-{
-    for (var i = 0; i < argument.ToFillCharDataList.Count; i++)
-    {
-        CharData currentCharData = argument.ToFillCharDataList[i];
-        if (!currentCharData.IsInvalidCharDataInfo)
-        {
-            continue; // 已有尺寸，跳过
-        }
+核心决策：内联元素测量不应放入 `ICharInfoMeasurer`（如 `SkiaCharInfoMeasurer`），而是新增独立接口 `IInlineElementMeasurer`，在 `ArrangingLayoutProvider.EnsureMeasureAndFillSizeOfCharDataList` 中于 `ICharInfoMeasurer` 调用前做分流。
 
-        if (currentCharData.IsInlineElementCharData)
-        {
-            MeasureInlineElement(currentCharData, argument);
-            continue;
-        }
+概要：
 
-        // 原有文本字符测量逻辑...
-    }
-}
-
-private void MeasureInlineElement(CharData charData, FillCharDataInfoListArgument argument)
-{
-    var inlineElement = (IInlineElementCharObject)charData.CharObject;
-
-    // 1. 计算约束尺寸
-    double widthConstraint = ...;  // 从 UpdateLayoutContext 获取 lineMaxWidth
-    double heightConstraint = double.PositiveInfinity;
-
-    // 2. 如果有 NaturalSize → 直接使用
-    if (inlineElement.NaturalSize is { } naturalSize)
-    {
-        double baseline = naturalSize.Height * inlineElement.BaseLineRatio;
-        var charDataInfo = new CharDataInfo(naturalSize, naturalSize, baseline);
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, charDataInfo);
-        return;
-    }
-
-    // 3. 需要 UI 测量 → 填默认尺寸 + 标记待重新布局
-    double fontSize = charData.RunProperty.FontSize;
-    var defaultSize = new TextSize(fontSize, fontSize);
-    double defaultBaseline = fontSize * inlineElement.BaseLineRatio;
-    var defaultInfo = new CharDataInfo(defaultSize, defaultSize, defaultBaseline);
-    argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, defaultInfo);
-}
-```
-
-**关键**：约束尺寸 `widthConstraint` 来源于 `UpdateLayoutContext` 中已有的行最大宽度信息。
+- 新增 `IInlineElementMeasurer` 接口（Core 层），由 `IPlatformProvider.GetInlineElementMeasurer()` 获取
+- `EnsureMeasureAndFillSizeOfCharDataList` 中 Step 1 处理 inline 元素，Step 2 走原有文本测量
+- `SkiaCharInfoMeasurer` 仅需 3 行守卫（`IsInlineElementCharData` 跳过），不承载 inline 测量职责
+- 各平台（WPF/Avalonia/纯 Skia）按自身策略实现 `IInlineElementMeasurer`，UI 框架层优先在 `MeasureOverride` 中预测量
 
 ### 步骤 6：渲染管线适配
 
