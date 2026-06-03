@@ -12,7 +12,7 @@ class Program
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static int Main(string[] args)
+    public static int/*为什么不是 Task 的返回类型？因为 STAThread 的原因，切 Task 会导致 STA 失效 https://github.com/dotnet/runtime/issues/73099 */ Main(string[] args)
     {
         if (args.Length > 0)
         {
