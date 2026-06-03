@@ -21,6 +21,8 @@ public sealed class WorkspaceToolProvider
     private const int DefaultMaxRangeLines = 400;
     private const int DefaultMaxLineHitsPerFile = 20;
     private const int DefaultMaxRemainingLinesToCount = 500;
+    private const int DefaultMaxLineContextChars = 100;
+    private const int DefaultMaxQueryDisplayLength = 10;
     private string? _primaryWorkspacePath;
     private string? _secondaryWorkspacePath;
 
@@ -238,23 +240,18 @@ public sealed class WorkspaceToolProvider
             }
         }
 
-        var results = new List<(string Path, List<int> LineNumbers, bool IsTruncated)>();
+        var results = new List<(string Path, WorkspaceFileMatchResults MatchResults)>();
+        var matcher = new WorkspaceFilePatternMatcher(DefaultMaxLineContextChars, DefaultMaxLineHitsPerFile, query, regex);
         foreach (var file in EnumerateFilesRecursively(directory))
         {
-            List<int> lineNumbers = await WorkspaceFilePatternMatcher.FindAsync(file.FullName, query, regex).ConfigureAwait(false);
+            WorkspaceFileMatchResults matchResults = await matcher.FindAsync(file.FullName).ConfigureAwait(false);
 
-            if (lineNumbers.Count == 0)
+            if (matchResults.Matches.Count == 0)
             {
                 continue;
             }
 
-            bool isTruncated = lineNumbers.Count > DefaultMaxLineHitsPerFile;
-            if (isTruncated)
-            {
-                lineNumbers = lineNumbers.Take(DefaultMaxLineHitsPerFile).ToList();
-            }
-
-            results.Add((GetDisplayPath(file.FullName), lineNumbers, isTruncated));
+            results.Add((GetDisplayPath(file.FullName), matchResults));
 
             if (results.Count >= maxResults)
             {
@@ -265,11 +262,7 @@ public sealed class WorkspaceToolProvider
         var builder = new StringBuilder();
         builder.AppendLine($"工作路径: {GetWorkspaceRootDisplayText()}");
         builder.AppendLine($"搜索目录: {GetDisplayPath(directory.FullName)}");
-        builder.AppendLine($"模式: {query}");
-        if (useRegex)
-        {
-            builder.AppendLine("匹配方式: 正则表达式");
-        }
+        builder.AppendLine($"模式{(useRegex ? "（正则）" : "")}: {TruncateQueryForDisplay(query)}");
 
         if (results.Count == 0)
         {
@@ -277,17 +270,20 @@ public sealed class WorkspaceToolProvider
             return builder.ToString();
         }
 
-        foreach (var result in results)
+        foreach (var (filePath, matchResults) in results)
         {
-            builder.Append(result.Path);
-            builder.Append(": ");
-            builder.Append(string.Join(", ", result.LineNumbers));
-            if (result.IsTruncated)
+            builder.AppendLine(filePath + ":");
+            foreach (var match in matchResults.Matches)
             {
-                builder.Append(" ...");
+                builder.Append(match.LineNumber);
+                builder.Append(": ");
+                builder.AppendLine(match.TruncatedContextText);
             }
 
-            builder.AppendLine();
+            if (matchResults.IsTruncated)
+            {
+                builder.AppendLine("  ...（该文件命中行数过多，已截断）");
+            }
         }
 
         return builder.ToString().TrimEnd();
@@ -617,6 +613,19 @@ public sealed class WorkspaceToolProvider
     private static StringComparison GetPathComparison()
     {
         return OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+    }
+
+    /// <summary>
+    /// 截断过长的查询字符串用于头部显示。超过 10 字符时取前后各 5 字符，中间用 … 连接。
+    /// </summary>
+    private static string TruncateQueryForDisplay(string query)
+    {
+        if (query.Length <= DefaultMaxQueryDisplayLength)
+        {
+            return query;
+        }
+
+        return string.Concat(query.AsSpan(0, 5), "…", query.AsSpan(query.Length - 5));
     }
 
     //public string WriteFileContent(string filePath, string content)
