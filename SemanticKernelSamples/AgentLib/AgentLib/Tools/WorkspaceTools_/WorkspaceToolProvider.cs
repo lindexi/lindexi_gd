@@ -25,6 +25,7 @@ public sealed class WorkspaceToolProvider
     private const int DefaultMaxQueryDisplayLength = 10;
     private string? _primaryWorkspacePath;
     private string? _secondaryWorkspacePath;
+    private readonly Dictionary<string, FileSnapshotInfo> _readFileSnapshots = new(GetPathComparer());
 
     /// <summary>
     /// 工作路径
@@ -59,7 +60,8 @@ public sealed class WorkspaceToolProvider
             //AIFunctionFactory.Create(ReadFile, name: nameof(ReadFile), description: "读取工作路径下指定文件的开头内容。"),
             AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "在工作路径下递归查找名称包含指定关键字的文件或文件夹。"),
             AIFunctionFactory.Create(FindFilesMatchingPattern, name: nameof(FindFilesMatchingPattern), description: "在工作路径下递归查找匹配指定模式的文件，并返回命中文件路径与行号。支持纯文本匹配和正则表达式匹配。"),
-            AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取工作路径下指定文件的某一段行内容。")
+            AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取工作路径下指定文件的某一段行内容。"),
+                        AIFunctionFactory.Create(WriteFileContent, name: nameof(WriteFileContent), description: "将内容写入工作区内的文件。写入前要求先读取过该文件，防止误覆盖。")
         ];
     }
 
@@ -286,8 +288,16 @@ public sealed class WorkspaceToolProvider
             return errorMessage;
         }
 
+        RecordFileSnapshot(file);
+
         var reader = new WorkspaceFileLineReader(DefaultMaxCharacters, DefaultMaxRemainingLinesToCount);
         return await reader.ReadAsync(file, startLine, endLine, includeLineNumbers, GetDisplayPath).ConfigureAwait(false);
+    }
+
+    private void RecordFileSnapshot(FileInfo file)
+    {
+        file.Refresh();
+        _readFileSnapshots[NormalizePath(file.FullName)] = new FileSnapshotInfo(file.Length, file.LastWriteTimeUtc);
     }
 
     private bool TryResolveDirectory(string? path, out DirectoryInfo directory, out string errorMessage)
@@ -332,6 +342,76 @@ public sealed class WorkspaceToolProvider
 
         file = new FileInfo(resolvedPath);
         return true;
+    }
+
+    private bool TryResolveFileForWrite(string path, out FileInfo file, out string errorMessage)
+    {
+        if (Path.IsPathRooted(path))
+        {
+            string fullPath = NormalizePath(path);
+
+            if (!IsPathInsideAnyWorkspace(fullPath))
+            {
+                file = null!;
+                errorMessage = $"文件不在工作区范围内: {fullPath}";
+                return false;
+            }
+
+            file = new FileInfo(fullPath);
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        if (!TryResolveRelativeFilePathForWrite(path, out string resolvedPath, out errorMessage))
+        {
+            file = null!;
+            return false;
+        }
+
+        file = new FileInfo(resolvedPath);
+        return true;
+    }
+
+    private bool TryResolveRelativeFilePathForWrite(string path, out string fullPath, out string errorMessage)
+    {
+        bool hasWorkspaceRoot = false;
+
+        foreach (string workspaceRoot in EnumerateFileWorkspaceRoots())
+        {
+            hasWorkspaceRoot = true;
+            string candidatePath = Path.GetFullPath(Path.Combine(workspaceRoot, path));
+            if (!IsPathInsideWorkspace(workspaceRoot, candidatePath))
+            {
+                continue;
+            }
+
+            fullPath = candidatePath;
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        fullPath = string.Empty;
+        if (!hasWorkspaceRoot)
+        {
+            errorMessage = $"当前未设置工作路径，无法解析相对路径: {path}";
+            return false;
+        }
+
+        errorMessage = $"路径超出了当前工作路径范围: {path}";
+        return false;
+    }
+
+    private bool IsPathInsideAnyWorkspace(string fullPath)
+    {
+        foreach (string workspaceRoot in EnumerateFileWorkspaceRoots())
+        {
+            if (IsPathInsideWorkspace(workspaceRoot, fullPath))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool TryResolveDirectoryPath(string? path, out string fullPath, out string errorMessage)
@@ -560,6 +640,11 @@ public sealed class WorkspaceToolProvider
         return OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     }
 
+    private static StringComparer GetPathComparer()
+    {
+        return OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+    }
+
     /// <summary>
     /// 截断过长的查询字符串用于头部显示。超过 10 字符时取前后各 5 字符，中间用 … 连接。
     /// </summary>
@@ -573,8 +658,50 @@ public sealed class WorkspaceToolProvider
         return string.Concat(query.AsSpan(0, 5), "…", query.AsSpan(query.Length - 5));
     }
 
-    //public string WriteFileContent(string filePath, string content)
-    //{
+    /// <summary>
+    /// 将内容写入工作区内的文件。写入前要求先通过 ReadFileLines 读取过该文件，
+    /// 且文件自读取后未被外部修改。
+    /// </summary>
+    /// <param name="filePath">要写入的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。</param>
+    /// <param name="content">要写入的内容。</param>
+    /// <returns>成功时返回 "OK"，失败时返回错误信息。</returns>
+    [Description("将内容写入工作区内的文件。写入前要求先通过 ReadFileLines 读取过该文件，且文件自读取后未被外部修改。")]
+    public string WriteFileContent(
+        [Description("要写入的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
+        [Description("要写入的内容。")] string content)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
-    //}
+        if (!TryResolveFileForWrite(filePath, out var file, out var errorMessage))
+        {
+            return errorMessage;
+        }
+
+        string normalizedPath = NormalizePath(file.FullName);
+
+        if (file.Exists)
+        {
+            if (!_readFileSnapshots.TryGetValue(normalizedPath, out var snapshot))
+            {
+                return $"文件已存在但未被读取过: {GetDisplayPath(file.FullName)}。请先使用 ReadFileLines 读取文件内容后再写入，避免误覆盖。";
+            }
+
+            file.Refresh();
+            if (file.Length != snapshot.Length || file.LastWriteTimeUtc != snapshot.LastWriteTime)
+            {
+                return $"文件自读取后已被外部修改: {GetDisplayPath(file.FullName)}。请重新使用 ReadFileLines 读取最新内容后再写入。";
+            }
+        }
+        else
+        {
+            string? directoryPath = Path.GetDirectoryName(file.FullName);
+            if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+        }
+
+        File.WriteAllText(file.FullName, content);
+        return "OK";
+    }
 }
