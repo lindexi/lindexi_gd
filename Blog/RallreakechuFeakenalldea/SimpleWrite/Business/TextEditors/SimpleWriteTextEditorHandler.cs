@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
-
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -139,6 +137,20 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         base.OnKeyUp(e);
     }
 
+    protected override void OnCopy()
+    {
+        var selection = TextEditor.CurrentSelection;
+        if (selection.IsEmpty)
+        {
+            // 未选中时复制整个段落的文本
+            ITextParagraph paragraph = TextEditor.GetParagraph(selection.StartOffset);
+            CopyParagraph(paragraph);
+            return;
+        }
+
+        base.OnCopy();
+    }
+
     protected override void OnCut()
     {
         var selection = TextEditor.CurrentSelection;
@@ -146,11 +158,8 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         {
             // 空的话，直接剪切段
             ITextParagraph paragraph = TextEditor.GetParagraph(selection.StartOffset);
-            var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
-
-            string text = TextEditor.GetText(in paragraphSelection);
-            _ = GetClipboard()?.SetTextAsync(text);
-            TextEditor.Remove(in paragraphSelection);
+            CutParagraph(paragraph);
+            return;
         }
 
         base.OnCut();
@@ -161,13 +170,5 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         base.OnPaste();
     }
 
-    private IClipboard? GetClipboard()
-    {
-        if (TopLevel.GetTopLevel(TextEditor) is { } topLevel)
-        {
-            return topLevel.Clipboard;
-        }
 
-        return null;
-    }
 }
