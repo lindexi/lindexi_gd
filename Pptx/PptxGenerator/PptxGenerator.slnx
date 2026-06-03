@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Lib/">
+    <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib/AgentLib.csproj" />
+    <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
+    <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+  </Folder>
+  <Project Path="Code/PptxGenerator/PptxGenerator.csproj" />
+  <Project Path="Docs/Docs.csproj" />
+</Solution>
