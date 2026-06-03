@@ -470,6 +470,189 @@ public class WorkspaceToolProviderTests
         StringAssert.Contains(result, "pattern123");
     }
 
+    [TestMethod]
+    [Description("写入不存在的文件时应成功创建")]
+    public void WriteFileContent_WhenFileDoesNotExist_CreatesFile()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "newfile.txt");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = provider.WriteFileContent("newfile.txt", "hello world");
+
+        Assert.AreEqual("OK", result);
+        Assert.AreEqual("hello world", File.ReadAllText(filePath));
+    }
+
+    [TestMethod]
+    [Description("写入不存在的文件时应自动创建父目录")]
+    public void WriteFileContent_WhenParentDirectoryNotExist_CreatesDirectoryAndFile()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = provider.WriteFileContent(Path.Join("sub", "newfile.txt"), "content");
+
+        Assert.AreEqual("OK", result);
+        string filePath = Path.Join(workspacePath, "sub", "newfile.txt");
+        Assert.IsTrue(File.Exists(filePath));
+        Assert.AreEqual("content", File.ReadAllText(filePath));
+    }
+
+    [TestMethod]
+    [Description("先读取再写入已存在文件应成功")]
+    public async Task WriteFileContent_AfterReading_OverwritesFile()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "original content");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 1);
+        string result = provider.WriteFileContent("note.txt", "updated content");
+
+        Assert.AreEqual("OK", result);
+        Assert.AreEqual("updated content", File.ReadAllText(filePath));
+    }
+
+    [TestMethod]
+    [Description("未读取直接写入已存在文件应返回错误")]
+    public async Task WriteFileContent_WithoutReadingFirst_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "original content");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = provider.WriteFileContent("note.txt", "updated content");
+
+        StringAssert.Contains(result, "未被读取过");
+        Assert.AreNotEqual("OK", result);
+        Assert.AreEqual("original content", File.ReadAllText(filePath));
+    }
+
+    [TestMethod]
+    [Description("读取后文件被外部修改再写入应返回错误")]
+    public async Task WriteFileContent_WhenFileModifiedExternally_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "original content");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 1);
+
+        // 外部修改文件
+        await Task.Delay(10);
+        await File.WriteAllTextAsync(filePath, "externally modified content");
+
+        string result = provider.WriteFileContent("note.txt", "updated content");
+
+        StringAssert.Contains(result, "已被外部修改");
+        Assert.AreNotEqual("OK", result);
+        Assert.AreEqual("externally modified content", File.ReadAllText(filePath));
+    }
+
+    [TestMethod]
+    [Description("写入路径超出工作区范围应返回错误")]
+    public void WriteFileContent_WhenPathOutsideWorkspace_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string outsidePath = Path.Join(testRoot, "outside", "note.txt");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = provider.WriteFileContent(outsidePath, "content");
+
+        StringAssert.Contains(result, "不在工作区范围内");
+        Assert.AreNotEqual("OK", result);
+    }
+
+    [TestMethod]
+    [Description("主工作区为空时，写入副工作区文件应成功")]
+    public async Task WriteFileContent_WhenPrimaryWorkspaceEmpty_FallsBackToSecondary()
+    {
+        string testRoot = CreateTestDirectory();
+        string secondaryWorkspacePath = Path.Join(testRoot, "secondary");
+        Directory.CreateDirectory(secondaryWorkspacePath);
+        string filePath = Path.Join(secondaryWorkspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "secondary content");
+
+        var provider = new WorkspaceToolProvider
+        {
+            SecondaryWorkspacePath = secondaryWorkspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 1);
+        string result = provider.WriteFileContent("note.txt", "updated secondary");
+
+        Assert.AreEqual("OK", result);
+        Assert.AreEqual("updated secondary", File.ReadAllText(filePath));
+    }
+
+    [TestMethod]
+    [Description("多次读取后，写入应以最近一次快照为准覆盖旧快照")]
+    public async Task WriteFileContent_AfterMultipleReads_UsesLatestSnapshot()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "version1");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 1);
+
+        // 外部修改后重新读取，更新快照
+        await Task.Delay(10);
+        await File.WriteAllTextAsync(filePath, "version2");
+        await provider.ReadFileLines("note.txt", 1, 1);
+
+        string result = provider.WriteFileContent("note.txt", "version3");
+
+        Assert.AreEqual("OK", result);
+        Assert.AreEqual("version3", File.ReadAllText(filePath));
+    }
+
     private static string CreateTestDirectory()
     {
         string testRoot = Path.Join(AppContext.BaseDirectory, "AgentLib.Tests", nameof(WorkspaceToolProviderTests), Guid.NewGuid().ToString("N"));

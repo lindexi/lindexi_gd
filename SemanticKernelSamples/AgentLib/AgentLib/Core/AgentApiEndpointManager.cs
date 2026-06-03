@@ -43,6 +43,29 @@ public class AgentApiEndpointManager
 
     public IReadOnlyList<ILanguageModel> GetSupportedModels() => SupportedModels;
 
+    /// <summary>
+    /// 获取模型
+    /// </summary>
+    /// <param name="modelNameOrId"></param>
+    /// <param name="provider"></param>
+    /// <returns></returns>
+    public ILanguageModel? GetModel(string modelNameOrId, string? provider = null)
+    {
+        var supportedModels = GetSupportedModels();
+        return supportedModels.FirstOrDefault(IsModelMatch);
+
+        bool IsModelMatch(ILanguageModel model)
+        {
+            var modelDefinition = model.ModelDefinition;
+
+            var isNameOrIdMatch = modelDefinition.ModelName == modelNameOrId
+                                  || modelDefinition.ModelId == modelNameOrId;
+
+            var isProviderMatch = provider is null || modelDefinition.Provider == provider;
+            return isNameOrIdMatch && isProviderMatch;
+        }
+    }
+
     public ILanguageModel GetBestModel(Func<ILanguageModel, bool> predicate)
     {
         ArgumentNullException.ThrowIfNull(predicate);
