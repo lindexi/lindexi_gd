@@ -16,7 +16,7 @@ class Program
     {
         if (args.Length > 0)
         {
-            return RunCliAsync(args).GetAwaiter().GetResult();
+            return RunCliAsync(args).Result;
         }
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
