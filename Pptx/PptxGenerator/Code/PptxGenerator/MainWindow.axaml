@@ -143,19 +143,20 @@
                 </Border>
             </Grid>
 
-            <Grid Grid.Column="2" RowDefinitions="Auto,16,*,16,*">
-                <Border Grid.Row="0"
+            <Grid Grid.Column="2" ColumnDefinitions="*,16,*">
+                <!-- 左侧：页面预览 -->
+                <Border Grid.Column="0"
                         CornerRadius="20"
                         Background="#FFFFFFFF"
                         BorderBrush="#FFE2E8F0"
                         BorderThickness="1"
                         Padding="20">
-                    <StackPanel>
+                    <Grid RowDefinitions="Auto,Auto,*">
                         <TextBlock Text="页面预览" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <TextBlock Text="1280×720 渲染结果会显示在这里。"
+                        <TextBlock Grid.Row="1" Text="1280×720 渲染结果会显示在这里。"
                                    Margin="0,6,0,16"
                                    Foreground="#FF475569" />
-                        <Border Background="#FFF1F5F9"
+                        <Border Grid.Row="2" Background="#FFF1F5F9"
                                 CornerRadius="18"
                                 BorderBrush="#FFE2E8F0"
                                 BorderThickness="1"
@@ -167,80 +168,85 @@
                                 </Border>
                             </Viewbox>
                         </Border>
-                    </StackPanel>
+                    </Grid>
                 </Border>
 
-                <Grid Grid.Row="2" ColumnDefinitions="*,16,*">
-                    <Border Grid.Column="0"
-                            CornerRadius="20"
-                            Background="#FFFFFFFF"
-                            BorderBrush="#FFE2E8F0"
-                            BorderThickness="1"
-                            Padding="20">
-                        <Grid RowDefinitions="Auto,12,*">
-                            <TextBlock Text="当前 SlideML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                            <TextBox Grid.Row="2"
-                                     Text="{Binding CurrentSlideXml}"
-                                     IsReadOnly="True"
-                                     AcceptsReturn="True"
-                                     TextWrapping="NoWrap"
-                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                     FontFamily="Consolas"
-                                     Background="#FFF8FAFC"
-                                     BorderBrush="#FFCBD5E1"
-                                     BorderThickness="1"
-                                     Padding="14" />
-                        </Grid>
-                    </Border>
+                <!-- 右侧：SlideML 内容区 -->
+                <Grid Grid.Column="2" RowDefinitions="*,16,*">
+                    <!-- 当前 SlideML + 回填后的 XML -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,16,*">
+                        <Border Grid.Column="0"
+                                CornerRadius="20"
+                                Background="#FFFFFFFF"
+                                BorderBrush="#FFE2E8F0"
+                                BorderThickness="1"
+                                Padding="20">
+                            <Grid RowDefinitions="Auto,12,*">
+                                <TextBlock Text="当前 SlideML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+                                <TextBox Grid.Row="2"
+                                         Text="{Binding CurrentSlideXml}"
+                                         IsReadOnly="True"
+                                         AcceptsReturn="True"
+                                         TextWrapping="NoWrap"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                         FontFamily="Consolas"
+                                         Background="#FFF8FAFC"
+                                         BorderBrush="#FFCBD5E1"
+                                         BorderThickness="1"
+                                         Padding="14" />
+                            </Grid>
+                        </Border>
 
-                    <Border Grid.Column="2"
+                        <Border Grid.Column="2"
+                                CornerRadius="20"
+                                Background="#FFFFFFFF"
+                                BorderBrush="#FFE2E8F0"
+                                BorderThickness="1"
+                                Padding="20">
+                            <Grid RowDefinitions="Auto,12,*">
+                                <TextBlock Text="回填后的 XML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+                                <TextBox Grid.Row="2"
+                                         Text="{Binding RenderedXml}"
+                                         IsReadOnly="True"
+                                         AcceptsReturn="True"
+                                         TextWrapping="NoWrap"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                         FontFamily="Consolas"
+                                         Background="#FFF8FAFC"
+                                         BorderBrush="#FFCBD5E1"
+                                         BorderThickness="1"
+                                         Padding="14" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- 迭代记录 -->
+                    <Border Grid.Row="2"
                             CornerRadius="20"
                             Background="#FFFFFFFF"
                             BorderBrush="#FFE2E8F0"
                             BorderThickness="1"
                             Padding="20">
                         <Grid RowDefinitions="Auto,12,*">
-                            <TextBlock Text="回填后的 XML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                            <TextBox Grid.Row="2"
-                                     Text="{Binding RenderedXml}"
-                                     IsReadOnly="True"
-                                     AcceptsReturn="True"
-                                     TextWrapping="NoWrap"
-                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                     FontFamily="Consolas"
-                                     Background="#FFF8FAFC"
-                                     BorderBrush="#FFCBD5E1"
-                                     BorderThickness="1"
-                                     Padding="14" />
+                            <TextBlock Text="迭代记录" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+                            <ListBox Grid.Row="2" ItemsSource="{Binding Iterations}" Background="#FFF8FAFC" BorderBrush="#FFCBD5E1" BorderThickness="1">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="vm:SlideGenerationIteration">
+                                        <Border Margin="10" Padding="14" CornerRadius="14" Background="White" BorderBrush="#FFE2E8F0" BorderThickness="1">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="{Binding Attempt, StringFormat=第 {0} 轮}" FontWeight="Bold" Foreground="#FF0F172A" />
+                                                <TextBlock Text="{Binding RenderResult.Warnings.Count, StringFormat=Warning 数量: {0}}" Foreground="#FF64748B" />
+                                                <TextBlock Text="{Binding SlideXml}" MaxHeight="86" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Foreground="#FF334155" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </Grid>
                     </Border>
                 </Grid>
-
-                <Border Grid.Row="4"
-                        CornerRadius="20"
-                        Background="#FFFFFFFF"
-                        BorderBrush="#FFE2E8F0"
-                        BorderThickness="1"
-                        Padding="20">
-                    <Grid RowDefinitions="Auto,12,*">
-                        <TextBlock Text="迭代记录" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <ListBox Grid.Row="2" ItemsSource="{Binding Iterations}" Background="#FFF8FAFC" BorderBrush="#FFCBD5E1" BorderThickness="1">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate DataType="vm:SlideGenerationIteration">
-                                    <Border Margin="10" Padding="14" CornerRadius="14" Background="White" BorderBrush="#FFE2E8F0" BorderThickness="1">
-                                        <StackPanel Spacing="8">
-                                            <TextBlock Text="{Binding Attempt, StringFormat=第 {0} 轮}" FontWeight="Bold" Foreground="#FF0F172A" />
-                                            <TextBlock Text="{Binding RenderResult.Warnings.Count, StringFormat=Warning 数量: {0}}" Foreground="#FF64748B" />
-                                            <TextBlock Text="{Binding SlideXml}" MaxHeight="86" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Foreground="#FF334155" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </Grid>
-                </Border>
             </Grid>
         </Grid>
     </Grid>
