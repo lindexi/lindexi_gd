@@ -1,6 +1,10 @@
-﻿using Avalonia;
+﻿using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+
+using Avalonia;
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,6 +38,15 @@ class Program
     {
         BuildAvaloniaApp().SetupWithoutStarting();
         var prompt = string.Join(' ', args.Where(t => !string.IsNullOrWhiteSpace(t)));
+
+        var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
+
+        AgentApiManagerConfiguration agentApiManagerConfiguration = await AgentApiManagerConfiguration.FromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+
+        var agentApiEndpointManager = new AgentApiEndpointManager();
+        agentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
+
+        var languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
 
         var chatClientCreator = new ChatClientCreator();
         var slideRenderer = new SlideRenderer();
