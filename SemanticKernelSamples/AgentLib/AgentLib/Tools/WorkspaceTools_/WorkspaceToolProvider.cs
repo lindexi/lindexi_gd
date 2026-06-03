@@ -111,38 +111,6 @@ public sealed class WorkspaceToolProvider
         return Task.FromResult(builder.ToString().TrimEnd());
     }
 
-    //[Description("读取工作路径下指定文件的开头内容。")] 
-    //public async Task<string> ReadFile(
-    //    [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
-    //    [Description("最多返回多少个字符。")] int maxCharacters = DefaultMaxCharacters)
-    //{
-    //    ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
-
-    //    if (maxCharacters <= 0)
-    //    {
-    //        throw new ArgumentOutOfRangeException(nameof(maxCharacters));
-    //    }
-
-    //    if (!TryResolveFile(filePath, out var file, out var errorMessage))
-    //    {
-    //        return errorMessage;
-    //    }
-
-    //    var (content, isTruncated) = await ReadFileSnippetAsync(file.FullName, maxCharacters).ConfigureAwait(false);
-    //    var builder = new StringBuilder();
-    //    builder.AppendLine($"文件: {GetDisplayPath(file.FullName)}");
-    //    builder.AppendLine();
-    //    builder.Append(content);
-
-    //    if (isTruncated)
-    //    {
-    //        builder.AppendLine();
-    //        builder.Append($"已截断，文件后续内容未显示。可使用 {nameof(ReadFileLines)} 继续读取指定行范围。");
-    //    }
-
-    //    return builder.ToString().TrimEnd();
-    //}
-
     [Description("在工作路径下递归查找名称包含指定关键字的文件或文件夹。")] 
     public Task<string> FindEntriesByName(
         [Description("名称中要包含的关键字。")] string query,
@@ -512,29 +480,6 @@ public sealed class WorkspaceToolProvider
                 yield return file;
             }
         }
-    }
-
-    private static async Task<(string Content, bool IsTruncated)> ReadFileSnippetAsync(string filePath, int maxCharacters)
-    {
-        using var reader = new StreamReader(filePath, detectEncodingFromByteOrderMarks: true);
-        char[] buffer = new char[Math.Min(1024, maxCharacters)];
-        var builder = new StringBuilder(Math.Min(maxCharacters, 4096));
-        int remainingCharacters = maxCharacters;
-
-        while (remainingCharacters > 0)
-        {
-            int currentReadLength = Math.Min(buffer.Length, remainingCharacters);
-            int readLength = await reader.ReadAsync(buffer.AsMemory(0, currentReadLength)).ConfigureAwait(false);
-            if (readLength == 0)
-            {
-                return (builder.ToString(), IsTruncated: false);
-            }
-
-            builder.Append(buffer, 0, readLength);
-            remainingCharacters -= readLength;
-        }
-
-        return (builder.ToString(), IsTruncated: reader.Peek() >= 0);
     }
 
     private string GetDisplayPath(string fullPath)

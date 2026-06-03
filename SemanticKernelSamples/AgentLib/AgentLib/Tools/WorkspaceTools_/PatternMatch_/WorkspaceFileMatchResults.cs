@@ -8,16 +8,6 @@ namespace AgentLib.Tools;
 public readonly struct WorkspaceFileMatchResults
 {
     /// <summary>
-    /// 命中行匹配结果列表。
-    /// </summary>
-    public IReadOnlyList<WorkspaceFileMatchLineResult> Matches { get; }
-
-    /// <summary>
-    /// 指示命中行数是否因超过限制而被截断。
-    /// </summary>
-    public bool IsTruncated { get; }
-
-    /// <summary>
     /// 初始化 <see cref="WorkspaceFileMatchResults"/> 的新实例。
     /// </summary>
     /// <param name="matches">命中行匹配结果列表。</param>
@@ -27,4 +17,14 @@ public readonly struct WorkspaceFileMatchResults
         Matches = matches;
         IsTruncated = isTruncated;
     }
+
+    /// <summary>
+    /// 命中行匹配结果列表。
+    /// </summary>
+    public IReadOnlyList<WorkspaceFileMatchLineResult> Matches { get; }
+
+    /// <summary>
+    /// 指示命中行数是否因超过限制而被截断。
+    /// </summary>
+    public bool IsTruncated { get; }
 }
