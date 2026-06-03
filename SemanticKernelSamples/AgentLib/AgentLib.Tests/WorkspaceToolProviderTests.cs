@@ -260,6 +260,216 @@ public class WorkspaceToolProviderTests
         StringAssert.Contains(result, "行范围: 1-50【剩余 500 行未读取】");
     }
 
+    [TestMethod]
+    [Description("FindFilesMatchingPattern 应返回文件名和截断后的匹配行上下文")]
+    public async Task FindFilesMatchingPattern_WhenMatchFound_ReturnsFileNameAndTruncatedContext()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        string content = "line1 abc TheQueryText xyz end" + Environment.NewLine + "line2 no match here";
+        await File.WriteAllTextAsync(filePath, content);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("TheQueryText");
+
+        StringAssert.Contains(result, "note.txt:");
+        StringAssert.Contains(result, "1: ");
+        StringAssert.Contains(result, "TheQueryText");
+        Assert.IsFalse(result.Contains("line2", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    [Description("查询字符串超过10字符时应在头部显示截断")]
+    public async Task FindFilesMatchingPattern_WhenQueryExceeds10Chars_TruncatesQueryInHeader()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "ThisIsAVeryLongQueryTextForTesting");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("ThisIsAVeryLongQueryTextForTesting");
+
+        // 超过 10 字符，头部模式行应截断为前5字符…后5字符
+        StringAssert.Contains(result, "模式: ThisI…sting");
+        // 头部模式行不应包含完整查询字符串
+        string headerLine = result.Split(Environment.NewLine).First(l => l.StartsWith("模式:", StringComparison.Ordinal));
+        Assert.IsFalse(headerLine.Contains("ThisIsAVeryLongQueryTextForTesting", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    [Description("查询字符串不超过10字符时不应截断")]
+    public async Task FindFilesMatchingPattern_WhenQueryNotExceeding10Chars_DoesNotTruncateQuery()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "short");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("short");
+
+        StringAssert.Contains(result, "模式: short");
+    }
+
+    [TestMethod]
+    [Description("匹配在行首时，上下文前面不应有 …")]
+    public async Task FindFilesMatchingPattern_WhenMatchAtLineStart_NoLeadingEllipsis()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "MatchAtStart followed by some more text to fill context");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("MatchAtStart");
+
+        // 匹配在行首，前面不应有 …
+        string[] lines = result.Split(Environment.NewLine);
+        string hitLine = lines.First(l => l.StartsWith("1: ", StringComparison.Ordinal));
+        Assert.IsFalse(hitLine.StartsWith("1: …", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    [Description("匹配在行尾时，上下文后面不应有 …")]
+    public async Task FindFilesMatchingPattern_WhenMatchAtLineEnd_NoTrailingEllipsis()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "some text before MatchAtEnd");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("MatchAtEnd");
+
+        // 匹配在行尾，后面不应有 …
+        string[] lines = result.Split(Environment.NewLine);
+        string hitLine = lines.First(l => l.StartsWith("1: ", StringComparison.Ordinal));
+        Assert.IsFalse(hitLine.EndsWith("…", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    [Description("短行不应被截断")]
+    public async Task FindFilesMatchingPattern_WhenLineIsShort_NoTruncation()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "ab xyz cd");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("xyz");
+
+        // 短行不应该有 …
+        string[] lines = result.Split(Environment.NewLine);
+        string hitLine = lines.First(l => l.StartsWith("1: ", StringComparison.Ordinal));
+        Assert.IsFalse(hitLine.Contains('…', StringComparison.Ordinal));
+        StringAssert.Contains(hitLine, "ab xyz cd");
+    }
+
+    [TestMethod]
+    [Description("长行中匹配应被截断，前后各有 …")]
+    public async Task FindFilesMatchingPattern_WhenMatchInLongLine_TruncatesWithEllipsis()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        string prefix = new('a', 100);
+        string suffix = new('b', 100);
+        await File.WriteAllTextAsync(filePath, prefix + "TheMatch" + suffix);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("TheMatch");
+
+        // 长行中匹配，前后应有 …
+        string[] lines = result.Split(Environment.NewLine);
+        string hitLine = lines.First(l => l.StartsWith("1: ", StringComparison.Ordinal));
+        Assert.IsTrue(hitLine.StartsWith("1: …", StringComparison.Ordinal));
+        Assert.IsTrue(hitLine.EndsWith("…", StringComparison.Ordinal));
+        StringAssert.Contains(hitLine, "TheMatch");
+    }
+
+    [TestMethod]
+    [Description("每文件命中行数超过限制时应截断并提示")]
+    public async Task FindFilesMatchingPattern_WhenHitsExceedLimit_TruncatesAndShowsMessage()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        string content = string.Join(Environment.NewLine, Enumerable.Range(1, 30).Select(i => $"line{i} match here"));
+        await File.WriteAllTextAsync(filePath, content);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern("match");
+
+        StringAssert.Contains(result, "该文件命中行数过多，已截断");
+        // 只显示 20 行（DefaultMaxLineHitsPerFile）
+        int hitCount = result.Split(Environment.NewLine).Count(l => l.StartsWith("  ", StringComparison.Ordinal) && l.Contains("match"));
+        Assert.AreEqual(0, hitCount); // 行以数字开头，不是空格
+    }
+
+    [TestMethod]
+    [Description("正则表达式匹配应正确返回截断后的上下文")]
+    public async Task FindFilesMatchingPattern_WithRegex_ReturnsTruncatedContext()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "prefix pattern123suffix more text");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.FindFilesMatchingPattern(@"pattern\d+", useRegex: true);
+
+        StringAssert.Contains(result, "模式（正则）:");
+        StringAssert.Contains(result, "pattern123");
+    }
+
     private static string CreateTestDirectory()
     {
         string testRoot = Path.Join(AppContext.BaseDirectory, "AgentLib.Tests", nameof(WorkspaceToolProviderTests), Guid.NewGuid().ToString("N"));

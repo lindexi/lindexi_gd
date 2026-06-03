@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AgentLib.Tools;
@@ -20,6 +21,8 @@ public sealed class WorkspaceToolProvider
     private const int DefaultMaxRangeLines = 400;
     private const int DefaultMaxLineHitsPerFile = 20;
     private const int DefaultMaxRemainingLinesToCount = 500;
+    private const int DefaultMaxLineContextChars = 100;
+    private const int DefaultMaxQueryDisplayLength = 10;
     private string? _primaryWorkspacePath;
     private string? _secondaryWorkspacePath;
 
@@ -55,7 +58,7 @@ public sealed class WorkspaceToolProvider
             AIFunctionFactory.Create(ListDirectory, name: nameof(ListDirectory), description: "列出工作路径下指定目录中的文件与子目录。"),
             //AIFunctionFactory.Create(ReadFile, name: nameof(ReadFile), description: "读取工作路径下指定文件的开头内容。"),
             AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "在工作路径下递归查找名称包含指定关键字的文件或文件夹。"),
-            AIFunctionFactory.Create(FindFilesContainingText, name: nameof(FindFilesContainingText), description: "在工作路径下递归查找包含指定文本的文件，并返回命中文件路径与行号。"),
+            AIFunctionFactory.Create(FindFilesMatchingPattern, name: nameof(FindFilesMatchingPattern), description: "在工作路径下递归查找匹配指定模式的文件，并返回命中文件路径与行号。支持纯文本匹配和正则表达式匹配。"),
             AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取工作路径下指定文件的某一段行内容。")
         ];
     }
@@ -197,10 +200,19 @@ public sealed class WorkspaceToolProvider
         return Task.FromResult(builder.ToString().TrimEnd());
     }
 
-    [Description("在工作路径下递归查找包含指定文本的文件，并返回命中文件路径与行号。")] 
-    public async Task<string> FindFilesContainingText(
-        [Description("要搜索的文本。")] string query,
+    /// <summary>
+    /// 在工作路径下递归查找匹配指定模式的文件，并返回命中文件路径与行号。
+    /// 支持纯文本匹配和正则表达式匹配。
+    /// </summary>
+    /// <param name="query">要匹配的文本或正则表达式模式。</param>
+    /// <param name="directoryPath">要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。</param>
+    /// <param name="useRegex">是否将 <paramref name="query"/> 作为正则表达式进行匹配。默认为 false，表示纯文本匹配。</param>
+    /// <param name="maxResults">最多返回多少个命中文件。</param>
+    [Description("在工作路径下递归查找匹配指定模式的文件，并返回命中文件路径与行号。支持纯文本匹配和正则表达式匹配。")]
+    public async Task<string> FindFilesMatchingPattern(
+        [Description("要匹配的文本或正则表达式模式。")] string query,
         [Description("要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。")] string? directoryPath = null,
+        [Description("是否将 query 作为正则表达式进行匹配。默认为 false，表示纯文本匹配。")] bool useRegex = false,
         [Description("最多返回多少个命中文件。")] int maxResults = DefaultMaxResults)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
@@ -215,51 +227,32 @@ public sealed class WorkspaceToolProvider
             return errorMessage;
         }
 
-        var results = new List<(string Path, List<int> LineNumbers, bool IsTruncated)>();
-        foreach (var file in EnumerateFilesRecursively(directory))
+        Regex? regex = null;
+        if (useRegex)
         {
-            List<int> lineNumbers = [];
-            int lineNumber = 0;
-
             try
             {
-                using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
-                while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
-                {
-                    lineNumber++;
-                    if (!line.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    if (lineNumbers.Count < DefaultMaxLineHitsPerFile)
-                    {
-                        lineNumbers.Add(lineNumber);
-                    }
-                    else
-                    {
-                        results.Add((GetDisplayPath(file.FullName), lineNumbers, IsTruncated: true));
-                        goto AddResultCompleted;
-                    }
-                }
+                regex = new Regex(query, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
             }
-            catch (IOException)
+            catch (ArgumentException ex)
             {
-                continue;
+                return $"正则表达式无效: {ex.Message}";
             }
-            catch (UnauthorizedAccessException)
+        }
+
+        var results = new List<(string Path, WorkspaceFileMatchResults MatchResults)>();
+        var matcher = new WorkspaceFilePatternMatcher(DefaultMaxLineContextChars, DefaultMaxLineHitsPerFile, query, regex);
+        foreach (var file in EnumerateFilesRecursively(directory))
+        {
+            WorkspaceFileMatchResults matchResults = await matcher.FindAsync(file.FullName).ConfigureAwait(false);
+
+            if (matchResults.Matches.Count == 0)
             {
                 continue;
             }
 
-            if (lineNumbers.Count == 0)
-            {
-                continue;
-            }
+            results.Add((GetDisplayPath(file.FullName), matchResults));
 
-            results.Add((GetDisplayPath(file.FullName), lineNumbers, IsTruncated: false));
-
-        AddResultCompleted:
             if (results.Count >= maxResults)
             {
                 break;
@@ -269,31 +262,34 @@ public sealed class WorkspaceToolProvider
         var builder = new StringBuilder();
         builder.AppendLine($"工作路径: {GetWorkspaceRootDisplayText()}");
         builder.AppendLine($"搜索目录: {GetDisplayPath(directory.FullName)}");
-        builder.AppendLine($"关键字: {query}");
+        builder.AppendLine($"模式{(useRegex ? "（正则）" : "")}: {TruncateQueryForDisplay(query)}");
 
         if (results.Count == 0)
         {
-            builder.Append("没有找到包含该文本的文件。");
+            builder.Append("没有找到匹配该模式的文件。");
             return builder.ToString();
         }
 
-        foreach (var result in results)
+        foreach (var (filePath, matchResults) in results)
         {
-            builder.Append(result.Path);
-            builder.Append(": ");
-            builder.Append(string.Join(", ", result.LineNumbers));
-            if (result.IsTruncated)
+            builder.AppendLine(filePath + ":");
+            foreach (var match in matchResults.Matches)
             {
-                builder.Append(" ...");
+                builder.Append(match.LineNumber);
+                builder.Append(": ");
+                builder.AppendLine(match.TruncatedContextText);
             }
 
-            builder.AppendLine();
+            if (matchResults.IsTruncated)
+            {
+                builder.AppendLine("  ...（该文件命中行数过多，已截断）");
+            }
         }
 
         return builder.ToString().TrimEnd();
     }
 
-    [Description("读取工作路径下指定文件的某一段行内容。")] 
+    [Description("读取工作路径下指定文件的某一段行内容。")]
     public async Task<string> ReadFileLines(
         [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
         [Description("起始行号，从 1 开始(1-based)。")] int startLine,
@@ -617,6 +613,19 @@ public sealed class WorkspaceToolProvider
     private static StringComparison GetPathComparison()
     {
         return OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+    }
+
+    /// <summary>
+    /// 截断过长的查询字符串用于头部显示。超过 10 字符时取前后各 5 字符，中间用 … 连接。
+    /// </summary>
+    private static string TruncateQueryForDisplay(string query)
+    {
+        if (query.Length <= DefaultMaxQueryDisplayLength)
+        {
+            return query;
+        }
+
+        return string.Concat(query.AsSpan(0, 5), "…", query.AsSpan(query.Length - 5));
     }
 
     //public string WriteFileContent(string filePath, string content)
