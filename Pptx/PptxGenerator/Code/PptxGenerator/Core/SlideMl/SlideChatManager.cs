@@ -22,38 +22,43 @@ namespace PptxGenerator;
 public sealed class SlideChatManager : INotifyPropertyChanged
 {
     private readonly CopilotChatManager _copilotChatManager;
-    private readonly SlideRenderTool _slideRenderTool;
     private Bitmap? _lastInjectedPreviewBitmap;
 
     public SlideChatManager(CopilotChatManager copilotChatManager, SlideRenderTool slideRenderTool)
     {
         _copilotChatManager = copilotChatManager ?? throw new ArgumentNullException(nameof(copilotChatManager));
-        _slideRenderTool = slideRenderTool ?? throw new ArgumentNullException(nameof(slideRenderTool));
+        SlideRenderTool = slideRenderTool ?? throw new ArgumentNullException(nameof(slideRenderTool));
+        SlideRenderTool.SlideRendered += OnSlideRendered;
     }
 
     public CopilotChatManager ChatManager => _copilotChatManager;
+
+    /// <summary>
+    /// SlideML 渲染工具，暴露为属性供外部订阅事件。
+    /// </summary>
+    public SlideRenderTool SlideRenderTool { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>
     /// 当前预览 Bitmap（由 SlideRenderTool 缓存）。
     /// </summary>
-    public Bitmap? PreviewBitmap => _slideRenderTool.LatestPreviewBitmap;
+    public Bitmap? PreviewBitmap => SlideRenderTool.LatestPreviewBitmap;
 
     /// <summary>
     /// 最近一次渲染的 SlideML XML。
     /// </summary>
-    public string CurrentSlideXml => _slideRenderTool.LatestSlideXml;
+    public string CurrentSlideXml => SlideRenderTool.LatestSlideXml;
 
     /// <summary>
     /// 最近一次渲染后回填的 XML。
     /// </summary>
-    public string RenderedXml => _slideRenderTool.LatestRenderedXml;
+    public string RenderedXml => SlideRenderTool.LatestRenderedXml;
 
     /// <summary>
     /// 最近一次渲染的警告列表。
     /// </summary>
-    public string WarningText => _slideRenderTool.LatestWarnings;
+    public string WarningText => SlideRenderTool.LatestWarnings;
 
     /// <summary>
     /// 发送 SlideML 生成请求。自动附加 SlideRenderTool。
@@ -67,7 +72,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
             return;
         }
 
-        var tools = new[] { _slideRenderTool.CreateTool() };
+        var tools = new[] { SlideRenderTool.CreateTool(), SlideRenderTool.CreatePreviewTool() };
 
         var request = SendMessageRequest.FromText(BuildInitialUserPrompt(userPrompt), tools: tools, systemPrompt: BuildSystemPrompt());
 
@@ -96,7 +101,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
             return;
         }
 
-        var tools = new[] { _slideRenderTool.CreateTool() };
+        var tools = new[] { SlideRenderTool.CreateTool(), SlideRenderTool.CreatePreviewTool() };
 
         var request = SendMessageRequest.FromText(userMessage, tools: tools, systemPrompt: null);
 
@@ -116,7 +121,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     /// </summary>
     private void InjectPreviewScreenshot()
     {
-        var bitmap = _slideRenderTool.LatestPreviewBitmap;
+        var bitmap = SlideRenderTool.LatestPreviewBitmap;
         if (bitmap is null || ReferenceEquals(bitmap, _lastInjectedPreviewBitmap))
         {
             return;
@@ -140,6 +145,17 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         lastAssistantMessage.MessageItems.Add(imageItem);
     }
 
+    /// <summary>
+    /// SlideRenderTool 渲染完成事件处理，转发 PropertyChanged 通知。
+    /// </summary>
+    private void OnSlideRendered()
+    {
+        OnPropertyChanged(nameof(PreviewBitmap));
+        OnPropertyChanged(nameof(CurrentSlideXml));
+        OnPropertyChanged(nameof(RenderedXml));
+        OnPropertyChanged(nameof(WarningText));
+    }
+
     private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -155,6 +171,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
 ## 核心规则（必须遵守）
 - **生成 SlideML 后必须立即调用 render_slide 工具验证排版效果，不允许跳过。**
+- 调用 render_slide 之后，可以调用 get_render_preview 工具查看渲染后的页面截图，从视觉层面评估颜色、间距、对齐等。
 - 如果收到渲染警告和回填后的 XML，请根据反馈修改并重新输出完整 XML，然后再次调用 render_slide。
 - 适可而止，最多调用 render_slide 工具 4 次。
 

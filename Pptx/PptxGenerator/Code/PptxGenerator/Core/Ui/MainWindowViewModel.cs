@@ -17,7 +17,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly SlideChatManager _slideChatManager;
     private readonly DelegateCommand _sendMessageCommand;
     private bool _isBusy;
-    private string _inputText = string.Empty;
+    private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
     private string _statusText = "等待开始";
 
     public MainWindowViewModel(SlideChatManager slideChatManager)
