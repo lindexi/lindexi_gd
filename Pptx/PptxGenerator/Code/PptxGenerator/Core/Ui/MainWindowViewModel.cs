@@ -1,7 +1,5 @@
 using AgentLib.Model;
 
-using Avalonia.Media.Imaging;
-
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -14,7 +12,6 @@ namespace PptxGenerator;
 
 public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
-    private readonly SlideChatManager _slideChatManager;
     private readonly DelegateCommand _sendMessageCommand;
     private bool _isBusy;
     private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
@@ -22,9 +19,31 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public MainWindowViewModel(SlideChatManager slideChatManager)
     {
-        _slideChatManager = slideChatManager ?? throw new ArgumentNullException(nameof(slideChatManager));
+        SlideChatManager = slideChatManager ?? throw new ArgumentNullException(nameof(slideChatManager));
+        SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
         _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
     }
+
+    /// <summary>
+    /// 订阅 SlideChatManager 的属性变更，在工具调用过程中即可实时刷新 UI 绑定。
+    /// </summary>
+    private void OnSlideChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(SlideChatManager.PreviewBitmap):
+            case nameof(SlideChatManager.CurrentSlideXml):
+            case nameof(SlideChatManager.RenderedXml):
+            case nameof(SlideChatManager.WarningText):
+                OnPropertyChanged(e.PropertyName!);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// SlideML 聊天管理器，暴露给界面直接绑定，避免无意义的属性转发。
+    /// </summary>
+    public SlideChatManager SlideChatManager { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -33,7 +52,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// 聊天气泡消息列表，绑定到 CopilotChatManager 的消息集合。
     /// </summary>
-    public ObservableCollection<CopilotChatMessage> ChatMessages => _slideChatManager.ChatManager.ChatMessages;
+    public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.ChatManager.ChatMessages;
 
     public bool IsBusy
     {
@@ -65,14 +84,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         private set => SetProperty(ref _statusText, value);
     }
 
-    public Bitmap? PreviewBitmap => _slideChatManager.PreviewBitmap;
-
-    public string CurrentSlideXml => _slideChatManager.CurrentSlideXml;
-
-    public string RenderedXml => _slideChatManager.RenderedXml;
-
-    public string WarningText => _slideChatManager.WarningText;
-
     private async Task RunSendMessageAsync()
     {
         if (string.IsNullOrWhiteSpace(InputText))
@@ -89,14 +100,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            await _slideChatManager.SendSlideRequestAsync(message, cancellationTokenSource.Token).ConfigureAwait(false);
+            await SlideChatManager.SendSlideRequestAsync(message, cancellationTokenSource.Token).ConfigureAwait(false);
 
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                OnPropertyChanged(nameof(PreviewBitmap));
-                OnPropertyChanged(nameof(CurrentSlideXml));
-                OnPropertyChanged(nameof(RenderedXml));
-                OnPropertyChanged(nameof(WarningText));
                 StatusText = "完成";
             });
         }
@@ -107,10 +114,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             StatusText = "执行失败";
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                OnPropertyChanged(nameof(WarningText));
-            });
         }
         finally
         {
