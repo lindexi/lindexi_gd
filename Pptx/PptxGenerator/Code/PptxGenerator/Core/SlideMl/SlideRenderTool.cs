@@ -65,7 +65,7 @@ public sealed class SlideRenderTool
     }
 
     /// <summary>
-    /// 创建获取渲染预览图的 AI Tool，返回 base64 编码的 PNG 图片。
+    /// 创建获取渲染预览图的 AI Tool，返回 PNG 图片数据。
     /// 模型可以调用此工具"看到"渲染后的视觉效果，从而评估颜色、间距、对齐等。
     /// </summary>
     /// <returns>可用于 <see cref="ChatOptions.Tools"/> 的 AIFunction。</returns>
@@ -74,25 +74,24 @@ public sealed class SlideRenderTool
         return AIFunctionFactory.Create(
             GetRenderPreviewAsync,
             name: "get_render_preview",
-            description: "获取最近一次 render_slide 渲染的页面预览图（base64 编码的 PNG）。"
+            description: "获取最近一次 render_slide 渲染的页面预览图（PNG 图片数据）。"
                 + " 调用此工具可以查看渲染后的视觉效果，评估颜色搭配、间距、对齐等。"
                 + " 仅在 render_slide 之后调用有效。");
     }
 
-    [Description("获取最近一次渲染的页面预览图，返回 base64 编码的 PNG 图片数据。")]
-    private Task<string> GetRenderPreviewAsync(CancellationToken cancellationToken = default)
+    [Description("获取最近一次渲染的页面预览图，返回 PNG 图片数据。")]
+    private async Task<AIContent> GetRenderPreviewAsync()
     {
         var bitmap = LatestPreviewBitmap;
         if (bitmap is null)
         {
-            return Task.FromResult("[get_render_preview] 错误：尚未渲染任何页面，请先调用 render_slide。");
+            return new TextContent("[get_render_preview] 错误：尚未渲染任何页面，请先调用 render_slide。");
         }
 
         using var memoryStream = new MemoryStream();
         bitmap.Save(memoryStream);
-        var base64 = Convert.ToBase64String(memoryStream.ToArray());
-
-        return Task.FromResult($"[get_render_preview] 预览图已生成，base64 长度: {base64.Length} 字符。图片数据（data:image/png;base64）：\ndata:image/png;base64,{base64}");
+        memoryStream.Position = 0;
+        return await DataContent.LoadFromAsync(memoryStream, "image/png").ConfigureAwait(false);
     }
 
     [Description("将 SlideML XML 渲染为页面预览图，返回回填后的 XML 和警告列表。")]
