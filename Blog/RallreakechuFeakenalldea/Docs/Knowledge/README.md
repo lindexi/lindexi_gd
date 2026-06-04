@@ -21,6 +21,7 @@
 | 左侧文件夹树与文件夹查找怎么接进来 | `Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | 目录树如何跟随当前文档并适配深色主题 | `Avalonia/Folder-TreeView-Selection-And-Theme.md` |
 | 编辑器选区如何发送到 Copilot 聊天 | `Design/TextEditor-Selection-To-Copilot-ContextMenu.md` |
+| 回车自动缩进策略与语言感知 | `Avalonia/Auto-Indent-Strategy.md` |
 | 聊天气泡模板与 MVVM 边界怎么拆 | `Design/MVVM-Layer-Responsibilities-And-ChatTemplateSelector.md` |
 | Markdown 链接为何能高亮并支持命中测试 | `Avalonia/Markdown-Url-Highlighting.md` |
 | 默认快捷键和文件选择器在哪里接入 | `Avalonia/Shortcut-Defaults-And-FilePicker.md` |
@@ -35,6 +36,7 @@
 
 | 文档 | 主题 | 适用场景 |
 |---|---|---|
+| `Auto-Indent-Strategy.md` | 回车自动缩进策略与语言感知 | 实现或调整回车换行时的智能缩进行为、扩展新语言支持时 |
 | `Code-Highlighting-Categories-And-Extensions.md` | 代码着色三分类与扩展名路由 | 扩展文件类型高亮、排查 Markdown 代码块或整篇代码文档着色时 |
 | `Find-Replace-Panel.md` | 查找替换面板与搜索选项组织方式 | 扩展查找栏、正则选项、文件夹搜索结果展示时 |
 | `Folder-Explorer-And-Folder-Find.md` | 左侧文件夹树与文件夹查找的组织方式 | 增加资源管理器、扩展文件夹查找、排查结果定位链路时 |

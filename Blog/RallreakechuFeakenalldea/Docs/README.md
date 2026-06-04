@@ -29,6 +29,7 @@
 | Copilot 主副工作区路径 | `Knowledge/Design/Copilot-Workspace-Primary-And-Secondary-Paths.md` |
 | 目录树选中联动与深色主题 | `Knowledge/Avalonia/Folder-TreeView-Selection-And-Theme.md` |
 | 标签关闭确认与临时快照自动保存 | `Knowledge/Avalonia/Unsaved-Tab-Close-And-Temp-Autosave.md` |
+| 回车自动缩进策略 | `Knowledge/Avalonia/Auto-Indent-Strategy.md` |
 | 编辑器选区发送到 Copilot | `Knowledge/Design/TextEditor-Selection-To-Copilot-ContextMenu.md` |
 | Copilot 派生命令为何会新建会话 | `Knowledge/Design/Copilot-New-Session-Command-Behavior.md` |
 | 快捷键与文件选择器 | `Knowledge/Avalonia/Shortcut-Defaults-And-FilePicker.md` |
