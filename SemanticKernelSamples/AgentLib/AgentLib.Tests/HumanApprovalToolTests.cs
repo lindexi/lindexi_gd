@@ -28,7 +28,7 @@ public class HumanApprovalToolTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         Task sendTask = context.ChatManager.SendMessageAsync(
-            inputText: "请执行危险操作",
+            contents: [new TextContent("请执行危险操作")],
             withHistory: true,
             createNewSession: false,
             tools: [HumanApprovalTool.Wrap(testTool.CreateTool(toolName, "危险工具"), "该工具会修改工作区内容，需要审批。")],
@@ -64,7 +64,7 @@ public class HumanApprovalToolTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         Task sendTask = context.ChatManager.SendMessageAsync(
-            inputText: "请执行危险操作",
+            contents: [new TextContent("请执行危险操作")],
             withHistory: true,
             createNewSession: false,
             tools: [HumanApprovalTool.Wrap(testTool.CreateTool(toolName, "危险工具"), "该工具会修改工作区内容，需要审批。")],

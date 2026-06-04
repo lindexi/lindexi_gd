@@ -20,7 +20,7 @@ public class CopilotChatManagerCancellationTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
         using var cancellationTokenSource = new CancellationTokenSource();
 
-        Task sendTask = context.ChatManager.SendMessageAsync("普通聊天取消测试", cancellationToken: cancellationTokenSource.Token);
+        Task sendTask = context.ChatManager.SendMessageAsync(contents: [new TextContent("普通聊天取消测试")], cancellationToken: cancellationTokenSource.Token);
         await blockingResponse.Started;
         cancellationTokenSource.Cancel();
         blockingResponse.Release();
@@ -45,7 +45,7 @@ public class CopilotChatManagerCancellationTests
         using var cancellationTokenSource = new CancellationTokenSource();
 
         Task sendTask = context.ChatManager.SendMessageAsync(
-            inputText: "工具取消测试",
+            contents: [new TextContent("工具取消测试")],
             withHistory: true,
             createNewSession: false,
             tools: [blockingTool.CreateTool(toolName, "阻塞工具")],
@@ -81,7 +81,7 @@ public class CopilotChatManagerCancellationTests
         using var cancellationTokenSource = new CancellationTokenSource();
 
         Task sendTask = context.ChatManager.SendMessageAsync(
-            inputText: "子智能体取消测试",
+            contents: [new TextContent("子智能体取消测试")],
             withHistory: true,
             createNewSession: false,
             tools: [],
@@ -106,7 +106,7 @@ public class CopilotChatManagerCancellationTests
         primaryChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => blockingResponse.CreateAsyncEnumerable(cancellationToken);
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
-        Task sendTask = context.ChatManager.SendMessageInNewSessionAsync("新会话取消测试");
+        Task sendTask = context.ChatManager.SendMessageInNewSessionAsync(contents: [new TextContent("新会话取消测试")]);
         await blockingResponse.Started;
         context.ChatManager.CancelCurrentChat();
         blockingResponse.Release();

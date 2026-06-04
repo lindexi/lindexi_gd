@@ -1,12 +1,16 @@
 ﻿using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
 namespace AgentLib.Model;
 
 /// <summary>
 /// 表示一次聊天发送请求。
 /// </summary>
-/// <param name="InputText">用户输入内容。</param>
+/// <param name="Contents">用户输入的多模态内容集合，可包含 <see cref="TextContent"/>、<see cref="DataContent"/> 等。</param>
 /// <param name="WithHistory">是否携带当前 <see cref="AgentSession"/> 继续对话。</param>
 /// <param name="CreateNewSession">是否在发送前切换到新会话。</param>
 /// <param name="Tools">本次额外启用的工具集合。</param>
@@ -15,7 +19,7 @@ namespace AgentLib.Model;
 /// <param name="CancellationToken">本次发送使用的取消令牌。</param>
 public readonly record struct SendMessageRequest
 (
-    string? InputText,
+    IReadOnlyList<AIContent> Contents,
     bool WithHistory = true,
     bool CreateNewSession = false,
     IEnumerable<AITool>? Tools = null,
@@ -23,4 +27,14 @@ public readonly record struct SendMessageRequest
     string? SystemPrompt = null,
     CancellationToken CancellationToken = default)
 {
+    /// <summary>
+    /// 从纯文本创建发送请求。
+    /// </summary>
+    public static SendMessageRequest FromText(string text, bool withHistory = true, bool createNewSession = false,
+        IEnumerable<AITool>? tools = null, ChatToolMode? toolMode = null, string? systemPrompt = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        return new SendMessageRequest([new TextContent(text)], withHistory, createNewSession, tools, toolMode, systemPrompt, cancellationToken);
+    }
 }

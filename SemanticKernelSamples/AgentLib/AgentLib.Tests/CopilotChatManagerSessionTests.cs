@@ -17,7 +17,7 @@ public class CopilotChatManagerSessionTests
             CopilotChatManagerTestContext.AssistantText("助手回复"));
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
-        await context.ChatManager.SendMessageAsync("保留历史", withHistory: true);
+        await context.ChatManager.SendMessageAsync(contents: [new TextContent("保留历史")], withHistory: true);
 
         Assert.IsNotNull(context.ChatManager.SelectedSession.AgentSession);
     }
@@ -31,7 +31,7 @@ public class CopilotChatManagerSessionTests
             CopilotChatManagerTestContext.AssistantText("助手回复"));
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
-        await context.ChatManager.SendMessageAsync("不保留历史", withHistory: false);
+        await context.ChatManager.SendMessageAsync(contents: [new TextContent("不保留历史")], withHistory: false);
 
         Assert.IsNull(context.ChatManager.SelectedSession.AgentSession);
     }
@@ -45,9 +45,9 @@ public class CopilotChatManagerSessionTests
             CopilotChatManagerTestContext.AssistantText("助手回复"));
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
-        await context.ChatManager.SendMessageAsync("第一次", withHistory: true);
+        await context.ChatManager.SendMessageAsync(contents: [new TextContent("第一次")], withHistory: true);
         var firstSession = context.ChatManager.SelectedSession.AgentSession;
-        await context.ChatManager.SendMessageAsync("第二次", withHistory: true);
+        await context.ChatManager.SendMessageAsync(contents: [new TextContent("第二次")], withHistory: true);
 
         Assert.IsNotNull(firstSession);
         Assert.AreSame(firstSession, context.ChatManager.SelectedSession.AgentSession);
