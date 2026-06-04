@@ -14,6 +14,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
     private readonly DelegateCommand _sendMessageCommand;
     private bool _isBusy;
+    private bool _isFirstMessage = true;
+    private bool _attachPreview;
     private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
     private string _statusText = "等待开始";
 
@@ -84,6 +86,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         private set => SetProperty(ref _statusText, value);
     }
 
+    /// <summary>
+    /// 是否在发送消息时附加当前渲染预览图。
+    /// </summary>
+    public bool AttachPreview
+    {
+        get => _attachPreview;
+        set => SetProperty(ref _attachPreview, value);
+    }
+
     private async Task RunSendMessageAsync()
     {
         if (string.IsNullOrWhiteSpace(InputText))
@@ -97,10 +108,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         IsBusy = true;
         StatusText = "正在生成页面...";
 
+        var isFirstMessage = _isFirstMessage;
+        if (_isFirstMessage)
+        {
+            _isFirstMessage = false;
+        }
+
+        var attachPreview = _attachPreview;
+
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            await SlideChatManager.SendSlideRequestAsync(message, cancellationTokenSource.Token).ConfigureAwait(false);
+            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, cancellationTokenSource.Token).ConfigureAwait(false);
 
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {

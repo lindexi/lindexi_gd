@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using Microsoft.Extensions.AI;
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -116,6 +117,57 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     }
 
     /// <summary>
+    /// 统一发送消息入口，供 UI 调用。
+    /// 首条消息会包裹初始提示词并切换新会话，后续消息以纯文本发送保留上下文。
+    /// </summary>
+    /// <param name="userMessage">用户输入文本。</param>
+    /// <param name="isFirstMessage">是否为首条消息。首条消息会包裹 <see cref="BuildInitialUserPrompt"/> 并切换新会话。</param>
+    /// <param name="attachPreview">是否附加当前渲染预览图。<see langword="true"/> 时将预览图作为 <see cref="DataContent"/> 加入消息。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userMessage))
+        {
+            return;
+        }
+
+        var tools = new[] { SlideRenderTool.CreateTool(), SlideRenderTool.CreatePreviewTool() };
+
+        var processedText = isFirstMessage ? BuildInitialUserPrompt(userMessage) : userMessage;
+        var systemPrompt = isFirstMessage ? BuildSystemPrompt() : null;
+
+        var contents = new List<AIContent>(2) { new TextContent(processedText) };
+
+        if (attachPreview)
+        {
+            var previewDataContent = await SlideRenderTool.CreatePreviewDataContentAsync(cancellationToken).ConfigureAwait(false);
+            if (previewDataContent is not null)
+            {
+                contents.Add(previewDataContent);
+            }
+        }
+
+        var request = new SendMessageRequest(contents,
+            WithHistory: !isFirstMessage,
+            CreateNewSession: isFirstMessage,
+            Tools: tools,
+            SystemPrompt: systemPrompt,
+            CancellationToken: cancellationToken);
+
+        var requestResult = _copilotChatManager.SendMessage(request);
+        await requestResult.RunTask.ConfigureAwait(false);
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            InjectPreviewScreenshot();
+            OnPropertyChanged(nameof(PreviewBitmap));
+            OnPropertyChanged(nameof(CurrentSlideXml));
+            OnPropertyChanged(nameof(RenderedXml));
+            OnPropertyChanged(nameof(WarningText));
+        });
+    }
+
+    /// <summary>
     /// 将最新的渲染预览图注入到当前 Assistant 消息的 MessageItems 中，
     /// 作为多模态截图反馈供下一轮模型调用参考。
     /// </summary>
@@ -203,7 +255,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 ## 禁止事项
 - 不要写 ActualWidth、ActualHeight、ActualLineCount 属性
 - 不要创造未定义的标签或属性
-- 不要使用 XAML、CSS、HTML 等其他语法
+- 不要使用 XAML、CSS、XAML 、HTML 等其他语法
 
 ## 输出格式
 - 直接输出 XML，不要使用 markdown 代码块包裹

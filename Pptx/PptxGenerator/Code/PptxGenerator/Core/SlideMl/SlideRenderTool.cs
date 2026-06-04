@@ -94,6 +94,24 @@ public sealed class SlideRenderTool
         return await DataContent.LoadFromAsync(memoryStream, "image/png").ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// 获取最近一次渲染的预览图 <see cref="DataContent"/>，失败返回 null。
+    /// 供调用方附加到 <see cref="SendMessageRequest.Contents"/> 中作为多模态输入。
+    /// </summary>
+    public async Task<DataContent?> CreatePreviewDataContentAsync(CancellationToken cancellationToken = default)
+    {
+        var bitmap = LatestPreviewBitmap;
+        if (bitmap is null)
+        {
+            return null;
+        }
+
+        var memoryStream = new MemoryStream();
+        bitmap.Save(memoryStream);
+        memoryStream.Position = 0;
+        return await DataContent.LoadFromAsync(memoryStream, "image/png", cancellationToken).ConfigureAwait(false);
+    }
+
     [Description("将 SlideML XML 渲染为页面预览图，返回回填后的 XML 和警告列表。")]
     private async Task<string> RenderSlideAsync(
         [Description("SlideML 格式的 XML 字符串，根元素为 Page。")] string slideXml,

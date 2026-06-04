@@ -264,8 +264,9 @@
                     BorderBrush="#FFE2E8F0"
                     BorderThickness="0,1,0,0"
                     Padding="12">
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBox Text="{Binding InputText}"
+                <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+                    <TextBox Grid.Row="0" Grid.Column="0"
+                             Text="{Binding InputText}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
                              MinHeight="42"
@@ -275,7 +276,7 @@
                              BorderThickness="1"
                              Padding="12,10"
                              Watermark="描述你想做的一页幻灯片…" />
-                    <Button Grid.Column="1"
+                    <Button Grid.Row="0" Grid.Column="2"
                             Content="发送"
                             Command="{Binding SendMessageCommand}"
                             MinWidth="80"
@@ -285,6 +286,13 @@
                             Foreground="White"
                             FontWeight="SemiBold"
                             CornerRadius="10" />
+                    <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                              IsChecked="{Binding AttachPreview}"
+                              Margin="0,6,0,0"
+                              FontSize="12"
+                              Foreground="#FF475569">
+                        <TextBlock Text="附带预览截图" FontSize="12" Foreground="#FF475569" />
+                    </CheckBox>
                 </Grid>
             </Border>
         </Grid>
