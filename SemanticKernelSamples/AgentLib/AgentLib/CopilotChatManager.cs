@@ -438,7 +438,7 @@ public class CopilotChatManager : NotifyBase
             {
                 CopilotChatMessage exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
                 await AppendMessageAsync(currentSession, exceptionMessage);
-                throw;
+                return new SendMessageRunState(IsSuccess: false, WasCanceled: false);
             }
             finally
             {
