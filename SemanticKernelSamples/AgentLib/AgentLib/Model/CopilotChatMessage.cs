@@ -12,8 +12,17 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace AgentLib.Model;
 
+/// <summary>
+/// 表示 Copilot 聊天中的一条消息，支持文本、图片、音频等多模态内容，
+/// 以及工具调用、子代理调用和审批等交互。
+/// </summary>
 public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 {
+    /// <summary>
+    /// 使用指定角色和纯文本内容创建消息。
+    /// </summary>
+    /// <param name="role">消息角色。</param>
+    /// <param name="content">消息文本内容。</param>
     public CopilotChatMessage(ChatRole role, string content)
         : this(role, [new TextContent(content ?? "")])
     {
@@ -63,6 +72,9 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         return new CopilotChatImageItem(BinaryData.FromBytes(data), string.IsNullOrWhiteSpace(mediaType) ? "application/octet-stream" : mediaType);
     }
 
+    /// <summary>
+    /// 消息的角色（用户、助手、系统等）。
+    /// </summary>
     public ChatRole Role { get; }
 
     /// <summary>
@@ -70,6 +82,9 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     /// </summary>
     public bool IsPresetInfo { set; get; }
 
+    /// <summary>
+    /// 消息的作者显示名称，根据角色自动生成（系统/我/Copilot）。
+    /// </summary>
     public string Author
     {
         get
@@ -91,18 +106,39 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
     }
 
+    /// <summary>
+    /// 消息中的内容片段集合，可包含文本、图片、音频、工具调用等多种类型。
+    /// </summary>
     public ObservableCollection<ICopilotChatMessageItem> MessageItems { get; } = [];
 
+    /// <summary>
+    /// 消息中所有文本片段的拼接内容。
+    /// </summary>
     public string Content => string.Concat(MessageItems.OfType<CopilotChatTextItem>().Select(item => item.Text));
 
+    /// <summary>
+    /// 消息中所有推理（思考）片段的拼接内容。
+    /// </summary>
     public string Reason => string.Concat(MessageItems.OfType<CopilotChatReasoningItem>().Select(item => item.Text));
 
+    /// <summary>
+    /// 是否有文本内容。
+    /// </summary>
     public bool HasContent => !string.IsNullOrEmpty(Content);
 
+    /// <summary>
+    /// 是否有推理内容。
+    /// </summary>
     public bool HasReason => !string.IsNullOrEmpty(Reason);
 
+    /// <summary>
+    /// 是否同时有推理和文本内容。
+    /// </summary>
     public bool HasReasonAndContent => HasReason && HasContent;
 
+    /// <summary>
+    /// Token 用量详情。
+    /// </summary>
     public UsageDetails? UsageDetails
     {
         get => _usageDetails;
@@ -121,16 +157,31 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     private UsageDetails? _usageDetails;
     private const string UsageSummarySeparator = " ";
 
+    /// <summary>
+    /// 是否有 Token 用量详情。
+    /// </summary>
     public bool HasUsageDetails => UsageDetails is not null;
 
+    /// <summary>
+    /// 是否有总 Token 数。
+    /// </summary>
     public bool HasTotalTokenCount => UsageDetails?.TotalTokenCount is not null;
 
+    /// <summary>
+    /// 总 Token 数的显示文本。
+    /// </summary>
     public string TotalTokenCountText => UsageDetails?.TotalTokenCount is { } totalTokenCount
         ? $"总计 {totalTokenCount:N0}"
         : string.Empty;
 
+    /// <summary>
+    /// 是否有输入 Token 数。
+    /// </summary>
     public bool HasInputTokenCount => UsageDetails?.InputTokenCount is not null;
 
+    /// <summary>
+    /// 输入 Token 数的显示文本。
+    /// </summary>
     public string InputTokenCountText
     {
         get
@@ -144,8 +195,14 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
     }
 
+    /// <summary>
+    /// 是否有输出 Token 数。
+    /// </summary>
     public bool HasOutputTokenCount => UsageDetails?.OutputTokenCount is not null;
 
+    /// <summary>
+    /// 输出 Token 数的显示文本。
+    /// </summary>
     public string OutputTokenCountText
     {
         get
@@ -159,18 +216,33 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
     }
 
+    /// <summary>
+    /// 是否有推理 Token 数。
+    /// </summary>
     public bool HasReasoningTokenCount => UsageDetails?.ReasoningTokenCount is not null;
 
+    /// <summary>
+    /// 推理 Token 数的显示文本。
+    /// </summary>
     public string ReasoningTokenCountText => UsageDetails?.ReasoningTokenCount is { } reasoningTokenCount
         ? $"思考 {reasoningTokenCount:N0}"
         : string.Empty;
 
+    /// <summary>
+    /// 是否有缓存输入 Token 数。
+    /// </summary>
     public bool HasCachedInputTokenCount => UsageDetails?.CachedInputTokenCount is not null;
 
+    /// <summary>
+    /// 缓存输入 Token 数的显示文本。
+    /// </summary>
     public string CachedInputTokenCountText => UsageDetails?.CachedInputTokenCount is { } cachedInputTokenCount
         ? $"缓存 {cachedInputTokenCount:N0}"
         : string.Empty;
 
+    /// <summary>
+    /// Token 用量摘要文本，组合所有可用的用量信息。
+    /// </summary>
     public string UsageSummaryText
     {
         get
@@ -216,6 +288,9 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
     }
 
+    /// <summary>
+    /// 消息的完整内容，包含所有片段（文本、工具调用、子代理等）的格式化文本。
+    /// </summary>
     public string FullContent
     {
         get
@@ -248,10 +323,21 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
     }
 
+    /// <summary>
+    /// 消息创建时间。
+    /// </summary>
     public DateTimeOffset CreatedTime { get; }
 
+    /// <summary>
+    /// 消息创建时间的显示文本（HH:mm 格式）。
+    /// </summary>
     public string TimeText { get; }
 
+    /// <summary>
+    /// 创建一条用户消息。
+    /// </summary>
+    /// <param name="content">消息文本内容。</param>
+    /// <returns>创建的用户消息。</returns>
     public static CopilotChatMessage CreateUser(string content)
     {
         return new CopilotChatMessage(ChatRole.User, content);
@@ -265,6 +351,12 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         return new CopilotChatMessage(ChatRole.User, contents);
     }
 
+    /// <summary>
+    /// 创建一条助手消息。
+    /// </summary>
+    /// <param name="content">消息文本内容。</param>
+    /// <param name="isPresetInfo">是否为预设信息，预设信息不参与对话上下文。</param>
+    /// <returns>创建的助手消息。</returns>
     public static CopilotChatMessage CreateAssistant(string content, bool isPresetInfo)
     {
         return new CopilotChatMessage(ChatRole.Assistant, content)
@@ -273,6 +365,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         };
     }
 
+    /// <summary>
+    /// 从响应内容中提取并追加 Token 用量信息。
+    /// </summary>
+    /// <param name="contents">AI 响应内容集合。</param>
     public void AppendUsageDetails(IEnumerable<AIContent>? contents)
     {
         if (Role != ChatRole.Assistant || contents is null)
@@ -289,6 +385,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
     }
 
+    /// <summary>
+    /// 将消息转换为 <see cref="ChatMessage"/> 格式，用于发送给 AI 模型。
+    /// </summary>
+    /// <returns>转换后的聊天消息。</returns>
     public ChatMessage ToChatMessage()
     {
         var contents = new List<AIContent>(MessageItems.Count);
@@ -311,6 +411,9 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         return new ChatMessage(Role, contents);
     }
 
+    /// <summary>
+    /// 清空消息中的所有内容片段。
+    /// </summary>
     public void ClearMessageItems()
     {
         foreach (INotifyPropertyChanged messageItem in MessageItems.OfType<INotifyPropertyChanged>())
@@ -323,6 +426,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         _subAgentItemsByCallId.Clear();
     }
 
+    /// <summary>
+    /// 追加文本内容到消息中。如果最后一个片段是文本，则追加到该片段；否则创建新文本片段。
+    /// </summary>
+    /// <param name="text">要追加的文本。</param>
     public void AppendText(string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -339,6 +446,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         MessageItems.Add(new CopilotChatTextItem(text));
     }
 
+    /// <summary>
+    /// 追加推理（思考）内容到消息中。
+    /// </summary>
+    /// <param name="text">要追加的推理文本。</param>
     public void AppendReasoning(string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -355,6 +466,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         MessageItems.Add(new CopilotChatReasoningItem(text));
     }
 
+    /// <summary>
+    /// 注册一个需要人工审批的工具。
+    /// </summary>
+    /// <param name="toolName">工具名称。</param>
+    /// <param name="approvalDescription">审批说明，可为 <see langword="null"/>。</param>
     public void RegisterApprovalTool(string toolName, string? approvalDescription = null)
     {
         if (string.IsNullOrWhiteSpace(toolName))
@@ -365,6 +481,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         _approvalToolDescriptions[toolName] = approvalDescription;
     }
 
+    /// <summary>
+    /// 追加函数调用内容到消息中。
+    /// </summary>
+    /// <param name="functionCallContent">函数调用内容。</param>
     public void AppendFunctionCall(FunctionCallContent functionCallContent)
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
@@ -397,6 +517,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         toolItem.InputText = CopilotChatMessageItemFormatter.FormatArguments(functionCallContent) ?? string.Empty;
     }
 
+    /// <summary>
+    /// 追加函数调用结果到消息中。
+    /// </summary>
+    /// <param name="functionResultContent">函数调用结果内容。</param>
     public void AppendFunctionResult(FunctionResultContent functionResultContent)
     {
         ArgumentNullException.ThrowIfNull(functionResultContent);
@@ -427,8 +551,16 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         toolItem.OutputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionResultContent) ?? string.Empty;
     }
 
-    public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-        string? callId = null)
+    /// <summary>
+        /// 创建或获取审批工具项。
+        /// </summary>
+        /// <param name="toolName">工具名称。</param>
+        /// <param name="inputText">工具输入文本。</param>
+        /// <param name="approvalDescription">审批说明。</param>
+        /// <param name="callId">调用 ID，如果为空则自动生成。</param>
+        /// <returns>审批工具项。</returns>
+        public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
+            string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -479,7 +611,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         AppendUsageDetails(usageContent.Details);
     }
 
-    public void AppendUsageDetails(UsageDetails details)
+    /// <summary>
+        /// 追加 Token 用量详情。
+        /// </summary>
+        /// <param name="details">用量详情。</param>
+        public void AppendUsageDetails(UsageDetails details)
     {
         ArgumentNullException.ThrowIfNull(details);
 
@@ -495,7 +631,14 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         OnUsageDetailsChanged();
     }
 
-    public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
+    /// <summary>
+        /// 创建或获取子代理项。
+        /// </summary>
+        /// <param name="toolName">工具名称。</param>
+        /// <param name="inputText">输入文本。</param>
+        /// <param name="callId">调用 ID，如果为空则自动生成。</param>
+        /// <returns>子代理项。</returns>
+        public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")

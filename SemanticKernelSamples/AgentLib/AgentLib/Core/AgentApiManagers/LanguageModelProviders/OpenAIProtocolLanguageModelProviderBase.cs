@@ -7,9 +7,19 @@ namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 /// </summary>
 public abstract class OpenAIProtocolLanguageModelProviderBase(string endPoint, string key) : ILanguageModelProvider
 {
+    /// <summary>
+    /// API 终结点地址。
+    /// </summary>
     public string EndPoint => endPoint;
+
+    /// <summary>
+    /// API 密钥。
+    /// </summary>
     public string Key => key;
 
+    /// <summary>
+    /// 模型名称到 ID 的映射。当模型名与调用 ID 不同时使用。
+    /// </summary>
     public virtual IModelNameToIdMap? ModelNameToIdMap { get; init; }
 
     /// <inheritdoc/>

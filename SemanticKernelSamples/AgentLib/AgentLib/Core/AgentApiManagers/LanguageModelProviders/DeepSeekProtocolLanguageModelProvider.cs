@@ -2,6 +2,9 @@
 
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
+/// <summary>
+/// DeepSeek 协议语言模型提供商，提供 DeepSeek 系列模型定义。
+/// </summary>
 public class DeepSeekProtocolLanguageModelProvider(string endPoint, string key) : OpenAIProtocolLanguageModelProviderBase(endPoint, key)
 {
     protected override IReadOnlyList<ModelDefinition> GetModelDefinitions()

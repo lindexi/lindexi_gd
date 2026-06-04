@@ -14,6 +14,9 @@ using System.Xml.Linq;
 
 namespace AgentLib.Logging;
 
+/// <summary>
+/// 将聊天消息记录到文件系统的日志记录器。支持纯文本日志和 XML 格式的聊天历史记录。
+/// </summary>
 public sealed class FileCopilotChatLogger : ICopilotChatLogger
 {
     private const string CompactChatHistoryClosingFragment = "</Messages></CopilotChatSessionHistory>";
@@ -25,29 +28,48 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
     private readonly Dictionary<Guid, string> _sessionLogFilePathMap = [];
     private readonly Dictionary<Guid, ChatHistoryFileInfo> _sessionHistoryFileInfoMap = [];
 
-    public FileCopilotChatLogger()
-        : this(
-            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatLogs"),
-            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatHistory"))
-    {
-    }
+    /// <summary>
+        /// 使用默认日志目录创建日志记录器。
+        /// </summary>
+        public FileCopilotChatLogger()
+            : this(
+                Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatLogs"),
+                Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatHistory"))
+        {
+        }
 
-    public FileCopilotChatLogger(string chatLogFolder)
-        : this(chatLogFolder, null)
-    {
-    }
+        /// <summary>
+        /// 使用指定的日志目录创建日志记录器。
+        /// </summary>
+        /// <param name="chatLogFolder">聊天日志文件夹路径。</param>
+        public FileCopilotChatLogger(string chatLogFolder)
+            : this(chatLogFolder, null)
+        {
+        }
 
-    public FileCopilotChatLogger(string chatLogFolder, string? chatHistoryFolder)
+        /// <summary>
+        /// 使用指定的日志目录和历史记录目录创建日志记录器。
+        /// </summary>
+        /// <param name="chatLogFolder">聊天日志文件夹路径。</param>
+        /// <param name="chatHistoryFolder">聊天历史记录文件夹路径，可为 <see langword="null"/>。</param>
+        public FileCopilotChatLogger(string chatLogFolder, string? chatHistoryFolder)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(chatLogFolder);
         ChatLogFolder = chatLogFolder;
         ChatHistoryFolder = string.IsNullOrWhiteSpace(chatHistoryFolder) ? null : chatHistoryFolder;
     }
 
+    /// <summary>
+    /// 聊天日志文件夹路径。
+    /// </summary>
     public string ChatLogFolder { get; }
 
+    /// <summary>
+    /// 聊天历史记录文件夹路径，可为 <see langword="null"/>。
+    /// </summary>
     public string? ChatHistoryFolder { get; }
 
+    /// <inheritdoc/>
     public async Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage,
         ICopilotChatSessionStateProvider? agentSessionStateProvider = null)
     {

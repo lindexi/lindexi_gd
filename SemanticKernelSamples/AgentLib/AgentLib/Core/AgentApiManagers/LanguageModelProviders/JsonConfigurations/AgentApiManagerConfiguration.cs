@@ -3,18 +3,37 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
+/// <summary>
+/// API 管理器配置，包含首选模型和 OpenAI 协议配置列表。
+/// </summary>
 public record AgentApiManagerConfiguration
 {
+    /// <summary>
+    /// 首选模型名称或 ID。
+    /// </summary>
     public string? PrimaryModel { get; init; }
 
+    /// <summary>
+    /// OpenAI 协议语言模型配置列表。
+    /// </summary>
     public IReadOnlyList<OpenAIProtocolLanguageModelConfiguration>? OpenAIConfigurationList { get; init; }
 
+    /// <summary>
+    /// 将配置异步保存到 JSON 文件。
+    /// </summary>
+    /// <param name="file">目标文件。</param>
+    /// <returns>表示异步操作的任务。</returns>
     public async Task SaveToFileAsync(FileInfo file)
     {
         await using var fileStream = file.OpenWrite();
         await JsonSerializer.SerializeAsync(fileStream, this, JsonTypeInfo);
     }
 
+    /// <summary>
+    /// 从 JSON 文件异步加载配置。
+    /// </summary>
+    /// <param name="file">JSON 配置文件。</param>
+    /// <returns>配置实例。</returns>
     public static async Task<AgentApiManagerConfiguration> FromJsonFileAsync(FileInfo file)
     {
         await using var fileStream = file.OpenRead();
@@ -22,12 +41,22 @@ public record AgentApiManagerConfiguration
         return FromConfiguration(configuration);
     }
 
+    /// <summary>
+    /// 从 JSON 字符串反序列化配置。
+    /// </summary>
+    /// <param name="json">JSON 字符串。</param>
+    /// <returns>配置实例。</returns>
     public static AgentApiManagerConfiguration FromJsonString(string json)
     {
         var configuration = JsonSerializer.Deserialize(json, JsonTypeInfo);
         return FromConfiguration(configuration);
     }
 
+    /// <summary>
+    /// 从 <see cref="JsonElement"/> 反序列化配置。
+    /// </summary>
+    /// <param name="jsonElement">JSON 元素。</param>
+    /// <returns>配置实例。</returns>
     public static AgentApiManagerConfiguration FromJsonElement(JsonElement jsonElement)
     {
         var configuration = jsonElement.Deserialize(JsonTypeInfo);

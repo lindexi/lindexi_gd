@@ -10,8 +10,20 @@ using Microsoft.Extensions.AI;
 
 namespace AgentLib.AgentExtensions;
 
+/// <summary>
+/// 提供 <see cref="AIAgent"/> 的扩展方法。
+/// </summary>
 public static class AIAgentExtension
 {
+    /// <summary>
+    /// 以流式方式运行代理并将输出记录到控制台。
+    /// </summary>
+    /// <param name="agent">要运行的代理。</param>
+    /// <param name="messages">输入消息集合。</param>
+    /// <param name="session">可选的代理会话。</param>
+    /// <param name="options">可选的运行选项。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示异步操作的任务。</returns>
     public static async Task RunStreamingAndLogToConsoleAsync(this AIAgent agent, IEnumerable<ChatMessage> messages,
         AgentSession? session = null,
         AgentRunOptions? options = null, CancellationToken cancellationToken = default)

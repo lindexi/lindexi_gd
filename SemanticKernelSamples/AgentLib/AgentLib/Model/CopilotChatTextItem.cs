@@ -9,11 +9,18 @@ namespace AgentLib.Model;
 /// </summary>
 public sealed class CopilotChatTextItem : NotifyBase, ICopilotChatMessageItem
 {
+    /// <summary>
+    /// 使用指定文本创建文本片段。
+    /// </summary>
+    /// <param name="text">文本内容。</param>
     public CopilotChatTextItem(string text)
     {
         Text = text;
     }
 
+    /// <summary>
+    /// 文本内容。
+    /// </summary>
     public string Text
     {
         get => _text;
@@ -30,5 +37,8 @@ public sealed class CopilotChatTextItem : NotifyBase, ICopilotChatMessageItem
 
     private string _text = string.Empty;
 
+    /// <summary>
+    /// 是否有文本内容。
+    /// </summary>
     public bool HasText => !string.IsNullOrEmpty(Text);
 }
