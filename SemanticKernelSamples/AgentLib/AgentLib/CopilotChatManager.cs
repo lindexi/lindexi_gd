@@ -13,6 +13,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+#pragma warning disable MAAI001
+
 namespace AgentLib;
 
 /// <summary>
@@ -282,7 +284,14 @@ public class CopilotChatManager : NotifyBase
             return;
         }
 
-        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(contents, withHistory, createNewSession, tools, toolMode, null, cancellationToken));
+        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(contents)
+                {
+                    WithHistory = withHistory,
+                    CreateNewSession = createNewSession,
+                    Tools = tools,
+                    ToolMode = toolMode,
+                    CancellationToken = cancellationToken,
+                });
         await sendMessageResult.RunTask;
     }
 
@@ -331,22 +340,34 @@ public class CopilotChatManager : NotifyBase
         CopilotChatContext chatContext = new(currentSession.ChatMessages, assistantChatMessage);
         List<AITool> toolList = ResolveTools(request.Tools, chatContext, currentChatCancellationToken);
 
-        Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync(request.WithHistory, request.ToolMode);
+        Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync(request.WithHistory, request.ToolMode, request.ChatReducer, request.RequirePerServiceCallChatHistoryPersistence);
 
         async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync(
-            bool withHistory, ChatToolMode? toolMode)
+            bool withHistory, ChatToolMode? toolMode, IChatReducer? chatReducer, bool requirePerServiceCallChatHistoryPersistence)
         {
             currentChatCancellationToken.ThrowIfCancellationRequested();
 
             IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-            ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
+
+            var chatClientAgentOptions = new ChatClientAgentOptions()
             {
                 ChatOptions = new ChatOptions()
                 {
                     Tools = [.. toolList],
                     ToolMode = toolList.Count > 0 ? toolMode : null,
                 }
-            });
+            };
+
+            if (chatReducer is not null)
+            {
+                chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
+                {
+                    ChatReducer = chatReducer
+                });
+                chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = requirePerServiceCallChatHistoryPersistence;
+            }
+
+            ChatClientAgent chatClientAgent = chatClient.AsAIAgent(chatClientAgentOptions);
 
             // 决定是否追加历史消息
             AgentSession? runSession = withHistory

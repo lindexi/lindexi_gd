@@ -1,4 +1,4 @@
-# CopilotChatManager 对话上下文压缩机制设计计划
+# CopilotChatManager 对话上下文压缩机制设计计划（修订版）
 
 ## 背景
 
@@ -29,59 +29,52 @@
 
 ## 核心设计决策
 
-### 决策 1：入口层级
+### 决策 1：入口层级 —— 单一入口
 
-**采用双重入口**：
-- **Manager 级别**（全局默认）：`CopilotChatManager` 新增 `ChatReducer` 属性，作为所有会话的默认压缩器。类似 `WorkspacePath` 模式。
-- **Request 级别**（单次覆盖）：`SendMessageRequest` 新增可选的 `ChatReducer` 参数，允许单次调用使用不同的压缩策略（或显式传 `null` 禁用压缩）。
+仅在 `SendMessageRequest` 层面暴露参数，不在 `CopilotChatManager` 上提供全局属性。
 
-当 `SendMessageRequest.ChatReducer` 不为 `null` 时，使用该值；否则回退到 `CopilotChatManager.ChatReducer`；两者都为 `null` 时不启用压缩。
+理由：
+- 每个请求的压缩策略可能不同（不同对话场景需要不同的裁剪阈值）
+- 避免 Manager 上的有状态 reducer 在多会话间共享引起的问题
+- 保持 API 简洁，调用方在每次 `SendMessage` 时显式传入
 
 ### 决策 2：RequirePerServiceCallChatHistoryPersistence 开关
 
-同样采用双重入口：
-- **Manager 级别**：`CopilotChatManager.RequirePerServiceCallChatHistoryPersistence` 属性（默认 `false`）
-- **Request 级别**：`SendMessageRequest` 新增可选参数
+同样仅在 `SendMessageRequest` 层面提供，默认 `false`。
 
 > 此开关仅在 `ChatReducer != null`（即启用了压缩）时才有意义。
 
 ### 决策 3：内置默认实现
 
-提供可选的内置 `IChatReducer` 实现，但**不作为默认值**。默认情况 `ChatReducer` 为 `null`，不启用压缩。
+已存在内置 `IChatReducer` 实现 `CopilotChatManagerChatReducer`（`AgentLib\CopilotChatManagerChatReducer.cs`）：
 
-可考虑提供的内置实现：
-- `TokenBasedChatReducer`：基于 token 数量阈值裁剪（需依赖 tokenizer）
-- `CountBasedChatReducer`：基于消息数量阈值裁剪（如 `FallnayyewelCeehowawcerjur` 中的 `LoggingChatReducer`）
+- 基于 LLM 摘要的压缩策略：提取 System Prompt，对剩余消息调用 `IChatClient.GetResponseAsync` 生成摘要
+- 使用 `DefaultSummarizationPrompt`（要求生成不超过五句话的对话总结）
+- 当前为 `internal class`，需要在集成时决定是否改为 `public`
 
-> 第一期可以只提供接口，内置实现后续迭代。调用方自行实现 `IChatReducer`。
+> 注：当前 `CopilotChatManagerChatReducer` 尚未与 `CopilotChatManager` 集成，这正是本计划要解决的问题。`ReduceSessionAsync` 方法在当前代码库中尚不存在。
+
+### 3. 可能新增 / 修改的文件
+
+- `AgentLib\CopilotChatManagerChatReducer.cs` — 可能需要将 `CopilotChatManagerChatReducer` 改为 `public`，让调用方可直接实例化
 
 ### 决策 4：与 withHistory/AgentSession 的关系
 
-当 `ChatReducer != null` 时，`ChatHistoryProvider` 应由 `ChatClientAgentOptions.ChatHistoryProvider` 接收。`InMemoryChatHistoryProvider` 内部管理其自己的消息历史，与 `CopilotChatSession.ChatMessages` 独立。
-
-但是，`AgentSession` 通过 `GetOrCreateAgentSessionAsync` 创建并持久化到 `CopilotChatSession`。这意味着：
-- `withHistory = true`：复用已有的 `AgentSession`，对话状态由 `AgentSession` 内部维护
-- 启用压缩后，`ChatHistoryProvider` 会对**传递给模型的**消息列表进行裁剪，但不影响 `CopilotChatSession.ChatMessages`（UI 显示的消息列表）
-
-**这是期望行为**：UI 显示完整消息历史，但模型只看到压缩后的上下文。
+- **UI 显示完整历史**：`CopilotChatSession.ChatMessages` 不变，始终包含所有消息
+- **模型看到压缩上下文**：`ChatHistoryProvider` 只裁剪传递给模型的消息列表
+- **`WithHistory = false` 时**：`AgentSession` 为 null，框架会跳过压缩逻辑（没有历史可供压缩），行为合理
+- **每次新的 `InMemoryChatHistoryProvider`**：框架内部自行管理状态，不会丢失之前的压缩状态
 
 ### 决策 5：日志记录
 
-在 ChatReducer 执行压缩时，可记录：
-- 压缩前后的消息数量
-- 被裁剪的消息范围
-
-但这不是 `CopilotChatManager` 的直接职责。可以通过以下方式支持：
-1. 提供 `LoggingChatReducer` 装饰器（类似 FallnayyewelCeehowawcerjur 中的模式），由调用方自行决定是否包装
-2. 或者，暂时不做日志集成，由 `IChatReducer` 的实现者自行处理
-
-> 第一期建议不强制集成日志，保持简单。
+不在 `CopilotChatManager` 中强制集成压缩日志。调用方可使用装饰器模式包装自己的 `IChatReducer` 实现来记录压缩事件。
 
 ## 需要变更的文件
 
 ### 1. `AgentLib\Model\SendMessages_\SendMessageRequest.cs`
 
 新增两个可选参数：
+
 ```csharp
 public readonly record struct SendMessageRequest(
     IReadOnlyList<AIContent> Contents,
@@ -97,42 +90,38 @@ public readonly record struct SendMessageRequest(
 )
 ```
 
+`FromText` 工厂方法同步新增参数。
+
 ### 2. `AgentLib\CopilotChatManager.cs`
 
-新增属性和修改内部逻辑：
+**不新增任何属性**。仅在内部方法 `CreateChatClientAgentAsync` 中：
 
-- **新增属性**：
-  ```csharp
-  public IChatReducer? ChatReducer { get; set; }
-  public bool RequirePerServiceCallChatHistoryPersistence { get; set; }
-  ```
+- 从 `request.ChatReducer` 读取压缩器
+- 若 `ChatReducer != null`，创建 `InMemoryChatHistoryProvider` 并赋值给 `ChatClientAgentOptions.ChatHistoryProvider`
+- 同时将 `ChatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence` 设置为 `request` 中对应的值
 
-- **修改 `CreateChatClientAgentAsync` 内部方法**：
-  根据 `ChatReducer` 决定是否创建 `InMemoryChatHistoryProvider` 并赋值给 `ChatClientAgentOptions.ChatHistoryProvider`。
-  同时设置 `RequirePerServiceCallChatHistoryPersistence`。
+### 3. 不变更的文件
 
-### 3. 可能新增文件
+- `CopilotChatSession.cs` — 无需修改，UI 消息列表保持完整
+- `SendMessageResult.cs` — 无需修改，压缩对调用方透明
+- `SendMessageAsync` 重载方法 — 保持现有签名不变（默认不压缩）
 
-- `AgentLib\ChatReducers\` 目录（可选，用于内置 `IChatReducer` 实现）
-- 如果提供内置实现，可能新增 `CountBasedChatReducer.cs` 等
+## 已解决的开放问题
 
-## 待讨论的开放问题
+1. **`IChatReducer` 类型来源**：✅ 已确认。`Microsoft.Agents.AI.OpenAI` 依赖链已间接引用 `Microsoft.Extensions.AI`，其中定义了 `IChatReducer`。
 
-1. **`IChatReducer` 类型来源**：`IChatReducer` 在 `Microsoft.Extensions.AI` 包中定义。AgentLib 是否已间接引用？需验证 `Microsoft.Agents.AI.OpenAI 1.6.2` 的依赖链。
+2. **压缩后是否回写 UI 消息列表**：✅ 不回写。UI 显示完整历史，模型看到压缩上下文。这是期望行为。
 
-2. **压缩后是否需回写 `CopilotChatSession.ChatMessages`**：当前设计是 UI 保留完整历史，模型看到压缩后的上下文。这是否符合预期？还是需要同步裁剪 UI 消息列表？
+3. **多会话共享 reducer 实例**：✅ 不适用。去掉 Manager 级别属性后，每个请求独立传入 reducer，不存在跨会话共享问题。
 
-3. **多会话场景**：如果全局设置 `CopilotChatManager.ChatReducer`，所有会话共享同一个 reducer 实例。这对有状态的 reducer（如累计 token 计数）可能有问题。是否需要每个会话创建独立的 reducer 实例？
+4. **`InMemoryChatHistoryProvider` 生命周期**：✅ 每次新建没有问题。框架内部自行管理状态。
 
-4. **`InMemoryChatHistoryProvider` 的生命周期**：当前每次 `SendMessage` 都会 `new ChatClientAgentOptions()`。如果启用压缩，每次新建 `InMemoryChatHistoryProvider` 是否会丢失之前的压缩状态？需要验证是否需要同一个 provider 实例跨多次调用共享。
+5. **`WithHistory = false` 组合**：✅ 框架自动跳过压缩，行为合理。
 
-5. **与 `SendMessageRequest.WithHistory = false` 的组合**：当不带历史时，`AgentSession` 为 null，此时 `ChatHistoryProvider` 的行为是什么？框架是跳过压缩还是有默认行为？
+## 实施步骤
 
-## 实施步骤（草案）
-
-1. 验证 `IChatReducer` 在 AgentLib 依赖链中的可用性
-2. 修改 `SendMessageRequest`，新增 `ChatReducer` 和 `RequirePerServiceCallChatHistoryPersistence` 参数
-3. 在 `CopilotChatManager` 新增 `ChatReducer` 和 `RequirePerServiceCallChatHistoryPersistence` 属性
-4. 修改 `CreateChatClientAgentAsync` 内部逻辑，根据 ChatReducer 决定是否注入 `InMemoryChatHistoryProvider`
-5. 编写单元测试验证压缩机制的行为
-6. 更新 `SendMessageRequest.FromText` 工厂方法支持新参数
+1. 修改 `SendMessageRequest`，新增 `ChatReducer` 和 `RequirePerServiceCallChatHistoryPersistence` 参数
+2. 修改 `SendMessageRequest.FromText` 工厂方法支持新参数
+3. 修改 `CopilotChatManager` 的 `CreateChatClientAgentAsync` 内部方法，根据 request 参数注入 `InMemoryChatHistoryProvider`
+4. 编写单元测试验证：ChatReducer 为 null 时行为不变、ChatReducer 不为 null 时正确注入
+5. 编译验证通过

@@ -22,7 +22,7 @@ public class CopilotChatManagerSendMessageTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            SendMessageRequest.FromText("你好"));
+            new SendMessageRequest("你好"));
 
         Assert.IsNotNull(result.UserChatMessage);
         Assert.IsNotNull(result.AssistantChatMessage);
@@ -52,7 +52,7 @@ public class CopilotChatManagerSendMessageTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            new SendMessageRequest([new TextContent("你好")], SystemPrompt: "你是一个友好的助手"));
+            new SendMessageRequest([new TextContent("你好")]) { SystemPrompt = "你是一个友好的助手" });
 
         await result.RunTask;
 
@@ -74,7 +74,7 @@ public class CopilotChatManagerSendMessageTests
         Guid originalSessionId = context.ChatManager.CurrentSessionId;
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            new SendMessageRequest([new TextContent("你好")], CreateNewSession: true));
+            new SendMessageRequest([new TextContent("你好")]) { CreateNewSession = true });
 
         await result.RunTask;
 
@@ -92,7 +92,7 @@ public class CopilotChatManagerSendMessageTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            new SendMessageRequest([new TextContent("你好")], WithHistory: true));
+            new SendMessageRequest([new TextContent("你好")]) { WithHistory = true });
 
         await result.RunTask;
 
@@ -110,7 +110,7 @@ public class CopilotChatManagerSendMessageTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            new SendMessageRequest([new TextContent("你好")], WithHistory: false));
+            new SendMessageRequest([new TextContent("你好")]) { WithHistory = false });
 
         await result.RunTask;
 
@@ -142,7 +142,7 @@ public class CopilotChatManagerSendMessageTests
 
         try
         {
-            context.ChatManager.SendMessage(new SendMessageRequest(null!));
+            context.ChatManager.SendMessage(new SendMessageRequest((IReadOnlyList<AIContent>) null!));
             Assert.Fail("应抛出 ArgumentNullException");
         }
         catch (ArgumentNullException)
@@ -256,7 +256,7 @@ public class CopilotChatManagerSendMessageTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            SendMessageRequest.FromText("你好"));
+            new SendMessageRequest("你好"));
 
         Assert.IsNotNull(result.ToolList);
         Assert.IsTrue(result.ToolList.Count > 0, "应包含默认工具");
@@ -275,7 +275,7 @@ public class CopilotChatManagerSendMessageTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            SendMessageRequest.FromText("测试"));
+            new SendMessageRequest("测试"));
 
         Assert.IsTrue(context.ChatManager.IsChatting);
 
@@ -285,8 +285,8 @@ public class CopilotChatManagerSendMessageTests
     }
 
     [TestMethod]
-    [Description("SendMessage 使用 FromText 便捷工厂应正确包装文本内容")]
-    public async Task SendMessage_WhenFromTextFactoryUsed_WrapsTextCorrectly()
+    [Description("SendMessage 使用字符串构造函数重载应正确包装文本内容")]
+    public async Task SendMessage_WhenStringConstructorUsed_WrapsTextCorrectly()
     {
         var primaryChatClient = new FakeChatClient();
         primaryChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
@@ -295,7 +295,7 @@ public class CopilotChatManagerSendMessageTests
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
         SendMessageResult result = context.ChatManager.SendMessage(
-            SendMessageRequest.FromText("工厂方法测试", withHistory: false, createNewSession: true));
+            new SendMessageRequest("工厂方法测试") { WithHistory = false, CreateNewSession = true });
 
         Assert.AreEqual("工厂方法测试", result.UserChatMessage.Content);
 
