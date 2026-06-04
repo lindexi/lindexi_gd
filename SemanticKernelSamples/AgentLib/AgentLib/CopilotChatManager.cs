@@ -213,7 +213,7 @@ public class CopilotChatManager : NotifyBase
             return;
         }
 
-        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(inputText, withHistory, createNewSession, tools, toolMode, cancellationToken));
+        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(inputText, withHistory, createNewSession, tools, toolMode, null, cancellationToken));
         await sendMessageResult.RunTask;
     }
 
@@ -248,20 +248,20 @@ public class CopilotChatManager : NotifyBase
 
         Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync(request.WithHistory, request.ToolMode);
 
-        async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync(
-            bool withHistory, ChatToolMode? toolMode)
-        {
-            currentChatCancellationToken.ThrowIfCancellationRequested();
-
-            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-            ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
-            {
-                ChatOptions = new ChatOptions()
+                async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync(
+                    bool withHistory, ChatToolMode? toolMode)
                 {
-                    Tools = [.. toolList],
-                    ToolMode = toolList.Count > 0 ? toolMode : null,
-                }
-            });
+                    currentChatCancellationToken.ThrowIfCancellationRequested();
+
+                    IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+                    ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
+                    {
+                        ChatOptions = new ChatOptions()
+                        {
+                            Tools = [.. toolList],
+                            ToolMode = toolList.Count > 0 ? toolMode : null,
+                        }
+                    });
 
             // 决定是否追加历史消息
             AgentSession? runSession = withHistory
@@ -287,9 +287,14 @@ public class CopilotChatManager : NotifyBase
                 currentSession.AddMessage(assistantChatMessage);
 
                 bool isFirst = true;
-                ChatMessage chatMessage = userChatMessage.ToChatMessage();
+                ChatMessage userChatMessageContent = userChatMessage.ToChatMessage();
+                IEnumerable<ChatMessage> runMessages = string.IsNullOrWhiteSpace(request.SystemPrompt)
+                    ? [userChatMessageContent]
+                    : [
+                        new ChatMessage(ChatRole.System, request.SystemPrompt), userChatMessageContent
+                    ];
                 await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgentCreatedResult.ChatClientAgent.RunStreamingAsync(
-                    chatMessage, chatClientAgentCreatedResult.AgentSession, cancellationToken: currentChatCancellationToken))
+                    runMessages, chatClientAgentCreatedResult.AgentSession, cancellationToken: currentChatCancellationToken))
                 {
                     if (isFirst)
                     {
