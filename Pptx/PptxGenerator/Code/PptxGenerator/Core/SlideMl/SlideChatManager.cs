@@ -9,6 +9,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 
 namespace PptxGenerator;
 
@@ -65,23 +66,19 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
         var tools = new[] { _slideRenderTool.CreateTool() };
 
-        var request = new SendMessageRequest(
-            InputText: BuildInitialUserPrompt(userPrompt),
-            WithHistory: true,
-            CreateNewSession: false,
-            Tools: tools,
-            ToolMode: ChatToolMode.Auto,
-            SystemPrompt: BuildSystemPrompt(),
-            CancellationToken: cancellationToken);
+        var request = SendMessageRequest.FromText(BuildInitialUserPrompt(userPrompt), tools: tools, systemPrompt: BuildSystemPrompt());
 
         var requestResult = _copilotChatManager.SendMessage(request);
         await requestResult.RunTask.ConfigureAwait(false);
 
-        // 刷新状态
-        OnPropertyChanged(nameof(PreviewBitmap));
-        OnPropertyChanged(nameof(CurrentSlideXml));
-        OnPropertyChanged(nameof(RenderedXml));
-        OnPropertyChanged(nameof(WarningText));
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            // 刷新状态
+            OnPropertyChanged(nameof(PreviewBitmap));
+            OnPropertyChanged(nameof(CurrentSlideXml));
+            OnPropertyChanged(nameof(RenderedXml));
+            OnPropertyChanged(nameof(WarningText));
+        });
     }
 
     /// <summary>
@@ -98,14 +95,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
         var tools = new[] { _slideRenderTool.CreateTool() };
 
-        var request = new SendMessageRequest(
-            InputText: userMessage,
-            WithHistory: true,
-            CreateNewSession: false,
-            Tools: tools,
-            ToolMode: ChatToolMode.Auto,
-            SystemPrompt: null,
-            CancellationToken: cancellationToken);
+        var request = SendMessageRequest.FromText(userMessage, tools: tools, systemPrompt: null);
 
         var requestResult = _copilotChatManager.SendMessage(request);
         await requestResult.RunTask.ConfigureAwait(false);
