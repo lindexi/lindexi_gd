@@ -8,6 +8,195 @@
              x:DataType="vm:MainWindowViewModel"
              d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PptxGenerator.CharUserControl">
+
+    <UserControl.Resources>
+        <!-- 颜色资源 -->
+        <SolidColorBrush x:Key="ChatTextForegroundBrush" Color="#FF1E293B" />
+        <SolidColorBrush x:Key="ChatReasoningBackgroundBrush" Color="#FFF1F5F9" />
+        <SolidColorBrush x:Key="ChatReasoningBorderBrush" Color="#FFCBD5E1" />
+        <SolidColorBrush x:Key="ChatReasoningLabelBrush" Color="#FF94A3B8" />
+        <SolidColorBrush x:Key="ChatReasoningTextBrush" Color="#FF64748B" />
+        <SolidColorBrush x:Key="ChatToolBorderBrush" Color="#FFE2E8F0" />
+        <SolidColorBrush x:Key="ChatToolHeaderBackgroundBrush" Color="#FFF8FAFC" />
+        <SolidColorBrush x:Key="ChatToolNameForegroundBrush" Color="#FF334155" />
+        <SolidColorBrush x:Key="ChatToolInputForegroundBrush" Color="#FF475569" />
+        <SolidColorBrush x:Key="ChatToolOutputForegroundBrush" Color="#FF334155" />
+        <SolidColorBrush x:Key="ChatAudioBackgroundBrush" Color="#FFF1F5F9" />
+        <SolidColorBrush x:Key="ChatAudioTextBrush" Color="#FF64748B" />
+        <SolidColorBrush x:Key="ChatUsageTextBrush" Color="#FF94A3B8" />
+
+        <!-- 聊天消息子项模板选择器 -->
+        <vm:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
+            <vm:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
+                <DataTemplate x:DataType="agent:CopilotChatTextItem">
+                    <TextBlock Text="{Binding Text}"
+                               TextWrapping="Wrap"
+                               FontSize="14"
+                               Foreground="{StaticResource ChatTextForegroundBrush}" />
+                </DataTemplate>
+            </vm:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
+            <vm:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
+                <DataTemplate x:DataType="agent:CopilotChatReasoningItem">
+                    <Border Background="{StaticResource ChatReasoningBackgroundBrush}"
+                            BorderBrush="{StaticResource ChatReasoningBorderBrush}"
+                            BorderThickness="3,0,0,0"
+                            CornerRadius="4"
+                            Padding="12,8"
+                            Margin="0,2">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="思考过程"
+                                       FontSize="11"
+                                       Foreground="{StaticResource ChatReasoningLabelBrush}"
+                                       FontWeight="Medium" />
+                            <TextBlock Text="{Binding Text}"
+                                       FontStyle="Italic"
+                                       FontSize="12"
+                                       Foreground="{StaticResource ChatReasoningTextBrush}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </vm:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
+            <vm:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
+                <DataTemplate x:DataType="agent:CopilotChatToolItem">
+                    <Border BorderBrush="{StaticResource ChatToolBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="0"
+                            Margin="0,2">
+                        <StackPanel Spacing="0">
+                            <!-- 头部：工具名 -->
+                            <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
+                                    Padding="12,8">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="&#x1F527;"
+                                               FontSize="12"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding ToolName}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource ChatToolNameForegroundBrush}"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                            <!-- 体：输入/输出 -->
+                            <Border Padding="12,8">
+                                <StackPanel Spacing="6">
+                                    <StackPanel IsVisible="{Binding HasInputText}" Spacing="2">
+                                        <TextBlock Text="输入"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource ChatReasoningLabelBrush}"
+                                                   FontWeight="Medium" />
+                                        <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
+                                                Padding="8"
+                                                CornerRadius="4">
+                                            <TextBlock Text="{Binding InputText}"
+                                                       FontFamily="Cascadia Code,Consolas,monospace"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource ChatToolInputForegroundBrush}"
+                                                       TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel IsVisible="{Binding HasOutputText}" Spacing="2">
+                                        <TextBlock Text="输出"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource ChatReasoningLabelBrush}"
+                                                   FontWeight="Medium" />
+                                        <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
+                                                Padding="8"
+                                                CornerRadius="4">
+                                            <TextBlock Text="{Binding OutputText}"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource ChatToolOutputForegroundBrush}"
+                                                       TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </vm:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
+            <vm:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
+                <DataTemplate x:DataType="agent:CopilotChatSubAgentItem">
+                    <Border BorderBrush="{StaticResource ChatToolBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="0"
+                            Margin="0,2">
+                        <StackPanel Spacing="0">
+                            <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
+                                    Padding="12,8">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="&#x1F527;"
+                                               FontSize="12"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding ToolName}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource ChatToolNameForegroundBrush}"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                            <Border Padding="12,8">
+                                <StackPanel Spacing="6">
+                                    <StackPanel IsVisible="{Binding HasInputText}" Spacing="2">
+                                        <TextBlock Text="输入"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource ChatReasoningLabelBrush}"
+                                                   FontWeight="Medium" />
+                                        <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
+                                                Padding="8"
+                                                CornerRadius="4">
+                                            <TextBlock Text="{Binding InputText}"
+                                                       FontFamily="Cascadia Code,Consolas,monospace"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource ChatToolInputForegroundBrush}"
+                                                       TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel IsVisible="{Binding HasOutputText}" Spacing="2">
+                                        <TextBlock Text="输出"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource ChatReasoningLabelBrush}"
+                                                   FontWeight="Medium" />
+                                        <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
+                                                Padding="8"
+                                                CornerRadius="4">
+                                            <TextBlock Text="{Binding OutputText}"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource ChatToolOutputForegroundBrush}"
+                                                       TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </vm:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
+            <vm:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
+                <DataTemplate x:DataType="agent:CopilotChatImageItem">
+                    <Image Source="{Binding Data, Converter={x:Static vm:BinaryDataToBitmapConverter.Instance}}"
+                           MaxWidth="320"
+                           Stretch="Uniform"
+                           Margin="0,4" />
+                </DataTemplate>
+            </vm:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
+            <vm:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
+                <DataTemplate x:DataType="agent:CopilotChatAudioItem">
+                    <Border Background="{StaticResource ChatAudioBackgroundBrush}"
+                            CornerRadius="8"
+                            Padding="12,8">
+                        <TextBlock Text="{Binding DisplayText}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource ChatAudioTextBrush}" />
+                    </Border>
+                </DataTemplate>
+            </vm:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
+        </vm:CopilotChatMessageItemTemplateSelector>
+    </UserControl.Resources>
+
     <Border CornerRadius="14"
             Background="#FFFFFFFF"
             BorderBrush="#FFE2E8F0"
@@ -56,10 +245,14 @@
                                            FontWeight="Bold"
                                            FontSize="12"
                                            Foreground="{Binding Role, Converter={x:Static vm:ChatBubbleAuthorColorConverter.Instance}}" />
-                                <TextBlock Text="{Binding Content}"
-                                           TextWrapping="Wrap"
-                                           FontSize="14"
-                                           Foreground="#FF1E293B" />
+                                <!-- 按 MessageItems 逐项渲染 -->
+                                <ItemsControl ItemsSource="{Binding MessageItems}"
+                                              ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
+                                <!-- Token 用量信息（如存在） -->
+                                <TextBlock Text="{Binding UsageSummaryText}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource ChatUsageTextBrush}"
+                                           IsVisible="{Binding HasUsageDetails}" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>

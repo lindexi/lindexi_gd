@@ -2,14 +2,16 @@ using AgentLib;
 using AgentLib.Model;
 
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 
 using Microsoft.Extensions.AI;
 
 using System;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 
 namespace PptxGenerator;
 
@@ -21,6 +23,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 {
     private readonly CopilotChatManager _copilotChatManager;
     private readonly SlideRenderTool _slideRenderTool;
+    private Bitmap? _lastInjectedPreviewBitmap;
 
     public SlideChatManager(CopilotChatManager copilotChatManager, SlideRenderTool slideRenderTool)
     {
@@ -73,7 +76,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            // 刷新状态
+            InjectPreviewScreenshot();
             OnPropertyChanged(nameof(PreviewBitmap));
             OnPropertyChanged(nameof(CurrentSlideXml));
             OnPropertyChanged(nameof(RenderedXml));
@@ -100,10 +103,41 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         var requestResult = _copilotChatManager.SendMessage(request);
         await requestResult.RunTask.ConfigureAwait(false);
 
+        InjectPreviewScreenshot();
         OnPropertyChanged(nameof(PreviewBitmap));
         OnPropertyChanged(nameof(CurrentSlideXml));
         OnPropertyChanged(nameof(RenderedXml));
         OnPropertyChanged(nameof(WarningText));
+    }
+
+    /// <summary>
+    /// 将最新的渲染预览图注入到当前 Assistant 消息的 MessageItems 中，
+    /// 作为多模态截图反馈供下一轮模型调用参考。
+    /// </summary>
+    private void InjectPreviewScreenshot()
+    {
+        var bitmap = _slideRenderTool.LatestPreviewBitmap;
+        if (bitmap is null || ReferenceEquals(bitmap, _lastInjectedPreviewBitmap))
+        {
+            return;
+        }
+
+        _lastInjectedPreviewBitmap = bitmap;
+
+        var lastAssistantMessage = _copilotChatManager.ChatMessages
+            .LastOrDefault(m => m.Role == ChatRole.Assistant);
+        if (lastAssistantMessage is null)
+        {
+            return;
+        }
+
+        using var memoryStream = new MemoryStream();
+        bitmap.Save(memoryStream);
+        var imageBytes = memoryStream.ToArray();
+
+        var binaryData = BinaryData.FromBytes(imageBytes);
+        var imageItem = new CopilotChatImageItem(binaryData, "image/png");
+        lastAssistantMessage.MessageItems.Add(imageItem);
     }
 
     private void OnPropertyChanged(string propertyName)
