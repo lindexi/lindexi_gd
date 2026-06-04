@@ -1,6 +1,6 @@
 ﻿using Avalonia.Input;
 using LightTextEditorPlus;
-using LightTextEditorPlus.Core.Carets;
+using SimpleWrite.Business.TextEditors;
 using SimpleWrite.ViewModels;
 
 namespace SimpleWrite.Business.ShortcutManagers;
@@ -63,71 +63,17 @@ static class ShortcutManagerHelper
 
         shortcutManager.AddShortcut(KeyModifiers.Control, Key.Back, "DeleteForwardWord", context =>
         {
-            var textEditor = context.CurrentTextEditor;
-
-            var currentSelection = textEditor.CurrentSelection;
-            if (!currentSelection.IsEmpty)
+            if (context.CurrentTextEditor.TextEditorHandler is SimpleWriteTextEditorHandler handler)
             {
-                // 有选中内容时，直接删除选中
-                textEditor.Remove(in currentSelection);
-                return;
-            }
-
-            var caretOffset = textEditor.CurrentCaretOffset;
-            if (caretOffset.Offset == 0)
-            {
-                // 文档开头，无法删除
-                return;
-            }
-
-            var wordSelection = textEditor.GetCurrentCaretOffsetWord();
-
-            if (wordSelection.Contains(in caretOffset)
-                && wordSelection.FrontOffset.Offset != caretOffset.Offset)
-            {
-                // 光标在单词内部（不在单词开头），删除从单词开头到光标的内容
-                var deleteSelection = new Selection(wordSelection.FrontOffset, caretOffset);
-                textEditor.Remove(in deleteSelection);
-            }
-            else
-            {
-                // 光标在单词开头或单词外（如标点符号），删除前一个字符
-                textEditor.Backspace();
+                handler.DeleteForwardWordByShortcut();
             }
         });
 
         shortcutManager.AddShortcut(KeyModifiers.Control, Key.Delete, "DeleteBackwardWord", context =>
         {
-            var textEditor = context.CurrentTextEditor;
-
-            var currentSelection = textEditor.CurrentSelection;
-            if (!currentSelection.IsEmpty)
+            if (context.CurrentTextEditor.TextEditorHandler is SimpleWriteTextEditorHandler handler)
             {
-                // 有选中内容时，直接删除选中
-                textEditor.Remove(in currentSelection);
-                return;
-            }
-
-            var caretOffset = textEditor.CurrentCaretOffset;
-            if (caretOffset.Offset >= textEditor.TextEditorCore.DocumentManager.CharCount)
-            {
-                // 文档末尾，无法删除
-                return;
-            }
-
-            var wordSelection = textEditor.GetCurrentCaretOffsetWord();
-
-            if (wordSelection.Contains(in caretOffset)
-                && wordSelection.BehindOffset.Offset != caretOffset.Offset)
-            {
-                // 光标在单词内部（不在单词末尾），删除从光标到单词末尾的内容
-                var deleteSelection = new Selection(caretOffset, wordSelection.BehindOffset);
-                textEditor.Remove(in deleteSelection);
-            }
-            else
-            {
-                // 光标在单词末尾或单词外（如标点符号），删除后一个字符
-                textEditor.Delete();
+                handler.DeleteBackwardWordByShortcut();
             }
         });
     }
