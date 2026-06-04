@@ -181,6 +181,13 @@ public class CopilotChatManager : NotifyBase
     }
 
     /// <summary>
+    /// AI 上下文提供者集合。设置后将在每次创建 <see cref="ChatClientAgent"/> 时注入到 <see cref="ChatClientAgentOptions.AIContextProviders"/>。
+    /// 调用方可添加任意 <see cref="AIContextProvider"/> 实现，如 <c>AgentSkillsProvider</c> 等。
+    /// 为 <see langword="null"/> 或空集合时，不会注入任何上下文提供者。
+    /// </summary>
+    public IList<AIContextProvider>? AIContextProviders { get; set; }
+
+    /// <summary>
     /// 创建新会话并切换为当前选中会话。
     /// </summary>
     public void CreateNewSession()
@@ -364,6 +371,12 @@ public class CopilotChatManager : NotifyBase
                     ChatReducer = request.ChatReducer
                 });
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
+            }
+
+            IList<AIContextProvider>? aiContextProviders = request.AIContextProviders ?? AIContextProviders;
+            if (aiContextProviders is { Count: > 0 })
+            {
+                chatClientAgentOptions.AIContextProviders = aiContextProviders;
             }
 
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(chatClientAgentOptions);
