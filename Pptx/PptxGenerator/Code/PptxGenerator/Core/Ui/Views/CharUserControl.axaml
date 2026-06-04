@@ -2,7 +2,99 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:PptxGenerator"
+             xmlns:agent="using:AgentLib.Model"
+             mc:Ignorable="d"
+             x:DataType="vm:MainWindowViewModel"
+             d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PptxGenerator.CharUserControl">
-  
+    <Border CornerRadius="14"
+            Background="#FFFFFFFF"
+            BorderBrush="#FFE2E8F0"
+            BorderThickness="1"
+            Padding="0">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- 顶部标题栏 -->
+            <Border Grid.Row="0"
+                    Background="#FFF8FAFC"
+                    BorderBrush="#FFE2E8F0"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,12">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="SlideML Lab"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="#FF0F172A"
+                               VerticalAlignment="Center" />
+                    <Border Grid.Column="1"
+                            Background="#FFF1F5F9"
+                            BorderBrush="#FFE2E8F0"
+                            BorderThickness="1"
+                            CornerRadius="999"
+                            Padding="12,6"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StatusText}" Foreground="#FF334155" FontSize="12" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- 聊天气泡列表 -->
+            <ListBox Grid.Row="1"
+                     ItemsSource="{Binding ChatMessages}"
+                     Background="#FFFFFFFF"
+                     BorderThickness="0"
+                     Padding="8"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="agent:CopilotChatMessage">
+                        <Border Margin="4,6" Padding="14" CornerRadius="16"
+                                MaxWidth="640"
+                                HorizontalAlignment="{Binding Role, Converter={x:Static vm:ChatBubbleAlignmentConverter.Instance}}"
+                                Background="{Binding Role, Converter={x:Static vm:ChatBubbleBackgroundConverter.Instance}}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding Author}"
+                                           FontWeight="Bold"
+                                           FontSize="12"
+                                           Foreground="{Binding Role, Converter={x:Static vm:ChatBubbleAuthorColorConverter.Instance}}" />
+                                <TextBlock Text="{Binding Content}"
+                                           TextWrapping="Wrap"
+                                           FontSize="14"
+                                           Foreground="#FF1E293B" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- 底部输入栏 -->
+            <Border Grid.Row="2"
+                    Background="#FFF8FAFC"
+                    BorderBrush="#FFE2E8F0"
+                    BorderThickness="0,1,0,0"
+                    Padding="12">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Text="{Binding InputText}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MinHeight="42"
+                             MaxHeight="120"
+                             Background="White"
+                             BorderBrush="#FFCBD5E1"
+                             BorderThickness="1"
+                             Padding="12,10"
+                             Watermark="描述你想做的一页幻灯片…" />
+                    <Button Grid.Column="1"
+                            Content="发送"
+                            Command="{Binding SendMessageCommand}"
+                            MinWidth="80"
+                            Height="42"
+                            Margin="10,0,0,0"
+                            Background="#FF2563EB"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            CornerRadius="10" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
 </UserControl>
