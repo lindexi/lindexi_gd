@@ -164,4 +164,74 @@ public partial class TextEditorCore
     {
         DocumentManager.RemoveParagraph(paragraph);
     }
+
+    /// <summary>
+    /// 删除光标前向的单词。通常对应 Ctrl+Backspace 快捷键。
+    /// 如果有选中内容，则删除选中内容；否则从光标位置向前删除到单词开头。
+    /// </summary>
+    /// <remarks>此方法不依赖 <see cref="TextEditor.IsInEditingInputMode"/> 等 UI 交互状态，可通过 API 直接调用。</remarks>
+    [TextEditorPublicAPI]
+    public void DeleteForwardWord()
+    {
+        var currentSelection = CurrentSelection;
+        if (!currentSelection.IsEmpty)
+        {
+            DocumentManager.Remove(currentSelection);
+            return;
+        }
+
+        var caretOffset = CurrentCaretOffset;
+        if (caretOffset.Offset == 0)
+        {
+            return;
+        }
+
+        var wordSelection = this.GetCurrentCaretOffsetWord();
+
+        if (wordSelection.Contains(in caretOffset)
+            && wordSelection.FrontOffset.Offset != caretOffset.Offset)
+        {
+            var deleteSelection = new Selection(wordSelection.FrontOffset, caretOffset);
+            DocumentManager.Remove(deleteSelection);
+        }
+        else
+        {
+            DocumentManager.Backspace();
+        }
+    }
+
+    /// <summary>
+    /// 删除光标后向的单词。通常对应 Ctrl+Delete 快捷键。
+    /// 如果有选中内容，则删除选中内容；否则从光标位置向后删除到单词末尾。
+    /// </summary>
+    /// <remarks>此方法不依赖 <see cref="TextEditor.IsInEditingInputMode"/> 等 UI 交互状态，可通过 API 直接调用。</remarks>
+    [TextEditorPublicAPI]
+    public void DeleteBackwardWord()
+    {
+        var currentSelection = CurrentSelection;
+        if (!currentSelection.IsEmpty)
+        {
+            DocumentManager.Remove(currentSelection);
+            return;
+        }
+
+        var caretOffset = CurrentCaretOffset;
+        if (caretOffset.Offset >= DocumentManager.CharCount)
+        {
+            return;
+        }
+
+        var wordSelection = this.GetCurrentCaretOffsetWord();
+
+        if (wordSelection.Contains(in caretOffset)
+            && wordSelection.BehindOffset.Offset != caretOffset.Offset)
+        {
+            var deleteSelection = new Selection(caretOffset, wordSelection.BehindOffset);
+            DocumentManager.Remove(deleteSelection);
+        }
+        else
+        {
+            DocumentManager.Delete();
+        }
+    }
 }
