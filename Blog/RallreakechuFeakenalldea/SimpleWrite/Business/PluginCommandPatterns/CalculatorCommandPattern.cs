@@ -94,7 +94,7 @@ sealed class CalculatorCommandPattern : ICommandPattern
     {
         foreach (char c in text)
         {
-            if (c is '+' or '-' or '*' or '/')
+            if (c is '+' or '-' or '*' or '/' or 'x' or 'X')
             {
                 return true;
             }
@@ -292,7 +292,7 @@ sealed class CalculatorCommandPattern : ICommandPattern
             {
                 '+' => TokenType.Plus,
                 '-' => TokenType.Minus,
-                '*' => TokenType.Multiply,
+                '*' or 'x' or 'X' => TokenType.Multiply,
                 '/' => TokenType.Divide,
                 '(' => TokenType.LeftParen,
                 ')' => TokenType.RightParen,
