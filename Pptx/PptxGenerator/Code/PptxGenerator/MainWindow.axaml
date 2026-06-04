@@ -10,6 +10,10 @@
         d:DesignHeight="980"
         x:Class="PptxGenerator.MainWindow"
         Title="PptxGenerator - SlideML Lab"
+        Width="1580"
+        Height="980"
+        MinWidth="1280"
+        MinHeight="800"
         Background="#FFF8FAFC">
     <Grid ColumnDefinitions="420,*,Auto" Margin="12">
         <!-- 左侧面板：页面预览 + XML + 警告 -->
