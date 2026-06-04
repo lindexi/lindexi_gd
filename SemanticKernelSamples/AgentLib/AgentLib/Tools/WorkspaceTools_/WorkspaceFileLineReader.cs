@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace AgentLib.Tools;
 /// <param name="maxRemainingLinesToCount">最多统计的剩余行数上限。</param>
 public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemainingLinesToCount)
 {
+    private const int BufferSize = 4096;
     private readonly int _maxCharacters = maxCharacters;
     private readonly int _maxRemainingLinesToCount = maxRemainingLinesToCount;
 
@@ -31,110 +33,255 @@ public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemaini
         bool includeLineNumbers,
         Func<string, string> getDisplayPath)
     {
-        var builder = new StringBuilder();
-        int currentLine = 0;
+        var contentBuilder = new StringBuilder();
+        var leftover = new StringBuilder();
+        int actualEndLine = startLine - 1;
         bool hasContent = false;
         bool reachedCharacterLimit = false;
-        bool reachedEndOfFile = true;
-        int actualEndLine = startLine - 1;
-        var contentBuilder = new StringBuilder();
 
-        using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
-
-        while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
+        char[]? rentedBuffer = ArrayPool<char>.Shared.Rent(BufferSize);
+        try
         {
-            currentLine++;
-            if (currentLine < startLine)
-            {
-                continue;
-            }
+            using var reader = new StreamReader(file.FullName, detectEncodingFromByteOrderMarks: true);
+            Memory<char> buffer = rentedBuffer;
 
-            if (currentLine > endLine)
-            {
-                reachedEndOfFile = false;
-                break;
-            }
+            // 阶段一：读取请求的行范围
+            int currentLine = 0;
+            bool contentPhaseComplete = false;
 
-            string outputLine = includeLineNumbers ? $"{currentLine}: {line}" : line;
-            int appendedLength = outputLine.Length + Environment.NewLine.Length;
-            if (contentBuilder.Length + appendedLength > _maxCharacters)
+            while (!contentPhaseComplete)
             {
-                int remainingCharacters = _maxCharacters - contentBuilder.Length;
-                if (remainingCharacters > 0)
+                int charsRead = await reader.ReadAsync(buffer).ConfigureAwait(false);
+                if (charsRead == 0)
                 {
-                    int lineCharactersToAppend = Math.Min(outputLine.Length, remainingCharacters);
-                    if (lineCharactersToAppend > 0)
+                    // 文件末尾，处理可能残留的不完整行
+                    if (leftover.Length > 0)
                     {
-                        contentBuilder.Append(outputLine.AsSpan(0, lineCharactersToAppend));
-                        hasContent = true;
-                        actualEndLine = currentLine;
+                        currentLine++;
+                        if (currentLine >= startLine && currentLine <= endLine)
+                        {
+                            TryAppendLine(leftover.ToString(), currentLine, includeLineNumbers,
+                                contentBuilder, ref hasContent, ref actualEndLine, ref reachedCharacterLimit);
+                        }
+                        leftover.Clear();
                     }
+                    contentPhaseComplete = true;
+                    break;
                 }
 
-                reachedCharacterLimit = true;
-                break;
+                ReadOnlySpan<char> window = rentedBuffer.AsSpan(0, charsRead);
+
+                while (true)
+                {
+                    int newlineIndex = window.IndexOf('\n');
+                    if (newlineIndex < 0)
+                    {
+                        leftover.Append(window);
+                        break;
+                    }
+
+                    ReadOnlySpan<char> lineSpan = window[..newlineIndex];
+                    if (lineSpan.Length > 0 && lineSpan[^1] == '\r')
+                    {
+                        lineSpan = lineSpan[..^1];
+                    }
+
+                    currentLine++;
+
+                    if (currentLine >= startLine && currentLine <= endLine)
+                    {
+                        string line;
+                        if (leftover.Length > 0)
+                        {
+                            leftover.Append(lineSpan);
+                            line = leftover.ToString();
+                            leftover.Clear();
+                        }
+                        else
+                        {
+                            line = lineSpan.ToString();
+                        }
+
+                        if (!TryAppendLine(line, currentLine, includeLineNumbers,
+                                contentBuilder, ref hasContent, ref actualEndLine, ref reachedCharacterLimit))
+                        {
+                            contentPhaseComplete = true;
+                            break;
+                        }
+
+                        if (currentLine == endLine)
+                        {
+                            // 将该行之后的内容推入 leftover，供阶段二统计
+                            leftover.Append(window[(newlineIndex + 1)..]);
+                            contentPhaseComplete = true;
+                            break;
+                        }
+                    }
+
+                    window = window[(newlineIndex + 1)..];
+                }
             }
 
-            if (hasContent)
+            // 阶段二：统计剩余行数（仅在未因字符限制中断时进行）
+            RemainingLinesResult remainingResult;
+            if (!reachedCharacterLimit && currentLine >= endLine)
             {
-                contentBuilder.Append(Environment.NewLine);
-            }
-
-            contentBuilder.Append(outputLine);
-            hasContent = true;
-            actualEndLine = currentLine;
-
-            // 读完请求范围后立即跳出，避免消耗下一行
-            if (currentLine == endLine)
-            {
-                // 尝试读取下一行来判断是否还有剩余内容
-                if (await reader.ReadLineAsync().ConfigureAwait(false) is null)
-                {
-                    // 后面没有行了，文件已读完
-                    reachedEndOfFile = true;
-                }
-                else
-                {
-                    reachedEndOfFile = false;
-                }
-                break;
-            }
-        }
-
-        // 统计剩余行数（如果已读取完用户请求的范围且未因字符限制中断）
-        int? remainingLines = null;
-        bool remainingLinesExceedsLimit = false;
-        if (!reachedCharacterLimit && !reachedEndOfFile)
-        {
-            // 此时已消耗了一行（用于判断是否有剩余），从 1 开始计数
-            int countedRemainingLines = 1;
-            while (countedRemainingLines < _maxRemainingLinesToCount
-                   && await reader.ReadLineAsync().ConfigureAwait(false) is not null)
-            {
-                countedRemainingLines++;
-            }
-
-            if (countedRemainingLines == _maxRemainingLinesToCount)
-            {
-                // 检查是否还有更多行
-                if (await reader.ReadLineAsync().ConfigureAwait(false) is not null)
-                {
-                    remainingLinesExceedsLimit = true;
-                }
-                else
-                {
-                    remainingLines = countedRemainingLines;
-                }
+                remainingResult = await CountRemainingLinesAsync(
+                    reader, rentedBuffer, leftover).ConfigureAwait(false);
             }
             else
             {
-                remainingLines = countedRemainingLines;
+                remainingResult = default;
+            }
+
+            // 格式化输出
+            return BuildResult(
+                file, startLine, actualEndLine, hasContent, reachedCharacterLimit,
+                remainingResult, contentBuilder, getDisplayPath);
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(rentedBuffer);
+        }
+    }
+
+    /// <summary>
+    /// 从当前读取位置开始统计剩余行数。先处理 <paramref name="leftover"/> 中的残留内容，
+    /// 再从 <paramref name="reader"/> 继续读取。
+    /// </summary>
+    private async Task<RemainingLinesResult> CountRemainingLinesAsync(
+        StreamReader reader,
+        char[] rentedBuffer,
+        StringBuilder leftover)
+    {
+        int count = 0;
+        Memory<char> buffer = rentedBuffer;
+
+        // 先处理 leftover 中已有的残留内容（由阶段一推入）
+        if (leftover.Length > 0)
+        {
+            string leftoverText = leftover.ToString();
+            leftover.Clear();
+            ReadOnlySpan<char> span = leftoverText.AsSpan();
+
+            while (true)
+            {
+                int newlineIndex = span.IndexOf('\n');
+                if (newlineIndex < 0)
+                {
+                    // 不完整行，保留到 leftover 中后续继续处理
+                    leftover.Append(span);
+                    break;
+                }
+
+                count++;
+
+                if (count > _maxRemainingLinesToCount)
+                {
+                    return new RemainingLinesResult { ExceedsLimit = true };
+                }
+
+                span = span[(newlineIndex + 1)..];
             }
         }
 
+        while (count <= _maxRemainingLinesToCount)
+        {
+            int charsRead = await reader.ReadAsync(buffer).ConfigureAwait(false);
+            if (charsRead == 0)
+            {
+                if (leftover.Length > 0)
+                {
+                    count++;
+                    leftover.Clear();
+                }
+
+                if (count > _maxRemainingLinesToCount)
+                {
+                    return new RemainingLinesResult { ExceedsLimit = true };
+                }
+
+                return new RemainingLinesResult { Count = count, ReachedEndOfFile = true };
+            }
+
+            ReadOnlySpan<char> window = rentedBuffer.AsSpan(0, charsRead);
+
+            while (true)
+            {
+                int newlineIndex = window.IndexOf('\n');
+                if (newlineIndex < 0)
+                {
+                    leftover.Append(window);
+                    break;
+                }
+
+                if (leftover.Length > 0)
+                {
+                    leftover.Clear();
+                }
+
+                count++;
+
+                if (count > _maxRemainingLinesToCount)
+                {
+                    return new RemainingLinesResult { ExceedsLimit = true };
+                }
+
+                window = window[(newlineIndex + 1)..];
+            }
+        }
+
+        return new RemainingLinesResult { ExceedsLimit = true };
+    }
+
+    /// <summary>
+    /// 组装最终的输出字符串。
+    /// </summary>
+    private string BuildResult(
+        FileInfo file,
+        int startLine,
+        int actualEndLine,
+        bool hasContent,
+        bool reachedCharacterLimit,
+        RemainingLinesResult remainingResult,
+        StringBuilder contentBuilder,
+        Func<string, string> getDisplayPath)
+    {
+        var builder = new StringBuilder();
         builder.AppendLine("<MetaData>");
         builder.AppendLine($"文件: {getDisplayPath(file.FullName)}");
+
         string actualRangeText = hasContent ? $"{startLine}-{actualEndLine}" : "无";
+
+        bool reachedEndOfFile;
+        int? remainingLines;
+        bool remainingLinesExceedsLimit;
+
+        if (reachedCharacterLimit)
+        {
+            reachedEndOfFile = false;
+            remainingLines = null;
+            remainingLinesExceedsLimit = false;
+        }
+        else if (remainingResult.ExceedsLimit)
+        {
+            reachedEndOfFile = false;
+            remainingLines = null;
+            remainingLinesExceedsLimit = true;
+        }
+        else if (remainingResult.Count > 0)
+        {
+            reachedEndOfFile = false;
+            remainingLines = remainingResult.Count;
+            remainingLinesExceedsLimit = false;
+        }
+        else
+        {
+            reachedEndOfFile = true;
+            remainingLines = null;
+            remainingLinesExceedsLimit = false;
+        }
+
         string statusSuffix = GetStatusSuffix(reachedCharacterLimit, reachedEndOfFile, remainingLinesExceedsLimit, remainingLines);
         builder.AppendLine($"行范围: {actualRangeText}{statusSuffix}");
         builder.AppendLine("</MetaData>");
@@ -154,6 +301,56 @@ public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemaini
         }
 
         return builder.ToString();
+    }
+
+    private struct RemainingLinesResult
+    {
+        public int Count;
+        public bool ExceedsLimit;
+        public bool ReachedEndOfFile;
+    }
+
+    /// <summary>
+    /// 尝试将一行追加到 contentBuilder。如果追加后超过字符限制则截断并返回 false。
+    /// </summary>
+    private bool TryAppendLine(
+        string line,
+        int currentLine,
+        bool includeLineNumbers,
+        StringBuilder contentBuilder,
+        ref bool hasContent,
+        ref int actualEndLine,
+        ref bool reachedCharacterLimit)
+    {
+        string outputLine = includeLineNumbers ? $"{currentLine}: {line}" : line;
+        int appendedLength = outputLine.Length + Environment.NewLine.Length;
+        if (contentBuilder.Length + appendedLength > _maxCharacters)
+        {
+            int remainingCharacters = _maxCharacters - contentBuilder.Length;
+            if (remainingCharacters > 0)
+            {
+                int lineCharactersToAppend = Math.Min(outputLine.Length, remainingCharacters);
+                if (lineCharactersToAppend > 0)
+                {
+                    contentBuilder.Append(outputLine.AsSpan(0, lineCharactersToAppend));
+                    hasContent = true;
+                    actualEndLine = currentLine;
+                }
+            }
+
+            reachedCharacterLimit = true;
+            return false;
+        }
+
+        if (hasContent)
+        {
+            contentBuilder.Append(Environment.NewLine);
+        }
+
+        contentBuilder.Append(outputLine);
+        hasContent = true;
+        actualEndLine = currentLine;
+        return true;
     }
 
     private string GetStatusSuffix(
