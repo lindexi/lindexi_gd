@@ -340,10 +340,9 @@ public class CopilotChatManager : NotifyBase
         CopilotChatContext chatContext = new(currentSession.ChatMessages, assistantChatMessage);
         List<AITool> toolList = ResolveTools(request.Tools, chatContext, currentChatCancellationToken);
 
-        Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync(request.WithHistory, request.ToolMode, request.ChatReducer, request.RequirePerServiceCallChatHistoryPersistence);
+        Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync();
 
-        async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync(
-            bool withHistory, ChatToolMode? toolMode, IChatReducer? chatReducer, bool requirePerServiceCallChatHistoryPersistence)
+        async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync()
         {
             currentChatCancellationToken.ThrowIfCancellationRequested();
 
@@ -354,23 +353,23 @@ public class CopilotChatManager : NotifyBase
                 ChatOptions = new ChatOptions()
                 {
                     Tools = [.. toolList],
-                    ToolMode = toolList.Count > 0 ? toolMode : null,
+                    ToolMode = toolList.Count > 0 ? request.ToolMode : null,
                 }
             };
 
-            if (chatReducer is not null)
+            if (request.ChatReducer is not null)
             {
                 chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
                 {
-                    ChatReducer = chatReducer
+                    ChatReducer = request.ChatReducer
                 });
-                chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = requirePerServiceCallChatHistoryPersistence;
+                chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
             }
 
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(chatClientAgentOptions);
 
             // 决定是否追加历史消息
-            AgentSession? runSession = withHistory
+            AgentSession? runSession = request.WithHistory
                 ? await GetOrCreateAgentSessionAsync(chatClientAgent, currentSession, currentChatCancellationToken)
                 : null;
 
