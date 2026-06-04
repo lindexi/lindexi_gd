@@ -1,7 +1,6 @@
 ﻿using Avalonia.Input;
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
-
 using SimpleWrite.ViewModels;
 
 namespace SimpleWrite.Business.ShortcutManagers;
