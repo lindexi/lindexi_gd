@@ -23,6 +23,7 @@ internal class PluginCommandPatternProvider(SimpleWriteMainViewModel mainViewMod
         commandPatternManager.AddCommandPattern(new Base64ToTextCommandPattern(this));
         commandPatternManager.AddCommandPattern(new TextToBinaryCommandPattern(this));
         commandPatternManager.AddCommandPattern(new BinaryToTextCommandPattern(this));
+        commandPatternManager.AddCommandPattern(new CalculatorCommandPattern());
     }
 
     public bool CanShowSidebarConversation()
