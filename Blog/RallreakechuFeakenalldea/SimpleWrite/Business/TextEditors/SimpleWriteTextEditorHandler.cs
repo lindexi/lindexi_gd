@@ -198,5 +198,21 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         base.OnPaste();
     }
 
+    /// <summary>
+    /// 删除光标前向的单词。通常对应 Ctrl+Backspace 快捷键。
+    /// </summary>
+    internal void DeleteForwardWordByShortcut()
+    {
+        TextEditorCore.DeleteForwardWord();
+    }
+
+    /// <summary>
+    /// 删除光标后向的单词。通常对应 Ctrl+Delete 快捷键。
+    /// </summary>
+    internal void DeleteBackwardWordByShortcut()
+    {
+        TextEditorCore.DeleteBackwardWord();
+    }
+
 
 }
