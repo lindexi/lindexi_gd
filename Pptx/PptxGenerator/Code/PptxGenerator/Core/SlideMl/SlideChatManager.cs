@@ -82,38 +82,12 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            InjectPreviewScreenshot();
+            //InjectPreviewScreenshot();
             OnPropertyChanged(nameof(PreviewBitmap));
             OnPropertyChanged(nameof(CurrentSlideXml));
             OnPropertyChanged(nameof(RenderedXml));
             OnPropertyChanged(nameof(WarningText));
         });
-    }
-
-    /// <summary>
-    /// 发送继续对话请求。自动附加 SlideRenderTool。
-    /// </summary>
-    /// <param name="userMessage">用户的修改意见。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    public async Task SendContinueRequestAsync(string userMessage, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(userMessage))
-        {
-            return;
-        }
-
-        var tools = new[] { SlideRenderTool.CreateTool(), SlideRenderTool.CreatePreviewTool() };
-
-        var request = SendMessageRequest.FromText(userMessage, tools: tools, systemPrompt: null);
-
-        var requestResult = _copilotChatManager.SendMessage(request);
-        await requestResult.RunTask.ConfigureAwait(false);
-
-        InjectPreviewScreenshot();
-        OnPropertyChanged(nameof(PreviewBitmap));
-        OnPropertyChanged(nameof(CurrentSlideXml));
-        OnPropertyChanged(nameof(RenderedXml));
-        OnPropertyChanged(nameof(WarningText));
     }
 
     /// <summary>
@@ -159,7 +133,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            InjectPreviewScreenshot();
+            //InjectPreviewScreenshot();
             OnPropertyChanged(nameof(PreviewBitmap));
             OnPropertyChanged(nameof(CurrentSlideXml));
             OnPropertyChanged(nameof(RenderedXml));
