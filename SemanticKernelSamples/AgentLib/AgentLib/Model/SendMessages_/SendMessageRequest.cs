@@ -17,6 +17,8 @@ namespace AgentLib.Model;
 /// <param name="ToolMode">工具调用模式。</param>
 /// <param name="SystemPrompt">可选的系统提示词，会注入到 <see cref="ChatOptions.Instructions"/>。</param>
 /// <param name="CancellationToken">本次发送使用的取消令牌。</param>
+/// <param name="ChatReducer">可选的对话历史压缩器。为 <see langword="null"/> 时不启用压缩。</param>
+/// <param name="RequirePerServiceCallChatHistoryPersistence">是否在每次工具调用完成后触发压缩。仅在 <paramref name="ChatReducer"/> 不为 <see langword="null"/> 时有效。</param>
 public readonly record struct SendMessageRequest
 (
     IReadOnlyList<AIContent> Contents,
@@ -25,16 +27,20 @@ public readonly record struct SendMessageRequest
     IEnumerable<AITool>? Tools = null,
     ChatToolMode? ToolMode = null,
     string? SystemPrompt = null,
-    CancellationToken CancellationToken = default)
+    CancellationToken CancellationToken = default,
+    IChatReducer? ChatReducer = null,
+    bool RequirePerServiceCallChatHistoryPersistence = false)
 {
     /// <summary>
     /// 从纯文本创建发送请求。
     /// </summary>
     public static SendMessageRequest FromText(string text, bool withHistory = true, bool createNewSession = false,
         IEnumerable<AITool>? tools = null, ChatToolMode? toolMode = null, string? systemPrompt = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IChatReducer? chatReducer = null,
+        bool requirePerServiceCallChatHistoryPersistence = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
-        return new SendMessageRequest([new TextContent(text)], withHistory, createNewSession, tools, toolMode, systemPrompt, cancellationToken);
+        return new SendMessageRequest([new TextContent(text)], withHistory, createNewSession, tools, toolMode, systemPrompt, cancellationToken, chatReducer, requirePerServiceCallChatHistoryPersistence);
     }
 }

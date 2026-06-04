@@ -2,7 +2,11 @@ using Microsoft.Extensions.AI;
 
 namespace AgentLib;
 
-class CopilotChatManagerChatReducer : IChatReducer
+/// <summary>
+/// 基于 LLM 摘要的 <see cref="IChatReducer"/> 实现。
+/// 提取开头的 System Prompt 保留，对剩余消息调用 LLM 生成摘要以压缩上下文。
+/// </summary>
+public class CopilotChatManagerChatReducer : IChatReducer
 {
     public CopilotChatManagerChatReducer(IChatClient chatClient)
     {
