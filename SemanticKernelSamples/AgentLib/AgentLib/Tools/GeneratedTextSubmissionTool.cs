@@ -11,10 +11,22 @@ namespace AgentLib.Tools;
 /// </summary>
 public sealed class GeneratedTextSubmissionTool
 {
+    /// <summary>
+    /// 已提交的文本内容。
+    /// </summary>
     public string? SubmittedText { get; private set; }
 
+    /// <summary>
+    /// 是否已提交文本。
+    /// </summary>
     public bool HasSubmittedText => !string.IsNullOrWhiteSpace(SubmittedText);
 
+    /// <summary>
+    /// 创建一个用于提交文本的工具函数。
+    /// </summary>
+    /// <param name="name">工具名称。</param>
+    /// <param name="description">工具描述。</param>
+    /// <returns>可调用的 AI 函数。</returns>
     public AIFunction CreateTool(string name, string description)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);

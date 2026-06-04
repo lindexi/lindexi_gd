@@ -15,6 +15,10 @@ namespace AgentLib.Tools;
 /// </summary>
 public sealed class CopilotToolManager
 {
+    /// <summary>
+    /// 创建工具管理器。
+    /// </summary>
+    /// <param name="agentApiEndpointManager">API 终结点管理器。</param>
     public CopilotToolManager(AgentApiEndpointManager agentApiEndpointManager)
     {
         ArgumentNullException.ThrowIfNull(agentApiEndpointManager);
@@ -23,10 +27,19 @@ public sealed class CopilotToolManager
         SubAgentTools = new SubAgentToolProvider(agentApiEndpointManager, WorkspaceTools);
     }
 
+    /// <summary>
+    /// 工作区文件系统工具。
+    /// </summary>
     public WorkspaceToolProvider WorkspaceTools { get; }
 
+    /// <summary>
+    /// 子智能体工具。
+    /// </summary>
     public SubAgentToolProvider SubAgentTools { get; }
 
+    /// <summary>
+    /// 工作区路径。设置后将启用文件系统相关工具。
+    /// </summary>
     public string? WorkspacePath
     {
         get => WorkspaceTools.WorkspacePath;

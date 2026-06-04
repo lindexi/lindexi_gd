@@ -10,6 +10,13 @@ namespace AgentLib.Model;
 /// </summary>
 public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageItem, ICopilotChatCurrentContent
 {
+    /// <summary>
+    /// 创建子智能体调用片段。
+    /// </summary>
+    /// <param name="callId">调用 ID。</param>
+    /// <param name="toolName">子智能体名称。</param>
+    /// <param name="inputText">输入文本。</param>
+    /// <param name="outputText">输出文本。</param>
     public CopilotChatSubAgentItem(string callId, string toolName, string? inputText, string? outputText = null)
     {
         CallId = callId;
@@ -19,8 +26,14 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         MessageItems.CollectionChanged += MessageItems_CollectionChanged;
     }
 
+    /// <summary>
+    /// 调用 ID。
+    /// </summary>
     public string CallId { get; }
 
+    /// <summary>
+    /// 子智能体名称。
+    /// </summary>
     public string ToolName
     {
         get => _toolName;
@@ -38,8 +51,14 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
 
     private string _toolName = string.Empty;
 
+    /// <summary>
+    /// 显示名称。
+    /// </summary>
     public string DisplayName => ToolName;
 
+    /// <summary>
+    /// 输入文本。
+    /// </summary>
     public string InputText
     {
         get => _inputText;
@@ -57,8 +76,14 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
 
     private string _inputText = string.Empty;
 
+    /// <summary>
+    /// 是否有输入文本。
+    /// </summary>
     public bool HasInputText => !string.IsNullOrEmpty(InputText);
 
+    /// <summary>
+    /// 输出文本。
+    /// </summary>
     public string OutputText
     {
         get => _outputText;
@@ -76,13 +101,23 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
 
     private string _outputText = string.Empty;
 
+    /// <summary>
+    /// 是否有输出文本。
+    /// </summary>
     public bool HasOutputText => !string.IsNullOrEmpty(OutputText);
 
+    /// <summary>
+    /// 子智能体内部的消息片段集合。
+    /// </summary>
     public ObservableCollection<ICopilotChatMessageItem> MessageItems { get; } = [];
 
+    /// <summary>
+    /// 是否有内部消息片段。
+    /// </summary>
     public bool HasMessageItems => MessageItems.Count > 0;
 
-    public void AppendText(string text)
+    /// <inheritdoc/>
+        public void AppendText(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -98,7 +133,8 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         MessageItems.Add(new CopilotChatTextItem(text));
     }
 
-    public void AppendReasoning(string text)
+    /// <inheritdoc/>
+        public void AppendReasoning(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -114,7 +150,8 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         MessageItems.Add(new CopilotChatReasoningItem(text));
     }
 
-    public void RegisterApprovalTool(string toolName, string? approvalDescription = null)
+    /// <inheritdoc/>
+        public void RegisterApprovalTool(string toolName, string? approvalDescription = null)
     {
         if (string.IsNullOrWhiteSpace(toolName))
         {
@@ -124,7 +161,8 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         _approvalToolDescriptions[toolName] = approvalDescription;
     }
 
-    public void AppendFunctionCall(FunctionCallContent functionCallContent)
+    /// <inheritdoc/>
+        public void AppendFunctionCall(FunctionCallContent functionCallContent)
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
 
@@ -156,7 +194,8 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         toolItem.InputText = CopilotChatMessageItemFormatter.FormatArguments(functionCallContent) ?? string.Empty;
     }
 
-    public void AppendFunctionResult(FunctionResultContent functionResultContent)
+    /// <inheritdoc/>
+        public void AppendFunctionResult(FunctionResultContent functionResultContent)
     {
         ArgumentNullException.ThrowIfNull(functionResultContent);
 
@@ -186,8 +225,9 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         toolItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
     }
 
-    public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-        string? callId = null)
+    /// <inheritdoc/>
+        public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
+            string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -228,7 +268,8 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         return approvalToolItem;
     }
 
-    public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
+    /// <inheritdoc/>
+        public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")

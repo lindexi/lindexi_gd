@@ -2,8 +2,15 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 namespace AgentLib.Core;
 
+/// <summary>
+/// 管理 API 终结点和语言模型提供商的注册、查询与选择。
+/// </summary>
 public class AgentApiEndpointManager
 {
+    /// <summary>
+    /// 从配置加载语言模型提供商并注册。
+    /// </summary>
+    /// <param name="configuration">API 管理器配置。</param>
     public void LoadConfiguration(AgentApiManagerConfiguration configuration)
     {
         if (configuration.OpenAIConfigurationList is not null)
@@ -33,7 +40,11 @@ public class AgentApiEndpointManager
         }
     }
 
-    public void RegisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
+    /// <summary>
+        /// 注册一个语言模型提供商。
+        /// </summary>
+        /// <param name="languageModelProvider">语言模型提供商。</param>
+        public void RegisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
     {
         var languageModels = languageModelProvider.GetSupportedModels();
         SupportedModels.AddRange(languageModels);
@@ -41,14 +52,18 @@ public class AgentApiEndpointManager
         _autoSetPrimaryLanguageModel = null;
     }
 
+    /// <summary>
+    /// 获取所有已注册的受支持模型列表。
+    /// </summary>
+    /// <returns>受支持的模型列表。</returns>
     public IReadOnlyList<ILanguageModel> GetSupportedModels() => SupportedModels;
 
     /// <summary>
-    /// 获取模型
+    /// 根据模型名称或 ID 查找模型，可选择性指定提供商。
     /// </summary>
-    /// <param name="modelNameOrId"></param>
-    /// <param name="provider"></param>
-    /// <returns></returns>
+    /// <param name="modelNameOrId">模型名称或 ID。</param>
+    /// <param name="provider">可选的提供商名称。</param>
+    /// <returns>匹配的模型，如果未找到则返回 <see langword="null"/>。</returns>
     public ILanguageModel? GetModel(string modelNameOrId, string? provider = null)
     {
         var supportedModels = GetSupportedModels();
@@ -66,7 +81,13 @@ public class AgentApiEndpointManager
         }
     }
 
-    public ILanguageModel GetBestModel(Func<ILanguageModel, bool> predicate)
+    /// <summary>
+        /// 根据谓词条件获取最佳匹配的模型。按能力排序，选择能力最强的模型。
+        /// </summary>
+        /// <param name="predicate">筛选谓词。</param>
+        /// <returns>最佳匹配的模型。</returns>
+        /// <exception cref="InvalidOperationException">没有符合要求的模型时抛出。</exception>
+        public ILanguageModel GetBestModel(Func<ILanguageModel, bool> predicate)
     {
         ArgumentNullException.ThrowIfNull(predicate);
 
@@ -82,7 +103,10 @@ public class AgentApiEndpointManager
 
     private List<ILanguageModel> SupportedModels { get; } = [];
 
-    public ILanguageModel PrimaryModel
+    /// <summary>
+        /// 首选语言模型。如果用户未设置，则自动选择能力最强的模型。
+        /// </summary>
+        public ILanguageModel PrimaryModel
     {
         get
         {

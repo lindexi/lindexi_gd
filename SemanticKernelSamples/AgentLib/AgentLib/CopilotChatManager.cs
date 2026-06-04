@@ -15,6 +15,9 @@ using System.Threading.Tasks;
 
 namespace AgentLib;
 
+/// <summary>
+/// 管理 Copilot 聊天会话的核心类，负责消息发送、会话管理、工具注册和流式响应处理。
+/// </summary>
 public class CopilotChatManager : NotifyBase
 {
     private bool _isChatting;
@@ -24,12 +27,19 @@ public class CopilotChatManager : NotifyBase
     private CancellationTokenSource? _currentChatCancellationTokenSource;
     private readonly CopilotToolManager _toolManager;
 
+    /// <summary>
+    /// 使用空日志记录器创建管理器。
+    /// </summary>
     public CopilotChatManager()
         : this(new EmptyCopilotChatLogger())
     {
         // 无参构造，让 XAML 系开森
     }
 
+    /// <summary>
+    /// 使用指定的聊天日志记录器创建管理器。
+    /// </summary>
+    /// <param name="chatLogger">聊天日志记录器。</param>
     public CopilotChatManager(ICopilotChatLogger chatLogger)
     {
         ChatLogger = chatLogger;
@@ -37,12 +47,24 @@ public class CopilotChatManager : NotifyBase
         CreateNewSession();
     }
 
+    /// <summary>
+    /// API 终结点管理器，管理语言模型提供商和模型选择。
+    /// </summary>
     public AgentApiEndpointManager AgentApiEndpointManager { get; } = new();
 
+    /// <summary>
+    /// 所有聊天会话的集合。
+    /// </summary>
     public ObservableCollection<CopilotChatSession> ChatSessions { get; } = [];
 
+    /// <summary>
+    /// 当前选中会话的聊天消息列表。
+    /// </summary>
     public ObservableCollection<CopilotChatMessage> ChatMessages => SelectedSession.ChatMessages;
 
+    /// <summary>
+    /// 聊天日志记录器。
+    /// </summary>
     public ICopilotChatLogger ChatLogger
     {
         get => _chatLogger;
@@ -53,6 +75,9 @@ public class CopilotChatManager : NotifyBase
         }
     }
 
+    /// <summary>
+    /// 是否正在聊天（流式响应进行中）。
+    /// </summary>
     public bool IsChatting
     {
         get => _isChatting;
@@ -68,16 +93,28 @@ public class CopilotChatManager : NotifyBase
         }
     }
 
+    /// <summary>
+    /// 是否可以编辑输入（不在聊天中时才可以编辑）。
+    /// </summary>
     public bool CanEditInput => !IsChatting;
 
+    /// <summary>
+    /// 上一次聊天是否被取消。
+    /// </summary>
     public bool WasLastChatCanceled
     {
         get => _wasLastChatCanceled;
         private set => SetField(ref _wasLastChatCanceled, value);
     }
 
+    /// <summary>
+    /// 发送按钮的显示文本（聊天中为"停止"，否则为"发送"）。
+    /// </summary>
     public string SendButtonText => IsChatting ? "停止" : "发送";
 
+    /// <summary>
+    /// 当前选中的会话。
+    /// </summary>
     public CopilotChatSession SelectedSession
     {
         get => _selectedSession;
@@ -95,8 +132,14 @@ public class CopilotChatManager : NotifyBase
         }
     }
 
+    /// <summary>
+    /// 当前会话的唯一标识符。
+    /// </summary>
     public Guid CurrentSessionId => SelectedSession.SessionId;
 
+    /// <summary>
+    /// 工作区路径。设置后将启用文件系统相关工具。
+    /// </summary>
     public string? WorkspacePath
     {
         get => _toolManager.WorkspacePath;
@@ -114,6 +157,9 @@ public class CopilotChatManager : NotifyBase
         }
     }
 
+    /// <summary>
+    /// 辅助工作区路径（当主工作区为 null 时作为回退）。
+    /// </summary>
     public string? SecondaryWorkspacePath
     {
         get => _toolManager.SecondaryWorkspacePath;
@@ -132,12 +178,19 @@ public class CopilotChatManager : NotifyBase
         }
     }
 
+    /// <summary>
+    /// 创建新会话并切换为当前选中会话。
+    /// </summary>
     public void CreateNewSession()
     {
         CopilotChatSession session = FindReusableEmptySession() ?? CreateSession();
         SelectedSession = session;
     }
 
+    /// <summary>
+    /// 设置聊天日志文件夹路径。
+    /// </summary>
+    /// <param name="chatLogFolder">日志文件夹路径。为空时使用默认路径。</param>
     public void SetChatLogFolder(string? chatLogFolder)
     {
         ChatLogger = string.IsNullOrWhiteSpace(chatLogFolder)
@@ -145,6 +198,9 @@ public class CopilotChatManager : NotifyBase
             : new FileCopilotChatLogger(chatLogFolder);
     }
 
+    /// <summary>
+    /// 取消当前正在进行的聊天。
+    /// </summary>
     public void CancelCurrentChat()
     {
         _currentChatCancellationTokenSource?.Cancel();
@@ -277,20 +333,20 @@ public class CopilotChatManager : NotifyBase
 
         Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync(request.WithHistory, request.ToolMode);
 
-                async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync(
-                    bool withHistory, ChatToolMode? toolMode)
-                {
-                    currentChatCancellationToken.ThrowIfCancellationRequested();
+        async Task<ChatClientAgentCreatedResult> CreateChatClientAgentAsync(
+            bool withHistory, ChatToolMode? toolMode)
+        {
+            currentChatCancellationToken.ThrowIfCancellationRequested();
 
-                    IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-                    ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
-                    {
-                        ChatOptions = new ChatOptions()
-                        {
-                            Tools = [.. toolList],
-                            ToolMode = toolList.Count > 0 ? toolMode : null,
-                        }
-                    });
+            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+            ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
+            {
+                ChatOptions = new ChatOptions()
+                {
+                    Tools = [.. toolList],
+                    ToolMode = toolList.Count > 0 ? toolMode : null,
+                }
+            });
 
             // 决定是否追加历史消息
             AgentSession? runSession = withHistory

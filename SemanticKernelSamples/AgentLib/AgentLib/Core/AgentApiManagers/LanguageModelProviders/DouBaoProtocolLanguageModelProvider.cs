@@ -2,6 +2,10 @@
 
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
+/// <summary>
+/// 豆包协议语言模型提供商，提供豆包系列模型定义。
+/// 豆包的模型名和模型 ID 不同，需要提供名称到 ID 的映射。
+/// </summary>
 public class DouBaoProtocolLanguageModelProvider(string endPoint, string key,
     Dictionary<string/*ModelName*/, string/*ModelId*/> modelNameToIdDictionary
 )
