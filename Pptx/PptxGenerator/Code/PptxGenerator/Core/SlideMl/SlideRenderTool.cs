@@ -123,9 +123,8 @@ public sealed class SlideRenderTool
                 : string.Join("\n", renderResult.Warnings);
             LatestRenderedXml = renderResult.OutputXml;
             LatestSlideXml = renderResult.InputXml;
+            SlideRendered?.Invoke();
         });
-
-        SlideRendered?.Invoke();
 
         var builder = new StringBuilder();
         builder.AppendLine("[render_slide] 渲染完成。");
