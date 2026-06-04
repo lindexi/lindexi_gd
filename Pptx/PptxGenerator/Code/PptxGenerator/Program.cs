@@ -1,9 +1,7 @@
-﻿using AgentLib.Core;
-using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+﻿using AgentLib;
+using AgentLib.Core;
 
 using Avalonia;
-
-using Microsoft.Extensions.AI;
 
 using System;
 using System.IO;
@@ -41,39 +39,30 @@ class Program
         BuildAvaloniaApp().SetupWithoutStarting();
         var prompt = string.Join(' ', args.Where(t => !string.IsNullOrWhiteSpace(t)));
 
-        var chatClient = await CreateChatClientFromAgentConfigAsync().ConfigureAwait(false);
-        if (chatClient is null)
+        var slideChatManager = await CreateSlideChatManagerAsync().ConfigureAwait(false);
+        if (slideChatManager is null)
         {
             return 1;
         }
 
-        var slideRenderer = new SlideRenderer();
-        var slideGenerationService = new SlideGenerationService(chatClient, slideRenderer);
-        var cliRunner = new SlideCliRunner(slideGenerationService);
+        var cliRunner = new SlideCliRunner(slideChatManager);
         return await cliRunner.RunAsync(prompt).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// 从 Agent 配置文件加载模型并创建 <see cref="IChatClient"/>。
-    /// 供 CLI 和 GUI 路径共用。
+    /// 从 Agent 配置文件创建 <see cref="SlideChatManager"/>，供 GUI 和 CLI 路径共用。
     /// </summary>
-    /// <returns>创建成功的 <see cref="IChatClient"/>；如果模型未找到则返回 null。</returns>
-    public static async Task<IChatClient?> CreateChatClientFromAgentConfigAsync()
+    /// <returns>创建成功的 <see cref="SlideChatManager"/>；如果失败则返回 null。</returns>
+    public static async Task<SlideChatManager?> CreateSlideChatManagerAsync()
     {
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
-        AgentApiManagerConfiguration agentApiManagerConfiguration = await AgentApiManagerConfiguration.FromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+        var copilotChatManager = new CopilotChatManager();
+        await copilotChatManager.AgentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
 
-        var agentApiEndpointManager = new AgentApiEndpointManager();
-        agentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
+        var slideRenderer = new SlideRenderer();
+        var slideRenderTool = new SlideRenderTool(slideRenderer);
 
-        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
-        if (languageModel is null)
-        {
-            Console.Error.WriteLine("未找到指定的语言模型。");
-            return null;
-        }
-
-        return await languageModel.GetChatClientAsync().ConfigureAwait(false);
+        return new SlideChatManager(copilotChatManager, slideRenderTool);
     }
 }

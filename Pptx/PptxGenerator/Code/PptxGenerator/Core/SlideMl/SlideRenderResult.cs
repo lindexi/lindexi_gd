@@ -14,29 +14,3 @@ public sealed class SlideRenderResult
 
     public required Bitmap PreviewBitmap { get; init; }
 }
-
-public sealed class SlideGenerationIteration
-{
-    public required int Attempt { get; init; }
-
-    public required string RequestPrompt { get; init; }
-
-    public required string ModelResponse { get; init; }
-
-    public required string SlideXml { get; init; }
-
-    public required SlideRenderResult RenderResult { get; init; }
-}
-
-public sealed class SlideGenerationSessionResult
-{
-    public required string UserPrompt { get; init; }
-
-    public required string FinalSlideXml { get; init; }
-
-    public required SlideRenderResult FinalRenderResult { get; init; }
-
-    public required IReadOnlyList<SlideGenerationIteration> Iterations { get; init; }
-
-    public required IReadOnlyList<string> ConversationMessages { get; init; }
-}

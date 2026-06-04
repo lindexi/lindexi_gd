@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Input;
+using Avalonia.Threading;
 
 namespace PptxGenerator;
 
@@ -28,6 +29,9 @@ internal sealed class DelegateCommand : ICommand
 
     public void RaiseCanExecuteChanged()
     {
-        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        });
     }
 }

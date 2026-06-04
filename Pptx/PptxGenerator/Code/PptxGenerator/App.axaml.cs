@@ -15,18 +15,18 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var chatClient = await Program.CreateChatClientFromAgentConfigAsync().ConfigureAwait(true);
-            if (chatClient is null)
+            var slideChatManager = await Program.CreateSlideChatManagerAsync().ConfigureAwait(true);
+            if (slideChatManager is null)
             {
                 return;
             }
 
-            var slideRenderer = new SlideRenderer();
-            var slideGenerationService = new SlideGenerationService(chatClient, slideRenderer);
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(slideGenerationService)
+                DataContext = new MainWindowViewModel(slideChatManager)
             };
+
+            desktop.MainWindow.Show();
         }
 
         base.OnFrameworkInitializationCompleted();
