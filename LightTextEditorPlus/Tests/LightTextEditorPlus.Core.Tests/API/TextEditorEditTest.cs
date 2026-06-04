@@ -511,4 +511,258 @@ public class TextEditorEditTest
             Assert.IsTrue(textEditorCore.CurrentSelection.IsEmpty);
         });
     }
+
+    [ContractTestCase]
+    public void DeleteForwardWordTest()
+    {
+        "有选中内容时，DeleteForwardWord 删除选中内容".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("123abcABC");
+            // 选中 "abc"
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset("123".Length), "abc".Length);
+            Assert.AreEqual("abc", textEditorCore.GetText(textEditorCore.CurrentSelection));
+
+            // Action
+            textEditorCore.DeleteForwardWord();
+
+            // Assert
+            Assert.AreEqual("123ABC", textEditorCore.GetText());
+            Assert.IsTrue(textEditorCore.CurrentSelection.IsEmpty);
+        });
+
+        "光标在文档开头时，DeleteForwardWord 不做任何操作".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+            // 设置光标到文档开头
+            textEditorCore.CurrentCaretOffset = new CaretOffset(0);
+
+            // Action
+            textEditorCore.DeleteForwardWord();
+
+            // Assert
+            Assert.AreEqual("abc def", textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在单词中间时，DeleteForwardWord 删除光标前到单词开头的内容".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+            // 光标在 "abc" 的 'b' 和 'c' 之间：ab|c def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("ab".Length);
+
+            // Action
+            textEditorCore.DeleteForwardWord();
+
+            // Assert
+            // 删除了 "ab"，剩余 "c def"
+            Assert.AreEqual("c def", textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在单词开头时，DeleteForwardWord 退格删除前一个字符".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+            // 光标在 "def" 开头：abc |def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("abc ".Length);
+
+            // Action
+            textEditorCore.DeleteForwardWord();
+
+            // Assert
+            // 退格删除了空格，剩余 "abcdef"
+            Assert.AreEqual("abcdef", textEditorCore.GetText());
+            Assert.AreEqual("abc".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在单词末尾时，DeleteForwardWord 删除整个单词".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+            // 光标在 "abc" 末尾：abc| def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("abc".Length);
+
+            // Action
+            textEditorCore.DeleteForwardWord();
+
+            // Assert
+            // 删除了 "abc"，剩余 " def"
+            Assert.AreEqual(" def", textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "中英文混合文本，光标在中文词中间，DeleteForwardWord 删除光标前的中文部分".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("你好世界 hello");
+            // 光标在 "你好" 后面：你好|世界 hello
+            textEditorCore.CurrentCaretOffset = new CaretOffset("你好".Length);
+
+            // Action
+            textEditorCore.DeleteForwardWord();
+
+            // Assert
+            // 删除了 "你好"，剩余 "世界 hello"
+            Assert.AreEqual("世界 hello", textEditorCore.GetText());
+            Assert.AreEqual(0, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在标点符号中间时，DeleteForwardWord 删除连续的标点符号".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc!!def");
+            // 光标在两个感叹号之间：abc!|!def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("abc!".Length);
+
+            // Action
+            textEditorCore.DeleteForwardWord();
+
+            // Assert
+            // 删除了 "!"，剩余 "abc!def"
+            Assert.AreEqual("abc!def", textEditorCore.GetText());
+            Assert.AreEqual("abc".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+    }
+
+    [ContractTestCase]
+    public void DeleteBackwardWordTest()
+    {
+        "有选中内容时，DeleteBackwardWord 删除选中内容".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("123abcABC");
+            // 选中 "abc"
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset("123".Length), "abc".Length);
+            Assert.AreEqual("abc", textEditorCore.GetText(textEditorCore.CurrentSelection));
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            Assert.AreEqual("123ABC", textEditorCore.GetText());
+            Assert.IsTrue(textEditorCore.CurrentSelection.IsEmpty);
+        });
+
+        "光标在文档末尾时，DeleteBackwardWord 不做任何操作".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            Assert.AreEqual("abc def", textEditorCore.GetText());
+            Assert.AreEqual("abc def".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在单词中间时，DeleteBackwardWord 删除光标后到单词末尾的内容".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+            // 光标在 "abc" 的 'a' 和 'b' 之间：a|bc def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("a".Length);
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            // 删除了 "bc"，剩余 "a def"
+            Assert.AreEqual("a def", textEditorCore.GetText());
+            Assert.AreEqual("a".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在单词末尾时，DeleteBackwardWord 删除后一个字符".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+            // 光标在 "abc" 末尾：abc| def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("abc".Length);
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            // 删除了空格，剩余 "abcdef"
+            Assert.AreEqual("abcdef", textEditorCore.GetText());
+            Assert.AreEqual("abc".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在单词开头时，DeleteBackwardWord 删除整个单词".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc def");
+            // 光标在 "def" 开头：abc |def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("abc ".Length);
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            // 删除了 "def"，剩余 "abc "
+            Assert.AreEqual("abc ", textEditorCore.GetText());
+            Assert.AreEqual("abc ".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "中英文混合文本，光标在中文词中间，DeleteBackwardWord 删除光标后的中文部分".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("hello 你好世界");
+            // 光标在 "你好" 后面：hello 你好|世界
+            textEditorCore.CurrentCaretOffset = new CaretOffset("hello 你好".Length);
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            // 删除了 "世界"，剩余 "hello 你好"
+            Assert.AreEqual("hello 你好", textEditorCore.GetText());
+            Assert.AreEqual("hello 你好".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在标点符号中间时，DeleteBackwardWord 删除连续的标点符号".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("abc!!def");
+            // 光标在两个感叹号之间：abc!|!def
+            textEditorCore.CurrentCaretOffset = new CaretOffset("abc!".Length);
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            // 删除了 "!"，剩余 "abc!def"
+            Assert.AreEqual("abc!def", textEditorCore.GetText());
+            Assert.AreEqual("abc!".Length, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
+        "光标在空文本时，DeleteBackwardWord 不做任何操作".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.DeleteBackwardWord();
+
+            // Assert
+            Assert.AreEqual(0, textEditorCore.DocumentManager.CharCount);
+        });
+    }
 }
