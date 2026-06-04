@@ -1,10 +1,13 @@
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
 using AgentLib.Tests.Fakes;
+using AgentLib.Tools;
 
 using Microsoft.Extensions.AI;
 
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 
 namespace AgentLib.Tests;
 
@@ -304,6 +307,60 @@ public class CopilotChatManagerSendMessageTests
         Assert.IsNull(context.ChatManager.SelectedSession.AgentSession);
     }
 
+    [TestMethod]
+    [Description("工具抛出异常时，应优雅处理：将错误信息展示给用户，恢复聊天状态，不传播异常")]
+    public async Task SendMessage_WhenToolThrowsException_HandlesGracefully()
+    {
+        var primaryChatClient = new FakeChatClient();
+        var throwingTool = new ThrowingTool(new InvalidOperationException("工具执行失败"));
+        string toolName = "ThrowingTool";
+        primaryChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
+            CreateToolInvocationAsyncEnumerable(options, "tool-call-1", toolName, null, cancellationToken,
+                CopilotChatManagerTestContext.AssistantText("不会到达的结果"));
+        var context = CopilotChatManagerTestContext.Create(primaryChatClient);
+
+        // 不应抛出异常
+        await context.ChatManager.SendMessageAsync(
+            contents: [new TextContent("触发工具异常")],
+            withHistory: true,
+            tools: [throwingTool.CreateTool(toolName, "抛出异常的工具")],
+            toolMode: ChatToolMode.RequireAny);
+
+        Assert.IsFalse(context.ChatManager.IsChatting, "聊天状态应恢复");
+        CopilotChatMessage lastMessage = context.ChatManager.ChatMessages[^1];
+        Assert.IsTrue(lastMessage.Content.Contains("工具执行失败", StringComparison.Ordinal)
+                      || lastMessage.Content.Contains("InvalidOperationException", StringComparison.Ordinal),
+            $"最后一条消息应包含错误信息，实际内容: {lastMessage.Content}");
+        Assert.IsTrue(lastMessage.IsPresetInfo, "错误消息应标记为预设信息");
+    }
+
+    [TestMethod]
+    [Description("工具抛出异常时，SendMessageResult.RunTask 应返回 IsSuccess=false")]
+    public async Task SendMessage_WhenToolThrowsException_RunTaskReturnsFailure()
+    {
+        var primaryChatClient = new FakeChatClient();
+        var throwingTool = new ThrowingTool(new InvalidOperationException("工具执行失败"));
+        string toolName = "ThrowingTool";
+        primaryChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
+            CreateToolInvocationAsyncEnumerable(options, "tool-call-1", toolName, null, cancellationToken,
+                CopilotChatManagerTestContext.AssistantText("不会到达的结果"));
+        var context = CopilotChatManagerTestContext.Create(primaryChatClient);
+
+        SendMessageResult result = context.ChatManager.SendMessage(
+            new SendMessageRequest([new TextContent("触发工具异常")])
+            {
+                WithHistory = true,
+                Tools = [throwingTool.CreateTool(toolName, "抛出异常的工具")],
+                ToolMode = ChatToolMode.RequireAny,
+            });
+
+        SendMessageRunState runState = await result.RunTask;
+
+        Assert.IsFalse(runState.IsSuccess, "应返回失败状态");
+        Assert.IsFalse(runState.WasCanceled, "不应标记为取消");
+        Assert.IsFalse(context.ChatManager.IsChatting, "聊天状态应恢复");
+    }
+
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(
         CancellationToken cancellationToken,
         params ChatResponseUpdate[] updates)
@@ -314,5 +371,50 @@ public class CopilotChatManagerSendMessageTests
             yield return update;
             await Task.Yield();
         }
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolInvocationAsyncEnumerable(
+        ChatOptions? options,
+        string callId,
+        string toolName,
+        IDictionary<string, object?>? arguments,
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        params ChatResponseUpdate[] trailingUpdates)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantFunctionCall(callId, toolName, arguments);
+
+        AITool tool = options?.Tools?.FirstOrDefault(candidate => string.Equals(candidate.Name, toolName, StringComparison.Ordinal))
+                      ?? throw new InvalidOperationException($"未找到名为 {toolName} 的工具。");
+
+        if (tool is not AIFunction function)
+        {
+            throw new InvalidOperationException($"工具 {toolName} 不是可调用函数。");
+        }
+
+        object? result = await function.InvokeAsync(new AIFunctionArguments(arguments?.ToDictionary(pair => pair.Key, pair => pair.Value)), cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantFunctionResult(callId, NormalizeResult(result));
+
+        foreach (ChatResponseUpdate update in trailingUpdates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return update;
+            await Task.Yield();
+        }
+    }
+
+    private static object? NormalizeResult(object? result)
+    {
+        if (result is JsonElement jsonElement)
+        {
+            return jsonElement.ValueKind switch
+            {
+                JsonValueKind.String => jsonElement.GetString(),
+                _ => jsonElement.ToString()
+            };
+        }
+
+        return result;
     }
 }

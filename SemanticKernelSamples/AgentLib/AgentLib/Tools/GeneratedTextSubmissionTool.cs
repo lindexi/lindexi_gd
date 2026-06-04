@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.Reflection;
 
 using Microsoft.Extensions.AI;
 
@@ -32,9 +31,7 @@ public sealed class GeneratedTextSubmissionTool
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
 
-        MethodInfo methodInfo = GetType().GetMethod(nameof(SubmitText))
-                                ?? throw new InvalidOperationException($"未找到 {nameof(SubmitText)} 方法。");
-        return AIFunctionFactory.Create(methodInfo, this, name, description, serializerOptions: null);
+        return AIFunctionFactory.Create(SubmitText, name, description);
     }
 
     [Description("提交处理后的完整文本内容。")] 

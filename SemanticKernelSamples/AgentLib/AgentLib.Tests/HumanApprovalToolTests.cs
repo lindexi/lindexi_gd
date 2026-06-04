@@ -5,7 +5,6 @@ using AgentLib.Tools;
 
 using Microsoft.Extensions.AI;
 
-using System.Reflection;
 using System.Text.Json;
 
 namespace AgentLib.Tests;
@@ -148,9 +147,7 @@ public class HumanApprovalToolTests
             ArgumentException.ThrowIfNullOrWhiteSpace(name);
             ArgumentException.ThrowIfNullOrWhiteSpace(description);
 
-            MethodInfo methodInfo = GetType().GetMethod(nameof(ExecuteAsync), BindingFlags.Instance | BindingFlags.Public)
-                                    ?? throw new InvalidOperationException($"未找到 {nameof(ExecuteAsync)} 方法。");
-            return AIFunctionFactory.Create(methodInfo, this, name, description, serializerOptions: null);
+            return AIFunctionFactory.Create(ExecuteAsync, name, description);
         }
 
         [global::System.ComponentModel.DescriptionAttribute("执行一个受审批保护的测试工具。")]
