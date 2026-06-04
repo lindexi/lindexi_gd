@@ -428,6 +428,39 @@ public class CopilotChatManager : NotifyBase
     {
     }
 
+    /// <summary>
+    /// 压缩对话，如果没有传压缩器，则采用内置的压缩逻辑
+    /// </summary>
+    /// <param name="chatReducer"></param>
+    /// <returns></returns>
+    public async Task ReduceSessionAsync(IChatReducer? chatReducer = null)
+    {
+        CopilotChatSession currentSession = SelectedSession;
+        AgentSession? agentSession = currentSession.AgentSession;
+        if (agentSession is null)
+        {
+            return;
+        }
+
+        if (!agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages))
+        {
+            return;
+        }
+
+        if (chatReducer is null)
+        {
+            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+
+//#pragma warning disable MEAI001
+//            chatReducer = new SummarizingChatReducer(chatClient,2, 3);
+//#pragma warning restore MEAI001
+            chatReducer = new CopilotChatManagerChatReducer(chatClient);
+        }
+
+        IEnumerable<ChatMessage> result = await chatReducer.ReduceAsync(messages, CancellationToken.None);
+        agentSession.SetInMemoryChatHistory(result.ToList());
+    }
+
     private List<AITool> ResolveTools(IEnumerable<AITool>? tools, CopilotChatContext? chatContext = null,
         CancellationToken cancellationToken = default)
     {
