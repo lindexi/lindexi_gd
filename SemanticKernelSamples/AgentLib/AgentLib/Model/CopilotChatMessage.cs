@@ -15,17 +15,8 @@ namespace AgentLib.Model;
 public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 {
     public CopilotChatMessage(ChatRole role, string content)
+        : this(role, [new TextContent(content ?? "")])
     {
-        Role = role;
-        MessageItems.CollectionChanged += MessageItems_CollectionChanged;
-
-        if (!string.IsNullOrEmpty(content))
-        {
-            MessageItems.Add(new CopilotChatTextItem(content));
-        }
-
-        CreatedTime = DateTimeOffset.Now;
-        TimeText = CreatedTime.ToString("HH:mm");
     }
 
     /// <summary>
@@ -308,10 +299,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
                 case CopilotChatTextItem textItem when !string.IsNullOrEmpty(textItem.Text):
                     contents.Add(new TextContent(textItem.Text));
                     break;
-                case CopilotChatImageItem imageItem when imageItem.HasData:
+                case CopilotChatImageItem imageItem:
                     contents.Add(new DataContent(imageItem.Data.ToMemory(), imageItem.MimeType));
                     break;
-                case CopilotChatAudioItem audioItem when audioItem.HasData:
+                case CopilotChatAudioItem audioItem:
                     contents.Add(new DataContent(audioItem.Data.ToMemory(), audioItem.MimeType));
                     break;
             }

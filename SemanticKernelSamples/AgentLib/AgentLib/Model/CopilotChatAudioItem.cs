@@ -29,7 +29,6 @@ public sealed class CopilotChatAudioItem : NotifyBase, ICopilotChatMessageItem
                 return;
             }
 
-            OnPropertyChanged(nameof(HasData));
             OnPropertyChanged(nameof(DisplayText));
         }
     }
@@ -57,12 +56,7 @@ public sealed class CopilotChatAudioItem : NotifyBase, ICopilotChatMessageItem
     private string _mimeType = "audio/wav";
 
     /// <summary>
-    /// 是否有音频数据。
-    /// </summary>
-    public bool HasData => Data is not null;
-
-    /// <summary>
     /// 调试/日志用的可读文本。
     /// </summary>
-    public string DisplayText => HasData ? $"[音频: {MimeType}]" : string.Empty;
+    public string DisplayText => $"[音频: {MimeType}]";
 }

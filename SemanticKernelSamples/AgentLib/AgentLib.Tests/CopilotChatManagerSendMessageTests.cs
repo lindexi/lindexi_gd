@@ -177,7 +177,7 @@ public class CopilotChatManagerSendMessageTests
 
         var imageItem = (CopilotChatImageItem) result.UserChatMessage.MessageItems[1];
         Assert.AreEqual("image/png", imageItem.MimeType);
-        Assert.IsTrue(imageItem.HasData);
+        Assert.IsNotNull(imageItem.Data);
 
         await result.RunTask;
     }
