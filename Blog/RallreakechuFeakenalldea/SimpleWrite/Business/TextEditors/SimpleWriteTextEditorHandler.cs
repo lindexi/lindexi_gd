@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
-
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -13,6 +11,7 @@ using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Highlighters;
 
 using SimpleWrite.Business.ShortcutManagers;
+using SimpleWrite.Business.TextEditors.AutoIndentStrategies;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -134,9 +133,50 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         base.OnKeyDown(e);
     }
 
-    protected override void OnKeyUp(KeyEventArgs e)
+    protected override void BreakLine()
+        {
+            if (!SimpleWriteTextEditor.IsAutoIndentEnabled)
+            {
+                base.BreakLine();
+                return;
+            }
+
+            var paragraph = TextEditor.GetCurrentCaretOffsetParagraph();
+            var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
+            var paragraphStartOffset = paragraphSelection.StartOffset.Offset;
+            var caretOffset = TextEditor.CurrentCaretOffset.Offset;
+            var caretColumnInLine = caretOffset - paragraphStartOffset;
+            var currentLineText = paragraph.GetText();
+
+            var strategy = AutoIndentStrategySelector.GetStrategy(SimpleWriteTextEditor.DocumentHighlightDefinition);
+            var indentText = strategy.GetIndentText(currentLineText, caretColumnInLine);
+
+            if (indentText.Length == 0)
+            {
+                base.BreakLine();
+                return;
+            }
+
+            PerformInput("\n" + indentText);
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
     {
         base.OnKeyUp(e);
+    }
+
+    protected override void OnCopy()
+    {
+        var selection = TextEditor.CurrentSelection;
+        if (selection.IsEmpty)
+        {
+            // 未选中时复制整个段落的文本
+            ITextParagraph paragraph = TextEditor.GetParagraph(selection.StartOffset);
+            CopyParagraph(paragraph);
+            return;
+        }
+
+        base.OnCopy();
     }
 
     protected override void OnCut()
@@ -146,11 +186,8 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         {
             // 空的话，直接剪切段
             ITextParagraph paragraph = TextEditor.GetParagraph(selection.StartOffset);
-            var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
-
-            string text = TextEditor.GetText(in paragraphSelection);
-            _ = GetClipboard()?.SetTextAsync(text);
-            TextEditor.Remove(in paragraphSelection);
+            CutParagraph(paragraph);
+            return;
         }
 
         base.OnCut();
@@ -161,13 +198,5 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         base.OnPaste();
     }
 
-    private IClipboard? GetClipboard()
-    {
-        if (TopLevel.GetTopLevel(TextEditor) is { } topLevel)
-        {
-            return topLevel.Clipboard;
-        }
 
-        return null;
-    }
 }

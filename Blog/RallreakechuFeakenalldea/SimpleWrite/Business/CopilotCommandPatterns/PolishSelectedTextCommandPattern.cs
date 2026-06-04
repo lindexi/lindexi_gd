@@ -57,8 +57,7 @@ sealed class PolishSelectedTextCommandPattern(CopilotViewModel copilotViewModel)
              待润色文本：
              {selectedText}
              """;
-
-        await copilotViewModel.SendMessageAsync(prompt, withHistory: false, createNewSession: true, toolList,
+        await copilotViewModel.SendMessageAsync([new TextContent(prompt)], withHistory: false, createNewSession: true, toolList,
             ChatToolMode.RequireAny);
 
         if (!generatedTextSubmissionTool.HasSubmittedText || string.IsNullOrWhiteSpace(generatedTextSubmissionTool.SubmittedText))
