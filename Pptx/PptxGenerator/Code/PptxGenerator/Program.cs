@@ -1,5 +1,6 @@
 ﻿using AgentLib;
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using Avalonia;
 
@@ -58,7 +59,17 @@ class Program
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
         var copilotChatManager = new CopilotChatManager();
-        await copilotChatManager.AgentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+        var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
+        await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+
+        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
+        if (languageModel is null)
+        {
+            Console.Error.WriteLine("未找到指定的语言模型。");
+            return null;
+        }
+
+        agentApiEndpointManager.PrimaryModel = languageModel;
 
         var slideRenderer = new SlideRenderer();
         var slideRenderTool = new SlideRenderTool(slideRenderer);
