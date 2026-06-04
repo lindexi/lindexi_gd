@@ -49,7 +49,6 @@
                                        Foreground="{StaticResource ChatReasoningLabelBrush}"
                                        FontWeight="Medium" />
                             <TextBlock Text="{Binding Text}"
-                                       FontStyle="Italic"
                                        FontSize="12"
                                        Foreground="{StaticResource ChatReasoningTextBrush}"
                                        TextWrapping="Wrap" />

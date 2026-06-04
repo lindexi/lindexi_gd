@@ -36,14 +36,37 @@ internal sealed class SlideCliRunner
             var renderedXmlPath = Path.Join(outputDirectory, $"slide-{timestamp}.rendered.xml");
             var imagePath = Path.Join(outputDirectory, $"slide-{timestamp}.png");
 
-            await File.WriteAllTextAsync(xmlPath, _slideChatManager.CurrentSlideXml, cancellationToken).ConfigureAwait(false);
-            await File.WriteAllTextAsync(renderedXmlPath, _slideChatManager.RenderedXml, cancellationToken).ConfigureAwait(false);
-            _slideChatManager.PreviewBitmap?.Save(imagePath);
+            var currentSlideXml = _slideChatManager.CurrentSlideXml;
+            var renderedXml = _slideChatManager.RenderedXml;
+            var previewBitmap = _slideChatManager.PreviewBitmap;
+
+            if (!string.IsNullOrWhiteSpace(currentSlideXml))
+            {
+                await File.WriteAllTextAsync(xmlPath, currentSlideXml, cancellationToken).ConfigureAwait(false);
+                Console.WriteLine($"XML: {xmlPath}");
+            }
+            else
+            {
+                Console.WriteLine("警告：未生成 SlideML XML，可能模型未调用 render_slide 工具。");
+            }
+
+            if (!string.IsNullOrWhiteSpace(renderedXml))
+            {
+                await File.WriteAllTextAsync(renderedXmlPath, renderedXml, cancellationToken).ConfigureAwait(false);
+                Console.WriteLine($"Rendered XML: {renderedXmlPath}");
+            }
+
+            if (previewBitmap is not null)
+            {
+                previewBitmap.Save(imagePath);
+                Console.WriteLine($"Preview Image: {imagePath}");
+            }
+            else
+            {
+                Console.WriteLine("警告：未生成预览图片，可能渲染过程出现错误。");
+            }
 
             Console.WriteLine("生成完成");
-            Console.WriteLine($"XML: {xmlPath}");
-            Console.WriteLine($"Rendered XML: {renderedXmlPath}");
-            Console.WriteLine($"Preview Image: {imagePath}");
             Console.WriteLine();
 
             Console.WriteLine("Warnings:");
@@ -51,9 +74,13 @@ internal sealed class SlideCliRunner
                 ? "  (none)"
                 : $"  {_slideChatManager.WarningText}");
 
-            Console.WriteLine();
-            Console.WriteLine("Final SlideML:");
-            Console.WriteLine(_slideChatManager.CurrentSlideXml);
+            if (!string.IsNullOrWhiteSpace(currentSlideXml))
+            {
+                Console.WriteLine();
+                Console.WriteLine("Final SlideML:");
+                Console.WriteLine(currentSlideXml);
+            }
+
             return 0;
         }
         catch (OperationCanceledException)
