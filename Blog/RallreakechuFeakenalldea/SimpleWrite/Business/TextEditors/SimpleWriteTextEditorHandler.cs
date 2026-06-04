@@ -11,6 +11,7 @@ using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Highlighters;
 
 using SimpleWrite.Business.ShortcutManagers;
+using SimpleWrite.Business.TextEditors.AutoIndentStrategies;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -132,7 +133,34 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
         base.OnKeyDown(e);
     }
 
-    protected override void OnKeyUp(KeyEventArgs e)
+    protected override void BreakLine()
+        {
+            if (!SimpleWriteTextEditor.IsAutoIndentEnabled)
+            {
+                base.BreakLine();
+                return;
+            }
+
+            var paragraph = TextEditor.GetCurrentCaretOffsetParagraph();
+            var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
+            var paragraphStartOffset = paragraphSelection.StartOffset.Offset;
+            var caretOffset = TextEditor.CurrentCaretOffset.Offset;
+            var caretColumnInLine = caretOffset - paragraphStartOffset;
+            var currentLineText = paragraph.GetText();
+
+            var strategy = AutoIndentStrategySelector.GetStrategy(SimpleWriteTextEditor.DocumentHighlightDefinition);
+            var indentText = strategy.GetIndentText(currentLineText, caretColumnInLine);
+
+            if (indentText.Length == 0)
+            {
+                base.BreakLine();
+                return;
+            }
+
+            PerformInput("\n" + indentText);
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
     {
         base.OnKeyUp(e);
     }

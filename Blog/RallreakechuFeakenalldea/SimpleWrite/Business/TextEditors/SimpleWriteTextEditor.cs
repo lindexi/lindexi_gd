@@ -141,9 +141,17 @@ internal sealed class SimpleWriteTextEditor : TextEditor
 
     public void SetDocumentHighlightDefinition(DocumentHighlightDefinition definition)
     {
+        _documentHighlightDefinition = definition;
         DocumentHighlighter = CreateDocumentHighlighter(definition);
         _dispatcherRequiring.Require();
     }
+
+    /// <summary>
+    /// 当前文档的高亮定义。
+    /// </summary>
+    internal DocumentHighlightDefinition DocumentHighlightDefinition => _documentHighlightDefinition;
+
+    private DocumentHighlightDefinition _documentHighlightDefinition = DocumentHighlightDefinition.Markdown;
 
     private void TextEditorCore_TextChanged(object? sender, EventArgs e)
     {
@@ -170,6 +178,11 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     public required SnippetManager SnippetManager { get; init; }
 
     public IDocumentHighlighter? DocumentHighlighter { get; private set; }
+
+    /// <summary>
+    /// 获取或设置是否启用回车自动缩进。默认为 <see langword="true"/>。
+    /// </summary>
+    public bool IsAutoIndentEnabled { get; set; } = true;
 
     private IDocumentHighlighter CreateDocumentHighlighter(DocumentHighlightDefinition definition)
     {

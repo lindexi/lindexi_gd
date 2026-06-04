@@ -1,16 +1,18 @@
-using System;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Threading.Tasks;
+using AgentLib.Model;
 
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-using AgentLib.Model;
-
 using AvaloniaAgentLib.ViewModel;
+
+using Microsoft.Extensions.AI;
+
+using System;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace AvaloniaAgentLib.View;
 
@@ -85,7 +87,7 @@ public partial class CopilotSlideBar : UserControl
 
         try
         {
-            await ViewModel.SendMessageAsync(inputText, withHistory: true);
+            await ViewModel.SendMessageAsync([new TextContent(inputText)], withHistory: true);
             if (!ViewModel.WasLastChatCanceled)
             {
                 InputTextBox.Text = null;
