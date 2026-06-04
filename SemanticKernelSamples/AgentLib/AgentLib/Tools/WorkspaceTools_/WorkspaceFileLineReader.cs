@@ -24,14 +24,16 @@ public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemaini
     /// <param name="startLine">起始行号（1-based）。</param>
     /// <param name="endLine">结束行号（1-based）。</param>
     /// <param name="includeLineNumbers">是否在每行前添加行号。</param>
-    /// <param name="getDisplayPath">用于获取文件显示路径的委托。</param>
+    /// <param name="displayPath">用于获取文件显示路径。</param>
     /// <returns>格式化后的结果字符串。</returns>
-    public async Task<string> ReadAsync(
+    public async Task<string> ReadAsync
+    (
         FileInfo file,
         int startLine,
         int endLine,
         bool includeLineNumbers,
-        Func<string, string> getDisplayPath)
+        string displayPath
+    )
     {
         var contentBuilder = new StringBuilder();
         var leftover = new StringBuilder();
@@ -135,9 +137,8 @@ public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemaini
             }
 
             // 格式化输出
-            return BuildResult(
-                file, startLine, actualEndLine, hasContent, reachedCharacterLimit,
-                remainingResult, contentBuilder, getDisplayPath);
+            return BuildResult(startLine, actualEndLine, hasContent, reachedCharacterLimit,
+                remainingResult, contentBuilder, displayPath);
         }
         finally
         {
@@ -237,19 +238,20 @@ public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemaini
     /// <summary>
     /// 组装最终的输出字符串。
     /// </summary>
-    private string BuildResult(
-        FileInfo file,
+    private string BuildResult
+    (
         int startLine,
         int actualEndLine,
         bool hasContent,
         bool reachedCharacterLimit,
         RemainingLinesResult remainingResult,
         StringBuilder contentBuilder,
-        Func<string, string> getDisplayPath)
+        string displayPath
+    )
     {
         var builder = new StringBuilder();
         builder.AppendLine("<MetaData>");
-        builder.AppendLine($"文件: {getDisplayPath(file.FullName)}");
+        builder.AppendLine($"文件: {displayPath}");
 
         string actualRangeText = hasContent ? $"{startLine}-{actualEndLine}" : "无";
 

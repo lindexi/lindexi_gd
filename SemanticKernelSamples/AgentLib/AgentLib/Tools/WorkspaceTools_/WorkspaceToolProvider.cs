@@ -291,7 +291,9 @@ public sealed class WorkspaceToolProvider
         RecordFileSnapshot(file);
 
         var reader = new WorkspaceFileLineReader(DefaultMaxCharacters, DefaultMaxRemainingLinesToCount);
-        return await reader.ReadAsync(file, startLine, endLine, includeLineNumbers, GetDisplayPath).ConfigureAwait(false);
+
+        var displayPath = GetDisplayPath(file.FullName);
+        return await reader.ReadAsync(file, startLine, endLine, includeLineNumbers, displayPath).ConfigureAwait(false);
     }
 
     private void RecordFileSnapshot(FileInfo file)
