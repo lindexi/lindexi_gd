@@ -1,0 +1,68 @@
+using System;
+
+namespace AgentLib.Model;
+
+/// <summary>
+/// 表示聊天消息中的音频片段。
+/// </summary>
+public sealed class CopilotChatAudioItem : NotifyBase, ICopilotChatMessageItem
+{
+    public CopilotChatAudioItem(BinaryData data, string mimeType)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentException.ThrowIfNullOrWhiteSpace(mimeType);
+
+        Data = data;
+        MimeType = mimeType;
+    }
+
+    /// <summary>
+    /// 音频的二进制数据。
+    /// </summary>
+    public BinaryData Data
+    {
+        get => _data;
+        private set
+        {
+            if (!SetField(ref _data, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(HasData));
+            OnPropertyChanged(nameof(DisplayText));
+        }
+    }
+
+    private BinaryData _data;
+
+    /// <summary>
+    /// 音频的 MIME 类型，例如 <c>audio/wav</c>、<c>audio/mpeg</c>。
+    /// </summary>
+    public string MimeType
+    {
+        get => _mimeType;
+        private set
+        {
+            string normalizedValue = string.IsNullOrWhiteSpace(value) ? "audio/wav" : value;
+            if (!SetField(ref _mimeType, normalizedValue))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(DisplayText));
+        }
+    }
+
+    private string _mimeType = "audio/wav";
+
+    /// <summary>
+    /// 是否有音频数据。
+    /// </summary>
+    public bool HasData => Data is not null;
+
+    /// <summary>
+    /// 调试/日志用的可读文本。
+    /// </summary>
+    public string DisplayText => HasData ? $"[音频: {MimeType}]" : string.Empty;
+}

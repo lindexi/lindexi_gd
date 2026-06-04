@@ -187,34 +187,59 @@ public class CopilotChatManager : NotifyBase
     /// <summary>
     /// 开启新的会话并发送消息。新会话适用于需要清晰上下文的场景
     /// </summary>
-    /// <param name="inputText"></param>
+    /// <param name="contents">用户输入的多模态内容集合。</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task SendMessageInNewSessionAsync(string? inputText, CancellationToken cancellationToken = default)
+    public Task SendMessageInNewSessionAsync(IReadOnlyList<AIContent> contents, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync(inputText, withHistory: true, createNewSession: true, tools: null, toolMode: null, cancellationToken);
+        return SendMessageAsync(contents, withHistory: true, createNewSession: true, tools: null, toolMode: null, cancellationToken);
+    }
+
+    /// <summary>
+    /// 开启新的会话并发送纯文本消息。新会话适用于需要清晰上下文的场景。
+    /// </summary>
+    /// <param name="inputText">用户输入的纯文本内容。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns></returns>
+    public Task SendMessageInNewSessionAsync(string inputText, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(inputText);
+        return SendMessageInNewSessionAsync([new TextContent(inputText)], cancellationToken);
     }
 
     /// <summary>
     /// 发送消息并开始聊天。可以选择是否携带历史消息，是否创建新会话，以及使用哪些工具。
     /// </summary>
-    /// <param name="inputText"></param>
+    /// <param name="contents">用户输入的多模态内容集合，可包含 <see cref="TextContent"/>、<see cref="DataContent"/> 等。</param>
     /// <param name="withHistory">是否携带历史消息</param>
     /// <param name="createNewSession">是否创建新会话</param>
     /// <param name="tools">使用的工具</param>
     /// <param name="toolMode">工具模式</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
-    public async Task SendMessageAsync(string? inputText, bool withHistory = true, bool createNewSession = false, IEnumerable<AITool>? tools = null,
+    public async Task SendMessageAsync(IReadOnlyList<AIContent> contents, bool withHistory = true, bool createNewSession = false, IEnumerable<AITool>? tools = null,
         ChatToolMode? toolMode = null, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(inputText))
+        ArgumentNullException.ThrowIfNull(contents);
+        if (contents.Count == 0)
         {
             return;
         }
 
-        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(inputText, withHistory, createNewSession, tools, toolMode, null, cancellationToken));
+        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(contents, withHistory, createNewSession, tools, toolMode, null, cancellationToken));
         await sendMessageResult.RunTask;
+    }
+
+    /// <summary>
+    /// 发送纯文本消息并开始聊天。
+    /// </summary>
+    /// <param name="inputText">用户输入的纯文本内容。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns></returns>
+    public Task SendMessageAsync(string inputText, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(inputText);
+        return SendMessageAsync([new TextContent(inputText)], cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -224,7 +249,11 @@ public class CopilotChatManager : NotifyBase
     /// <returns>需要等待才能获取结果的任务</returns>
     public SendMessageResult SendMessage(SendMessageRequest request)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.InputText);
+        ArgumentNullException.ThrowIfNull(request.Contents);
+        if (request.Contents.Count == 0)
+        {
+            throw new ArgumentException("Contents 不能为空。", nameof(request));
+        }
 
         CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource(request.CancellationToken);
         CancellationToken currentChatCancellationToken = currentChatCancellationTokenSource.Token;
@@ -239,7 +268,7 @@ public class CopilotChatManager : NotifyBase
         CopilotChatSession currentSession = SelectedSession;
         IsChatting = true;
 
-        CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(request.InputText);
+        CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(request.Contents);
         CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
         OnBeforeSendStreaming(currentSession, assistantChatMessage);
 

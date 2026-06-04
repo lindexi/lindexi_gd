@@ -28,6 +28,50 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         TimeText = CreatedTime.ToString("HH:mm");
     }
 
+    /// <summary>
+    /// 从 <see cref="AIContent"/> 集合构建消息，支持文本、图片、音频等多模态内容。
+    /// </summary>
+    public CopilotChatMessage(ChatRole role, IReadOnlyList<AIContent> contents)
+    {
+        ArgumentNullException.ThrowIfNull(contents);
+        Role = role;
+        MessageItems.CollectionChanged += MessageItems_CollectionChanged;
+
+        foreach (AIContent content in contents)
+        {
+            switch (content)
+            {
+                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
+                    MessageItems.Add(new CopilotChatTextItem(textContent.Text));
+                    break;
+                case DataContent dataContent when dataContent.Data is { Length: > 0 }:
+                    MessageItems.Add(CreateDataItem(dataContent));
+                    break;
+            }
+        }
+
+        CreatedTime = DateTimeOffset.Now;
+        TimeText = CreatedTime.ToString("HH:mm");
+    }
+
+    private static ICopilotChatMessageItem CreateDataItem(DataContent dataContent)
+    {
+        ReadOnlyMemory<byte> data = dataContent.Data;
+        string mediaType = dataContent.MediaType ?? string.Empty;
+        if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return new CopilotChatImageItem(BinaryData.FromBytes(data), mediaType);
+        }
+
+        if (mediaType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
+        {
+            return new CopilotChatAudioItem(BinaryData.FromBytes(data), mediaType);
+        }
+
+        // 其他二进制数据统一当作图片处理，保留原始 mediaType
+        return new CopilotChatImageItem(BinaryData.FromBytes(data), string.IsNullOrWhiteSpace(mediaType) ? "application/octet-stream" : mediaType);
+    }
+
     public ChatRole Role { get; }
 
     /// <summary>
@@ -222,6 +266,14 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         return new CopilotChatMessage(ChatRole.User, content);
     }
 
+    /// <summary>
+    /// 从多模态内容集合创建用户消息。
+    /// </summary>
+    public static CopilotChatMessage CreateUser(IReadOnlyList<AIContent> contents)
+    {
+        return new CopilotChatMessage(ChatRole.User, contents);
+    }
+
     public static CopilotChatMessage CreateAssistant(string content, bool isPresetInfo)
     {
         return new CopilotChatMessage(ChatRole.Assistant, content)
@@ -248,7 +300,24 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
     public ChatMessage ToChatMessage()
     {
-        return new ChatMessage(Role, Content);
+        var contents = new List<AIContent>(MessageItems.Count);
+        foreach (ICopilotChatMessageItem messageItem in MessageItems)
+        {
+            switch (messageItem)
+            {
+                case CopilotChatTextItem textItem when !string.IsNullOrEmpty(textItem.Text):
+                    contents.Add(new TextContent(textItem.Text));
+                    break;
+                case CopilotChatImageItem imageItem when imageItem.HasData:
+                    contents.Add(new DataContent(imageItem.Data.ToMemory(), imageItem.MimeType));
+                    break;
+                case CopilotChatAudioItem audioItem when audioItem.HasData:
+                    contents.Add(new DataContent(audioItem.Data.ToMemory(), audioItem.MimeType));
+                    break;
+            }
+        }
+
+        return new ChatMessage(Role, contents);
     }
 
     public void ClearMessageItems()
@@ -482,6 +551,8 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         {
             CopilotChatTextItem textItem => textItem.Text,
             CopilotChatReasoningItem reasoningItem => $"思考：{Environment.NewLine}{reasoningItem.Text}",
+            CopilotChatImageItem imageItem => imageItem.DisplayText,
+            CopilotChatAudioItem audioItem => audioItem.DisplayText,
             CopilotChatApprovalToolItem approvalToolItem => FormatApprovalToolItem(approvalToolItem),
             CopilotChatToolItem toolItem => FormatToolItem(toolItem),
             CopilotChatSubAgentItem subAgentItem => FormatSubAgentItem(subAgentItem),
