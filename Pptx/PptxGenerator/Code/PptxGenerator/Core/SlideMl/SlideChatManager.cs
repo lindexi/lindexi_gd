@@ -75,7 +75,11 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
         var tools = new[] { SlideRenderTool.CreateTool(), SlideRenderTool.CreatePreviewTool() };
 
-        var request = SendMessageRequest.FromText(BuildInitialUserPrompt(userPrompt), tools: tools, systemPrompt: BuildSystemPrompt());
+        var request = new SendMessageRequest(BuildInitialUserPrompt(userPrompt))
+        {
+            Tools = tools,
+            SystemPrompt = BuildSystemPrompt(),
+        };
 
         var requestResult = _copilotChatManager.SendMessage(request);
         await requestResult.RunTask.ConfigureAwait(false);
@@ -121,12 +125,14 @@ public sealed class SlideChatManager : INotifyPropertyChanged
             }
         }
 
-        var request = new SendMessageRequest(contents,
-            WithHistory: true,
-            CreateNewSession: isFirstMessage,
-            Tools: tools,
-            SystemPrompt: systemPrompt,
-            CancellationToken: cancellationToken);
+        var request = new SendMessageRequest(contents)
+        {
+            WithHistory = true,
+            CreateNewSession = isFirstMessage,
+            Tools = tools,
+            SystemPrompt = systemPrompt,
+            CancellationToken = cancellationToken,
+        };
 
         var requestResult = _copilotChatManager.SendMessage(request);
         await requestResult.RunTask.ConfigureAwait(false);
