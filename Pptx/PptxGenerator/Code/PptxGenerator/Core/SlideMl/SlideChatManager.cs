@@ -62,36 +62,13 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     public string WarningText => SlideRenderTool.LatestWarnings;
 
     /// <summary>
-    /// 发送 SlideML 生成请求。自动附加 SlideRenderTool。
+    /// 发送 SlideML 生成请求。等效于 <see cref="SendMessageAsync"/> 的首条消息模式（无预览图附件）。
     /// </summary>
     /// <param name="userPrompt">用户自然语言需求描述。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task SendSlideRequestAsync(string userPrompt, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(userPrompt))
-        {
-            return;
-        }
-
-        var tools = new[] { SlideRenderTool.CreateTool(), SlideRenderTool.CreatePreviewTool() };
-
-        var request = new SendMessageRequest(BuildInitialUserPrompt(userPrompt))
-        {
-            Tools = tools,
-            SystemPrompt = BuildSystemPrompt(),
-        };
-
-        var requestResult = _copilotChatManager.SendMessage(request);
-        await requestResult.RunTask.ConfigureAwait(false);
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            //InjectPreviewScreenshot();
-            OnPropertyChanged(nameof(PreviewBitmap));
-            OnPropertyChanged(nameof(CurrentSlideXml));
-            OnPropertyChanged(nameof(RenderedXml));
-            OnPropertyChanged(nameof(WarningText));
-        });
+        await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
