@@ -148,7 +148,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         }
 
         var request = new SendMessageRequest(contents,
-            WithHistory: !isFirstMessage,
+            WithHistory: true,
             CreateNewSession: isFirstMessage,
             Tools: tools,
             SystemPrompt: systemPrompt,
