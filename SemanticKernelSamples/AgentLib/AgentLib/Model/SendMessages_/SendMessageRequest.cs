@@ -75,4 +75,10 @@ public readonly record struct SendMessageRequest
     /// 是否在每次工具调用完成后触发压缩。仅在 <see cref="ChatReducer"/> 不为 <see langword="null"/> 时有效。
     /// </summary>
     public bool RequirePerServiceCallChatHistoryPersistence { get; init; } = false;
+
+    /// <summary>
+    /// 本次请求的 AI 上下文提供者集合。非 <see langword="null"/> 时覆盖 <see cref="CopilotChatManager.AIContextProviders"/>。
+    /// 设为空集合可临时禁用上下文提供者。
+    /// </summary>
+    public IList<AIContextProvider>? AIContextProviders { get; init; } = null;
 }
