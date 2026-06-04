@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -49,12 +48,12 @@ public sealed class SubAgentToolProvider
         var executor = new SubAgentToolExecutor(_agentApiEndpointManager, _workspaceToolProvider, chatContext, this, cancellationToken);
         List<AITool> tools =
         [
-            executor.CreateTool(nameof(SubAgentToolExecutor.InvokeSubAgentAsync), InvokeSubAgentToolName, "委托一个子代理执行独立任务。可通过子代理类型选择快速模型或多模态能力；只有确定性处理、总结输出、了解文件组织结构或大文件内容、意图识别等无需思考决策的任务才可使用 Flash，涉及分析、判断、设计或决策时不要使用 Flash。")
+            AIFunctionFactory.Create(executor.InvokeSubAgentAsync, InvokeSubAgentToolName, "委托一个子代理执行独立任务。可通过子代理类型选择快速模型或多模态能力；只有确定性处理、总结输出、了解文件组织结构或大文件内容、意图识别等无需思考决策的任务才可使用 Flash，涉及分析、判断、设计或决策时不要使用 Flash。")
         ];
 
         if (includeReturnOutputTool)
         {
-            tools.Add(executor.CreateTool(nameof(SubAgentToolExecutor.ReturnOutputToParentAsync), ReturnOutputToParentToolName, "将需要返回给上一级代理的结果显式返回。只有在确实需要让上一级代理拿到输出时才调用此工具；不需要输出时不要调用。"));
+            tools.Add(AIFunctionFactory.Create(executor.ReturnOutputToParentAsync, ReturnOutputToParentToolName, "将需要返回给上一级代理的结果显式返回。只有在确实需要让上一级代理拿到输出时才调用此工具；不需要输出时不要调用。"));
         }
 
         return tools;
@@ -141,13 +140,6 @@ public sealed class SubAgentToolProvider
         {
             _outputCollector.SetOutput(output);
             return Task.FromResult("已将结果返回给上一级智能体。");
-        }
-
-        public AITool CreateTool(string methodName, string toolName, string description)
-        {
-            MethodInfo methodInfo = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public)
-                                    ?? throw new InvalidOperationException($"未找到 {methodName} 方法。");
-            return AIFunctionFactory.Create(methodInfo, this, toolName, description, serializerOptions: null);
         }
 
         private IReadOnlyList<AITool> CreateSubAgentTools(CopilotChatContext? chatContext)

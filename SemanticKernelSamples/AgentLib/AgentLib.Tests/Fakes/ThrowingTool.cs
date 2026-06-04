@@ -1,7 +1,5 @@
 using Microsoft.Extensions.AI;
 
-using System.Reflection;
-
 namespace AgentLib.Tests.Fakes;
 
 /// <summary>
@@ -21,9 +19,7 @@ internal sealed class ThrowingTool
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
 
-        MethodInfo methodInfo = GetType().GetMethod(nameof(ThrowAsync), BindingFlags.Instance | BindingFlags.Public)
-                                ?? throw new InvalidOperationException($"未找到 {nameof(ThrowAsync)} 方法。");
-        return AIFunctionFactory.Create(methodInfo, this, name, description, serializerOptions: null);
+        return AIFunctionFactory.Create(ThrowAsync, name, description);
     }
 
     [global::System.ComponentModel.DescriptionAttribute("调用时抛出异常。")]
