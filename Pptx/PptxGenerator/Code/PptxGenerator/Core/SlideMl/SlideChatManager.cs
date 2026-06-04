@@ -131,6 +131,17 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         var requestResult = _copilotChatManager.SendMessage(request);
         await requestResult.RunTask.ConfigureAwait(false);
 
+        bool doNotRender = string.IsNullOrEmpty(CurrentSlideXml);
+        if (doNotRender)
+        {
+            var toolRequest = request with
+            {
+                Contents = [new TextContent("请调用 render_slide 工具进行渲染，根据渲染结果优化界面")],
+                SystemPrompt = $"**重要：生成 SlideML 后必须调用 render_slide 工具，不可跳过此步骤**"
+            };
+            await _copilotChatManager.SendMessage(toolRequest).RunTask.ConfigureAwait(false);
+        }
+
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             //InjectPreviewScreenshot();
