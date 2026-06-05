@@ -83,7 +83,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public string StatusText
     {
         get => _statusText;
-        private set => SetProperty(ref _statusText, value);
+        set => SetProperty(ref _statusText, value);
     }
 
     /// <summary>

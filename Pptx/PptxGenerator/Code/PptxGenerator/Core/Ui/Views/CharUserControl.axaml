@@ -276,16 +276,27 @@
                              BorderThickness="1"
                              Padding="12,10"
                              Watermark="描述你想做的一页幻灯片…" />
-                    <Button Grid.Row="0" Grid.Column="2"
-                            Content="发送"
-                            Command="{Binding SendMessageCommand}"
-                            MinWidth="80"
-                            Height="42"
-                            Margin="10,0,0,0"
-                            Background="#FF2563EB"
-                            Foreground="White"
-                            FontWeight="SemiBold"
-                            CornerRadius="10" />
+                    <StackPanel Grid.Row="0" Grid.Column="2"
+                                Orientation="Horizontal">
+                        <Button Content="发送"
+                                Command="{Binding SendMessageCommand}"
+                                MinWidth="80"
+                                Height="42"
+                                Margin="10,0,0,0"
+                                Background="#FF2563EB"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                CornerRadius="10" />
+                         <Button x:Name="DebugButton" Content="调试"
+                                 MinWidth="80"
+                                 Height="42"
+                                 Margin="10,0,0,0"
+                                 Background="#FF2563EB"
+                                 Foreground="White"
+                                 FontWeight="SemiBold"
+                                 CornerRadius="10" 
+                                 Click="DebugButton_OnClick" />
+                    </StackPanel>
                     <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                               IsChecked="{Binding AttachPreview}"
                               Margin="0,6,0,0"
