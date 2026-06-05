@@ -126,6 +126,10 @@ public partial class RightSlideBar : UserControl
             // 完成配置，可以建立联系
             var configurationManager = mainViewModel.ConfigurationManager; var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
             copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
+
+            // 加载 Skills 技能文件夹
+            var skillsDirectory = Directory.CreateDirectory(Path.Join(mainViewModel.AppPathManager.CopilotAbilityDirectory.Path, "Skills"));
+            copilotViewModel.AddSkillFolder(skillsDirectory);
         }
         else
         {
