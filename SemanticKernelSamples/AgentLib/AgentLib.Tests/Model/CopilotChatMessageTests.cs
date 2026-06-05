@@ -68,27 +68,26 @@ public class CopilotChatMessageTests
     }
 
     [TestMethod]
-    [Description("追加子智能体调用与结果时应生成包含进度与输出的子代理片段")]
-    public void AppendFunctionCallAndResult_WhenUsingSubAgent_CreatesSubAgentItem()
+    [Description("追加子智能体调用与结果时应生成包含进度与输出的子代理片段 — SubAgentToolProvider 通过 CreateSubAgentItem 创建项")]
+    public void AppendFunctionCallAndResult_WhenUsingSubAgent_CreatesSubAgentItemViaCreateSubAgentItem()
     {
         var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
         var functionCall = new FunctionCallContent("sub-1", "InvokeSubAgent", arguments: new Dictionary<string, object?>
         {
-            ["Task"] = "翻译"
+            ["Prompt"] = "翻译"
         });
-        var functionResult = new FunctionResultContent("sub-1", result: "已完成");
 
+        // AppendFunctionCall 不再创建项，仅跟踪 callId
         message.AppendFunctionCall(functionCall);
-        CopilotChatSubAgentItem subAgentItem = message.CreateSubAgentItem("InvokeSubAgent", "翻译", "sub-1");
+
+        // SubAgentToolProvider 使用自己的 callId 创建子代理项
+        CopilotChatSubAgentItem subAgentItem = message.CreateSubAgentItem("调用子智能体", "翻译", "sub-agent-1");
         subAgentItem.AppendText("处理中");
-        message.AppendFunctionResult(functionResult);
 
         Assert.HasCount(1, message.MessageItems);
-        StringAssert.Contains(message.FullContent, "子代理：InvokeSubAgent");
-        StringAssert.Contains(message.FullContent, "进度：");
+        Assert.IsInstanceOfType<CopilotChatSubAgentItem>(message.MessageItems[0]);
+        StringAssert.Contains(message.FullContent, "调用子智能体");
         StringAssert.Contains(message.FullContent, "处理中");
-        StringAssert.Contains(message.FullContent, "输出：");
-        StringAssert.Contains(message.FullContent, "已完成");
     }
 
     [TestMethod]
@@ -130,5 +129,70 @@ public class CopilotChatMessageTests
         Assert.IsEmpty(message.Reason);
         Assert.IsFalse(message.HasContent);
         Assert.IsFalse(message.HasReason);
+    }
+
+    [TestMethod]
+    [Description("InvokeSubAgent 的函数调用不应在 MessageItems 中直接创建子代理项，以避免与 SubAgentToolProvider 重复")]
+    public void AppendFunctionCall_WhenNameIsInvokeSubAgent_SkipsAddingToMessageItems()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+        var functionCall = new FunctionCallContent("sub-call-1", "InvokeSubAgent", arguments: new Dictionary<string, object?>
+        {
+            ["Prompt"] = "翻译"
+        });
+
+        message.AppendFunctionCall(functionCall);
+
+        Assert.HasCount(0, message.MessageItems, "InvokeSubAgent 不应在 MessageItems 中创建项");
+    }
+
+    [TestMethod]
+    [Description("InvokeSubAgent 的函数结果不应在 MessageItems 中创建工具项")]
+    public void AppendFunctionResult_WhenInvokeSubAgentCallId_SkipsAddingToMessageItems()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+        var functionCall = new FunctionCallContent("sub-call-1", "InvokeSubAgent", arguments: new Dictionary<string, object?>
+        {
+            ["Prompt"] = "翻译"
+        });
+        var functionResult = new FunctionResultContent("sub-call-1", result: "已完成");
+
+        message.AppendFunctionCall(functionCall);
+        message.AppendFunctionResult(functionResult);
+
+        Assert.HasCount(0, message.MessageItems, "InvokeSubAgent 结果不应在 MessageItems 中创建项");
+    }
+
+    [TestMethod]
+    [Description("CreateSubAgentItem 仍应正常创建子代理项，由 SubAgentToolProvider 负责")]
+    public void CreateSubAgentItem_WhenCalledBySubAgentToolProvider_CreatesSubAgentItem()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+
+        CopilotChatSubAgentItem item = message.CreateSubAgentItem("调用子智能体", "翻译请求", "sub-call-1");
+
+        Assert.IsNotNull(item);
+        Assert.HasCount(1, message.MessageItems);
+        Assert.AreSame(item, message.MessageItems[0]);
+    }
+
+    [TestMethod]
+    [Description("先调用 AppendFunctionCall(InvokeSubAgent) 再调用 CreateSubAgentItem（模拟 SubAgentToolProvider）应只产生一个子代理项")]
+    public void AppendFunctionCallAndCreateSubAgentItem_WhenInvokeSubAgent_ProducesExactlyOneSubAgentItem()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+        var functionCall = new FunctionCallContent("sub-call-1", "InvokeSubAgent", arguments: new Dictionary<string, object?>
+        {
+            ["Prompt"] = "翻译"
+        });
+
+        message.AppendFunctionCall(functionCall);
+
+        // SubAgentToolProvider 使用不同的 callId 创建子代理项
+        CopilotChatSubAgentItem item = message.CreateSubAgentItem("调用子智能体", "翻译请求", "sub-agent-call-1");
+        item.AppendText("处理中...");
+
+        Assert.HasCount(1, message.MessageItems, "应只有一个子代理项");
+        Assert.AreEqual("处理中...", item.MessageItems.OfType<CopilotChatTextItem>().First().Text);
     }
 }

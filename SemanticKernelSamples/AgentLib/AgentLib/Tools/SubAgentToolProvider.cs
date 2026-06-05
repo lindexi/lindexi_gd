@@ -94,7 +94,7 @@ public sealed class SubAgentToolProvider
 
             SubAgentSelection selection = SubAgentSelection.Parse(subAgentType);
             ILanguageModel model = _agentApiEndpointManager.GetBestModel(languageModel => selection.IsMatch(languageModel));
-            IChatClient chatClient = await model.GetChatClientAsync().ConfigureAwait(false);
+            IChatClient chatClient = await model.GetChatClientAsync();
             CopilotChatSubAgentItem? subAgentItem = _chatContext?.CurrentContent.CreateSubAgentItem(InvokeSubAgentDisplayName, CreateInvocationInputText(prompt, systemPrompt, subAgentType));
             _outputCollector.Attach(subAgentItem);
             CopilotChatContext? subAgentChatContext = subAgentItem is not null ? _chatContext?.CreateSubAgentContext(subAgentItem) : null;
@@ -115,7 +115,7 @@ public sealed class SubAgentToolProvider
 
             messages.Add(new ChatMessage(ChatRole.User, prompt));
 
-            await foreach (AgentResponseUpdate responseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: _cancellationToken).ConfigureAwait(false))
+            await foreach (AgentResponseUpdate responseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: _cancellationToken))
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 AppendSubAgentResponseUpdate(subAgentItem, responseUpdate);
