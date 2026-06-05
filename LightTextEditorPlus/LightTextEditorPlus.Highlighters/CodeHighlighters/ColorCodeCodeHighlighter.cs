@@ -22,6 +22,9 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
     private static readonly ILanguageRepository LanguageRepository = CreateLanguageRepository();
     private static readonly LanguageParser LanguageParser = new(LanguageCompiler, LanguageRepository);
 
+    private readonly XmlCodeHighlighter _xmlCodeHighlighter = new();
+    private readonly JsonCodeHighlighter _jsonCodeHighlighter = new();
+
     /// <summary>
     /// 获取用于解析代码的语言标识。
     /// </summary>
@@ -33,6 +36,18 @@ public sealed class ColorCodeCodeHighlighter : ICodeHighlighter
     /// <param name="context">代码内容与着色输出上下文。</param>
     public void ApplyHighlight(in HighlightCodeContext context)
     {
+        if (string.Equals(LanguageId, "json", StringComparison.OrdinalIgnoreCase)
+            && _jsonCodeHighlighter.TryApplyHighlight(context))
+        {
+            return;
+        }
+
+        if (string.Equals(LanguageId, ColorCode.Common.LanguageId.Xml, StringComparison.OrdinalIgnoreCase)
+            && _xmlCodeHighlighter.TryApplyHighlight(context))
+        {
+            return;
+        }
+
         var language = LanguageRepository.FindById(LanguageId);
         if (language is null)
         {

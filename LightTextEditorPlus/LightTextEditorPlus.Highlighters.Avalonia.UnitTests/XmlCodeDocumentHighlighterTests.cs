@@ -150,6 +150,92 @@ public class XmlCodeDocumentHighlighterTests
     }
 
     [Fact]
+    public void ApplyHighlight_XmlWithGradientBackground_HighlightsAllTagsAttributesAndStrings()
+    {
+        var code = """
+        <!-- 1. 渐变背景 -->
+        <Rect X="0" Y="0" Width="1280" Height="720">
+          <Fill>
+            <LinearGradient X1="0" Y1="0" X2="1" Y2="1">
+              <Stop Offset="0%" Color="#4A7BF7"/>
+              <Stop Offset="100%" Color="#F4F6FA"/>
+            </LinearGradient>
+          </Fill>
+        </Rect>
+        """.Replace("\r\n", "\n");
+
+        var textEditor = CreateHighlightedEditor(code);
+        AssertXmlHighlight(textEditor, code,
+            classMemberTokenList:
+            [
+                ("Rect", 0), ("Fill", 0), ("LinearGradient", 0), ("Stop", 0), ("Stop", 1),
+                ("LinearGradient", 1), ("Fill", 1), ("Rect", 1),
+                ("X", 0), ("Y", 0), ("Width", 0), ("Height", 0),
+                ("X1", 0), ("Y1", 0), ("X2", 0), ("Y2", 0),
+                ("Offset", 0), ("Color", 0), ("Offset", 1), ("Color", 1)
+            ],
+            stringTokenList:
+            [
+                "\"0\"", "\"0\"", "\"1280\"", "\"720\"",
+                "\"0\"", "\"0\"", "\"1\"", "\"1\"",
+                "\"0%\"", "\"#4A7BF7\"", "\"100%\"", "\"#F4F6FA\""
+            ],
+            plainTextTokenList: [],
+            commentTokenList: [("<!-- 1. 渐变背景 -->", 0)]);
+    }
+
+    [Fact]
+    public void ApplyHighlight_XmlWithGradientBackground_ColorCodePath_HighlightsAllTagsAttributesAndStrings()
+    {
+        var code = """
+        <!-- 1. 渐变背景 -->
+        <Rect X="0" Y="0" Width="1280" Height="720">
+          <Fill>
+            <LinearGradient X1="0" Y1="0" X2="1" Y2="1">
+              <Stop Offset="0%" Color="#4A7BF7"/>
+              <Stop Offset="100%" Color="#F4F6FA"/>
+            </LinearGradient>
+          </Fill>
+        </Rect>
+        """.Replace("\r\n", "\n");
+
+        var textEditor = CreateColorCodeHighlightedEditor(code);
+        AssertXmlHighlight(textEditor, code,
+            classMemberTokenList:
+            [
+                ("Rect", 0), ("Fill", 0), ("LinearGradient", 0), ("Stop", 0), ("Stop", 1),
+                ("LinearGradient", 1), ("Fill", 1), ("Rect", 1),
+                ("X", 0), ("Y", 0), ("Width", 0), ("Height", 0),
+                ("X1", 0), ("Y1", 0), ("X2", 0), ("Y2", 0),
+                ("Offset", 0), ("Color", 0), ("Offset", 1), ("Color", 1)
+            ],
+            stringTokenList:
+            [
+                "\"0\"", "\"0\"", "\"1280\"", "\"720\"",
+                "\"0\"", "\"0\"", "\"1\"", "\"1\"",
+                "\"0%\"", "\"#4A7BF7\"", "\"100%\"", "\"#F4F6FA\""
+            ],
+            plainTextTokenList: [],
+            commentTokenList: [("<!-- 1. 渐变背景 -->", 0)]);
+    }
+
+    [Fact]
+    public void ApplyHighlight_SimpleXml_ColorCodePath_ProducesConsistentHighlight()
+    {
+        const string code = "<Rect X=\"0\"/>";
+
+        var textEditor = CreateColorCodeHighlightedEditor(code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(textEditor, code);
+
+        // ColorCode path should produce the same high-quality results as XmlCodeHighlighter
+        AssertXmlHighlight(textEditor, code,
+            classMemberTokenList: [("Rect", 0), ("X", 0)],
+            stringTokenList: ["\"0\""],
+            plainTextTokenList: []);
+    }
+
+    [Fact]
     public void RenderBackground_ValidContext_DoesNotThrow()
     {
         var textEditor = new TextEditor();
