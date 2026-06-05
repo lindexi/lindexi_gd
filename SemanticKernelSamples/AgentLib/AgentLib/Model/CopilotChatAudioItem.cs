@@ -59,4 +59,7 @@ public sealed class CopilotChatAudioItem : NotifyBase, ICopilotChatMessageItem
     /// 调试/日志用的可读文本。
     /// </summary>
     public string DisplayText => $"[音频: {MimeType}]";
+
+    /// <inheritdoc/>
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone() => new CopilotChatAudioItem(Data, MimeType);
 }

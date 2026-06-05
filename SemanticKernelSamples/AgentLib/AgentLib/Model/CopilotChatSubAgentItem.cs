@@ -377,4 +377,16 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     {
         OnPropertyChanged(nameof(MessageItems));
     }
+
+    /// <inheritdoc/>
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone()
+    {
+        var clone = new CopilotChatSubAgentItem(CallId, ToolName, InputText, OutputText);
+        foreach (ICopilotChatMessageItem item in MessageItems)
+        {
+            clone.MessageItems.Add(item.Clone());
+        }
+
+        return clone;
+    }
 }

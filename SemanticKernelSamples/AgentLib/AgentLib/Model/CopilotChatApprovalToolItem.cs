@@ -251,4 +251,15 @@ public sealed class CopilotChatApprovalToolItem : NotifyBase, ICopilotChatMessag
         ApprovalState = CopilotToolApprovalState.Canceled;
         _approvalTaskCompletionSource.TrySetCanceled();
     }
+
+    /// <inheritdoc/>
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone()
+    {
+        var clone = new CopilotChatApprovalToolItem(CallId, ToolName, InputText, ApprovalDescription);
+        // 复制静态展示属性，但不复制运行时 TCS（展示用克隆不需要审批交互）
+        clone.OutputText = OutputText;
+        clone.ApprovalState = ApprovalState;
+        clone.DecisionReason = DecisionReason;
+        return clone;
+    }
 }

@@ -3,7 +3,10 @@ using Microsoft.Extensions.AI;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+
+#pragma warning disable MAAI001
 
 namespace AgentLib.Model;
 
@@ -80,5 +83,22 @@ public readonly record struct SendMessageRequest
     /// 本次请求的 AI 上下文提供者集合。非 <see langword="null"/> 时覆盖 <see cref="CopilotChatManager.AIContextProviders"/>。
     /// 设为空集合可临时禁用上下文提供者。
     /// </summary>
-    public IList<AIContextProvider>? AIContextProviders { get; init; } = null;
+    public IReadOnlyList<AIContextProvider>? AIContextProviders { get; init; } = null;
+
+    /// <summary>
+    /// 返回一个新的 <see cref="SendMessageRequest"/>，从指定技能文件夹加载技能并追加到 <see cref="AIContextProviders"/> 中。
+    /// </summary>
+    /// <param name="skillFolder">技能文件夹路径。</param>
+    /// <returns>包含技能上下文提供者的新请求。</returns>
+    public SendMessageRequest WithSkillFolder(DirectoryInfo skillFolder)
+    {
+        ArgumentNullException.ThrowIfNull(skillFolder);
+
+        var skillsProvider = new AgentSkillsProvider(skillFolder.FullName);
+        var providers = AIContextProviders is { Count: > 0 }
+            ? new List<AIContextProvider>(AIContextProviders) { skillsProvider }
+            : new List<AIContextProvider> { skillsProvider };
+
+        return this with { AIContextProviders = providers };
+    }
 }

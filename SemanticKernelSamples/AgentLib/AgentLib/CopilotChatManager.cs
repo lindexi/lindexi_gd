@@ -9,6 +9,7 @@ using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -185,7 +186,21 @@ public class CopilotChatManager : NotifyBase
     /// 调用方可添加任意 <see cref="AIContextProvider"/> 实现，如 <c>AgentSkillsProvider</c> 等。
     /// 为 <see langword="null"/> 或空集合时，不会注入任何上下文提供者。
     /// </summary>
-    public IList<AIContextProvider>? AIContextProviders { get; set; }
+    public IReadOnlyList<AIContextProvider>? AIContextProviders { get; set; }
+
+    /// <summary>
+    /// 从指定技能文件夹加载技能并追加到 <see cref="AIContextProviders"/> 中。
+    /// </summary>
+    /// <param name="skillFolder">技能文件夹路径。</param>
+    public void AddSkillFolder(DirectoryInfo skillFolder)
+    {
+        ArgumentNullException.ThrowIfNull(skillFolder);
+
+        var skillsProvider = new AgentSkillsProvider(skillFolder.FullName);
+        AIContextProviders = AIContextProviders is { Count: > 0 }
+            ? new List<AIContextProvider>(AIContextProviders) { skillsProvider }
+            : new List<AIContextProvider> { skillsProvider };
+    }
 
     /// <summary>
     /// 创建新会话并切换为当前选中会话。
@@ -194,6 +209,35 @@ public class CopilotChatManager : NotifyBase
     {
         CopilotChatSession session = FindReusableEmptySession() ?? CreateSession();
         SelectedSession = session;
+    }
+
+    /// <summary>
+    /// 从指定消息创建新会话。新会话包含从最早消息到 <paramref name="fromMessage"/>（含）之间的所有消息的深拷贝。
+    /// 原会话保持不变，创建后自动切换到新会话。
+    /// </summary>
+    /// <param name="fromMessage">新会话的截止消息。此消息必须是 <see cref="SelectedSession"/> 中的一条消息。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="fromMessage"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="InvalidOperationException">在 <see cref="SelectedSession"/> 中未找到 <paramref name="fromMessage"/>。新会话不能为空。</exception>
+    public void CreateSessionFromMessage(CopilotChatMessage fromMessage)
+    {
+        ArgumentNullException.ThrowIfNull(fromMessage);
+
+        CopilotChatSession currentSession = SelectedSession;
+        int index = currentSession.ChatMessages.IndexOf(fromMessage);
+        if (index < 0)
+        {
+            throw new InvalidOperationException("在当前的会话中找不到所选的聊天消息。");
+        }
+
+        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        for (int i = 0; i <= index; i++)
+        {
+            newSession.AddMessage(currentSession.ChatMessages[i].Clone());
+        }
+
+        ChatSessions.Insert(0, newSession);
+        OnSessionCreated(newSession);
+        SelectedSession = newSession;
     }
 
     /// <summary>
@@ -373,10 +417,10 @@ public class CopilotChatManager : NotifyBase
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
             }
 
-            IList<AIContextProvider>? aiContextProviders = request.AIContextProviders ?? AIContextProviders;
+            IReadOnlyList<AIContextProvider>? aiContextProviders = request.AIContextProviders ?? AIContextProviders;
             if (aiContextProviders is { Count: > 0 })
             {
-                chatClientAgentOptions.AIContextProviders = aiContextProviders;
+                chatClientAgentOptions.AIContextProviders = aiContextProviders as IList<AIContextProvider> ?? aiContextProviders.ToList();
             }
 
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(chatClientAgentOptions);

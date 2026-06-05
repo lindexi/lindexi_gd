@@ -5,4 +5,9 @@ namespace AgentLib.Model;
 /// </summary>
 public interface ICopilotChatMessageItem
 {
+    /// <summary>
+    /// 创建当前片段的深拷贝。
+    /// </summary>
+    /// <returns>深拷贝后的新片段实例。</returns>
+    ICopilotChatMessageItem Clone();
 }

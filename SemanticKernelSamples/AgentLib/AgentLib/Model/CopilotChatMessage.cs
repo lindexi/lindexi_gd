@@ -54,6 +54,18 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         TimeText = CreatedTime.ToString("HH:mm");
     }
 
+    /// <summary>
+    /// 克隆构造，用于深拷贝已有消息。
+    /// </summary>
+    private CopilotChatMessage(ChatRole role, DateTimeOffset createdTime, string timeText, bool isPresetInfo)
+    {
+        Role = role;
+        CreatedTime = createdTime;
+        TimeText = timeText;
+        IsPresetInfo = isPresetInfo;
+        MessageItems.CollectionChanged += MessageItems_CollectionChanged;
+    }
+
     private static ICopilotChatMessageItem CreateDataItem(DataContent dataContent)
     {
         ReadOnlyMemory<byte> data = dataContent.Data;
@@ -332,6 +344,27 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     /// 消息创建时间的显示文本（HH:mm 格式）。
     /// </summary>
     public string TimeText { get; }
+
+    /// <summary>
+    /// 创建当前消息的深拷贝，包含所有 MessageItems 的递归深拷贝。
+    /// 如果存在 <see cref="UsageDetails"/>，则将其引用复制到新实例（该对象设置后不可变，共享引用没有副作用）。
+    /// </summary>
+    /// <returns>深拷贝后的新消息实例。</returns>
+    public CopilotChatMessage Clone()
+    {
+        var clone = new CopilotChatMessage(Role, CreatedTime, TimeText, IsPresetInfo);
+        if (UsageDetails is { } usageDetails)
+        {
+            clone.UsageDetails = usageDetails;
+        }
+
+        foreach (ICopilotChatMessageItem item in MessageItems)
+        {
+            clone.MessageItems.Add(item.Clone());
+        }
+
+        return clone;
+    }
 
     /// <summary>
     /// 创建一条用户消息。

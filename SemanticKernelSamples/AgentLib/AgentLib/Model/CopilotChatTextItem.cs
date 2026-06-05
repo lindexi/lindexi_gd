@@ -41,4 +41,7 @@ public sealed class CopilotChatTextItem : NotifyBase, ICopilotChatMessageItem
     /// 是否有文本内容。
     /// </summary>
     public bool HasText => !string.IsNullOrEmpty(Text);
+
+    /// <inheritdoc/>
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone() => new CopilotChatTextItem(Text);
 }
