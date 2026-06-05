@@ -9,6 +9,7 @@ using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -185,7 +186,21 @@ public class CopilotChatManager : NotifyBase
     /// 调用方可添加任意 <see cref="AIContextProvider"/> 实现，如 <c>AgentSkillsProvider</c> 等。
     /// 为 <see langword="null"/> 或空集合时，不会注入任何上下文提供者。
     /// </summary>
-    public IList<AIContextProvider>? AIContextProviders { get; set; }
+    public IReadOnlyList<AIContextProvider>? AIContextProviders { get; set; }
+
+    /// <summary>
+    /// 从指定技能文件夹加载技能并追加到 <see cref="AIContextProviders"/> 中。
+    /// </summary>
+    /// <param name="skillFolder">技能文件夹路径。</param>
+    public void AddSkillFolder(DirectoryInfo skillFolder)
+    {
+        ArgumentNullException.ThrowIfNull(skillFolder);
+
+        var skillsProvider = new AgentSkillsProvider(skillFolder.FullName);
+        AIContextProviders = AIContextProviders is { Count: > 0 }
+            ? new List<AIContextProvider>(AIContextProviders) { skillsProvider }
+            : new List<AIContextProvider> { skillsProvider };
+    }
 
     /// <summary>
     /// 创建新会话并切换为当前选中会话。
@@ -402,10 +417,10 @@ public class CopilotChatManager : NotifyBase
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
             }
 
-            IList<AIContextProvider>? aiContextProviders = request.AIContextProviders ?? AIContextProviders;
+            IReadOnlyList<AIContextProvider>? aiContextProviders = request.AIContextProviders ?? AIContextProviders;
             if (aiContextProviders is { Count: > 0 })
             {
-                chatClientAgentOptions.AIContextProviders = aiContextProviders;
+                chatClientAgentOptions.AIContextProviders = aiContextProviders as IList<AIContextProvider> ?? aiContextProviders.ToList();
             }
 
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(chatClientAgentOptions);

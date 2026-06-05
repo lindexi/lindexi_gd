@@ -16,13 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="artifacts\**\*.cs" />
-    <EmbeddedResource Remove="artifacts\**\*" />
-    <None Remove="artifacts\**\*" />
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+    <None Update="Assets\TestSkills\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
