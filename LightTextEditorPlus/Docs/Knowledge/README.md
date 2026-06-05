@@ -27,12 +27,6 @@ Knowledge/
 
 ### 任务日志
 
-#### 2026-06
-
-| 文件 | 主题 |
-|---|---|
-| [2026-06-19-ColorCodeCodeHighlighter-XML着色修复.md](任务日志/2026-06-19-ColorCodeCodeHighlighter-XML着色修复.md) | 高亮 |
-
 #### 2026-05
 
 | 文件 | 主题 |
