@@ -99,6 +99,10 @@ Knowledge/
 | 文件 | 说明 |
 |---|---|
 | [.NET类库多语言与卫星程序集异常资源机制.md](通用参考/2026-04-09-.NET类库多语言与卫星程序集异常资源机制.md) | .NET 多语言最佳实践、resx + 卫星程序集方案、本项目落地建议 |
+| [Skia文本渲染调试方法论.md](通用参考/Skia文本渲染调试方法论.md) | 五层分层诊断策略：字体度量→字符测量→行布局→绘制→选择范围 |
+| [NativeAOT-PInvoke实践要点.md](通用参考/NativeAOT-PInvoke实践要点.md) | `UnmanagedCallersOnly` 限制、两段式字符串读取、跨边界类型设计 |
+| [CharData坐标与尺寸语义手册.md](通用参考/CharData坐标与尺寸语义手册.md) | FrameSize vs FaceSize、GetStartPoint 方向语义、行范围层次、竖排宽高交换 |
+| [视觉回归测试差异图方案.md](通用参考/视觉回归测试差异图方案.md) | Skia 2x2 四宫格差异图生成方案，适用于 UI 视觉回归测试 |
 
 ### 归档
 
