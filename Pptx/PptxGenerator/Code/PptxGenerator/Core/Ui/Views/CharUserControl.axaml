@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:PptxGenerator"
              xmlns:agent="using:AgentLib.Model"
+             xmlns:sys="using:System.IO"
              mc:Ignorable="d"
              x:DataType="vm:MainWindowViewModel"
              d:DesignWidth="800" d:DesignHeight="450"
@@ -201,7 +202,7 @@
             BorderBrush="#FFE2E8F0"
             BorderThickness="1"
             Padding="0">
-        <Grid RowDefinitions="Auto,*,Auto">
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
             <!-- 顶部标题栏 -->
             <Border Grid.Row="0"
                     Background="#FFF8FAFC"
@@ -258,8 +259,72 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <!-- 底部输入栏 -->
+            <!-- 图片附件横排栏 -->
             <Border Grid.Row="2"
+                    Background="#FFFFFFFF"
+                    BorderBrush="#FFE2E8F0"
+                    BorderThickness="0,1,0,0"
+                    Padding="12,8">
+                <DockPanel>
+                    <!-- 横排图片缩略图列表 -->
+                    <ItemsControl ItemsSource="{Binding AttachedImageFiles}"
+                                  DockPanel.Dock="Left">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="sys:FileInfo">
+                                <Border CornerRadius="8"
+                                        Width="64"
+                                        Height="64"
+                                        Margin="0,0,8,0"
+                                        Background="#FFF1F5F9"
+                                        BorderBrush="#FFE2E8F0"
+                                        BorderThickness="1"
+                                        ClipToBounds="True">
+                                    <Grid>
+                                        <Image Source="{Binding FullName, Converter={x:Static vm:FilePathToBitmapConverter.Instance}}"
+                                               Stretch="UniformToFill"
+                                               Width="64"
+                                               Height="64" />
+                                        <!-- 左上角关闭按钮 -->
+                                        <Button Content="✕"
+                                                Width="16"
+                                                Height="16"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                HorizontalContentAlignment="Center"
+                                                Background="#CC444444"
+                                                Foreground="White"
+                                                FontSize="9"
+                                                Padding="0"
+                                                CornerRadius="5,5,5,5"
+                                                Command="{Binding $parent[ItemsControl].DataContext.RemoveImageCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- 右侧附加图片按钮 -->
+                    <Button x:Name="AttachImageButton"
+                            Content="+ 图片"
+                            DockPanel.Dock="Right"
+                            MinWidth="72"
+                            Height="36"
+                            Margin="8,0,0,0"
+                            Background="#FF2563EB"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            CornerRadius="8"
+                            Click="AttachImageButton_OnClick" />
+                </DockPanel>
+            </Border>
+
+            <!-- 底部输入栏 -->
+            <Border Grid.Row="3"
                     Background="#FFF8FAFC"
                     BorderBrush="#FFE2E8F0"
                     BorderThickness="0,1,0,0"

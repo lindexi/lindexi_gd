@@ -68,7 +68,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task SendSlideRequestAsync(string userPrompt, CancellationToken cancellationToken = default)
     {
-        await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken).ConfigureAwait(false);
+        await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -78,8 +78,9 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     /// <param name="userMessage">用户输入文本。</param>
     /// <param name="isFirstMessage">是否为首条消息。首条消息会包裹 <see cref="BuildInitialUserPrompt"/> 并切换新会话。</param>
     /// <param name="attachPreview">是否附加当前渲染预览图。<see langword="true"/> 时将预览图作为 <see cref="DataContent"/> 加入消息。</param>
+    /// <param name="attachedImageFiles">用户手动选择的图片文件路径列表。每个文件将被加载为 <see cref="DataContent"/> 加入消息。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, IReadOnlyList<string>? attachedImageFiles = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userMessage))
         {
@@ -91,7 +92,20 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         var processedText = isFirstMessage ? BuildInitialUserPrompt(userMessage) : userMessage;
         var systemPrompt = isFirstMessage ? BuildSystemPrompt() : null;
 
-        var contents = new List<AIContent>(2) { new TextContent(processedText) };
+        var initialCapacity = 1 + (attachedImageFiles?.Count ?? 0) + (attachPreview ? 1 : 0);
+        var contents = new List<AIContent>(initialCapacity) { new TextContent(processedText) };
+
+        if (attachedImageFiles is { Count: > 0 })
+        {
+            foreach (var imageFile in attachedImageFiles)
+            {
+                if (!string.IsNullOrWhiteSpace(imageFile) && File.Exists(imageFile))
+                {
+                    var dataContent = await DataContent.LoadFromAsync(imageFile, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    contents.Add(dataContent);
+                }
+            }
+        }
 
         if (attachPreview)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 
 using AgentLib.Model;
 
@@ -7,6 +8,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 
 using Google.Protobuf.Compiler;
 
@@ -56,5 +58,34 @@ public partial class CharUserControl : UserControl
         await result.RunTask;
 
         ViewModel.StatusText = "执行完成";
+    }
+
+    private async void AttachImageButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel is null)
+        {
+            return;
+        }
+
+        var filePickerOptions = new FilePickerOpenOptions
+        {
+            Title = "选择图片文件",
+            AllowMultiple = true,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("图片文件")
+                {
+                    Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif", "*.webp" }
+                }
+            }
+        };
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(filePickerOptions);
+        if (files is { Count: > 0 })
+        {
+            var filePaths = files.Select(f => f.Path.LocalPath);
+            ViewModel.AddAttachedImageFiles(filePaths);
+        }
     }
 }

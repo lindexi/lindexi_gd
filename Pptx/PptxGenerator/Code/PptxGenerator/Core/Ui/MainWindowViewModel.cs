@@ -3,6 +3,8 @@ using AgentLib.Model;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +15,8 @@ namespace PptxGenerator;
 public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
     private readonly DelegateCommand _sendMessageCommand;
+    private readonly DelegateCommand _attachImageCommand;
+    private readonly DelegateCommand<FileInfo> _removeImageCommand;
     private bool _isBusy;
     private bool _isFirstMessage = true;
     private bool _attachPreview;
@@ -24,6 +28,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         SlideChatManager = slideChatManager ?? throw new ArgumentNullException(nameof(slideChatManager));
         SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
         _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
+        _attachImageCommand = new DelegateCommand(() => { }, () => !IsBusy);
+        _removeImageCommand = new DelegateCommand<FileInfo>(fileInfo =>
+        {
+            if (fileInfo is not null)
+            {
+                AttachedImageFiles.Remove(fileInfo);
+            }
+        });
     }
 
     /// <summary>
@@ -50,6 +62,22 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ICommand SendMessageCommand => _sendMessageCommand;
+
+    /// <summary>
+    /// 附加图片命令。由于需要 <see cref="Avalonia.Controls.TopLevel"/> 才能打开文件选择器，
+    /// 实际逻辑在 View 层事件处理中完成，此命令仅用于 CanExecute 控制。
+    /// </summary>
+    public ICommand AttachImageCommand => _attachImageCommand;
+
+    /// <summary>
+    /// 移除已附加的图片文件。
+    /// </summary>
+    public ICommand RemoveImageCommand => _removeImageCommand;
+
+    /// <summary>
+    /// 用户手动选择的待发送图片文件列表。
+    /// </summary>
+    public ObservableCollection<FileInfo> AttachedImageFiles { get; } = new();
 
     /// <summary>
     /// 聊天气泡消息列表，绑定到 CopilotChatManager 的消息集合。
@@ -95,6 +123,21 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         set => SetProperty(ref _attachPreview, value);
     }
 
+    /// <summary>
+    /// 供 View 层调用，将选中的图片文件路径加入附件列表。
+    /// </summary>
+    /// <param name="filePaths">选中的文件路径集合。</param>
+    public void AddAttachedImageFiles(System.Collections.Generic.IEnumerable<string> filePaths)
+    {
+        foreach (var filePath in filePaths)
+        {
+            if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+            {
+                AttachedImageFiles.Add(new FileInfo(filePath));
+            }
+        }
+    }
+
     private async Task RunSendMessageAsync()
     {
         if (string.IsNullOrWhiteSpace(InputText))
@@ -116,10 +159,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         var attachPreview = _attachPreview;
 
+        var imageFiles = AttachedImageFiles.Count > 0
+            ? AttachedImageFiles.Select(f => f.FullName).ToList()
+            : null;
+
+        AttachedImageFiles.Clear();
+
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, cancellationTokenSource.Token).ConfigureAwait(false);
+            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, cancellationTokenSource.Token).ConfigureAwait(false);
 
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
