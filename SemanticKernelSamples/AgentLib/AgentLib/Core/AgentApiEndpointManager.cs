@@ -41,10 +41,10 @@ public class AgentApiEndpointManager
     }
 
     /// <summary>
-        /// 注册一个语言模型提供商。
-        /// </summary>
-        /// <param name="languageModelProvider">语言模型提供商。</param>
-        public void RegisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
+    /// 注册一个语言模型提供商。
+    /// </summary>
+    /// <param name="languageModelProvider">语言模型提供商。</param>
+    public void RegisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
     {
         var languageModels = languageModelProvider.GetSupportedModels();
         SupportedModels.AddRange(languageModels);
@@ -82,12 +82,12 @@ public class AgentApiEndpointManager
     }
 
     /// <summary>
-        /// 根据谓词条件获取最佳匹配的模型。按能力排序，选择能力最强的模型。
-        /// </summary>
-        /// <param name="predicate">筛选谓词。</param>
-        /// <returns>最佳匹配的模型。</returns>
-        /// <exception cref="InvalidOperationException">没有符合要求的模型时抛出。</exception>
-        public ILanguageModel GetBestModel(Func<ILanguageModel, bool> predicate)
+    /// 根据谓词条件获取最佳匹配的模型。按能力排序，选择能力最强的模型。
+    /// </summary>
+    /// <param name="predicate">筛选谓词。</param>
+    /// <returns>最佳匹配的模型。</returns>
+    /// <exception cref="InvalidOperationException">没有符合要求的模型时抛出。</exception>
+    public ILanguageModel GetBestModel(Func<ILanguageModel, bool> predicate)
     {
         ArgumentNullException.ThrowIfNull(predicate);
 
@@ -104,9 +104,9 @@ public class AgentApiEndpointManager
     private List<ILanguageModel> SupportedModels { get; } = [];
 
     /// <summary>
-        /// 首选语言模型。如果用户未设置，则自动选择能力最强的模型。
-        /// </summary>
-        public ILanguageModel PrimaryModel
+    /// 首选语言模型。如果用户未设置，则自动选择能力最强的模型。
+    /// </summary>
+    public ILanguageModel PrimaryModel
     {
         get
         {
