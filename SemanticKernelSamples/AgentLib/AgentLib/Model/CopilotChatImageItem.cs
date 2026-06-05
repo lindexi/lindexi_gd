@@ -59,4 +59,7 @@ public sealed class CopilotChatImageItem : NotifyBase, ICopilotChatMessageItem
     /// 调试/日志用的可读文本。
     /// </summary>
     public string DisplayText => $"[图片: {MimeType}]";
+
+    /// <inheritdoc/>
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone() => new CopilotChatImageItem(Data, MimeType);
 }

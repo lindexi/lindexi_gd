@@ -197,6 +197,35 @@ public class CopilotChatManager : NotifyBase
     }
 
     /// <summary>
+    /// 从指定消息创建新会话。新会话包含从最早消息到 <paramref name="fromMessage"/>（含）之间的所有消息的深拷贝。
+    /// 原会话保持不变，创建后自动切换到新会话。
+    /// </summary>
+    /// <param name="fromMessage">新会话的截止消息。此消息必须是 <see cref="SelectedSession"/> 中的一条消息。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="fromMessage"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="InvalidOperationException">在 <see cref="SelectedSession"/> 中未找到 <paramref name="fromMessage"/>。新会话不能为空。</exception>
+    public void CreateSessionFromMessage(CopilotChatMessage fromMessage)
+    {
+        ArgumentNullException.ThrowIfNull(fromMessage);
+
+        CopilotChatSession currentSession = SelectedSession;
+        int index = currentSession.ChatMessages.IndexOf(fromMessage);
+        if (index < 0)
+        {
+            throw new InvalidOperationException("在当前的会话中找不到所选的聊天消息。");
+        }
+
+        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        for (int i = 0; i <= index; i++)
+        {
+            newSession.AddMessage(currentSession.ChatMessages[i].Clone());
+        }
+
+        ChatSessions.Insert(0, newSession);
+        OnSessionCreated(newSession);
+        SelectedSession = newSession;
+    }
+
+    /// <summary>
     /// 设置聊天日志文件夹路径。
     /// </summary>
     /// <param name="chatLogFolder">日志文件夹路径。为空时使用默认路径。</param>

@@ -37,4 +37,7 @@ public sealed class CopilotChatReasoningItem : NotifyBase, ICopilotChatMessageIt
     /// 是否有推理文本。
     /// </summary>
     public bool HasText => !string.IsNullOrEmpty(Text);
+
+    /// <inheritdoc/>
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone() => new CopilotChatReasoningItem(Text);
 }

@@ -99,4 +99,7 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
     /// 是否有输出文本。
     /// </summary>
     public bool HasOutputText => !string.IsNullOrEmpty(OutputText);
+
+    /// <inheritdoc/>
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone() => new CopilotChatToolItem(CallId, ToolName, InputText, OutputText);
 }
