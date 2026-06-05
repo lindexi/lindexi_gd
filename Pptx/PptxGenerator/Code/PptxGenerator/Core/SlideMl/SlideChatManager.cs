@@ -119,7 +119,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         var request = new SendMessageRequest(contents)
         {
             WithHistory = true,
-            CreateNewSession = isFirstMessage,
+            CreateNewSession = false,
             Tools = tools,
             SystemPrompt = systemPrompt,
             CancellationToken = cancellationToken,
