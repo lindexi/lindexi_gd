@@ -176,6 +176,16 @@ public partial class CopilotSlideBar : UserControl
         await SetClipboardTextAsync($"{message.Author} {message.TimeText}{Environment.NewLine}{message.FullContent}");
     }
 
+    private void CreateSessionFromMessageMenuItem_OnClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { CommandParameter: CopilotChatMessage message })
+        {
+            return;
+        }
+
+        ViewModel.CreateSessionFromMessage(message);
+    }
+
     private async Task SetClipboardTextAsync(string text)
     {
         var topLevel = TopLevel.GetTopLevel(this);
