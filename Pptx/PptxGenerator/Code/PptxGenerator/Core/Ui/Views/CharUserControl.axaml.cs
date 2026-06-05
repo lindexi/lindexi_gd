@@ -88,4 +88,12 @@ public partial class CharUserControl : UserControl
             ViewModel.AddAttachedImageFiles(filePaths);
         }
     }
+
+    private void CloseAttachedImageButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: FileInfo fileInfo })
+        {
+            ViewModel.AttachedImageFiles.Remove(fileInfo);
+        }
+    }
 }

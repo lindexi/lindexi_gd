@@ -16,7 +16,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
     private readonly DelegateCommand _sendMessageCommand;
     private readonly DelegateCommand _attachImageCommand;
-    private readonly DelegateCommand<FileInfo> _removeImageCommand;
     private bool _isBusy;
     private bool _isFirstMessage = true;
     private bool _attachPreview;
@@ -29,13 +28,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
         _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
         _attachImageCommand = new DelegateCommand(() => { }, () => !IsBusy);
-        _removeImageCommand = new DelegateCommand<FileInfo>(fileInfo =>
-        {
-            if (fileInfo is not null)
-            {
-                AttachedImageFiles.Remove(fileInfo);
-            }
-        });
     }
 
     /// <summary>
@@ -69,15 +61,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public ICommand AttachImageCommand => _attachImageCommand;
 
-    /// <summary>
-    /// 移除已附加的图片文件。
-    /// </summary>
-    public ICommand RemoveImageCommand => _removeImageCommand;
-
-    /// <summary>
-    /// 用户手动选择的待发送图片文件列表。
-    /// </summary>
-    public ObservableCollection<FileInfo> AttachedImageFiles { get; } = new();
+        /// <summary>
+        /// 用户手动选择的待发送图片文件列表。
+        /// </summary>
+        public ObservableCollection<FileInfo> AttachedImageFiles { get; } = new();
 
     /// <summary>
     /// 聊天气泡消息列表，绑定到 CopilotChatManager 的消息集合。

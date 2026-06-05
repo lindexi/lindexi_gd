@@ -301,8 +301,7 @@
                                                 FontSize="9"
                                                 Padding="0"
                                                 CornerRadius="5,5,5,5"
-                                                Command="{Binding $parent[ItemsControl].DataContext.RemoveImageCommand}"
-                                                CommandParameter="{Binding}" />
+                                                Click="CloseAttachedImageButton_OnClick" />
                                     </Grid>
                                 </Border>
                             </DataTemplate>
