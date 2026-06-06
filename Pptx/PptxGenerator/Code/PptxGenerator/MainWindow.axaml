@@ -10,238 +10,245 @@
         x:Class="PptxGenerator.MainWindow"
         Title="PptxGenerator - SlideML Lab"
         Background="#FFF8FAFC">
-    <Grid RowDefinitions="Auto,*" Margin="20">
+  <Grid RowDefinitions="Auto,*" Margin="20">
+    <Border Grid.Row="0"
+            CornerRadius="20"
+            Background="#FFFFFFFF"
+            BorderBrush="#FFE2E8F0"
+            BorderThickness="1"
+            Padding="24"
+            Margin="0,0,0,16">
+      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+        <StackPanel Spacing="8">
+          <TextBlock Text="SlideML 单页实验室"
+                     FontSize="30"
+                     FontWeight="Bold"
+                     Foreground="#FF0F172A" />
+          <TextBlock Text="输入自然语言需求，让模型生成 SlideML、渲染预览、基于反馈自动迭代。"
+                     FontSize="14"
+                     Foreground="#FF475569" />
+        </StackPanel>
+
+        <Border Grid.Column="1"
+                Background="#FFF1F5F9"
+                BorderBrush="#FFE2E8F0"
+                BorderThickness="1"
+                CornerRadius="999"
+                Padding="14,8"
+                VerticalAlignment="Top">
+          <TextBlock Text="{Binding StatusText}" Foreground="#FF334155" />
+        </Border>
+
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="0,20,0,0">
+          <TextBox Text="{Binding Prompt}"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap"
+                   MinHeight="100"
+                   Background="#FFF8FAFC"
+                   BorderBrush="#FFCBD5E1"
+                   BorderThickness="1"
+                   Padding="14"
+                   Watermark="描述你想做的一页幻灯片..." />
+
+          <StackPanel Grid.Column="1" Spacing="12" Margin="16,0,0,0">
+            <Button Content="生成页面"
+                    Command="{Binding GenerateCommand}"
+                    MinWidth="140"
+                    Height="44"
+                    Background="#FF2563EB"
+                    Foreground="White"
+                    FontWeight="SemiBold" />
+            <TextBlock Text="支持命令行：dotnet run -- &quot;做一页 SlideML 介绍页&quot;"
+                       Width="220"
+                       TextWrapping="Wrap"
+                       Foreground="#FF64748B"
+                       FontSize="12" />
+          </StackPanel>
+        </Grid>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="520,20,*">
+      <Grid Grid.Column="0" RowDefinitions="Auto,16,Auto,16,*">
         <Border Grid.Row="0"
                 CornerRadius="20"
                 Background="#FFFFFFFF"
                 BorderBrush="#FFE2E8F0"
                 BorderThickness="1"
-                Padding="24"
-                Margin="0,0,0,16">
-            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="SlideML 单页实验室"
-                               FontSize="30"
-                               FontWeight="Bold"
-                               Foreground="#FF0F172A" />
-                    <TextBlock Text="输入自然语言需求，让模型生成 SlideML、渲染预览、基于反馈自动迭代。"
-                               FontSize="14"
-                               Foreground="#FF475569" />
-                </StackPanel>
-
-                <Border Grid.Column="1"
-                        Background="#FFF1F5F9"
-                        BorderBrush="#FFE2E8F0"
-                        BorderThickness="1"
-                        CornerRadius="999"
-                        Padding="14,8"
-                        VerticalAlignment="Top">
-                    <TextBlock Text="{Binding StatusText}" Foreground="#FF334155" />
-                </Border>
-
-                <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="0,20,0,0">
-                    <TextBox Text="{Binding Prompt}"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             MinHeight="100"
-                             Background="#FFF8FAFC"
-                             BorderBrush="#FFCBD5E1"
-                             BorderThickness="1"
-                             Padding="14"
-                             Watermark="描述你想做的一页幻灯片..." />
-
-                    <StackPanel Grid.Column="1" Spacing="12" Margin="16,0,0,0">
-                        <Button Content="生成页面"
-                                Command="{Binding GenerateCommand}"
-                                MinWidth="140"
-                                Height="44"
-                                Background="#FF2563EB"
-                                Foreground="White"
-                                FontWeight="SemiBold" />
-                        <TextBlock Text="支持命令行：dotnet run -- &quot;做一页 SlideML 介绍页&quot;"
-                                   Width="220"
-                                   TextWrapping="Wrap"
-                                   Foreground="#FF64748B"
-                                   FontSize="12" />
-                    </StackPanel>
-                </Grid>
-            </Grid>
+                Padding="20">
+          <StackPanel Spacing="10">
+            <TextBlock Text="继续对话" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+            <TextBlock Text="你可以继续给模型修改意见，让它在现有页面基础上重新生成。"
+                       Foreground="#FF475569" />
+            <TextBox Text="{Binding FollowUpMessage}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     MinHeight="88"
+                     Background="#FFF8FAFC"
+                     BorderBrush="#FFCBD5E1"
+                     BorderThickness="1"
+                     Padding="14"
+                     Watermark="例如：把主标题再大一点，并让三张卡片更加对齐..." />
+            <Button Content="继续优化"
+                    Command="{Binding ContinueCommand}"
+                    HorizontalAlignment="Left"
+                    MinWidth="120"
+                    Height="40"
+                    Background="#FF0EA5E9"
+                    Foreground="White"
+                    FontWeight="SemiBold" />
+          </StackPanel>
         </Border>
 
-        <Grid Grid.Row="1" ColumnDefinitions="520,20,*">
-            <Grid Grid.Column="0" RowDefinitions="Auto,16,Auto,16,*">
-                <Border Grid.Row="0"
-                        CornerRadius="20"
-                        Background="#FFFFFFFF"
-                        BorderBrush="#FFE2E8F0"
-                        BorderThickness="1"
-                        Padding="20">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="继续对话" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <TextBlock Text="你可以继续给模型修改意见，让它在现有页面基础上重新生成。"
-                                   Foreground="#FF475569" />
-                        <TextBox Text="{Binding FollowUpMessage}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 MinHeight="88"
-                                 Background="#FFF8FAFC"
-                                 BorderBrush="#FFCBD5E1"
-                                 BorderThickness="1"
-                                 Padding="14"
-                                 Watermark="例如：把主标题再大一点，并让三张卡片更加对齐..." />
-                        <Button Content="继续优化"
-                                Command="{Binding ContinueCommand}"
-                                HorizontalAlignment="Left"
-                                MinWidth="120"
-                                Height="40"
-                                Background="#FF0EA5E9"
-                                Foreground="White"
-                                FontWeight="SemiBold" />
-                    </StackPanel>
-                </Border>
+        <Border Grid.Row="2"
+                CornerRadius="20"
+                Background="#FFFFFFFF"
+                BorderBrush="#FFE2E8F0"
+                BorderThickness="1"
+                Padding="20">
+          <StackPanel Spacing="10">
+            <TextBlock Text="渲染警告" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+            <TextBox Text="{Binding WarningText}"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     MinHeight="140"
+                     Background="#FFFFFBEB"
+                     BorderBrush="#FFFDE68A"
+                     BorderThickness="1"
+                     Padding="14" />
+          </StackPanel>
+        </Border>
 
-                <Border Grid.Row="2"
-                        CornerRadius="20"
-                        Background="#FFFFFFFF"
-                        BorderBrush="#FFE2E8F0"
-                        BorderThickness="1"
-                        Padding="20">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="渲染警告" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <TextBox Text="{Binding WarningText}"
+        <Border Grid.Row="4"
+                CornerRadius="20"
+                Background="#FFFFFFFF"
+                BorderBrush="#FFE2E8F0"
+                BorderThickness="1"
+                Padding="20">
+          <Grid RowDefinitions="Auto,12,*">
+            <TextBlock Text="对话记录" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+            <TextBox Grid.Row="2"
+                     Text="{Binding ConversationText}"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     Background="#FFF8FAFC"
+                     BorderBrush="#FFCBD5E1"
+                     BorderThickness="1"
+                     Padding="14" />
+          </Grid>
+        </Border>
+      </Grid>
+
+      <ScrollViewer Grid.Column="2">
+        <Grid RowDefinitions="Auto,16,*,16,*">
+          <Border Grid.Row="0"
+                  CornerRadius="20"
+                  Background="#FFFFFFFF"
+                  BorderBrush="#FFE2E8F0"
+                  BorderThickness="1"
+                  Padding="20">
+            <StackPanel>
+              <TextBlock Text="页面预览" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+              <TextBlock Text="1280×720 渲染结果会显示在这里。"
+                         Margin="0,6,0,16"
+                         Foreground="#FF475569" />
+              <Border Background="#FFF1F5F9"
+                      CornerRadius="18"
+                      BorderBrush="#FFE2E8F0"
+                      BorderThickness="1"
+                      Padding="16"
+                      HorizontalAlignment="Stretch">
+                <Viewbox Stretch="Uniform">
+                  <Border Width="1280" Height="720" Background="White" CornerRadius="12" ClipToBounds="True">
+                    <Image Source="{Binding PreviewBitmap}" Stretch="Uniform" />
+                  </Border>
+                </Viewbox>
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Grid Grid.Row="2" ColumnDefinitions="*,16,*">
+            <Border Grid.Column="0"
+                    CornerRadius="20"
+                    Background="#FFFFFFFF"
+                    BorderBrush="#FFE2E8F0"
+                    BorderThickness="1"
+                    Padding="20">
+              <Grid RowDefinitions="Auto,12,*">
+                <TextBlock Text="当前 SlideML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+                <TextBox Grid.Row="2"
+                         Text="{Binding CurrentSlideXml}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas"
+                         Background="#FFF8FAFC"
+                         BorderBrush="#FFCBD5E1"
+                         BorderThickness="1"
+                         Padding="14" />
+              </Grid>
+            </Border>
+
+            <Border Grid.Column="2"
+                    CornerRadius="20"
+                    Background="#FFFFFFFF"
+                    BorderBrush="#FFE2E8F0"
+                    BorderThickness="1"
+                    Padding="20"
+                    MinHeight="200">
+              <Grid RowDefinitions="Auto,12,*">
+                <TextBlock Text="回填后的 XML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+                <TextBox Grid.Row="2"
+                         Text="{Binding RenderedXml}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas"
+                         Background="#FFF8FAFC"
+                         BorderBrush="#FFCBD5E1"
+                         BorderThickness="1"
+                         Padding="14" />
+              </Grid>
+            </Border>
+          </Grid>
+
+          <Border Grid.Row="4"
+                  CornerRadius="20"
+                  Background="#FFFFFFFF"
+                  BorderBrush="#FFE2E8F0"
+                  BorderThickness="1"
+                  Padding="20"
+                  MinHeight="200">
+            <Grid RowDefinitions="Auto,12,*">
+              <TextBlock Text="迭代记录" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
+              <ListBox Grid.Row="2" ItemsSource="{Binding Iterations}" Background="#FFF8FAFC" BorderBrush="#FFCBD5E1" BorderThickness="1">
+                <ListBox.ItemTemplate>
+                  <DataTemplate DataType="vm:SlideGenerationIteration">
+                    <Border Margin="10" Padding="14" CornerRadius="14" Background="White" BorderBrush="#FFE2E8F0" BorderThickness="1">
+                      <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Attempt, StringFormat=第 {0} 轮}" FontWeight="Bold" Foreground="#FF0F172A" />
+                        <TextBlock Text="{Binding RenderResult.Warnings.Count, StringFormat=Warning 数量: {0}}" Foreground="#FF64748B" />
+                        <TextBox Text="{Binding SlideXml}"
+                                 MaxHeight="86" TextWrapping="Wrap"
                                  IsReadOnly="True"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 MinHeight="140"
-                                 Background="#FFFFFBEB"
-                                 BorderBrush="#FFFDE68A"
-                                 BorderThickness="1"
-                                 Padding="14" />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="4"
-                        CornerRadius="20"
-                        Background="#FFFFFFFF"
-                        BorderBrush="#FFE2E8F0"
-                        BorderThickness="1"
-                        Padding="20">
-                    <Grid RowDefinitions="Auto,12,*">
-                        <TextBlock Text="对话记录" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <TextBox Grid.Row="2"
-                                 Text="{Binding ConversationText}"
-                                 IsReadOnly="True"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                 Background="#FFF8FAFC"
-                                 BorderBrush="#FFCBD5E1"
-                                 BorderThickness="1"
-                                 Padding="14" />
-                    </Grid>
-                </Border>
-            </Grid>
-
-            <Grid Grid.Column="2" RowDefinitions="Auto,16,*,16,*">
-                <Border Grid.Row="0"
-                        CornerRadius="20"
-                        Background="#FFFFFFFF"
-                        BorderBrush="#FFE2E8F0"
-                        BorderThickness="1"
-                        Padding="20">
-                    <StackPanel>
-                        <TextBlock Text="页面预览" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <TextBlock Text="1280×720 渲染结果会显示在这里。"
-                                   Margin="0,6,0,16"
-                                   Foreground="#FF475569" />
-                        <Border Background="#FFF1F5F9"
-                                CornerRadius="18"
-                                BorderBrush="#FFE2E8F0"
-                                BorderThickness="1"
-                                Padding="16"
-                                HorizontalAlignment="Stretch">
-                            <Viewbox Stretch="Uniform">
-                                <Border Width="1280" Height="720" Background="White" CornerRadius="12" ClipToBounds="True">
-                                    <Image Source="{Binding PreviewBitmap}" Stretch="Uniform" />
-                                </Border>
-                            </Viewbox>
-                        </Border>
-                    </StackPanel>
-                </Border>
-
-                <Grid Grid.Row="2" ColumnDefinitions="*,16,*">
-                    <Border Grid.Column="0"
-                            CornerRadius="20"
-                            Background="#FFFFFFFF"
-                            BorderBrush="#FFE2E8F0"
-                            BorderThickness="1"
-                            Padding="20">
-                        <Grid RowDefinitions="Auto,12,*">
-                            <TextBlock Text="当前 SlideML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                            <TextBox Grid.Row="2"
-                                     Text="{Binding CurrentSlideXml}"
-                                     IsReadOnly="True"
-                                     AcceptsReturn="True"
-                                     TextWrapping="NoWrap"
-                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                     FontFamily="Consolas"
-                                     Background="#FFF8FAFC"
-                                     BorderBrush="#FFCBD5E1"
-                                     BorderThickness="1"
-                                     Padding="14" />
-                        </Grid>
+                                 Foreground="#FF334155" />
+                      </StackPanel>
                     </Border>
-
-                    <Border Grid.Column="2"
-                            CornerRadius="20"
-                            Background="#FFFFFFFF"
-                            BorderBrush="#FFE2E8F0"
-                            BorderThickness="1"
-                            Padding="20">
-                        <Grid RowDefinitions="Auto,12,*">
-                            <TextBlock Text="回填后的 XML" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                            <TextBox Grid.Row="2"
-                                     Text="{Binding RenderedXml}"
-                                     IsReadOnly="True"
-                                     AcceptsReturn="True"
-                                     TextWrapping="NoWrap"
-                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                     FontFamily="Consolas"
-                                     Background="#FFF8FAFC"
-                                     BorderBrush="#FFCBD5E1"
-                                     BorderThickness="1"
-                                     Padding="14" />
-                        </Grid>
-                    </Border>
-                </Grid>
-
-                <Border Grid.Row="4"
-                        CornerRadius="20"
-                        Background="#FFFFFFFF"
-                        BorderBrush="#FFE2E8F0"
-                        BorderThickness="1"
-                        Padding="20">
-                    <Grid RowDefinitions="Auto,12,*">
-                        <TextBlock Text="迭代记录" FontSize="22" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <ListBox Grid.Row="2" ItemsSource="{Binding Iterations}" Background="#FFF8FAFC" BorderBrush="#FFCBD5E1" BorderThickness="1">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate DataType="vm:SlideGenerationIteration">
-                                    <Border Margin="10" Padding="14" CornerRadius="14" Background="White" BorderBrush="#FFE2E8F0" BorderThickness="1">
-                                        <StackPanel Spacing="8">
-                                            <TextBlock Text="{Binding Attempt, StringFormat=第 {0} 轮}" FontWeight="Bold" Foreground="#FF0F172A" />
-                                            <TextBlock Text="{Binding RenderResult.Warnings.Count, StringFormat=Warning 数量: {0}}" Foreground="#FF64748B" />
-                                            <TextBlock Text="{Binding SlideXml}" MaxHeight="86" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Foreground="#FF334155" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </Grid>
-                </Border>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
             </Grid>
+          </Border>
         </Grid>
+      </ScrollViewer>
     </Grid>
+  </Grid>
 </Window>
