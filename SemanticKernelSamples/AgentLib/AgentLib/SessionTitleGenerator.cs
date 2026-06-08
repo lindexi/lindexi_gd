@@ -21,11 +21,6 @@ namespace AgentLib;
 /// </summary>
 public class SessionTitleGenerator
 {
-    private readonly AgentApiEndpointManager _endpointManager;
-    private readonly LanguageModelCapabilityComparer _comparer = new();
-    private IChatClient? _chatClient;
-    private ILanguageModel? _titleModel;
-
     /// <summary>
     /// 使用指定的 <see cref="AgentApiEndpointManager"/> 创建标题生成器。
     /// 标题生成所用的语言模型在首次生成时延迟解析（Flash 优先，PrimaryModel 回退），
@@ -37,6 +32,10 @@ public class SessionTitleGenerator
         ArgumentNullException.ThrowIfNull(endpointManager);
         _endpointManager = endpointManager;
     }
+
+    private readonly AgentApiEndpointManager _endpointManager;
+
+    private IChatClient? _chatClient;
 
     /// <summary>
     /// 对指定会话生成标题。LLM 调用失败时静默返回，不更新会话标题。
@@ -129,9 +128,11 @@ public class SessionTitleGenerator
     {
         var supportedModels = _endpointManager.GetSupportedModels();
 
+        var comparer = new LanguageModelCapabilityComparer();
+
         var flashModel = supportedModels
             .Where(m => m.ModelDefinition.Capabilities?.IsFlash == true)
-            .OrderByDescending(m => m, _comparer)
+            .OrderByDescending(m => m, comparer)
             .FirstOrDefault();
 
         return flashModel ?? _endpointManager.PrimaryModel;
@@ -139,7 +140,6 @@ public class SessionTitleGenerator
 
     /// <summary>
     /// 确保 <see cref="IChatClient"/> 已创建（懒加载 + 缓存），首次调用时异步创建，后续复用。
-    /// 标题模型同样在首次调用时延迟解析。
     /// </summary>
     /// <returns>聊天客户端实例。</returns>
     private async ValueTask<IChatClient> EnsureChatClientAsync()
@@ -149,8 +149,8 @@ public class SessionTitleGenerator
             return _chatClient;
         }
 
-        _titleModel ??= ResolveTitleModel();
-        var chatClient = await _titleModel.GetChatClientAsync().ConfigureAwait(false);
+        var languageModel = ResolveTitleModel();
+        var chatClient = await languageModel.GetChatClientAsync().ConfigureAwait(false);
         Interlocked.CompareExchange(ref _chatClient, chatClient, null);
         return _chatClient;
     }
