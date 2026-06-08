@@ -111,6 +111,75 @@
                                  Padding="10" />
                     </StackPanel>
                 </Border>
+
+                <!-- SlideML 评估结果 -->
+                <Border CornerRadius="14"
+                        Background="#FFFFFFFF"
+                        BorderBrush="#FFE2E8F0"
+                        BorderThickness="1"
+                        Padding="14"
+                        IsVisible="{Binding SlideChatManager.LastEvaluationResult.IsSuccess}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="页面评估" FontSize="16" FontWeight="Bold" Foreground="#FF7C3AED" />
+                        <TextBlock Text="{Binding EvaluationSummaryText}"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="#FF334155"
+                                   IsVisible="{Binding EvaluationSummaryText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto"
+                              IsVisible="{Binding SlideChatManager.LastEvaluationResult.IsSuccess}">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding SlideChatManager.LastEvaluationResult.XmlWellFormedness, StringFormat='XML 规范: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SlideChatManager.LastEvaluationResult.LayoutStructure, StringFormat='布局结构: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding SlideChatManager.LastEvaluationResult.VisualBalance, StringFormat='视觉平衡: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SlideChatManager.LastEvaluationResult.ConstraintAdherence, StringFormat='约束遵守: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding SlideChatManager.LastEvaluationResult.SemanticAlignment, StringFormat='语义对齐: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SlideChatManager.LastEvaluationResult.AestheticQuality, StringFormat='美观度: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding SlideChatManager.LastEvaluationResult.Suggestions}"
+                                      IsVisible="{Binding SlideChatManager.LastEvaluationResult.IsSuccess}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding StringFormat='• {0}'}" FontSize="11" Foreground="#FF64748B" TextWrapping="Wrap" Margin="0,1" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- 提示词评估结果 -->
+                <Border CornerRadius="14"
+                        Background="#FFFFFFFF"
+                        BorderBrush="#FFE2E8F0"
+                        BorderThickness="1"
+                        Padding="14"
+                        IsVisible="{Binding SlideChatManager.LastPromptEvaluationResult.IsSuccess}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="提示词评估" FontSize="16" FontWeight="Bold" Foreground="#FF0891B2" />
+                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="#FF334155">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat='综合评分: {0:F1}/10'>
+                                    <Binding Path="SlideChatManager.LastPromptEvaluationResult.OverallScore" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto"
+                              IsVisible="{Binding SlideChatManager.LastPromptEvaluationResult.IsSuccess}">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding SlideChatManager.LastPromptEvaluationResult.Clarity, StringFormat='清晰度: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SlideChatManager.LastPromptEvaluationResult.Completeness, StringFormat='完整性: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding SlideChatManager.LastPromptEvaluationResult.ConstraintQuality, StringFormat='约束质量: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SlideChatManager.LastPromptEvaluationResult.Actionability, StringFormat='可执行性: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding SlideChatManager.LastPromptEvaluationResult.Redundancy, StringFormat='冗余度: {0}/10'}" FontSize="12" Foreground="#FF475569" Margin="0,2" />
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding SlideChatManager.LastPromptEvaluationResult.Suggestions}"
+                                      IsVisible="{Binding SlideChatManager.LastPromptEvaluationResult.IsSuccess}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding StringFormat='• {0}'}" FontSize="11" Foreground="#FF64748B" TextWrapping="Wrap" Margin="0,1" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 
