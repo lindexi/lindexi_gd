@@ -21,22 +21,21 @@ namespace AgentLib;
 /// </summary>
 public class SessionTitleGenerator
 {
-    private readonly AgentApiEndpointManager _endpointManager;
-    private readonly ILanguageModel _titleModel;
-    private readonly LanguageModelCapabilityComparer _comparer = new();
-    private IChatClient? _chatClient;
-
     /// <summary>
     /// 使用指定的 <see cref="AgentApiEndpointManager"/> 创建标题生成器。
-    /// 构造时即解析标题生成所用的语言模型（Flash 优先，PrimaryModel 回退）。
+    /// 标题生成所用的语言模型在首次生成时延迟解析（Flash 优先，PrimaryModel 回退），
+    /// 避免构造时依赖尚未完成初始化的终结点管理器。
     /// </summary>
     /// <param name="endpointManager">API 终结点管理器，用于模型选择和 <see cref="IChatClient"/> 创建。</param>
     public SessionTitleGenerator(AgentApiEndpointManager endpointManager)
     {
         ArgumentNullException.ThrowIfNull(endpointManager);
         _endpointManager = endpointManager;
-        _titleModel = ResolveTitleModel();
     }
+
+    private readonly AgentApiEndpointManager _endpointManager;
+
+    private IChatClient? _chatClient;
 
     /// <summary>
     /// 对指定会话生成标题。LLM 调用失败时静默返回，不更新会话标题。
@@ -129,9 +128,11 @@ public class SessionTitleGenerator
     {
         var supportedModels = _endpointManager.GetSupportedModels();
 
+        var comparer = new LanguageModelCapabilityComparer();
+
         var flashModel = supportedModels
             .Where(m => m.ModelDefinition.Capabilities?.IsFlash == true)
-            .OrderByDescending(m => m, _comparer)
+            .OrderByDescending(m => m, comparer)
             .FirstOrDefault();
 
         return flashModel ?? _endpointManager.PrimaryModel;
@@ -148,7 +149,8 @@ public class SessionTitleGenerator
             return _chatClient;
         }
 
-        var chatClient = await _titleModel.GetChatClientAsync().ConfigureAwait(false);
+        var languageModel = ResolveTitleModel();
+        var chatClient = await languageModel.GetChatClientAsync().ConfigureAwait(false);
         Interlocked.CompareExchange(ref _chatClient, chatClient, null);
         return _chatClient;
     }
