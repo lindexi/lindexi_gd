@@ -36,7 +36,7 @@ public class CopilotChatManagerSendMessageTests
         await result.RunTask;
 
         Assert.IsFalse(context.ChatManager.IsChatting);
-        Assert.IsTrue(context.ChatManager.ChatMessages.Count >= 2);
+        Assert.IsGreaterThanOrEqualTo(2, context.ChatManager.ChatMessages.Count);
     }
 
     [TestMethod]
@@ -174,7 +174,7 @@ public class CopilotChatManagerSendMessageTests
         SendMessageResult result = context.ChatManager.SendMessage(
             new SendMessageRequest(contents));
 
-        Assert.AreEqual(2, result.UserChatMessage.MessageItems.Count);
+        Assert.HasCount(2, result.UserChatMessage.MessageItems);
         Assert.IsInstanceOfType<CopilotChatTextItem>(result.UserChatMessage.MessageItems[0]);
         Assert.IsInstanceOfType<CopilotChatImageItem>(result.UserChatMessage.MessageItems[1]);
 
@@ -262,7 +262,7 @@ public class CopilotChatManagerSendMessageTests
             new SendMessageRequest("你好"));
 
         Assert.IsNotNull(result.ToolList);
-        Assert.IsTrue(result.ToolList.Count > 0, "应包含默认工具");
+        Assert.IsNotEmpty(result.ToolList, "应包含默认工具");
 
         await result.RunTask;
     }
@@ -362,7 +362,7 @@ public class CopilotChatManagerSendMessageTests
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(
-        CancellationToken cancellationToken,
+        [EnumeratorCancellation] CancellationToken cancellationToken,
         params ChatResponseUpdate[] updates)
     {
         foreach (ChatResponseUpdate update in updates)

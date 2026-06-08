@@ -6,6 +6,7 @@ using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Reasoning;
 using Microsoft.Extensions.AI;
 
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace AgentLib.Tests;
@@ -31,7 +32,7 @@ public class ReasoningStreamingTests
             updates.Add(update);
         }
 
-        Assert.AreEqual(4, updates.Count);
+        Assert.HasCount(4, updates);
 
         Assert.AreEqual("思考1", updates[0].Reasoning);
         Assert.IsTrue(updates[0].IsFirstThinking);
@@ -124,7 +125,9 @@ public class ReasoningStreamingTests
         Assert.AreEqual($"内容1内容2{Environment.NewLine}-------------{Environment.NewLine}用量统计：输入 Token=15，输出 Token=10，总 Token=25{Environment.NewLine}", output.ToString());
     }
 
-    private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(CancellationToken cancellationToken, params ChatResponseUpdate[] updates)
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        params ChatResponseUpdate[] updates)
     {
         foreach (ChatResponseUpdate update in updates)
         {
