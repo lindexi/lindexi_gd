@@ -1,4 +1,5 @@
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
 using AgentLib.Model;
 using AgentLib.Tools;
@@ -29,6 +30,7 @@ public class CopilotChatManager : NotifyBase
     private CopilotChatSession _selectedSession = null!;
     private CancellationTokenSource? _currentChatCancellationTokenSource;
     private readonly CopilotToolManager _toolManager;
+    private readonly SessionTitleGenerator _titleGenerator;
 
     /// <summary>
     /// 使用空日志记录器创建管理器。
@@ -47,6 +49,7 @@ public class CopilotChatManager : NotifyBase
     {
         ChatLogger = chatLogger;
         _toolManager = new CopilotToolManager(this.AgentApiEndpointManager);
+        _titleGenerator = new SessionTitleGenerator(AgentApiEndpointManager);
         CreateNewSession();
     }
 
@@ -503,6 +506,22 @@ public class CopilotChatManager : NotifyBase
 
     protected virtual void OnBeforeSendStreaming(CopilotChatSession currentSession, CopilotChatMessage assistantMessage)
     {
+    }
+
+    /// <summary>
+    /// 手动触发 LLM 标题生成。调用方负责决定调用时机。
+    /// 对标为 <see cref="TitleSource.AutoTruncated"/> 或 <see cref="TitleSource.Generated"/> 的会话不会重复生成。
+    /// </summary>
+    /// <param name="session">
+    /// 目标会话。为 <see langword="null"/> 时使用 <see cref="SelectedSession"/>。
+    /// </param>
+    /// <param name="systemPrompt">
+    /// 自定义 System Prompt。为 <see langword="null"/> 时使用默认 Prompt。
+    /// </param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public Task GenerateSessionTitleAsync(CopilotChatSession? session = null, string? systemPrompt = null, CancellationToken cancellationToken = default)
+    {
+        return _titleGenerator.GenerateTitleAsync(session ?? SelectedSession, systemPrompt, cancellationToken);
     }
 
     /// <summary>
