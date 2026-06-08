@@ -2,6 +2,7 @@
 using LightTextEditorPlus.Core.Document;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
 
 namespace LightTextEditorPlus.Core;
 
@@ -59,5 +60,20 @@ public static class TextEditorCoreTextExtensions
     public static IImmutableRunList GetRunList(this TextEditorCore textEditor, in Selection selection)
     {
         return textEditor.DocumentManager.GetImmutableRunList(in selection);
+    }
+
+    /// <summary>
+    /// 根据原始文本中的 UTF-16 索引创建文档偏移量。
+    /// 自动处理代理对字符（如 emoji）和 \r\n 折叠。
+    /// </summary>
+    /// <param name="textEditorCore">文本编辑器核心。</param>
+    /// <param name="text">原始文本（使用 UTF-16 编码）。</param>
+    /// <param name="utf16Index">UTF-16 索引，即 string[index] 的 index。</param>
+    /// <returns>对应的文档字符偏移。</returns>
+    public static DocumentOffset CreateDocumentOffsetFromUtf16Index(
+        this TextEditorCore textEditorCore, string text, int utf16Index)
+    {
+        _ = textEditorCore;
+        return DocumentOffset.FromUtf16Index(text, utf16Index);
     }
 }

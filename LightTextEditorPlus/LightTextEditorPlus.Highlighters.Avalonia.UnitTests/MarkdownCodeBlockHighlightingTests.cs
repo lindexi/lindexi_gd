@@ -1,4 +1,5 @@
 using ColorCode.Common;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
 namespace LightTextEditorPlus.Highlighters.Avalonia.UnitTests;
@@ -81,6 +82,92 @@ public class MarkdownCodeBlockHighlightingTests
             classMemberTokenList: [("workspace", 0), ("group", 0), ("item", 0), ("item", 1), ("item", 2), ("item", 3), ("group", 1), ("workspace", 1), ("title", 0), ("id", 0), ("enabled", 0)],
             stringTokenList: ["\"Demo Board\"", "\"card-001\"", "\"true\""],
             plainTextTokenList: [("98.5", 0), ("中文", 0)]);
+    }
+
+    [Fact]
+    public void ApplyHighlight_MarkdownHeadingWithXmlCodeBlockContainingSelfClosingGradientElements_HighlightsHeadingAndXmlScopes()
+    {
+        var code = """
+        <!-- 1. 渐变背景 -->
+        <Rect X="0" Y="0" Width="1280" Height="720">
+          <Fill>
+            <LinearGradient X1="0" Y1="0" X2="1" Y2="1">
+              <Stop Offset="0%" Color="#4A7BF7"/>
+              <Stop Offset="100%" Color="#F4F6FA"/>
+            </LinearGradient>
+          </Fill>
+        </Rect>
+        """.Replace("\r\n", "\n");
+
+        var markdown = $"### 💡 Preferred approaches\n\n{CreateCodeBlock("xml", code)}";
+        var markdownEditor = CreateHighlightedEditor(markdown);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(markdownEditor, markdown);
+
+        AssertMarkdownXmlHighlight(markdownEditor, markdown, code,
+            classMemberTokenList:
+            [
+                ("Rect", 0), ("Rect", 1),
+                ("Fill", 0), ("Fill", 1),
+                ("LinearGradient", 0), ("LinearGradient", 1),
+                ("Stop", 0), ("Stop", 1),
+                ("X", 0), ("Y", 0), ("Width", 0), ("Height", 0),
+                ("X1", 0), ("Y1", 0), ("X2", 0), ("Y2", 0),
+                ("Offset", 0), ("Color", 0), ("Offset", 1), ("Color", 1)
+            ],
+            stringTokenList: ["\"0\"", "\"1280\"", "\"720\"", "\"1\"", "\"0%\"", "\"#4A7BF7\"", "\"100%\"", "\"#F4F6FA\""],
+            plainTextTokenList: [],
+            commentTokenList: [("<!-- 1. 渐变背景 -->", 0)]);
+    }
+
+    [Fact]
+    public void ApplyHighlight_HeadingWithEmojiBeforeXmlCodeBlock_ColorsMatchStandaloneXml()
+    {
+        // 💡 是代理对字符（surrogate pair），在 UTF-16 中占 2 个 char，
+        // 但在文档中只占 1 个字符。Markdig 的 SourceSpan 使用 UTF-16 索引，
+        // 导致 innerCodeSpan.Start 比文档偏移大 1，着色位置整体偏移。
+        var code = """
+        <!-- 1. 渐变背景 -->
+        <Rect X="0" Y="0" Width="1280" Height="720">
+          <Fill>
+            <LinearGradient X1="0" Y1="0" X2="1" Y2="1">
+              <Stop Offset="0%" Color="#4A7BF7"/>
+              <Stop Offset="100%" Color="#F4F6FA"/>
+            </LinearGradient>
+          </Fill>
+        </Rect>
+        """.Replace("\r\n", "\n");
+
+        var markdown = $"### 💡 Preferred approaches\n\n{CreateCodeBlock("xml", code)}";
+        var markdownEditor = CreateHighlightedEditor(markdown);
+        var standaloneEditor = CreateStandaloneCodeEditor("xml", code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(markdownEditor, markdown);
+        AssertCodeBlockMatchesStandaloneHighlight(markdown, code, standaloneEditor, markdownEditor);
+    }
+
+    [Fact]
+    public void ApplyHighlight_HeadingWithoutEmojiBeforeXmlCodeBlock_ColorsMatchStandaloneXml()
+    {
+        // 对照组：没有 emoji 的相同结构，验证着色位置正确。
+        var code = """
+        <!-- 1. 渐变背景 -->
+        <Rect X="0" Y="0" Width="1280" Height="720">
+          <Fill>
+            <LinearGradient X1="0" Y1="0" X2="1" Y2="1">
+              <Stop Offset="0%" Color="#4A7BF7"/>
+              <Stop Offset="100%" Color="#F4F6FA"/>
+            </LinearGradient>
+          </Fill>
+        </Rect>
+        """.Replace("\r\n", "\n");
+
+        var markdown = $"### Preferred approaches\n\n{CreateCodeBlock("xml", code)}";
+        var markdownEditor = CreateHighlightedEditor(markdown);
+        var standaloneEditor = CreateStandaloneCodeEditor("xml", code);
+
+        DocumentHighlighterTestHelper.AssertTextPreserved(markdownEditor, markdown);
+        AssertCodeBlockMatchesStandaloneHighlight(markdown, code, standaloneEditor, markdownEditor);
     }
 
     [Fact]
@@ -234,10 +321,13 @@ public class MarkdownCodeBlockHighlightingTests
 
     private static void AssertCodeBlockMatchesStandaloneHighlight(string markdown, string code, TextEditor standaloneEditor, TextEditor markdownEditor)
     {
-        var codeStart = markdown.IndexOf(code, StringComparison.Ordinal);
-        Assert.True(codeStart >= 0);
+        var codeUtf16Start = markdown.IndexOf(code, StringComparison.Ordinal);
+        Assert.True(codeUtf16Start >= 0);
 
-        DocumentHighlighterTestHelper.AssertSameForegroundColors(standaloneEditor, 0, markdownEditor, codeStart, code.Length);
+        var codeStart = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdown, codeUtf16Start);
+        var codeLength = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdown, codeUtf16Start + code.Length) - codeStart;
+
+        DocumentHighlighterTestHelper.AssertSameForegroundColors(standaloneEditor, 0, markdownEditor, codeStart, codeLength);
         DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(markdownEditor);
     }
 
@@ -330,10 +420,12 @@ public class MarkdownCodeBlockHighlightingTests
         IEnumerable<(string Token, int Occurrence)> classMemberTokenList, IEnumerable<string> stringTokenList,
         IEnumerable<(string Token, int Occurrence)> plainTextTokenList, IEnumerable<(string Token, int Occurrence)>? commentTokenList = null)
     {
-        var codeStart = markdown.IndexOf(code, StringComparison.Ordinal);
-        Assert.True(codeStart >= 0);
+        var codeUtf16Start = markdown.IndexOf(code, StringComparison.Ordinal);
+        Assert.True(codeUtf16Start >= 0);
 
-        foreach (var (token, occurrence) in classMemberTokenList)
+        var codeStart = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdown, codeUtf16Start);
+
+                foreach (var (token, occurrence) in classMemberTokenList)
         {
             var tokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, occurrence);
             DocumentHighlighterTestHelper.AssertScopeColor(textEditor, codeStart + tokenStart, token.Length, ScopeType.ClassMember);

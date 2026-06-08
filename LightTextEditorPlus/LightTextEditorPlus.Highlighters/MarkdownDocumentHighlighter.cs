@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using LightTextEditorPlus;
@@ -9,6 +10,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
@@ -325,7 +327,8 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
-            var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(codeBlockHighlightSnapshot.InnerCodeSpan.Start), codeBlockHighlightSnapshot.InnerCodeText);
+            var codeBlockDocumentOffset = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdownText, codeBlockHighlightSnapshot.InnerCodeSpan.Start);
+            var colorCode = new TextEditorColorCode(_textEditor, DocumentOffset.FromUtf16Index(markdownText, codeBlockHighlightSnapshot.InnerCodeSpan.Start), codeBlockHighlightSnapshot.InnerCodeText);
             var highlightCodeContext = new HighlightCodeContext(codeBlockHighlightSnapshot.InnerCodeText, colorCode);
 
             if (IsJsonLanguage(codeBlockHighlightSnapshot.CodeLang)

@@ -110,6 +110,39 @@ public class XmlCodeDocumentHighlighterTests
     }
 
     [Fact]
+    public void ApplyHighlight_XmlWithSelfClosingGradientElements_HighlightsCommentTagsAttributesAndStrings()
+    {
+        var code = """
+        <!-- 1. 渐变背景 -->
+        <Rect X="0" Y="0" Width="1280" Height="720">
+          <Fill>
+            <LinearGradient X1="0" Y1="0" X2="1" Y2="1">
+              <Stop Offset="0%" Color="#4A7BF7"/>
+              <Stop Offset="100%" Color="#F4F6FA"/>
+            </LinearGradient>
+          </Fill>
+        </Rect>
+        """.Replace("\r\n", "\n");
+
+        var textEditor = CreateHighlightedEditor(code);
+
+        AssertXmlHighlight(textEditor, code,
+            classMemberTokenList:
+            [
+                ("Rect", 0), ("Rect", 1),
+                ("Fill", 0), ("Fill", 1),
+                ("LinearGradient", 0), ("LinearGradient", 1),
+                ("Stop", 0), ("Stop", 1),
+                ("X", 0), ("Y", 0), ("Width", 0), ("Height", 0),
+                ("X1", 0), ("Y1", 0), ("X2", 0), ("Y2", 0),
+                ("Offset", 0), ("Color", 0), ("Offset", 1), ("Color", 1)
+            ],
+            stringTokenList: ["\"0\"", "\"1280\"", "\"720\"", "\"1\"", "\"0%\"", "\"#4A7BF7\"", "\"100%\"", "\"#F4F6FA\""],
+            plainTextTokenList: [],
+            commentTokenList: [("<!-- 1. 渐变背景 -->", 0)]);
+    }
+
+    [Fact]
     public void ApplyHighlight_MultipleCallsSameText_PreservesDetailedHighlighting()
     {
         const string code = "<root><item>中文</item></root>";
