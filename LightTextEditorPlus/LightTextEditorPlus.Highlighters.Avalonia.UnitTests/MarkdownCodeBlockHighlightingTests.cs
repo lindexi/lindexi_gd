@@ -1,4 +1,5 @@
 using ColorCode.Common;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
 namespace LightTextEditorPlus.Highlighters.Avalonia.UnitTests;
@@ -323,8 +324,8 @@ public class MarkdownCodeBlockHighlightingTests
         var codeUtf16Start = markdown.IndexOf(code, StringComparison.Ordinal);
         Assert.True(codeUtf16Start >= 0);
 
-        var codeStart = DocumentHighlighterTestHelper.GetDocumentOffsetFromUtf16Index(markdown, codeUtf16Start);
-        var codeLength = DocumentHighlighterTestHelper.GetDocumentOffsetFromUtf16Index(markdown, codeUtf16Start + code.Length) - codeStart;
+        var codeStart = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdown, codeUtf16Start);
+        var codeLength = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdown, codeUtf16Start + code.Length) - codeStart;
 
         DocumentHighlighterTestHelper.AssertSameForegroundColors(standaloneEditor, 0, markdownEditor, codeStart, codeLength);
         DocumentHighlighterTestHelper.AssertDocumentContainsNonPlainTextColor(markdownEditor);
@@ -422,9 +423,9 @@ public class MarkdownCodeBlockHighlightingTests
         var codeUtf16Start = markdown.IndexOf(code, StringComparison.Ordinal);
         Assert.True(codeUtf16Start >= 0);
 
-        var codeStart = DocumentHighlighterTestHelper.GetDocumentOffsetFromUtf16Index(markdown, codeUtf16Start);
+        var codeStart = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdown, codeUtf16Start);
 
-        foreach (var (token, occurrence) in classMemberTokenList)
+                foreach (var (token, occurrence) in classMemberTokenList)
         {
             var tokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, occurrence);
             DocumentHighlighterTestHelper.AssertScopeColor(textEditor, codeStart + tokenStart, token.Length, ScopeType.ClassMember);

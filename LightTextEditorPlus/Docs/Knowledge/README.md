@@ -103,6 +103,7 @@ Knowledge/
 | [NativeAOT-PInvoke实践要点.md](通用参考/NativeAOT-PInvoke实践要点.md) | `UnmanagedCallersOnly` 限制、两段式字符串读取、跨边界类型设计 |
 | [CharData坐标与尺寸语义手册.md](通用参考/CharData坐标与尺寸语义手册.md) | FrameSize vs FaceSize、GetStartPoint 方向语义、行范围层次、竖排宽高交换 |
 | [视觉回归测试差异图方案.md](通用参考/视觉回归测试差异图方案.md) | Skia 2x2 四宫格差异图生成方案，适用于 UI 视觉回归测试 |
+| [UTF16索引与文档偏移转换体验优化分析.md](通用参考/UTF16索引与文档偏移转换体验优化分析.md) | UTF-16 索引与文档偏移转换的三层 API 设计、`TextIndexConverter` 使用指南 |
 
 ### 归档
 

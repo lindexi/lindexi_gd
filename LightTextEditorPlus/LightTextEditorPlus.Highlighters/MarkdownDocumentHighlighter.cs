@@ -10,6 +10,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Document.Decorations;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
@@ -326,8 +327,8 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
-            var codeBlockDocumentOffset = ConvertUtf16IndexToDocumentOffset(markdownText, codeBlockHighlightSnapshot.InnerCodeSpan.Start);
-            var colorCode = new TextEditorColorCode(_textEditor, new DocumentOffset(codeBlockDocumentOffset), codeBlockHighlightSnapshot.InnerCodeText);
+            var codeBlockDocumentOffset = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdownText, codeBlockHighlightSnapshot.InnerCodeSpan.Start);
+            var colorCode = new TextEditorColorCode(_textEditor, DocumentOffset.FromUtf16Index(markdownText, codeBlockHighlightSnapshot.InnerCodeSpan.Start), codeBlockHighlightSnapshot.InnerCodeText);
             var highlightCodeContext = new HighlightCodeContext(codeBlockHighlightSnapshot.InnerCodeText, colorCode);
 
             if (IsJsonLanguage(codeBlockHighlightSnapshot.CodeLang)
@@ -648,56 +649,6 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
         SourceSpan SourceSpan,
         IReadOnlyList<HighlightOperation> OperationList,
         CodeBlockHighlightSnapshot? CodeBlockHighlightSnapshot);
-
-    /// <summary>
-    /// 将 UTF-16 字符串索引转换为文档字符偏移。
-    /// 文档字符偏移中，\r\n 和代理对字符各算 1 个字符。
-    /// </summary>
-    internal static int ConvertUtf16IndexToDocumentOffset(string text, int utf16Index)
-    {
-        if (string.IsNullOrEmpty(text) || utf16Index <= 0)
-            return utf16Index;
-
-        if (utf16Index >= text.Length)
-            utf16Index = text.Length;
-
-        var documentOffset = 0;
-        var currentUtf16Index = 0;
-        var isLastCharCarriageReturn = false;
-
-        foreach (Rune rune in text.EnumerateRunes())
-        {
-            if (currentUtf16Index >= utf16Index)
-                break;
-
-            if (rune.Value is '\r')
-            {
-                isLastCharCarriageReturn = true;
-                documentOffset++;
-                currentUtf16Index += rune.Utf16SequenceLength;
-                continue;
-            }
-
-            if (rune.Value is '\n')
-            {
-                currentUtf16Index += rune.Utf16SequenceLength;
-                if (isLastCharCarriageReturn)
-                {
-                    isLastCharCarriageReturn = false;
-                    continue;
-                }
-
-                documentOffset++;
-                continue;
-            }
-
-            isLastCharCarriageReturn = false;
-            documentOffset++;
-            currentUtf16Index += rune.Utf16SequenceLength;
-        }
-
-        return documentOffset;
-    }
 
     private static FontWeightValue GetBoldFontWeight()
 #if USE_AVALONIA

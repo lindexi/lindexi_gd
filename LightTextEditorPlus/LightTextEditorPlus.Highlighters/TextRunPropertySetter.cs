@@ -6,6 +6,7 @@ using System.Text;
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
@@ -73,16 +74,20 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
 
         if (span.IsEmpty)
         {
-            var caretOffset = new CaretOffset(absoluteStartOffset + GetDocumentCharOffset(span.Start));
+            var caretOffset = new CaretOffset(absoluteStartOffset + GetDocumentCharOffsetFromPlainText(span.Start));
             return new Selection(caretOffset, 0);
         }
 
-        var start = absoluteStartOffset + GetDocumentCharOffset(span.Start);
-        var endExclusive = absoluteStartOffset + GetDocumentCharOffset(span.End + 1);
+        var start = absoluteStartOffset + GetDocumentCharOffsetFromPlainText(span.Start);
+        var endExclusive = absoluteStartOffset + GetDocumentCharOffsetFromPlainText(span.End + 1);
         return new Selection(new CaretOffset(start), endExclusive - start);
     }
 
-    private int GetDocumentCharOffset(int utf16Index)
+    /// <summary>
+    /// 获取文档字符偏移。先尝试从 <see cref="PlainText"/> 获取文本，
+    /// 若为空则从编辑器获取，再调用 <see cref="TextIndexConverter.ConvertUtf16IndexToDocumentOffset"/>。
+    /// </summary>
+    private int GetDocumentCharOffsetFromPlainText(int utf16Index)
     {
         var plainText = PlainText;
         if (string.IsNullOrEmpty(plainText))
@@ -92,53 +97,6 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
             plainText = TextEditor.GetText(in selection);
         }
 
-        if (string.IsNullOrEmpty(plainText) || utf16Index <= 0)
-        {
-            return utf16Index;
-        }
-
-        if (utf16Index >= plainText.Length)
-        {
-            utf16Index = plainText.Length;
-        }
-
-        var documentCharOffset = 0;
-        var currentUtf16Index = 0;
-        var isLastCharCarriageReturn = false;
-
-        foreach (Rune rune in plainText.EnumerateRunes())
-        {
-            if (currentUtf16Index >= utf16Index)
-            {
-                break;
-            }
-
-            if (rune.Value is '\r')
-            {
-                isLastCharCarriageReturn = true;
-                documentCharOffset++;
-                currentUtf16Index += rune.Utf16SequenceLength;
-                continue;
-            }
-
-            if (rune.Value is '\n')
-            {
-                currentUtf16Index += rune.Utf16SequenceLength;
-                if (isLastCharCarriageReturn)
-                {
-                    isLastCharCarriageReturn = false;
-                    continue;
-                }
-
-                documentCharOffset++;
-                continue;
-            }
-
-            isLastCharCarriageReturn = false;
-            documentCharOffset++;
-            currentUtf16Index += rune.Utf16SequenceLength;
-        }
-
-        return documentCharOffset;
+        return TextIndexConverter.ConvertUtf16IndexToDocumentOffset(plainText ?? string.Empty, utf16Index);
     }
 }
