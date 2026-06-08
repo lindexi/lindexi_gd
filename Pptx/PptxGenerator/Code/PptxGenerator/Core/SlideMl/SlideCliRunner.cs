@@ -81,12 +81,43 @@ internal sealed class SlideCliRunner
                 Console.WriteLine(currentSlideXml);
             }
 
+            // 输出评估结果
+            PrintEvaluation();
+
             return 0;
         }
         catch (OperationCanceledException)
         {
             Console.Error.WriteLine("操作已取消。\n");
             return 130;
+        }
+    }
+
+    private void PrintEvaluation()
+    {
+        var slideEval = _slideChatManager.LastEvaluationResult;
+        if (slideEval is { IsSuccess: true })
+        {
+            Console.WriteLine();
+            Console.WriteLine("=== SlideML 评估报告 ===");
+            Console.WriteLine($"综合评分: {slideEval.OverallScore:F1}/10");
+            Console.WriteLine($"  XML 规范: {slideEval.XmlWellFormedness}/10");
+            Console.WriteLine($"  布局结构: {slideEval.LayoutStructure}/10");
+            Console.WriteLine($"  视觉平衡: {slideEval.VisualBalance}/10");
+            Console.WriteLine($"  约束遵守: {slideEval.ConstraintAdherence}/10");
+            Console.WriteLine($"  语义对齐: {slideEval.SemanticAlignment}/10");
+            Console.WriteLine($"  美观度:   {slideEval.AestheticQuality}/10");
+            Console.WriteLine();
+            Console.WriteLine("改进建议:");
+            foreach (var suggestion in slideEval.Suggestions)
+            {
+                Console.WriteLine($"  - {suggestion}");
+            }
+        }
+        else if (slideEval is { IsSuccess: false })
+        {
+            Console.WriteLine();
+            Console.WriteLine($"评估失败: {slideEval.ErrorMessage}");
         }
     }
 }

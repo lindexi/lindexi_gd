@@ -74,6 +74,19 @@ class Program
         var slideRenderer = new SlideRenderer();
         var slideRenderTool = new SlideRenderTool(slideRenderer);
 
-        return new SlideChatManager(copilotChatManager, slideRenderTool);
+        // 创建评估者（使用独立 CopilotChatManager，可配置不同模型）
+        var evaluatorChatManager = new CopilotChatManager();
+        var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
+        await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+
+        // 评估者可选用更便宜的模型
+        ILanguageModel? evaluatorModel = evaluatorEndpointManager.GetModel("qwen3.7-plus")
+            ?? languageModel;
+        evaluatorEndpointManager.PrimaryModel = evaluatorModel;
+
+        var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
+        var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
+
+        return new SlideChatManager(copilotChatManager, slideRenderTool, slideEvaluator, promptEvaluator);
     }
 }
