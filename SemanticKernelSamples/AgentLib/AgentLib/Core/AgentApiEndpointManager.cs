@@ -91,7 +91,7 @@ public class AgentApiEndpointManager
     {
         ArgumentNullException.ThrowIfNull(predicate);
 
-        var matchedModel = GetSupportedModels().Where(predicate).OrderDescending(new LanguageModelCapabilityComparer())
+        var matchedModel = GetSupportedModels().Where(predicate).OrderByDescending(x => x, new LanguageModelCapabilityComparer())
             .FirstOrDefault();
         if (matchedModel is null)
         {
@@ -130,7 +130,7 @@ public class AgentApiEndpointManager
 
                 // 全模态优先 Omni
                 _autoSetPrimaryLanguageModel = supportedModels.ToList()
-                    .OrderDescending(new LanguageModelCapabilityComparer()).First();
+                    .OrderByDescending(x => x, new LanguageModelCapabilityComparer()).First();
             }
 
             return _autoSetPrimaryLanguageModel;

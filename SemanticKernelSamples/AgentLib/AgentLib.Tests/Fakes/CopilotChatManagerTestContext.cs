@@ -47,14 +47,14 @@ internal sealed class CopilotChatManagerTestContext
 
     public static ChatResponseUpdate AssistantFunctionCall(string callId, string name, IDictionary<string, object?>? arguments = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(callId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        if (string.IsNullOrWhiteSpace(callId)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(callId));
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
         return new ChatResponseUpdate(ChatRole.Assistant, [new FunctionCallContent(callId, name, arguments)]);
     }
 
     public static ChatResponseUpdate AssistantFunctionResult(string callId, object? result)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(callId);
+        if (string.IsNullOrWhiteSpace(callId)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(callId));
         return new ChatResponseUpdate(ChatRole.Assistant, [new FunctionResultContent(callId, result)]);
     }
 
@@ -66,7 +66,7 @@ internal sealed class CopilotChatManagerTestContext
 
     public static string GetWorkspaceToolName(string methodName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
+        if (string.IsNullOrWhiteSpace(methodName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(methodName));
         return typeof(WorkspaceToolProvider).GetMethod(methodName)?.Name
                ?? throw new InvalidOperationException($"未找到工作区工具方法 {methodName}。");
     }

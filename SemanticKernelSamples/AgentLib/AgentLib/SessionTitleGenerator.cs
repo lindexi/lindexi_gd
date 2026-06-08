@@ -75,7 +75,7 @@ public class SessionTitleGenerator
         [Description("提交生成的会话标题文本。")]
         string SubmitTitle([Description("生成的会话标题文本，不超过 20 个字。")] string title)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(title);
+            ArgumentHelper.ThrowIfNullOrWhiteSpace(title);
             submittedTitle = title;
             return "已收到标题。";
         }

@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
+#if !NET6_0
 using System.Text.Json.Serialization.Metadata;
+#endif
 using AgentLib.Core.AgentApiManagers.Contexts;
 
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
@@ -24,7 +26,11 @@ public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocol
         public static async Task<JsonConfigurationOpenAIProtocolLanguageModelProvider> FromJsonFileAsync(FileInfo file)
         {
             await using var fileStream = file.OpenRead();
+#if NET6_0
+            var configuration = await JsonSerializer.DeserializeAsync<OpenAIProtocolLanguageModelConfiguration>(fileStream);
+#else
             var configuration = await JsonSerializer.DeserializeAsync(fileStream, JsonTypeInfo);
+#endif
             return FromConfiguration(configuration);
         }
 
@@ -35,7 +41,11 @@ public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocol
         /// <returns>提供商实例。</returns>
         public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromJsonString(string json)
         {
+#if NET6_0
+            var configuration = JsonSerializer.Deserialize<OpenAIProtocolLanguageModelConfiguration>(json);
+#else
             var configuration = JsonSerializer.Deserialize(json, JsonTypeInfo);
+#endif
             return FromConfiguration(configuration);
         }
 
@@ -46,7 +56,11 @@ public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocol
         /// <returns>提供商实例。</returns>
         public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromJsonElement(JsonElement jsonElement)
         {
+#if NET6_0
+            var configuration = jsonElement.Deserialize<OpenAIProtocolLanguageModelConfiguration>();
+#else
             var configuration = jsonElement.Deserialize(JsonTypeInfo);
+#endif
             return FromConfiguration(configuration);
         }
 
@@ -62,5 +76,7 @@ public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocol
         return new JsonConfigurationOpenAIProtocolLanguageModelProvider(configuration);
     }
 
-    private static JsonTypeInfo<OpenAIProtocolLanguageModelConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.OpenAIProtocolLanguageModelConfiguration;
+    #if !NET6_0
+        private static JsonTypeInfo<OpenAIProtocolLanguageModelConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.OpenAIProtocolLanguageModelConfiguration;
+    #endif
 }

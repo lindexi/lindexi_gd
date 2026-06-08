@@ -1,4 +1,6 @@
+using AgentLib.Core;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AgentLib.Model;
 
@@ -10,9 +12,9 @@ public sealed class CopilotChatAudioItem : NotifyBase, ICopilotChatMessageItem
     public CopilotChatAudioItem(BinaryData data, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(data);
-        ArgumentException.ThrowIfNullOrWhiteSpace(mimeType);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(mimeType);
 
-        Data = data;
+        _data = data;
         MimeType = mimeType;
     }
 

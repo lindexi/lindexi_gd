@@ -283,7 +283,7 @@ public class CopilotChatManager : NotifyBase
     public async Task AddConversationAsync(string userText, string assistantText,
         bool isPresetInfo = true, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(userText);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(userText);
         ArgumentNullException.ThrowIfNull(assistantText);
 
         CopilotChatSession currentSession = SelectedSession;
@@ -315,7 +315,7 @@ public class CopilotChatManager : NotifyBase
     /// <returns></returns>
     public Task SendMessageInNewSessionAsync(string inputText, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(inputText);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(inputText);
         return SendMessageInNewSessionAsync([new TextContent(inputText)], cancellationToken);
     }
 
@@ -357,7 +357,7 @@ public class CopilotChatManager : NotifyBase
     /// <returns></returns>
     public Task SendMessageAsync(string inputText, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(inputText);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(inputText);
         return SendMessageAsync([new TextContent(inputText)], cancellationToken: cancellationToken);
     }
 

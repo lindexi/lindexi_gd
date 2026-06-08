@@ -144,8 +144,8 @@ public class HumanApprovalToolTests
 
         public AITool CreateTool(string name, string description)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(name);
-            ArgumentException.ThrowIfNullOrWhiteSpace(description);
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            if (string.IsNullOrWhiteSpace(description)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(description));
 
             return AIFunctionFactory.Create(ExecuteAsync, name, description);
         }
@@ -153,7 +153,7 @@ public class HumanApprovalToolTests
         [global::System.ComponentModel.DescriptionAttribute("执行一个受审批保护的测试工具。")]
         public Task<string> ExecuteAsync(string path, CancellationToken cancellationToken = default)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(path);
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(path));
             cancellationToken.ThrowIfCancellationRequested();
             InvocationCount++;
             return Task.FromResult("执行完成");

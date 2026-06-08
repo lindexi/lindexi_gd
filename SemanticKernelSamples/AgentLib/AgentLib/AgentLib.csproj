@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net9.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -15,6 +15,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj" />
     <ProjectReference Include="..\..\Microsoft.Agents.AI.Reasoning\Microsoft.Agents.AI.Reasoning.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Core\Polyfills\" />
   </ItemGroup>
 
 </Project>

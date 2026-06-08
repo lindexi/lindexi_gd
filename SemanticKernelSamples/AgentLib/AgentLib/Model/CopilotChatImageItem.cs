@@ -1,3 +1,4 @@
+using AgentLib.Core;
 using System;
 
 namespace AgentLib.Model;
@@ -10,7 +11,7 @@ public sealed class CopilotChatImageItem : NotifyBase, ICopilotChatMessageItem
     public CopilotChatImageItem(BinaryData data, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(data);
-        ArgumentException.ThrowIfNullOrWhiteSpace(mimeType);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(mimeType);
 
         _data = data;
         MimeType = mimeType;
