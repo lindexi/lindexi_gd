@@ -512,21 +512,16 @@ public class CopilotChatManager : NotifyBase
     /// 手动触发 LLM 标题生成。调用方负责决定调用时机。
     /// 对标为 <see cref="TitleSource.AutoTruncated"/> 或 <see cref="TitleSource.Generated"/> 的会话不会重复生成。
     /// </summary>
-    /// <param name="session">目标会话。</param>
+    /// <param name="session">
+    /// 目标会话。为 <see langword="null"/> 时使用 <see cref="SelectedSession"/>。
+    /// </param>
+    /// <param name="systemPrompt">
+    /// 自定义 System Prompt。为 <see langword="null"/> 时使用默认 Prompt。
+    /// </param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public Task GenerateSessionTitleAsync(CopilotChatSession session, CancellationToken cancellationToken = default)
+    public Task GenerateSessionTitleAsync(CopilotChatSession? session = null, string? systemPrompt = null, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(session);
-        return _titleGenerator.GenerateTitleAsync(session, cancellationToken);
-    }
-
-    /// <summary>
-    /// 手动触发当前选中会话的 LLM 标题生成。
-    /// </summary>
-    /// <param name="cancellationToken">取消令牌。</param>
-    public Task GenerateSessionTitleAsync(CancellationToken cancellationToken = default)
-    {
-        return GenerateSessionTitleAsync(SelectedSession, cancellationToken);
+        return _titleGenerator.GenerateTitleAsync(session ?? SelectedSession, systemPrompt, cancellationToken);
     }
 
     /// <summary>
