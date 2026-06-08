@@ -22,20 +22,20 @@ namespace AgentLib;
 public class SessionTitleGenerator
 {
     private readonly AgentApiEndpointManager _endpointManager;
-    private readonly ILanguageModel _titleModel;
     private readonly LanguageModelCapabilityComparer _comparer = new();
     private IChatClient? _chatClient;
+    private ILanguageModel? _titleModel;
 
     /// <summary>
     /// 使用指定的 <see cref="AgentApiEndpointManager"/> 创建标题生成器。
-    /// 构造时即解析标题生成所用的语言模型（Flash 优先，PrimaryModel 回退）。
+    /// 标题生成所用的语言模型在首次生成时延迟解析（Flash 优先，PrimaryModel 回退），
+    /// 避免构造时依赖尚未完成初始化的终结点管理器。
     /// </summary>
     /// <param name="endpointManager">API 终结点管理器，用于模型选择和 <see cref="IChatClient"/> 创建。</param>
     public SessionTitleGenerator(AgentApiEndpointManager endpointManager)
     {
         ArgumentNullException.ThrowIfNull(endpointManager);
         _endpointManager = endpointManager;
-        _titleModel = ResolveTitleModel();
     }
 
     /// <summary>
@@ -139,6 +139,7 @@ public class SessionTitleGenerator
 
     /// <summary>
     /// 确保 <see cref="IChatClient"/> 已创建（懒加载 + 缓存），首次调用时异步创建，后续复用。
+    /// 标题模型同样在首次调用时延迟解析。
     /// </summary>
     /// <returns>聊天客户端实例。</returns>
     private async ValueTask<IChatClient> EnsureChatClientAsync()
@@ -148,6 +149,7 @@ public class SessionTitleGenerator
             return _chatClient;
         }
 
+        _titleModel ??= ResolveTitleModel();
         var chatClient = await _titleModel.GetChatClientAsync().ConfigureAwait(false);
         Interlocked.CompareExchange(ref _chatClient, chatClient, null);
         return _chatClient;
