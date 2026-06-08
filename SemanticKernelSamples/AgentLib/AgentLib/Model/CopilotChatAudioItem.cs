@@ -1,3 +1,4 @@
+using AgentLib.Core;
 using System;
 
 namespace AgentLib.Model;
@@ -10,7 +11,7 @@ public sealed class CopilotChatAudioItem : NotifyBase, ICopilotChatMessageItem
     public CopilotChatAudioItem(BinaryData data, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(data);
-        ArgumentException.ThrowIfNullOrWhiteSpace(mimeType);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(mimeType);
 
         Data = data;
         MimeType = mimeType;
@@ -33,7 +34,7 @@ public sealed class CopilotChatAudioItem : NotifyBase, ICopilotChatMessageItem
         }
     }
 
-    private BinaryData _data;
+    private BinaryData _data = null!;
 
     /// <summary>
     /// 音频的 MIME 类型，例如 <c>audio/wav</c>、<c>audio/mpeg</c>。

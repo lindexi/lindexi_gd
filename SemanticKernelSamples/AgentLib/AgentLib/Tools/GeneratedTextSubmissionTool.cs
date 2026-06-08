@@ -1,3 +1,4 @@
+using AgentLib.Core;
 using System;
 using System.ComponentModel;
 
@@ -28,8 +29,8 @@ public sealed class GeneratedTextSubmissionTool
     /// <returns>可调用的 AI 函数。</returns>
     public AIFunction CreateTool(string name, string description)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(description);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(name);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(description);
 
         return AIFunctionFactory.Create(SubmitText, name, description);
     }
@@ -37,7 +38,7 @@ public sealed class GeneratedTextSubmissionTool
     [Description("提交处理后的完整文本内容。")] 
     public string SubmitText([Description("处理后的完整文本内容。请传入最终结果，不要附加解释。")] string text)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(text);
         SubmittedText = text;
         return "已收到处理后的文本。";
     }

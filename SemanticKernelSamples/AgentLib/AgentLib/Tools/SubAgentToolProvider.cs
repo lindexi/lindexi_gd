@@ -89,7 +89,7 @@ public sealed class SubAgentToolProvider
             [Description("选择的子智能体类型，使用 `;` 分号分割。可选值：Flash、ImageInput、VideoInput、ImageOutput。不写时默认使用非 Flash 文本模型。Flash 仅可用于确定性工作、总结输出、了解文件组织结构或大文件内容、意图识别等场景；涉及思考和决策的内容不要使用 Flash。")]
             string? subAgentType = null)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
+            ArgumentHelper.ThrowIfNullOrWhiteSpace(prompt);
             _cancellationToken.ThrowIfCancellationRequested();
 
             SubAgentSelection selection = SubAgentSelection.Parse(subAgentType);

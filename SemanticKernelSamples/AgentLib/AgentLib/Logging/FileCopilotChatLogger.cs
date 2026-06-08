@@ -1,3 +1,4 @@
+using AgentLib.Core;
 using AgentLib.Model;
 
 using System;
@@ -54,7 +55,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
         /// <param name="chatHistoryFolder">聊天历史记录文件夹路径，可为 <see langword="null"/>。</param>
         public FileCopilotChatLogger(string chatLogFolder, string? chatHistoryFolder)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(chatLogFolder);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(chatLogFolder);
         ChatLogFolder = chatLogFolder;
         ChatHistoryFolder = string.IsNullOrWhiteSpace(chatHistoryFolder) ? null : chatHistoryFolder;
     }

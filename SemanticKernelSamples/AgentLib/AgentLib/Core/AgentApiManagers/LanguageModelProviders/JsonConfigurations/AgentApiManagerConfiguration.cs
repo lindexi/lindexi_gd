@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
+#if !NET6_0
 using System.Text.Json.Serialization.Metadata;
+#endif
 
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
@@ -26,7 +28,11 @@ public record AgentApiManagerConfiguration
     public async Task SaveToFileAsync(FileInfo file)
     {
         await using var fileStream = file.OpenWrite();
+#if NET6_0
+        await JsonSerializer.SerializeAsync(fileStream, this);
+#else
         await JsonSerializer.SerializeAsync(fileStream, this, JsonTypeInfo);
+#endif
     }
 
     /// <summary>
@@ -37,7 +43,11 @@ public record AgentApiManagerConfiguration
     public static async Task<AgentApiManagerConfiguration> FromJsonFileAsync(FileInfo file)
     {
         await using var fileStream = file.OpenRead();
+#if NET6_0
+        var configuration = await JsonSerializer.DeserializeAsync<AgentApiManagerConfiguration>(fileStream).ConfigureAwait(false);
+#else
         var configuration = await JsonSerializer.DeserializeAsync(fileStream, JsonTypeInfo).ConfigureAwait(false);
+#endif
         return FromConfiguration(configuration);
     }
 
@@ -48,7 +58,11 @@ public record AgentApiManagerConfiguration
     /// <returns>配置实例。</returns>
     public static AgentApiManagerConfiguration FromJsonString(string json)
     {
+#if NET6_0
+        var configuration = JsonSerializer.Deserialize<AgentApiManagerConfiguration>(json);
+#else
         var configuration = JsonSerializer.Deserialize(json, JsonTypeInfo);
+#endif
         return FromConfiguration(configuration);
     }
 
@@ -59,7 +73,11 @@ public record AgentApiManagerConfiguration
     /// <returns>配置实例。</returns>
     public static AgentApiManagerConfiguration FromJsonElement(JsonElement jsonElement)
     {
+#if NET6_0
+        var configuration = jsonElement.Deserialize<AgentApiManagerConfiguration>();
+#else
         var configuration = jsonElement.Deserialize(JsonTypeInfo);
+#endif
         return FromConfiguration(configuration);
     }
 
@@ -69,7 +87,9 @@ public record AgentApiManagerConfiguration
         return configuration;
     }
 
-    private static JsonTypeInfo<AgentApiManagerConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.AgentApiManagerConfiguration;
+    #if !NET6_0
+        private static JsonTypeInfo<AgentApiManagerConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.AgentApiManagerConfiguration;
+    #endif
 
     /// <summary>
     /// 默认的模版内容

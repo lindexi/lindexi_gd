@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿#if !NET6_0
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
@@ -9,3 +10,4 @@ namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 public partial class JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext : JsonSerializerContext
 {
 }
+#endif

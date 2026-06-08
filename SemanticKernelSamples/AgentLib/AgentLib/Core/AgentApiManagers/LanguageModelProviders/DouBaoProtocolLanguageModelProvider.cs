@@ -11,8 +11,7 @@ public class DouBaoProtocolLanguageModelProvider(string endPoint, string key,
 )
     : OpenAIProtocolLanguageModelProviderBase(endPoint, key)
 {
-    public override IModelNameToIdMap? ModelNameToIdMap { get; init; } = new DictionaryModelNameToIdMap
-        { ModelNameToIdDictionary = modelNameToIdDictionary };
+    public override IModelNameToIdMap? ModelNameToIdMap { get; init; } = new DictionaryModelNameToIdMap(modelNameToIdDictionary);
 
     protected override IReadOnlyList<ModelDefinition> GetModelDefinitions()
     {

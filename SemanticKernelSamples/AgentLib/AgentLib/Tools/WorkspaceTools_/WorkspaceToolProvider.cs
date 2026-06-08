@@ -1,3 +1,4 @@
+using AgentLib.Core;
 using Microsoft.Extensions.AI;
 
 using System;
@@ -123,7 +124,7 @@ public sealed class WorkspaceToolProvider
         [Description("是否包含文件夹。")] bool includeDirectories = true,
         [Description("最多返回多少个结果。")] int maxResults = DefaultMaxResults)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(query);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(query);
 
         if (!includeFiles && !includeDirectories)
         {
@@ -187,7 +188,7 @@ public sealed class WorkspaceToolProvider
         [Description("是否将 query 作为正则表达式进行匹配。默认为 false，表示纯文本匹配。")] bool useRegex = false,
         [Description("最多返回多少个命中文件。")] int maxResults = DefaultMaxResults)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(query);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(query);
 
         if (maxResults <= 0)
         {
@@ -268,7 +269,7 @@ public sealed class WorkspaceToolProvider
         [Description("结束行号，包含该行(1-based)。")] int endLine,
         [Description("是否在每一行前面包含行号。true 表示添加行号，false 表示只返回原始行内容。")] bool includeLineNumbers = false)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
 
         if (startLine <= 0)
         {
@@ -674,7 +675,7 @@ public sealed class WorkspaceToolProvider
         [Description("要写入的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
         [Description("要写入的内容。")] string content)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
 
         if (!TryResolveFileForWrite(filePath, out var file, out var errorMessage))
         {
@@ -723,7 +724,7 @@ public sealed class WorkspaceToolProvider
         [Description("要替换的原始文本，必须在文件中唯一匹配。包含前后各 3-5 行上下文以确保唯一性。")] string oldString,
         [Description("替换后的新文本。")] string newString)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
         ArgumentNullException.ThrowIfNull(oldString);
         ArgumentNullException.ThrowIfNull(newString);
 

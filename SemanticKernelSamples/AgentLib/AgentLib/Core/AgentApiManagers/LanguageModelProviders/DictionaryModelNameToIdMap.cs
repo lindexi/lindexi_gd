@@ -7,9 +7,18 @@
 public class DictionaryModelNameToIdMap : IModelNameToIdMap
 {
     /// <summary>
+    /// 初始化 <see cref="DictionaryModelNameToIdMap"/> 的新实例。
+    /// </summary>
+    /// <param name="modelNameToIdDictionary">模型名称到模型 ID 的字典映射。</param>
+    public DictionaryModelNameToIdMap(Dictionary<string, string> modelNameToIdDictionary)
+    {
+        ModelNameToIdDictionary = modelNameToIdDictionary ?? throw new ArgumentNullException(nameof(modelNameToIdDictionary));
+    }
+
+    /// <summary>
     /// 模型名称到模型 ID 的字典映射。
     /// </summary>
-    public required Dictionary<string, string> ModelNameToIdDictionary { get; init; }
+    public Dictionary<string, string> ModelNameToIdDictionary { get; }
 
     /// <inheritdoc/>
     public string GetModelId(string modelName)

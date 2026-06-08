@@ -10,8 +10,8 @@ internal sealed class BlockingTool
 
     public AITool CreateTool(string name, string description)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(description);
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+        if (string.IsNullOrWhiteSpace(description)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(description));
 
         return AIFunctionFactory.Create(WaitAsync, name, description);
     }

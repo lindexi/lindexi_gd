@@ -1,4 +1,5 @@
-﻿using Microsoft.Agents.AI;
+﻿using AgentLib.Core;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using System;
@@ -21,7 +22,7 @@ public readonly record struct SendMessageRequest
     /// <param name="text">用户输入的纯文本内容。</param>
     public SendMessageRequest(string text)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(text);
         Contents = [new TextContent(text)];
     }
 
