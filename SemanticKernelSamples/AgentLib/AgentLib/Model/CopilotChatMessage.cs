@@ -66,7 +66,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         MessageItems.CollectionChanged += MessageItems_CollectionChanged;
     }
 
-    private static ICopilotChatMessageItem CreateDataItem(DataContent dataContent)
+    internal static ICopilotChatMessageItem CreateDataItem(DataContent dataContent)
     {
         ReadOnlyMemory<byte> data = dataContent.Data;
         string mediaType = dataContent.MediaType ?? string.Empty;
@@ -82,6 +82,20 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
         // 其他二进制数据统一当作图片处理，保留原始 mediaType
         return new CopilotChatImageItem(BinaryData.FromBytes(data), string.IsNullOrWhiteSpace(mediaType) ? "application/octet-stream" : mediaType);
+    }
+
+    /// <summary>
+    /// 从函数调用结果中提取 <see cref="DataContent"/> 并创建对应的消息片段。
+    /// 如果结果不是 <see cref="DataContent"/> 或数据为空，则返回 <see langword="null"/>。
+    /// </summary>
+    internal static ICopilotChatMessageItem? CreateDataItemFromResult(FunctionResultContent functionResultContent)
+    {
+        if (functionResultContent.Result is DataContent dataContent && dataContent.Data is { Length: > 0 })
+        {
+            return CreateDataItem(dataContent);
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -593,6 +607,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
 
         toolItem.OutputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionResultContent) ?? string.Empty;
+
+        if (CreateDataItemFromResult(functionResultContent) is { } dataItem)
+        {
+            MessageItems.Add(dataItem);
+        }
     }
 
     /// <summary>
@@ -853,6 +872,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
         {
             subAgentItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
+
+            if (CreateDataItemFromResult(functionResultContent) is { } dataItem)
+            {
+                subAgentItem.MessageItems.Add(dataItem);
+            }
         }
     }
 

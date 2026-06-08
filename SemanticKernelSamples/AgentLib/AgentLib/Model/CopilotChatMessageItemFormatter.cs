@@ -34,6 +34,11 @@ internal static class CopilotChatMessageItemFormatter
             return null;
         }
 
+        if (value is DataContent dataContent)
+        {
+            return FormatDataContentToPlaceholder(dataContent);
+        }
+
         if (value is string text)
         {
             return text;
@@ -73,6 +78,11 @@ internal static class CopilotChatMessageItemFormatter
             return null;
         }
 
+        if (value is DataContent dataContent)
+        {
+            return FormatDataContentToPlaceholder(dataContent);
+        }
+
         if (value is string text)
         {
             return text;
@@ -86,5 +96,21 @@ internal static class CopilotChatMessageItemFormatter
         {
             return value.ToString();
         }
+    }
+
+    private static string FormatDataContentToPlaceholder(DataContent dataContent)
+    {
+        string mediaType = dataContent.MediaType ?? string.Empty;
+        if (mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "[图片]";
+        }
+
+        if (mediaType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "[音频]";
+        }
+
+        return $"[二进制数据: {(string.IsNullOrWhiteSpace(mediaType) ? "application/octet-stream" : mediaType)}]";
     }
 }

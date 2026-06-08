@@ -223,6 +223,11 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         }
 
         toolItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
+
+        if (CopilotChatMessage.CreateDataItemFromResult(functionResultContent) is { } dataItem)
+        {
+            MessageItems.Add(dataItem);
+        }
     }
 
     /// <inheritdoc/>
@@ -307,6 +312,11 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
         {
             subAgentItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
+
+            if (CopilotChatMessage.CreateDataItemFromResult(functionResultContent) is { } dataItem)
+            {
+                subAgentItem.MessageItems.Add(dataItem);
+            }
         }
     }
 

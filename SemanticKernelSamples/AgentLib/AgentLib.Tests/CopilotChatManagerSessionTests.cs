@@ -2,6 +2,7 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Tests.Fakes;
 
 using Microsoft.Extensions.AI;
+using System.Runtime.CompilerServices;
 
 namespace AgentLib.Tests;
 
@@ -53,7 +54,8 @@ public class CopilotChatManagerSessionTests
         Assert.AreSame(firstSession, context.ChatManager.SelectedSession.AgentSession);
     }
 
-    private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(CancellationToken cancellationToken,
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken,
         params ChatResponseUpdate[] updates)
     {
         foreach (ChatResponseUpdate update in updates)

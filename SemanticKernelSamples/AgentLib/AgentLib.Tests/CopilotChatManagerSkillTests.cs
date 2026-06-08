@@ -4,6 +4,7 @@ using AgentLib.Tests.Fakes;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable MAAI001
 
@@ -31,7 +32,7 @@ public class CopilotChatManagerSkillTests
         context.ChatManager.AddSkillFolder(skillFolder);
 
         Assert.IsNotNull(context.ChatManager.AIContextProviders);
-        Assert.AreEqual(1, context.ChatManager.AIContextProviders.Count);
+        Assert.HasCount(1, context.ChatManager.AIContextProviders);
         Assert.IsInstanceOfType<AgentSkillsProvider>(context.ChatManager.AIContextProviders[0]);
     }
 
@@ -46,7 +47,7 @@ public class CopilotChatManagerSkillTests
         context.ChatManager.AddSkillFolder(skillFolder);
 
         Assert.IsNotNull(context.ChatManager.AIContextProviders);
-        Assert.AreEqual(2, context.ChatManager.AIContextProviders.Count);
+        Assert.HasCount(2, context.ChatManager.AIContextProviders);
         Assert.IsInstanceOfType<AgentSkillsProvider>(context.ChatManager.AIContextProviders[0]);
         Assert.IsInstanceOfType<AgentSkillsProvider>(context.ChatManager.AIContextProviders[1]);
     }
@@ -77,10 +78,10 @@ public class CopilotChatManagerSkillTests
 
         SendMessageRequest newRequest = request.WithSkillFolder(skillFolder);
 
-        Assert.AreNotSame(request, newRequest);
+        Assert.AreNotEqual(request, newRequest);
         Assert.IsNull(request.AIContextProviders, "原始请求不应被修改");
         Assert.IsNotNull(newRequest.AIContextProviders);
-        Assert.AreEqual(1, newRequest.AIContextProviders.Count);
+        Assert.HasCount(1, newRequest.AIContextProviders);
         Assert.IsInstanceOfType<AgentSkillsProvider>(newRequest.AIContextProviders[0]);
     }
 
@@ -98,7 +99,7 @@ public class CopilotChatManagerSkillTests
         SendMessageRequest newRequest = request.WithSkillFolder(skillFolder);
 
         Assert.IsNotNull(newRequest.AIContextProviders);
-        Assert.AreEqual(2, newRequest.AIContextProviders.Count);
+        Assert.HasCount(2, newRequest.AIContextProviders);
         Assert.AreSame(existingProvider, newRequest.AIContextProviders[0]);
         Assert.IsInstanceOfType<AgentSkillsProvider>(newRequest.AIContextProviders[1]);
     }
@@ -137,7 +138,7 @@ public class CopilotChatManagerSkillTests
         await result.RunTask;
 
         Assert.IsFalse(context.ChatManager.IsChatting);
-        Assert.IsTrue(context.ChatManager.ChatMessages.Count >= 2);
+        Assert.IsGreaterThanOrEqualTo(2, context.ChatManager.ChatMessages.Count);
         Assert.IsTrue(context.ChatManager.ChatMessages[^1].Content.Contains("AOT", StringComparison.Ordinal));
     }
 
@@ -159,7 +160,7 @@ public class CopilotChatManagerSkillTests
         await result.RunTask;
 
         Assert.IsFalse(context.ChatManager.IsChatting);
-        Assert.IsTrue(context.ChatManager.ChatMessages.Count >= 2);
+        Assert.IsGreaterThanOrEqualTo(2, context.ChatManager.ChatMessages.Count);
     }
 
     [TestMethod]
@@ -167,8 +168,7 @@ public class CopilotChatManagerSkillTests
     public async Task SendMessage_WhenRequestOverridesAIContextProviders_UsesRequestProviders()
     {
         var primaryChatClient = new FakeChatClient();
-        IList<AIContextProvider>? capturedProviders = null;
-        primaryChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
+        primaryChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
         {
             // 通过 options 无法直接获取 AIContextProviders，但可以验证聊天正常完成
             return CreateStreamingUpdatesAsync(cancellationToken,
@@ -178,7 +178,7 @@ public class CopilotChatManagerSkillTests
 
         // 设置 Manager 级别的技能
         context.ChatManager.AddSkillFolder(GetTestSkillFolder());
-        Assert.AreEqual(1, context.ChatManager.AIContextProviders!.Count);
+        Assert.HasCount(1, context.ChatManager.AIContextProviders!);
 
         // Request 级别传入空集合覆盖
         SendMessageRequest request = new SendMessageRequest("测试")
@@ -191,7 +191,7 @@ public class CopilotChatManagerSkillTests
 
         Assert.IsFalse(context.ChatManager.IsChatting);
         // Manager 级别的 AIContextProviders 不应被修改
-        Assert.AreEqual(1, context.ChatManager.AIContextProviders.Count);
+        Assert.HasCount(1, context.ChatManager.AIContextProviders!);
     }
 
     [TestMethod]
@@ -221,7 +221,7 @@ public class CopilotChatManagerSkillTests
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(
-        CancellationToken cancellationToken,
+        [EnumeratorCancellation] CancellationToken cancellationToken,
         params ChatResponseUpdate[] updates)
     {
         foreach (ChatResponseUpdate update in updates)
