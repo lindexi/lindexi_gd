@@ -193,4 +193,141 @@ public class TextIndexConverterTest
             Assert.AreEqual(1, TextIndexConverter.GetDocumentLength(text, 1, 2)); // "💡" has 2 utf16, 1 doc
         });
     }
+
+    [ContractTestCase]
+    public void ConvertUtf16IndexToDocumentOffset_ReadOnlySpan()
+    {
+        "纯 ASCII 文本，UTF-16 索引与文档偏移 1:1 对应".Test(() =>
+        {
+            ReadOnlySpan<char> text = "Hello World".AsSpan();
+
+            Assert.AreEqual(new DocumentOffset(0), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 0));
+            Assert.AreEqual(new DocumentOffset(5), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 5));
+            Assert.AreEqual(new DocumentOffset(11), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 11));
+        });
+
+        "含单个 emoji（代理对字符）的文本，代理对算 1 个文档字符".Test(() =>
+        {
+            ReadOnlySpan<char> text = "a💡b".AsSpan();
+
+            Assert.AreEqual(new DocumentOffset(0), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 0));
+            Assert.AreEqual(new DocumentOffset(1), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 1));
+            Assert.AreEqual(new DocumentOffset(2), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 3));
+            Assert.AreEqual(new DocumentOffset(3), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 4));
+        });
+
+        "\\r\\n 折叠为 1 个文档字符".Test(() =>
+        {
+            ReadOnlySpan<char> text = "a\r\nb".AsSpan();
+
+            Assert.AreEqual(new DocumentOffset(0), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 0));
+            Assert.AreEqual(new DocumentOffset(1), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 1));
+            Assert.AreEqual(new DocumentOffset(2), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 2));
+            Assert.AreEqual(new DocumentOffset(2), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 3));
+            Assert.AreEqual(new DocumentOffset(3), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 4));
+        });
+
+        "边界条件：索引为 0 返回 0".Test(() =>
+        {
+            Assert.AreEqual(new DocumentOffset(0), TextIndexConverter.ConvertUtf16IndexToDocumentOffset("abc".AsSpan(), 0));
+        });
+
+        "边界条件：空跨度，索引为 0 返回 0".Test(() =>
+        {
+            Assert.AreEqual(new DocumentOffset(0), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(ReadOnlySpan<char>.Empty, 0));
+        });
+
+        "边界条件：负索引抛异常".Test(() =>
+        {
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                TextIndexConverter.ConvertUtf16IndexToDocumentOffset((ReadOnlySpan<char>)"abc", -1));
+        });
+
+        "边界条件：索引超过 text.Length 抛异常".Test(() =>
+        {
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                TextIndexConverter.ConvertUtf16IndexToDocumentOffset((ReadOnlySpan<char>)"abc", 100));
+        });
+
+        "从 char数组 构造的 Span 与 string 结果一致".Test(() =>
+        {
+            const string source = "a💡\r\nb";
+            var charArray = source.ToCharArray();
+
+            for (int i = 0; i <= source.Length; i++)
+            {
+                Assert.AreEqual(
+                    TextIndexConverter.ConvertUtf16IndexToDocumentOffset(source, i),
+                    TextIndexConverter.ConvertUtf16IndexToDocumentOffset(charArray.AsSpan(), i));
+            }
+        });
+    }
+
+    [ContractTestCase]
+    public void ConvertDocumentOffsetToUtf16Index_ReadOnlySpan()
+    {
+        "纯 ASCII 文本，文档偏移与 UTF-16 索引 1:1 对应".Test(() =>
+        {
+            ReadOnlySpan<char> text = "Hello".AsSpan();
+
+            Assert.AreEqual(0, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(0)));
+            Assert.AreEqual(3, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(3)));
+            Assert.AreEqual(5, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(5)));
+        });
+
+        "含代理对字符的文本，文档偏移 → UTF-16 索引转换正确".Test(() =>
+        {
+            ReadOnlySpan<char> text = "a💡b".AsSpan();
+
+            Assert.AreEqual(0, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(0)));
+            Assert.AreEqual(1, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(1)));
+            Assert.AreEqual(3, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(2)));
+            Assert.AreEqual(4, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(3)));
+        });
+
+        "边界条件：文档偏移为 0".Test(() =>
+        {
+            Assert.AreEqual(0, TextIndexConverter.ConvertDocumentOffsetToUtf16Index("abc".AsSpan(), new DocumentOffset(0)));
+        });
+
+        "从 char数组 构造的 Span 与 string 结果一致".Test(() =>
+        {
+            const string source = "a💡\r\nb";
+            var charArray = source.ToCharArray();
+
+            for (int offset = 0; offset <= 4; offset++)
+            {
+                Assert.AreEqual(
+                    TextIndexConverter.ConvertDocumentOffsetToUtf16Index(source, new DocumentOffset(offset)),
+                    TextIndexConverter.ConvertDocumentOffsetToUtf16Index(charArray.AsSpan(), new DocumentOffset(offset)));
+            }
+        });
+    }
+
+    [ContractTestCase]
+    public void GetDocumentLength_ReadOnlySpan()
+    {
+        "纯 ASCII 文本的文档长度计算".Test(() =>
+        {
+            ReadOnlySpan<char> text = "Hello".AsSpan();
+            Assert.AreEqual(3, TextIndexConverter.GetDocumentLength(text, 1, 3));
+        });
+
+        "含 emoji 的文档长度计算".Test(() =>
+        {
+            ReadOnlySpan<char> text = "a💡bc".AsSpan();
+            Assert.AreEqual(2, TextIndexConverter.GetDocumentLength(text, 1, 3));
+            Assert.AreEqual(1, TextIndexConverter.GetDocumentLength(text, 1, 2));
+        });
+
+        "从 char数组 构造的 Span 与 string 结果一致".Test(() =>
+        {
+            const string source = "a💡\r\nbc";
+            var charArray = source.ToCharArray();
+
+            Assert.AreEqual(
+                TextIndexConverter.GetDocumentLength(source, 1, 3),
+                TextIndexConverter.GetDocumentLength(charArray.AsSpan(), 1, 3));
+        });
+    }
 }
