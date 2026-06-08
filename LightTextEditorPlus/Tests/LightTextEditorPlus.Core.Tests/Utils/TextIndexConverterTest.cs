@@ -104,21 +104,28 @@ public class TextIndexConverterTest
             Assert.AreEqual(new DocumentOffset(3), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, text.Length));
         });
 
-        "边界条件：空字符串".Test(() =>
+        "边界条件：空字符串，索引为 0 返回 0".Test(() =>
         {
             Assert.AreEqual(new DocumentOffset(0), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(string.Empty, 0));
-            Assert.AreEqual(new DocumentOffset(0), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(string.Empty, 5));
         });
 
-        "边界条件：负索引".Test(() =>
+        "边界条件：空字符串，索引越界抛异常".Test(() =>
         {
-            Assert.AreEqual(new DocumentOffset(-1), TextIndexConverter.ConvertUtf16IndexToDocumentOffset("abc", -1));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                TextIndexConverter.ConvertUtf16IndexToDocumentOffset(string.Empty, 5));
         });
 
-        "边界条件：索引超过 text.Length".Test(() =>
+        "边界条件：负索引抛异常".Test(() =>
+        {
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                TextIndexConverter.ConvertUtf16IndexToDocumentOffset("abc", -1));
+        });
+
+        "边界条件：索引超过 text.Length 抛异常".Test(() =>
         {
             var text = "abc";
-            Assert.AreEqual(new DocumentOffset(3), TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 100));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+                TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, 100));
         });
     }
 
@@ -155,11 +162,11 @@ public class TextIndexConverterTest
             Assert.AreEqual(0, TextIndexConverter.ConvertDocumentOffsetToUtf16Index("abc", new DocumentOffset(0)));
         });
 
-        "边界条件：文档偏移等于文本长度（DefaultDocumentOffset）".Test(() =>
+        "边界条件：文档偏移等于文本长度，返回 text.Length".Test(() =>
         {
             var text = "abc";
             // offset == text.Length maps to text.Length
-            Assert.AreEqual(0, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(0)));
+            Assert.AreEqual(3, TextIndexConverter.ConvertDocumentOffsetToUtf16Index(text, new DocumentOffset(3)));
         });
 
         "边界条件：空字符串".Test(() =>

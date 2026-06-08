@@ -1,4 +1,5 @@
 using ColorCode.Common;
+
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Highlighters.CodeHighlighters;
 
@@ -425,7 +426,7 @@ public class MarkdownCodeBlockHighlightingTests
 
         var codeStart = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdown, codeUtf16Start);
 
-                foreach (var (token, occurrence) in classMemberTokenList)
+        foreach (var (token, occurrence) in classMemberTokenList)
         {
             var tokenStart = DocumentHighlighterTestHelper.GetOccurrenceStart(code, token, occurrence);
             DocumentHighlighterTestHelper.AssertScopeColor(textEditor, codeStart + tokenStart, token.Length, ScopeType.ClassMember);
