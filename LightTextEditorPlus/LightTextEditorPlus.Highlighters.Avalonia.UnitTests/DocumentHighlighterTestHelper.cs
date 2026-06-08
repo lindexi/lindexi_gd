@@ -159,13 +159,13 @@ internal static class DocumentHighlighterTestHelper
         throw new InvalidOperationException("Unreachable.");
     }
 
-    private static int GetDocumentLength(string text, int utf16Start, int utf16Length)
+    internal static int GetDocumentLength(string text, int utf16Start, int utf16Length)
     {
         var utf16EndExclusive = utf16Start + utf16Length;
         return GetDocumentOffsetFromUtf16Index(text, utf16EndExclusive) - GetDocumentOffsetFromUtf16Index(text, utf16Start);
     }
 
-    private static int GetDocumentOffsetFromUtf16Index(string text, int utf16Index)
+    internal static int GetDocumentOffsetFromUtf16Index(string text, int utf16Index)
     {
         ArgumentNullException.ThrowIfNull(text);
 
