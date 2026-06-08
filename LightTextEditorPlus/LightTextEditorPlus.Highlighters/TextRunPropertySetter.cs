@@ -97,6 +97,6 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
             plainText = TextEditor.GetText(in selection);
         }
 
-        return TextIndexConverter.ConvertUtf16IndexToDocumentOffset(plainText ?? string.Empty, utf16Index);
+        return TextIndexConverter.ConvertUtf16IndexToDocumentOffset(plainText ?? string.Empty, utf16Index).Offset;
     }
 }

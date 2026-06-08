@@ -327,7 +327,6 @@ public sealed partial class MarkdownDocumentHighlighter : IDocumentHighlighter
                 return;
             }
 
-            var codeBlockDocumentOffset = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(markdownText, codeBlockHighlightSnapshot.InnerCodeSpan.Start);
             var colorCode = new TextEditorColorCode(_textEditor, DocumentOffset.FromUtf16Index(markdownText, codeBlockHighlightSnapshot.InnerCodeSpan.Start), codeBlockHighlightSnapshot.InnerCodeText);
             var highlightCodeContext = new HighlightCodeContext(codeBlockHighlightSnapshot.InnerCodeText, colorCode);
 
