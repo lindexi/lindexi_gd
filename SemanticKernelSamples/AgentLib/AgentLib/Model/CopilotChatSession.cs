@@ -13,8 +13,13 @@ public sealed class CopilotChatSession : NotifyBase
 {
     private const int MaxTitleLength = 20;
     private string _title = "新会话";
-    private bool _hasCustomTitle;
+    private TitleSource _titleSource;
     private AgentSession? _agentSession;
+
+    /// <summary>
+    /// 当前标题的来源。
+    /// </summary>
+    internal TitleSource TitleSourceValue => _titleSource;
 
     /// <summary>
     /// 使用新的会话 ID 和当前时间创建会话。
@@ -102,9 +107,27 @@ public sealed class CopilotChatSession : NotifyBase
         AgentSession = agentSession;
     }
 
+    /// <summary>
+    /// 设置会话标题并标记来源。设置后 <see cref="TryUpdateTitle"/> 将不再自动覆盖。
+    /// </summary>
+    /// <param name="title">标题文本。</param>
+    /// <param name="source">标题来源，默认为 <see cref="TitleSource.UserSet"/>。</param>
+    public void SetTitle(string title, TitleSource source = TitleSource.UserSet)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return;
+        }
+
+        _titleSource = source;
+        Title = title.Length <= MaxTitleLength
+            ? title
+            : $"{title[..MaxTitleLength]}...";
+    }
+
     private void TryUpdateTitle(CopilotChatMessage chatMessage)
     {
-        if (_hasCustomTitle || chatMessage.Role != ChatRole.User || chatMessage.IsPresetInfo)
+        if (_titleSource != TitleSource.Default || chatMessage.Role != ChatRole.User || chatMessage.IsPresetInfo)
         {
             return;
         }
@@ -115,7 +138,7 @@ public sealed class CopilotChatSession : NotifyBase
             return;
         }
 
-        _hasCustomTitle = true;
+        _titleSource = TitleSource.AutoTruncated;
         Title = title;
     }
 

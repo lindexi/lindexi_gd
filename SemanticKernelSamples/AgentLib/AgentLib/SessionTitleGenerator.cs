@@ -1,0 +1,159 @@
+using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using AgentLib.Model;
+
+using Microsoft.Extensions.AI;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace AgentLib;
+
+/// <summary>
+/// 基于 LLM 的会话标题生成器。直接依赖 <see cref="AgentApiEndpointManager"/> 进行模型选择，
+/// 模型解析结果在构造时缓存，<see cref="IChatClient"/> 在首次调用时懒加载并复用。
+/// </summary>
+public class SessionTitleGenerator
+{
+    private readonly AgentApiEndpointManager _endpointManager;
+    private readonly ILanguageModel _titleModel;
+    private readonly LanguageModelCapabilityComparer _comparer = new();
+    private IChatClient? _chatClient;
+
+    /// <summary>
+    /// 使用指定的 <see cref="AgentApiEndpointManager"/> 创建标题生成器。
+    /// 构造时即解析标题生成所用的语言模型（Flash 优先，PrimaryModel 回退）。
+    /// </summary>
+    /// <param name="endpointManager">API 终结点管理器，用于模型选择和 <see cref="IChatClient"/> 创建。</param>
+    public SessionTitleGenerator(AgentApiEndpointManager endpointManager)
+    {
+        ArgumentNullException.ThrowIfNull(endpointManager);
+        _endpointManager = endpointManager;
+        _titleModel = ResolveTitleModel();
+    }
+
+    /// <summary>
+    /// 对指定会话生成标题。LLM 调用失败时静默返回，不更新会话标题。
+    /// 如果会话标题已被 LLM 生成或用户设置，则跳过。
+    /// </summary>
+    /// <param name="session">目标会话。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task GenerateTitleAsync(CopilotChatSession session, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        if (session.TitleSourceValue is TitleSource.Generated or TitleSource.UserSet)
+        {
+            return;
+        }
+
+        string? title = await GenerateTitleCoreAsync(session, cancellationToken).ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            session.SetTitle(title, TitleSource.Generated);
+        }
+    }
+
+    private async Task<string?> GenerateTitleCoreAsync(CopilotChatSession session, CancellationToken cancellationToken)
+    {
+        List<ChatMessage> messages = BuildMessages(session);
+        if (messages.Count == 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            IChatClient chatClient = await EnsureChatClientAsync(cancellationToken).ConfigureAwait(false);
+
+            messages.Insert(0, new ChatMessage(ChatRole.System, SystemPrompt));
+
+            ChatResponse response = await chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            string? title = response.Text?.Trim();
+            return string.IsNullOrWhiteSpace(title) ? null : title;
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or TimeoutException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 解析标题生成所用的语言模型。策略：Flash 模型优先，否则回退到 <see cref="AgentApiEndpointManager.PrimaryModel"/>。
+    /// </summary>
+    /// <returns>解析到的模型，必定非空（<see cref="AgentApiEndpointManager.PrimaryModel"/> 保证有可用模型）。</returns>
+    private ILanguageModel ResolveTitleModel()
+    {
+        var supportedModels = _endpointManager.GetSupportedModels();
+
+        var flashModel = supportedModels
+            .Where(m => m.ModelDefinition.Capabilities?.IsFlash == true)
+            .OrderByDescending(m => m, _comparer)
+            .FirstOrDefault();
+
+        return flashModel ?? _endpointManager.PrimaryModel;
+    }
+
+    /// <summary>
+    /// 确保 <see cref="IChatClient"/> 已创建（懒加载 + 缓存），首次调用时异步创建，后续复用。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>聊天客户端实例。</returns>
+    private async ValueTask<IChatClient> EnsureChatClientAsync(CancellationToken cancellationToken)
+    {
+        if (_chatClient is not null)
+        {
+            return _chatClient;
+        }
+
+        // _titleModel 在构造时已解析，不会为 null（PrimaryModel 在无可用模型时会抛异常）
+        var chatClient = await _titleModel.GetChatClientAsync().ConfigureAwait(false);
+        Interlocked.CompareExchange(ref _chatClient, chatClient, null);
+        return _chatClient;
+    }
+
+    private static List<ChatMessage> BuildMessages(CopilotChatSession session)
+    {
+        var relevantMessages = session.ChatMessages
+            .Where(m => !m.IsPresetInfo && m.HasContent)
+            .ToList();
+
+        int count = relevantMessages.Count;
+        if (count == 0)
+        {
+            return [];
+        }
+
+        int start = Math.Max(0, count - MaxMessages);
+        var messages = new List<ChatMessage>(MaxMessages);
+        for (int i = start; i < count; i++)
+        {
+            CopilotChatMessage copilotMessage = relevantMessages[i];
+            messages.Add(new ChatMessage(copilotMessage.Role, copilotMessage.Content));
+        }
+
+        return messages;
+    }
+
+    /// <summary>
+    /// 标题生成用的 System Prompt。
+    /// </summary>
+    public const string SystemPrompt = """
+        基于以下对话内容，生成一个简洁的会话标题（不超过 20 个字）。
+        直接输出标题文本，不要包含引号、前缀或额外解释。
+        只使用对话中实际讨论的主题，不要编造内容。
+        """;
+
+    /// <summary>
+    /// 标题生成时最多提取的消息数量。
+    /// </summary>
+    public const int MaxMessages = 10;
+}

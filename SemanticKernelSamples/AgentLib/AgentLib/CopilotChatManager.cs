@@ -1,4 +1,5 @@
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
 using AgentLib.Model;
 using AgentLib.Tools;
@@ -29,6 +30,7 @@ public class CopilotChatManager : NotifyBase
     private CopilotChatSession _selectedSession = null!;
     private CancellationTokenSource? _currentChatCancellationTokenSource;
     private readonly CopilotToolManager _toolManager;
+    private readonly SessionTitleGenerator _titleGenerator;
 
     /// <summary>
     /// 使用空日志记录器创建管理器。
@@ -47,6 +49,7 @@ public class CopilotChatManager : NotifyBase
     {
         ChatLogger = chatLogger;
         _toolManager = new CopilotToolManager(this.AgentApiEndpointManager);
+        _titleGenerator = new SessionTitleGenerator(AgentApiEndpointManager);
         CreateNewSession();
     }
 
@@ -503,6 +506,27 @@ public class CopilotChatManager : NotifyBase
 
     protected virtual void OnBeforeSendStreaming(CopilotChatSession currentSession, CopilotChatMessage assistantMessage)
     {
+    }
+
+    /// <summary>
+    /// 手动触发 LLM 标题生成。调用方负责决定调用时机。
+    /// 对标为 <see cref="TitleSource.AutoTruncated"/> 或 <see cref="TitleSource.Generated"/> 的会话不会重复生成。
+    /// </summary>
+    /// <param name="session">目标会话。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public Task GenerateSessionTitleAsync(CopilotChatSession session, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return _titleGenerator.GenerateTitleAsync(session, cancellationToken);
+    }
+
+    /// <summary>
+    /// 手动触发当前选中会话的 LLM 标题生成。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public Task GenerateSessionTitleAsync(CancellationToken cancellationToken = default)
+    {
+        return GenerateSessionTitleAsync(SelectedSession, cancellationToken);
     }
 
     /// <summary>
