@@ -27,6 +27,12 @@ Knowledge/
 
 ### 任务日志
 
+#### 2026-06
+
+| 文件 | 主题 |
+|---|---|
+| [2026-06-08-UI框架层添加CreateDocumentOffsetFromUtf16Index.md](任务日志/2026-06-08-UI框架层添加CreateDocumentOffsetFromUtf16Index.md) | API/文档 |
+
 #### 2026-05
 
 | 文件 | 主题 |

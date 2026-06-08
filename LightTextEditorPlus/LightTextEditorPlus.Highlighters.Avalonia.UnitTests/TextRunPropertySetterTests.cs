@@ -236,23 +236,19 @@ public class TextRunPropertySetterTests
     }
 
     [Fact]
-    public void SetRunProperty_SpanExceedsDocumentLength_ClampsToDocumentEnd()
+    public void SetRunProperty_SpanExceedsDocumentLength_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
         var textEditor = new TextEditor();
         const string text = "Short";
         textEditor.AppendText(text);
-        
+
         var setter = new TextRunPropertySetter(textEditor);
         var span = new SourceSpan(0, 99); // 0 to 99 inclusive = 100 chars (larger than document)
-        
-        // Act
-        setter.SetRunProperty(property => property with { FontSize = 14 }, span);
 
-        // Assert
-        var selection = new Selection(new CaretOffset(0), text.Length);
-        var appliedProperties = textEditor.GetRunPropertyRange(selection);
-        Assert.All(appliedProperties, p => Assert.Equal(14, p.FontSize));
+        // Act & Assert - Should throw because span exceeds document length
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            setter.SetRunProperty(property => property with { FontSize = 14 }, span));
     }
 
     [Fact]
