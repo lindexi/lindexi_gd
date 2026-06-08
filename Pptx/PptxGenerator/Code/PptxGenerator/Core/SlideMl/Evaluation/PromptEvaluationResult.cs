@@ -81,4 +81,35 @@ public sealed class PromptEvaluationResult
             EvaluatedAt = DateTimeOffset.Now,
         };
     }
+
+    /// <summary>
+    /// 将评估结果格式化为可读的显示文本，用于聊天列表展示。
+    /// </summary>
+    public string ToDisplayText()
+    {
+        if (!IsSuccess)
+        {
+            return $"📝 提示词评估失败：{ErrorMessage}";
+        }
+
+        var builder = new System.Text.StringBuilder(256);
+        builder.AppendLine($"📝 提示词评估报告 | 综合评分: {OverallScore:F1}/10");
+        builder.AppendLine($"  清晰度:   {Clarity}/10");
+        builder.AppendLine($"  完整性:   {Completeness}/10");
+        builder.AppendLine($"  约束质量: {ConstraintQuality}/10");
+        builder.AppendLine($"  可执行性: {Actionability}/10");
+        builder.AppendLine($"  冗余度:   {Redundancy}/10");
+
+        if (Suggestions.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine("优化建议:");
+            foreach (var suggestion in Suggestions)
+            {
+                builder.AppendLine($"  - {suggestion}");
+            }
+        }
+
+        return builder.ToString().TrimEnd();
+    }
 }

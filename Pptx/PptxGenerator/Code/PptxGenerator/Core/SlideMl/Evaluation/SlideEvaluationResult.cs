@@ -87,4 +87,36 @@ public sealed class SlideEvaluationResult
             EvaluatedAt = DateTimeOffset.Now,
         };
     }
+
+    /// <summary>
+    /// 将评估结果格式化为可读的显示文本，用于聊天列表展示。
+    /// </summary>
+    public string ToDisplayText()
+    {
+        if (!IsSuccess)
+        {
+            return $"📊 SlideML 评估失败：{ErrorMessage}";
+        }
+
+        var builder = new System.Text.StringBuilder(256);
+        builder.AppendLine($"📊 SlideML 评估报告 | 综合评分: {OverallScore:F1}/10");
+        builder.AppendLine($"  XML 规范: {XmlWellFormedness}/10");
+        builder.AppendLine($"  布局结构: {LayoutStructure}/10");
+        builder.AppendLine($"  视觉平衡: {VisualBalance}/10");
+        builder.AppendLine($"  约束遵守: {ConstraintAdherence}/10");
+        builder.AppendLine($"  语义对齐: {SemanticAlignment}/10");
+        builder.AppendLine($"  美观度:   {AestheticQuality}/10");
+
+        if (Suggestions.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine("改进建议:");
+            foreach (var suggestion in Suggestions)
+            {
+                builder.AppendLine($"  - {suggestion}");
+            }
+        }
+
+        return builder.ToString().TrimEnd();
+    }
 }

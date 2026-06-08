@@ -304,6 +304,9 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                 .ConfigureAwait(false);
 
             LastPromptEvaluation = result;
+
+            AppendEvaluationMessage(result);
+
             PromptEvaluationCompleted?.Invoke(this, result);
             return result;
         }
@@ -338,6 +341,9 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
             context.SlideEvaluation = result;
             LastSlideEvaluation = result;
+
+            AppendEvaluationMessage(result);
+
             EvaluationCompleted?.Invoke(this, result);
             return result;
         }
@@ -354,6 +360,26 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         OnPropertyChanged(nameof(RenderedXml));
         OnPropertyChanged(nameof(WarningText));
         SlideRendered?.Invoke();
+    }
+
+    /// <summary>
+    /// 将评估结果作为用户消息追加到聊天列表中，使评估报告在聊天气泡中可见。
+    /// </summary>
+    private void AppendEvaluationMessage(SlideEvaluationResult result)
+    {
+        var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
+        message.IsPresetInfo = true;
+        _copilotChatManager.ChatMessages.Add(message);
+    }
+
+    /// <summary>
+    /// 将提示词评估结果作为用户消息追加到聊天列表中。
+    /// </summary>
+    private void AppendEvaluationMessage(PromptEvaluationResult result)
+    {
+        var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
+        message.IsPresetInfo = true;
+        _copilotChatManager.ChatMessages.Add(message);
     }
 
     private void OnPropertyChanged(string propertyName)
