@@ -653,6 +653,280 @@ public class WorkspaceToolProviderTests
         Assert.AreEqual("version3", File.ReadAllText(filePath));
     }
 
+    [TestMethod]
+    [Description("先读取后替换单处应成功")]
+    public async Task ReplaceStringInFile_AfterReading_WhenOldStringIsUnique_Succeeds()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "line1" + Environment.NewLine + "line2" + Environment.NewLine + "line3");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 3);
+        string result = provider.ReplaceStringInFile("note.txt", "line2", "replaced");
+
+        Assert.AreEqual("OK", result);
+        Assert.AreEqual("line1" + Environment.NewLine + "replaced" + Environment.NewLine + "line3", await File.ReadAllTextAsync(filePath));
+    }
+
+    [TestMethod]
+    [Description("oldString 未找到时替换应返回错误")]
+    public async Task ReplaceStringInFile_WhenOldStringNotFound_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "line1" + Environment.NewLine + "line2");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 2);
+        string result = provider.ReplaceStringInFile("note.txt", "notfound", "replaced");
+
+        StringAssert.Contains(result, "未找到要替换的文本");
+        Assert.AreEqual("line1" + Environment.NewLine + "line2", await File.ReadAllTextAsync(filePath));
+    }
+
+    [TestMethod]
+    [Description("oldString 匹配多处时替换应返回错误")]
+    public async Task ReplaceStringInFile_WhenOldStringMatchesMultiple_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "match" + Environment.NewLine + "match" + Environment.NewLine + "other");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 3);
+        string result = provider.ReplaceStringInFile("note.txt", "match", "replaced");
+
+        StringAssert.Contains(result, "2 处匹配");
+        Assert.AreEqual("match" + Environment.NewLine + "match" + Environment.NewLine + "other", await File.ReadAllTextAsync(filePath));
+    }
+
+    [TestMethod]
+    [Description("未读取直接替换应返回错误")]
+    public async Task ReplaceStringInFile_WithoutReadingFirst_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "original content");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = provider.ReplaceStringInFile("note.txt", "original", "updated");
+
+        StringAssert.Contains(result, "未被读取过");
+        Assert.AreEqual("original content", await File.ReadAllTextAsync(filePath));
+    }
+
+    [TestMethod]
+    [Description("读取后文件被外部修改再替换应返回错误")]
+    public async Task ReplaceStringInFile_WhenFileModifiedExternally_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "original content");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 1);
+
+        await Task.Delay(10);
+        await File.WriteAllTextAsync(filePath, "externally modified");
+
+        string result = provider.ReplaceStringInFile("note.txt", "original", "updated");
+
+        StringAssert.Contains(result, "已被外部修改");
+        Assert.AreEqual("externally modified", await File.ReadAllTextAsync(filePath));
+    }
+
+    [TestMethod]
+    [Description("替换路径超出工作区范围应返回错误")]
+    public void ReplaceStringInFile_WhenPathOutsideWorkspace_ReturnsError()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string outsidePath = Path.Join(testRoot, "outside", "note.txt");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = provider.ReplaceStringInFile(outsidePath, "old", "new");
+
+        StringAssert.Contains(result, "不在工作区范围内");
+    }
+
+    [TestMethod]
+    [Description("替换成功后快照更新，连续替换成功")]
+    public async Task ReplaceStringInFile_AfterSuccessfulReplace_SnapshotUpdatedForNextReplace()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "line1" + Environment.NewLine + "line2" + Environment.NewLine + "line3");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 3);
+
+        string result1 = provider.ReplaceStringInFile("note.txt", "line1", "first");
+        Assert.AreEqual("OK", result1);
+
+        string result2 = provider.ReplaceStringInFile("note.txt", "line2", "second");
+        Assert.AreEqual("OK", result2);
+
+        Assert.AreEqual("first" + Environment.NewLine + "second" + Environment.NewLine + "line3", await File.ReadAllTextAsync(filePath));
+    }
+
+    [TestMethod]
+    [Description("多文件批量替换全部成功")]
+    public async Task MultiReplaceStringInFile_MultipleFiles_AllSucceed()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string file1 = Path.Join(workspacePath, "file1.txt");
+        string file2 = Path.Join(workspacePath, "file2.txt");
+        await File.WriteAllTextAsync(file1, "alpha");
+        await File.WriteAllTextAsync(file2, "beta");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("file1.txt", 1, 1);
+        await provider.ReadFileLines("file2.txt", 1, 1);
+
+        var replacements = new List<ReplaceOperation>
+        {
+            new("file1.txt", "alpha", "replaced1", "替换file1"),
+            new("file2.txt", "beta", "replaced2", "替换file2")
+        };
+
+        string result = provider.MultiReplaceStringInFile(replacements, "批量替换两个文件");
+
+        StringAssert.Contains(result, "2 个成功");
+        StringAssert.Contains(result, "0 个失败");
+        Assert.AreEqual("replaced1", await File.ReadAllTextAsync(file1));
+        Assert.AreEqual("replaced2", await File.ReadAllTextAsync(file2));
+    }
+
+    [TestMethod]
+    [Description("同文件多次替换全部成功")]
+    public async Task MultiReplaceStringInFile_SameFileMultipleEdits_AllSucceed()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "aaa" + Environment.NewLine + "bbb" + Environment.NewLine + "ccc");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("note.txt", 1, 3);
+
+        var replacements = new List<ReplaceOperation>
+        {
+            new("note.txt", "aaa", "111", "第一处替换"),
+            new("note.txt", "bbb", "222", "第二处替换"),
+            new("note.txt", "ccc", "333", "第三处替换")
+        };
+
+        string result = provider.MultiReplaceStringInFile(replacements, "同文件三处替换");
+
+        StringAssert.Contains(result, "3 个成功");
+        Assert.AreEqual("111" + Environment.NewLine + "222" + Environment.NewLine + "333", await File.ReadAllTextAsync(filePath));
+    }
+
+    [TestMethod]
+    [Description("批量替换部分成功部分失败返回汇总")]
+    public async Task MultiReplaceStringInFile_PartialFailure_ReturnsSummary()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string file1 = Path.Join(workspacePath, "file1.txt");
+        string file2 = Path.Join(workspacePath, "file2.txt");
+        await File.WriteAllTextAsync(file1, "alpha");
+        await File.WriteAllTextAsync(file2, "beta");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        await provider.ReadFileLines("file1.txt", 1, 1);
+        await provider.ReadFileLines("file2.txt", 1, 1);
+
+        var replacements = new List<ReplaceOperation>
+        {
+            new("file1.txt", "alpha", "replaced1", "成功替换"),
+            new("file2.txt", "notfound", "replaced2", "失败替换")
+        };
+
+        string result = provider.MultiReplaceStringInFile(replacements, "部分成功部分失败");
+
+        StringAssert.Contains(result, "1 个成功");
+        StringAssert.Contains(result, "1 个失败");
+        Assert.AreEqual("replaced1", await File.ReadAllTextAsync(file1));
+        Assert.AreEqual("beta", await File.ReadAllTextAsync(file2));
+    }
+
+    [TestMethod]
+    [Description("空替换列表应返回提示信息")]
+    public void MultiReplaceStringInFile_EmptyReplacements_ReturnsMessage()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = provider.MultiReplaceStringInFile(new List<ReplaceOperation>(), "空操作");
+
+        StringAssert.Contains(result, "替换操作列表为空");
+    }
+
     private static string CreateTestDirectory()
     {
         string testRoot = Path.Join(AppContext.BaseDirectory, "AgentLib.Tests", nameof(WorkspaceToolProviderTests), Guid.NewGuid().ToString("N"));
