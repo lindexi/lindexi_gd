@@ -61,7 +61,9 @@ public sealed class WorkspaceToolProvider
             AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "在工作路径下递归查找名称包含指定关键字的文件或文件夹。"),
             AIFunctionFactory.Create(FindFilesMatchingPattern, name: nameof(FindFilesMatchingPattern), description: "在工作路径下递归查找匹配指定模式的文件，并返回命中文件路径与行号。支持纯文本匹配和正则表达式匹配。"),
             AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取工作路径下指定文件的某一段行内容。"),
-                        AIFunctionFactory.Create(WriteFileContent, name: nameof(WriteFileContent), description: "将内容写入工作区内的文件。写入前要求先读取过该文件，防止误覆盖。")
+            AIFunctionFactory.Create(WriteFileContent, name: nameof(WriteFileContent), description: "将内容写入工作区内的文件。写入前要求先读取过该文件，防止误覆盖。"),
+            AIFunctionFactory.Create(ReplaceStringInFile, name: nameof(ReplaceStringInFile), description: "替换文件中的指定字符串。要求先读取过该文件，且 oldString 在文件中必须唯一匹配。"),
+            AIFunctionFactory.Create(MultiReplaceStringInFile, name: nameof(MultiReplaceStringInFile), description: "批量替换文件中的多个字符串。每个替换操作要求先读取过对应文件，且 oldString 在文件中必须唯一匹配。")
         ];
     }
 
@@ -705,5 +707,128 @@ public sealed class WorkspaceToolProvider
 
         File.WriteAllText(file.FullName, content);
         return "OK";
+    }
+
+    /// <summary>
+    /// 替换文件中的指定字符串。要求先通过 ReadFileLines 读取过该文件，
+    /// 且 oldString 在文件中必须唯一匹配。
+    /// </summary>
+    /// <param name="filePath">要替换的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。</param>
+    /// <param name="oldString">要替换的原始文本，必须在文件中唯一匹配。</param>
+    /// <param name="newString">替换后的新文本。</param>
+    /// <returns>成功时返回 "OK"，失败时返回错误信息。</returns>
+    [Description("替换文件中的指定字符串。要求先读取过该文件，且 oldString 在文件中必须唯一匹配。")]
+    public string ReplaceStringInFile(
+        [Description("要替换的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
+        [Description("要替换的原始文本，必须在文件中唯一匹配。包含前后各 3-5 行上下文以确保唯一性。")] string oldString,
+        [Description("替换后的新文本。")] string newString)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentNullException.ThrowIfNull(oldString);
+        ArgumentNullException.ThrowIfNull(newString);
+
+        var result = ReplaceStringInFileCore(filePath, oldString, newString);
+        return result.Message;
+    }
+
+    /// <summary>
+    /// 批量替换文件中的多个字符串。顺序执行每个替换操作，每个操作独立处理错误。
+    /// </summary>
+    /// <param name="replacements">替换操作列表，每个操作包含文件路径、原始文本、新文本和说明。</param>
+    /// <param name="explanation">批量替换操作的总体说明。</param>
+    /// <returns>替换操作的汇总结果。</returns>
+    [Description("批量替换文件中的多个字符串。顺序执行每个替换操作，每个操作独立处理错误。")]
+    public string MultiReplaceStringInFile(
+        [Description("替换操作列表，每个操作包含文件路径、原始文本、新文本和说明。")] IReadOnlyList<ReplaceOperation> replacements,
+        [Description("批量替换操作的总体说明。")] string explanation)
+    {
+        ArgumentNullException.ThrowIfNull(replacements);
+
+        if (replacements.Count == 0)
+        {
+            return "替换操作列表为空，未执行任何操作。";
+        }
+
+        var results = new List<ReplaceResult>(replacements.Count);
+        int successCount = 0;
+        int failureCount = 0;
+
+        foreach (var operation in replacements)
+        {
+            var result = ReplaceStringInFileCore(operation.FilePath, operation.OldString, operation.NewString);
+            results.Add(new ReplaceResult(operation.FilePath, result.Success, result.Message));
+
+            if (result.Success)
+            {
+                successCount++;
+            }
+            else
+            {
+                failureCount++;
+            }
+        }
+
+        var builder = new StringBuilder();
+        builder.AppendLine($"批量替换完成: {successCount} 个成功, {failureCount} 个失败。");
+        builder.AppendLine();
+
+        for (int i = 0; i < results.Count; i++)
+        {
+            var result = results[i];
+            builder.AppendLine($"操作 {i + 1}: {result.FilePath}");
+            builder.AppendLine($"  状态: {(result.Success ? "成功" : "失败")}");
+            builder.AppendLine($"  消息: {result.Message}");
+            builder.AppendLine();
+        }
+
+        return builder.ToString().TrimEnd();
+    }
+
+    private StringReplaceOutcome ReplaceStringInFileCore(string filePath, string oldString, string newString)
+    {
+        if (!TryResolveFileForWrite(filePath, out var file, out var errorMessage))
+        {
+            return new StringReplaceOutcome(Success: false, Message: errorMessage, NewContent: null);
+        }
+
+        string normalizedPath = NormalizePath(file.FullName);
+
+        if (!file.Exists)
+        {
+            return new StringReplaceOutcome(Success: false, Message: $"文件不存在: {GetDisplayPath(file.FullName)}", NewContent: null);
+        }
+
+        if (!_readFileSnapshots.TryGetValue(normalizedPath, out var snapshot))
+        {
+            return new StringReplaceOutcome(Success: false, Message: $"文件未被读取过: {GetDisplayPath(file.FullName)}。请先使用 ReadFileLines 读取文件内容后再替换，避免误修改。", NewContent: null);
+        }
+
+        file.Refresh();
+        if (file.Length != snapshot.Length || file.LastWriteTimeUtc != snapshot.LastWriteTime)
+        {
+            return new StringReplaceOutcome(Success: false, Message: $"文件自读取后已被外部修改: {GetDisplayPath(file.FullName)}。请重新使用 ReadFileLines 读取最新内容后再替换。", NewContent: null);
+        }
+
+        string content = File.ReadAllText(file.FullName);
+        string displayPath = GetDisplayPath(file.FullName);
+
+        var replacer = new WorkspaceFileStringReplacer();
+        var outcome = replacer.ReplaceInContent(content, oldString, newString, displayPath);
+
+        if (!outcome.Success)
+        {
+            return outcome;
+        }
+
+        File.WriteAllText(file.FullName, outcome.NewContent);
+        UpdateFileSnapshot(file);
+
+        return outcome;
+    }
+
+    private void UpdateFileSnapshot(FileInfo file)
+    {
+        file.Refresh();
+        _readFileSnapshots[NormalizePath(file.FullName)] = new FileSnapshotInfo(file.Length, file.LastWriteTimeUtc);
     }
 }
