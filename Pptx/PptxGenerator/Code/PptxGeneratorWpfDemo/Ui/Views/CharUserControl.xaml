@@ -1,15 +1,11 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl x:Class="PptxGeneratorWpfDemo.CharUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:PptxGenerator"
-             xmlns:agent="using:AgentLib.Model"
-             xmlns:sys="using:System.IO"
-             mc:Ignorable="d"
-             x:DataType="vm:MainWindowViewModel"
-             d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="PptxGenerator.CharUserControl">
-
+             xmlns:local="clr-namespace:PptxGeneratorWpfDemo"
+             xmlns:pg="clr-namespace:PptxGenerator"
+             xmlns:agent="clr-namespace:AgentLib.Model;assembly=AgentLib"
+             xmlns:converters="clr-namespace:PptxGeneratorWpfDemo.Converters"
+             xmlns:sys="clr-namespace:System.IO;assembly=mscorlib">
     <UserControl.Resources>
         <!-- 颜色资源 -->
         <SolidColorBrush x:Key="ChatTextForegroundBrush" Color="#FF1E293B" />
@@ -27,24 +23,24 @@
         <SolidColorBrush x:Key="ChatUsageTextBrush" Color="#FF94A3B8" />
 
         <!-- 聊天消息子项模板选择器 -->
-        <vm:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
-            <vm:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
-                <DataTemplate x:DataType="agent:CopilotChatTextItem">
+        <pg:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
+            <pg:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
+                <DataTemplate DataType="{x:Type agent:CopilotChatTextItem}">
                     <TextBlock Text="{Binding Text}"
                                TextWrapping="Wrap"
                                FontSize="14"
                                Foreground="{StaticResource ChatTextForegroundBrush}" />
                 </DataTemplate>
-            </vm:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
-            <vm:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
-                <DataTemplate x:DataType="agent:CopilotChatReasoningItem">
+            </pg:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
+            <pg:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
+                <DataTemplate DataType="{x:Type agent:CopilotChatReasoningItem}">
                     <Border Background="{StaticResource ChatReasoningBackgroundBrush}"
                             BorderBrush="{StaticResource ChatReasoningBorderBrush}"
                             BorderThickness="3,0,0,0"
                             CornerRadius="4"
                             Padding="12,8"
                             Margin="0,2">
-                        <StackPanel Spacing="4">
+                        <StackPanel>
                             <TextBlock Text="思考过程"
                                        FontSize="11"
                                        Foreground="{StaticResource ChatReasoningLabelBrush}"
@@ -52,59 +48,59 @@
                             <TextBlock Text="{Binding Text}"
                                        FontSize="12"
                                        Foreground="{StaticResource ChatReasoningTextBrush}"
-                                       TextWrapping="Wrap" />
+                                       TextWrapping="Wrap" Margin="0,4,0,0" />
                         </StackPanel>
                     </Border>
                 </DataTemplate>
-            </vm:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
-            <vm:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
-                <DataTemplate x:DataType="agent:CopilotChatToolItem">
+            </pg:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
+            <pg:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
+                <DataTemplate DataType="{x:Type agent:CopilotChatToolItem}">
                     <Border BorderBrush="{StaticResource ChatToolBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="0"
                             Margin="0,2">
-                        <StackPanel Spacing="0">
-                            <!-- 头部：工具名 -->
+                        <StackPanel>
                             <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
                                     Padding="12,8">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Text="&#x1F527;"
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔧"
                                                FontSize="12"
                                                VerticalAlignment="Center" />
                                     <TextBlock Text="{Binding ToolName}"
                                                FontSize="12"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource ChatToolNameForegroundBrush}"
-                                               VerticalAlignment="Center" />
+                                               VerticalAlignment="Center" Margin="6,0,0,0" />
                                 </StackPanel>
                             </Border>
-                            <!-- 体：输入/输出 -->
                             <Border Padding="12,8">
-                                <StackPanel Spacing="6">
-                                    <StackPanel IsVisible="{Binding HasInputText}" Spacing="2">
+                                <StackPanel>
+                                    <StackPanel x:Name="InputSection" Margin="0,0,0,6"
+                                                Visibility="{Binding HasInputText, Converter={StaticResource BooleanToVisibility}}">
                                         <TextBlock Text="输入"
                                                    FontSize="10"
                                                    Foreground="{StaticResource ChatReasoningLabelBrush}"
                                                    FontWeight="Medium" />
                                         <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
                                                 Padding="8"
-                                                CornerRadius="4">
+                                                CornerRadius="4" Margin="0,2,0,0">
                                             <TextBlock Text="{Binding InputText}"
-                                                       FontFamily="Cascadia Code,Consolas,monospace"
+                                                       FontFamily="Consolas"
                                                        FontSize="11"
                                                        Foreground="{StaticResource ChatToolInputForegroundBrush}"
                                                        TextWrapping="Wrap" />
                                         </Border>
                                     </StackPanel>
-                                    <StackPanel IsVisible="{Binding HasOutputText}" Spacing="2">
+                                    <StackPanel x:Name="OutputSection"
+                                                Visibility="{Binding HasOutputText, Converter={StaticResource BooleanToVisibility}}">
                                         <TextBlock Text="输出"
                                                    FontSize="10"
                                                    Foreground="{StaticResource ChatReasoningLabelBrush}"
                                                    FontWeight="Medium" />
                                         <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
                                                 Padding="8"
-                                                CornerRadius="4">
+                                                CornerRadius="4" Margin="0,2,0,0">
                                             <TextBlock Text="{Binding OutputText}"
                                                        FontSize="12"
                                                        Foreground="{StaticResource ChatToolOutputForegroundBrush}"
@@ -116,53 +112,55 @@
                         </StackPanel>
                     </Border>
                 </DataTemplate>
-            </vm:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
-            <vm:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
-                <DataTemplate x:DataType="agent:CopilotChatSubAgentItem">
+            </pg:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
+            <pg:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
+                <DataTemplate DataType="{x:Type agent:CopilotChatSubAgentItem}">
                     <Border BorderBrush="{StaticResource ChatToolBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="8"
                             Padding="0"
                             Margin="0,2">
-                        <StackPanel Spacing="0">
+                        <StackPanel>
                             <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
                                     Padding="12,8">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Text="&#x1F527;"
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔧"
                                                FontSize="12"
                                                VerticalAlignment="Center" />
                                     <TextBlock Text="{Binding ToolName}"
                                                FontSize="12"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource ChatToolNameForegroundBrush}"
-                                               VerticalAlignment="Center" />
+                                               VerticalAlignment="Center" Margin="6,0,0,0" />
                                 </StackPanel>
                             </Border>
                             <Border Padding="12,8">
-                                <StackPanel Spacing="6">
-                                    <StackPanel IsVisible="{Binding HasInputText}" Spacing="2">
+                                <StackPanel>
+                                    <StackPanel x:Name="SubInputSection" Margin="0,0,0,6"
+                                                Visibility="{Binding HasInputText, Converter={StaticResource BooleanToVisibility}}">
                                         <TextBlock Text="输入"
                                                    FontSize="10"
                                                    Foreground="{StaticResource ChatReasoningLabelBrush}"
                                                    FontWeight="Medium" />
                                         <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
                                                 Padding="8"
-                                                CornerRadius="4">
+                                                CornerRadius="4" Margin="0,2,0,0">
                                             <TextBlock Text="{Binding InputText}"
-                                                       FontFamily="Cascadia Code,Consolas,monospace"
+                                                       FontFamily="Consolas"
                                                        FontSize="11"
                                                        Foreground="{StaticResource ChatToolInputForegroundBrush}"
                                                        TextWrapping="Wrap" />
                                         </Border>
                                     </StackPanel>
-                                    <StackPanel IsVisible="{Binding HasOutputText}" Spacing="2">
+                                    <StackPanel x:Name="SubOutputSection"
+                                                Visibility="{Binding HasOutputText, Converter={StaticResource BooleanToVisibility}}">
                                         <TextBlock Text="输出"
                                                    FontSize="10"
                                                    Foreground="{StaticResource ChatReasoningLabelBrush}"
                                                    FontWeight="Medium" />
                                         <Border Background="{StaticResource ChatToolHeaderBackgroundBrush}"
                                                 Padding="8"
-                                                CornerRadius="4">
+                                                CornerRadius="4" Margin="0,2,0,0">
                                             <TextBlock Text="{Binding OutputText}"
                                                        FontSize="12"
                                                        Foreground="{StaticResource ChatToolOutputForegroundBrush}"
@@ -170,23 +168,23 @@
                                         </Border>
                                     </StackPanel>
                                     <ItemsControl ItemsSource="{Binding MessageItems}"
-                                                  ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
+                                                  ItemTemplateSelector="{StaticResource ChatMessageItemTemplateSelector}" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
-            </vm:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
-            <vm:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
-                <DataTemplate x:DataType="agent:CopilotChatImageItem">
-                    <Image Source="{Binding Data, Converter={x:Static vm:BinaryDataToBitmapConverter.Instance}}"
+            </pg:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
+            <pg:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
+                <DataTemplate DataType="{x:Type agent:CopilotChatImageItem}">
+                    <Image Source="{Binding Data, Converter={x:Static converters:BinaryDataToBitmapConverter.Instance}}"
                            MaxWidth="320"
                            Stretch="Uniform"
                            Margin="0,4" />
                 </DataTemplate>
-            </vm:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
-            <vm:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
-                <DataTemplate x:DataType="agent:CopilotChatAudioItem">
+            </pg:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
+            <pg:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
+                <DataTemplate DataType="{x:Type agent:CopilotChatAudioItem}">
                     <Border Background="{StaticResource ChatAudioBackgroundBrush}"
                             CornerRadius="8"
                             Padding="12,8">
@@ -195,23 +193,36 @@
                                    Foreground="{StaticResource ChatAudioTextBrush}" />
                     </Border>
                 </DataTemplate>
-            </vm:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
-        </vm:CopilotChatMessageItemTemplateSelector>
+            </pg:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
+        </pg:CopilotChatMessageItemTemplateSelector>
+
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
     </UserControl.Resources>
 
     <Border CornerRadius="14"
-            Background="#FFFFFFFF"
+            Background="White"
             BorderBrush="#FFE2E8F0"
             BorderThickness="1"
             Padding="0">
-        <Grid RowDefinitions="Auto,*,Auto,Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
             <!-- 顶部标题栏 -->
             <Border Grid.Row="0"
                     Background="#FFF8FAFC"
                     BorderBrush="#FFE2E8F0"
                     BorderThickness="0,0,0,1"
                     Padding="16,12">
-                <Grid ColumnDefinitions="*,Auto">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <TextBlock Text="SlideML Lab"
                                FontSize="20"
                                FontWeight="Bold"
@@ -232,29 +243,30 @@
             <!-- 聊天气泡列表 -->
             <ListBox Grid.Row="1"
                      ItemsSource="{Binding ChatMessages}"
-                     Background="#FFFFFFFF"
+                     Background="White"
                      BorderThickness="0"
                      Padding="8"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     VirtualizingPanel.ScrollUnit="Pixel">
                 <ListBox.ItemTemplate>
-                    <DataTemplate DataType="agent:CopilotChatMessage">
+                    <DataTemplate DataType="{x:Type agent:CopilotChatMessage}">
                         <Border Margin="4,6" Padding="14" CornerRadius="16"
                                 MaxWidth="640"
-                                HorizontalAlignment="{Binding Role, Converter={x:Static vm:ChatBubbleAlignmentConverter.Instance}}"
-                                Background="{Binding Role, Converter={x:Static vm:ChatBubbleBackgroundConverter.Instance}}">
-                            <StackPanel Spacing="6">
+                                HorizontalAlignment="{Binding Role, Converter={x:Static converters:ChatBubbleAlignmentConverter.Instance}}"
+                                Background="{Binding Role, Converter={x:Static converters:ChatBubbleBackgroundConverter.Instance}}">
+                            <StackPanel>
                                 <TextBlock Text="{Binding Author}"
                                            FontWeight="Bold"
                                            FontSize="12"
-                                           Foreground="{Binding Role, Converter={x:Static vm:ChatBubbleAuthorColorConverter.Instance}}" />
-                                <!-- 按 MessageItems 逐项渲染 -->
+                                           Foreground="{Binding Role, Converter={x:Static converters:ChatBubbleAuthorColorConverter.Instance}}" />
                                 <ItemsControl ItemsSource="{Binding MessageItems}"
-                                              ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
-                                <!-- Token 用量信息（如存在） -->
+                                              ItemTemplateSelector="{StaticResource ChatMessageItemTemplateSelector}"
+                                              Margin="0,6,0,0" />
                                 <TextBlock Text="{Binding UsageSummaryText}"
                                            FontSize="10"
                                            Foreground="{StaticResource ChatUsageTextBrush}"
-                                           IsVisible="{Binding HasUsageDetails}" />
+                                           Visibility="{Binding HasUsageDetails, Converter={StaticResource BooleanToVisibility}}"
+                                           Margin="0,4,0,0" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -263,12 +275,11 @@
 
             <!-- 图片附件横排栏 -->
             <Border Grid.Row="2"
-                    Background="#FFFFFFFF"
+                    Background="White"
                     BorderBrush="#FFE2E8F0"
                     BorderThickness="0,1,0,0"
                     Padding="12,8">
                 <DockPanel>
-                    <!-- 横排图片缩略图列表 -->
                     <ItemsControl ItemsSource="{Binding AttachedImageFiles}"
                                   DockPanel.Dock="Left">
                         <ItemsControl.ItemsPanel>
@@ -277,49 +288,41 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="sys:FileInfo">
+                            <DataTemplate DataType="{x:Type sys:FileInfo}">
                                 <Border CornerRadius="8"
-                                        Width="64"
-                                        Height="64"
+                                        Width="64" Height="64"
                                         Margin="0,0,8,0"
                                         Background="#FFF1F5F9"
                                         BorderBrush="#FFE2E8F0"
                                         BorderThickness="1"
                                         ClipToBounds="True">
                                     <Grid>
-                                        <Image Source="{Binding FullName, Converter={x:Static vm:FilePathToBitmapConverter.Instance}}"
+                                        <Image Source="{Binding FullName, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
                                                Stretch="UniformToFill"
-                                               Width="64"
-                                               Height="64" />
-                                        <!-- 左上角关闭按钮 -->
+                                               Width="64" Height="64" />
                                         <Button Content="✕"
-                                                Width="16"
-                                                Height="16"
+                                                Width="16" Height="16"
                                                 HorizontalAlignment="Right"
                                                 VerticalAlignment="Top"
-                                                HorizontalContentAlignment="Center"
                                                 Background="#CC444444"
                                                 Foreground="White"
                                                 FontSize="9"
                                                 Padding="0"
-                                                CornerRadius="5,5,5,5"
                                                 Click="CloseAttachedImageButton_OnClick" />
                                     </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <!-- 右侧附加图片按钮 -->
                     <Button x:Name="AttachImageButton"
                             Content="+ 图片"
                             DockPanel.Dock="Right"
-                            MinWidth="72"
-                            Height="36"
+                            HorizontalAlignment="Left"
+                            MinWidth="72" Height="36"
                             Margin="8,0,0,0"
                             Background="#FF2563EB"
                             Foreground="White"
                             FontWeight="SemiBold"
-                            CornerRadius="8"
                             Click="AttachImageButton_OnClick" />
                 </DockPanel>
             </Border>
@@ -330,9 +333,17 @@
                     BorderBrush="#FFE2E8F0"
                     BorderThickness="0,1,0,0"
                     Padding="12">
-                <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <TextBox Grid.Row="0" Grid.Column="0"
-                             Text="{Binding InputText}"
+                             Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
                              MinHeight="42"
@@ -340,55 +351,42 @@
                              Background="White"
                              BorderBrush="#FFCBD5E1"
                              BorderThickness="1"
-                             Padding="12,10"
-                             Watermark="描述你想做的一页幻灯片…" />
-                    <StackPanel Grid.Row="0" Grid.Column="2"
-                                Orientation="Horizontal">
+                             Padding="12,10" />
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
                         <Button Content="发送"
                                 Command="{Binding SendMessageCommand}"
-                                MinWidth="80"
-                                Height="42"
+                                MinWidth="80" Height="42"
+                                Background="#FF2563EB"
+                                Foreground="White"
+                                FontWeight="SemiBold" />
+                        <Button Content="评估页面"
+                                Command="{Binding EvaluateCommand}"
+                                MinWidth="80" Height="42"
+                                Margin="10,0,0,0"
+                                Background="#FF7C3AED"
+                                Foreground="White"
+                                FontWeight="SemiBold" />
+                        <Button Content="评估提示词"
+                                Command="{Binding EvaluatePromptCommand}"
+                                MinWidth="80" Height="42"
+                                Margin="10,0,0,0"
+                                Background="#FF0891B2"
+                                Foreground="White"
+                                FontWeight="SemiBold" />
+                        <Button x:Name="DebugButton" Content="调试"
+                                MinWidth="80" Height="42"
                                 Margin="10,0,0,0"
                                 Background="#FF2563EB"
                                 Foreground="White"
                                 FontWeight="SemiBold"
-                                CornerRadius="10" />
-                         <Button Content="评估页面"
-                                 Command="{Binding EvaluateCommand}"
-                                 MinWidth="80"
-                                 Height="42"
-                                 Margin="10,0,0,0"
-                                 Background="#FF7C3AED"
-                                 Foreground="White"
-                                 FontWeight="SemiBold"
-                                 CornerRadius="10" />
-                         <Button Content="评估提示词"
-                                 Command="{Binding EvaluatePromptCommand}"
-                                 MinWidth="80"
-                                 Height="42"
-                                 Margin="10,0,0,0"
-                                 Background="#FF0891B2"
-                                 Foreground="White"
-                                 FontWeight="SemiBold"
-                                 CornerRadius="10" />
-                         <Button x:Name="DebugButton" Content="调试"
-                                 MinWidth="80"
-                                 Height="42"
-                                 Margin="10,0,0,0"
-                                 Background="#FF2563EB"
-                                 Foreground="White"
-                                 FontWeight="SemiBold"
-                                 CornerRadius="10" 
-                                 Click="DebugButton_OnClick" />
-                         <Button Content="总结"
-                                 MinWidth="80"
-                                 Height="42"
-                                 Margin="10,0,0,0"
-                                 Background="#FFF59E0B"
-                                 Foreground="White"
-                                 FontWeight="SemiBold"
-                                 CornerRadius="10"
-                                 Click="ReduceButton_OnClick" />
+                                Click="DebugButton_OnClick" />
+                        <Button Content="总结"
+                                MinWidth="80" Height="42"
+                                Margin="10,0,0,0"
+                                Background="#FFF59E0B"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Click="ReduceButton_OnClick" />
                     </StackPanel>
                     <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                               IsChecked="{Binding AttachPreview}"

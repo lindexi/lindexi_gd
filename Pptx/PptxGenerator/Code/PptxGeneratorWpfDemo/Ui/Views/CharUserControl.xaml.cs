@@ -1,20 +1,17 @@
+using PptxGenerator;
+
 using System;
 using System.IO;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
 using AgentLib.Model;
 
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Avalonia.Platform.Storage;
-
-using Google.Protobuf.Compiler;
-
 using Microsoft.Extensions.AI;
+using Microsoft.Win32;
 
-namespace PptxGenerator;
+namespace PptxGeneratorWpfDemo;
 
 public partial class CharUserControl : UserControl
 {
@@ -25,11 +22,10 @@ public partial class CharUserControl : UserControl
 
     public MainWindowViewModel ViewModel => DataContext as MainWindowViewModel ?? throw new InvalidCastException("DataContext must be of type MainWindowViewModel.");
 
-    private async void DebugButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
     {
         var copilotChatManager = ViewModel.SlideChatManager.ChatManager;
-        var slideImageFile =
-            @"C:\lindexi\Work\根据文档生成视频\uxots3v4.yly.png";
+        var slideImageFile = @"C:\lindexi\Work\根据文档生成视频\uxots3v4.yly.png";
         if (!File.Exists(slideImageFile))
         {
             return;
@@ -37,20 +33,21 @@ public partial class CharUserControl : UserControl
 
         var dataContent = await DataContent.LoadFromAsync(slideImageFile);
 
-        var prompt = SlideChatManager.BuildInitialUserPrompt($"请将附图内容转换为 SlideML 进行描述");
+        var prompt = SlideChatManager.BuildInitialUserPrompt("请将附图内容转换为 SlideML 进行描述");
 
         var slideRenderTool = ViewModel.SlideChatManager.SlideRenderTool;
 
         ViewModel.StatusText = "开始生成中";
 
         var result = copilotChatManager.SendMessage(new SendMessageRequest(
-             [
-                 new TextContent(prompt),
+            [
+                new TextContent(prompt),
                 dataContent,
             ])
         {
             SystemPrompt = SlideChatManager.BuildSystemPrompt(),
-            Tools = [
+            Tools =
+            [
                 slideRenderTool.CreateTool(),
                 slideRenderTool.CreatePreviewTool()
             ]
@@ -60,7 +57,7 @@ public partial class CharUserControl : UserControl
         ViewModel.StatusText = "执行完成";
     }
 
-    private async void ReduceButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void ReduceButton_OnClick(object sender, RoutedEventArgs e)
     {
         ViewModel.StatusText = "正在总结对话...";
         try
@@ -74,36 +71,22 @@ public partial class CharUserControl : UserControl
         }
     }
 
-    private async void AttachImageButton_OnClick(object? sender, RoutedEventArgs e)
+    private void AttachImageButton_OnClick(object sender, RoutedEventArgs e)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
-        if (topLevel is null)
-        {
-            return;
-        }
-
-        var filePickerOptions = new FilePickerOpenOptions
+        var openFileDialog = new OpenFileDialog
         {
             Title = "选择图片文件",
-            AllowMultiple = true,
-            FileTypeFilter = new[]
-            {
-                new FilePickerFileType("图片文件")
-                {
-                    Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif", "*.webp" }
-                }
-            }
+            Multiselect = true,
+            Filter = "图片文件|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp",
         };
 
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(filePickerOptions);
-        if (files is { Count: > 0 })
+        if (openFileDialog.ShowDialog() == true)
         {
-            var filePaths = files.Select(f => f.Path.LocalPath);
-            ViewModel.AddAttachedImageFiles(filePaths);
+            ViewModel.AddAttachedImageFiles(openFileDialog.FileNames);
         }
     }
 
-    private void CloseAttachedImageButton_OnClick(object? sender, RoutedEventArgs e)
+    private void CloseAttachedImageButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button { DataContext: FileInfo fileInfo })
         {

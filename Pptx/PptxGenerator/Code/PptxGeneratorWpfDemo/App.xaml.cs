@@ -1,5 +1,11 @@
-﻿using System.Configuration;
-using System.Data;
+﻿using AgentLib;
+using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+
+using PptxGenerator;
+
+using System;
+using System.IO;
 using System.Windows;
 
 namespace PptxGeneratorWpfDemo;
@@ -9,5 +15,61 @@ namespace PptxGeneratorWpfDemo;
 /// </summary>
 public partial class App : Application
 {
+    protected override async void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        var slideChatManager = await CreateSlideChatManagerAsync();
+        if (slideChatManager is null)
+        {
+            Shutdown(1);
+            return;
+        }
+
+        var viewModel = new MainWindowViewModel(slideChatManager);
+        var mainWindow = new MainWindow
+        {
+            DataContext = viewModel,
+        };
+        mainWindow.Show();
+    }
+
+    /// <summary>
+    /// 从 Agent 配置文件创建 <see cref="SlideChatManager"/>，供 GUI 和 CLI 路径共用。
+    /// </summary>
+    /// <returns>创建成功的 <see cref="SlideChatManager"/>；如果失败则返回 null。</returns>
+    private static async Task<SlideChatManager?> CreateSlideChatManagerAsync()
+    {
+        var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
+
+        var copilotChatManager = new CopilotChatManager();
+        var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
+        await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+
+        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
+        if (languageModel is null)
+        {
+            Console.Error.WriteLine("未找到指定的语言模型。");
+            return null;
+        }
+
+        agentApiEndpointManager.PrimaryModel = languageModel;
+
+        var slideRenderer = new SlideRenderer();
+        var slideRenderTool = new SlideRenderTool(slideRenderer);
+
+        var evaluatorChatManager = new CopilotChatManager();
+        var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
+        await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+
+        ILanguageModel? evaluatorModel = evaluatorEndpointManager.GetModel("qwen3.7-plus")
+            ?? languageModel;
+        evaluatorEndpointManager.PrimaryModel = evaluatorModel;
+
+        var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
+        var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
+
+        return new SlideChatManager(copilotChatManager, slideRenderTool, slideEvaluator, promptEvaluator);
+    }
 }
 
