@@ -4,6 +4,5 @@
     <Project Path="../../../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
     <Project Path="../../../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
   </Folder>
-  <Project Path="../PptxGenerator/PptxGenerator.csproj" />
   <Project Path="PptxGeneratorWpfDemo.csproj" />
 </Solution>
