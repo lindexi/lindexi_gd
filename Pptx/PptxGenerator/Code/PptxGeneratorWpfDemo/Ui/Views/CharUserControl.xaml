@@ -22,6 +22,8 @@
         <SolidColorBrush x:Key="ChatAudioTextBrush" Color="#FF64748B" />
         <SolidColorBrush x:Key="ChatUsageTextBrush" Color="#FF94A3B8" />
 
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+
         <!-- 聊天消息子项模板选择器 -->
         <pg:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
             <pg:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
@@ -196,7 +198,6 @@
             </pg:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
         </pg:CopilotChatMessageItemTemplateSelector>
 
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
     </UserControl.Resources>
 
     <Border CornerRadius="14"
