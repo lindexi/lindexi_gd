@@ -80,7 +80,7 @@ class Program
         await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
 
         // 评估者可选用更便宜的模型
-        ILanguageModel? evaluatorModel = evaluatorEndpointManager.GetModel("qwen3.7-plus")
+        ILanguageModel evaluatorModel = evaluatorEndpointManager.GetModel("MiniMax-M3")
             ?? languageModel;
         evaluatorEndpointManager.PrimaryModel = evaluatorModel;
 
