@@ -7,6 +7,8 @@ using AgentLib.Tools;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -547,14 +549,34 @@ public class CopilotChatManager : NotifyBase
         {
             IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
-//#pragma warning disable MEAI001
-//            chatReducer = new SummarizingChatReducer(chatClient,2, 3);
-//#pragma warning restore MEAI001
+            //#pragma warning disable MEAI001
+            //            chatReducer = new SummarizingChatReducer(chatClient,2, 3);
+            //#pragma warning restore MEAI001
             chatReducer = new CopilotChatManagerChatReducer(chatClient);
         }
 
         IEnumerable<ChatMessage> result = await chatReducer.ReduceAsync(messages, CancellationToken.None);
-        agentSession.SetInMemoryChatHistory(result.ToList());
+        var resultList = result.ToList();
+        agentSession.SetInMemoryChatHistory(resultList);
+
+        // 从压缩结果中提取 Assistant 角色的完整内容（含文本、图片、音频等多模态），保留原始 AIContent
+        List<AIContent> assistantContents = resultList
+            .Where(m => m.Role == ChatRole.Assistant)
+            .SelectMany(m => m.Contents)
+            .ToList();
+
+        if (assistantContents.Count > 0)
+        {
+            var userMessage = CopilotChatMessage.CreateUser("总结对话");
+            userMessage.IsPresetInfo = true;
+            await AppendMessageAsync(currentSession, userMessage);
+
+            var assistantMessage = new CopilotChatMessage(ChatRole.Assistant, assistantContents)
+            {
+                IsPresetInfo = true
+            };
+            await AppendMessageAsync(currentSession, assistantMessage);
+        }
     }
 
     private List<AITool> ResolveTools(IEnumerable<AITool>? tools, CopilotChatContext? chatContext = null,
