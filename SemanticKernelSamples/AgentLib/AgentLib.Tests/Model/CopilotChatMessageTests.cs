@@ -195,4 +195,97 @@ public class CopilotChatMessageTests
         Assert.HasCount(1, message.MessageItems, "应只有一个子代理项");
         Assert.AreEqual("处理中...", item.MessageItems.OfType<CopilotChatTextItem>().First().Text);
     }
+
+    [TestMethod]
+    [Description("首次追加用量时，CurrentUsageDetails 应包含本次用量，TotalUsageDetails 也包含相同值")]
+    public void AppendUsageDetails_FirstCall_SetsBothCurrentAndTotal()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, "答案");
+        var details = new UsageDetails
+        {
+            TotalTokenCount = 50,
+            InputTokenCount = 20,
+            OutputTokenCount = 30
+        };
+
+        message.AppendUsageDetails(details);
+
+        Assert.IsNotNull(message.TotalUsageDetails);
+        Assert.IsNotNull(message.CurrentUsageDetails);
+        Assert.AreEqual(50, message.TotalUsageDetails!.TotalTokenCount);
+        Assert.AreEqual(50, message.CurrentUsageDetails!.TotalTokenCount);
+        Assert.AreEqual(20, message.CurrentUsageDetails.InputTokenCount);
+        Assert.AreEqual(30, message.CurrentUsageDetails.OutputTokenCount);
+    }
+
+    [TestMethod]
+    [Description("多次追加用量时，TotalUsageDetails 累加，CurrentUsageDetails 仅反映最新一次")]
+    public void AppendUsageDetails_MultipleCalls_AccumulatesTotalAndReplacesCurrent()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, "答案");
+        var first = new UsageDetails
+        {
+            TotalTokenCount = 100,
+            InputTokenCount = 60,
+            OutputTokenCount = 40
+        };
+        var second = new UsageDetails
+        {
+            TotalTokenCount = 50,
+            InputTokenCount = 30,
+            OutputTokenCount = 20
+        };
+
+        message.AppendUsageDetails(first);
+        message.AppendUsageDetails(second);
+
+        Assert.IsNotNull(message.TotalUsageDetails);
+        Assert.IsNotNull(message.CurrentUsageDetails);
+        // Total 累加
+        Assert.AreEqual(150, message.TotalUsageDetails!.TotalTokenCount);
+        Assert.AreEqual(90, message.TotalUsageDetails.InputTokenCount);
+        Assert.AreEqual(60, message.TotalUsageDetails.OutputTokenCount);
+        // Current 只反映最新一次
+        Assert.AreEqual(50, message.CurrentUsageDetails!.TotalTokenCount);
+        Assert.AreEqual(30, message.CurrentUsageDetails.InputTokenCount);
+        Assert.AreEqual(20, message.CurrentUsageDetails.OutputTokenCount);
+    }
+
+    [TestMethod]
+    [Description("Clone 深拷贝时应同时复制 TotalUsageDetails 和 CurrentUsageDetails 引用")]
+    public void Clone_WhenHasUsageDetails_CopiesTotalAndCurrentUsage()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, "答案");
+        var details = new UsageDetails
+        {
+            TotalTokenCount = 100,
+            InputTokenCount = 50,
+            OutputTokenCount = 50
+        };
+        message.AppendUsageDetails(details);
+
+        CopilotChatMessage clone = message.Clone();
+
+        Assert.IsNotNull(clone.TotalUsageDetails);
+        Assert.IsNotNull(clone.CurrentUsageDetails);
+        Assert.AreEqual(100, clone.TotalUsageDetails!.TotalTokenCount);
+        Assert.AreEqual(100, clone.CurrentUsageDetails!.TotalTokenCount);
+    }
+
+    [TestMethod]
+    [Description("[Obsolete] UsageDetails getter 应委托到 TotalUsageDetails")]
+    public void UsageDetails_ObsoleteProperty_DelegatesToTotalUsageDetails()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, "答案");
+        var details = new UsageDetails
+        {
+            TotalTokenCount = 200
+        };
+        message.AppendUsageDetails(details);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        Assert.IsNotNull(message.UsageDetails);
+        Assert.AreEqual(200, message.UsageDetails!.TotalTokenCount);
+#pragma warning restore CS0618
+    }
 }
