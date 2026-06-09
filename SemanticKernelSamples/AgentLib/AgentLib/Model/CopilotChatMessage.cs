@@ -651,15 +651,15 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     }
 
     /// <summary>
-        /// 创建或获取审批工具项。
-        /// </summary>
-        /// <param name="toolName">工具名称。</param>
-        /// <param name="inputText">工具输入文本。</param>
-        /// <param name="approvalDescription">审批说明。</param>
-        /// <param name="callId">调用 ID，如果为空则自动生成。</param>
-        /// <returns>审批工具项。</returns>
-        public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-            string? callId = null)
+    /// 创建或获取审批工具项。
+    /// </summary>
+    /// <param name="toolName">工具名称。</param>
+    /// <param name="inputText">工具输入文本。</param>
+    /// <param name="approvalDescription">审批说明。</param>
+    /// <param name="callId">调用 ID，如果为空则自动生成。</param>
+    /// <returns>审批工具项。</returns>
+    public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
+        string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -711,10 +711,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     }
 
     /// <summary>
-        /// 追加 Token 用量详情。同时累加到 <see cref="TotalUsageDetails"/> 并替换 <see cref="CurrentUsageDetails"/>。
-        /// </summary>
-        /// <param name="details">用量详情。</param>
-        public void AppendUsageDetails(UsageDetails details)
+    /// 追加 Token 用量详情。同时累加到 <see cref="TotalUsageDetails"/> 并替换 <see cref="CurrentUsageDetails"/>。
+    /// </summary>
+    /// <param name="details">用量详情。</param>
+    public void AppendUsageDetails(UsageDetails details)
     {
         ArgumentNullException.ThrowIfNull(details);
 
@@ -736,13 +736,13 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     }
 
     /// <summary>
-        /// 创建或获取子代理项。
-        /// </summary>
-        /// <param name="toolName">工具名称。</param>
-        /// <param name="inputText">输入文本。</param>
-        /// <param name="callId">调用 ID，如果为空则自动生成。</param>
-        /// <returns>子代理项。</returns>
-        public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
+    /// 创建或获取子代理项。
+    /// </summary>
+    /// <param name="toolName">工具名称。</param>
+    /// <param name="inputText">输入文本。</param>
+    /// <param name="callId">调用 ID，如果为空则自动生成。</param>
+    /// <returns>子代理项。</returns>
+    public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
