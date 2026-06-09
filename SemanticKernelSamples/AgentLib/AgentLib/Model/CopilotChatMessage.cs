@@ -163,47 +163,78 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     public bool HasReasonAndContent => HasReason && HasContent;
 
     /// <summary>
-    /// Token 用量详情。
+    /// 会话累计 Token 用量详情。
     /// </summary>
-    public UsageDetails? UsageDetails
+    public UsageDetails? TotalUsageDetails
     {
-        get => _usageDetails;
+        get => _totalUsageDetails;
         private set
         {
-            if (ReferenceEquals(value, _usageDetails))
+            if (ReferenceEquals(value, _totalUsageDetails))
             {
                 return;
             }
 
-            _usageDetails = value;
+            _totalUsageDetails = value;
             OnUsageDetailsChanged();
         }
     }
 
-    private UsageDetails? _usageDetails;
+    private UsageDetails? _totalUsageDetails;
+
+    /// <summary>
+    /// 最新一次响应的 Token 用量详情（不累加，每次直接替换）。
+    /// </summary>
+    public UsageDetails? CurrentUsageDetails
+    {
+        get => _currentUsageDetails;
+        private set
+        {
+            if (ReferenceEquals(value, _currentUsageDetails))
+            {
+                return;
+            }
+
+            _currentUsageDetails = value;
+            OnPropertyChanged(nameof(CurrentUsageDetails));
+        }
+    }
+
+    private UsageDetails? _currentUsageDetails;
+
+    /// <summary>
+    /// Token 用量详情（已弃用，请使用 <see cref="TotalUsageDetails"/>）。
+    /// </summary>
+    [Obsolete("Use TotalUsageDetails instead.")]
+    public UsageDetails? UsageDetails
+    {
+        get => TotalUsageDetails;
+        private set => TotalUsageDetails = value;
+    }
+
     private const string UsageSummarySeparator = " ";
 
     /// <summary>
     /// 是否有 Token 用量详情。
     /// </summary>
-    public bool HasUsageDetails => UsageDetails is not null;
+    public bool HasUsageDetails => TotalUsageDetails is not null;
 
     /// <summary>
     /// 是否有总 Token 数。
     /// </summary>
-    public bool HasTotalTokenCount => UsageDetails?.TotalTokenCount is not null;
+    public bool HasTotalTokenCount => TotalUsageDetails?.TotalTokenCount is not null;
 
     /// <summary>
     /// 总 Token 数的显示文本。
     /// </summary>
-    public string TotalTokenCountText => UsageDetails?.TotalTokenCount is { } totalTokenCount
+    public string TotalTokenCountText => TotalUsageDetails?.TotalTokenCount is { } totalTokenCount
         ? $"总计 {totalTokenCount:N0}"
         : string.Empty;
 
     /// <summary>
     /// 是否有输入 Token 数。
     /// </summary>
-    public bool HasInputTokenCount => UsageDetails?.InputTokenCount is not null;
+    public bool HasInputTokenCount => TotalUsageDetails?.InputTokenCount is not null;
 
     /// <summary>
     /// 输入 Token 数的显示文本。
@@ -212,7 +243,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     {
         get
         {
-            if (UsageDetails?.InputTokenCount is { } inputTokenCount)
+            if (TotalUsageDetails?.InputTokenCount is { } inputTokenCount)
             {
                 return $"输入 {inputTokenCount:N0}";
             }
@@ -224,7 +255,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     /// <summary>
     /// 是否有输出 Token 数。
     /// </summary>
-    public bool HasOutputTokenCount => UsageDetails?.OutputTokenCount is not null;
+    public bool HasOutputTokenCount => TotalUsageDetails?.OutputTokenCount is not null;
 
     /// <summary>
     /// 输出 Token 数的显示文本。
@@ -233,7 +264,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     {
         get
         {
-            if (UsageDetails?.OutputTokenCount is { } outputTokenCount)
+            if (TotalUsageDetails?.OutputTokenCount is { } outputTokenCount)
             {
                 return $"输出 {outputTokenCount:N0}";
             }
@@ -245,24 +276,24 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     /// <summary>
     /// 是否有推理 Token 数。
     /// </summary>
-    public bool HasReasoningTokenCount => UsageDetails?.ReasoningTokenCount is not null;
+    public bool HasReasoningTokenCount => TotalUsageDetails?.ReasoningTokenCount is not null;
 
     /// <summary>
     /// 推理 Token 数的显示文本。
     /// </summary>
-    public string ReasoningTokenCountText => UsageDetails?.ReasoningTokenCount is { } reasoningTokenCount
+    public string ReasoningTokenCountText => TotalUsageDetails?.ReasoningTokenCount is { } reasoningTokenCount
         ? $"思考 {reasoningTokenCount:N0}"
         : string.Empty;
 
     /// <summary>
     /// 是否有缓存输入 Token 数。
     /// </summary>
-    public bool HasCachedInputTokenCount => UsageDetails?.CachedInputTokenCount is not null;
+    public bool HasCachedInputTokenCount => TotalUsageDetails?.CachedInputTokenCount is not null;
 
     /// <summary>
     /// 缓存输入 Token 数的显示文本。
     /// </summary>
-    public string CachedInputTokenCountText => UsageDetails?.CachedInputTokenCount is { } cachedInputTokenCount
+    public string CachedInputTokenCountText => TotalUsageDetails?.CachedInputTokenCount is { } cachedInputTokenCount
         ? $"缓存 {cachedInputTokenCount:N0}"
         : string.Empty;
 
@@ -273,7 +304,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     {
         get
         {
-            if (UsageDetails is null)
+            if (TotalUsageDetails is null)
             {
                 return string.Empty;
             }
@@ -361,15 +392,20 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
     /// <summary>
     /// 创建当前消息的深拷贝，包含所有 MessageItems 的递归深拷贝。
-    /// 如果存在 <see cref="UsageDetails"/>，则将其引用复制到新实例（该对象设置后不可变，共享引用没有副作用）。
+    /// 如果存在 <see cref="TotalUsageDetails"/> 或 <see cref="CurrentUsageDetails"/>，则将其引用复制到新实例。
     /// </summary>
     /// <returns>深拷贝后的新消息实例。</returns>
     public CopilotChatMessage Clone()
     {
         var clone = new CopilotChatMessage(Role, CreatedTime, TimeText, IsPresetInfo);
-        if (UsageDetails is { } usageDetails)
+        if (TotalUsageDetails is { } totalUsageDetails)
         {
-            clone.UsageDetails = usageDetails;
+            clone.TotalUsageDetails = totalUsageDetails;
+        }
+
+        if (CurrentUsageDetails is { } currentUsageDetails)
+        {
+            clone.CurrentUsageDetails = currentUsageDetails;
         }
 
         foreach (ICopilotChatMessageItem item in MessageItems)
@@ -615,15 +651,15 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     }
 
     /// <summary>
-        /// 创建或获取审批工具项。
-        /// </summary>
-        /// <param name="toolName">工具名称。</param>
-        /// <param name="inputText">工具输入文本。</param>
-        /// <param name="approvalDescription">审批说明。</param>
-        /// <param name="callId">调用 ID，如果为空则自动生成。</param>
-        /// <returns>审批工具项。</returns>
-        public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-            string? callId = null)
+    /// 创建或获取审批工具项。
+    /// </summary>
+    /// <param name="toolName">工具名称。</param>
+    /// <param name="inputText">工具输入文本。</param>
+    /// <param name="approvalDescription">审批说明。</param>
+    /// <param name="callId">调用 ID，如果为空则自动生成。</param>
+    /// <returns>审批工具项。</returns>
+    public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
+        string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -675,33 +711,38 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     }
 
     /// <summary>
-        /// 追加 Token 用量详情。
-        /// </summary>
-        /// <param name="details">用量详情。</param>
-        public void AppendUsageDetails(UsageDetails details)
+    /// 追加 Token 用量详情。同时累加到 <see cref="TotalUsageDetails"/> 并替换 <see cref="CurrentUsageDetails"/>。
+    /// </summary>
+    /// <param name="details">用量详情。</param>
+    public void AppendUsageDetails(UsageDetails details)
     {
         ArgumentNullException.ThrowIfNull(details);
 
-        if (UsageDetails is null)
+        // 每次都独立创建 CurrentUsageDetails，直接替换（不累加）
+        var current = new UsageDetails();
+        current.Add(details);
+        CurrentUsageDetails = current;
+
+        if (TotalUsageDetails is null)
         {
-            var usageDetails = new UsageDetails();
-            usageDetails.Add(details);
-            UsageDetails = usageDetails;
+            var total = new UsageDetails();
+            total.Add(details);
+            TotalUsageDetails = total;
             return;
         }
 
-        UsageDetails.Add(details);
+        TotalUsageDetails.Add(details);
         OnUsageDetailsChanged();
     }
 
     /// <summary>
-        /// 创建或获取子代理项。
-        /// </summary>
-        /// <param name="toolName">工具名称。</param>
-        /// <param name="inputText">输入文本。</param>
-        /// <param name="callId">调用 ID，如果为空则自动生成。</param>
-        /// <returns>子代理项。</returns>
-        public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
+    /// 创建或获取子代理项。
+    /// </summary>
+    /// <param name="toolName">工具名称。</param>
+    /// <param name="inputText">输入文本。</param>
+    /// <param name="callId">调用 ID，如果为空则自动生成。</param>
+    /// <returns>子代理项。</returns>
+    public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -722,7 +763,8 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
     private void OnUsageDetailsChanged()
     {
-        OnPropertyChanged(nameof(UsageDetails));
+        OnPropertyChanged(nameof(TotalUsageDetails));
+        OnPropertyChanged(nameof(CurrentUsageDetails));
         OnPropertyChanged(nameof(HasUsageDetails));
         OnPropertyChanged(nameof(HasTotalTokenCount));
         OnPropertyChanged(nameof(TotalTokenCountText));
