@@ -559,18 +559,22 @@ public class CopilotChatManager : NotifyBase
         var resultList = result.ToList();
         agentSession.SetInMemoryChatHistory(resultList);
 
-        // 从压缩结果中提取 Assistant 角色的消息文本，组合成摘要字符串
-        string summaryText = string.Concat(resultList
-            .Where(m => m.Role == ChatRole.Assistant && !string.IsNullOrEmpty(m.Text))
-            .Select(m => m.Text));
+        // 从压缩结果中提取 Assistant 角色的完整内容（含文本、图片、音频等多模态），保留原始 AIContent
+        List<AIContent> assistantContents = resultList
+            .Where(m => m.Role == ChatRole.Assistant)
+            .SelectMany(m => m.Contents)
+            .ToList();
 
-        if (!string.IsNullOrEmpty(summaryText))
+        if (assistantContents.Count > 0)
         {
             var userMessage = CopilotChatMessage.CreateUser("总结对话");
             userMessage.IsPresetInfo = true;
             await AppendMessageAsync(currentSession, userMessage);
 
-            var assistantMessage = CopilotChatMessage.CreateAssistant(summaryText, isPresetInfo: true);
+            var assistantMessage = new CopilotChatMessage(ChatRole.Assistant, assistantContents)
+            {
+                IsPresetInfo = true
+            };
             await AppendMessageAsync(currentSession, assistantMessage);
         }
     }
