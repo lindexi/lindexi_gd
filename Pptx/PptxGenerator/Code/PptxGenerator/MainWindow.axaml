@@ -184,6 +184,30 @@
         </ScrollViewer>
 
         <!-- 右侧：聊天区域 -->
-        <vm:CharUserControl Grid.Column="1" Margin="4" />
+        <Grid Grid.Column="1" Margin="4" RowDefinitions="Auto,*">
+            <!-- 模型选择栏 -->
+            <Border Grid.Row="0"
+                    CornerRadius="10"
+                    Background="#FFFFFFFF"
+                    BorderBrush="#FFE2E8F0"
+                    BorderThickness="1"
+                    Padding="10,6"
+                    Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="模型:" FontSize="13" FontWeight="SemiBold" Foreground="#FF475569" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding AvailableModelItems}"
+                              SelectedItem="{Binding SelectedModelItem}"
+                              MinWidth="200"
+                              FontSize="12">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+            <vm:CharUserControl Grid.Row="1" />
+        </Grid>
     </Grid>
 </Window>

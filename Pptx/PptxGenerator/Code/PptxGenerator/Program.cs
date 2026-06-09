@@ -5,6 +5,7 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using Avalonia;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,9 +39,25 @@ class Program
     private static async Task<int> RunCliAsync(string[] args)
     {
         BuildAvaloniaApp().SetupWithoutStarting();
-        var prompt = string.Join(' ', args.Where(t => !string.IsNullOrWhiteSpace(t)));
 
-        var slideChatManager = await CreateSlideChatManagerAsync().ConfigureAwait(false);
+        string? modelName = null;
+        var promptParts = new List<string>();
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == "--model" && i + 1 < args.Length)
+            {
+                modelName = args[i + 1];
+                i++; // skip value
+            }
+            else if (!string.IsNullOrWhiteSpace(args[i]))
+            {
+                promptParts.Add(args[i]);
+            }
+        }
+
+        var prompt = string.Join(' ', promptParts);
+
+        var slideChatManager = await CreateSlideChatManagerAsync(modelName).ConfigureAwait(false);
         if (slideChatManager is null)
         {
             return 1;
@@ -52,9 +69,11 @@ class Program
 
     /// <summary>
     /// 从 Agent 配置文件创建 <see cref="SlideChatManager"/>，供 GUI 和 CLI 路径共用。
+    /// 整个应用共用同一个 <see cref="CopilotChatManager"/>，评估者也复用此实例。
     /// </summary>
-    /// <returns>创建成功的 <see cref="SlideChatManager"/>；如果失败则返回 null。</returns>
-    public static async Task<SlideChatManager?> CreateSlideChatManagerAsync()
+    /// <param name="modelName">可选的主模型名称。为 <see langword="null"/> 时使用默认 "qwen3.7-plus"。</param>
+    /// <returns>创建成功的 <see cref="SlideChatManager"/>；如果失败则返回 <see langword="null"/>。</returns>
+    public static async Task<SlideChatManager?> CreateSlideChatManagerAsync(string? modelName = null)
     {
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
@@ -62,7 +81,7 @@ class Program
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
         await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
 
-        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
+        ILanguageModel? languageModel = agentApiEndpointManager.GetModel(modelName ?? "qwen3.7-plus");
         if (languageModel is null)
         {
             Console.Error.WriteLine("未找到指定的语言模型。");
@@ -74,18 +93,9 @@ class Program
         var slideRenderer = new SlideRenderer();
         var slideRenderTool = new SlideRenderTool(slideRenderer);
 
-        // 创建评估者（使用独立 CopilotChatManager，可配置不同模型）
-        var evaluatorChatManager = new CopilotChatManager();
-        var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
-        await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
-
-        // 评估者可选用更便宜的模型
-        ILanguageModel evaluatorModel = evaluatorEndpointManager.GetModel("MiniMax-M3")
-            ?? languageModel;
-        evaluatorEndpointManager.PrimaryModel = evaluatorModel;
-
-        var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
-        var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
+        // 评估者复用同一个 CopilotChatManager，共用主模型
+        var slideEvaluator = new AiSlideEvaluator(copilotChatManager);
+        var promptEvaluator = new AiPromptEvaluator(copilotChatManager);
 
         return new SlideChatManager(copilotChatManager, slideRenderTool, slideEvaluator, promptEvaluator);
     }
