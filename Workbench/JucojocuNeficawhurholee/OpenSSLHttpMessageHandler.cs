@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using JucojocuNeficawhurholee;
 using JucojocuNeficawhurholee.Interop;
 
 /// <summary>
@@ -362,7 +363,7 @@ internal sealed class OpenSSLHttpMessageHandler : HttpMessageHandler
                 var tempFile = Path.GetTempFileName();
                 try
                 {
-                    var pem = cert.ExportCertificatePem();
+                    var pem = OpenSslCertificateLoader.ExportCertificateAsPem(cert);
                     // 确保使用 \n 换行符（PEM 标准），而非 Windows 的 \r\n
                     await File.WriteAllTextAsync(tempFile, pem.Replace("\r\n", "\n"), Encoding.ASCII).ConfigureAwait(false);
                     tempFiles.Add(tempFile);

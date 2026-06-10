@@ -94,7 +94,7 @@ internal static class OpenSslCertificateLoader
                 var tempFile = Path.GetTempFileName();
                 try
                 {
-                    var pem = cert.ExportCertificatePem();
+                    var pem = ExportCertificateAsPem(cert);
                     // 确保使用 \n 换行符（PEM 标准），而非 Windows 的 \r\n
                     await File.WriteAllTextAsync(tempFile, pem.Replace("\r\n", "\n"), Encoding.ASCII).ConfigureAwait(false);
                     tempFiles.Add(tempFile);
@@ -107,5 +107,17 @@ internal static class OpenSslCertificateLoader
         }
 
         return tempFiles;
+    }
+
+    /// <summary>
+    /// 将 X509Certificate2 证书导出为 PEM 格式字符串（.NET 6 兼容实现，替代 .NET 9+ 的 ExportCertificatePem）。
+    /// </summary>
+    internal static string ExportCertificateAsPem(X509Certificate2 cert)
+    {
+        var builder = new StringBuilder(2048);
+        builder.AppendLine("-----BEGIN CERTIFICATE-----");
+        builder.AppendLine(Convert.ToBase64String(cert.RawData, Base64FormattingOptions.InsertLineBreaks));
+        builder.AppendLine("-----END CERTIFICATE-----");
+        return builder.ToString();
     }
 }

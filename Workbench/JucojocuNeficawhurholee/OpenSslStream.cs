@@ -50,11 +50,18 @@ internal sealed class OpenSslStream : Stream
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task AuthenticateAsClientAsync(OpenSslClientAuthenticationOptions options, CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
+
         ArgumentNullException.ThrowIfNull(options);
 
         var host = options.TargetHost;
-        ArgumentException.ThrowIfNullOrWhiteSpace(host);
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            throw new ArgumentException("目标主机名不能为空。", nameof(options));
+        }
 
         _sslContext = OpenSSLNative.SSL_CTX_new(OpenSSLNative.TLS_client_method());
         if (_sslContext.IsInvalid)
@@ -125,7 +132,11 @@ internal sealed class OpenSslStream : Stream
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
+
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -162,7 +173,11 @@ internal sealed class OpenSslStream : Stream
     /// <inheritdoc />
     public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
+
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -212,7 +227,11 @@ internal sealed class OpenSslStream : Stream
     /// <inheritdoc />
     public override void Write(byte[] buffer, int offset, int count)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
+
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -235,7 +254,11 @@ internal sealed class OpenSslStream : Stream
     /// <inheritdoc />
     public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
+
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -333,8 +356,16 @@ internal sealed class OpenSslStream : Stream
     private static void ValidateBufferArgs(byte[] buffer, int offset, int count)
     {
         ArgumentNullException.ThrowIfNull(buffer);
-        ArgumentOutOfRangeException.ThrowIfNegative(offset);
-        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        if (offset < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(offset));
+        }
+
+        if (count < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count));
+        }
+
         if (offset + count > buffer.Length)
         {
             throw new ArgumentException("偏移量和计数超出缓冲区范围。");
