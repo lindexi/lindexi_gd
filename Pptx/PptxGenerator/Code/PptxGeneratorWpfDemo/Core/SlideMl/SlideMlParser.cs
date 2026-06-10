@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace PptxGenerator;
@@ -9,16 +10,53 @@ internal sealed class SlideMlParser
 {
     private int _nextId = 1;
 
-    public SlidePage Parse(string xml)
+    private static readonly HashSet<string> _pageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Background",
+    };
+
+    private static readonly HashSet<string> _panelKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Id", "X", "Y", "Width", "Height",
+        "HorizontalAlignment", "VerticalAlignment", "Opacity",
+        "Padding", "Background",
+    };
+
+    private static readonly HashSet<string> _rectKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Id", "X", "Y", "Width", "Height",
+        "HorizontalAlignment", "VerticalAlignment", "Opacity",
+        "Fill", "Stroke", "StrokeThickness", "CornerRadius",
+    };
+
+    private static readonly HashSet<string> _textElementKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Id", "X", "Y", "Width", "Height",
+        "HorizontalAlignment", "VerticalAlignment", "Opacity",
+        "Text", "FontName", "FontSize", "Foreground",
+        "TextAlignment", "LineHeight",
+    };
+
+    private static readonly HashSet<string> _imageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Id", "X", "Y", "Width", "Height",
+        "HorizontalAlignment", "VerticalAlignment", "Opacity",
+        "Source", "Stretch",
+    };
+
+    public SlidePage Parse(string xml, SlideParseContext context)
     {
         ArgumentNullException.ThrowIfNull(xml);
+        ArgumentNullException.ThrowIfNull(context);
 
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
-        var root = document.Root ?? throw new SlideMlRootElementException("SlideML 根元素不能为空。");
+        var root = document.Root ?? throw new InvalidOperationException("SlideML 根元素不能为空。");
         if (!string.Equals(root.Name.LocalName, "Page", StringComparison.Ordinal))
         {
-            throw new SlideMlRootElementException($"SlideML 根元素必须是 Page，但实际为 {root.Name.LocalName}。");
+            throw new InvalidOperationException("SlideML 根元素必须是 Page。");
         }
+
+        ValidateAttributes(root, "Page", _pageKnownAttributes, context);
 
         var page = new SlidePage
         {
@@ -27,28 +65,30 @@ internal sealed class SlideMlParser
 
         foreach (var child in root.Elements())
         {
-            page.Children.Add(ParseElement(child));
+            page.Children.Add(ParseElement(child, context));
         }
 
         return page;
     }
 
-    private SlideElement ParseElement(XElement element)
+    private SlideElement ParseElement(XElement element, SlideParseContext context)
     {
         var id = GetOptionalString(element, "Id") ?? $"elem_{_nextId++:000}";
 
         return element.Name.LocalName switch
         {
-            "Panel" => ParsePanel(element, id),
-            "Rect" => ParseRect(element, id),
-            "TextElement" => ParseTextElement(element, id),
-            "Image" => ParseImageElement(element, id),
-            _ => throw new SlideMlUnsupportedElementException($"不支持的标签: {element.Name.LocalName}", element.Name.LocalName),
+            "Panel" => ParsePanel(element, id, context),
+            "Rect" => ParseRect(element, id, context),
+            "TextElement" => ParseTextElement(element, id, context),
+            "Image" => ParseImageElement(element, id, context),
+            _ => throw new InvalidOperationException($"不支持的标签: {element.Name.LocalName}"),
         };
     }
 
-    private SlidePanelElement ParsePanel(XElement element, string id)
+    private SlidePanelElement ParsePanel(XElement element, string id, SlideParseContext context)
     {
+        ValidateAttributes(element, id, _panelKnownAttributes, context);
+
         var panel = new SlidePanelElement
         {
             Id = id,
@@ -56,8 +96,8 @@ internal sealed class SlideMlParser
             Y = GetOptionalDouble(element, "Y"),
             Width = GetOptionalDouble(element, "Width"),
             Height = GetOptionalDouble(element, "Height"),
-            HorizontalAlignment = GetOptionalHorizontalAlignment(element),
-            VerticalAlignment = GetOptionalVerticalAlignment(element),
+            HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
+            VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
             Padding = GetOptionalDouble(element, "Padding") ?? 0,
             Background = GetOptionalString(element, "Background"),
@@ -65,14 +105,16 @@ internal sealed class SlideMlParser
 
         foreach (var child in element.Elements())
         {
-            panel.Children.Add(ParseElement(child));
+            panel.Children.Add(ParseElement(child, context));
         }
 
         return panel;
     }
 
-    private SlideRectElement ParseRect(XElement element, string id)
+    private SlideRectElement ParseRect(XElement element, string id, SlideParseContext context)
     {
+        ValidateAttributes(element, id, _rectKnownAttributes, context);
+
         return new SlideRectElement
         {
             Id = id,
@@ -80,8 +122,8 @@ internal sealed class SlideMlParser
             Y = GetOptionalDouble(element, "Y"),
             Width = GetOptionalDouble(element, "Width"),
             Height = GetOptionalDouble(element, "Height"),
-            HorizontalAlignment = GetOptionalHorizontalAlignment(element),
-            VerticalAlignment = GetOptionalVerticalAlignment(element),
+            HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
+            VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
             Fill = GetOptionalString(element, "Fill"),
             Stroke = GetOptionalString(element, "Stroke"),
@@ -90,12 +132,14 @@ internal sealed class SlideMlParser
         };
     }
 
-    private SlideTextElement ParseTextElement(XElement element, string id)
+    private SlideTextElement ParseTextElement(XElement element, string id, SlideParseContext context)
     {
+        ValidateAttributes(element, id, _textElementKnownAttributes, context);
+
         var text = GetOptionalString(element, "Text");
         if (string.IsNullOrWhiteSpace(text))
         {
-            throw new SlideMlRequiredAttributeMissingException($"TextElement({id}) 必须包含 Text 属性。", id, "Text");
+            throw new InvalidOperationException($"TextElement({id}) 必须包含 Text 属性。");
         }
 
         return new SlideTextElement
@@ -105,24 +149,26 @@ internal sealed class SlideMlParser
             Y = GetOptionalDouble(element, "Y"),
             Width = GetOptionalDouble(element, "Width"),
             Height = GetOptionalDouble(element, "Height"),
-            HorizontalAlignment = GetOptionalHorizontalAlignment(element),
-            VerticalAlignment = GetOptionalVerticalAlignment(element),
+            HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
+            VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
             Text = text,
             FontName = GetOptionalString(element, "FontName") ?? "Microsoft YaHei",
             FontSize = GetOptionalDouble(element, "FontSize") ?? 16,
             Foreground = GetOptionalString(element, "Foreground") ?? "#000000",
-            TextAlignment = GetOptionalTextAlignment(element) ?? SlideTextAlignment.Left,
+            TextAlignment = GetOptionalTextAlignment(element, id, context) ?? SlideTextAlignment.Left,
             LineHeight = GetOptionalDouble(element, "LineHeight") ?? 1.2,
         };
     }
 
-    private SlideImageElement ParseImageElement(XElement element, string id)
+    private SlideImageElement ParseImageElement(XElement element, string id, SlideParseContext context)
     {
+        ValidateAttributes(element, id, _imageKnownAttributes, context);
+
         var source = GetOptionalString(element, "Source");
         if (string.IsNullOrWhiteSpace(source))
         {
-            throw new SlideMlRequiredAttributeMissingException($"Image({id}) 必须包含 Source 属性。", id, "Source");
+            throw new InvalidOperationException($"Image({id}) 必须包含 Source 属性。");
         }
 
         return new SlideImageElement
@@ -132,12 +178,24 @@ internal sealed class SlideMlParser
             Y = GetOptionalDouble(element, "Y"),
             Width = GetOptionalDouble(element, "Width"),
             Height = GetOptionalDouble(element, "Height"),
-            HorizontalAlignment = GetOptionalHorizontalAlignment(element),
-            VerticalAlignment = GetOptionalVerticalAlignment(element),
+            HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
+            VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
             Source = source,
-            Stretch = GetOptionalImageStretch(element) ?? SlideImageStretch.Uniform,
+            Stretch = GetOptionalImageStretch(element, id, context) ?? SlideImageStretch.Uniform,
         };
+    }
+
+    private static void ValidateAttributes(XElement element, string elementId,
+        HashSet<string> knownAttributes, SlideParseContext context)
+    {
+        foreach (var attr in element.Attributes())
+        {
+            if (!knownAttributes.Contains(attr.Name.LocalName))
+            {
+                context.Warnings.Add($"[Warning] {elementId}: 未知属性 \"{attr.Name.LocalName}\"，已忽略");
+            }
+        }
     }
 
     private static string? GetOptionalString(XElement element, string attributeName)
@@ -153,20 +211,10 @@ internal sealed class SlideMlParser
             return null;
         }
 
-        var elementId = GetOptionalString(element, "Id");
-        try
-        {
-            return double.Parse(text, CultureInfo.InvariantCulture);
-        }
-        catch (FormatException ex)
-        {
-            throw new SlideMlAttributeFormatException(
-                $"元素({elementId ?? "unknown"}) 的属性 {attributeName} 值 \"{text}\" 不是有效的数值。",
-                elementId, attributeName, text, ex);
-        }
+        return double.Parse(text, CultureInfo.InvariantCulture);
     }
 
-    private static SlideHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element)
+    private static SlideHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element, string elementId, SlideParseContext context)
     {
         var text = GetOptionalString(element, "HorizontalAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -174,20 +222,16 @@ internal sealed class SlideMlParser
             return null;
         }
 
-        var elementId = GetOptionalString(element, "Id");
-        try
+        if (Enum.TryParse<SlideHorizontalAlignment>(text, ignoreCase: true, out var result))
         {
-            return Enum.Parse<SlideHorizontalAlignment>(text, ignoreCase: true);
+            return result;
         }
-        catch (ArgumentException ex)
-        {
-            throw new SlideMlAttributeFormatException(
-                $"元素({elementId ?? "unknown"}) 的属性 HorizontalAlignment 值 \"{text}\" 不是有效的 SlideHorizontalAlignment。",
-                elementId, "HorizontalAlignment", text, ex);
-        }
+
+        context.Warnings.Add($"[Warning] {elementId}: HorizontalAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right）");
+        return null;
     }
 
-    private static SlideVerticalAlignment? GetOptionalVerticalAlignment(XElement element)
+    private static SlideVerticalAlignment? GetOptionalVerticalAlignment(XElement element, string elementId, SlideParseContext context)
     {
         var text = GetOptionalString(element, "VerticalAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -195,20 +239,16 @@ internal sealed class SlideMlParser
             return null;
         }
 
-        var elementId = GetOptionalString(element, "Id");
-        try
+        if (Enum.TryParse<SlideVerticalAlignment>(text, ignoreCase: true, out var result))
         {
-            return Enum.Parse<SlideVerticalAlignment>(text, ignoreCase: true);
+            return result;
         }
-        catch (ArgumentException ex)
-        {
-            throw new SlideMlAttributeFormatException(
-                $"元素({elementId ?? "unknown"}) 的属性 VerticalAlignment 值 \"{text}\" 不是有效的 SlideVerticalAlignment。",
-                elementId, "VerticalAlignment", text, ex);
-        }
+
+        context.Warnings.Add($"[Warning] {elementId}: VerticalAlignment 值 \"{text}\" 无效，已忽略（有效值：Top, Center, Bottom）");
+        return null;
     }
 
-    private static SlideTextAlignment? GetOptionalTextAlignment(XElement element)
+    private static SlideTextAlignment? GetOptionalTextAlignment(XElement element, string elementId, SlideParseContext context)
     {
         var text = GetOptionalString(element, "TextAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -216,20 +256,16 @@ internal sealed class SlideMlParser
             return null;
         }
 
-        var elementId = GetOptionalString(element, "Id");
-        try
+        if (Enum.TryParse<SlideTextAlignment>(text, ignoreCase: true, out var result))
         {
-            return Enum.Parse<SlideTextAlignment>(text, ignoreCase: true);
+            return result;
         }
-        catch (ArgumentException ex)
-        {
-            throw new SlideMlAttributeFormatException(
-                $"元素({elementId ?? "unknown"}) 的属性 TextAlignment 值 \"{text}\" 不是有效的 SlideTextAlignment。",
-                elementId, "TextAlignment", text, ex);
-        }
+
+        context.Warnings.Add($"[Warning] {elementId}: TextAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right, Justify）");
+        return null;
     }
 
-    private static SlideImageStretch? GetOptionalImageStretch(XElement element)
+    private static SlideImageStretch? GetOptionalImageStretch(XElement element, string elementId, SlideParseContext context)
     {
         var text = GetOptionalString(element, "Stretch");
         if (string.IsNullOrWhiteSpace(text))
@@ -237,16 +273,12 @@ internal sealed class SlideMlParser
             return null;
         }
 
-        var elementId = GetOptionalString(element, "Id");
-        try
+        if (Enum.TryParse<SlideImageStretch>(text, ignoreCase: true, out var result))
         {
-            return Enum.Parse<SlideImageStretch>(text, ignoreCase: true);
+            return result;
         }
-        catch (ArgumentException ex)
-        {
-            throw new SlideMlAttributeFormatException(
-                $"元素({elementId ?? "unknown"}) 的属性 Stretch 值 \"{text}\" 不是有效的 SlideImageStretch。",
-                elementId, "Stretch", text, ex);
-        }
+
+        context.Warnings.Add($"[Warning] {elementId}: Stretch 值 \"{text}\" 无效，已忽略（有效值：None, Fill, Uniform, UniformToFill）");
+        return null;
     }
 }
