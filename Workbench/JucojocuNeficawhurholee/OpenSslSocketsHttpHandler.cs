@@ -85,7 +85,7 @@ public sealed class OpenSslSocketsHttpHandler : HttpMessageHandler
                 return new NetworkStream(socket, ownsSocket: true);
             }
 
-            var openSslStream = new OpenSslStream(socket, ownsSocket: true);
+            var openSslStream = new OpenSslAsyncStream(socket, ownsSocket: true);
             await openSslStream.AuthenticateAsClientAsync(new OpenSslClientAuthenticationOptions
             {
                 TargetHost = host
