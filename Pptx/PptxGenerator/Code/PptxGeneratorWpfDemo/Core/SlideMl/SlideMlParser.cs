@@ -193,7 +193,7 @@ internal sealed class SlideMlParser
         {
             if (!knownAttributes.Contains(attr.Name.LocalName))
             {
-                context.Warnings.Add($"[Warning] {elementId}: 未知属性 \"{attr.Name.LocalName}\"，已忽略");
+                context.AddWarning($"[Warning] {elementId}: 未知属性 \"{attr.Name.LocalName}\"，已忽略");
             }
         }
     }
@@ -227,7 +227,7 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.Warnings.Add($"[Warning] {elementId}: HorizontalAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right）");
+        context.AddWarning($"[Warning] {elementId}: HorizontalAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right）");
         return null;
     }
 
@@ -244,7 +244,7 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.Warnings.Add($"[Warning] {elementId}: VerticalAlignment 值 \"{text}\" 无效，已忽略（有效值：Top, Center, Bottom）");
+        context.AddWarning($"[Warning] {elementId}: VerticalAlignment 值 \"{text}\" 无效，已忽略（有效值：Top, Center, Bottom）");
         return null;
     }
 
@@ -261,7 +261,7 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.Warnings.Add($"[Warning] {elementId}: TextAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right, Justify）");
+        context.AddWarning($"[Warning] {elementId}: TextAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right, Justify）");
         return null;
     }
 
@@ -278,7 +278,7 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.Warnings.Add($"[Warning] {elementId}: Stretch 值 \"{text}\" 无效，已忽略（有效值：None, Fill, Uniform, UniformToFill）");
+        context.AddWarning($"[Warning] {elementId}: Stretch 值 \"{text}\" 无效，已忽略（有效值：None, Fill, Uniform, UniformToFill）");
         return null;
     }
 }

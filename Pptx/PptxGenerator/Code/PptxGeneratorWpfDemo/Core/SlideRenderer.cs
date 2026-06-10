@@ -38,7 +38,7 @@ public class SlideRenderer
             var normalizedXml = SlideXmlUtilities.NormalizeXml(SlideXmlUtilities.ExtractXml(slideXml));
             var parseContext = new SlideParseContext();
             var page = _parser.Parse(normalizedXml, parseContext);
-            var warnings = new List<string>(parseContext.Warnings);
+            var warnings = new List<string>(parseContext.GetWarnings());
 
             var previewBitmap = await Application.Current.Dispatcher.InvokeAsync(() =>
             {
