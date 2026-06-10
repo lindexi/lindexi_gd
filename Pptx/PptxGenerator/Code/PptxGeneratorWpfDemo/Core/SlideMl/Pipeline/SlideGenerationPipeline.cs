@@ -273,7 +273,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             return result;
         }
 
-        return await EvaluateContextAsync(context, userPrompt, cancellationToken).ConfigureAwait(false);
+        return await EvaluateContextAsync(context, userPrompt, cancellationToken);
     }
 
     /// <summary>
@@ -294,8 +294,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             var systemPrompt = _promptProvider.BuildSystemPrompt();
             var userPromptTemplate = _promptProvider.BuildInitialUserPrompt("{USER_INPUT}");
 
-            var result = await _promptEvaluator.EvaluateAsync(systemPrompt, userPromptTemplate, cancellationToken)
-                .ConfigureAwait(false);
+            var result = await _promptEvaluator.EvaluateAsync(systemPrompt, userPromptTemplate, cancellationToken);
 
             LastPromptEvaluation = result;
 
@@ -330,8 +329,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                     context.RenderedXml ?? string.Empty,
                     context.Warnings ?? string.Empty,
                     previewImageBytes,
-                    cancellationToken)
-                .ConfigureAwait(false);
+                    cancellationToken);
 
             context.SlideEvaluation = result;
             LastSlideEvaluation = result;

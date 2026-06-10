@@ -64,7 +64,7 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
             };
 
             var result = _copilotChatManager.SendMessage(request);
-            await result.RunTask.ConfigureAwait(false);
+            await result.RunTask;
 
             var responseText = result.AssistantChatMessage.Content;
             if (string.IsNullOrWhiteSpace(responseText))

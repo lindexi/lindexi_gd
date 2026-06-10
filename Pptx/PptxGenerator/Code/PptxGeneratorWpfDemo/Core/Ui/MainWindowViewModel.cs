@@ -283,7 +283,7 @@ public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager
         StatusText = "正在评估 SlideML...";
         try
         {
-            await SlideChatManager.EvaluateAsync(_lastUserPrompt).ConfigureAwait(false);
+            await SlideChatManager.EvaluateAsync(_lastUserPrompt);
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -315,7 +315,7 @@ public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager
         StatusText = "正在评估提示词...";
         try
         {
-            await SlideChatManager.EvaluatePromptAsync().ConfigureAwait(false);
+            await SlideChatManager.EvaluatePromptAsync();
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {

@@ -124,7 +124,7 @@ public sealed class SlideRenderTool
         SlideRenderResult renderResult;
         try
         {
-            renderResult = await _slideRenderer.RenderAsync(slideXml, cancellationToken).ConfigureAwait(false);
+            renderResult = await _slideRenderer.RenderAsync(slideXml, cancellationToken);
         }
         catch (Exception ex)
         {
