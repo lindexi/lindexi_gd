@@ -83,21 +83,12 @@ namespace JucojocuNeficawhurholee;
 /// </remarks>
 internal sealed class OpenSslAsyncStream : Stream
 {
-    private static readonly bool s_initialized;
-
     private readonly Socket _socket;
     private readonly bool _ownsSocket;
     private SafeSslContextHandle? _sslContext;
     private SafeSslHandle? _ssl;
     private bool _isAuthenticated;
     private bool _disposed;
-
-    static OpenSslAsyncStream()
-    {
-        s_initialized = OpenSSLNative.OPENSSL_init_ssl(
-            OpenSSLNative.OPENSSL_INIT_LOAD_SSL_STRINGS | OpenSSLNative.OPENSSL_INIT_LOAD_CRYPTO_STRINGS,
-            IntPtr.Zero) == 1;
-    }
 
     /// <summary>
     /// 使用指定的 Socket 创建 <see cref="OpenSslAsyncStream"/> 实例。
@@ -107,11 +98,6 @@ internal sealed class OpenSslAsyncStream : Stream
     public OpenSslAsyncStream(Socket socket, bool ownsSocket = false)
     {
         ArgumentNullException.ThrowIfNull(socket);
-
-        if (!s_initialized)
-        {
-            throw new InvalidOperationException("OpenSSL 初始化失败。");
-        }
 
         _socket = socket;
         _ownsSocket = ownsSocket;
@@ -131,6 +117,15 @@ internal sealed class OpenSslAsyncStream : Stream
         if (string.IsNullOrWhiteSpace(host))
         {
             throw new ArgumentException("目标主机名不能为空。", nameof(options));
+        }
+
+        // 延迟初始化 OpenSSL，避免静态构造函数过早加载原生 DLL。
+        // OPENSSL_init_ssl 幂等，可多次调用。
+        if (OpenSSLNative.OPENSSL_init_ssl(
+                OpenSSLNative.OPENSSL_INIT_LOAD_SSL_STRINGS | OpenSSLNative.OPENSSL_INIT_LOAD_CRYPTO_STRINGS,
+                IntPtr.Zero) != 1)
+        {
+            throw new InvalidOperationException("OpenSSL 初始化失败。");
         }
 
         _sslContext = OpenSSLNative.SSL_CTX_new(OpenSSLNative.TLS_client_method());

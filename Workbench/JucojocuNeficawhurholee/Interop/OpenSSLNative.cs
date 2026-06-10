@@ -16,6 +16,12 @@ internal static class OpenSSLNative
     private const string LibSslConst = "libssl-3.dll";
     private const string LibCryptoConst = "libcrypto-3.dll";
 
+    /// <summary>
+    /// 业务方可设置的回退查找文件夹路径。当默认搜索路径和 NuGet runtimes 目录
+    /// 都找不到原生 DLL 时，会在此路径下查找。支持插件式加载场景。
+    /// </summary>
+    public static string? FallbackLibraryPath { get; set; }
+
     static OpenSSLNative()
     {
         var archSuffix = RuntimeInformation.ProcessArchitecture switch
@@ -47,17 +53,50 @@ internal static class OpenSSLNative
                 _ => libraryName
             };
 
-            // 先尝试默认搜索路径（系统安装的 OpenSSL）
-            if (NativeLibrary.TryLoad(mappedName, assembly, searchPath, out var handle))
+            // 1. AppContext.BaseDirectory 下带架构后缀的名称（如 libssl-3-x64.dll）
+            var baseDirPath = Path.Join(AppContext.BaseDirectory, mappedName);
+            if (File.Exists(baseDirPath) && NativeLibrary.TryLoad(baseDirPath, out var handle))
             {
                 return handle;
             }
 
-            // 再尝试 NuGet runtimes 目录（openssl-native 包放置 DLL 的位置）
+            // 2. AppContext.BaseDirectory 下不带架构后缀的原始名称（如 libssl-3.dll）
+            if (mappedName != libraryName)
+            {
+                var baseDirOriginalPath = Path.Join(AppContext.BaseDirectory, libraryName);
+                if (File.Exists(baseDirOriginalPath) && NativeLibrary.TryLoad(baseDirOriginalPath, out handle))
+                {
+                    return handle;
+                }
+            }
+
+            // 3. NuGet runtimes 目录（openssl-native 包放置 DLL 的位置）
             var runtimesPath = Path.Join(AppContext.BaseDirectory, "runtimes", rid, "native", mappedName);
-            if (NativeLibrary.TryLoad(runtimesPath, out handle))
+            if (File.Exists(runtimesPath) && NativeLibrary.TryLoad(runtimesPath, out handle))
             {
                 return handle;
+            }
+
+            // 4. 回退文件夹（业务方通过 FallbackLibraryPath 配置的插件路径）
+            var fallbackPath = FallbackLibraryPath;
+            if (!string.IsNullOrWhiteSpace(fallbackPath))
+            {
+                // 4a. 带架构后缀的名称
+                var fallbackFilePath = Path.Join(fallbackPath, mappedName);
+                if (File.Exists(fallbackFilePath) && NativeLibrary.TryLoad(fallbackFilePath, out handle))
+                {
+                    return handle;
+                }
+
+                // 4b. 不带架构后缀的原始名称
+                if (mappedName != libraryName)
+                {
+                    var fallbackOriginalPath = Path.Join(fallbackPath, libraryName);
+                    if (File.Exists(fallbackOriginalPath) && NativeLibrary.TryLoad(fallbackOriginalPath, out handle))
+                    {
+                        return handle;
+                    }
+                }
             }
 
             return IntPtr.Zero;
