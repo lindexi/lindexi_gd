@@ -1,4 +1,4 @@
-﻿using AgentLib;
+using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
@@ -44,7 +44,7 @@ public partial class App : Application
 
         var copilotChatManager = new CopilotChatManager();
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
-        await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+        await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
 
         ILanguageModel? languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
         if (languageModel is null)
@@ -60,7 +60,7 @@ public partial class App : Application
 
         var evaluatorChatManager = new CopilotChatManager();
         var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
-        await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
+        await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
 
         ILanguageModel? evaluatorModel = evaluatorEndpointManager.GetModel("qwen3.7-plus")
             ?? languageModel;
@@ -72,4 +72,3 @@ public partial class App : Application
         return new SlideChatManager(copilotChatManager, slideRenderTool, slideEvaluator, promptEvaluator);
     }
 }
-

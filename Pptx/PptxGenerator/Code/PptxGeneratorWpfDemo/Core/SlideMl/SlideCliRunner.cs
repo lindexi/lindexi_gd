@@ -1,9 +1,8 @@
-using System.Windows.Media.Imaging;
-
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace PptxGenerator;
 
@@ -121,11 +120,11 @@ internal sealed class SlideCliRunner
         }
     }
 
-    private static void SaveBitmapAsPng(BitmapSource bitmap, string path)
+    private static void SaveBitmapAsPng(BitmapSource bitmap, string filePath)
     {
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
-        using var stream = File.Create(path);
-        encoder.Save(stream);
+        using var fileStream = File.Create(filePath);
+        encoder.Save(fileStream);
     }
 }

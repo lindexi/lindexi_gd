@@ -1,3 +1,4 @@
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 
 using System;
@@ -13,6 +14,17 @@ using System.Windows.Input;
 
 namespace PptxGenerator;
 
+/// <summary>
+/// ComboBox 中用于显示模型选项的数据项，包含供应商和模型名。
+/// </summary>
+public sealed record ModelDisplayItem(string Provider, string ModelName)
+{
+    /// <summary>
+    /// 用于 ComboBox 展示的格式化字符串，格式："供应商: 模型名"。
+    /// </summary>
+    public string DisplayName => string.IsNullOrEmpty(Provider) ? ModelName : $"{Provider}: {ModelName}";
+}
+
 public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
     private readonly DelegateCommand _sendMessageCommand;
@@ -26,6 +38,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _statusText = "等待开始";
     private string _evaluationSummaryText = string.Empty;
     private string _lastUserPrompt = string.Empty;
+    private ModelDisplayItem _selectedModelItem;
 
     public MainWindowViewModel(SlideChatManager slideChatManager)
     {
@@ -35,6 +48,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         var pipeline = slideChatManager.Pipeline;
         pipeline.EvaluationCompleted += OnEvaluationCompleted;
         pipeline.PromptEvaluationCompleted += OnPromptEvaluationCompleted;
+
+        var displayItems = SlideChatManager.AvailableModels
+            .Select(m => new ModelDisplayItem(m.ModelDefinition.Provider, m.ModelDefinition.ModelName))
+            .ToList();
+        AvailableModelItems = new ObservableCollection<ModelDisplayItem>(displayItems);
+
+        var currentModel = slideChatManager.CurrentModel;
+        _selectedModelItem = new ModelDisplayItem(
+            currentModel.ModelDefinition.Provider,
+            currentModel.ModelDefinition.ModelName);
 
         _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
         _attachImageCommand = new DelegateCommand(() => { }, () => !IsBusy);
@@ -106,6 +129,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// 用户手动选择的待发送图片文件列表。
     /// </summary>
     public ObservableCollection<FileInfo> AttachedImageFiles { get; } = new();
+
+    /// <summary>
+    /// 可用的模型选项列表，用于 ComboBox 绑定。
+    /// </summary>
+    public ObservableCollection<ModelDisplayItem> AvailableModelItems { get; }
+
+    /// <summary>
+    /// 当前选中的模型选项。设置时触发模型切换。
+    /// </summary>
+    public ModelDisplayItem SelectedModelItem
+    {
+        get => _selectedModelItem;
+        set
+        {
+            if (SetProperty(ref _selectedModelItem, value) && value is not null)
+            {
+                SlideChatManager.SetModel(value.ModelName, string.IsNullOrEmpty(value.Provider) ? null : value.Provider);
+            }
+        }
+    }
 
     /// <summary>
     /// 聊天气泡消息列表。

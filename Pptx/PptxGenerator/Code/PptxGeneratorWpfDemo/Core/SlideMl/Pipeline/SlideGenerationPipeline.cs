@@ -1,8 +1,6 @@
 using AgentLib;
 using AgentLib.Model;
 
-using System.Windows.Media.Imaging;
-
 using Microsoft.Extensions.AI;
 
 using System;
@@ -12,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace PptxGenerator;
 
@@ -238,7 +238,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             await _copilotChatManager.SendMessage(toolRequest).RunTask.ConfigureAwait(false);
         }
 
-        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        await Application.Current.Dispatcher.InvokeAsync(() =>
         {
             OnPropertyChanged(nameof(PreviewBitmap));
             OnPropertyChanged(nameof(CurrentSlideXml));
@@ -325,9 +325,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             if (context.PreviewBitmap is { } bitmap)
             {
                 using var memoryStream = new MemoryStream();
-                var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                encoder.Save(memoryStream);
+                SaveBitmapSourceAsPng(bitmap, memoryStream);
                 previewImageBytes = memoryStream.ToArray();
             }
 
@@ -381,6 +379,16 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
         message.IsPresetInfo = true;
         _copilotChatManager.ChatMessages.Add(message);
+    }
+
+    /// <summary>
+    /// 将 <see cref="BitmapSource"/> 保存为 PNG 到流。
+    /// </summary>
+    private static void SaveBitmapSourceAsPng(BitmapSource bitmap, Stream stream)
+    {
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        encoder.Save(stream);
     }
 
     private void OnPropertyChanged(string propertyName)

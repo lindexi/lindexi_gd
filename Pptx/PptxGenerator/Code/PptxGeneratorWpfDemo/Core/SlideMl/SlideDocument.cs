@@ -118,12 +118,3 @@ internal sealed class SlideImageElement : SlideElement
 
     public BitmapSource? Bitmap { get; set; }
 }
-
-internal sealed class SlideRenderedMetrics
-{
-    public double ActualWidth { get; init; }
-
-    public double ActualHeight { get; init; }
-
-    public int? ActualLineCount { get; init; }
-}

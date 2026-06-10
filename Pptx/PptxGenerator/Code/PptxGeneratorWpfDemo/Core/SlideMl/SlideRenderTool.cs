@@ -1,5 +1,3 @@
-using System.Windows.Media.Imaging;
-
 using Microsoft.Extensions.AI;
 
 using System;
@@ -8,6 +6,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace PptxGenerator;
 
@@ -88,7 +88,7 @@ public sealed class SlideRenderTool
         }
 
         using var memoryStream = new MemoryStream();
-        SaveBitmapAsPng(bitmap, memoryStream);
+        SaveBitmapSourceAsPng(bitmap, memoryStream);
         memoryStream.Position = 0;
         return await DataContent.LoadFromAsync(memoryStream, "image/png").ConfigureAwait(false);
     }
@@ -106,7 +106,7 @@ public sealed class SlideRenderTool
         }
 
         var memoryStream = new MemoryStream();
-        SaveBitmapAsPng(bitmap, memoryStream);
+        SaveBitmapSourceAsPng(bitmap, memoryStream);
         memoryStream.Position = 0;
         return await DataContent.LoadFromAsync(memoryStream, "image/png", cancellationToken).ConfigureAwait(false);
     }
@@ -131,7 +131,7 @@ public sealed class SlideRenderTool
             return $"[render_slide] 渲染异常：{ex.Message}";
         }
 
-        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        await Application.Current.Dispatcher.InvokeAsync(() =>
         {
             LatestPreviewBitmap = renderResult.PreviewBitmap;
             LatestWarnings = renderResult.Warnings.Count == 0
@@ -164,7 +164,10 @@ public sealed class SlideRenderTool
         return builder.ToString();
     }
 
-    private static void SaveBitmapAsPng(BitmapSource bitmap, Stream stream)
+    /// <summary>
+    /// 将 <see cref="BitmapSource"/> 保存为 PNG 到流。
+    /// </summary>
+    private static void SaveBitmapSourceAsPng(BitmapSource bitmap, Stream stream)
     {
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));

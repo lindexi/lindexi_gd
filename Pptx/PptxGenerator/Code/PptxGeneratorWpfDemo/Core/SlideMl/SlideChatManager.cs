@@ -1,8 +1,11 @@
 using AgentLib;
+using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -17,6 +20,7 @@ namespace PptxGenerator;
 public sealed class SlideChatManager : INotifyPropertyChanged
 {
     private readonly SlideGenerationPipeline _pipeline;
+    private readonly AgentApiEndpointManager _endpointManager;
 
     /// <summary>
     /// 创建 <see cref="SlideChatManager"/>。
@@ -44,6 +48,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         ISlideEvaluator? slideEvaluator = null,
         IPromptEvaluator? promptEvaluator = null)
     {
+        _endpointManager = copilotChatManager.AgentApiEndpointManager;
         _pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider, slideRenderTool, slideEvaluator, promptEvaluator);
         _pipeline.PropertyChanged += (_, e) => OnPropertyChanged(e.PropertyName!);
         _pipeline.SlideRendered += () =>
@@ -53,6 +58,42 @@ public sealed class SlideChatManager : INotifyPropertyChanged
             OnPropertyChanged(nameof(RenderedXml));
             OnPropertyChanged(nameof(WarningText));
         };
+    }
+
+    /// <summary>
+    /// 获取当前可用的语言模型列表。用于 GUI 模型选择。
+    /// </summary>
+    public IReadOnlyList<ILanguageModel> AvailableModels => _endpointManager.GetSupportedModels();
+
+    /// <summary>
+    /// 当前选中的主模型。
+    /// </summary>
+    public ILanguageModel CurrentModel => _endpointManager.PrimaryModel;
+
+    /// <summary>
+    /// 当前选中的模型显示名（用于 ComboBox 绑定）。
+    /// </summary>
+    public string SelectedModelDisplayName => _endpointManager.PrimaryModel.ModelDefinition.ModelName;
+
+    /// <summary>
+    /// 切换到指定名称的模型。切换后评估器、生成器均使用新模型。
+    /// </summary>
+    /// <param name="modelName">模型名称，对应 <see cref="ModelDefinition.ModelName"/>。</param>
+    /// <param name="provider">可选的提供商名称。同一模型出现在多个供应商时用于区分。</param>
+    /// <returns>切换成功返回 <see langword="true"/>；未找到模型返回 <see langword="false"/>。</returns>
+    public bool SetModel(string modelName, string? provider = null)
+    {
+        ArgumentNullException.ThrowIfNull(modelName);
+
+        var model = _endpointManager.GetModel(modelName, provider);
+        if (model is null)
+        {
+            return false;
+        }
+
+        _endpointManager.PrimaryModel = model;
+        OnPropertyChanged(nameof(SelectedModelDisplayName));
+        return true;
     }
 
     /// <summary>
