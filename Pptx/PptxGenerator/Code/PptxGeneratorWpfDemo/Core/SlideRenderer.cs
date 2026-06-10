@@ -65,7 +65,7 @@ public class SlideRenderer
                 PreviewBitmap = previewBitmap,
             };
         }
-        catch (Exception ex) when (ex is InvalidOperationException or FormatException or System.Xml.XmlException)
+        catch (Exception ex) when (ex is SlideMlParseException or System.Xml.XmlException)
         {
             var previewBitmap = await
                 Application.Current.Dispatcher.InvokeAsync(() =>

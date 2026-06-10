@@ -14,10 +14,10 @@ internal sealed class SlideMlParser
         ArgumentNullException.ThrowIfNull(xml);
 
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
-        var root = document.Root ?? throw new InvalidOperationException("SlideML 根元素不能为空。");
+        var root = document.Root ?? throw new SlideMlRootElementException("SlideML 根元素不能为空。");
         if (!string.Equals(root.Name.LocalName, "Page", StringComparison.Ordinal))
         {
-            throw new InvalidOperationException("SlideML 根元素必须是 Page。");
+            throw new SlideMlRootElementException($"SlideML 根元素必须是 Page，但实际为 {root.Name.LocalName}。");
         }
 
         var page = new SlidePage
@@ -43,7 +43,7 @@ internal sealed class SlideMlParser
             "Rect" => ParseRect(element, id),
             "TextElement" => ParseTextElement(element, id),
             "Image" => ParseImageElement(element, id),
-            _ => throw new InvalidOperationException($"不支持的标签: {element.Name.LocalName}"),
+            _ => throw new SlideMlUnsupportedElementException($"不支持的标签: {element.Name.LocalName}", element.Name.LocalName),
         };
     }
 
@@ -95,7 +95,7 @@ internal sealed class SlideMlParser
         var text = GetOptionalString(element, "Text");
         if (string.IsNullOrWhiteSpace(text))
         {
-            throw new InvalidOperationException($"TextElement({id}) 必须包含 Text 属性。");
+            throw new SlideMlRequiredAttributeMissingException($"TextElement({id}) 必须包含 Text 属性。", id, "Text");
         }
 
         return new SlideTextElement
@@ -122,7 +122,7 @@ internal sealed class SlideMlParser
         var source = GetOptionalString(element, "Source");
         if (string.IsNullOrWhiteSpace(source))
         {
-            throw new InvalidOperationException($"Image({id}) 必须包含 Source 属性。");
+            throw new SlideMlRequiredAttributeMissingException($"Image({id}) 必须包含 Source 属性。", id, "Source");
         }
 
         return new SlideImageElement
@@ -153,38 +153,100 @@ internal sealed class SlideMlParser
             return null;
         }
 
-        return double.Parse(text, CultureInfo.InvariantCulture);
+        var elementId = GetOptionalString(element, "Id");
+        try
+        {
+            return double.Parse(text, CultureInfo.InvariantCulture);
+        }
+        catch (FormatException ex)
+        {
+            throw new SlideMlAttributeFormatException(
+                $"元素({elementId ?? "unknown"}) 的属性 {attributeName} 值 \"{text}\" 不是有效的数值。",
+                elementId, attributeName, text, ex);
+        }
     }
 
     private static SlideHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element)
     {
         var text = GetOptionalString(element, "HorizontalAlignment");
-        return string.IsNullOrWhiteSpace(text)
-            ? null
-            : Enum.Parse<SlideHorizontalAlignment>(text, ignoreCase: true);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var elementId = GetOptionalString(element, "Id");
+        try
+        {
+            return Enum.Parse<SlideHorizontalAlignment>(text, ignoreCase: true);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new SlideMlAttributeFormatException(
+                $"元素({elementId ?? "unknown"}) 的属性 HorizontalAlignment 值 \"{text}\" 不是有效的 SlideHorizontalAlignment。",
+                elementId, "HorizontalAlignment", text, ex);
+        }
     }
 
     private static SlideVerticalAlignment? GetOptionalVerticalAlignment(XElement element)
     {
         var text = GetOptionalString(element, "VerticalAlignment");
-        return string.IsNullOrWhiteSpace(text)
-            ? null
-            : Enum.Parse<SlideVerticalAlignment>(text, ignoreCase: true);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var elementId = GetOptionalString(element, "Id");
+        try
+        {
+            return Enum.Parse<SlideVerticalAlignment>(text, ignoreCase: true);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new SlideMlAttributeFormatException(
+                $"元素({elementId ?? "unknown"}) 的属性 VerticalAlignment 值 \"{text}\" 不是有效的 SlideVerticalAlignment。",
+                elementId, "VerticalAlignment", text, ex);
+        }
     }
 
     private static SlideTextAlignment? GetOptionalTextAlignment(XElement element)
     {
         var text = GetOptionalString(element, "TextAlignment");
-        return string.IsNullOrWhiteSpace(text)
-            ? null
-            : Enum.Parse<SlideTextAlignment>(text, ignoreCase: true);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var elementId = GetOptionalString(element, "Id");
+        try
+        {
+            return Enum.Parse<SlideTextAlignment>(text, ignoreCase: true);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new SlideMlAttributeFormatException(
+                $"元素({elementId ?? "unknown"}) 的属性 TextAlignment 值 \"{text}\" 不是有效的 SlideTextAlignment。",
+                elementId, "TextAlignment", text, ex);
+        }
     }
 
     private static SlideImageStretch? GetOptionalImageStretch(XElement element)
     {
         var text = GetOptionalString(element, "Stretch");
-        return string.IsNullOrWhiteSpace(text)
-            ? null
-            : Enum.Parse<SlideImageStretch>(text, ignoreCase: true);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var elementId = GetOptionalString(element, "Id");
+        try
+        {
+            return Enum.Parse<SlideImageStretch>(text, ignoreCase: true);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new SlideMlAttributeFormatException(
+                $"元素({elementId ?? "unknown"}) 的属性 Stretch 值 \"{text}\" 不是有效的 SlideImageStretch。",
+                elementId, "Stretch", text, ex);
+        }
     }
 }

@@ -37,7 +37,7 @@ internal static class SlideXmlUtilities
         ArgumentNullException.ThrowIfNull(metricsProvider);
 
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
-        var root = document.Root ?? throw new InvalidOperationException("SlideML 缺少根元素。");
+        var root = document.Root ?? throw new SlideMlRootElementException("SlideML 缺少根元素。");
 
         root.SetAttributeValue("ActualWidth", FormatNumber(SlideRenderer.CanvasWidth));
         root.SetAttributeValue("ActualHeight", FormatNumber(SlideRenderer.CanvasHeight));
