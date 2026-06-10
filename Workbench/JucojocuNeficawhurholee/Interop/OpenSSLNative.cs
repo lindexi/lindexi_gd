@@ -75,12 +75,18 @@ internal static class OpenSSLNative
     public const int SSL_ERROR_WANT_WRITE = 3;
     public const int SSL_ERROR_SYSCALL = 5;
     public const int SSL_ERROR_ZERO_RETURN = 6;
+    public const int SSL_ERROR_WANT_CONNECT = 7;
+    public const int SSL_ERROR_WANT_ACCEPT = 8;
 
     public const ulong OPENSSL_INIT_LOAD_SSL_STRINGS = 0x00200000UL;
     public const ulong OPENSSL_INIT_LOAD_CRYPTO_STRINGS = 0x00000002UL;
 
     public const int SSL_CTRL_SET_TLSEXT_HOSTNAME = 55;
     public const int TLSEXT_NAMETYPE_host_name = 0;
+
+    public const int SSL_CTRL_MODE = 33;
+    public const uint SSL_MODE_ENABLE_PARTIAL_WRITE = 0x00000001U;
+    public const uint SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = 0x00000002U;
 
     #endregion
 
@@ -159,6 +165,14 @@ internal static class OpenSSLNative
         {
             Marshal.FreeHGlobal(namePtr);
         }
+    }
+
+    /// <summary>
+    /// 设置 SSL 模式标志位（对应 SSL_set_mode 宏）。
+    /// </summary>
+    public static long SSL_set_mode(SafeSslHandle ssl, uint mode)
+    {
+        return SSL_ctrl(ssl, SSL_CTRL_MODE, mode, IntPtr.Zero);
     }
 
     #endregion
