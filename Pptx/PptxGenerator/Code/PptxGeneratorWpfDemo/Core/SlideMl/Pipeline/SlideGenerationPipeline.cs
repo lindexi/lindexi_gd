@@ -198,8 +198,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             {
                 if (!string.IsNullOrWhiteSpace(imageFile) && File.Exists(imageFile))
                 {
-                    var dataContent = await DataContent.LoadFromAsync(imageFile, cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                    var dataContent = await DataContent.LoadFromAsync(imageFile, cancellationToken: cancellationToken);
                     contents.Add(dataContent);
                 }
             }
@@ -207,8 +206,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         if (attachPreview)
         {
-            var previewDataContent = await SlideRenderTool.CreatePreviewDataContentAsync(cancellationToken)
-                .ConfigureAwait(false);
+            var previewDataContent = await SlideRenderTool.CreatePreviewDataContentAsync(cancellationToken);
             if (previewDataContent is not null)
             {
                 contents.Add(previewDataContent);
@@ -225,7 +223,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         };
 
         var requestResult = _copilotChatManager.SendMessage(request);
-        await requestResult.RunTask.ConfigureAwait(false);
+        await requestResult.RunTask;
 
         bool doNotRender = string.IsNullOrEmpty(CurrentSlideXml);
         if (doNotRender)
@@ -235,16 +233,13 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                 Contents = [new TextContent("请调用 render_slide 工具进行渲染，根据渲染结果优化界面")],
                 SystemPrompt = "**重要：生成 SlideML 后必须调用 render_slide 工具，不可跳过此步骤**",
             };
-            await _copilotChatManager.SendMessage(toolRequest).RunTask.ConfigureAwait(false);
+            await _copilotChatManager.SendMessage(toolRequest).RunTask;
         }
 
-        await Application.Current.Dispatcher.InvokeAsync(() =>
-        {
-            OnPropertyChanged(nameof(PreviewBitmap));
-            OnPropertyChanged(nameof(CurrentSlideXml));
-            OnPropertyChanged(nameof(RenderedXml));
-            OnPropertyChanged(nameof(WarningText));
-        });
+        OnPropertyChanged(nameof(PreviewBitmap));
+        OnPropertyChanged(nameof(CurrentSlideXml));
+        OnPropertyChanged(nameof(RenderedXml));
+        OnPropertyChanged(nameof(WarningText));
 
         // 生成完成后自动触发评估
         if (_slideEvaluator is not null && !string.IsNullOrWhiteSpace(CurrentSlideXml))
