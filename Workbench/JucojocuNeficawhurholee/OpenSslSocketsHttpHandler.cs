@@ -16,24 +16,28 @@ namespace JucojocuNeficawhurholee;
 public sealed class OpenSslSocketsHttpHandler : HttpMessageHandler
 {
     /// <summary>
+    /// 初始化 <see cref="OpenSslSocketsHttpHandler"/> 的新实例。
+    /// </summary>
+    public OpenSslSocketsHttpHandler(SocketsHttpHandler? socketsHttpHandler = null)
+    {
+        if (socketsHttpHandler?.ConnectCallback is not null)
+        {
+            throw new ArgumentException("The provided SocketsHttpHandler already has a ConnectCallback set.", nameof(socketsHttpHandler));
+        }
+
+        var innerHandler = socketsHttpHandler ?? new SocketsHttpHandler();
+
+        innerHandler.ConnectCallback = ConnectCallbackAsync;
+        _invoker = new HttpMessageInvoker(innerHandler, disposeHandler: true);
+    }
+
+    /// <summary>
     /// 标记在 <see cref="HttpRequestMessage.Options"/> 中的键，指示该请求原本是 https，
     /// ConnectCallback 据此决定是否走 TLS 并连接 443 端口。
     /// </summary>
-    private static readonly HttpRequestOptionsKey<bool> s_isOriginallyHttpsKey = new("OpenSslSocketsHttpHandler.IsOriginallyHttps");
+    private static readonly HttpRequestOptionsKey<bool> IsOriginallyHttpsKey = new("OpenSslSocketsHttpHandler.IsOriginallyHttps");
 
     private readonly HttpMessageInvoker _invoker;
-
-    /// <summary>
-    /// 初始化 <see cref="OpenSslSocketsHttpHandler"/> 的新实例。
-    /// </summary>
-    public OpenSslSocketsHttpHandler()
-    {
-        var innerHandler = new SocketsHttpHandler
-        {
-            ConnectCallback = ConnectCallbackAsync
-        };
-        _invoker = new HttpMessageInvoker(innerHandler, disposeHandler: true);
-    }
 
     /// <inheritdoc />
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -60,7 +64,7 @@ public sealed class OpenSslSocketsHttpHandler : HttpMessageHandler
             Port = -1
         };
         request.RequestUri = builder.Uri;
-        request.Options.Set(s_isOriginallyHttpsKey, true);
+        request.Options.Set(IsOriginallyHttpsKey, true);
     }
 
     /// <summary>
@@ -69,7 +73,7 @@ public sealed class OpenSslSocketsHttpHandler : HttpMessageHandler
     /// </summary>
     private static async ValueTask<Stream> ConnectCallbackAsync(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
     {
-        var isOriginallyHttps = context.InitialRequestMessage.Options.TryGetValue(s_isOriginallyHttpsKey, out var value) && value;
+        var isOriginallyHttps = context.InitialRequestMessage.Options.TryGetValue(IsOriginallyHttpsKey, out var value) && value;
 
         var port = isOriginallyHttps ? 443 : context.DnsEndPoint.Port;
         var host = context.DnsEndPoint.Host;
