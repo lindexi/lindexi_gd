@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+
 using Microsoft.Win32.SafeHandles;
 
 namespace JucojocuNeficawhurholee.Interop;
@@ -42,21 +43,36 @@ internal static class OpenSSLNative
 
         var rid = RuntimeInformation.RuntimeIdentifier;
 
+        IntPtr cachedSslHandle = IntPtr.Zero;
+        IntPtr cachedCryptoHandle = IntPtr.Zero;
+
         NativeLibrary.SetDllImportResolver(typeof(OpenSSLNative).Assembly, MapAndLoad);
 
         IntPtr MapAndLoad(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
-            var mappedName = libraryName switch
+            // 只处理已知的两个库，其他一律返回 0
+            if (libraryName != LibSslConst && libraryName != LibCryptoConst)
             {
-                LibSslConst => actualSsl,
-                LibCryptoConst => actualCrypto,
-                _ => libraryName
-            };
+                return IntPtr.Zero;
+            }
+
+            // 检查缓存
+            ref var cachedHandle = ref libraryName == LibSslConst
+                ? ref cachedSslHandle
+                : ref cachedCryptoHandle; // 用 ref 以便更新缓存
+
+            if (cachedHandle != IntPtr.Zero)
+            {
+                return cachedHandle;
+            }
+
+            var mappedName = libraryName == LibSslConst ? actualSsl : actualCrypto;
 
             // 1. AppContext.BaseDirectory 下带架构后缀的名称（如 libssl-3-x64.dll）
             var baseDirPath = Path.Join(AppContext.BaseDirectory, mappedName);
             if (File.Exists(baseDirPath) && NativeLibrary.TryLoad(baseDirPath, out var handle))
             {
+                cachedHandle = handle;
                 return handle;
             }
 
@@ -66,6 +82,7 @@ internal static class OpenSSLNative
                 var baseDirOriginalPath = Path.Join(AppContext.BaseDirectory, libraryName);
                 if (File.Exists(baseDirOriginalPath) && NativeLibrary.TryLoad(baseDirOriginalPath, out handle))
                 {
+                    cachedHandle = handle;
                     return handle;
                 }
             }
@@ -74,7 +91,19 @@ internal static class OpenSSLNative
             var runtimesPath = Path.Join(AppContext.BaseDirectory, "runtimes", rid, "native", mappedName);
             if (File.Exists(runtimesPath) && NativeLibrary.TryLoad(runtimesPath, out handle))
             {
+                cachedHandle = handle;
                 return handle;
+            }
+
+            if (rid.Contains("win10-"))
+            {
+                var winRid = rid.Replace("win10-", "win-");
+                var winRuntimesPath = Path.Join(AppContext.BaseDirectory, "runtimes", winRid, "native", mappedName);
+                if (File.Exists(winRuntimesPath) && NativeLibrary.TryLoad(winRuntimesPath, out handle))
+                {
+                    cachedHandle = handle;
+                    return handle;
+                }
             }
 
             // 4. 回退文件夹（业务方通过 FallbackLibraryPath 配置的插件路径）
@@ -85,6 +114,7 @@ internal static class OpenSSLNative
                 var fallbackFilePath = Path.Join(fallbackPath, mappedName);
                 if (File.Exists(fallbackFilePath) && NativeLibrary.TryLoad(fallbackFilePath, out handle))
                 {
+                    cachedHandle = handle;
                     return handle;
                 }
 
@@ -94,6 +124,7 @@ internal static class OpenSSLNative
                     var fallbackOriginalPath = Path.Join(fallbackPath, libraryName);
                     if (File.Exists(fallbackOriginalPath) && NativeLibrary.TryLoad(fallbackOriginalPath, out handle))
                     {
+                        cachedHandle = handle;
                         return handle;
                     }
                 }
@@ -198,7 +229,7 @@ internal static class OpenSSLNative
         var namePtr = Marshal.StringToHGlobalAnsi(name);
         try
         {
-            return (int)SSL_ctrl(ssl, SSL_CTRL_SET_TLSEXT_HOSTNAME, TLSEXT_NAMETYPE_host_name, namePtr);
+            return (int) SSL_ctrl(ssl, SSL_CTRL_SET_TLSEXT_HOSTNAME, TLSEXT_NAMETYPE_host_name, namePtr);
         }
         finally
         {
@@ -238,7 +269,7 @@ internal static class OpenSSLNative
     {
         var buffer = new byte[256];
         ERR_error_string_n(error, buffer, buffer.Length);
-        var nullIndex = Array.IndexOf(buffer, (byte)0);
+        var nullIndex = Array.IndexOf(buffer, (byte) 0);
         return nullIndex >= 0 ? System.Text.Encoding.ASCII.GetString(buffer, 0, nullIndex) : System.Text.Encoding.ASCII.GetString(buffer);
     }
 
