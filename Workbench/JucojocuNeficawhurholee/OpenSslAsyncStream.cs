@@ -236,12 +236,17 @@ internal sealed class OpenSslAsyncStream : Stream
         _socket.Blocking = true;
         try
         {
-            var tempBuffer = new byte[count];
-            var bytesRead = OpenSSLNative.SSL_read(_ssl!, tempBuffer, count);
+            int bytesRead;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    bytesRead = OpenSSLNative.SSL_read(_ssl!, ptr + offset, count);
+                }
+            }
 
             if (bytesRead > 0)
             {
-                Buffer.BlockCopy(tempBuffer, 0, buffer, offset, bytesRead);
                 return bytesRead;
             }
 
@@ -277,17 +282,21 @@ internal sealed class OpenSslAsyncStream : Stream
             return 0;
         }
 
-        var tempBuffer = new byte[count];
-
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var bytesRead = OpenSSLNative.SSL_read(_ssl!, tempBuffer, count);
+            int bytesRead;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    bytesRead = OpenSSLNative.SSL_read(_ssl!, ptr + offset, count);
+                }
+            }
 
             if (bytesRead > 0)
             {
-                Buffer.BlockCopy(tempBuffer, 0, buffer, offset, bytesRead);
                 return bytesRead;
             }
 
@@ -327,10 +336,15 @@ internal sealed class OpenSslAsyncStream : Stream
         _socket.Blocking = true;
         try
         {
-            var tempBuffer = new byte[count];
-            Buffer.BlockCopy(buffer, offset, tempBuffer, 0, count);
+            int written;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    written = OpenSSLNative.SSL_write(_ssl!, ptr + offset, count);
+                }
+            }
 
-            var written = OpenSSLNative.SSL_write(_ssl!, tempBuffer, count);
             if (written <= 0)
             {
                 var error = OpenSSLNative.SSL_get_error(_ssl!, written);
@@ -355,14 +369,18 @@ internal sealed class OpenSslAsyncStream : Stream
             return;
         }
 
-        var tempBuffer = new byte[count];
-        Buffer.BlockCopy(buffer, offset, tempBuffer, 0, count);
-
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var written = OpenSSLNative.SSL_write(_ssl!, tempBuffer, count);
+            int written;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    written = OpenSSLNative.SSL_write(_ssl!, ptr + offset, count);
+                }
+            }
 
             if (written > 0)
             {

@@ -134,10 +134,10 @@ internal static class OpenSSLNative
     public static extern int SSL_connect(SafeSslHandle ssl);
 
     [DllImport(LibSslConst, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int SSL_write(SafeSslHandle ssl, byte[] buf, int num);
+    public static extern unsafe int SSL_write(SafeSslHandle ssl, byte* buf, int num);
 
     [DllImport(LibSslConst, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int SSL_read(SafeSslHandle ssl, byte[] buf, int num);
+    public static extern unsafe int SSL_read(SafeSslHandle ssl, byte* buf, int num);
 
     [DllImport(LibSslConst, CallingConvention = CallingConvention.Cdecl)]
     public static extern int SSL_shutdown(SafeSslHandle ssl);
