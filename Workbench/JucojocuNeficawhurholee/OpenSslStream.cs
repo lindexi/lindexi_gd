@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using JucojocuNeficawhurholee.Interop;
 
 namespace JucojocuNeficawhurholee;
@@ -145,13 +146,17 @@ internal sealed class OpenSslStream : Stream
             return 0;
         }
 
-        // SSL_read 需要连续内存，使用临时缓冲区避免 pin 偏移后的数组段。
-        var tempBuffer = new byte[count];
-        var bytesRead = OpenSSLNative.SSL_read(_ssl!, tempBuffer, count);
+        int bytesRead;
+        unsafe
+        {
+            fixed (byte* ptr = buffer)
+            {
+                bytesRead = OpenSSLNative.SSL_read(_ssl!, ptr + offset, count);
+            }
+        }
 
         if (bytesRead > 0)
         {
-            Buffer.BlockCopy(tempBuffer, 0, buffer, offset, bytesRead);
             return bytesRead;
         }
 
@@ -186,19 +191,32 @@ internal sealed class OpenSslStream : Stream
             return 0;
         }
 
-        var tempBuffer = new byte[count];
-
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var bytesRead = await Task.Run(
-                () => OpenSSLNative.SSL_read(_ssl!, tempBuffer, count),
-                cancellationToken).ConfigureAwait(false);
+            int bytesRead;
+            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            try
+            {
+                var ptr = handle.AddrOfPinnedObject() + offset;
+                bytesRead = await Task.Run(
+                    () =>
+                    {
+                        unsafe
+                        {
+                            return OpenSSLNative.SSL_read(_ssl!, (byte*)ptr, count);
+                        }
+                    },
+                    cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                handle.Free();
+            }
 
             if (bytesRead > 0)
             {
-                Buffer.BlockCopy(tempBuffer, 0, buffer, offset, bytesRead);
                 return bytesRead;
             }
 
@@ -240,10 +258,15 @@ internal sealed class OpenSslStream : Stream
             return;
         }
 
-        var tempBuffer = new byte[count];
-        Buffer.BlockCopy(buffer, offset, tempBuffer, 0, count);
+        int written;
+        unsafe
+        {
+            fixed (byte* ptr = buffer)
+            {
+                written = OpenSSLNative.SSL_write(_ssl!, ptr + offset, count);
+            }
+        }
 
-        var written = OpenSSLNative.SSL_write(_ssl!, tempBuffer, count);
         if (written <= 0)
         {
             var error = OpenSSLNative.SSL_get_error(_ssl!, written);
@@ -267,16 +290,29 @@ internal sealed class OpenSslStream : Stream
             return;
         }
 
-        var tempBuffer = new byte[count];
-        Buffer.BlockCopy(buffer, offset, tempBuffer, 0, count);
-
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var written = await Task.Run(
-                () => OpenSSLNative.SSL_write(_ssl!, tempBuffer, count),
-                cancellationToken).ConfigureAwait(false);
+            int written;
+            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            try
+            {
+                var ptr = handle.AddrOfPinnedObject() + offset;
+                written = await Task.Run(
+                    () =>
+                    {
+                        unsafe
+                        {
+                            return OpenSSLNative.SSL_write(_ssl!, (byte*)ptr, count);
+                        }
+                    },
+                    cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                handle.Free();
+            }
 
             if (written > 0)
             {

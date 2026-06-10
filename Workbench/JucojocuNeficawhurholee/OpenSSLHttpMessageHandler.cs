@@ -97,7 +97,14 @@ internal sealed class OpenSSLHttpMessageHandler : HttpMessageHandler
         {
             var requestBytes = await BuildHttpRequestAsync(request, host, port, path).ConfigureAwait(false);
 
-            var written = OpenSSLNative.SSL_write(ssl, requestBytes, requestBytes.Length);
+            int written;
+                        unsafe
+                        {
+                            fixed (byte* ptr = requestBytes)
+                            {
+                                written = OpenSSLNative.SSL_write(ssl, ptr, requestBytes.Length);
+                            }
+                        }
             if (written <= 0)
             {
                 var error = OpenSSLNative.SSL_get_error(ssl, written);
@@ -187,7 +194,14 @@ internal sealed class OpenSSLHttpMessageHandler : HttpMessageHandler
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var bytesRead = OpenSSLNative.SSL_read(ssl, readBuffer, readBuffer.Length);
+            int bytesRead;
+            unsafe
+            {
+                fixed (byte* ptr = readBuffer)
+                {
+                    bytesRead = OpenSSLNative.SSL_read(ssl, ptr, readBuffer.Length);
+                }
+            }
             var error = OpenSSLNative.SSL_get_error(ssl, bytesRead);
 
             if (bytesRead > 0)

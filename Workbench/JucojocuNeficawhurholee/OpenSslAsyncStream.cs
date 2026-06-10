@@ -124,11 +124,7 @@ internal sealed class OpenSslAsyncStream : Stream
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task AuthenticateAsClientAsync(OpenSslClientAuthenticationOptions options, CancellationToken cancellationToken = default)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(GetType().FullName);
-        }
-
+        ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(options);
 
         var host = options.TargetHost;
@@ -194,21 +190,14 @@ internal sealed class OpenSslAsyncStream : Stream
 
             var error = OpenSSLNative.SSL_get_error(_ssl, connectResult);
 
-            switch (error)
-            {
-                case OpenSSLNative.SSL_ERROR_WANT_READ:
-                    await WaitForSocketReadAsync(cancellationToken).ConfigureAwait(false);
-                    break;
+                        if (await TryHandleSslWantAsync(error, cancellationToken).ConfigureAwait(false))
+                        {
+                            continue;
+                        }
 
-                case OpenSSLNative.SSL_ERROR_WANT_WRITE:
-                    await WaitForSocketWriteAsync(cancellationToken).ConfigureAwait(false);
-                    break;
-
-                default:
-                    var errCode = OpenSSLNative.ERR_get_error();
-                    var errStr = errCode != 0 ? OpenSSLNative.GetErrorString(errCode) : $"SSL 错误码: {error}";
-                    throw new OpenSslException($"TLS 握手失败: {errStr}", error, errCode);
-            }
+                        var errCode = OpenSSLNative.ERR_get_error();
+                        var errStr = errCode != 0 ? OpenSSLNative.GetErrorString(errCode) : $"SSL 错误码: {error}";
+                        throw new OpenSslException($"TLS 握手失败: {errStr}", error, errCode);
         }
     }
 
@@ -234,11 +223,7 @@ internal sealed class OpenSslAsyncStream : Stream
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(GetType().FullName);
-        }
-
+        ThrowIfDisposed();
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -251,12 +236,17 @@ internal sealed class OpenSslAsyncStream : Stream
         _socket.Blocking = true;
         try
         {
-            var tempBuffer = new byte[count];
-            var bytesRead = OpenSSLNative.SSL_read(_ssl!, tempBuffer, count);
+            int bytesRead;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    bytesRead = OpenSSLNative.SSL_read(_ssl!, ptr + offset, count);
+                }
+            }
 
             if (bytesRead > 0)
             {
-                Buffer.BlockCopy(tempBuffer, 0, buffer, offset, bytesRead);
                 return bytesRead;
             }
 
@@ -283,11 +273,7 @@ internal sealed class OpenSslAsyncStream : Stream
     /// <inheritdoc />
     public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(GetType().FullName);
-        }
-
+        ThrowIfDisposed();
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -296,52 +282,48 @@ internal sealed class OpenSslAsyncStream : Stream
             return 0;
         }
 
-        var tempBuffer = new byte[count];
-
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var bytesRead = OpenSSLNative.SSL_read(_ssl!, tempBuffer, count);
+            int bytesRead;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    bytesRead = OpenSSLNative.SSL_read(_ssl!, ptr + offset, count);
+                }
+            }
 
             if (bytesRead > 0)
             {
-                Buffer.BlockCopy(tempBuffer, 0, buffer, offset, bytesRead);
                 return bytesRead;
             }
 
             var error = OpenSSLNative.SSL_get_error(_ssl!, bytesRead);
 
-            switch (error)
-            {
-                case OpenSSLNative.SSL_ERROR_ZERO_RETURN:
-                    return 0;
+                        switch (error)
+                        {
+                            case OpenSSLNative.SSL_ERROR_ZERO_RETURN:
+                                return 0;
 
-                case OpenSSLNative.SSL_ERROR_SYSCALL when bytesRead == 0:
-                    return 0;
+                            case OpenSSLNative.SSL_ERROR_SYSCALL when bytesRead == 0:
+                                return 0;
+                        }
 
-                case OpenSSLNative.SSL_ERROR_WANT_READ:
-                    await WaitForSocketReadAsync(cancellationToken).ConfigureAwait(false);
-                    break;
+                        if (await TryHandleSslWantAsync(error, cancellationToken).ConfigureAwait(false))
+                        {
+                            continue;
+                        }
 
-                case OpenSSLNative.SSL_ERROR_WANT_WRITE:
-                    await WaitForSocketWriteAsync(cancellationToken).ConfigureAwait(false);
-                    break;
-
-                default:
-                    throw new OpenSslException($"SSL_read 失败，错误码: {error}", error);
-            }
+                        throw new OpenSslException($"SSL_read 失败，错误码: {error}", error);
         }
     }
 
     /// <inheritdoc />
     public override void Write(byte[] buffer, int offset, int count)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(GetType().FullName);
-        }
-
+        ThrowIfDisposed();
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -354,10 +336,15 @@ internal sealed class OpenSslAsyncStream : Stream
         _socket.Blocking = true;
         try
         {
-            var tempBuffer = new byte[count];
-            Buffer.BlockCopy(buffer, offset, tempBuffer, 0, count);
+            int written;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    written = OpenSSLNative.SSL_write(_ssl!, ptr + offset, count);
+                }
+            }
 
-            var written = OpenSSLNative.SSL_write(_ssl!, tempBuffer, count);
             if (written <= 0)
             {
                 var error = OpenSSLNative.SSL_get_error(_ssl!, written);
@@ -373,11 +360,7 @@ internal sealed class OpenSslAsyncStream : Stream
     /// <inheritdoc />
     public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(GetType().FullName);
-        }
-
+        ThrowIfDisposed();
         ThrowIfNotAuthenticated();
         ValidateBufferArgs(buffer, offset, count);
 
@@ -386,14 +369,18 @@ internal sealed class OpenSslAsyncStream : Stream
             return;
         }
 
-        var tempBuffer = new byte[count];
-        Buffer.BlockCopy(buffer, offset, tempBuffer, 0, count);
-
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var written = OpenSSLNative.SSL_write(_ssl!, tempBuffer, count);
+            int written;
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    written = OpenSSLNative.SSL_write(_ssl!, ptr + offset, count);
+                }
+            }
 
             if (written > 0)
             {
@@ -402,19 +389,12 @@ internal sealed class OpenSslAsyncStream : Stream
 
             var error = OpenSSLNative.SSL_get_error(_ssl!, written);
 
-            switch (error)
-            {
-                case OpenSSLNative.SSL_ERROR_WANT_READ:
-                    await WaitForSocketReadAsync(cancellationToken).ConfigureAwait(false);
-                    break;
+                        if (await TryHandleSslWantAsync(error, cancellationToken).ConfigureAwait(false))
+                        {
+                            continue;
+                        }
 
-                case OpenSSLNative.SSL_ERROR_WANT_WRITE:
-                    await WaitForSocketWriteAsync(cancellationToken).ConfigureAwait(false);
-                    break;
-
-                default:
-                    throw new OpenSslException($"SSL_write 失败，错误码: {error}", error);
-            }
+                        throw new OpenSslException($"SSL_write 失败，错误码: {error}", error);
         }
     }
 
@@ -473,6 +453,30 @@ internal sealed class OpenSslAsyncStream : Stream
     }
 
     /// <summary>
+    /// 处理 SSL 操作的 WANT_READ/WANT_WRITE 状态。若错误码为 WANT_READ 或 WANT_WRITE，
+    /// 则异步等待 Socket 就绪并返回 <c>true</c>（调用方应重试 SSL 操作）；否则返回 <c>false</c>。
+    /// </summary>
+    /// <param name="sslError"><see cref="OpenSSLNative.SSL_get_error"/> 返回的错误码。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>若已处理等待并应重试，返回 <c>true</c>；否则返回 <c>false</c>，调用方自行处理错误。</returns>
+    private async ValueTask<bool> TryHandleSslWantAsync(int sslError, CancellationToken cancellationToken)
+    {
+        switch (sslError)
+        {
+            case OpenSSLNative.SSL_ERROR_WANT_READ:
+                await WaitForSocketReadAsync(cancellationToken).ConfigureAwait(false);
+                return true;
+
+            case OpenSSLNative.SSL_ERROR_WANT_WRITE:
+                await WaitForSocketWriteAsync(cancellationToken).ConfigureAwait(false);
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
     /// 异步等待 Socket 变为可读状态。通过零长度 <see cref="Socket.ReceiveAsync(Memory{byte}, SocketFlags, CancellationToken)"/>
     /// 实现，不会占用线程池线程。
     /// </summary>
@@ -488,6 +492,14 @@ internal sealed class OpenSslAsyncStream : Stream
     private ValueTask<int> WaitForSocketWriteAsync(CancellationToken cancellationToken)
     {
         return _socket.SendAsync(ReadOnlyMemory<byte>.Empty, SocketFlags.None, cancellationToken);
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(GetType().FullName);
+        }
     }
 
     private void ThrowIfNotAuthenticated()
