@@ -92,14 +92,14 @@ internal sealed class SlideMlParser
         var panel = new SlidePanelElement
         {
             Id = id,
-            X = GetOptionalDouble(element, "X"),
-            Y = GetOptionalDouble(element, "Y"),
-            Width = GetOptionalDouble(element, "Width"),
-            Height = GetOptionalDouble(element, "Height"),
+            X = GetOptionalDouble(element, "X", context),
+            Y = GetOptionalDouble(element, "Y", context),
+            Width = GetOptionalDouble(element, "Width", context),
+            Height = GetOptionalDouble(element, "Height", context),
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
-            Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
-            Padding = GetOptionalDouble(element, "Padding") ?? 0,
+            Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
+            Padding = GetOptionalDouble(element, "Padding", context) ?? 0,
             Background = GetOptionalString(element, "Background"),
         };
 
@@ -118,17 +118,17 @@ internal sealed class SlideMlParser
         return new SlideRectElement
         {
             Id = id,
-            X = GetOptionalDouble(element, "X"),
-            Y = GetOptionalDouble(element, "Y"),
-            Width = GetOptionalDouble(element, "Width"),
-            Height = GetOptionalDouble(element, "Height"),
+            X = GetOptionalDouble(element, "X", context),
+            Y = GetOptionalDouble(element, "Y", context),
+            Width = GetOptionalDouble(element, "Width", context),
+            Height = GetOptionalDouble(element, "Height", context),
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
-            Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
+            Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Fill = GetOptionalString(element, "Fill"),
             Stroke = GetOptionalString(element, "Stroke"),
-            StrokeThickness = GetOptionalDouble(element, "StrokeThickness") ?? 0,
-            CornerRadius = GetOptionalDouble(element, "CornerRadius") ?? 0,
+            StrokeThickness = GetOptionalDouble(element, "StrokeThickness", context) ?? 0,
+            CornerRadius = GetOptionalDouble(element, "CornerRadius", context) ?? 0,
         };
     }
 
@@ -145,19 +145,19 @@ internal sealed class SlideMlParser
         return new SlideTextElement
         {
             Id = id,
-            X = GetOptionalDouble(element, "X"),
-            Y = GetOptionalDouble(element, "Y"),
-            Width = GetOptionalDouble(element, "Width"),
-            Height = GetOptionalDouble(element, "Height"),
+            X = GetOptionalDouble(element, "X", context),
+            Y = GetOptionalDouble(element, "Y", context),
+            Width = GetOptionalDouble(element, "Width", context),
+            Height = GetOptionalDouble(element, "Height", context),
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
-            Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
+            Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Text = text,
             FontName = GetOptionalString(element, "FontName") ?? "Microsoft YaHei",
-            FontSize = GetOptionalDouble(element, "FontSize") ?? 16,
+            FontSize = GetOptionalDouble(element, "FontSize", context) ?? 16,
             Foreground = GetOptionalString(element, "Foreground") ?? "#000000",
             TextAlignment = GetOptionalTextAlignment(element, id, context) ?? SlideTextAlignment.Left,
-            LineHeight = GetOptionalDouble(element, "LineHeight") ?? 1.2,
+            LineHeight = GetOptionalDouble(element, "LineHeight", context) ?? 1.2,
         };
     }
 
@@ -174,13 +174,13 @@ internal sealed class SlideMlParser
         return new SlideImageElement
         {
             Id = id,
-            X = GetOptionalDouble(element, "X"),
-            Y = GetOptionalDouble(element, "Y"),
-            Width = GetOptionalDouble(element, "Width"),
-            Height = GetOptionalDouble(element, "Height"),
+            X = GetOptionalDouble(element, "X", context),
+            Y = GetOptionalDouble(element, "Y", context),
+            Width = GetOptionalDouble(element, "Width", context),
+            Height = GetOptionalDouble(element, "Height", context),
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
-            Opacity = GetOptionalDouble(element, "Opacity") ?? 1,
+            Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Source = source,
             Stretch = GetOptionalImageStretch(element, id, context) ?? SlideImageStretch.Uniform,
         };
@@ -193,7 +193,11 @@ internal sealed class SlideMlParser
         {
             if (!knownAttributes.Contains(attr.Name.LocalName))
             {
-                context.AddWarning($"[Warning] {elementId}: 未知属性 \"{attr.Name.LocalName}\"，已忽略");
+                context.AddWarning(
+                    string.Format(
+                        "[Warning] {0}: 未知属性 \"{1}\"，已忽略",
+                        elementId,
+                        attr.Name.LocalName));
             }
         }
     }
@@ -203,7 +207,7 @@ internal sealed class SlideMlParser
         return (string?) element.Attribute(attributeName);
     }
 
-    private static double? GetOptionalDouble(XElement element, string attributeName)
+    private static double? GetOptionalDouble(XElement element, string attributeName, SlideParseContext context)
     {
         var text = GetOptionalString(element, attributeName);
         if (string.IsNullOrWhiteSpace(text))
@@ -211,7 +215,19 @@ internal sealed class SlideMlParser
             return null;
         }
 
-        return double.Parse(text, CultureInfo.InvariantCulture);
+        if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var result))
+        {
+            return result;
+        }
+
+        var elementId = GetOptionalString(element, "Id");
+        context.AddError(
+            string.Format(
+                "[Error] {0}: {1} 值 \"{2}\" 不是有效的数值",
+                elementId ?? "unknown",
+                attributeName,
+                text));
+        return null;
     }
 
     private static SlideHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element, string elementId, SlideParseContext context)
@@ -227,7 +243,11 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.AddWarning($"[Warning] {elementId}: HorizontalAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right）");
+        context.AddError(
+            string.Format(
+                "[Error] {0}: HorizontalAlignment 值 \"{1}\" 无效，已忽略（有效值：Left, Center, Right）",
+                elementId,
+                text));
         return null;
     }
 
@@ -244,7 +264,11 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.AddWarning($"[Warning] {elementId}: VerticalAlignment 值 \"{text}\" 无效，已忽略（有效值：Top, Center, Bottom）");
+        context.AddError(
+            string.Format(
+                "[Error] {0}: VerticalAlignment 值 \"{1}\" 无效，已忽略（有效值：Top, Center, Bottom）",
+                elementId,
+                text));
         return null;
     }
 
@@ -261,7 +285,11 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.AddWarning($"[Warning] {elementId}: TextAlignment 值 \"{text}\" 无效，已忽略（有效值：Left, Center, Right, Justify）");
+        context.AddError(
+            string.Format(
+                "[Error] {0}: TextAlignment 值 \"{1}\" 无效，已忽略（有效值：Left, Center, Right, Justify）",
+                elementId,
+                text));
         return null;
     }
 
@@ -278,7 +306,11 @@ internal sealed class SlideMlParser
             return result;
         }
 
-        context.AddWarning($"[Warning] {elementId}: Stretch 值 \"{text}\" 无效，已忽略（有效值：None, Fill, Uniform, UniformToFill）");
+        context.AddError(
+            string.Format(
+                "[Error] {0}: Stretch 值 \"{1}\" 无效，已忽略（有效值：None, Fill, Uniform, UniformToFill）",
+                elementId,
+                text));
         return null;
     }
 }
