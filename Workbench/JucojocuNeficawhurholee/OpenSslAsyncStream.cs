@@ -5,11 +5,82 @@ namespace JucojocuNeficawhurholee;
 
 /// <summary>
 /// 基于非阻塞 Socket 的 OpenSSL TLS 加密流，通过 P/Invoke 调用 libssl-3 完成 TLS 握手和数据传输。
-/// 与 <see cref="OpenSslStream"/> 的区别：不使用 <c>Task.Run</c> 占用线程池线程，
-/// 而是将 Socket 设为非阻塞模式，当 OpenSSL 返回 <c>SSL_ERROR_WANT_READ</c>/<c>SSL_ERROR_WANT_WRITE</c> 时，
-/// 通过 .NET 原生异步 IO（零长度 <see cref="Socket.ReceiveAsync(Memory{byte}, SocketFlags, CancellationToken)"/>/
-/// <see cref="Socket.SendAsync(ReadOnlyMemory{byte}, SocketFlags, CancellationToken)"/>）等待 Socket 就绪后重试。
 /// </summary>
+/// <remarks>
+/// <para><b>与 <see cref="OpenSslStream"/>（Task.Run 方案）的区别：</b></para>
+/// <para><see cref="OpenSslStream"/> 将 <c>SSL_read</c>/<c>SSL_write</c>/<c>SSL_connect</c> 通过
+/// <c>Task.Run</c> 卸载到线程池执行，Socket 保持默认阻塞模式。优点是实现简单，缺点是线程池
+/// 线程被长时间阻塞在 I/O 上，高并发下可能导致线程池饥饿。</para>
+///
+/// <para><b>本类的实现方案（非阻塞 Socket + 原生异步 I/O 等待）：</b></para>
+///
+/// <para><b>1. 核心思路</b></para>
+/// <para>构造时将 <c>_socket.Blocking = false</c> 设为非阻塞模式。之后所有
+/// <c>SSL_read</c>/<c>SSL_write</c>/<c>SSL_connect</c> 调用都在当前线程同步执行：</para>
+/// <list type="bullet">
+///   <item>若操作立刻完成（返回 &gt; 0），直接返回结果，零开销。</item>
+///   <item>若内核缓冲区未就绪，OpenSSL 返回 &lt;= 0，此时调用 <c>SSL_get_error</c> 获取：
+///     <list type="bullet">
+///       <item><c>SSL_ERROR_WANT_READ</c> — SSL 需要更多入站数据（Socket 可读）</item>
+///       <item><c>SSL_ERROR_WANT_WRITE</c> — SSL 需要发送出站数据（Socket 可写）</item>
+///     </list>
+///   </item>
+/// </list>
+///
+/// <para><b>2. 零长度异步等待（避免忙等）</b></para>
+/// <para>当收到 <c>WANT_READ</c> 或 <c>WANT_WRITE</c> 时，不调用 <c>Task.Delay</c> 忙等，而是：</para>
+/// <list type="bullet">
+///   <item><c>WANT_READ</c> → <c>await _socket.ReceiveAsync(Memory&lt;byte&gt;.Empty, ...)</c></item>
+///   <item><c>WANT_WRITE</c> → <c>await _socket.SendAsync(ReadOnlyMemory&lt;byte&gt;.Empty, ...)</c></item>
+/// </list>
+/// <para>零长度的 <c>ReceiveAsync</c>/<c>SendAsync</c> 不会读写任何数据，只等待 Socket 变为
+/// 可读/可写状态。底层使用 IOCP（Windows）或 epoll（Linux）的异步完成端口，等待期间
+/// <b>不占用任何线程</b>。Signal 后回到原调用方线程继续循环。</para>
+///
+/// <para><b>3. SSL_MODE 设置</b></para>
+/// <para>握手前调用 <c>SSL_set_mode</c> 设置两个标志位：</para>
+/// <list type="bullet">
+///   <item><c>SSL_MODE_ENABLE_PARTIAL_WRITE</c> — 允许 <c>SSL_write</c> 仅发送一个 TLS
+///   记录即返回（而非等全部数据发送完毕），避免非阻塞模式下写操作被误判为失败。</item>
+///   <item><c>SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER</c> — 允许写缓冲区在重试时移动位置，
+///   这样每次重试可以传入不同的 <c>tempBuffer</c> 实例，无需固定 pin 住内存。</item>
+/// </list>
+///
+/// <para><b>4. 同步 Read/Write 的兼容处理</b></para>
+/// <para>同步的 <see cref="Read"/> 和 <see cref="Write"/> 方法内临时设置
+/// <c>_socket.Blocking = true</c>，使 <c>SSL_read</c>/<c>SSL_write</c> 能正常阻塞等待，
+/// 完成后在 <c>finally</c> 中恢复非阻塞模式。这保证了 Stream 基类的同步使用者不依赖
+/// 调用方线程模型。</para>
+///
+/// <para><b>5. 与 Task.Run 方案的对比</b></para>
+/// <list type="table">
+///   <listheader>
+///     <term>维度</term>
+///     <description>Task.Run（OpenSslStream）</description>
+///     <description>本类（OpenSslAsyncStream）</description>
+///   </listheader>
+///   <item>
+///     <term>线程占用</term>
+///     <description>每个 I/O 操作占用 1 个线程池线程阻塞等待</description>
+///     <description>I/O 等待期间零线程占用（IOCP/epoll）</description>
+///   </item>
+///   <item>
+///     <term>高并发表现</term>
+///     <description>线程池可能饥饿，吞吐下降</description>
+///     <description>仅受内存和 CPU 限制</description>
+///   </item>
+///   <item>
+///     <term>实现复杂度</term>
+///     <description>简单</description>
+///     <description>中等（需处理非阻塞重试循环）</description>
+///   </item>
+///   <item>
+///     <term>同步 Read/Write</term>
+///     <description>天然支持（Socket 阻塞模式）</description>
+///     <description>临时切回阻塞模式（有轻微开销）</description>
+///   </item>
+/// </list>
+/// </remarks>
 internal sealed class OpenSslAsyncStream : Stream
 {
     private static readonly bool s_initialized;
