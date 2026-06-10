@@ -153,9 +153,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// 聊天气泡消息列表。
     /// </summary>
-#pragma warning disable CS0618 // 类型或成员已过时
-    public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.ChatManager.ChatMessages;
-#pragma warning restore CS0618
+public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
 
     public bool IsBusy
     {

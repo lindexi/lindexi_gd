@@ -97,12 +97,6 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// AI 聊天管理器。新代码应通过 <see cref="Pipeline"/> 使用。
-    /// </summary>
-    [Obsolete("请通过 Pipeline.ChatManager 使用。")]
-    public CopilotChatManager ChatManager => _pipeline.ChatManager;
-
-    /// <summary>
     /// 底层管道编排器。推荐新代码直接使用此属性。
     /// </summary>
     public SlideGenerationPipeline Pipeline => _pipeline;
@@ -182,24 +176,6 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     public Task<PromptEvaluationResult?> EvaluatePromptAsync(CancellationToken cancellationToken = default)
     {
         return _pipeline.EvaluatePromptAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// 构建 SlideML 排版引擎系统提示词。
-    /// </summary>
-    [Obsolete("请使用 IPromptProvider.BuildSystemPrompt() 替代。")]
-    public static string BuildSystemPrompt()
-    {
-        return new SlideMlPromptProvider().BuildSystemPrompt();
-    }
-
-    /// <summary>
-    /// 构建初始用户提示词，包裹用户的自然语言需求。
-    /// </summary>
-    [Obsolete("请使用 IPromptProvider.BuildInitialUserPrompt() 替代。")]
-    public static string BuildInitialUserPrompt(string userPrompt)
-    {
-        return new SlideMlPromptProvider().BuildInitialUserPrompt(userPrompt);
     }
 
     private void OnPropertyChanged(string propertyName)

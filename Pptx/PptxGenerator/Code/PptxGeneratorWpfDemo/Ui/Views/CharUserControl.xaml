@@ -374,13 +374,6 @@
                                 Background="#FF0891B2"
                                 Foreground="White"
                                 FontWeight="SemiBold" />
-                        <Button x:Name="DebugButton" Content="调试"
-                                MinWidth="80" Height="42"
-                                Margin="10,0,0,0"
-                                Background="#FF2563EB"
-                                Foreground="White"
-                                FontWeight="SemiBold"
-                                Click="DebugButton_OnClick" />
                         <Button Content="总结"
                                 MinWidth="80" Height="42"
                                 Margin="10,0,0,0"
