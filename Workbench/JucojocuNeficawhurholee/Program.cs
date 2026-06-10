@@ -15,8 +15,15 @@ using var handler = new OpenSslSocketsHttpHandler();
 using var httpClient = new HttpClient(handler);
 
 var sw = Stopwatch.StartNew();
-var result = await httpClient.GetStringAsync(url);
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] HttpClient 请求完成，响应长度: {result.Length} 字符，耗时: {sw.ElapsedMilliseconds}ms");
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] 响应前 500 字符:\n{result[..Math.Min(500, result.Length)]}");
 
-Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] 测试完成。");
+for (int i = 0; i < 10; i++)
+{
+    sw.Restart();
+    var result = await httpClient.GetStringAsync(url);
+    sw.Stop();
+
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] HttpClient 请求完成，响应长度: {result.Length} 字符，耗时: {sw.ElapsedMilliseconds}ms");
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] 响应前 500 字符:\n{result[..Math.Min(500, result.Length)]}");
+
+    Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] 测试完成。");
+}

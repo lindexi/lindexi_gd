@@ -77,6 +77,16 @@ internal static class OpenSSLNative
                 return handle;
             }
 
+            if (rid.Contains("win10-"))
+            {
+                var winRid = rid.Replace("win10-", "win-");
+                var winRuntimesPath = Path.Join(AppContext.BaseDirectory, "runtimes", winRid, "native", mappedName);
+                if (File.Exists(winRuntimesPath) && NativeLibrary.TryLoad(winRuntimesPath, out handle))
+                {
+                    return handle;
+                }
+            }
+
             // 4. 回退文件夹（业务方通过 FallbackLibraryPath 配置的插件路径）
             var fallbackPath = FallbackLibraryPath;
             if (!string.IsNullOrWhiteSpace(fallbackPath))
