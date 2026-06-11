@@ -123,15 +123,8 @@ public class AgentApiEndpointManagerTests
             PrimaryModel = "nonexistent/model"
         };
 
-        try
-        {
-            manager.LoadConfiguration(configuration);
-            Assert.Fail("Should have thrown ArgumentException");
-        }
-        catch (ArgumentException ex)
-        {
-            StringAssert.Contains(ex.Message, "nonexistent/model");
-        }
+        var ex = Assert.Throws<ArgumentException>(() => manager.LoadConfiguration(configuration));
+        StringAssert.Contains(ex.Message, "nonexistent/model");
     }
 
     [TestMethod]
@@ -184,16 +177,8 @@ public class AgentApiEndpointManagerTests
         {
             PrimaryModel = "deepseek/nonexistent"
         };
-
-        try
-        {
-            manager.LoadConfiguration(configuration);
-            Assert.Fail("Should have thrown ArgumentException");
-        }
-        catch (ArgumentException)
-        {
-            // expected
-        }
+        
+        Assert.Throws<ArgumentException>(() => manager.LoadConfiguration(configuration));
     }
 
     private static FakeLanguageModelProvider CreateFakeProvider(params (string Provider, string ModelName, string? ModelId)[] models)
