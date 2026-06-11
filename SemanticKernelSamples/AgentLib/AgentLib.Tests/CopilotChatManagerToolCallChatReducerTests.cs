@@ -196,7 +196,7 @@ public class CopilotChatManagerToolCallChatReducerTests
 
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
-        // 发送消息，指定外部 ChatReducer
+        // 通过 SendMessage(request) 将外部 ChatReducer 传入 CreateChatClientAgentAsync 路径
         var request = new SendMessageRequest("用户消息")
         {
             WithHistory = true,
@@ -204,11 +204,10 @@ public class CopilotChatManagerToolCallChatReducerTests
             RequirePerServiceCallChatHistoryPersistence = false
         };
 
-        await context.ChatManager.SendMessageAsync(
-            contents: [new TextContent("用户消息")],
-            withHistory: true);
+        var result = context.ChatManager.SendMessage(request);
+        await result.RunTask;
 
-        // 手动触发压缩以验证外部 reducer 被使用
+        // 同时手动触发压缩，双重验证外部 reducer 确实被调用
         await context.ChatManager.ReduceSessionAsync(chatReducer: externalReducer);
 
         Assert.IsTrue(externalReducerCalled, "外部压缩器应被调用");
