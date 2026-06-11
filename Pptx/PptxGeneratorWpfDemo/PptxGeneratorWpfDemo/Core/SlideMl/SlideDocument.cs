@@ -66,7 +66,7 @@ internal sealed class SlidePage
 
     public List<SlideElement> Children { get; } = [];
 
-    public Rect LayoutBounds { get; set; } = new(0, 0, SlideRenderContext.DefaultCanvasWidth, SlideRenderContext.DefaultCanvasHeight);
+    public Rect LayoutBounds { get; set; } = new(0, 0, SlidePipelineContext.DefaultCanvasWidth, SlidePipelineContext.DefaultCanvasHeight);
 }
 
 internal sealed class SlidePanelElement : SlideElement

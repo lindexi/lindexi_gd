@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -31,22 +32,17 @@ internal static class SlideXmlUtilities
         return XDocument.Parse(xml, LoadOptions.PreserveWhitespace).ToString();
     }
 
-    public static string FormatRenderedXml(string xml, Func<string, SlideRenderedMetrics?> metricsProvider)
-    {
-        return FormatRenderedXml(xml, metricsProvider, new SlideRenderContext());
-    }
-
     /// <summary>
-    /// 回填渲染后的实际尺寸到 XML 中。
+    /// 回填渲染后的实际尺寸到 XML 中，通过遍历 <paramref name="page"/> 的 Children 收集指标。
     /// </summary>
     /// <param name="xml">SlideML XML 字符串。</param>
-    /// <param name="metricsProvider">通过元素 Id 获取渲染指标的委托。</param>
+    /// <param name="page">已完成渲染的页面数据模型。</param>
     /// <param name="context">渲染上下文（含画布尺寸）。</param>
     /// <returns>回填后的 XML。</returns>
-    public static string FormatRenderedXml(string xml, Func<string, SlideRenderedMetrics?> metricsProvider, SlideRenderContext context)
+    public static string FormatRenderedXml(string xml, SlidePage page, SlidePipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(xml);
-        ArgumentNullException.ThrowIfNull(metricsProvider);
+        ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
 
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
@@ -57,13 +53,13 @@ internal static class SlideXmlUtilities
 
         foreach (var element in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image"))
         {
-            var id = (string?) element.Attribute("Id");
+            var id = (string?)element.Attribute("Id");
             if (string.IsNullOrWhiteSpace(id))
             {
                 continue;
             }
 
-            var metrics = metricsProvider(id);
+            var metrics = FindMetrics(page, id);
             if (metrics is null)
             {
                 continue;
@@ -82,6 +78,47 @@ internal static class SlideXmlUtilities
         }
 
         return document.ToString();
+    }
+
+    private static SlideRenderedMetrics? FindMetrics(SlidePage page, string id)
+    {
+        foreach (var child in page.Children)
+        {
+            var metrics = FindMetricsInElement(child, id);
+            if (metrics is not null)
+            {
+                return metrics;
+            }
+        }
+
+        return null;
+    }
+
+    private static SlideRenderedMetrics? FindMetricsInElement(SlideElement element, string id)
+    {
+        if (string.Equals(element.Id, id, StringComparison.Ordinal))
+        {
+            return new SlideRenderedMetrics
+            {
+                ActualWidth = element.ActualWidth,
+                ActualHeight = element.ActualHeight,
+                ActualLineCount = element is SlideTextElement text ? text.ActualLineCount : null,
+            };
+        }
+
+        if (element is SlidePanelElement panel)
+        {
+            foreach (var child in panel.Children)
+            {
+                var metrics = FindMetricsInElement(child, id);
+                if (metrics is not null)
+                {
+                    return metrics;
+                }
+            }
+        }
+
+        return null;
     }
 
     public static string FormatNumber(double value)

@@ -11,112 +11,63 @@ namespace PptxGenerator;
 internal sealed class SlideLayoutEngine : ISlideLayoutEngine
 {
     /// <inheritdoc />
-    public void PreLayout(SlidePage page, SlideRenderContext context, List<string> warnings)
+    public void PreLayout(SlidePage page, SlidePipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(warnings);
 
         page.LayoutBounds = new Rect(0, 0, context.CanvasWidth, context.CanvasHeight);
-        LayoutChildren(page.Children, page.LayoutBounds, warnings, parentId: "Page", clipToParent: false, context, useMeasured: false, measurements: null);
+        LayoutChildren(page.Children, page.LayoutBounds, parentId: "Page", clipToParent: false, context, useMeasured: false, measurements: null);
     }
 
     /// <inheritdoc />
-    public void FinalLayout(SlidePage page, SlideRenderContext context, IReadOnlyDictionary<string, SlideMeasureResult> measurements, List<string> warnings)
+    public void FinalLayout(SlidePage page, SlidePipelineContext context, SlideElementMeasurements measurements)
     {
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(measurements);
-        ArgumentNullException.ThrowIfNull(warnings);
 
         page.LayoutBounds = new Rect(0, 0, context.CanvasWidth, context.CanvasHeight);
-        LayoutChildren(page.Children, page.LayoutBounds, warnings, parentId: "Page", clipToParent: false, context, useMeasured: true, measurements);
-    }
-
-    /// <inheritdoc />
-    public SlideRenderedMetrics? FindMetrics(SlidePage page, string id)
-    {
-        ArgumentNullException.ThrowIfNull(page);
-        ArgumentNullException.ThrowIfNull(id);
-
-        foreach (var child in page.Children)
-        {
-            var metrics = FindMetrics(child, id);
-            if (metrics is not null)
-            {
-                return metrics;
-            }
-        }
-
-        return null;
-    }
-
-    private static SlideRenderedMetrics? FindMetrics(SlideElement element, string id)
-    {
-        if (string.Equals(element.Id, id, StringComparison.Ordinal))
-        {
-            return new SlideRenderedMetrics
-            {
-                ActualWidth = element.ActualWidth,
-                ActualHeight = element.ActualHeight,
-                ActualLineCount = element is SlideTextElement text ? text.ActualLineCount : null,
-            };
-        }
-
-        if (element is SlidePanelElement panel)
-        {
-            foreach (var child in panel.Children)
-            {
-                var metrics = FindMetrics(child, id);
-                if (metrics is not null)
-                {
-                    return metrics;
-                }
-            }
-        }
-
-        return null;
+        LayoutChildren(page.Children, page.LayoutBounds, parentId: "Page", clipToParent: false, context, useMeasured: true, measurements);
     }
 
     private static void LayoutChildren(
         IReadOnlyList<SlideElement> children,
         Rect parentBounds,
-        List<string> warnings,
         string parentId,
         bool clipToParent,
-        SlideRenderContext context,
+        SlidePipelineContext context,
         bool useMeasured,
-        IReadOnlyDictionary<string, SlideMeasureResult>? measurements)
+        SlideElementMeasurements? measurements)
     {
         foreach (var child in children)
         {
-            LayoutElement(child, parentBounds, warnings, parentId, clipToParent, context, useMeasured, measurements);
+            LayoutElement(child, parentBounds, parentId, clipToParent, context, useMeasured, measurements);
         }
     }
 
     private static void LayoutElement(
         SlideElement element,
         Rect parentBounds,
-        List<string> warnings,
         string parentId,
         bool clipToParent,
-        SlideRenderContext context,
+        SlidePipelineContext context,
         bool useMeasured,
-        IReadOnlyDictionary<string, SlideMeasureResult>? measurements)
+        SlideElementMeasurements? measurements)
     {
         switch (element)
         {
             case SlidePanelElement panel:
-                LayoutPanel(panel, parentBounds, warnings, parentId, clipToParent, context, useMeasured, measurements);
+                LayoutPanel(panel, parentBounds, parentId, clipToParent, context, useMeasured, measurements);
                 break;
             case SlideRectElement rect:
-                LayoutRect(rect, parentBounds, warnings, parentId, clipToParent, context);
+                LayoutRect(rect, parentBounds, parentId, clipToParent, context);
                 break;
             case SlideTextElement text:
-                LayoutText(text, parentBounds, warnings, parentId, clipToParent, context, useMeasured, measurements);
+                LayoutText(text, parentBounds, parentId, clipToParent, context, useMeasured, measurements);
                 break;
             case SlideImageElement image:
-                LayoutImage(image, parentBounds, warnings, parentId, clipToParent, context, useMeasured, measurements);
+                LayoutImage(image, parentBounds, parentId, clipToParent, context, useMeasured, measurements);
                 break;
             default:
                 throw new InvalidOperationException($"未知元素类型: {element.GetType().Name}");
@@ -126,12 +77,11 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
     private static void LayoutPanel(
         SlidePanelElement panel,
         Rect parentBounds,
-        List<string> warnings,
         string parentId,
         bool clipToParent,
-        SlideRenderContext context,
+        SlidePipelineContext context,
         bool useMeasured,
-        IReadOnlyDictionary<string, SlideMeasureResult>? measurements)
+        SlideElementMeasurements? measurements)
     {
         var provisionalWidth = panel.Width ?? Math.Max(0, parentBounds.Width - panel.Padding * 2);
         var provisionalHeight = panel.Height ?? Math.Max(0, parentBounds.Height - panel.Padding * 2);
@@ -139,7 +89,7 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
         var initialChildOrigin = new Point(parentBounds.X + (panel.X ?? 0) + panel.Padding, parentBounds.Y + (panel.Y ?? 0) + panel.Padding);
         var provisionalContentBounds = new Rect(initialChildOrigin.X, initialChildOrigin.Y, provisionalWidth, provisionalHeight);
 
-        LayoutChildren(panel.Children, provisionalContentBounds, warnings, panel.Id, clipToParent: true, context, useMeasured, measurements);
+        LayoutChildren(panel.Children, provisionalContentBounds, panel.Id, clipToParent: true, context, useMeasured, measurements);
 
         var contentRight = 0d;
         var contentBottom = 0d;
@@ -161,18 +111,17 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
         panel.ActualHeight = actualHeight;
 
         var finalContentBounds = new Rect(originX + panel.Padding, originY + panel.Padding, Math.Max(0, actualWidth - panel.Padding * 2), Math.Max(0, actualHeight - panel.Padding * 2));
-        LayoutChildren(panel.Children, finalContentBounds, warnings, panel.Id, clipToParent: true, context, useMeasured, measurements);
+        LayoutChildren(panel.Children, finalContentBounds, panel.Id, clipToParent: true, context, useMeasured, measurements);
 
-        ValidateBounds(panel, parentBounds, warnings, parentId, clipToParent, context);
+        ValidateBounds(panel, parentBounds, parentId, clipToParent, context);
     }
 
     private static void LayoutRect(
         SlideRectElement rect,
         Rect parentBounds,
-        List<string> warnings,
         string parentId,
         bool clipToParent,
-        SlideRenderContext context)
+        SlidePipelineContext context)
     {
         var width = rect.Width ?? 0;
         var height = rect.Height ?? 0;
@@ -184,18 +133,17 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
         rect.ActualWidth = width;
         rect.ActualHeight = height;
 
-        ValidateBounds(rect, parentBounds, warnings, parentId, clipToParent, context);
+        ValidateBounds(rect, parentBounds, parentId, clipToParent, context);
     }
 
     private static void LayoutText(
         SlideTextElement text,
         Rect parentBounds,
-        List<string> warnings,
         string parentId,
         bool clipToParent,
-        SlideRenderContext context,
+        SlidePipelineContext context,
         bool useMeasured,
-        IReadOnlyDictionary<string, SlideMeasureResult>? measurements)
+        SlideElementMeasurements? measurements)
     {
         double measuredWidth;
         double measuredHeight;
@@ -227,22 +175,21 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
             {
                 var averageLineHeight = text.ActualLineCount == 0 ? lineHeight : mr.MeasuredHeight / text.ActualLineCount;
                 var visibleLineCount = averageLineHeight <= 0 ? 0 : Math.Max(0, (int)Math.Floor(fixedHeight / averageLineHeight));
-                warnings.Add($"[Warning] {text.Id}: ActualLineCount={text.ActualLineCount}，超出容器高度（当前高度仅容纳 {visibleLineCount} 行）");
+                context.Warnings.Add($"[Warning] {text.Id}: ActualLineCount={text.ActualLineCount}，超出容器高度（当前高度仅容纳 {visibleLineCount} 行）");
             }
         }
 
-        ValidateBounds(text, parentBounds, warnings, parentId, clipToParent, context);
+        ValidateBounds(text, parentBounds, parentId, clipToParent, context);
     }
 
     private static void LayoutImage(
         SlideImageElement image,
         Rect parentBounds,
-        List<string> warnings,
         string parentId,
         bool clipToParent,
-        SlideRenderContext context,
+        SlidePipelineContext context,
         bool useMeasured,
-        IReadOnlyDictionary<string, SlideMeasureResult>? measurements)
+        SlideElementMeasurements? measurements)
     {
         double width;
         double height;
@@ -266,35 +213,35 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
         image.ActualWidth = width;
         image.ActualHeight = height;
 
-        ValidateBounds(image, parentBounds, warnings, parentId, clipToParent, context);
+        ValidateBounds(image, parentBounds, parentId, clipToParent, context);
     }
 
-    private static void ValidateBounds(SlideElement element, Rect parentBounds, List<string> warnings, string parentId, bool clipToParent, SlideRenderContext context)
+    private static void ValidateBounds(SlideElement element, Rect parentBounds, string parentId, bool clipToParent, SlidePipelineContext context)
     {
         var bounds = element.LayoutBounds;
         if (bounds.Right > context.CanvasWidth)
         {
-            warnings.Add($"[Warning] {element.Id}: 元素右边界 X={SlideXmlUtilities.FormatNumber(bounds.Right)} 超出画布宽度 {context.CanvasWidth}");
+            context.Warnings.Add($"[Warning] {element.Id}: 元素右边界 X={SlideXmlUtilities.FormatNumber(bounds.Right)} 超出画布宽度 {context.CanvasWidth}");
         }
 
         if (bounds.Bottom > context.CanvasHeight)
         {
-            warnings.Add($"[Warning] {element.Id}: 元素下边界 Y={SlideXmlUtilities.FormatNumber(bounds.Bottom)} 超出画布高度 {context.CanvasHeight}");
+            context.Warnings.Add($"[Warning] {element.Id}: 元素下边界 Y={SlideXmlUtilities.FormatNumber(bounds.Bottom)} 超出画布高度 {context.CanvasHeight}");
         }
 
         if (bounds.X < 0)
         {
-            warnings.Add($"[Warning] {element.Id}: 元素左边界 X={SlideXmlUtilities.FormatNumber(bounds.X)} 超出画布左侧 0");
+            context.Warnings.Add($"[Warning] {element.Id}: 元素左边界 X={SlideXmlUtilities.FormatNumber(bounds.X)} 超出画布左侧 0");
         }
 
         if (bounds.Y < 0)
         {
-            warnings.Add($"[Warning] {element.Id}: 元素上边界 Y={SlideXmlUtilities.FormatNumber(bounds.Y)} 超出画布顶部 0");
+            context.Warnings.Add($"[Warning] {element.Id}: 元素上边界 Y={SlideXmlUtilities.FormatNumber(bounds.Y)} 超出画布顶部 0");
         }
 
         if (clipToParent && !parentBounds.Contains(bounds))
         {
-            warnings.Add($"[Warning] {element.Id}: 元素超出父容器 {parentId}，超出部分将被裁剪");
+            context.Warnings.Add($"[Warning] {element.Id}: 元素超出父容器 {parentId}，超出部分将被裁剪");
         }
     }
 

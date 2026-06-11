@@ -19,35 +19,33 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
     private readonly Dictionary<string, BitmapSource?> _bitmapCache = new();
 
     /// <inheritdoc />
-    public Dictionary<string, SlideMeasureResult> PreMeasure(SlidePage page, SlideRenderContext context, List<string> warnings)
+    public SlideElementMeasurements PreMeasure(SlidePage page, SlidePipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(warnings);
 
         _formattedTextCache.Clear();
         _bitmapCache.Clear();
 
         var results = new Dictionary<string, SlideMeasureResult>();
-        PreMeasureElements(page.Children, results, warnings);
-        return results;
+        PreMeasureElements(page.Children, results, context);
+        return new SlideElementMeasurements(results);
     }
 
     /// <inheritdoc />
-    public void Render(SlidePage page, DrawingContext dc, SlideRenderContext context, List<string> warnings)
+    public void Render(SlidePage page, DrawingContext dc, SlidePipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(dc);
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(warnings);
 
         dc.DrawRectangle(CreateBrush(page.Background, Colors.White), null,
             new Rect(0, 0, context.CanvasWidth, context.CanvasHeight));
-        DrawElements(dc, page.Children, warnings);
+        DrawElements(dc, page.Children, context);
     }
 
     /// <inheritdoc />
-    public RenderTargetBitmap RenderErrorPreview(string message, SlideRenderContext context)
+    public RenderTargetBitmap RenderErrorPreview(string message, SlidePipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(context);
@@ -100,26 +98,26 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         return bitmap;
     }
 
-    private void PreMeasureElements(IReadOnlyList<SlideElement> elements, Dictionary<string, SlideMeasureResult> results, List<string> warnings)
+    private void PreMeasureElements(IReadOnlyList<SlideElement> elements, Dictionary<string, SlideMeasureResult> results, SlidePipelineContext context)
     {
         foreach (var element in elements)
         {
-            PreMeasureElement(element, results, warnings);
+            PreMeasureElement(element, results, context);
         }
     }
 
-    private void PreMeasureElement(SlideElement element, Dictionary<string, SlideMeasureResult> results, List<string> warnings)
+    private void PreMeasureElement(SlideElement element, Dictionary<string, SlideMeasureResult> results, SlidePipelineContext context)
     {
         switch (element)
         {
             case SlidePanelElement panel:
-                PreMeasureElements(panel.Children, results, warnings);
+                PreMeasureElements(panel.Children, results, context);
                 break;
             case SlideTextElement text:
                 PreMeasureText(text, results);
                 break;
             case SlideImageElement image:
-                PreMeasureImage(image, results, warnings);
+                PreMeasureImage(image, results, context);
                 break;
         }
     }
@@ -165,14 +163,14 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         };
     }
 
-    private void PreMeasureImage(SlideImageElement image, Dictionary<string, SlideMeasureResult> results, List<string> warnings)
+    private void PreMeasureImage(SlideImageElement image, Dictionary<string, SlideMeasureResult> results, SlidePipelineContext context)
     {
         var bitmap = TryLoadBitmap(image.Source);
         _bitmapCache[image.Id] = bitmap;
 
         if (bitmap is null)
         {
-            warnings.Add($"[Warning] {image.Id}: 图片资源 {image.Source} 未找到，已使用占位图");
+            context.Warnings.Add($"[Warning] {image.Id}: 图片资源 {image.Source} 未找到，已使用占位图");
         }
 
         var measuredWidth = image.Width ?? (bitmap?.PixelWidth ?? 240);
@@ -185,23 +183,23 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         };
     }
 
-    private void DrawElements(DrawingContext dc, IReadOnlyList<SlideElement> elements, List<string> warnings)
+    private void DrawElements(DrawingContext dc, IReadOnlyList<SlideElement> elements, SlidePipelineContext context)
     {
         foreach (var element in elements)
         {
-            DrawElement(dc, element, warnings);
+            DrawElement(dc, element, context);
         }
     }
 
-    private void DrawElement(DrawingContext dc, SlideElement element, List<string> warnings)
+    private void DrawElement(DrawingContext dc, SlideElement element, SlidePipelineContext context)
     {
-        var opacity = ClampOpacity(element.Opacity);
+        var opacity = Math.Clamp(element.Opacity, 0, 1);
         dc.PushOpacity(opacity);
 
         switch (element)
         {
             case SlidePanelElement panel:
-                DrawPanel(dc, panel, warnings);
+                DrawPanel(dc, panel, context);
                 break;
             case SlideRectElement rect:
                 DrawRect(dc, rect);
@@ -217,7 +215,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         dc.Pop();
     }
 
-    private void DrawPanel(DrawingContext dc, SlidePanelElement panel, List<string> warnings)
+    private void DrawPanel(DrawingContext dc, SlidePanelElement panel, SlidePipelineContext context)
     {
         if (!string.IsNullOrWhiteSpace(panel.Background))
         {
@@ -225,7 +223,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         }
 
         dc.PushClip(new RectangleGeometry(panel.LayoutBounds));
-        DrawElements(dc, panel.Children, warnings);
+        DrawElements(dc, panel.Children, context);
         dc.Pop();
     }
 
@@ -366,21 +364,6 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         }
 
         return new SolidColorBrush(fallbackColor);
-    }
-
-    internal static double ClampOpacity(double opacity)
-    {
-        if (opacity < 0)
-        {
-            return 0;
-        }
-
-        if (opacity > 1)
-        {
-            return 1;
-        }
-
-        return opacity;
     }
 
     internal static BitmapSource? TryLoadBitmap(string source)

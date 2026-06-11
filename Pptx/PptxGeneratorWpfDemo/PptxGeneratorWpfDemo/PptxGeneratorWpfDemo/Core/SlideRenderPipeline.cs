@@ -16,7 +16,7 @@ public sealed class SlideRenderPipeline
     private readonly SlideMlParser _parser;
     private readonly ISlideLayoutEngine _layoutEngine;
     private readonly ISlideRenderEngine _renderEngine;
-    private readonly SlideRenderContext _context;
+    private readonly SlidePipelineContext _context;
 
     /// <summary>
     /// 初始化 <see cref="SlideRenderPipeline"/> 的新实例，使用默认布局引擎和渲染引擎。
@@ -32,7 +32,7 @@ public sealed class SlideRenderPipeline
         /// <param name="layoutEngine">布局引擎。</param>
         /// <param name="renderEngine">渲染引擎。</param>
         internal SlideRenderPipeline(ISlideLayoutEngine layoutEngine, ISlideRenderEngine renderEngine)
-            : this(layoutEngine, renderEngine, new SlideRenderContext())
+            : this(layoutEngine, renderEngine, new SlidePipelineContext())
         {
         }
 
@@ -42,7 +42,7 @@ public sealed class SlideRenderPipeline
         /// <param name="layoutEngine">布局引擎。</param>
         /// <param name="renderEngine">渲染引擎。</param>
         /// <param name="context">渲染上下文。</param>
-        internal SlideRenderPipeline(ISlideLayoutEngine layoutEngine, ISlideRenderEngine renderEngine, SlideRenderContext context)
+        internal SlideRenderPipeline(ISlideLayoutEngine layoutEngine, ISlideRenderEngine renderEngine, SlidePipelineContext context)
     {
         _layoutEngine = layoutEngine ?? throw new ArgumentNullException(nameof(layoutEngine));
         _renderEngine = renderEngine ?? throw new ArgumentNullException(nameof(renderEngine));
@@ -53,7 +53,7 @@ public sealed class SlideRenderPipeline
     /// <summary>
     /// 获取渲染上下文。
     /// </summary>
-    public SlideRenderContext Context => _context;
+    public SlidePipelineContext Context => _context;
 
     /// <summary>
     /// 将 SlideML 渲染为预览图，并返回回填后的 XML 与警告信息。
@@ -76,38 +76,41 @@ public sealed class SlideRenderPipeline
             var normalizedXml = SlideXmlUtilities.NormalizeXml(SlideXmlUtilities.ExtractXml(slideXml));
             var parseContext = new SlideParseContext();
             var page = _parser.Parse(normalizedXml, parseContext);
-            var warnings = new List<string>(parseContext.GetWarnings());
+
+            // 将解析阶段的警告合并到上下文
+            _context.Warnings.Clear();
+            _context.Warnings.AddRange(parseContext.GetWarnings());
 
             // 阶段 ①: PreLayout
-            _layoutEngine.PreLayout(page, _context, warnings);
+            _layoutEngine.PreLayout(page, _context);
 
             // 阶段 ②: PreMeasure（在 UI 线程执行）
-            Dictionary<string, SlideMeasureResult> measurements = null!;
+            SlideElementMeasurements measurements = null!;
             var previewBitmap = await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                measurements = _renderEngine.PreMeasure(page, _context, warnings);
+                measurements = _renderEngine.PreMeasure(page, _context);
 
                 // 阶段 ③: FinalLayout
-                _layoutEngine.FinalLayout(page, _context, measurements, warnings);
+                _layoutEngine.FinalLayout(page, _context, measurements);
 
                 // 阶段 ④: Render
                 var bitmap = new RenderTargetBitmap(_context.CanvasWidth, _context.CanvasHeight, 96.0, 96.0, PixelFormats.Pbgra32);
                 var visual = new DrawingVisual();
                 using (var dc = visual.RenderOpen())
                 {
-                    _renderEngine.Render(page, dc, _context, warnings);
+                    _renderEngine.Render(page, dc, _context);
                 }
                 bitmap.Render(visual);
 
                 return bitmap;
             });
 
-            var renderedXml = SlideXmlUtilities.FormatRenderedXml(normalizedXml, id => _layoutEngine.FindMetrics(page, id), _context);
+            var renderedXml = SlideXmlUtilities.FormatRenderedXml(normalizedXml, page, _context);
             return new SlideRenderResult
             {
                 InputXml = normalizedXml,
                 OutputXml = renderedXml,
-                Warnings = warnings,
+                Warnings = _context.Warnings,
                 PreviewBitmap = previewBitmap,
             };
         }
