@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 using Microsoft.Win32.SafeHandles;
 
-namespace JucojocuNeficawhurholee.Interop;
+namespace DotNetCampus.HttpClientOverOpenSsl.Interop;
 
 /// <summary>
 /// OpenSSL P/Invoke declarations and SafeHandle wrappers.
