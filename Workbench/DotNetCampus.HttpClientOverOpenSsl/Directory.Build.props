@@ -1,0 +1,27 @@
+<Project>
+
+  <Import Project="build\Version.props" />
+
+  <!-- 框架和语言信息 -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Deterministic>true</Deterministic>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- 库和项目信息 -->
+  <PropertyGroup>
+    <Description>让 HttpClient 的 HTTPS 请求通过 OpenSSL 原生 DLL 完成 TLS 握手和数据传输。</Description>
+    <Authors>dotnet-campus</Authors>
+    <Company>dotnet-campus</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/dotnet-campus/DotNetCampus.HttpClientOverOpenSsl</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dotnet-campus/DotNetCampus.HttpClientOverOpenSsl.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+</Project>

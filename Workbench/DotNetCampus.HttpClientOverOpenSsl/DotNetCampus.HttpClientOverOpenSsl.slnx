@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/build/">
+    <File Path=".gitignore" />
+    <File Path=".gitattributes" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="build/Version.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/DotNetCampus.HttpClientOverOpenSsl/DotNetCampus.HttpClientOverOpenSsl.csproj" />
+  </Folder>
+</Solution>
