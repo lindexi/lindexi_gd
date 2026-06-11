@@ -11,17 +11,22 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var chatClientCreator = new ChatClientCreator();
-            var slideRenderer = new SlideRenderer();
-            var slideGenerationService = new SlideGenerationService(chatClientCreator, slideRenderer);
+            var slideChatManager = await Program.CreateSlideChatManagerAsync().ConfigureAwait(true);
+            if (slideChatManager is null)
+            {
+                return;
+            }
+
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(slideGenerationService)
+                DataContext = new MainWindowViewModel(slideChatManager)
             };
+
+            desktop.MainWindow.Show();
         }
 
         base.OnFrameworkInitializationCompleted();

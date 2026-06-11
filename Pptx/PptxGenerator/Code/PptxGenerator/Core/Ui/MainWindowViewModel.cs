@@ -1,108 +1,160 @@
-using Avalonia.Media.Imaging;
-using Avalonia.Threading;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using AgentLib.Model;
 
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace PptxGenerator;
 
+/// <summary>
+/// ComboBox 中用于显示模型选项的数据项，包含供应商和模型名。
+/// </summary>
+public sealed record ModelDisplayItem(string Provider, string ModelName)
+{
+    /// <summary>
+    /// 用于 ComboBox 展示的格式化字符串，格式："供应商: 模型名"。
+    /// </summary>
+    public string DisplayName => string.IsNullOrEmpty(Provider) ? ModelName : $"{Provider}: {ModelName}";
+}
+
 public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
-    private readonly SlideGenerationService _slideGenerationService;
-    private readonly DelegateCommand _generateCommand;
-    private readonly DelegateCommand _continueCommand;
+    private readonly DelegateCommand _sendMessageCommand;
+    private readonly DelegateCommand _attachImageCommand;
+    private readonly DelegateCommand _evaluateCommand;
+    private readonly DelegateCommand _evaluatePromptCommand;
     private bool _isBusy;
-    private string _prompt = "做一页介绍 SlideML 的实验性单页幻灯片，要求包含标题、三张卡片和一段总结，整体采用浅色科技风。";
-    private string _followUpMessage = "";
+    private bool _isFirstMessage = true;
+    private bool _attachPreview;
+    private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
     private string _statusText = "等待开始";
-    private string _warningText = "";
-    private string _currentSlideXml = "";
-    private string _renderedXml = "";
-    private Bitmap? _previewBitmap;
-    private string _conversationText = "";
-    private string _lastOriginalPrompt = "";
+    private string _evaluationSummaryText = string.Empty;
+    private string _lastUserPrompt = string.Empty;
+    private ModelDisplayItem _selectedModelItem;
 
-    public MainWindowViewModel(SlideGenerationService slideGenerationService)
+    public MainWindowViewModel(SlideChatManager slideChatManager)
     {
-        _slideGenerationService = slideGenerationService ?? throw new ArgumentNullException(nameof(slideGenerationService));
-        Iterations = new ObservableCollection<SlideGenerationIteration>();
-        _generateCommand = new DelegateCommand(() => _ = RunGenerateAsync(), () => !IsBusy);
-        _continueCommand = new DelegateCommand(() => _ = RunContinueAsync(), () => !IsBusy && !string.IsNullOrWhiteSpace(CurrentSlideXml) && !string.IsNullOrWhiteSpace(FollowUpMessage));
+        SlideChatManager = slideChatManager ?? throw new ArgumentNullException(nameof(slideChatManager));
+        SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
+
+        var pipeline = slideChatManager.Pipeline;
+        pipeline.EvaluationCompleted += OnEvaluationCompleted;
+        pipeline.PromptEvaluationCompleted += OnPromptEvaluationCompleted;
+
+        var displayItems = SlideChatManager.AvailableModels
+            .Select(m => new ModelDisplayItem(m.ModelDefinition.Provider, m.ModelDefinition.ModelName))
+            .ToList();
+        AvailableModelItems = new ObservableCollection<ModelDisplayItem>(displayItems);
+
+        var currentModel = slideChatManager.CurrentModel;
+        _selectedModelItem = new ModelDisplayItem(
+            currentModel.ModelDefinition.Provider,
+            currentModel.ModelDefinition.ModelName);
+
+        _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
+        _attachImageCommand = new DelegateCommand(() => { }, () => !IsBusy);
+        _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
+        _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), () => !IsBusy);
     }
 
+    /// <summary>
+    /// 订阅 SlideChatManager 的属性变更，在工具调用过程中即可实时刷新 UI 绑定。
+    /// </summary>
+    private void OnSlideChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(SlideChatManager.PreviewBitmap):
+            case nameof(SlideChatManager.CurrentSlideXml):
+            case nameof(SlideChatManager.RenderedXml):
+            case nameof(SlideChatManager.WarningText):
+            case nameof(SlideChatManager.LastEvaluationResult):
+            case nameof(SlideChatManager.LastPromptEvaluationResult):
+                OnPropertyChanged(e.PropertyName!);
+                break;
+        }
+    }
+
+    private void OnEvaluationCompleted(object? sender, SlideEvaluationResult result)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            EvaluationSummaryText = $"评估完成 | 综合评分: {result.OverallScore:F1}/10";
+            _evaluateCommand.RaiseCanExecuteChanged();
+        });
+    }
+
+    private void OnPromptEvaluationCompleted(object? sender, PromptEvaluationResult result)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _evaluatePromptCommand.RaiseCanExecuteChanged();
+        });
+    }
+
+    /// <summary>
+    /// SlideML 聊天管理器，暴露给界面直接绑定。
+    /// </summary>
+    public SlideChatManager SlideChatManager { get; }
+
+    /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ICommand GenerateCommand => _generateCommand;
+    public ICommand SendMessageCommand => _sendMessageCommand;
 
-    public ICommand ContinueCommand => _continueCommand;
+    /// <summary>
+    /// 手动触发 SlideML 评估命令。
+    /// </summary>
+    public ICommand EvaluateCommand => _evaluateCommand;
 
-    public ObservableCollection<SlideGenerationIteration> Iterations { get; }
+    /// <summary>
+    /// 手动触发提示词评估命令。
+    /// </summary>
+    public ICommand EvaluatePromptCommand => _evaluatePromptCommand;
 
-    public string Prompt
+    /// <summary>
+    /// 附加图片命令。
+    /// </summary>
+    public ICommand AttachImageCommand => _attachImageCommand;
+
+    /// <summary>
+    /// 用户手动选择的待发送图片文件列表。
+    /// </summary>
+    public ObservableCollection<FileInfo> AttachedImageFiles { get; } = new();
+
+    /// <summary>
+    /// 可用的模型选项列表，用于 ComboBox 绑定。
+    /// </summary>
+    public ObservableCollection<ModelDisplayItem> AvailableModelItems { get; }
+
+    /// <summary>
+    /// 当前选中的模型选项。设置时触发模型切换。
+    /// </summary>
+    public ModelDisplayItem SelectedModelItem
     {
-        get => _prompt;
-        set => SetProperty(ref _prompt, value);
-    }
-
-    public string FollowUpMessage
-    {
-        get => _followUpMessage;
+        get => _selectedModelItem;
         set
         {
-            if (SetProperty(ref _followUpMessage, value))
+            if (SetProperty(ref _selectedModelItem, value) && value is not null)
             {
-                _continueCommand.RaiseCanExecuteChanged();
+                SlideChatManager.SetModel(value.ModelName, string.IsNullOrEmpty(value.Provider) ? null : value.Provider);
             }
         }
     }
 
-    public string StatusText
-    {
-        get => _statusText;
-        private set => SetProperty(ref _statusText, value);
-    }
-
-    public string WarningText
-    {
-        get => _warningText;
-        private set => SetProperty(ref _warningText, value);
-    }
-
-    public string CurrentSlideXml
-    {
-        get => _currentSlideXml;
-        private set
-        {
-            if (SetProperty(ref _currentSlideXml, value))
-            {
-                _continueCommand.RaiseCanExecuteChanged();
-            }
-        }
-    }
-
-    public string RenderedXml
-    {
-        get => _renderedXml;
-        private set => SetProperty(ref _renderedXml, value);
-    }
-
-    public Bitmap? PreviewBitmap
-    {
-        get => _previewBitmap;
-        private set => SetProperty(ref _previewBitmap, value);
-    }
-
-    public string ConversationText
-    {
-        get => _conversationText;
-        private set => SetProperty(ref _conversationText, value);
-    }
+    /// <summary>
+    /// 聊天气泡消息列表。
+    /// </summary>
+#pragma warning disable CS0618 // 类型或成员已过时
+    public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.ChatManager.ChatMessages;
+#pragma warning restore CS0618
 
     public bool IsBusy
     {
@@ -111,75 +163,109 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             if (SetProperty(ref _isBusy, value))
             {
-                _generateCommand.RaiseCanExecuteChanged();
-                _continueCommand.RaiseCanExecuteChanged();
+                _sendMessageCommand.RaiseCanExecuteChanged();
+                _evaluateCommand.RaiseCanExecuteChanged();
+                _evaluatePromptCommand.RaiseCanExecuteChanged();
             }
         }
     }
 
-    private async Task RunGenerateAsync()
+    public string InputText
     {
-        if (string.IsNullOrWhiteSpace(Prompt))
+        get => _inputText;
+        set
         {
-            StatusText = "请输入页面需求。";
-            return;
-        }
-
-        await ExecuteBusyAsync(async cancellationToken =>
-        {
-            StatusText = "正在调用模型并生成页面...";
-            var session = await _slideGenerationService.GenerateAsync(Prompt, cancellationToken).ConfigureAwait(false);
-            _lastOriginalPrompt = Prompt;
-            await Dispatcher.UIThread.InvokeAsync(() => ApplySessionResult(session, clearFollowUp: false));
-            StatusText = $"完成，共迭代 {session.Iterations.Count} 轮";
-        }).ConfigureAwait(false);
-    }
-
-    private async Task RunContinueAsync()
-    {
-        if (string.IsNullOrWhiteSpace(CurrentSlideXml))
-        {
-            StatusText = "当前没有可继续修改的页面。";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(FollowUpMessage))
-        {
-            StatusText = "请输入新的修改意见。";
-            return;
-        }
-
-        await ExecuteBusyAsync(async cancellationToken =>
-        {
-            StatusText = "正在继续对话并修正页面...";
-            var session = await _slideGenerationService.ContinueConversationAsync(_lastOriginalPrompt, SplitConversation(ConversationText), CurrentSlideXml, FollowUpMessage, cancellationToken).ConfigureAwait(false);
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            if (SetProperty(ref _inputText, value))
             {
-                ApplySessionResult(session, clearFollowUp: true);
-                FollowUpMessage = string.Empty;
-            });
-            StatusText = $"已根据最新意见完成 {session.Iterations.Count} 轮修正";
-        }).ConfigureAwait(false);
+                _sendMessageCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
 
-    private async Task ExecuteBusyAsync(Func<CancellationToken, Task> action)
+    public string StatusText
     {
+        get => _statusText;
+        set => SetProperty(ref _statusText, value);
+    }
+
+    /// <summary>
+    /// 评估摘要文本，在评估完成后显示综合评分。
+    /// </summary>
+    public string EvaluationSummaryText
+    {
+        get => _evaluationSummaryText;
+        set => SetProperty(ref _evaluationSummaryText, value);
+    }
+
+    /// <summary>
+    /// 是否在发送消息时附加当前渲染预览图。
+    /// </summary>
+    public bool AttachPreview
+    {
+        get => _attachPreview;
+        set => SetProperty(ref _attachPreview, value);
+    }
+
+    /// <summary>
+    /// 供 View 层调用，将选中的图片文件路径加入附件列表。
+    /// </summary>
+    public void AddAttachedImageFiles(System.Collections.Generic.IEnumerable<string> filePaths)
+    {
+        foreach (var filePath in filePaths)
+        {
+            if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+            {
+                AttachedImageFiles.Add(new FileInfo(filePath));
+            }
+        }
+    }
+
+    private async Task RunSendMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(InputText))
+        {
+            return;
+        }
+
+        var message = InputText;
+        InputText = string.Empty;
+
         IsBusy = true;
-        WarningText = string.Empty;
+        StatusText = "正在生成页面...";
+        EvaluationSummaryText = string.Empty;
+        _lastUserPrompt = message;
+
+        var isFirstMessage = _isFirstMessage;
+        if (_isFirstMessage)
+        {
+            _isFirstMessage = false;
+        }
+
+        var attachPreview = _attachPreview;
+
+        var imageFiles = AttachedImageFiles.Count > 0
+            ? AttachedImageFiles.Select(f => f.FullName).ToList()
+            : null;
+
+        AttachedImageFiles.Clear();
 
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            await action(cancellationTokenSource.Token);
+            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, cancellationTokenSource.Token).ConfigureAwait(false);
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = "完成";
+            });
         }
         catch (OperationCanceledException)
         {
             StatusText = "操作已取消。";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             StatusText = "执行失败";
-            WarningText = ex.ToString();
         }
         finally
         {
@@ -187,33 +273,73 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    private void ApplySessionResult(SlideGenerationSessionResult session, bool clearFollowUp)
+    private async Task RunEvaluateAsync()
     {
-        Iterations.Clear();
-        foreach (var iteration in session.Iterations)
+        if (string.IsNullOrWhiteSpace(_lastUserPrompt) || IsBusy)
         {
-            Iterations.Add(iteration);
+            return;
         }
 
-        CurrentSlideXml = session.FinalSlideXml;
-        RenderedXml = session.FinalRenderResult.OutputXml;
-        PreviewBitmap = session.FinalRenderResult.PreviewBitmap;
-        WarningText = session.FinalRenderResult.Warnings.Count == 0
-            ? "没有警告，页面看起来已经可用。"
-            : string.Join(Environment.NewLine, session.FinalRenderResult.Warnings);
-        ConversationText = string.Join(Environment.NewLine + Environment.NewLine, session.ConversationMessages);
-
-        if (clearFollowUp)
+        IsBusy = true;
+        StatusText = "正在评估 SlideML...";
+        try
         {
-            FollowUpMessage = string.Empty;
+            await SlideChatManager.EvaluateAsync(_lastUserPrompt).ConfigureAwait(false);
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = "评估完成";
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "评估已取消。";
+        }
+        catch (Exception)
+        {
+            StatusText = "评估失败";
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
-    private static string[] SplitConversation(string conversation)
+    private async Task RunEvaluatePromptAsync()
     {
-        return string.IsNullOrWhiteSpace(conversation)
-            ? []
-            : conversation.Split(Environment.NewLine + Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        if (IsBusy)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "正在评估提示词...";
+        try
+        {
+            await SlideChatManager.EvaluatePromptAsync().ConfigureAwait(false);
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = "提示词评估完成";
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "评估已取消。";
+        }
+        catch (Exception)
+        {
+            StatusText = "提示词评估失败";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

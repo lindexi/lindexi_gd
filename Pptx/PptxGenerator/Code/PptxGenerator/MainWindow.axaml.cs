@@ -1,4 +1,9 @@
+using System;
+using System.Diagnostics;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Input;
+using Path = System.IO.Path;
 
 namespace PptxGenerator;
 
@@ -7,9 +12,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Width = 1580;
-        Height = 980;
-        MinWidth = 1280;
-        MinHeight = 800;
+    }
+
+    public MainWindowViewModel ViewModel => DataContext as MainWindowViewModel ?? throw new InvalidCastException("DataContext must be of type MainWindowViewModel.");
+
+    private void ImageBorder_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ViewModel.SlideChatManager.PreviewBitmap is { } previewBitmap)
+        {
+            var imageFilePath = Path.Join(AppContext.BaseDirectory, $"PreviewBitmap_{Path.GetRandomFileName()}.png");
+            previewBitmap.Save(imageFilePath);
+            Process.Start(new ProcessStartInfo(imageFilePath) { UseShellExecute = true });
+        }
     }
 }
