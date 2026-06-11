@@ -50,23 +50,27 @@ internal static class OpenSSLNative
 
         IntPtr MapAndLoad(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
+            // 提前计算归属，避免多处重复字符串比较
+            var isSsl = string.Equals(libraryName, LibSslConst, StringComparison.OrdinalIgnoreCase);
+            var isCrypto = string.Equals(libraryName, LibCryptoConst, StringComparison.OrdinalIgnoreCase);
+
             // 只处理已知的两个库，其他一律返回 0
-            if (libraryName != LibSslConst && libraryName != LibCryptoConst)
+            if (!isSsl && !isCrypto)
             {
                 return IntPtr.Zero;
             }
 
             // 检查缓存
-            ref var cachedHandle = ref libraryName == LibSslConst
+            ref var cachedHandle = ref isSsl
                 ? ref cachedSslHandle
-                : ref cachedCryptoHandle; // 用 ref 以便更新缓存
+                : ref cachedCryptoHandle;
 
             if (cachedHandle != IntPtr.Zero)
             {
                 return cachedHandle;
             }
 
-            var mappedName = libraryName == LibSslConst ? actualSsl : actualCrypto;
+            var mappedName = isSsl ? actualSsl : isCrypto ? actualCrypto : libraryName;
 
             // 1. AppContext.BaseDirectory 下带架构后缀的名称（如 libssl-3-x64.dll）
             var baseDirPath = Path.Join(AppContext.BaseDirectory, mappedName);
@@ -77,7 +81,7 @@ internal static class OpenSSLNative
             }
 
             // 2. AppContext.BaseDirectory 下不带架构后缀的原始名称（如 libssl-3.dll）
-            if (mappedName != libraryName)
+            if (!string.Equals(mappedName, libraryName, StringComparison.OrdinalIgnoreCase))
             {
                 var baseDirOriginalPath = Path.Join(AppContext.BaseDirectory, libraryName);
                 if (File.Exists(baseDirOriginalPath) && NativeLibrary.TryLoad(baseDirOriginalPath, out handle))
@@ -95,7 +99,7 @@ internal static class OpenSSLNative
                 return handle;
             }
 
-            if (rid.Contains("win10-"))
+            if (rid.Contains("win10-", StringComparison.OrdinalIgnoreCase))
             {
                 var winRid = rid.Replace("win10-", "win-");
                 var winRuntimesPath = Path.Join(AppContext.BaseDirectory, "runtimes", winRid, "native", mappedName);
@@ -119,7 +123,7 @@ internal static class OpenSSLNative
                 }
 
                 // 4b. 不带架构后缀的原始名称
-                if (mappedName != libraryName)
+                if (!string.Equals(mappedName, libraryName, StringComparison.OrdinalIgnoreCase))
                 {
                     var fallbackOriginalPath = Path.Join(fallbackPath, libraryName);
                     if (File.Exists(fallbackOriginalPath) && NativeLibrary.TryLoad(fallbackOriginalPath, out handle))
