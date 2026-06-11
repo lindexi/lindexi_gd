@@ -28,9 +28,23 @@ public class AgentApiEndpointManager
 
         if (configuration.PrimaryModel is var primaryModel && !string.IsNullOrEmpty(primaryModel))
         {
-            var supportedModels = GetSupportedModels();
-            var languageModel = supportedModels.FirstOrDefault(t =>
-                t.ModelDefinition.ModelName == primaryModel || t.ModelDefinition.ModelId == primaryModel);
+            ILanguageModel? languageModel = null;
+
+            // 支持 "Provider/ModelName" 或 "Provider\ModelName" 格式
+            var separatorIndex = primaryModel.IndexOfAny(new[] { '/', '\\' });
+            if (separatorIndex > 0 && separatorIndex < primaryModel.Length - 1)
+            {
+                var provider = primaryModel[..separatorIndex];
+                var modelName = primaryModel[(separatorIndex + 1)..];
+                languageModel = GetModel(modelName, provider);
+            }
+            else
+            {
+                var supportedModels = GetSupportedModels();
+                languageModel = supportedModels.FirstOrDefault(t =>
+                    t.ModelDefinition.ModelName == primaryModel || t.ModelDefinition.ModelId == primaryModel);
+            }
+
             if (languageModel is null)
             {
                 throw new ArgumentException($"Can not find PrimaryModel('{primaryModel}') in SupportedModels");
