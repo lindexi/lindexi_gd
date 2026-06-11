@@ -19,14 +19,14 @@ internal sealed class SlideMlParser
     {
         "Id", "X", "Y", "Width", "Height",
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
-        "Padding", "Background",
+        "Padding", "Background", "Layout", "Gap", "Margin",
     };
 
     private static readonly HashSet<string> _rectKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Id", "X", "Y", "Width", "Height",
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
-        "Fill", "Stroke", "StrokeThickness", "CornerRadius",
+        "Fill", "Stroke", "StrokeThickness", "CornerRadius", "Margin",
     };
 
     private static readonly HashSet<string> _textElementKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
@@ -34,14 +34,14 @@ internal sealed class SlideMlParser
         "Id", "X", "Y", "Width", "Height",
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
         "Text", "FontName", "FontSize", "Foreground",
-        "TextAlignment", "LineHeight",
+        "TextAlignment", "LineHeight", "Margin",
     };
 
     private static readonly HashSet<string> _imageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Id", "X", "Y", "Width", "Height",
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
-        "Source", "Stretch",
+        "Source", "Stretch", "Margin",
     };
 
     public SlidePage Parse(string xml, SlidePipelineContext context)
@@ -101,6 +101,9 @@ internal sealed class SlideMlParser
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Padding = GetOptionalDouble(element, "Padding", context) ?? 0,
             Background = GetOptionalString(element, "Background"),
+            Layout = GetOptionalLayoutDirection(element, id, context) ?? SlideLayoutDirection.Absolute,
+            Gap = GetOptionalDouble(element, "Gap", context) ?? 0,
+            Margin = GetOptionalThickness(element, "Margin", context),
         };
 
         foreach (var child in element.Elements())
@@ -129,6 +132,7 @@ internal sealed class SlideMlParser
             Stroke = GetOptionalString(element, "Stroke"),
             StrokeThickness = GetOptionalDouble(element, "StrokeThickness", context) ?? 0,
             CornerRadius = GetOptionalDouble(element, "CornerRadius", context) ?? 0,
+            Margin = GetOptionalThickness(element, "Margin", context),
         };
     }
 
@@ -158,6 +162,7 @@ internal sealed class SlideMlParser
             Foreground = GetOptionalString(element, "Foreground") ?? "#000000",
             TextAlignment = GetOptionalTextAlignment(element, id, context) ?? SlideTextAlignment.Left,
             LineHeight = GetOptionalDouble(element, "LineHeight", context) ?? 1.2,
+            Margin = GetOptionalThickness(element, "Margin", context),
         };
     }
 
@@ -183,6 +188,7 @@ internal sealed class SlideMlParser
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Source = source,
             Stretch = GetOptionalImageStretch(element, id, context) ?? SlideImageStretch.Uniform,
+            Margin = GetOptionalThickness(element, "Margin", context),
         };
     }
 
@@ -312,5 +318,49 @@ internal sealed class SlideMlParser
                 elementId,
                 text));
         return null;
+    }
+
+    private static SlideLayoutDirection? GetOptionalLayoutDirection(XElement element, string elementId, SlidePipelineContext context)
+    {
+        var text = GetOptionalString(element, "Layout");
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        if (Enum.TryParse<SlideLayoutDirection>(text, ignoreCase: true, out var result))
+        {
+            return result;
+        }
+
+        context.AddError(
+            string.Format(
+                "[Error] {0}: Layout 值 \"{1}\" 无效，已忽略（有效值：Absolute, Horizontal, Vertical）",
+                elementId,
+                text));
+        return null;
+    }
+
+    private static SlideThickness? GetOptionalThickness(XElement element, string attributeName, SlidePipelineContext context)
+    {
+        var text = GetOptionalString(element, attributeName);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var result = SlideThickness.Parse(text);
+        if (result is null)
+        {
+            var elementId = GetOptionalString(element, "Id");
+            context.AddError(
+                string.Format(
+                    "[Error] {0}: {1} 值 \"{2}\" 不是有效的间距格式（应为逗号分隔的 1~4 个数值）",
+                    elementId ?? "unknown",
+                    attributeName,
+                    text));
+        }
+
+        return result;
     }
 }
