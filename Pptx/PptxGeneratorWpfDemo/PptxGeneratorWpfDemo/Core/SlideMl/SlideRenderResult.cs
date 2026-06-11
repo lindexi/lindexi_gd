@@ -11,5 +11,7 @@ public sealed class SlideRenderResult
 
     public required IReadOnlyList<string> Warnings { get; init; }
 
+    public required IReadOnlyList<string> Errors { get; init; }
+
     public required BitmapSource PreviewBitmap { get; init; }
 }

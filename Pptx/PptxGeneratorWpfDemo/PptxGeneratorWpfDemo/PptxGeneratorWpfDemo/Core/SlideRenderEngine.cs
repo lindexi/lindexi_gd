@@ -170,7 +170,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
         if (bitmap is null)
         {
-            context.Warnings.Add($"[Warning] {image.Id}: 图片资源 {image.Source} 未找到，已使用占位图");
+            context.AddWarning($"[Warning] {image.Id}: 图片资源 {image.Source} 未找到，已使用占位图");
         }
 
         var measuredWidth = image.Width ?? (bitmap?.PixelWidth ?? 240);

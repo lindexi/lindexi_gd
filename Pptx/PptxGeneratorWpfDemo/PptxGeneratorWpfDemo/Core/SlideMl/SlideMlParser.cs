@@ -44,7 +44,7 @@ internal sealed class SlideMlParser
         "Source", "Stretch",
     };
 
-    public SlidePage Parse(string xml, SlideParseContext context)
+    public SlidePage Parse(string xml, SlidePipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(xml);
         ArgumentNullException.ThrowIfNull(context);
@@ -71,7 +71,7 @@ internal sealed class SlideMlParser
         return page;
     }
 
-    private SlideElement ParseElement(XElement element, SlideParseContext context)
+    private SlideElement ParseElement(XElement element, SlidePipelineContext context)
     {
         var id = GetOptionalString(element, "Id") ?? $"elem_{_nextId++:000}";
 
@@ -85,7 +85,7 @@ internal sealed class SlideMlParser
         };
     }
 
-    private SlidePanelElement ParsePanel(XElement element, string id, SlideParseContext context)
+    private SlidePanelElement ParsePanel(XElement element, string id, SlidePipelineContext context)
     {
         ValidateAttributes(element, id, _panelKnownAttributes, context);
 
@@ -111,7 +111,7 @@ internal sealed class SlideMlParser
         return panel;
     }
 
-    private SlideRectElement ParseRect(XElement element, string id, SlideParseContext context)
+    private SlideRectElement ParseRect(XElement element, string id, SlidePipelineContext context)
     {
         ValidateAttributes(element, id, _rectKnownAttributes, context);
 
@@ -132,7 +132,7 @@ internal sealed class SlideMlParser
         };
     }
 
-    private SlideTextElement ParseTextElement(XElement element, string id, SlideParseContext context)
+    private SlideTextElement ParseTextElement(XElement element, string id, SlidePipelineContext context)
     {
         ValidateAttributes(element, id, _textElementKnownAttributes, context);
 
@@ -161,7 +161,7 @@ internal sealed class SlideMlParser
         };
     }
 
-    private SlideImageElement ParseImageElement(XElement element, string id, SlideParseContext context)
+    private SlideImageElement ParseImageElement(XElement element, string id, SlidePipelineContext context)
     {
         ValidateAttributes(element, id, _imageKnownAttributes, context);
 
@@ -187,7 +187,7 @@ internal sealed class SlideMlParser
     }
 
     private static void ValidateAttributes(XElement element, string elementId,
-        HashSet<string> knownAttributes, SlideParseContext context)
+        HashSet<string> knownAttributes, SlidePipelineContext context)
     {
         foreach (var attr in element.Attributes())
         {
@@ -207,7 +207,7 @@ internal sealed class SlideMlParser
         return (string?) element.Attribute(attributeName);
     }
 
-    private static double? GetOptionalDouble(XElement element, string attributeName, SlideParseContext context)
+    private static double? GetOptionalDouble(XElement element, string attributeName, SlidePipelineContext context)
     {
         var text = GetOptionalString(element, attributeName);
         if (string.IsNullOrWhiteSpace(text))
@@ -230,7 +230,7 @@ internal sealed class SlideMlParser
         return null;
     }
 
-    private static SlideHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element, string elementId, SlideParseContext context)
+    private static SlideHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element, string elementId, SlidePipelineContext context)
     {
         var text = GetOptionalString(element, "HorizontalAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -251,7 +251,7 @@ internal sealed class SlideMlParser
         return null;
     }
 
-    private static SlideVerticalAlignment? GetOptionalVerticalAlignment(XElement element, string elementId, SlideParseContext context)
+    private static SlideVerticalAlignment? GetOptionalVerticalAlignment(XElement element, string elementId, SlidePipelineContext context)
     {
         var text = GetOptionalString(element, "VerticalAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -272,7 +272,7 @@ internal sealed class SlideMlParser
         return null;
     }
 
-    private static SlideTextAlignment? GetOptionalTextAlignment(XElement element, string elementId, SlideParseContext context)
+    private static SlideTextAlignment? GetOptionalTextAlignment(XElement element, string elementId, SlidePipelineContext context)
     {
         var text = GetOptionalString(element, "TextAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -293,7 +293,7 @@ internal sealed class SlideMlParser
         return null;
     }
 
-    private static SlideImageStretch? GetOptionalImageStretch(XElement element, string elementId, SlideParseContext context)
+    private static SlideImageStretch? GetOptionalImageStretch(XElement element, string elementId, SlidePipelineContext context)
     {
         var text = GetOptionalString(element, "Stretch");
         if (string.IsNullOrWhiteSpace(text))

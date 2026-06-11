@@ -175,7 +175,7 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
             {
                 var averageLineHeight = text.ActualLineCount == 0 ? lineHeight : mr.MeasuredHeight / text.ActualLineCount;
                 var visibleLineCount = averageLineHeight <= 0 ? 0 : Math.Max(0, (int)Math.Floor(fixedHeight / averageLineHeight));
-                context.Warnings.Add($"[Warning] {text.Id}: ActualLineCount={text.ActualLineCount}，超出容器高度（当前高度仅容纳 {visibleLineCount} 行）");
+                context.AddWarning($"[Warning] {text.Id}: ActualLineCount={text.ActualLineCount}，超出容器高度（当前高度仅容纳 {visibleLineCount} 行）");
             }
         }
 
@@ -221,27 +221,27 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
         var bounds = element.LayoutBounds;
         if (bounds.Right > context.CanvasWidth)
         {
-            context.Warnings.Add($"[Warning] {element.Id}: 元素右边界 X={SlideXmlUtilities.FormatNumber(bounds.Right)} 超出画布宽度 {context.CanvasWidth}");
+            context.AddWarning($"[Warning] {element.Id}: 元素右边界 X={SlideXmlUtilities.FormatNumber(bounds.Right)} 超出画布宽度 {context.CanvasWidth}");
         }
 
         if (bounds.Bottom > context.CanvasHeight)
         {
-            context.Warnings.Add($"[Warning] {element.Id}: 元素下边界 Y={SlideXmlUtilities.FormatNumber(bounds.Bottom)} 超出画布高度 {context.CanvasHeight}");
+            context.AddWarning($"[Warning] {element.Id}: 元素下边界 Y={SlideXmlUtilities.FormatNumber(bounds.Bottom)} 超出画布高度 {context.CanvasHeight}");
         }
 
         if (bounds.X < 0)
         {
-            context.Warnings.Add($"[Warning] {element.Id}: 元素左边界 X={SlideXmlUtilities.FormatNumber(bounds.X)} 超出画布左侧 0");
+            context.AddWarning($"[Warning] {element.Id}: 元素左边界 X={SlideXmlUtilities.FormatNumber(bounds.X)} 超出画布左侧 0");
         }
 
         if (bounds.Y < 0)
         {
-            context.Warnings.Add($"[Warning] {element.Id}: 元素上边界 Y={SlideXmlUtilities.FormatNumber(bounds.Y)} 超出画布顶部 0");
+            context.AddWarning($"[Warning] {element.Id}: 元素上边界 Y={SlideXmlUtilities.FormatNumber(bounds.Y)} 超出画布顶部 0");
         }
 
         if (clipToParent && !parentBounds.Contains(bounds))
         {
-            context.Warnings.Add($"[Warning] {element.Id}: 元素超出父容器 {parentId}，超出部分将被裁剪");
+            context.AddWarning($"[Warning] {element.Id}: 元素超出父容器 {parentId}，超出部分将被裁剪");
         }
     }
 

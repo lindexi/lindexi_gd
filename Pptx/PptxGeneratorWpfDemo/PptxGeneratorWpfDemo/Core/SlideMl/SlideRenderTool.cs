@@ -44,6 +44,11 @@ public sealed class SlideRenderTool
     public string LatestWarnings { get; private set; } = string.Empty;
 
     /// <summary>
+    /// 最近一次渲染的错误列表。
+    /// </summary>
+    public string LatestErrors { get; private set; } = string.Empty;
+
+    /// <summary>
     /// 最近一次渲染后回填的 XML。
     /// </summary>
     public string LatestRenderedXml { get; private set; } = string.Empty;
@@ -141,6 +146,9 @@ public sealed class SlideRenderTool
             LatestWarnings = renderResult.Warnings.Count == 0
                 ? "(none)"
                 : string.Join("\n", renderResult.Warnings);
+            LatestErrors = renderResult.Errors.Count == 0
+                ? "(none)"
+                : string.Join("\n", renderResult.Errors);
             LatestRenderedXml = renderResult.OutputXml;
             LatestSlideXml = renderResult.InputXml;
             SlideRendered?.Invoke();
@@ -162,6 +170,20 @@ public sealed class SlideRenderTool
             foreach (var warning in renderResult.Warnings)
             {
                 builder.AppendLine($"- {warning}");
+            }
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("错误列表：");
+        if (renderResult.Errors.Count == 0)
+        {
+            builder.AppendLine("(none)");
+        }
+        else
+        {
+            foreach (var error in renderResult.Errors)
+            {
+                builder.AppendLine($"- {error}");
             }
         }
 

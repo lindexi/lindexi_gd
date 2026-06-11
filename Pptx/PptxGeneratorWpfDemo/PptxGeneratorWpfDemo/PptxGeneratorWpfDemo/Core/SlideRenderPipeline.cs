@@ -74,12 +74,10 @@ public sealed class SlideRenderPipeline
         try
         {
             var normalizedXml = SlideXmlUtilities.NormalizeXml(SlideXmlUtilities.ExtractXml(slideXml));
-            var parseContext = new SlideParseContext();
-            var page = _parser.Parse(normalizedXml, parseContext);
 
-            // 将解析阶段的警告合并到上下文
-            _context.Warnings.Clear();
-            _context.Warnings.AddRange(parseContext.GetWarnings());
+                        // 清空上一轮诊断，解析器直接写入 _context
+                                    _context.Reset();
+                                    var page = _parser.Parse(normalizedXml, _context);
 
             // 阶段 ①: PreLayout
             _layoutEngine.PreLayout(page, _context);
@@ -111,6 +109,7 @@ public sealed class SlideRenderPipeline
                 InputXml = normalizedXml,
                 OutputXml = renderedXml,
                 Warnings = _context.Warnings,
+                Errors = _context.Errors,
                 PreviewBitmap = previewBitmap,
             };
         }
@@ -125,6 +124,7 @@ public sealed class SlideRenderPipeline
                 InputXml = slideXml,
                 OutputXml = slideXml,
                 Warnings = [$"[Warning] parser: SlideML 解析失败，{ex.Message}"],
+                Errors = [],
                 PreviewBitmap = previewBitmap,
             };
         }
