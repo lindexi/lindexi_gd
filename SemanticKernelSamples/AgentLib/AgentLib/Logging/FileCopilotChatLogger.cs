@@ -30,30 +30,30 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
     private readonly Dictionary<Guid, ChatHistoryFileInfo> _sessionHistoryFileInfoMap = [];
 
     /// <summary>
-        /// 使用默认日志目录创建日志记录器。
-        /// </summary>
-        public FileCopilotChatLogger()
-            : this(
-                Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatLogs"),
-                Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatHistory"))
-        {
-        }
+    /// 使用默认日志目录创建日志记录器。
+    /// </summary>
+    public FileCopilotChatLogger()
+        : this(
+            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatLogs"),
+            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AvaloniaAgentLib", "CopilotChatHistory"))
+    {
+    }
 
-        /// <summary>
-        /// 使用指定的日志目录创建日志记录器。
-        /// </summary>
-        /// <param name="chatLogFolder">聊天日志文件夹路径。</param>
-        public FileCopilotChatLogger(string chatLogFolder)
-            : this(chatLogFolder, null)
-        {
-        }
+    /// <summary>
+    /// 使用指定的日志目录创建日志记录器。
+    /// </summary>
+    /// <param name="chatLogFolder">聊天日志文件夹路径。</param>
+    public FileCopilotChatLogger(string chatLogFolder)
+        : this(chatLogFolder, null)
+    {
+    }
 
-        /// <summary>
-        /// 使用指定的日志目录和历史记录目录创建日志记录器。
-        /// </summary>
-        /// <param name="chatLogFolder">聊天日志文件夹路径。</param>
-        /// <param name="chatHistoryFolder">聊天历史记录文件夹路径，可为 <see langword="null"/>。</param>
-        public FileCopilotChatLogger(string chatLogFolder, string? chatHistoryFolder)
+    /// <summary>
+    /// 使用指定的日志目录和历史记录目录创建日志记录器。
+    /// </summary>
+    /// <param name="chatLogFolder">聊天日志文件夹路径。</param>
+    /// <param name="chatHistoryFolder">聊天历史记录文件夹路径，可为 <see langword="null"/>。</param>
+    public FileCopilotChatLogger(string chatLogFolder, string? chatHistoryFolder)
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(chatLogFolder);
         ChatLogFolder = chatLogFolder;
