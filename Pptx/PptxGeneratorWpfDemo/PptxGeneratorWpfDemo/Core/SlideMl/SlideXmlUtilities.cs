@@ -33,14 +33,27 @@ internal static class SlideXmlUtilities
 
     public static string FormatRenderedXml(string xml, Func<string, SlideRenderedMetrics?> metricsProvider)
     {
+        return FormatRenderedXml(xml, metricsProvider, new SlideRenderContext());
+    }
+
+    /// <summary>
+    /// 回填渲染后的实际尺寸到 XML 中。
+    /// </summary>
+    /// <param name="xml">SlideML XML 字符串。</param>
+    /// <param name="metricsProvider">通过元素 Id 获取渲染指标的委托。</param>
+    /// <param name="context">渲染上下文（含画布尺寸）。</param>
+    /// <returns>回填后的 XML。</returns>
+    public static string FormatRenderedXml(string xml, Func<string, SlideRenderedMetrics?> metricsProvider, SlideRenderContext context)
+    {
         ArgumentNullException.ThrowIfNull(xml);
         ArgumentNullException.ThrowIfNull(metricsProvider);
+        ArgumentNullException.ThrowIfNull(context);
 
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
         var root = document.Root ?? throw new SlideMlRootElementException("SlideML 缺少根元素。");
 
-        root.SetAttributeValue("ActualWidth", FormatNumber(SlideRenderer.CanvasWidth));
-        root.SetAttributeValue("ActualHeight", FormatNumber(SlideRenderer.CanvasHeight));
+        root.SetAttributeValue("ActualWidth", FormatNumber(context.CanvasWidth));
+        root.SetAttributeValue("ActualHeight", FormatNumber(context.CanvasHeight));
 
         foreach (var element in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image"))
         {

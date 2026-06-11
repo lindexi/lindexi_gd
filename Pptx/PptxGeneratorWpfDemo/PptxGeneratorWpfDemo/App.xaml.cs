@@ -55,8 +55,8 @@ public partial class App : Application
 
         agentApiEndpointManager.PrimaryModel = languageModel;
 
-        var slideRenderer = new SlideRenderer();
-        var slideRenderTool = new SlideRenderTool(slideRenderer);
+        var slideRenderPipeline = new SlideRenderPipeline();
+        var slideRenderTool = new SlideRenderTool(slideRenderPipeline);
 
         var evaluatorChatManager = new CopilotChatManager();
         var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;

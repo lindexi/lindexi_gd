@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace PptxGenerator;
 
@@ -68,7 +66,7 @@ internal sealed class SlidePage
 
     public List<SlideElement> Children { get; } = [];
 
-    public Rect LayoutBounds { get; set; } = new(0, 0, SlideRenderer.CanvasWidth, SlideRenderer.CanvasHeight);
+    public Rect LayoutBounds { get; set; } = new(0, 0, SlideRenderContext.DefaultCanvasWidth, SlideRenderContext.DefaultCanvasHeight);
 }
 
 internal sealed class SlidePanelElement : SlideElement
@@ -106,8 +104,6 @@ internal sealed class SlideTextElement : SlideElement
     public double LineHeight { get; init; } = 1.2;
 
     public int ActualLineCount { get; set; }
-
-    public FormattedText? FormattedText { get; set; }
 }
 
 internal sealed class SlideImageElement : SlideElement
@@ -115,6 +111,4 @@ internal sealed class SlideImageElement : SlideElement
     public required string Source { get; init; }
 
     public SlideImageStretch Stretch { get; init; } = SlideImageStretch.Uniform;
-
-    public BitmapSource? Bitmap { get; set; }
 }

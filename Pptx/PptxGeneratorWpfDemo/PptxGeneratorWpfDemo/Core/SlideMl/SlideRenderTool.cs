@@ -12,14 +12,18 @@ using System.Windows.Media.Imaging;
 namespace PptxGenerator;
 
 /// <summary>
-/// 将 <see cref="SlideRenderer.RenderAsync"/> 封装为 AI Tool，
+/// 将 <see cref="SlideRenderPipeline.RenderAsync"/> 封装为 AI Tool，
 /// 供模型在流式对话中自行调用并基于反馈修正。
 /// </summary>
 public sealed class SlideRenderTool
 {
-    private readonly SlideRenderer _slideRenderer;
+    private readonly SlideRenderPipeline _slideRenderer;
 
-    public SlideRenderTool(SlideRenderer slideRenderer)
+    /// <summary>
+    /// 初始化 <see cref="SlideRenderTool"/> 的新实例。
+    /// </summary>
+    /// <param name="slideRenderer">渲染流水线。</param>
+    public SlideRenderTool(SlideRenderPipeline slideRenderer)
     {
         _slideRenderer = slideRenderer ?? throw new ArgumentNullException(nameof(slideRenderer));
     }
