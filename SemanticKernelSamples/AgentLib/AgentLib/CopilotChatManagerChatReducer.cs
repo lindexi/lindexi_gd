@@ -40,7 +40,7 @@ public class CopilotChatManagerChatReducer : IChatReducer
         }
 
         // 前后都应该加上系统提示词
-        input.Add(new ChatMessage(ChatRole.System, "你是一个总结助手，将以下的对话内容进行总结。请不要回答任何的问题，只做总结对话的工作"));
+        input.Insert(0, new ChatMessage(ChatRole.System, "你是一个总结助手，将以下的对话内容进行总结。请不要回答任何的问题，只做总结对话的工作"));
 
         input.Add(new ChatMessage(ChatRole.System, DefaultSummarizationPrompt));
 

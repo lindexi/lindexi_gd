@@ -421,6 +421,15 @@ public class CopilotChatManager : NotifyBase
                 });
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
             }
+            else
+            {
+                // 当未指定 ChatReducer 时，自动启用内置的 ToolCall 压缩器
+                chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
+                {
+                    ChatReducer = new CopilotChatManagerToolCallChatReducer(chatClient)
+                });
+                chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = true;
+            }
 
             IReadOnlyList<AIContextProvider>? aiContextProviders = request.AIContextProviders ?? AIContextProviders;
             if (aiContextProviders is { Count: > 0 })
