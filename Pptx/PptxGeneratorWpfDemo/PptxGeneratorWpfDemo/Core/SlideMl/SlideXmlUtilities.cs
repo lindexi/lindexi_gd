@@ -51,7 +51,7 @@ internal static class SlideXmlUtilities
         root.SetAttributeValue("ActualWidth", FormatNumber(context.CanvasWidth));
         root.SetAttributeValue("ActualHeight", FormatNumber(context.CanvasHeight));
 
-        foreach (var element in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image"))
+        foreach (var element in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image" or "Span" or "Fill" or "Stroke" or "Shadow" or "LinearGradient" or "Stop" or "Page.Styles" or "TextStyle"))
         {
             var id = (string?)element.Attribute("Id");
             if (string.IsNullOrWhiteSpace(id))

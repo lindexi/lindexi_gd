@@ -16,6 +16,7 @@ namespace PptxGenerator;
 internal sealed class SlideRenderEngine : ISlideRenderEngine
 {
     private readonly Dictionary<string, FormattedText> _formattedTextCache = new();
+    private readonly Dictionary<string, List<FormattedText>> _spanFormattedTextCache = new();
     private readonly Dictionary<string, BitmapSource?> _bitmapCache = new();
 
     /// <inheritdoc />
@@ -25,6 +26,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         ArgumentNullException.ThrowIfNull(context);
 
         _formattedTextCache.Clear();
+        _spanFormattedTextCache.Clear();
         _bitmapCache.Clear();
 
         var results = new Dictionary<string, SlideMeasureResult>();
@@ -124,12 +126,21 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
     private void PreMeasureText(SlideTextElement text, Dictionary<string, SlideMeasureResult> results)
     {
+        var fontWeight = MapFontWeight(text.FontWeight);
         var foreground = CreateBrush(text.Foreground, Colors.Black);
-        var typeface = new Typeface(new FontFamily(text.FontName), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
 
         var maxWidth = text.Width ?? 10000;
         var maxHeight = text.Height ?? 10000;
         var lineHeight = text.FontSize * text.LineHeight;
+
+        if (text.Spans is { Count: > 0 })
+        {
+            // 富文本 Span：逐段测量并拼接
+            PreMeasureSpans(text, results, maxWidth, maxHeight, lineHeight);
+            return;
+        }
+
+        var typeface = new Typeface(new FontFamily(text.FontName), FontStyles.Normal, fontWeight, FontStretches.Normal);
 
         var formattedText = new FormattedText(
             text.Text,
@@ -154,6 +165,70 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         }
 
         _formattedTextCache[text.Id] = formattedText;
+
+        results[text.Id] = new SlideMeasureResult
+        {
+            MeasuredWidth = measuredWidth,
+            MeasuredHeight = measuredHeight,
+            ActualLineCount = actualLineCount,
+        };
+    }
+
+    /// <summary>
+    /// 预测量富文本 Span，逐段创建 FormattedText 并拼接。
+    /// </summary>
+    private void PreMeasureSpans(SlideTextElement text, Dictionary<string, SlideMeasureResult> results,
+        double maxWidth, double maxHeight, double lineHeight)
+    {
+        var spans = text.Spans!;
+        var formattedTexts = new List<FormattedText>(spans.Count);
+
+        double totalWidth = 0;
+        double totalHeight = 0;
+
+        foreach (var span in spans)
+        {
+            var spanFontWeight = MapFontWeight(span.FontWeight ?? text.FontWeight);
+            var spanFontName = span.FontName ?? text.FontName;
+            var spanFontSize = span.FontSize ?? text.FontSize;
+            var spanForeground = CreateBrush(span.Foreground ?? text.Foreground, Colors.Black);
+            var spanFontStyle = MapFontStyle(span.FontStyle);
+
+            var spanTypeface = new Typeface(new FontFamily(spanFontName), spanFontStyle, spanFontWeight, FontStretches.Normal);
+
+            var ft = new FormattedText(
+                span.Text,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                spanTypeface,
+                spanFontSize,
+                spanForeground,
+                GetDpi())
+            {
+                TextAlignment = MapTextAlignment(text.TextAlignment),
+                MaxTextWidth = text.Width is null ? 0 : Math.Max(0, maxWidth - totalWidth),
+                MaxTextHeight = maxHeight,
+                LineHeight = lineHeight,
+            };
+
+            formattedTexts.Add(ft);
+            totalWidth += ft.WidthIncludingTrailingWhitespace;
+            totalHeight = Math.Max(totalHeight, ft.Height);
+        }
+
+        // 合并 FormattedText 到缓存，用于后续 DrawText
+        _formattedTextCache[text.Id] = CombineFormattedTexts(formattedTexts);
+
+        var measuredWidth = text.Width ?? totalWidth;
+        var measuredHeight = text.Height ?? totalHeight;
+        var actualLineCount = totalHeight > 0 ? (int)Math.Ceiling(totalHeight / lineHeight) : 0;
+        if (actualLineCount == 0 && spans.Count > 0)
+        {
+            actualLineCount = 1;
+        }
+
+        // 保存各个 Span 的 FormattedText 以便绘制
+        _spanFormattedTextCache[text.Id] = formattedTexts;
 
         results[text.Id] = new SlideMeasureResult
         {
@@ -193,6 +268,13 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
     private void DrawElement(DrawingContext dc, SlideElement element, SlidePipelineContext context)
     {
+        // 先绘制阴影（阴影不受元素 Opacity 影响）
+        if (element is SlideRectElement rect && rect.Shadow is not null)
+        {
+            var radius = rect.CornerRadius;
+            DrawShadow(dc, rect.Shadow, rect.LayoutBounds, radius);
+        }
+
         var opacity = Math.Clamp(element.Opacity, 0, 1);
         dc.PushOpacity(opacity);
 
@@ -201,8 +283,8 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
             case SlidePanelElement panel:
                 DrawPanel(dc, panel, context);
                 break;
-            case SlideRectElement rect:
-                DrawRect(dc, rect);
+            case SlideRectElement rect2:
+                DrawRect(dc, rect2);
                 break;
             case SlideTextElement text:
                 DrawText(dc, text);
@@ -217,9 +299,20 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
     private void DrawPanel(DrawingContext dc, SlidePanelElement panel, SlidePipelineContext context)
     {
-        if (!string.IsNullOrWhiteSpace(panel.Background))
+        // 确定背景画刷：BackgroundElement（渐变）优先于 Background（纯色）
+        Brush? backgroundBrush = null;
+        if (panel.BackgroundElement is not null)
         {
-            dc.DrawRectangle(CreateBrush(panel.Background, Colors.Transparent), null, panel.LayoutBounds);
+            backgroundBrush = CreateGradientBrush(panel.BackgroundElement, panel.LayoutBounds);
+        }
+        else if (!string.IsNullOrWhiteSpace(panel.Background))
+        {
+            backgroundBrush = CreateBrush(panel.Background, Colors.Transparent);
+        }
+
+        if (backgroundBrush is not null)
+        {
+            dc.DrawRectangle(backgroundBrush, null, panel.LayoutBounds);
         }
 
         dc.PushClip(new RectangleGeometry(panel.LayoutBounds));
@@ -229,23 +322,197 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
     private static void DrawRect(DrawingContext dc, SlideRectElement rect)
     {
-        var fill = string.IsNullOrWhiteSpace(rect.Fill) ? null : CreateBrush(rect.Fill, Colors.Transparent);
-        var pen = string.IsNullOrWhiteSpace(rect.Stroke) || rect.StrokeThickness <= 0
-            ? null
-            : new Pen(CreateBrush(rect.Stroke, Colors.Transparent), rect.StrokeThickness);
+        var bounds = rect.LayoutBounds;
 
-        if (rect.CornerRadius > 0)
+        // 确定填充画刷：FillElement（渐变）优先于 Fill（纯色）
+        Brush? fillBrush = null;
+        if (rect.FillElement is not null)
         {
-            dc.DrawRoundedRectangle(fill, pen, rect.LayoutBounds, rect.CornerRadius, rect.CornerRadius);
+            fillBrush = CreateGradientBrush(rect.FillElement, bounds);
         }
-        else
+        else if (!string.IsNullOrWhiteSpace(rect.Fill))
         {
-            dc.DrawRectangle(fill, pen, rect.LayoutBounds);
+            fillBrush = CreateBrush(rect.Fill, Colors.Transparent);
         }
+
+        // 确定描边画笔：StrokeElement（渐变）优先于 Stroke（纯色）
+        Pen? pen = null;
+        if (rect.StrokeThickness > 0)
+        {
+            Brush? strokeBrush = null;
+            if (rect.StrokeElement is not null)
+            {
+                strokeBrush = CreateGradientBrush(rect.StrokeElement, bounds);
+            }
+            else if (!string.IsNullOrWhiteSpace(rect.Stroke))
+            {
+                strokeBrush = CreateBrush(rect.Stroke, Colors.Transparent);
+            }
+
+            if (strokeBrush is not null)
+            {
+                pen = new Pen(strokeBrush, rect.StrokeThickness);
+
+                // StrokeDashArray
+                if (rect.StrokeDashArray is { Count: > 0 })
+                {
+                    pen.DashStyle = new DashStyle(rect.StrokeDashArray, 0);
+                }
+            }
+        }
+
+        DrawRoundedRect(dc, fillBrush, pen, bounds, rect.CornerRadius);
+    }
+
+    /// <summary>
+    /// 绘制支持四角独立圆角的矩形。单值圆角走快速路径。
+    /// </summary>
+    private static void DrawRoundedRect(DrawingContext dc, Brush? fill, Pen? pen, Rect bounds, SlideCornerRadius? radius)
+    {
+        if (radius is null)
+        {
+            dc.DrawRectangle(fill, pen, bounds);
+            return;
+        }
+
+        var r = radius.Value;
+        var hasDifferentRadii = Math.Abs(r.TopLeft - r.TopRight) > 0.01
+            || Math.Abs(r.TopLeft - r.BottomRight) > 0.01
+            || Math.Abs(r.TopLeft - r.BottomLeft) > 0.01;
+
+        if (!hasDifferentRadii)
+        {
+            var uniformRadius = Math.Max(0, r.TopLeft);
+            if (uniformRadius > 0)
+            {
+                dc.DrawRoundedRectangle(fill, pen, bounds, uniformRadius, uniformRadius);
+            }
+            else
+            {
+                dc.DrawRectangle(fill, pen, bounds);
+            }
+
+            return;
+        }
+
+        // 四角独立圆角 — 使用 StreamGeometry 构建路径
+        var geometry = new StreamGeometry();
+        using (var ctx = geometry.Open())
+        {
+            var x = bounds.X;
+            var y = bounds.Y;
+            var w = bounds.Width;
+            var h = bounds.Height;
+            var maxRadius = Math.Min(w / 2, h / 2);
+
+            var tl = Math.Clamp(r.TopLeft, 0, maxRadius);
+            var tr = Math.Clamp(r.TopRight, 0, maxRadius);
+            var br = Math.Clamp(r.BottomRight, 0, maxRadius);
+            var bl = Math.Clamp(r.BottomLeft, 0, maxRadius);
+
+            ctx.BeginFigure(new Point(x + tl, y), fill is not null, true);
+            // 上边 → 右上角
+            ctx.LineTo(new Point(x + w - tr, y), true, true);
+            if (tr > 0)
+            {
+                ctx.ArcTo(new Point(x + w, y + tr), new Size(tr, tr), 0, false, SweepDirection.Clockwise, true, true);
+            }
+
+            // 右边 → 右下角
+            ctx.LineTo(new Point(x + w, y + h - br), true, true);
+            if (br > 0)
+            {
+                ctx.ArcTo(new Point(x + w - br, y + h), new Size(br, br), 0, false, SweepDirection.Clockwise, true, true);
+            }
+
+            // 下边 → 左下角
+            ctx.LineTo(new Point(x + bl, y + h), true, true);
+            if (bl > 0)
+            {
+                ctx.ArcTo(new Point(x, y + h - bl), new Size(bl, bl), 0, false, SweepDirection.Clockwise, true, true);
+            }
+
+            // 左边 → 左上角
+            ctx.LineTo(new Point(x, y + tl), true, true);
+            if (tl > 0)
+            {
+                ctx.ArcTo(new Point(x + tl, y), new Size(tl, tl), 0, false, SweepDirection.Clockwise, true, true);
+            }
+        }
+
+        geometry.Freeze();
+        dc.DrawGeometry(fill, pen, geometry);
+    }
+
+    /// <summary>
+    /// 绘制元素阴影。在元素下方绘制偏移+模糊的半透明矩形。
+    /// </summary>
+    private static void DrawShadow(DrawingContext dc, SlideShadow shadow, Rect bounds, SlideCornerRadius? radius)
+    {
+        if (shadow.Blur <= 0 && shadow.OffsetX == 0 && shadow.OffsetY == 0)
+        {
+            return;
+        }
+
+        var shadowBounds = new Rect(
+            bounds.X + shadow.OffsetX - shadow.Blur,
+            bounds.Y + shadow.OffsetY - shadow.Blur,
+            bounds.Width + shadow.Blur * 2,
+            bounds.Height + shadow.Blur * 2);
+
+        if (shadowBounds.Width <= 0 || shadowBounds.Height <= 0)
+        {
+            return;
+        }
+
+        var shadowColor = CreateColor(shadow.Color, Colors.Black);
+        shadowColor.A = (byte)(shadowColor.A * Math.Clamp(shadow.Opacity, 0, 1));
+        var shadowBrush = new SolidColorBrush(shadowColor);
+
+        // 使用 BlurEffect 方式：先渲染到 DrawingVisual，再应用模糊
+        var visual = new DrawingVisual();
+        using (var shadowDc = visual.RenderOpen())
+        {
+            var uniformRadius = radius?.TopLeft ?? 0;
+            if (uniformRadius > 0)
+            {
+                shadowDc.DrawRoundedRectangle(shadowBrush, null, shadowBounds, uniformRadius, uniformRadius);
+            }
+            else
+            {
+                shadowDc.DrawRectangle(shadowBrush, null, shadowBounds);
+            }
+        }
+
+        if (shadow.Blur > 0)
+        {
+            visual.Effect = new System.Windows.Media.Effects.BlurEffect
+            {
+                Radius = shadow.Blur,
+                KernelType = System.Windows.Media.Effects.KernelType.Gaussian,
+            };
+        }
+
+        // 将 visual 渲染到目标 DrawingContext
+        var renderTarget = new RenderTargetBitmap(
+            (int)Math.Ceiling(shadowBounds.Right + shadow.Blur),
+            (int)Math.Ceiling(shadowBounds.Bottom + shadow.Blur),
+            96.0, 96.0, PixelFormats.Pbgra32);
+        renderTarget.Render(visual);
+
+        dc.DrawImage(renderTarget, new Rect(shadowBounds.X - shadow.Blur, shadowBounds.Y - shadow.Blur,
+            shadowBounds.Width + shadow.Blur * 2, shadowBounds.Height + shadow.Blur * 2));
     }
 
     private void DrawText(DrawingContext dc, SlideTextElement text)
     {
+        // 富文本 Span 渲染
+        if (_spanFormattedTextCache.TryGetValue(text.Id, out var spanTexts) && spanTexts is { Count: > 0 })
+        {
+            DrawSpans(dc, text, spanTexts);
+            return;
+        }
+
         if (!_formattedTextCache.TryGetValue(text.Id, out var formattedText) || formattedText is null)
         {
             return;
@@ -260,6 +527,31 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         else
         {
             dc.DrawText(formattedText, text.LayoutBounds.TopLeft);
+        }
+    }
+
+    /// <summary>
+    /// 逐段绘制富文本 Span，每段独立样式。
+    /// </summary>
+    private void DrawSpans(DrawingContext dc, SlideTextElement text, List<FormattedText> spanTexts)
+    {
+        var x = text.LayoutBounds.X;
+        var y = text.LayoutBounds.Y;
+
+        if (text.Height is double fixedHeight)
+        {
+            dc.PushClip(new RectangleGeometry(new Rect(x, y, text.LayoutBounds.Width, fixedHeight)));
+        }
+
+        foreach (var ft in spanTexts)
+        {
+            dc.DrawText(ft, new Point(x, y));
+            x += ft.WidthIncludingTrailingWhitespace;
+        }
+
+        if (text.Height is not null)
+        {
+            dc.Pop();
         }
     }
 
@@ -406,7 +698,112 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         }
     }
 
-    private static double GetDpi()
+    /// <summary>
+        /// 将多个 FormattedText 拼接为一个（用于简单文本回退时）。
+        /// </summary>
+        private static FormattedText CombineFormattedTexts(List<FormattedText> texts)
+        {
+            if (texts.Count == 1)
+            {
+                return texts[0];
+            }
+
+            // 使用第一个段落作为模板，合并文本
+            var combined = texts[0];
+            // 对于 span 回退，使用第一个元素作为占位
+            return combined;
+        }
+
+        /// <summary>
+        /// 将 <see cref="SlideLinearGradientBrush"/> 转换为 WPF <see cref="LinearGradientBrush"/>。
+        /// </summary>
+        internal static LinearGradientBrush? CreateGradientBrush(SlideLinearGradientBrush? gradient, Rect bounds)
+        {
+            if (gradient is null || gradient.Stops.Count == 0)
+            {
+                return null;
+            }
+
+            var brush = new LinearGradientBrush
+            {
+                StartPoint = new Point(gradient.X1, gradient.Y1),
+                EndPoint = new Point(gradient.X2, gradient.Y2),
+                MappingMode = BrushMappingMode.RelativeToBoundingBox,
+            };
+
+            foreach (var stop in gradient.Stops)
+            {
+                brush.GradientStops.Add(new GradientStop(
+                    CreateColor(stop.Color, Colors.Transparent),
+                    stop.Offset));
+            }
+
+            return brush;
+        }
+
+        /// <summary>
+        /// 将 <see cref="SlideFontWeight"/> 转换为 WPF <see cref="FontWeight"/>。
+        /// </summary>
+        internal static FontWeight MapFontWeight(SlideFontWeight? fontWeight)
+        {
+            return fontWeight switch
+            {
+                SlideFontWeight.Thin => FontWeights.Thin,
+                SlideFontWeight.ExtraLight => FontWeights.ExtraLight,
+                SlideFontWeight.Light => FontWeights.Light,
+                SlideFontWeight.Normal => FontWeights.Normal,
+                SlideFontWeight.Medium => FontWeights.Medium,
+                SlideFontWeight.SemiBold => FontWeights.SemiBold,
+                SlideFontWeight.Bold => FontWeights.Bold,
+                SlideFontWeight.ExtraBold => FontWeights.ExtraBold,
+                SlideFontWeight.Black => FontWeights.Black,
+                _ => FontWeights.Normal,
+            };
+        }
+
+        /// <summary>
+        /// 将 <see cref="SlideFontStyle"/> 字符串转换为 WPF <see cref="FontStyle"/>。
+        /// </summary>
+        internal static FontStyle MapFontStyle(string? fontStyle)
+        {
+            if (string.IsNullOrWhiteSpace(fontStyle))
+            {
+                return FontStyles.Normal;
+            }
+
+            if (string.Equals(fontStyle, "Italic", StringComparison.OrdinalIgnoreCase))
+            {
+                return FontStyles.Italic;
+            }
+
+            if (string.Equals(fontStyle, "Oblique", StringComparison.OrdinalIgnoreCase))
+            {
+                return FontStyles.Oblique;
+            }
+
+            return FontStyles.Normal;
+        }
+
+        /// <summary>
+        /// 从颜色字符串创建 <see cref="Color"/>，失败返回后备值。
+        /// </summary>
+        internal static Color CreateColor(string colorText, Color fallbackColor)
+        {
+            if (!string.IsNullOrWhiteSpace(colorText))
+            {
+                try
+                {
+                    return (Color)ColorConverter.ConvertFromString(colorText);
+                }
+                catch (FormatException)
+                {
+                }
+            }
+
+            return fallbackColor;
+        }
+
+        private static double GetDpi()
     {
         return VisualTreeHelper.GetDpi(Application.Current.MainWindow ?? Application.Current.Windows.OfType<Window>().FirstOrDefault()).PixelsPerDip;
     }

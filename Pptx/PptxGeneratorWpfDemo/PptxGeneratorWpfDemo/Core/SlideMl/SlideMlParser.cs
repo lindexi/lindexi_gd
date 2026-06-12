@@ -27,6 +27,7 @@ internal sealed class SlideMlParser
         "Id", "X", "Y", "Width", "Height",
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
         "Fill", "Stroke", "StrokeThickness", "CornerRadius", "Margin",
+        "Shadow", "StrokeDashArray",
     };
 
     private static readonly HashSet<string> _textElementKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
@@ -35,6 +36,7 @@ internal sealed class SlideMlParser
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
         "Text", "FontName", "FontSize", "Foreground",
         "TextAlignment", "LineHeight", "Margin",
+        "FontWeight", "Style",
     };
 
     private static readonly HashSet<string> _imageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
@@ -63,15 +65,55 @@ internal sealed class SlideMlParser
             Background = GetOptionalString(root, "Background") ?? "#FFFFFF",
         };
 
-        foreach (var child in root.Elements())
+        // 解析 Page.Styles 子元素
+        var stylesElement = root.Element("Page.Styles");
+        if (stylesElement is not null)
         {
-            page.Children.Add(ParseElement(child, context));
+            var styles = new List<SlideTextStyle>();
+            foreach (var textStyleElement in stylesElement.Elements("TextStyle"))
+            {
+                var styleId = GetOptionalString(textStyleElement, "Id");
+                if (string.IsNullOrWhiteSpace(styleId))
+                {
+                    context.AddWarning("[Warning] Page.Styles: TextStyle 缺少 Id 属性，已忽略");
+                    continue;
+                }
+
+                styles.Add(new SlideTextStyle
+                {
+                    Id = styleId,
+                    FontSize = GetOptionalDouble(textStyleElement, "FontSize", context),
+                    FontWeight = GetOptionalFontWeight(textStyleElement, styleId, context),
+                    Foreground = GetOptionalString(textStyleElement, "Foreground"),
+                    FontName = GetOptionalString(textStyleElement, "FontName"),
+                    LineHeight = GetOptionalDouble(textStyleElement, "LineHeight", context),
+                    TextAlignment = GetOptionalTextAlignment(textStyleElement, styleId, context),
+                });
+            }
+
+            if (styles.Count > 0)
+            {
+                page = new SlidePage
+                {
+                    Background = GetOptionalString(root, "Background") ?? "#FFFFFF",
+                    Styles = styles,
+                };
+            }
+        }
+
+        foreach (var child in root.Elements().Where(e => !string.Equals(e.Name.LocalName, "Page.Styles", StringComparison.Ordinal)))
+        {
+            var element = ParseElement(child, context);
+            if (element is not null)
+            {
+                page.Children.Add(element);
+            }
         }
 
         return page;
     }
 
-    private SlideElement ParseElement(XElement element, SlidePipelineContext context)
+    private SlideElement? ParseElement(XElement element, SlidePipelineContext context)
     {
         var id = GetOptionalString(element, "Id") ?? $"elem_{_nextId++:000}";
 
@@ -81,13 +123,38 @@ internal sealed class SlideMlParser
             "Rect" => ParseRect(element, id, context),
             "TextElement" => ParseTextElement(element, id, context),
             "Image" => ParseImageElement(element, id, context),
-            _ => throw new InvalidOperationException($"不支持的标签: {element.Name.LocalName}"),
+            _ => WarnUnknownTag(element, id, context),
         };
+    }
+
+    private static SlideElement? WarnUnknownTag(XElement element, string id, SlidePipelineContext context)
+    {
+        context.AddWarning(
+            string.Format(
+                "[Warning] {0}: 未知标签 \"{1}\"，已忽略",
+                id,
+                element.Name.LocalName));
+        return null;
     }
 
     private SlidePanelElement ParsePanel(XElement element, string id, SlidePipelineContext context)
     {
         ValidateAttributes(element, id, _panelKnownAttributes, context);
+
+        SlideLinearGradientBrush? backgroundElement = null;
+
+        foreach (var child in element.Elements())
+        {
+            switch (child.Name.LocalName)
+            {
+                case "Fill":
+                    backgroundElement = ParseLinearGradientChild(child, id, context);
+                    break;
+                default:
+                    // 子元素由 ParseElement 统一处理
+                    break;
+            }
+        }
 
         var panel = new SlidePanelElement
         {
@@ -101,6 +168,7 @@ internal sealed class SlideMlParser
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Padding = GetOptionalDouble(element, "Padding", context) ?? 0,
             Background = GetOptionalString(element, "Background"),
+            BackgroundElement = backgroundElement,
             Layout = GetOptionalLayoutDirection(element, id, context) ?? SlideLayoutDirection.Absolute,
             Gap = GetOptionalDouble(element, "Gap", context) ?? 0,
             Margin = GetOptionalThickness(element, "Margin", context),
@@ -108,7 +176,17 @@ internal sealed class SlideMlParser
 
         foreach (var child in element.Elements())
         {
-            panel.Children.Add(ParseElement(child, context));
+            // 跳过已解析的 Fill 子元素
+            if (string.Equals(child.Name.LocalName, "Fill", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var childElement = ParseElement(child, context);
+            if (childElement is not null)
+            {
+                panel.Children.Add(childElement);
+            }
         }
 
         return panel;
@@ -117,6 +195,33 @@ internal sealed class SlideMlParser
     private SlideRectElement ParseRect(XElement element, string id, SlidePipelineContext context)
     {
         ValidateAttributes(element, id, _rectKnownAttributes, context);
+
+        SlideLinearGradientBrush? fillElement = null;
+        SlideLinearGradientBrush? strokeElement = null;
+        SlideShadow? shadowChild = null;
+
+        foreach (var child in element.Elements())
+        {
+            switch (child.Name.LocalName)
+            {
+                case "Fill":
+                    fillElement = ParseLinearGradientChild(child, id, context);
+                    break;
+                case "Stroke":
+                    strokeElement = ParseLinearGradientChild(child, id, context);
+                    break;
+                case "Shadow":
+                    shadowChild = ParseShadowElement(child, id, context);
+                    break;
+                default:
+                    context.AddWarning(
+                        string.Format(
+                            "[Warning] {0}: Rect 下未知子标签 \"{1}\"，已忽略",
+                            id,
+                            child.Name.LocalName));
+                    break;
+            }
+        }
 
         return new SlideRectElement
         {
@@ -131,8 +236,13 @@ internal sealed class SlideMlParser
             Fill = GetOptionalString(element, "Fill"),
             Stroke = GetOptionalString(element, "Stroke"),
             StrokeThickness = GetOptionalDouble(element, "StrokeThickness", context) ?? 0,
-            CornerRadius = GetOptionalDouble(element, "CornerRadius", context) ?? 0,
+            CornerRadius = GetOptionalCornerRadius(element, id, context),
             Margin = GetOptionalThickness(element, "Margin", context),
+            Shadow = shadowChild ?? GetOptionalShadow(element, "Shadow"),
+            ShadowString = GetOptionalString(element, "Shadow"),
+            StrokeDashArray = GetOptionalDoubleList(element, "StrokeDashArray", context),
+            FillElement = fillElement,
+            StrokeElement = strokeElement,
         };
     }
 
@@ -140,10 +250,23 @@ internal sealed class SlideMlParser
     {
         ValidateAttributes(element, id, _textElementKnownAttributes, context);
 
-        var text = GetOptionalString(element, "Text");
-        if (string.IsNullOrWhiteSpace(text))
+        // 解析 Span 子元素
+        var spans = new List<SlideSpan>();
+        foreach (var child in element.Elements("Span"))
         {
-            throw new InvalidOperationException($"TextElement({id}) 必须包含 Text 属性。");
+            spans.Add(ParseSpan(child, id, context));
+        }
+
+        var text = GetOptionalString(element, "Text");
+        if (string.IsNullOrWhiteSpace(text) && spans.Count == 0)
+        {
+            throw new InvalidOperationException($"TextElement({id}) 必须包含 Text 属性或 Span 子元素。");
+        }
+
+        // 若无显式 Text，从 Span 拼接
+        if (string.IsNullOrWhiteSpace(text) && spans.Count > 0)
+        {
+            text = string.Concat(spans.Select(s => s.Text));
         }
 
         return new SlideTextElement
@@ -156,13 +279,36 @@ internal sealed class SlideMlParser
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
-            Text = text,
+            Text = text!,
             FontName = GetOptionalString(element, "FontName") ?? "Microsoft YaHei",
             FontSize = GetOptionalDouble(element, "FontSize", context) ?? 16,
             Foreground = GetOptionalString(element, "Foreground") ?? "#000000",
             TextAlignment = GetOptionalTextAlignment(element, id, context) ?? SlideTextAlignment.Left,
             LineHeight = GetOptionalDouble(element, "LineHeight", context) ?? 1.2,
             Margin = GetOptionalThickness(element, "Margin", context),
+            FontWeight = GetOptionalFontWeight(element, id, context),
+            Style = GetOptionalString(element, "Style"),
+            Spans = spans.Count > 0 ? spans : null,
+        };
+    }
+
+    private static SlideSpan ParseSpan(XElement element, string parentId, SlidePipelineContext context)
+    {
+        var text = GetOptionalString(element, "Text");
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new InvalidOperationException($"TextElement({parentId}) 的 Span 子元素必须包含 Text 属性。");
+        }
+
+        return new SlideSpan
+        {
+            Text = text,
+            FontSize = GetOptionalDouble(element, "FontSize", context),
+            FontName = GetOptionalString(element, "FontName"),
+            Foreground = GetOptionalString(element, "Foreground"),
+            FontWeight = GetOptionalFontWeight(element, parentId, context),
+            FontStyle = GetOptionalString(element, "FontStyle"),
+            TextDecoration = GetOptionalString(element, "TextDecoration"),
         };
     }
 
@@ -362,5 +508,161 @@ internal sealed class SlideMlParser
         }
 
         return result;
+    }
+
+    private static SlideCornerRadius? GetOptionalCornerRadius(XElement element, string elementId, SlidePipelineContext context)
+    {
+        var text = GetOptionalString(element, "CornerRadius");
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        // 先尝试逗号分隔格式
+        var cornerRadius = SlideCornerRadius.Parse(text);
+        if (cornerRadius is not null)
+        {
+            return cornerRadius;
+        }
+
+        // 再尝试单值格式
+        if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var singleValue))
+        {
+            return (SlideCornerRadius)singleValue;
+        }
+
+        context.AddError(
+            string.Format(
+                "[Error] {0}: CornerRadius 值 \"{1}\" 无效，已忽略",
+                elementId,
+                text));
+        return null;
+    }
+
+    private static SlideShadow? GetOptionalShadow(XElement element, string attributeName)
+    {
+        var text = GetOptionalString(element, attributeName);
+        return SlideShadow.Parse(text);
+    }
+
+    private static IReadOnlyList<double>? GetOptionalDoubleList(XElement element, string attributeName, SlidePipelineContext context)
+    {
+        var text = GetOptionalString(element, attributeName);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var parts = text.Split(',', StringSplitOptions.TrimEntries);
+        var list = new List<double>(parts.Length);
+        foreach (var part in parts)
+        {
+            if (double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
+            {
+                list.Add(v);
+            }
+            else
+            {
+                var elementId = GetOptionalString(element, "Id");
+                context.AddError(
+                    string.Format(
+                        "[Error] {0}: {1} 值 \"{2}\" 包含无效数值，已忽略",
+                        elementId ?? "unknown",
+                        attributeName,
+                        part));
+                return null;
+            }
+        }
+
+        return list;
+    }
+
+    private static SlideLinearGradientBrush? ParseLinearGradientChild(XElement parentElement, string elementId, SlidePipelineContext context)
+    {
+        var gradientElement = parentElement.Element("LinearGradient");
+        if (gradientElement is null)
+        {
+            return null;
+        }
+
+        var stops = new List<SlideGradientStop>();
+        foreach (var stopElement in gradientElement.Elements("Stop"))
+        {
+            var offset = GetOptionalDouble(stopElement, "Offset", context);
+            var color = GetOptionalString(stopElement, "Color");
+            if (offset is null || string.IsNullOrWhiteSpace(color))
+            {
+                context.AddWarning(
+                    string.Format(
+                        "[Warning] {0}: LinearGradient Stop 缺少 Offset 或 Color，已忽略",
+                        elementId));
+                continue;
+            }
+
+            stops.Add(new SlideGradientStop
+            {
+                Offset = Math.Clamp(offset.Value, 0, 1),
+                Color = color,
+            });
+        }
+
+        if (stops.Count == 0)
+        {
+            context.AddWarning(
+                string.Format(
+                    "[Warning] {0}: LinearGradient 不包含有效 Stop，已忽略",
+                    elementId));
+            return null;
+        }
+
+        return new SlideLinearGradientBrush
+        {
+            X1 = GetOptionalDouble(gradientElement, "X1", context) ?? 0,
+            Y1 = GetOptionalDouble(gradientElement, "Y1", context) ?? 0,
+            X2 = GetOptionalDouble(gradientElement, "X2", context) ?? 1,
+            Y2 = GetOptionalDouble(gradientElement, "Y2", context) ?? 0,
+            Stops = stops,
+        };
+    }
+
+    private static SlideShadow? ParseShadowElement(XElement element, string elementId, SlidePipelineContext context)
+    {
+        return new SlideShadow
+        {
+            OffsetX = GetOptionalDouble(element, "OffsetX", context) ?? 0,
+            OffsetY = GetOptionalDouble(element, "OffsetY", context) ?? 4,
+            Blur = GetOptionalDouble(element, "Blur", context) ?? 12,
+            Color = GetOptionalString(element, "Color") ?? "#00000033",
+            Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
+        };
+    }
+
+    private static SlideFontWeight? GetOptionalFontWeight(XElement element, string elementId, SlidePipelineContext context)
+    {
+        var text = GetOptionalString(element, "FontWeight");
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        // 尝试枚举名
+        if (Enum.TryParse<SlideFontWeight>(text, ignoreCase: true, out var result))
+        {
+            return result;
+        }
+
+        // 尝试数值（100~900）
+        if (int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericValue)
+            && numericValue >= 100 && numericValue <= 900)
+        {
+            return (SlideFontWeight)numericValue;
+        }
+
+        context.AddError(
+            string.Format(
+                "[Error] {0}: FontWeight 值 \"{1}\" 无效，已忽略",
+                elementId,
+                text));
+        return null;
     }
 }

@@ -83,6 +83,25 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
         bool useMeasured,
         SlideElementMeasurements? measurements)
     {
+        if (panel.Layout == SlideLayoutDirection.Absolute)
+        {
+            LayoutAbsolutePanel(panel, parentBounds, parentId, clipToParent, context, useMeasured, measurements);
+        }
+        else
+        {
+            LayoutFlowPanel(panel, parentBounds, parentId, clipToParent, context, useMeasured, measurements);
+        }
+    }
+
+    private static void LayoutAbsolutePanel(
+        SlidePanelElement panel,
+        Rect parentBounds,
+        string parentId,
+        bool clipToParent,
+        SlidePipelineContext context,
+        bool useMeasured,
+        SlideElementMeasurements? measurements)
+    {
         var provisionalWidth = panel.Width ?? Math.Max(0, parentBounds.Width - panel.Padding * 2);
         var provisionalHeight = panel.Height ?? Math.Max(0, parentBounds.Height - panel.Padding * 2);
 
@@ -114,6 +133,173 @@ internal sealed class SlideLayoutEngine : ISlideLayoutEngine
         LayoutChildren(panel.Children, finalContentBounds, panel.Id, clipToParent: true, context, useMeasured, measurements);
 
         ValidateBounds(panel, parentBounds, parentId, clipToParent, context);
+    }
+
+    private static void LayoutFlowPanel(
+        SlidePanelElement panel,
+        Rect parentBounds,
+        string parentId,
+        bool clipToParent,
+        SlidePipelineContext context,
+        bool useMeasured,
+        SlideElementMeasurements? measurements)
+    {
+        var isHorizontal = panel.Layout == SlideLayoutDirection.Horizontal;
+
+        // 先确定 Panel 自身的内容区域起点
+        var contentOriginX = parentBounds.X + (panel.X ?? 0) + panel.Padding;
+        var contentOriginY = parentBounds.Y + (panel.Y ?? 0) + panel.Padding;
+
+        // 第一步：用声明尺寸（或实测尺寸）计算每个子元素的尺寸
+        var childSizes = new List<(SlideElement Child, double Width, double Height)>(panel.Children.Count);
+        foreach (var child in panel.Children)
+        {
+            var (w, h) = GetChildSize(child, useMeasured, measurements);
+            childSizes.Add((child, w, h));
+        }
+
+        // 内容区域的跨轴尺寸：优先使用 Panel 声明的尺寸，否则使用父容器尺寸
+        var crossAxisContentSize = isHorizontal
+            ? (panel.Height ?? Math.Max(0, parentBounds.Height - panel.Padding * 2))
+            : (panel.Width ?? Math.Max(0, parentBounds.Width - panel.Padding * 2));
+
+        // 第二步：沿流方向排列子元素
+        var flowPosition = isHorizontal ? contentOriginX : contentOriginY;
+        var crossAxisSize = 0d;
+
+        for (var i = 0; i < childSizes.Count; i++)
+        {
+            var (child, childWidth, childHeight) = childSizes[i];
+            var margin = child.Margin;
+
+            // 流方向上的前导间距和尾随间距
+            var leadingMargin = isHorizontal ? (margin?.Left ?? 0) : (margin?.Top ?? 0);
+            var trailingMargin = isHorizontal ? (margin?.Right ?? 0) : (margin?.Bottom ?? 0);
+
+            // 应用 Gap（第一个元素只加 leadingMargin，后续元素加 effectiveGap）
+            if (i > 0)
+            {
+                var prevChild = childSizes[i - 1];
+                var prevTrailingMargin = isHorizontal ? (prevChild.Child.Margin?.Right ?? 0) : (prevChild.Child.Margin?.Bottom ?? 0);
+                // effectiveGap = max(panel.Gap, prev.trailingMargin + current.leadingMargin)
+                // leadingMargin 已包含在 effectiveGap 中，不应再加
+                var effectiveGap = Math.Max(panel.Gap, prevTrailingMargin + leadingMargin);
+                flowPosition += effectiveGap;
+            }
+            else
+            {
+                // 第一个元素：只加 leadingMargin
+                flowPosition += leadingMargin;
+            }
+
+            // 跨轴方向：使用子元素的显式偏移或对齐
+            double crossOrigin;
+            if (isHorizontal)
+            {
+                crossOrigin = ResolveOrigin(contentOriginY, crossAxisContentSize, childHeight, child.Y, child.VerticalAlignment);
+            }
+            else
+            {
+                crossOrigin = ResolveOrigin(contentOriginX, crossAxisContentSize, childWidth, child.X, child.HorizontalAlignment);
+            }
+
+            // 设置子元素的 LayoutBounds
+            if (isHorizontal)
+            {
+                child.LocalBounds = new Rect(child.X ?? 0, child.Y ?? 0, childWidth, childHeight);
+                child.LayoutBounds = new Rect(flowPosition, crossOrigin, childWidth, childHeight);
+            }
+            else
+            {
+                child.LocalBounds = new Rect(child.X ?? 0, child.Y ?? 0, childWidth, childHeight);
+                child.LayoutBounds = new Rect(crossOrigin, flowPosition, childWidth, childHeight);
+            }
+
+            child.ActualWidth = childWidth;
+            child.ActualHeight = childHeight;
+
+            // 更新流位置（不含 trailingMargin，它只参与元素间 gap 计算）
+            flowPosition += (isHorizontal ? childWidth : childHeight);
+
+            // 更新跨轴最大尺寸
+            var crossEnd = isHorizontal
+                ? child.LayoutBounds.Y + childHeight
+                : child.LayoutBounds.X + childWidth;
+            crossAxisSize = Math.Max(crossAxisSize, crossEnd - (isHorizontal ? contentOriginY : contentOriginX));
+
+            // 递归布局子 Panel
+            if (child is SlidePanelElement childPanel)
+            {
+                LayoutPanel(childPanel, child.LayoutBounds, childPanel.Id, clipToParent: true, context, useMeasured, measurements);
+            }
+
+            ValidateBounds(child, parentBounds, panel.Id, clipToParent: true, context);
+        }
+
+        // 加上最后一个元素的 trailingMargin 计算总流尺寸
+        if (childSizes.Count > 0)
+        {
+            var lastChild = childSizes[^1];
+            var lastTrailingMargin = isHorizontal ? (lastChild.Child.Margin?.Right ?? 0) : (lastChild.Child.Margin?.Bottom ?? 0);
+            flowPosition += lastTrailingMargin;
+        }
+
+        // 第三步：计算 Panel 自身尺寸
+        var totalFlowSize = flowPosition - (isHorizontal ? contentOriginX : contentOriginY);
+        var actualWidth = panel.Width ?? (isHorizontal ? totalFlowSize + panel.Padding * 2 : crossAxisSize + panel.Padding * 2);
+        var actualHeight = panel.Height ?? (isHorizontal ? crossAxisSize + panel.Padding * 2 : totalFlowSize + panel.Padding * 2);
+
+        var originX = ResolveOrigin(parentBounds.X, parentBounds.Width, actualWidth, panel.X, panel.HorizontalAlignment);
+        var originY = ResolveOrigin(parentBounds.Y, parentBounds.Height, actualHeight, panel.Y, panel.VerticalAlignment);
+
+        panel.LocalBounds = new Rect(0, 0, actualWidth, actualHeight);
+        panel.LayoutBounds = new Rect(originX, originY, actualWidth, actualHeight);
+        panel.ActualWidth = actualWidth;
+        panel.ActualHeight = actualHeight;
+
+        // 第四步：偏移所有子元素到 Panel 的最终位置
+        var offsetX = originX + panel.Padding - contentOriginX;
+        var offsetY = originY + panel.Padding - contentOriginY;
+        foreach (var (child, _, _) in childSizes)
+        {
+            child.LayoutBounds = new Rect(
+                child.LayoutBounds.X + offsetX,
+                child.LayoutBounds.Y + offsetY,
+                child.LayoutBounds.Width,
+                child.LayoutBounds.Height);
+        }
+
+        // 溢出检测
+        if (panel.Width is double fixedWidth && totalFlowSize > fixedWidth + 0.1)
+        {
+            context.AddWarning($"[Warning] {panel.Id}: 流式布局内容宽度 {SlideXmlUtilities.FormatNumber(totalFlowSize)} 超出 Panel 宽度 {SlideXmlUtilities.FormatNumber(fixedWidth)}");
+        }
+
+        if (panel.Height is double fixedHeight && totalFlowSize > fixedHeight + 0.1)
+        {
+            context.AddWarning($"[Warning] {panel.Id}: 流式布局内容高度 {SlideXmlUtilities.FormatNumber(totalFlowSize)} 超出 Panel 高度 {SlideXmlUtilities.FormatNumber(fixedHeight)}");
+        }
+
+        ValidateBounds(panel, parentBounds, parentId, clipToParent, context);
+    }
+
+    private static (double Width, double Height) GetChildSize(
+        SlideElement child,
+        bool useMeasured,
+        SlideElementMeasurements? measurements)
+    {
+        if (useMeasured && measurements is not null && measurements.TryGetValue(child.Id, out var measureResult))
+        {
+            return (child.Width ?? measureResult.MeasuredWidth, child.Height ?? measureResult.MeasuredHeight);
+        }
+
+        return child switch
+        {
+            SlideTextElement => (child.Width ?? 0, child.Height ?? 0),
+            SlideImageElement => (child.Width ?? 240, child.Height ?? 180),
+            SlideRectElement => (child.Width ?? 0, child.Height ?? 0),
+            _ => (child.Width ?? 0, child.Height ?? 0),
+        };
     }
 
     private static void LayoutRect(

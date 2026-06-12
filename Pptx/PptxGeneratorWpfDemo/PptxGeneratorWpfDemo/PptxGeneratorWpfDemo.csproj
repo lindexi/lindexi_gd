@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="PptxGenerator.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DotNetCampus.LatestCSharpFeatures" Version="13.0.1" />
   </ItemGroup>
 
