@@ -1,0 +1,28 @@
+﻿<Window x:Class="JedicairqaiWejobajaibiqe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JedicairqaiWejobajaibiqe"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid RowDefinitions="*,Auto">
+        <ScrollViewer x:Name="FooScrollViewer">
+            <ItemsControl x:Name="ItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:TextItem}">
+                        <TextBlock Text="{Binding Content}"
+                               TextWrapping="Wrap"
+                               Margin="4" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
+            <Button x:Name="AddItemButton" Margin="0,0,10,0" Content="添加项" Click="AddItemButton_Click"  />
+            <Button x:Name="AddContentButton" Margin="0,0,10,0" Content="添加内容" Click="AddContentButton_Click" />
+            <Button x:Name="ScrollToEndButton" Content="滚动到底部" Click="ScrollToEndButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>
