@@ -404,7 +404,75 @@ public class CopilotChatManagerSendMessageTests
         }
     }
 
-    private static object? NormalizeResult(object? result)
+    [TestMethod]
+        [Description("SendMessage 使用自定义 ChatClient 时，应优先使用 request 传入的客户端而不是 PrimaryModel")]
+        public async Task SendMessage_WhenCustomChatClientProvided_UsesCustomChatClient()
+        {
+            // 两个 FakeChatClient：primary 和 custom，各自记录是否被调用
+            var primaryChatClient = new FakeChatClient();
+            var customChatClient = new FakeChatClient();
+            bool primaryWasCalled = false;
+            bool customWasCalled = false;
+
+            primaryChatClient.OnGetStreamingResponseAsync = (messages, options, cancellationToken) =>
+            {
+                // 压缩器会通过 PrimaryModel 获取 IChatClient，这是预期行为
+                return CreateStreamingUpdatesAsync(cancellationToken);
+            };
+            customChatClient.OnGetStreamingResponseAsync = (messages, options, cancellationToken) =>
+            {
+                customWasCalled = true;
+                return CreateStreamingUpdatesAsync(cancellationToken,
+                    CopilotChatManagerTestContext.AssistantText("来自自定义客户端"));
+            };
+
+            var context = CopilotChatManagerTestContext.Create(primaryChatClient);
+
+            SendMessageResult result = context.ChatManager.SendMessage(
+                new SendMessageRequest("你好")
+                {
+                    ChatClient = customChatClient
+                });
+
+            await result.RunTask;
+
+            Assert.IsTrue(customWasCalled, "自定义 ChatClient 应被调用");
+            Assert.AreEqual("来自自定义客户端", result.AssistantChatMessage.Content);
+        }
+
+        [TestMethod]
+        [Description("SendMessage 设置 AppendDefaultTools=false 时，不应追加默认框架工具")]
+        public async Task SendMessage_WhenAppendDefaultToolsIsFalse_SkipsDefaultTools()
+        {
+            var primaryChatClient = new FakeChatClient();
+            primaryChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
+                CreateStreamingUpdatesAsync(cancellationToken,
+                    CopilotChatManagerTestContext.AssistantText("回复"));
+
+            var context = CopilotChatManagerTestContext.Create(primaryChatClient);
+
+            // 记录 AppendDefaultTools=true 时的工具数量作为基准
+            SendMessageResult resultWithDefaults = context.ChatManager.SendMessage(
+                new SendMessageRequest("基准测试"));
+            int defaultToolCount = resultWithDefaults.ToolList.Count;
+            await resultWithDefaults.RunTask;
+
+            // AppendDefaultTools=false 时不应追加默认工具
+            SendMessageResult resultWithoutDefaults = context.ChatManager.SendMessage(
+                new SendMessageRequest("跳过默认工具")
+                {
+                    AppendDefaultTools = false,
+                    WithHistory = false,
+                    CreateNewSession = true
+                });
+
+            await resultWithoutDefaults.RunTask;
+
+            Assert.IsTrue(defaultToolCount > 0, "基准应有默认工具");
+            Assert.AreEqual(0, resultWithoutDefaults.ToolList.Count, "跳过默认工具后应为空");
+        }
+
+        private static object? NormalizeResult(object? result)
     {
         if (result is JsonElement jsonElement)
         {

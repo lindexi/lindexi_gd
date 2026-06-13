@@ -394,7 +394,9 @@ public class CopilotChatManager : NotifyBase
         OnBeforeSendStreaming(currentSession, assistantChatMessage);
 
         CopilotChatContext chatContext = new(currentSession.ChatMessages, assistantChatMessage);
-        List<AITool> toolList = ResolveTools(request.Tools, chatContext, currentChatCancellationToken);
+        List<AITool> toolList = request.AppendDefaultTools
+            ? ResolveTools(request.Tools, chatContext, currentChatCancellationToken)
+            : (request.Tools?.ToList() ?? []);
 
         Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync();
 
@@ -402,7 +404,7 @@ public class CopilotChatManager : NotifyBase
         {
             currentChatCancellationToken.ThrowIfCancellationRequested();
 
-            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+            IChatClient chatClient = request.ChatClient ?? await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
             var chatClientAgentOptions = new ChatClientAgentOptions()
             {
@@ -423,10 +425,12 @@ public class CopilotChatManager : NotifyBase
             }
             else
             {
-                // 当未指定 ChatReducer 时，自动启用内置的 ToolCall 压缩器
+                // 当未指定 ChatReducer 时，自动启用内置的 ToolCall 压缩器。
+                // 压缩器与聊天逻辑无关，始终使用 AgentApiEndpointManager.PrimaryModel 获取 IChatClient。
+                IChatClient reducerChatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
                 chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
                 {
-                    ChatReducer = new CopilotChatManagerToolCallChatReducer(chatClient)
+                    ChatReducer = new CopilotChatManagerToolCallChatReducer(reducerChatClient)
                 });
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = true;
             }
