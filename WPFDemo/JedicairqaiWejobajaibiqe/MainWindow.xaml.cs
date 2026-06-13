@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace JedicairqaiWejobajaibiqe;
 
@@ -9,7 +11,9 @@ namespace JedicairqaiWejobajaibiqe;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private readonly ObservableCollection<TextItem> _items = [];
+    private readonly ObservableCollection<TextItem> _itemsControlItems = [];
+    private readonly ObservableCollection<TextItem> _listViewItems = [];
+    private readonly ObservableCollection<TextItem> _listBoxItems = [];
 
     private static readonly string[] _randomWords =
     [
@@ -37,22 +41,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        ItemsControl.ItemsSource = _items;
+        ItemsControl.ItemsSource = _itemsControlItems;
+        ListView.ItemsSource = _listViewItems;
+        ListBox.ItemsSource = _listBoxItems;
     }
 
-    private void AddItemButton_Click(object sender, RoutedEventArgs e)
+    private static string GenerateRandomText()
     {
-        _items.Add(new TextItem { Content = $"Item {_items.Count + 1}" });
-    }
-
-    private void AddContentButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_items.Count == 0)
-        {
-            return;
-        }
-
-        var lastItem = _items[^1];
         var sb = new StringBuilder(512);
 
         while (sb.Length < 300)
@@ -65,11 +60,143 @@ public partial class MainWindow : Window
             sb.Append(_randomWords[Random.Shared.Next(_randomWords.Length)]);
         }
 
-        lastItem.Content += (lastItem.Content.Length > 0 ? " " : "") + sb.ToString();
+        return sb.ToString();
     }
 
-    private void ScrollToEndButton_Click(object sender, RoutedEventArgs e)
+    private static void AddItem(ObservableCollection<TextItem> items)
     {
-        FooScrollViewer.ScrollToEnd();
+        items.Add(new TextItem { Content = $"Item {items.Count + 1}" });
+    }
+
+    private static void AddContent(ObservableCollection<TextItem> items)
+    {
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        var lastItem = items[^1];
+        var separator = lastItem.Content.Length > 0 ? " " : "";
+        lastItem.Content += separator + GenerateRandomText();
+    }
+
+    // ========== ItemsControl ==========
+
+    private void ItemsControl_ScrollToEnd_Click(object sender, RoutedEventArgs e)
+    {
+        ItemsControlScrollViewer.ScrollToEnd();
+    }
+
+    private void ItemsControl_AddContent_Click(object sender, RoutedEventArgs e)
+    {
+        AddContent(_itemsControlItems);
+        ItemsControlScrollViewer.ScrollToEnd();
+    }
+
+    private void ItemsControl_AddItem_Click(object sender, RoutedEventArgs e)
+    {
+        AddItem(_itemsControlItems);
+    }
+
+    // ========== ListView ==========
+
+    private void ListView_ScrollToEnd_Click(object sender, RoutedEventArgs e)
+    {
+        ScrollListViewToEnd();
+    }
+
+    private void ListView_AddContent_Click(object sender, RoutedEventArgs e)
+    {
+        AddContent(_listViewItems);
+        ScrollListViewToEnd();
+    }
+
+    private void ListView_AddItem_Click(object sender, RoutedEventArgs e)
+    {
+        AddItem(_listViewItems);
+    }
+
+    private void ScrollListViewToEnd()
+    {
+        var scrollViewer = FindChild<ScrollViewer>(ListView);
+        if (scrollViewer is null)
+        {
+            return;
+        }
+
+        scrollViewer.ScrollToEnd();
+        // 由于 VirtualizingStackPanel 是逻辑滚动，内容变化后需要布局完成再滚一次
+        Dispatcher.BeginInvoke(new Action(() => scrollViewer.ScrollToEnd()),
+            System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private T? FindChild<T>(FrameworkElement element) where T : FrameworkElement
+    {
+        foreach (var frameworkElement in LogicalTreeHelper.GetChildren(element).OfType<FrameworkElement>())
+        {
+            if (frameworkElement is T result)
+            {
+                return result;
+            }
+
+            var childResult = FindChild<T>(frameworkElement);
+            if (childResult != null)
+            {
+                return childResult;
+            }
+        }
+
+        var childrenCount = VisualTreeHelper.GetChildrenCount(element);
+        for (int i = 0; i < childrenCount; i++)
+        {
+            var visualChild = VisualTreeHelper.GetChild(element,i);
+            if (visualChild is T result)
+            {
+                return result;
+            }
+
+            if (visualChild is FrameworkElement visualFrameworkElement)
+            {
+                var childResult = FindChild<T>(visualFrameworkElement);
+                if (childResult != null)
+                {
+                    return childResult;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // ========== ListBox ==========
+
+    private void ListBox_ScrollToEnd_Click(object sender, RoutedEventArgs e)
+    {
+        ScrollListBoxToEnd();
+    }
+
+    private void ListBox_AddContent_Click(object sender, RoutedEventArgs e)
+    {
+        AddContent(_listBoxItems);
+        ScrollListBoxToEnd();
+    }
+
+    private void ListBox_AddItem_Click(object sender, RoutedEventArgs e)
+    {
+        AddItem(_listBoxItems);
+    }
+
+    private void ScrollListBoxToEnd()
+    {
+        var scrollViewer = FindChild<ScrollViewer>(ListBox);
+        if (scrollViewer is null)
+        {
+            return;
+        }
+
+        scrollViewer.ScrollToEnd();
+        // 由于 VirtualizingStackPanel 是逻辑滚动，内容变化后需要布局完成再滚一次
+        Dispatcher.BeginInvoke(new Action(() => scrollViewer.ScrollToEnd()),
+            System.Windows.Threading.DispatcherPriority.Loaded);
     }
 }

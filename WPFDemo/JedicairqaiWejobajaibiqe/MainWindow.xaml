@@ -6,23 +6,72 @@
         xmlns:local="clr-namespace:JedicairqaiWejobajaibiqe"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid RowDefinitions="*,Auto">
-        <ScrollViewer x:Name="FooScrollViewer">
-            <ItemsControl x:Name="ItemsControl">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type local:TextItem}">
-                        <TextBlock Text="{Binding Content}"
-                               TextWrapping="Wrap"
-                               Margin="4" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+    <TabControl>
+        <!-- Tab 1: ItemsControl -->
+        <TabItem Header="ItemsControl">
+            <Grid RowDefinitions="*,Auto">
+                <ScrollViewer x:Name="ItemsControlScrollViewer">
+                    <ItemsControl x:Name="ItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:TextItem}">
+                                <TextBlock Text="{Binding Content}"
+                                           TextWrapping="Wrap"
+                                           Margin="4" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
+                    <Button Margin="0,0,10,0" Content="添加项" Click="ItemsControl_AddItem_Click" />
+                    <Button Margin="0,0,10,0" Content="添加内容" Click="ItemsControl_AddContent_Click" />
+                    <Button Content="滚动到底部" Click="ItemsControl_ScrollToEnd_Click" />
+                </StackPanel>
+            </Grid>
+        </TabItem>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
-            <Button x:Name="AddItemButton" Margin="0,0,10,0" Content="添加项" Click="AddItemButton_Click"  />
-            <Button x:Name="AddContentButton" Margin="0,0,10,0" Content="添加内容" Click="AddContentButton_Click" />
-            <Button x:Name="ScrollToEndButton" Content="滚动到底部" Click="ScrollToEndButton_Click" />
-        </StackPanel>
-    </Grid>
+        <!-- Tab 2: ListView -->
+        <TabItem Header="ListView">
+            <Grid RowDefinitions="*,Auto">
+                <ListView x:Name="ListView"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          VirtualizingPanel.ScrollUnit="Pixel"
+                          ScrollViewer.CanContentScroll="False">
+                    <ListView.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:TextItem}">
+                            <TextBlock Text="{Binding Content}"
+                                       TextWrapping="Wrap"
+                                       Margin="4" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
+                    <Button Margin="0,0,10,0" Content="添加项" Click="ListView_AddItem_Click" />
+                    <Button Margin="0,0,10,0" Content="添加内容" Click="ListView_AddContent_Click" />
+                    <Button Content="滚动到底部" Click="ListView_ScrollToEnd_Click" />
+                </StackPanel>
+            </Grid>
+        </TabItem>
+
+        <!-- Tab 3: ListBox -->
+        <TabItem Header="ListBox">
+            <Grid RowDefinitions="*,Auto">
+                <ListBox x:Name="ListBox"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.CanContentScroll="False">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:TextItem}">
+                            <TextBlock Text="{Binding Content}"
+                                       TextWrapping="Wrap"
+                                       Margin="4" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
+                    <Button Margin="0,0,10,0" Content="添加项" Click="ListBox_AddItem_Click" />
+                    <Button Margin="0,0,10,0" Content="添加内容" Click="ListBox_AddContent_Click" />
+                    <Button Content="滚动到底部" Click="ListBox_ScrollToEnd_Click" />
+                </StackPanel>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>
