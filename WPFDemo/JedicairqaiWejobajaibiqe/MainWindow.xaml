@@ -7,15 +7,22 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid RowDefinitions="*,Auto">
-        <ScrollViewer>
-            <ItemsControl>
-
+        <ScrollViewer x:Name="FooScrollViewer">
+            <ItemsControl x:Name="ItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:TextItem}">
+                        <TextBlock Text="{Binding Content}"
+                               TextWrapping="Wrap"
+                               Margin="4" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
 
-        <StackPanel Orientation="Horizontal">
-            <Button>添加项</Button>
-            <Button>添加内容</Button>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
+            <Button x:Name="AddItemButton" Margin="0,0,10,0" Content="添加项" Click="AddItemButton_Click"  />
+            <Button x:Name="AddContentButton" Margin="0,0,10,0" Content="添加内容" Click="AddContentButton_Click" />
+            <Button x:Name="ScrollToEndButton" Content="滚动到底部" Click="ScrollToEndButton_Click" />
         </StackPanel>
     </Grid>
 </Window>
