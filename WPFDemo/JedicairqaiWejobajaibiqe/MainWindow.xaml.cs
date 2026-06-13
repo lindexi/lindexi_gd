@@ -82,37 +82,52 @@ public partial class MainWindow : Window
 
     // ========== ItemsControl ==========
 
-    private void ItemsControl_AddItem_Click(object sender, RoutedEventArgs e)
-    {
-        AddItem(_itemsControlItems);
-    }
-
-    private void ItemsControl_AddContent_Click(object sender, RoutedEventArgs e)
-    {
-        AddContent(_itemsControlItems);
-    }
-
     private void ItemsControl_ScrollToEnd_Click(object sender, RoutedEventArgs e)
     {
         ItemsControlScrollViewer.ScrollToEnd();
     }
 
+    private void ItemsControl_AddContent_Click(object sender, RoutedEventArgs e)
+    {
+        AddContent(_itemsControlItems);
+        ItemsControlScrollViewer.ScrollToEnd();
+    }
+
+    private void ItemsControl_AddItem_Click(object sender, RoutedEventArgs e)
+    {
+        AddItem(_itemsControlItems);
+    }
+
     // ========== ListView ==========
+
+    private void ListView_ScrollToEnd_Click(object sender, RoutedEventArgs e)
+    {
+        ScrollListViewToEnd();
+    }
+
+    private void ListView_AddContent_Click(object sender, RoutedEventArgs e)
+    {
+        AddContent(_listViewItems);
+        ScrollListViewToEnd();
+    }
 
     private void ListView_AddItem_Click(object sender, RoutedEventArgs e)
     {
         AddItem(_listViewItems);
     }
 
-    private void ListView_AddContent_Click(object sender, RoutedEventArgs e)
-    {
-        AddContent(_listViewItems);
-    }
-
-    private void ListView_ScrollToEnd_Click(object sender, RoutedEventArgs e)
+    private void ScrollListViewToEnd()
     {
         var scrollViewer = FindChild<ScrollViewer>(ListView);
-        scrollViewer?.ScrollToEnd();
+        if (scrollViewer is null)
+        {
+            return;
+        }
+
+        scrollViewer.ScrollToEnd();
+        // 由于 VirtualizingStackPanel 是逻辑滚动，内容变化后需要布局完成再滚一次
+        Dispatcher.BeginInvoke(new Action(() => scrollViewer.ScrollToEnd()),
+            System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
     private T? FindChild<T>(FrameworkElement element) where T : FrameworkElement
@@ -155,19 +170,33 @@ public partial class MainWindow : Window
 
     // ========== ListBox ==========
 
-    private void ListBox_AddItem_Click(object sender, RoutedEventArgs e)
+    private void ListBox_ScrollToEnd_Click(object sender, RoutedEventArgs e)
     {
-        AddItem(_listBoxItems);
+        ScrollListBoxToEnd();
     }
 
     private void ListBox_AddContent_Click(object sender, RoutedEventArgs e)
     {
         AddContent(_listBoxItems);
+        ScrollListBoxToEnd();
     }
 
-    private void ListBox_ScrollToEnd_Click(object sender, RoutedEventArgs e)
+    private void ListBox_AddItem_Click(object sender, RoutedEventArgs e)
+    {
+        AddItem(_listBoxItems);
+    }
+
+    private void ScrollListBoxToEnd()
     {
         var scrollViewer = FindChild<ScrollViewer>(ListBox);
-        scrollViewer?.ScrollToEnd();
+        if (scrollViewer is null)
+        {
+            return;
+        }
+
+        scrollViewer.ScrollToEnd();
+        // 由于 VirtualizingStackPanel 是逻辑滚动，内容变化后需要布局完成再滚一次
+        Dispatcher.BeginInvoke(new Action(() => scrollViewer.ScrollToEnd()),
+            System.Windows.Threading.DispatcherPriority.Loaded);
     }
 }
