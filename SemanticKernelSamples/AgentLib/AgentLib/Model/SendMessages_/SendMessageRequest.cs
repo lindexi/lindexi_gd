@@ -53,7 +53,7 @@ public readonly record struct SendMessageRequest
     /// <summary>
     /// 本次额外启用的工具集合。
     /// </summary>
-    public IEnumerable<AITool>? Tools { get; init; } = null;
+    public IReadOnlyList<AITool> Tools { get; init; } = [];
 
     /// <summary>
     /// 工具调用模式。
