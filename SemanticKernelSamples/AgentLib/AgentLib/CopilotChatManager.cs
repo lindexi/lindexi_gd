@@ -331,7 +331,7 @@ public class CopilotChatManager : NotifyBase
     /// <param name="toolMode">工具模式</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
-    public async Task SendMessageAsync(IReadOnlyList<AIContent> contents, bool withHistory = true, bool createNewSession = false, IEnumerable<AITool>? tools = null,
+    public async Task SendMessageAsync(IReadOnlyList<AIContent> contents, bool withHistory = true, bool createNewSession = false, IReadOnlyList<AITool>? tools = null,
         ChatToolMode? toolMode = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(contents);
@@ -394,7 +394,9 @@ public class CopilotChatManager : NotifyBase
         OnBeforeSendStreaming(currentSession, assistantChatMessage);
 
         CopilotChatContext chatContext = new(currentSession.ChatMessages, assistantChatMessage);
-        List<AITool> toolList = ResolveTools(request.Tools, chatContext, currentChatCancellationToken);
+        IReadOnlyList<AITool> toolList = request.AppendDefaultTools
+            ? ResolveTools(request.Tools, chatContext, currentChatCancellationToken)
+            : request.Tools.ToList();
 
         Task<ChatClientAgentCreatedResult> createChatClientAgentTask = CreateChatClientAgentAsync();
 
@@ -402,7 +404,7 @@ public class CopilotChatManager : NotifyBase
         {
             currentChatCancellationToken.ThrowIfCancellationRequested();
 
-            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+            IChatClient chatClient = request.ChatClient ?? await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
             var chatClientAgentOptions = new ChatClientAgentOptions()
             {
@@ -423,10 +425,12 @@ public class CopilotChatManager : NotifyBase
             }
             else
             {
-                // 当未指定 ChatReducer 时，自动启用内置的 ToolCall 压缩器
+                // 当未指定 ChatReducer 时，自动启用内置的 ToolCall 压缩器。
+                // 压缩器与聊天逻辑无关，始终使用 AgentApiEndpointManager.PrimaryModel 获取 IChatClient。
+                IChatClient reducerChatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
                 chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
                 {
-                    ChatReducer = new CopilotChatManagerToolCallChatReducer(chatClient)
+                    ChatReducer = new CopilotChatManagerToolCallChatReducer(reducerChatClient)
                 });
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = true;
             }
@@ -588,16 +592,13 @@ public class CopilotChatManager : NotifyBase
         }
     }
 
-    private List<AITool> ResolveTools(IEnumerable<AITool>? tools, CopilotChatContext? chatContext = null,
+    private List<AITool> ResolveTools(IReadOnlyList<AITool> tools, CopilotChatContext? chatContext = null,
         CancellationToken cancellationToken = default)
     {
-        List<AITool> toolList = [];
-        if (tools != null)
+        List<AITool> toolList = new(tools.Count);
+        foreach (AITool tool in tools)
         {
-            foreach (AITool tool in tools)
-            {
-                toolList.Add(HumanApprovalTool.BindRuntimeTool(tool, chatContext, cancellationToken));
-            }
+            toolList.Add(HumanApprovalTool.BindRuntimeTool(tool, chatContext, cancellationToken));
         }
 
         toolList.AddRange(_toolManager.CreateDefaultTools(chatContext, cancellationToken)

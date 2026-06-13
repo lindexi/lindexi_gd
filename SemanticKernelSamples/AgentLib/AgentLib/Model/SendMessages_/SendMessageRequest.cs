@@ -53,7 +53,7 @@ public readonly record struct SendMessageRequest
     /// <summary>
     /// 本次额外启用的工具集合。
     /// </summary>
-    public IEnumerable<AITool>? Tools { get; init; } = null;
+    public IReadOnlyList<AITool> Tools { get; init; } = [];
 
     /// <summary>
     /// 工具调用模式。
@@ -85,6 +85,24 @@ public readonly record struct SendMessageRequest
     /// 设为空集合可临时禁用上下文提供者。
     /// </summary>
     public IReadOnlyList<AIContextProvider>? AIContextProviders { get; init; } = null;
+
+    /// <summary>
+    /// 自定义聊天客户端。为 <see langword="null"/> 时使用 <see cref="AgentApiEndpointManager.PrimaryModel"/> 获取默认客户端。
+    /// 传入自定义客户端可实现按任务选择不同模型。
+    /// </summary>
+    /// <remarks>
+    /// 内置的 <see cref="CopilotChatManagerChatReducer"/> 压缩器始终使用 <see cref="AgentApiEndpointManager.PrimaryModel"/>，
+    /// 不受此属性影响，因为压缩逻辑与聊天无关。
+    /// </remarks>
+    public IChatClient? ChatClient { get; init; } = null;
+
+    /// <summary>
+    /// 是否追加默认框架工具。默认为 <see langword="true"/>。
+    /// 设为 <see langword="false"/> 时，跳过 <see cref="CopilotChatManager.ResolveTools"/> 调用，
+    /// 仅使用 <see cref="Tools"/> 中指定的工具，且不做 <see cref="HumanApprovalTool.BindRuntimeTool"/> 包装。
+    /// 适用于业务方完全托管工具的场景。
+    /// </summary>
+    public bool AppendDefaultTools { get; init; } = true;
 
     /// <summary>
     /// 返回一个新的 <see cref="SendMessageRequest"/>，从指定技能文件夹加载技能并追加到 <see cref="AIContextProviders"/> 中。
