@@ -218,7 +218,7 @@ private bool ExecuteNextCommand()
 
 ### 4.3 偏移量回读与属性同步
 
-命令执行完毕后，下一次 `LayoutUpdated` 触发，进入第二步——从 `IScrollInfo` 回读：
+命令执行完毕后，下一次 `LayoutUpdated` 触发，进入第二步——从 `IScrollInfo` 回读。以下为 `OnLayoutUpdated` 方法关键部分的**简化示意**：
 
 ```csharp
 private void OnLayoutUpdated(object sender, EventArgs e)
@@ -230,11 +230,14 @@ private void OnLayoutUpdated(object sender, EventArgs e)
         return;
     }
 
-    // 第二步：回读
-    double oldActualVerticalOffset = HorizontalOffset;   // 注意：源码中这里读的是 HorizontalOffset
-    double oldActualVerticalOffset2 = VerticalOffset;    // 实际有单独变量跟踪
+    // 第二步：回读（简化，只展示垂直方向关键属性）
+    double oldActualHorizontalOffset = HorizontalOffset;
+    double oldActualVerticalOffset = VerticalOffset;
 
-    // ...
+    double oldExtentHeight = ExtentHeight;
+    // ... 还有 oldViewportWidth、oldViewportHeight、oldExtentWidth 等
+
+    bool changed = false;
 
     // 逐个比较：
     if (ScrollInfo != null && !DoubleUtil.AreClose(oldActualVerticalOffset, ScrollInfo.VerticalOffset))
@@ -253,14 +256,19 @@ private void OnLayoutUpdated(object sender, EventArgs e)
         changed = true;
     }
 
-    // ...
-
     if(changed)
     {
-        // 触发 ScrollChangedEvent 事件
-        OnScrollChanged(args);
-        // 更新 AutomationPeer
-        // ...
+        try
+        {
+            // 触发 ScrollChangedEvent 事件
+            OnScrollChanged(args);
+            // 更新 AutomationPeer
+            // ...
+        }
+        finally
+        {
+            ClearLayoutUpdatedHandler();
+        }
     }
 
     ClearLayoutUpdatedHandler();
