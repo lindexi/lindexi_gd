@@ -303,16 +303,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
     private void DrawPanel(DrawingContext dc, SlidePanelElement panel, SlidePipelineContext context)
     {
-        // 确定背景画刷：BackgroundElement（渐变）优先于 Background（纯色）
-        Brush? backgroundBrush = null;
-        if (panel.BackgroundElement is not null)
-        {
-            backgroundBrush = CreateGradientBrush(panel.BackgroundElement, ToRect(panel.LayoutBounds));
-        }
-        else if (!string.IsNullOrWhiteSpace(panel.Background))
-        {
-            backgroundBrush = CreateBrush(panel.Background, Colors.Transparent);
-        }
+        var backgroundBrush = CreateWpfBrush(panel.Background, ToRect(panel.LayoutBounds), Colors.Transparent);
 
         if (backgroundBrush is not null)
         {
@@ -328,36 +319,16 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
     {
         var bounds = ToRect(rect.LayoutBounds);
 
-        // 确定填充画刷：FillElement（渐变）优先于 Fill（纯色）
-        Brush? fillBrush = null;
-        if (rect.FillElement is not null)
-        {
-            fillBrush = CreateGradientBrush(rect.FillElement, bounds);
-        }
-        else if (!string.IsNullOrWhiteSpace(rect.Fill))
-        {
-            fillBrush = CreateBrush(rect.Fill, Colors.Transparent);
-        }
+        var fillBrush = CreateWpfBrush(rect.Fill, bounds, Colors.Transparent);
 
-        // 确定描边画笔：StrokeElement（渐变）优先于 Stroke（纯色）
         Pen? pen = null;
         if (rect.StrokeThickness > 0)
         {
-            Brush? strokeBrush = null;
-            if (rect.StrokeElement is not null)
-            {
-                strokeBrush = CreateGradientBrush(rect.StrokeElement, bounds);
-            }
-            else if (!string.IsNullOrWhiteSpace(rect.Stroke))
-            {
-                strokeBrush = CreateBrush(rect.Stroke, Colors.Transparent);
-            }
-
+            var strokeBrush = CreateWpfBrush(rect.Stroke, bounds, Colors.Transparent);
             if (strokeBrush is not null)
             {
                 pen = new Pen(strokeBrush, rect.StrokeThickness);
 
-                // StrokeDashArray
                 if (rect.StrokeDashArray is { Count: > 0 })
                 {
                     pen.DashStyle = new DashStyle(rect.StrokeDashArray, 0);
@@ -719,9 +690,23 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         }
 
         /// <summary>
-        /// 将 <see cref="SlideLinearGradientBrush"/> 转换为 WPF <see cref="LinearGradientBrush"/>。
+        /// 将 <see cref="ISlideMlBrush"/> 转换为 WPF <see cref="Brush"/>。
+        /// 纯色画刷创建 <see cref="SolidColorBrush"/>，渐变画刷创建 <see cref="LinearGradientBrush"/>。
         /// </summary>
-        internal static LinearGradientBrush? CreateGradientBrush(SlideLinearGradientBrush? gradient, Rect bounds)
+        internal static Brush? CreateWpfBrush(ISlideMlBrush? brush, Rect bounds, Color fallbackColor)
+        {
+            return brush switch
+            {
+                SlideMlSolidColorBrush solid => CreateBrush(solid.Color, fallbackColor),
+                SlideMlLinearGradientBrush gradient => CreateGradientBrush(gradient, bounds),
+                null => null,
+            };
+        }
+
+        /// <summary>
+        /// 将 <see cref="SlideMlLinearGradientBrush"/> 转换为 WPF <see cref="LinearGradientBrush"/>。
+        /// </summary>
+        internal static LinearGradientBrush? CreateGradientBrush(SlideMlLinearGradientBrush? gradient, Rect bounds)
         {
             if (gradient is null || gradient.Stops.Count == 0)
             {

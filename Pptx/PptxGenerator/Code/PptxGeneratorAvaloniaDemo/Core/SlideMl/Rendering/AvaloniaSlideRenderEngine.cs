@@ -207,9 +207,10 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
     private void DrawPanel(DrawingContext dc, SlidePanelElement panel, SlidePipelineContext context)
     {
         var bounds = ToRect(panel.LayoutBounds);
-        if (!string.IsNullOrWhiteSpace(panel.Background))
+        var backgroundBrush = CreateAvaloniaBrush(panel.Background, Colors.Transparent);
+        if (backgroundBrush is not null)
         {
-            dc.FillRectangle(CreateBrush(panel.Background, Colors.Transparent), bounds);
+            dc.FillRectangle(backgroundBrush, bounds);
         }
 
         using (dc.PushClip(new Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height)))
@@ -222,15 +223,20 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
     {
         var bounds = ToRect(rect.LayoutBounds);
 
-        if (!string.IsNullOrWhiteSpace(rect.Fill))
+        var fillBrush = CreateAvaloniaBrush(rect.Fill, Colors.Transparent);
+        if (fillBrush is not null)
         {
-            dc.FillRectangle(CreateBrush(rect.Fill, Colors.Transparent), bounds);
+            dc.FillRectangle(fillBrush, bounds);
         }
 
-        if (rect.StrokeThickness > 0 && !string.IsNullOrWhiteSpace(rect.Stroke))
+        if (rect.StrokeThickness > 0)
         {
-            var pen = new Pen(CreateBrush(rect.Stroke, Colors.Transparent), rect.StrokeThickness);
-            dc.DrawRectangle(pen, bounds);
+            var strokeBrush = CreateAvaloniaBrush(rect.Stroke, Colors.Transparent);
+            if (strokeBrush is not null)
+            {
+                var pen = new Pen(strokeBrush, rect.StrokeThickness);
+                dc.DrawRectangle(pen, bounds);
+            }
         }
     }
 
@@ -276,6 +282,19 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
 
     private static Rect ToRect(SlideRect r) => new(r.X, r.Y, r.Width, r.Height);
 
+    /// <summary>
+    /// 将 <see cref="ISlideMlBrush"/> 转换为 Avalonia <see cref="IBrush"/>。
+    /// </summary>
+    private static IBrush? CreateAvaloniaBrush(ISlideMlBrush? brush, Color fallbackColor)
+    {
+        return brush switch
+        {
+            SlideMlSolidColorBrush solid => CreateBrush(solid.Color, fallbackColor),
+            SlideMlLinearGradientBrush gradient => CreateGradientBrush(gradient),
+            null => null,
+        };
+    }
+
     private static ISolidColorBrush CreateBrush(string colorText, Color fallbackColor)
     {
         if (!string.IsNullOrWhiteSpace(colorText))
@@ -290,6 +309,27 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
 
         return new SolidColorBrush(fallbackColor);
+    }
+
+    private static IBrush? CreateGradientBrush(SlideMlLinearGradientBrush gradient)
+    {
+        if (gradient.Stops.Count == 0)
+        {
+            return null;
+        }
+
+        var brush = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(gradient.X1, gradient.Y1, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(gradient.X2, gradient.Y2, RelativeUnit.Relative),
+        };
+
+        foreach (var stop in gradient.Stops)
+        {
+            brush.GradientStops.Add(new GradientStop(Color.Parse(stop.Color), stop.Offset));
+        }
+
+        return brush;
     }
 
     private static Bitmap? TryLoadBitmap(string source)

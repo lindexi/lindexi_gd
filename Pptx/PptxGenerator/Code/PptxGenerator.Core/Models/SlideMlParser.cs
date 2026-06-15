@@ -151,19 +151,7 @@ public sealed class SlideMlParser
     {
         ValidateAttributes(element, id, _panelKnownAttributes, context);
 
-        SlideLinearGradientBrush? backgroundElement = null;
-
-        foreach (var child in element.Elements())
-        {
-            switch (child.Name.LocalName)
-            {
-                case "Fill":
-                    backgroundElement = ParseLinearGradientChild(child, id, context);
-                    break;
-                default:
-                    break;
-            }
-        }
+        var backgroundBrush = ParseBackground(element, id, context);
 
         var panel = new SlidePanelElement
         {
@@ -176,8 +164,7 @@ public sealed class SlideMlParser
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Padding = GetOptionalDouble(element, "Padding", context) ?? 0,
-            Background = GetOptionalString(element, "Background"),
-            BackgroundElement = backgroundElement,
+            Background = backgroundBrush,
             Layout = GetOptionalLayoutDirection(element, id, context) ?? SlideLayoutDirection.Absolute,
             Gap = GetOptionalDouble(element, "Gap", context) ?? 0,
             Margin = GetOptionalThickness(element, "Margin", context),
@@ -205,8 +192,8 @@ public sealed class SlideMlParser
     {
         ValidateAttributes(element, id, _rectKnownAttributes, context);
 
-        SlideLinearGradientBrush? fillElement = null;
-        SlideLinearGradientBrush? strokeElement = null;
+        var fillBrush = ParseFill(element, id, context);
+        var strokeBrush = ParseStroke(element, id, context);
         SlideShadow? shadowChild = null;
 
         foreach (var child in element.Elements())
@@ -214,10 +201,8 @@ public sealed class SlideMlParser
             switch (child.Name.LocalName)
             {
                 case "Fill":
-                    fillElement = ParseLinearGradientChild(child, id, context);
-                    break;
                 case "Stroke":
-                    strokeElement = ParseLinearGradientChild(child, id, context);
+                    // 已在 ParseFill / ParseStroke 中统一处理
                     break;
                 case "Shadow":
                     shadowChild = ParseShadowElement(child, id, context);
@@ -242,16 +227,14 @@ public sealed class SlideMlParser
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
-            Fill = GetOptionalString(element, "Fill"),
-            Stroke = GetOptionalString(element, "Stroke"),
+            Fill = fillBrush,
+            Stroke = strokeBrush,
             StrokeThickness = GetOptionalDouble(element, "StrokeThickness", context) ?? 0,
             CornerRadius = GetOptionalCornerRadius(element, id, context),
             Margin = GetOptionalThickness(element, "Margin", context),
             Shadow = shadowChild ?? GetOptionalShadow(element, "Shadow"),
             ShadowString = GetOptionalString(element, "Shadow"),
             StrokeDashArray = GetOptionalDoubleList(element, "StrokeDashArray", context),
-            FillElement = fillElement,
-            StrokeElement = strokeElement,
         };
     }
 
@@ -582,15 +565,77 @@ public sealed class SlideMlParser
         return list;
     }
 
-    private static SlideLinearGradientBrush? ParseLinearGradientChild(XElement parentElement, string elementId, SlidePipelineContext context)
+    private static ISlideMlBrush? ParseBackground(XElement element, string id, SlidePipelineContext context)
     {
-        var gradientElement = parentElement.Element("LinearGradient");
+        var gradient = ParseGradientChild(element, "Fill", id, context);
+        if (gradient is not null)
+        {
+            return gradient;
+        }
+
+        var color = GetOptionalString(element, "Background");
+        if (!string.IsNullOrWhiteSpace(color))
+        {
+            return new SlideMlSolidColorBrush { Color = color };
+        }
+
+        return null;
+    }
+
+    private static ISlideMlBrush? ParseFill(XElement element, string id, SlidePipelineContext context)
+    {
+        var gradient = ParseGradientChild(element, "Fill", id, context);
+        if (gradient is not null)
+        {
+            return gradient;
+        }
+
+        var color = GetOptionalString(element, "Fill");
+        if (!string.IsNullOrWhiteSpace(color))
+        {
+            return new SlideMlSolidColorBrush { Color = color };
+        }
+
+        return null;
+    }
+
+    private static ISlideMlBrush? ParseStroke(XElement element, string id, SlidePipelineContext context)
+    {
+        var gradient = ParseGradientChild(element, "Stroke", id, context);
+        if (gradient is not null)
+        {
+            return gradient;
+        }
+
+        var color = GetOptionalString(element, "Stroke");
+        if (!string.IsNullOrWhiteSpace(color))
+        {
+            return new SlideMlSolidColorBrush { Color = color };
+        }
+
+        return null;
+    }
+
+    private static SlideMlLinearGradientBrush? ParseGradientChild(XElement parentElement, string childName, string elementId, SlidePipelineContext context)
+    {
+        var fillElement = parentElement.Element(childName);
+        if (fillElement is null)
+        {
+            return null;
+        }
+
+        var gradientElement = fillElement.Element("LinearGradient");
         if (gradientElement is null)
         {
             return null;
         }
 
-        var stops = new List<SlideGradientStop>();
+        return ParseLinearGradient(gradientElement, elementId, context);
+    }
+
+    private static SlideMlLinearGradientBrush? ParseLinearGradient(XElement gradientElement, string elementId, SlidePipelineContext context)
+    {
+        var stops = new List<SlideMlGradientStop>();
         foreach (var stopElement in gradientElement.Elements("Stop"))
         {
             var offset = GetOptionalDouble(stopElement, "Offset", context);
@@ -604,7 +649,7 @@ public sealed class SlideMlParser
                 continue;
             }
 
-            stops.Add(new SlideGradientStop
+            stops.Add(new SlideMlGradientStop
             {
                 Offset = Math.Clamp(offset.Value, 0, 1),
                 Color = color,
@@ -620,7 +665,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        return new SlideLinearGradientBrush
+        return new SlideMlLinearGradientBrush
         {
             X1 = GetOptionalDouble(gradientElement, "X1", context) ?? 0,
             Y1 = GetOptionalDouble(gradientElement, "Y1", context) ?? 0,

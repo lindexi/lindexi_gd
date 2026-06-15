@@ -205,9 +205,27 @@ public readonly record struct SlideThickness
 }
 
 /// <summary>
+/// SlideML 画刷抽象，统一纯色和渐变填充/描边。
+/// </summary>
+public interface ISlideMlBrush
+{
+}
+
+/// <summary>
+/// 纯色画刷。
+/// </summary>
+public sealed class SlideMlSolidColorBrush : ISlideMlBrush
+{
+    /// <summary>
+    /// 颜色字符串（如 "#FF0000"）。
+    /// </summary>
+    public string Color { get; init; } = string.Empty;
+}
+
+/// <summary>
 /// 渐变停止点（0~1 位置 + 颜色）。
 /// </summary>
-public sealed class SlideGradientStop
+public sealed class SlideMlGradientStop
 {
     /// <summary>
     /// 渐变位置（0~1）。
@@ -223,7 +241,7 @@ public sealed class SlideGradientStop
 /// <summary>
 /// 线性渐变画刷，起止点坐标范围为 0~1（相对于元素边界）。
 /// </summary>
-public sealed class SlideLinearGradientBrush
+public sealed class SlideMlLinearGradientBrush : ISlideMlBrush
 {
     /// <summary>
     /// 渐变起点 X 坐标。
@@ -248,7 +266,7 @@ public sealed class SlideLinearGradientBrush
     /// <summary>
     /// 渐变停止点列表。
     /// </summary>
-    public IReadOnlyList<SlideGradientStop> Stops { get; init; } = Array.Empty<SlideGradientStop>();
+    public IReadOnlyList<SlideMlGradientStop> Stops { get; init; } = Array.Empty<SlideMlGradientStop>();
 }
 
 /// <summary>
@@ -513,14 +531,9 @@ public sealed class SlidePanelElement : SlideElement
     public double Padding { get; init; }
 
     /// <summary>
-    /// 背景颜色字符串。
+    /// 背景画刷（纯色或渐变）。
     /// </summary>
-    public string? Background { get; init; }
-
-    /// <summary>
-    /// 渐变背景（优先于 <see cref="Background"/> 属性）。
-    /// </summary>
-    public SlideLinearGradientBrush? BackgroundElement { get; init; }
+    public ISlideMlBrush? Background { get; init; }
 
     /// <summary>
     /// 子元素排列方向。默认 <see cref="SlideLayoutDirection.Absolute"/>（绝对定位）。
@@ -544,14 +557,14 @@ public sealed class SlidePanelElement : SlideElement
 public sealed class SlideRectElement : SlideElement
 {
     /// <summary>
-    /// 填充颜色字符串。
+    /// 填充画刷（纯色或渐变）。
     /// </summary>
-    public string? Fill { get; init; }
+    public ISlideMlBrush? Fill { get; init; }
 
     /// <summary>
-    /// 描边颜色字符串。
+    /// 描边画刷（纯色或渐变）。
     /// </summary>
-    public string? Stroke { get; init; }
+    public ISlideMlBrush? Stroke { get; init; }
 
     /// <summary>
     /// 描边宽度。
@@ -562,16 +575,6 @@ public sealed class SlideRectElement : SlideElement
     /// 圆角半径。支持单值（统一圆角）或 <see cref="SlideCornerRadius"/>（四角独立）。
     /// </summary>
     public SlideCornerRadius? CornerRadius { get; init; }
-
-    /// <summary>
-    /// 渐变填充（优先于 <see cref="Fill"/> 属性）。
-    /// </summary>
-    public SlideLinearGradientBrush? FillElement { get; init; }
-
-    /// <summary>
-    /// 渐变描边（优先于 <see cref="Stroke"/> 属性）。
-    /// </summary>
-    public SlideLinearGradientBrush? StrokeElement { get; init; }
 
     /// <summary>
     /// 元素阴影效果。
