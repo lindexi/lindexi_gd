@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AgentLib.ChatRoom;
 
@@ -15,6 +17,7 @@ namespace AgentLib.ChatRoom;
 public sealed class ChatRoomSession : NotifyBase
 {
     private string _title = "聊天室";
+    private IMainThreadDispatcher? _mainThreadDispatcher;
 
     /// <summary>
     /// 使用指定的会话 ID 和创建时间创建聊天室会话。
@@ -71,17 +74,58 @@ public sealed class ChatRoomSession : NotifyBase
     public ObservableCollection<ChatRoomMessage> Messages { get; } = [];
 
     /// <summary>
+    /// 主线程调度器。设置后，<see cref="AddMessage"/> 将通过调度器回到主线程修改 <see cref="Messages"/>。
+    /// 为 <see langword="null"/> 时直接在当前线程执行。仅在构造期可设置。
+    /// </summary>
+    public IMainThreadDispatcher? MainThreadDispatcher
+    {
+        get => _mainThreadDispatcher;
+        init => _mainThreadDispatcher = value;
+    }
+
+    /// <summary>
     /// 记录每个角色上次发言的时间戳。用于增量消息提取。
     /// </summary>
     private readonly Dictionary<string, DateTimeOffset> _lastSpeakTimeByRole = [];
 
     /// <summary>
     /// 向会话中添加一条公开消息，并更新角色的上次发言时间。
+    /// 如果设置了 <see cref="MainThreadDispatcher"/>，将调度到主线程执行。
     /// </summary>
     /// <param name="message">要添加的消息。</param>
-    public void AddMessage(ChatRoomMessage message)
+    public async Task AddMessageAsync(ChatRoomMessage message)
+    {
+        if (_mainThreadDispatcher is not null)
+        {
+            await _mainThreadDispatcher.InvokeAsync(() =>
+            {
+                AddMessageCore(message);
+                return Task.CompletedTask;
+            });
+            return;
+        }
+
+        AddMessageCore(message);
+    }
+
+    /// <summary>
+    /// 同步添加消息，仅在确定无 dispatcher 的构造期使用。
+    /// </summary>
+    internal void AddMessage(ChatRoomMessage message)
+    {
+        AddMessageCore(message);
+    }
+
+    private void AddMessageCore(ChatRoomMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
+
+#if DEBUG
+        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
+        {
+            Debug.Fail("ChatRoomSession.AddMessageAsync 不在主线程上执行，但已设置 MainThreadDispatcher。");
+        }
+#endif
 
         Messages.Add(message);
 
