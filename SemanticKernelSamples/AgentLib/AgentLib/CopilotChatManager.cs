@@ -58,7 +58,7 @@ public class CopilotChatManager : NotifyBase
     /// <summary>
     /// API 终结点管理器，管理语言模型提供商和模型选择。
     /// </summary>
-    public AgentApiEndpointManager AgentApiEndpointManager { get; } = new();
+    public AgentApiEndpointManager AgentApiEndpointManager { get; init; } = new();
 
     /// <summary>
     /// 所有聊天会话的集合。

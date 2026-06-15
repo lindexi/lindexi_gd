@@ -51,6 +51,8 @@ public class CopilotChatManagerChatReducer : IChatReducer
         return result;
     }
 
+    // 是否明确拿到用户的需求
+    // 做了什么，还剩下什么 
     public const string DefaultSummarizationPrompt
         = """
           **Generate a clear and complete summary of the entire conversation in no more than five sentences.**
