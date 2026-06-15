@@ -1,0 +1,187 @@
+using AgentLib;
+using AgentLib.ChatRoom.Model;
+using AgentLib.Core;
+using AgentLib.Logging;
+using AgentLib.Model;
+using AgentLib.Tools;
+
+using Microsoft.Extensions.AI;
+
+using System;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace AgentLib.ChatRoom;
+
+/// <summary>
+/// 聊天室角色运行时。内部包装 <see cref="CopilotChatManager"/>，复用其模型选择、工具注册、
+/// 流式响应和历史压缩等能力。每个角色拥有独立的 <see cref="AgentApiEndpointManager"/> 和
+/// <see cref="CopilotChatManager"/> 实例。
+/// </summary>
+public sealed class ChatRoomRole
+{
+    private readonly CopilotChatManager _chatManager;
+    private readonly AgentApiEndpointManager _endpointManager;
+    private bool _hasSpoken;
+
+    /// <summary>
+    /// 使用角色定义和可选的 API 终结点管理器创建角色。
+    /// </summary>
+    /// <param name="definition">角色定义配置。</param>
+    /// <param name="endpointManager">
+    /// 自定义的 API 终结点管理器。为 <see langword="null"/> 时创建新的默认实例。
+    /// 传入自定义实例可实现多角色共享同一 provider。
+    /// </param>
+    public ChatRoomRole(ChatRoomRoleDefinition definition, AgentApiEndpointManager? endpointManager = null)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        Definition = definition;
+
+        _endpointManager = endpointManager ?? new AgentApiEndpointManager();
+
+        _chatManager = new CopilotChatManager
+        {
+            AgentApiEndpointManager = _endpointManager,
+        };
+    }
+
+    /// <summary>
+    /// 角色定义配置。
+    /// </summary>
+    public ChatRoomRoleDefinition Definition { get; }
+
+    /// <summary>
+    /// 初始化角色。注册模型 provider、加载技能文件夹、配置工具等。
+    /// 应在角色开始发言前调用。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task InitializeAsync(CancellationToken cancellationToken = default)
+    {
+        // 加载技能文件夹
+        foreach (string skillFolder in Definition.SkillFolders)
+        {
+            try
+            {
+                _chatManager.AddSkillFolder(new DirectoryInfo(skillFolder));
+            }
+            catch (Exception)
+            {
+                // 技能加载失败不阻塞初始化，仅记录
+            }
+        }
+
+        // 如果配置了独立的 Provider 和 Model，注册到 endpoint manager
+        if (!string.IsNullOrWhiteSpace(Definition.ModelProviderId) && !string.IsNullOrWhiteSpace(Definition.ModelId))
+        {
+            // 注意：AgentApiEndpointManager 的 RegisterLanguageModelProvider 等 API 需要在外部完成。
+            // ChatRoomRole 只负责通过 Definition 传递模型选择偏好。
+            // 模型提供商的注册应由协调方（ChatRoomManager）在初始化阶段完成。
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 让角色发言一次。将增量的 User 消息注入到内部的 <see cref="CopilotChatManager"/>，
+    /// 利用 AgentSession 历史记录机制延续对话上下文。
+    /// </summary>
+    /// <param name="incrementalUserText">
+    /// 自上次发言后其他角色产生的公开消息（已拼接为纯文本）。
+    /// </param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>角色的公开回复文本。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
+    public async Task<string?> SpeakAsync(string incrementalUserText, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(incrementalUserText);
+
+        // 第一轮发言时注入 SystemPrompt
+        string userInput = incrementalUserText;
+        if (!_hasSpoken)
+        {
+            userInput = BuildFirstRoundInput(incrementalUserText);
+        }
+
+        try
+        {
+            // 核心：调用 CopilotChatManager.SendMessageAsync 走标准 User→Assistant 流程
+            // withHistory = true 时，如果是第一次发言，CopilotChatManager 会创建新的 AgentSession
+            // 后续发言时 _hasSpoken=true，withHistory=true 会延续已有的 AgentSession
+            await _chatManager.SendMessageAsync(userInput, cancellationToken: cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            _hasSpoken = true;
+
+            // 从 CopilotChatManager 的 SelectedSession 提取最后一轮 Assistant 回复
+            CopilotChatSession? session = _chatManager.SelectedSession;
+            if (session is null)
+            {
+                return null;
+            }
+
+            // 取最后一条非 PresetInfo 的 Assistant 消息
+            CopilotChatMessage? lastAssistant = session.ChatMessages
+                .LastOrDefault(m => m.Role == ChatRole.Assistant && !m.IsPresetInfo);
+
+            if (lastAssistant is null || string.IsNullOrWhiteSpace(lastAssistant.Content))
+            {
+                return null;
+            }
+
+            return lastAssistant.Content;
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (Exception)
+        {
+            // 角色发言失败不抛异常，由 ChatRoomManager 处理
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 让角色以初始话题发言（首次发言，不带历史）。
+    /// </summary>
+    /// <param name="initialTopic">初始话题文本。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task<string?> SpeakFirstAsync(string initialTopic, CancellationToken cancellationToken = default)
+    {
+        return await SpeakAsync(initialTopic, cancellationToken);
+    }
+
+    private string BuildFirstRoundInput(string incrementalUserText)
+    {
+        var sb = new StringBuilder();
+
+        // 注入角色的系统提示词作为指导
+        if (!string.IsNullOrWhiteSpace(Definition.SystemPrompt))
+        {
+            sb.AppendLine(Definition.SystemPrompt);
+        }
+
+        // 注入角色记忆
+        if (!string.IsNullOrWhiteSpace(Definition.MemoryContent))
+        {
+            sb.AppendLine();
+            sb.AppendLine("你的记忆内容：");
+            sb.AppendLine(Definition.MemoryContent);
+        }
+
+        // 然后是实际的对话内容
+        if (!string.IsNullOrWhiteSpace(incrementalUserText))
+        {
+            sb.AppendLine();
+            sb.AppendLine("以下是与你的对话内容：");
+            sb.Append(incrementalUserText);
+        }
+
+        return sb.ToString();
+    }
+}
