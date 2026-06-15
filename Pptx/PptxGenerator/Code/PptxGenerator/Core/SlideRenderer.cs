@@ -291,10 +291,9 @@ public class SlideRenderer
 
     private static void DrawPanel(DrawingContext context, SlidePanelElement panel, List<string> warnings)
     {
-        var backgroundBrush = CreateBrushFromSlideBrush(panel.BackgroundBrush, panel.LayoutBounds);
-        if (backgroundBrush is not null)
+        if (!string.IsNullOrWhiteSpace(panel.Background))
         {
-            context.FillRectangle(backgroundBrush, panel.LayoutBounds);
+            context.DrawRectangle(CreateBrush(panel.Background, Colors.Transparent), null, panel.LayoutBounds);
         }
 
         using var clip = context.PushClip(panel.LayoutBounds);

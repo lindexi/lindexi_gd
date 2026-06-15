@@ -164,24 +164,6 @@ public readonly record struct SlideThickness
 }
 
 /// <summary>
-/// 画刷抽象基类，用于统一纯色填充和渐变填充。
-/// </summary>
-internal abstract class SlideBrush
-{
-}
-
-/// <summary>
-/// 纯色画刷，对应 <c>Fill="#FF0000"</c> 属性字符串。
-/// </summary>
-internal sealed class SlideSolidColorBrush : SlideBrush
-{
-    /// <summary>
-    /// 颜色字符串（如 "#FF0000" 或 "#FF000000"）。
-    /// </summary>
-    public required string Color { get; init; }
-}
-
-/// <summary>
 /// 渐变停止点（0~1 位置 + 颜色）。
 /// </summary>
 internal sealed class SlideGradientStop
@@ -200,7 +182,7 @@ internal sealed class SlideGradientStop
 /// <summary>
 /// 线性渐变画刷，起止点坐标范围为 0~1（相对于元素边界）。
 /// </summary>
-internal sealed class SlideLinearGradientBrush : SlideBrush
+internal sealed class SlideLinearGradientBrush
 {
     public double X1 { get; init; }
     public double Y1 { get; init; }
@@ -351,10 +333,12 @@ internal sealed class SlidePanelElement : SlideElement
 {
     public double Padding { get; init; }
 
+    public string? Background { get; init; }
+
     /// <summary>
-    /// 背景画刷，支持纯色或渐变。
+    /// 渐变背景（优先于 <see cref="Background"/> 属性）。
     /// </summary>
-    public SlideBrush? BackgroundBrush { get; init; }
+    public SlideLinearGradientBrush? BackgroundElement { get; init; }
 
     /// <summary>
     /// 子元素排列方向。默认 <see cref="SlideLayoutDirection.Absolute"/>（绝对定位）。
@@ -371,15 +355,9 @@ internal sealed class SlidePanelElement : SlideElement
 
 internal sealed class SlideRectElement : SlideElement
 {
-    /// <summary>
-    /// 填充画刷，支持纯色（<see cref="SlideSolidColorBrush"/>）或渐变（<see cref="SlideLinearGradientBrush"/>）。
-    /// </summary>
-    public SlideBrush? FillBrush { get; init; }
+    public string? Fill { get; init; }
 
-    /// <summary>
-    /// 描边画刷，支持纯色或渐变。
-    /// </summary>
-    public SlideBrush? StrokeBrush { get; init; }
+    public string? Stroke { get; init; }
 
     public double StrokeThickness { get; init; }
 
@@ -389,9 +367,24 @@ internal sealed class SlideRectElement : SlideElement
     public SlideCornerRadius? CornerRadius { get; init; }
 
     /// <summary>
-    /// 元素阴影效果。支持属性字符串（如 "0 4 12 #00000033"）或子元素解析。
+    /// 渐变填充（优先于 <see cref="Fill"/> 属性）。
+    /// </summary>
+    public SlideLinearGradientBrush? FillElement { get; init; }
+
+    /// <summary>
+    /// 渐变描边（优先于 <see cref="Stroke"/> 属性）。
+    /// </summary>
+    public SlideLinearGradientBrush? StrokeElement { get; init; }
+
+    /// <summary>
+    /// 元素阴影效果。
     /// </summary>
     public SlideShadow? Shadow { get; init; }
+
+    /// <summary>
+    /// 阴影的原始字符串表示，用于 XML 回填。
+    /// </summary>
+    public string? ShadowString { get; init; }
 
     /// <summary>
     /// 虚线描边模式（逗号分隔的数值列表）。

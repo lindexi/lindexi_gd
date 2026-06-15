@@ -25,8 +25,4 @@
     <None Update="app.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Pptx\PptxGenerator\Code\PptxGenerator\Core\SlideMl\" />
-  </ItemGroup>
-
 </Project>

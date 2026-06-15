@@ -141,7 +141,20 @@ internal sealed class SlideMlParser
     {
         ValidateAttributes(element, id, _panelKnownAttributes, context);
 
-        var backgroundBrush = ParseBrush(element, id, context);
+        SlideLinearGradientBrush? backgroundElement = null;
+
+        foreach (var child in element.Elements())
+        {
+            switch (child.Name.LocalName)
+            {
+                case "Fill":
+                    backgroundElement = ParseLinearGradientChild(child, id, context);
+                    break;
+                default:
+                    // 子元素由 ParseElement 统一处理
+                    break;
+            }
+        }
 
         var panel = new SlidePanelElement
         {
@@ -154,7 +167,8 @@ internal sealed class SlideMlParser
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Padding = GetOptionalDouble(element, "Padding", context) ?? 0,
-            BackgroundBrush = backgroundBrush,
+            Background = GetOptionalString(element, "Background"),
+            BackgroundElement = backgroundElement,
             Layout = GetOptionalLayoutDirection(element, id, context) ?? SlideLayoutDirection.Absolute,
             Gap = GetOptionalDouble(element, "Gap", context) ?? 0,
             Margin = GetOptionalThickness(element, "Margin", context),
@@ -182,9 +196,32 @@ internal sealed class SlideMlParser
     {
         ValidateAttributes(element, id, _rectKnownAttributes, context);
 
-        var fillBrush = ParseBrush(element, id, context);
-        var strokeBrush = ParseStrokeBrush(element, id, context);
-        var shadow = ParseShadowFromElement(element, id, context);
+        SlideLinearGradientBrush? fillElement = null;
+        SlideLinearGradientBrush? strokeElement = null;
+        SlideShadow? shadowChild = null;
+
+        foreach (var child in element.Elements())
+        {
+            switch (child.Name.LocalName)
+            {
+                case "Fill":
+                    fillElement = ParseLinearGradientChild(child, id, context);
+                    break;
+                case "Stroke":
+                    strokeElement = ParseLinearGradientChild(child, id, context);
+                    break;
+                case "Shadow":
+                    shadowChild = ParseShadowElement(child, id, context);
+                    break;
+                default:
+                    context.AddWarning(
+                        string.Format(
+                            "[Warning] {0}: Rect 下未知子标签 \"{1}\"，已忽略",
+                            id,
+                            child.Name.LocalName));
+                    break;
+            }
+        }
 
         return new SlideRectElement
         {
@@ -196,13 +233,16 @@ internal sealed class SlideMlParser
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
-            FillBrush = fillBrush,
-            StrokeBrush = strokeBrush,
+            Fill = GetOptionalString(element, "Fill"),
+            Stroke = GetOptionalString(element, "Stroke"),
             StrokeThickness = GetOptionalDouble(element, "StrokeThickness", context) ?? 0,
             CornerRadius = GetOptionalCornerRadius(element, id, context),
             Margin = GetOptionalThickness(element, "Margin", context),
-            Shadow = shadow,
+            Shadow = shadowChild ?? GetOptionalShadow(element, "Shadow"),
+            ShadowString = GetOptionalString(element, "Shadow"),
             StrokeDashArray = GetOptionalDoubleList(element, "StrokeDashArray", context),
+            FillElement = fillElement,
+            StrokeElement = strokeElement,
         };
     }
 
@@ -499,74 +539,10 @@ internal sealed class SlideMlParser
         return null;
     }
 
-    /// <summary>
-    /// 统一解析元素填充画刷：优先子元素 &lt;Fill&gt; 中的 LinearGradient，其次 Fill 属性（纯色）。
-    /// </summary>
-    private static SlideBrush? ParseBrush(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideShadow? GetOptionalShadow(XElement element, string attributeName)
     {
-        var fillChild = element.Element("Fill");
-        if (fillChild is not null)
-        {
-            var gradient = ParseLinearGradientChild(fillChild, elementId, context);
-            if (gradient is not null)
-            {
-                return gradient;
-            }
-        }
-
-        var color = GetOptionalString(element, "Fill");
-        if (!string.IsNullOrWhiteSpace(color))
-        {
-            return new SlideSolidColorBrush { Color = color };
-        }
-
-        // Panel 也使用 Background 属性作为纯色
-        color = GetOptionalString(element, "Background");
-        if (!string.IsNullOrWhiteSpace(color))
-        {
-            return new SlideSolidColorBrush { Color = color };
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 统一解析描边画刷：优先子元素 &lt;Stroke&gt; 中的 LinearGradient，其次 Stroke 属性（纯色）。
-    /// </summary>
-    private static SlideBrush? ParseStrokeBrush(XElement element, string elementId, SlidePipelineContext context)
-    {
-        var strokeChild = element.Element("Stroke");
-        if (strokeChild is not null)
-        {
-            var gradient = ParseLinearGradientChild(strokeChild, elementId, context);
-            if (gradient is not null)
-            {
-                return gradient;
-            }
-        }
-
-        var color = GetOptionalString(element, "Stroke");
-        if (!string.IsNullOrWhiteSpace(color))
-        {
-            return new SlideSolidColorBrush { Color = color };
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 统一解析阴影：优先 &lt;Shadow&gt; 子元素，其次 Shadow 属性字符串。
-    /// </summary>
-    private static SlideShadow? ParseShadowFromElement(XElement element, string elementId, SlidePipelineContext context)
-    {
-        var shadowChild = element.Element("Shadow");
-        if (shadowChild is not null)
-        {
-            return ParseShadowElement(shadowChild, elementId, context);
-        }
-
-        var shadowText = GetOptionalString(element, "Shadow");
-        return SlideShadow.Parse(shadowText);
+        var text = GetOptionalString(element, attributeName);
+        return SlideShadow.Parse(text);
     }
 
     private static IReadOnlyList<double>? GetOptionalDoubleList(XElement element, string attributeName, SlidePipelineContext context)
