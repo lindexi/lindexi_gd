@@ -594,14 +594,14 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
         if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
         {
-            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent));
+            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent));
             _toolItemsByCallId[callId] = toolItem;
             MessageItems.Add(toolItem);
             return;
         }
 
         toolItem.ToolName = functionCallContent.Name;
-        toolItem.InputText = CopilotChatMessageItemFormatter.FormatArguments(functionCallContent) ?? string.Empty;
+        toolItem.InputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent) ?? string.Empty;
     }
 
     /// <summary>
