@@ -26,8 +26,13 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
     public int CurrentRound => _currentRound;
 
     /// <summary>
-    /// 当前轮次计数（从 1 开始）。
+    /// 根据当前对话历史选择下一个发言角色。按注册顺序轮流，跳过人类角色。
+    /// 人类插话后从插话前最后发言的 LLM 角色之后继续。
     /// </summary>
+    /// <param name="roles">可发言的角色列表。</param>
+    /// <param name="history">公开消息历史。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>下一个发言的角色；达到最大轮次或无 LLM 角色时返回 <see langword="null"/>。</returns>
     public Task<ChatRoomRole?> SelectNextSpeakerAsync(
         IReadOnlyList<ChatRoomRole> roles,
         IReadOnlyList<ChatRoomMessage> history,

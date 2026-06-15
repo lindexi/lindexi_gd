@@ -1,4 +1,6 @@
 using AgentLib.ChatRoom.Model;
+using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 
 using System;
@@ -257,6 +259,25 @@ public sealed class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
+    /// 为所有配置了独立模型提供商 ID 的角色注册模型提供商。
+    /// 应在调用 <see cref="StartAutoLoopAsync"/> 前由外部完成模型提供商的注册并调用此方法。
+    /// </summary>
+    /// <param name="languageModelProviders">按 Provider ID 索引的语言模型提供商字典。</param>
+    public void RegisterRoleModelProviders(IReadOnlyDictionary<string, ILanguageModelProvider> languageModelProviders)
+    {
+        ArgumentNullException.ThrowIfNull(languageModelProviders);
+
+        foreach (ChatRoomRole role in Roles)
+        {
+            if (!string.IsNullOrWhiteSpace(role.Definition.ModelProviderId) &&
+                languageModelProviders.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? provider))
+            {
+                role.EndpointManager.RegisterLanguageModelProvider(provider);
+            }
+        }
+    }
+
+    /// <summary>
     /// 持久化当前会话。
     /// </summary>
     public async Task SaveAsync(CancellationToken cancellationToken = default)
@@ -352,7 +373,7 @@ public sealed class ChatRoomManager : NotifyBase
         // 持久化公开消息（fire-and-forget）
         if (Persistence is not null)
         {
-            _ = Persistence.SavePublicMessageAsync(Guid.Parse(Session.SessionId), message);
+            _ = Persistence.SavePublicMessageAsync(Session.SessionId, message);
         }
     }
 }

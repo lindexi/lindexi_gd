@@ -11,7 +11,7 @@ public sealed class ChatRoomSessionData
     /// <summary>
     /// 会话唯一标识。
     /// </summary>
-    public string SessionId { get; init; } = string.Empty;
+    public Guid SessionId { get; init; }
 
     /// <summary>
     /// 聊天室标题。
