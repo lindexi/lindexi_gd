@@ -22,4 +22,8 @@
   <ItemGroup>
     <ProjectReference Include="..\PptxGenerator.Core\PptxGenerator.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Core\SlideMl\Evaluation\" />
+  </ItemGroup>
 </Project>

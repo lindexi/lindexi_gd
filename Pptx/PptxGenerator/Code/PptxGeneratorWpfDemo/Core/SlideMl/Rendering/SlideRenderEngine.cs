@@ -19,6 +19,10 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
     private readonly Dictionary<string, List<FormattedText>> _spanFormattedTextCache = new();
     private readonly Dictionary<string, BitmapSource?> _bitmapCache = new();
 
+    /// Helper: convert SlideRect to WPF Rect
+    private static Rect ToRect(SlideRect r) => new(r.X, r.Y, r.Width, r.Height);
+    private static Point ToPoint(SlideRect r, double offsetX = 0, double offsetY = 0) => new(r.X + offsetX, r.Y + offsetY);
+
     /// <inheritdoc />
     public SlideElementMeasurements PreMeasure(SlidePage page, SlidePipelineContext context)
     {
@@ -272,7 +276,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         if (element is SlideRectElement rect && rect.Shadow is not null)
         {
             var radius = rect.CornerRadius;
-            DrawShadow(dc, rect.Shadow, rect.LayoutBounds, radius);
+            DrawShadow(dc, rect.Shadow, ToRect(rect.LayoutBounds), radius);
         }
 
         var opacity = Math.Clamp(element.Opacity, 0, 1);
@@ -303,7 +307,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         Brush? backgroundBrush = null;
         if (panel.BackgroundElement is not null)
         {
-            backgroundBrush = CreateGradientBrush(panel.BackgroundElement, panel.LayoutBounds);
+            backgroundBrush = CreateGradientBrush(panel.BackgroundElement, ToRect(panel.LayoutBounds));
         }
         else if (!string.IsNullOrWhiteSpace(panel.Background))
         {
@@ -312,17 +316,17 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
         if (backgroundBrush is not null)
         {
-            dc.DrawRectangle(backgroundBrush, null, panel.LayoutBounds);
+            dc.DrawRectangle(backgroundBrush, null, ToRect(panel.LayoutBounds));
         }
 
-        dc.PushClip(new RectangleGeometry(panel.LayoutBounds));
+        dc.PushClip(new RectangleGeometry(ToRect(panel.LayoutBounds)));
         DrawElements(dc, panel.Children, context);
         dc.Pop();
     }
 
     private static void DrawRect(DrawingContext dc, SlideRectElement rect)
     {
-        var bounds = rect.LayoutBounds;
+        var bounds = ToRect(rect.LayoutBounds);
 
         // 确定填充画刷：FillElement（渐变）优先于 Fill（纯色）
         Brush? fillBrush = null;
@@ -521,12 +525,12 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
         if (text.Height is double fixedHeight)
         {
             dc.PushClip(new RectangleGeometry(new Rect(text.LayoutBounds.X, text.LayoutBounds.Y, text.LayoutBounds.Width, fixedHeight)));
-            dc.DrawText(formattedText, text.LayoutBounds.TopLeft);
+            dc.DrawText(formattedText, new Point(text.LayoutBounds.X, text.LayoutBounds.Y));
             dc.Pop();
         }
         else
         {
-            dc.DrawText(formattedText, text.LayoutBounds.TopLeft);
+            dc.DrawText(formattedText, new Point(text.LayoutBounds.X, text.LayoutBounds.Y));
         }
     }
 
@@ -557,7 +561,7 @@ internal sealed class SlideRenderEngine : ISlideRenderEngine
 
     private void DrawImage(DrawingContext dc, SlideImageElement image)
     {
-        var bounds = image.LayoutBounds;
+        var bounds = ToRect(image.LayoutBounds);
         if (_bitmapCache.TryGetValue(image.Id, out var bitmap) && bitmap is not null)
         {
             var sourceRect = new Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight);

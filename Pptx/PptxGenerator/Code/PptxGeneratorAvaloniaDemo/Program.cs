@@ -90,13 +90,13 @@ class Program
 
         agentApiEndpointManager.PrimaryModel = languageModel;
 
-        var slideRenderer = new SlideRenderer();
-        var slideRenderTool = new SlideRenderTool(slideRenderer);
+        var slideRenderPipeline = new SlideRenderPipeline();
+        var slideRenderTool = new SlideRenderTool(slideRenderPipeline, AvaloniaDispatcher.Instance);
 
         // 评估者复用同一个 CopilotChatManager，共用主模型
         var slideEvaluator = new AiSlideEvaluator(copilotChatManager);
         var promptEvaluator = new AiPromptEvaluator(copilotChatManager);
 
-        return new SlideChatManager(copilotChatManager, slideRenderTool, slideEvaluator, promptEvaluator);
+        return new SlideChatManager(copilotChatManager, slideRenderTool, AvaloniaDispatcher.Instance, slideEvaluator, promptEvaluator);
     }
 }

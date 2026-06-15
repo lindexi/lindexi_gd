@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Path = System.IO.Path;
 
@@ -18,10 +17,10 @@ public partial class MainWindow : Window
 
     private void ImageBorder_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (ViewModel.SlideChatManager.PreviewBitmap is { } previewBitmap)
+        if (ViewModel.SlideChatManager.PreviewImage is { } previewImage)
         {
             var imageFilePath = Path.Join(AppContext.BaseDirectory, $"PreviewBitmap_{Path.GetRandomFileName()}.png");
-            previewBitmap.Save(imageFilePath);
+            previewImage.Save(imageFilePath);
             Process.Start(new ProcessStartInfo(imageFilePath) { UseShellExecute = true });
         }
     }

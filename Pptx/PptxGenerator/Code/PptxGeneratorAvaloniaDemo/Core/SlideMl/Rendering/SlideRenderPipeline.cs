@@ -2,34 +2,35 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 
 namespace PptxGenerator;
 
 /// <summary>
-/// 渲染流水线外观类型，编排四阶段流水线：Parse → PreLayout → PreMeasure → FinalLayout → Render。
+/// Avalonia 渲染流水线实现，编排四阶段流水线：
+/// Parse → PreLayout → PreMeasure → FinalLayout → Render。
 /// 实现 <see cref="ISlideRenderPipeline"/> 接口。
 /// </summary>
 public sealed class SlideRenderPipeline : ISlideRenderPipeline
 {
     private readonly SlideMlParser _parser;
     private readonly ISlideLayoutEngine _layoutEngine;
-    private readonly ISlideRenderEngine _renderEngine;
+    private readonly IAvaloniaSlideRenderEngine _renderEngine;
     private readonly SlidePipelineContext _context;
 
     public SlideRenderPipeline()
-        : this(new SlideLayoutEngine(), new SlideRenderEngine())
+        : this(new SlideLayoutEngine(), new AvaloniaSlideRenderEngine())
     {
     }
 
-    internal SlideRenderPipeline(ISlideLayoutEngine layoutEngine, ISlideRenderEngine renderEngine)
+    internal SlideRenderPipeline(ISlideLayoutEngine layoutEngine, IAvaloniaSlideRenderEngine renderEngine)
         : this(layoutEngine, renderEngine, new SlidePipelineContext())
     {
     }
 
-    internal SlideRenderPipeline(ISlideLayoutEngine layoutEngine, ISlideRenderEngine renderEngine, SlidePipelineContext context)
+    internal SlideRenderPipeline(ISlideLayoutEngine layoutEngine, IAvaloniaSlideRenderEngine renderEngine, SlidePipelineContext context)
     {
         _layoutEngine = layoutEngine ?? throw new ArgumentNullException(nameof(layoutEngine));
         _renderEngine = renderEngine ?? throw new ArgumentNullException(nameof(renderEngine));
@@ -59,23 +60,18 @@ public sealed class SlideRenderPipeline : ISlideRenderPipeline
             // 阶段 ①: PreLayout
             _layoutEngine.PreLayout(page, _context);
 
-            // 阶段 ②: PreMeasure（在 UI 线程执行）
+            // 阶段 ② + ③ + ④: PreMeasure → FinalLayout → Render（在 UI 线程执行）
             SlideElementMeasurements measurements = null!;
-            var previewBitmap = await Application.Current.Dispatcher.InvokeAsync(() =>
+            var previewBitmap = await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 measurements = _renderEngine.PreMeasure(page, _context);
-
-                // 阶段 ③: FinalLayout
                 _layoutEngine.FinalLayout(page, _context, measurements);
 
-                // 阶段 ④: Render
-                var bitmap = new RenderTargetBitmap(_context.CanvasWidth, _context.CanvasHeight, 96.0, 96.0, PixelFormats.Pbgra32);
-                var visual = new DrawingVisual();
-                using (var dc = visual.RenderOpen())
+                var bitmap = new RenderTargetBitmap(new PixelSize(_context.CanvasWidth, _context.CanvasHeight), new Vector(96, 96));
+                using (var dc = bitmap.CreateDrawingContext())
                 {
                     _renderEngine.Render(page, dc, _context);
                 }
-                bitmap.Render(visual);
 
                 return bitmap;
             });
@@ -87,12 +83,12 @@ public sealed class SlideRenderPipeline : ISlideRenderPipeline
                 OutputXml = renderedXml,
                 Warnings = _context.Warnings,
                 Errors = _context.Errors,
-                PreviewImage = new WpfPreviewImage(previewBitmap),
+                PreviewImage = new AvaloniaPreviewImage(previewBitmap),
             };
         }
         catch (Exception ex) when (ex is SlideMlParseException or System.Xml.XmlException)
         {
-            var previewBitmap = await Application.Current.Dispatcher.InvokeAsync(() =>
+            var previewBitmap = await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 return _renderEngine.RenderErrorPreview(ex.Message, _context);
             });
@@ -101,7 +97,7 @@ public sealed class SlideRenderPipeline : ISlideRenderPipeline
                 InputXml = slideXml,
                 OutputXml = slideXml,
                 Warnings = new[] { $"[Warning] parser: SlideML 解析失败，{ex.Message}" },
-                PreviewImage = new WpfPreviewImage(previewBitmap),
+                PreviewImage = new AvaloniaPreviewImage(previewBitmap),
             };
         }
     }

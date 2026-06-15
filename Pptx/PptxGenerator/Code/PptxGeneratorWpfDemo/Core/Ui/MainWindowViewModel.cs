@@ -59,10 +59,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             currentModel.ModelDefinition.Provider,
             currentModel.ModelDefinition.ModelName);
 
-        _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
-        _attachImageCommand = new DelegateCommand(() => { }, () => !IsBusy);
-        _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
-        _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), () => !IsBusy);
+        _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), WpfDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
+        _attachImageCommand = new DelegateCommand(() => { }, WpfDispatcher.Instance, () => !IsBusy);
+        _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), WpfDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
+        _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), WpfDispatcher.Instance, () => !IsBusy);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         switch (e.PropertyName)
         {
-            case nameof(SlideChatManager.PreviewBitmap):
+            case nameof(SlideChatManager.PreviewImage):
             case nameof(SlideChatManager.CurrentSlideXml):
             case nameof(SlideChatManager.RenderedXml):
             case nameof(SlideChatManager.WarningText):

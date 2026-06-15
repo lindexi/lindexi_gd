@@ -4,7 +4,12 @@
     <TargetFrameworks>net6.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PptxGenerator.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\SemanticKernelLib\SemanticKernelSamples\AgentLib\AgentLib\AgentLib.csproj" />

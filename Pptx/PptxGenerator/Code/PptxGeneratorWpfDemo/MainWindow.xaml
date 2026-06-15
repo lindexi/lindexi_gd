@@ -29,7 +29,7 @@
                             <Viewbox Stretch="Uniform">
                                 <Border Width="1280" Height="720" Background="White" CornerRadius="8"
                                         ClipToBounds="True" MouseLeftButtonDown="ImageBorder_OnMouseLeftButtonDown">
-                                    <Image Source="{Binding SlideChatManager.PreviewBitmap}" Stretch="Uniform" />
+                                    <Image Source="{Binding SlideChatManager.PreviewImage}" Stretch="Uniform" />
                                 </Border>
                             </Viewbox>
                         </Border>
