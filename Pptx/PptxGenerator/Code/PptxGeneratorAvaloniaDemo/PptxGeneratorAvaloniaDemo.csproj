@@ -20,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\SemanticKernelLib\SemanticKernelSamples\AgentLib\AgentLib\AgentLib.csproj" />
-    <ProjectReference Include="..\..\..\..\..\SemanticKernelLib\SemanticKernelSamples\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj" />
+    <ProjectReference Include="..\PptxGenerator.Core\PptxGenerator.Core.csproj" />
   </ItemGroup>
 </Project>

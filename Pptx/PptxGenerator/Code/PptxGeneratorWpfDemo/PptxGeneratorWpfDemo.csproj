@@ -18,8 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\AgentLib\AgentLib\AgentLib.csproj" />
+    <ProjectReference Include="..\PptxGenerator.Core\PptxGenerator.Core.csproj" />
   </ItemGroup>
+
 
   <ItemGroup>
     <None Update="app.manifest" CopyToOutputDirectory="PreserveNewest" />
