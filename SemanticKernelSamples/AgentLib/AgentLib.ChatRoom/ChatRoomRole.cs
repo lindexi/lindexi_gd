@@ -53,6 +53,11 @@ public sealed class ChatRoomRole
     public ChatRoomRoleDefinition Definition { get; }
 
     /// <summary>
+    /// 角色的 API 终结点管理器。可在初始化阶段注册模型提供商。
+    /// </summary>
+    public AgentApiEndpointManager EndpointManager => _endpointManager;
+
+    /// <summary>
     /// 初始化角色。注册模型 provider、加载技能文件夹、配置工具等。
     /// 应在角色开始发言前调用。
     /// </summary>
@@ -86,6 +91,7 @@ public sealed class ChatRoomRole
     /// <summary>
     /// 让角色发言一次。将增量的 User 消息注入到内部的 <see cref="CopilotChatManager"/>，
     /// 利用 AgentSession 历史记录机制延续对话上下文。
+    /// 首次发言时通过 <see cref="SendMessageRequest.SystemPrompt"/> 注入角色人设和记忆。
     /// </summary>
     /// <param name="incrementalUserText">
     /// 自上次发言后其他角色产生的公开消息（已拼接为纯文本）。
@@ -96,19 +102,24 @@ public sealed class ChatRoomRole
     {
         ArgumentNullException.ThrowIfNull(incrementalUserText);
 
-        // 第一轮发言时注入 SystemPrompt
-        string userInput = incrementalUserText;
+        // 首次发言时构建 SystemPrompt（角色人设 + 记忆）
+        string? systemPrompt = null;
         if (!_hasSpoken)
         {
-            userInput = BuildFirstRoundInput(incrementalUserText);
+            systemPrompt = BuildSystemPrompt();
         }
 
         try
         {
-            // 核心：调用 CopilotChatManager.SendMessageAsync 走标准 User→Assistant 流程
-            // withHistory = true 时，如果是第一次发言，CopilotChatManager 会创建新的 AgentSession
-            // 后续发言时 _hasSpoken=true，withHistory=true 会延续已有的 AgentSession
-            await _chatManager.SendMessageAsync(userInput, cancellationToken: cancellationToken);
+            var request = new SendMessageRequest(incrementalUserText)
+            {
+                WithHistory = true,
+                SystemPrompt = systemPrompt,
+                CancellationToken = cancellationToken,
+            };
+
+            SendMessageResult result = _chatManager.SendMessage(request);
+            await result.RunTask;
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -139,11 +150,6 @@ public sealed class ChatRoomRole
         {
             return null;
         }
-        catch (Exception)
-        {
-            // 角色发言失败不抛异常，由 ChatRoomManager 处理
-            return null;
-        }
     }
 
     /// <summary>
@@ -156,32 +162,30 @@ public sealed class ChatRoomRole
         return await SpeakAsync(initialTopic, cancellationToken);
     }
 
-    private string BuildFirstRoundInput(string incrementalUserText)
+    /// <summary>
+    /// 构建角色的 SystemPrompt，包含角色人设和记忆内容。
+    /// 仅在首次发言时调用。
+    /// </summary>
+    /// <returns>SystemPrompt 文本；如果角色未配置人设和记忆，返回 <see langword="null"/>。</returns>
+    private string? BuildSystemPrompt()
     {
         var sb = new StringBuilder();
 
-        // 注入角色的系统提示词作为指导
         if (!string.IsNullOrWhiteSpace(Definition.SystemPrompt))
         {
             sb.AppendLine(Definition.SystemPrompt);
         }
 
-        // 注入角色记忆
         if (!string.IsNullOrWhiteSpace(Definition.MemoryContent))
         {
-            sb.AppendLine();
+            if (sb.Length > 0)
+            {
+                sb.AppendLine();
+            }
             sb.AppendLine("你的记忆内容：");
             sb.AppendLine(Definition.MemoryContent);
         }
 
-        // 然后是实际的对话内容
-        if (!string.IsNullOrWhiteSpace(incrementalUserText))
-        {
-            sb.AppendLine();
-            sb.AppendLine("以下是与你的对话内容：");
-            sb.Append(incrementalUserText);
-        }
-
-        return sb.ToString();
+        return sb.Length > 0 ? sb.ToString().TrimEnd() : null;
     }
 }

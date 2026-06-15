@@ -17,8 +17,8 @@ namespace AgentLib.ChatRoom;
 /// <summary>
 /// 聊天室持久化管理器。使用多文件结构：
 /// - <c>room.config.json</c>：聊天室配置 + 角色定义
-/// - <c>room.history.xml</c>：公开聊天记录（复用 <see cref="FileCopilotChatLogger"/> 的 XML 格式）
-/// - <c>{RoleId}/chat_history.xml</c>：每个角色的私有完整记录
+/// - <c>public_logs/{sessionId}.txt</c>：公开聊天记录（复用 <see cref="FileCopilotChatLogger"/> 的文本日志格式）
+/// - <c>{sessionId}/{RoleId}/chat_history.xml</c>：每个角色的私有完整记录
 /// </summary>
 public sealed class ChatRoomPersistence
 {
@@ -37,7 +37,7 @@ public sealed class ChatRoomPersistence
         _baseFolder = baseFolder;
         Directory.CreateDirectory(_baseFolder);
 
-        // 公开消息的日志记录器（只写文本日志，不写 XML 历史——XML 历史由我们自己写）
+        // 公开消息的日志记录器
         _publicLogger = new FileCopilotChatLogger(Path.Join(_baseFolder, "public_logs"));
     }
 
@@ -45,11 +45,6 @@ public sealed class ChatRoomPersistence
     /// 获取指定会话的存储文件夹路径。
     /// </summary>
     private string GetSessionFolder(string sessionId) => Path.Join(_baseFolder, sessionId);
-
-    /// <summary>
-    /// 获取公开历史 XML 文件路径。
-    /// </summary>
-    private static string GetPublicHistoryFilePath(string sessionFolder) => Path.Join(sessionFolder, "room.history.xml");
 
     /// <summary>
     /// 获取配置文件路径。
@@ -62,18 +57,19 @@ public sealed class ChatRoomPersistence
     private static string GetRoleHistoryFolder(string sessionFolder, string roleId) => Path.Join(sessionFolder, roleId);
 
     /// <summary>
-    /// 获取或创建指定角色的日志记录器。
+    /// 获取或创建指定角色在指定会话中的日志记录器。
     /// </summary>
     private FileCopilotChatLogger GetRoleLogger(string sessionFolder, string roleId)
     {
-        if (_roleLoggers.TryGetValue(roleId, out FileCopilotChatLogger? logger))
+        string key = $"{sessionFolder}:{roleId}";
+        if (_roleLoggers.TryGetValue(key, out FileCopilotChatLogger? logger))
         {
             return logger;
         }
 
         string roleFolder = GetRoleHistoryFolder(sessionFolder, roleId);
         logger = new FileCopilotChatLogger(roleFolder, roleFolder);
-        _roleLoggers[roleId] = logger;
+        _roleLoggers[key] = logger;
         return logger;
     }
 
@@ -86,7 +82,7 @@ public sealed class ChatRoomPersistence
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        string sessionFolder = GetSessionFolder(data.SessionId);
+        string sessionFolder = GetSessionFolder(data.SessionId.ToString("N"));
         Directory.CreateDirectory(sessionFolder);
 
         string configPath = GetConfigFilePath(sessionFolder);
@@ -133,7 +129,7 @@ public sealed class ChatRoomPersistence
     /// <summary>
     /// 持久化一条公开消息（纯文本日志）。
     /// </summary>
-    /// <param name="sessionId">会话 ID。</param>
+    /// <param name="sessionId">聊天室会话 ID。</param>
     /// <param name="message">公开消息。</param>
     public async Task SavePublicMessageAsync(Guid sessionId, ChatRoomMessage message)
     {

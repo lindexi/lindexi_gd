@@ -21,7 +21,7 @@ public sealed class ChatRoomSession : NotifyBase
     /// </summary>
     /// <param name="sessionId">会话唯一标识。</param>
     /// <param name="createdAt">创建时间。</param>
-    public ChatRoomSession(string sessionId, DateTimeOffset createdAt)
+    public ChatRoomSession(Guid sessionId, DateTimeOffset createdAt)
     {
         SessionId = sessionId;
         CreatedAt = createdAt;
@@ -31,14 +31,14 @@ public sealed class ChatRoomSession : NotifyBase
     /// 使用新生成的会话 ID 和当前时间创建聊天室会话。
     /// </summary>
     public ChatRoomSession()
-        : this(Guid.NewGuid().ToString("N"), DateTimeOffset.Now)
+        : this(Guid.NewGuid(), DateTimeOffset.Now)
     {
     }
 
     /// <summary>
     /// 会话唯一标识。
     /// </summary>
-    public string SessionId { get; }
+    public Guid SessionId { get; }
 
     /// <summary>
     /// 创建时间。
