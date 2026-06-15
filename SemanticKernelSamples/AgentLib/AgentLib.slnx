@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="../Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
   <Project Path="../Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+  <Project Path="AgentLib.ChatRoom/AgentLib.ChatRoom.csproj" />
   <Project Path="AgentLib.Tests/AgentLib.Tests.csproj" />
   <Project Path="AgentLib/AgentLib.csproj" />
 </Solution>
