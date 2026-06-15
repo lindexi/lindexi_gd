@@ -22,7 +22,8 @@ namespace AgentLib.ChatRoom;
 /// </summary>
 public sealed class ChatRoomRole
 {
-    private readonly CopilotChatManager _chatManager;
+    private IMainThreadDispatcher? _mainThreadDispatcher;
+    private CopilotChatManager? _chatManager;
     private readonly AgentApiEndpointManager _endpointManager;
     private bool _hasSpoken;
 
@@ -40,11 +41,6 @@ public sealed class ChatRoomRole
         Definition = definition;
 
         _endpointManager = endpointManager ?? new AgentApiEndpointManager();
-
-        _chatManager = new CopilotChatManager
-        {
-            AgentApiEndpointManager = _endpointManager,
-        };
     }
 
     /// <summary>
@@ -58,6 +54,21 @@ public sealed class ChatRoomRole
     public AgentApiEndpointManager EndpointManager => _endpointManager;
 
     /// <summary>
+    /// 主线程调度器。仅在构造期可设置。传递给内部 <see cref="AgentLib.CopilotChatManager"/>。
+    /// </summary>
+    public IMainThreadDispatcher? MainThreadDispatcher
+    {
+        get => _mainThreadDispatcher;
+        init => _mainThreadDispatcher = value;
+    }
+
+    private CopilotChatManager ChatManager => _chatManager ??= new CopilotChatManager
+    {
+        AgentApiEndpointManager = _endpointManager,
+        MainThreadDispatcher = _mainThreadDispatcher,
+    };
+
+    /// <summary>
     /// 初始化角色。注册模型 provider、加载技能文件夹、配置工具等。
     /// 应在角色开始发言前调用。
     /// </summary>
@@ -69,7 +80,7 @@ public sealed class ChatRoomRole
         {
             try
             {
-                _chatManager.AddSkillFolder(new DirectoryInfo(skillFolder));
+                ChatManager.AddSkillFolder(new DirectoryInfo(skillFolder));
             }
             catch (Exception)
             {
@@ -118,7 +129,7 @@ public sealed class ChatRoomRole
                 CancellationToken = cancellationToken,
             };
 
-            SendMessageResult result = _chatManager.SendMessage(request);
+            SendMessageResult result = ChatManager.SendMessage(request);
             await result.RunTask;
 
             if (cancellationToken.IsCancellationRequested)
@@ -129,7 +140,7 @@ public sealed class ChatRoomRole
             _hasSpoken = true;
 
             // 从 CopilotChatManager 的 SelectedSession 提取最后一轮 Assistant 回复
-            CopilotChatSession? session = _chatManager.SelectedSession;
+            CopilotChatSession? session = ChatManager.SelectedSession;
             if (session is null)
             {
                 return null;

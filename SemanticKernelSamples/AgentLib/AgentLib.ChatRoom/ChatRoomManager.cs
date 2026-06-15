@@ -159,7 +159,7 @@ public sealed class ChatRoomManager : NotifyBase
                 ChatRoomMessage? message = await StepAsync(nextSpeaker, loopCancellationToken);
                 if (message is not null)
                 {
-                    AppendMessage(message);
+                    await AppendMessageAsync(message);
                 }
             }
         }
@@ -241,13 +241,12 @@ public sealed class ChatRoomManager : NotifyBase
     /// <param name="humanRoleId">人类角色 Id。</param>
     /// <param name="humanRoleName">人类角色显示名。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public Task HumanInterjectAsync(string content, string humanRoleId, string humanRoleName, CancellationToken cancellationToken = default)
+    public async Task HumanInterjectAsync(string content, string humanRoleId, string humanRoleName, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(content);
 
         var message = ChatRoomMessage.CreateHuman(content, humanRoleId, humanRoleName);
-        AppendMessage(message);
-        return Task.CompletedTask;
+        await AppendMessageAsync(message);
     }
 
     /// <summary>
@@ -317,7 +316,10 @@ public sealed class ChatRoomManager : NotifyBase
         Roles.Clear();
         foreach (ChatRoomRoleDefinition roleDef in data.Roles)
         {
-            var role = new ChatRoomRole(roleDef);
+            var role = new ChatRoomRole(roleDef)
+                        {
+                            MainThreadDispatcher = Session.MainThreadDispatcher,
+                        };
             await role.InitializeAsync(cancellationToken);
             Roles.Add(role);
         }
@@ -326,7 +328,7 @@ public sealed class ChatRoomManager : NotifyBase
         Session.Messages.Clear();
         foreach (ChatRoomMessage msg in data.Messages)
         {
-            Session.AddMessage(msg);
+            await Session.AddMessageAsync(msg);
         }
     }
 
@@ -365,9 +367,9 @@ public sealed class ChatRoomManager : NotifyBase
         return sb.ToString().TrimEnd();
     }
 
-    private void AppendMessage(ChatRoomMessage message)
+    private async Task AppendMessageAsync(ChatRoomMessage message)
     {
-        Session.AddMessage(message);
+        await Session.AddMessageAsync(message);
         OnMessageAdded?.Invoke(this, message);
 
         // 持久化公开消息（fire-and-forget）

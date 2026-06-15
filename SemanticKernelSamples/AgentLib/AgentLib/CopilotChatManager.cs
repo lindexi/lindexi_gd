@@ -194,6 +194,13 @@ public class CopilotChatManager : NotifyBase
     public IReadOnlyList<AIContextProvider>? AIContextProviders { get; set; }
 
     /// <summary>
+    /// 主线程调度器。设置后，所有新创建的 <see cref="CopilotChatSession"/> 都将携带此调度器，
+    /// <see cref="CopilotChatSession.AddMessage"/> 将自动调度到主线程执行。为 <see langword="null"/> 时不做线程调度。
+    /// 仅在构造期可设置。
+    /// </summary>
+    public IMainThreadDispatcher? MainThreadDispatcher { get; init; }
+
+    /// <summary>
     /// 从指定技能文件夹加载技能并追加到 <see cref="AIContextProviders"/> 中。
     /// </summary>
     /// <param name="skillFolder">技能文件夹路径。</param>
@@ -234,7 +241,10 @@ public class CopilotChatManager : NotifyBase
             throw new InvalidOperationException("在当前的会话中找不到所选的聊天消息。");
         }
 
-        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
+        {
+            MainThreadDispatcher = MainThreadDispatcher,
+        };
         for (int i = 0; i <= index; i++)
         {
             newSession.AddMessage(currentSession.ChatMessages[i].Clone());
@@ -464,7 +474,7 @@ public class CopilotChatManager : NotifyBase
                 await AppendMessageAsync(currentSession, userChatMessage, currentChatCancellationToken);
 
                 ChatClientAgentCreatedResult chatClientAgentCreatedResult = await createChatClientAgentTask;
-                currentSession.AddMessage(assistantChatMessage);
+                await AppendMessageAsync(currentSession, assistantChatMessage, currentChatCancellationToken);
 
                 bool isFirst = true;
                 ChatMessage userChatMessageContent = userChatMessage.ToChatMessage();
@@ -654,7 +664,10 @@ public class CopilotChatManager : NotifyBase
 
     private CopilotChatSession CreateSession()
     {
-        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
+        {
+            MainThreadDispatcher = MainThreadDispatcher,
+        };
         AddAssistantWelcomeMessage(session);
         ChatSessions.Insert(0, session);
         OnSessionCreated(session);
@@ -676,7 +689,7 @@ public class CopilotChatManager : NotifyBase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        session.AddMessage(chatMessage);
+        await session.AddMessageAsync(chatMessage);
         await ChatLogger.LogMessageAsync(session.SessionId, chatMessage);
     }
 
