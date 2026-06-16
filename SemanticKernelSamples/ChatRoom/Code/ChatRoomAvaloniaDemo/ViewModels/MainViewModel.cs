@@ -158,7 +158,12 @@ public sealed class MainViewModel : NotifyBase
 
     private void NavigateToSettings()
     {
-        SettingsViewModel ??= new SettingsViewModel(_chatRoomService.AppConfig);
+        if (SettingsViewModel is null)
+        {
+            SettingsViewModel = new SettingsViewModel(_chatRoomService.AppConfig);
+            SettingsViewModel.NavigateBackRequested += (_, _) => NavigateBack();
+        }
+
         CurrentView = ChatRoomView.Settings;
     }
 
