@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:ChatRoomAvaloniaDemo.ViewModels"
+             xmlns:models="clr-namespace:ChatRoomAvaloniaDemo.Models"
+             mc:Ignorable="d"
+             x:Class="ChatRoomAvaloniaDemo.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             d:DesignWidth="800" d:DesignHeight="600">
+
+  <Grid RowDefinitions="Auto,*" Background="{StaticResource BackgroundBrush}">
+
+    <!-- 顶部栏 -->
+    <Border Grid.Row="0" Classes="sidebar-header">
+      <TextBlock Text="设置" Classes="h1" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1" Margin="24">
+      <StackPanel Spacing="20" MaxWidth="700">
+
+        <!-- 基本路径配置 -->
+        <Border Classes="section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="路径配置" Classes="h2" />
+
+            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="10" ColumnSpacing="12">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="持久化路径：" VerticalAlignment="Center" />
+              <TextBox Grid.Row="0" Grid.Column="1"
+                       Text="{Binding PersistenceBasePath}"
+                       Watermark="选择聊天记录存储目录..." />
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="技能文件夹：" VerticalAlignment="Center" />
+              <TextBox Grid.Row="1" Grid.Column="1"
+                       Text="{Binding SkillFoldersBasePath}"
+                       Watermark="技能文件夹基础路径..." />
+
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="默认最大轮次：" VerticalAlignment="Center" />
+              <TextBox Grid.Row="2" Grid.Column="1"
+                       Text="{Binding DefaultMaxRounds}"
+                       Watermark="10" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- 模型提供商列表 -->
+        <Border Classes="section">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="模型提供商" Classes="h2" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Content="+ 添加" Classes="small"
+                      Command="{Binding AddProviderCommand}" />
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Providers}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:ModelProviderConfig">
+                  <Border Classes="section" Margin="0,0,0,8">
+                    <StackPanel Spacing="8">
+                      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                            ColumnDefinitions="100,*" RowSpacing="8" ColumnSpacing="12">
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="提供商ID：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ProviderId}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="显示名：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ProviderName}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="API 终结点：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ApiEndpoint}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="API Key：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ApiKey}" />
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="默认模型ID：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding DefaultModelId}" />
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- 底部占位 -->
+        <TextBlock Height="40" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+  </Grid>
+</UserControl>

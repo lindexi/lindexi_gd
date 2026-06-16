@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:ChatRoomAvaloniaDemo.ViewModels"
+             xmlns:svc="clr-namespace:ChatRoomAvaloniaDemo.Services"
+             xmlns:model="clr-namespace:AgentLib.ChatRoom.Model;assembly=AgentLib.ChatRoom"
+             xmlns:cr="clr-namespace:AgentLib.ChatRoom;assembly=AgentLib.ChatRoom"
+             xmlns:views="clr-namespace:ChatRoomAvaloniaDemo.Views"
+             mc:Ignorable="d"
+             x:Class="ChatRoomAvaloniaDemo.Views.ChatRoomMainView"
+             x:DataType="vm:MainViewModel"
+             d:DesignWidth="1200" d:DesignHeight="700">
+
+  <Grid RowDefinitions="*">
+
+    <Grid ColumnDefinitions="240,*,260" IsVisible="{Binding IsChatRoomVisible}">
+
+      <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="{StaticResource SurfaceBrush}">
+        <Border Grid.Row="0" Classes="sidebar-header">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="历史会话" Classes="h2" />
+            <Button Grid.Column="1" Content="+" Classes="small ghost"
+                    Command="{Binding SessionListViewModel.NewSessionCommand}" />
+          </Grid>
+        </Border>
+        <ListBox Grid.Row="1"
+                 ItemsSource="{Binding SessionListViewModel.Sessions}"
+                 SelectedItem="{Binding SessionListViewModel.SelectedSession}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="svc:SessionSummary">
+              <Grid RowDefinitions="Auto,Auto" Margin="0,0,0,4">
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Row="1" Text="{Binding DisplayText}" Classes="muted" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel Grid.Row="2" Margin="8" Spacing="6">
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+            <Button Grid.Column="0" Content="打开会话" Classes="small secondary"
+                    Command="{Binding SessionListViewModel.OpenSessionCommand}"
+                    CommandParameter="{Binding SessionListViewModel.SelectedSession}" />
+            <Button Grid.Column="1" Content="删除" Classes="small danger"
+                    Command="{Binding SessionListViewModel.DeleteSessionCommand}"
+                    CommandParameter="{Binding SessionListViewModel.SelectedSession}" />
+          </Grid>
+          <Button Content="设置" Classes="ghost" Command="{Binding NavigateToSettingsCommand}" />
+        </StackPanel>
+      </Grid>
+
+      <Grid Grid.Column="1" RowDefinitions="*,Auto" Background="{StaticResource BackgroundBrush}">
+        <ScrollViewer Grid.Row="0">
+          <ItemsControl ItemsSource="{Binding ChatMessagesViewModel.Messages}" Margin="16,12">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="model:ChatRoomMessage">
+                <StackPanel Margin="0,0,0,12">
+                  <DockPanel>
+                    <Border Classes="avatar" Background="{StaticResource AvatarColor1}"
+                            DockPanel.Dock="Left" Margin="0,0,8,0">
+                      <TextBlock Text="{Binding SenderRoleName}" FontSize="12"
+                                 FontWeight="Bold" Foreground="White"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <Border Classes="bubble-assistant">
+                      <StackPanel Spacing="4">
+                        <DockPanel>
+                          <TextBlock Text="{Binding SenderRoleName}" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding Timestamp, StringFormat='HH:mm'}" Classes="muted" Margin="8,0,0,0" />
+                        </DockPanel>
+                        <TextBlock Text="{Binding Content}" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+                  </DockPanel>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="1" Classes="input-panel">
+          <StackPanel Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="开始" Command="{Binding ChatMessagesViewModel.StartCommand}" />
+              <Button Content="停止" Classes="danger"
+                      IsVisible="{Binding ChatMessagesViewModel.IsRunning}"
+                      Command="{Binding ChatMessagesViewModel.StopCommand}" />
+              <TextBlock Text="角色正在发言..." IsVisible="{Binding ChatMessagesViewModel.IsSpeaking}"
+                         VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{StaticResource WarningBrush}" />
+            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBox Grid.Column="0" Classes="multiline"
+                       Text="{Binding ChatMessagesViewModel.HumanInputText}" Watermark="输入消息..." />
+              <Button Grid.Column="1" Content="发送" VerticalAlignment="Bottom"
+                      Command="{Binding ChatMessagesViewModel.SendCommand}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto" Background="{StaticResource SurfaceBrush}">
+        <Border Grid.Row="0" Classes="sidebar-header">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="角色" Classes="h2" />
+            <Button Grid.Column="1" Content="+" Classes="small"
+                    Command="{Binding RoleListViewModel.AddRoleCommand}" />
+          </Grid>
+        </Border>
+        <ListBox Grid.Row="1"
+                 ItemsSource="{Binding RoleListViewModel.Roles}"
+                 SelectedItem="{Binding RoleListViewModel.SelectedRole}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="cr:ChatRoomRole">
+              <DockPanel Margin="0,0,0,4">
+                <Border Classes="avatar" Background="{StaticResource AvatarColor2}">
+                  <TextBlock Text="{Binding Definition.RoleName}" FontSize="12"
+                             FontWeight="Bold" Foreground="White"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Definition.RoleName}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding Definition.ModelId}" Classes="muted" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+              </DockPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel Grid.Row="2" Margin="8" Spacing="6">
+          <Button Content="编辑角色" Classes="secondary"
+                  Command="{Binding RoleListViewModel.EditRoleCommand}"
+                  CommandParameter="{Binding RoleListViewModel.SelectedRole}" />
+          <Button Content="删除角色" Classes="danger small"
+                  Command="{Binding RoleListViewModel.RemoveRoleCommand}"
+                  CommandParameter="{Binding RoleListViewModel.SelectedRole}" />
+        </StackPanel>
+      </Grid>
+    </Grid>
+
+    <Panel IsVisible="{Binding IsSettingsVisible}">
+          <views:SettingsView DataContext="{Binding SettingsViewModel}" />
+        </Panel>
+        <Panel IsVisible="{Binding IsRoleEditVisible}">
+          <views:RoleEditView DataContext="{Binding RoleEditViewModel}" />
+        </Panel>
+
+  </Grid>
+</UserControl>

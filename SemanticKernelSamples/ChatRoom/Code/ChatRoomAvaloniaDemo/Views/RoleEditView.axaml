@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:ChatRoomAvaloniaDemo.ViewModels"
+             mc:Ignorable="d"
+             x:Class="ChatRoomAvaloniaDemo.Views.RoleEditView"
+             x:DataType="vm:RoleEditViewModel"
+             d:DesignWidth="700" d:DesignHeight="500">
+
+  <Grid RowDefinitions="Auto,*" Background="{StaticResource BackgroundBrush}">
+
+    <Border Grid.Row="0" Classes="sidebar-header">
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+        <TextBlock Text="编辑角色" Classes="h1" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="取消" Classes="ghost"
+                Command="{Binding CancelCommand}" />
+        <Button Grid.Column="2" Content="保存"
+                Command="{Binding SaveCommand}" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" Margin="24">
+      <StackPanel Spacing="20" MaxWidth="650">
+
+        <!-- 基本信息 -->
+        <Border Classes="section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="基本信息" Classes="h2" />
+
+            <Grid RowDefinitions="Auto,Auto,Auto"
+                  ColumnDefinitions="100,*" RowSpacing="10" ColumnSpacing="12">
+
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="角色ID：" VerticalAlignment="Center" />
+              <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding RoleId}" IsReadOnly="True" />
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="角色名称：" VerticalAlignment="Center" />
+              <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RoleName}"
+                       Watermark="角色显示名称，如：代码审查员" />
+
+              <CheckBox Grid.Row="2" Grid.Column="1" Content="人类角色（不调用LLM，由用户手动输入）"
+                       IsChecked="{Binding IsHuman}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- 系统提示词 -->
+        <Border Classes="section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="系统提示词（System Prompt / 人设）" Classes="h2" />
+            <TextBox Text="{Binding SystemPrompt}"
+                     Classes="multiline"
+                     MinHeight="120"
+                     Watermark="你是一个专业的代码审查员，擅长分析C#代码并给出建设性意见..."
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- 模型配置 -->
+        <Border Classes="section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="模型配置" Classes="h2" />
+
+            <Grid RowDefinitions="Auto,Auto"
+                  ColumnDefinitions="100,*" RowSpacing="10" ColumnSpacing="12">
+
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="提供商ID：" VerticalAlignment="Center" />
+              <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ModelProviderId}"
+                       Watermark="留空使用默认提供商" />
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="模型ID：" VerticalAlignment="Center" />
+              <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ModelId}"
+                       Watermark="留空使用提供商的默认模型" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- 角色记忆 -->
+        <Border Classes="section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="角色记忆（可选）" Classes="h2" />
+            <TextBlock Text="角色记忆将注入到角色首次发言的系统提示词中。" Classes="muted" />
+            <TextBox Text="{Binding MemoryContent}"
+                     Classes="multiline"
+                     MinHeight="80"
+                     Watermark="角色的背景记忆内容，例如：我们之前讨论过关于XX项目的架构..."
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <TextBlock Height="40" />
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+
+</UserControl>
