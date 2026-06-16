@@ -16,15 +16,15 @@
     <SolidColorBrush x:Key="SecondaryLightBrush" Color="#A0B0C0" />
 
     <!-- 背景色 -->
-    <SolidColorBrush x:Key="BackgroundBrush" Color="#1E1E2E" />
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#282840" />
-    <SolidColorBrush x:Key="SurfaceLightBrush" Color="#32325A" />
-    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#3E3E60" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SurfaceLightBrush" Color="#F0F0F5" />
+    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#E0E0E0" />
 
     <!-- 文字色 -->
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E0E0F0" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A0A0C0" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="#6E6E8A" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1E1E2E" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5A5A7A" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#9E9EAA" />
 
     <!-- 状态色 -->
     <SolidColorBrush x:Key="SuccessBrush" Color="#4CAF50" />
