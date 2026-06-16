@@ -15,7 +15,7 @@ public sealed class AppConfig
     /// <summary>
     /// 默认配置文件名。
     /// </summary>
-    public const string DefaultFileName = "app.config.json";
+    public const string DefaultFileName = "AppConfiguration.json";
 
     /// <summary>
     /// 持久化根目录路径。聊天室会话数据将存储在此目录下。
@@ -31,6 +31,22 @@ public sealed class AppConfig
     /// 默认最大对话轮次。
     /// </summary>
     public int DefaultMaxRounds { get; set; } = 10;
+
+    /// <summary>
+    /// 全局默认模型所属提供商 ID。
+    /// </summary>
+    public string DefaultModelProviderId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 全局默认模型名称。
+    /// </summary>
+    public string DefaultModelId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 配置文件路径（不序列化，仅用于运行时跟踪配置文件位置）。
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string ConfigFilePath { get; set; } = string.Empty;
 
     /// <summary>
     /// 模型提供商配置列表。

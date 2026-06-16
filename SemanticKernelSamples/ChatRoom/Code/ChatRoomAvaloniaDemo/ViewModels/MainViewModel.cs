@@ -136,11 +136,25 @@ public sealed class MainViewModel : NotifyBase
     /// <summary>
     /// 导航回主聊天界面。由 SettingsView / RoleEditView 的返回操作调用。
     /// </summary>
-    public void NavigateBack()
+    public async void NavigateBack()
     {
         if (CurrentView == ChatRoomView.Settings && SettingsViewModel is not null)
         {
             SettingsViewModel.ApplyToConfig();
+
+            // 保存配置到文件
+            var config = _chatRoomService.AppConfig;
+            if (!string.IsNullOrEmpty(config?.ConfigFilePath))
+            {
+                try
+                {
+                    await config.SaveAsync(config.ConfigFilePath);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"保存配置失败: {ex.Message}");
+                }
+            }
         }
 
         CurrentView = ChatRoomView.ChatRoom;

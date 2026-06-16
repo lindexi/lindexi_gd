@@ -72,6 +72,8 @@ public sealed class RoleListViewModel : NotifyBase
             RoleId = Guid.NewGuid().ToString("N")[..8],
             RoleName = "新角色",
             SystemPrompt = string.Empty,
+            ModelProviderId = _chatRoomService.AppConfig?.DefaultModelProviderId ?? string.Empty,
+            ModelId = _chatRoomService.AppConfig?.DefaultModelId ?? string.Empty,
         };
 
         var role = new ChatRoomRole(definition);

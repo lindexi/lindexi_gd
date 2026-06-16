@@ -83,6 +83,23 @@ public sealed class ChatRoomService
             {
                 MaxRounds = _appConfig.DefaultMaxRounds,
             };
+
+            // 创建默认"助手"角色
+            var defaultRoleDef = new ChatRoomRoleDefinition
+            {
+                RoleId = Guid.NewGuid().ToString(),
+                RoleName = "助手",
+                SystemPrompt = "你是一个智能助手，参与多角色讨论。",
+                ModelProviderId = _appConfig.DefaultModelProviderId,
+                ModelId = _appConfig.DefaultModelId,
+            };
+
+            var defaultRole = new ChatRoomRole(defaultRoleDef)
+            {
+                MainThreadDispatcher = mainThreadDispatcher,
+            };
+
+            _chatRoomManager.Roles.Add(defaultRole);
         }
 
         return _chatRoomManager;
