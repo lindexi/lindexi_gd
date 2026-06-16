@@ -13,11 +13,32 @@
 
     <!-- 顶部栏 -->
     <Border Grid.Row="0" Classes="sidebar-header">
-      <TextBlock Text="设置" Classes="h1" />
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="设置" Classes="h1" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="← 返回" Classes="small"
+                Command="{Binding NavigateBackCommand}"
+                VerticalAlignment="Center" Margin="0,0,24,0" />
+      </Grid>
     </Border>
 
     <ScrollViewer Grid.Row="1" Margin="24">
       <StackPanel Spacing="20" MaxWidth="700">
+
+        <!-- 全局默认模型 -->
+        <Border Classes="section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="全局默认模型" Classes="h2" />
+            <ComboBox ItemsSource="{Binding AllModels}"
+                      SelectedItem="{Binding SelectedDefaultModel}"
+                      HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="models:ModelItemConfig">
+                  <TextBlock Text="{Binding DisplayText}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+        </Border>
 
         <!-- 基本路径配置 -->
         <Border Classes="section">

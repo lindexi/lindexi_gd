@@ -1,11 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using ChatRoomAvaloniaDemo.Models;
 using ChatRoomAvaloniaDemo.Services;
 using ChatRoomAvaloniaDemo.ViewModels;
-using System;
-using System.IO;
+using System.Threading.Tasks;
 
 namespace ChatRoomAvaloniaDemo;
 
@@ -16,14 +14,11 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var appConfig = new AppConfig
-            {
-                PersistenceBasePath = Path.Join(AppContext.BaseDirectory, "chatroom_data"),
-            };
+            var appConfig = await AppConfigService.LoadOrInitializeAsync();
 
             var chatRoomService = new ChatRoomService();
             chatRoomService.ApplyConfig(appConfig);
@@ -36,6 +31,7 @@ public partial class App : Application
             };
 
             desktop.MainWindow = mainWindow;
+            mainWindow.Show();
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -1,9 +1,11 @@
 using AgentLib.Model;
 
+using System.Collections.ObjectModel;
+
 namespace ChatRoomAvaloniaDemo.Models;
 
 /// <summary>
-/// 模型提供商配置模型。描述一个 LLM 提供商的连接信息。
+/// 模型提供商配置模型。描述一个 LLM 提供商的连接信息及其下的模型列表。
 /// </summary>
 public sealed class ModelProviderConfig : NotifyBase
 {
@@ -57,4 +59,9 @@ public sealed class ModelProviderConfig : NotifyBase
         get => _defaultModelId;
         set => SetField(ref _defaultModelId, value);
     }
+
+    /// <summary>
+    /// 该提供商下的模型列表。
+    /// </summary>
+    public ObservableCollection<ModelItemConfig> Models { get; init; } = [];
 }
