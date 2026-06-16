@@ -30,19 +30,18 @@ public sealed class SettingsViewModel : NotifyBase
             PersistenceBasePath = _appConfig.PersistenceBasePath,
             SkillFoldersBasePath = _appConfig.SkillFoldersBasePath,
             DefaultMaxRounds = _appConfig.DefaultMaxRounds,
-            DefaultModelProviderId = _appConfig.DefaultModelProviderId,
-            DefaultModelId = _appConfig.DefaultModelId,
+            DefaultModelProviderName = _appConfig.DefaultModelProviderName,
+            PrimaryModelId = _appConfig.PrimaryModelId,
         };
 
         foreach (var provider in _appConfig.Providers)
         {
             var providerCopy = new ModelProviderConfig
             {
-                ProviderId = provider.ProviderId,
                 ProviderName = provider.ProviderName,
                 ApiEndpoint = provider.ApiEndpoint,
                 ApiKey = provider.ApiKey,
-                DefaultModelId = provider.DefaultModelId,
+                PrimaryModelId = provider.PrimaryModelId,
             };
 
             foreach (var model in provider.Models)
@@ -63,8 +62,8 @@ public sealed class SettingsViewModel : NotifyBase
 
         // 初始化当前选中的默认模型
         _selectedDefaultModel = AllModels.FirstOrDefault(m =>
-            string.Equals(m.ModelName, _editableCopy.DefaultModelId, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(m.ModelId, _editableCopy.DefaultModelId, StringComparison.OrdinalIgnoreCase));
+            string.Equals(m.ModelName, _editableCopy.PrimaryModelId, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(m.ModelId, _editableCopy.PrimaryModelId, StringComparison.OrdinalIgnoreCase));
 
         AddProviderCommand = new DelegateCommand(AddProvider);
         RemoveProviderCommand = new DelegateCommand<ModelProviderConfig?>(RemoveProvider);
@@ -86,11 +85,11 @@ public sealed class SettingsViewModel : NotifyBase
         {
             if (SetField(ref _selectedDefaultModel, value) && value is not null)
             {
-                _editableCopy.DefaultModelId = value.ModelName;
+                _editableCopy.PrimaryModelId = value.ModelName;
                 // 查找所属提供商
                 var provider = _editableCopy.Providers.FirstOrDefault(p =>
                     p.Models.Any(m => string.Equals(m.ModelName, value.ModelName, StringComparison.OrdinalIgnoreCase)));
-                _editableCopy.DefaultModelProviderId = provider?.ProviderId ?? string.Empty;
+                _editableCopy.DefaultModelProviderName = provider?.ProviderName ?? string.Empty;
                 _hasChanges = true;
             }
         }
@@ -150,8 +149,8 @@ public sealed class SettingsViewModel : NotifyBase
         _appConfig.PersistenceBasePath = _editableCopy.PersistenceBasePath;
         _appConfig.SkillFoldersBasePath = _editableCopy.SkillFoldersBasePath;
         _appConfig.DefaultMaxRounds = _editableCopy.DefaultMaxRounds;
-        _appConfig.DefaultModelProviderId = _editableCopy.DefaultModelProviderId;
-        _appConfig.DefaultModelId = _editableCopy.DefaultModelId;
+        _appConfig.DefaultModelProviderName = _editableCopy.DefaultModelProviderName;
+        _appConfig.PrimaryModelId = _editableCopy.PrimaryModelId;
 
         _appConfig.Providers.Clear();
         foreach (var provider in _editableCopy.Providers)
@@ -183,7 +182,6 @@ public sealed class SettingsViewModel : NotifyBase
     {
         Providers.Add(new ModelProviderConfig
         {
-            ProviderId = Guid.NewGuid().ToString("N")[..8],
             ProviderName = "新提供商",
         });
         RefreshAllModels();

@@ -6,6 +6,7 @@ using ChatRoomAvaloniaDemo.Models;
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -123,7 +124,7 @@ public sealed class AppConfigService
         var agentConfig = LindexiAgentConfiguration.LoadDefault();
 
         // 设置默认模型
-        config.DefaultModelId = agentConfig.PrimaryModel ?? string.Empty;
+        config.PrimaryModelId = agentConfig.PrimaryModel ?? string.Empty;
 
         // 转换 OpenAI 协议配置
         if (agentConfig.OpenAIConfigurationList is not null)
@@ -133,13 +134,13 @@ public sealed class AppConfigService
                 var providerConfig = ConvertToProviderConfig(openAIConfig);
                 config.Providers.Add(providerConfig);
 
-                // 如果默认模型在此提供商下，设置提供商 ID
-                if (!string.IsNullOrEmpty(config.DefaultModelId) &&
-                    string.IsNullOrEmpty(config.DefaultModelProviderId))
+                // 如果默认模型在此提供商下，设置提供商名称
+                if (!string.IsNullOrEmpty(config.PrimaryModelId) &&
+                    string.IsNullOrEmpty(config.DefaultModelProviderName))
                 {
-                    if (HasModel(providerConfig, config.DefaultModelId))
+                    if (HasModel(providerConfig, config.PrimaryModelId))
                     {
-                        config.DefaultModelProviderId = providerConfig.ProviderId;
+                        config.DefaultModelProviderName = providerConfig.ProviderName;
                     }
                 }
             }
@@ -157,8 +158,8 @@ public sealed class AppConfigService
     {
         var providerConfig = new ModelProviderConfig
         {
-            ProviderId = Guid.NewGuid().ToString("N")[..8],
-            ProviderName = ExtractProviderName(openAIConfig.EndPoint),
+            // ProviderName 从首个模型定义的 Provider 获取，与 ModelDefinition.Provider 一致
+            ProviderName = openAIConfig.ModelDefinitions?.FirstOrDefault()?.Provider ?? string.Empty,
             ApiEndpoint = openAIConfig.EndPoint ?? string.Empty,
             ApiKey = openAIConfig.Key ?? string.Empty,
         };
@@ -169,13 +170,21 @@ public sealed class AppConfigService
             foreach (var modelDef in openAIConfig.ModelDefinitions)
             {
                 var modelConfig = ConvertToModelConfig(modelDef);
+
+                // 如果从首个模型未能获取 ProviderName，尝试后续模型
+                if (string.IsNullOrEmpty(providerConfig.ProviderName) &&
+                    !string.IsNullOrEmpty(modelDef.Provider))
+                {
+                    providerConfig.ProviderName = modelDef.Provider;
+                }
+
                 providerConfig.Models.Add(modelConfig);
             }
 
-            // 设置默认模型为第一个模型
+            // 设置主模型为第一个模型
             if (providerConfig.Models.Count > 0)
             {
-                providerConfig.DefaultModelId = providerConfig.Models[0].ModelName;
+                providerConfig.PrimaryModelId = providerConfig.Models[0].ModelName;
             }
         }
 
@@ -196,37 +205,6 @@ public sealed class AppConfigService
             Provider = modelDef.Provider ?? string.Empty,
             IsFlash = modelDef.Capabilities?.IsFlash ?? false,
         };
-    }
-
-    /// <summary>
-    /// 从终结点提取提供商名称。
-    /// </summary>
-    /// <param name="endpoint">API 终结点。</param>
-    /// <returns>提取的提供商名称。</returns>
-    private static string ExtractProviderName(string? endpoint)
-    {
-        if (string.IsNullOrEmpty(endpoint))
-        {
-            return "Unknown";
-        }
-
-        try
-        {
-            var uri = new Uri(endpoint);
-            var host = uri.Host;
-            // 提取主机名的第一部分作为提供商名称
-            var parts = host.Split('.');
-            if (parts.Length > 0)
-            {
-                return parts[0];
-            }
-        }
-        catch
-        {
-            // 忽略解析错误
-        }
-
-        return endpoint;
     }
 
     /// <summary>

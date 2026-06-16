@@ -78,23 +78,20 @@
                 <DataTemplate x:DataType="models:ModelProviderConfig">
                   <Border Classes="section" Margin="0,0,0,8">
                     <StackPanel Spacing="8">
-                      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                      <Grid RowDefinitions="Auto,Auto,Auto,Auto"
                             ColumnDefinitions="100,*" RowSpacing="8" ColumnSpacing="12">
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="提供商ID：" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ProviderId}" />
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="显示名：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ProviderName}" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="显示名：" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ProviderName}" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="API 终结点：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ApiEndpoint}" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="API 终结点：" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ApiEndpoint}" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="API Key：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ApiKey}" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="API Key：" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ApiKey}" />
-
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="默认模型ID：" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding DefaultModelId}" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="主模型ID：" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PrimaryModelId}" />
                       </Grid>
                     </StackPanel>
                   </Border>

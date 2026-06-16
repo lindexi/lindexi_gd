@@ -90,8 +90,8 @@ public sealed class ChatRoomService
                 RoleId = Guid.NewGuid().ToString(),
                 RoleName = "助手",
                 SystemPrompt = "你是一个智能助手，参与多角色讨论。",
-                ModelProviderId = _appConfig.DefaultModelProviderId,
-                ModelId = _appConfig.DefaultModelId,
+                ModelProviderId = _appConfig.DefaultModelProviderName,
+                ModelId = _appConfig.PrimaryModelId,
             };
 
             var defaultRole = new ChatRoomRole(defaultRoleDef)
