@@ -48,6 +48,12 @@ public sealed class MainViewModel : NotifyBase
         ChatMessagesViewModel = new ChatMessagesViewModel(chatRoomService);
         RoleListViewModel = new RoleListViewModel(this, chatRoomService);
 
+        SessionListViewModel.SessionLoaded += (_, _) =>
+        {
+            RoleListViewModel.BindToManager();
+            ChatMessagesViewModel.BindToManager();
+        };
+
         NavigateToSettingsCommand = new DelegateCommand(NavigateToSettings);
         NavigateBackCommand = new DelegateCommand(NavigateBack);
         NavigateToRoleEditCommand = new DelegateCommand<RoleEditViewModel?>(NavigateToRoleEdit);
@@ -71,12 +77,30 @@ public sealed class MainViewModel : NotifyBase
     /// <summary>
     /// 设置页 ViewModel。延迟初始化。
     /// </summary>
-    public SettingsViewModel? SettingsViewModel { get; private set; }
+    public SettingsViewModel? SettingsViewModel
+    {
+        get;
+        private set
+        {
+            if (Equals(value, field)) return;
+            field = value;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>
     /// 角色编辑 ViewModel。每次编辑时重新创建。
     /// </summary>
-    public RoleEditViewModel? RoleEditViewModel { get; private set; }
+    public RoleEditViewModel? RoleEditViewModel
+    {
+        get;
+        private set
+        {
+            if (Equals(value, field)) return;
+            field = value;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>
     /// 当前显示的子视图。
@@ -114,7 +138,7 @@ public sealed class MainViewModel : NotifyBase
     public DelegateCommand<RoleEditViewModel?> NavigateToRoleEditCommand { get; }
 
     /// <summary>
-    /// 初始化主 ViewModel。加载历史会话列表，并创建一个新的空会话。
+    /// 初始化主 ViewModel。加载历史会话列表，并创建一个新的空会话（含默认"助手"角色）。
     /// </summary>
     public async Task InitializeAsync()
     {
@@ -125,6 +149,11 @@ public sealed class MainViewModel : NotifyBase
 
         _isInitialized = true;
         await SessionListViewModel.LoadSessionsAsync();
+
+        // 创建初始会话，包含默认"助手"角色
+        _chatRoomService.CreateNewSession(_mainThreadDispatcher);
+        RoleListViewModel.BindToManager();
+        ChatMessagesViewModel.BindToManager();
     }
 
     private void NavigateToSettings()
