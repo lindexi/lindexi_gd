@@ -5,7 +5,9 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -16,6 +18,48 @@ public class CopilotViewModel : CopilotChatManager
 {
     public CopilotViewModel()
     {
+    }
+
+    /// <summary>
+    /// 额外的默认工具集合。在每次发送消息时，这些工具会与 <see cref="SendMessageRequest.Tools"/> 合并后传递给 <see cref="CopilotChatManager.ResolveTools"/>。
+    /// 调用方可在创建 ViewModel 后向此集合添加工具。
+    /// </summary>
+    public List<AITool> AdditionalDefaultTools { get; } = [];
+
+    /// <summary>
+    /// 发送消息并开始聊天。会自动合并 <see cref="AdditionalDefaultTools"/> 到工具列表中。
+    /// </summary>
+    public new async Task SendMessageAsync(IReadOnlyList<AIContent> contents, bool withHistory = true, bool createNewSession = false, IReadOnlyList<AITool>? tools = null,
+        ChatToolMode? toolMode = null, CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<AITool> mergedTools = MergeAdditionalTools(tools);
+        await base.SendMessageAsync(contents, withHistory, createNewSession, mergedTools, toolMode, cancellationToken);
+    }
+
+    /// <summary>
+    /// 开启新的会话并发送消息。会自动合并 <see cref="AdditionalDefaultTools"/> 到工具列表中。
+    /// </summary>
+    public new Task SendMessageInNewSessionAsync(IReadOnlyList<AIContent> contents, CancellationToken cancellationToken = default)
+    {
+        return SendMessageAsync(contents, withHistory: true, createNewSession: true, tools: null, cancellationToken: cancellationToken);
+    }
+
+    private IReadOnlyList<AITool> MergeAdditionalTools(IReadOnlyList<AITool>? tools)
+    {
+        if (AdditionalDefaultTools.Count == 0)
+        {
+            return tools ?? [];
+        }
+
+        if (tools is null || tools.Count == 0)
+        {
+            return AdditionalDefaultTools;
+        }
+
+        var merged = new List<AITool>(tools.Count + AdditionalDefaultTools.Count);
+        merged.AddRange(tools);
+        merged.AddRange(AdditionalDefaultTools);
+        return merged;
     }
 
     protected override void OnSessionCreated(CopilotChatSession session)

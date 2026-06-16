@@ -80,6 +80,9 @@ public partial class RightSlideBar : UserControl
                 mainViewModel.AppPathManager.CopilotChatLogDirectory,
                 mainViewModel.AppPathManager.CopilotChatHistoryDirectory);
 
+            var editorTabToolProvider = new EditorTabToolProvider(mainViewModel.EditorViewModel);
+            copilotViewModel.AdditionalDefaultTools.AddRange(editorTabToolProvider.CreateTools());
+
             _ = LoadConfigAsync(copilotViewModel);
 
             BindWorkspacePath(mainViewModel.FolderExplorerViewModel, mainViewModel.EditorViewModel, copilotViewModel);
