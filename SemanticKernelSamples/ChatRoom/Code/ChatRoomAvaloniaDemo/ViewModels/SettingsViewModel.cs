@@ -1,3 +1,5 @@
+using AgentLib.Model;
+
 using ChatRoomAvaloniaDemo.Models;
 
 using System;

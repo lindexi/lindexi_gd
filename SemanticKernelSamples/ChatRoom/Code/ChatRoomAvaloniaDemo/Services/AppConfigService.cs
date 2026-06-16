@@ -158,8 +158,8 @@ public sealed class AppConfigService
         var providerConfig = new ModelProviderConfig
         {
             ProviderId = Guid.NewGuid().ToString("N")[..8],
-            ProviderName = openAIConfig.ProviderName ?? ExtractProviderName(openAIConfig.Endpoint),
-            ApiEndpoint = openAIConfig.Endpoint ?? string.Empty,
+            ProviderName = ExtractProviderName(openAIConfig.EndPoint),
+            ApiEndpoint = openAIConfig.EndPoint ?? string.Empty,
             ApiKey = openAIConfig.Key ?? string.Empty,
         };
 
