@@ -71,12 +71,30 @@ public sealed class MainViewModel : NotifyBase
     /// <summary>
     /// 设置页 ViewModel。延迟初始化。
     /// </summary>
-    public SettingsViewModel? SettingsViewModel { get; private set; }
+    public SettingsViewModel? SettingsViewModel
+    {
+        get;
+        private set
+        {
+            if (Equals(value, field)) return;
+            field = value;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>
     /// 角色编辑 ViewModel。每次编辑时重新创建。
     /// </summary>
-    public RoleEditViewModel? RoleEditViewModel { get; private set; }
+    public RoleEditViewModel? RoleEditViewModel
+    {
+        get;
+        private set
+        {
+            if (Equals(value, field)) return;
+            field = value;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>
     /// 当前显示的子视图。
