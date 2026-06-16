@@ -67,6 +67,11 @@ public sealed class RoleEditViewModel
     /// <summary>是否人类角色。</summary>
     public bool IsHuman { get; set; }
 
+    /// <summary>
+    /// 是否为新创建的角色（而非编辑已有角色）。取消编辑时需要从角色列表中移除。
+    /// </summary>
+    public bool IsNewRole { get; set; }
+
     /// <summary>保存命令。</summary>
     public DelegateCommand SaveCommand { get; }
 

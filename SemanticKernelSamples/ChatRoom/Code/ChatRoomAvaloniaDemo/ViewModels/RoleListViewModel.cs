@@ -82,8 +82,21 @@ public sealed class RoleListViewModel : NotifyBase
         OnPropertyChanged(nameof(Roles));
 
         // 自动打开编辑界面
-        var roleEditVm = new RoleEditViewModel(role);
-        roleEditVm.Saved += (_, _) => OnPropertyChanged(nameof(Roles));
+        var roleEditVm = new RoleEditViewModel(role)
+        {
+            IsNewRole = true
+        };
+        roleEditVm.Saved += (_, _) =>
+        {
+            OnPropertyChanged(nameof(Roles));
+            _mainViewModel.NavigateBack();
+        };
+        roleEditVm.Cancelled += (_, _) =>
+        {
+            _chatRoomService.ChatRoomManager?.Roles.Remove(role);
+            OnPropertyChanged(nameof(Roles));
+            _mainViewModel.NavigateBack();
+        };
         _mainViewModel.NavigateToRoleEditCommand.Execute(roleEditVm);
     }
 
@@ -106,7 +119,12 @@ public sealed class RoleListViewModel : NotifyBase
         }
 
         var roleEditVm = new RoleEditViewModel(role);
-        roleEditVm.Saved += (_, _) => OnPropertyChanged(nameof(Roles));
+        roleEditVm.Saved += (_, _) =>
+        {
+            OnPropertyChanged(nameof(Roles));
+            _mainViewModel.NavigateBack();
+        };
+        roleEditVm.Cancelled += (_, _) => _mainViewModel.NavigateBack();
         _mainViewModel.NavigateToRoleEditCommand.Execute(roleEditVm);
     }
 }
