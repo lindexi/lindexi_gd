@@ -202,16 +202,6 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
     private UsageDetails? _currentUsageDetails;
 
-    /// <summary>
-    /// Token 用量详情（已弃用，请使用 <see cref="TotalUsageDetails"/>）。
-    /// </summary>
-    [Obsolete("Use TotalUsageDetails instead.")]
-    public UsageDetails? UsageDetails
-    {
-        get => TotalUsageDetails;
-        private set => TotalUsageDetails = value;
-    }
-
     private const string UsageSummarySeparator = " ";
 
     /// <summary>
