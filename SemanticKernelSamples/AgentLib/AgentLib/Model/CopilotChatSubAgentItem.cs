@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Model;
@@ -117,7 +118,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     public bool HasMessageItems => MessageItems.Count > 0;
 
     /// <inheritdoc/>
-        public void AppendText(string text)
+    public void AppendText(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -134,7 +135,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     }
 
     /// <inheritdoc/>
-        public void AppendReasoning(string text)
+    public void AppendReasoning(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -151,7 +152,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     }
 
     /// <inheritdoc/>
-        public void RegisterApprovalTool(string toolName, string? approvalDescription = null)
+    public void RegisterApprovalTool(string toolName, string? approvalDescription = null)
     {
         if (string.IsNullOrWhiteSpace(toolName))
         {
@@ -162,7 +163,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     }
 
     /// <inheritdoc/>
-        public void AppendFunctionCall(FunctionCallContent functionCallContent)
+    public void AppendFunctionCall(FunctionCallContent functionCallContent)
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
 
@@ -195,7 +196,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     }
 
     /// <inheritdoc/>
-        public void AppendFunctionResult(FunctionResultContent functionResultContent)
+    public void AppendFunctionResult(FunctionResultContent functionResultContent)
     {
         ArgumentNullException.ThrowIfNull(functionResultContent);
 
@@ -231,8 +232,8 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     }
 
     /// <inheritdoc/>
-        public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-            string? callId = null)
+    public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
+        string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -274,7 +275,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     }
 
     /// <inheritdoc/>
-        public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
+    public CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
