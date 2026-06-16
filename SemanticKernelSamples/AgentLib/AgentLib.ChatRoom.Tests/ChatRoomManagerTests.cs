@@ -1,0 +1,811 @@
+﻿using System.ComponentModel;
+using AgentLib.ChatRoom;
+using AgentLib.ChatRoom.Model;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using Moq;
+
+namespace AgentLib.ChatRoom.Tests;
+
+[TestClass]
+public sealed class ChatRoomManagerTests
+{
+    [TestMethod]
+    public void Constructor_WithNullSession_ThrowsArgumentNullException()
+    {
+        Assert.ThrowsExactly<ArgumentNullException>(() => new ChatRoomManager(null!));
+    }
+
+    [TestMethod]
+    public void Constructor_WithValidSession_SetsSessionProperty()
+    {
+        var session = new ChatRoomSession();
+
+        var manager = new ChatRoomManager(session);
+
+        Assert.AreSame(session, manager.Session);
+    }
+
+    [TestMethod]
+    public void Constructor_Parameterless_CreatesNonNullSession()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.IsNotNull(manager.Session);
+    }
+
+    [TestMethod]
+    public void Constructor_Parameterless_SessionHasNonEmptyId()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.AreNotEqual(Guid.Empty, manager.Session.SessionId);
+    }
+
+    [TestMethod]
+    public void IsRunning_DefaultValue_IsFalse()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.IsFalse(manager.IsRunning);
+    }
+
+    [TestMethod]
+    public void CanStartLoop_WhenNotRunningAndNoRoles_ReturnsFalse()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.IsFalse(manager.CanStartLoop);
+    }
+
+    [TestMethod]
+    public void CanStartLoop_WhenNotRunningAndHasRoles_ReturnsTrue()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            IsHuman = false,
+        };
+        var role = new ChatRoomRole(definition);
+        manager.Roles.Add(role);
+
+        Assert.IsTrue(manager.CanStartLoop);
+    }
+
+    [TestMethod]
+    public void CanStartLoop_WhenNotRunningAndHasMultipleRoles_ReturnsTrue()
+    {
+        var manager = new ChatRoomManager();
+        var definition1 = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Role 1",
+        };
+        var definition2 = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-2",
+            RoleName = "Role 2",
+        };
+        manager.Roles.Add(new ChatRoomRole(definition1));
+        manager.Roles.Add(new ChatRoomRole(definition2));
+
+        Assert.IsTrue(manager.CanStartLoop);
+    }
+
+    [TestMethod]
+    public void CanStop_WhenNotRunning_ReturnsFalse()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.IsFalse(manager.CanStop);
+    }
+
+    [TestMethod]
+    public async Task IsRunning_AfterStartAutoLoop_ChangesToTrueThenFalse_WhenSpeakerReturnsNull()
+    {
+        // Arrange
+        var manager = new ChatRoomManager();
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        mockSpeaker
+            .Setup(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ChatRoomRole?)null);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        var changedProperties = new List<string>();
+        ((INotifyPropertyChanged)manager).PropertyChanged += (_, args) =>
+            changedProperties.Add(args.PropertyName!);
+
+        // Act
+        await manager.StartAutoLoopAsync();
+
+        // Assert
+        Assert.IsFalse(manager.IsRunning);
+        // IsRunning should have been set to true then false
+        Assert.Contains("IsRunning", changedProperties);
+        Assert.Contains("CanStartLoop", changedProperties);
+        Assert.Contains("CanStop", changedProperties);
+    }
+
+    [TestMethod]
+    public async Task IsRunning_PropertyChanged_FiresCanStartLoopAndCanStop()
+    {
+        // Arrange
+        var manager = new ChatRoomManager();
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        mockSpeaker
+            .Setup(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ChatRoomRole?)null);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        var changedProperties = new List<string>();
+        ((INotifyPropertyChanged)manager).PropertyChanged += (_, args) =>
+            changedProperties.Add(args.PropertyName!);
+
+        // Act
+        await manager.StartAutoLoopAsync();
+
+        // Assert: PropertyChanged fired for CanStartLoop and CanStop
+        Assert.Contains("CanStartLoop", changedProperties);
+        Assert.Contains("CanStop", changedProperties);
+    }
+
+    [TestMethod]
+    public void CanStartLoop_WhenRoleRemovedAfterBeingAdded_ReturnsFalse()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        };
+        var role = new ChatRoomRole(definition);
+        manager.Roles.Add(role);
+
+        Assert.IsTrue(manager.CanStartLoop);
+
+        manager.Roles.Remove(role);
+
+        Assert.IsFalse(manager.CanStartLoop);
+    }
+
+    [TestMethod]
+    public async Task CanStop_BecomesTrue_WhenIsRunningIsTrue_DuringAutoLoop()
+    {
+        // Arrange
+        var manager = new ChatRoomManager();
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        // Use a TaskCompletionSource to pause execution while IsRunning is true
+        var tcs = new TaskCompletionSource<ChatRoomRole?>();
+        mockSpeaker
+            .Setup(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .Returns(tcs.Task);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        // Act
+        var loopTask = manager.StartAutoLoopAsync();
+
+        // Allow StartAutoLoopAsync to reach the first SelectNextSpeakerAsync call
+        await Task.Delay(100);
+
+        try
+        {
+            // Assert: CanStop should be true while IsRunning is true
+            Assert.IsTrue(manager.IsRunning);
+            Assert.IsTrue(manager.CanStop);
+            Assert.IsFalse(manager.CanStartLoop);
+        }
+        finally
+        {
+            // Clean up: resolve the TCS to let the loop finish
+            tcs.SetResult(null);
+            await loopTask;
+        }
+    }
+
+    [TestMethod]
+    public void CurrentSpeaker_DefaultValue_IsNull()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.IsNull(manager.CurrentSpeaker);
+    }
+
+    [TestMethod]
+    public void IsSpeaking_DefaultValue_IsFalse()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.IsFalse(manager.IsSpeaking);
+    }
+
+    [TestMethod]
+    public async Task StepAsync_NullRole_ThrowsArgumentNullException()
+    {
+        var manager = new ChatRoomManager();
+
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => manager.StepAsync(null!));
+    }
+
+    [TestMethod]
+    public async Task StepAsync_HumanRole_ReturnsNull()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "human-1",
+            RoleName = "Human",
+            IsHuman = true,
+        };
+        var role = new ChatRoomRole(definition);
+
+        ChatRoomMessage? result = await manager.StepAsync(role);
+
+        Assert.IsNull(result);
+        Assert.IsNull(manager.CurrentSpeaker);
+        Assert.IsFalse(manager.IsSpeaking);
+    }
+
+    [TestMethod]
+    public async Task StepAsync_NonHumanRole_ClearsCurrentSpeakerInFinally()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            IsHuman = false,
+        };
+        var role = new ChatRoomRole(definition);
+
+        await manager.StepAsync(role);
+
+        Assert.IsNull(manager.CurrentSpeaker);
+        Assert.IsFalse(manager.IsSpeaking);
+    }
+
+    [TestMethod]
+    public async Task StepAsync_NonHumanRole_FiresOnSpeakingChangedEvent()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            IsHuman = false,
+        };
+        var role = new ChatRoomRole(definition);
+
+        var speakingEvents = new List<SpeakingChangedEventArgs>();
+        manager.OnSpeakingChanged += (_, args) => speakingEvents.Add(args);
+
+        await manager.StepAsync(role);
+
+        Assert.HasCount(2, speakingEvents);
+
+        // First event: null → role
+        Assert.IsNull(speakingEvents[0].PreviousSpeaker);
+        Assert.AreSame(role, speakingEvents[0].CurrentSpeaker);
+
+        // Second event: role → null (from finally)
+        Assert.AreSame(role, speakingEvents[1].PreviousSpeaker);
+        Assert.IsNull(speakingEvents[1].CurrentSpeaker);
+    }
+
+    [TestMethod]
+    public async Task StepAsync_NonHumanRole_FiresIsSpeakingPropertyChanged()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            IsHuman = false,
+        };
+        var role = new ChatRoomRole(definition);
+
+        var propertyChanges = new List<string?>();
+        ((INotifyPropertyChanged)manager).PropertyChanged += (_, args) => propertyChanges.Add(args.PropertyName);
+
+        await manager.StepAsync(role);
+
+        Assert.Contains("IsSpeaking", propertyChanges);
+    }
+
+    [TestMethod]
+    public async Task StepAsync_NonHumanRole_WhenSpeakThrows_FiresOnRoleSpeakFailedAndReturnsSystemMessage()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            IsHuman = false,
+        };
+        var role = new ChatRoomRole(definition);
+
+        RoleSpeakFailedEventArgs? eventArgs = null;
+        manager.OnRoleSpeakFailed += (_, args) => eventArgs = args;
+
+        ChatRoomMessage? result = await manager.StepAsync(role);
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result.IsSystemMessage);
+        Assert.Contains("Test Role", result.Content);
+        Assert.IsNotNull(eventArgs);
+        Assert.AreSame(role, eventArgs.Role);
+        Assert.IsNotNull(eventArgs.Exception);
+    }
+
+    [TestMethod]
+    public async Task StartAutoLoopAsync_AlreadyRunning_ReturnsImmediately()
+    {
+        var manager = new ChatRoomManager();
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        var tcs = new TaskCompletionSource<ChatRoomRole?>();
+        mockSpeaker
+            .Setup(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .Returns(tcs.Task);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        var firstLoop = manager.StartAutoLoopAsync();
+        await Task.Delay(100);
+
+        var secondLoop = manager.StartAutoLoopAsync();
+
+        Assert.IsTrue(secondLoop.IsCompletedSuccessfully);
+
+        tcs.SetResult(null);
+        await firstLoop;
+    }
+
+    [TestMethod]
+    public async Task StartAutoLoopAsync_SpeakerReturnsNull_CleansUpCurrentSpeakerAndIsSpeaking()
+    {
+        var manager = new ChatRoomManager();
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        mockSpeaker
+            .Setup(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ChatRoomRole?)null);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsNull(manager.CurrentSpeaker);
+        Assert.IsFalse(manager.IsSpeaking);
+    }
+
+    [TestMethod]
+    public async Task StartAutoLoopAsync_Cancelled_HandlesGracefullyAndCleansUp()
+    {
+        var manager = new ChatRoomManager();
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        var tcs = new TaskCompletionSource<ChatRoomRole?>();
+        mockSpeaker
+            .Setup(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .Returns(tcs.Task);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        using var cts = new CancellationTokenSource();
+        var loopTask = manager.StartAutoLoopAsync(cts.Token);
+        await Task.Delay(100);
+
+        cts.Cancel();
+        tcs.TrySetCanceled();
+
+        await loopTask;
+
+        Assert.IsFalse(manager.IsRunning);
+        Assert.IsNull(manager.CurrentSpeaker);
+        Assert.IsFalse(manager.IsSpeaking);
+    }
+
+    [TestMethod]
+    public async Task StartAutoLoopAsync_StepAsyncReturnsMessage_AppendsMessageAndFiresEvent()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            IsHuman = false,
+        };
+        var role = new ChatRoomRole(definition);
+        manager.Roles.Add(role);
+
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        mockSpeaker
+            .SetupSequence(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(role)
+            .ReturnsAsync((ChatRoomRole?)null);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        var addedMessages = new List<ChatRoomMessage>();
+        manager.OnMessageAdded += (_, msg) => addedMessages.Add(msg);
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        Assert.HasCount(1, addedMessages);
+        Assert.IsTrue(addedMessages[0].IsSystemMessage);
+        Assert.HasCount(1, manager.Session.Messages);
+    }
+
+    [TestMethod]
+    public async Task HumanInterjectAsync_NullContent_ThrowsArgumentNullException()
+    {
+        var manager = new ChatRoomManager();
+
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() =>
+            manager.HumanInterjectAsync(null!, "human-1", "Human"));
+    }
+
+    [TestMethod]
+    public async Task HumanInterjectAsync_ValidContent_AppendsMessageAndFiresEvent()
+    {
+        var manager = new ChatRoomManager();
+        ChatRoomMessage? receivedMessage = null;
+        manager.OnMessageAdded += (_, msg) => receivedMessage = msg;
+
+        await manager.HumanInterjectAsync("Hello", "human-1", "Human");
+
+        Assert.IsNotNull(receivedMessage);
+        Assert.AreEqual("Hello", receivedMessage.Content);
+        Assert.IsTrue(receivedMessage.IsHumanMessage);
+        Assert.AreEqual("human-1", receivedMessage.SenderRoleId);
+        Assert.AreEqual("Human", receivedMessage.SenderRoleName);
+        Assert.HasCount(1, manager.Session.Messages);
+        Assert.AreEqual("Hello", manager.Session.Messages[0].Content);
+    }
+
+    [TestMethod]
+    public async Task HumanInterjectAsync_AddsMessageToSession()
+    {
+        var manager = new ChatRoomManager();
+
+        await manager.HumanInterjectAsync("Test message", "human-1", "Human");
+
+        Assert.HasCount(1, manager.Session.Messages);
+        Assert.AreEqual("Test message", manager.Session.Messages[0].Content);
+    }
+
+    [TestMethod]
+    public async Task StartAutoLoopAsync_WhenStepAsyncReturnsNull_DoesNotAppendMessage()
+    {
+        // Human role causes StepAsync to return null
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "human-1",
+            RoleName = "Human",
+            IsHuman = true,
+        };
+        var humanRole = new ChatRoomRole(definition);
+        manager.Roles.Add(humanRole);
+
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        mockSpeaker
+            .SetupSequence(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(humanRole)
+            .ReturnsAsync((ChatRoomRole?)null);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        var addedMessages = new List<ChatRoomMessage>();
+        manager.OnMessageAdded += (_, msg) => addedMessages.Add(msg);
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsEmpty(addedMessages);
+        Assert.IsEmpty(manager.Session.Messages);
+    }
+
+    [TestMethod]
+    public void Stop_WhenNotRunning_DoesNotThrow()
+    {
+        var manager = new ChatRoomManager();
+
+        manager.Stop();
+
+        // No exception means the null conditional Cancel was a no-op
+    }
+
+    [TestMethod]
+    public async Task Stop_WhenRunning_CancelsAndStopsLoop()
+    {
+        var manager = new ChatRoomManager();
+        var mockSpeaker = new Mock<ISpeakerSelector>();
+        var tcs = new TaskCompletionSource<ChatRoomRole?>();
+        mockSpeaker
+            .Setup(s => s.SelectNextSpeakerAsync(
+                manager.Roles,
+                manager.Session.Messages,
+                It.IsAny<CancellationToken>()))
+            .Returns(tcs.Task);
+        manager.SpeakerSelector = mockSpeaker.Object;
+
+        var loopTask = manager.StartAutoLoopAsync();
+        await Task.Delay(100);
+
+        Assert.IsTrue(manager.IsRunning);
+
+        manager.Stop();
+
+        // The loop should finish after cancellation
+        await loopTask;
+
+        Assert.IsFalse(manager.IsRunning);
+    }
+
+    [TestMethod]
+    public void RegisterRoleModelProviders_NullDictionary_ThrowsArgumentNullException()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
+            manager.RegisterRoleModelProviders(null!));
+    }
+
+    [TestMethod]
+    public void RegisterRoleModelProviders_EmptyRoles_DoesNotThrow()
+    {
+        var manager = new ChatRoomManager();
+        var providers = new Dictionary<string, ILanguageModelProvider>();
+
+        manager.RegisterRoleModelProviders(providers);
+
+        // No exception means it handled empty roles gracefully
+    }
+
+    [TestMethod]
+    public void RegisterRoleModelProviders_RoleWithNullModelProviderId_DoesNotRegister()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = null,
+        };
+        var role = new ChatRoomRole(definition);
+        manager.Roles.Add(role);
+
+        var providers = new Dictionary<string, ILanguageModelProvider>();
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        providers["other-provider"] = mockProvider.Object;
+
+        manager.RegisterRoleModelProviders(providers);
+
+        // No exception - null ModelProviderId was skipped
+    }
+
+    [TestMethod]
+    public void RegisterRoleModelProviders_RoleWithEmptyModelProviderId_DoesNotRegister()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "",
+        };
+        var role = new ChatRoomRole(definition);
+        manager.Roles.Add(role);
+
+        var providers = new Dictionary<string, ILanguageModelProvider>();
+
+        manager.RegisterRoleModelProviders(providers);
+
+        // No exception - empty ModelProviderId was skipped
+    }
+
+    [TestMethod]
+    public void RegisterRoleModelProviders_MatchingProvider_RegistersOnEndpointManager()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "my-provider",
+        };
+        var role = new ChatRoomRole(definition);
+        manager.Roles.Add(role);
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        var models = new List<ILanguageModel>();
+        mockProvider.Setup(p => p.GetSupportedModels()).Returns(models);
+        var providers = new Dictionary<string, ILanguageModelProvider>
+        {
+            ["my-provider"] = mockProvider.Object,
+        };
+
+        manager.RegisterRoleModelProviders(providers);
+
+        // Verify the provider was registered by checking GetSupportedModels was called
+        mockProvider.Verify(p => p.GetSupportedModels(), Times.Once);
+    }
+
+    [TestMethod]
+    public void RegisterRoleModelProviders_ProviderNotInDictionary_DoesNotRegister()
+    {
+        var manager = new ChatRoomManager();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "missing-provider",
+        };
+        var role = new ChatRoomRole(definition);
+        manager.Roles.Add(role);
+
+        var providers = new Dictionary<string, ILanguageModelProvider>();
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        providers["other-provider"] = mockProvider.Object;
+
+        manager.RegisterRoleModelProviders(providers);
+
+        // The mock for the unmatched provider should not be touched
+        mockProvider.Verify(p => p.GetSupportedModels(), Times.Never);
+    }
+
+    [TestMethod]
+    public void RegisterRoleModelProviders_MultipleRoles_MixedMatches()
+    {
+        var manager = new ChatRoomManager();
+        var definition1 = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Role 1",
+            ModelProviderId = "provider-a",
+        };
+        var definition2 = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-2",
+            RoleName = "Role 2",
+            ModelProviderId = null,
+        };
+        var definition3 = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-3",
+            RoleName = "Role 3",
+            ModelProviderId = "provider-b",
+        };
+        manager.Roles.Add(new ChatRoomRole(definition1));
+        manager.Roles.Add(new ChatRoomRole(definition2));
+        manager.Roles.Add(new ChatRoomRole(definition3));
+
+        var mockProviderA = new Mock<ILanguageModelProvider>();
+        mockProviderA.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
+        var mockProviderB = new Mock<ILanguageModelProvider>();
+        mockProviderB.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
+
+        var providers = new Dictionary<string, ILanguageModelProvider>
+        {
+            ["provider-a"] = mockProviderA.Object,
+            ["provider-b"] = mockProviderB.Object,
+        };
+
+        manager.RegisterRoleModelProviders(providers);
+
+        mockProviderA.Verify(p => p.GetSupportedModels(), Times.Once);
+        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task SaveAsync_PersistenceIsNull_ReturnsImmediately()
+    {
+        var manager = new ChatRoomManager();
+
+        await manager.SaveAsync();
+
+        // No exception, no persistence — just returns
+    }
+
+    [TestMethod]
+    public async Task SaveAsync_PersistenceIsNull_DoesNotThrow()
+    {
+        var manager = new ChatRoomManager();
+        manager.Roles.Add(new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test",
+        }));
+
+        await manager.SaveAsync();
+
+        // No exception thrown
+    }
+
+    [TestMethod]
+    public async Task LoadAsync_PersistenceIsNull_ReturnsImmediately()
+    {
+        var manager = new ChatRoomManager();
+
+        await manager.LoadAsync("some-session-id");
+
+        // No exception thrown
+    }
+
+    [TestMethod]
+    public async Task LoadAsync_PersistenceIsNull_DoesNotThrow()
+    {
+        var manager = new ChatRoomManager();
+        manager.Roles.Add(new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test",
+        }));
+
+        await manager.LoadAsync("some-session-id");
+
+        // No exception thrown, roles remain unchanged
+        Assert.HasCount(1, manager.Roles);
+    }
+
+    [TestMethod]
+    public void SpeakingChangedEventArgs_BothNull_SetsPropertiesCorrectly()
+    {
+        var args = new SpeakingChangedEventArgs(null, null);
+
+        Assert.IsNull(args.PreviousSpeaker);
+        Assert.IsNull(args.CurrentSpeaker);
+    }
+
+    [TestMethod]
+    public void SpeakingChangedEventArgs_BothNotNull_SetsPropertiesCorrectly()
+    {
+        var previous = new ChatRoomRole(new ChatRoomRoleDefinition { RoleId = "prev", RoleName = "Prev" });
+        var current = new ChatRoomRole(new ChatRoomRoleDefinition { RoleId = "curr", RoleName = "Curr" });
+
+        var args = new SpeakingChangedEventArgs(previous, current);
+
+        Assert.AreSame(previous, args.PreviousSpeaker);
+        Assert.AreSame(current, args.CurrentSpeaker);
+    }
+
+    [TestMethod]
+    public void SpeakingChangedEventArgs_PreviousNullCurrentNotNull_SetsPropertiesCorrectly()
+    {
+        var current = new ChatRoomRole(new ChatRoomRoleDefinition { RoleId = "curr", RoleName = "Curr" });
+
+        var args = new SpeakingChangedEventArgs(null, current);
+
+        Assert.IsNull(args.PreviousSpeaker);
+        Assert.AreSame(current, args.CurrentSpeaker);
+    }
+
+    [TestMethod]
+    public void SpeakingChangedEventArgs_PreviousNotNullCurrentNull_SetsPropertiesCorrectly()
+    {
+        var previous = new ChatRoomRole(new ChatRoomRoleDefinition { RoleId = "prev", RoleName = "Prev" });
+
+        var args = new SpeakingChangedEventArgs(previous, null);
+
+        Assert.AreSame(previous, args.PreviousSpeaker);
+        Assert.IsNull(args.CurrentSpeaker);
+    }
+}
