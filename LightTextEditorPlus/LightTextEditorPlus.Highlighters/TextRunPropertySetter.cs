@@ -85,7 +85,7 @@ internal readonly record struct TextRunPropertySetter(TextEditor TextEditor)
 
     /// <summary>
     /// 获取文档字符偏移。先尝试从 <see cref="PlainText"/> 获取文本，
-    /// 若为空则从编辑器获取，再调用 <see cref="TextIndexConverter.ConvertUtf16IndexToDocumentOffset"/>。
+    /// 若为空则从编辑器获取，再调用 <see cref="TextIndexConverter.ConvertUtf16IndexToDocumentOffset(string, int)"/>。
     /// </summary>
     private int GetDocumentCharOffsetFromPlainText(int utf16Index)
     {
