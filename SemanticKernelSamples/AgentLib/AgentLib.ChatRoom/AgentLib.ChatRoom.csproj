@@ -13,4 +13,8 @@
     <ProjectReference Include="..\AgentLib\AgentLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AgentLib.ChatRoom.Tests" />
+  </ItemGroup>
+
 </Project>
