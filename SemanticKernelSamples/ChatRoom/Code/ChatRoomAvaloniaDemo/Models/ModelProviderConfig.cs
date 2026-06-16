@@ -9,23 +9,13 @@ namespace ChatRoomAvaloniaDemo.Models;
 /// </summary>
 public sealed class ModelProviderConfig : NotifyBase
 {
-    private string _providerId = string.Empty;
     private string _providerName = string.Empty;
     private string _apiEndpoint = string.Empty;
     private string _apiKey = string.Empty;
-    private string _defaultModelId = string.Empty;
+    private string _primaryModelId = string.Empty;
 
     /// <summary>
-    /// 提供商唯一标识，如 "openai"、"azure"。
-    /// </summary>
-    public string ProviderId
-    {
-        get => _providerId;
-        set => SetField(ref _providerId, value);
-    }
-
-    /// <summary>
-    /// 提供商显示名，如 "OpenAI"、"Azure OpenAI"。
+    /// 提供商显示名，如 "OpenAI"、"DeepSeek"。与 <see cref="AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition.Provider"/> 对应。
     /// </summary>
     public string ProviderName
     {
@@ -52,12 +42,12 @@ public sealed class ModelProviderConfig : NotifyBase
     }
 
     /// <summary>
-    /// 默认模型 ID，如 "gpt-4o"、"gemini-2.5-pro"。
+    /// 主模型 ID，如 "gpt-4o"、"deepseek-v4-pro"。对应 AgentLib 中的 PrimaryModel。
     /// </summary>
-    public string DefaultModelId
+    public string PrimaryModelId
     {
-        get => _defaultModelId;
-        set => SetField(ref _defaultModelId, value);
+        get => _primaryModelId;
+        set => SetField(ref _primaryModelId, value);
     }
 
     /// <summary>

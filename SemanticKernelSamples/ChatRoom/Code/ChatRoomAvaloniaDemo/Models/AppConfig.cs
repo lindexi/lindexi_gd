@@ -33,14 +33,14 @@ public sealed class AppConfig
     public int DefaultMaxRounds { get; set; } = 10;
 
     /// <summary>
-    /// 全局默认模型所属提供商 ID。
+    /// 全局默认模型所属提供商名称。对应 <see cref="ModelProviderConfig.ProviderName"/>。
     /// </summary>
-    public string DefaultModelProviderId { get; set; } = string.Empty;
+    public string DefaultModelProviderName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 全局默认模型名称。
+    /// 全局主模型名称。对应 AgentLib 中的 PrimaryModel。
     /// </summary>
-    public string DefaultModelId { get; set; } = string.Empty;
+    public string PrimaryModelId { get; set; } = string.Empty;
 
     /// <summary>
     /// 配置文件路径（不序列化，仅用于运行时跟踪配置文件位置）。
