@@ -84,7 +84,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
             builder.Append(chatMessage.Author).AppendLine(":");
             builder.AppendLine(chatMessage.FullContent);
 
-            if (chatMessage.UsageDetails is { } usageDetails)
+            if (chatMessage.TotalUsageDetails is { } usageDetails)
             {
                 builder.AppendLine("用量:");
                 AppendUsageLine(builder, "总计", usageDetails.TotalTokenCount);
@@ -235,7 +235,7 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
             new XElement("Reason", chatMessage.Reason),
             new XElement("MessageItems", chatMessage.MessageItems.Select(CreateMessageItemElement)));
 
-        if (chatMessage.UsageDetails is { } usageDetails)
+        if (chatMessage.TotalUsageDetails is { } usageDetails)
         {
             messageElement.Add(CreateUsageDetailsElement(usageDetails));
         }

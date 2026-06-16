@@ -271,21 +271,4 @@ public class CopilotChatMessageTests
         Assert.AreEqual(100, clone.TotalUsageDetails!.TotalTokenCount);
         Assert.AreEqual(100, clone.CurrentUsageDetails!.TotalTokenCount);
     }
-
-    [TestMethod]
-    [Description("[Obsolete] UsageDetails getter 应委托到 TotalUsageDetails")]
-    public void UsageDetails_ObsoleteProperty_DelegatesToTotalUsageDetails()
-    {
-        var message = new CopilotChatMessage(ChatRole.Assistant, "答案");
-        var details = new UsageDetails
-        {
-            TotalTokenCount = 200
-        };
-        message.AppendUsageDetails(details);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        Assert.IsNotNull(message.UsageDetails);
-        Assert.AreEqual(200, message.UsageDetails!.TotalTokenCount);
-#pragma warning restore CS0618
-    }
 }
