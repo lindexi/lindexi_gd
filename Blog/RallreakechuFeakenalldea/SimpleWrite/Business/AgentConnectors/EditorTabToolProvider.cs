@@ -37,13 +37,15 @@ public sealed class EditorTabToolProvider
         return
         [
             AIFunctionFactory.Create(ListOpenTabs, name: nameof(ListOpenTabs),
-                description: "列出所有打开的标签页，包含行数信息。"),
+                description: "列出所有打开的标签页，包含行数。当前标签页若有选中文本，则会显示选中的字符数。"),
             AIFunctionFactory.Create(ReadTabContent, name: nameof(ReadTabContent),
                 description: "读取指定标签页的内容。不传 tabId 则读取当前标签页。支持行范围截取，最多 400 行。"),
+            AIFunctionFactory.Create(ReadSelectedText, name: nameof(ReadSelectedText),
+                description: "获取指定标签页当前选中的文本内容。不传 tabId 则读取当前标签页。"),
         ];
     }
 
-    [Description("列出所有打开的标签页，包含行数信息。")]
+    [Description("列出所有打开的标签页，包含行数。当前标签页若有选中文本，则会显示选中的字符数。")]
     public async Task<string> ListOpenTabs(
         [Description("最多返回多少个标签，默认 100。")] int maxResults = DefaultMaxResults)
     {
@@ -61,13 +63,15 @@ public sealed class EditorTabToolProvider
             EditorModel model = editorModelList[i];
             string tabId = GenerateTabId(model);
             int lineCount = await GetLineCountAsync(model);
+            int selectionLength = await GetSelectionLengthAsync(model);
 
             tabInfos.Add(new TabListInfo(
                 TabId: tabId,
                 Title: model.Title,
                 FilePath: model.FileInfo?.FullName,
                 LineCount: lineCount,
-                IsCurrent: ReferenceEquals(model, currentEditorModel)));
+                IsCurrent: ReferenceEquals(model, currentEditorModel),
+                SelectionLength: selectionLength));
         }
 
         return FormatTabList(tabInfos);
@@ -139,6 +143,21 @@ public sealed class EditorTabToolProvider
         return sb.ToString();
     }
 
+    [Description("获取指定标签页当前选中的文本内容。不传 tabId 则读取当前标签页。")]
+    public async Task<string> ReadSelectedText(
+        [Description("标签标识。不传则读取当前标签页。")] string? tabId = null)
+    {
+        EditorModel editorModel = ResolveEditorModel(tabId);
+        string text = await GetSelectedTextAsync(editorModel);
+
+        if (string.IsNullOrEmpty(text))
+        {
+            return $"标签 \"{editorModel.Title}\" 当前没有选中文本。";
+        }
+
+        return text;
+    }
+
     private EditorModel ResolveEditorModel(string? tabId)
     {
         if (string.IsNullOrWhiteSpace(tabId))
@@ -185,6 +204,36 @@ public sealed class EditorTabToolProvider
         }
 
         return sameTitleCount == 0 ? title : $"{title} #{sameTitleCount + 1}";
+    }
+
+    private static async Task<int> GetSelectionLengthAsync(EditorModel model)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            return model.RuntimeSelection.Length;
+        }
+
+        return await Dispatcher.UIThread.InvokeAsync(() => model.RuntimeSelection.Length);
+    }
+
+    private static async Task<string> GetSelectedTextAsync(EditorModel model)
+    {
+        var textEditor = model.TextEditor;
+        if (textEditor is null)
+        {
+            return string.Empty;
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            return textEditor.GetSelectedText();
+        }
+
+        return await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var editor = model.TextEditor;
+            return editor?.GetSelectedText() ?? string.Empty;
+        });
     }
 
     private static async Task<int> GetLineCountAsync(EditorModel model)
@@ -237,12 +286,13 @@ public sealed class EditorTabToolProvider
         foreach (TabListInfo info in tabInfos)
         {
             string currentMarker = info.IsCurrent ? "[当前] " : string.Empty;
+            string selectionMarker = info.SelectionLength > 0 ? $" [选中 {info.SelectionLength} 个字符]" : string.Empty;
             string fileInfo = info.FilePath ?? "未保存";
-            sb.AppendLine($"- {currentMarker}\"{info.Title}\" (#{info.TabId}) | 文件: {fileInfo} | {info.LineCount} 行");
+            sb.AppendLine($"- {currentMarker}\"{info.Title}\" (#{info.TabId}){selectionMarker} | 文件: {fileInfo} | {info.LineCount} 行");
         }
 
         return sb.ToString();
     }
 
-    private readonly record struct TabListInfo(string TabId, string Title, string? FilePath, int LineCount, bool IsCurrent);
+    private readonly record struct TabListInfo(string TabId, string Title, string? FilePath, int LineCount, bool IsCurrent, int SelectionLength);
 }
