@@ -25,13 +25,16 @@ public partial class App : Application
 
             var mainViewModel = new MainViewModel(chatRoomService);
 
-            var mainWindow = new MainWindow
-            {
-                DataContext = mainViewModel,
-            };
+                        // 加载历史会话并创建初始会话（含默认"助手"角色）
+                        await mainViewModel.InitializeAsync();
 
-            desktop.MainWindow = mainWindow;
-            mainWindow.Show();
+                        var mainWindow = new MainWindow
+                        {
+                            DataContext = mainViewModel,
+                        };
+
+                        desktop.MainWindow = mainWindow;
+                        mainWindow.Show();
         }
 
         base.OnFrameworkInitializationCompleted();
