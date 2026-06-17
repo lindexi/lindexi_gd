@@ -8,14 +8,21 @@ namespace LightTextEditorPlus.Core.Document;
 /// 参阅 `ICharObject 扩展类型命名决策文档.md` 文档
 public interface IInlineElementCharObject : ICharObject
 {
-    // 是否允许跨行
-    // 感知到布局
+    /// <summary>
+    /// 测量内联元素的尺寸，感知到布局
+    /// </summary>
+    /// <param name="runProperty">当前运行的属性</param>
     void Measure(IReadOnlyRunProperty runProperty)
     {
 
     }
 
-    void Layout(double lineRemainingWidth/*行剩余宽度*/, bool isInLineStart/*是否在行首*/)
+    /// <summary>
+    /// 布局内联元素。给定布局信息，如行剩余宽度和是否在行首
+    /// </summary>
+    /// <param name="lineRemainingWidth">行剩余宽度</param>
+    /// <param name="isInLineStart">是否在行首</param>
+    void Layout(double lineRemainingWidth, bool isInLineStart)
     {
         // 返回能否布局
         // 如果是在行首那就没得玩了呀
@@ -25,6 +32,9 @@ public interface IInlineElementCharObject : ICharObject
         // 再有 Layout 给定左上角坐标，和行的高度这些信息
     }
 
+    /// <summary>
+    /// 内联元素的尺寸
+    /// </summary>
     TextSize Size { get; }
 
     /// <summary>
