@@ -1,6 +1,9 @@
 using AgentLib;
 using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
+using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 
 using ChatRoomAvaloniaDemo.Models;
@@ -24,6 +27,8 @@ public sealed class ChatRoomService
     private ChatRoomManager? _chatRoomManager;
     private ChatRoomPersistence? _persistence;
     private AppConfig? _appConfig;
+    private bool _isConfigApplied;
+    private readonly AgentApiEndpointManager _endpointManager = new();
 
     /// <summary>
     /// 当前聊天室管理器。为 <see langword="null"/> 时表示尚未创建或加载会话。
@@ -46,7 +51,8 @@ public sealed class ChatRoomService
     public bool HasActiveSession => _chatRoomManager is not null;
 
     /// <summary>
-    /// 应用配置，并初始化持久化管理器。
+    /// 应用配置，初始化持久化管理器，并一次性将模型提供商注册到共享的 <see cref="AgentApiEndpointManager"/>。
+    /// 该方法只在首次调用时执行初始化，后续调用会被忽略。
     /// </summary>
     /// <param name="appConfig">应用配置。</param>
     public void ApplyConfig(AppConfig appConfig)
@@ -58,6 +64,68 @@ public sealed class ChatRoomService
         {
             _persistence = new ChatRoomPersistence(appConfig.PersistenceBasePath);
         }
+
+        if (_isConfigApplied)
+        {
+            return;
+        }
+
+        _isConfigApplied = true;
+
+        // 注册所有 Provider
+        foreach (ModelProviderConfig providerConfig in _appConfig.Providers)
+        {
+            ILanguageModelProvider? provider = ConvertToLanguageModelProvider(providerConfig);
+            if (provider is not null)
+            {
+                _endpointManager.RegisterLanguageModelProvider(provider);
+            }
+        }
+
+        // 设置 PrimaryModel
+        if (!string.IsNullOrWhiteSpace(_appConfig.PrimaryModelId))
+        {
+            ILanguageModel? primaryModel = _endpointManager.GetModel(_appConfig.PrimaryModelId);
+            if (primaryModel is not null)
+            {
+                _endpointManager.PrimaryModel = primaryModel;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 将 <see cref="ModelProviderConfig"/> 转换为 <see cref="ILanguageModelProvider"/>。
+    /// </summary>
+    /// <param name="providerConfig">模型提供商配置。</param>
+    /// <returns>转换后的语言模型提供商，如果配置无效则返回 <see langword="null"/>。</returns>
+    private static ILanguageModelProvider? ConvertToLanguageModelProvider(ModelProviderConfig providerConfig)
+    {
+        if (string.IsNullOrWhiteSpace(providerConfig.ApiEndpoint) || string.IsNullOrWhiteSpace(providerConfig.ApiKey))
+        {
+            return null;
+        }
+
+        var modelDefinitions = new List<ModelDefinition>(providerConfig.Models.Count);
+        foreach (ModelItemConfig modelConfig in providerConfig.Models)
+        {
+            modelDefinitions.Add(new ModelDefinition
+            {
+                Provider = modelConfig.Provider,
+                ModelName = modelConfig.ModelName,
+                ModelId = modelConfig.ModelId,
+                Capabilities = new LlmModelCapabilities
+                {
+                    IsFlash = modelConfig.IsFlash,
+                },
+            });
+        }
+
+        var configuration = new OpenAIProtocolLanguageModelConfiguration(providerConfig.ApiEndpoint, providerConfig.ApiKey)
+        {
+            ModelDefinitions = modelDefinitions,
+        };
+
+        return JsonConfigurationOpenAIProtocolLanguageModelProvider.FromConfiguration(configuration);
     }
 
     /// <summary>
@@ -94,7 +162,7 @@ public sealed class ChatRoomService
                 ModelId = _appConfig.PrimaryModelId,
             };
 
-            var defaultRole = new ChatRoomRole(defaultRoleDef)
+            var defaultRole = new ChatRoomRole(defaultRoleDef, _endpointManager)
             {
                 MainThreadDispatcher = mainThreadDispatcher,
             };
@@ -147,7 +215,7 @@ public sealed class ChatRoomService
         // 恢复角色
         foreach (ChatRoomRoleDefinition roleDef in data.Roles)
         {
-            var role = new ChatRoomRole(roleDef)
+            var role = new ChatRoomRole(roleDef, _endpointManager)
             {
                 MainThreadDispatcher = mainThreadDispatcher,
             };
