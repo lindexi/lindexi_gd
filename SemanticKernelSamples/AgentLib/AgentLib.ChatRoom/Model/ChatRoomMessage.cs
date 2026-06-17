@@ -1,6 +1,7 @@
 using Microsoft.Extensions.AI;
 
 using System;
+using System.Collections.Generic;
 
 namespace AgentLib.ChatRoom.Model;
 
@@ -43,6 +44,12 @@ public sealed record ChatRoomMessage
     /// 是否系统消息（如错误提示、角色发言失败通知等）。
     /// </summary>
     public bool IsSystemMessage { get; init; }
+
+    /// <summary>
+    /// 本条消息中 @ 提及的角色 RoleId 列表。
+    /// 由 ChatRoomManager 在追加消息时解析填充。
+    /// </summary>
+    public IReadOnlyList<string> MentionedRoleIds { get; init; } = Array.Empty<string>();
 
     /// <summary>
     /// 创建系统消息。

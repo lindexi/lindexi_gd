@@ -143,7 +143,7 @@ public sealed class ChatRoomManager : NotifyBase
         {
             while (!loopCancellationToken.IsCancellationRequested)
             {
-                // 选择下一个发言者
+                // 选择下一个发言者（Selector 内部管理 @ 队列和暂停逻辑）
                 ChatRoomRole? nextSpeaker = await SpeakerSelector.SelectNextSpeakerAsync(
                     Roles,
                     Session.Messages,
@@ -151,7 +151,7 @@ public sealed class ChatRoomManager : NotifyBase
 
                 if (nextSpeaker is null)
                 {
-                    // 对话自然结束
+                    // 对话暂停或自然结束
                     break;
                 }
 
@@ -159,6 +159,13 @@ public sealed class ChatRoomManager : NotifyBase
                 ChatRoomMessage? message = await StepAsync(nextSpeaker, loopCancellationToken);
                 if (message is not null)
                 {
+                    // 解析消息中的 @mention，填充 MentionedRoleIds
+                    IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
+                    if (mentionedRoleIds.Count > 0)
+                    {
+                        message = message with { MentionedRoleIds = mentionedRoleIds };
+                    }
+
                     await AppendMessageAsync(message);
                 }
             }
@@ -246,6 +253,14 @@ public sealed class ChatRoomManager : NotifyBase
         ArgumentNullException.ThrowIfNull(content);
 
         var message = ChatRoomMessage.CreateHuman(content, humanRoleId, humanRoleName);
+
+        // 解析人类消息中的 @mention
+        IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
+        if (mentionedRoleIds.Count > 0)
+        {
+            message = message with { MentionedRoleIds = mentionedRoleIds };
+        }
+
         await AppendMessageAsync(message);
     }
 

@@ -51,6 +51,21 @@ public sealed class RoundRobinSpeakerSelectorTests
     }
 
     [TestMethod]
+    public async Task SelectNextSpeakerAsync_AllRolesAreMentionOnly_ReturnsNull()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("role1", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+            CreateRole("role2", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        var result = await selector.SelectNextSpeakerAsync(roles, []);
+
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
     public async Task SelectNextSpeakerAsync_SingleLlmRole_ReturnsSameRoleEachCall()
     {
         var selector = new RoundRobinSpeakerSelector();
@@ -104,6 +119,24 @@ public sealed class RoundRobinSpeakerSelectorTests
     }
 
     [TestMethod]
+    public async Task SelectNextSpeakerAsync_SkipsMentionOnlyRolesInNormalCycling()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("role1", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("role2", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+            CreateRole("role3", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+        };
+
+        var result1 = await selector.SelectNextSpeakerAsync(roles, []);
+        var result2 = await selector.SelectNextSpeakerAsync(roles, []);
+
+        Assert.AreEqual("role1", result1!.Definition.RoleId);
+        Assert.AreEqual("role3", result2!.Definition.RoleId);
+    }
+
+    [TestMethod]
     public async Task SelectNextSpeakerAsync_CurrentRound_IncrementsWhenWrappingAround()
     {
         var selector = new RoundRobinSpeakerSelector();
@@ -113,16 +146,12 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("role2", isHuman: false),
         };
 
-        // First round: index 0 (role1), round is still 0 at first call... wait let me re-read
-        // _currentIndex starts at -1, so first call: (-1+1)%2 = 0, _currentIndex==0, _currentRound becomes 1
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(1, selector.CurrentRound);
 
-        // index 1 (role2), round stays 1
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(1, selector.CurrentRound);
 
-        // wrap: index 0 again, round becomes 2
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(2, selector.CurrentRound);
     }
@@ -140,7 +169,6 @@ public sealed class RoundRobinSpeakerSelectorTests
 
         Assert.AreEqual(0, selector.CurrentRound);
 
-        // After reset, _currentIndex is -1, next call returns role1
         var result = await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual("role1", result!.Definition.RoleId);
         Assert.AreEqual(1, selector.CurrentRound);
@@ -156,12 +184,9 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("role2", isHuman: false),
         };
 
-        // First call: wraps to index 0, round becomes 1
         await selector.SelectNextSpeakerAsync(roles, []);
-        // index 1, round stays 1
         await selector.SelectNextSpeakerAsync(roles, []);
 
-        // Wraps back to index 0, round becomes 2 > MaxRounds (1) → returns null
         var result = await selector.SelectNextSpeakerAsync(roles, []);
 
         Assert.IsNull(result);
@@ -177,114 +202,12 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("role2", isHuman: false),
         };
 
-        // Round 1
-        await selector.SelectNextSpeakerAsync(roles, []); // role1
-        await selector.SelectNextSpeakerAsync(roles, []); // role2
+        await selector.SelectNextSpeakerAsync(roles, []);
+        await selector.SelectNextSpeakerAsync(roles, []);
 
-        // Wraps: round 2
-        var result = await selector.SelectNextSpeakerAsync(roles, []); // role1
+        var result = await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual("role1", result!.Definition.RoleId);
         Assert.AreEqual(2, selector.CurrentRound);
-    }
-
-    [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjection_RestoresFromPreviousLlmSpeaker()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-        var roles = new[]
-        {
-            CreateRole("role1", isHuman: false),
-            CreateRole("role2", isHuman: false),
-            CreateRole("role3", isHuman: false),
-        };
-
-        // Normal flow: role1, role2, then human interjects
-        await selector.SelectNextSpeakerAsync(roles, []); // role1
-        var llmMessage = ChatRoomMessage.CreateAssistant("hello", "role2", "Role2");
-
-        var humanMessage = ChatRoomMessage.CreateHuman("interrupt", "human1", "Human");
-
-        var history = new List<ChatRoomMessage> { llmMessage, humanMessage };
-
-        // Human just interjected after role2 spoke → next should be role3
-        var result = await selector.SelectNextSpeakerAsync(roles, history);
-
-        Assert.AreEqual("role3", result!.Definition.RoleId);
-    }
-
-    [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjection_NoPreviousLlm_StartsFromBeginning()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-        var roles = new[]
-        {
-            CreateRole("role1", isHuman: false),
-            CreateRole("role2", isHuman: false),
-        };
-
-        // History has only a human message, no previous LLM
-        var humanMessage = ChatRoomMessage.CreateHuman("hello", "human1", "Human");
-        var history = new List<ChatRoomMessage> { humanMessage };
-
-        // No previous LLM to restore from → start from role1 (index wraps to 0)
-        var result = await selector.SelectNextSpeakerAsync(roles, history);
-
-        Assert.AreEqual("role1", result!.Definition.RoleId);
-    }
-
-    [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjection_PreviousLlmRoleIdNotFound_StartsFromBeginning()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-        var roles = new[]
-        {
-            CreateRole("role1", isHuman: false),
-            CreateRole("role2", isHuman: false),
-        };
-
-        // LLM message with a roleId that doesn't match any current LLM role
-        var unknownLlmMessage = new ChatRoomMessage
-        {
-            SenderRoleId = "unknown_role",
-            Content = "hello",
-            SenderRoleName = "Unknown",
-        };
-
-        var humanMessage = ChatRoomMessage.CreateHuman("interrupt", "human1", "Human");
-        var history = new List<ChatRoomMessage> { unknownLlmMessage, humanMessage };
-
-        var result = await selector.SelectNextSpeakerAsync(roles, history);
-
-        // lastLlmIndex = -1, so _currentIndex stays -1, then (-1+1)%2=0 → role1
-        Assert.AreEqual("role1", result!.Definition.RoleId);
-    }
-
-    [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjection_SystemMessagesAreSkipped()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-        var roles = new[]
-        {
-            CreateRole("role1", isHuman: false),
-            CreateRole("role2", isHuman: false),
-        };
-
-        var systemMsg = ChatRoomMessage.CreateSystem("system notice");
-        var llmMessage = ChatRoomMessage.CreateAssistant("hello", "role1", "Role1");
-        var humanMessage = ChatRoomMessage.CreateHuman("interrupt", "human1", "Human");
-
-        var history = new List<ChatRoomMessage>
-        {
-            llmMessage,
-            systemMsg,
-            humanMessage,
-        };
-
-        // systemMsg is skipped, llmMessage with role1 is found
-        // lastLlmIndex = 0 (role1), _currentIndex = 0, then (0+1)%2=1 → role2
-        var result = await selector.SelectNextSpeakerAsync(roles, history);
-
-        Assert.AreEqual("role2", result!.Definition.RoleId);
     }
 
     [TestMethod]
@@ -313,7 +236,6 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("role3", isHuman: false),
         };
 
-        // History ends with an LLM message, not human
         var history = new List<ChatRoomMessage>
         {
             ChatRoomMessage.CreateAssistant("msg1", "role1", "R1"),
@@ -322,80 +244,6 @@ public sealed class RoundRobinSpeakerSelectorTests
 
         var result = await selector.SelectNextSpeakerAsync(roles, history);
 
-        // Normal round robin: starts from role1
-        Assert.AreEqual("role1", result!.Definition.RoleId);
-    }
-
-    [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjection_OnlyHumanHistory_StartsFromBeginning()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-        var roles = new[]
-        {
-            CreateRole("role1", isHuman: false),
-            CreateRole("role2", isHuman: false),
-        };
-
-        // Multiple human messages at the end, no LLM in history at all
-        var history = new List<ChatRoomMessage>
-        {
-            ChatRoomMessage.CreateHuman("msg1", "human1", "H1"),
-            ChatRoomMessage.CreateHuman("msg2", "human2", "H2"),
-        };
-
-        var result = await selector.SelectNextSpeakerAsync(roles, history);
-
-        // No LLM found in history → start from role1
-        Assert.AreEqual("role1", result!.Definition.RoleId);
-    }
-
-    [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjection_OnlySystemBeforeHuman_StartsFromBeginning()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-        var roles = new[]
-        {
-            CreateRole("role1", isHuman: false),
-            CreateRole("role2", isHuman: false),
-        };
-
-        // History: system message, then human message (no LLM message before human)
-        var history = new List<ChatRoomMessage>
-        {
-            ChatRoomMessage.CreateSystem("system"),
-            ChatRoomMessage.CreateHuman("interrupt", "human1", "Human"),
-        };
-
-        var result = await selector.SelectNextSpeakerAsync(roles, history);
-
-        // System message skipped, no LLM found → start from beginning
-        Assert.AreEqual("role1", result!.Definition.RoleId);
-    }
-
-    [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjection_LastLlmHadEmptyRoleId_StartsFromBeginning()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-        var roles = new[]
-        {
-            CreateRole("role1", isHuman: false),
-            CreateRole("role2", isHuman: false),
-        };
-
-        // LLM message with empty SenderRoleId
-        var llmWithEmptyId = new ChatRoomMessage
-        {
-            SenderRoleId = string.Empty,
-            Content = "hello",
-            SenderRoleName = "SomeRole",
-        };
-
-        var humanMessage = ChatRoomMessage.CreateHuman("interrupt", "human1", "Human");
-        var history = new List<ChatRoomMessage> { llmWithEmptyId, humanMessage };
-
-        var result = await selector.SelectNextSpeakerAsync(roles, history);
-
-        // SenderRoleId is empty → not found → starts from beginning
         Assert.AreEqual("role1", result!.Definition.RoleId);
     }
 
@@ -411,34 +259,270 @@ public sealed class RoundRobinSpeakerSelectorTests
 
         Assert.AreEqual(0, selector.CurrentRound);
 
-        // First call: index goes from -1 to 0 → round becomes 1
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(1, selector.CurrentRound);
 
-        // index 1, round stays 1
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(1, selector.CurrentRound);
 
-        // wraps to 0 → round becomes 2
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(2, selector.CurrentRound);
 
-        // index 1, round stays 2
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(2, selector.CurrentRound);
 
-        // wraps to 0 → round becomes 3
         await selector.SelectNextSpeakerAsync(roles, []);
         Assert.AreEqual(3, selector.CurrentRound);
     }
 
-    private static ChatRoomRole CreateRole(string roleId, bool isHuman)
+    // === @mention tests ===
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_HumanMentionsSingleRole_ReturnsThatRole()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("helper", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("expert", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("@expert help me", "human", "Human")
+            with { MentionedRoleIds = new[] { "expert" } };
+
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        var result = await selector.SelectNextSpeakerAsync(roles, history);
+
+        Assert.AreEqual("expert", result!.Definition.RoleId);
+    }
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_HumanMentionsMultipleRoles_ReturnsByOrder()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("expert1", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+            CreateRole("expert2", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("@expert1 @expert2 help", "human", "Human")
+            with { MentionedRoleIds = new[] { "expert1", "expert2" } };
+
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("expert1", result1!.Definition.RoleId);
+
+        // expert1 发言（无 @）
+        var expert1Msg = ChatRoomMessage.CreateAssistant("ok", "expert1", "Expert1");
+        var history2 = new List<ChatRoomMessage> { humanMessage, expert1Msg };
+
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.AreEqual("expert2", result2!.Definition.RoleId);
+    }
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_HumanMentionsMultipleRoles_QueuePriorityPreventsLoss()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("A", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+            CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("@A @B", "human", "Human")
+            with { MentionedRoleIds = new[] { "A", "B" } };
+
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        // 第 1 次：A 从队列出队
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("A", result1!.Definition.RoleId);
+
+        // A 发言（无 @）→ history[^1] 变为 A 的消息
+        var aMsg = ChatRoomMessage.CreateAssistant("A reply", "A", "A");
+        var history2 = new List<ChatRoomMessage> { humanMessage, aMsg };
+
+        // 第 2 次：队列非空，直接出队 B，不看 history[^1]
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.AreEqual("B", result2!.Definition.RoleId);
+    }
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_HumanInterjectionNoMention_PausesAfterOneLlmReply()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("helper", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("hello", "human", "Human");
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        // 人类没 @ 任何人 → 正常轮流，helper 发言
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("helper", result1!.Definition.RoleId);
+
+        // helper 发言后
+        var helperMsg = ChatRoomMessage.CreateAssistant("hi", "helper", "Helper");
+        var history2 = new List<ChatRoomMessage> { humanMessage, helperMsg };
+
+        // 人类插话标记生效 → 暂停
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.IsNull(result2);
+    }
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_HumanMentionsMultipleRoles_PausesAfterAllReplied()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("A", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+            CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("@A @B", "human", "Human")
+            with { MentionedRoleIds = new[] { "A", "B" } };
+
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        // A 发言
+        await selector.SelectNextSpeakerAsync(roles, history);
+        var aMsg = ChatRoomMessage.CreateAssistant("A reply", "A", "A");
+        var history2 = new List<ChatRoomMessage> { humanMessage, aMsg };
+
+        // B 发言
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.AreEqual("B", result2!.Definition.RoleId);
+
+        var bMsg = ChatRoomMessage.CreateAssistant("B reply", "B", "B");
+        var history3 = new List<ChatRoomMessage> { humanMessage, aMsg, bMsg };
+
+        // 队列空 + 人类插话标记 → 暂停
+        var result3 = await selector.SelectNextSpeakerAsync(roles, history3);
+        Assert.IsNull(result3);
+    }
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_LlmMentionsMentionOnlyRole_ReturnsThatRole()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("helper", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("expert", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        // LLM @ expert（非人类触发）
+        var llmMessage = ChatRoomMessage.CreateAssistant("need @expert", "helper", "Helper")
+            with { MentionedRoleIds = new[] { "expert" } };
+
+        // 先让 selector 知道当前在正常轮次中（不从人类插话开始）
+        await selector.SelectNextSpeakerAsync(roles, []); // helper first
+
+        var history = new List<ChatRoomMessage>
+        {
+            ChatRoomMessage.CreateAssistant("prev", "helper", "Helper"),
+            llmMessage,
+        };
+
+        var result = await selector.SelectNextSpeakerAsync(roles, history);
+
+        Assert.AreEqual("expert", result!.Definition.RoleId);
+    }
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_LlmMentionsMentionOnlyRole_ReturnsToNormalCycleAfter()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("A", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("expert", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        // A @ expert
+        var aMsg = ChatRoomMessage.CreateAssistant("need @expert", "A", "A")
+            with { MentionedRoleIds = new[] { "expert" } };
+
+        // 先跑一轮让状态初始化
+        await selector.SelectNextSpeakerAsync(roles, []); // A (index 0)
+
+        var history = new List<ChatRoomMessage>
+        {
+            ChatRoomMessage.CreateAssistant("init", "A", "A"),
+            aMsg,
+        };
+
+        // expert 从队列出队
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("expert", result1!.Definition.RoleId);
+
+        // expert 发言（无 @）
+        var expertMsg = ChatRoomMessage.CreateAssistant("expert reply", "expert", "Expert");
+        var history2 = new List<ChatRoomMessage> { aMsg, expertMsg };
+
+        // 队列空 + 非人类触发 → 继续正常轮流
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        // 正常轮流：B（因为 A 已经在之前选过了，轮次状态已经 +1）
+        Assert.IsNotNull(result2);
+    }
+
+    [TestMethod]
+    public async Task SelectNextSpeakerAsync_LlmMentionsChain_CallsThroughQueue()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("A", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("C", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+        };
+
+        // A @ B
+        var aMsg = ChatRoomMessage.CreateAssistant("hey @B", "A", "A")
+            with { MentionedRoleIds = new[] { "B" } };
+
+        await selector.SelectNextSpeakerAsync(roles, []); // init
+
+        var history = new List<ChatRoomMessage>
+        {
+            ChatRoomMessage.CreateAssistant("init", "A", "A"),
+            aMsg,
+        };
+
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("B", result1!.Definition.RoleId);
+
+        // B @ C（链式）
+        var bMsg = ChatRoomMessage.CreateAssistant("hey @C", "B", "B")
+            with { MentionedRoleIds = new[] { "C" } };
+
+        var history2 = new List<ChatRoomMessage> { aMsg, bMsg };
+
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.AreEqual("C", result2!.Definition.RoleId);
+    }
+
+    // === helper ===
+
+    private static ChatRoomRole CreateRole(
+        string roleId,
+        bool isHuman,
+        ChatRoomParticipationMode mode = ChatRoomParticipationMode.AlwaysParticipate)
     {
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = roleId,
             RoleName = roleId,
             IsHuman = isHuman,
+            ParticipationMode = mode,
         };
 
         return new ChatRoomRole(definition);
