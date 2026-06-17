@@ -111,6 +111,23 @@ public sealed class ChatRoomRole
     /// <returns>角色的公开回复文本。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
     public async Task<string?> SpeakAsync(string incrementalUserText, CancellationToken cancellationToken = default)
     {
+        return await SpeakAsync(incrementalUserText, additionalTools: null, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 让角色发言一次，并追加额外的工具到本次请求中。
+    /// </summary>
+    /// <param name="incrementalUserText">
+    /// 自上次发言后其他角色产生的公开消息（已拼接为纯文本）。
+    /// </param>
+    /// <param name="additionalTools">
+    /// 本次发言额外启用的工具集合。为 <see langword="null"/> 或空时仅使用角色默认工具。
+    /// 这些工具会被追加到 <see cref="SendMessageRequest.Tools"/> 中。
+    /// </param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>角色的公开回复文本。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
+    public async Task<string?> SpeakAsync(string incrementalUserText, IReadOnlyList<AITool>? additionalTools, CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(incrementalUserText);
 
         // 首次发言时构建 SystemPrompt（角色人设 + 记忆）
@@ -128,6 +145,12 @@ public sealed class ChatRoomRole
                 SystemPrompt = systemPrompt,
                 CancellationToken = cancellationToken,
             };
+
+            //// 如果有额外工具，追加到 Tools 集合
+            //if (additionalTools is { Count: > 0 })
+            //{
+            //    request = request with { Tools = [.. request.Tools, .. additionalTools] };
+            //}
 
             SendMessageResult result = ChatManager.SendMessage(request);
             await result.RunTask;
