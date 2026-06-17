@@ -106,6 +106,51 @@ internal sealed class TestMainThreadDispatcher : IMainThreadDispatcher
     }
 
     /// <summary>
+    /// 模拟调度到主线程执行，并返回结果。行为与 <see cref="InvokeAsync(Func{Task})"/> 一致。
+    /// </summary>
+    /// <typeparam name="T">返回值类型。</typeparam>
+    /// <param name="action">要在主线程上执行的异步操作，返回 <typeparamref name="T"/> 类型的值。</param>
+    /// <returns>表示调度操作完成的 <see cref="Task{TResult}"/>，包含执行结果。</returns>
+    public async Task<T> InvokeAsync<T>(Func<Task<T>> action)
+    {
+        InvokeCount++;
+
+        int callerThreadId = Environment.CurrentManagedThreadId;
+        Thread callerThread = Thread.CurrentThread;
+        bool originalIsMainThread = _isMainThread;
+        _previousSynchronizationContext = SynchronizationContext.Current;
+
+        _isMainThread = true;
+        SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+
+        int callbackThreadId = Environment.CurrentManagedThreadId;
+        Thread callbackThread = Thread.CurrentThread;
+        bool checkAccessDuringCallback = CheckAccess();
+
+        try
+        {
+            T result = await action().ConfigureAwait(false);
+
+            SynchronizationContextSnapshots.Add(new SynchronizationContextSnapshot(
+                ContextType: SynchronizationContext.Current?.GetType().Name ?? "null",
+                IsCustomContext: SynchronizationContext.Current is SingleThreadSynchronizationContext));
+
+            return result;
+        }
+        finally
+        {
+            _isMainThread = originalIsMainThread;
+            SynchronizationContext.SetSynchronizationContext(_previousSynchronizationContext);
+            InvokeHistory.Add(new InvokeRecord(
+                CallerThreadId: callerThreadId,
+                CallerThread: callerThread,
+                CallbackThreadId: callbackThreadId,
+                CallbackThread: callbackThread,
+                CheckAccessDuringCallback: checkAccessDuringCallback));
+        }
+    }
+
+    /// <summary>
     /// 返回当前是否在主线程上。严格模式下，在非主线程调用时将抛出 <see cref="InvalidOperationException"/>。
     /// </summary>
     public bool CheckAccess()
