@@ -3,6 +3,23 @@ using System.Collections.Generic;
 namespace AgentLib.ChatRoom.Model;
 
 /// <summary>
+/// 角色在聊天室中的参与模式。
+/// </summary>
+public enum ChatRoomParticipationMode
+{
+    /// <summary>
+    /// 默认参与所有对话。在自动循环中正常轮流发言。
+    /// </summary>
+    AlwaysParticipate,
+
+    /// <summary>
+    /// 仅在被 @ 时才发言。不会出现在自动循环中，
+    /// 只有当其他角色或人类在消息中明确 @ 了该角色时才会被选中发言。
+    /// </summary>
+    MentionOnly,
+}
+
+/// <summary>
 /// 聊天室角色定义（可编辑的配置）。包含角色的身份、系统提示词、模型选择、技能和工具。
 /// 此定义可序列化到持久化配置文件中。
 /// </summary>
@@ -52,6 +69,11 @@ public sealed class ChatRoomRoleDefinition
     /// 角色记忆内容（可选）。注入到角色首次发言的系统提示词中。
     /// </summary>
     public string? MemoryContent { get; set; }
+
+    /// <summary>
+    /// 角色在聊天室中的参与模式。默认参与所有对话。
+    /// </summary>
+    public ChatRoomParticipationMode ParticipationMode { get; set; } = ChatRoomParticipationMode.AlwaysParticipate;
 }
 
 /// <summary>
