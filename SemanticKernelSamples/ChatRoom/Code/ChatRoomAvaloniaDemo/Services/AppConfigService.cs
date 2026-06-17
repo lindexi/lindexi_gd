@@ -87,6 +87,19 @@ public sealed class AppConfigService
         var config = await AppConfig.LoadAsync(configFilePath, cancellationToken).ConfigureAwait(false);
         if (config is not null)
         {
+            foreach (var providerConfig in config.Providers)
+            {
+                if (providerConfig.Models.Count == 0 && !string.IsNullOrEmpty(providerConfig.PrimaryModelId))
+                {
+                    providerConfig.Models.Add(new ModelItemConfig()
+                    {
+                        ModelId = providerConfig.PrimaryModelId,
+                        ModelName = providerConfig.ProviderName,
+                        Provider = providerConfig.ProviderName,
+                    });
+                }
+            }
+
             config.ConfigFilePath = configFilePath;
             return config;
         }
