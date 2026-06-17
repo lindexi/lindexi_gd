@@ -1,7 +1,10 @@
 using AgentLib.ChatRoom.Model;
+using AgentLib.ChatRoom.Tools;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
+
+using Microsoft.Extensions.AI;
 
 using System;
 using System.Collections.Generic;
@@ -206,8 +209,11 @@ public sealed class ChatRoomManager : NotifyBase
             // 构建增量消息：自该角色上次发言之后的公开消息
             string incrementalUserText = BuildIncrementalUserText(role);
 
+            // 追加角色管理工具到本次发言
+            IReadOnlyList<AITool> additionalTools = ChatRoomRoleManagementTools.CreateTools(this);
+
             // 调用角色发言
-            string? assistantContent = await role.SpeakAsync(incrementalUserText, cancellationToken);
+            string? assistantContent = await role.SpeakAsync(incrementalUserText, additionalTools, cancellationToken);
 
             if (string.IsNullOrWhiteSpace(assistantContent))
             {
