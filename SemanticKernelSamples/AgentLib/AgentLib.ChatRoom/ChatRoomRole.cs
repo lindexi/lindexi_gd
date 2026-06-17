@@ -146,11 +146,11 @@ public sealed class ChatRoomRole
                 CancellationToken = cancellationToken,
             };
 
-            //// 如果有额外工具，追加到 Tools 集合
-            //if (additionalTools is { Count: > 0 })
-            //{
-            //    request = request with { Tools = [.. request.Tools, .. additionalTools] };
-            //}
+            // 如果有额外工具，追加到 Tools 集合
+            if (additionalTools is { Count: > 0 })
+            {
+                request = request with { Tools = [.. request.Tools, .. additionalTools] };
+            }
 
             SendMessageResult result = ChatManager.SendMessage(request);
             await result.RunTask;
