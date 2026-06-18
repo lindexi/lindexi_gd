@@ -31,6 +31,12 @@ public sealed class ChatRoomService
     private readonly AgentApiEndpointManager _endpointManager = new();
 
     /// <summary>
+    /// 共享的 API 终结点管理器。供同项目的 ViewModel 层在创建角色时传入，
+    /// 确保所有角色共享同一组已注册的模型提供商。
+    /// </summary>
+    internal AgentApiEndpointManager EndpointManager => _endpointManager;
+
+    /// <summary>
     /// 当前聊天室管理器。为 <see langword="null"/> 时表示尚未创建或加载会话。
     /// </summary>
     public ChatRoomManager? ChatRoomManager => _chatRoomManager;
@@ -90,6 +96,57 @@ public sealed class ChatRoomService
             {
                 _endpointManager.PrimaryModel = primaryModel;
             }
+        }
+    }
+
+    /// <summary>
+    /// 将当前配置中的所有模型提供商注册到指定的 <see cref="AgentApiEndpointManager"/>，
+    /// 并设置首选模型。供外部在创建新角色时调用，确保角色的终结点管理器拥有已注册的提供商。
+    /// </summary>
+    /// <param name="endpointManager">需要注册提供商的终结点管理器。</param>
+    public void RegisterProviders(AgentApiEndpointManager endpointManager)
+    {
+        ArgumentNullException.ThrowIfNull(endpointManager);
+        if (_appConfig is null)
+        {
+            return;
+        }
+
+        foreach (ModelProviderConfig providerConfig in _appConfig.Providers)
+        {
+            ILanguageModelProvider? provider = ConvertToLanguageModelProvider(providerConfig);
+            if (provider is not null)
+            {
+                endpointManager.RegisterLanguageModelProvider(provider);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(_appConfig.PrimaryModelId))
+        {
+            ILanguageModel? primaryModel = endpointManager.GetModel(_appConfig.PrimaryModelId);
+            if (primaryModel is not null)
+            {
+                endpointManager.PrimaryModel = primaryModel;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 在配置变更后，同步更新内部 <see cref="AgentApiEndpointManager"/> 的首选模型。
+    /// 调用方应在保存配置后调用此方法，使模型切换立即生效。
+    /// </summary>
+    /// <param name="primaryModelId">新的首选模型 ID 或名称。</param>
+    public void UpdatePrimaryModel(string primaryModelId)
+    {
+        if (string.IsNullOrWhiteSpace(primaryModelId))
+        {
+            return;
+        }
+
+        ILanguageModel? model = _endpointManager.GetModel(primaryModelId);
+        if (model is not null)
+        {
+            _endpointManager.PrimaryModel = model;
         }
     }
 

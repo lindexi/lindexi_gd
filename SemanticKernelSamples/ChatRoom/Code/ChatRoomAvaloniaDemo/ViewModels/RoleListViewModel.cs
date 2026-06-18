@@ -76,7 +76,17 @@ public sealed class RoleListViewModel : NotifyBase
             ModelId = _chatRoomService.AppConfig?.PrimaryModelId ?? string.Empty,
         };
 
-        var role = new ChatRoomRole(definition);
+        var role = new ChatRoomRole(definition, _chatRoomService.EndpointManager);
+        _chatRoomService.RegisterProviders(role.EndpointManager);
+
+        // 诊断日志：确认 EndpointManager 的注册状态
+        var sharedEm = _chatRoomService.EndpointManager;
+        var roleEm = role.EndpointManager;
+        System.Diagnostics.Debug.WriteLine(
+            $"[AddRole] EndpointManager 同一实例: {ReferenceEquals(sharedEm, roleEm)}, " +
+            $"共享 SupportedModels 数量: {sharedEm.GetSupportedModels().Count}, " +
+            $"角色 SupportedModels 数量: {roleEm.GetSupportedModels().Count}");
+
         _chatRoomService.ChatRoomManager?.Roles.Add(role);
 
         OnPropertyChanged(nameof(Roles));
