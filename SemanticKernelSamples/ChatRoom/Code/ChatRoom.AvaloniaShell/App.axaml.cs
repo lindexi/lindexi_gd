@@ -36,8 +36,8 @@ public partial class App : Application
 
     private async Task InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        string settingsFilePath = Path.Join(appData, "ChatRoom", "settings.json");
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string settingsFilePath = Path.Join(appData, "AgentRoundtable", "settings.json");
 
         // 1. 主线程调度器
         var dispatcher = new AvaloniaMainThreadDispatcher();
@@ -51,7 +51,7 @@ public partial class App : Application
 
         // 4. 会话服务
         string persistencePath = string.IsNullOrWhiteSpace(appSettings.PersistencePath)
-            ? Path.Join(appData, "ChatRoom", "Sessions")
+            ? Path.Join(appData, "AgentRoundtable", "Sessions")
             : appSettings.PersistencePath;
 
         var sessionService = new SessionService(
