@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 
 using AgentLib.ChatRoom;
+using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
 using AgentLib.Model;
 
@@ -120,6 +122,61 @@ public sealed class MainViewModel : ViewModelBase
         SessionListViewModel = new SessionListViewModel(chatRoomService, sessionService);
         ChatViewModel = new ChatViewModel(chatRoomService);
         RoleListViewModel = new RoleListViewModel(chatRoomService, modelProviderService);
+
+        // 连接子 ViewModel 的事件
+        SessionListViewModel.SettingsRequested += OnSettingsRequested;
+        SessionListViewModel.SessionOpened += OnSessionOpened;
+        SessionListViewModel.NewSessionCreated += OnNewSessionCreated;
+        RoleListViewModel.AddRoleRequested += OnAddRoleRequested;
+        RoleListViewModel.EditRoleRequested += OnEditRoleRequested;
+    }
+
+    /// <summary>
+    /// 初始化主 ViewModel。创建默认会话并添加一个名为"助手"的默认角色。
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        await _chatRoomService.CreateNewSessionAsync().ConfigureAwait(false);
+
+        var assistantDefinition = new ChatRoomRoleDefinition
+        {
+            RoleId = Guid.NewGuid().ToString("N"),
+            RoleName = "助手",
+            SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
+        };
+        await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
+    }
+
+    private void OnSettingsRequested(object? sender, EventArgs e)
+    {
+        NavigateToSettings();
+    }
+
+    private void OnSessionOpened(object? sender, string sessionId)
+    {
+        NavigateToChat();
+    }
+
+    private async void OnNewSessionCreated(object? sender, EventArgs e)
+    {
+        var assistantDefinition = new ChatRoomRoleDefinition
+        {
+            RoleId = Guid.NewGuid().ToString("N"),
+            RoleName = "助手",
+            SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
+        };
+        await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
+        NavigateToChat();
+    }
+
+    private void OnAddRoleRequested(object? sender, EventArgs e)
+    {
+        NavigateToCreateRole();
+    }
+
+    private void OnEditRoleRequested(object? sender, string roleId)
+    {
+        NavigateToEditRole(roleId);
     }
 
     /// <summary>
