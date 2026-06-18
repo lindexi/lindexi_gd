@@ -1,0 +1,35 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <Color x:Key="PrimaryColor">#2196F3</Color>
+        <Color x:Key="PrimaryLightColor">#BBDEFB</Color>
+        <Color x:Key="PrimaryDarkColor">#1976D2</Color>
+        <Color x:Key="BackgroundColor">#F5F5F5</Color>
+        <Color x:Key="SurfaceColor">#FFFFFF</Color>
+        <Color x:Key="SurfaceVariantColor">#EEEEEE</Color>
+        <Color x:Key="SuccessColor">#4CAF50</Color>
+        <Color x:Key="WarningColor">#FF9800</Color>
+        <Color x:Key="ErrorColor">#F44336</Color>
+        <Color x:Key="InfoColor">#2196F3</Color>
+        <Color x:Key="TextPrimaryColor">#212121</Color>
+        <Color x:Key="TextSecondaryColor">#757575</Color>
+        <Color x:Key="TextOnPrimaryColor">#FFFFFF</Color>
+        <Color x:Key="BorderColor">#E0E0E0</Color>
+        <Color x:Key="DividerColor">#BDBDBD</Color>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+        <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}" />
+        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDarkColor}" />
+        <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="SurfaceVariantBrush" Color="{StaticResource SurfaceVariantColor}" />
+        <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+        <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+        <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+        <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+        <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}" />
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+        <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+    </Styles.Resources>
+</Styles>

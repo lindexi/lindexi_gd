@@ -1,0 +1,237 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+
+using AgentLib.ChatRoom;
+using AgentLib.ChatRoom.Configuration;
+using AgentLib.ChatRoom.Services;
+
+namespace ChatRoom.AvaloniaShell.ViewModels;
+
+/// <summary>
+/// 提供商编辑项 ViewModel。
+/// </summary>
+public sealed class ProviderEditViewModel : ViewModelBase
+{
+    private string _name = string.Empty;
+    private string _endpoint = string.Empty;
+    private string _key = string.Empty;
+    private string _modelsText = string.Empty;
+
+    /// <summary>
+    /// 提供商名称。
+    /// </summary>
+    public string Name
+    {
+        get => _name;
+        set => SetField(ref _name, value);
+    }
+
+    /// <summary>
+    /// API 地址。
+    /// </summary>
+    public string Endpoint
+    {
+        get => _endpoint;
+        set => SetField(ref _endpoint, value);
+    }
+
+    /// <summary>
+    /// API 密钥。
+    /// </summary>
+    public string Key
+    {
+        get => _key;
+        set => SetField(ref _key, value);
+    }
+
+    /// <summary>
+    /// 模型列表文本（每行一个 "ModelName,ModelId,IsFlash" 格式）。
+    /// </summary>
+    public string ModelsText
+    {
+        get => _modelsText;
+        set => SetField(ref _modelsText, value);
+    }
+
+    /// <summary>
+    /// 从 <see cref="ProviderSetting"/> 创建提供商编辑项。
+    /// </summary>
+    public ProviderEditViewModel(ProviderSetting setting)
+    {
+        _name = setting.Name;
+        _endpoint = setting.Endpoint;
+        _key = setting.Key;
+
+        var lines = setting.Models.Select(m =>
+            m.IsFlash
+                ? $"{m.ModelName},{m.ModelId ?? ""},flash"
+                : $"{m.ModelName},{m.ModelId ?? ""}");
+        _modelsText = string.Join("\n", lines);
+    }
+
+    /// <summary>
+    /// 创建空的提供商编辑项。
+    /// </summary>
+    public ProviderEditViewModel()
+    {
+    }
+
+    /// <summary>
+    /// 转换为 <see cref="ProviderSetting"/>。
+    /// </summary>
+    public ProviderSetting ToSetting()
+    {
+        var models = new System.Collections.Generic.List<ModelSetting>();
+
+        foreach (string? line in ModelsText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            string[] parts = line.Trim().Split(',');
+            if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
+            {
+                continue;
+            }
+
+            var model = new ModelSetting
+            {
+                ModelName = parts[0].Trim(),
+                ModelId = parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1]) ? parts[1].Trim() : null,
+                IsFlash = parts.Length > 2 && parts[2].Trim().Equals("flash", StringComparison.OrdinalIgnoreCase),
+            };
+            models.Add(model);
+        }
+
+        return new ProviderSetting
+        {
+            Name = Name,
+            Endpoint = Endpoint,
+            Key = Key,
+            Models = models,
+        };
+    }
+}
+
+/// <summary>
+/// 设置页 ViewModel。
+/// </summary>
+public sealed class SettingsViewModel : ViewModelBase
+{
+    private readonly SettingsService _settingsService;
+    private readonly ChatRoomService _chatRoomService;
+    private AppSettings _appSettings;
+
+    private string _persistencePath = string.Empty;
+    private int _defaultMaxRounds = 10;
+    private string? _primaryModel;
+
+    /// <summary>
+    /// 持久化路径。
+    /// </summary>
+    public string PersistencePath
+    {
+        get => _persistencePath;
+        set => SetField(ref _persistencePath, value);
+    }
+
+    /// <summary>
+    /// 默认最大轮次。
+    /// </summary>
+    public int DefaultMaxRounds
+    {
+        get => _defaultMaxRounds;
+        set => SetField(ref _defaultMaxRounds, value);
+    }
+
+    /// <summary>
+    /// 全局首选模型。
+    /// </summary>
+    public string? PrimaryModel
+    {
+        get => _primaryModel;
+        set => SetField(ref _primaryModel, value);
+    }
+
+    /// <summary>
+    /// 提供商列表。
+    /// </summary>
+    public ObservableCollection<ProviderEditViewModel> Providers { get; } = [];
+
+    /// <summary>
+    /// 保存命令。
+    /// </summary>
+    public ICommand SaveCommand { get; }
+
+    /// <summary>
+    /// 返回命令。
+    /// </summary>
+    public ICommand BackCommand { get; }
+
+    /// <summary>
+    /// 添加提供商命令。
+    /// </summary>
+    public ICommand AddProviderCommand { get; }
+
+    /// <summary>
+    /// 删除提供商命令。
+    /// </summary>
+    public ICommand RemoveProviderCommand { get; }
+
+    /// <summary>
+    /// 返回请求事件。
+    /// </summary>
+    public event EventHandler? BackRequested;
+
+    /// <summary>
+    /// 使用指定的服务创建设置 ViewModel。
+    /// </summary>
+    public SettingsViewModel(SettingsService settingsService, ChatRoomService chatRoomService)
+    {
+        _settingsService = settingsService;
+        _chatRoomService = chatRoomService;
+        _appSettings = settingsService.LoadAsync().GetAwaiter().GetResult();
+
+        _persistencePath = _appSettings.PersistencePath;
+        _defaultMaxRounds = _appSettings.DefaultMaxRounds;
+        _primaryModel = _appSettings.PrimaryModel;
+
+        foreach (ProviderSetting p in _appSettings.Providers)
+        {
+            Providers.Add(new ProviderEditViewModel(p));
+        }
+
+        SaveCommand = new SimpleAsyncCommand(SaveAsync);
+        BackCommand = new SimpleCommand(() => BackRequested?.Invoke(this, EventArgs.Empty));
+        AddProviderCommand = new SimpleCommand(() => Providers.Add(new ProviderEditViewModel()));
+        RemoveProviderCommand = new SimpleCommand<ProviderEditViewModel>(p => Providers.Remove(p));
+    }
+
+    private async Task SaveAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            _appSettings.PersistencePath = _persistencePath;
+            _appSettings.DefaultMaxRounds = _defaultMaxRounds;
+            _appSettings.PrimaryModel = _primaryModel;
+
+            _appSettings.Providers.Clear();
+            foreach (ProviderEditViewModel p in Providers)
+            {
+                _appSettings.Providers.Add(p.ToSetting());
+            }
+
+            await _settingsService.SaveAsync(_appSettings).ConfigureAwait(false);
+
+            // 热更新：重新注册模型提供商
+            _chatRoomService.RefreshProviders();
+
+            BackRequested?.Invoke(this, EventArgs.Empty);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+}

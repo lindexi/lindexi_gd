@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChatRoom.AvaloniaShell.ViewModels"
+             xmlns:views="using:ChatRoom.AvaloniaShell.Views"
+             x:Class="ChatRoom.AvaloniaShell.Views.MainView"
+             x:DataType="vm:MainViewModel">
+
+    <Grid ColumnDefinitions="250,Auto,*,Auto,280">
+        <!-- 左栏：会话列表 -->
+        <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <views:SessionListView DataContext="{Binding SessionListViewModel}" />
+        </Border>
+
+        <GridSplitter Grid.Column="1" Background="{StaticResource BorderBrush}"
+                      Width="4" ResizeDirection="Columns" />
+
+        <!-- 中栏：聊天区 -->
+        <Grid Grid.Column="2">
+            <!-- 主聊天页面 -->
+            <views:ChatView IsVisible="{ReflectionBinding IsChatPage}"
+                      DataContext="{Binding ChatViewModel}" />
+
+            <!-- 设置页面 -->
+            <views:SettingsView IsVisible="{ReflectionBinding IsSettingsPage}"
+                          DataContext="{Binding SettingsViewModel}" />
+
+            <!-- 角色编辑页面 -->
+            <views:RoleEditView IsVisible="{ReflectionBinding IsRoleEditPage}"
+                          DataContext="{Binding RoleEditViewModel}" />
+        </Grid>
+
+        <GridSplitter Grid.Column="3" Background="{StaticResource BorderBrush}"
+                      Width="4" ResizeDirection="Columns" />
+
+        <!-- 右栏：角色列表 -->
+        <Border Grid.Column="4" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
+            <views:RoleListView DataContext="{Binding RoleListViewModel}" />
+        </Border>
+    </Grid>
+</UserControl>

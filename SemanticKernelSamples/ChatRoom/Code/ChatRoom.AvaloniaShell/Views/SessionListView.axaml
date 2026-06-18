@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChatRoom.AvaloniaShell.ViewModels"
+             x:Class="ChatRoom.AvaloniaShell.Views.SessionListView"
+             x:DataType="vm:SessionListViewModel">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- 标题栏 -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,10">
+            <TextBlock Text="会话列表" Classes="Title" />
+            <Button Grid.Column="1" Classes="Primary" Content="+ 新建"
+                    Command="{Binding CreateNewSessionCommand}"
+                    IsEnabled="{Binding !IsBusy}" />
+        </Grid>
+
+        <!-- 会话列表 -->
+        <ListBox Grid.Row="1" ItemsSource="{Binding Sessions}"
+                 SelectedItem="{Binding SelectedSession}"
+                 Background="{StaticResource BackgroundBrush}"
+                 Margin="4,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:SessionItemViewModel">
+                    <Border Classes="Card" Padding="10,8" Margin="2,2">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock Text="{Binding Subtitle}" Classes="Subtitle" />
+                            <TextBlock Text="{Binding DisplayText}" Classes="Subtitle" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- 底部设置按钮 -->
+        <Border Grid.Row="2" Padding="12,8" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Button Classes="Flat" Content="⚙ 设置"
+                    Command="{Binding OpenSettingsCommand}"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+        </Border>
+    </Grid>
+</UserControl>

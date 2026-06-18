@@ -2,8 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:views="using:ChatRoom.AvaloniaShell.Views"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
         x:Class="ChatRoom.AvaloniaShell.MainWindow"
-        Title="ChatRoom.AvaloniaShell">
-    Welcome to Avalonia!
+        Title="ChatRoom 聊天室"
+        MinWidth="800" MinHeight="500"
+        Background="{StaticResource BackgroundBrush}">
+    <ContentControl x:Name="MainContent" />
 </Window>

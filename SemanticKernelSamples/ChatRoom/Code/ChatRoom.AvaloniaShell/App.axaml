@@ -1,10 +1,12 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ChatRoom.AvaloniaShell.App"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Light">
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://ChatRoom.AvaloniaShell/Styles/Colors.axaml" />
+        <StyleInclude Source="avares://ChatRoom.AvaloniaShell/Styles/Controls.axaml" />
+        <StyleInclude Source="avares://ChatRoom.AvaloniaShell/Styles/MessageBubble.axaml" />
     </Application.Styles>
 </Application>
