@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Lib/">
+    <Project Path="../AgentLib/AgentLib/AgentLib.csproj" />
+    <Project Path="../Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
+    <Project Path="../Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+  </Folder>
+  <Project Path="../AgentLib/AgentLib.ChatRoom.Tests/AgentLib.ChatRoom.Tests.csproj" />
+  <Project Path="../AgentLib/AgentLib.ChatRoom/AgentLib.ChatRoom.csproj" />
+  <Project Path="Code/ChatRoom.AvaloniaShell/ChatRoom.AvaloniaShell.csproj" />
+  <Project Path="Code/ChatRoom.Shell.Tests/ChatRoom.Shell.Tests.csproj" />
+  <Project Path="Docs/Docs.csproj" />
+</Solution>

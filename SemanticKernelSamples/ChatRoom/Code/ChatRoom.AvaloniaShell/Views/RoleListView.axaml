@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChatRoom.AvaloniaShell.ViewModels"
+             xmlns:conv="using:ChatRoom.AvaloniaShell.Converters"
+             x:Class="ChatRoom.AvaloniaShell.Views.RoleListView"
+             x:DataType="vm:RoleListViewModel">
+
+    <UserControl.Resources>
+        <conv:RoleInitialConverter x:Key="RoleInitial" />
+        <conv:RoleColorConverter x:Key="RoleColor" />
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- 标题栏 -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,10">
+            <TextBlock Text="角色列表" Classes="Title" />
+            <Button Grid.Column="1" Classes="Primary" Content="+ 添加"
+                    Command="{Binding AddRoleCommand}" />
+        </Grid>
+
+        <!-- 角色列表 -->
+        <ListBox Grid.Row="1" ItemsSource="{Binding Roles}"
+                 Background="{StaticResource BackgroundBrush}" Margin="4,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:RoleItemViewModel">
+                    <Border Classes="Card" Padding="10,8" Margin="2,2">
+                        <Grid ColumnDefinitions="40,*,Auto">
+                            <!-- 头像 -->
+                            <Border Grid.Column="0" Classes="Avatar"
+                                    Background="{Binding RoleName, Converter={StaticResource RoleColor}}">
+                                <TextBlock Text="{Binding Initial}" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           FontWeight="Bold" />
+                            </Border>
+
+                            <!-- 角色信息 -->
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding RoleName}" FontWeight="Bold" FontSize="14"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding ParticipationModeDisplay}"
+                                               Classes="Subtitle" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding SystemPromptSummary}" Classes="Subtitle"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding ModelDisplay}" Classes="Subtitle" />
+                            </StackPanel>
+
+                            <!-- 操作按钮 -->
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="4">
+                                <Button Classes="Flat" Content="✏" Padding="6,4" FontSize="14"
+                                        Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).EditRoleCommand}"
+                                        CommandParameter="{Binding}" />
+                                <Button Classes="Flat" Content="🗑" Padding="6,4" FontSize="14"
+                                        Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).DeleteRoleCommand}"
+                                        CommandParameter="{Binding}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</UserControl>

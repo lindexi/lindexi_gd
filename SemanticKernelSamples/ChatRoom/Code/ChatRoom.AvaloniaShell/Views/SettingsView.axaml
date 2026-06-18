@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChatRoom.AvaloniaShell.ViewModels"
+             x:Class="ChatRoom.AvaloniaShell.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource BackgroundBrush}">
+        <!-- 标题栏 -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="16,12">
+            <Button Classes="Flat" Content="← 返回"
+                    Command="{Binding BackCommand}" />
+            <TextBlock Grid.Column="1" Text="设置" Classes="Title"
+                       HorizontalAlignment="Center" />
+            <Button Grid.Column="2" Classes="Primary" Content="保存"
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding !IsBusy}" />
+        </Grid>
+
+        <!-- 设置表单 -->
+        <ScrollViewer Grid.Row="1" Padding="16,0">
+            <StackPanel Spacing="16" MaxWidth="600" HorizontalAlignment="Stretch">
+                <!-- 全局配置 -->
+                <Border Classes="Card" Padding="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="全局配置" Classes="Title" />
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="持久化路径" Classes="Subtitle" />
+                            <TextBox Classes="Rounded" Text="{Binding PersistencePath}"
+                                     Watermark="会话持久化根目录路径" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="默认最大轮次" Classes="Subtitle" />
+                            <NumericUpDown Value="{Binding DefaultMaxRounds}"
+                                           Minimum="1" Maximum="100" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="全局首选模型" Classes="Subtitle" />
+                            <TextBox Classes="Rounded" Text="{Binding PrimaryModel}"
+                                     Watermark="Provider/ModelName 格式" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 模型提供商列表 -->
+                <Border Classes="Card" Padding="16">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="模型提供商" Classes="Title" />
+                            <Button Grid.Column="1" Classes="Flat" Content="+ 添加提供商"
+                                    Command="{Binding AddProviderCommand}" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Providers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ProviderEditViewModel">
+                                    <Border Background="{StaticResource SurfaceVariantBrush}"
+                                            CornerRadius="6" Padding="12" Margin="0,4">
+                                        <StackPanel Spacing="8">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBox Classes="Rounded" Text="{Binding Name}"
+                                                         Watermark="提供商名称" />
+                                                <Button Grid.Column="1" Classes="Danger" Content="删除"
+                                                        Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveProviderCommand}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                            <TextBox Classes="Rounded" Text="{Binding Endpoint}"
+                                                     Watermark="API 地址 (https://...)" />
+                                            <TextBox Classes="Rounded" Text="{Binding Key}"
+                                                     Watermark="API 密钥" PasswordChar="*" />
+                                            <TextBox Classes="Rounded" Text="{Binding ModelsText}"
+                                                     Watermark="模型列表，每行一个: ModelName,ModelId,flash"
+                                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                                     MinHeight="60" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
