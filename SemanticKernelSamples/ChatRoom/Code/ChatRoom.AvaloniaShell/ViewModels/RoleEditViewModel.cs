@@ -31,6 +31,11 @@ public sealed class RoleEditViewModel : ViewModelBase
     public bool IsEditing => _editingRoleId is not null;
 
     /// <summary>
+    /// 页面标题文本。
+    /// </summary>
+    public string TitleText => IsEditing ? "编辑角色" : "新建角色";
+
+    /// <summary>
     /// 角色显示名。
     /// </summary>
     public string RoleName

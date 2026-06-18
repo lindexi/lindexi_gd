@@ -285,6 +285,23 @@ public sealed class ChatRoomService
         RegisterProviders(_currentManager);
     }
 
+    /// <summary>
+    /// 设置变更后更新内部 <see cref="ModelProviderService"/> 并重新注册模型提供商。
+    /// 应在设置页面保存后调用，确保新配置立即生效。
+    /// </summary>
+    /// <param name="appSettings">最新的应用设置。</param>
+    public void RefreshProviders(AppSettings appSettings)
+    {
+        _modelProviderService.UpdateSettings(appSettings);
+
+        if (_currentManager is null)
+        {
+            return;
+        }
+
+        RegisterProviders(_currentManager);
+    }
+
     private void RegisterProviders(ChatRoomManager manager)
     {
         IReadOnlyDictionary<string, ILanguageModelProvider> providers = _modelProviderService.GetProviders();

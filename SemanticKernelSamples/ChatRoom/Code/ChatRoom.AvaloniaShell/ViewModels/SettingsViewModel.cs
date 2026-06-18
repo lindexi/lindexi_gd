@@ -190,7 +190,8 @@ public sealed class SettingsViewModel : ViewModelBase
     {
         _settingsService = settingsService;
         _chatRoomService = chatRoomService;
-        _appSettings = settingsService.LoadAsync().GetAwaiter().GetResult();
+        // 通过 Task.Run 避开 Avalonia UI SynchronizationContext，防止 sync-over-async 死锁
+        _appSettings = Task.Run(() => settingsService.LoadAsync()).GetAwaiter().GetResult();
 
         _persistencePath = _appSettings.PersistencePath;
         _defaultMaxRounds = _appSettings.DefaultMaxRounds;
@@ -224,8 +225,8 @@ public sealed class SettingsViewModel : ViewModelBase
 
             await _settingsService.SaveAsync(_appSettings).ConfigureAwait(false);
 
-            // 热更新：重新注册模型提供商
-            _chatRoomService.RefreshProviders();
+                        // 热更新：更新 ModelProviderService 内部设置并重新注册模型提供商
+                        _chatRoomService.RefreshProviders(_appSettings);
 
             BackRequested?.Invoke(this, EventArgs.Empty);
         }

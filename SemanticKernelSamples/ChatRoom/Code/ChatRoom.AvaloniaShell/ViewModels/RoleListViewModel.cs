@@ -183,6 +183,7 @@ public sealed class SimpleCommand<T> : ICommand
 {
     private readonly Action<T?> _execute;
     private readonly Func<T?, bool>? _canExecute;
+    private EventHandler? _canExecuteChanged;
 
     public SimpleCommand(Action<T?> execute, Func<T?, bool>? canExecute = null)
     {
@@ -194,9 +195,14 @@ public sealed class SimpleCommand<T> : ICommand
 
     public void Execute(object? parameter) => _execute((T?)parameter);
 
+    /// <summary>
+    /// 通知 UI 重新查询 <see cref="CanExecute"/> 状态。
+    /// </summary>
+    public void RaiseCanExecuteChanged() => _canExecuteChanged?.Invoke(this, EventArgs.Empty);
+
     event EventHandler? ICommand.CanExecuteChanged
     {
-        add { }
-        remove { }
+        add => _canExecuteChanged += value;
+        remove => _canExecuteChanged -= value;
     }
 }

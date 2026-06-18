@@ -9,7 +9,7 @@
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="16,12">
             <Button Classes="Flat" Content="← 返回"
                     Command="{Binding CancelCommand}" />
-            <TextBlock Grid.Column="1" Text="{Binding IsEditing, StringFormat='编辑角色'}"
+            <TextBlock Grid.Column="1" Text="{Binding TitleText}"
                        Classes="Title" HorizontalAlignment="Center" />
             <Button Grid.Column="2" Classes="Primary" Content="保存"
                     Command="{Binding SaveCommand}"
