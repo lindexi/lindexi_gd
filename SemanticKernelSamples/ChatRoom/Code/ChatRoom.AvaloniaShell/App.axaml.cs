@@ -28,14 +28,13 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // 将阻塞初始化逻辑移到线程池执行，避免在 Avalonia UI SynchronizationContext 上死锁
-            Task.Run(() => InitializeApp(desktop)).GetAwaiter().GetResult();
+            _ = InitializeApp(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
+    private async Task InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string settingsFilePath = Path.Join(appData, "ChatRoom", "settings.json");
@@ -45,7 +44,7 @@ public partial class App : Application
 
         // 2. 设置服务
         var settingsService = new SettingsService(settingsFilePath);
-        AppSettings appSettings = settingsService.LoadAsync().GetAwaiter().GetResult();
+        AppSettings appSettings = await settingsService.LoadAsync();
 
         // 3. 模型提供商服务
         var modelProviderService = new ModelProviderService(appSettings);
@@ -73,17 +72,17 @@ public partial class App : Application
             sessionService);
 
         // 7. 主视图（必须在 UI 线程创建）
-        Dispatcher.UIThread.Post(() =>
+        var mainView = new MainView
         {
-            var mainView = new MainView
-            {
-                DataContext = mainViewModel,
-            };
+            DataContext = mainViewModel,
+        };
 
-            desktop.MainWindow = new MainWindow
-            {
-                Content = mainView,
-            };
-        });
+        var mainWindow = new MainWindow
+        {
+            Content = mainView,
+        };
+        desktop.MainWindow = mainWindow;
+
+        mainWindow.Show();
     }
 }
