@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using AgentLib.ChatRoom.Configuration;
+using AgentLib.Core.AgentApiManagers;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
@@ -40,18 +41,37 @@ public sealed class SettingsService
     }
 
     /// <summary>
-    /// 加载设置。文件不存在时返回默认设置。
+    /// 加载设置。文件不存在或文件中没有模型提供商时，
+    /// 调用 <see cref="LindexiAgentConfiguration.LoadDefault"/> 加载默认模型配置。
     /// </summary>
     public async Task<AppSettings> LoadAsync(CancellationToken cancellationToken = default)
     {
         if (!File.Exists(_settingsFilePath))
         {
-            return CreateDefault();
+            return CreateDefaultWithBuiltinProviders();
         }
 
         string json = await File.ReadAllTextAsync(_settingsFilePath, cancellationToken).ConfigureAwait(false);
         AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json, s_jsonOptions);
-        return settings ?? CreateDefault();
+
+        if (settings is null)
+        {
+            return CreateDefaultWithBuiltinProviders();
+        }
+
+        // 文件中没有模型提供商时，回退到内置默认配置
+        if (settings.Providers.Count == 0)
+        {
+            AppSettings defaultSettings = CreateDefaultWithBuiltinProviders();
+            defaultSettings.PersistencePath = string.IsNullOrWhiteSpace(settings.PersistencePath)
+                ? defaultSettings.PersistencePath
+                : settings.PersistencePath;
+            defaultSettings.DefaultMaxRounds = settings.DefaultMaxRounds;
+            defaultSettings.PrimaryModel = settings.PrimaryModel ?? defaultSettings.PrimaryModel;
+            return defaultSettings;
+        }
+
+        return settings;
     }
 
     /// <summary>
@@ -164,5 +184,30 @@ public sealed class SettingsService
             PersistencePath = Path.Join(appData, "ChatRoom", "Sessions"),
             DefaultMaxRounds = 10,
         };
+    }
+
+    /// <summary>
+    /// 创建包含内置默认模型提供商的默认设置。
+    /// 调用 <see cref="LindexiAgentConfiguration.LoadDefault"/> 获取预置模型配置。
+    /// </summary>
+    private static AppSettings CreateDefaultWithBuiltinProviders()
+    {
+        AppSettings settings = CreateDefault();
+
+        try
+        {
+            AgentApiManagerConfiguration defaultConfig = LindexiAgentConfiguration.LoadDefault();
+            settings = FromApiConfiguration(defaultConfig);
+            settings.PersistencePath = Path.Join(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "ChatRoom", "Sessions");
+            settings.DefaultMaxRounds = 10;
+        }
+        catch
+        {
+            // 内置配置加载失败时使用空配置
+        }
+
+        return settings;
     }
 }

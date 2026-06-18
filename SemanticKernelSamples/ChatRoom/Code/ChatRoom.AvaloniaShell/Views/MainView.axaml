@@ -18,16 +18,19 @@
         <!-- 中栏：聊天区 -->
         <Grid Grid.Column="2">
             <!-- 主聊天页面 -->
-            <views:ChatView IsVisible="{ReflectionBinding IsChatPage}"
-                      DataContext="{Binding ChatViewModel}" />
+            <Panel IsVisible="{Binding IsChatPage}">
+                <views:ChatView DataContext="{Binding ChatViewModel}" />
+            </Panel>
 
             <!-- 设置页面 -->
-            <views:SettingsView IsVisible="{ReflectionBinding IsSettingsPage}"
-                          DataContext="{Binding SettingsViewModel}" />
+            <Panel IsVisible="{Binding IsSettingsPage}">
+                <views:SettingsView DataContext="{Binding SettingsViewModel}" />
+            </Panel>
 
             <!-- 角色编辑页面 -->
-            <views:RoleEditView IsVisible="{ReflectionBinding IsRoleEditPage}"
-                          DataContext="{Binding RoleEditViewModel}" />
+            <Panel IsVisible="{Binding IsRoleEditPage}">
+                <views:RoleEditView DataContext="{Binding RoleEditViewModel}" />
+            </Panel>
         </Grid>
 
         <GridSplitter Grid.Column="3" Background="{StaticResource BorderBrush}"

@@ -71,7 +71,10 @@ public partial class App : Application
             modelProviderService,
             sessionService);
 
-        // 7. 主视图（必须在 UI 线程创建）
+        // 7. 初始化：创建默认会话和助手角色
+        await mainViewModel.InitializeAsync().ConfigureAwait(true);
+
+        // 8. 主视图（必须在 UI 线程创建）
         var mainView = new MainView
         {
             DataContext = mainViewModel,
