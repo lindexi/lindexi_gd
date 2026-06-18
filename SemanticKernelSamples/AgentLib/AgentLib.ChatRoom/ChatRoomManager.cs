@@ -9,6 +9,7 @@ using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -393,10 +394,17 @@ public sealed class ChatRoomManager : NotifyBase
         await Session.AddMessageAsync(message);
         OnMessageAdded?.Invoke(this, message);
 
-        // 持久化公开消息（fire-and-forget）
+        // 持久化公开消息（fire-and-forget，异常通过 ContinueWith 记录）
         if (Persistence is not null)
         {
-            _ = Persistence.SavePublicMessageAsync(Session.SessionId, message);
+            _ = Persistence.SavePublicMessageAsync(Session.SessionId, message)
+                .ContinueWith(static t =>
+                {
+                    if (t.IsFaulted && t.Exception is not null)
+                    {
+                        Debug.Fail($"持久化公开消息失败: {t.Exception.InnerException?.Message}");
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }

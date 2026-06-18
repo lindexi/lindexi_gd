@@ -11,6 +11,7 @@ public sealed class SimpleCommand : ICommand
 {
     private readonly Action _execute;
     private readonly Func<bool>? _canExecute;
+    private EventHandler? _canExecuteChanged;
 
     /// <summary>
     /// 使用指定的执行操作创建命令。
@@ -29,11 +30,16 @@ public sealed class SimpleCommand : ICommand
     /// <inheritdoc/>
     public void Execute(object? parameter) => _execute();
 
+    /// <summary>
+    /// 通知 UI 重新查询 <see cref="CanExecute"/> 状态。
+    /// </summary>
+    public void RaiseCanExecuteChanged() => _canExecuteChanged?.Invoke(this, EventArgs.Empty);
+
     /// <inheritdoc/>
     event EventHandler? ICommand.CanExecuteChanged
     {
-        add { }
-        remove { }
+        add => _canExecuteChanged += value;
+        remove => _canExecuteChanged -= value;
     }
 }
 
@@ -44,6 +50,7 @@ public sealed class SimpleAsyncCommand : ICommand
 {
     private readonly Func<Task> _execute;
     private readonly Func<bool>? _canExecute;
+    private EventHandler? _canExecuteChanged;
 
     /// <summary>
     /// 使用指定的异步执行操作创建命令。
@@ -60,11 +67,16 @@ public sealed class SimpleAsyncCommand : ICommand
     /// <inheritdoc/>
     public void Execute(object? parameter) => _ = _execute();
 
+    /// <summary>
+    /// 通知 UI 重新查询 <see cref="CanExecute"/> 状态。
+    /// </summary>
+    public void RaiseCanExecuteChanged() => _canExecuteChanged?.Invoke(this, EventArgs.Empty);
+
     /// <inheritdoc/>
     event EventHandler? ICommand.CanExecuteChanged
     {
-        add { }
-        remove { }
+        add => _canExecuteChanged += value;
+        remove => _canExecuteChanged -= value;
     }
 }
 
@@ -75,6 +87,7 @@ public sealed class SimpleAsyncCommand<T> : ICommand
 {
     private readonly Func<T?, Task> _execute;
     private readonly Func<T?, bool>? _canExecute;
+    private EventHandler? _canExecuteChanged;
 
     /// <summary>
     /// 使用指定的异步执行操作创建命令。
@@ -91,10 +104,15 @@ public sealed class SimpleAsyncCommand<T> : ICommand
     /// <inheritdoc/>
     public void Execute(object? parameter) => _ = _execute((T?)parameter);
 
+    /// <summary>
+    /// 通知 UI 重新查询 <see cref="CanExecute"/> 状态。
+    /// </summary>
+    public void RaiseCanExecuteChanged() => _canExecuteChanged?.Invoke(this, EventArgs.Empty);
+
     /// <inheritdoc/>
     event EventHandler? ICommand.CanExecuteChanged
     {
-        add { }
-        remove { }
+        add => _canExecuteChanged += value;
+        remove => _canExecuteChanged -= value;
     }
 }

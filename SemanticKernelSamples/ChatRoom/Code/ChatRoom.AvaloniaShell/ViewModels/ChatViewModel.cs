@@ -9,6 +9,8 @@ using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
 using AgentLib.Model;
 
+using Avalonia.Threading;
+
 namespace ChatRoom.AvaloniaShell.ViewModels;
 
 /// <summary>
@@ -96,6 +98,7 @@ public sealed class ChatViewModel : ViewModelBase
     private string _inputText = string.Empty;
     private bool _isRunning;
     private string _currentSpeakerName = string.Empty;
+    private CancellationTokenSource? _autoLoopCts;
 
     /// <summary>
     /// 消息列表。
@@ -124,6 +127,7 @@ public sealed class ChatViewModel : ViewModelBase
                 OnPropertyChanged(nameof(CanSend));
                 OnPropertyChanged(nameof(CanStop));
                 OnPropertyChanged(nameof(SendButtonText));
+                RaiseCommandCanExecuteChanged();
             }
         }
     }
@@ -170,7 +174,7 @@ public sealed class ChatViewModel : ViewModelBase
         _chatRoomService = chatRoomService;
 
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
-        StopCommand = new SimpleCommand(() => _chatRoomService.StopAutoLoop(), () => CanStop);
+        StopCommand = new SimpleCommand(StopAutoLoop, () => CanStop);
 
         _chatRoomService.MessageAdded += OnMessageAdded;
         _chatRoomService.SpeakingChanged += OnSpeakingChanged;
@@ -179,27 +183,35 @@ public sealed class ChatViewModel : ViewModelBase
 
     private void OnMessageAdded(object? sender, ChatRoomMessage e)
     {
-        Messages.Add(new MessageItemViewModel(e));
+        Dispatcher.UIThread.Post(() => Messages.Add(new MessageItemViewModel(e)));
     }
 
     private void OnSpeakingChanged(object? sender, (ChatRoomRole? Previous, ChatRoomRole? Current) e)
     {
-        CurrentSpeakerName = e.Current?.Definition.RoleName ?? string.Empty;
+        Dispatcher.UIThread.Post(() => CurrentSpeakerName = e.Current?.Definition.RoleName ?? string.Empty);
     }
 
     private void OnSessionChanged(object? sender, ChatRoomManager? manager)
     {
-        Messages.Clear();
-        IsRunning = false;
-        OnPropertyChanged(nameof(CanSend));
-
-        if (manager is not null)
+        Dispatcher.UIThread.Post(() =>
         {
-            foreach (ChatRoomMessage msg in manager.Session.Messages)
+            Messages.Clear();
+            IsRunning = false;
+
+            if (manager is not null)
             {
-                Messages.Add(new MessageItemViewModel(msg));
+                foreach (ChatRoomMessage msg in manager.Session.Messages)
+                {
+                    Messages.Add(new MessageItemViewModel(msg));
+                }
             }
-        }
+        });
+    }
+
+    private void StopAutoLoop()
+    {
+        _autoLoopCts?.Cancel();
+        _chatRoomService.StopAutoLoop();
     }
 
     private async Task SendAsync()
@@ -219,14 +231,33 @@ public sealed class ChatViewModel : ViewModelBase
         if (!IsRunning)
         {
             IsRunning = true;
+            _autoLoopCts = new CancellationTokenSource();
             try
             {
-                await _chatRoomService.StartAutoLoopAsync().ConfigureAwait(false);
+                await _chatRoomService.StartAutoLoopAsync(_autoLoopCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // 正常取消
             }
             finally
             {
-                IsRunning = false;
+                _autoLoopCts?.Dispose();
+                _autoLoopCts = null;
+                Dispatcher.UIThread.Post(() => IsRunning = false);
             }
+        }
+    }
+
+    private void RaiseCommandCanExecuteChanged()
+    {
+        if (SendCommand is SimpleAsyncCommand sac)
+        {
+            sac.RaiseCanExecuteChanged();
+        }
+        if (StopCommand is SimpleCommand sc)
+        {
+            sc.RaiseCanExecuteChanged();
         }
     }
 }
