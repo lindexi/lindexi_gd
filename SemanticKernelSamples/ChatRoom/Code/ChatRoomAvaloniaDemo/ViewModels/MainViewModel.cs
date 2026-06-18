@@ -176,8 +176,14 @@ public sealed class MainViewModel : NotifyBase
         {
             SettingsViewModel.ApplyToConfig();
 
-            // 保存配置到文件
+            // 立即同步模型变更到 ChatRoomService
             var config = _chatRoomService.AppConfig;
+            if (!string.IsNullOrWhiteSpace(config?.PrimaryModelId))
+            {
+                _chatRoomService.UpdatePrimaryModel(config.PrimaryModelId);
+            }
+
+            // 保存配置到文件
             if (!string.IsNullOrEmpty(config?.ConfigFilePath))
             {
                 try
