@@ -237,11 +237,7 @@ public sealed class ChatRoomService
         {
             MainThreadDispatcher = _mainThreadDispatcher,
         };
-        await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
-        _currentManager.Roles.Add(role);
-
-        // 注册该角色的模型提供商
-        RegisterProvidersForRole(role);
+        await _currentManager.AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
 
         // 早期校验：确保角色有可用模型，避免发言时才发现问题
         if (!definition.IsHuman)
@@ -266,11 +262,7 @@ public sealed class ChatRoomService
             return;
         }
 
-        ChatRoomRole? role = _currentManager.Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
-        if (role is not null)
-        {
-            _currentManager.Roles.Remove(role);
-        }
+        _currentManager.RemoveRole(roleId);
     }
 
     /// <summary>
@@ -307,26 +299,6 @@ public sealed class ChatRoomService
     {
         IReadOnlyDictionary<string, ILanguageModelProvider> providers = _modelProviderService.GetProviders();
         manager.RegisterRoleModelProviders(providers);
-    }
-
-    private void RegisterProvidersForRole(ChatRoomRole role)
-    {
-        IReadOnlyDictionary<string, ILanguageModelProvider> providers = _modelProviderService.GetProviders();
-
-        if (string.IsNullOrWhiteSpace(role.Definition.ModelProviderId))
-        {
-            // 未配置特定提供商时，注册所有可用提供商，确保角色能找到模型
-            foreach (ILanguageModelProvider provider in providers.Values)
-            {
-                role.EndpointManager.RegisterLanguageModelProvider(provider);
-            }
-            return;
-        }
-
-        if (providers.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? specificProvider))
-        {
-            role.EndpointManager.RegisterLanguageModelProvider(specificProvider);
-        }
     }
 
     private void AttachEvents(ChatRoomManager manager)
