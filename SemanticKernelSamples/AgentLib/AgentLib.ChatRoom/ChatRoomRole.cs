@@ -103,19 +103,8 @@ public sealed class ChatRoomRole
     /// 让角色发言一次。将增量的 User 消息注入到内部的 <see cref="CopilotChatManager"/>，
     /// 利用 AgentSession 历史记录机制延续对话上下文。
     /// 首次发言时通过 <see cref="SendMessageRequest.SystemPrompt"/> 注入角色人设和记忆。
-    /// </summary>
-    /// <param name="incrementalUserText">
-    /// 自上次发言后其他角色产生的公开消息（已拼接为纯文本）。
-    /// </param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>角色的公开回复文本。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
-    public async Task<string?> SpeakAsync(string incrementalUserText, CancellationToken cancellationToken = default)
-    {
-        return await SpeakAsync(incrementalUserText, additionalTools: null, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// 让角色发言一次，并追加额外的工具到本次请求中。
+    /// 流式增量内容通过返回的 <see cref="ChatRoomSpeakResult.AssistantChatMessage"/> 暴露，
+    /// 调用方可直接绑定其 <see cref="CopilotChatMessage.Content"/> 属性感知实时更新。
     /// </summary>
     /// <param name="incrementalUserText">
     /// 自上次发言后其他角色产生的公开消息（已拼接为纯文本）。
@@ -125,8 +114,14 @@ public sealed class ChatRoomRole
     /// 这些工具会被追加到 <see cref="SendMessageRequest.Tools"/> 中。
     /// </param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>角色的公开回复文本。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
-    public async Task<string?> SpeakAsync(string incrementalUserText, IReadOnlyList<AITool>? additionalTools, CancellationToken cancellationToken = default)
+    /// <returns>
+    /// 包含底层 <see cref="CopilotChatMessage"/> 和最终内容任务的发言结果。
+    /// 如果角色未产生有效回复，返回 <see langword="null"/>。
+    /// </returns>
+    public ChatRoomSpeakResult? SpeakAsync(
+        string incrementalUserText,
+        IReadOnlyList<AITool>? additionalTools = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(incrementalUserText);
 
@@ -153,7 +148,27 @@ public sealed class ChatRoomRole
             }
 
             SendMessageResult result = ChatManager.SendMessage(request);
-            await result.RunTask;
+            CopilotChatMessage assistantMessage = result.AssistantChatMessage;
+
+            // 构建最终内容任务：等待发言完成后提取最终文本
+            Task<string?> finalContentTask = BuildFinalContentTask(result, cancellationToken);
+
+            return new ChatRoomSpeakResult(assistantMessage, finalContentTask);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 构建最终内容提取任务。等待发言完成后从 CopilotChatManager 提取最终文本。
+    /// </summary>
+    private async Task<string?> BuildFinalContentTask(SendMessageResult result, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await result.RunTask.ConfigureAwait(false);
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -191,9 +206,9 @@ public sealed class ChatRoomRole
     /// </summary>
     /// <param name="initialTopic">初始话题文本。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public async Task<string?> SpeakFirstAsync(string initialTopic, CancellationToken cancellationToken = default)
+    public ChatRoomSpeakResult? SpeakFirstAsync(string initialTopic, CancellationToken cancellationToken = default)
     {
-        return await SpeakAsync(initialTopic, cancellationToken);
+        return SpeakAsync(initialTopic, cancellationToken: cancellationToken);
     }
 
     /// <summary>

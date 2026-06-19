@@ -178,10 +178,10 @@ public sealed class SettingsService
 
     private static AppSettings CreateDefault()
     {
-        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         return new AppSettings
         {
-            PersistencePath = Path.Join(appData, "ChatRoom", "Sessions"),
+            PersistencePath = Path.Join(appData, "AgentRoundtable", "Sessions"),
             DefaultMaxRounds = 10,
         };
     }
@@ -199,8 +199,8 @@ public sealed class SettingsService
             AgentApiManagerConfiguration defaultConfig = LindexiAgentConfiguration.LoadDefault();
             settings = FromApiConfiguration(defaultConfig);
             settings.PersistencePath = Path.Join(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ChatRoom", "Sessions");
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AgentRoundtable", "Sessions");
             settings.DefaultMaxRounds = 10;
         }
         catch

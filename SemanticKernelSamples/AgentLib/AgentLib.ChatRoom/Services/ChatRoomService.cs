@@ -350,4 +350,5 @@ public sealed class ChatRoomService
     {
         SpeakingChanged?.Invoke(this, (e.PreviousSpeaker, e.CurrentSpeaker));
     }
-}
+
+    }

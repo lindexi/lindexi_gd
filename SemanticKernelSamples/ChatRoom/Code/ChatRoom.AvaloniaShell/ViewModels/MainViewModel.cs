@@ -145,6 +145,10 @@ public sealed class MainViewModel : ViewModelBase
             SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
         };
         await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
+
+        // 持久化到磁盘并刷新会话列表
+        await _chatRoomService.SaveAsync().ConfigureAwait(false);
+        SessionListViewModel.RefreshSessions();
     }
 
     private void OnSettingsRequested(object? sender, EventArgs e)
@@ -166,6 +170,10 @@ public sealed class MainViewModel : ViewModelBase
             SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
         };
         await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
+
+        // 持久化到磁盘并刷新会话列表
+        await _chatRoomService.SaveAsync().ConfigureAwait(false);
+        SessionListViewModel.RefreshSessions();
         NavigateToChat();
     }
 
