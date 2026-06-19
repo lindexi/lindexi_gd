@@ -232,6 +232,9 @@ public sealed class ChatRoomManager : NotifyBase
 
         try
         {
+            // 注入聊天室上下文，供角色首次发言时构建系统提示词
+            role.ChatRoomContext = BuildChatRoomContext();
+
             // 构建增量消息：自该角色上次发言之后的公开消息
             string incrementalUserText = BuildIncrementalUserText(role);
 
@@ -435,6 +438,47 @@ public sealed class ChatRoomManager : NotifyBase
             sb.AppendLine($"{prefix}说：{message.Content}");
             sb.AppendLine();
         }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    /// <summary>
+    /// 构建聊天室上下文提示词，描述当前角色列表、@用法和协作规范。
+    /// 注入到角色的系统提示词中，引导角色优先协调而非自己执行。
+    /// </summary>
+    private string BuildChatRoomContext()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("=== 聊天室协作指引 ===");
+
+        // 角色列表
+        if (Roles.Count > 0)
+        {
+            sb.AppendLine("当前聊天室的角色：");
+            foreach (ChatRoomRole r in Roles)
+            {
+                string roleInfo = $"- {r.Definition.RoleName}";
+                if (r.Definition.IsHuman)
+                {
+                    roleInfo += "（人类）";
+                }
+                else if (r.Definition.ParticipationMode == ChatRoomParticipationMode.MentionOnly)
+                {
+                    roleInfo += "（仅被@时参与）";
+                }
+                sb.AppendLine(roleInfo);
+            }
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("@机制：");
+        sb.AppendLine("- 在消息中使用 @【角色名】 或 @角色名 可以指定某角色接下来回复");
+        sb.AppendLine("- 被 @ 的角色会在当前发言者之后自动发言");
+        sb.AppendLine();
+        sb.AppendLine("协作原则：");
+        sb.AppendLine("- 优先通过 @ 其他角色让他们完成各自擅长的工作，而非自己包揽");
+        sb.AppendLine("- 如果缺少合适的专业角色，可使用 create_character 工具创建新角色");
+        sb.AppendLine("- 创建新角色后，通过 @ 该角色来分配任务，并附上需要它做的事情");
 
         return sb.ToString().TrimEnd();
     }

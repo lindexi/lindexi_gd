@@ -62,6 +62,12 @@ public sealed class ChatRoomRole
         init => _mainThreadDispatcher = value;
     }
 
+    /// <summary>
+    /// 聊天室上下文信息。由 <see cref="ChatRoomManager"/> 在发言前设置，
+    /// 用于在系统提示词中注入当前聊天室的角色列表和协作指引。
+    /// </summary>
+    public string? ChatRoomContext { get; set; }
+
     private CopilotChatManager ChatManager => _chatManager ??= new CopilotChatManager
     {
         AgentApiEndpointManager = _endpointManager,
@@ -236,7 +242,8 @@ public sealed class ChatRoomRole
     }
 
     /// <summary>
-    /// 构建角色的 SystemPrompt，包含角色人设和记忆内容。
+    /// <summary>
+    /// 构建角色的 SystemPrompt，包含角色人设、记忆内容和聊天室协作指引。
     /// 仅在首次发言时调用。
     /// </summary>
     /// <returns>SystemPrompt 文本；如果角色未配置人设和记忆，返回 <see langword="null"/>。</returns>
@@ -257,6 +264,16 @@ public sealed class ChatRoomRole
             }
             sb.AppendLine("你的记忆内容：");
             sb.AppendLine(Definition.MemoryContent);
+        }
+
+        // 注入聊天室上下文（角色列表、@用法、协作指引）
+        if (!string.IsNullOrWhiteSpace(ChatRoomContext))
+        {
+            if (sb.Length > 0)
+            {
+                sb.AppendLine();
+            }
+            sb.AppendLine(ChatRoomContext);
         }
 
         return sb.Length > 0 ? sb.ToString().TrimEnd() : null;
