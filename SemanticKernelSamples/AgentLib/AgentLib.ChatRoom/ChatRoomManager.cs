@@ -168,13 +168,7 @@ public sealed class ChatRoomManager : NotifyBase
                     IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
                     if (mentionedRoleIds.Count > 0)
                     {
-                        int index = Session.Messages.IndexOf(message);
-                        message = message with { MentionedRoleIds = mentionedRoleIds };
-                        if (index >= 0)
-                        {
-                            // 流式消息已在 Messages 集合中，原地替换为带 MentionedRoleIds 的副本
-                            Session.Messages[index] = message;
-                        }
+                        message.MentionedRoleIds = mentionedRoleIds;
                     }
 
                     // 系统消息等非流式消息不在 Messages 集合中，需要追加
@@ -184,9 +178,8 @@ public sealed class ChatRoomManager : NotifyBase
                     }
                     else
                     {
-                        // 流式消息已在 Messages 集合中，仅触发事件和持久化
-                        OnMessageAdded?.Invoke(this, message);
-
+                        // 流式消息已在 Messages 集合中，UI 通过 CollectionChanged 感知；
+                        // 无需重复触发 OnMessageAdded，仅持久化
                         if (Persistence is not null)
                         {
                             _ = Persistence.SavePublicMessageAsync(Session.SessionId, message)
@@ -315,7 +308,7 @@ public sealed class ChatRoomManager : NotifyBase
         IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
         if (mentionedRoleIds.Count > 0)
         {
-            message = message with { MentionedRoleIds = mentionedRoleIds };
+            message.MentionedRoleIds = mentionedRoleIds;
         }
 
         await AppendMessageAsync(message);
@@ -340,8 +333,15 @@ public sealed class ChatRoomManager : NotifyBase
 
         foreach (ChatRoomRole role in Roles)
         {
-            if (!string.IsNullOrWhiteSpace(role.Definition.ModelProviderId) &&
-                languageModelProviders.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? provider))
+            if (string.IsNullOrWhiteSpace(role.Definition.ModelProviderId))
+            {
+                // 未配置特定提供商时，注册所有可用提供商
+                foreach (ILanguageModelProvider provider in languageModelProviders.Values)
+                {
+                    role.EndpointManager.RegisterLanguageModelProvider(provider);
+                }
+            }
+            else if (languageModelProviders.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? provider))
             {
                 role.EndpointManager.RegisterLanguageModelProvider(provider);
             }

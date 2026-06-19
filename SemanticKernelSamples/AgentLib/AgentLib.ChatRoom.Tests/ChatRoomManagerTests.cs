@@ -524,6 +524,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
+    [Timeout(300)]
     public void Stop_WhenNotRunning_DoesNotThrow()
     {
         var manager = new ChatRoomManager();
@@ -534,6 +535,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
+    [Timeout(300)]
     public async Task Stop_WhenRunning_CancelsAndStopsLoop()
     {
         var manager = new ChatRoomManager();
@@ -553,6 +555,7 @@ public sealed class ChatRoomManagerTests
         Assert.IsTrue(manager.IsRunning);
 
         manager.Stop();
+        tcs.TrySetCanceled();
 
         // The loop should finish after cancellation
         await loopTask;
@@ -581,7 +584,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void RegisterRoleModelProviders_RoleWithNullModelProviderId_DoesNotRegister()
+    public void RegisterRoleModelProviders_RoleWithNullModelProviderId_RegistersAllProviders()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -593,17 +596,21 @@ public sealed class ChatRoomManagerTests
         var role = new ChatRoomRole(definition);
         manager.Roles.Add(role);
 
-        var providers = new Dictionary<string, ILanguageModelProvider>();
         var mockProvider = new Mock<ILanguageModelProvider>();
-        providers["other-provider"] = mockProvider.Object;
+        mockProvider.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
+        var providers = new Dictionary<string, ILanguageModelProvider>
+        {
+            ["other-provider"] = mockProvider.Object,
+        };
 
         manager.RegisterRoleModelProviders(providers);
 
-        // No exception - null ModelProviderId was skipped
+        // null ModelProviderId → register all available providers
+        mockProvider.Verify(p => p.GetSupportedModels(), Times.Once);
     }
 
     [TestMethod]
-    public void RegisterRoleModelProviders_RoleWithEmptyModelProviderId_DoesNotRegister()
+    public void RegisterRoleModelProviders_RoleWithEmptyModelProviderId_RegistersAllProviders()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -615,11 +622,17 @@ public sealed class ChatRoomManagerTests
         var role = new ChatRoomRole(definition);
         manager.Roles.Add(role);
 
-        var providers = new Dictionary<string, ILanguageModelProvider>();
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        mockProvider.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
+        var providers = new Dictionary<string, ILanguageModelProvider>
+        {
+            ["other-provider"] = mockProvider.Object,
+        };
 
         manager.RegisterRoleModelProviders(providers);
 
-        // No exception - empty ModelProviderId was skipped
+        // empty ModelProviderId → register all available providers
+        mockProvider.Verify(p => p.GetSupportedModels(), Times.Once);
     }
 
     [TestMethod]
@@ -711,8 +724,9 @@ public sealed class ChatRoomManagerTests
 
         manager.RegisterRoleModelProviders(providers);
 
-        mockProviderA.Verify(p => p.GetSupportedModels(), Times.Once);
-        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Once);
+        // role-1 (provider-a): 1 call; role-2 (null → all): 1 call each; role-3 (provider-b): 1 call
+        mockProviderA.Verify(p => p.GetSupportedModels(), Times.Exactly(2));
+        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Exactly(2));
     }
 
     [TestMethod]

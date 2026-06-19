@@ -93,13 +93,6 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
             else if (!lastMessage.IsSystemMessage)
             {
                 // LLM 消息
-                if (_humanInterjectionPending)
-                {
-                    // 正在回应人类，且队列已空 → 暂停
-                    _humanInterjectionPending = false;
-                    return Task.FromResult<ChatRoomRole?>(null);
-                }
-
                 // 非人类触发的自动循环中，检查 LLM 是否 @ 了别人
                 EnqueueMentions(lastMessage.MentionedRoleIds, roles);
 

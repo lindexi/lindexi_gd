@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -16,6 +18,8 @@ namespace ChatRoom.AvaloniaShell.ViewModels;
 /// <summary>
 /// 消息显示项 ViewModel。封装 <see cref="ChatRoomMessage"/> 供 UI 绑定。
 /// 当关联了 <see cref="CopilotChatMessage"/> 时，Content 自动跟踪其流式更新。
+/// 订阅 <see cref="ChatRoomMessage.PropertyChanged"/> 感知 <see cref="ChatRoomMessage.Content"/>
+/// 和 <see cref="ChatRoomMessage.IsStreaming"/> 的实时变更。
 /// </summary>
 public sealed class MessageItemViewModel : NotifyBase
 {
@@ -42,7 +46,7 @@ public sealed class MessageItemViewModel : NotifyBase
     /// <summary>
     /// 消息内容。关联了 <see cref="CopilotChatMessage"/> 时返回其实时 Content，否则返回静态内容。
     /// </summary>
-    public string Content => CopilotChatMessage?.Content ?? Message.StaticContent;
+    public string Content => Message.Content;
 
     /// <summary>
     /// 时间戳。
@@ -86,6 +90,7 @@ public sealed class MessageItemViewModel : NotifyBase
 
     /// <summary>
     /// 从 <see cref="ChatRoomMessage"/> 创建消息项。
+    /// 订阅 <see cref="ChatRoomMessage.PropertyChanged"/> 以感知流式内容更新和状态变更。
     /// </summary>
     public MessageItemViewModel(ChatRoomMessage message)
     {
@@ -98,34 +103,39 @@ public sealed class MessageItemViewModel : NotifyBase
         IsHumanMessage = message.IsHumanMessage;
         IsSystemMessage = message.IsSystemMessage;
 
-        if (CopilotChatMessage is not null)
-        {
-            CopilotChatMessage.PropertyChanged += OnCopilotChatMessagePropertyChanged;
-        }
+        message.PropertyChanged += OnMessagePropertyChanged;
     }
 
-    private void OnCopilotChatMessagePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    /// <summary>
+    /// 当底层 <see cref="ChatRoomMessage"/> 的 <see cref="ChatRoomMessage.Content"/>
+    /// 或 <see cref="ChatRoomMessage.IsStreaming"/> 变更时，桥接到 UI 线程。
+    /// </summary>
+    private void OnMessagePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(CopilotChatMessage.Content))
+        switch (e.PropertyName)
         {
-            return;
+            case nameof(ChatRoomMessage.Content):
+            case nameof(ChatRoomMessage.IsStreaming):
+                break;
+            default:
+                return;
         }
 
-        // CopilotChatMessage 的 PropertyChanged 在后台线程触发（RunStreamingAsync 循环），
-        // 需要调度到 UI 线程才能让 Avalonia 绑定更新界面。
         if (Dispatcher.UIThread.CheckAccess())
         {
-            OnPropertyChanged(nameof(Content));
+            OnPropertyChanged(e.PropertyName);
         }
         else
         {
-            Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(Content)));
+            Dispatcher.UIThread.Post(() => OnPropertyChanged(e.PropertyName));
         }
     }
 }
 
 /// <summary>
 /// 中栏聊天区 ViewModel。
+/// 通过订阅 <see cref="ChatRoomSession.Messages"/> 的 <see cref="INotifyCollectionChanged.CollectionChanged"/>
+/// 实时镜像业务层消息集合到 UI 层，无需依赖 <see cref="ChatRoomService.MessageAdded"/> 事件。
 /// </summary>
 public sealed class ChatViewModel : ViewModelBase
 {
@@ -134,9 +144,11 @@ public sealed class ChatViewModel : ViewModelBase
     private bool _isRunning;
     private string _currentSpeakerName = string.Empty;
     private CancellationTokenSource? _autoLoopCts;
+    private ChatRoomSession? _previousSession;
 
     /// <summary>
     /// 消息列表。流式消息和历史消息统一在此集合中展示。
+    /// 通过 <see cref="INotifyCollectionChanged.CollectionChanged"/> 实时镜像 <see cref="ChatRoomSession.Messages"/>。
     /// </summary>
     public ObservableCollection<MessageItemViewModel> Messages { get; } = [];
 
@@ -211,14 +223,8 @@ public sealed class ChatViewModel : ViewModelBase
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
         StopCommand = new SimpleCommand(StopAutoLoop, () => CanStop);
 
-        _chatRoomService.MessageAdded += OnMessageAdded;
         _chatRoomService.SpeakingChanged += OnSpeakingChanged;
         _chatRoomService.SessionChanged += OnSessionChanged;
-    }
-
-    private void OnMessageAdded(object? sender, ChatRoomMessage e)
-    {
-        Dispatcher.UIThread.Post(() => Messages.Add(new MessageItemViewModel(e)));
     }
 
     private void OnSpeakingChanged(object? sender, (ChatRoomRole? Previous, ChatRoomRole? Current) e)
@@ -230,15 +236,48 @@ public sealed class ChatViewModel : ViewModelBase
     {
         Dispatcher.UIThread.Post(() =>
         {
+            // 退订旧会话的 CollectionChanged
+            if (_previousSession is not null)
+            {
+                _previousSession.Messages.CollectionChanged -= OnMessagesCollectionChanged;
+                _previousSession = null;
+            }
+
             Messages.Clear();
             IsRunning = false;
 
             if (manager is not null)
             {
+                _previousSession = manager.Session;
+
+                // 订阅新会话的 CollectionChanged，实时镜像消息
+                manager.Session.Messages.CollectionChanged += OnMessagesCollectionChanged;
+
+                // 加载已有消息
                 foreach (ChatRoomMessage msg in manager.Session.Messages)
                 {
                     Messages.Add(new MessageItemViewModel(msg));
                 }
+            }
+        });
+    }
+
+    /// <summary>
+    /// 当 <see cref="ChatRoomSession.Messages"/> 集合变更时，实时镜像到 UI 的 <see cref="Messages"/> 集合。
+    /// 流式消息加入时立即创建 ViewModel，UI 绑定即可感知实时更新。
+    /// </summary>
+    private void OnMessagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action != NotifyCollectionChangedAction.Add || e.NewItems is null)
+        {
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            foreach (ChatRoomMessage msg in e.NewItems)
+            {
+                Messages.Add(new MessageItemViewModel(msg));
             }
         });
     }
@@ -260,7 +299,7 @@ public sealed class ChatViewModel : ViewModelBase
         InputText = string.Empty;
 
         // 人类插话
-        await _chatRoomService.HumanInterjectAsync(text, "human", "我").ConfigureAwait(false);
+        await _chatRoomService.HumanInterjectAsync(text, "human", "我");
 
         // 启动自动循环让 AI 角色回复
         if (!IsRunning)
@@ -269,7 +308,7 @@ public sealed class ChatViewModel : ViewModelBase
             _autoLoopCts = new CancellationTokenSource();
             try
             {
-                await _chatRoomService.StartAutoLoopAsync(_autoLoopCts.Token).ConfigureAwait(false);
+                await _chatRoomService.StartAutoLoopAsync(_autoLoopCts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -279,7 +318,7 @@ public sealed class ChatViewModel : ViewModelBase
             {
                 _autoLoopCts?.Dispose();
                 _autoLoopCts = null;
-                Dispatcher.UIThread.Post(() => IsRunning = false);
+                IsRunning = false;
             }
         }
     }

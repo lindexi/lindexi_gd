@@ -287,8 +287,8 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("expert", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
         };
 
-        var humanMessage = ChatRoomMessage.CreateHuman("@expert help me", "human", "Human")
-            with { MentionedRoleIds = new[] { "expert" } };
+        var humanMessage = ChatRoomMessage.CreateHuman("@expert help me", "human", "Human");
+        humanMessage.MentionedRoleIds = new[] { "expert" };
 
         var history = new List<ChatRoomMessage> { humanMessage };
 
@@ -307,8 +307,8 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("expert2", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
         };
 
-        var humanMessage = ChatRoomMessage.CreateHuman("@expert1 @expert2 help", "human", "Human")
-            with { MentionedRoleIds = new[] { "expert1", "expert2" } };
+        var humanMessage = ChatRoomMessage.CreateHuman("@expert1 @expert2 help", "human", "Human");
+        humanMessage.MentionedRoleIds = new[] { "expert1", "expert2" };
 
         var history = new List<ChatRoomMessage> { humanMessage };
 
@@ -333,8 +333,8 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
         };
 
-        var humanMessage = ChatRoomMessage.CreateHuman("@A @B", "human", "Human")
-            with { MentionedRoleIds = new[] { "A", "B" } };
+        var humanMessage = ChatRoomMessage.CreateHuman("@A @B", "human", "Human");
+        humanMessage.MentionedRoleIds = new[] { "A", "B" };
 
         var history = new List<ChatRoomMessage> { humanMessage };
 
@@ -386,8 +386,8 @@ public sealed class RoundRobinSpeakerSelectorTests
             CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
         };
 
-        var humanMessage = ChatRoomMessage.CreateHuman("@A @B", "human", "Human")
-            with { MentionedRoleIds = new[] { "A", "B" } };
+        var humanMessage = ChatRoomMessage.CreateHuman("@A @B", "human", "Human");
+        humanMessage.MentionedRoleIds = new[] { "A", "B" };
 
         var history = new List<ChatRoomMessage> { humanMessage };
 
@@ -419,8 +419,8 @@ public sealed class RoundRobinSpeakerSelectorTests
         };
 
         // LLM @ expert（非人类触发）
-        var llmMessage = ChatRoomMessage.CreateAssistant("need @expert", "helper", "Helper")
-            with { MentionedRoleIds = new[] { "expert" } };
+        var llmMessage = ChatRoomMessage.CreateAssistant("need @expert", "helper", "Helper");
+        llmMessage.MentionedRoleIds = new[] { "expert" };
 
         // 先让 selector 知道当前在正常轮次中（不从人类插话开始）
         await selector.SelectNextSpeakerAsync(roles, []); // helper first
@@ -448,8 +448,8 @@ public sealed class RoundRobinSpeakerSelectorTests
         };
 
         // A @ expert
-        var aMsg = ChatRoomMessage.CreateAssistant("need @expert", "A", "A")
-            with { MentionedRoleIds = new[] { "expert" } };
+        var aMsg = ChatRoomMessage.CreateAssistant("need @expert", "A", "A");
+        aMsg.MentionedRoleIds = new[] { "expert" };
 
         // 先跑一轮让状态初始化
         await selector.SelectNextSpeakerAsync(roles, []); // A (index 0)
@@ -486,8 +486,8 @@ public sealed class RoundRobinSpeakerSelectorTests
         };
 
         // A @ B
-        var aMsg = ChatRoomMessage.CreateAssistant("hey @B", "A", "A")
-            with { MentionedRoleIds = new[] { "B" } };
+        var aMsg = ChatRoomMessage.CreateAssistant("hey @B", "A", "A");
+        aMsg.MentionedRoleIds = new[] { "B" };
 
         await selector.SelectNextSpeakerAsync(roles, []); // init
 
@@ -501,8 +501,8 @@ public sealed class RoundRobinSpeakerSelectorTests
         Assert.AreEqual("B", result1!.Definition.RoleId);
 
         // B @ C（链式）
-        var bMsg = ChatRoomMessage.CreateAssistant("hey @C", "B", "B")
-            with { MentionedRoleIds = new[] { "C" } };
+        var bMsg = ChatRoomMessage.CreateAssistant("hey @C", "B", "B");
+        bMsg.MentionedRoleIds = new[] { "C" };
 
         var history2 = new List<ChatRoomMessage> { aMsg, bMsg };
 

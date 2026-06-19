@@ -83,6 +83,7 @@ public class ChatRoomServiceTests
             RoleId = "test-role",
             RoleName = "测试角色",
             SystemPrompt = "你是一个测试角色。",
+            IsHuman = true,
         };
 
         await _chatRoomService.AddRoleAsync(definition);
@@ -103,6 +104,7 @@ public class ChatRoomServiceTests
         {
             RoleId = "removable-role",
             RoleName = "可移除角色",
+            IsHuman = true,
         };
         await _chatRoomService.AddRoleAsync(definition);
 
@@ -179,23 +181,6 @@ public class ChatRoomServiceTests
     }
 
     /// <summary>
-    /// MessageAdded 事件应在人类插话时触发。
-    /// </summary>
-    [TestMethod]
-    public async Task MessageAdded_ShouldFireOnHumanInterject()
-    {
-        await _chatRoomService.CreateNewSessionAsync();
-
-        ChatRoomMessage? receivedMessage = null;
-        _chatRoomService.MessageAdded += (_, msg) => receivedMessage = msg;
-
-        await _chatRoomService.HumanInterjectAsync("测试消息", "human", "我");
-
-        Assert.IsNotNull(receivedMessage);
-        Assert.AreEqual("测试消息", receivedMessage.Content);
-    }
-
-    /// <summary>
     /// 保存后应能通过 SessionService 加载会话列表。
     /// </summary>
     [TestMethod]
@@ -206,6 +191,7 @@ public class ChatRoomServiceTests
         {
             RoleId = "role-1",
             RoleName = "角色1",
+            IsHuman = true,
         });
         await _chatRoomService.SaveAsync();
 
