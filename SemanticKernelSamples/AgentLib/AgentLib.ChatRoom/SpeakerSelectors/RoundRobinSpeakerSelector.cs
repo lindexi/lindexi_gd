@@ -42,7 +42,7 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
         IReadOnlyList<ChatRoomMessage> history,
         CancellationToken cancellationToken = default)
     {
-        if (roles is null || roles.Count == 0)
+        if (roles.Count == 0)
         {
             return Task.FromResult<ChatRoomRole?>(null);
         }
