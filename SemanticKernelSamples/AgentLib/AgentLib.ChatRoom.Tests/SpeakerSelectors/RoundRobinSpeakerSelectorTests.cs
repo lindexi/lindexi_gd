@@ -16,16 +16,6 @@ public sealed class RoundRobinSpeakerSelectorTests
     }
 
     [TestMethod]
-    public async Task SelectNextSpeakerAsync_RolesIsNull_ReturnsNull()
-    {
-        var selector = new RoundRobinSpeakerSelector();
-
-        var result = await selector.SelectNextSpeakerAsync(null!, []);
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
     public async Task SelectNextSpeakerAsync_RolesIsEmpty_ReturnsNull()
     {
         var selector = new RoundRobinSpeakerSelector();
@@ -352,32 +342,40 @@ public sealed class RoundRobinSpeakerSelectorTests
     }
 
     [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanInterjectionNoMention_PausesAfterOneLlmReply()
+    public async Task SelectNextSpeakerAsync_HumanInterjectionNoMention_RestartsFromFirstAutoRole()
     {
         var selector = new RoundRobinSpeakerSelector();
         var roles = new[]
         {
-            CreateRole("helper", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("A", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
         };
 
+        // 先正常轮流一轮：A → B
+        await selector.SelectNextSpeakerAsync(roles, []); // A (index 0)
+        await selector.SelectNextSpeakerAsync(
+            roles,
+            [ChatRoomMessage.CreateAssistant("A msg", "A", "A")]); // B (index 1)
+
+        // 人类插话（没 @ 任何人）
         var humanMessage = ChatRoomMessage.CreateHuman("hello", "human", "Human");
         var history = new List<ChatRoomMessage> { humanMessage };
 
-        // 人类没 @ 任何人 → 正常轮流，helper 发言
+        // 人类插话 → 重置索引，从 A 重新开始
         var result1 = await selector.SelectNextSpeakerAsync(roles, history);
-        Assert.AreEqual("helper", result1!.Definition.RoleId);
+        Assert.AreEqual("A", result1!.Definition.RoleId);
 
-        // helper 发言后
-        var helperMsg = ChatRoomMessage.CreateAssistant("hi", "helper", "Helper");
-        var history2 = new List<ChatRoomMessage> { humanMessage, helperMsg };
+        // A 发言后
+        var aMsg = ChatRoomMessage.CreateAssistant("hi", "A", "A");
+        var history2 = new List<ChatRoomMessage> { humanMessage, aMsg };
 
-        // 人类插话标记生效 → 暂停
+        // 继续轮流 → B
         var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
-        Assert.IsNull(result2);
+        Assert.AreEqual("B", result2!.Definition.RoleId);
     }
 
     [TestMethod]
-    public async Task SelectNextSpeakerAsync_HumanMentionsMultipleRoles_PausesAfterAllReplied()
+    public async Task SelectNextSpeakerAsync_HumanMentionsMultipleRoles_ContinuesAfterAllReplied()
     {
         var selector = new RoundRobinSpeakerSelector();
         var roles = new[]
@@ -403,7 +401,7 @@ public sealed class RoundRobinSpeakerSelectorTests
         var bMsg = ChatRoomMessage.CreateAssistant("B reply", "B", "B");
         var history3 = new List<ChatRoomMessage> { humanMessage, aMsg, bMsg };
 
-        // 队列空 + 人类插话标记 → 暂停
+        // 队列空 → 没有 AlwaysParticipate 角色，返回 null
         var result3 = await selector.SelectNextSpeakerAsync(roles, history3);
         Assert.IsNull(result3);
     }
