@@ -18,7 +18,6 @@ public sealed class ChatRoomSession : NotifyBase
 {
     private string _title = "聊天室";
     private IMainThreadDispatcher? _mainThreadDispatcher;
-    private ChatRoomMessage? _streamingMessage;
 
     /// <summary>
     /// 使用指定的会话 ID 和创建时间创建聊天室会话。
@@ -73,16 +72,6 @@ public sealed class ChatRoomSession : NotifyBase
     /// 公开消息列表。
     /// </summary>
     public ObservableCollection<ChatRoomMessage> Messages { get; } = [];
-
-    /// <summary>
-    /// 当前正在流式生成的消息。角色发言期间设置此属性，发言完成后置为 <see langword="null"/>。
-    /// UI 绑定此属性的 <see cref="ChatRoomMessage.CopilotChatMessage"/> 即可感知流式内容更新。
-    /// </summary>
-    public ChatRoomMessage? StreamingMessage
-    {
-        get => _streamingMessage;
-        set => SetField(ref _streamingMessage, value);
-    }
 
     /// <summary>
     /// 主线程调度器。设置后，<see cref="AddMessage"/> 将通过调度器回到主线程修改 <see cref="Messages"/>。

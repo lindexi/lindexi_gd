@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
 using Moq;
@@ -244,7 +244,7 @@ public sealed class ChatRoomSessionTests
         var session = new ChatRoomSession(Guid.NewGuid(), DateTimeOffset.Now);
         var message = new ChatRoomMessage
         {
-            Content = "Hello",
+            StaticContent = "Hello",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         };
@@ -265,7 +265,7 @@ public sealed class ChatRoomSessionTests
         var timestamp = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var message = new ChatRoomMessage
         {
-            Content = "Hello",
+            StaticContent = "Hello",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
             Timestamp = timestamp,
@@ -305,7 +305,7 @@ public sealed class ChatRoomSessionTests
         };
         var message = new ChatRoomMessage
         {
-            Content = "Hello",
+            StaticContent = "Hello",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         };
@@ -333,7 +333,7 @@ public sealed class ChatRoomSessionTests
         };
         var message = new ChatRoomMessage
         {
-            Content = "Hello",
+            StaticContent = "Hello",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         };
@@ -354,7 +354,7 @@ public sealed class ChatRoomSessionTests
         var session = new ChatRoomSession(Guid.NewGuid(), DateTimeOffset.Now);
         var message = new ChatRoomMessage
         {
-            Content = "Hello",
+            StaticContent = "Hello",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         };
@@ -375,7 +375,7 @@ public sealed class ChatRoomSessionTests
         var timestamp = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var message = new ChatRoomMessage
         {
-            Content = "Hello",
+            StaticContent = "Hello",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
             Timestamp = timestamp,
@@ -415,13 +415,13 @@ public sealed class ChatRoomSessionTests
         var session = new ChatRoomSession(Guid.NewGuid(), DateTimeOffset.Now);
         var message1 = new ChatRoomMessage
         {
-            Content = "Msg1",
+            StaticContent = "Msg1",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         };
         var message2 = new ChatRoomMessage
         {
-            Content = "Msg2",
+            StaticContent = "Msg2",
             SenderRoleId = "role2",
             SenderRoleName = "Role Two",
         };
@@ -447,21 +447,21 @@ public sealed class ChatRoomSessionTests
         var t3 = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var message1 = new ChatRoomMessage
         {
-            Content = "Msg1",
+            StaticContent = "Msg1",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
             Timestamp = t1,
         };
         var message2 = new ChatRoomMessage
         {
-            Content = "Msg2",
+            StaticContent = "Msg2",
             SenderRoleId = "role2",
             SenderRoleName = "Role Two",
             Timestamp = t2,
         };
         var message3 = new ChatRoomMessage
         {
-            Content = "Msg3",
+            StaticContent = "Msg3",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
             Timestamp = t3,
@@ -487,14 +487,14 @@ public sealed class ChatRoomSessionTests
         var t2 = new DateTimeOffset(2025, 6, 1, 11, 0, 0, TimeSpan.Zero);
         var message1 = new ChatRoomMessage
         {
-            Content = "Msg1",
+            StaticContent = "Msg1",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
             Timestamp = t1,
         };
         var message2 = new ChatRoomMessage
         {
-            Content = "Msg2",
+            StaticContent = "Msg2",
             SenderRoleId = "role2",
             SenderRoleName = "Role Two",
             Timestamp = t2,
@@ -552,7 +552,7 @@ public sealed class ChatRoomSessionTests
         var session = new ChatRoomSession(Guid.NewGuid(), DateTimeOffset.Now);
         var message = new ChatRoomMessage
         {
-            Content = "Hello",
+            StaticContent = "Hello",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         };
@@ -606,13 +606,13 @@ public sealed class ChatRoomSessionTests
             {
                 new()
                 {
-                    Content = "Msg1",
+                    StaticContent = "Msg1",
                     SenderRoleId = "role1",
                     SenderRoleName = "Role One",
                 },
                 new()
                 {
-                    Content = "Msg2",
+                    StaticContent = "Msg2",
                     SenderRoleId = "role2",
                     SenderRoleName = "Role Two",
                 },
@@ -640,13 +640,13 @@ public sealed class ChatRoomSessionTests
             {
                 new()
                 {
-                    Content = "Msg1",
+                    StaticContent = "Msg1",
                     SenderRoleId = "role1",
                     SenderRoleName = "Role One",
                 },
                 new()
                 {
-                    Content = "Msg2",
+                    StaticContent = "Msg2",
                     SenderRoleId = "role2",
                     SenderRoleName = "Role Two",
                 },
@@ -707,14 +707,14 @@ public sealed class ChatRoomSessionTests
         var session = new ChatRoomSession(sessionId, createdAt);
         session.AddMessage(new ChatRoomMessage
         {
-            Content = "Msg1",
+            StaticContent = "Msg1",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
             Timestamp = new DateTimeOffset(2025, 6, 1, 11, 0, 0, TimeSpan.Zero),
         });
         session.AddMessage(new ChatRoomMessage
         {
-            Content = "Msg2",
+            StaticContent = "Msg2",
             SenderRoleId = "role2",
             SenderRoleName = "Role Two",
             Timestamp = lastTimestamp,
@@ -823,13 +823,13 @@ public sealed class ChatRoomSessionTests
         var session = new ChatRoomSession(Guid.NewGuid(), DateTimeOffset.Now);
         var message1 = new ChatRoomMessage
         {
-            Content = "Msg1",
+            StaticContent = "Msg1",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         };
         var message2 = new ChatRoomMessage
         {
-            Content = "Msg2",
+            StaticContent = "Msg2",
             SenderRoleId = "role2",
             SenderRoleName = "Role Two",
         };
@@ -853,7 +853,7 @@ public sealed class ChatRoomSessionTests
         var session = new ChatRoomSession(Guid.NewGuid(), DateTimeOffset.Now);
         session.AddMessage(new ChatRoomMessage
         {
-            Content = "Msg1",
+            StaticContent = "Msg1",
             SenderRoleId = "role1",
             SenderRoleName = "Role One",
         });
