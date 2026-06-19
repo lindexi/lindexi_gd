@@ -99,6 +99,18 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     }
 
     /// <summary>
+    /// 文本内容追加时触发，事件参数为本次追加的增量文本。
+    /// 仅在 <see cref="AppendText"/> 调用时触发，不包含全量替换场景。
+    /// </summary>
+    public event EventHandler<string>? TextAppended;
+
+    /// <summary>
+    /// 推理内容追加时触发，事件参数为本次追加的增量文本。
+    /// 仅在 <see cref="AppendReasoning"/> 调用时触发，不包含全量替换场景。
+    /// </summary>
+    public event EventHandler<string>? ReasoningAppended;
+
+    /// <summary>
     /// 消息的角色（用户、助手、系统等）。
     /// </summary>
     public ChatRole Role { get; }
@@ -514,10 +526,13 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         if (MessageItems.LastOrDefault() is CopilotChatTextItem lastTextItem)
         {
             lastTextItem.Text += text;
-            return;
+        }
+        else
+        {
+            MessageItems.Add(new CopilotChatTextItem(text));
         }
 
-        MessageItems.Add(new CopilotChatTextItem(text));
+        TextAppended?.Invoke(this, text);
     }
 
     /// <summary>
@@ -534,10 +549,13 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         if (MessageItems.LastOrDefault() is CopilotChatReasoningItem lastReasoningItem)
         {
             lastReasoningItem.Text += text;
-            return;
+        }
+        else
+        {
+            MessageItems.Add(new CopilotChatReasoningItem(text));
         }
 
-        MessageItems.Add(new CopilotChatReasoningItem(text));
+        ReasoningAppended?.Invoke(this, text);
     }
 
     /// <summary>

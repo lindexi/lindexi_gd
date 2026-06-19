@@ -271,4 +271,110 @@ public class CopilotChatMessageTests
         Assert.AreEqual(100, clone.TotalUsageDetails!.TotalTokenCount);
         Assert.AreEqual(100, clone.CurrentUsageDetails!.TotalTokenCount);
     }
+
+    [TestMethod]
+    [Description("AppendText 追加文本时应触发 TextAppended 事件并携带增量文本")]
+    public void AppendText_WhenCalled_TriggersTextAppendedWithIncrementalText()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+        var receivedTexts = new List<string>();
+        message.TextAppended += (_, text) => receivedTexts.Add(text);
+
+        message.AppendText("Hello");
+        message.AppendText(" World");
+
+        Assert.HasCount(2, receivedTexts);
+        Assert.AreEqual("Hello", receivedTexts[0]);
+        Assert.AreEqual(" World", receivedTexts[1]);
+        Assert.AreEqual("Hello World", message.Content);
+    }
+
+    [TestMethod]
+    [Description("AppendText 传入空字符串或 null 时不应触发 TextAppended 事件")]
+    public void AppendText_WhenNullOrEmpty_DoesNotTriggerTextAppended()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+        var triggered = false;
+        message.TextAppended += (_, _) => triggered = true;
+
+        message.AppendText("");
+        message.AppendText(null!);
+
+        Assert.IsFalse(triggered);
+    }
+
+    [TestMethod]
+    [Description("AppendReasoning 追加思考内容时应触发 ReasoningAppended 事件并携带增量文本")]
+    public void AppendReasoning_WhenCalled_TriggersReasoningAppendedWithIncrementalText()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+        var receivedTexts = new List<string>();
+        message.ReasoningAppended += (_, text) => receivedTexts.Add(text);
+
+        message.AppendReasoning("先分析");
+        message.AppendReasoning("再总结");
+
+        Assert.HasCount(2, receivedTexts);
+        Assert.AreEqual("先分析", receivedTexts[0]);
+        Assert.AreEqual("再总结", receivedTexts[1]);
+        Assert.AreEqual("先分析再总结", message.Reason);
+    }
+
+    [TestMethod]
+    [Description("AppendReasoning 传入空字符串或 null 时不应触发 ReasoningAppended 事件")]
+    public void AppendReasoning_WhenNullOrEmpty_DoesNotTriggerReasoningAppended()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+        var triggered = false;
+        message.ReasoningAppended += (_, _) => triggered = true;
+
+        message.AppendReasoning("");
+        message.AppendReasoning(null!);
+
+        Assert.IsFalse(triggered);
+    }
+
+    [TestMethod]
+    [Description("ClearMessageItems 后 TextAppended 和 ReasoningAppended 事件订阅应保持不变")]
+    public void ClearMessageItems_WhenCalled_DoesNotRemoveEventSubscriptions()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, "初始内容");
+        var textReceived = new List<string>();
+        var reasoningReceived = new List<string>();
+        message.TextAppended += (_, text) => textReceived.Add(text);
+        message.ReasoningAppended += (_, text) => reasoningReceived.Add(text);
+
+        message.ClearMessageItems();
+        message.AppendText("新文本");
+        message.AppendReasoning("新思考");
+
+        Assert.HasCount(1, textReceived);
+        Assert.AreEqual("新文本", textReceived[0]);
+        Assert.HasCount(1, reasoningReceived);
+        Assert.AreEqual("新思考", reasoningReceived[0]);
+    }
+
+    [TestMethod]
+    [Description("不订阅 TextAppended 时不影响 AppendText 正常行为")]
+    public void AppendText_WithoutSubscription_WorksNormally()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+
+        message.AppendText("A");
+        message.AppendText("B");
+
+        Assert.AreEqual("AB", message.Content);
+    }
+
+    [TestMethod]
+    [Description("不订阅 ReasoningAppended 时不影响 AppendReasoning 正常行为")]
+    public void AppendReasoning_WithoutSubscription_WorksNormally()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, string.Empty);
+
+        message.AppendReasoning("X");
+        message.AppendReasoning("Y");
+
+        Assert.AreEqual("XY", message.Reason);
+    }
 }
