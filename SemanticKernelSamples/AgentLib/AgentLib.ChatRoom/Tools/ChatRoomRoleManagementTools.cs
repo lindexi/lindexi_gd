@@ -35,8 +35,8 @@ public static class ChatRoomRoleManagementTools
                 name: "list_characters",
                 description: "列出当前聊天室中的所有角色，包括角色ID（RoleId）、名称（RoleName）、人设摘要、模型信息和参与模式。"),
             AIFunctionFactory.Create(
-                (string roleName, string systemPrompt, string? modelId, string? modelProviderId, string? memoryContent, CancellationToken _) =>
-                    CreateCharacter(chatRoomManager, roleName, systemPrompt, modelId, modelProviderId, memoryContent),
+                (string roleName, string systemPrompt, string? modelId, string? modelProviderId, string? memoryContent, CancellationToken ct) =>
+                    CreateCharacter(chatRoomManager, roleName, systemPrompt, modelId, modelProviderId, memoryContent, ct),
                 name: "create_character",
                 description: "创建一个新角色并立即加入当前聊天室。参数：roleName（必填，角色显示名）、systemPrompt（必填，角色人设）、modelId（可选）、modelProviderId（可选）、memoryContent（可选，长期记忆）。"),
             AIFunctionFactory.Create(
@@ -77,13 +77,14 @@ public static class ChatRoomRoleManagementTools
         return sb.ToString().TrimEnd();
     }
 
-    private static string CreateCharacter(
+    private static async Task<string> CreateCharacter(
         ChatRoomManager chatRoomManager,
         string roleName,
         string systemPrompt,
         string? modelId,
         string? modelProviderId,
-        string? memoryContent)
+        string? memoryContent,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(roleName))
         {
@@ -112,7 +113,7 @@ public static class ChatRoomRoleManagementTools
             };
 
             var role = new ChatRoomRole(definition);
-            chatRoomManager.Roles.Add(role);
+            await chatRoomManager.AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
 
             var sb = new StringBuilder();
             sb.AppendLine("✅ 角色创建成功并已加入聊天室：");

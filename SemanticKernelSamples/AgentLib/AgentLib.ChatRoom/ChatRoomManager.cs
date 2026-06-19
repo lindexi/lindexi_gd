@@ -26,6 +26,7 @@ public sealed class ChatRoomManager : NotifyBase
     private bool _isRunning;
     private ChatRoomRole? _currentSpeaker;
     private CancellationTokenSource? _autoLoopCancellationTokenSource;
+    private IReadOnlyDictionary<string, ILanguageModelProvider>? _languageModelProviders;
 
     /// <summary>
     /// 使用指定的会话创建聊天室管理器。
@@ -326,28 +327,87 @@ public sealed class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
-    /// 为所有配置了独立模型提供商 ID 的角色注册模型提供商。
-    /// 应在调用 <see cref="StartAutoLoopAsync"/> 前由外部完成模型提供商的注册并调用此方法。
+    /// 添加角色到聊天室并完成初始化（技能加载、模型注册）。
+    /// 外部应通过此方法添加角色，不直接操作 <see cref="Roles"/> 集合。
+    /// </summary>
+    /// <param name="role">要添加的角色。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task AddRoleAsync(ChatRoomRole role, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+
+        await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
+        RegisterModelProvidersForRole(role);
+        Roles.Add(role);
+    }
+
+    /// <summary>
+    /// 从聊天室移除指定角色。
+    /// </summary>
+    /// <param name="roleId">要移除的角色 ID。</param>
+    public void RemoveRole(string roleId)
+    {
+        if (string.IsNullOrWhiteSpace(roleId))
+        {
+            throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
+        }
+
+        ChatRoomRole? role = Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
+        if (role is not null)
+        {
+            Roles.Remove(role);
+        }
+    }
+
+    /// <summary>
+    /// 为单个角色注册已存储的模型提供商。
+    /// 需先通过 <see cref="RegisterRoleModelProviders"/> 注册 providers 字典。
+    /// 人类角色跳过注册；未配置特定提供商时注册所有可用提供商。
+    /// </summary>
+    /// <param name="role">目标角色。</param>
+    public void RegisterModelProvidersForRole(ChatRoomRole role)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+
+        if (_languageModelProviders is null)
+        {
+            return;
+        }
+
+        if (role.Definition.IsHuman)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(role.Definition.ModelProviderId))
+        {
+            // 未配置特定提供商时，注册所有可用提供商
+            foreach (ILanguageModelProvider provider in _languageModelProviders.Values)
+            {
+                role.EndpointManager.RegisterLanguageModelProvider(provider);
+            }
+        }
+        else if (_languageModelProviders.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? provider))
+        {
+            role.EndpointManager.RegisterLanguageModelProvider(provider);
+        }
+    }
+
+    /// <summary>
+    /// 注册模型提供商字典并应用到所有现有角色。
+    /// 字典会被存储，后续通过 <see cref="AddRoleAsync"/> 添加的角色也会自动注册。
+    /// 应在调用 <see cref="StartAutoLoopAsync"/> 前调用此方法。
     /// </summary>
     /// <param name="languageModelProviders">按 Provider ID 索引的语言模型提供商字典。</param>
     public void RegisterRoleModelProviders(IReadOnlyDictionary<string, ILanguageModelProvider> languageModelProviders)
     {
         ArgumentNullException.ThrowIfNull(languageModelProviders);
 
+        _languageModelProviders = languageModelProviders;
+
         foreach (ChatRoomRole role in Roles)
         {
-            if (string.IsNullOrWhiteSpace(role.Definition.ModelProviderId))
-            {
-                // 未配置特定提供商时，注册所有可用提供商
-                foreach (ILanguageModelProvider provider in languageModelProviders.Values)
-                {
-                    role.EndpointManager.RegisterLanguageModelProvider(provider);
-                }
-            }
-            else if (languageModelProviders.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? provider))
-            {
-                role.EndpointManager.RegisterLanguageModelProvider(provider);
-            }
+            RegisterModelProvidersForRole(role);
         }
     }
 
@@ -395,8 +455,7 @@ public sealed class ChatRoomManager : NotifyBase
                         {
                             MainThreadDispatcher = Session.MainThreadDispatcher,
                         };
-            await role.InitializeAsync(cancellationToken);
-            Roles.Add(role);
+            await AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
         }
 
         // 恢复消息

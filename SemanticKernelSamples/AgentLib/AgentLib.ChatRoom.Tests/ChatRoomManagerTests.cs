@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
+using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using Moq;
 
@@ -58,7 +59,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void CanStartLoop_WhenNotRunningAndHasRoles_ReturnsTrue()
+    public async Task CanStartLoop_WhenNotRunningAndHasRoles_ReturnsTrue()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -68,13 +69,13 @@ public sealed class ChatRoomManagerTests
             IsHuman = false,
         };
         var role = new ChatRoomRole(definition);
-        manager.Roles.Add(role);
+        await manager.AddRoleAsync(role);
 
         Assert.IsTrue(manager.CanStartLoop);
     }
 
     [TestMethod]
-    public void CanStartLoop_WhenNotRunningAndHasMultipleRoles_ReturnsTrue()
+    public async Task CanStartLoop_WhenNotRunningAndHasMultipleRoles_ReturnsTrue()
     {
         var manager = new ChatRoomManager();
         var definition1 = new ChatRoomRoleDefinition
@@ -87,8 +88,8 @@ public sealed class ChatRoomManagerTests
             RoleId = "role-2",
             RoleName = "Role 2",
         };
-        manager.Roles.Add(new ChatRoomRole(definition1));
-        manager.Roles.Add(new ChatRoomRole(definition2));
+        await manager.AddRoleAsync(new ChatRoomRole(definition1));
+        await manager.AddRoleAsync(new ChatRoomRole(definition2));
 
         Assert.IsTrue(manager.CanStartLoop);
     }
@@ -157,7 +158,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void CanStartLoop_WhenRoleRemovedAfterBeingAdded_ReturnsFalse()
+    public async Task CanStartLoop_WhenRoleRemovedAfterBeingAdded_ReturnsFalse()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -166,11 +167,11 @@ public sealed class ChatRoomManagerTests
             RoleName = "Test Role",
         };
         var role = new ChatRoomRole(definition);
-        manager.Roles.Add(role);
+        await manager.AddRoleAsync(role);
 
         Assert.IsTrue(manager.CanStartLoop);
 
-        manager.Roles.Remove(role);
+        manager.RemoveRole(role.Definition.RoleId);
 
         Assert.IsFalse(manager.CanStartLoop);
     }
@@ -429,7 +430,7 @@ public sealed class ChatRoomManagerTests
             IsHuman = false,
         };
         var role = new ChatRoomRole(definition);
-        manager.Roles.Add(role);
+        await manager.AddRoleAsync(role);
 
         var mockSpeaker = new Mock<ISpeakerSelector>();
         mockSpeaker
@@ -502,7 +503,7 @@ public sealed class ChatRoomManagerTests
             IsHuman = true,
         };
         var humanRole = new ChatRoomRole(definition);
-        manager.Roles.Add(humanRole);
+        await manager.AddRoleAsync(humanRole);
 
         var mockSpeaker = new Mock<ISpeakerSelector>();
         mockSpeaker
@@ -584,7 +585,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void RegisterRoleModelProviders_RoleWithNullModelProviderId_RegistersAllProviders()
+    public async Task RegisterRoleModelProviders_RoleWithNullModelProviderId_RegistersAllProviders()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -594,7 +595,7 @@ public sealed class ChatRoomManagerTests
             ModelProviderId = null,
         };
         var role = new ChatRoomRole(definition);
-        manager.Roles.Add(role);
+        await manager.AddRoleAsync(role);
 
         var mockProvider = new Mock<ILanguageModelProvider>();
         mockProvider.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
@@ -610,7 +611,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void RegisterRoleModelProviders_RoleWithEmptyModelProviderId_RegistersAllProviders()
+    public async Task RegisterRoleModelProviders_RoleWithEmptyModelProviderId_RegistersAllProviders()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -620,7 +621,7 @@ public sealed class ChatRoomManagerTests
             ModelProviderId = "",
         };
         var role = new ChatRoomRole(definition);
-        manager.Roles.Add(role);
+        await manager.AddRoleAsync(role);
 
         var mockProvider = new Mock<ILanguageModelProvider>();
         mockProvider.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
@@ -636,7 +637,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void RegisterRoleModelProviders_MatchingProvider_RegistersOnEndpointManager()
+    public async Task RegisterRoleModelProviders_MatchingProvider_RegistersOnEndpointManager()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -646,7 +647,7 @@ public sealed class ChatRoomManagerTests
             ModelProviderId = "my-provider",
         };
         var role = new ChatRoomRole(definition);
-        manager.Roles.Add(role);
+        await manager.AddRoleAsync(role);
 
         var mockProvider = new Mock<ILanguageModelProvider>();
         var models = new List<ILanguageModel>();
@@ -663,7 +664,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void RegisterRoleModelProviders_ProviderNotInDictionary_DoesNotRegister()
+    public async Task RegisterRoleModelProviders_ProviderNotInDictionary_DoesNotRegister()
     {
         var manager = new ChatRoomManager();
         var definition = new ChatRoomRoleDefinition
@@ -673,7 +674,7 @@ public sealed class ChatRoomManagerTests
             ModelProviderId = "missing-provider",
         };
         var role = new ChatRoomRole(definition);
-        manager.Roles.Add(role);
+        await manager.AddRoleAsync(role);
 
         var providers = new Dictionary<string, ILanguageModelProvider>();
         var mockProvider = new Mock<ILanguageModelProvider>();
@@ -686,7 +687,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public void RegisterRoleModelProviders_MultipleRoles_MixedMatches()
+    public async Task RegisterRoleModelProviders_MultipleRoles_MixedMatches()
     {
         var manager = new ChatRoomManager();
         var definition1 = new ChatRoomRoleDefinition
@@ -707,9 +708,9 @@ public sealed class ChatRoomManagerTests
             RoleName = "Role 3",
             ModelProviderId = "provider-b",
         };
-        manager.Roles.Add(new ChatRoomRole(definition1));
-        manager.Roles.Add(new ChatRoomRole(definition2));
-        manager.Roles.Add(new ChatRoomRole(definition3));
+        await manager.AddRoleAsync(new ChatRoomRole(definition1));
+        await manager.AddRoleAsync(new ChatRoomRole(definition2));
+        await manager.AddRoleAsync(new ChatRoomRole(definition3));
 
         var mockProviderA = new Mock<ILanguageModelProvider>();
         mockProviderA.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
@@ -743,7 +744,7 @@ public sealed class ChatRoomManagerTests
     public async Task SaveAsync_PersistenceIsNull_DoesNotThrow()
     {
         var manager = new ChatRoomManager();
-        manager.Roles.Add(new ChatRoomRole(new ChatRoomRoleDefinition
+        await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
             RoleName = "Test",
@@ -768,7 +769,7 @@ public sealed class ChatRoomManagerTests
     public async Task LoadAsync_PersistenceIsNull_DoesNotThrow()
     {
         var manager = new ChatRoomManager();
-        manager.Roles.Add(new ChatRoomRole(new ChatRoomRoleDefinition
+        await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
             RoleName = "Test",
@@ -821,5 +822,195 @@ public sealed class ChatRoomManagerTests
 
         Assert.AreSame(previous, args.PreviousSpeaker);
         Assert.IsNull(args.CurrentSpeaker);
+    }
+
+    [TestMethod]
+    public async Task AddRoleAsync_AfterRegisterProviders_NewRoleGetsModels()
+    {
+        var manager = new ChatRoomManager();
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        var mockModel = new Mock<ILanguageModel>();
+        mockProvider.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModel.Object });
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
+
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        });
+        await manager.AddRoleAsync(role);
+
+        Assert.HasCount(1, role.EndpointManager.GetSupportedModels());
+    }
+
+    [TestMethod]
+    public async Task AddRoleAsync_AfterRegisterProviders_NewRolePassesEnsureModelAvailable()
+    {
+        var manager = new ChatRoomManager();
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        var mockModel = new Mock<ILanguageModel>();
+        mockProvider.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModel.Object });
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
+
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        });
+        await manager.AddRoleAsync(role);
+
+        role.EnsureModelAvailable();
+    }
+
+    [TestMethod]
+    public async Task AddRoleAsync_BeforeRegisterProviders_NewRoleHasNoModels()
+    {
+        var manager = new ChatRoomManager();
+
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        });
+        await manager.AddRoleAsync(role);
+
+        Assert.HasCount(0, role.EndpointManager.GetSupportedModels());
+    }
+
+    [TestMethod]
+    public async Task AddRoleAsync_WithSpecificModelProviderId_RegistersOnlyMatchingProvider()
+    {
+        var manager = new ChatRoomManager();
+
+        var mockProviderA = new Mock<ILanguageModelProvider>();
+        var mockModelA = new Mock<ILanguageModel>();
+        mockProviderA.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModelA.Object });
+
+        var mockProviderB = new Mock<ILanguageModelProvider>();
+        var mockModelB = new Mock<ILanguageModel>();
+        mockProviderB.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModelB.Object });
+
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["provider-a"] = mockProviderA.Object,
+            ["provider-b"] = mockProviderB.Object,
+        });
+
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "provider-a",
+        });
+        await manager.AddRoleAsync(role);
+
+        Assert.HasCount(1, role.EndpointManager.GetSupportedModels());
+        mockProviderA.Verify(p => p.GetSupportedModels(), Times.Once);
+        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task AddRoleAsync_HumanRole_SkipsModelRegistration()
+    {
+        var manager = new ChatRoomManager();
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        mockProvider.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel>());
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
+
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "human-1",
+            RoleName = "Human",
+            IsHuman = true,
+        });
+        await manager.AddRoleAsync(role);
+
+        Assert.HasCount(0, role.EndpointManager.GetSupportedModels());
+        mockProvider.Verify(p => p.GetSupportedModels(), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task AddRoleAsync_NullRole_ThrowsArgumentNullException()
+    {
+        var manager = new ChatRoomManager();
+
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => manager.AddRoleAsync(null!));
+    }
+
+    [TestMethod]
+    public async Task RemoveRole_ExistingRole_RemovesFromRoles()
+    {
+        var manager = new ChatRoomManager();
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        });
+        await manager.AddRoleAsync(role);
+
+        Assert.HasCount(1, manager.Roles);
+
+        manager.RemoveRole("role-1");
+
+        Assert.HasCount(0, manager.Roles);
+    }
+
+    [TestMethod]
+    public async Task RemoveRole_NonExistentRole_DoesNotThrow()
+    {
+        var manager = new ChatRoomManager();
+
+        manager.RemoveRole("non-existent");
+    }
+
+    [TestMethod]
+    public void RemoveRole_EmptyRoleId_ThrowsArgumentException()
+    {
+        var manager = new ChatRoomManager();
+
+        Assert.ThrowsExactly<ArgumentException>(() => manager.RemoveRole(""));
+    }
+
+    [TestMethod]
+    public async Task RegisterRoleModelProviders_StoresProvidersForFutureAddRole()
+    {
+        var manager = new ChatRoomManager();
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        var mockModel = new Mock<ILanguageModel>();
+        mockProvider.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModel.Object });
+
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
+
+        // AddRoleAsync after registration → new role should get models
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        });
+        await manager.AddRoleAsync(role);
+
+        Assert.HasCount(1, role.EndpointManager.GetSupportedModels());
     }
 }

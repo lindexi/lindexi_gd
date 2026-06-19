@@ -87,9 +87,9 @@ public record AgentApiManagerConfiguration
         return configuration;
     }
 
-    #if !NET6_0
+#if !NET6_0
         private static JsonTypeInfo<AgentApiManagerConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.AgentApiManagerConfiguration;
-    #endif
+#endif
 
     /// <summary>
     /// 默认的模版内容

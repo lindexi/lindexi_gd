@@ -39,7 +39,7 @@ public sealed class WorkspaceToolProvider
             {
                 return _primaryWorkspacePath;
             }
-            
+
             return _secondaryWorkspacePath;
         }
         set => _primaryWorkspacePath = NormalizeWorkspacePath(value);
@@ -68,7 +68,7 @@ public sealed class WorkspaceToolProvider
         ];
     }
 
-    [Description("列出工作路径下指定目录中的文件与子目录。")] 
+    [Description("列出工作路径下指定目录中的文件与子目录。")]
     public Task<string> ListDirectory(
         [Description("要访问的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示工作路径根目录。")] string? directoryPath = null,
         [Description("是否递归列出子目录。false 表示只列出当前目录。")] bool recursive = false,
@@ -116,7 +116,7 @@ public sealed class WorkspaceToolProvider
         return Task.FromResult(builder.ToString().TrimEnd());
     }
 
-    [Description("在工作路径下递归查找名称包含指定关键字的文件或文件夹。")] 
+    [Description("在工作路径下递归查找名称包含指定关键字的文件或文件夹。")]
     public Task<string> FindEntriesByName(
         [Description("名称中要包含的关键字。")] string query,
         [Description("要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。")] string? directoryPath = null,

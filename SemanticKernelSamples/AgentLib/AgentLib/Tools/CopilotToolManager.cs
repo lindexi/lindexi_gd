@@ -34,12 +34,12 @@ public sealed class CopilotToolManager
 
     /// <summary>
     /// 子智能体工具。
-        /// </summary>
-        public SubAgentToolProvider SubAgentTools { get; }
+    /// </summary>
+    public SubAgentToolProvider SubAgentTools { get; }
 
-        /// <summary>
-        /// 工作区路径。设置后将启用文件系统相关工具。
-        /// </summary>
+    /// <summary>
+    /// 工作区路径。设置后将启用文件系统相关工具。
+    /// </summary>
     public string? WorkspacePath
     {
         get => WorkspaceTools.WorkspacePath;

@@ -1,6 +1,7 @@
 ﻿using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using Moq;
 
@@ -241,5 +242,54 @@ public sealed class ChatRoomRoleTests
 
         Assert.ThrowsExactly<ArgumentException>(
             () => role.SpeakFirstAsync("   "));
+    }
+
+    [TestMethod]
+    public void EnsureModelAvailable_WithNoModels_ThrowsInvalidOperationException()
+    {
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        };
+        var role = new ChatRoomRole(definition);
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => role.EnsureModelAvailable());
+    }
+
+    [TestMethod]
+    public void EnsureModelAvailable_WithModels_DoesNotThrow()
+    {
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+        };
+        var role = new ChatRoomRole(definition);
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        var mockModel = new Mock<ILanguageModel>();
+        mockProvider.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModel.Object });
+
+        role.EndpointManager.RegisterLanguageModelProvider(mockProvider.Object);
+
+        role.EnsureModelAvailable();
+    }
+
+    [TestMethod]
+    public void EnsureModelAvailable_ExceptionMessage_ContainsRoleName()
+    {
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "我的测试角色",
+        };
+        var role = new ChatRoomRole(definition);
+
+        InvalidOperationException ex = Assert.ThrowsExactly<InvalidOperationException>(
+            () => role.EnsureModelAvailable());
+
+        Assert.Contains("我的测试角色", ex.Message);
     }
 }
