@@ -28,9 +28,15 @@ public sealed record ChatRoomMessage
     public string SenderRoleName { get; init; } = string.Empty;
 
     /// <summary>
-    /// 消息内容（纯文本，公开可见）。
+    /// 静态消息内容。当没有关联的 <see cref="CopilotChatMessage"/> 时作为 <see cref="Content"/> 返回。
+    /// 持久化时序列化此字段，反序列化时恢复。
     /// </summary>
-    public string Content { get; init; } = string.Empty;
+    public string StaticContent { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 消息内容（纯文本，公开可见）。有 <see cref="CopilotChatMessage"/> 时委托返回其实时内容，否则返回 <see cref="StaticContent"/>。
+    /// </summary>
+    public string Content => CopilotChatMessage?.Content ?? StaticContent;
 
     /// <summary>
     /// 消息创建时间戳。
@@ -75,7 +81,7 @@ public sealed record ChatRoomMessage
         ArgumentNullException.ThrowIfNull(content);
         return new ChatRoomMessage
         {
-            Content = content,
+            StaticContent = content,
             SenderRoleName = "系统",
             IsSystemMessage = true,
         };
@@ -92,7 +98,7 @@ public sealed record ChatRoomMessage
         ArgumentNullException.ThrowIfNull(content);
         return new ChatRoomMessage
         {
-            Content = content,
+            StaticContent = content,
             SenderRoleId = humanRoleId,
             SenderRoleName = humanRoleName,
             IsHumanMessage = true,
@@ -115,7 +121,7 @@ public sealed record ChatRoomMessage
         ArgumentNullException.ThrowIfNull(content);
         return new ChatRoomMessage
         {
-            Content = content,
+            StaticContent = content,
             SenderRoleId = roleId,
             SenderRoleName = roleName,
             CopilotChatMessage = copilotChatMessage,

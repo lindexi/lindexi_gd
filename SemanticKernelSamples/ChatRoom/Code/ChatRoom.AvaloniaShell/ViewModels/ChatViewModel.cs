@@ -19,9 +19,6 @@ namespace ChatRoom.AvaloniaShell.ViewModels;
 /// </summary>
 public sealed class MessageItemViewModel : NotifyBase
 {
-    private readonly string _staticContent;
-    private CopilotChatMessage? _copilotChatMessage;
-
     /// <summary>
     /// 消息唯一标识。
     /// </summary>
@@ -40,31 +37,12 @@ public sealed class MessageItemViewModel : NotifyBase
     /// <summary>
     /// 关联的底层 <see cref="CopilotChatMessage"/>。不为 null 时 Content 跟踪其流式更新。
     /// </summary>
-    public CopilotChatMessage? CopilotChatMessage
-    {
-        get => _copilotChatMessage;
-        private set
-        {
-            if (_copilotChatMessage is not null)
-            {
-                _copilotChatMessage.PropertyChanged -= OnCopilotChatMessagePropertyChanged;
-            }
-
-            _copilotChatMessage = value;
-
-            if (_copilotChatMessage is not null)
-            {
-                _copilotChatMessage.PropertyChanged += OnCopilotChatMessagePropertyChanged;
-            }
-
-            OnPropertyChanged(nameof(Content));
-        }
-    }
+    public CopilotChatMessage? CopilotChatMessage { get; }
 
     /// <summary>
     /// 消息内容。关联了 <see cref="CopilotChatMessage"/> 时返回其实时 Content，否则返回静态内容。
     /// </summary>
-    public string Content => CopilotChatMessage?.Content ?? _staticContent;
+    public string Content => CopilotChatMessage?.Content ?? Message.StaticContent;
 
     /// <summary>
     /// 时间戳。
@@ -87,6 +65,11 @@ public sealed class MessageItemViewModel : NotifyBase
     public bool IsAiMessage => !IsHumanMessage && !IsSystemMessage;
 
     /// <summary>
+    /// 是否正在流式生成。
+    /// </summary>
+    public bool IsStreaming => Message.IsStreaming;
+
+    /// <summary>
     /// 角色名首字（头像显示）。
     /// </summary>
     public string Initial => string.IsNullOrEmpty(SenderRoleName) ? "?" : SenderRoleName[..1].ToUpperInvariant();
@@ -97,18 +80,28 @@ public sealed class MessageItemViewModel : NotifyBase
     public string TimeText => Timestamp.ToString("HH:mm:ss");
 
     /// <summary>
+    /// 底层消息对象。
+    /// </summary>
+    public ChatRoomMessage Message { get; }
+
+    /// <summary>
     /// 从 <see cref="ChatRoomMessage"/> 创建消息项。
     /// </summary>
     public MessageItemViewModel(ChatRoomMessage message)
     {
+        Message = message;
         MessageId = message.MessageId;
         SenderRoleId = message.SenderRoleId;
         SenderRoleName = message.SenderRoleName;
-        _staticContent = message.Content;
+        CopilotChatMessage = message.CopilotChatMessage;
         Timestamp = message.Timestamp;
         IsHumanMessage = message.IsHumanMessage;
         IsSystemMessage = message.IsSystemMessage;
-        CopilotChatMessage = message.CopilotChatMessage;
+
+        if (CopilotChatMessage is not null)
+        {
+            CopilotChatMessage.PropertyChanged += OnCopilotChatMessagePropertyChanged;
+        }
     }
 
     private void OnCopilotChatMessagePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -141,48 +134,11 @@ public sealed class ChatViewModel : ViewModelBase
     private bool _isRunning;
     private string _currentSpeakerName = string.Empty;
     private CancellationTokenSource? _autoLoopCts;
-    private ChatRoomSession? _session;
-    private MessageItemViewModel? _streamingMessageItem;
 
     /// <summary>
-    /// 消息列表。
+    /// 消息列表。流式消息和历史消息统一在此集合中展示。
     /// </summary>
     public ObservableCollection<MessageItemViewModel> Messages { get; } = [];
-
-    /// <summary>
-    /// 当前聊天室会话。UI 可绑定到 <see cref="ChatRoomSession.StreamingMessage"/> 感知流式更新。
-    /// </summary>
-    public ChatRoomSession? Session
-    {
-        get => _session;
-        private set
-        {
-            if (_session is not null)
-            {
-                _session.PropertyChanged -= OnSessionPropertyChanged;
-            }
-
-            if (SetField(ref _session, value))
-            {
-                if (_session is not null)
-                {
-                    _session.PropertyChanged += OnSessionPropertyChanged;
-                }
-
-                UpdateStreamingMessageItem();
-            }
-        }
-    }
-
-    /// <summary>
-    /// 流式消息的 ViewModel 表示。为 <see langword="null"/> 时没有角色在流式发言。
-    /// UI 将此项追加到消息列表末尾显示。
-    /// </summary>
-    public MessageItemViewModel? StreamingMessageItem
-    {
-        get => _streamingMessageItem;
-        private set => SetField(ref _streamingMessageItem, value);
-    }
 
     /// <summary>
     /// 输入框文本。
@@ -275,9 +231,7 @@ public sealed class ChatViewModel : ViewModelBase
         Dispatcher.UIThread.Post(() =>
         {
             Messages.Clear();
-            StreamingMessageItem = null;
             IsRunning = false;
-            Session = manager?.Session;
 
             if (manager is not null)
             {
@@ -287,28 +241,6 @@ public sealed class ChatViewModel : ViewModelBase
                 }
             }
         });
-    }
-
-    /// <summary>
-    /// 监听 Session 的 StreamingMessage 属性变更，自动创建/清除 StreamingMessageItem。
-    /// </summary>
-    private void OnSessionPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(ChatRoomSession.StreamingMessage))
-        {
-            Dispatcher.UIThread.Post(UpdateStreamingMessageItem);
-        }
-    }
-
-    /// <summary>
-    /// 根据 Session.StreamingMessage 同步 StreamingMessageItem。
-    /// </summary>
-    private void UpdateStreamingMessageItem()
-    {
-        ChatRoomMessage? streaming = _session?.StreamingMessage;
-        StreamingMessageItem = streaming is not null
-            ? new MessageItemViewModel(streaming)
-            : null;
     }
 
     private void StopAutoLoop()

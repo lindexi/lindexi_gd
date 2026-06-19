@@ -129,7 +129,7 @@ public sealed class ChatRoomManager : NotifyBase
 
     /// <summary>
     /// 启动自动循环。由 <see cref="SpeakerSelector"/> 决定每次发言的角色。
-    /// 流式内容通过 <see cref="ChatRoomSession.StreamingMessage"/> 暴露，无需事件订阅。
+    /// 流式内容直接追加到 <see cref="ChatRoomSession.Messages"/> 集合，UI 绑定感知实时更新。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task StartAutoLoopAsync(CancellationToken cancellationToken = default)
@@ -168,10 +168,37 @@ public sealed class ChatRoomManager : NotifyBase
                     IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
                     if (mentionedRoleIds.Count > 0)
                     {
+                        int index = Session.Messages.IndexOf(message);
                         message = message with { MentionedRoleIds = mentionedRoleIds };
+                        if (index >= 0)
+                        {
+                            // 流式消息已在 Messages 集合中，原地替换为带 MentionedRoleIds 的副本
+                            Session.Messages[index] = message;
+                        }
                     }
 
-                    await AppendMessageAsync(message);
+                    // 系统消息等非流式消息不在 Messages 集合中，需要追加
+                    if (!Session.Messages.Contains(message))
+                    {
+                        await AppendMessageAsync(message).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // 流式消息已在 Messages 集合中，仅触发事件和持久化
+                        OnMessageAdded?.Invoke(this, message);
+
+                        if (Persistence is not null)
+                        {
+                            _ = Persistence.SavePublicMessageAsync(Session.SessionId, message)
+                                .ContinueWith(static t =>
+                                {
+                                    if (t.IsFaulted && t.Exception is not null)
+                                    {
+                                        Debug.Fail($"持久化公开消息失败: {t.Exception.InnerException?.Message}");
+                                    }
+                                }, TaskContinuationOptions.OnlyOnFaulted);
+                        }
+                    }
                 }
             }
         }
@@ -189,12 +216,13 @@ public sealed class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
-    /// 让指定角色发言一次。
-    /// 流式内容通过 <see cref="ChatRoomSession.StreamingMessage"/> 暴露，发言完成后置空。
+    /// 让指定角色发言一次。流式消息在发言开始时即追加到 <see cref="ChatRoomSession.Messages"/> 集合，
+    /// UI 通过绑定 <see cref="ChatRoomMessage.CopilotChatMessage"/> 感知实时更新。
+    /// 发言完成后若内容为空则移除该消息，否则标记 <see cref="ChatRoomMessage.IsStreaming"/> 为 <see langword="false"/>。
     /// </summary>
     /// <param name="role">要发言的角色。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>角色产生的公开消息。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
+    /// <returns>角色产生的公开消息（已在 Messages 集合中）。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
     public async Task<ChatRoomMessage?> StepAsync(
         ChatRoomRole role,
         CancellationToken cancellationToken = default)
@@ -228,7 +256,7 @@ public sealed class ChatRoomManager : NotifyBase
                 return null;
             }
 
-            // 设置流式消息到 Session，UI 通过绑定感知实时更新
+            // 创建流式消息并立即追加到 Messages 集合，UI 通过绑定感知实时更新
             var streamingMessage = new ChatRoomMessage
             {
                 SenderRoleId = role.Definition.RoleId,
@@ -236,38 +264,28 @@ public sealed class ChatRoomManager : NotifyBase
                 CopilotChatMessage = speakResult.AssistantChatMessage,
                 IsStreaming = true,
             };
-            Session.StreamingMessage = streamingMessage;
+            await Session.AddMessageAsync(streamingMessage).ConfigureAwait(false);
 
             // 等待发言完成，获取最终文本
             string? assistantContent = await speakResult.FinalContentTask.ConfigureAwait(false);
 
-            // 清除流式消息
-            Session.StreamingMessage = null;
-
             if (string.IsNullOrWhiteSpace(assistantContent))
             {
-                // 空回复，不追加到公开消息
+                // 空回复，从 Messages 移除流式消息
+                Session.Messages.Remove(streamingMessage);
                 return null;
             }
 
-            // 创建公开消息（携带底层 CopilotChatMessage 供 UI 后续绑定）
-            var message = ChatRoomMessage.CreateAssistant(
-                assistantContent,
-                role.Definition.RoleId,
-                role.Definition.RoleName,
-                speakResult.AssistantChatMessage);
-
-            return message;
+            // 发言完成，标记流式结束（CopilotChatMessage 引用不变，Content 已流式更新到位）
+            streamingMessage.IsStreaming = false;
+            return streamingMessage;
         }
         catch (OperationCanceledException)
         {
-            Session.StreamingMessage = null;
             return null;
         }
         catch (Exception ex)
         {
-            Session.StreamingMessage = null;
-
             // 角色发言失败，引发事件
             OnRoleSpeakFailed?.Invoke(this, new RoleSpeakFailedEventArgs(role, ex));
 
