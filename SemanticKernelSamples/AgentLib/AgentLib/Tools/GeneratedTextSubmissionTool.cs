@@ -35,7 +35,7 @@ public sealed class GeneratedTextSubmissionTool
         return AIFunctionFactory.Create(SubmitText, name, description);
     }
 
-    [Description("提交处理后的完整文本内容。")] 
+    [Description("提交处理后的完整文本内容。")]
     public string SubmitText([Description("处理后的完整文本内容。请传入最终结果，不要附加解释。")] string text)
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(text);

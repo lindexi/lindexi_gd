@@ -25,9 +25,9 @@ public sealed class CopilotChatApprovalToolItem : NotifyBase, ICopilotChatMessag
     }
 
     /// <summary>
-        /// 工具调用 ID。
-        /// </summary>
-        public string CallId
+    /// 工具调用 ID。
+    /// </summary>
+    public string CallId
     {
         get => _callId;
         internal set => _callId = string.IsNullOrWhiteSpace(value) ? _callId : value;
@@ -36,9 +36,9 @@ public sealed class CopilotChatApprovalToolItem : NotifyBase, ICopilotChatMessag
     private string _callId = string.Empty;
 
     /// <summary>
-        /// 工具名称。
-        /// </summary>
-        public string ToolName
+    /// 工具名称。
+    /// </summary>
+    public string ToolName
     {
         get => _toolName;
         internal set
@@ -179,9 +179,9 @@ public sealed class CopilotChatApprovalToolItem : NotifyBase, ICopilotChatMessag
     };
 
     /// <summary>
-        /// 审批决策原因（拒绝时填写）。
-        /// </summary>
-        public string DecisionReason
+    /// 审批决策原因（拒绝时填写）。
+    /// </summary>
+    public string DecisionReason
     {
         get => _decisionReason;
         private set
@@ -199,9 +199,9 @@ public sealed class CopilotChatApprovalToolItem : NotifyBase, ICopilotChatMessag
     private string _decisionReason = string.Empty;
 
     /// <summary>
-        /// 是否有决策原因。
-        /// </summary>
-        public bool HasDecisionReason => !string.IsNullOrEmpty(DecisionReason);
+    /// 是否有决策原因。
+    /// </summary>
+    public bool HasDecisionReason => !string.IsNullOrEmpty(DecisionReason);
 
     internal async Task<CopilotToolApprovalState> WaitForApprovalAsync(CancellationToken cancellationToken)
     {

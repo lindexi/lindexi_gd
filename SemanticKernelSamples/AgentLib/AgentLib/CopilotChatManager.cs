@@ -351,13 +351,13 @@ public class CopilotChatManager : NotifyBase
         }
 
         SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(contents)
-                {
-                    WithHistory = withHistory,
-                    CreateNewSession = createNewSession,
-                    Tools = tools,
-                    ToolMode = toolMode,
-                    CancellationToken = cancellationToken,
-                });
+        {
+            WithHistory = withHistory,
+            CreateNewSession = createNewSession,
+            Tools = tools,
+            ToolMode = toolMode,
+            CancellationToken = cancellationToken,
+        });
         await sendMessageResult.RunTask;
     }
 

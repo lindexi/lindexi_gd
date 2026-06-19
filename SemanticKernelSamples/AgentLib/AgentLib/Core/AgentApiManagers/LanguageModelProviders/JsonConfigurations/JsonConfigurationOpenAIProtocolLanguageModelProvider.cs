@@ -18,65 +18,65 @@ public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocol
 
     private readonly OpenAIProtocolLanguageModelConfiguration _configuration = configuration;
 
-        /// <summary>
-        /// 从 JSON 文件异步加载提供商配置。
-        /// </summary>
-        /// <param name="file">JSON 配置文件。</param>
-        /// <returns>提供商实例。</returns>
-        public static async Task<JsonConfigurationOpenAIProtocolLanguageModelProvider> FromJsonFileAsync(FileInfo file)
-        {
-            await using var fileStream = file.OpenRead();
+    /// <summary>
+    /// 从 JSON 文件异步加载提供商配置。
+    /// </summary>
+    /// <param name="file">JSON 配置文件。</param>
+    /// <returns>提供商实例。</returns>
+    public static async Task<JsonConfigurationOpenAIProtocolLanguageModelProvider> FromJsonFileAsync(FileInfo file)
+    {
+        await using var fileStream = file.OpenRead();
 #if NET6_0
-            var configuration = await JsonSerializer.DeserializeAsync<OpenAIProtocolLanguageModelConfiguration>(fileStream);
+        var configuration = await JsonSerializer.DeserializeAsync<OpenAIProtocolLanguageModelConfiguration>(fileStream);
 #else
             var configuration = await JsonSerializer.DeserializeAsync(fileStream, JsonTypeInfo);
 #endif
-            return FromConfiguration(configuration);
-        }
+        return FromConfiguration(configuration);
+    }
 
-        /// <summary>
-        /// 从 JSON 字符串反序列化提供商配置。
-        /// </summary>
-        /// <param name="json">JSON 字符串。</param>
-        /// <returns>提供商实例。</returns>
-        public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromJsonString(string json)
-        {
+    /// <summary>
+    /// 从 JSON 字符串反序列化提供商配置。
+    /// </summary>
+    /// <param name="json">JSON 字符串。</param>
+    /// <returns>提供商实例。</returns>
+    public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromJsonString(string json)
+    {
 #if NET6_0
-            var configuration = JsonSerializer.Deserialize<OpenAIProtocolLanguageModelConfiguration>(json);
+        var configuration = JsonSerializer.Deserialize<OpenAIProtocolLanguageModelConfiguration>(json);
 #else
             var configuration = JsonSerializer.Deserialize(json, JsonTypeInfo);
 #endif
-            return FromConfiguration(configuration);
-        }
+        return FromConfiguration(configuration);
+    }
 
-        /// <summary>
-        /// 从 <see cref="JsonElement"/> 反序列化提供商配置。
-        /// </summary>
-        /// <param name="jsonElement">JSON 元素。</param>
-        /// <returns>提供商实例。</returns>
-        public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromJsonElement(JsonElement jsonElement)
-        {
+    /// <summary>
+    /// 从 <see cref="JsonElement"/> 反序列化提供商配置。
+    /// </summary>
+    /// <param name="jsonElement">JSON 元素。</param>
+    /// <returns>提供商实例。</returns>
+    public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromJsonElement(JsonElement jsonElement)
+    {
 #if NET6_0
-            var configuration = jsonElement.Deserialize<OpenAIProtocolLanguageModelConfiguration>();
+        var configuration = jsonElement.Deserialize<OpenAIProtocolLanguageModelConfiguration>();
 #else
             var configuration = jsonElement.Deserialize(JsonTypeInfo);
 #endif
-            return FromConfiguration(configuration);
-        }
+        return FromConfiguration(configuration);
+    }
 
-        /// <summary>
-        /// 从配置对象创建提供商实例。
-        /// </summary>
-        /// <param name="configuration">OpenAI 协议语言模型配置。</param>
-        /// <returns>提供商实例。</returns>
-        /// <exception cref="ArgumentNullException">配置为 <see langword="null"/> 时抛出。</exception>
-        public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromConfiguration(OpenAIProtocolLanguageModelConfiguration? configuration)
+    /// <summary>
+    /// 从配置对象创建提供商实例。
+    /// </summary>
+    /// <param name="configuration">OpenAI 协议语言模型配置。</param>
+    /// <returns>提供商实例。</returns>
+    /// <exception cref="ArgumentNullException">配置为 <see langword="null"/> 时抛出。</exception>
+    public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromConfiguration(OpenAIProtocolLanguageModelConfiguration? configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
         return new JsonConfigurationOpenAIProtocolLanguageModelProvider(configuration);
     }
 
-    #if !NET6_0
+#if !NET6_0
         private static JsonTypeInfo<OpenAIProtocolLanguageModelConfiguration> JsonTypeInfo => JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.Default.OpenAIProtocolLanguageModelConfiguration;
-    #endif
+#endif
 }
