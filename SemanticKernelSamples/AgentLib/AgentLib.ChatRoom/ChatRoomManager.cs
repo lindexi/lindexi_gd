@@ -129,6 +129,7 @@ public sealed class ChatRoomManager : NotifyBase
 
     /// <summary>
     /// 启动自动循环。由 <see cref="SpeakerSelector"/> 决定每次发言的角色。
+    /// 流式内容通过 <see cref="ChatRoomSession.StreamingMessage"/> 暴露，无需事件订阅。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task StartAutoLoopAsync(CancellationToken cancellationToken = default)
@@ -159,8 +160,8 @@ public sealed class ChatRoomManager : NotifyBase
                     break;
                 }
 
-                // 让该角色发言
                 ChatRoomMessage? message = await StepAsync(nextSpeaker, loopCancellationToken);
+
                 if (message is not null)
                 {
                     // 解析消息中的 @mention，填充 MentionedRoleIds
@@ -189,11 +190,14 @@ public sealed class ChatRoomManager : NotifyBase
 
     /// <summary>
     /// 让指定角色发言一次。
+    /// 流式内容通过 <see cref="ChatRoomSession.StreamingMessage"/> 暴露，发言完成后置空。
     /// </summary>
     /// <param name="role">要发言的角色。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>角色产生的公开消息。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
-    public async Task<ChatRoomMessage?> StepAsync(ChatRoomRole role, CancellationToken cancellationToken = default)
+    public async Task<ChatRoomMessage?> StepAsync(
+        ChatRoomRole role,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(role);
 
@@ -213,8 +217,32 @@ public sealed class ChatRoomManager : NotifyBase
             // 追加角色管理工具到本次发言
             IReadOnlyList<AITool> additionalTools = ChatRoomRoleManagementTools.CreateTools(this);
 
-            // 调用角色发言
-            string? assistantContent = await role.SpeakAsync(incrementalUserText, additionalTools, cancellationToken);
+            // 调用角色发言，获取包含流式 CopilotChatMessage 的结果
+            ChatRoomSpeakResult? speakResult = role.SpeakAsync(
+                incrementalUserText,
+                additionalTools,
+                cancellationToken);
+
+            if (speakResult is null)
+            {
+                return null;
+            }
+
+            // 设置流式消息到 Session，UI 通过绑定感知实时更新
+            var streamingMessage = new ChatRoomMessage
+            {
+                SenderRoleId = role.Definition.RoleId,
+                SenderRoleName = role.Definition.RoleName,
+                CopilotChatMessage = speakResult.AssistantChatMessage,
+                IsStreaming = true,
+            };
+            Session.StreamingMessage = streamingMessage;
+
+            // 等待发言完成，获取最终文本
+            string? assistantContent = await speakResult.FinalContentTask.ConfigureAwait(false);
+
+            // 清除流式消息
+            Session.StreamingMessage = null;
 
             if (string.IsNullOrWhiteSpace(assistantContent))
             {
@@ -222,20 +250,24 @@ public sealed class ChatRoomManager : NotifyBase
                 return null;
             }
 
-            // 创建公开消息
+            // 创建公开消息（携带底层 CopilotChatMessage 供 UI 后续绑定）
             var message = ChatRoomMessage.CreateAssistant(
                 assistantContent,
                 role.Definition.RoleId,
-                role.Definition.RoleName);
+                role.Definition.RoleName,
+                speakResult.AssistantChatMessage);
 
             return message;
         }
         catch (OperationCanceledException)
         {
+            Session.StreamingMessage = null;
             return null;
         }
         catch (Exception ex)
         {
+            Session.StreamingMessage = null;
+
             // 角色发言失败，引发事件
             OnRoleSpeakFailed?.Invoke(this, new RoleSpeakFailedEventArgs(role, ex));
 
@@ -458,3 +490,4 @@ public sealed class RoleSpeakFailedEventArgs : EventArgs
         Exception = exception ?? throw new ArgumentNullException(nameof(exception));
     }
 }
+

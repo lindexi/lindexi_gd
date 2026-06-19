@@ -26,67 +26,95 @@
 
         <!-- 消息列表 -->
         <ScrollViewer Grid.Row="1" Background="{StaticResource BackgroundBrush}" Padding="8">
-            <ItemsControl ItemsSource="{Binding Messages}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:MessageItemViewModel">
-                        <Grid Margin="8,4" ColumnDefinitions="40,*,40">
-                            <!-- AI 消息：头像在左 -->
-                            <Border Grid.Column="0" Classes="Avatar"
-                                    Background="{Binding SenderRoleName, Converter={StaticResource RoleColor}}"
-                                    IsVisible="{Binding IsAiMessage}">
-                                <TextBlock Text="{Binding Initial}" Foreground="White"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           FontWeight="Bold" />
-                            </Border>
-
-                            <!-- AI 消息内容 -->
-                            <StackPanel Grid.Column="1" IsVisible="{Binding IsAiMessage}" Spacing="2">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
-                                    <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
-                                </StackPanel>
-                                <Border Classes="MessageBubbleAI" HorizontalAlignment="Left">
-                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               MaxWidth="500" />
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding Messages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:MessageItemViewModel">
+                            <Grid Margin="8,4" ColumnDefinitions="40,*,40">
+                                <!-- AI 消息：头像在左 -->
+                                <Border Grid.Column="0" Classes="Avatar"
+                                        Background="{Binding SenderRoleName, Converter={StaticResource RoleColor}}"
+                                        IsVisible="{Binding IsAiMessage}">
+                                    <TextBlock Text="{Binding Initial}" Foreground="White"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontWeight="Bold" />
                                 </Border>
-                            </StackPanel>
 
-                            <!-- 人类消息：内容靠右 -->
-                            <StackPanel Grid.Column="1" IsVisible="{Binding IsHumanMessage}" Spacing="2"
-                                        HorizontalAlignment="Right">
-                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
-                                    <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
+                                <!-- AI 消息内容 -->
+                                <StackPanel Grid.Column="1" IsVisible="{Binding IsAiMessage}" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
+                                        <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
+                                    </StackPanel>
+                                    <Border Classes="MessageBubbleAI" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   MaxWidth="500" />
+                                    </Border>
                                 </StackPanel>
-                                <Border Classes="MessageBubbleHuman" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
-                                               Foreground="{StaticResource TextOnPrimaryBrush}"
-                                               MaxWidth="500" />
+
+                                <!-- 人类消息：内容靠右 -->
+                                <StackPanel Grid.Column="1" IsVisible="{Binding IsHumanMessage}" Spacing="2"
+                                            HorizontalAlignment="Right">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
+                                        <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
+                                    </StackPanel>
+                                    <Border Classes="MessageBubbleHuman" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource TextOnPrimaryBrush}"
+                                                   MaxWidth="500" />
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- 人类头像 -->
+                                <Border Grid.Column="2" Classes="Avatar"
+                                        Background="{StaticResource PrimaryBrush}"
+                                        IsVisible="{Binding IsHumanMessage}">
+                                    <TextBlock Text="{Binding Initial}" Foreground="White"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontWeight="Bold" />
                                 </Border>
+
+                                <!-- 系统消息：居中 -->
+                                <Border Grid.Column="0" Grid.ColumnSpan="3"
+                                        Classes="MessageBubbleSystem" HorizontalAlignment="Center"
+                                        IsVisible="{Binding IsSystemMessage}">
+                                    <TextBlock Text="{Binding Content}" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap" MaxWidth="400" />
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 流式消息：角色正在发言时显示在消息列表末尾 -->
+                <ContentControl IsVisible="{Binding StreamingMessageItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Grid Margin="8,4" ColumnDefinitions="40,*,40"
+                          DataContext="{Binding StreamingMessageItem}"
+                          x:DataType="vm:MessageItemViewModel">
+                        <Border Grid.Column="0" Classes="Avatar"
+                                Background="{Binding SenderRoleName, Converter={StaticResource RoleColor}}">
+                            <TextBlock Text="{Binding Initial}" Foreground="White"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontWeight="Bold" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
+                                <TextBlock Text="正在输入..." Classes="Timestamp"
+                                           Foreground="{StaticResource WarningBrush}" />
                             </StackPanel>
-
-                            <!-- 人类头像 -->
-                            <Border Grid.Column="2" Classes="Avatar"
-                                    Background="{StaticResource PrimaryBrush}"
-                                    IsVisible="{Binding IsHumanMessage}">
-                                <TextBlock Text="{Binding Initial}" Foreground="White"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           FontWeight="Bold" />
+                            <Border Classes="MessageBubbleAI" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           MaxWidth="500" />
                             </Border>
-
-                            <!-- 系统消息：居中 -->
-                            <Border Grid.Column="0" Grid.ColumnSpan="3"
-                                    Classes="MessageBubbleSystem" HorizontalAlignment="Center"
-                                    IsVisible="{Binding IsSystemMessage}">
-                                <TextBlock Text="{Binding Content}" FontSize="12"
-                                           Foreground="{StaticResource TextSecondaryBrush}"
-                                           TextWrapping="Wrap" MaxWidth="400" />
-                            </Border>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                        </StackPanel>
+                    </Grid>
+                </ContentControl>
+            </StackPanel>
         </ScrollViewer>
 
         <!-- 输入栏 -->

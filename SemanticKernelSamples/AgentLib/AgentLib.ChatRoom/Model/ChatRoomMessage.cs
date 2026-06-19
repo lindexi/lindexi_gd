@@ -1,3 +1,5 @@
+using AgentLib.Model;
+
 using Microsoft.Extensions.AI;
 
 using System;
@@ -52,6 +54,19 @@ public sealed record ChatRoomMessage
     public IReadOnlyList<string> MentionedRoleIds { get; init; } = Array.Empty<string>();
 
     /// <summary>
+    /// 关联的底层 <see cref="CopilotChatMessage"/>。
+    /// 仅 AI 角色消息可能携带此对象，用于 UI 直接绑定流式属性（如 Content、Token 用量等）。
+    /// 为 <see langword="null"/> 时表示该消息无底层对象（如人类消息、系统消息）。
+    /// </summary>
+    public CopilotChatMessage? CopilotChatMessage { get; init; }
+
+    /// <summary>
+    /// 是否正在流式生成中。流式阶段 UI 绑定 <see cref="CopilotChatMessage"/> 的属性感知实时更新；
+    /// 完成后由 <see cref="ChatRoomSession"/> 将此属性设为 <see langword="false"/>。
+    /// </summary>
+    public bool IsStreaming { get; set; }
+
+    /// <summary>
     /// 创建系统消息。
     /// </summary>
     /// <param name="content">消息内容。</param>
@@ -90,7 +105,12 @@ public sealed record ChatRoomMessage
     /// <param name="content">消息内容（公开文本）。</param>
     /// <param name="roleId">角色 Id。</param>
     /// <param name="roleName">角色显示名。</param>
-    public static ChatRoomMessage CreateAssistant(string content, string roleId, string roleName)
+    /// <param name="copilotChatMessage">关联的底层消息对象，用于 UI 流式绑定。可选。</param>
+    public static ChatRoomMessage CreateAssistant(
+        string content,
+        string roleId,
+        string roleName,
+        CopilotChatMessage? copilotChatMessage = null)
     {
         ArgumentNullException.ThrowIfNull(content);
         return new ChatRoomMessage
@@ -98,6 +118,7 @@ public sealed record ChatRoomMessage
             Content = content,
             SenderRoleId = roleId,
             SenderRoleName = roleName,
+            CopilotChatMessage = copilotChatMessage,
         };
     }
 }

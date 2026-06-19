@@ -154,7 +154,7 @@ public sealed class ChatRoomRoleTests
         };
         var role = new ChatRoomRole(definition);
 
-        Assert.ThrowsExactlyAsync<ArgumentNullException>(
+        Assert.ThrowsExactly<ArgumentNullException>(
             () => role.SpeakAsync(null!));
     }
 
@@ -183,7 +183,7 @@ public sealed class ChatRoomRoleTests
         };
         var role = new ChatRoomRole(definition);
 
-        Assert.ThrowsExactlyAsync<ArgumentException>(
+        Assert.ThrowsExactly<ArgumentException>(
             () => role.SpeakAsync(string.Empty));
     }
 
@@ -197,7 +197,7 @@ public sealed class ChatRoomRoleTests
         };
         var role = new ChatRoomRole(definition);
 
-        Assert.ThrowsExactlyAsync<ArgumentException>(
+        Assert.ThrowsExactly<ArgumentException>(
             () => role.SpeakAsync("   "));
     }
 
@@ -211,7 +211,7 @@ public sealed class ChatRoomRoleTests
         };
         var role = new ChatRoomRole(definition);
 
-        Assert.ThrowsExactlyAsync<ArgumentNullException>(
+        Assert.ThrowsExactly<ArgumentNullException>(
             () => role.SpeakFirstAsync(null!));
     }
 
@@ -225,7 +225,7 @@ public sealed class ChatRoomRoleTests
         };
         var role = new ChatRoomRole(definition);
 
-        Assert.ThrowsExactlyAsync<ArgumentException>(
+        Assert.ThrowsExactly<ArgumentException>(
             () => role.SpeakFirstAsync(string.Empty));
     }
 
@@ -239,7 +239,7 @@ public sealed class ChatRoomRoleTests
         };
         var role = new ChatRoomRole(definition);
 
-        Assert.ThrowsExactlyAsync<ArgumentException>(
+        Assert.ThrowsExactly<ArgumentException>(
             () => role.SpeakFirstAsync("   "));
     }
 }
