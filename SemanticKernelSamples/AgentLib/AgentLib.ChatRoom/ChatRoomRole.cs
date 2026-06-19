@@ -100,6 +100,23 @@ public sealed class ChatRoomRole
     }
 
     /// <summary>
+    /// 确保角色的 <see cref="EndpointManager"/> 中存在可用模型。
+    /// 应在模型提供商注册完成后调用，以便在发言前尽早暴露配置缺失问题，
+    /// 而不是等到 <see cref="SpeakAsync"/> 深层调用时才抛出底层异常。
+    /// </summary>
+    /// <exception cref="InvalidOperationException">没有可用模型时抛出。</exception>
+    public void EnsureModelAvailable()
+    {
+        if (_endpointManager.GetSupportedModels().Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"角色「{Definition.RoleName}」没有可用的模型。" +
+                $"请先通过 {nameof(EndpointManager)}.{nameof(AgentApiEndpointManager.RegisterLanguageModelProvider)} 注册模型提供商，" +
+                $"或在设置中为该角色配置有效的 ModelProviderId。");
+        }
+    }
+
+    /// <summary>
     /// 让角色发言一次。将增量的 User 消息注入到内部的 <see cref="CopilotChatManager"/>，
     /// 利用 AgentSession 历史记录机制延续对话上下文。
     /// 首次发言时通过 <see cref="SendMessageRequest.SystemPrompt"/> 注入角色人设和记忆。
@@ -124,6 +141,13 @@ public sealed class ChatRoomRole
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(incrementalUserText);
+        if (string.IsNullOrWhiteSpace(incrementalUserText))
+        {
+            throw new ArgumentException("发言内容不能为空或空白。", nameof(incrementalUserText));
+        }
+
+        // 早期校验：确保有可用模型，避免进入底层流程后才抛出含糊异常
+        EnsureModelAvailable();
 
         // 首次发言时构建 SystemPrompt（角色人设 + 记忆）
         string? systemPrompt = null;

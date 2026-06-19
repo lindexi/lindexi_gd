@@ -39,11 +39,6 @@ public sealed class ChatRoomService
     public bool HasActiveSession => _currentManager is not null;
 
     /// <summary>
-    /// 新消息到达事件。
-    /// </summary>
-    public event EventHandler<ChatRoomMessage>? MessageAdded;
-
-    /// <summary>
     /// 角色发言失败事件。
     /// </summary>
     public event EventHandler<(ChatRoomRole Role, Exception Exception)>? RoleSpeakFailed;
@@ -247,6 +242,12 @@ public sealed class ChatRoomService
 
         // 注册该角色的模型提供商
         RegisterProvidersForRole(role);
+
+        // 早期校验：确保角色有可用模型，避免发言时才发现问题
+        if (!definition.IsHuman)
+        {
+            role.EnsureModelAvailable();
+        }
     }
 
     /// <summary>
@@ -310,35 +311,34 @@ public sealed class ChatRoomService
 
     private void RegisterProvidersForRole(ChatRoomRole role)
     {
+        IReadOnlyDictionary<string, ILanguageModelProvider> providers = _modelProviderService.GetProviders();
+
         if (string.IsNullOrWhiteSpace(role.Definition.ModelProviderId))
         {
+            // 未配置特定提供商时，注册所有可用提供商，确保角色能找到模型
+            foreach (ILanguageModelProvider provider in providers.Values)
+            {
+                role.EndpointManager.RegisterLanguageModelProvider(provider);
+            }
             return;
         }
 
-        IReadOnlyDictionary<string, ILanguageModelProvider> providers = _modelProviderService.GetProviders();
-        if (providers.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? provider))
+        if (providers.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? specificProvider))
         {
-            role.EndpointManager.RegisterLanguageModelProvider(provider);
+            role.EndpointManager.RegisterLanguageModelProvider(specificProvider);
         }
     }
 
     private void AttachEvents(ChatRoomManager manager)
     {
-        manager.OnMessageAdded += OnMessageAdded;
         manager.OnRoleSpeakFailed += OnRoleSpeakFailed;
         manager.OnSpeakingChanged += OnSpeakingChanged;
     }
 
     private void DetachEvents(ChatRoomManager manager)
     {
-        manager.OnMessageAdded -= OnMessageAdded;
         manager.OnRoleSpeakFailed -= OnRoleSpeakFailed;
         manager.OnSpeakingChanged -= OnSpeakingChanged;
-    }
-
-    private void OnMessageAdded(object? sender, ChatRoomMessage e)
-    {
-        MessageAdded?.Invoke(this, e);
     }
 
     private void OnRoleSpeakFailed(object? sender, RoleSpeakFailedEventArgs e)
