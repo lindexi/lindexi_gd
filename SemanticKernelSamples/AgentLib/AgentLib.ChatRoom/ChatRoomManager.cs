@@ -145,6 +145,13 @@ public sealed class ChatRoomManager : NotifyBase
 
         IsRunning = true;
 
+        // 连续空回复计数器：防止任何情况下死循环的安全网。
+        // 阈值基于可发言的非人类角色数量，至少为 1（即使没有可发言角色也尝试一次后终止）。
+        int speakableRoleCount = Math.Max(1, Roles.Count(r =>
+            !r.Definition.IsHuman &&
+            r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate));
+        int consecutiveEmptyReplies = 0;
+
         try
         {
             while (!loopCancellationToken.IsCancellationRequested)
@@ -161,10 +168,21 @@ public sealed class ChatRoomManager : NotifyBase
                     break;
                 }
 
+                // 人类角色不通过 StepAsync 发言，直接跳过
+                if (nextSpeaker.Definition.IsHuman)
+                {
+                    continue;
+                }
+
                 ChatRoomMessage? message = await StepAsync(nextSpeaker, loopCancellationToken);
 
                 if (message is not null)
                 {
+                    consecutiveEmptyReplies = 0;
+
+                    // 通知 Selector 发言成功
+                    SpeakerSelector.OnSpeakerResult(nextSpeaker, success: true);
+
                     // 解析消息中的 @mention，填充 MentionedRoleIds
                     IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
                     if (mentionedRoleIds.Count > 0)
@@ -192,6 +210,20 @@ public sealed class ChatRoomManager : NotifyBase
                                     }
                                 }, TaskContinuationOptions.OnlyOnFaulted);
                         }
+                    }
+                }
+                else
+                {
+                    // 角色未产生有效回复，递增连续空回复计数
+                    consecutiveEmptyReplies++;
+
+                    // 通知 Selector 发言失败
+                    SpeakerSelector.OnSpeakerResult(nextSpeaker, success: false);
+
+                    // 安全网：连续空回复达到阈值时终止循环，防止死循环
+                    if (consecutiveEmptyReplies >= speakableRoleCount)
+                    {
+                        break;
                     }
                 }
             }
