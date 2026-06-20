@@ -62,6 +62,7 @@ public sealed class ChatRoomManagerTests
     public async Task CanStartLoop_WhenNotRunningAndHasRoles_ReturnsTrue()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -78,6 +79,7 @@ public sealed class ChatRoomManagerTests
     public async Task CanStartLoop_WhenNotRunningAndHasMultipleRoles_ReturnsTrue()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition1 = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -161,6 +163,7 @@ public sealed class ChatRoomManagerTests
     public async Task CanStartLoop_WhenRoleRemovedAfterBeingAdded_ReturnsFalse()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -423,6 +426,7 @@ public sealed class ChatRoomManagerTests
     public async Task StartAutoLoopAsync_StepAsyncReturnsMessage_AppendsMessageAndFiresEvent()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -588,6 +592,7 @@ public sealed class ChatRoomManagerTests
     public async Task RegisterRoleModelProviders_RoleWithNullModelProviderId_RegistersAllProviders()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -614,6 +619,7 @@ public sealed class ChatRoomManagerTests
     public async Task RegisterRoleModelProviders_RoleWithEmptyModelProviderId_RegistersAllProviders()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -640,6 +646,7 @@ public sealed class ChatRoomManagerTests
     public async Task RegisterRoleModelProviders_MatchingProvider_RegistersOnEndpointManager()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -667,6 +674,7 @@ public sealed class ChatRoomManagerTests
     public async Task RegisterRoleModelProviders_ProviderNotInDictionary_DoesNotRegister()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -690,6 +698,7 @@ public sealed class ChatRoomManagerTests
     public async Task RegisterRoleModelProviders_MultipleRoles_MixedMatches()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var definition1 = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -744,6 +753,7 @@ public sealed class ChatRoomManagerTests
     public async Task SaveAsync_PersistenceIsNull_DoesNotThrow()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -769,6 +779,7 @@ public sealed class ChatRoomManagerTests
     public async Task LoadAsync_PersistenceIsNull_DoesNotThrow()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -876,6 +887,7 @@ public sealed class ChatRoomManagerTests
     public async Task AddRoleAsync_BeforeRegisterProviders_NewRoleHasNoModels()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
 
         var role = new ChatRoomRole(new ChatRoomRoleDefinition
         {
@@ -958,6 +970,7 @@ public sealed class ChatRoomManagerTests
     public async Task RemoveRole_ExistingRole_RemovesFromRoles()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         var role = new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "role-1",

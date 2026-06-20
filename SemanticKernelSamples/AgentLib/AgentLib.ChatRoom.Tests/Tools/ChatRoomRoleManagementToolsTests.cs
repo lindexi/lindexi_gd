@@ -108,7 +108,7 @@ public sealed class ChatRoomRoleManagementToolsTests
     }
 
     [TestMethod]
-    public async Task CreateCharacter_WithoutRegisteredProviders_NewRoleHasNoModels()
+    public async Task CreateCharacter_WithoutRegisteredProviders_ReturnsError()
     {
         var manager = new ChatRoomManager();
         // 未注册任何 providers
@@ -127,20 +127,19 @@ public sealed class ChatRoomRoleManagementToolsTests
             });
 
         string result = resultObj.ToString()!;
-        Assert.Contains("✅", result);
-        Assert.HasCount(1, manager.Roles);
-
-        ChatRoomRole newRole = manager.Roles[0];
-        Assert.HasCount(0, newRole.EndpointManager.GetSupportedModels());
-
-        // EnsureModelAvailable 应抛出异常
-        Assert.ThrowsExactly<InvalidOperationException>(() => newRole.EnsureModelAvailable());
+        Assert.Contains("创建角色失败", result);
+        Assert.HasCount(0, manager.Roles);
     }
 
     [TestMethod]
     public async Task CreateCharacter_ValidInputs_RoleAddedToRoles()
     {
         var manager = new ChatRoomManager();
+        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("test-provider");
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
 
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction createTool = GetTool(tools, "create_character");
@@ -213,6 +212,7 @@ public sealed class ChatRoomRoleManagementToolsTests
     public async Task ListCharacters_WithRoles_ReturnsFormattedTable()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "architect",
@@ -248,6 +248,7 @@ public sealed class ChatRoomRoleManagementToolsTests
     public async Task EditCharacter_ExistingRole_UpdatesProperties()
     {
         var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
         await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "role-1",

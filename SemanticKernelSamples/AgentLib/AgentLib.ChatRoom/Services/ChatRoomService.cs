@@ -105,6 +105,9 @@ public sealed class ChatRoomService
 
         AttachEvents(_currentManager);
 
+        // 注册模型提供商，确保后续 AddRoleAsync 时角色能正确绑定模型
+        RegisterProviders(_currentManager);
+
         SessionChanged?.Invoke(this, _currentManager);
         return _currentManager;
     }
@@ -139,10 +142,10 @@ public sealed class ChatRoomService
 
         AttachEvents(_currentManager);
 
-        await _currentManager.LoadAsync(sessionId, cancellationToken).ConfigureAwait(false);
-
-        // 加载完成后注册模型提供商
+        // 先注册模型提供商，确保 LoadAsync 内部 AddRoleAsync 时角色能正确绑定模型
         RegisterProviders(_currentManager);
+
+        await _currentManager.LoadAsync(sessionId, cancellationToken).ConfigureAwait(false);
 
         SessionChanged?.Invoke(this, _currentManager);
         return _currentManager;
