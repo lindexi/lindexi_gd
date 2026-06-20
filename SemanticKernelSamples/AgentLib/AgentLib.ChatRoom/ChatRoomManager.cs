@@ -145,6 +145,10 @@ public sealed class ChatRoomManager : NotifyBase
 
         IsRunning = true;
 
+        // 连续空回复计数器：防止任何情况下死循环的安全网。
+        // 当连续空回复次数达到角色数量时终止循环。
+        int consecutiveEmptyReplies = 0;
+
         try
         {
             while (!loopCancellationToken.IsCancellationRequested)
@@ -165,6 +169,8 @@ public sealed class ChatRoomManager : NotifyBase
 
                 if (message is not null)
                 {
+                    consecutiveEmptyReplies = 0;
+
                     // 解析消息中的 @mention，填充 MentionedRoleIds
                     IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
                     if (mentionedRoleIds.Count > 0)
@@ -192,6 +198,17 @@ public sealed class ChatRoomManager : NotifyBase
                                     }
                                 }, TaskContinuationOptions.OnlyOnFaulted);
                         }
+                    }
+                }
+                else
+                {
+                    // 角色未产生有效回复，递增连续空回复计数
+                    consecutiveEmptyReplies++;
+
+                    // 安全网：连续空回复达到阈值时终止循环，防止死循环
+                    if (consecutiveEmptyReplies >= Roles.Count)
+                    {
+                        break;
                     }
                 }
             }

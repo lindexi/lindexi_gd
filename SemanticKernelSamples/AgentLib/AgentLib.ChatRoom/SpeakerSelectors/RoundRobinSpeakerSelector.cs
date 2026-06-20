@@ -19,6 +19,19 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
     private readonly Queue<string> _pendingMentionQueue = new();
 
     /// <summary>
+    /// 记录本轮已从 @mention 队列出队并返回过的角色 ID。
+    /// 当 <c>history[^1]</c> 变化（有新消息追加）时清空，表示新的一轮 @ 可以重新尝试。
+    /// 用于防止角色被 @ 后 StepAsync 返回 null（无话可说）时死循环。
+    /// </summary>
+    private readonly HashSet<string> _attemptedMentionRoleIds = [];
+
+    /// <summary>
+    /// 上次调用 SelectNextSpeakerAsync 时 history 最后一条消息的 MessageId。
+    /// 用于检测 history[^1] 是否变化（有新消息追加），变化时清空 _attemptedMentionRoleIds。
+    /// </summary>
+    private string? _lastSeenHistoryLastMessageId;
+
+    /// <summary>
     /// 最大轮次数。为 <see langword="null"/> 时无限循环。
     /// </summary>
     public int? MaxRounds { get; init; }
@@ -45,6 +58,23 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
         if (roles.Count == 0)
         {
             return Task.FromResult<ChatRoomRole?>(null);
+        }
+
+        // 检测 history[^1] 是否变化（有新消息追加），变化时清空已尝试记录
+        if (history.Count > 0)
+        {
+            string currentLastMessageId = history[^1].MessageId;
+            if (currentLastMessageId != _lastSeenHistoryLastMessageId)
+            {
+                _attemptedMentionRoleIds.Clear();
+                _lastSeenHistoryLastMessageId = currentLastMessageId;
+            }
+        }
+        else
+        {
+            // history 为空时也清空，防止残留状态
+            _attemptedMentionRoleIds.Clear();
+            _lastSeenHistoryLastMessageId = null;
         }
 
         // 自动循环角色：AlwaysParticipate 的非人类角色
@@ -107,7 +137,7 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
     }
 
     /// <summary>
-    /// 将被 @ 的角色 ID 入队（去重）。
+    /// 将被 @ 的角色 ID 入队（去重，跳过本轮已尝试过的角色）。
     /// </summary>
     private void EnqueueMentions(IReadOnlyList<string> mentionedRoleIds, IReadOnlyList<ChatRoomRole> roles)
     {
@@ -132,13 +162,20 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
                 continue;
             }
 
-            // 跳过自己（如果 SenderRoleId 可获取，此处由调用方保证）
+            // 跳过本轮已尝试过的（防止 StepAsync 返回 null 后死循环）
+            if (_attemptedMentionRoleIds.Contains(roleId))
+            {
+                continue;
+            }
+
             _pendingMentionQueue.Enqueue(roleId);
         }
     }
 
     /// <summary>
     /// 从 mention 队列出队一个有效角色。跳过已被移除的角色。
+    /// 出队并返回的角色会被记录到 _attemptedMentionRoleIds 中，
+    /// 防止该角色发言失败（StepAsync 返回 null）后被重复选中。
     /// </summary>
     /// <param name="roles">当前角色列表，用于验证角色是否仍存在。</param>
     /// <returns>匹配到的角色；队列空或角色均已移除时返回 <see langword="null"/>。</returns>
@@ -150,6 +187,7 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
             ChatRoomRole? matchedRole = roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
             if (matchedRole is not null)
             {
+                _attemptedMentionRoleIds.Add(roleId);
                 return matchedRole;
             }
             // 角色已被移除，继续出队下一个
@@ -166,5 +204,7 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
         _currentIndex = -1;
         _currentRound = 0;
         _pendingMentionQueue.Clear();
+        _attemptedMentionRoleIds.Clear();
+        _lastSeenHistoryLastMessageId = null;
     }
 }

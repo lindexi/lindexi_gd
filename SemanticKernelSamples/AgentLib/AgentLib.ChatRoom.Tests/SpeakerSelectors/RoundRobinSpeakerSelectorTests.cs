@@ -508,6 +508,101 @@ public sealed class RoundRobinSpeakerSelectorTests
         Assert.AreEqual("C", result2!.Definition.RoleId);
     }
 
+    // === 死循环 Bug 复现测试 ===
+
+    [TestMethod]
+    [Timeout(5000)]
+    public async Task SelectNextSpeakerAsync_MentionedRoleHasNoReply_DoesNotReSelectSameRole()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("helper", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("expert", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        // 助手消息 @ expert
+        var helperMsg = ChatRoomMessage.CreateAssistant("need @expert", "helper", "Helper");
+        helperMsg.MentionedRoleIds = new[] { "expert" };
+
+        var history = new List<ChatRoomMessage> { helperMsg };
+
+        // 第 1 次：expert 从 @mention 队列出队
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("expert", result1!.Definition.RoleId);
+
+        // expert 被选中但未发言（StepAsync 返回 null），history 不变
+        // 第 2 次调用：不应再次返回 expert（避免死循环）
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreNotEqual("expert", result2?.Definition.RoleId);
+    }
+
+    [TestMethod]
+    [Timeout(5000)]
+    public async Task SelectNextSpeakerAsync_MentionedRoleReplies_RetryAllowed()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("helper", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("expert", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        // 第 1 条消息 @ expert
+        var msg1 = ChatRoomMessage.CreateAssistant("need @expert", "helper", "Helper");
+        msg1.MentionedRoleIds = new[] { "expert" };
+        var history1 = new List<ChatRoomMessage> { msg1 };
+
+        // 第 1 次：expert 被选中
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history1);
+        Assert.AreEqual("expert", result1!.Definition.RoleId);
+
+        // expert 发言后，helper 再次 @ expert（history[^1] 变了）
+        var expertMsg = ChatRoomMessage.CreateAssistant("expert reply", "expert", "Expert");
+        var msg2 = ChatRoomMessage.CreateAssistant("@expert again", "helper", "Helper");
+        msg2.MentionedRoleIds = new[] { "expert" };
+        var history2 = new List<ChatRoomMessage> { msg1, expertMsg, msg2 };
+
+        // 第 2 次：history[^1] 是新消息，可以再次返回 expert
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.AreEqual("expert", result2!.Definition.RoleId);
+    }
+
+    [TestMethod]
+    [Timeout(5000)]
+    public async Task SelectNextSpeakerAsync_LlmMentionsRole_RoleHasNoReply_FallsToNormalCycle()
+    {
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("A", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("B", isHuman: false, mode: ChatRoomParticipationMode.AlwaysParticipate),
+            CreateRole("expert", isHuman: false, mode: ChatRoomParticipationMode.MentionOnly),
+        };
+
+        // 先跑一轮让状态初始化
+        await selector.SelectNextSpeakerAsync(roles, []); // A (index 0)
+
+        // A @ expert
+        var aMsg = ChatRoomMessage.CreateAssistant("hey @expert", "A", "A");
+        aMsg.MentionedRoleIds = new[] { "expert" };
+        var history = new List<ChatRoomMessage>
+        {
+            ChatRoomMessage.CreateAssistant("init", "A", "A"),
+            aMsg,
+        };
+
+        // 第 1 次：expert 从队列出队
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("expert", result1!.Definition.RoleId);
+
+        // expert 未发言（StepAsync 返回 null），history 不变
+        // 第 2 次：不应再次返回 expert，应跳过并回到正常轮流
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.IsNotNull(result2);
+        Assert.AreNotEqual("expert", result2.Definition.RoleId);
+    }
+
     // === helper ===
 
     private static ChatRoomRole CreateRole(
