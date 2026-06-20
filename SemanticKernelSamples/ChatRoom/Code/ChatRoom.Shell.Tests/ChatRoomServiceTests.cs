@@ -35,6 +35,19 @@ public class ChatRoomServiceTests
         {
             PersistencePath = _tempDir,
             DefaultMaxRounds = 5,
+            Providers =
+            [
+                new ProviderSetting
+                {
+                    Name = "test-provider",
+                    Endpoint = "https://test.example.com/v1",
+                    Key = "test-key",
+                    Models =
+                    [
+                        new ModelSetting { ModelName = "test-model", ModelId = "test-model-id" },
+                    ],
+                },
+            ],
         };
         _modelProviderService = new ModelProviderService(settings);
         _chatRoomService = new ChatRoomService(
@@ -200,5 +213,54 @@ public class ChatRoomServiceTests
 
         Assert.IsTrue(sessions.Count >= 1);
         Assert.IsTrue(sessions.Any(s => s.Title == "持久化测试"));
+    }
+
+    /// <summary>
+    /// 创建新会话后添加非人类角色不应抛出异常，验证模型提供商已正确注册。
+    /// </summary>
+    [TestMethod]
+    public async Task CreateNewSession_ThenAddNonHumanRole_ShouldNotThrow()
+    {
+        await _chatRoomService.CreateNewSessionAsync();
+
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "ai-role",
+            RoleName = "AI角色",
+            SystemPrompt = "你是一个 AI 角色。",
+            IsHuman = false,
+        };
+
+        await _chatRoomService.AddRoleAsync(definition);
+
+        Assert.AreEqual(1, _chatRoomService.CurrentManager!.Roles.Count);
+        Assert.AreEqual("ai-role", _chatRoomService.CurrentManager.Roles[0].Definition.RoleId);
+    }
+
+    /// <summary>
+    /// 未注册模型提供商时调用 RegisterModelProvidersForRole 应抛出 InvalidOperationException。
+    /// </summary>
+    [TestMethod]
+    public void RegisterModelProvidersForRole_WithoutProviders_ShouldThrow()
+    {
+        var manager = new ChatRoomManager();
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "test",
+            RoleName = "测试",
+            IsHuman = false,
+        });
+
+        InvalidOperationException? thrown = null;
+        try
+        {
+            manager.RegisterModelProvidersForRole(role);
+        }
+        catch (InvalidOperationException ex)
+        {
+            thrown = ex;
+        }
+
+        Assert.IsNotNull(thrown);
     }
 }

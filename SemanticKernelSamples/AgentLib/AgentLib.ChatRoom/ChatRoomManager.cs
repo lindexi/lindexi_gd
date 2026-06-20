@@ -239,6 +239,7 @@ public sealed class ChatRoomManager : NotifyBase
             // 构建增量消息：自该角色上次发言之后的公开消息
             string incrementalUserText = BuildIncrementalUserText(role);
 
+
             // 追加角色管理工具到本次发言
             IReadOnlyList<AITool> additionalTools = ChatRoomRoleManagementTools.CreateTools(this);
 
@@ -369,14 +370,15 @@ public sealed class ChatRoomManager : NotifyBase
     {
         ArgumentNullException.ThrowIfNull(role);
 
-        if (_languageModelProviders is null)
+        if (role.Definition.IsHuman)
         {
             return;
         }
 
-        if (role.Definition.IsHuman)
+        if (_languageModelProviders is null)
         {
-            return;
+            throw new InvalidOperationException(
+                $"模型提供商尚未注册。请先调用 {nameof(RegisterRoleModelProviders)} 注册模型提供商字典。");
         }
 
         if (string.IsNullOrWhiteSpace(role.Definition.ModelProviderId))
