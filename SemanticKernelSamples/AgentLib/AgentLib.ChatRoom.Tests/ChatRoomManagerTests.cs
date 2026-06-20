@@ -337,6 +337,9 @@ public sealed class ChatRoomManagerTests
         };
         var role = new ChatRoomRole(definition);
 
+        // 需要先添加消息，使 BuildIncrementalUserText 返回非空内容，否则 StepAsync 会提前返回 null
+        await manager.HumanInterjectAsync("测试消息", "human", "Human");
+
         RoleSpeakFailedEventArgs? eventArgs = null;
         manager.OnRoleSpeakFailed += (_, args) => eventArgs = args;
 
@@ -436,6 +439,9 @@ public sealed class ChatRoomManagerTests
         var role = new ChatRoomRole(definition);
         await manager.AddRoleAsync(role);
 
+        // 需要先添加消息，使 BuildIncrementalUserText 返回非空内容，否则 StepAsync 会提前返回 null
+        await manager.HumanInterjectAsync("测试消息", "human", "Human");
+
         var mockSpeaker = new Mock<ISpeakerSelector>();
         mockSpeaker
             .SetupSequence(s => s.SelectNextSpeakerAsync(
@@ -454,7 +460,8 @@ public sealed class ChatRoomManagerTests
         Assert.IsFalse(manager.IsRunning);
         Assert.HasCount(1, addedMessages);
         Assert.IsTrue(addedMessages[0].IsSystemMessage);
-        Assert.HasCount(1, manager.Session.Messages);
+        // Session 包含人类插话消息 + 发言失败的系统消息
+        Assert.HasCount(2, manager.Session.Messages);
     }
 
     [TestMethod]
