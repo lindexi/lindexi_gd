@@ -25,30 +25,9 @@
 
 - **没有"发言失败/空回复"的反馈通道**：`ISpeakerSelector` 接口没有让 Manager 告诉 Selector"上一个选中的角色没有说话"。Selector 无法知道它选的角色是否真的发了言。
 
-## 修复方案（双重防护）
+## 修复方案（ISpeakerSelector 接口扩展 + OnSpeakerResult 反馈）
 
-### 方案 1：Selector 层 — 记录已尝试的 @mention 避免重复入队
-
-在 `RoundRobinSpeakerSelector` 中新增 `_attemptedMentionRoleIds: HashSet<string>` 集合，记录本轮已经从 @mention 队列出队并返回过的角色 ID。
-
-**核心逻辑：**
-
-1. **入队时跳过已尝试角色**：`EnqueueMentions` 方法在入队前检查 `_attemptedMentionRoleIds`，跳过本轮已尝试过的角色。
-2. **出队时记录已尝试角色**：`TryDequeueMention` 方法在成功出队并返回角色时，将角色 ID 加入 `_attemptedMentionRoleIds`。
-3. **history[^1] 变化时清空记录**：通过 `_lastSeenHistoryLastMessageId` 检测 `history[^1]` 是否变化（有新消息追加），变化时清空 `_attemptedMentionRoleIds`，表示新的一轮 @ 可以重新尝试。
-4. **`Reset()` 中清空**：重置时一并清空所有状态。
-
-**关键文件**：`AgentLib.ChatRoom/SpeakerSelectors/RoundRobinSpeakerSelector.cs`
-
-### 方案 2：ChatRoomManager 层 — 连续空回复检测（安全网）
-
-在 `StartAutoLoopAsync` 循环中跟踪连续 `StepAsync` 返回 `null` 的次数。当连续空回复达到 `Roles.Count` 时 `break`，避免任何情况下的死循环。
-
-这是安全网，防止 Selector 修复不完全或其他边界情况导致的死循环。
-
-**关键文件**：`AgentLib.ChatRoom/ChatRoomManager.cs`
-
-### 方案 3（深层，后续迭代）：ISpeakerSelector 接口扩展
+### 方案 3（本次实施）：ISpeakerSelector 接口扩展
 
 为 `ISpeakerSelector` 增加反馈方法，让 Manager 告诉 Selector 上一个角色是否成功发言：
 
@@ -71,17 +50,41 @@ public interface ISpeakerSelector
 
 这样 Selector 可以精确知道角色是否成功发言，不需要通过 `history[^1]` 变化来推断。
 
-**本次不实施此方案**，因为修改接口会影响所有 `ISpeakerSelector` 实现和 Mock。当前双重防护方案已经足够。记录于此供后续迭代参考。
+### RoundRobinSpeakerSelector 改造
+
+移除间接推断机制（`_attemptedMentionRoleIds`），改为通过 `OnSpeakerResult` 直接管理状态：
+
+**新增字段：**
+- `_spokenRoleIdsInCurrentTurn: HashSet<string>` — 当前轮次中已成功发言的角色 ID 集合。`OnSpeakerResult(role, success: true)` 时加入。正常轮流时跳过此集合中的角色；所有可发言角色都在此集合中时返回 `null`（自然暂停）。
+- `_failedMentionRoleIds: HashSet<string>` — 从 @mention 队列出队但发言失败的角色 ID 集合。`OnSpeakerResult(role, success: false)` 时加入。入队和出队时跳过此集合中的角色，防止死循环。
+
+**清空时机：**
+- `_spokenRoleIdsInCurrentTurn` 和 `_failedMentionRoleIds` 仅在 `history[^1]` 变为人类消息（新一轮开始）时清空。LLM 消息不会触发清空，确保同一轮内已发言角色不被重复选中。
+- `Reset()` 中清空所有状态。
+
+### ChatRoomManager 安全网
+
+在 `StartAutoLoopAsync` 中：
+1. `StepAsync` 完成后调用 `SpeakerSelector.OnSpeakerResult(role, success)` 反馈结果。
+2. 人类角色跳过 `StepAsync`（不调 LLM，不计数空回复）。
+3. 安全网阈值改为可发言的非人类角色数量：`Roles.Count(r => !r.Definition.IsHuman && r.Definition.ParticipationMode == AlwaysParticipate)`，至少为 1。
 
 ## 正确行为定义
 
-当被 @ 的角色被选中发言但 `StepAsync` 返回 `null`（无话可说）时：
+1. **被 @ 的角色发言失败（`StepAsync` 返回 `null`）时**：
+   - 通过 `OnSpeakerResult(role, false)` 通知 Selector
+   - Selector 将该角色加入 `_failedMentionRoleIds`，后续不再重复选中
+   - 不终止循环，继续选择下一个发言者
 
-- **不终止循环**：继续选择下一个发言者
-- **不重复选同一角色**：避免死循环
-- **跳过该角色，继续选择队列中下一个角色或回到正常轮流**
+2. **人类插话后的行为**：
+   - 人类消息清空 `_spokenRoleIdsInCurrentTurn` 和 `_failedMentionRoleIds`，开始新一轮
+   - 各 AlwaysParticipate 角色各发言一次后，所有角色都在 `_spokenRoleIdsInCurrentTurn` 中，Selector 返回 `null`，循环自然暂停
+   - **不再无尽发言**
 
-当 `history[^1]` 变化（有新消息追加）时，已尝试记录清空，新的 @ 可以重新尝试。
+3. **@ 链式调用**：
+   - A @ B → B 从 @mention 队列出队发言 → B @ C → C 从队列出队发言 → ...
+   - 被 @ 的角色通过队列优先机制被选中，不进入正常轮流
+   - 队列空后回到正常轮流
 
 ## 测试覆盖
 
@@ -89,9 +92,13 @@ public interface ISpeakerSelector
 
 | 测试 | 验证点 |
 |------|--------|
-| `SelectNextSpeakerAsync_MentionedRoleHasNoReply_DoesNotReSelectSameRole` | history[^1] 不变时不重复返回同一 @mention 角色 |
-| `SelectNextSpeakerAsync_MentionedRoleReplies_RetryAllowed` | history[^1] 变化后可以重新尝试同一角色 |
+| `SelectNextSpeakerAsync_MentionedRoleHasNoReply_DoesNotReSelectSameRole` | `OnSpeakerResult(false)` 后不重复返回同一 @mention 角色 |
+| `SelectNextSpeakerAsync_MentionedRoleReplies_RetryAllowed` | 发言成功后新消息中再次 @ 可以重新选中 |
 | `SelectNextSpeakerAsync_LlmMentionsRole_RoleHasNoReply_FallsToNormalCycle` | LLM @ 的角色无回复时跳过并回到正常轮流 |
+| `OnSpeakerResult_Success_AddsToSpokenSet` | 成功发言后角色加入已发言集合，不再被选中 |
+| `OnSpeakerResult_Success_AllRolesSpoke_ReturnsNull` | 所有角色发言后返回 null |
+| `OnSpeakerResult_Failure_PreventsReSelection` | 发言失败后不再被选中 |
+| `OnSpeakerResult_HumanMessageClearsSpokenSet` | 人类插话后清空已发言集合，开始新一轮 |
 
 ### Manager 集成测试（`ChatRoomManagerIntegrationTests.cs`）
 
@@ -103,21 +110,15 @@ public interface ISpeakerSelector
 | `StartAutoLoopAsync_MentionedRoleReturnsEmpty_ContinuesToNextSpeaker` | @mention 角色返回空后跳过并继续选下一个发言者 |
 | `StartAutoLoopAsync_NormalFlow_AllRolesSpeak` | 正常流程所有角色发言 |
 | `StartAutoLoopAsync_MentionChain_AllMentionedRolesSpeak` | @ 链式调用 A→B→C 全部发言 |
-
-## 已知预存问题（非本次修复范围）
-
-以下 2 个测试在本次修改前已失败，根因是 `StepAsync` 中 `BuildIncrementalUserText` 在 `Session.Messages` 为空时返回空字符串，导致 `StepAsync` 在调用 LLM 之前就返回 `null`：
-
-- `StartAutoLoopAsync_StepAsyncReturnsMessage_AppendsMessageAndFiresEvent`
-- `StepAsync_NonHumanRole_WhenSpeakThrows_FiresOnRoleSpeakFailedAndReturnsSystemMessage`
-
-这些测试需要在 `Session` 中有消息才能走到 LLM 调用路径。后续应修复这些测试或调整 `StepAsync` 逻辑。
+| `StartAutoLoopAsync_HumanInterject_AllRolesSpeakOnceThenStop` | 人类插话后各角色各发言一次然后循环暂停 |
+| `StartAutoLoopAsync_AllSpeakableRolesReturnEmpty_TerminatesQuickly` | 安全网阈值基于可发言角色数，不死循环 |
 
 ## 修改文件清单
 
 | 文件 | 改动 |
 |------|------|
-| `AgentLib.ChatRoom/SpeakerSelectors/RoundRobinSpeakerSelector.cs` | 新增 `_attemptedMentionRoleIds`、`_lastSeenHistoryLastMessageId`；`EnqueueMentions` 跳过已尝试角色；`TryDequeueMention` 记录已尝试；`Reset()` 清空新字段 |
-| `AgentLib.ChatRoom/ChatRoomManager.cs` | `StartAutoLoopAsync` 新增 `consecutiveEmptyReplies` 计数器，达到 `Roles.Count` 时 `break` |
-| `AgentLib.ChatRoom.Tests/SpeakerSelectors/RoundRobinSpeakerSelectorTests.cs` | 新增 3 个死循环复现测试 |
-| `AgentLib.ChatRoom.Tests/ChatRoomManagerIntegrationTests.cs` | 新增 4 个集成测试，使用 `FakeChatClient` 模拟完整流程 |
+| `AgentLib.ChatRoom/ISpeakerSelector.cs` | 新增 `OnSpeakerResult(ChatRoomRole, bool)` 方法（破坏性变更） |
+| `AgentLib.ChatRoom/SpeakerSelectors/RoundRobinSpeakerSelector.cs` | 移除 `_attemptedMentionRoleIds`；新增 `_spokenRoleIdsInCurrentTurn`/`_failedMentionRoleIds`；实现 `OnSpeakerResult`；正常轮流跳过已发言角色；清空逻辑改为仅在人类消息时触发 |
+| `AgentLib.ChatRoom/ChatRoomManager.cs` | `StartAutoLoopAsync` 调用 `OnSpeakerResult`；安全网阈值改为可发言非人类角色数；人类角色跳过 `StepAsync` |
+| `AgentLib.ChatRoom.Tests/SpeakerSelectors/RoundRobinSpeakerSelectorTests.cs` | 死循环测试改用 `OnSpeakerResult` 反馈模式；新增轮次暂停、反馈测试 |
+| `AgentLib.ChatRoom.Tests/ChatRoomManagerIntegrationTests.cs` | 新增人类插话暂停行为测试和安全网阈值测试 |

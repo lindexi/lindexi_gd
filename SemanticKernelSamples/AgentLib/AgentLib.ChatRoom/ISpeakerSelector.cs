@@ -23,4 +23,14 @@ public interface ISpeakerSelector
         IReadOnlyList<ChatRoomRole> roles,
         IReadOnlyList<ChatRoomMessage> history,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 通知 Selector 上一个选中的角色的发言结果。
+    /// 由 <see cref="ChatRoomManager"/> 在 <see cref="ChatRoomManager.StepAsync"/> 完成后调用，
+    /// Selector 据此精确管理内部状态（如已发言角色集合、发言失败角色集合等），
+    /// 避免通过 <paramref name="history"/> 变化间接推断发言结果。
+    /// </summary>
+    /// <param name="role">上一个选中的角色。</param>
+    /// <param name="success">是否成功发言（产生了有效内容）。</param>
+    void OnSpeakerResult(ChatRoomRole role, bool success);
 }

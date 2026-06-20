@@ -173,6 +173,82 @@ public sealed class ChatRoomManagerIntegrationTests
 
     // === helper ===
 
+    /// <summary>
+    /// 人类插话后，各 AlwaysParticipate 角色各发言一次，然后循环自然暂停。
+    /// 验证"人类说话后无尽发言"的 Bug 已修复。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_HumanInterject_AllRolesSpeakOnceThenStop()
+    {
+        var clientA = CreateFakeClient("A 的回复");
+        var clientB = CreateFakeClient("B 的回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["provider-a"] = new FakeLanguageModelProvider(clientA),
+            ["provider-b"] = new FakeLanguageModelProvider(clientB),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "A", "provider-a"));
+        await manager.AddRoleAsync(CreateRole("B", "B", "provider-b"));
+
+        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
+
+        // 人类插话触发对话
+        await manager.HumanInterjectAsync("开始讨论", "human", "Human");
+
+        // Act
+        await manager.StartAutoLoopAsync();
+
+        // Assert：循环应已终止（不再无尽发言）
+        Assert.IsFalse(manager.IsRunning);
+
+        // A 和 B 各发言恰好一次
+        var aMessages = manager.Session.Messages
+            .Where(m => m.SenderRoleId == "A" && !m.IsSystemMessage)
+            .ToList();
+        var bMessages = manager.Session.Messages
+            .Where(m => m.SenderRoleId == "B" && !m.IsSystemMessage)
+            .ToList();
+        Assert.AreEqual(1, aMessages.Count);
+        Assert.AreEqual(1, bMessages.Count);
+    }
+
+    /// <summary>
+    /// 安全网阈值基于可发言的非人类角色数量，而非包含人类角色的 Roles.Count。
+    /// 当所有可发言角色都连续返回空时，循环应终止。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_AllSpeakableRolesReturnEmpty_TerminatesQuickly()
+    {
+        // 两个 AlwaysParticipate 角色都返回空
+        var emptyClientA = CreateEmptyFakeClient();
+        var emptyClientB = CreateEmptyFakeClient();
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = new FakeLanguageModelProvider(emptyClientA),
+            ["p-b"] = new FakeLanguageModelProvider(emptyClientB),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "B", "p-b"));
+        // 人类角色不影响安全网阈值
+        await manager.AddRoleAsync(CreateRole("human", "Human", "", isHuman: true));
+
+        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
+
+        await manager.HumanInterjectAsync("开始", "human", "Human");
+
+        // Act
+        await manager.StartAutoLoopAsync();
+
+        // Assert：循环应已终止（安全网阈值为 2 个可发言角色，不死循环）
+        Assert.IsFalse(manager.IsRunning);
+    }
+
     private static ChatRoomManager CreateManager()
     {
         return new ChatRoomManager();
@@ -182,15 +258,16 @@ public sealed class ChatRoomManagerIntegrationTests
         string roleId,
         string roleName,
         string modelProviderId,
-        ChatRoomParticipationMode mode = ChatRoomParticipationMode.AlwaysParticipate)
+        ChatRoomParticipationMode mode = ChatRoomParticipationMode.AlwaysParticipate,
+        bool isHuman = false)
     {
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = roleId,
             RoleName = roleName,
-            IsHuman = false,
+            IsHuman = isHuman,
             ParticipationMode = mode,
-            ModelProviderId = modelProviderId,
+            ModelProviderId = string.IsNullOrEmpty(modelProviderId) ? null : modelProviderId,
         };
 
         return new ChatRoomRole(definition);
