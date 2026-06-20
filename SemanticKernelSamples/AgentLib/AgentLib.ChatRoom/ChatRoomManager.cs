@@ -238,7 +238,11 @@ public sealed class ChatRoomManager : NotifyBase
 
             // 构建增量消息：自该角色上次发言之后的公开消息
             string incrementalUserText = BuildIncrementalUserText(role);
-
+            if (string.IsNullOrEmpty(incrementalUserText))
+            {
+                // 没有新的用户消息，角色无需发言
+                return null;
+            }
 
             // 追加角色管理工具到本次发言
             IReadOnlyList<AITool> additionalTools = ChatRoomRoleManagementTools.CreateTools(this);
