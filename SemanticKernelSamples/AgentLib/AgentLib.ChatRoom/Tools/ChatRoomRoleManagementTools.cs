@@ -106,14 +106,17 @@ public static class ChatRoomRoleManagementTools
                 RoleName = roleName.Trim(),
                 SystemPrompt = systemPrompt.Trim(),
                 IsHuman = false,
-                ModelProviderId = modelId is not null && !string.IsNullOrWhiteSpace(modelId) ? modelProviderId : null,
-                ModelId = modelId is not null && !string.IsNullOrWhiteSpace(modelId) ? modelId : null,
-                MemoryContent = memoryContent is not null && !string.IsNullOrWhiteSpace(memoryContent) ? memoryContent.Trim() : null,
-                ParticipationMode = ChatRoomParticipationMode.AlwaysParticipate,
+                ModelProviderId = !string.IsNullOrWhiteSpace(modelProviderId) ? modelProviderId.Trim() : null,
+                ModelId = !string.IsNullOrWhiteSpace(modelId) ? modelId.Trim() : null,
+                MemoryContent = !string.IsNullOrWhiteSpace(memoryContent) ? memoryContent.Trim() : null,
+                ParticipationMode = ChatRoomParticipationMode.MentionOnly,
             };
 
             var role = new ChatRoomRole(definition);
             await chatRoomManager.AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
+
+            // 早期校验：确保新角色有可用模型，避免被 @ 发言时才抛出异常
+            role.EnsureModelAvailable();
 
             var sb = new StringBuilder();
             sb.AppendLine("✅ 角色创建成功并已加入聊天室：");

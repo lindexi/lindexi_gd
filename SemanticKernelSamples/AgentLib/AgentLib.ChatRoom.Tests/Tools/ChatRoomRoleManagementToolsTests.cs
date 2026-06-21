@@ -81,57 +81,6 @@ public sealed class ChatRoomRoleManagementToolsTests
     }
 
     [TestMethod]
-    public async Task CreateCharacter_WithRegisteredProviders_NewRolePassesEnsureModelAvailable()
-    {
-        var manager = new ChatRoomManager();
-        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("test-provider");
-        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
-        {
-            ["test-provider"] = mockProvider.Object,
-        });
-
-        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
-        AIFunction createTool = GetTool(tools, "create_character");
-
-        await createTool.InvokeAsync(
-            new AIFunctionArguments
-            {
-                ["roleName"] = "测试角色",
-                ["systemPrompt"] = "你是一个测试角色",
-                ["modelId"] = null,
-                ["modelProviderId"] = null,
-                ["memoryContent"] = null,
-            });
-
-        // 新角色应通过 EnsureModelAvailable 校验，不抛异常
-        manager.Roles[0].EnsureModelAvailable();
-    }
-
-    [TestMethod]
-    public async Task CreateCharacter_WithoutRegisteredProviders_ReturnsError()
-    {
-        var manager = new ChatRoomManager();
-        // 未注册任何 providers
-
-        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
-        AIFunction createTool = GetTool(tools, "create_character");
-
-        object resultObj = await createTool.InvokeAsync(
-            new AIFunctionArguments
-            {
-                ["roleName"] = "无模型角色",
-                ["systemPrompt"] = "你是一个没有模型的角色",
-                ["modelId"] = null,
-                ["modelProviderId"] = null,
-                ["memoryContent"] = null,
-            });
-
-        string result = resultObj.ToString()!;
-        Assert.Contains("创建角色失败", result);
-        Assert.HasCount(0, manager.Roles);
-    }
-
-    [TestMethod]
     public async Task CreateCharacter_ValidInputs_RoleAddedToRoles()
     {
         var manager = new ChatRoomManager();
@@ -160,6 +109,34 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.HasCount(1, manager.Roles);
         Assert.AreEqual("架构师", manager.Roles[0].Definition.RoleName);
         Assert.IsFalse(manager.Roles[0].Definition.IsHuman);
+        Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, manager.Roles[0].Definition.ParticipationMode);
+    }
+
+    [TestMethod]
+    public async Task CreateCharacter_NewRoleDefaultsToMentionOnly()
+    {
+        var manager = new ChatRoomManager();
+        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("test-provider");
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction createTool = GetTool(tools, "create_character");
+
+        await createTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleName"] = "新角色",
+                ["systemPrompt"] = "你是一个新角色",
+                ["modelId"] = null,
+                ["modelProviderId"] = null,
+                ["memoryContent"] = null,
+            });
+
+        Assert.HasCount(1, manager.Roles);
+        Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, manager.Roles[0].Definition.ParticipationMode);
     }
 
     [TestMethod]
@@ -297,5 +274,139 @@ public sealed class ChatRoomRoleManagementToolsTests
 
         string result = resultObj.ToString()!;
         Assert.Contains("❌", result);
+    }
+
+    [TestMethod]
+    public async Task CreateCharacter_WithOnlyModelProviderId_PreservesProviderId()
+    {
+        var manager = new ChatRoomManager();
+        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("custom-provider");
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["custom-provider"] = mockProvider.Object,
+        });
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction createTool = GetTool(tools, "create_character");
+
+        await createTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleName"] = "指定提供商",
+                ["systemPrompt"] = "你是一个指定了提供商的角色",
+                ["modelId"] = null,
+                ["modelProviderId"] = "custom-provider",
+                ["memoryContent"] = null,
+            });
+
+        Assert.HasCount(1, manager.Roles);
+        Assert.AreEqual("custom-provider", manager.Roles[0].Definition.ModelProviderId);
+        Assert.IsNull(manager.Roles[0].Definition.ModelId);
+    }
+
+    [TestMethod]
+    public async Task CreateCharacter_WithBothModelIdAndProviderId_PreservesBoth()
+    {
+        var manager = new ChatRoomManager();
+        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("custom-provider");
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["custom-provider"] = mockProvider.Object,
+        });
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction createTool = GetTool(tools, "create_character");
+
+        await createTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleName"] = "指定模型",
+                ["systemPrompt"] = "你是一个指定了模型的角色",
+                ["modelId"] = "gpt-4",
+                ["modelProviderId"] = "custom-provider",
+                ["memoryContent"] = null,
+            });
+
+        Assert.HasCount(1, manager.Roles);
+        Assert.AreEqual("custom-provider", manager.Roles[0].Definition.ModelProviderId);
+        Assert.AreEqual("gpt-4", manager.Roles[0].Definition.ModelId);
+    }
+
+    [TestMethod]
+    public async Task CreateCharacter_WithWhitespaceModelProviderId_TreatedAsNull()
+    {
+        var manager = new ChatRoomManager();
+        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("default-provider");
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["default-provider"] = mockProvider.Object,
+        });
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction createTool = GetTool(tools, "create_character");
+
+        await createTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleName"] = "空白提供商",
+                ["systemPrompt"] = "你是一个测试角色",
+                ["modelId"] = "  ",
+                ["modelProviderId"] = "  ",
+                ["memoryContent"] = null,
+            });
+
+        Assert.HasCount(1, manager.Roles);
+        Assert.IsNull(manager.Roles[0].Definition.ModelProviderId);
+        Assert.IsNull(manager.Roles[0].Definition.ModelId);
+    }
+
+    [TestMethod]
+    public async Task CreateCharacter_WithoutProviders_ReturnsErrorAndRoleNotAdded()
+    {
+        var manager = new ChatRoomManager();
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction createTool = GetTool(tools, "create_character");
+
+        object resultObj = await createTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleName"] = "无模型角色",
+                ["systemPrompt"] = "你是一个没有模型的角色",
+                ["modelId"] = null,
+                ["modelProviderId"] = null,
+                ["memoryContent"] = null,
+            });
+
+        string result = resultObj.ToString()!;
+        Assert.Contains("创建角色失败", result);
+        Assert.HasCount(0, manager.Roles);
+    }
+
+    [TestMethod]
+    public async Task CreateCharacter_WithRegisteredProviders_NewRolePassesEnsureModelAvailable()
+    {
+        var manager = new ChatRoomManager();
+        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("test-provider");
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction createTool = GetTool(tools, "create_character");
+
+        await createTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleName"] = "测试角色",
+                ["systemPrompt"] = "你是一个测试角色",
+                ["modelId"] = null,
+                ["modelProviderId"] = null,
+                ["memoryContent"] = null,
+            });
+
+        // 新角色应通过 EnsureModelAvailable 校验，不抛异常
+        manager.Roles[0].EnsureModelAvailable();
     }
 }

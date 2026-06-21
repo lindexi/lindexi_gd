@@ -71,7 +71,8 @@ public sealed class ChatRoomRoleDefinition
     public string? MemoryContent { get; set; }
 
     /// <summary>
-    /// 角色在聊天室中的参与模式。默认参与所有对话。
+    /// 角色在聊天室中的参与模式。默认为 <see cref="ChatRoomParticipationMode.AlwaysParticipate"/>；
+    /// 通过角色管理工具创建的新角色默认为 <see cref="ChatRoomParticipationMode.MentionOnly"/>。
     /// </summary>
     public ChatRoomParticipationMode ParticipationMode { get; set; } = ChatRoomParticipationMode.AlwaysParticipate;
 }

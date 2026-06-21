@@ -238,6 +238,10 @@ public sealed class ChatRoomManager : NotifyBase
             CurrentSpeaker = null;
             _autoLoopCancellationTokenSource?.Dispose();
             _autoLoopCancellationTokenSource = null;
+
+            // 自动循环结束后持久化会话（AI 发言产生的新消息已通过 AppendMessageAsync 持久化，
+            // 此处兜底确保角色定义等状态变更被保存）
+            _ = SaveAsync();
         }
     }
 
@@ -312,6 +316,8 @@ public sealed class ChatRoomManager : NotifyBase
 
             // 发言完成，标记流式结束（CopilotChatMessage 引用不变，Content 已流式更新到位）
             streamingMessage.IsStreaming = false;
+            // 将最终内容回写到 StaticContent，确保持久化序列化时消息内容不丢失
+            streamingMessage.StaticContent = assistantContent;
             return streamingMessage;
         }
         catch (OperationCanceledException)
@@ -376,6 +382,8 @@ public sealed class ChatRoomManager : NotifyBase
         await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
         RegisterModelProvidersForRole(role);
         Roles.Add(role);
+
+        await SaveAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -393,6 +401,27 @@ public sealed class ChatRoomManager : NotifyBase
         if (role is not null)
         {
             Roles.Remove(role);
+            _ = SaveAsync();
+        }
+    }
+
+    /// <summary>
+    /// 从聊天室移除指定角色，并等待持久化完成。
+    /// </summary>
+    /// <param name="roleId">要移除的角色 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task RemoveRoleAsync(string roleId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(roleId))
+        {
+            throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
+        }
+
+        ChatRoomRole? role = Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
+        if (role is not null)
+        {
+            Roles.Remove(role);
+            await SaveAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -585,7 +614,10 @@ public sealed class ChatRoomManager : NotifyBase
         await Session.AddMessageAsync(message);
         OnMessageAdded?.Invoke(this, message);
 
-        // 持久化公开消息（fire-and-forget，异常通过 ContinueWith 记录）
+        // 持久化完整会话配置（含角色和消息列表）到 room.config.json
+        await SaveAsync().ConfigureAwait(false);
+
+        // 持久化公开消息到文本日志（fire-and-forget，异常通过 ContinueWith 记录）
         if (Persistence is not null)
         {
             _ = Persistence.SavePublicMessageAsync(Session.SessionId, message)

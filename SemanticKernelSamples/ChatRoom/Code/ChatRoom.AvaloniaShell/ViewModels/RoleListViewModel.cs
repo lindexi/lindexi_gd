@@ -173,6 +173,9 @@ public sealed class RoleListViewModel : ViewModelBase
         }
 
         _chatRoomService.RemoveRole(role.RoleId);
+
+        // 确保持久化到磁盘
+        _ = _chatRoomService.SaveAsync();
     }
 }
 
