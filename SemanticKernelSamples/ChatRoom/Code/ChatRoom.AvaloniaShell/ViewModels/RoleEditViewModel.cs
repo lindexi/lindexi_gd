@@ -209,6 +209,10 @@ public sealed class RoleEditViewModel : ViewModelBase
         };
 
         await _chatRoomService.AddRoleAsync(definition).ConfigureAwait(false);
+
+        // 确保持久化到磁盘并刷新会话列表
+        await _chatRoomService.SaveAsync().ConfigureAwait(false);
+
         SaveCompleted?.Invoke(this, EventArgs.Empty);
     }
 }

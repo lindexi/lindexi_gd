@@ -319,6 +319,9 @@ public sealed class ChatViewModel : ViewModelBase
                 _autoLoopCts?.Dispose();
                 _autoLoopCts = null;
                 IsRunning = false;
+
+                // 确保持久化到磁盘
+                await _chatRoomService.SaveAsync().ConfigureAwait(false);
             }
         }
     }

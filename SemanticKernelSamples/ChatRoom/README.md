@@ -29,6 +29,51 @@ ChatRoom/
 
 在 Visual Studio 中打开解决方案，将 `ChatRoom.AvaloniaShell` 设为启动项目，直接运行。
 
+### 1.1 使用 dotnet run 调试
+
+除了在 Visual Studio 中运行，也可以通过命令行 `dotnet run` 启动应用，配合控制台输出进行调试。
+
+这种方式适合以下场景：
+- 在没有 Visual Studio 的环境（如 Linux / macOS / WSL）中运行
+- 需要观察程序的标准输出和 trace 日志（`LogToTrace` 已在 `Program.cs` 中启用）
+- 需要通过环境变量控制运行时行为
+- 需要快速验证程序是否能正常启动和退出
+
+基本用法：
+
+```bash
+# 进入 AvaloniaShell 项目目录
+cd Code/ChatRoom.AvaloniaShell
+
+# 直接运行（默认使用 Debug 配置）
+dotnet run
+
+# 指定 Release 配置
+dotnet run -c Release
+
+# 传递运行时参数
+dotnet run -- --debug
+```
+
+**控制台输出调试**：`Program.cs` 中调用了 `.LogToTrace()`，Avalonia 的诊断信息会输出到标准输出。通过 `dotnet run` 启动时，所有 trace 日志直接在终端可见，便于排查启动失败、窗口创建异常等问题。
+
+**程序退出控制**：在终端中按 `Ctrl+C` 可以正常终止程序，Avalonia 桌面生命周期会收到取消信号并执行清理。如果程序卡死，可以按 `Ctrl+\`（发送 SIGQUIT）强制终止。
+
+**环境变量**：
+
+```bash
+# 指定持久化目录（覆盖默认路径）
+CHATROOM_PERSISTENCE_PATH=./data dotnet run
+
+# 开启 Avalonia 开发者工具（Debug 配置下自动开启）
+DOTNET_ENVIRONMENT=Development dotnet run
+```
+
+**注意事项**：
+- `dotnet run` 会在当前终端前台运行，关闭终端会终止程序
+- 如果需要后台运行，可以使用 `dotnet run &`（Linux/macOS）或在 Windows 上使用 `Start-Process`
+- 首次运行需要 `dotnet restore` 和 `dotnet build`，后续运行会增量编译
+
 ### 2. 首次配置
 
 首次启动后，进入设置页面配置模型提供商：
