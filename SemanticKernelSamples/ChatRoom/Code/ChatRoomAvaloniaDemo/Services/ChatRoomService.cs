@@ -204,6 +204,7 @@ public sealed class ChatRoomService
 
         if (_appConfig is not null)
         {
+            _chatRoomManager.DefaultPrimaryModelId = _appConfig.PrimaryModelId;
             _chatRoomManager.SpeakerSelector = new AgentLib.ChatRoom.SpeakerSelectors.RoundRobinSpeakerSelector
             {
                 MaxRounds = _appConfig.DefaultMaxRounds,
@@ -268,6 +269,11 @@ public sealed class ChatRoomService
         {
             Persistence = _persistence,
         };
+
+        if (_appConfig is not null)
+        {
+            _chatRoomManager.DefaultPrimaryModelId = _appConfig.PrimaryModelId;
+        }
 
         // 恢复角色
         foreach (ChatRoomRoleDefinition roleDef in data.Roles)

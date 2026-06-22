@@ -28,22 +28,7 @@ public class AgentApiEndpointManager
 
         if (configuration.PrimaryModel is var primaryModel && !string.IsNullOrEmpty(primaryModel))
         {
-            ILanguageModel? languageModel = null;
-
-            // 支持 "Provider/ModelName" 或 "Provider\ModelName" 格式
-            var separatorIndex = primaryModel.IndexOfAny(new[] { '/', '\\' });
-            if (separatorIndex > 0 && separatorIndex < primaryModel.Length - 1)
-            {
-                var provider = primaryModel[..separatorIndex];
-                var modelName = primaryModel[(separatorIndex + 1)..];
-                languageModel = GetModel(modelName, provider);
-            }
-            else
-            {
-                var supportedModels = GetSupportedModels();
-                languageModel = supportedModels.FirstOrDefault(t =>
-                    t.ModelDefinition.ModelName == primaryModel || t.ModelDefinition.ModelId == primaryModel);
-            }
+            ILanguageModel? languageModel = ResolveModel(primaryModel);
 
             if (languageModel is null)
             {
@@ -93,6 +78,36 @@ public class AgentApiEndpointManager
             var isProviderMatch = provider is null || modelDefinition.Provider == provider;
             return isNameOrIdMatch && isProviderMatch;
         }
+    }
+
+    /// <summary>
+    /// 解析模型标识并查找匹配的模型。支持以下格式：
+    /// <list type="bullet">
+    /// <item>"Provider/ModelName" 或 "Provider\ModelName" — 按提供商和模型名精确匹配</item>
+    /// <item>"ModelName" 或 "ModelId" — 在所有提供商中按模型名或 ID 匹配</item>
+    /// </list>
+    /// </summary>
+    /// <param name="modelSpecifier">模型标识字符串。</param>
+    /// <returns>匹配的模型；未找到时返回 <see langword="null"/>。</returns>
+    public ILanguageModel? ResolveModel(string modelSpecifier)
+    {
+        if (string.IsNullOrEmpty(modelSpecifier))
+        {
+            return null;
+        }
+
+        // 支持 "Provider/ModelName" 或 "Provider\ModelName" 格式
+        var separatorIndex = modelSpecifier.IndexOfAny(new[] { '/', '\\' });
+        if (separatorIndex > 0 && separatorIndex < modelSpecifier.Length - 1)
+        {
+            var provider = modelSpecifier[..separatorIndex];
+            var modelName = modelSpecifier[(separatorIndex + 1)..];
+            return GetModel(modelName, provider);
+        }
+
+        var supportedModels = GetSupportedModels();
+        return supportedModels.FirstOrDefault(t =>
+            t.ModelDefinition.ModelName == modelSpecifier || t.ModelDefinition.ModelId == modelSpecifier);
     }
 
     /// <summary>

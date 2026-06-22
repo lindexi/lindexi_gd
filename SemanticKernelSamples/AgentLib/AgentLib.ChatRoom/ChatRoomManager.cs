@@ -66,6 +66,12 @@ public sealed class ChatRoomManager : NotifyBase
     public ChatRoomPersistence? Persistence { get; set; }
 
     /// <summary>
+    /// 全局默认首选模型 ID。当角色定义未指定模型时，<see cref="TrySetPrimaryModel"/>
+    /// 会回退到此值进行匹配。由外部调用方（如 ChatRoomService）在注册提供商时设置。
+    /// </summary>
+    public string? DefaultPrimaryModelId { get; set; }
+
+    /// <summary>
     /// 是否正在运行自动循环。
     /// </summary>
     public bool IsRunning
@@ -431,7 +437,8 @@ public sealed class ChatRoomManager : NotifyBase
     /// 人类角色跳过注册。
     /// 无论 <see cref="ChatRoomRoleDefinition.ModelProviderId"/> 为何值，都注册所有可用提供商；
     /// <see cref="ChatRoomRoleDefinition.ModelProviderId"/> 和 <see cref="ChatRoomRoleDefinition.ModelId"/>
-    /// 仅用于决定 <see cref="AgentApiEndpointManager.PrimaryModel"/> 首选模型。
+    /// 用于决定 <see cref="AgentApiEndpointManager.PrimaryModel"/> 首选模型。
+    /// 当角色定义未指定模型时，回退到 <see cref="DefaultPrimaryModelId"/>。
     /// 当指定了首选模型但找不到时，抛出 <see cref="PrimaryModelNotFoundException"/>。
     /// </summary>
     /// <param name="role">目标角色。</param>
@@ -466,6 +473,7 @@ public sealed class ChatRoomManager : NotifyBase
     /// <summary>
     /// 根据角色定义中的 <see cref="ChatRoomRoleDefinition.ModelProviderId"/> 和
     /// <see cref="ChatRoomRoleDefinition.ModelId"/> 设置首选模型。
+    /// 当角色定义未指定模型时，回退到 <see cref="DefaultPrimaryModelId"/> 进行匹配。
     /// 当指定了首选模型但找不到时，抛出 <see cref="PrimaryModelNotFoundException"/>。
     /// </summary>
     private void TrySetPrimaryModel(ChatRoomRole role)
@@ -473,19 +481,30 @@ public sealed class ChatRoomManager : NotifyBase
         string? providerId = role.Definition.ModelProviderId;
         string? modelId = role.Definition.ModelId;
 
-        // 未指定任何首选模型信息时，由 EndpointManager 自动选择
+        // 角色定义未指定模型时，回退到全局默认首选模型
         if (string.IsNullOrWhiteSpace(providerId) && string.IsNullOrWhiteSpace(modelId))
         {
-            return;
+            modelId = DefaultPrimaryModelId;
+            if (string.IsNullOrWhiteSpace(modelId))
+            {
+                // 全局也未配置，由 EndpointManager 自动选择
+                return;
+            }
         }
 
         IReadOnlyList<ILanguageModel> availableModels = role.EndpointManager.GetSupportedModels();
 
-        // 有 modelId 时复用 GetModel 进行匹配（可附带 provider 过滤）；
+        // 有 modelId 时复用 ResolveModel 进行匹配（支持 "Provider/ModelName" 格式和 provider 过滤）；
         // 仅有 providerId 时取该提供商的第一个模型
         ILanguageModel? matched = !string.IsNullOrWhiteSpace(modelId)
-            ? role.EndpointManager.GetModel(modelId, providerId)
+            ? role.EndpointManager.ResolveModel(modelId)
             : availableModels.FirstOrDefault(m => m.ModelDefinition.Provider == providerId);
+
+        // 当角色定义同时指定了 providerId 和 modelId 时，用 GetModel 精确匹配
+        if (matched is null && !string.IsNullOrWhiteSpace(modelId) && !string.IsNullOrWhiteSpace(providerId))
+        {
+            matched = role.EndpointManager.GetModel(modelId, providerId);
+        }
 
         if (matched is null)
         {

@@ -301,6 +301,7 @@ public sealed class ChatRoomService
     private void RegisterProviders(ChatRoomManager manager)
     {
         IReadOnlyDictionary<string, ILanguageModelProvider> providers = _modelProviderService.GetProviders();
+        manager.DefaultPrimaryModelId = _modelProviderService.PrimaryModel;
         manager.RegisterRoleModelProviders(providers);
     }
 
