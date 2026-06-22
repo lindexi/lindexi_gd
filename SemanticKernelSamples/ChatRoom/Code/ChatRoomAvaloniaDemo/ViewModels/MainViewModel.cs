@@ -163,6 +163,11 @@ public sealed class MainViewModel : NotifyBase
             SettingsViewModel = new SettingsViewModel(_chatRoomService.AppConfig);
             SettingsViewModel.NavigateBackRequested += (_, _) => NavigateBack();
         }
+        else
+        {
+            // 每次进入设置页时，从已保存的配置重新同步，确保 UI 反映最新值
+            SettingsViewModel.SyncFromConfig();
+        }
 
         CurrentView = ChatRoomView.Settings;
     }
