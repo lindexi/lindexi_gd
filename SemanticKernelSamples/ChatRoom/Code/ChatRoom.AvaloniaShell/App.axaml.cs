@@ -37,7 +37,7 @@ public partial class App : Application
     private async Task InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string settingsFilePath = Path.Join(appData, "AgentRoundtable", "settings.json");
+        string settingsFilePath = Path.Join(appData, "AgentRoundtable", "AppConfiguration.json");
 
         // 1. 主线程调度器
         var dispatcher = new AvaloniaMainThreadDispatcher();
