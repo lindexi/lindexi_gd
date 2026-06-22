@@ -35,6 +35,11 @@ public sealed class ModelProviderService
     }
 
     /// <summary>
+    /// 获取全局首选模型 ID。格式为 "Provider/ModelName" 或纯模型名。
+    /// </summary>
+    public string? PrimaryModel => _appSettings.PrimaryModel;
+
+    /// <summary>
     /// 获取所有已注册的模型提供商字典，按提供商名称索引。
     /// </summary>
     public IReadOnlyDictionary<string, ILanguageModelProvider> GetProviders()

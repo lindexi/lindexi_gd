@@ -59,11 +59,7 @@ public sealed class SettingsViewModel : NotifyBase
         }
 
         AllModels = BuildAllModelsList();
-
-        // 初始化当前选中的默认模型
-        _selectedDefaultModel = AllModels.FirstOrDefault(m =>
-            string.Equals(m.ModelName, _editableCopy.PrimaryModelId, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(m.ModelId, _editableCopy.PrimaryModelId, StringComparison.OrdinalIgnoreCase));
+        UpdateSelectedDefaultModel();
 
         AddProviderCommand = new DelegateCommand(AddProvider);
         RemoveProviderCommand = new DelegateCommand<ModelProviderConfig?>(RemoveProvider);
@@ -142,6 +138,49 @@ public sealed class SettingsViewModel : NotifyBase
     public event EventHandler? NavigateBackRequested;
 
     /// <summary>
+    /// 从原始配置重新同步可编辑副本，并重新匹配选中模型。
+    /// 用于每次进入设置页时确保 UI 反映最新已保存的配置值。
+    /// </summary>
+    public void SyncFromConfig()
+    {
+        _editableCopy.PersistenceBasePath = _appConfig.PersistenceBasePath;
+        _editableCopy.SkillFoldersBasePath = _appConfig.SkillFoldersBasePath;
+        _editableCopy.DefaultMaxRounds = _appConfig.DefaultMaxRounds;
+        _editableCopy.DefaultModelProviderName = _appConfig.DefaultModelProviderName;
+        _editableCopy.PrimaryModelId = _appConfig.PrimaryModelId;
+
+        _editableCopy.Providers.Clear();
+        foreach (var provider in _appConfig.Providers)
+        {
+            var providerCopy = new ModelProviderConfig
+            {
+                ProviderName = provider.ProviderName,
+                ApiEndpoint = provider.ApiEndpoint,
+                ApiKey = provider.ApiKey,
+                PrimaryModelId = provider.PrimaryModelId,
+            };
+
+            foreach (var model in provider.Models)
+            {
+                providerCopy.Models.Add(new ModelItemConfig
+                {
+                    ModelName = model.ModelName,
+                    ModelId = model.ModelId,
+                    Provider = model.Provider,
+                    IsFlash = model.IsFlash,
+                });
+            }
+
+            _editableCopy.Providers.Add(providerCopy);
+        }
+
+        RefreshAllModels();
+        UpdateSelectedDefaultModel();
+
+        _hasChanges = false;
+    }
+
+    /// <summary>
     /// 将可编辑副本的更改写回原始配置对象。
     /// </summary>
     public void ApplyToConfig()
@@ -163,6 +202,14 @@ public sealed class SettingsViewModel : NotifyBase
     {
         ApplyToConfig();
         NavigateBackRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void UpdateSelectedDefaultModel()
+    {
+        _selectedDefaultModel = AllModels.FirstOrDefault(m =>
+            string.Equals(m.ModelName, _editableCopy.PrimaryModelId, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(m.ModelId, _editableCopy.PrimaryModelId, StringComparison.OrdinalIgnoreCase));
+        OnPropertyChanged(nameof(SelectedDefaultModel));
     }
 
     private ObservableCollection<ModelItemConfig> BuildAllModelsList()
