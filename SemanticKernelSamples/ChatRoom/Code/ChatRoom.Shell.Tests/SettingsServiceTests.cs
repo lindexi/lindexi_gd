@@ -41,8 +41,8 @@ public class SettingsServiceTests
     [TestMethod]
     public async Task SaveThenLoad_ShouldReturnSameSettings()
     {
-        string filePath = Path.Join(_tempDir, "settings.json");
-        var service = new SettingsService(filePath);
+        var settingsFile = new FileInfo(Path.Join(_tempDir, "settings.json"));
+        var service = new SettingsService(settingsFile);
 
         var settings = new AppSettings
         {
@@ -87,14 +87,17 @@ public class SettingsServiceTests
     [TestMethod]
     public async Task Load_WhenFileNotExists_ShouldReturnDefault()
     {
-        string filePath = Path.Join(_tempDir, "nonexistent.json");
-        var service = new SettingsService(filePath);
+        var settingsFile = new FileInfo(Path.Join(_tempDir, "nonexistent.json"));
+        var service = new SettingsService(settingsFile);
 
         AppSettings settings = await service.LoadAsync();
 
         Assert.IsNotNull(settings);
         Assert.AreEqual(10, settings.DefaultMaxRounds);
         Assert.IsNotNull(settings.PersistencePath);
+        // 文件不存在时应写入默认配置
+        settingsFile.Refresh();
+        Assert.IsTrue(settingsFile.Exists);
     }
 
     /// <summary>
