@@ -242,7 +242,6 @@ public sealed class ChatRoomRole
     }
 
     /// <summary>
-    /// <summary>
     /// 构建角色的 SystemPrompt，包含角色人设、记忆内容和聊天室协作指引。
     /// 仅在首次发言时调用。
     /// </summary>
