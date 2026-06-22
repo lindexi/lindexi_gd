@@ -4,13 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PptxGeneratorWpfDemo"
+        xmlns:pg="clr-namespace:PptxGenerator"
+        xmlns:converters="clr-namespace:PptxGeneratorWpfDemo.Converters"
         mc:Ignorable="d"
         Title="PptxGenerator - SlideML Lab"
         Width="1580" Height="980"
         MinWidth="1280" MinHeight="800"
+        d:DesignWidth="1580"
+        d:DesignHeight="980"
+        d:DataContext="{d:DesignInstance Type=pg:MainWindowViewModel, IsDesignTimeCreatable=False}"
         Background="#FFF8FAFC">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:PreviewImageToImageSourceConverter x:Key="PreviewImageToImageSourceConverter" />
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -29,7 +35,7 @@
                             <Viewbox Stretch="Uniform">
                                 <Border Width="1280" Height="720" Background="White" CornerRadius="8"
                                         ClipToBounds="True" MouseLeftButtonDown="ImageBorder_OnMouseLeftButtonDown">
-                                    <Image Source="{Binding SlideChatManager.PreviewImage}" Stretch="Uniform" />
+                                    <Image Source="{Binding SlideChatManager.PreviewImage, Converter={StaticResource PreviewImageToImageSourceConverter}}" Stretch="Uniform" />
                                 </Border>
                             </Viewbox>
                         </Border>

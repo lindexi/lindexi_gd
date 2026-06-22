@@ -1,16 +1,10 @@
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using AgentLib;
 using AgentLib.Model;
-
 using Microsoft.Extensions.AI;
 
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace PptxGenerator;
+namespace PptxGenerator.Evaluation;
 
 /// <summary>
 /// AI 驱动的提示词质量评估器，对 SlideML 生成所用的提示词进行元评估。
@@ -43,7 +37,8 @@ public sealed class AiPromptEvaluator : IPromptEvaluator
             var request = new SendMessageRequest(contents)
             {
                 WithHistory = false,
-                CreateNewSession = true,
+                // 禁止切换 Session 保持在当前对话上下文中
+                //CreateNewSession = true,
                 SystemPrompt = BuildEvaluatorSystemPrompt(),
                 CancellationToken = cancellationToken,
             };

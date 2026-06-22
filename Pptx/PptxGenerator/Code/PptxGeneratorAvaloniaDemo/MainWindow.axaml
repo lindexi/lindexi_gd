@@ -1,4 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,6 +14,9 @@
         MinWidth="1280"
         MinHeight="800"
         Background="#FFF8FAFC">
+    <Window.Resources>
+        <vm:PreviewImageToBitmapConverter x:Key="PreviewImageToBitmapConverter" />
+    </Window.Resources>
     <Grid ColumnDefinitions="420,*,Auto" Margin="12">
         <!-- 左侧面板：页面预览 + XML + 警告 -->
         <ScrollViewer Grid.Column="0" Margin="4">
@@ -34,7 +37,7 @@
                                 HorizontalAlignment="Stretch">
                             <Viewbox Stretch="Uniform">
                                 <Border Width="1280" Height="720" Background="White" CornerRadius="8" ClipToBounds="True" PointerPressed="ImageBorder_OnPointerPressed">
-                                    <Image Source="{Binding SlideChatManager.PreviewImage}" Stretch="Uniform" />
+                                    <Image Source="{Binding SlideChatManager.PreviewImage, Converter={StaticResource PreviewImageToBitmapConverter}}" Stretch="Uniform" />
                                 </Border>
                             </Viewbox>
                         </Border>

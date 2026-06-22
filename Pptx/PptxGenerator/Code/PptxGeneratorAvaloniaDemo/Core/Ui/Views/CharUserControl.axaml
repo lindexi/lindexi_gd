@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -371,15 +371,6 @@
                                  Foreground="White"
                                  FontWeight="SemiBold"
                                  CornerRadius="10" />
-                         <Button x:Name="DebugButton" Content="调试"
-                                 MinWidth="80"
-                                 Height="42"
-                                 Margin="10,0,0,0"
-                                 Background="#FF2563EB"
-                                 Foreground="White"
-                                 FontWeight="SemiBold"
-                                 CornerRadius="10" 
-                                 Click="DebugButton_OnClick" />
                          <Button Content="总结"
                                  MinWidth="80"
                                  Height="42"

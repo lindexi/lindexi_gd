@@ -1,7 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
+﻿using PptxGenerator.Models;
 
-namespace PptxGenerator;
+namespace PptxGenerator.Evaluation;
 
 /// <summary>
 /// SlideML 评估器接口，对生成的 SlideML 及其渲染结果进行质量评估。
@@ -16,6 +15,7 @@ public interface ISlideEvaluator
     /// <param name="renderedXml">渲染回填后的 XML。</param>
     /// <param name="warnings">渲染警告文本。</param>
     /// <param name="previewImageBytes">渲染预览图的 PNG 字节数据，可为 <see langword="null"/>。</param>
+    /// <param name="originalScreenshot">原始 PPT 截图，用于还原度对比评估，可为 <see langword="null"/>。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>评估结果。</returns>
     Task<SlideEvaluationResult> EvaluateAsync(
@@ -24,5 +24,6 @@ public interface ISlideEvaluator
         string renderedXml,
         string warnings,
         byte[]? previewImageBytes,
+        IPreviewImage? originalScreenshot = null,
         CancellationToken cancellationToken = default);
 }

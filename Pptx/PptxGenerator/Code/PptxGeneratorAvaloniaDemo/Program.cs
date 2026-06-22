@@ -1,6 +1,9 @@
 ﻿using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using PptxGenerator.Evaluation;
+using PptxGenerator.Pipeline;
+using PptxGenerator.Rendering;
 
 using Avalonia;
 
@@ -77,7 +80,8 @@ class Program
     {
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
-        var copilotChatManager = new CopilotChatManager();
+        var dispatcher = AvaloniaDispatcher.Instance;
+        var copilotChatManager = new CopilotChatManager { MainThreadDispatcher = dispatcher };
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
         await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
 
@@ -90,13 +94,17 @@ class Program
 
         agentApiEndpointManager.PrimaryModel = languageModel;
 
-        var slideRenderPipeline = new SlideRenderPipeline();
-        var slideRenderTool = new SlideRenderTool(slideRenderPipeline, AvaloniaDispatcher.Instance);
+        var slideMlRenderPipeline = new SlideMlRenderPipeline(new SlideMlLayoutEngine(), new AvaloniaSlideRenderEngine(), dispatcher);
+        var slideMlRenderTool = new SlideMlRenderTool(slideMlRenderPipeline, dispatcher);
 
-        // 评估者复用同一个 CopilotChatManager，共用主模型
+        // 评估者和优化者复用同一个 CopilotChatManager，共用主模型
         var slideEvaluator = new AiSlideEvaluator(copilotChatManager);
         var promptEvaluator = new AiPromptEvaluator(copilotChatManager);
+        var promptOptimizer = new AiPromptOptimizer(copilotChatManager);
 
-        return new SlideChatManager(copilotChatManager, slideRenderTool, AvaloniaDispatcher.Instance, slideEvaluator, promptEvaluator);
+        return new SlideChatManager(copilotChatManager, slideMlRenderTool,
+            slideEvaluator: slideEvaluator,
+            promptEvaluator: promptEvaluator,
+            promptOptimizer: promptOptimizer);
     }
 }

@@ -1,11 +1,16 @@
-<UserControl x:Class="PptxGeneratorWpfDemo.CharUserControl"
+﻿<UserControl x:Class="PptxGeneratorWpfDemo.CharUserControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PptxGeneratorWpfDemo"
              xmlns:pg="clr-namespace:PptxGenerator"
              xmlns:agent="clr-namespace:AgentLib.Model;assembly=AgentLib"
              xmlns:converters="clr-namespace:PptxGeneratorWpfDemo.Converters"
-             xmlns:sys="clr-namespace:System.IO;assembly=mscorlib">
+             xmlns:sys="clr-namespace:System.IO;assembly=mscorlib"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="600"
+             d:DesignHeight="900">
     <UserControl.Resources>
         <!-- 颜色资源 -->
         <SolidColorBrush x:Key="ChatTextForegroundBrush" Color="#FF1E293B" />
@@ -243,10 +248,12 @@
 
             <!-- 聊天气泡列表 -->
             <ListBox Grid.Row="1"
+                     x:Name="ChatListBox"
                      ItemsSource="{Binding ChatMessages}"
                      Background="White"
                      BorderThickness="0"
                      Padding="8"
+                     ScrollViewer.CanContentScroll="False"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      VirtualizingPanel.ScrollUnit="Pixel">
                 <ListBox.ItemTemplate>

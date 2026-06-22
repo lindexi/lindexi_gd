@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
-namespace PptxGenerator;
+namespace PptxGenerator.Evaluation;
 
 /// <summary>
 /// SlideML 生成结果的 AI 评估报告，包含多维度评分与改进建议。
@@ -41,9 +38,22 @@ public sealed class SlideEvaluationResult
     public int AestheticQuality { get; init; }
 
     /// <summary>
-    /// 综合评分（各维度平均值）。
+    /// 截图还原度：生成的 SlideML 渲染截图与原始 PPT 截图的匹配程度（1-10）。
+    /// 仅在评估时提供了原始截图时有效。未提供截图时默认 5 分中性值。
     /// </summary>
-    public double OverallScore => new[] { XmlWellFormedness, LayoutStructure, VisualBalance, ConstraintAdherence, SemanticAlignment, AestheticQuality }.Average();
+    public int ScreenshotFidelity { get; init; } = 5;
+
+    /// <summary>
+    /// 是否在评估时提供了原始截图。为 <see langword="false"/> 时 <see cref="ScreenshotFidelity"/> 为中性值，不参与综合评分计算。
+    /// </summary>
+    public bool HasOriginalScreenshot { get; init; }
+
+    /// <summary>
+    /// 综合评分（各维度平均值）。未提供原始截图时排除 <see cref="ScreenshotFidelity"/> 维度。
+    /// </summary>
+    public double OverallScore => HasOriginalScreenshot
+        ? new[] { XmlWellFormedness, LayoutStructure, VisualBalance, ConstraintAdherence, SemanticAlignment, AestheticQuality, ScreenshotFidelity }.Average()
+        : new[] { XmlWellFormedness, LayoutStructure, VisualBalance, ConstraintAdherence, SemanticAlignment, AestheticQuality }.Average();
 
     /// <summary>
     /// 自然语言改进建议列表。
@@ -106,6 +116,7 @@ public sealed class SlideEvaluationResult
         builder.AppendLine($"  约束遵守: {ConstraintAdherence}/10");
         builder.AppendLine($"  语义对齐: {SemanticAlignment}/10");
         builder.AppendLine($"  美观度:   {AestheticQuality}/10");
+        builder.AppendLine($"  截图还原: {ScreenshotFidelity}/10");
 
         if (Suggestions.Count > 0)
         {

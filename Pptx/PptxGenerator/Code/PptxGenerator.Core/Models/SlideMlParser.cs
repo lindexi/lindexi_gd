@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Xml.Linq;
+using PptxGenerator.Models.SlideDocuments;
 
-namespace PptxGenerator;
+namespace PptxGenerator.Models;
 
 /// <summary>
-/// SlideML 解析器，将 XML 字符串解析为 <see cref="SlidePage"/> 对象树。
+/// SlideML 解析器，将 XML 字符串解析为 <see cref="SlideMlPage"/> 对象树。
 /// 无 UI 框架依赖。
 /// </summary>
 public sealed class SlideMlParser
@@ -40,7 +38,7 @@ public sealed class SlideMlParser
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
         "Text", "FontName", "FontSize", "Foreground",
         "TextAlignment", "LineHeight", "Margin",
-        "FontWeight", "Style",
+        "IsBold", "IsItalic", "Style",
     };
 
     private static readonly HashSet<string> _imageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
@@ -51,26 +49,26 @@ public sealed class SlideMlParser
     };
 
     /// <summary>
-    /// 将 SlideML XML 解析为 <see cref="SlidePage"/> 对象。
+    /// 将 SlideML XML 解析为 <see cref="SlideMlPage"/> 对象。
     /// </summary>
     /// <param name="xml">SlideML XML 字符串。</param>
     /// <param name="context">渲染流水线上下文，用于收集诊断信息。</param>
     /// <returns>解析后的页面对象。</returns>
-    public SlidePage Parse(string xml, SlidePipelineContext context)
+    public SlideMlPage Parse(string xml, SlideMlPipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(xml);
         ArgumentNullException.ThrowIfNull(context);
 
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
-        var root = document.Root ?? throw new InvalidOperationException("SlideML 根元素不能为空。");
+        var root = document.Root ?? throw new SlideMlRootElementException("SlideML 根元素不能为空。");
         if (!string.Equals(root.Name.LocalName, "Page", StringComparison.Ordinal))
         {
-            throw new InvalidOperationException("SlideML 根元素必须是 Page。");
+            throw new SlideMlRootElementException("SlideML 根元素必须是 Page。");
         }
 
         ValidateAttributes(root, "Page", _pageKnownAttributes, context);
 
-        var page = new SlidePage
+        var page = new SlideMlPage
         {
             Background = GetOptionalString(root, "Background") ?? "#FFFFFF",
         };
@@ -79,7 +77,7 @@ public sealed class SlideMlParser
         var stylesElement = root.Element("Page.Styles");
         if (stylesElement is not null)
         {
-            var styles = new List<SlideTextStyle>();
+            var styles = new List<SlideMlTextStyle>();
             foreach (var textStyleElement in stylesElement.Elements("TextStyle"))
             {
                 var styleId = GetOptionalString(textStyleElement, "Id");
@@ -89,11 +87,11 @@ public sealed class SlideMlParser
                     continue;
                 }
 
-                styles.Add(new SlideTextStyle
+                styles.Add(new SlideMlTextStyle
                 {
                     Id = styleId,
                     FontSize = GetOptionalDouble(textStyleElement, "FontSize", context),
-                    FontWeight = GetOptionalFontWeight(textStyleElement, styleId, context),
+                    IsBold = GetOptionalBool(textStyleElement, "IsBold"),
                     Foreground = GetOptionalString(textStyleElement, "Foreground"),
                     FontName = GetOptionalString(textStyleElement, "FontName"),
                     LineHeight = GetOptionalDouble(textStyleElement, "LineHeight", context),
@@ -103,7 +101,7 @@ public sealed class SlideMlParser
 
             if (styles.Count > 0)
             {
-                page = new SlidePage
+                page = new SlideMlPage
                 {
                     Background = GetOptionalString(root, "Background") ?? "#FFFFFF",
                     Styles = styles,
@@ -123,7 +121,7 @@ public sealed class SlideMlParser
         return page;
     }
 
-    private SlideElement? ParseElement(XElement element, SlidePipelineContext context)
+    private SlideMlElement? ParseElement(XElement element, SlideMlPipelineContext context)
     {
         var id = GetOptionalString(element, "Id") ?? $"elem_{_nextId++:000}";
 
@@ -137,7 +135,7 @@ public sealed class SlideMlParser
         };
     }
 
-    private static SlideElement? WarnUnknownTag(XElement element, string id, SlidePipelineContext context)
+    private static SlideMlElement? WarnUnknownTag(XElement element, string id, SlideMlPipelineContext context)
     {
         context.AddWarning(
             string.Format(
@@ -147,13 +145,13 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private SlidePanelElement ParsePanel(XElement element, string id, SlidePipelineContext context)
+    private SlideMlPanelElement ParsePanel(XElement element, string id, SlideMlPipelineContext context)
     {
         ValidateAttributes(element, id, _panelKnownAttributes, context);
 
         var backgroundBrush = ParseBackground(element, id, context);
 
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = id,
             X = GetOptionalDouble(element, "X", context),
@@ -165,7 +163,7 @@ public sealed class SlideMlParser
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Padding = GetOptionalDouble(element, "Padding", context) ?? 0,
             Background = backgroundBrush,
-            Layout = GetOptionalLayoutDirection(element, id, context) ?? SlideLayoutDirection.Absolute,
+            Layout = GetOptionalLayoutDirection(element, id, context) ?? SlideMlLayoutDirection.Absolute,
             Gap = GetOptionalDouble(element, "Gap", context) ?? 0,
             Margin = GetOptionalThickness(element, "Margin", context),
         };
@@ -188,13 +186,13 @@ public sealed class SlideMlParser
         return panel;
     }
 
-    private SlideRectElement ParseRect(XElement element, string id, SlidePipelineContext context)
+    private SlideMlRectElement ParseRect(XElement element, string id, SlideMlPipelineContext context)
     {
         ValidateAttributes(element, id, _rectKnownAttributes, context);
 
         var fillBrush = ParseFill(element, id, context);
         var strokeBrush = ParseStroke(element, id, context);
-        SlideShadow? shadowChild = null;
+        SlideMlShadow? shadowChild = null;
 
         foreach (var child in element.Elements())
         {
@@ -217,7 +215,7 @@ public sealed class SlideMlParser
             }
         }
 
-        return new SlideRectElement
+        return new SlideMlRectElement
         {
             Id = id,
             X = GetOptionalDouble(element, "X", context),
@@ -238,11 +236,11 @@ public sealed class SlideMlParser
         };
     }
 
-    private SlideTextElement ParseTextElement(XElement element, string id, SlidePipelineContext context)
+    private SlideMlTextElement ParseTextElement(XElement element, string id, SlideMlPipelineContext context)
     {
         ValidateAttributes(element, id, _textElementKnownAttributes, context);
 
-        var spans = new List<SlideSpan>();
+        var spans = new List<SlideMlSpan>();
         foreach (var child in element.Elements("Span"))
         {
             spans.Add(ParseSpan(child, id, context));
@@ -251,7 +249,7 @@ public sealed class SlideMlParser
         var text = GetOptionalString(element, "Text");
         if (string.IsNullOrWhiteSpace(text) && spans.Count == 0)
         {
-            throw new InvalidOperationException($"TextElement({id}) 必须包含 Text 属性或 Span 子元素。");
+            throw new SlideMlRequiredAttributeMissingException($"TextElement({id}) 必须包含 Text 属性或 Span 子元素。", id, "Text");
         }
 
         if (string.IsNullOrWhiteSpace(text) && spans.Count > 0)
@@ -259,7 +257,7 @@ public sealed class SlideMlParser
             text = string.Concat(spans.Select(s => s.Text));
         }
 
-        return new SlideTextElement
+        return new SlideMlTextElement
         {
             Id = id,
             X = GetOptionalDouble(element, "X", context),
@@ -273,46 +271,47 @@ public sealed class SlideMlParser
             FontName = GetOptionalString(element, "FontName") ?? "Microsoft YaHei",
             FontSize = GetOptionalDouble(element, "FontSize", context) ?? 16,
             Foreground = GetOptionalString(element, "Foreground") ?? "#000000",
-            TextAlignment = GetOptionalTextAlignment(element, id, context) ?? SlideTextAlignment.Left,
+            TextAlignment = GetOptionalTextAlignment(element, id, context) ?? SlideMlTextAlignment.Left,
             LineHeight = GetOptionalDouble(element, "LineHeight", context) ?? 1.2,
             Margin = GetOptionalThickness(element, "Margin", context),
-            FontWeight = GetOptionalFontWeight(element, id, context),
+            IsBold = GetOptionalBool(element, "IsBold"),
+            IsItalic = GetOptionalBool(element, "IsItalic"),
             Style = GetOptionalString(element, "Style"),
             Spans = spans.Count > 0 ? spans : null,
         };
     }
 
-    private static SlideSpan ParseSpan(XElement element, string parentId, SlidePipelineContext context)
+    private static SlideMlSpan ParseSpan(XElement element, string parentId, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, "Text");
         if (string.IsNullOrWhiteSpace(text))
         {
-            throw new InvalidOperationException($"TextElement({parentId}) 的 Span 子元素必须包含 Text 属性。");
+            throw new SlideMlRequiredAttributeMissingException($"TextElement({parentId}) 的 Span 子元素必须包含 Text 属性。", parentId, "Text");
         }
 
-        return new SlideSpan
+        return new SlideMlSpan
         {
             Text = text,
             FontSize = GetOptionalDouble(element, "FontSize", context),
             FontName = GetOptionalString(element, "FontName"),
             Foreground = GetOptionalString(element, "Foreground"),
-            FontWeight = GetOptionalFontWeight(element, parentId, context),
-            FontStyle = GetOptionalString(element, "FontStyle"),
+            IsBold = GetOptionalBool(element, "IsBold"),
+            IsItalic = GetOptionalBool(element, "IsItalic"),
             TextDecoration = GetOptionalString(element, "TextDecoration"),
         };
     }
 
-    private SlideImageElement ParseImageElement(XElement element, string id, SlidePipelineContext context)
+    private SlideMlImageElement ParseImageElement(XElement element, string id, SlideMlPipelineContext context)
     {
         ValidateAttributes(element, id, _imageKnownAttributes, context);
 
         var source = GetOptionalString(element, "Source");
         if (string.IsNullOrWhiteSpace(source))
         {
-            throw new InvalidOperationException($"Image({id}) 必须包含 Source 属性。");
+            throw new SlideMlRequiredAttributeMissingException($"Image({id}) 必须包含 Source 属性。", id, "Source");
         }
 
-        return new SlideImageElement
+        return new SlideMlImageElement
         {
             Id = id,
             X = GetOptionalDouble(element, "X", context),
@@ -323,13 +322,13 @@ public sealed class SlideMlParser
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
             Source = source,
-            Stretch = GetOptionalImageStretch(element, id, context) ?? SlideImageStretch.Uniform,
+            Stretch = GetOptionalImageStretch(element, id, context) ?? SlideMlImageStretch.Uniform,
             Margin = GetOptionalThickness(element, "Margin", context),
         };
     }
 
     private static void ValidateAttributes(XElement element, string elementId,
-        HashSet<string> knownAttributes, SlidePipelineContext context)
+        HashSet<string> knownAttributes, SlideMlPipelineContext context)
     {
         foreach (var attr in element.Attributes())
         {
@@ -349,7 +348,7 @@ public sealed class SlideMlParser
         return (string?) element.Attribute(attributeName);
     }
 
-    private static double? GetOptionalDouble(XElement element, string attributeName, SlidePipelineContext context)
+    private static double? GetOptionalDouble(XElement element, string attributeName, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, attributeName);
         if (string.IsNullOrWhiteSpace(text))
@@ -372,7 +371,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideMlHorizontalAlignment? GetOptionalHorizontalAlignment(XElement element, string elementId, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, "HorizontalAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -380,7 +379,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        if (Enum.TryParse<SlideHorizontalAlignment>(text, ignoreCase: true, out var result))
+        if (Enum.TryParse<SlideMlHorizontalAlignment>(text, ignoreCase: true, out var result))
         {
             return result;
         }
@@ -393,7 +392,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideVerticalAlignment? GetOptionalVerticalAlignment(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideMlVerticalAlignment? GetOptionalVerticalAlignment(XElement element, string elementId, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, "VerticalAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -401,7 +400,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        if (Enum.TryParse<SlideVerticalAlignment>(text, ignoreCase: true, out var result))
+        if (Enum.TryParse<SlideMlVerticalAlignment>(text, ignoreCase: true, out var result))
         {
             return result;
         }
@@ -414,7 +413,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideTextAlignment? GetOptionalTextAlignment(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideMlTextAlignment? GetOptionalTextAlignment(XElement element, string elementId, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, "TextAlignment");
         if (string.IsNullOrWhiteSpace(text))
@@ -422,7 +421,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        if (Enum.TryParse<SlideTextAlignment>(text, ignoreCase: true, out var result))
+        if (Enum.TryParse<SlideMlTextAlignment>(text, ignoreCase: true, out var result))
         {
             return result;
         }
@@ -435,7 +434,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideImageStretch? GetOptionalImageStretch(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideMlImageStretch? GetOptionalImageStretch(XElement element, string elementId, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, "Stretch");
         if (string.IsNullOrWhiteSpace(text))
@@ -443,7 +442,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        if (Enum.TryParse<SlideImageStretch>(text, ignoreCase: true, out var result))
+        if (Enum.TryParse<SlideMlImageStretch>(text, ignoreCase: true, out var result))
         {
             return result;
         }
@@ -456,7 +455,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideLayoutDirection? GetOptionalLayoutDirection(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideMlLayoutDirection? GetOptionalLayoutDirection(XElement element, string elementId, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, "Layout");
         if (string.IsNullOrWhiteSpace(text))
@@ -464,7 +463,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        if (Enum.TryParse<SlideLayoutDirection>(text, ignoreCase: true, out var result))
+        if (Enum.TryParse<SlideMlLayoutDirection>(text, ignoreCase: true, out var result))
         {
             return result;
         }
@@ -477,7 +476,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideThickness? GetOptionalThickness(XElement element, string attributeName, SlidePipelineContext context)
+    private static SlideMlThickness? GetOptionalThickness(XElement element, string attributeName, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, attributeName);
         if (string.IsNullOrWhiteSpace(text))
@@ -485,7 +484,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        var result = SlideThickness.Parse(text);
+        var result = SlideMlThickness.Parse(text);
         if (result is null)
         {
             var elementId = GetOptionalString(element, "Id");
@@ -500,7 +499,7 @@ public sealed class SlideMlParser
         return result;
     }
 
-    private static SlideCornerRadius? GetOptionalCornerRadius(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideMlCornerRadius? GetOptionalCornerRadius(XElement element, string elementId, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, "CornerRadius");
         if (string.IsNullOrWhiteSpace(text))
@@ -508,7 +507,7 @@ public sealed class SlideMlParser
             return null;
         }
 
-        var cornerRadius = SlideCornerRadius.Parse(text);
+        var cornerRadius = SlideMlCornerRadius.Parse(text);
         if (cornerRadius is not null)
         {
             return cornerRadius;
@@ -516,7 +515,7 @@ public sealed class SlideMlParser
 
         if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var singleValue))
         {
-            return (SlideCornerRadius)singleValue;
+            return (SlideMlCornerRadius)singleValue;
         }
 
         context.AddError(
@@ -527,13 +526,13 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideShadow? GetOptionalShadow(XElement element, string attributeName)
+    private static SlideMlShadow? GetOptionalShadow(XElement element, string attributeName)
     {
         var text = GetOptionalString(element, attributeName);
-        return SlideShadow.Parse(text);
+        return SlideMlShadow.Parse(text);
     }
 
-    private static IReadOnlyList<double>? GetOptionalDoubleList(XElement element, string attributeName, SlidePipelineContext context)
+    private static IReadOnlyList<double>? GetOptionalDoubleList(XElement element, string attributeName, SlideMlPipelineContext context)
     {
         var text = GetOptionalString(element, attributeName);
         if (string.IsNullOrWhiteSpace(text))
@@ -565,7 +564,7 @@ public sealed class SlideMlParser
         return list;
     }
 
-    private static ISlideMlBrush? ParseBackground(XElement element, string id, SlidePipelineContext context)
+    private static ISlideMlBrush? ParseBackground(XElement element, string id, SlideMlPipelineContext context)
     {
         var gradient = ParseGradientChild(element, "Fill", id, context);
         if (gradient is not null)
@@ -582,7 +581,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static ISlideMlBrush? ParseFill(XElement element, string id, SlidePipelineContext context)
+    private static ISlideMlBrush? ParseFill(XElement element, string id, SlideMlPipelineContext context)
     {
         var gradient = ParseGradientChild(element, "Fill", id, context);
         if (gradient is not null)
@@ -599,7 +598,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static ISlideMlBrush? ParseStroke(XElement element, string id, SlidePipelineContext context)
+    private static ISlideMlBrush? ParseStroke(XElement element, string id, SlideMlPipelineContext context)
     {
         var gradient = ParseGradientChild(element, "Stroke", id, context);
         if (gradient is not null)
@@ -616,7 +615,7 @@ public sealed class SlideMlParser
         return null;
     }
 
-    private static SlideMlLinearGradientBrush? ParseGradientChild(XElement parentElement, string childName, string elementId, SlidePipelineContext context)
+    private static SlideMlLinearGradientBrush? ParseGradientChild(XElement parentElement, string childName, string elementId, SlideMlPipelineContext context)
     {
         var fillElement = parentElement.Element(childName);
         if (fillElement is null)
@@ -633,7 +632,7 @@ public sealed class SlideMlParser
         return ParseLinearGradient(gradientElement, elementId, context);
     }
 
-    private static SlideMlLinearGradientBrush? ParseLinearGradient(XElement gradientElement, string elementId, SlidePipelineContext context)
+    private static SlideMlLinearGradientBrush? ParseLinearGradient(XElement gradientElement, string elementId, SlideMlPipelineContext context)
     {
         var stops = new List<SlideMlGradientStop>();
         foreach (var stopElement in gradientElement.Elements("Stop"))
@@ -675,9 +674,9 @@ public sealed class SlideMlParser
         };
     }
 
-    private static SlideShadow? ParseShadowElement(XElement element, string elementId, SlidePipelineContext context)
+    private static SlideMlShadow? ParseShadowElement(XElement element, string elementId, SlideMlPipelineContext context)
     {
-        return new SlideShadow
+        return new SlideMlShadow
         {
             OffsetX = GetOptionalDouble(element, "OffsetX", context) ?? 0,
             OffsetY = GetOptionalDouble(element, "OffsetY", context) ?? 4,
@@ -687,30 +686,19 @@ public sealed class SlideMlParser
         };
     }
 
-    private static SlideFontWeight? GetOptionalFontWeight(XElement element, string elementId, SlidePipelineContext context)
+    private static bool? GetOptionalBool(XElement element, string attributeName)
     {
-        var text = GetOptionalString(element, "FontWeight");
+        var text = GetOptionalString(element, attributeName);
         if (string.IsNullOrWhiteSpace(text))
         {
             return null;
         }
 
-        if (Enum.TryParse<SlideFontWeight>(text, ignoreCase: true, out var result))
+        if (bool.TryParse(text, out var result))
         {
             return result;
         }
 
-        if (int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericValue)
-            && numericValue >= 100 && numericValue <= 900)
-        {
-            return (SlideFontWeight)numericValue;
-        }
-
-        context.AddError(
-            string.Format(
-                "[Error] {0}: FontWeight 值 \"{1}\" 无效，已忽略",
-                elementId,
-                text));
         return null;
     }
 }

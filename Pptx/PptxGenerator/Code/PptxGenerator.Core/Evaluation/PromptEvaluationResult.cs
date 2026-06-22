@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
-namespace PptxGenerator;
+namespace PptxGenerator.Evaluation;
 
 /// <summary>
 /// 提示词质量的 AI 评估报告，包含多维度评分与优化建议。

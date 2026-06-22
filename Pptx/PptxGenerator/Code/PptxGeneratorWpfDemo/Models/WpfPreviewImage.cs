@@ -1,5 +1,6 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows.Media.Imaging;
+using PptxGenerator.Models;
 
 namespace PptxGenerator;
 
@@ -23,12 +24,6 @@ public sealed class WpfPreviewImage : IPreviewImage
     /// 获取内部 WPF <see cref="BitmapSource"/>。
     /// </summary>
     public BitmapSource Source => _bitmapSource;
-
-    /// <inheritdoc />
-    public int Width => _bitmapSource.PixelWidth;
-
-    /// <inheritdoc />
-    public int Height => _bitmapSource.PixelHeight;
 
     /// <inheritdoc />
     public void Save(string filePath)

@@ -1,17 +1,11 @@
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using AgentLib;
 using AgentLib.Model;
-
 using Microsoft.Extensions.AI;
+using PptxGenerator.Models;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace PptxGenerator;
+namespace PptxGenerator.Evaluation;
 
 /// <summary>
 /// AI 驱动的 SlideML 评估器，使用独立的 AI 模型调用对生成的 SlideML 进行多维度质量评估。
@@ -26,22 +20,26 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
     }
 
     /// <inheritdoc />
-    public async Task<SlideEvaluationResult> EvaluateAsync(
+    public async Task<SlideEvaluationResult> EvaluateAsync
+    (
         string userPrompt,
         string slideXml,
         string renderedXml,
         string warnings,
         byte[]? previewImageBytes,
-        CancellationToken cancellationToken = default)
+        IPreviewImage? originalScreenshot = null,
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(userPrompt);
         ArgumentNullException.ThrowIfNull(slideXml);
 
         try
         {
-            var contents = new List<AIContent>(2)
+            var hasOriginalScreenshot = originalScreenshot is not null;
+            var contents = new List<AIContent>(3)
             {
-                new TextContent(BuildEvaluationPrompt(userPrompt, slideXml, renderedXml, warnings)),
+                new TextContent(BuildEvaluationPrompt(userPrompt, slideXml, renderedXml, warnings, hasOriginalScreenshot)),
             };
 
             if (previewImageBytes is { Length: > 0 })
@@ -49,12 +47,23 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
                 contents.Add(new DataContent(previewImageBytes, "image/png"));
             }
 
+            if (originalScreenshot is not null)
+            {
+                using var memoryStream = new MemoryStream();
+                originalScreenshot.Save(memoryStream);
+                contents.Add(new DataContent(memoryStream.ToArray(), "image/png"));
+            }
+
             var request = new SendMessageRequest(contents)
             {
                 WithHistory = false,
-                CreateNewSession = true,
+                // 禁止切换 Session 保持在当前对话上下文中
+                //CreateNewSession = true,
                 SystemPrompt = BuildEvaluatorSystemPrompt(),
                 CancellationToken = cancellationToken,
+
+                // 禁用默认的工具
+                AppendDefaultTools = false,
             };
 
             var result = _copilotChatManager.SendMessage(request);
@@ -66,7 +75,7 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
                 return SlideEvaluationResult.Failed("评估者未返回有效响应。");
             }
 
-            return ParseEvaluationResponse(responseText, userPrompt, slideXml);
+            return ParseEvaluationResponse(responseText, userPrompt, slideXml, hasOriginalScreenshot);
         }
         catch (OperationCanceledException)
         {
@@ -84,13 +93,14 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
 你是一个中立的 SlideML 排版质量评估专家。你的任务是对 AI 生成的 SlideML 幻灯片进行客观、结构化的质量评估。
 
 ## 评估规则
-- 你需要从以下 6 个维度分别打分（1-10 分，10 分为最优）：
+- 你需要从以下 7 个维度分别打分（1-10 分，10 分为最优）：
   1. XmlWellFormedness：XML 语法正确性、标签合规性、属性完整性
   2. LayoutStructure：层级结构清晰度、Panel 嵌套合理性
   3. VisualBalance：元素分布均衡性、留白是否充足
   4. ConstraintAdherence：是否遵守 1280×720 画布、颜色格式等约束
   5. SemanticAlignment：内容是否与用户需求对齐
   6. AestheticQuality：配色、字体大小层级、整体美观度
+  7. ScreenshotFidelity：生成的 SlideML 渲染截图与原始 PPT 截图的还原匹配程度（仅在提供了原始截图时评估，否则给 5 分中性值）
 
 - 每个维度给出 1-2 句简短的评分理由。
 - 最后给出 3-5 条具体的改进建议。
@@ -106,13 +116,15 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
   "constraintAdherence": 9,
   "semanticAlignment": 8,
   "aestheticQuality": 7,
+  "screenshotFidelity": 8,
   "dimensionComments": {
     "xmlWellFormedness": "评分理由",
     "layoutStructure": "评分理由",
     "visualBalance": "评分理由",
     "constraintAdherence": "评分理由",
     "semanticAlignment": "评分理由",
-    "aestheticQuality": "评分理由"
+    "aestheticQuality": "评分理由",
+    "screenshotFidelity": "评分理由"
   },
   "suggestions": [
     "改进建议 1",
@@ -125,12 +137,19 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
 ## 注意事项
 - 评分要客观、有区分度，不要全部给相同分数。
 - 如果提供了渲染截图，请结合视觉呈现进行判断。
+- 如果提供了原始 PPT 截图（最后一张图片），请仔细对比两张截图：
+  - 比较布局结构、元素位置、颜色、字体大小等方面的一致性
+  - ScreenshotFidelity 评分应反映两张截图的整体相似度
 - 如果 SlideML 有语法错误，XmlWellFormedness 应低于 5 分。
 """;
     }
 
-    private static string BuildEvaluationPrompt(string userPrompt, string slideXml, string renderedXml, string warnings)
+    private static string BuildEvaluationPrompt(string userPrompt, string slideXml, string renderedXml, string warnings, bool hasOriginalScreenshot)
     {
+        var screenshotNote = hasOriginalScreenshot
+            ? "\n## 原始 PPT 截图\n（已作为第二张图片附加，请对比生成截图与原始截图的还原度）"
+            : "";
+
         return $"""
 请评估以下 SlideML 生成结果的质量。
 
@@ -149,12 +168,12 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
 
 ## 渲染警告
 {warnings}
-
+{screenshotNote}
 请按照系统提示词中的 JSON 格式输出评估结果。
 """;
     }
 
-    private static SlideEvaluationResult ParseEvaluationResponse(string responseText, string userPrompt, string slideXml)
+    private static SlideEvaluationResult ParseEvaluationResponse(string responseText, string userPrompt, string slideXml, bool hasOriginalScreenshot)
     {
         try
         {
@@ -174,6 +193,8 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
                 ConstraintAdherence = ClampScore(dto.ConstraintAdherence),
                 SemanticAlignment = ClampScore(dto.SemanticAlignment),
                 AestheticQuality = ClampScore(dto.AestheticQuality),
+                ScreenshotFidelity = ClampScore(dto.ScreenshotFidelity),
+                HasOriginalScreenshot = hasOriginalScreenshot,
                 Suggestions = dto.Suggestions ?? Array.Empty<string>(),
                 UserPrompt = userPrompt,
                 SlideXml = slideXml,
@@ -219,6 +240,9 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
 
         [JsonPropertyName("aestheticQuality")]
         public int AestheticQuality { get; init; }
+
+        [JsonPropertyName("screenshotFidelity")]
+        public int ScreenshotFidelity { get; init; }
 
         [JsonPropertyName("suggestions")]
         public IReadOnlyList<string>? Suggestions { get; init; }
