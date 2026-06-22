@@ -93,7 +93,13 @@ public sealed class SessionListViewModel : ViewModelBase
     public SessionItemViewModel? SelectedSession
     {
         get => _selectedSession;
-        set => SetField(ref _selectedSession, value);
+        set
+        {
+            if (SetField(ref _selectedSession, value) && value is not null)
+            {
+                _ = OpenSessionAsync(value);
+            }
+        }
     }
 
     /// <summary>
