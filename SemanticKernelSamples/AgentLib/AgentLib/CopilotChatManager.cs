@@ -354,7 +354,7 @@ public class CopilotChatManager : NotifyBase
         {
             WithHistory = withHistory,
             CreateNewSession = createNewSession,
-            Tools = tools,
+            Tools = tools ?? [],
             ToolMode = toolMode,
             CancellationToken = cancellationToken,
         });
