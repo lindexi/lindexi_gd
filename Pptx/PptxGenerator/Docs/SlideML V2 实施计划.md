@@ -85,14 +85,12 @@
 
 ### 2.1 新增枚举和基础类型 (`SlideDocument.cs`)
 
-- `SlideFontWeight` 枚举：`Thin=100, ExtraLight=200, Light=300, Normal=400, Medium=500, SemiBold=600, Bold=700, ExtraBold=800, Black=900`
+- `SlideMlTextElement` 和 `SlideMlSpan` 使用 `IsBold`（`bool?`）和 `IsItalic`（`bool?`）控制字体粗细和斜体
 - `SlideCornerRadius` 记录结构：`TopLeft, TopRight, BottomRight, BottomLeft`，支持从单个值隐式转换
 - `SlideGradientStop` 类：`Offset`（0~1）、`Color`（string）
 - `SlideLinearGradientBrush` 类：`X1, Y1, X2, Y2`（0~1）、`Stops`（`IReadOnlyList<SlideGradientStop>`）
 - `SlideShadow` 类：`OffsetX, OffsetY, Blur, Color, Opacity`
-- `SlideSpan` 类：`Text, FontSize?, FontName?, Foreground?, FontWeight?, FontStyle?, TextDecoration?`
-- `SlideTextStyle` 类：`Id, FontSize?, FontWeight?, Foreground?, FontName?, LineHeight?, TextAlignment?`
-
+- `SlideSpan` 类：`Text, FontSize?, FontName?, Foreground?, IsBold?, IsItalic?, TextDecoration?`
 ### 2.2 扩展现有模型类 (`SlideDocument.cs`)
 
 - `SlideRectElement`：
@@ -101,11 +99,10 @@
   - 新增 `Shadow`（`SlideShadow?`）、`ShadowString`（`string?` 属性形式 "0 4 12 #00000033"）
   - 新增 `StrokeDashArray`（`IReadOnlyList<double>?`）
 - `SlideTextElement`：
-  - 新增 `FontWeight`（`SlideFontWeight?`）
+  - 新增 `IsBold`（`bool?`）
+  - 新增 `IsItalic`（`bool?`）
   - 新增 `Spans`（`IReadOnlyList<SlideSpan>?`）
-  - 新增 `Style`（`string?`）
-- `SlidePage`：
-  - 新增 `Styles`（`IReadOnlyList<SlideTextStyle>?`）
+
 
 ### 2.3 扩展解析器 (`SlideMlParser.cs`)
 
@@ -118,12 +115,10 @@
   - 解析 `CornerRadius` 支持逗号分隔四值（如 `"8,16,8,16"`）
   - 解析 `StrokeDashArray`（逗号分隔数值）
 - `ParseTextElement`：
-  - 解析 `FontWeight`（数值或枚举名）
+  - 解析 `IsBold`（布尔）
+  - 解析 `IsItalic`（布尔）
   - 解析 `<Span>` 子元素
-  - 解析 `Style` 属性
-- `ParsePage`：
-  - 解析 `<Page.Styles><TextStyle .../></Page.Styles>` 子元素
-- `ParseElement`：识别新的子元素标签（`Span`、`Fill`、`Stroke`、`Shadow`、`LinearGradient`、`Stop`、`Page.Styles`、`TextStyle`）
+- `ParseElement`：识别新的子元素标签（`Span`、`Fill`、`Stroke`、`Shadow`、`LinearGradient`、`Stop`）
 - 整体策略：未知属性/子标签产生 Warning 而非 Exception
 
 ### 2.4 扩展 XML 工具 (`SlideXmlUtilities.cs`)
@@ -135,7 +130,7 @@
 
 ## 阶段三（原阶段二）：渲染引擎 V2 能力
 
-> 目标：在 `SlideRenderEngine` 中实现渐变、阴影、FontWeight、富文本 Span、增强 CornerRadius、StrokeDashArray。
+> 目标：在 `SlideRenderEngine` 中实现渐变、阴影、IsBold/IsItalic、富文本 Span、增强 CornerRadius、StrokeDashArray。
 
 ### 3.1 渐变填充渲染
 
@@ -149,15 +144,15 @@
 - 在元素下方先绘制偏移+模糊的阴影矩形（使用 `BlurBitmapEffect` 或 `RectangleGeometry` + `DrawingVisual` 模糊）
 - 与元素自身的 `Opacity` 独立
 
-### 3.3 FontWeight 支持
+### 3.3 IsBold/IsItalic 支持
 
-- 修改 `PreMeasureText`：根据 `SlideFontWeight` 构建 WPF `FontWeight` 值
-- 修改 `DrawText`：传递正确的 `FontWeight` 到 `FormattedText`
+- 修改 `PreMeasureText`：根据 `IsBold` 构建 WPF `FontWeight` 值，根据 `IsItalic` 构建 `FontStyle` 值
+- 修改 `DrawText`：传递正确的 `FontWeight` 和 `FontStyle` 到 `FormattedText`
 
 ### 3.4 富文本 Span 渲染
 
 - 修改 `PreMeasureText`：若 `Spans` 非空，按 Span 逐段测量，拼接 `FormattedText`
-- 修改 `DrawText`：若 `Spans` 非空，逐段绘制，每段独立样式（FontSize, FontName, Foreground, FontWeight, FontStyle, TextDecoration）
+- 修改 `DrawText`：若 `Spans` 非空，逐段绘制，每段独立样式（FontSize, FontName, Foreground, IsBold, IsItalic, TextDecoration）
 
 ### 3.5 增强 CornerRadius
 
@@ -176,7 +171,7 @@
 
 ### 4.1 文本测量核心逻辑
 
-- 在 `SlideRenderEngine` 中新增 `MeasureText(string text, string fontName, double fontSize, SlideFontWeight? fontWeight, double? maxWidth, double lineHeight)` 方法
+- 在 `SlideRenderEngine` 中新增 `MeasureText(string text, string fontName, double fontSize, bool? isBold, bool? isItalic, double? maxWidth, double lineHeight)` 方法
 - 返回 `MeasureTextResult { Width, Height, LineCount, Overflow }`
 
 ### 4.2 AI Tool 封装
@@ -194,29 +189,12 @@
 ### 4.4 提示词更新
 
 - 更新 `SlideMlPromptProvider.BuildSystemPrompt()`：
-  - 添加 V2 新标签/属性说明（流式布局、渐变、阴影、FontWeight、Span、TextStyle、Margin、增强 CornerRadius、StrokeDashArray）
+  - 添加 V2 新标签/属性说明（流式布局、渐变、阴影、IsBold/IsItalic、Span、Margin、增强 CornerRadius、StrokeDashArray）
   - 添加 `measure_text` 工具的使用指引
 
 ---
 
-## 阶段五（原阶段五）：样式系统（TextStyle）
-
-> 目标：实现 `<Page.Styles>` + `Style="xxx"` 属性引用。
-
-### 5.1 样式解析
-
-- 已在阶段二完成（`SlidePage.Styles` + `SlideTextElement.Style`）
-
-### 5.2 样式解析器（Resolver）
-
-- 新增 `TextStyleResolver` 静态类：
-  - `ApplyStyle(SlideTextElement, IReadOnlyList<SlideTextStyle>)` 方法
-  - Style 默认值 < 元素显式属性（后者覆盖）
-- 在 `PreMeasureText` 之前调用样式解析
-
----
-
-## 阶段六（原阶段六）：高级功能
+## 阶段五（原阶段六）：高级功能
 
 > 目标：图片 SubAgent/RAG 集成、多模态截图反馈增强。
 
@@ -234,10 +212,9 @@
 ## 实施顺序
 
 1. **阶段一**（流式布局+单元测试）：Panel Layout="Horizontal"/"Vertical" 工作，MSTest 覆盖
-2. **阶段二**（其余数据模型+解析器）：渐变、阴影、FontWeight、Span、TextStyle 等结构落地，解析器可无崩溃解析 V2 XML
-3. **阶段三**（渲染引擎）：渐变、阴影、FontWeight、Span、CornerRadius、StrokeDashArray 可视
+2. **阶段二**（其余数据模型+解析器）：渐变、阴影、IsBold/IsItalic、Span 等结构落地，解析器可无崩溃解析 V2 XML
+3. **阶段三**（渲染引擎）：渐变、阴影、IsBold/IsItalic、Span、CornerRadius、StrokeDashArray 可视
 4. **阶段四**（measure_text 工具）：模型可调用文本测量
-5. **阶段五**（样式系统）：TextStyle 引用覆盖
-6. **阶段六**（高级功能）：图片检索、多模态增强
+5. **阶段五**（高级功能）：图片检索、多模态增强
 
 每个阶段是可独立交付的增量，阶段一完成后可逐步测试验证。
