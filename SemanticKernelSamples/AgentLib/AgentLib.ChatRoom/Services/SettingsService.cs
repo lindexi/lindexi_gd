@@ -22,36 +22,35 @@ public sealed class SettingsService
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
     };
 
-    private readonly string _settingsFilePath;
+    private readonly FileInfo _settingsFile;
 
     /// <summary>
-    /// 使用指定的设置文件路径创建设置服务。
+    /// 使用指定的设置文件创建设置服务。
     /// </summary>
-    /// <param name="settingsFilePath">settings.json 的完整路径。</param>
-    public SettingsService(string settingsFilePath)
+    /// <param name="settingsFile">settings.json 的文件信息。</param>
+    public SettingsService(FileInfo settingsFile)
     {
-        if (string.IsNullOrWhiteSpace(settingsFilePath))
-        {
-            throw new ArgumentException("设置文件路径不能为空。", nameof(settingsFilePath));
-        }
-        _settingsFilePath = settingsFilePath;
+        ArgumentNullException.ThrowIfNull(settingsFile);
+        _settingsFile = settingsFile;
     }
 
     /// <summary>
-    /// 加载设置。文件不存在或文件中没有模型提供商时，
-    /// 调用 <see cref="LindexiAgentConfiguration.LoadDefault"/> 加载默认模型配置。
+    /// 加载设置。文件不存在时写入内置默认配置以便用户直接编辑；
+    /// 文件中没有模型提供商时，调用 <see cref="LindexiAgentConfiguration.LoadDefault"/> 加载默认模型配置。
     /// </summary>
     public async Task<AppSettings> LoadAsync(CancellationToken cancellationToken = default)
     {
-        if (!File.Exists(_settingsFilePath))
+        if (!_settingsFile.Exists)
         {
-            return CreateDefaultWithBuiltinProviders();
+            AppSettings defaultSettings = CreateDefaultWithBuiltinProviders();
+            await SaveAsync(defaultSettings, cancellationToken).ConfigureAwait(false);
+            return defaultSettings;
         }
 
-        string json = await File.ReadAllTextAsync(_settingsFilePath, cancellationToken).ConfigureAwait(false);
+        string json = await File.ReadAllTextAsync(_settingsFile.FullName, cancellationToken).ConfigureAwait(false);
         AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json, s_jsonOptions);
 
         if (settings is null)
@@ -81,14 +80,13 @@ public sealed class SettingsService
     {
         ArgumentNullException.ThrowIfNull(settings);
 
-        string? directory = Path.GetDirectoryName(_settingsFilePath);
-        if (!string.IsNullOrEmpty(directory))
+        if (_settingsFile.Directory is not null)
         {
-            Directory.CreateDirectory(directory);
+            _settingsFile.Directory.Create();
         }
 
         string json = JsonSerializer.Serialize(settings, s_jsonOptions);
-        await File.WriteAllTextAsync(_settingsFilePath, json, cancellationToken).ConfigureAwait(false);
+        await File.WriteAllTextAsync(_settingsFile.FullName, json, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

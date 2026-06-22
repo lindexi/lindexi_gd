@@ -37,13 +37,13 @@ public partial class App : Application
     private async Task InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        string settingsFilePath = Path.Join(appData, "AgentRoundtable", "AppConfiguration.json");
+        var settingsFile = new FileInfo(Path.Join(appData, "AgentRoundtable", "AppConfiguration.json"));
 
         // 1. 主线程调度器
         var dispatcher = new AvaloniaMainThreadDispatcher();
 
         // 2. 设置服务
-        var settingsService = new SettingsService(settingsFilePath);
+        var settingsService = new SettingsService(settingsFile);
         AppSettings appSettings = await settingsService.LoadAsync();
 
         // 3. 模型提供商服务
