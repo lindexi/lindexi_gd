@@ -654,6 +654,7 @@ public sealed class ChatRoomManager : NotifyBase
         sb.AppendLine("@机制：");
         sb.AppendLine("- 在消息中使用 @【角色名】 或 @角色名 可以指定某角色接下来回复");
         sb.AppendLine("- 被 @ 的角色会在当前发言者之后自动发言");
+        sb.AppendLine("- 如果只是提及某个角色而非要求其发言，请勿使用 @ 前缀，否则会导致该角色被触发发言");
         sb.AppendLine();
         sb.AppendLine("协作原则：");
         sb.AppendLine("- 优先通过 @ 其他角色让他们完成各自擅长的工作，而非自己包揽");
