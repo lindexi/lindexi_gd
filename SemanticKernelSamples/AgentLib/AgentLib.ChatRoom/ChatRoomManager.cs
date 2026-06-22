@@ -533,7 +533,7 @@ public sealed class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
-    /// 持久化当前会话。
+    /// 持久化当前会话。空会话（无消息）不会被保存，避免会话列表出现无聊天记录的空记录。
     /// </summary>
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
@@ -542,9 +542,15 @@ public sealed class ChatRoomManager : NotifyBase
             return;
         }
 
+        // 空会话不持久化，避免会话列表出现无消息的空记录
+        if (Session.Messages.Count == 0)
+        {
+            return;
+        }
+
         var roleDefinitions = Roles.Select(r => r.Definition).ToList();
         ChatRoomSessionData data = Session.ToPersistence(roleDefinitions);
-        await Persistence.SaveConfigAsync(data, cancellationToken);
+        await Persistence.SaveConfigAsync(data, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
