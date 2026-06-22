@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+#if !NET6_0
+using System.Text.Json.Serialization.Metadata;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -87,15 +90,18 @@ public sealed class ChatRoomPersistence
 
         string configPath = GetConfigFilePath(sessionFolder);
 
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-        };
-
         await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+#if NET6_0
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+            };
             string json = JsonSerializer.Serialize(data, options);
+#else
+            string json = JsonSerializer.Serialize(data, ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
+#endif
             await File.WriteAllTextAsync(configPath, json, cancellationToken).ConfigureAwait(false);
         }
         finally
@@ -123,7 +129,11 @@ public sealed class ChatRoomPersistence
         }
 
         string json = await File.ReadAllTextAsync(configPath, cancellationToken).ConfigureAwait(false);
+#if NET6_0
         return JsonSerializer.Deserialize<ChatRoomSessionData>(json);
+#else
+        return JsonSerializer.Deserialize(json, ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
+#endif
     }
 
     /// <summary>

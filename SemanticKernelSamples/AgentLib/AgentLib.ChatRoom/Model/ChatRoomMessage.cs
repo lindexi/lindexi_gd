@@ -5,6 +5,7 @@ using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace AgentLib.ChatRoom.Model;
 
@@ -81,7 +82,9 @@ public sealed class ChatRoomMessage : NotifyBase
     /// 仅 AI 角色消息可能携带此对象，用于 UI 直接绑定流式属性（如 Content、Token 用量等）。
     /// 为 <see langword="null"/> 时表示该消息无底层对象（如人类消息、系统消息）。
     /// 设置时自动订阅/退订其 <see cref="INotifyPropertyChanged.PropertyChanged"/>，桥接 <see cref="Content"/> 变更。
+    /// <para>持久化时忽略此属性，消息文本内容通过 <see cref="StaticContent"/> 保存和恢复。</para>
     /// </summary>
+    [JsonIgnore]
     public CopilotChatMessage? CopilotChatMessage
     {
         get => _copilotChatMessage;
@@ -112,7 +115,9 @@ public sealed class ChatRoomMessage : NotifyBase
     /// <summary>
     /// 是否正在流式生成中。流式阶段 UI 绑定 <see cref="CopilotChatMessage"/> 的属性感知实时更新；
     /// 完成后由 <see cref="ChatRoomManager"/> 将此属性设为 <see langword="false"/>。
+    /// <para>持久化时忽略此属性，属于运行时状态。</para>
     /// </summary>
+    [JsonIgnore]
     public bool IsStreaming
     {
         get => _isStreaming;
