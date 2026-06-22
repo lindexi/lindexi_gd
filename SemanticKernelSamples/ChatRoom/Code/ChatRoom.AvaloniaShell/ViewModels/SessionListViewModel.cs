@@ -141,10 +141,35 @@ public sealed class SessionListViewModel : ViewModelBase
 
         CreateNewSessionCommand = new SimpleAsyncCommand(CreateNewSessionAsync);
         OpenSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(OpenSessionAsync);
-        DeleteSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(DeleteSessionAsync);
+        DeleteSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(DeleteSessionAsync, CanDeleteSession);
         OpenSettingsCommand = new SimpleCommand(() => SettingsRequested?.Invoke(this, EventArgs.Empty));
 
+        _chatRoomService.SessionChanged += OnSessionChanged;
         RefreshSessions();
+    }
+
+    private void OnSessionChanged(object? sender, ChatRoomManager? manager)
+    {
+        // 会话切换后刷新删除命令的可用状态（当前活跃会话不可删除）
+        if (DeleteSessionCommand is SimpleAsyncCommand<SessionItemViewModel> cmd)
+        {
+            cmd.RaiseCanExecuteChanged();
+        }
+    }
+
+    /// <summary>
+    /// 判断指定会话是否可删除。当前活跃会话不允许删除。
+    /// </summary>
+    private bool CanDeleteSession(SessionItemViewModel? session)
+    {
+        if (session is null)
+        {
+            return false;
+        }
+
+        Guid? activeSessionId = _chatRoomService.CurrentManager?.Session.SessionId;
+        return activeSessionId is null ||
+            activeSessionId.Value.ToString("N") != session.SessionId;
     }
 
     /// <summary>
@@ -201,8 +226,22 @@ public sealed class SessionListViewModel : ViewModelBase
             return Task.CompletedTask;
         }
 
+        // 禁止删除当前活跃会话
+        Guid? activeSessionId = _chatRoomService.CurrentManager?.Session.SessionId;
+        if (activeSessionId is not null &&
+            activeSessionId.Value.ToString("N") == session.SessionId)
+        {
+            return Task.CompletedTask;
+        }
+
         _sessionService.DeleteSession(session.SessionId);
         Sessions.Remove(session);
+
+        if (SelectedSession == session)
+        {
+            SelectedSession = null;
+        }
+
         return Task.CompletedTask;
     }
 }

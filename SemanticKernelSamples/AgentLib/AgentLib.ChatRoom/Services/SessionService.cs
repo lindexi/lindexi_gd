@@ -70,6 +70,12 @@ public sealed class SessionService
                 continue;
             }
 
+            // 过滤空会话：不显示没有任何聊天记录的会话
+            if (data.Messages.Count == 0)
+            {
+                continue;
+            }
+
             summaries.Add(new SessionSummary
             {
                 SessionId = sessionId,

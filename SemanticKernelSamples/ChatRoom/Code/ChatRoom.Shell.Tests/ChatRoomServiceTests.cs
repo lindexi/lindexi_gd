@@ -194,7 +194,7 @@ public class ChatRoomServiceTests
     }
 
     /// <summary>
-    /// 保存后应能通过 SessionService 加载会话列表。
+    /// 保存含消息的会话后应能通过 SessionService 加载会话列表。
     /// </summary>
     [TestMethod]
     public async Task Save_ThenListSessions_ShouldFindSession()
@@ -206,6 +206,7 @@ public class ChatRoomServiceTests
             RoleName = "角色1",
             IsHuman = true,
         });
+        await _chatRoomService.HumanInterjectAsync("测试消息", "role-1", "角色1");
         await _chatRoomService.SaveAsync();
 
         var sessionService = new SessionService(new ChatRoomPersistence(_tempDir));
@@ -213,6 +214,96 @@ public class ChatRoomServiceTests
 
         Assert.IsTrue(sessions.Count >= 1);
         Assert.IsTrue(sessions.Any(s => s.Title == "持久化测试"));
+    }
+
+    /// <summary>
+    /// 空会话（无消息）保存后不应出现在会话列表中。
+    /// </summary>
+    [TestMethod]
+    public async Task Save_EmptySession_ShouldNotPersist()
+    {
+        await _chatRoomService.CreateNewSessionAsync("空会话");
+        await _chatRoomService.AddRoleAsync(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "角色1",
+            IsHuman = true,
+        });
+
+        // 没有发送任何消息，直接保存
+        await _chatRoomService.SaveAsync();
+
+        var sessionService = new SessionService(new ChatRoomPersistence(_tempDir));
+        var sessions = sessionService.ListSessions();
+
+        Assert.IsFalse(sessions.Any(s => s.Title == "空会话"));
+    }
+
+    /// <summary>
+    /// ListSessions 应过滤掉磁盘上消息为空的会话。
+    /// </summary>
+    [TestMethod]
+    public async Task ListSessions_ShouldFilterEmptySessions()
+    {
+        // 创建并保存一个含消息的会话
+        await _chatRoomService.CreateNewSessionAsync("有效会话");
+        await _chatRoomService.AddRoleAsync(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "角色1",
+            IsHuman = true,
+        });
+        await _chatRoomService.HumanInterjectAsync("有内容", "role-1", "角色1");
+        await _chatRoomService.SaveAsync();
+        _chatRoomService.CloseCurrentSession();
+
+        // 手动在持久化目录创建一个空消息的配置文件
+        var emptyData = new ChatRoomSessionData
+        {
+            SessionId = Guid.NewGuid(),
+            Title = "空消息会话",
+            CreatedAt = DateTimeOffset.Now,
+            Roles = [new ChatRoomRoleDefinition { RoleId = "empty-role", RoleName = "空角色", IsHuman = true }],
+            Messages = [],
+        };
+        var persistence = new ChatRoomPersistence(_tempDir);
+        await persistence.SaveConfigAsync(emptyData);
+
+        var sessionService = new SessionService(persistence);
+        var sessions = sessionService.ListSessions();
+
+        Assert.IsTrue(sessions.Any(s => s.Title == "有效会话"));
+        Assert.IsFalse(sessions.Any(s => s.Title == "空消息会话"));
+    }
+
+    /// <summary>
+    /// 删除会话后应从会话列表中移除。
+    /// </summary>
+    [TestMethod]
+    public async Task DeleteSession_ShouldRemoveFromList()
+    {
+        await _chatRoomService.CreateNewSessionAsync("待删除会话");
+        await _chatRoomService.AddRoleAsync(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "角色1",
+            IsHuman = true,
+        });
+        await _chatRoomService.HumanInterjectAsync("内容", "role-1", "角色1");
+        await _chatRoomService.SaveAsync();
+        _chatRoomService.CloseCurrentSession();
+
+        var persistence = new ChatRoomPersistence(_tempDir);
+        var sessionService = new SessionService(persistence);
+
+        var sessionsBefore = sessionService.ListSessions();
+        Assert.IsTrue(sessionsBefore.Any(s => s.Title == "待删除会话"));
+
+        string sessionId = sessionsBefore.First(s => s.Title == "待删除会话").SessionId;
+        sessionService.DeleteSession(sessionId);
+
+        var sessionsAfter = sessionService.ListSessions();
+        Assert.IsFalse(sessionsAfter.Any(s => s.Title == "待删除会话"));
     }
 
     /// <summary>
