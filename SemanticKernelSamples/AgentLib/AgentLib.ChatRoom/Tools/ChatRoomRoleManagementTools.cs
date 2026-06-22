@@ -1,4 +1,5 @@
 using AgentLib.ChatRoom.Model;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 
 using Microsoft.Extensions.AI;
@@ -35,8 +36,8 @@ public static class ChatRoomRoleManagementTools
                 name: "list_characters",
                 description: "列出当前聊天室中的所有角色，包括角色ID（RoleId）、名称（RoleName）、人设摘要、模型信息和参与模式。"),
             AIFunctionFactory.Create(
-                (string roleName, string systemPrompt, string? modelId, string? modelProviderId, string? memoryContent, CancellationToken ct) =>
-                    CreateCharacter(chatRoomManager, roleName, systemPrompt, modelId, modelProviderId, memoryContent, ct),
+                (string roleName, string systemPrompt, string? modelId = null, string? modelProviderId = null, string? memoryContent = null) =>
+                    CreateCharacter(chatRoomManager, roleName, systemPrompt, modelId, modelProviderId, memoryContent),
                 name: "create_character",
                 description: "创建一个新角色并立即加入当前聊天室。参数：roleName（必填，角色显示名）、systemPrompt（必填，角色人设）、modelId（可选）、modelProviderId（可选）、memoryContent（可选，长期记忆）。"),
             AIFunctionFactory.Create(
@@ -83,8 +84,7 @@ public static class ChatRoomRoleManagementTools
         string systemPrompt,
         string? modelId,
         string? modelProviderId,
-        string? memoryContent,
-        CancellationToken cancellationToken)
+        string? memoryContent)
     {
         if (string.IsNullOrWhiteSpace(roleName))
         {
@@ -113,7 +113,7 @@ public static class ChatRoomRoleManagementTools
             };
 
             var role = new ChatRoomRole(definition);
-            await chatRoomManager.AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
+            await chatRoomManager.AddRoleAsync(role).ConfigureAwait(false);
 
             // 早期校验：确保新角色有可用模型，避免被 @ 发言时才抛出异常
             role.EnsureModelAvailable();
@@ -128,6 +128,48 @@ public static class ChatRoomRoleManagementTools
             if (!string.IsNullOrWhiteSpace(memoryContent))
             {
                 sb.AppendLine($"- 记忆        : {memoryContent.Trim()}");
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+        catch (PrimaryModelNotFoundException ex)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("❌ 创建角色失败：找不到指定的首选模型。");
+            sb.AppendLine();
+
+            if (!string.IsNullOrWhiteSpace(ex.RequestedProviderId) && !string.IsNullOrWhiteSpace(ex.RequestedModelId))
+            {
+                sb.AppendLine($"指定的提供商：{ex.RequestedProviderId}");
+                sb.AppendLine($"指定的模型  ：{ex.RequestedModelId}");
+            }
+            else if (!string.IsNullOrWhiteSpace(ex.RequestedProviderId))
+            {
+                sb.AppendLine($"指定的提供商：{ex.RequestedProviderId}");
+            }
+            else if (!string.IsNullOrWhiteSpace(ex.RequestedModelId))
+            {
+                sb.AppendLine($"指定的模型  ：{ex.RequestedModelId}");
+            }
+
+            sb.AppendLine();
+
+            if (ex.AvailableModels.Count > 0)
+            {
+                sb.AppendLine("当前可用的模型列表：");
+                sb.AppendLine("| 提供商 | 模型名 | 模型 ID |");
+                sb.AppendLine("|--------|--------|---------|");
+                foreach (ILanguageModel model in ex.AvailableModels)
+                {
+                    sb.AppendLine($"| {EscapeTableValue(model.ModelDefinition.Provider)} | {EscapeTableValue(model.ModelDefinition.ModelName)} | {EscapeTableValue(model.ModelDefinition.ModelId ?? "")} |");
+                }
+
+                sb.AppendLine();
+                sb.AppendLine("请使用上述可用模型中的提供商和模型 ID 重新创建角色。");
+            }
+            else
+            {
+                sb.AppendLine("当前没有任何已注册的可用模型。请先注册模型提供商后再创建角色。");
             }
 
             return sb.ToString().TrimEnd();

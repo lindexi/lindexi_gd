@@ -322,14 +322,14 @@ public sealed class ChatRoomRoleManagementToolsTests
             {
                 ["roleName"] = "指定模型",
                 ["systemPrompt"] = "你是一个指定了模型的角色",
-                ["modelId"] = "gpt-4",
+                ["modelId"] = "test-model",
                 ["modelProviderId"] = "custom-provider",
                 ["memoryContent"] = null,
             });
 
         Assert.HasCount(1, manager.Roles);
         Assert.AreEqual("custom-provider", manager.Roles[0].Definition.ModelProviderId);
-        Assert.AreEqual("gpt-4", manager.Roles[0].Definition.ModelId);
+        Assert.AreEqual("test-model", manager.Roles[0].Definition.ModelId);
     }
 
     [TestMethod]

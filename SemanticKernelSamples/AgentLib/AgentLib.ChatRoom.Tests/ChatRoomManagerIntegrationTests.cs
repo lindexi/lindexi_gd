@@ -2,6 +2,7 @@ using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.SpeakerSelectors;
 using AgentLib.ChatRoom.Tools;
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 
@@ -30,8 +31,8 @@ public sealed class ChatRoomManagerIntegrationTests
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["helper-provider"] = new FakeLanguageModelProvider(helperClient),
-            ["expert-provider"] = new FakeLanguageModelProvider(expertClient),
+            ["helper-provider"] = CreateProvider("helper-provider", helperClient),
+            ["expert-provider"] = CreateProvider("expert-provider", expertClient),
         });
         await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
         await manager.AddRoleAsync(CreateRole("expert", "Expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
@@ -68,9 +69,9 @@ public sealed class ChatRoomManagerIntegrationTests
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["helper-provider"] = new FakeLanguageModelProvider(helperClient),
-            ["expert-provider"] = new FakeLanguageModelProvider(expertClient),
-            ["analyst-provider"] = new FakeLanguageModelProvider(analystClient),
+            ["helper-provider"] = CreateProvider("helper-provider", helperClient),
+            ["expert-provider"] = CreateProvider("expert-provider", expertClient),
+            ["analyst-provider"] = CreateProvider("analyst-provider", analystClient),
         });
         await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
         await manager.AddRoleAsync(CreateRole("expert", "Expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
@@ -104,8 +105,8 @@ public sealed class ChatRoomManagerIntegrationTests
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["provider-a"] = new FakeLanguageModelProvider(clientA),
-            ["provider-b"] = new FakeLanguageModelProvider(clientB),
+            ["provider-a"] = CreateProvider("provider-a", clientA),
+            ["provider-b"] = CreateProvider("provider-b", clientB),
         });
         await manager.AddRoleAsync(CreateRole("A", "RoleA", "provider-a"));
         await manager.AddRoleAsync(CreateRole("B", "RoleB", "provider-b"));
@@ -145,9 +146,9 @@ public sealed class ChatRoomManagerIntegrationTests
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["p-a"] = new FakeLanguageModelProvider(clientA),
-            ["p-b"] = new FakeLanguageModelProvider(clientB),
-            ["p-c"] = new FakeLanguageModelProvider(clientC),
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-c"] = CreateProvider("p-c", clientC),
         });
         await manager.AddRoleAsync(CreateRole("A", "A", "p-a"));
         await manager.AddRoleAsync(CreateRole("B", "B", "p-b"));
@@ -188,8 +189,8 @@ public sealed class ChatRoomManagerIntegrationTests
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["provider-a"] = new FakeLanguageModelProvider(clientA),
-            ["provider-b"] = new FakeLanguageModelProvider(clientB),
+            ["provider-a"] = CreateProvider("provider-a", clientA),
+            ["provider-b"] = CreateProvider("provider-b", clientB),
         });
         await manager.AddRoleAsync(CreateRole("A", "A", "provider-a"));
         await manager.AddRoleAsync(CreateRole("B", "B", "provider-b"));
@@ -231,8 +232,8 @@ public sealed class ChatRoomManagerIntegrationTests
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["p-a"] = new FakeLanguageModelProvider(emptyClientA),
-            ["p-b"] = new FakeLanguageModelProvider(emptyClientB),
+            ["p-a"] = CreateProvider("p-a", emptyClientA),
+            ["p-b"] = CreateProvider("p-b", emptyClientB),
         });
         await manager.AddRoleAsync(CreateRole("A", "A", "p-a"));
         await manager.AddRoleAsync(CreateRole("B", "B", "p-b"));
@@ -272,8 +273,8 @@ public sealed class ChatRoomManagerIntegrationTests
         // 注册所有 provider（helper 和新角色都会用到）
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["helper-provider"] = new FakeLanguageModelProvider(helperClient),
-            ["newrole-provider"] = new FakeLanguageModelProvider(newRoleClient),
+            ["helper-provider"] = CreateProvider("helper-provider", helperClient),
+            ["newrole-provider"] = CreateProvider("newrole-provider", newRoleClient),
         });
         await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
 
@@ -364,7 +365,7 @@ public sealed class ChatRoomManagerIntegrationTests
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
-            ["test-provider"] = new FakeLanguageModelProvider(CreateFakeClient("测试回复")),
+            ["test-provider"] = CreateProvider("test-provider", CreateFakeClient("测试回复")),
         });
 
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
@@ -461,5 +462,23 @@ public sealed class ChatRoomManagerIntegrationTests
         {
             yield return update;
         }
+    }
+
+    /// <summary>
+    /// 创建带有指定提供商名称的 <see cref="FakeLanguageModelProvider"/>，
+    /// 使其模型能被 <see cref="ChatRoomManager.RegisterModelProvidersForRole"/> 按 ModelProviderId 匹配。
+    /// </summary>
+    private static FakeLanguageModelProvider CreateProvider(string providerName, FakeChatClient client)
+    {
+        var model = new FakeLanguageModel(client)
+        {
+            ModelDefinition = new ModelDefinition
+            {
+                Provider = providerName,
+                ModelName = "Fake",
+                ModelId = "Fake",
+            },
+        };
+        return new FakeLanguageModelProvider([model]);
     }
 }

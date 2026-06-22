@@ -2,6 +2,7 @@
 using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using Moq;
 
@@ -618,7 +619,7 @@ public sealed class ChatRoomManagerTests
 
         manager.RegisterRoleModelProviders(providers);
 
-        // null ModelProviderId → register all available providers
+        // 无论 ModelProviderId 为何值，都注册所有可用提供商
         mockProvider.Verify(p => p.GetSupportedModels(), Times.Once);
     }
 
@@ -645,7 +646,7 @@ public sealed class ChatRoomManagerTests
 
         manager.RegisterRoleModelProviders(providers);
 
-        // empty ModelProviderId → register all available providers
+        // 无论 ModelProviderId 为何值，都注册所有可用提供商
         mockProvider.Verify(p => p.GetSupportedModels(), Times.Once);
     }
 
@@ -653,7 +654,20 @@ public sealed class ChatRoomManagerTests
     public async Task RegisterRoleModelProviders_MatchingProvider_RegistersOnEndpointManager()
     {
         var manager = new ChatRoomManager();
-        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
+
+        var mockModel = new Mock<ILanguageModel>();
+        mockModel.SetupGet(m => m.ModelDefinition)
+            .Returns(new ModelDefinition { Provider = "my-provider", ModelName = "test-model" });
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        mockProvider.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModel.Object });
+
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["my-provider"] = mockProvider.Object,
+        });
+
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -663,25 +677,28 @@ public sealed class ChatRoomManagerTests
         var role = new ChatRoomRole(definition);
         await manager.AddRoleAsync(role);
 
-        var mockProvider = new Mock<ILanguageModelProvider>();
-        var models = new List<ILanguageModel>();
-        mockProvider.Setup(p => p.GetSupportedModels()).Returns(models);
-        var providers = new Dictionary<string, ILanguageModelProvider>
-        {
-            ["my-provider"] = mockProvider.Object,
-        };
-
-        manager.RegisterRoleModelProviders(providers);
-
-        // Verify the provider was registered by checking GetSupportedModels was called
+        // 无论 ModelProviderId 为何值，都注册所有可用提供商
         mockProvider.Verify(p => p.GetSupportedModels(), Times.Once);
     }
 
     [TestMethod]
-    public async Task RegisterRoleModelProviders_ProviderNotInDictionary_DoesNotRegister()
+    public async Task RegisterRoleModelProviders_ProviderNotInDictionary_ThrowsPrimaryModelNotFound()
     {
         var manager = new ChatRoomManager();
-        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
+
+        var mockModel = new Mock<ILanguageModel>();
+        mockModel.SetupGet(m => m.ModelDefinition)
+            .Returns(new ModelDefinition { Provider = "other-provider", ModelName = "test-model" });
+
+        var mockProvider = new Mock<ILanguageModelProvider>();
+        mockProvider.Setup(p => p.GetSupportedModels())
+            .Returns(new List<ILanguageModel> { mockModel.Object });
+
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["other-provider"] = mockProvider.Object,
+        });
+
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -689,23 +706,34 @@ public sealed class ChatRoomManagerTests
             ModelProviderId = "missing-provider",
         };
         var role = new ChatRoomRole(definition);
-        await manager.AddRoleAsync(role);
 
-        var providers = new Dictionary<string, ILanguageModelProvider>();
-        var mockProvider = new Mock<ILanguageModelProvider>();
-        providers["other-provider"] = mockProvider.Object;
-
-        manager.RegisterRoleModelProviders(providers);
-
-        // The mock for the unmatched provider should not be touched
-        mockProvider.Verify(p => p.GetSupportedModels(), Times.Never);
+        // 新逻辑：所有提供商都会注册，但找不到 ModelProviderId 匹配的首选模型时抛出异常
+        await Assert.ThrowsExactlyAsync<PrimaryModelNotFoundException>(() => manager.AddRoleAsync(role));
     }
 
     [TestMethod]
-    public async Task RegisterRoleModelProviders_MultipleRoles_MixedMatches()
+    public async Task RegisterRoleModelProviders_MultipleRoles_AllProvidersRegistered()
     {
         var manager = new ChatRoomManager();
-        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
+
+        var mockModelA = new Mock<ILanguageModel>();
+        mockModelA.SetupGet(m => m.ModelDefinition)
+            .Returns(new ModelDefinition { Provider = "provider-a", ModelName = "model-a" });
+        var mockModelB = new Mock<ILanguageModel>();
+        mockModelB.SetupGet(m => m.ModelDefinition)
+            .Returns(new ModelDefinition { Provider = "provider-b", ModelName = "model-b" });
+
+        var mockProviderA = new Mock<ILanguageModelProvider>();
+        mockProviderA.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel> { mockModelA.Object });
+        var mockProviderB = new Mock<ILanguageModelProvider>();
+        mockProviderB.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel> { mockModelB.Object });
+
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["provider-a"] = mockProviderA.Object,
+            ["provider-b"] = mockProviderB.Object,
+        });
+
         var definition1 = new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
@@ -728,22 +756,9 @@ public sealed class ChatRoomManagerTests
         await manager.AddRoleAsync(new ChatRoomRole(definition2));
         await manager.AddRoleAsync(new ChatRoomRole(definition3));
 
-        var mockProviderA = new Mock<ILanguageModelProvider>();
-        mockProviderA.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
-        var mockProviderB = new Mock<ILanguageModelProvider>();
-        mockProviderB.Setup(p => p.GetSupportedModels()).Returns(new List<ILanguageModel>());
-
-        var providers = new Dictionary<string, ILanguageModelProvider>
-        {
-            ["provider-a"] = mockProviderA.Object,
-            ["provider-b"] = mockProviderB.Object,
-        };
-
-        manager.RegisterRoleModelProviders(providers);
-
-        // role-1 (provider-a): 1 call; role-2 (null → all): 1 call each; role-3 (provider-b): 1 call
-        mockProviderA.Verify(p => p.GetSupportedModels(), Times.Exactly(2));
-        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Exactly(2));
+        // 新逻辑：每个角色都注册所有可用提供商
+        mockProviderA.Verify(p => p.GetSupportedModels(), Times.Exactly(3));
+        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Exactly(3));
     }
 
     [TestMethod]
@@ -907,17 +922,23 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public async Task AddRoleAsync_WithSpecificModelProviderId_RegistersOnlyMatchingProvider()
+    public async Task AddRoleAsync_WithSpecificModelProviderId_RegistersAllProvidersAndSetsPrimary()
     {
         var manager = new ChatRoomManager();
 
-        var mockProviderA = new Mock<ILanguageModelProvider>();
         var mockModelA = new Mock<ILanguageModel>();
+        mockModelA.SetupGet(m => m.ModelDefinition)
+            .Returns(new ModelDefinition { Provider = "provider-a", ModelName = "model-a" });
+
+        var mockModelB = new Mock<ILanguageModel>();
+        mockModelB.SetupGet(m => m.ModelDefinition)
+            .Returns(new ModelDefinition { Provider = "provider-b", ModelName = "model-b" });
+
+        var mockProviderA = new Mock<ILanguageModelProvider>();
         mockProviderA.Setup(p => p.GetSupportedModels())
             .Returns(new List<ILanguageModel> { mockModelA.Object });
 
         var mockProviderB = new Mock<ILanguageModelProvider>();
-        var mockModelB = new Mock<ILanguageModel>();
         mockProviderB.Setup(p => p.GetSupportedModels())
             .Returns(new List<ILanguageModel> { mockModelB.Object });
 
@@ -935,9 +956,11 @@ public sealed class ChatRoomManagerTests
         });
         await manager.AddRoleAsync(role);
 
-        Assert.HasCount(1, role.EndpointManager.GetSupportedModels());
+        // 新逻辑：所有提供商都注册，但首选模型由 ModelProviderId 决定
+        Assert.HasCount(2, role.EndpointManager.GetSupportedModels());
+        Assert.AreSame(mockModelA.Object, role.EndpointManager.PrimaryModel);
         mockProviderA.Verify(p => p.GetSupportedModels(), Times.Once);
-        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Never);
+        mockProviderB.Verify(p => p.GetSupportedModels(), Times.Once);
     }
 
     [TestMethod]

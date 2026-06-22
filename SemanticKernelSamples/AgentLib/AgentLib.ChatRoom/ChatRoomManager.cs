@@ -426,11 +426,18 @@ public sealed class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
-    /// 为单个角色注册已存储的模型提供商。
+    /// 为单个角色注册所有已存储的模型提供商，并根据角色定义设置首选模型。
     /// 需先通过 <see cref="RegisterRoleModelProviders"/> 注册 providers 字典。
-    /// 人类角色跳过注册；未配置特定提供商时注册所有可用提供商。
+    /// 人类角色跳过注册。
+    /// 无论 <see cref="ChatRoomRoleDefinition.ModelProviderId"/> 为何值，都注册所有可用提供商；
+    /// <see cref="ChatRoomRoleDefinition.ModelProviderId"/> 和 <see cref="ChatRoomRoleDefinition.ModelId"/>
+    /// 仅用于决定 <see cref="AgentApiEndpointManager.PrimaryModel"/> 首选模型。
+    /// 当指定了首选模型但找不到时，抛出 <see cref="PrimaryModelNotFoundException"/>。
     /// </summary>
     /// <param name="role">目标角色。</param>
+    /// <exception cref="PrimaryModelNotFoundException">
+    /// 指定了首选模型但在已注册的提供商中找不到匹配模型时抛出。
+    /// </exception>
     public void RegisterModelProvidersForRole(ChatRoomRole role)
     {
         ArgumentNullException.ThrowIfNull(role);
@@ -446,18 +453,46 @@ public sealed class ChatRoomManager : NotifyBase
                 $"模型提供商尚未注册。请先调用 {nameof(RegisterRoleModelProviders)} 注册模型提供商字典。");
         }
 
-        if (string.IsNullOrWhiteSpace(role.Definition.ModelProviderId))
-        {
-            // 未配置特定提供商时，注册所有可用提供商
-            foreach (ILanguageModelProvider provider in _languageModelProviders.Values)
-            {
-                role.EndpointManager.RegisterLanguageModelProvider(provider);
-            }
-        }
-        else if (_languageModelProviders.TryGetValue(role.Definition.ModelProviderId, out ILanguageModelProvider? provider))
+        // 无论 ModelProviderId 为何值，都注册所有可用提供商
+        foreach (ILanguageModelProvider provider in _languageModelProviders.Values)
         {
             role.EndpointManager.RegisterLanguageModelProvider(provider);
         }
+
+        // 根据角色定义的 ModelProviderId 和 ModelId 设置首选模型
+        TrySetPrimaryModel(role);
+    }
+
+    /// <summary>
+    /// 根据角色定义中的 <see cref="ChatRoomRoleDefinition.ModelProviderId"/> 和
+    /// <see cref="ChatRoomRoleDefinition.ModelId"/> 设置首选模型。
+    /// 当指定了首选模型但找不到时，抛出 <see cref="PrimaryModelNotFoundException"/>。
+    /// </summary>
+    private void TrySetPrimaryModel(ChatRoomRole role)
+    {
+        string? providerId = role.Definition.ModelProviderId;
+        string? modelId = role.Definition.ModelId;
+
+        // 未指定任何首选模型信息时，由 EndpointManager 自动选择
+        if (string.IsNullOrWhiteSpace(providerId) && string.IsNullOrWhiteSpace(modelId))
+        {
+            return;
+        }
+
+        IReadOnlyList<ILanguageModel> availableModels = role.EndpointManager.GetSupportedModels();
+
+        // 有 modelId 时复用 GetModel 进行匹配（可附带 provider 过滤）；
+        // 仅有 providerId 时取该提供商的第一个模型
+        ILanguageModel? matched = !string.IsNullOrWhiteSpace(modelId)
+            ? role.EndpointManager.GetModel(modelId, providerId)
+            : availableModels.FirstOrDefault(m => m.ModelDefinition.Provider == providerId);
+
+        if (matched is null)
+        {
+            throw new PrimaryModelNotFoundException(providerId, modelId, availableModels);
+        }
+
+        role.EndpointManager.PrimaryModel = matched;
     }
 
     /// <summary>
