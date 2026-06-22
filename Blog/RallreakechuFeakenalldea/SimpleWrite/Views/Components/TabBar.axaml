@@ -62,7 +62,7 @@
               <DataTemplate DataType="models:EditorModel">
                   <Border x:Name="TabItemBorder" Classes="Tab-Main-Style" 
                           Margin="0,3,2,0" 
-                          Padding="5,2,5,0"
+                          Padding="5,2,0,0"
                           BorderThickness="0 0 1 0"
                            BorderBrush="{StaticResource Brush.Border.Subtle}">
                       <!-- 以下设置无效 -->
@@ -83,9 +83,11 @@
                                      ToolTip.Tip="{Binding FileInfo.FullName}">
                               <!-- 添加 MinWidth 是为了防止标题太短而误点到关闭按钮上 -->
                           </TextBlock>
-                           <Button x:Name="CloseTabButton" Margin="5 0 0 0" Background="Transparent" Padding="0"
+                           <Button x:Name="CloseTabButton" Margin="3 0 0 0" Background="Transparent" Padding="2 0 5 0"
                                    Foreground="{StaticResource Brush.Foreground.Secondary}"
-                                  VerticalAlignment="Center" Click="CloseTabButton_OnClick">
+                                  VerticalAlignment="Stretch"
+                                   VerticalContentAlignment="Center"
+                                   Click="CloseTabButton_OnClick">
                               <Path Stroke="{Binding #CloseTabButton.Foreground}" StrokeThickness="2" Data="M0,0 L6,6z M6,0 L0,6"></Path>
                           </Button>
                       </StackPanel>
