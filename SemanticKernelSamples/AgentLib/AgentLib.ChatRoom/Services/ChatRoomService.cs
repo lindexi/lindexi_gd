@@ -145,7 +145,7 @@ public sealed class ChatRoomService
         // 先注册模型提供商，确保 LoadAsync 内部 AddRoleAsync 时角色能正确绑定模型
         RegisterProviders(_currentManager);
 
-        await _currentManager.LoadAsync(sessionId, cancellationToken).ConfigureAwait(false);
+        await _currentManager.LoadAsync(sessionId, cancellationToken);
 
         SessionChanged?.Invoke(this, _currentManager);
         return _currentManager;
