@@ -339,6 +339,10 @@ partial class TextEditor : Control
     }
 
     /// <summary>
+    /// 上一次布局完成时的内容高度，用于 SizeToContent.Height 模式下判断高度是否真正变化
+    /// </summary>
+    private double _lastContentHeight = -1;
+    /// <summary>
     /// 布局完成之后，判断是否需要重新测量
     /// </summary>
     private void InvalidateMeasureAfterLayoutCompleted()
@@ -360,7 +364,21 @@ partial class TextEditor : Control
         TextRect documentOutlineBounds = layoutBounds.DocumentOutlineBounds;
 
         bool widthChanged = !NearlyEquals(documentOutlineBounds.Width, DesiredSize.Width);
-        bool heightChanged = !NearlyEquals(documentOutlineBounds.Height, DesiredSize.Height);
+        // 在 SizeToContent.Height 模式下，outlineBounds.Height 等于 DocumentHeight（有限值，来自 ArrangeOverride），
+        // 而 DesiredSize.Height 等于 contentBounds.Height（来自 MeasureTextEditorCore）。
+        // 由于 measure 和 arrange 的宽度可能不同（如 ScrollViewer 的 Padding），
+        // contentBounds.Height 和 DesiredSize.Height 可能永远不相等，导致无限触发 InvalidateMeasure。
+        // 因此在高度自适应模式下，通过记录上一次的内容高度来判断是否真正发生了变化。
+        bool heightChanged;
+        if (TextEditorCore.SizeToContent is TextSizeToContent.Height)
+        {
+            heightChanged = !NearlyEquals(documentContentBounds.Height, _lastContentHeight);
+            _lastContentHeight = documentContentBounds.Height;
+        }
+        else
+        {
+            heightChanged = !NearlyEquals(documentOutlineBounds.Height, DesiredSize.Height);
+        }
 
         if (!widthChanged)
         {
@@ -373,7 +391,13 @@ partial class TextEditor : Control
 
         if (!heightChanged)
         {
-            if (documentOutlineBounds.Height < documentContentBounds.Height)
+            if (TextEditorCore.SizeToContent is TextSizeToContent.Height)
+            {
+                // 高度自适应模式下，outlineBounds.Height 是 DocumentHeight（有限值），
+                // 可能小于 contentBounds.Height，这是正常的（内容超出视口），
+                // 不应该因此触发重新测量
+            }
+            else if (documentOutlineBounds.Height < documentContentBounds.Height)
             {
                 // 如果内容已经超过了外接大小，则说明高度应该发生变化
                 heightChanged = true;
@@ -458,7 +482,13 @@ partial class TextEditor : Control
     protected override Size ArrangeOverride(Size finalSize)
     {
         // 实际布局多大就使用多大
-        TextEditorCore.DocumentManager.DocumentWidth = finalSize.Width;
+        // 在 SizeToContent.Height 模式下，DocumentWidth 已在 MeasureTextEditorCore 中设置为 availableSize.Width，
+        // 此处不再覆盖，避免 measure 和 arrange 的 DocumentWidth 不一致（如 ScrollViewer 的 Padding 导致差异），
+        // 进而避免内容高度计算不一致导致滚动条无法滚动到末尾。
+        if (TextEditorCore.SizeToContent is not TextSizeToContent.Height)
+        {
+            TextEditorCore.DocumentManager.DocumentWidth = finalSize.Width;
+        }
         TextEditorCore.DocumentManager.DocumentHeight = finalSize.Height;
 
         return base.ArrangeOverride(finalSize);
