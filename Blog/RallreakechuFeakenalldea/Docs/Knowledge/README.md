@@ -28,6 +28,7 @@
 | 标签页右键菜单如何定位到文件资源管理器 | `Avalonia/TabBar-ContextMenu-And-Explorer.md` |
 | 标签关闭前如何提示未保存内容并写入临时快照 | `Avalonia/Unsaved-Tab-Close-And-Temp-Autosave.md` |
 | XAML 命名有哪些额外约束 | `Avalonia/Xaml-Naming-Notes.md` |
+| 编辑器行号如何渲染与同步 | `Avalonia/Line-Number-Renderer.md` |
 | 功能开发完成后如何自检 | `Workflow/Feature-Delivery-Checklist.md` |
 
 ## 分类索引
@@ -41,6 +42,7 @@
 | `Find-Replace-Panel.md` | 查找替换面板与搜索选项组织方式 | 扩展查找栏、正则选项、文件夹搜索结果展示时 |
 | `Folder-Explorer-And-Folder-Find.md` | 左侧文件夹树与文件夹查找的组织方式 | 增加资源管理器、扩展文件夹查找、排查结果定位链路时 |
 | `Folder-TreeView-Selection-And-Theme.md` | 目录树跟随当前文档与深色主题样式 | 调整目录树联动、选中态、Chevron 配色时 |
+| `Line-Number-Renderer.md` | 编辑器行号渲染与跨行处理 | 需要显示行号、处理自动换行跨行、优化行号绘制性能时 |
 | `Markdown-Url-Highlighting.md` | Markdown 正文 URL 高亮与命中信息记录 | 需要识别链接、命中链接、准备点击打开能力时 |
 | `Shortcut-Defaults-And-FilePicker.md` | 快捷键默认方案与文件选择器注入 | 新增命令、调整快捷键、接入打开/保存对话框时 |
 | `TabBar-ContextMenu-And-Explorer.md` | 标签栏右键菜单与文件资源管理器联动 | 扩展标签交互入口、定位文件时 |
