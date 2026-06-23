@@ -13,18 +13,6 @@ partial class TextEditor
 #if USE_WPF || USE_AVALONIA // 其他平台暂时不知道是否能这么实现
     private TextSize MeasureTextEditorCore(TextSize availableSize)
     {
-        // 在 SizeToContent.Height 模式下，布局时的行宽取决于 DocumentWidth。
-        // 如果不在此处同步 availableSize.Width 到 DocumentWidth，则首次测量时 DocumentWidth 为无穷大，
-        // 导致文本不换行，内容高度计算错误，进而 ScrollViewer 无法正确滚动。
-        // 在 SizeToContent.Width 或 WidthAndHeight 模式下，GetLineMaxWidth 返回无穷大，不受 DocumentWidth 影响。
-        if (TextEditorCore.SizeToContent is TextSizeToContent.Height or TextSizeToContent.Manual)
-        {
-            if (double.IsFinite(availableSize.Width))
-            {
-                TextEditorCore.DocumentManager.DocumentWidth = availableSize.Width;
-            }
-        }
-
         // 此时可以通知文本底层进行布局了，这是一个很好的时机
         RenderInfoProvider renderInfoProvider = ForceLayout();
 
