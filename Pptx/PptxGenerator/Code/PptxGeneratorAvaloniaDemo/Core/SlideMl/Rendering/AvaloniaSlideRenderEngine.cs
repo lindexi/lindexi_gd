@@ -21,6 +21,7 @@ namespace PptxGenerator;
 internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
 {
     private readonly Dictionary<string, TextLayout> _textLayoutCache = new();
+    private readonly Dictionary<string, List<TextLayout>> _spanTextLayoutCache = new();
     private readonly Dictionary<string, Bitmap?> _bitmapCache = new();
 
     public SlideMlElementMeasurements PreMeasure(SlideMlPage page, SlideMlPipelineContext context)
@@ -29,6 +30,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         ArgumentNullException.ThrowIfNull(context);
 
         _textLayoutCache.Clear();
+        _spanTextLayoutCache.Clear();
         _bitmapCache.Clear();
 
         var results = new Dictionary<string, SlideMlMeasureResult>();
@@ -112,14 +114,20 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
 
     private void PreMeasureText(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results)
     {
+        var maxWidth = text.Width ?? 10000;
+        var maxHeight = text.Height ?? 10000;
+        var lineHeight = text.FontSize;
+
+        if (text.Spans is { Count: > 0 })
+        {
+            PreMeasureSpans(text, results, maxWidth, maxHeight, lineHeight);
+            return;
+        }
+
         var foreground = CreateBrush(text.Foreground, Colors.Black);
         var fontWeight = text.IsBold == true ? FontWeight.Bold : FontWeight.Normal;
         var fontStyle = text.IsItalic == true ? FontStyle.Italic : FontStyle.Normal;
         var typeface = new Typeface(new FontFamily(text.FontName), fontStyle, fontWeight);
-
-        var maxWidth = text.Width ?? 10000;
-        var maxHeight = text.Height ?? 10000;
-        var lineHeight = text.FontSize;
 
         var textLayout = new TextLayout(
             text.Text,
@@ -147,6 +155,66 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,
             ActualLineCount = textLayout.TextLines.Count,
+        };
+    }
+
+    /// <summary>
+    /// 预测量富文本 Span，逐段创建 TextLayout 并拼接。
+    /// </summary>
+    private void PreMeasureSpans(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results,
+        double maxWidth, double maxHeight, double lineHeight)
+    {
+        var spans = text.Spans!;
+        var layouts = new List<TextLayout>(spans.Count);
+
+        double totalWidth = 0;
+        double totalHeight = 0;
+
+        foreach (var span in spans)
+        {
+            var spanFontWeight = (span.IsBold ?? text.IsBold) == true ? FontWeight.Bold : FontWeight.Normal;
+            var spanFontStyle = (span.IsItalic ?? text.IsItalic) == true ? FontStyle.Italic : FontStyle.Normal;
+            var spanFontName = span.FontName ?? text.FontName;
+            var spanFontSize = span.FontSize ?? text.FontSize;
+            var spanForeground = CreateBrush(span.Foreground ?? text.Foreground, Colors.Black);
+            var spanTypeface = new Typeface(new FontFamily(spanFontName), spanFontStyle, spanFontWeight);
+
+            var spanLayout = new TextLayout(
+                span.Text,
+                spanTypeface,
+                spanFontSize,
+                spanForeground,
+                MapTextAlignment(text.TextAlignment),
+                text.Width is null ? TextWrapping.NoWrap : TextWrapping.Wrap,
+                TextTrimming.None,
+                null,
+                FlowDirection.LeftToRight,
+                Math.Max(0, maxWidth - totalWidth),
+                maxHeight,
+                spanFontSize,
+                0,
+                0);
+
+            layouts.Add(spanLayout);
+            totalWidth += spanLayout.WidthIncludingTrailingWhitespace;
+            totalHeight = Math.Max(totalHeight, spanLayout.Height);
+        }
+
+        _spanTextLayoutCache[text.Id] = layouts;
+
+        var measuredWidth = text.Width ?? totalWidth;
+        var measuredHeight = text.Height ?? totalHeight;
+        var actualLineCount = totalHeight > 0 ? (int)Math.Ceiling(totalHeight / lineHeight) : 0;
+        if (actualLineCount == 0 && spans.Count > 0)
+        {
+            actualLineCount = 1;
+        }
+
+        results[text.Id] = new SlideMlMeasureResult
+        {
+            MeasuredWidth = measuredWidth,
+            MeasuredHeight = measuredHeight,
+            ActualLineCount = actualLineCount,
         };
     }
 
@@ -180,6 +248,12 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
 
     private void DrawElement(DrawingContext dc, SlideMlElement element, SlideMlPipelineContext context)
     {
+        // 先绘制阴影（阴影不受元素 Opacity 影响）
+        if (element is SlideMlRectElement rect && rect.Shadow is not null)
+        {
+            DrawShadow(dc, rect.Shadow, ToRect(rect.LayoutBounds), rect.CornerRadius);
+        }
+
         var opacity = Math.Clamp(element.Opacity, 0, 1);
         if (opacity >= 1)
         {
@@ -231,26 +305,138 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
     private static void DrawRect(DrawingContext dc, SlideMlRectElement rect)
     {
         var bounds = ToRect(rect.LayoutBounds);
+        var cornerRadius = rect.CornerRadius?.TopLeft ?? 0;
 
         var fillBrush = CreateAvaloniaBrush(rect.Fill, Colors.Transparent);
-        if (fillBrush is not null)
+        var strokeBrush = rect.StrokeThickness > 0
+            ? CreateAvaloniaBrush(rect.Stroke, Colors.Transparent)
+            : null;
+
+        Pen? pen = null;
+        if (strokeBrush is not null)
         {
-            dc.FillRectangle(fillBrush, bounds);
+            DashStyle? dashStyle = rect.StrokeDashArray is { Count: > 0 }
+                ? new DashStyle(rect.StrokeDashArray, 0)
+                : null;
+            pen = new Pen(strokeBrush, rect.StrokeThickness, dashStyle);
         }
 
-        if (rect.StrokeThickness > 0)
+        if (cornerRadius > 0)
         {
-            var strokeBrush = CreateAvaloniaBrush(rect.Stroke, Colors.Transparent);
-            if (strokeBrush is not null)
+            var roundedRect = new RoundedRect(bounds, cornerRadius, cornerRadius, cornerRadius, cornerRadius);
+            dc.DrawRectangle(fillBrush, pen, roundedRect);
+        }
+        else
+        {
+            dc.DrawRectangle(fillBrush, pen, bounds);
+        }
+    }
+
+    /// <summary>
+    /// 绘制元素阴影。在元素下方绘制偏移+模糊的半透明矩形。
+    /// </summary>
+    private static void DrawShadow(DrawingContext dc, SlideMlShadow shadow, Rect bounds, SlideMlCornerRadius? radius)
+    {
+        if (shadow.Blur <= 0 && shadow.OffsetX == 0 && shadow.OffsetY == 0)
+        {
+            return;
+        }
+
+        var shadowBounds = new Rect(
+            bounds.X + shadow.OffsetX,
+            bounds.Y + shadow.OffsetY,
+            bounds.Width,
+            bounds.Height);
+
+        if (shadowBounds.Width <= 0 || shadowBounds.Height <= 0)
+        {
+            return;
+        }
+
+        var shadowColor = CreateColor(shadow.Color, Colors.Black);
+        shadowColor = new Color(
+            (byte)(shadowColor.A * Math.Clamp(shadow.Opacity, 0, 1)),
+            shadowColor.R,
+            shadowColor.G,
+            shadowColor.B);
+        var shadowBrush = new SolidColorBrush(shadowColor);
+        var cornerRadius = radius?.TopLeft ?? 0;
+
+        // 模糊半径 > 0 时，通过缩放渲染模拟模糊效果
+        if (shadow.Blur > 0)
+        {
+            DrawBlurredShadow(dc, shadowBrush, shadowBounds, cornerRadius, shadow.Blur);
+        }
+        else
+        {
+            DrawShadowRect(dc, shadowBrush, shadowBounds, cornerRadius);
+        }
+    }
+
+    /// <summary>
+    /// 绘制无模糊的阴影矩形。
+    /// </summary>
+    private static void DrawShadowRect(DrawingContext dc, IBrush shadowBrush, Rect bounds, double cornerRadius)
+    {
+        if (cornerRadius > 0)
+        {
+            dc.DrawRectangle(shadowBrush, null, new RoundedRect(bounds, cornerRadius, cornerRadius, cornerRadius, cornerRadius));
+        }
+        else
+        {
+            dc.DrawRectangle(shadowBrush, null, bounds);
+        }
+    }
+
+    /// <summary>
+    /// 通过缩小渲染再放大绘制的方式模拟高斯模糊阴影。
+    /// </summary>
+    private static void DrawBlurredShadow(DrawingContext dc, IBrush shadowBrush, Rect bounds, double cornerRadius, double blur)
+    {
+        // 模糊扩展区域
+        var extendedBounds = new Rect(
+            bounds.X - blur,
+            bounds.Y - blur,
+            bounds.Width + blur * 2,
+            bounds.Height + blur * 2);
+
+        if (extendedBounds.Width <= 0 || extendedBounds.Height <= 0)
+        {
+            return;
+        }
+
+        // 缩小渲染到中间位图，再放大绘制实现模糊
+        var scale = Math.Max(0.1, 1.0 - blur / 50.0);
+        var smallWidth = Math.Max(1, (int)Math.Ceiling(extendedBounds.Width * scale));
+        var smallHeight = Math.Max(1, (int)Math.Ceiling(extendedBounds.Height * scale));
+
+        var shadowBitmap = new RenderTargetBitmap(new PixelSize(smallWidth, smallHeight), new Vector(96, 96));
+        using (var sdc = shadowBitmap.CreateDrawingContext())
+        {
+            var smallBounds = new Rect(0, 0, smallWidth, smallHeight);
+            var smallRadius = cornerRadius * scale;
+            if (smallRadius > 0)
             {
-                var pen = new Pen(strokeBrush, rect.StrokeThickness);
-                dc.DrawRectangle(pen, bounds);
+                sdc.DrawRectangle(shadowBrush, null, new RoundedRect(smallBounds, smallRadius, smallRadius, smallRadius, smallRadius));
+            }
+            else
+            {
+                sdc.DrawRectangle(shadowBrush, null, smallBounds);
             }
         }
+
+        dc.DrawImage(shadowBitmap, extendedBounds);
     }
 
     private void DrawText(DrawingContext dc, SlideMlTextElement text)
     {
+        // 富文本 Span 渲染
+        if (_spanTextLayoutCache.TryGetValue(text.Id, out var spanLayouts) && spanLayouts is { Count: > 0 })
+        {
+            DrawSpans(dc, text, spanLayouts);
+            return;
+        }
+
         if (!_textLayoutCache.TryGetValue(text.Id, out var textLayout) || textLayout is null)
         {
             return;
@@ -263,6 +449,21 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         if (text.ActualLineCount == 0 && textLayout.TextLines.Count > 0)
         {
             text.ActualLineCount = textLayout.TextLines.Count;
+        }
+    }
+
+    /// <summary>
+    /// 逐段绘制富文本 Span，每段独立样式。
+    /// </summary>
+    private static void DrawSpans(DrawingContext dc, SlideMlTextElement text, List<TextLayout> spanLayouts)
+    {
+        var x = text.LayoutBounds.X;
+        var y = text.LayoutBounds.Y;
+
+        foreach (var layout in spanLayouts)
+        {
+            layout.Draw(dc, new Point(x, y));
+            x += layout.WidthIncludingTrailingWhitespace;
         }
     }
 
@@ -318,6 +519,25 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         }
 
         return new SolidColorBrush(fallbackColor);
+    }
+
+    /// <summary>
+    /// 从颜色字符串创建 <see cref="Color"/>，失败返回后备值。
+    /// </summary>
+    private static Color CreateColor(string colorText, Color fallbackColor)
+    {
+        if (!string.IsNullOrWhiteSpace(colorText))
+        {
+            try
+            {
+                return Color.Parse(colorText);
+            }
+            catch (FormatException)
+            {
+            }
+        }
+
+        return fallbackColor;
     }
 
     private static IBrush? CreateGradientBrush(SlideMlLinearGradientBrush gradient)
