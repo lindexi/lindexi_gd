@@ -89,6 +89,17 @@ public class EditorViewModel : ViewModelBase
     public required SimpleWriteMainViewModel MainViewModel { get; init; }
 
     /// <summary>
+    /// 是否显示行号
+    /// </summary>
+    public bool IsLineNumberVisible
+    {
+        get => _isLineNumberVisible;
+        set => SetField(ref _isLineNumberVisible, value);
+    }
+
+    private bool _isLineNumberVisible = true;
+
+    /// <summary>
     /// 当前标记列表，等于标签栏
     /// </summary>
     public ObservableCollection<EditorModel> EditorModelList { get; } = [];

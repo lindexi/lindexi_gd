@@ -38,6 +38,7 @@ public partial class MainEditorView : UserControl
         if (DataContext is EditorViewModel editorViewModel)
         {
             editorViewModel.EditorModelChanged += EditorViewModel_EditorModelChanged;
+
             UpdateCurrentEditorMode(editorViewModel.CurrentEditorModel);
         }
 
@@ -101,12 +102,38 @@ public partial class MainEditorView : UserControl
         {
             var oldTextEditor = _currentTextEditor;
             _currentTextEditor = value;
-            TextEditorScrollViewer.Content = value;
+
+            // 将 TextEditor 放入 Grid 的 Column 1
+            Grid.SetColumn(value, 1);
+            if (EditorGrid.Children.Contains(value))
+            {
+                // 已经在 Grid 中，无需重复添加
+            }
+            else
+            {
+                EditorGrid.Children.Add(value);
+            }
+
+            // 切换编辑器时先 Detach 旧的，再 Attach 新的
+            LineNumberArea.Detach();
+            LineNumberArea.Attach(value);
+
+            // 显式设置 ScrollViewer，避免控件内部向上查找
+            // LineNumberControl 的 ScrollViewer 通过 XAML 绑定注入，无需代码设置
+            if (value is SimpleWriteTextEditor simpleWriteTextEditor)
+            {
+                simpleWriteTextEditor.SetScrollViewer(TextEditorScrollViewer);
+            }
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (oldTextEditor != null)
             {
                 oldTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
+                // 从 Grid 中移除旧的编辑器
+                if (!ReferenceEquals(oldTextEditor, value))
+                {
+                    EditorGrid.Children.Remove(oldTextEditor);
+                }
             }
 
             _currentTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
@@ -167,6 +194,10 @@ public partial class MainEditorView : UserControl
         var offset = TextEditorScrollViewer.Offset;
         _currentEditorModel.RuntimeScrollOffsetX = offset.X;
         _currentEditorModel.RuntimeScrollOffsetY = offset.Y;
+
+        // GetViewport() 返回 ScrollViewer 的 Offset 和 Viewport，
+        // 滚动时视口变化，需要通知 TextEditor 重新渲染以更新可见范围内容
+        _currentTextEditor.InvalidateVisual();
     }
 
     private void CaptureRuntimeState(EditorModel editorModel)
