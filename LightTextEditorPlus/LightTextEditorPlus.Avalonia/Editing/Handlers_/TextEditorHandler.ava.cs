@@ -28,8 +28,6 @@ public partial class TextEditorHandler
             return;
         }
 
-        _isMouseDown = true;
-
         PointerPoint currentPoint = e.GetCurrentPoint(TextEditor);
         if (currentPoint.Properties.IsRightButtonPressed)
         {
@@ -39,6 +37,8 @@ public partial class TextEditorHandler
         }
         else
         {
+            _isMouseDown = true;
+
             _inputGesture.RecordDown(TextEditor, e);
             Point position = e.GetPosition(TextEditor);
             TextPoint clickPoint = position.ToTextPoint();
@@ -136,6 +136,8 @@ public partial class TextEditorHandler
                 {
                     TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
                 }
+
+                _isHitSelection = false;
             }
         }
 
