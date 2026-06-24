@@ -685,6 +685,18 @@ public class CopilotChatManager : NotifyBase
         return session.ChatMessages.Count < 2 && session.ChatMessages.All(chatMessage => chatMessage.IsPresetInfo);
     }
 
+    /// <summary>
+    /// 向当前选中会话追加一条聊天消息。
+    /// 如果设置了 <see cref="MainThreadDispatcher"/>，消息将通过调度器在主线程上添加，确保 UI 绑定集合的线程安全。
+    /// </summary>
+    /// <param name="chatMessage">要追加的聊天消息。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public Task AppendMessageAsync(CopilotChatMessage chatMessage, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(chatMessage);
+        return AppendMessageAsync(SelectedSession, chatMessage, cancellationToken);
+    }
+
     private async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
