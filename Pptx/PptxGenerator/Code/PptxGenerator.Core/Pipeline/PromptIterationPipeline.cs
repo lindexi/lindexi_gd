@@ -56,7 +56,7 @@ public sealed class PromptIterationPipeline
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            AppendIterationMessage($"🔄 第 {round} 轮迭代开始...");
+            await AppendIterationMessageAsync($"🔄 第 {round} 轮迭代开始...").ConfigureAwait(false);
 
             // 1. 生成 SlideML（保持在当前会话中，确保迭代消息在 UI 中可见）
             // 跳过自动评估，迭代管道自行执行评估以避免双重评估
@@ -73,7 +73,7 @@ public sealed class PromptIterationPipeline
 
             if (string.IsNullOrWhiteSpace(renderTool.LatestSlideXml))
             {
-                AppendIterationMessage($"⚠️ 第 {round} 轮未生成有效的 SlideML，终止迭代。");
+                await AppendIterationMessageAsync($"⚠️ 第 {round} 轮未生成有效的 SlideML，终止迭代。").ConfigureAwait(false);
                 break;
             }
 
@@ -112,7 +112,7 @@ public sealed class PromptIterationPipeline
             history.Add(roundRecord);
 
             // 5. 输出评估结果到聊天
-            AppendEvaluationToChat(slideEvaluation, round);
+            await AppendEvaluationToChatAsync(slideEvaluation, round).ConfigureAwait(false);
 
             // 6. 判断终止条件
             if (slideEvaluation.IsSuccess)
@@ -122,7 +122,7 @@ public sealed class PromptIterationPipeline
                 // 检查评分阈值
                 if (currentScore >= options.ScoreThreshold)
                 {
-                    AppendIterationMessage($"✅ 综合评分 {currentScore:F1}/10 已达到阈值 {options.ScoreThreshold}，迭代收敛！");
+                    await AppendIterationMessageAsync($"✅ 综合评分 {currentScore:F1}/10 已达到阈值 {options.ScoreThreshold}，迭代收敛！").ConfigureAwait(false);
                     _generationPipeline.RaiseIterationProgress(roundRecord);
                     return BuildResult(history, isConverged: true, currentScore, round,
                         $"评分 {currentScore:F1} 已达到阈值 {options.ScoreThreshold}");
@@ -134,7 +134,7 @@ public sealed class PromptIterationPipeline
                     convergenceCount++;
                     if (convergenceCount >= options.ConvergenceRounds)
                     {
-                        AppendIterationMessage($"⏹ 连续 {options.ConvergenceRounds} 轮评分未提升（{currentScore:F1} ≤ {lastScore:F1}），迭代终止。");
+                        await AppendIterationMessageAsync($"⏹ 连续 {options.ConvergenceRounds} 轮评分未提升（{currentScore:F1} ≤ {lastScore:F1}），迭代终止。").ConfigureAwait(false);
                         _generationPipeline.RaiseIterationProgress(roundRecord);
                         return BuildResult(history, isConverged: true, currentScore, round,
                             $"连续 {options.ConvergenceRounds} 轮评分未提升");
@@ -151,7 +151,7 @@ public sealed class PromptIterationPipeline
             // 7. 如果是最后一轮，不再优化
             if (round >= options.MaxRounds)
             {
-                AppendIterationMessage($"⏹ 已达到最大迭代轮数 {options.MaxRounds}，迭代结束。");
+                await AppendIterationMessageAsync($"⏹ 已达到最大迭代轮数 {options.MaxRounds}，迭代结束。").ConfigureAwait(false);
                 _generationPipeline.RaiseIterationProgress(roundRecord);
                 break;
             }
@@ -172,12 +172,12 @@ public sealed class PromptIterationPipeline
                 roundRecord = roundRecord with { Optimization = optimization };
                 history[^1] = roundRecord;
 
-                AppendIterationMessage($"📝 第 {round} 轮提示词优化完成：{optimization.ChangeDescription ?? "无变更说明"}");
-                AppendIterationMessage($"---\n优化后的 SystemPrompt:\n```\n{(_promptProvider.BuildSystemPrompt())}\n```");
+                await AppendIterationMessageAsync($"📝 第 {round} 轮提示词优化完成：{optimization.ChangeDescription ?? "无变更说明"}").ConfigureAwait(false);
+                await AppendIterationMessageAsync($"---\n优化后的 SystemPrompt:\n```\n{(_promptProvider.BuildSystemPrompt())}\n```").ConfigureAwait(false);
             }
             else
             {
-                AppendIterationMessage($"⚠️ 第 {round} 轮提示词优化失败：{optimization.ErrorMessage}");
+                await AppendIterationMessageAsync($"⚠️ 第 {round} 轮提示词优化失败：{optimization.ErrorMessage}").ConfigureAwait(false);
             }
 
             // 9. 触发进度事件（优化完成后，携带完整数据）
@@ -208,14 +208,14 @@ public sealed class PromptIterationPipeline
         };
     }
 
-    private void AppendIterationMessage(string message)
+    private async Task AppendIterationMessageAsync(string message)
     {
         var chatMessage = CopilotChatMessage.CreateUser(message);
         chatMessage.IsPresetInfo = true;
-        _copilotChatManager.ChatMessages.Add(chatMessage);
+        await _copilotChatManager.AppendMessageAsync(chatMessage).ConfigureAwait(false);
     }
 
-    private void AppendEvaluationToChat(SlideEvaluationResult result, int round)
+    private async Task AppendEvaluationToChatAsync(SlideEvaluationResult result, int round)
     {
         var builder = new StringBuilder(512);
         builder.AppendLine($"📊 第 {round} 轮评估 | 综合评分: {(result.IsSuccess ? result.OverallScore.ToString("F1") : "N/A")}/10");
@@ -247,6 +247,6 @@ public sealed class PromptIterationPipeline
 
         var chatMessage = CopilotChatMessage.CreateUser(builder.ToString().TrimEnd());
         chatMessage.IsPresetInfo = true;
-        _copilotChatManager.ChatMessages.Add(chatMessage);
+        await _copilotChatManager.AppendMessageAsync(chatMessage).ConfigureAwait(false);
     }
 }

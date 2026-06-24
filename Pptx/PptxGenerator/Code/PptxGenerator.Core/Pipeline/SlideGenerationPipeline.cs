@@ -245,7 +245,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
             LastPromptEvaluation = result;
 
-            AppendEvaluationMessage(result);
+            await AppendEvaluationMessageAsync(result);
 
             PromptEvaluationCompleted?.Invoke(this, result);
             return result;
@@ -281,7 +281,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             context.SlideEvaluation = result;
             LastSlideEvaluation = result;
 
-            AppendEvaluationMessage(result);
+            await AppendEvaluationMessageAsync(result);
 
             EvaluationCompleted?.Invoke(this, result);
             return result;
@@ -362,18 +362,18 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         return result;
     }
 
-    private void AppendEvaluationMessage(SlideEvaluationResult result)
+    private async Task AppendEvaluationMessageAsync(SlideEvaluationResult result)
     {
         var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
         message.IsPresetInfo = true;
-        _copilotChatManager.ChatMessages.Add(message);
+        await _copilotChatManager.AppendMessageAsync(message);
     }
 
-    private void AppendEvaluationMessage(PromptEvaluationResult result)
+    private async Task AppendEvaluationMessageAsync(PromptEvaluationResult result)
     {
         var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
         message.IsPresetInfo = true;
-        _copilotChatManager.ChatMessages.Add(message);
+        await _copilotChatManager.AppendMessageAsync(message);
     }
 
     private void OnPropertyChanged(string propertyName)
