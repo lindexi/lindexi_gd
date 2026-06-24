@@ -95,11 +95,11 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
 ## 评估规则
 - 你需要从以下 7 个维度分别打分（1-10 分，10 分为最优）：
   1. XmlWellFormedness：XML 语法正确性、标签合规性、属性完整性
-  2. LayoutStructure：层级结构清晰度、Panel 嵌套合理性
+  2. LayoutStructure：层级结构清晰度、Panel 嵌套合理性、流式布局（Horizontal/Vertical）使用是否恰当
   3. VisualBalance：元素分布均衡性、留白是否充足
   4. ConstraintAdherence：是否遵守 1280×720 画布、颜色格式等约束
   5. SemanticAlignment：内容是否与用户需求对齐
-  6. AestheticQuality：配色、字体大小层级、整体美观度
+  6. AestheticQuality：配色、字体大小层级、整体美观度，含渐变/阴影/富文本等 V2 表现力的运用是否恰当
   7. ScreenshotFidelity：生成的 SlideML 渲染截图与原始 PPT 截图的还原匹配程度（仅在提供了原始截图时评估，否则给 5 分中性值）
 
 - 每个维度给出 1-2 句简短的评分理由。
@@ -141,6 +141,19 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
   - 比较布局结构、元素位置、颜色、字体大小等方面的一致性
   - ScreenshotFidelity 评分应反映两张截图的整体相似度
 - 如果 SlideML 有语法错误，XmlWellFormedness 应低于 5 分。
+- 流式布局（Layout="Horizontal"/"Vertical"）应优先用于需要等间距排列的场景，如果模型用了流式布局但子元素仍手动指定排列轴坐标，属于使用不当。
+- 渐变、阴影、Span 富文本等 V2 能力的使用应服务于内容表达，过度使用或在不恰当场景使用应扣分。
+
+## SlideML V2 能力清单
+评估时请识别以下 V2 标签/属性，并评估其使用质量：
+- `Layout="Horizontal"/"Vertical"` + `Gap` + `Margin`：流式布局，子元素沿排列轴自动排列
+- `<Fill><LinearGradient X1 Y1 X2 Y2><Stop Offset Color/></LinearGradient></Fill>`：渐变填充
+- `<Stroke><LinearGradient>...</LinearGradient></Stroke>`：渐变描边
+- `Shadow="OffsetX OffsetY Blur Color"` 属性或 `<Shadow OffsetX OffsetY Blur Color Opacity/>` 子元素：阴影
+- `IsBold="True"` / `IsItalic="True"`：字体粗细和斜体
+- `<Span Text FontSize Foreground IsBold IsItalic TextDecoration/>`：富文本片段
+- `CornerRadius`：圆角半径
+- `StrokeDashArray="4,2"`：虚线描边
 """;
     }
 
@@ -196,6 +209,7 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
                 ScreenshotFidelity = ClampScore(dto.ScreenshotFidelity),
                 HasOriginalScreenshot = hasOriginalScreenshot,
                 Suggestions = dto.Suggestions ?? Array.Empty<string>(),
+                DimensionComments = dto.DimensionComments,
                 UserPrompt = userPrompt,
                 SlideXml = slideXml,
                 IsSuccess = true,
@@ -243,6 +257,9 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
 
         [JsonPropertyName("screenshotFidelity")]
         public int ScreenshotFidelity { get; init; }
+
+        [JsonPropertyName("dimensionComments")]
+        public Dictionary<string, string>? DimensionComments { get; init; }
 
         [JsonPropertyName("suggestions")]
         public IReadOnlyList<string>? Suggestions { get; init; }

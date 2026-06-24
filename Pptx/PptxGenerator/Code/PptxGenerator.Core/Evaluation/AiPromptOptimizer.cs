@@ -78,6 +78,7 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
 4. 消除冗余、矛盾或模糊的表述
 5. 补充遗漏的关键规则或约束
 6. 优化后的提示词应该比原版更有效、更精确
+7. **保护 V2 能力说明**：不得移除或弱化以下 V2 标签/属性的说明——流式布局（Layout/Gap/Margin）、渐变（LinearGradient/Stop）、阴影（Shadow）、IsBold/IsItalic、Span 富文本、CornerRadius、StrokeDashArray。这些是已实现的核心能力，提示词中必须保留其用法说明
 
 ## 输出格式
 你必须严格输出以下 JSON 格式，不要包含任何其他文本：
@@ -107,6 +108,10 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
             ? $"- 截图还原:   {evaluation.ScreenshotFidelity}/10"
             : "- 截图还原:   未评估（未提供原始截图）";
 
+        var dimensionComments = evaluation.DimensionComments is { Count: > 0 } comments
+            ? "\n## 维度评语\n" + string.Join("\n", comments.Select(kv => $"- {kv.Key}: {kv.Value}"))
+            : "";
+
         return $"""
 请根据以下评估反馈优化 SlideML 生成系统的提示词。
 
@@ -119,6 +124,7 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
 - 语义对齐:   {evaluation.SemanticAlignment}/10
 - 美观度:     {evaluation.AestheticQuality}/10
 {screenshotInfo}
+{dimensionComments}
 
 ## 改进建议
 {string.Join("\n", evaluation.Suggestions.Select((s, i) => $"{i + 1}. {s}"))}

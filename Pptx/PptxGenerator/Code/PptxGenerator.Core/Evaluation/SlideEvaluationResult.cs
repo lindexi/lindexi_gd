@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 
 namespace PptxGenerator.Evaluation;
 
@@ -54,6 +55,11 @@ public sealed class SlideEvaluationResult
     public double OverallScore => HasOriginalScreenshot
         ? new[] { XmlWellFormedness, LayoutStructure, VisualBalance, ConstraintAdherence, SemanticAlignment, AestheticQuality, ScreenshotFidelity }.Average()
         : new[] { XmlWellFormedness, LayoutStructure, VisualBalance, ConstraintAdherence, SemanticAlignment, AestheticQuality }.Average();
+
+    /// <summary>
+    /// 各维度的评分理由，键为维度名称，值为评分理由文本。
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? DimensionComments { get; init; }
 
     /// <summary>
     /// 自然语言改进建议列表。
