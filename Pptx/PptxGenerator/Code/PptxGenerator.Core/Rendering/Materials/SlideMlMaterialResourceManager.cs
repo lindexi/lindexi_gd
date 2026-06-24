@@ -30,7 +30,7 @@ public class SlideMlMaterialResourceManager
     /// <param name="material">要添加的素材。</param>
     /// <exception cref="ArgumentNullException"><paramref name="material"/> 为 <see langword="null"/>。</exception>
     /// <exception cref="ArgumentException"><paramref name="key"/> 为 <see langword="null"/> 或空白，或已存在相同键的素材。</exception>
-    public void AddMaterial(string key, ISlideMlMaterial material) 
+    public void AddMaterial(string key, ISlideMlMaterial material)
     {
         ArgumentNullException.ThrowIfNull(material);
         if (string.IsNullOrWhiteSpace(key))
@@ -98,6 +98,22 @@ public class SlideMlMaterialResourceManager
             }
             ArgumentNullException.ThrowIfNull(material);
             _materialDictionary.Add(key, material);
+        }
+    }
+
+    /// <summary>
+    /// 批量设置素材。已存在的键会被覆盖，不存在的键会被添加。
+    /// 内部一次性遍历写入，避免逐条外部调用的开销。
+    /// </summary>
+    /// <param name="entries">要批量设置的素材条目集合。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="entries"/> 为 <see langword="null"/>。</exception>
+    public void SetMaterials(IEnumerable<MaterialEntry> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        foreach (var entry in entries)
+        {
+            ArgumentNullException.ThrowIfNull(entry.Material);
+            _materialDictionary[entry.Key] = entry.Material;
         }
     }
 
