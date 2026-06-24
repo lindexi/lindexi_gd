@@ -97,7 +97,6 @@ public sealed class SlideMlTextElement : SlideMlElement
     public double FontSize { get; init; } = 16;
     public string Foreground { get; init; } = "#000000";
     public SlideMlTextAlignment TextAlignment { get; init; } = Left;
-    public double LineHeight { get; init; } = 1.2;
     public int ActualLineCount { get; set; }    // 渲染引擎回填
     public bool? IsBold { get; init; }
     public bool? IsItalic { get; init; }
@@ -146,7 +145,7 @@ public sealed class SlideMlSpan
 | `SlideMlSolidColorBrush` | `SlideMlSolidColorBrush.cs` | 纯色画刷，Color 属性 |
 | `SlideMlGradientStop` | `SlideMlGradientStop.cs` | 渐变停止点，Offset (0~1) + Color |
 | `ISlideMlBrush` | `ISlideMlBrush.cs` | 画刷抽象接口（标记接口） |
-| `SlideMlTextStyle` | `SlideMlTextStyle.cs` | 文本样式定义，Id/FontSize/IsBold/Foreground/FontName/LineHeight/TextAlignment |
+| `SlideMlTextStyle` | `SlideMlTextStyle.cs` | 文本样式定义，Id/FontSize/IsBold/Foreground/FontName/TextAlignment |
 | `SlideMlRect` | `SlideMlRect.cs` | 纯数据矩形 (X,Y,Width,Height)，含 Right/Bottom/Center 属性 |
 | `SlideMlPoint` | `SlideMlPoint.cs` | 纯数据点 (X,Y) |
 | `SlideMlSize` | `SlideMlSize.cs` | 纯数据尺寸 (Width,Height) |
@@ -187,7 +186,7 @@ public sealed class SlideMlParser
 - Page: `Background`
 - Panel: `Id, X, Y, Width, Height, HorizontalAlignment, VerticalAlignment, Opacity, Padding, Background, Layout, Gap, Margin`
 - Rect: `Id, X, Y, Width, Height, HorizontalAlignment, VerticalAlignment, Opacity, Fill, Stroke, StrokeThickness, CornerRadius, Margin, Shadow, StrokeDashArray`
-- TextElement: `Id, X, Y, Width, Height, HorizontalAlignment, VerticalAlignment, Opacity, Text, FontName, FontSize, Foreground, TextAlignment, LineHeight, Margin, IsBold, IsItalic, Style`
+- TextElement: `Id, X, Y, Width, Height, HorizontalAlignment, VerticalAlignment, Opacity, Text, FontName, FontSize, Foreground, TextAlignment, Margin, IsBold, IsItalic, Style`
 - Image: `Id, X, Y, Width, Height, HorizontalAlignment, VerticalAlignment, Opacity, Source, Stretch, Margin`
 
 ## 4. 布局引擎 — `SlideMlLayoutEngine`

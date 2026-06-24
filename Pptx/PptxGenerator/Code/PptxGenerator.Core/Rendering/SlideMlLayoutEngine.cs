@@ -338,7 +338,7 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         if (useMeasured && text.Height is double fixedHeight && measurements is not null && measurements.TryGetValue(text.Id, out var mr))
         {
-            var lineHeight = text.FontSize * text.LineHeight;
+            var lineHeight = text.FontSize;
             if (mr.MeasuredHeight > fixedHeight + 0.1)
             {
                 var averageLineHeight = text.ActualLineCount == 0 ? lineHeight : mr.MeasuredHeight / text.ActualLineCount;

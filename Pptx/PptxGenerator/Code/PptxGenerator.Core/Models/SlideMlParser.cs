@@ -37,7 +37,7 @@ public sealed class SlideMlParser
         "Id", "X", "Y", "Width", "Height",
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
         "Text", "FontName", "FontSize", "Foreground",
-        "TextAlignment", "LineHeight", "Margin",
+        "TextAlignment", "Margin",
         "IsBold", "IsItalic", "Style",
     };
 
@@ -94,7 +94,6 @@ public sealed class SlideMlParser
                     IsBold = GetOptionalBool(textStyleElement, "IsBold"),
                     Foreground = GetOptionalString(textStyleElement, "Foreground"),
                     FontName = GetOptionalString(textStyleElement, "FontName"),
-                    LineHeight = GetOptionalDouble(textStyleElement, "LineHeight", context),
                     TextAlignment = GetOptionalTextAlignment(textStyleElement, styleId, context),
                 });
             }
@@ -272,7 +271,6 @@ public sealed class SlideMlParser
             FontSize = GetOptionalDouble(element, "FontSize", context) ?? 16,
             Foreground = GetOptionalString(element, "Foreground") ?? "#000000",
             TextAlignment = GetOptionalTextAlignment(element, id, context) ?? SlideMlTextAlignment.Left,
-            LineHeight = GetOptionalDouble(element, "LineHeight", context) ?? 1.2,
             Margin = GetOptionalThickness(element, "Margin", context),
             IsBold = GetOptionalBool(element, "IsBold"),
             IsItalic = GetOptionalBool(element, "IsItalic"),

@@ -31,11 +31,6 @@ public sealed class SlideMlTextStyle
     public string? FontName { get; init; }
 
     /// <summary>
-    /// 行高。
-    /// </summary>
-    public double? LineHeight { get; init; }
-
-    /// <summary>
     /// 文本对齐。
     /// </summary>
     public SlideMlTextAlignment? TextAlignment { get; init; }

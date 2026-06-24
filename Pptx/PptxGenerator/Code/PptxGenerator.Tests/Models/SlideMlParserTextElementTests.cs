@@ -14,7 +14,7 @@ public sealed class SlideMlParserTextElementTests
     public void Parse_TextElement_AllAttributes_Parsed()
     {
         var context = CreateContext();
-        var xml = "<Page><TextElement Id=\"t1\" X=\"10\" Y=\"20\" Width=\"400\" Height=\"30\" Text=\"Hello\" FontName=\"Arial\" FontSize=\"24\" Foreground=\"#333333\" TextAlignment=\"Center\" LineHeight=\"1.5\" IsBold=\"True\" IsItalic=\"True\" Opacity=\"0.9\" Margin=\"0,0,0,8\"></TextElement></Page>";
+        var xml = "<Page><TextElement Id=\"t1\" X=\"10\" Y=\"20\" Width=\"400\" Height=\"30\" Text=\"Hello\" FontName=\"Arial\" FontSize=\"24\" Foreground=\"#333333\" TextAlignment=\"Center\" IsBold=\"True\" IsItalic=\"True\" Opacity=\"0.9\" Margin=\"0,0,0,8\"></TextElement></Page>";
 
         var page = _parser.Parse(xml, context);
         var textElement = (SlideMlTextElement)page.Children[0];
@@ -29,7 +29,6 @@ public sealed class SlideMlParserTextElementTests
         Assert.AreEqual(24, textElement.FontSize);
         Assert.AreEqual("#333333", textElement.Foreground);
         Assert.AreEqual(SlideMlTextAlignment.Center, textElement.TextAlignment);
-        Assert.AreEqual(1.5, textElement.LineHeight);
         Assert.IsTrue(textElement.IsBold);
         Assert.IsTrue(textElement.IsItalic);
         Assert.AreEqual(0.9, textElement.Opacity);
@@ -53,7 +52,6 @@ public sealed class SlideMlParserTextElementTests
         Assert.AreEqual(16, textElement.FontSize);
         Assert.AreEqual("#000000", textElement.Foreground);
         Assert.AreEqual(SlideMlTextAlignment.Left, textElement.TextAlignment);
-        Assert.AreEqual(1.2, textElement.LineHeight);
         Assert.IsNull(textElement.IsBold);
         Assert.IsNull(textElement.IsItalic);
         Assert.IsNull(textElement.Spans);

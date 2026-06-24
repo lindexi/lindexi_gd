@@ -80,8 +80,8 @@
 ```
 
 **预期**：
-- `title` LayoutBounds = (80, 120, 1120, ~67.2)（56×1.2 行高）
-- `sub` LayoutBounds = (80, 200, 1120, ~28.8)（24×1.2 行高）
+- `title` LayoutBounds = (80, 120, 1120, ~67.2)
+- `sub` LayoutBounds = (80, 200, 1120, ~28.8)
 - Panel#hero ActualWidth=1280, ActualHeight=360
 - 无 Warning
 
@@ -92,7 +92,7 @@
 <Page>
   <TextElement Id="long-text" X="40" Y="40" Width="400" Height="30"
                Text="这是一段很长的文本内容，会超出容器高度限制"
-               FontSize="16" LineHeight="1.5" />
+               FontSize="16" />
 </Page>
 ```
 
@@ -169,14 +169,14 @@
                  Text="流式布局" FontSize="22" IsBold="True" Foreground="#333" />
     <TextElement Id="card1-desc" X="24" Y="72" Width="292"
                  Text="支持 Panel Layout='Horizontal'/'Vertical'，自动排列子元素。"
-                 FontSize="15" Foreground="#666" LineHeight="1.5" />
+                 FontSize="15" Foreground="#666" />
     <Rect Width="340" Height="260" Fill="#FFFFFF" CornerRadius="12"
           Shadow="0 4 12 #00000033" Stroke="#E8E8E8" StrokeThickness="1" />
     <TextElement Id="card2-title" X="24" Y="24" Width="292"
                  Text="渐变与阴影" FontSize="22" IsBold="True" Foreground="#333" />
     <TextElement Id="card2-desc" X="24" Y="72" Width="292"
                  Text="支持线性渐变填充/描边和元素阴影效果。"
-                 FontSize="15" Foreground="#666" LineHeight="1.5" />
+                 FontSize="15" Foreground="#666" />
     <Rect Width="340" Height="260" Fill="#FFFFFF" CornerRadius="12"
           Shadow="0 4 12 #00000033" Stroke="#E8E8E8" StrokeThickness="1" />
     <TextElement Id="card3-title" X="24" Y="24" Width="292"

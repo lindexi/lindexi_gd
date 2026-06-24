@@ -88,7 +88,7 @@ public sealed class FakeRenderEngine : ISlideMlRenderEngine
             SlideMlTextElement text => new()
             {
                 MeasuredWidth = text.Width ?? text.Text.Length * text.FontSize * 0.6,
-                MeasuredHeight = text.Height ?? text.FontSize * text.LineHeight,
+                MeasuredHeight = text.Height ?? text.FontSize,
                 ActualLineCount = 1,
             },
             SlideMlImageElement img => new()

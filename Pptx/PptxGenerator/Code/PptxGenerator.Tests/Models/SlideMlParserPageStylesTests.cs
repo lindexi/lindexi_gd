@@ -14,7 +14,7 @@ public sealed class SlideMlParserPageStylesTests
     public void Parse_PageStyles_TextStyle_Parsed()
     {
         var context = CreateContext();
-        var xml = "<Page><Page.Styles><TextStyle Id=\"title\" FontSize=\"24\" IsBold=\"True\" Foreground=\"#333\" FontName=\"Arial\" LineHeight=\"1.5\" TextAlignment=\"Center\"/></Page.Styles></Page>";
+        var xml = "<Page><Page.Styles><TextStyle Id=\"title\" FontSize=\"24\" IsBold=\"True\" Foreground=\"#333\" FontName=\"Arial\" TextAlignment=\"Center\"/></Page.Styles></Page>";
 
         var page = _parser.Parse(xml, context);
 
@@ -27,7 +27,6 @@ public sealed class SlideMlParserPageStylesTests
         Assert.IsTrue(style.IsBold);
         Assert.AreEqual("#333", style.Foreground);
         Assert.AreEqual("Arial", style.FontName);
-        Assert.AreEqual(1.5, style.LineHeight);
         Assert.AreEqual(SlideMlTextAlignment.Center, style.TextAlignment);
     }
 

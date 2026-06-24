@@ -65,7 +65,7 @@ context 由调用方（`SlideRenderer`）创建并传入，解析完成后调用
 | **Page** | `Background` |
 | **Panel** | `Id`, `X`, `Y`, `Width`, `Height`, `HorizontalAlignment`, `VerticalAlignment`, `Opacity`, `Padding`, `Background` |
 | **Rect** | `Id`, `X`, `Y`, `Width`, `Height`, `HorizontalAlignment`, `VerticalAlignment`, `Opacity`, `Fill`, `Stroke`, `StrokeThickness`, `CornerRadius` |
-| **TextElement** | `Id`, `X`, `Y`, `Width`, `Height`, `HorizontalAlignment`, `VerticalAlignment`, `Opacity`, `Text`, `FontName`, `FontSize`, `Foreground`, `TextAlignment`, `LineHeight` |
+| **TextElement** | `Id`, `X`, `Y`, `Width`, `Height`, `HorizontalAlignment`, `VerticalAlignment`, `Opacity`, `Text`, `FontName`, `FontSize`, `Foreground`, `TextAlignment` |
 | **Image** | `Id`, `X`, `Y`, `Width`, `Height`, `HorizontalAlignment`, `VerticalAlignment`, `Opacity`, `Source`, `Stretch` |
 
 #### 步骤 4：在每个 Parse* 方法中校验未知属性
@@ -78,7 +78,7 @@ private static readonly HashSet<string> TextElementKnownAttributes = new(StringC
     "Id", "X", "Y", "Width", "Height",
     "HorizontalAlignment", "VerticalAlignment", "Opacity",
     "Text", "FontName", "FontSize", "Foreground",
-    "TextAlignment", "LineHeight",
+    "TextAlignment",
 };
 
 private static void ValidateAttributes(XElement element, string elementId,

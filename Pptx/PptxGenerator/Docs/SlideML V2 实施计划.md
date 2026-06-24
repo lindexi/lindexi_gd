@@ -171,14 +171,14 @@
 
 ### 4.1 文本测量核心逻辑
 
-- 在 `SlideRenderEngine` 中新增 `MeasureText(string text, string fontName, double fontSize, bool? isBold, bool? isItalic, double? maxWidth, double lineHeight)` 方法
+- 在 `SlideRenderEngine` 中新增 `MeasureText(string text, string fontName, double fontSize, bool? isBold, bool? isItalic, double? maxWidth)` 方法
 - 返回 `MeasureTextResult { Width, Height, LineCount, Overflow }`
 
 ### 4.2 AI Tool 封装
 
 - 在 `SlideRenderTool` 中新增 `CreateMeasureTextTool()` 方法
 - 使用 `AIFunctionFactory.Create` 注册为 `measure_text` 工具
-- 参数：`text`, `fontName`, `fontSize`, `maxWidth`, `lineHeight`
+- 参数：`text`, `fontName`, `fontSize`, `maxWidth`
 - 返回 JSON 格式结果
 
 ### 4.3 流水线集成

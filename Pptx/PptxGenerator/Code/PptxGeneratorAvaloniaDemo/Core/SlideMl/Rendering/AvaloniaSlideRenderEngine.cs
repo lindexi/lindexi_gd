@@ -119,7 +119,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
 
         var maxWidth = text.Width ?? 10000;
         var maxHeight = text.Height ?? 10000;
-        var lineHeight = text.FontSize * text.LineHeight;
+        var lineHeight = text.FontSize;
 
         var textLayout = new TextLayout(
             text.Text,

@@ -178,14 +178,14 @@
 
 ### 4.1 TextElement 所有属性
 - **用例名**: `Parse_TextElement_AllAttributes_Parsed`
-- **输入**: `<TextElement Id="t1" X="10" Y="20" Width="400" Height="30" Text="Hello" FontName="Arial" FontSize="24" Foreground="#333333" TextAlignment="Center" LineHeight="1.5" IsBold="True" IsItalic="True" Opacity="0.9" Margin="0,0,0,8"></TextElement>`
+- **输入**: `<TextElement Id="t1" X="10" Y="20" Width="400" Height="30" Text="Hello" FontName="Arial" FontSize="24" Foreground="#333333" TextAlignment="Center" IsBold="True" IsItalic="True" Opacity="0.9" Margin="0,0,0,8"></TextElement>`
 - **预期**: 所有属性正确映射
 - **验证点**: 所有属性值
 
 ### 4.2 TextElement 默认值
 - **用例名**: `Parse_TextElement_DefaultValues`
 - **输入**: `<TextElement Text="Hi"></TextElement>`
-- **预期**: FontName=="Microsoft YaHei", FontSize==16, Foreground=="#000000", TextAlignment==Left, LineHeight==1.2, IsBold==null, IsItalic==null, Spans==null
+- **预期**: FontName=="Microsoft YaHei", FontSize==16, Foreground=="#000000", TextAlignment==Left, IsBold==null, IsItalic==null, Spans==null
 - **验证点**: 各默认值
 
 ### 4.3 TextElement 含 Span 子元素
@@ -365,7 +365,7 @@
 
 ### 9.1 Page.Styles 含 TextStyle
 - **用例名**: `Parse_PageStyles_TextStyle_Parsed`
-- **输入**: `<Page><Page.Styles><TextStyle Id="title" FontSize="24" IsBold="True" Foreground="#333" FontName="Arial" LineHeight="1.5" TextAlignment="Center"/></Page.Styles></Page>`
+- **输入**: `<Page><Page.Styles><TextStyle Id="title" FontSize="24" IsBold="True" Foreground="#333" FontName="Arial" TextAlignment="Center"/></Page.Styles></Page>`
 - **预期**: page.Styles.Count==1，style.Id=="title"，FontSize==24，IsBold==true
 - **验证点**: Styles 列表、各属性
 

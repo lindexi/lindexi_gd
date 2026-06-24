@@ -151,9 +151,9 @@ public sealed class SlideMlIntegrationTests
             </Page>
             """;
         var (pipeline, renderEngine) = CreatePipeline();
-        // title: FontSize=56, LineHeight=1.2 → MeasuredHeight=67.2
+        // title: FontSize=56 → MeasuredHeight=56
         renderEngine.MeasureOverrides["title"] = (1120, 67.2, 1);
-        // sub: FontSize=24, LineHeight=1.2 → MeasuredHeight=28.8
+        // sub: FontSize=24 → MeasuredHeight=24
         renderEngine.MeasureOverrides["sub"] = (1120, 28.8, 1);
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
@@ -190,7 +190,7 @@ public sealed class SlideMlIntegrationTests
             <Page>
               <TextElement Id="long-text" X="40" Y="40" Width="400" Height="30"
                            Text="这是一段很长的文本内容，会超出容器高度限制"
-                           FontSize="16" LineHeight="1.5" />
+                           FontSize="16" />
             </Page>
             """;
         var (pipeline, renderEngine) = CreatePipeline();
@@ -331,14 +331,14 @@ public sealed class SlideMlIntegrationTests
                              Text="流式布局" FontSize="22" IsBold="True" Foreground="#333" />
                 <TextElement Id="card1-desc" X="24" Y="72" Width="292"
                              Text="支持 Panel Layout='Horizontal'/'Vertical'，自动排列子元素。"
-                             FontSize="15" Foreground="#666" LineHeight="1.5" />
+                             FontSize="15" Foreground="#666" />
                 <Rect Width="340" Height="260" Fill="#FFFFFF" CornerRadius="12"
                       Shadow="0 4 12 #00000033" Stroke="#E8E8E8" StrokeThickness="1" />
                 <TextElement Id="card2-title" X="24" Y="24" Width="292"
                              Text="渐变与阴影" FontSize="22" IsBold="True" Foreground="#333" />
                 <TextElement Id="card2-desc" X="24" Y="72" Width="292"
                              Text="支持线性渐变填充/描边和元素阴影效果。"
-                             FontSize="15" Foreground="#666" LineHeight="1.5" />
+                             FontSize="15" Foreground="#666" />
                 <Rect Width="340" Height="260" Fill="#FFFFFF" CornerRadius="12"
                       Shadow="0 4 12 #00000033" Stroke="#E8E8E8" StrokeThickness="1" />
                 <TextElement Id="card3-title" X="24" Y="24" Width="292"

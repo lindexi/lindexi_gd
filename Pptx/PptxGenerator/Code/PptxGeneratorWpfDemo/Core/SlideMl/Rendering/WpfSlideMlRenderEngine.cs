@@ -144,7 +144,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 
         var maxWidth = text.Width ?? 10000;
         var maxHeight = text.Height ?? 10000;
-        var lineHeight = text.FontSize * text.LineHeight;
+        var lineHeight = text.FontSize;
 
         if (text.Spans is { Count: > 0 })
         {

@@ -31,11 +31,6 @@ public sealed class SlideMlTextElement : SlideMlElement
     public SlideMlTextAlignment TextAlignment { get; init; } = SlideMlTextAlignment.Left;
 
     /// <summary>
-    /// 行高（倍数）。
-    /// </summary>
-    public double LineHeight { get; init; } = 1.2;
-
-    /// <summary>
     /// 实际行数（由渲染引擎计算回填）。
     /// </summary>
     public int ActualLineCount { get; set; }
