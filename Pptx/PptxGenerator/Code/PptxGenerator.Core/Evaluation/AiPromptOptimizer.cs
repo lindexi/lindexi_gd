@@ -78,7 +78,7 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
 4. 消除冗余、矛盾或模糊的表述
 5. 补充遗漏的关键规则或约束
 6. 优化后的提示词应该比原版更有效、更精确
-7. **保护 V2 能力说明**：不得移除或弱化以下 V2 标签/属性的说明——流式布局（Layout/Gap/Margin）、渐变（LinearGradient/Stop）、阴影（Shadow）、IsBold/IsItalic、Span 富文本、CornerRadius、StrokeDashArray。这些是已实现的核心能力，提示词中必须保留其用法说明
+7. 不得移除原始提示词中已有的标签/属性用法说明，只能增补或澄清。如果评估反馈指出某个能力使用不当，应改进其用法指引而非删除
 
 ## 输出格式
 你必须严格输出以下 JSON 格式，不要包含任何其他文本：
