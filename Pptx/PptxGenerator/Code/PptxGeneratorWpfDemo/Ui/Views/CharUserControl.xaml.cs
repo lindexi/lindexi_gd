@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-
+using System.Windows.Threading;
 using AgentLib.Model;
 
 using Microsoft.Win32;
@@ -80,7 +80,40 @@ public partial class CharUserControl : UserControl
         // 判断用户是否处于底部
         // 使用 2 像素容差避免浮点精度问题
         const double tolerance = 2.0;
+        bool wasAtBottom = _isUserAtBottom;
         _isUserAtBottom = _chatScrollViewer.VerticalOffset >= _chatScrollViewer.ScrollableHeight - tolerance;
+
+        // 用户离开底部时显示按钮，回到底部时隐藏
+        if (wasAtBottom != _isUserAtBottom)
+        {
+            ScrollToBottomButton.Visibility = _isUserAtBottom
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+    }
+
+    private void ScrollToBottomButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        ScrollToEndAndKeep();
+    }
+
+    /// <summary>
+    /// 滚动到底部并恢复自动跟随模式。
+    /// 由于 ListBox 使用物理滚动（CanContentScroll=False），ScrollToEnd 一次即可到位；
+    /// 再通过 Dispatcher 延迟一次以确保布局完成后仍处于底部。
+    /// </summary>
+    private void ScrollToEndAndKeep()
+    {
+        if (_chatScrollViewer is null) return;
+
+        _isUserAtBottom = true;
+        ScrollToBottomButton.Visibility = Visibility.Collapsed;
+        _chatScrollViewer.ScrollToEnd();
+
+        // 等待布局完成后再滚一次，确保新内容被纳入后仍在底部
+        Dispatcher.InvokeAsync(
+            () => _chatScrollViewer?.ScrollToEnd(),
+            DispatcherPriority.Loaded);
     }
 
     /// <summary>
