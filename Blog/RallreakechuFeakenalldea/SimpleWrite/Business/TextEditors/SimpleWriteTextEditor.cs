@@ -10,6 +10,7 @@ using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Events;
 using LightTextEditorPlus.Highlighters;
 using LightTextEditorPlus.Primitive;
+using LightTextEditorPlus.Core.Primitive;
 
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.Snippets;
@@ -215,5 +216,31 @@ internal sealed class SimpleWriteTextEditor : TextEditor
         {
             base.Render(in context);
         }
+    }
+
+    private ScrollViewer? _scrollViewer;
+
+    /// <summary>
+    /// 设置所属的 ScrollViewer，用于获取可见范围。
+    /// 由业务端（如 MainEditorView）在将 TextEditor 放入布局后显式调用。
+    /// </summary>
+    /// <param name="scrollViewer"></param>
+    public void SetScrollViewer(ScrollViewer? scrollViewer)
+    {
+        _scrollViewer = scrollViewer;
+    }
+
+    protected override TextRect? GetViewport()
+    {
+        if (_scrollViewer is not { } scrollViewer)
+        {
+            return null;
+        }
+
+        double offsetX = scrollViewer.Offset.X;
+        double offsetY = scrollViewer.Offset.Y;
+        double viewportWidth = scrollViewer.Viewport.Width;
+        double viewportHeight = scrollViewer.Viewport.Height;
+        return new TextRect(offsetX, offsetY, viewportWidth, viewportHeight);
     }
 }
