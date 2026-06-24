@@ -120,6 +120,8 @@ public partial class TextEditorHandler
                 {
                     TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
                 }
+
+                _isHitSelection = false;
             }
         }
 
