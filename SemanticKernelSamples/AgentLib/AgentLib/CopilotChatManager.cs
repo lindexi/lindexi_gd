@@ -400,7 +400,7 @@ public class CopilotChatManager : NotifyBase
         IsChatting = true;
 
         CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(request.Contents);
-        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
+        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
         OnBeforeSendStreaming(currentSession, assistantChatMessage);
 
         CopilotChatContext chatContext = new(currentSession.ChatMessages, assistantChatMessage);
@@ -534,6 +534,40 @@ public class CopilotChatManager : NotifyBase
     }
 
     /// <summary>
+    /// 创建手动发送消息的上下文。不修改 <see cref="IsChatting"/> 状态，不追加消息到会话，不创建 CTS。
+    /// 调用方完全自行控制 AgentFramework 的调用流程。
+    /// 返回的上下文包含裸 <see cref="IChatClient"/>、默认工具列表，
+    /// 以及两个空壳 <see cref="CopilotChatMessage"/> 供调用方填充和流式追加。
+    /// <see cref="ChatClientAgent"/> 和 <see cref="AgentSession"/> 延迟创建，首次调用对应异步方法时才初始化。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>手动发送消息的上下文。</returns>
+    public async Task<IManualSendMessageContext> CreateManualSendMessageContextAsync(CancellationToken cancellationToken = default)
+    {
+        CopilotChatSession currentSession = SelectedSession;
+
+        // 默认工具不经过 HumanApprovalTool 包装，调用方自行决定是否包装
+        IReadOnlyList<AITool> defaultTools = _toolManager.CreateDefaultTools(chatContext: null);
+
+        CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(string.Empty);
+        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+
+        IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync().ConfigureAwait(false);
+
+        return new ManualSendMessageContext
+        {
+            ChatManager = this,
+            AIContextProviders = AIContextProviders,
+            Session = currentSession,
+            DefaultTools = defaultTools,
+            ChatClient = chatClient,
+            MainThreadDispatcher = MainThreadDispatcher,
+            UserChatMessage = userChatMessage,
+            AssistantChatMessage = assistantChatMessage,
+        };
+    }
+
+    /// <summary>
     /// 手动触发 LLM 标题生成。调用方负责决定调用时机。
     /// 对标为 <see cref="TitleSource.AutoTruncated"/> 或 <see cref="TitleSource.Generated"/> 的会话不会重复生成。
     /// </summary>
@@ -635,7 +669,7 @@ public class CopilotChatManager : NotifyBase
         return agentSession is null ? null : new AgentSessionStateProvider(chatClientAgent, agentSession);
     }
 
-    private static void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
+    internal static void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
     {
         ArgumentNullException.ThrowIfNull(copilotChatMessage);
         ArgumentNullException.ThrowIfNull(responseUpdate);
@@ -697,7 +731,23 @@ public class CopilotChatManager : NotifyBase
         return AppendMessageAsync(SelectedSession, chatMessage, cancellationToken);
     }
 
-    private async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// 标记进入聊天状态（<see cref="IsChatting"/> = <see langword="true"/>），返回一个可释放对象。
+    /// 调用方使用 <c>using</c> 语句包裹流式调用过程，<see cref="IDisposable.Dispose"/> 时自动恢复 <see cref="IsChatting"/> = <see langword="false"/>。
+    /// </summary>
+    /// <returns>可释放对象，dispose 时恢复 <see cref="IsChatting"/> = <see langword="false"/>。</returns>
+    public IDisposable StartChatting()
+    {
+        return new ChattingScope(this);
+    }
+
+    /// <summary>
+    /// 向指定会话追加一条聊天消息。
+    /// </summary>
+    /// <param name="session">目标会话。</param>
+    /// <param name="chatMessage">要追加的聊天消息。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    internal async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -732,5 +782,32 @@ public class CopilotChatManager : NotifyBase
         return cancellationToken.CanBeCanceled
             ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
             : new CancellationTokenSource();
+    }
+
+    /// <summary>
+    /// 聊天状态作用域，构造时设置 <see cref="IsChatting"/> = <see langword="true"/>，
+    /// <see cref="Dispose"/> 时恢复 <see cref="IsChatting"/> = <see langword="false"/>。
+    /// </summary>
+    private sealed class ChattingScope : IDisposable
+    {
+        private readonly CopilotChatManager _manager;
+        private bool _disposed;
+
+        public ChattingScope(CopilotChatManager manager)
+        {
+            _manager = manager;
+            _manager.IsChatting = true;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _manager.IsChatting = false;
+        }
     }
 }

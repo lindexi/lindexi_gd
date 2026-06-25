@@ -19,6 +19,11 @@ namespace AgentLib.Model;
 public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 {
     /// <summary>
+    /// 助手消息的占位符文本，在流式响应开始前显示，收到首个更新后自动清除。
+    /// </summary>
+    public const string PlaceholderContent = "...";
+
+    /// <summary>
     /// 使用指定角色和纯文本内容创建消息。
     /// </summary>
     /// <param name="role">消息角色。</param>
