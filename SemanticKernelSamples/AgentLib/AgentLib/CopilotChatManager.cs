@@ -534,6 +534,54 @@ public class CopilotChatManager : NotifyBase
     }
 
     /// <summary>
+    /// 创建手动发送消息的上下文。不修改 <see cref="IsChatting"/> 状态，不追加消息到会话，不创建 CTS。
+    /// 调用方完全自行控制 AgentFramework 的调用流程。
+    /// 返回的上下文包含裸 <see cref="IChatClient"/>、已装配的 <see cref="ChatClientAgent"/>、<see cref="AgentSession"/>、
+    /// 默认工具列表，以及两个空壳 <see cref="CopilotChatMessage"/> 供调用方填充和流式追加。
+    /// </summary>
+    /// <returns>手动发送消息的上下文。</returns>
+    public async Task<IManualSendMessageContext> CreateManualSendMessageContextAsync()
+    {
+        CopilotChatSession currentSession = SelectedSession;
+
+        IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+
+        // 默认工具不经过 HumanApprovalTool 包装，调用方自行决定是否包装
+        IReadOnlyList<AITool> defaultTools = _toolManager.CreateDefaultTools(chatContext: null);
+
+        // 压缩器始终使用 PrimaryModel 获取 IChatClient，与聊天逻辑无关
+        IChatClient reducerChatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+
+        var chatClientAgentOptions = new ChatClientAgentOptions()
+        {
+            ChatOptions = new ChatOptions()
+            {
+                Tools = [.. defaultTools],
+            },
+            ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
+            {
+                ChatReducer = new CopilotChatManagerToolCallChatReducer(reducerChatClient)
+            }),
+            RequirePerServiceCallChatHistoryPersistence = true,
+        };
+
+        IReadOnlyList<AIContextProvider>? aiContextProviders = AIContextProviders;
+        if (aiContextProviders is { Count: > 0 })
+        {
+            chatClientAgentOptions.AIContextProviders = aiContextProviders as IList<AIContextProvider> ?? aiContextProviders.ToList();
+        }
+
+        ChatClientAgent chatClientAgent = chatClient.AsAIAgent(chatClientAgentOptions);
+
+        AgentSession agentSession = await GetOrCreateAgentSessionAsync(chatClientAgent, currentSession, CancellationToken.None);
+
+        CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(string.Empty);
+        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
+
+        return new ManualSendMessageContext(userChatMessage, assistantChatMessage, chatClient, chatClientAgent, agentSession, defaultTools);
+    }
+
+    /// <summary>
     /// 手动触发 LLM 标题生成。调用方负责决定调用时机。
     /// 对标为 <see cref="TitleSource.AutoTruncated"/> 或 <see cref="TitleSource.Generated"/> 的会话不会重复生成。
     /// </summary>
@@ -635,7 +683,7 @@ public class CopilotChatManager : NotifyBase
         return agentSession is null ? null : new AgentSessionStateProvider(chatClientAgent, agentSession);
     }
 
-    private static void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
+    internal static void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
     {
         ArgumentNullException.ThrowIfNull(copilotChatMessage);
         ArgumentNullException.ThrowIfNull(responseUpdate);
