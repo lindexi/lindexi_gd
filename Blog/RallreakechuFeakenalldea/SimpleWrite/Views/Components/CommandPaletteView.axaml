@@ -1,0 +1,63 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="200"
+             x:Class="SimpleWrite.Views.Components.CommandPaletteView"
+             x:DataType="viewModels:CommandPaletteViewModel">
+    <UserControl.Styles>
+        <Style Selector="TextBox.SearchBox">
+            <Setter Property="Watermark" Value="搜索命令..." />
+            <Setter Property="Margin" Value="0" />
+        </Style>
+        <Style Selector="ListBox.CommandList">
+            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="MaxHeight" Value="240" />
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="12,6" />
+        </Style>
+        <Style Selector="TextBlock.EmptyHint">
+            <Setter Property="Foreground" Value="{StaticResource Brush.Foreground.Muted}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,12" />
+        </Style>
+    </UserControl.Styles>
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml" />
+    </Design.DesignStyle>
+    <Border Background="{StaticResource Brush.Background.Dialog}"
+            BorderBrush="{StaticResource Brush.Border.Subtle}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Padding="8"
+            Width="320"
+            BoxShadow="0 4 16 0 #80000000">
+        <StackPanel>
+            <Border x:Name="DragHandle"
+                    Height="6"
+                    Background="Transparent"
+                    Cursor="SizeAll"
+                    PointerPressed="DragHandle_OnPointerPressed"
+                    PointerMoved="DragHandle_OnPointerMoved"
+                    PointerReleased="DragHandle_OnPointerReleased" />
+            <TextBox x:Name="SearchInput"
+                     Classes="SearchBox"
+                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <ListBox x:Name="CommandListBox"
+                     Classes="CommandList"
+                     ItemsSource="{Binding FilteredCommands}"
+                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Title}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Classes="EmptyHint"
+                       Text="没有匹配的命令"
+                       IsVisible="{Binding !FilteredCommands.Count}" />
+        </StackPanel>
+    </Border>
+</UserControl>

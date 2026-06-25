@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Controls.Platform;
 using Avalonia.Media;
 using Avalonia.Skia;
 
@@ -7,7 +6,6 @@ using LightTextEditorPlus;
 using LightTextEditorPlus.Configurations;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
-using LightTextEditorPlus.Events;
 using LightTextEditorPlus.Highlighters;
 using LightTextEditorPlus.Primitive;
 using LightTextEditorPlus.Core.Primitive;
@@ -18,7 +16,6 @@ using SimpleWrite.Business.Snippets;
 using SkiaSharp;
 
 using System;
-using System.Threading.Tasks;
 using Avalonia.Threading;
 using LightTextEditorPlus.Platform;
 using SimpleWrite.Business.TextEditors.CommandPatterns;
@@ -53,18 +50,6 @@ internal sealed class SimpleWriteTextEditor : TextEditor
             Foreground = new SolidColorSkiaTextBrush(SKColors.Azure)
         });
 
-        ContextMenu = new ContextMenu();
-        //ContextMenu.Items.Add(new MenuItem()
-        //{
-        //    Header = "复制"
-        //});
-
-        ContextMenu.Closed += (sender, args) =>
-        {
-            // 每次都清理，等待下一次再重新加入内容
-            ContextMenu.Items.Clear();
-        };
-
         SetDocumentHighlightDefinition(DocumentHighlightDefinition.Markdown);
 
     }
@@ -72,73 +57,6 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     private AvaloniaTextEditorDispatcherRequiring _dispatcherRequiring;
 
     public CommandPatternManager? CommandPatternManager { get; init; }
-
-    protected override async void OnRaisePrepareContextMenuEvent(PrepareContextMenuEventArgs args)
-    {
-        try
-        {
-            base.OnRaisePrepareContextMenuEvent(args);
-
-            if (ContextMenu?.Items is { } menuItems && CommandPatternManager != null)
-            {
-                var selection = CurrentSelection;
-                string selectedText;
-                bool isSingleLine;
-
-                if (!selection.IsEmpty)
-                {
-                    selectedText = GetText(in selection);
-                    isSingleLine = false;
-                }
-                else if (args.TryHitTest(out var result))
-                {
-                    isSingleLine = true;
-
-                    var hitParagraphData = result.HitParagraphData;
-                    if (hitParagraphData.IsEmptyParagraph)
-                    {
-                        // 空段落啥都不干
-                        selectedText = string.Empty;
-                    }
-                    else
-                    {
-                        selectedText = hitParagraphData.GetText();
-                    }
-                }
-                else
-                {
-                    isSingleLine = true;
-                    selectedText = string.Empty;
-                }
-
-                if (!string.IsNullOrEmpty(selectedText))
-                {
-                    foreach (var commandPattern in CommandPatternManager.CommandPatternList)
-                    {
-                        if (isSingleLine && !commandPattern.SupportSingleLine)
-                        {
-                            continue;
-                        }
-
-                        if (await commandPattern.IsMatchAsync(selectedText))
-                        {
-                            var menuItem = new MenuItem()
-                            {
-                                Header = commandPattern.Title
-                            };
-                            menuItems.Add(menuItem);
-                            menuItem.Click += (sender, eventArgs) => _ = commandPattern.DoAsync(selectedText, this);
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            // 先忽略
-        }
-    }
-
 
     public void SetDocumentHighlightDefinition(DocumentHighlightDefinition definition)
     {

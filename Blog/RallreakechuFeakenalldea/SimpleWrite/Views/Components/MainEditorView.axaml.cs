@@ -1,5 +1,7 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Input;
 using Avalonia.Media;
 
 using LightTextEditorPlus;
@@ -55,6 +57,8 @@ public partial class MainEditorView : UserControl
             ViewModel.MainViewModel.FolderExplorerViewModel.FilePickerHandler ??= filePickerHandler;
         }
 
+        AddHandler(PointerPressedEvent, OnGlobalPointerPressed, RoutingStrategies.Tunnel);
+
         base.OnLoaded(e);
     }
 
@@ -103,6 +107,12 @@ public partial class MainEditorView : UserControl
             var oldTextEditor = _currentTextEditor;
             _currentTextEditor = value;
 
+            // 切换编辑器时先 Detach 旧编辑器的命令面板事件
+            if (oldTextEditor is SimpleWriteTextEditor oldSimpleEditor)
+            {
+                CommandPalette.Detach();
+            }
+
             // 将 TextEditor 放入 Grid 的 Column 1
             Grid.SetColumn(value, 1);
             if (EditorGrid.Children.Contains(value))
@@ -138,6 +148,12 @@ public partial class MainEditorView : UserControl
 
             _currentTextEditor.CurrentSelectionChanged -= TextEditor_OnCurrentSelectionChanged;
             _currentTextEditor.CurrentSelectionChanged += TextEditor_OnCurrentSelectionChanged;
+
+            // Attach 新编辑器的命令面板事件
+            if (value is SimpleWriteTextEditor newSimpleEditor)
+            {
+                CommandPalette.Attach(newSimpleEditor);
+            }
 
             CurrentTextEditorChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -349,5 +365,22 @@ public partial class MainEditorView : UserControl
         {
             TextEditorScrollViewer.Offset = new Avalonia.Vector(targetOffsetX, targetOffsetY);
         });
+    }
+
+    private void OnGlobalPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not EditorViewModel viewModel) return;
+        if (!viewModel.CommandPaletteViewModel.IsVisible) return;
+
+        // 判断点击是否在面板内
+        var position = e.GetPosition(CommandPalette);
+        var bounds = CommandPalette.Bounds;
+        if (position.X >= 0 && position.X <= bounds.Width
+            && position.Y >= 0 && position.Y <= bounds.Height)
+        {
+            return; // 点击在面板内，不关闭
+        }
+
+        viewModel.CommandPaletteViewModel.Close();
     }
 }

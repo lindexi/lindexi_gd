@@ -145,6 +145,11 @@ public class EditorViewModel : ViewModelBase
     public SnippetManager SnippetManager { get; } = new SnippetManager();
 
     /// <summary>
+    /// 命令浮动面板的 ViewModel
+    /// </summary>
+    public CommandPaletteViewModel CommandPaletteViewModel { get; } = new();
+
+    /// <summary>
     /// 打开文件
     /// </summary>
     /// <param name="file"></param>

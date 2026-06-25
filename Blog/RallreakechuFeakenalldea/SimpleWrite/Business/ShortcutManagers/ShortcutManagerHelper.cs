@@ -76,5 +76,14 @@ static class ShortcutManagerHelper
                 handler.DeleteBackwardWordByShortcut();
             }
         });
+
+        shortcutManager.AddShortcut(KeyModifiers.Alt, Key.Enter, "ShowCommandPalette", context =>
+        {
+            if (context.CurrentTextEditor is SimpleWriteTextEditor simpleWriteTextEditor
+                && simpleWriteTextEditor.TextEditorHandler is SimpleWriteTextEditorHandler handler)
+            {
+                handler.RaiseCommandPaletteRequested();
+            }
+        });
     }
 }
