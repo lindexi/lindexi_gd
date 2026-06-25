@@ -1,3 +1,5 @@
+using AgentLib;
+
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
@@ -21,19 +23,29 @@ public interface IManualSendMessageContext
     CopilotChatMessage AssistantChatMessage { get; }
 
     /// <summary>
-    /// 底层聊天客户端。调用方可直接使用 <c>CompleteAsync</c> 等原始 API。
+    /// 底层聊天客户端。
     /// </summary>
     IChatClient ChatClient { get; }
 
     /// <summary>
-    /// 由聊天客户端创建的代理对象，已装配默认 <see cref="IChatReducer"/> 和 <see cref="AIContextProvider"/>。
+    /// 主线程调度器。用于将操作调度回 UI 主线程执行。为 <see langword="null"  /> 时不做线程调度。
     /// </summary>
-    ChatClientAgent ChatClientAgent { get; }
+    IMainThreadDispatcher? MainThreadDispatcher { get; }
 
     /// <summary>
-    /// 代理会话，始终不为 <see langword="null"/>。调用方自行决定是否传入 <see cref="ChatClientAgent.RunStreamingAsync"/>。
+    /// 由聊天客户端创建的代理对象，已装配默认 <see cref="IChatReducer"/> 和 <see cref="AIContextProvider"/>。
+    /// 延迟创建，首次调用时异步初始化。
     /// </summary>
-    AgentSession AgentSession { get; }
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>聊天客户端代理。</returns>
+    Task<ChatClientAgent> GetChatClientAgentAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 代理会话。延迟创建，首次调用时异步初始化。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>代理会话。</returns>
+    Task<AgentSession> GetAgentSessionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 默认工具列表（工作区工具 + 子代理工具），未经过 <c>HumanApprovalTool</c> 包装。
@@ -45,6 +57,19 @@ public interface IManualSendMessageContext
     /// 将 <see cref="AgentResponseUpdate"/> 中的内容追加到 <see cref="AssistantChatMessage"/>。
     /// 首次调用时，若助手消息内容仍为 "..." 占位符，则自动清除。
     /// </summary>
-    /// <param name="update">来自 <see cref="ChatClientAgent.RunStreamingAsync"/> 的响应更新。</param>
+    /// <param name="update">响应更新。</param>
     void AppendResponseUpdate(AgentResponseUpdate update);
+
+    /// <summary>
+    /// 将 <see cref="UserChatMessage"/> 和 <see cref="AssistantChatMessage"/> 追加到当前选中会话的可见消息列表中。
+    /// </summary>
+    Task AppendMessagesToSessionAsync();
+
+    /// <summary>
+    /// 标记进入聊天状态（<c>IsChatting = true</c>），返回一个可释放对象。
+    /// 调用方使用 <c>using</c> 语句包裹流式调用过程，<see cref="IDisposable.Dispose"/> 时自动恢复 <c>IsChatting = false</c>。
+    /// 等效于调用 <see cref="CopilotChatManager.StartChatting"/>。
+    /// </summary>
+    /// <returns>可释放对象，dispose 时恢复 <c>IsChatting = false</c>。</returns>
+    IDisposable StartChatting();
 }
