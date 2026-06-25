@@ -1,0 +1,40 @@
+﻿<Window x:Class="FawduhachalereNawfurgaywaifar.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FawduhachalereNawfurgaywaifar"
+        mc:Ignorable="d"
+        Title="文件日期修改器" Height="450" Width="800"
+        AllowDrop="True"
+        DragEnter="Window_DragEnter"
+        DragOver="Window_DragOver"
+        Drop="Window_Drop">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <CheckBox x:Name="CreationTimeCheckBox" Content="创建时间" VerticalAlignment="Center" Margin="0,0,24,0"/>
+            <CheckBox x:Name="LastWriteTimeCheckBox" Content="最后修改时间" VerticalAlignment="Center" IsChecked="True" Margin="0,0,24,0"/>
+            <CheckBox x:Name="RandomizeContentCheckBox" Content="内容随机化（不改长度，还原修改时间）" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="将文件拖入此窗口即可修改日期 / 随机化内容" Foreground="Gray" Margin="0,0,0,12"/>
+
+        <Border Grid.Row="2" BorderBrush="LightGray" BorderThickness="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                CornerRadius="4">
+            <ListView x:Name="ResultList" BorderThickness="0" Background="Transparent" AllowDrop="False">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="文件" Width="500" DisplayMemberBinding="{Binding FileName}"/>
+                        <GridViewColumn Header="结果" Width="200" DisplayMemberBinding="{Binding Result}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Border>
+    </Grid>
+</Window>
