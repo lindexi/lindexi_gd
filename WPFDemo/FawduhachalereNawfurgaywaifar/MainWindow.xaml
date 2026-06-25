@@ -19,10 +19,11 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
             <CheckBox x:Name="CreationTimeCheckBox" Content="创建时间" VerticalAlignment="Center" Margin="0,0,24,0"/>
-            <CheckBox x:Name="LastWriteTimeCheckBox" Content="最后修改时间" VerticalAlignment="Center" IsChecked="True"/>
+            <CheckBox x:Name="LastWriteTimeCheckBox" Content="最后修改时间" VerticalAlignment="Center" IsChecked="True" Margin="0,0,24,0"/>
+            <CheckBox x:Name="RandomizeContentCheckBox" Content="内容随机化（不改长度，还原修改时间）" VerticalAlignment="Center"/>
         </StackPanel>
 
-        <TextBlock Grid.Row="1" Text="将文件拖入此窗口即可修改日期" Foreground="Gray" Margin="0,0,0,12"/>
+        <TextBlock Grid.Row="1" Text="将文件拖入此窗口即可修改日期 / 随机化内容" Foreground="Gray" Margin="0,0,0,12"/>
 
         <Border Grid.Row="2" BorderBrush="LightGray" BorderThickness="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
                 CornerRadius="4">
