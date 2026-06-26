@@ -92,6 +92,9 @@ public partial class MainEditorView : UserControl
         _currentEditorModel = editorModel;
         CurrentTextEditor = textEditor;
         RestoreRuntimeState(editorModel, textEditor);
+
+        // 切换编辑器后，将焦点设置到新的文本编辑器中
+        Dispatcher.UIThread.Post(() => textEditor.Focus(), DispatcherPriority.Input);
     }
 
     private EditorModel? _currentEditorModel;
