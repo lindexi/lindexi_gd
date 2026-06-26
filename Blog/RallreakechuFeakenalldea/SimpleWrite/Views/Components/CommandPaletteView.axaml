@@ -52,7 +52,7 @@
             <ListBox x:Name="CommandListBox"
                      Classes="CommandList"
                      ItemsSource="{Binding CommandPaletteViewModel.FilteredCommands}"
-                     SelectedItem="{Binding CommandPaletteViewModel.SelectedItem, Mode=TwoWay}">
+                     PointerReleased="CommandListBox_OnPointerReleased">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel />

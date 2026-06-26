@@ -17,7 +17,6 @@ public class CommandPaletteViewModel : ViewModelBase
 {
     private bool _isVisible;
     private string _searchText = string.Empty;
-    private CommandPaletteItem? _selectedItem;
     private string _selectedText = string.Empty;
     private List<CommandPaletteItem> _matchedCommands = [];
 
@@ -48,15 +47,6 @@ public class CommandPaletteViewModel : ViewModelBase
     /// 获取过滤后的命令列表。
     /// </summary>
     public ObservableCollection<CommandPaletteItem> FilteredCommands { get; } = [];
-
-    /// <summary>
-    /// 获取或设置当前选中的命令项。
-    /// </summary>
-    public CommandPaletteItem? SelectedItem
-    {
-        get => _selectedItem;
-        set => SetField(ref _selectedItem, value);
-    }
 
     /// <summary>
     /// 打开命令面板，根据选中文本匹配可用命令。
@@ -97,7 +87,6 @@ public class CommandPaletteViewModel : ViewModelBase
             FilteredCommands.Add(item);
         }
 
-        SelectedItem = FilteredCommands.FirstOrDefault();
         IsVisible = true;
     }
 
@@ -113,15 +102,16 @@ public class CommandPaletteViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 执行当前选中的命令。
+    /// 执行指定的命令项。
     /// </summary>
+    /// <param name="item">要执行的命令项。</param>
     /// <param name="textEditor">目标文本编辑器。</param>
-    public async Task ExecuteSelectedAsync(TextEditor textEditor)
+    public async Task ExecuteAsync(CommandPaletteItem item, TextEditor textEditor)
     {
-        if (SelectedItem is not null && !string.IsNullOrEmpty(_selectedText))
+        if (!string.IsNullOrEmpty(_selectedText))
         {
             IsVisible = false;
-            await SelectedItem.Pattern.DoAsync(_selectedText, textEditor);
+            await item.Pattern.DoAsync(_selectedText, textEditor);
         }
     }
 
@@ -139,7 +129,5 @@ public class CommandPaletteViewModel : ViewModelBase
                 FilteredCommands.Add(item);
             }
         }
-
-        SelectedItem = FilteredCommands.FirstOrDefault();
     }
 }
