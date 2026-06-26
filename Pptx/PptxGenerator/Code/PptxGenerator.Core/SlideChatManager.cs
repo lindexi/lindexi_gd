@@ -26,7 +26,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
     public SlideChatManager(
         CopilotChatManager copilotChatManager,
-        SlideMlRenderTool SlideMlRenderTool,
+        SlideMlRenderTool slideMlRenderTool,
         ISlideMlPromptProvider? promptProvider = null,
         SlideDocumentContext? slideDocumentContext = null,
         ISlideEvaluator? slideEvaluator = null,
@@ -35,7 +35,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     {
         ArgumentNullException.ThrowIfNull(copilotChatManager);
         _endpointManager = copilotChatManager.AgentApiEndpointManager;
-        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(slideDocumentContext), SlideMlRenderTool, slideEvaluator, promptEvaluator, promptOptimizer);
+        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(slideDocumentContext), slideMlRenderTool, slideEvaluator, promptEvaluator, promptOptimizer);
         AttachPipelineEvents();
     }
 
