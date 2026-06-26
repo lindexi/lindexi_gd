@@ -5,7 +5,7 @@
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="200"
              x:Class="SimpleWrite.Views.Components.CommandPaletteView"
-             x:DataType="viewModels:CommandPaletteViewModel">
+             x:DataType="viewModels:EditorViewModel">
     <UserControl.Styles>
         <Style Selector="TextBox.SearchBox">
             <Setter Property="Watermark" Value="搜索命令..." />
@@ -13,7 +13,7 @@
         </Style>
         <Style Selector="ListBox.CommandList">
             <Setter Property="Margin" Value="0,4,0,0" />
-            <Setter Property="MaxHeight" Value="240" />
+            <Setter Property="MaxHeight" Value="200" />
         </Style>
         <Style Selector="ListBoxItem">
             <Setter Property="Padding" Value="12,6" />
@@ -33,6 +33,8 @@
             CornerRadius="6"
             Padding="8"
             Width="320"
+            MinHeight="80"
+            MaxHeight="300"
             BoxShadow="0 4 16 0 #80000000">
         <StackPanel>
             <Border x:Name="DragHandle"
@@ -44,11 +46,11 @@
                     PointerReleased="DragHandle_OnPointerReleased" />
             <TextBox x:Name="SearchInput"
                      Classes="SearchBox"
-                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                     Text="{Binding CommandPaletteViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <ListBox x:Name="CommandListBox"
                      Classes="CommandList"
-                     ItemsSource="{Binding FilteredCommands}"
-                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                     ItemsSource="{Binding CommandPaletteViewModel.FilteredCommands}"
+                     SelectedItem="{Binding CommandPaletteViewModel.SelectedItem, Mode=TwoWay}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Title}" />
@@ -57,7 +59,7 @@
             </ListBox>
             <TextBlock Classes="EmptyHint"
                        Text="没有匹配的命令"
-                       IsVisible="{Binding !FilteredCommands.Count}" />
+                       IsVisible="{Binding !CommandPaletteViewModel.FilteredCommands.Count}" />
         </StackPanel>
     </Border>
 </UserControl>

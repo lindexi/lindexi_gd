@@ -43,6 +43,10 @@ public partial class MainEditorView : UserControl
 
             UpdateCurrentEditorMode(editorViewModel.CurrentEditorModel);
         }
+        else if (DataContext is SimpleWriteMainViewModel mainViewModel)
+        {
+            DataContext = mainViewModel.EditorViewModel;
+        }
 
         base.OnDataContextChanged(e);
     }

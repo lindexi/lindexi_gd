@@ -28,6 +28,17 @@ public partial class SimpleWriteSideBar : UserControl
     public FolderExplorerViewModel ViewModel => DataContext as FolderExplorerViewModel
         ?? throw new InvalidOperationException("SimpleWriteSideBar's DataContext must be of type FolderExplorerViewModel");
 
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        if (DataContext is SimpleWriteMainViewModel simpleWriteMainViewModel)
+        {
+            DataContext = simpleWriteMainViewModel.FolderExplorerViewModel;
+            return;
+        }
+
+        base.OnDataContextChanged(e);
+    }
+
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         if (_isInitialized)

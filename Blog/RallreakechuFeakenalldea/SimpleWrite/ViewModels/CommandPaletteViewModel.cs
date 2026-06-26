@@ -63,7 +63,8 @@ public class CommandPaletteViewModel : ViewModelBase
     /// </summary>
     /// <param name="selectedText">当前选中的文本。</param>
     /// <param name="manager">命令模式管理器，可为 null。</param>
-    public async Task OpenAsync(string selectedText, CommandPatternManager? manager)
+    /// <param name="isSingleLine">是否为单行上下文（无选区时取当前段落文本），为 true 时跳过不支持单行的命令。</param>
+    public async Task OpenAsync(string selectedText, CommandPatternManager? manager, bool isSingleLine)
     {
         _selectedText = selectedText;
         SearchText = string.Empty;
@@ -77,6 +78,11 @@ public class CommandPaletteViewModel : ViewModelBase
             _matchedCommands = new List<CommandPaletteItem>(manager.CommandPatternList.Count);
             foreach (ICommandPattern pattern in manager.CommandPatternList)
             {
+                if (isSingleLine && !pattern.SupportSingleLine)
+                {
+                    continue;
+                }
+
                 bool isMatch = await pattern.IsMatchAsync(selectedText);
                 if (isMatch)
                 {

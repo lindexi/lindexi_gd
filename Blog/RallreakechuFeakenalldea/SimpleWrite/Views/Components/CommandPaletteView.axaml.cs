@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 using LightTextEditorPlus;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 
 using SimpleWrite.Business.TextEditors;
@@ -78,16 +79,38 @@ public partial class CommandPaletteView : UserControl
         }
 
         // 收集上下文文本
+        // 有选区时取选区文本，无选区时取当前段落文本（单行模式）
         var selection = editor.CurrentSelection;
         string selectedText;
+        bool isSingleLine;
 
         if (!selection.IsEmpty)
         {
             selectedText = editor.GetText(in selection);
+            isSingleLine = false;
         }
         else
         {
-            selectedText = editor.GetCurrentCaretOffsetParagraph().GetText();
+            isSingleLine = true;
+
+            // 右键时用命中测试获取点击位置的段落，快捷键时用光标所在段落
+            if (rightClickPosition is { } hitPoint)
+            {
+                var textPoint = new TextPoint(hitPoint.X, hitPoint.Y);
+                if (editor.TextEditorCore.TryHitTest(in textPoint, out var hitResult))
+                {
+                    var hitParagraph = hitResult.HitParagraphData;
+                    selectedText = hitParagraph.IsEmptyParagraph ? string.Empty : hitParagraph.GetText();
+                }
+                else
+                {
+                    selectedText = string.Empty;
+                }
+            }
+            else
+            {
+                selectedText = editor.GetCurrentCaretOffsetParagraph().GetText();
+            }
         }
 
         if (string.IsNullOrEmpty(selectedText))
@@ -116,7 +139,7 @@ public partial class CommandPaletteView : UserControl
         PositionAt(textEditorPoint, editor);
 
         // 匹配命令并打开
-        _ = viewModel.OpenAsync(selectedText, editor.CommandPatternManager);
+        _ = viewModel.OpenAsync(selectedText, editor.CommandPatternManager, isSingleLine);
     }
 
     /// <summary>

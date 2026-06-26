@@ -5,7 +5,8 @@
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              xmlns:components="clr-namespace:SimpleWrite.Views.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.Components.MainEditorView">
+             x:Class="SimpleWrite.Views.Components.MainEditorView"
+             x:DataType="viewModels:EditorViewModel">
     <Design.DataContext>
         <viewModels:EditorViewModel/>
     </Design.DataContext>
@@ -24,12 +25,11 @@
                                                   LineNumberWidth="48"
                                                   ScrollViewer="{Binding #TextEditorScrollViewer}"
                                                   IsVisible="{Binding IsLineNumberVisible}"
-                                                  x:DataType="viewModels:EditorViewModel"/>
+                                                  />
                     <!-- TextEditor 在代码中动态设置到 Grid.Column="1" -->
                 </Grid>
             </ScrollViewer>
             <components:CommandPaletteView x:Name="CommandPalette"
-                                            x:DataType="viewModels:EditorViewModel"
                                             IsVisible="{Binding CommandPaletteViewModel.IsVisible}"/>
         </Panel>
     </Border>
