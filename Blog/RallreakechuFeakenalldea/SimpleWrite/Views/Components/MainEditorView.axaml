@@ -5,27 +5,32 @@
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              xmlns:components="clr-namespace:SimpleWrite.Views.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SimpleWrite.Views.Components.MainEditorView">
+             x:Class="SimpleWrite.Views.Components.MainEditorView"
+             x:DataType="viewModels:EditorViewModel">
     <Design.DataContext>
         <viewModels:EditorViewModel/>
     </Design.DataContext>
     <Border x:Name="TextEditorBorder">
-        <ScrollViewer x:Name="TextEditorScrollViewer" HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Visible"
-                      Padding="10,0,20,0">
-            <Grid x:Name="EditorGrid">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <components:LineNumberControl x:Name="LineNumberArea"
-                                              Grid.Column="0"
-                                              LineNumberWidth="48"
-                                              ScrollViewer="{Binding #TextEditorScrollViewer}"
-                                              IsVisible="{Binding IsLineNumberVisible}"
-                                              x:DataType="viewModels:EditorViewModel"/>
-                <!-- TextEditor 在代码中动态设置到 Grid.Column="1" -->
-            </Grid>
-        </ScrollViewer>
+        <Panel>
+            <ScrollViewer x:Name="TextEditorScrollViewer" HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Visible"
+                          Padding="10,0,20,0">
+                <Grid x:Name="EditorGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <components:LineNumberControl x:Name="LineNumberArea"
+                                                  Grid.Column="0"
+                                                  LineNumberWidth="48"
+                                                  ScrollViewer="{Binding #TextEditorScrollViewer}"
+                                                  IsVisible="{Binding IsLineNumberVisible}"
+                                                  />
+                    <!-- TextEditor 在代码中动态设置到 Grid.Column="1" -->
+                </Grid>
+            </ScrollViewer>
+            <components:CommandPaletteView x:Name="CommandPalette"
+                                            IsVisible="{Binding CommandPaletteViewModel.IsVisible}"/>
+        </Panel>
     </Border>
 </UserControl>

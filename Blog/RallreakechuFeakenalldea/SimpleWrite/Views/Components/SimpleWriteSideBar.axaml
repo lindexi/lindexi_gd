@@ -6,6 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SimpleWrite.Views.Components.SimpleWriteSideBar"
              x:DataType="viewModels:FolderExplorerViewModel"
+             x:Name="Root"
              MinWidth="0"
              ClipToBounds="False"
              Background="{StaticResource Brush.Background.Panel}">
@@ -31,7 +32,7 @@
                         Grid.Row="1"
                         Classes="InteractiveButton SecondaryButton"
                         HorizontalAlignment="Stretch"
-                        IsVisible="{Binding IsEmptyStateVisible}"
+                        IsVisible="{Binding #Root.ViewModel. IsEmptyStateVisible}"
                         Click="OpenFolderButton_OnClick">打开文件夹</Button>
 
                 <StackPanel Grid.Row="2"

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using LightTextEditorPlus;
@@ -23,6 +24,12 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
     }
 
     public SimpleWriteTextEditor SimpleWriteTextEditor { get; }
+
+    /// <summary>
+    /// 请求打开命令浮动面板。参数为鼠标右击位置（TextEditor 控件坐标系），
+    /// 为 null 时表示由快捷键触发，应使用光标位置定位。
+    /// </summary>
+    public event EventHandler<Point?>? CommandPaletteRequested;
 
     private ShortcutExecutor ShortcutExecutor => SimpleWriteTextEditor.ShortcutExecutor;
 
@@ -51,6 +58,14 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
             {
                 e.Handled = true;
             }
+        }
+
+        if (e.InitialPressMouseButton == MouseButton.Right && !e.Handled)
+        {
+            e.Handled = true;
+            var clickPosition = e.GetPosition(TextEditor);
+            CommandPaletteRequested?.Invoke(this, clickPosition);
+            return;
         }
 
         base.OnPointerReleased(e);
@@ -212,6 +227,14 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
     internal void DeleteBackwardWordByShortcut()
     {
         TextEditorCore.DeleteBackwardWord();
+    }
+
+    /// <summary>
+    /// 触发命令浮动面板请求事件。由快捷键调用，位置参数为 null，表示使用光标定位。
+    /// </summary>
+    internal void RaiseCommandPaletteRequested()
+    {
+        CommandPaletteRequested?.Invoke(this, null);
     }
 
 
