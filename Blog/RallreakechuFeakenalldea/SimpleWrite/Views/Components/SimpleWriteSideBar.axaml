@@ -32,7 +32,7 @@
                         Grid.Row="1"
                         Classes="InteractiveButton SecondaryButton"
                         HorizontalAlignment="Stretch"
-                        IsVisible="{Binding #Root.ViewModel. IsEmptyStateVisible}"
+                        IsVisible="{Binding IsEmptyStateVisible}"
                         Click="OpenFolderButton_OnClick">打开文件夹</Button>
 
                 <StackPanel Grid.Row="2"

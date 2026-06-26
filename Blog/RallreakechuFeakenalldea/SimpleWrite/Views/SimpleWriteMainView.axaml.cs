@@ -12,7 +12,7 @@ public partial class SimpleWriteMainView : UserControl
     {
         InitializeComponent();
 
-        //TextEditorInfo.SetTextEditorInfo(this, new TextEditorInfo(MainEditorView));
+        TextEditorInfo.SetTextEditorInfo(this, new TextEditorInfo(MainEditorView));
     }
 
     public SimpleWriteMainViewModel ViewModel => (SimpleWriteMainViewModel) DataContext!;
