@@ -16,6 +16,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Rendering;
@@ -373,12 +374,26 @@ public partial class MainEditorView : UserControl
         if (!viewModel.CommandPaletteViewModel.IsVisible) return;
 
         // 判断点击是否在面板内
-        var position = e.GetPosition(CommandPalette);
-        var bounds = CommandPalette.Bounds;
-        if (position.X >= 0 && position.X <= bounds.Width
-            && position.Y >= 0 && position.Y <= bounds.Height)
+        // 面板通过 RenderTransform (TranslateTransform) 定位，Bounds 是布局矩形（不含 RenderTransform 偏移）
+        // 因此需要相对于父级 Panel 坐标系，将点击坐标与面板实际渲染区域比较
+        if (CommandPalette.GetVisualParent() is { } panel)
         {
-            return; // 点击在面板内，不关闭
+            var position = e.GetPosition(panel);
+            var bounds = CommandPalette.Bounds;
+
+            double offsetX = 0;
+            double offsetY = 0;
+            if (CommandPalette.RenderTransform is TranslateTransform translate)
+            {
+                offsetX = translate.X;
+                offsetY = translate.Y;
+            }
+
+            if (position.X >= offsetX && position.X <= offsetX + bounds.Width
+                && position.Y >= offsetY && position.Y <= offsetY + bounds.Height)
+            {
+                return; // 点击在面板内，不关闭
+            }
         }
 
         viewModel.CommandPaletteViewModel.Close();

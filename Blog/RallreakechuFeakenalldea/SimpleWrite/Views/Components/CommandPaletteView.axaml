@@ -5,7 +5,9 @@
              xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
              mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="200"
              x:Class="SimpleWrite.Views.Components.CommandPaletteView"
-             x:DataType="viewModels:EditorViewModel">
+             x:DataType="viewModels:EditorViewModel"
+             HorizontalAlignment="Left"
+             VerticalAlignment="Top">
     <UserControl.Styles>
         <Style Selector="TextBox.SearchBox">
             <Setter Property="Watermark" Value="搜索命令..." />
@@ -33,8 +35,8 @@
             CornerRadius="6"
             Padding="8"
             Width="320"
-            MinHeight="80"
             MaxHeight="300"
+            VerticalAlignment="Top"
             BoxShadow="0 4 16 0 #80000000">
         <StackPanel>
             <Border x:Name="DragHandle"
@@ -51,6 +53,11 @@
                      Classes="CommandList"
                      ItemsSource="{Binding CommandPaletteViewModel.FilteredCommands}"
                      SelectedItem="{Binding CommandPaletteViewModel.SelectedItem, Mode=TwoWay}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Title}" />

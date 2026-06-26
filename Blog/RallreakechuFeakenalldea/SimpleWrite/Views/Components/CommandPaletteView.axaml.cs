@@ -183,8 +183,7 @@ public partial class CommandPaletteView : UserControl
             }
         }
 
-        Margin = new Thickness(x, y, 0, 0);
-        RenderTransform = null;
+        RenderTransform = new TranslateTransform(x, y);
     }
 
     /// <inheritdoc />
