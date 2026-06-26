@@ -23,5 +23,5 @@ public sealed class SlideMlPage
     /// <summary>
     /// 页面布局边界。
     /// </summary>
-    public SlideMlRect LayoutBounds { get; set; } = new(0, 0, SlideMlPipelineContext.DefaultCanvasWidth, SlideMlPipelineContext.DefaultCanvasHeight);
+    public SlideMlRect LayoutBounds { get; set; } = new(0, 0, SlideDocumentContext.DefaultCanvasWidth, SlideDocumentContext.DefaultCanvasHeight);
 }

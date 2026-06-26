@@ -15,7 +15,7 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
 
-        page.LayoutBounds = new SlideMlRect(0, 0, context.CanvasWidth, context.CanvasHeight);
+        page.LayoutBounds = new SlideMlRect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight);
         LayoutChildren(page.Children, page.LayoutBounds, parentId: "Page", clipToParent: false, context, useMeasured: false, measurements: null);
     }
 
@@ -26,7 +26,7 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(measurements);
 
-        page.LayoutBounds = new SlideMlRect(0, 0, context.CanvasWidth, context.CanvasHeight);
+        page.LayoutBounds = new SlideMlRect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight);
         LayoutChildren(page.Children, page.LayoutBounds, parentId: "Page", clipToParent: false, context, useMeasured: true, measurements);
         SyncLayoutBoundsToXY(page);
     }
@@ -431,14 +431,14 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
     private static void ValidateBounds(SlideMlElement element, SlideMlRect parentBounds, string parentId, bool clipToParent, SlideMlPipelineContext context)
     {
         var bounds = element.LayoutBounds;
-        if (bounds.Right > context.CanvasWidth)
+        if (bounds.Right > context.SlideDocumentContext.CanvasWidth)
         {
-            context.AddWarning($"[Warning] {element.Id}: 元素右边界 X={SlideMlXmlUtilities.FormatNumber(bounds.Right)} 超出画布宽度 {context.CanvasWidth}");
+            context.AddWarning($"[Warning] {element.Id}: 元素右边界 X={SlideMlXmlUtilities.FormatNumber(bounds.Right)} 超出画布宽度 {context.SlideDocumentContext.CanvasWidth}");
         }
 
-        if (bounds.Bottom > context.CanvasHeight)
+        if (bounds.Bottom > context.SlideDocumentContext.CanvasHeight)
         {
-            context.AddWarning($"[Warning] {element.Id}: 元素下边界 Y={SlideMlXmlUtilities.FormatNumber(bounds.Bottom)} 超出画布高度 {context.CanvasHeight}");
+            context.AddWarning($"[Warning] {element.Id}: 元素下边界 Y={SlideMlXmlUtilities.FormatNumber(bounds.Bottom)} 超出画布高度 {context.SlideDocumentContext.CanvasHeight}");
         }
 
         if (bounds.X < 0)

@@ -43,11 +43,11 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
 
-        var bitmap = new RenderTargetBitmap(new PixelSize(context.CanvasWidth, context.CanvasHeight), new Vector(96, 96));
+        var bitmap = new RenderTargetBitmap(new PixelSize(context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight), new Vector(96, 96));
         using (var dc = bitmap.CreateDrawingContext())
         {
             dc.FillRectangle(CreateBrush(page.Background, Colors.White),
-                new Rect(0, 0, context.CanvasWidth, context.CanvasHeight));
+                new Rect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight));
             DrawElements(dc, page.Children, context);
         }
         return new AvaloniaPreviewImage(bitmap);
@@ -58,17 +58,17 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(context);
 
-        var bitmap = new RenderTargetBitmap(new PixelSize(context.CanvasWidth, context.CanvasHeight), new Vector(96, 96));
+        var bitmap = new RenderTargetBitmap(new PixelSize(context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight), new Vector(96, 96));
         using (var dc = bitmap.CreateDrawingContext())
         {
-            dc.FillRectangle(CreateBrush("#FFF8FAFC", Colors.White), new Rect(0, 0, context.CanvasWidth, context.CanvasHeight));
-            dc.DrawRectangle(new Pen(CreateBrush("#FFFCA5A5", Colors.Red), 2), new Rect(80, 80, context.CanvasWidth - 160, context.CanvasHeight - 160));
+            dc.FillRectangle(CreateBrush("#FFF8FAFC", Colors.White), new Rect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight));
+            dc.DrawRectangle(new Pen(CreateBrush("#FFFCA5A5", Colors.Red), 2), new Rect(80, 80, context.SlideDocumentContext.CanvasWidth - 160, context.SlideDocumentContext.CanvasHeight - 160));
 
             var typeface = new Typeface(new FontFamily("Microsoft YaHei"));
             var titleText = new FormattedText("SlideML Render Error", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 32, CreateBrush("#FFB91C1C", Colors.Red))
             {
                 TextAlignment = TextAlignment.Left,
-                MaxTextWidth = context.CanvasWidth - 240,
+                MaxTextWidth = context.SlideDocumentContext.CanvasWidth - 240,
                 MaxTextHeight = 80,
                 LineHeight = 40,
             };
@@ -76,8 +76,8 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
             var detailsText = new FormattedText(message, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 18, CreateBrush("#FF7F1D1D", Colors.DarkRed))
             {
                 TextAlignment = TextAlignment.Left,
-                MaxTextWidth = context.CanvasWidth - 240,
-                MaxTextHeight = context.CanvasHeight - 260,
+                MaxTextWidth = context.SlideDocumentContext.CanvasWidth - 240,
+                MaxTextHeight = context.SlideDocumentContext.CanvasHeight - 260,
                 LineHeight = 28,
             };
 

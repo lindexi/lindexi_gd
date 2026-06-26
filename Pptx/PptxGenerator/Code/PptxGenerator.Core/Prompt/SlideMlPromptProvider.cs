@@ -7,17 +7,17 @@ namespace PptxGenerator.Prompt;
 /// </summary>
 public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 {
-    private readonly SlideMlPipelineContext _context;
+    private readonly SlideDocumentContext _documentContext;
     private string? _systemPromptOverride;
     private string? _userPromptTemplateOverride;
 
     /// <summary>
     /// 初始化 <see cref="SlideMlPromptProvider"/> 的新实例。
     /// </summary>
-    /// <param name="context">管道上下文，提供画布尺寸等信息；为 <see langword="null"/> 时使用默认 1280×720。</param>
-    public SlideMlPromptProvider(SlideMlPipelineContext? context = null)
+    /// <param name="documentContext">文档级上下文，提供画布尺寸等信息；为 <see langword="null"/> 时使用默认 1280×720。</param>
+    public SlideMlPromptProvider(SlideDocumentContext? documentContext = null)
     {
-        _context = context ?? new SlideMlPipelineContext();
+        _documentContext = documentContext ?? new SlideDocumentContext();
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     /// </summary>
     public string BuildDefaultSystemPrompt()
     {
-        var canvasSize = $"{_context.CanvasWidth}×{_context.CanvasHeight}";
+        var canvasSize = $"{_documentContext.CanvasWidth}×{_documentContext.CanvasHeight}";
         return $"""
 你是一个专业的幻灯片排版引擎。你的任务是根据用户的需求，生成一份 SlideML 格式的 XML 文档。
 
@@ -147,7 +147,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     {
         ArgumentNullException.ThrowIfNull(userPrompt);
 
-        var canvasSize = $"{_context.CanvasWidth}x{_context.CanvasHeight}";
+        var canvasSize = $"{_documentContext.CanvasWidth}x{_documentContext.CanvasHeight}";
         return $"""
 请根据以下需求生成单页 SlideML：
 

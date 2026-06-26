@@ -28,14 +28,14 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         CopilotChatManager copilotChatManager,
         SlideMlRenderTool SlideMlRenderTool,
         ISlideMlPromptProvider? promptProvider = null,
-        SlideMlPipelineContext? context = null,
+        SlideDocumentContext? slideDocumentContext = null,
         ISlideEvaluator? slideEvaluator = null,
         IPromptEvaluator? promptEvaluator = null,
         IPromptOptimizer? promptOptimizer = null)
     {
         ArgumentNullException.ThrowIfNull(copilotChatManager);
         _endpointManager = copilotChatManager.AgentApiEndpointManager;
-        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(context), SlideMlRenderTool, slideEvaluator, promptEvaluator, promptOptimizer);
+        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(slideDocumentContext), SlideMlRenderTool, slideEvaluator, promptEvaluator, promptOptimizer);
         AttachPipelineEvents();
     }
 
@@ -47,11 +47,11 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         SlideMlRenderTool slideMlRenderTool,
         PipelineConfiguration configuration,
         ISlideMlPromptProvider? promptProvider = null,
-        SlideMlPipelineContext? context = null)
+        SlideDocumentContext? slideDocumentContext = null)
     {
         ArgumentNullException.ThrowIfNull(copilotChatManager);
         _endpointManager = copilotChatManager.AgentApiEndpointManager;
-        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(context), slideMlRenderTool, configuration);
+        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(slideDocumentContext), slideMlRenderTool, configuration);
         AttachPipelineEvents();
     }
 

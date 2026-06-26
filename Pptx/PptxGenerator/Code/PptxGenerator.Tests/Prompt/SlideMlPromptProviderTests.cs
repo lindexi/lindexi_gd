@@ -104,7 +104,7 @@ public sealed class SlideMlPromptProviderTests
     [TestMethod]
     public void BuildSystemPrompt_CustomCanvasSize_ContainsCorrectDimensions()
     {
-        var context = new SlideMlPipelineContext(1920, 1080);
+        var context = new SlideDocumentContext(1920, 1080);
         var provider = new SlideMlPromptProvider(context);
         var result = provider.BuildSystemPrompt();
 
@@ -115,7 +115,7 @@ public sealed class SlideMlPromptProviderTests
     [TestMethod]
     public void BuildInitialUserPrompt_CustomCanvasSize_ContainsCorrectDimensions()
     {
-        var context = new SlideMlPipelineContext(1920, 1080);
+        var context = new SlideDocumentContext(1920, 1080);
         var provider = new SlideMlPromptProvider(context);
         var result = provider.BuildInitialUserPrompt("测试");
 

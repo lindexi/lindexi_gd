@@ -10,8 +10,8 @@ public sealed class SlideMlPipelineContextTests
     {
         var context = new SlideMlPipelineContext();
 
-        Assert.AreEqual(1280, context.CanvasWidth);
-        Assert.AreEqual(720, context.CanvasHeight);
+        Assert.AreEqual(1280, context.SlideDocumentContext.CanvasWidth);
+        Assert.AreEqual(720, context.SlideDocumentContext.CanvasHeight);
     }
 
     [TestMethod]
@@ -19,8 +19,8 @@ public sealed class SlideMlPipelineContextTests
     {
         var context = new SlideMlPipelineContext(1920, 1080);
 
-        Assert.AreEqual(1920, context.CanvasWidth);
-        Assert.AreEqual(1080, context.CanvasHeight);
+        Assert.AreEqual(1920, context.SlideDocumentContext.CanvasWidth);
+        Assert.AreEqual(1080, context.SlideDocumentContext.CanvasHeight);
     }
 
     [TestMethod]

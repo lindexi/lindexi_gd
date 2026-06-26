@@ -3,7 +3,8 @@
 namespace PptxGenerator.Models;
 
 /// <summary>
-/// 渲染流水线共享上下文，包含画布尺寸等全局配置以及诊断信息收集。
+/// 渲染流水线共享上下文，包含诊断信息收集与资源管理。
+/// 画布尺寸等不可变配置通过 <see cref="SlideDocumentContext"/> 属性暴露。
 /// 仅允许通过 <see cref="AddWarning"/> / <see cref="AddError"/> 追加，
 /// 通过 <see cref="Reset"/> 清空，外部不可直接修改集合。
 /// </summary>
@@ -13,22 +14,10 @@ public sealed class SlideMlPipelineContext
     private readonly List<string> _errors = new();
 
     /// <summary>
-    /// 默认画布宽度。
+    /// 初始化 <see cref="SlideMlPipelineContext"/> 的新实例，使用默认画布尺寸。
     /// </summary>
-    public const int DefaultCanvasWidth = 1280;
-
-    /// <summary>
-    /// 默认画布高度。
-    /// </summary>
-    public const int DefaultCanvasHeight = 720;
-
-    /// <summary>
-    /// 初始化 <see cref="SlideMlPipelineContext"/> 的新实例。
-    /// </summary>
-    public SlideMlPipelineContext()
+    public SlideMlPipelineContext() : this(slideDocumentContext: null)
     {
-        CanvasWidth = DefaultCanvasWidth;
-        CanvasHeight = DefaultCanvasHeight;
     }
 
     /// <summary>
@@ -37,20 +26,23 @@ public sealed class SlideMlPipelineContext
     /// <param name="canvasWidth">画布宽度。</param>
     /// <param name="canvasHeight">画布高度。</param>
     public SlideMlPipelineContext(int canvasWidth, int canvasHeight)
+        : this(new SlideDocumentContext(canvasWidth, canvasHeight))
     {
-        CanvasWidth = canvasWidth;
-        CanvasHeight = canvasHeight;
     }
 
     /// <summary>
-    /// 画布宽度（像素）。
+    /// 初始化 <see cref="SlideMlPipelineContext"/> 的新实例并指定文档上下文。
     /// </summary>
-    public int CanvasWidth { get; }
+    /// <param name="slideDocumentContext">文档级上下文，包含画布尺寸等配置；为 <see langword="null"/> 时使用默认值。</param>
+    public SlideMlPipelineContext(SlideDocumentContext? slideDocumentContext)
+    {
+        SlideDocumentContext = slideDocumentContext ?? new SlideDocumentContext();
+    }
 
     /// <summary>
-    /// 画布高度（像素）。
+    /// 文档级上下文，包含画布尺寸等不可变的全局配置。
     /// </summary>
-    public int CanvasHeight { get; }
+    public SlideDocumentContext SlideDocumentContext { get; }
 
     /// <summary>
     /// 渲染过程中的警告信息（只读）。

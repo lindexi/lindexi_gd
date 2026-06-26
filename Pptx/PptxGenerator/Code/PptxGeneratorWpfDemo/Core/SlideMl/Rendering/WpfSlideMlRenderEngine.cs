@@ -47,12 +47,12 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
 
-        var bitmap = new RenderTargetBitmap(context.CanvasWidth, context.CanvasHeight, 96.0, 96.0, PixelFormats.Pbgra32);
+        var bitmap = new RenderTargetBitmap(context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight, 96.0, 96.0, PixelFormats.Pbgra32);
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
         {
             dc.DrawRectangle(CreateBrush(page.Background, Colors.White), null,
-                new Rect(0, 0, context.CanvasWidth, context.CanvasHeight));
+                new Rect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight));
             DrawElements(dc, page.Children, context);
         }
         bitmap.Render(visual);
@@ -65,12 +65,12 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(context);
 
-        var bitmap = new RenderTargetBitmap(context.CanvasWidth, context.CanvasHeight, 96.0, 96.0, PixelFormats.Pbgra32);
+        var bitmap = new RenderTargetBitmap(context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight, 96.0, 96.0, PixelFormats.Pbgra32);
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
         {
-            dc.DrawRectangle(CreateBrush("#FFF8FAFC", Colors.White), null, new Rect(0, 0, context.CanvasWidth, context.CanvasHeight));
-            dc.DrawRectangle(null, new Pen(CreateBrush("#FFFCA5A5", Colors.Red), 2), new Rect(80, 80, context.CanvasWidth - 160, context.CanvasHeight - 160));
+            dc.DrawRectangle(CreateBrush("#FFF8FAFC", Colors.White), null, new Rect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight));
+            dc.DrawRectangle(null, new Pen(CreateBrush("#FFFCA5A5", Colors.Red), 2), new Rect(80, 80, context.SlideDocumentContext.CanvasWidth - 160, context.SlideDocumentContext.CanvasHeight - 160));
 
             var titleTypeface = new Typeface(new FontFamily("Microsoft YaHei"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
             var titleText = new FormattedText(
@@ -83,7 +83,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
                 GetDpi())
             {
                 TextAlignment = TextAlignment.Left,
-                MaxTextWidth = context.CanvasWidth - 240,
+                MaxTextWidth = context.SlideDocumentContext.CanvasWidth - 240,
                 MaxTextHeight = 80,
                 LineHeight = 40,
                 Trimming = TextTrimming.None,
@@ -100,8 +100,8 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
                 GetDpi())
             {
                 TextAlignment = TextAlignment.Left,
-                MaxTextWidth = context.CanvasWidth - 240,
-                MaxTextHeight = context.CanvasHeight - 260,
+                MaxTextWidth = context.SlideDocumentContext.CanvasWidth - 240,
+                MaxTextHeight = context.SlideDocumentContext.CanvasHeight - 260,
                 LineHeight = 28,
                 Trimming = TextTrimming.CharacterEllipsis,
             };

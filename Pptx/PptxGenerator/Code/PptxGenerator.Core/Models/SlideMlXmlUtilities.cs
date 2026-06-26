@@ -60,8 +60,8 @@ public static class SlideMlXmlUtilities
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
         var root = document.Root ?? throw new SlideMlRootElementException("SlideML 缺少根元素。");
 
-        root.SetAttributeValue("ActualWidth", FormatNumber(context.CanvasWidth));
-        root.SetAttributeValue("ActualHeight", FormatNumber(context.CanvasHeight));
+        root.SetAttributeValue("ActualWidth", FormatNumber(context.SlideDocumentContext.CanvasWidth));
+        root.SetAttributeValue("ActualHeight", FormatNumber(context.SlideDocumentContext.CanvasHeight));
 
         foreach (var xmlElement in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image" or "Span" or "Fill" or "Stroke" or "Shadow" or "LinearGradient" or "Stop" or "Page.Styles" or "TextStyle"))
         {
