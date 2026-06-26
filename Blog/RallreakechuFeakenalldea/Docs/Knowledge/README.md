@@ -21,9 +21,10 @@
 | 左侧文件夹树与文件夹查找怎么接进来 | `Avalonia/Folder-Explorer-And-Folder-Find.md` |
 | 目录树如何跟随当前文档并适配深色主题 | `Avalonia/Folder-TreeView-Selection-And-Theme.md` |
 | 编辑器选区如何发送到 Copilot 聊天 | `Design/TextEditor-Selection-To-Copilot-ContextMenu.md` |
-| 回车自动缩进策略与语言感知 | `Avalonia/Auto-Indent-Strategy.md` |
+| 回车自动缩进策略与语言感知 | `Design/Auto-Indent-Strategy.md` |
 | 聊天气泡模板与 MVVM 边界怎么拆 | `Design/MVVM-Layer-Responsibilities-And-ChatTemplateSelector.md` |
 | Markdown 链接为何能高亮并支持命中测试 | `Avalonia/Markdown-Url-Highlighting.md` |
+| Markdown 粘贴图片如何保存与插入引用 | `Design/Markdown-Image-Paste.md` |
 | 默认快捷键和文件选择器在哪里接入 | `Avalonia/Shortcut-Defaults-And-FilePicker.md` |
 | 标签页右键菜单如何定位到文件资源管理器 | `Avalonia/TabBar-ContextMenu-And-Explorer.md` |
 | 标签关闭前如何提示未保存内容并写入临时快照 | `Avalonia/Unsaved-Tab-Close-And-Temp-Autosave.md` |
@@ -37,13 +38,12 @@
 
 | 文档 | 主题 | 适用场景 |
 |---|---|---|
-| `Auto-Indent-Strategy.md` | 回车自动缩进策略与语言感知 | 实现或调整回车换行时的智能缩进行为、扩展新语言支持时 |
-| `Code-Highlighting-Categories-And-Extensions.md` | 代码着色三分类与扩展名路由 | 扩展文件类型高亮、排查 Markdown 代码块或整篇代码文档着色时 |
+| `Code-Highlighting-Categories-And-Extensions.md` |
 | `Find-Replace-Panel.md` | 查找替换面板与搜索选项组织方式 | 扩展查找栏、正则选项、文件夹搜索结果展示时 |
 | `Folder-Explorer-And-Folder-Find.md` | 左侧文件夹树与文件夹查找的组织方式 | 增加资源管理器、扩展文件夹查找、排查结果定位链路时 |
 | `Folder-TreeView-Selection-And-Theme.md` | 目录树跟随当前文档与深色主题样式 | 调整目录树联动、选中态、Chevron 配色时 |
 | `Line-Number-Renderer.md` | 编辑器行号渲染与跨行处理 | 需要显示行号、处理自动换行跨行、优化行号绘制性能时 |
-| `Markdown-Url-Highlighting.md` | Markdown 正文 URL 高亮与命中信息记录 | 需要识别链接、命中链接、准备点击打开能力时 |
+| `Markdown-Url-Highlighting.md` |
 | `Shortcut-Defaults-And-FilePicker.md` | 快捷键默认方案与文件选择器注入 | 新增命令、调整快捷键、接入打开/保存对话框时 |
 | `TabBar-ContextMenu-And-Explorer.md` | 标签栏右键菜单与文件资源管理器联动 | 扩展标签交互入口、定位文件时 |
 | `Unsaved-Tab-Close-And-Temp-Autosave.md` | 标签关闭确认与临时快照自动保存 | 需要避免草稿丢失、扩展关闭确认或恢复策略时 |
@@ -53,6 +53,7 @@
 
 | 文档 | 主题 | 适用场景 |
 |---|---|---|
+| `Auto-Indent-Strategy.md` | 回车自动缩进策略与语言感知 | 实现或调整回车换行时的智能缩进行为、扩展新语言支持时 |
 | `Command-Pattern-And-Local-Transform.md` | 编辑器右键命令模式与 Copilot 本地转换 | 扩展右键菜单能力、增加 URL/命令/编码转换处理时 |
 | `Copilot-AgentSession-And-HumanSession-Split.md` | Copilot 人类会话与 AgentSession 分层 | 需要让模型上下文改走 `AgentSession`、恢复机器记忆、准备对话压缩时 |
 | `Copilot-AgentSession-State-Provider-And-Logging.md` | Copilot AgentSession 延迟序列化与日志边界 | 调整日志接口、排查 `AgentSessionState` 落盘时机、准备独立会话恢复能力时 |
@@ -63,6 +64,7 @@
 | `Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` | Copilot 流式消息片段、人工审批工具与工作区工具异步化 | 调整思考/工具/正文交错输出、接入人工审批工具、排查工具执行卡顿时 |
 | `Copilot-Workspace-Default-Tools.md` | Copilot 默认工作路径工具接入方式 | 扩展默认只读工具、排查打开文件夹后的仓库查阅能力时 |
 | `Copilot-Workspace-Primary-And-Secondary-Paths.md` | Copilot 主副工作区路径协同规则 | 需要区分目录工作区与当前文档目录、排查相对路径解析时 |
+| `Markdown-Image-Paste.md` | 粘贴策略模式与 Markdown 图片粘贴 | 扩展粘贴行为、支持剪贴板图片保存与引用插入、自定义保存路径模板时 |
 | `MVVM-Layer-Responsibilities-And-ChatTemplateSelector.md` | 聊天消息模板选择与 MVVM 职责边界 | 调整 Copilot 聊天 UI、梳理 Model/View/ViewModel 责任时 |
 | `TextEditor-Selection-To-Copilot-ContextMenu.md` | 文本选区发送到 Copilot 聊天的完整链路 | 理解编辑器与 Copilot 侧栏的协作边界时 |
 
