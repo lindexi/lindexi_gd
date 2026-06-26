@@ -183,8 +183,7 @@ public partial class CommandPaletteView : UserControl
             }
         }
 
-        Margin = new Thickness(x, y, 0, 0);
-        RenderTransform = null;
+        RenderTransform = new TranslateTransform(x, y);
     }
 
     /// <inheritdoc />
@@ -208,6 +207,7 @@ public partial class CommandPaletteView : UserControl
                 {
                     SearchInput.Focus();
                     SearchInput.SelectAll();
+                    CommandListBox.SelectedIndex = 0;
                 });
             }
         }
@@ -222,9 +222,12 @@ public partial class CommandPaletteView : UserControl
                 e.Handled = true;
                 break;
             case Key.Enter:
-                if (_editor is { } editor && ViewModel is { } viewModel)
+                if (_editor is { } editor && ViewModel is { } viewModel
+                    && CommandListBox.SelectedIndex is >= 0
+                    && CommandListBox.ItemCount > CommandListBox.SelectedIndex)
                 {
-                    _ = viewModel.ExecuteSelectedAsync(editor);
+                    var item = (CommandPaletteItem) CommandListBox.Items[CommandListBox.SelectedIndex]!;
+                    _ = viewModel.ExecuteAsync(item, editor);
                 }
 
                 e.Handled = true;
@@ -246,19 +249,39 @@ public partial class CommandPaletteView : UserControl
     /// <param name="direction">移动方向，正值向后，负值向前。</param>
     private void MoveSelection(int direction)
     {
-        var items = ViewModel?.FilteredCommands;
-        if (items is null || items.Count == 0)
+        int count = CommandListBox.ItemCount;
+        if (count == 0)
         {
             return;
         }
 
-        int currentIndex = ViewModel!.SelectedItem is not null
-            ? items.IndexOf(ViewModel.SelectedItem)
-            : -1;
-
-        int newIndex = (currentIndex + direction + items.Count) % items.Count;
-        ViewModel.SelectedItem = items[newIndex];
+        int currentIndex = CommandListBox.SelectedIndex;
+        int newIndex = (currentIndex + direction + count) % count;
+        CommandListBox.SelectedIndex = newIndex;
         CommandListBox.ScrollIntoView(newIndex);
+    }
+
+    private void CommandListBox_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_editor is not { } editor || ViewModel is not { } viewModel)
+        {
+            return;
+        }
+
+        // 通过命中测试获取被点击的 ListBoxItem，取其 DataContext 作为命令项
+        if (e.Source is not Visual source)
+        {
+            return;
+        }
+
+        var item = source.FindAncestorOfType<ListBoxItem>(true)?.DataContext as CommandPaletteItem;
+        if (item is null)
+        {
+            return;
+        }
+
+        _ = viewModel.ExecuteAsync(item, editor);
+        e.Handled = true;
     }
 
     private void DragHandle_OnPointerPressed(object? sender, PointerPressedEventArgs e)
