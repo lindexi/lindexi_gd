@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -93,7 +95,7 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
             var sourceSpan = markdownUrlInfo.SourceSpan;
             var hitCaretOffset = result.HitCaretOffset.Offset;
 
-            if(sourceSpan.Start <= hitCaretOffset
+            if (sourceSpan.Start <= hitCaretOffset
                && hitCaretOffset <= sourceSpan.End
                && markdownUrlInfo.Url is var url)
             {
@@ -149,33 +151,33 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
     }
 
     protected override void BreakLine()
+    {
+        if (!SimpleWriteTextEditor.IsAutoIndentEnabled)
         {
-            if (!SimpleWriteTextEditor.IsAutoIndentEnabled)
-            {
-                base.BreakLine();
-                return;
-            }
-
-            var paragraph = TextEditor.GetCurrentCaretOffsetParagraph();
-            var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
-            var paragraphStartOffset = paragraphSelection.StartOffset.Offset;
-            var caretOffset = TextEditor.CurrentCaretOffset.Offset;
-            var caretColumnInLine = caretOffset - paragraphStartOffset;
-            var currentLineText = paragraph.GetText();
-
-            var strategy = AutoIndentStrategySelector.GetStrategy(SimpleWriteTextEditor.DocumentHighlightDefinition);
-            var indentText = strategy.GetIndentText(currentLineText, caretColumnInLine);
-
-            if (indentText.Length == 0)
-            {
-                base.BreakLine();
-                return;
-            }
-
-            PerformInput("\n" + indentText);
+            base.BreakLine();
+            return;
         }
 
-        protected override void OnKeyUp(KeyEventArgs e)
+        var paragraph = TextEditor.GetCurrentCaretOffsetParagraph();
+        var paragraphSelection = TextEditor.GetParagraphSelection(paragraph);
+        var paragraphStartOffset = paragraphSelection.StartOffset.Offset;
+        var caretOffset = TextEditor.CurrentCaretOffset.Offset;
+        var caretColumnInLine = caretOffset - paragraphStartOffset;
+        var currentLineText = paragraph.GetText();
+
+        var strategy = AutoIndentStrategySelector.GetStrategy(SimpleWriteTextEditor.DocumentHighlightDefinition);
+        var indentText = strategy.GetIndentText(currentLineText, caretColumnInLine);
+
+        if (indentText.Length == 0)
+        {
+            base.BreakLine();
+            return;
+        }
+
+        PerformInput("\n" + indentText);
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
     {
         base.OnKeyUp(e);
     }
