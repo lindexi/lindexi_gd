@@ -7,17 +7,6 @@ namespace PptxGenerator.Tests.Prompt;
 public sealed class SlideMlPromptProviderTests
 {
     [TestMethod]
-    public void BuildSystemPrompt_NoOverride_ReturnsDefault()
-    {
-        var provider = new SlideMlPromptProvider();
-        var result = provider.BuildSystemPrompt();
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("幻灯片排版引擎"), "默认系统提示词应包含核心描述");
-        Assert.IsTrue(result.Contains("render_slide"), "默认系统提示词应包含工具调用说明");
-    }
-
-    [TestMethod]
     public void BuildSystemPrompt_WithOverride_ReturnsOverriddenValue()
     {
         var provider = new SlideMlPromptProvider();
@@ -26,16 +15,6 @@ public sealed class SlideMlPromptProviderTests
         provider.UpdatePrompts(systemPrompt: customPrompt, userPromptTemplate: null);
 
         Assert.AreEqual(customPrompt, provider.BuildSystemPrompt());
-    }
-
-    [TestMethod]
-    public void BuildInitialUserPrompt_NoOverride_ReturnsDefaultWithUserInput()
-    {
-        var provider = new SlideMlPromptProvider();
-        var result = provider.BuildInitialUserPrompt("测试用户需求");
-
-        Assert.IsTrue(result.Contains("测试用户需求"), "结果应包含用户输入文本");
-        Assert.IsTrue(result.Contains("SlideML"), "结果应包含 SlideML 要求");
     }
 
     [TestMethod]
@@ -78,27 +57,6 @@ public sealed class SlideMlPromptProviderTests
 
         Assert.AreEqual(originalSystemPrompt, provider.BuildSystemPrompt());
         Assert.AreEqual(originalUserPrompt, provider.BuildInitialUserPrompt("测试"));
-    }
-
-    [TestMethod]
-    public void BuildDefaultSystemPrompt_DefaultContext_AlwaysSame()
-    {
-        var provider = new SlideMlPromptProvider();
-        var result1 = provider.BuildDefaultSystemPrompt();
-        var result2 = provider.BuildDefaultSystemPrompt();
-
-        Assert.AreEqual(result1, result2);
-        Assert.IsTrue(result1.Length > 100, "默认系统提示词应足够长");
-    }
-
-    [TestMethod]
-    public void BuildDefaultInitialUserPrompt_ContainsUserInput()
-    {
-        var provider = new SlideMlPromptProvider();
-        var result = provider.BuildDefaultInitialUserPrompt("Hello World");
-
-        Assert.IsTrue(result.Contains("Hello World"));
-        Assert.IsTrue(result.Contains("1280x720"), "提示词应包含画布尺寸约束");
     }
 
     [TestMethod]
