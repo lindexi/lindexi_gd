@@ -151,4 +151,68 @@ public sealed class SlideMlCornerRadiusTests
         Assert.AreEqual(12.5, result.BottomRight);
         Assert.AreEqual(12.5, result.BottomLeft);
     }
+
+    [TestMethod]
+    public void ToString_UniformValues_OutputsSingleValue()
+    {
+        var cornerRadius = new SlideMlCornerRadius
+        {
+            TopLeft = 8, TopRight = 8, BottomRight = 8, BottomLeft = 8,
+        };
+
+        Assert.AreEqual("8", cornerRadius.ToString());
+    }
+
+    [TestMethod]
+    public void ToString_DifferentValues_OutputsFourValues()
+    {
+        var cornerRadius = new SlideMlCornerRadius
+        {
+            TopLeft = 8, TopRight = 16, BottomRight = 12, BottomLeft = 20,
+        };
+
+        Assert.AreEqual("8,16,12,20", cornerRadius.ToString());
+    }
+
+    [TestMethod]
+    public void ToString_DecimalValues_UsesInvariantCulture()
+    {
+        var cornerRadius = new SlideMlCornerRadius
+        {
+            TopLeft = 8.5, TopRight = 16.5, BottomRight = 8.5, BottomLeft = 16.5,
+        };
+
+        Assert.AreEqual("8.5,16.5,8.5,16.5", cornerRadius.ToString());
+    }
+
+    [TestMethod]
+    public void ToString_ZeroValues_OutputsZero()
+    {
+        var cornerRadius = new SlideMlCornerRadius
+        {
+            TopLeft = 0, TopRight = 0, BottomRight = 0, BottomLeft = 0,
+        };
+
+        Assert.AreEqual("0", cornerRadius.ToString());
+    }
+
+    [TestMethod]
+    public void RoundTrip_SingleValue_ParseToStringEqualsOriginal()
+    {
+        var original = SlideMlCornerRadius.Parse("8")!.Value;
+        var roundTrip = SlideMlCornerRadius.Parse(original.ToString());
+
+        Assert.IsNotNull(roundTrip);
+        Assert.AreEqual(original, roundTrip!.Value);
+    }
+
+    [TestMethod]
+    public void RoundTrip_FourValues_ParseToStringEqualsOriginal()
+    {
+        var original = SlideMlCornerRadius.Parse("8,16,12,20")!.Value;
+        var roundTrip = SlideMlCornerRadius.Parse(original.ToString());
+
+        Assert.IsNotNull(roundTrip);
+        Assert.AreEqual(original, roundTrip!.Value);
+    }
 }

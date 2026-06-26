@@ -100,7 +100,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 ### Panel
 属性: X, Y, Width, Height（均可选）, Padding（可选，默认 0）, Background（可选）, Layout（Absolute/Horizontal/Vertical，默认 Absolute）, Gap（流式布局间距，默认 0）, Margin（外边距，逗号分隔 1~4 个值）
 ### Rect
-属性: X, Y, Width, Height（均可选）, Fill, Stroke, StrokeThickness, CornerRadius（单值，默认 0）, StrokeDashArray（虚线描边，逗号分隔数值）, Shadow（属性形式 "OffsetX OffsetY Blur Color"）, Margin（外边距，逗号分隔 1~4 个值）, HorizontalAlignment（Left/Center/Right）, VerticalAlignment（Top/Center/Bottom）, Opacity（0.0~1.0）
+属性: X, Y, Width, Height（均可选）, Fill, Stroke, StrokeThickness, CornerRadius（圆角半径，支持 1~4 值逗号分隔，默认 0）, StrokeDashArray（虚线描边，逗号分隔数值）, Shadow（属性形式 "OffsetX OffsetY Blur Color"）, Margin（外边距，逗号分隔 1~4 个值）, HorizontalAlignment（Left/Center/Right）, VerticalAlignment（Top/Center/Bottom）, Opacity（0.0~1.0）
 ### TextElement
 属性: X, Y, Width, Height（均可选）, Text（必填）, FontName（默认 Microsoft YaHei）, FontSize（默认 16）, IsBold（True/False）, IsItalic（True/False）, Foreground（默认 #000000）, TextAlignment（Left/Center/Right/Justify，默认 Left）, HorizontalAlignment, VerticalAlignment, Opacity, Margin（外边距，逗号分隔 1~4 个值）
 ### Image
@@ -120,12 +120,12 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 6. Panel 设置 Layout="Horizontal"/"Vertical" 时子元素沿排列轴依次排列，排列轴上的 X/Y 被忽略，使用 Gap 和 Margin 控制间距
 7. 流式布局实际间距 = max(Gap, 前元素尾Margin + 后元素头Margin)
 8. 流式布局不支持 Wrap，子元素超出时产生 Warning
-9. CornerRadius 仅支持单值
+9. CornerRadius 支持 1~4 个值逗号分隔（四角简写规则），如 "8" 四角统一，"8,0,8,0" 左上/右下圆角、右上/左下直角
 
 ## 禁止事项
 - 不要写 ActualWidth、ActualHeight、ActualLineCount 属性
 - 不要创造未定义的标签或属性
-- 不要使用 XAML、CSS、XAML 、HTML 等其他语法
+- 不要使用 XAML、HTML 等其他语法
 
 ## 输出格式
 - 直接输出 XML，不要使用 markdown 代码块包裹

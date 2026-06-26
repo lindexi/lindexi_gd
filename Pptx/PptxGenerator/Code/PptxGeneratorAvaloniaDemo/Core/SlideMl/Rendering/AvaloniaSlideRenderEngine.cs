@@ -305,7 +305,6 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
     private static void DrawRect(DrawingContext dc, SlideMlRectElement rect)
     {
         var bounds = ToRect(rect.LayoutBounds);
-        var cornerRadius = rect.CornerRadius?.TopLeft ?? 0;
 
         var fillBrush = CreateAvaloniaBrush(rect.Fill, Colors.Transparent);
         var strokeBrush = rect.StrokeThickness > 0
@@ -321,10 +320,23 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
             pen = new Pen(strokeBrush, rect.StrokeThickness, dashStyle);
         }
 
-        if (cornerRadius > 0)
+        if (rect.CornerRadius is { } radius)
         {
-            var roundedRect = new RoundedRect(bounds, cornerRadius, cornerRadius, cornerRadius, cornerRadius);
-            dc.DrawRectangle(fillBrush, pen, roundedRect);
+            var maxRadius = Math.Min(bounds.Width / 2, bounds.Height / 2);
+            var tl = Math.Clamp(radius.TopLeft, 0, maxRadius);
+            var tr = Math.Clamp(radius.TopRight, 0, maxRadius);
+            var br = Math.Clamp(radius.BottomRight, 0, maxRadius);
+            var bl = Math.Clamp(radius.BottomLeft, 0, maxRadius);
+
+            if (tl > 0 || tr > 0 || br > 0 || bl > 0)
+            {
+                var roundedRect = new RoundedRect(bounds, tl, tr, br, bl);
+                dc.DrawRectangle(fillBrush, pen, roundedRect);
+            }
+            else
+            {
+                dc.DrawRectangle(fillBrush, pen, bounds);
+            }
         }
         else
         {
@@ -360,27 +372,39 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
             shadowColor.G,
             shadowColor.B);
         var shadowBrush = new SolidColorBrush(shadowColor);
-        var cornerRadius = radius?.TopLeft ?? 0;
 
         // 模糊半径 > 0 时，通过缩放渲染模拟模糊效果
         if (shadow.Blur > 0)
         {
-            DrawBlurredShadow(dc, shadowBrush, shadowBounds, cornerRadius, shadow.Blur);
+            DrawBlurredShadow(dc, shadowBrush, shadowBounds, radius, shadow.Blur);
         }
         else
         {
-            DrawShadowRect(dc, shadowBrush, shadowBounds, cornerRadius);
+            DrawShadowRect(dc, shadowBrush, shadowBounds, radius);
         }
     }
 
     /// <summary>
-    /// 绘制无模糊的阴影矩形。
+    /// 绘制无模糊的阴影矩形，圆角跟随元素四角独立值。
     /// </summary>
-    private static void DrawShadowRect(DrawingContext dc, IBrush shadowBrush, Rect bounds, double cornerRadius)
+    private static void DrawShadowRect(DrawingContext dc, IBrush shadowBrush, Rect bounds, SlideMlCornerRadius? radius)
     {
-        if (cornerRadius > 0)
+        if (radius is { } r)
         {
-            dc.DrawRectangle(shadowBrush, null, new RoundedRect(bounds, cornerRadius, cornerRadius, cornerRadius, cornerRadius));
+            var maxRadius = Math.Min(bounds.Width / 2, bounds.Height / 2);
+            var tl = Math.Clamp(r.TopLeft, 0, maxRadius);
+            var tr = Math.Clamp(r.TopRight, 0, maxRadius);
+            var br = Math.Clamp(r.BottomRight, 0, maxRadius);
+            var bl = Math.Clamp(r.BottomLeft, 0, maxRadius);
+
+            if (tl > 0 || tr > 0 || br > 0 || bl > 0)
+            {
+                dc.DrawRectangle(shadowBrush, null, new RoundedRect(bounds, tl, tr, br, bl));
+            }
+            else
+            {
+                dc.DrawRectangle(shadowBrush, null, bounds);
+            }
         }
         else
         {
@@ -389,9 +413,9 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
     }
 
     /// <summary>
-    /// 通过缩小渲染再放大绘制的方式模拟高斯模糊阴影。
+    /// 通过缩小渲染再放大绘制的方式模拟高斯模糊阴影，圆角按比例缩放。
     /// </summary>
-    private static void DrawBlurredShadow(DrawingContext dc, IBrush shadowBrush, Rect bounds, double cornerRadius, double blur)
+    private static void DrawBlurredShadow(DrawingContext dc, IBrush shadowBrush, Rect bounds, SlideMlCornerRadius? radius, double blur)
     {
         // 模糊扩展区域
         var extendedBounds = new Rect(
@@ -414,10 +438,21 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         using (var sdc = shadowBitmap.CreateDrawingContext())
         {
             var smallBounds = new Rect(0, 0, smallWidth, smallHeight);
-            var smallRadius = cornerRadius * scale;
-            if (smallRadius > 0)
+            if (radius is { } r)
             {
-                sdc.DrawRectangle(shadowBrush, null, new RoundedRect(smallBounds, smallRadius, smallRadius, smallRadius, smallRadius));
+                var tl = r.TopLeft * scale;
+                var tr = r.TopRight * scale;
+                var br = r.BottomRight * scale;
+                var bl = r.BottomLeft * scale;
+
+                if (tl > 0 || tr > 0 || br > 0 || bl > 0)
+                {
+                    sdc.DrawRectangle(shadowBrush, null, new RoundedRect(smallBounds, tl, tr, br, bl));
+                }
+                else
+                {
+                    sdc.DrawRectangle(shadowBrush, null, smallBounds);
+                }
             }
             else
             {

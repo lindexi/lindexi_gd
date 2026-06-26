@@ -75,7 +75,7 @@
 ### 已实现内容
 
 **新增枚举和基础类型（`SlideDocument.cs`）：**
-- `SlideMlCornerRadius` 记录结构：`TopLeft, TopRight, BottomRight, BottomLeft`，支持从单个值隐式转换（代码保留四值解析能力，但规范文档只对外声明单值）
+- `SlideMlCornerRadius` 记录结构：`TopLeft, TopRight, BottomRight, BottomLeft`，支持从单个值隐式转换，`Parse` 支持 1~4 值四角简写，`ToString` 输出最简形式
 - `SlideMlGradientStop` 类：`Offset`（0~1）、`Color`（string）
 - `SlideMlLinearGradientBrush` 类：`X1, Y1, X2, Y2`（0~1）、`Stops`（`IReadOnlyList<SlideMlGradientStop>`）
 - `SlideMlSolidColorBrush` 类：`Color`（string）
@@ -123,7 +123,7 @@
 
 ## 阶段三：渲染引擎 V2 能力 ✅ WPF 版已完成 / ⚠️ Avalonia 版部分完成
 
-> 涉及文件：`PptxGeneratorWpfDemo\Core\SlideMl\Rendering\SlideRenderEngine.cs`（799 行）、`PptxGeneratorAvaloniaDemo\Core\SlideMl\Rendering\AvaloniaSlideRenderEngine.cs`（394 行）
+> 涉及文件：`PptxGeneratorWpfDemo\Core\SlideMl\Rendering\WpfSlideMlRenderEngine.cs`、`PptxGeneratorAvaloniaDemo\Core\SlideMl\Rendering\AvaloniaSlideRenderEngine.cs`
 
 ### WPF 渲染引擎（✅ 已完成）
 
@@ -133,7 +133,7 @@
 - **阴影渲染**：`DrawShadow` 方法，在元素下方绘制偏移+模糊的阴影矩形
 - **IsBold/IsItalic 支持**：`PreMeasureText` 中根据 `IsBold` 构建 `FontWeight`，根据 `IsItalic` 构建 `FontStyle`
 - **富文本 Span 渲染**：`DrawText` 支持逐段绘制 Span，每段独立样式
-- **CornerRadius**：`DrawRect` 支持圆角矩形（单值，四角统一）
+- **CornerRadius**：`DrawRoundedRect` 支持四角独立圆角（StreamGeometry + ArcTo 路径），统一值走快速路径
 - **StrokeDashArray**：`DrawRect` 支持虚线描边
 
 ### Avalonia 渲染引擎（⚠️ 部分完成）
@@ -147,7 +147,7 @@
 
 | 功能 | 状态 | 说明 |
 |------|------|------|
-| CornerRadius | ❌ | `DrawRect` 未处理圆角，当前使用 `dc.FillRectangle` / `dc.DrawRectangle` 绘制直角矩形 |
+| CornerRadius | ✅ | `DrawRect` 支持四角独立圆角（`RoundedRect` 四角独立构造），`DrawShadow`/`DrawBlurredShadow` 同步支持 |
 | Shadow 阴影 | ❌ | `DrawRect` 未处理阴影绘制 |
 | StrokeDashArray 虚线 | ❌ | `DrawRect` 未处理虚线描边 |
 | Span 富文本 | ❌ | `DrawText` 仅使用 TextLayout 渲染纯文本，未支持 Span 逐段样式混排 |
@@ -158,9 +158,7 @@
 
 > 涉及文件：`SlideRenderTool.cs`、`SlideMlPromptProvider.cs`、`SlideRenderPipeline.cs`
 
-### 4.1 提示词更新（最高优先级）
-
-**当前状态**：`SlideMlPromptProvider.BuildDefaultSystemPrompt()` 仍是 V1 版本，完全缺失 V2 新功能说明。
+### 4.1 提示词更新（最高优先级）✅ 已完成（CornerRadius 四角独立已同步更新）
 
 **待实现内容：**
 - 在系统提示词中加入 V2 新标签/属性说明：
@@ -169,7 +167,7 @@
   - 阴影：`Shadow` 属性形式和 `<Shadow>` 子元素形式
   - 字体控制：`IsBold`、`IsItalic`
   - 富文本：`<Span>` 子元素
-  - 圆角：`CornerRadius`（仅单值）
+  - 圆角：`CornerRadius`（支持 1~4 值逗号分隔，四角简写规则）
   - 虚线：`StrokeDashArray`
   - Page.Styles：TextStyle 定义和引用
 - 更新排版规则，说明流式布局的行为和约束

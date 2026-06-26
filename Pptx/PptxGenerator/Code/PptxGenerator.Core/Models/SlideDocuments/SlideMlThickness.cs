@@ -29,7 +29,7 @@ public readonly record struct SlideMlThickness
 
     /// <summary>
     /// 从逗号分隔的字符串解析，如 "0,0,0,8"。
-    /// 支持 1~4 个值，按 CSS margin 简写规则展开。
+    /// 支持 1~4 个值，按四边简写规则展开。
     /// </summary>
     public static SlideMlThickness? Parse(string? text)
     {

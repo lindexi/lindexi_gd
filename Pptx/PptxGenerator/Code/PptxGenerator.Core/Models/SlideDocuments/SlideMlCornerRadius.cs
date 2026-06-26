@@ -41,7 +41,7 @@ public readonly record struct SlideMlCornerRadius
 
     /// <summary>
     /// 从逗号分隔的字符串解析，如 "8,16,8,16"。
-    /// 支持 1~4 个值，按 CSS border-radius 简写规则展开。
+    /// 支持 1~4 个值，按四角简写规则展开。
     /// </summary>
     public static SlideMlCornerRadius? Parse(string? text)
     {
@@ -69,5 +69,22 @@ public readonly record struct SlideMlCornerRadius
             3 => new SlideMlCornerRadius { TopLeft = values[0], TopRight = values[1], BottomRight = values[2], BottomLeft = values[1] },
             _ => new SlideMlCornerRadius { TopLeft = values[0], TopRight = values[1], BottomRight = values[2], BottomLeft = values[3] },
         };
+    }
+
+    /// <summary>
+    /// 输出最简字符串形式：四角相等时输出单值，否则输出 "{TL},{TR},{BR},{BL}" 逗号分隔。
+    /// 与 <see cref="Parse"/> 对称，<c>Parse(ToString())</c> 可往返。
+    /// </summary>
+    public override string ToString()
+    {
+        if (TopLeft == TopRight && TopLeft == BottomRight && TopLeft == BottomLeft)
+        {
+            return TopLeft.ToString("R", CultureInfo.InvariantCulture);
+        }
+
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0:R},{1:R},{2:R},{3:R}",
+            TopLeft, TopRight, BottomRight, BottomLeft);
     }
 }
