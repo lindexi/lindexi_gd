@@ -48,11 +48,9 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         PipelineConfiguration configuration,
         ISlideMlPromptProvider? promptProvider = null,
         SlideDocumentContext? slideDocumentContext = null)
+        : this(copilotChatManager, slideMlRenderTool, promptProvider, slideDocumentContext,
+              configuration.SlideEvaluator, configuration.PromptEvaluator, configuration.PromptOptimizer)
     {
-        ArgumentNullException.ThrowIfNull(copilotChatManager);
-        _endpointManager = copilotChatManager.AgentApiEndpointManager;
-        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(slideDocumentContext), slideMlRenderTool, configuration);
-        AttachPipelineEvents();
     }
 
     /// <summary>
