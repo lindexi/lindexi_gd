@@ -63,29 +63,40 @@ public static class SlideMlXmlUtilities
         root.SetAttributeValue("ActualWidth", FormatNumber(context.CanvasWidth));
         root.SetAttributeValue("ActualHeight", FormatNumber(context.CanvasHeight));
 
-        foreach (var element in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image" or "Span" or "Fill" or "Stroke" or "Shadow" or "LinearGradient" or "Stop" or "Page.Styles" or "TextStyle"))
+        foreach (var xmlElement in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image" or "Span" or "Fill" or "Stroke" or "Shadow" or "LinearGradient" or "Stop" or "Page.Styles" or "TextStyle"))
         {
-            var id = (string?) element.Attribute("Id");
+            var id = (string?) xmlElement.Attribute("Id");
             if (string.IsNullOrWhiteSpace(id))
             {
                 continue;
             }
 
-            var metrics = FindMetrics(page, id);
-            if (metrics is null)
+            var modelElement = FindElement(page, id);
+            if (modelElement is null)
             {
                 continue;
             }
 
-            element.SetAttributeValue("ActualWidth", FormatNumber(metrics.ActualWidth));
-            element.SetAttributeValue("ActualHeight", FormatNumber(metrics.ActualHeight));
-            if (metrics.ActualLineCount is not null)
+            if (modelElement.X is double x)
             {
-                element.SetAttributeValue("ActualLineCount", metrics.ActualLineCount.Value);
+                xmlElement.SetAttributeValue("X", FormatNumber(x));
+            }
+
+            if (modelElement.Y is double y)
+            {
+                xmlElement.SetAttributeValue("Y", FormatNumber(y));
+            }
+
+            xmlElement.SetAttributeValue("ActualWidth", FormatNumber(modelElement.ActualWidth));
+            xmlElement.SetAttributeValue("ActualHeight", FormatNumber(modelElement.ActualHeight));
+
+            if (modelElement is SlideMlTextElement text && text.ActualLineCount is int lineCount)
+            {
+                xmlElement.SetAttributeValue("ActualLineCount", lineCount);
             }
             else
             {
-                element.Attribute("ActualLineCount")?.Remove();
+                xmlElement.Attribute("ActualLineCount")?.Remove();
             }
         }
 
@@ -102,40 +113,35 @@ public static class SlideMlXmlUtilities
         return Math.Round(value, 2).ToString("0.##");
     }
 
-    private static SlideMlRenderedMetrics? FindMetrics(SlideMlPage page, string id)
+    private static SlideMlElement? FindElement(SlideMlPage page, string id)
     {
         foreach (var child in page.Children)
         {
-            var metrics = FindMetricsInElement(child, id);
-            if (metrics is not null)
+            var element = FindElementInChildren(child, id);
+            if (element is not null)
             {
-                return metrics;
+                return element;
             }
         }
 
         return null;
     }
 
-    private static SlideMlRenderedMetrics? FindMetricsInElement(SlideMlElement element, string id)
+    private static SlideMlElement? FindElementInChildren(SlideMlElement element, string id)
     {
         if (string.Equals(element.Id, id, StringComparison.Ordinal))
         {
-            return new SlideMlRenderedMetrics
-            {
-                ActualWidth = element.ActualWidth,
-                ActualHeight = element.ActualHeight,
-                ActualLineCount = element is SlideMlTextElement text ? text.ActualLineCount : null,
-            };
+            return element;
         }
 
         if (element is SlideMlPanelElement panel)
         {
             foreach (var child in panel.Children)
             {
-                var metrics = FindMetricsInElement(child, id);
-                if (metrics is not null)
+                var found = FindElementInChildren(child, id);
+                if (found is not null)
                 {
-                    return metrics;
+                    return found;
                 }
             }
         }

@@ -28,6 +28,7 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         page.LayoutBounds = new SlideMlRect(0, 0, context.CanvasWidth, context.CanvasHeight);
         LayoutChildren(page.Children, page.LayoutBounds, parentId: "Page", clipToParent: false, context, useMeasured: true, measurements);
+        SyncLayoutBoundsToXY(page);
     }
 
     private static void LayoutChildren(
@@ -162,19 +163,62 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         var flowPosition = isHorizontal ? contentOriginX : contentOriginY;
         var crossAxisSize = 0d;
+        double? lastInFlowTrailingMargin = null;
 
         for (var i = 0; i < childSizes.Count; i++)
         {
             var (child, childWidth, childHeight) = childSizes[i];
-            var margin = child.Margin;
 
+            // 判断子元素在主轴上是否有显式坐标：有则脱离流式布局，使用绝对定位
+            var hasMainAxisExplicit = isHorizontal ? child.X.HasValue : child.Y.HasValue;
+
+            if (hasMainAxisExplicit)
+            {
+                // 脱离流：使用显式坐标定位，不推进流式游标，不参与跨轴尺寸计算
+                var mainAxisPosition = isHorizontal
+                    ? contentOriginX + child.X!.Value
+                    : contentOriginY + child.Y!.Value;
+
+                double absCrossOrigin;
+                if (isHorizontal)
+                {
+                    absCrossOrigin = ResolveOrigin(contentOriginY, crossAxisContentSize, childHeight, child.Y, child.VerticalAlignment);
+                }
+                else
+                {
+                    absCrossOrigin = ResolveOrigin(contentOriginX, crossAxisContentSize, childWidth, child.X, child.HorizontalAlignment);
+                }
+
+                if (isHorizontal)
+                {
+                    child.LocalBounds = new SlideMlRect(child.X ?? 0, child.Y ?? 0, childWidth, childHeight);
+                    child.LayoutBounds = new SlideMlRect(mainAxisPosition, absCrossOrigin, childWidth, childHeight);
+                }
+                else
+                {
+                    child.LocalBounds = new SlideMlRect(child.X ?? 0, child.Y ?? 0, childWidth, childHeight);
+                    child.LayoutBounds = new SlideMlRect(absCrossOrigin, mainAxisPosition, childWidth, childHeight);
+                }
+
+                child.ActualWidth = childWidth;
+                child.ActualHeight = childHeight;
+
+                if (child is SlideMlPanelElement absChildPanel)
+                {
+                    LayoutPanel(absChildPanel, child.LayoutBounds, absChildPanel.Id, clipToParent: true, context, useMeasured, measurements);
+                }
+
+                ValidateBounds(child, parentBounds, panel.Id, clipToParent: true, context);
+                continue;
+            }
+
+            // 流式布局：沿主轴依次排列
+            var margin = child.Margin;
             var leadingMargin = isHorizontal ? (margin?.Left ?? 0) : (margin?.Top ?? 0);
             var trailingMargin = isHorizontal ? (margin?.Right ?? 0) : (margin?.Bottom ?? 0);
 
-            if (i > 0)
+            if (lastInFlowTrailingMargin is double prevTrailingMargin)
             {
-                var prevChild = childSizes[i - 1];
-                var prevTrailingMargin = isHorizontal ? (prevChild.Child.Margin?.Right ?? 0) : (prevChild.Child.Margin?.Bottom ?? 0);
                 var effectiveGap = Math.Max(panel.Gap, prevTrailingMargin + leadingMargin);
                 flowPosition += effectiveGap;
             }
@@ -220,13 +264,13 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
             }
 
             ValidateBounds(child, parentBounds, panel.Id, clipToParent: true, context);
+
+            lastInFlowTrailingMargin = trailingMargin;
         }
 
-        if (childSizes.Count > 0)
+        if (lastInFlowTrailingMargin is double trailing)
         {
-            var lastChild = childSizes[^1];
-            var lastTrailingMargin = isHorizontal ? (lastChild.Child.Margin?.Right ?? 0) : (lastChild.Child.Margin?.Bottom ?? 0);
-            flowPosition += lastTrailingMargin;
+            flowPosition += trailing;
         }
 
         var totalFlowSize = flowPosition - (isHorizontal ? contentOriginX : contentOriginY);
@@ -458,5 +502,30 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
             SlideMlVerticalAlignment.Bottom => parentOrigin + Math.Max(0, parentSize - elementSize),
             _ => parentOrigin,
         };
+    }
+
+    /// <summary>
+    /// 遍历页面元素树，将 <see cref="SlideMlElement.LayoutBounds"/> 的坐标同步到 <see cref="SlideMlElement.X"/> 和 <see cref="SlideMlElement.Y"/>。
+    /// </summary>
+    private static void SyncLayoutBoundsToXY(SlideMlPage page)
+    {
+        foreach (var child in page.Children)
+        {
+            SyncElementXY(child);
+        }
+    }
+
+    private static void SyncElementXY(SlideMlElement element)
+    {
+        element.X = element.LayoutBounds.X;
+        element.Y = element.LayoutBounds.Y;
+
+        if (element is SlideMlPanelElement panel)
+        {
+            foreach (var child in panel.Children)
+            {
+                SyncElementXY(child);
+            }
+        }
     }
 }

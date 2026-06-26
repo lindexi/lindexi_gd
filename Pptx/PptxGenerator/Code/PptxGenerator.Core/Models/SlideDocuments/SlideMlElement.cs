@@ -12,14 +12,14 @@ public abstract class SlideMlElement
     public string Id { get; init; } = string.Empty;
 
     /// <summary>
-    /// 元素水平位置。
+    /// 元素水平位置。布局完成后由引擎回填。
     /// </summary>
-    public double? X { get; init; }
+    public double? X { get; set; }
 
     /// <summary>
-    /// 元素垂直位置。
+    /// 元素垂直位置。布局完成后由引擎回填。
     /// </summary>
-    public double? Y { get; init; }
+    public double? Y { get; set; }
 
     /// <summary>
     /// 元素宽度。

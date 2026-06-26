@@ -96,12 +96,12 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
         var r1 = (SlideMlRectElement)panel.Children[0];
         var r2 = (SlideMlRectElement)panel.Children[1];
 
-        // 流式布局中排列轴方向的 X 被忽略，r1 从 flowPosition=0 开始
-        Assert.AreEqual(0, r1.LayoutBounds.X, 0.01, "r1 排列轴 X 被忽略，从 0 开始");
+        // 流式布局中排列轴方向的 X 若设置则脱离流，r1 使用显式坐标 50
+        Assert.AreEqual(50, r1.LayoutBounds.X, 0.01, "r1 排列轴 X 设置后脱离流，使用显式坐标");
         // r1 的 LocalBounds.X 保留声明的 X 值
         Assert.AreEqual(50, r1.LocalBounds.X, 0.01, "r1 LocalBounds.X 保留声明值");
-        // r2.X = r1.Width + Gap = 100 + 8 = 108
-        Assert.AreEqual(108, r2.LayoutBounds.X, 0.01, "r2 X");
+        // r2 脱离流后不参与流式计算，r2 从 flowPosition=0 开始（前面无流式元素）
+        Assert.AreEqual(0, r2.LayoutBounds.X, 0.01, "r2 X 从流式起始位置开始，r1 已脱离流");
     }
 
     // ───────── 第 12 章：幂等性/一致性 ─────────
