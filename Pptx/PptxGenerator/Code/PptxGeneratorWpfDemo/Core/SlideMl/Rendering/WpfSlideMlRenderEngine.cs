@@ -314,7 +314,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 
     private void DrawPanel(DrawingContext dc, SlideMlPanelElement panel, SlideMlPipelineContext context)
     {
-        var backgroundBrush = CreateWpfBrush(panel.Background, ToRect(panel.LayoutBounds), Colors.Transparent);
+        var backgroundBrush = WpfSlideMlBrushConverter.CreateWpfBrush(panel.Background);
 
         if (backgroundBrush is not null)
         {
@@ -330,12 +330,12 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
     {
         var bounds = ToRect(rect.LayoutBounds);
 
-        var fillBrush = CreateWpfBrush(rect.Fill, bounds, Colors.Transparent);
+        var fillBrush = WpfSlideMlBrushConverter.CreateWpfBrush(rect.Fill);
 
         Pen? pen = null;
         if (rect.StrokeThickness > 0)
         {
-            var strokeBrush = CreateWpfBrush(rect.Stroke, bounds, Colors.Transparent);
+            var strokeBrush = WpfSlideMlBrushConverter.CreateWpfBrush(rect.Stroke);
             if (strokeBrush is not null)
             {
                 pen = new Pen(strokeBrush, rect.StrokeThickness);
@@ -698,47 +698,6 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
             var combined = texts[0];
             // 对于 span 回退，使用第一个元素作为占位
             return combined;
-        }
-
-        /// <summary>
-        /// 将 <see cref="ISlideMlBrush"/> 转换为 WPF <see cref="Brush"/>。
-        /// 纯色画刷创建 <see cref="SolidColorBrush"/>，渐变画刷创建 <see cref="LinearGradientBrush"/>。
-        /// </summary>
-        internal static Brush? CreateWpfBrush(ISlideMlBrush? brush, Rect bounds, Color fallbackColor)
-        {
-            return brush switch
-            {
-                SlideMlSolidColorBrush solid => CreateBrush(solid.Color, fallbackColor),
-                SlideMlLinearGradientBrush gradient => CreateGradientBrush(gradient, bounds),
-                _ => null,
-            };
-        }
-
-        /// <summary>
-        /// 将 <see cref="SlideMlLinearGradientBrush"/> 转换为 WPF <see cref="LinearGradientBrush"/>。
-        /// </summary>
-        internal static LinearGradientBrush? CreateGradientBrush(SlideMlLinearGradientBrush? gradient, Rect bounds)
-        {
-            if (gradient is null || gradient.Stops.Count == 0)
-            {
-                return null;
-            }
-
-            var brush = new LinearGradientBrush
-            {
-                StartPoint = new Point(gradient.X1, gradient.Y1),
-                EndPoint = new Point(gradient.X2, gradient.Y2),
-                MappingMode = BrushMappingMode.RelativeToBoundingBox,
-            };
-
-            foreach (var stop in gradient.Stops)
-            {
-                brush.GradientStops.Add(new GradientStop(
-                    CreateColor(stop.Color, Colors.Transparent),
-                    stop.Offset));
-            }
-
-            return brush;
         }
 
         /// <summary>
