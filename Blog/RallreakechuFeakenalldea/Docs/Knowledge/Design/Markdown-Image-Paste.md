@@ -119,9 +119,11 @@ image/{FileName}/{FileName}{Index}.{Extension}
 
 ```
 SimpleWriteTextEditorHandler.OnPaste()
-  └─ PasteStrategySelector.GetStrategy(definition, documentFile)
-       ├─ Markdown + 已保存 → MarkdownPasteStrategy（完整粘贴能力）
-       └─ 其他 / 未保存      → null（Handler 回退到 base.OnPaste()）
+  └─ PasteStrategySelector.GetStrategy(definition)
+       ├─ Markdown → MarkdownPasteStrategy（完整粘贴能力）
+       │    ├─ DocumentFile 非空 → 保存图片 + 插入引用 / 纯文本粘贴
+       │    └─ DocumentFile 为空 → 返回 false，Handler 回退到 base.OnPaste()
+       └─ 其他      → null（Handler 回退到 base.OnPaste()）
 ```
 
 ### 策略接口
@@ -156,15 +158,31 @@ namespace SimpleWrite.Business.TextEditors.PasteStrategies;
 /// <summary>
 /// 粘贴上下文。为策略提供剪贴板访问、文档信息和文本插入能力。
 /// </summary>
-internal sealed record PasteContext(
-    IClipboard Clipboard,
-    FileInfo DocumentFile,
-    Action<string> InsertText);
+internal sealed class PasteContext
+{
+    private readonly TextEditor _textEditor;
+
+    public PasteContext(IClipboard clipboard, FileInfo? documentFile, TextEditor textEditor)
+    {
+        // 省略参数校验
+        Clipboard = clipboard;
+        DocumentFile = documentFile;
+        _textEditor = textEditor;
+    }
+
+    public IClipboard Clipboard { get; }
+    public FileInfo? DocumentFile { get; }
+
+    /// <summary>
+    /// 将文本插入到编辑器当前光标位置，替换当前选中的内容（如有）。
+    /// </summary>
+    public void InsertText(string text) => _textEditor.EditAndReplace(text);
+}
 ```
 
 - `Clipboard`：Avalonia 剪贴板，用于读取剪贴板内容和格式。
-- `DocumentFile`：当前文档文件信息，用于推导图片保存目录。
-- `InsertText`：文本插入委托。策略调用此委托将引用文本或纯文本插入编辑器，无需直接操作 `TextEditor` 控件。Handler 在构造 `PasteContext` 时传入 `PerformInput`。
+- `DocumentFile`：当前文档文件信息，用于推导图片保存目录。为 null 表示文档未保存到本地，策略应返回 false 让调用方回退。
+- `InsertText`：文本插入方法。策略调用此方法将引用文本或纯文本插入编辑器，内部通过 `TextEditor.EditAndReplace` 完成，无需直接操作 `TextEditor` 控件。Handler 在构造 `PasteContext` 时传入 `SimpleWriteTextEditor` 实例。
 
 ### 策略选择器
 
@@ -172,27 +190,18 @@ internal sealed record PasteContext(
 namespace SimpleWrite.Business.TextEditors.PasteStrategies;
 
 /// <summary>
-/// 根据文档高亮定义和文档路径，选择合适的粘贴策略。
+/// 根据文档高亮定义选择合适的粘贴策略。
 /// </summary>
 internal static class PasteStrategySelector
 {
-    private static readonly MarkdownPasteStrategy _markdownStrategy = new();
-
     /// <summary>
     /// 获取粘贴策略。返回 null 表示当前文档不支持自定义粘贴，调用方应回退到默认行为。
     /// </summary>
-    public static IPasteStrategy? GetStrategy(DocumentHighlightDefinition definition, FileInfo? documentFile)
+    public static IPasteStrategy? GetStrategy(DocumentHighlightDefinition definition)
     {
-        // 文档未保存时，无法确定图片保存目录，返回 null
-        // Handler 回退到 base.OnPaste()，纯文本粘贴仍然正常
-        if (documentFile is null)
-        {
-            return null;
-        }
-
         return definition.Category switch
         {
-            DocumentHighlightCategory.Markdown => _markdownStrategy,
+            DocumentHighlightCategory.Markdown => new MarkdownPasteStrategy(),
             _ => null,
         };
     }
@@ -228,6 +237,7 @@ internal sealed class MarkdownPasteStrategy : IPasteStrategy
 
     public async Task<bool> PasteAsync(PasteContext context)
     {
+        // 0. 文档未保存时返回 false，由调用方回退到默认粘贴
         // 1. 尝试从位图数据读取图片
         // 2. 尝试从文件引用读取图片
         // 3. 有图片 → 根据模板计算保存路径，写入文件，生成 Markdown 引用，调用 context.InsertText 插入
@@ -251,8 +261,7 @@ protected override void OnPaste()
     }
 
     var strategy = PasteStrategySelector.GetStrategy(
-        SimpleWriteTextEditor.DocumentHighlightDefinition,
-        SimpleWriteTextEditor.DocumentFilePath);
+        SimpleWriteTextEditor.DocumentHighlightDefinition);
 
     if (strategy is null)
     {
@@ -261,13 +270,7 @@ protected override void OnPaste()
     }
 
     var documentFile = SimpleWriteTextEditor.DocumentFilePath;
-    if (documentFile is null)
-    {
-        base.OnPaste();
-        return;
-    }
-
-    var context = new PasteContext(clipboard, documentFile, PerformInput);
+    var context = new PasteContext(clipboard, documentFile, SimpleWriteTextEditor);
 
     _ = Dispatcher.UIThread.InvokeAsync(async () =>
     {
@@ -330,7 +333,7 @@ if (editorModel.TextEditor is SimpleWriteTextEditor te)
 | 文件 | 职责 |
 |---|---|
 | `SimpleWrite/Business/TextEditors/PasteStrategies/IPasteStrategy.cs` | 粘贴策略接口，拥有完整粘贴能力 |
-| `SimpleWrite/Business/TextEditors/PasteStrategies/PasteContext.cs` | 粘贴上下文，封装剪贴板、文档信息、文本插入委托 |
+| `SimpleWrite/Business/TextEditors/PasteStrategies/PasteContext.cs` | 粘贴上下文，封装剪贴板、文档信息、文本插入方法 |
 | `SimpleWrite/Business/TextEditors/PasteStrategies/PasteStrategySelector.cs` | 策略选择器，按文档类型返回策略或 null |
 | `SimpleWrite/Business/TextEditors/PasteStrategies/MarkdownPasteStrategy.cs` | Markdown 粘贴策略实现，自行完成图片保存和引用插入 |
 | `SimpleWrite/Business/TextEditors/PasteStrategies/ClipboardImageReader.cs` | 剪贴板图片读取辅助类，封装位图数据和文件引用两种来源的检测与读取 |
@@ -343,7 +346,7 @@ if (editorModel.TextEditor is SimpleWriteTextEditor te)
 
 ### 1. 未保存文档
 
-`DocumentFilePath` 为 `null` 时，`PasteStrategySelector.GetStrategy` 直接返回 `null`，Handler 回退到 `base.OnPaste()`。用户不会看到任何提示，图片粘贴不生效，但纯文本粘贴仍然正常工作。
+`DocumentFilePath` 为 `null` 时，`PasteStrategySelector.GetStrategy` 仍然返回 `MarkdownPasteStrategy`，但策略在 `PasteAsync` 中检测到 `context.DocumentFile` 为 `null` 后返回 `false`，Handler 回退到 `base.OnPaste()`。用户不会看到任何提示，图片粘贴不生效，但纯文本粘贴仍然正常工作。
 
 ### 2. 文件名包含非法字符
 

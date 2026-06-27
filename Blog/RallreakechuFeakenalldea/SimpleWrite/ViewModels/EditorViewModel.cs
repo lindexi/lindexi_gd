@@ -230,6 +230,7 @@ public class EditorViewModel : ViewModelBase
             CommandPatternManager = MainViewModel.CommandPatternManager,
         };
         textEditor.SetDocumentHighlightDefinition(DocumentHighlighterSelector.GetDocumentHighlightDefinition(editorModel.FileInfo));
+        textEditor.DocumentFilePath = editorModel.FileInfo;
         textEditor.TextEditorCore.SetExitDebugMode();
 
         textEditor.TextEditorCore.TextChanged += (sender, args) =>
@@ -341,6 +342,7 @@ public class EditorViewModel : ViewModelBase
         if (editorModel.TextEditor is SimpleWriteTextEditor textEditor)
         {
             textEditor.SetDocumentHighlightDefinition(DocumentHighlighterSelector.GetDocumentHighlightDefinition(saveFile));
+            textEditor.DocumentFilePath = saveFile;
         }
         UpdateLastLocalDocumentDirectory(editorModel);
         await SaveEditorModelToFileAsync(editorModel, saveFile).ConfigureAwait(false);
