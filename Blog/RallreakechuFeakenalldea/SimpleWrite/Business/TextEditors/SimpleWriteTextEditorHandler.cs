@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
+using Avalonia.Threading;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
@@ -15,6 +18,7 @@ using LightTextEditorPlus.Highlighters;
 
 using SimpleWrite.Business.ShortcutManagers;
 using SimpleWrite.Business.TextEditors.AutoIndentStrategies;
+using SimpleWrite.Business.TextEditors.PasteStrategies;
 
 namespace SimpleWrite.Business.TextEditors;
 
@@ -212,7 +216,35 @@ class SimpleWriteTextEditorHandler : TextEditorHandler
 
     protected override void OnPaste()
     {
-        base.OnPaste();
+        if (TopLevel.GetTopLevel(TextEditor)?.Clipboard is not { } clipboard)
+        {
+            return;
+        }
+
+        var strategy = PasteStrategySelector.GetStrategy(
+            SimpleWriteTextEditor.DocumentHighlightDefinition);
+
+        if (strategy is null)
+        {
+            base.OnPaste();
+            return;
+        }
+
+        var documentFile = SimpleWriteTextEditor.DocumentFilePath;
+        var context = new PasteContext(clipboard, documentFile, SimpleWriteTextEditor);
+
+        _ = Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            bool handled = await strategy.PasteAsync(context).ConfigureAwait(true);
+            if (!handled)
+            {
+                string? text = await clipboard.TryGetTextAsync().ConfigureAwait(true);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    OnPastePlainText(text);
+                }
+            }
+        });
     }
 
     /// <summary>

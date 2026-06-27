@@ -16,6 +16,7 @@ using SimpleWrite.Business.Snippets;
 using SkiaSharp;
 
 using System;
+using System.IO;
 using Avalonia.Threading;
 using LightTextEditorPlus.Platform;
 using SimpleWrite.Business.TextEditors.CommandPatterns;
@@ -97,6 +98,12 @@ internal sealed class SimpleWriteTextEditor : TextEditor
     public required SnippetManager SnippetManager { get; init; }
 
     public IDocumentHighlighter? DocumentHighlighter { get; private set; }
+
+    /// <summary>
+    /// 当前文档的文件路径。用于图片粘贴策略推导图片保存目录。
+    /// 由 <see cref="ViewModels.EditorViewModel"/> 在创建编辑器和另存为时设置。
+    /// </summary>
+    internal FileInfo? DocumentFilePath { get; set; }
 
     /// <summary>
     /// 获取或设置是否启用回车自动缩进。默认为 <see langword="true"/>。
