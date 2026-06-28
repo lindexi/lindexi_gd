@@ -44,7 +44,8 @@ public sealed class SlideMlStreamingMerger
         }
 
         // 检测同片段内重复 Id
-        var fragmentIds = new HashSet<string>(StringComparer.Ordinal);
+        // 同类型元素的重复 Id 视为警告（允许覆盖替换）；不同类型元素的重复 Id 视为错误（无法替换）
+        var fragmentIds = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var element in fragmentRoot.DescendantsAndSelf())
         {
             var id = GetElementId(element);
@@ -53,10 +54,20 @@ public sealed class SlideMlStreamingMerger
                 continue;
             }
 
-            if (!fragmentIds.Add(id))
+            var typeName = element.Name.LocalName;
+            if (fragmentIds.TryGetValue(id, out var existingTypeName))
             {
-                context.AddError($"[Error] 同一片段内出现重复 Id: {id}");
-                return;
+                if (!string.Equals(existingTypeName, typeName, StringComparison.OrdinalIgnoreCase))
+                {
+                    context.AddError($"[Error] 同一片段内 Id '{id}' 被不同类型元素占用: {existingTypeName} vs {typeName}");
+                    return;
+                }
+
+                context.AddWarning($"[Warning] 同一片段内 Id '{id}' 出现多次（类型 {typeName}），后续覆盖前者");
+            }
+            else
+            {
+                fragmentIds[id] = typeName;
             }
         }
 
@@ -189,6 +200,13 @@ public sealed class SlideMlStreamingMerger
 
         if (_idIndex.TryGetValue(id, out var existingElement))
         {
+            // 类型冲突检查：不同类型的元素共用同一 Id 无法替换合并
+            if (!string.Equals(existingElement.Name.LocalName, fragmentRoot.Name.LocalName, StringComparison.OrdinalIgnoreCase))
+            {
+                context.AddError($"[Error] Id '{id}' 类型冲突: 已有 {existingElement.Name.LocalName}，传入 {fragmentRoot.Name.LocalName}");
+                return;
+            }
+
             // 已存在：属性 Merge + 子元素 Merge
             MergeAttributes(fragmentRoot, existingElement);
 

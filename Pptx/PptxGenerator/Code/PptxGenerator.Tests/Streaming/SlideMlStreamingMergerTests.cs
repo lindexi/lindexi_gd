@@ -259,18 +259,66 @@ public sealed class SlideMlStreamingMergerTests
     }
 
     [TestMethod]
-    public void Error_DuplicateIdInSameFragment_Error()
+    public void DuplicateIdInSameFragment_DifferentTypes_Error()
     {
         // Arrange
         var merger = new SlideMlStreamingMerger();
         var context = new SlideMlPipelineContext();
 
-        // Act
+        // Act — 同一片段内 Panel 和 Rect 都叫 dup（类型不同）
         merger.AcceptFragment("<Page/>", context);
         merger.AcceptFragment("<Page><Panel Id=\"dup\"><Rect Id=\"dup\"/></Panel></Page>", context);
 
         // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "同片段内重复 Id 应产生错误");
+        Assert.IsTrue(context.Errors.Count > 0, "同片段内不同类型元素共用 Id 应产生错误");
+    }
+
+    [TestMethod]
+    public void DuplicateIdInSameFragment_SameType_WarningOnly()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 同一片段内两个 Rect 都叫 dup（类型相同）
+        merger.AcceptFragment("<Page><Panel Id=\"p1\"><Rect Id=\"dup\"/><Rect Id=\"dup\"/></Panel></Page>", context);
+
+        // Assert
+        Assert.AreEqual(0, context.Errors.Count, "同类型重复 Id 不应产生错误");
+        Assert.IsTrue(context.Warnings.Count > 0, "同类型重复 Id 应产生警告");
+    }
+
+    [TestMethod]
+    public void DuplicateId_CrossFragment_DifferentTypes_Error()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 先放一个 Panel，再用 Rect 覆盖同一 Id
+        merger.AcceptFragment("<Page><Panel Id=\"dup\" X=\"0\" Y=\"0\"/></Page>", context);
+        merger.AcceptFragment("<Rect Id=\"dup\" Width=\"100\"/>", context);
+
+        // Assert
+        Assert.IsTrue(context.Errors.Count > 0, "跨片段不同类型元素共用 Id 应产生错误");
+    }
+
+    [TestMethod]
+    public void DuplicateId_CrossFragment_SameType_Merges()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 先放一个 Rect，再用 Rect 覆盖同一 Id（类型相同，正常合并）
+        merger.AcceptFragment("<Page><Rect Id=\"dup\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"dup\" Width=\"200\"/></Page>", context);
+
+        // Assert — MergeChildren 整体替换子元素，Width 来自新片段
+        Assert.AreEqual(0, context.Errors.Count, "同类型跨片段 Id 重复不应产生错误");
+        var xml = merger.GetMergedXml();
+        StringAssert.Contains(xml, "Width=\"200\"", "新片段的 Width 应生效");
+        StringAssert.Contains(xml, "Id=\"dup\"", "dup 元素应存在");
     }
 
     [TestMethod]

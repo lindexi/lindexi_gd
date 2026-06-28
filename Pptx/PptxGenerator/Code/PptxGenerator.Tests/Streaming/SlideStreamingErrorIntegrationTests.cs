@@ -68,18 +68,34 @@ public sealed class SlideStreamingErrorIntegrationTests
     }
 
     [TestMethod]
-    public async Task ErrorRecovery_DuplicateIdInSameFragment_SkipsEntireFragment()
+    public async Task ErrorRecovery_DuplicateIdDifferentTypes_Error()
     {
         // Arrange
         var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
-        // Act — 同一片段内 Panel 和 Rect 都叫 dup
+        // Act — 同一片段内 Panel 和 Rect 都叫 dup（类型不同）
         pipeline.ProcessIncrementalText("<Page><Panel Id=\"dup\"><Rect Id=\"dup\"/></Panel></Page>", context);
         await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
 
         // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "重复 Id 应产生错误");
+        Assert.IsTrue(context.Errors.Count > 0, "同片段内不同类型元素共用 Id 应产生错误");
+    }
+
+    [TestMethod]
+    public async Task ErrorRecovery_DuplicateIdSameType_WarningOnly()
+    {
+        // Arrange
+        var pipeline = CreatePipeline();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 同一片段内两个 Rect 都叫 dup（类型相同）
+        pipeline.ProcessIncrementalText("<Page><Panel Id=\"p1\"><Rect Id=\"dup\"/><Rect Id=\"dup\"/></Panel></Page>", context);
+        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
+
+        // Assert
+        Assert.AreEqual(0, context.Errors.Count, "同类型重复 Id 不应产生错误");
+        Assert.IsTrue(context.Warnings.Count > 0, "同类型重复 Id 应产生警告");
     }
 
     [TestMethod]
