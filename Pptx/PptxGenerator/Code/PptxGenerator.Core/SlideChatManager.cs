@@ -12,6 +12,7 @@ using PptxGenerator.Evaluation;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
 using PptxGenerator.Prompt;
+using PptxGenerator.Streaming;
 
 namespace PptxGenerator;
 
@@ -150,6 +151,17 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         CancellationToken cancellationToken = default)
     {
         return Pipeline.RunPromptIterationAsync(userPrompt, originalScreenshot, options, cancellationToken);
+    }
+
+    /// <summary>
+    /// 创建流式生成管道，用于逐片段接收 LLM 输出并实时渲染。
+    /// </summary>
+    /// <returns>流式生成管道实例。</returns>
+    public SlideStreamingPipeline CreateStreamingPipeline()
+    {
+        var renderPipeline = SlideMlRenderTool.RenderPipeline;
+        var dispatcher = SlideMlRenderTool.Dispatcher;
+        return new SlideStreamingPipeline(Pipeline.PromptProvider, renderPipeline, dispatcher);
     }
 
     /// <summary>

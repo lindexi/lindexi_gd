@@ -28,6 +28,16 @@ public sealed class SlideMlRenderTool
     }
 
     /// <summary>
+    /// 获取渲染管道实例，供流式生成等场景复用。
+    /// </summary>
+    public ISlideMlRenderPipeline RenderPipeline => _renderPipeline;
+
+    /// <summary>
+    /// 获取主线程调度器实例，供流式生成等场景复用。
+    /// </summary>
+    public IMainThreadDispatcher Dispatcher => _dispatcher;
+
+    /// <summary>
     /// 渲染完成后触发，携带最新的 <see cref="LatestPreviewImage"/>。
     /// </summary>
     public event Action? SlideRendered;

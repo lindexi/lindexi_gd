@@ -10,6 +10,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     private readonly SlideDocumentContext _documentContext;
     private string? _systemPromptOverride;
     private string? _userPromptTemplateOverride;
+    private string? _streamingSystemPromptOverride;
 
     /// <summary>
     /// 初始化 <see cref="SlideMlPromptProvider"/> 的新实例。
@@ -27,7 +28,8 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     /// <param name="systemPrompt">新的系统提示词，为 <see langword="null"/> 时保持不变。</param>
     /// <param name="userPromptTemplate">新的用户提示词模板，为 <see langword="null"/> 时保持不变。
     /// 模板中使用 <c>{USER_INPUT}</c> 作为用户输入占位符。</param>
-    public void UpdatePrompts(string? systemPrompt, string? userPromptTemplate)
+    /// <param name="streamingSystemPrompt">新的流式系统提示词，为 <see langword="null"/> 时保持不变。</param>
+    public void UpdatePrompts(string? systemPrompt, string? userPromptTemplate, string? streamingSystemPrompt = null)
     {
         if (systemPrompt is not null)
         {
@@ -38,6 +40,11 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
         {
             _userPromptTemplateOverride = userPromptTemplate;
         }
+
+        if (streamingSystemPrompt is not null)
+        {
+            _streamingSystemPromptOverride = streamingSystemPrompt;
+        }
     }
 
     /// <summary>
@@ -47,6 +54,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     {
         _systemPromptOverride = null;
         _userPromptTemplateOverride = null;
+        _streamingSystemPromptOverride = null;
     }
 
     /// <inheritdoc />
@@ -137,6 +145,72 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 - 当前只需要生成单页
 - 优先让版面完整、层级清晰、留白充足
 - **重要：生成 SlideML 后必须调用 render_slide 工具，不可跳过此步骤**
+""";
+    }
+
+    /// <inheritdoc />
+    public string BuildStreamingSystemPrompt()
+    {
+        if (_streamingSystemPromptOverride is not null)
+        {
+            return _streamingSystemPromptOverride;
+        }
+
+        return BuildDefaultStreamingSystemPrompt();
+    }
+
+    /// <summary>
+    /// 获取默认流式输出系统提示词文本。
+    /// </summary>
+    public string BuildDefaultStreamingSystemPrompt()
+    {
+        var canvasSize = $"{_documentContext.CanvasWidth}×{_documentContext.CanvasHeight}";
+        return $"""
+你是一个专业的幻灯片排版引擎。你的任务是根据用户的需求，以流式方式逐片段生成 SlideML 格式的 XML 文档。
+
+## 流式输出规则
+- 逐片段输出 XML，每个片段是一个完整的顶层 XML 元素（如 <Page>、<Panel>、<Rect> 等）
+- 不要等待整个文档完成再输出，边思考边输出
+- 每个片段必须是自包含的完整 XML 元素（自闭合标签或配对的开始/结束标签）
+- 可以在任何位置中断并修正之前的输出
+- 不要使用 markdown 代码块包裹 XML
+- 使用 StyleFrom 属性引用已定义的模板元素
+- 使用 Remove 标签删除不需要的元素
+
+## SlideML 基本规则
+- 画布尺寸固定为 {canvasSize} 像素，坐标原点在左上角
+- 所有尺寸单位为 px（不写单位），颜色格式为 #RRGGBB 或 #AARRGGBB
+- 标签必须严格遵守定义，不要创造新标签或新属性
+- 元素 Id 可以不写，引擎会自动分配
+
+## 标签与属性
+### Page
+属性: Background（背景色，可选，默认 #FFFFFF）
+### Panel
+属性: X, Y, Width, Height（均可选）, Padding, Background, Layout（Absolute/Horizontal/Vertical，默认 Absolute）, Gap, Margin
+### Rect
+属性: X, Y, Width, Height（均可选）, Fill, Stroke, StrokeThickness, CornerRadius, StrokeDashArray, Shadow, Margin, HorizontalAlignment, VerticalAlignment, Opacity
+### TextElement
+属性: X, Y, Width, Height（均可选）, Text（必填）, FontName, FontSize, IsBold, IsItalic, Foreground, TextAlignment, HorizontalAlignment, VerticalAlignment, Opacity, Margin
+### Image
+属性: X, Y, Width, Height（均可选）, Source（必填）, Stretch, HorizontalAlignment, VerticalAlignment, Opacity, Margin
+### Remove
+属性: TargetId（必填，要删除的元素 Id）
+### StyleFrom
+属性: 引用已定义元素的 Id，复制其属性作为默认值
+
+## 排版规则
+1. 所有子元素相对于直接父容器定位
+2. Z 序按文档出现顺序，后出现的在上层
+3. 文本设置 Width 后会自动换行，不设置则单行
+4. Panel 不设置 Width/Height 时自动包裹子元素
+5. 子元素超出父容器的部分会被裁剪
+
+## 禁止事项
+- 不要写 ActualWidth、ActualHeight、ActualLineCount 属性
+- 不要创造未定义的标签或属性
+- 不要使用 XAML、HTML 等其他语法
+- 不要使用 markdown 代码块包裹 XML
 """;
     }
 
