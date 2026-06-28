@@ -11,7 +11,10 @@ using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
 using AgentLib.Model;
 
+using Avalonia.Controls;
 using Avalonia.Threading;
+
+using Microsoft.Extensions.AI;
 
 namespace ChatRoom.AvaloniaShell.ViewModels;
 
@@ -89,6 +92,41 @@ public sealed class MessageItemViewModel : NotifyBase
     public ChatRoomMessage Message { get; }
 
     /// <summary>
+    /// 是否关联了底层 CopilotChatMessage，可以显示片段（思考/工具/子代理等）。
+    /// </summary>
+    public bool HasCopilotChatMessage => CopilotChatMessage is not null;
+
+    /// <summary>
+    /// 直接暴露底层消息的片段集合，供 XAML 的 ItemsControl 绑定。
+    /// 可能为 null（人类/系统消息或未关联 CopilotChatMessage）。
+    /// </summary>
+    public ObservableCollection<ICopilotChatMessageItem>? MessageItems => CopilotChatMessage?.MessageItems;
+
+    /// <summary>
+    /// 是否有用量详情。
+    /// </summary>
+    public bool HasUsageDetails => CopilotChatMessage?.HasUsageDetails ?? false;
+
+    /// <summary>
+    /// 用量摘要文本（如：用量 总计 123 输入 45 输出 78）。
+    /// </summary>
+    public string UsageSummaryText => CopilotChatMessage?.UsageSummaryText ?? string.Empty;
+
+    /// <summary>
+    /// 消息的完整内容（包含思考/工具调用等片段），用于右键复制整条消息。
+    /// 回退到公开可见的 Content。
+    /// </summary>
+    public string FullContent => CopilotChatMessage?.FullContent ?? Message.Content;
+
+    /// <summary>
+    /// 设计时无参构造函数。用于 Avalonia 设计器预览。
+    /// </summary>
+    public MessageItemViewModel()
+        : this(new ChatRoomMessage())
+    {
+    }
+
+    /// <summary>
     /// 从 <see cref="ChatRoomMessage"/> 创建消息项。
     /// 订阅 <see cref="ChatRoomMessage.PropertyChanged"/> 以感知流式内容更新和状态变更。
     /// </summary>
@@ -104,6 +142,19 @@ public sealed class MessageItemViewModel : NotifyBase
         IsSystemMessage = message.IsSystemMessage;
 
         message.PropertyChanged += OnMessagePropertyChanged;
+
+        if (CopilotChatMessage is not null)
+        {
+            CopilotChatMessage.PropertyChanged += OnCopilotChatMessagePropertyChanged;
+            try
+            {
+                CopilotChatMessage.MessageItems.CollectionChanged += OnCopilotMessageItemsChanged;
+            }
+            catch
+            {
+                // ignore if underlying collection doesn't support notifications
+            }
+        }
     }
 
     /// <summary>
@@ -128,6 +179,51 @@ public sealed class MessageItemViewModel : NotifyBase
         else
         {
             Dispatcher.UIThread.Post(() => OnPropertyChanged(e.PropertyName));
+        }
+    }
+
+    private void OnCopilotChatMessagePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Bridge important properties to the UI
+        switch (e.PropertyName)
+        {
+            case nameof(CopilotChatMessage.CurrentUsageDetails):
+            case nameof(CopilotChatMessage.TotalUsageDetails):
+            case nameof(CopilotChatMessage.HasUsageDetails):
+            case nameof(CopilotChatMessage.Content):
+                break;
+            default:
+                break;
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            OnPropertyChanged(nameof(UsageSummaryText));
+            OnPropertyChanged(nameof(HasUsageDetails));
+            OnPropertyChanged(nameof(FullContent));
+            OnPropertyChanged(nameof(Content));
+        }
+        else
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                OnPropertyChanged(nameof(UsageSummaryText));
+                OnPropertyChanged(nameof(HasUsageDetails));
+                OnPropertyChanged(nameof(FullContent));
+                OnPropertyChanged(nameof(Content));
+            });
+        }
+    }
+
+    private void OnCopilotMessageItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            OnPropertyChanged(nameof(FullContent));
+        }
+        else
+        {
+            Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(FullContent)));
         }
     }
 }
@@ -191,7 +287,7 @@ public sealed class ChatViewModel : ViewModelBase
     /// <summary>
     /// 是否可以发送消息。
     /// </summary>
-    public bool CanSend => !IsRunning && _chatRoomService.HasActiveSession;
+    public bool CanSend => !IsRunning && (_chatRoomService?.HasActiveSession ?? false);
 
     /// <summary>
     /// 是否可以停止循环。
@@ -214,6 +310,21 @@ public sealed class ChatViewModel : ViewModelBase
     public ICommand StopCommand { get; }
 
     /// <summary>
+    /// 设计时无参构造函数。用于 Avalonia 设计器预览，填充示例消息数据。
+    /// </summary>
+    public ChatViewModel()
+    {
+        _chatRoomService = null!;
+        SendCommand = new SimpleCommand(() => { }, () => false);
+        StopCommand = new SimpleCommand(() => { }, () => false);
+
+        if (Design.IsDesignMode)
+        {
+            PopulateDesignTimeData();
+        }
+    }
+
+    /// <summary>
     /// 使用指定的服务创建聊天 ViewModel。
     /// </summary>
     public ChatViewModel(ChatRoomService chatRoomService)
@@ -222,6 +333,7 @@ public sealed class ChatViewModel : ViewModelBase
 
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
         StopCommand = new SimpleCommand(StopAutoLoop, () => CanStop);
+
 
         _chatRoomService.SpeakingChanged += OnSpeakingChanged;
         _chatRoomService.SessionChanged += OnSessionChanged;
@@ -336,5 +448,101 @@ public sealed class ChatViewModel : ViewModelBase
         {
             sc.RaiseCanExecuteChanged();
         }
+    }
+
+    /// <summary>
+    /// 同意指定审批工具继续执行。
+    /// </summary>
+    /// <param name="approvalToolItem">等待审批的工具片段。</param>
+    public void ApproveTool(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        _chatRoomService.ApproveToolExecution(approvalToolItem);
+    }
+
+    /// <summary>
+    /// 拒绝指定审批工具继续执行。
+    /// </summary>
+    /// <param name="approvalToolItem">等待审批的工具片段。</param>
+    public void RejectTool(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        _chatRoomService.RejectToolExecution(approvalToolItem);
+    }
+
+    /// <summary>
+    /// 填充设计时示例数据，覆盖所有消息片段类型，方便设计器预览。
+    /// </summary>
+    private void PopulateDesignTimeData()
+    {
+        // ---- 人类消息 ----
+        var humanMsg = new ChatRoomMessage
+        {
+            SenderRoleId = "human",
+            SenderRoleName = "我",
+            IsHumanMessage = true,
+            StaticContent = "请帮我分析一下这个项目的架构，并给出优化建议。",
+        };
+        Messages.Add(new MessageItemViewModel(humanMsg));
+
+        // ---- AI 消息（含思考、工具调用、审批工具、子代理、用量摘要） ----
+        var copilotMsg = new CopilotChatMessage(ChatRole.Assistant, "我来分析项目结构。");
+        // 思考片段
+        copilotMsg.MessageItems.Add(new CopilotChatReasoningItem("用户想了解项目架构，我需要先查看目录结构，然后分析各模块的职责和依赖关系。"));
+        // 工具调用片段
+        copilotMsg.MessageItems.Add(new CopilotChatToolItem("tool-1", "ListFiles", "/src", "Controllers/\nModels/\nServices/\nViews/"));
+        // 审批工具片段（等待审批状态）
+        copilotMsg.MessageItems.Add(new CopilotChatApprovalToolItem("approval-1", "DeleteFile", "{\n  \"path\": \"/temp/old_config.json\"\n}", "该文件是旧版配置文件，删除后不可恢复，请确认。"));
+        // 子代理片段
+        var subAgent = new CopilotChatSubAgentItem("sub-1", "代码分析子智能体", "请分析 Controllers 目录下的代码质量", "Controllers 目录共 5 个文件，代码行数约 1200 行。");
+        subAgent.MessageItems.Add(new CopilotChatReasoningItem("先统计文件数量，再逐个分析代码规范。"));
+        subAgent.MessageItems.Add(new CopilotChatTextItem("正在读取 Controllers 目录..."));
+        subAgent.MessageItems.Add(new CopilotChatToolItem("tool-2", "ReadFile", "HomeController.cs", "已读取 HomeController.cs，共 350 行。"));
+        subAgent.MessageItems.Add(new CopilotChatToolItem("tool-3", "ReadFile", "ApiController.cs", "已读取 ApiController.cs，共 280 行。"));
+        // 嵌套子代理
+        var nestedSubAgent = new CopilotChatSubAgentItem("sub-2", "安全审计子智能体", "检查 ApiController 的认证逻辑", "ApiController 使用了 JWT 认证，配置正确。");
+        nestedSubAgent.MessageItems.Add(new CopilotChatTextItem("认证中间件配置检查通过。"));
+        subAgent.MessageItems.Add(nestedSubAgent);
+        copilotMsg.MessageItems.Add(subAgent);
+        // 文本片段
+        copilotMsg.MessageItems.Add(new CopilotChatTextItem("项目整体架构清晰，采用 MVC 分层设计。建议将 Services 层进一步拆分为 Application 和 Domain 两层以提高可维护性。"));
+
+        // 设置用量摘要
+        copilotMsg.AppendUsageDetails(new UsageDetails
+        {
+            InputTokenCount = 456,
+            OutputTokenCount = 1289,
+            TotalTokenCount = 1745,
+        });
+
+        var aiMsg = new ChatRoomMessage
+        {
+            SenderRoleId = "assistant",
+            SenderRoleName = "助手",
+            CopilotChatMessage = copilotMsg,
+            StaticContent = copilotMsg.Content,
+        };
+        Messages.Add(new MessageItemViewModel(aiMsg));
+
+        // ---- 系统消息 ----
+        var sysMsg = ChatRoomMessage.CreateSystem("角色「代码审查员」发言失败：模型不可用，已跳过。");
+        Messages.Add(new MessageItemViewModel(sysMsg));
+
+        // ---- 流式消息（模拟正在输入） ----
+        var streamingCopilotMsg = new CopilotChatMessage(ChatRole.Assistant, "正在生成详细报告...");
+        streamingCopilotMsg.MessageItems.Add(new CopilotChatReasoningItem("需要整理之前的分析结果，生成一份结构化的报告..."));
+        var streamingMsg = new ChatRoomMessage
+        {
+            SenderRoleId = "reviewer",
+            SenderRoleName = "代码审查员",
+            CopilotChatMessage = streamingCopilotMsg,
+            StaticContent = streamingCopilotMsg.Content,
+            IsStreaming = true,
+        };
+        Messages.Add(new MessageItemViewModel(streamingMsg));
+
+        // 设置设计时运行状态
+        _isRunning = true;
+        _currentSpeakerName = "代码审查员";
     }
 }

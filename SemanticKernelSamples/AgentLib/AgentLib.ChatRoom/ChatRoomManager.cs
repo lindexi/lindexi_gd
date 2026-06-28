@@ -691,6 +691,35 @@ public sealed class ChatRoomManager : NotifyBase
                 }, TaskContinuationOptions.OnlyOnFaulted);
         }
     }
+
+    /// <summary>
+    /// 同意指定审批工具继续执行。遍历所有角色转发审批请求。
+    /// </summary>
+    /// <param name="approvalToolItem">等待审批的工具片段。</param>
+    public void ApproveToolExecution(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+
+        foreach (ChatRoomRole role in Roles)
+        {
+            role.ApproveToolExecution(approvalToolItem);
+        }
+    }
+
+    /// <summary>
+    /// 拒绝指定审批工具继续执行。遍历所有角色转发审批请求。
+    /// </summary>
+    /// <param name="approvalToolItem">等待审批的工具片段。</param>
+    /// <param name="reason">拒绝原因。</param>
+    public void RejectToolExecution(CopilotChatApprovalToolItem approvalToolItem, string? reason = null)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+
+        foreach (ChatRoomRole role in Roles)
+        {
+            role.RejectToolExecution(approvalToolItem, reason);
+        }
+    }
 }
 
 /// <summary>

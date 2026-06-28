@@ -209,6 +209,27 @@ public sealed class ChatRoomService
     }
 
     /// <summary>
+    /// 同意指定审批工具继续执行。
+    /// </summary>
+    /// <param name="approvalToolItem">等待审批的工具片段。</param>
+    public void ApproveToolExecution(CopilotChatApprovalToolItem approvalToolItem)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        _currentManager?.ApproveToolExecution(approvalToolItem);
+    }
+
+    /// <summary>
+    /// 拒绝指定审批工具继续执行。
+    /// </summary>
+    /// <param name="approvalToolItem">等待审批的工具片段。</param>
+    /// <param name="reason">拒绝原因。</param>
+    public void RejectToolExecution(CopilotChatApprovalToolItem approvalToolItem, string? reason = null)
+    {
+        ArgumentNullException.ThrowIfNull(approvalToolItem);
+        _currentManager?.RejectToolExecution(approvalToolItem, reason);
+    }
+
+    /// <summary>
     /// 持久化当前会话。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
