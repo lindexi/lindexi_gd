@@ -70,6 +70,21 @@ public partial class ChatView : UserControl
         vm.RejectTool(approvalToolItem);
     }
 
+    private void InputTextBox_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        // Ctrl+Enter 发送消息
+        if (e.Key == Key.Enter && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            if (DataContext is not ChatViewModel vm || !vm.CanSend)
+            {
+                return;
+            }
+
+            vm.SendCommand.Execute(null);
+            e.Handled = true;
+        }
+    }
+
     private async Task SetClipboardTextAsync(string text)
     {
         var topLevel = TopLevel.GetTopLevel(this);
