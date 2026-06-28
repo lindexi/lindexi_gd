@@ -1,3 +1,3 @@
 ﻿namespace LightTextEditorPlus;
 
-public readonly record struct TextEditorId(uint Id);
+public readonly record struct TextEditorId(int Id);

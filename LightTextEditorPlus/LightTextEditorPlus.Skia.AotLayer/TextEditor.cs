@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using LightTextEditorPlus.Platform;
 
@@ -28,14 +26,11 @@ internal class TextEditor : SkiaTextEditor
     /// </summary>
     /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "CreateTextEditor")]
-    public static uint CreateTextEditor()
+    public static int CreateTextEditor()
     {
         // 为什么不采用 GCHandler 返回 Handler 呢？因为不确定业务层会持有多久，不合适直接返回指针，防止长时间无法被 GC 掉
         var textEditor = new TextEditor();
-        uint id = Interlocked.Increment(ref _id);
-
-        TextEditorDictionary[id] = textEditor;
-        return id;
+        return TextEditorStore.Create(textEditor);
     }
 
     /// <summary>
@@ -44,16 +39,11 @@ internal class TextEditor : SkiaTextEditor
     /// <param name="textEditorId"></param>
     /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "FreeTextEditor")]
-    public static int FreeTextEditor(uint textEditorId)
+    public static int FreeTextEditor(int textEditorId)
     {
-        if (TextEditorDictionary.TryRemove(textEditorId, out _))
-        {
-            return ErrorCode.Success;
-        }
-        else
-        {
-            return ErrorCode.TextEditorNotFound;
-        }
+        return TextEditorStore.TryRemove(textEditorId, out var errorCode)
+            ? ErrorCode.Success
+            : errorCode;
     }
 
     /// <summary>
@@ -63,7 +53,7 @@ internal class TextEditor : SkiaTextEditor
     /// <param name="documentWidth"></param>
     /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "SetDocumentWidth")]
-    public static int SetDocumentWidth(uint textEditorId, double documentWidth)
+    public static int SetDocumentWidth(int textEditorId, double documentWidth)
     {
         if (!TryGetEditor(textEditorId, out var textEditor, out var errorCode))
         {
@@ -81,7 +71,7 @@ internal class TextEditor : SkiaTextEditor
     /// <param name="documentHeight"></param>
     /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "SetDocumentHeight")]
-    public static int SetDocumentHeight(uint textEditorId, double documentHeight)
+    public static int SetDocumentHeight(int textEditorId, double documentHeight)
     {
         if (!TryGetEditor(textEditorId, out var textEditor, out var errorCode))
         {
@@ -99,7 +89,7 @@ internal class TextEditor : SkiaTextEditor
     /// <param name="unicode16Text">采用 unicode 16 编码的字符串</param>
     /// <param name="charCount">字符串包含的字符数量。是字符数量，而不是 byte 数量</param>
     [UnmanagedCallersOnly(EntryPoint = "AppendText")]
-    public static int AppendText(uint textEditorId, IntPtr unicode16Text, int charCount)
+    public static int AppendText(int textEditorId, IntPtr unicode16Text, int charCount)
     {
         if (!TryGetEditor(textEditorId, out var textEditor,out var errorCode))
         {
@@ -112,24 +102,9 @@ internal class TextEditor : SkiaTextEditor
         return ErrorCode.Success;
     }
 
-    internal static bool TryGetEditor(uint textEditorId, [NotNullWhen(true)] out TextEditor? textEditor, out ErrorCode errorCode)
+    internal static bool TryGetEditor(int textEditorId, [NotNullWhen(true)] out TextEditor? textEditor, out ErrorCode errorCode)
     {
-        if (!TextEditorDictionary.TryGetValue(textEditorId, out textEditor))
-        {
-            if (textEditorId < _id)
-            {
-                errorCode = ErrorCode.TextEditorBeFree;
-            }
-            else
-            {
-                errorCode = ErrorCode.TextEditorNotFound;
-            }
-
-            return false;
-        }
-
-        errorCode = ErrorCode.Success;
-        return true;
+        return TextEditorStore.TryGet(textEditorId, out textEditor, out errorCode);
     }
 
     /// <summary>
@@ -140,7 +115,7 @@ internal class TextEditor : SkiaTextEditor
     /// <param name="charCountOfFilePath"></param>
     /// <returns></returns>
     [UnmanagedCallersOnly(EntryPoint = "SaveAsImageFile")]
-    public static int SaveAsImageFile(uint textEditorId, IntPtr unicode16FilePath, int charCountOfFilePath)
+    public static int SaveAsImageFile(int textEditorId, IntPtr unicode16FilePath, int charCountOfFilePath)
     {
         if (!TryGetEditor(textEditorId, out var textEditor, out var errorCode))
         {
@@ -160,9 +135,8 @@ internal class TextEditor : SkiaTextEditor
         return ErrorCode.Success;
     }
 
-    private static uint _id = 0;
-
-    private static readonly ConcurrentDictionary<uint/*Id*/, TextEditor> TextEditorDictionary = new ConcurrentDictionary<uint, TextEditor>();
+    private static readonly NativeObjectStore<TextEditor> TextEditorStore =
+        new(ErrorCode.TextEditorNotFound, ErrorCode.TextEditorBeFree);
 }
 
 class NativeTextEditorPlatformProvider : SkiaTextEditorPlatformProvider
