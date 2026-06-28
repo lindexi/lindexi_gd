@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 using Avalonia.Input.Platform;
@@ -93,8 +92,8 @@ internal sealed class MarkdownPasteStrategy : IPasteStrategy
                 File.Copy(image.SourceFilePath, absolutePath, overwrite: true);
             }
 
-            string normalizedRelativePath = relativePath.Replace('\\', '/');
-            markdownLines.Add($"![]({normalizedRelativePath})");
+            // relativePath 已由 RenderRelativePath 完成正斜杠规范化，直接构建 Markdown 行
+            markdownLines.Add(BuildMarkdownImageLine(relativePath));
         }
 
         // 释放位图资源
@@ -103,7 +102,62 @@ internal sealed class MarkdownPasteStrategy : IPasteStrategy
             image.Dispose();
         }
 
-        string markdownText = string.Join("\n", markdownLines);
+        string markdownText = JoinMarkdownLines(markdownLines);
         context.InsertText(markdownText);
+    }
+
+    /// <summary>
+    /// 使用 string.Create 直接构建 Markdown 图片行，避免内插字符串中间分配。
+    /// 格式: ![]({relativePath})
+    /// </summary>
+    private static string BuildMarkdownImageLine(string relativePath)
+    {
+        // "![](" + relativePath + ")" = "![](".Length + relativePath.Length + ")".Length
+        // = 4 + relativePath.Length + 1
+        // = startLength + relativePath.Length + endLength
+        const int startLength = 4; // "![](".Length
+        const int endLength = 1; // ")".Length
+        return string.Create(startLength + relativePath.Length + endLength, relativePath, static (span, path) =>
+        {
+            "![](".AsSpan().CopyTo(span);
+            path.AsSpan().CopyTo(span[startLength..]);
+            span[^1] = ')';
+        });
+    }
+
+    /// <summary>
+    /// 使用 string.Create 一次性拼接多行 Markdown，预计算总长度避免 string.Join 的中间分配。
+    /// </summary>
+    private static string JoinMarkdownLines(IReadOnlyList<string> lines)
+    {
+        if (lines.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        // 总长度 = 所有行长度之和 + (行数 - 1) 个换行符
+        int totalLength = 0;
+        for (int i = 0; i < lines.Count; i++)
+        {
+            totalLength += lines[i].Length;
+        }
+
+        totalLength += lines.Count - 1; // 换行符数量
+
+        return string.Create(totalLength, lines, static (span, src) =>
+        {
+            int written = 0;
+            for (int i = 0; i < src.Count; i++)
+            {
+                if (i > 0)
+                {
+                    span[written++] = '\n';
+                }
+
+                ReadOnlySpan<char> line = src[i].AsSpan();
+                line.CopyTo(span[written..]);
+                written += line.Length;
+            }
+        });
     }
 }

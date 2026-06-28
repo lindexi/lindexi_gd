@@ -1,7 +1,7 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace SimpleWrite.Business.TextEditors.PasteStrategies;
 
@@ -15,8 +15,8 @@ internal sealed class ImagePathTemplate
     /// </summary>
     public const string DefaultPathTemplate = "image/{FileName}/{FileName}{Index}.{Extension}";
 
-    private static readonly char[] _invalidChars =
-        [.. Path.GetInvalidPathChars(), .. Path.GetInvalidFileNameChars()];
+    private static readonly SearchValues<char> _invalidCharSet =
+        SearchValues.Create([.. Path.GetInvalidPathChars(), .. Path.GetInvalidFileNameChars()]);
 
     private readonly string _template;
 
@@ -41,28 +41,25 @@ internal sealed class ImagePathTemplate
         var documentDirectory = documentDirectoryInfo.FullName;
         string cleanedFileName = CleanFileName(fileName);
 
-        if (extension.StartsWith('.'))
+        ReadOnlySpan<char> extSpan = extension.AsSpan();
+        if (!extSpan.IsEmpty && extSpan[0] == '.')
         {
-            extension = extension[1..];
+            extSpan = extSpan[1..];
         }
 
+        string extensionWithoutDot = extSpan.ToString();
+
         // 先用占位渲染出模板路径，提取目录部分用于扫描已有文件
-        string templatedPath = _template
-            .Replace("{FileName}", cleanedFileName)
-            .Replace("{Index}", "0")
-            .Replace("{Extension}", extension);
+        string templatedPath = RenderTemplate(_template, cleanedFileName, "0", extensionWithoutDot);
 
         string relativeDirectory = Path.GetDirectoryName(templatedPath) ?? string.Empty;
         string absoluteDirectory = Path.Join(documentDirectory, relativeDirectory);
 
         int index = GetNextIndex(absoluteDirectory, cleanedFileName);
 
-        string path = _template
-            .Replace("{FileName}", cleanedFileName)
-            .Replace("{Index}", index.ToString())
-            .Replace("{Extension}", extension);
+        string path = RenderTemplate(_template, cleanedFileName, index.ToString(), extensionWithoutDot);
 
-        return path.Replace('\\', '/');
+        return NormalizeSlashes(path);
     }
 
     /// <summary>
@@ -74,6 +71,7 @@ internal sealed class ImagePathTemplate
     public int GetNextIndex(string directoryPath, string fileName)
     {
         string cleanedFileName = CleanFileName(fileName);
+        ReadOnlySpan<char> cleanedFileNameSpan = cleanedFileName.AsSpan();
 
         if (!Directory.Exists(directoryPath))
         {
@@ -84,16 +82,16 @@ internal sealed class ImagePathTemplate
 
         foreach (string file in Directory.EnumerateFiles(directoryPath))
         {
-            string nameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+            ReadOnlySpan<char> nameWithoutExtension = Path.GetFileNameWithoutExtension(file.AsSpan());
 
             // 文件名格式为 {fileName}{Index}，提取 Index 部分
-            if (nameWithoutExtension.Length <= cleanedFileName.Length ||
-                !nameWithoutExtension.StartsWith(cleanedFileName, StringComparison.Ordinal))
+            if (nameWithoutExtension.Length <= cleanedFileNameSpan.Length ||
+                !nameWithoutExtension.StartsWith(cleanedFileNameSpan, StringComparison.Ordinal))
             {
                 continue;
             }
 
-            string indexPart = nameWithoutExtension[cleanedFileName.Length..];
+            ReadOnlySpan<char> indexPart = nameWithoutExtension[cleanedFileNameSpan.Length..];
 
             if (int.TryParse(indexPart, out int currentIndex) && currentIndex > maxIndex)
             {
@@ -106,19 +104,128 @@ internal sealed class ImagePathTemplate
 
     private static string CleanFileName(string fileName)
     {
-        // 替换非法字符为下划线
-        string cleaned = fileName;
-        foreach (char c in _invalidChars)
+        // 原地替换非法字符为下划线，避免多次 string.Replace 分配
+        Span<char> buffer = fileName.Length <= 256
+            ? stackalloc char[fileName.Length]
+            : new char[fileName.Length];
+
+        fileName.AsSpan().CopyTo(buffer);
+
+        for (int i = 0; i < buffer.Length; i++)
         {
-            cleaned = cleaned.Replace(c, '_');
+            if (_invalidCharSet.Contains(buffer[i]))
+            {
+                buffer[i] = '_';
+            }
         }
 
         // 截断保留前 50 个字符
-        if (cleaned.Length > 50)
+        return buffer.Length > 50
+            ? new string(buffer[..50])
+            : new string(buffer);
+    }
+
+    /// <summary>
+    /// 使用 Span 单次遍历模板进行占位符替换，避免多次 string.Replace 的中间分配。
+    /// </summary>
+    private static string RenderTemplate(string template, string fileName, string index, string extension)
+    {
+        ReadOnlySpan<char> templateSpan = template.AsSpan();
+        ReadOnlySpan<char> fileNameSpan = fileName.AsSpan();
+        ReadOnlySpan<char> indexSpan = index.AsSpan();
+        ReadOnlySpan<char> extensionSpan = extension.AsSpan();
+
+        // 第一次遍历：计算结果总长度
+        int totalLength = ComputeRenderedLength(templateSpan, fileNameSpan, indexSpan, extensionSpan);
+
+        // 第二次遍历：使用 string.Create 填充
+        return string.Create(totalLength, (template, fileName, index, extension), static (span, state) =>
         {
-            cleaned = cleaned[..50];
+            ReadOnlySpan<char> tpl = state.template.AsSpan();
+            ReadOnlySpan<char> fn = state.fileName.AsSpan();
+            ReadOnlySpan<char> idx = state.index.AsSpan();
+            ReadOnlySpan<char> ext = state.extension.AsSpan();
+
+            int written = 0;
+
+            while (!tpl.IsEmpty)
+            {
+                if (tpl.StartsWith("{FileName}", StringComparison.Ordinal))
+                {
+                    fn.CopyTo(span[written..]);
+                    written += fn.Length;
+                    tpl = tpl["{FileName}".Length..];
+                }
+                else if (tpl.StartsWith("{Index}", StringComparison.Ordinal))
+                {
+                    idx.CopyTo(span[written..]);
+                    written += idx.Length;
+                    tpl = tpl["{Index}".Length..];
+                }
+                else if (tpl.StartsWith("{Extension}", StringComparison.Ordinal))
+                {
+                    ext.CopyTo(span[written..]);
+                    written += ext.Length;
+                    tpl = tpl["{Extension}".Length..];
+                }
+                else
+                {
+                    span[written++] = tpl[0];
+                    tpl = tpl[1..];
+                }
+            }
+        });
+    }
+
+    private static int ComputeRenderedLength(
+        ReadOnlySpan<char> template, ReadOnlySpan<char> fileName, ReadOnlySpan<char> index, ReadOnlySpan<char> extension)
+    {
+        int length = 0;
+
+        while (!template.IsEmpty)
+        {
+            if (template.StartsWith("{FileName}", StringComparison.Ordinal))
+            {
+                length += fileName.Length;
+                template = template["{FileName}".Length..];
+            }
+            else if (template.StartsWith("{Index}", StringComparison.Ordinal))
+            {
+                length += index.Length;
+                template = template["{Index}".Length..];
+            }
+            else if (template.StartsWith("{Extension}", StringComparison.Ordinal))
+            {
+                length += extension.Length;
+                template = template["{Extension}".Length..];
+            }
+            else
+            {
+                length++;
+                template = template[1..];
+            }
         }
 
-        return cleaned;
+        return length;
+    }
+
+    /// <summary>
+    /// 使用 string.Create 原地替换反斜杠为正斜杠，避免 string.Replace 分配。
+    /// </summary>
+    private static string NormalizeSlashes(string path)
+    {
+        if (!path.Contains('\\'))
+        {
+            return path;
+        }
+
+        return string.Create(path.Length, path, static (span, source) =>
+        {
+            ReadOnlySpan<char> src = source.AsSpan();
+            for (int i = 0; i < src.Length; i++)
+            {
+                span[i] = src[i] == '\\' ? '/' : src[i];
+            }
+        });
     }
 }
