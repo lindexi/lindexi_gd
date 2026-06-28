@@ -75,6 +75,14 @@ public sealed class ChatRoomRoleDefinition
     /// 通过角色管理工具创建的新角色默认为 <see cref="ChatRoomParticipationMode.MentionOnly"/>。
     /// </summary>
     public ChatRoomParticipationMode ParticipationMode { get; set; } = ChatRoomParticipationMode.AlwaysParticipate;
+
+    /// <summary>
+    /// 是否为管理者角色。当所有可发言角色都发言完毕且 @ 队列为空时，
+    /// 由管理者进行发言。管理者发言后如果 @ 了其他角色则继续链式对话，
+    /// 否则真正结束循环。
+    /// 不参与正常轮流发言，建议配合 <see cref="ChatRoomParticipationMode.MentionOnly"/> 使用。
+    /// </summary>
+    public bool IsManagerRole { get; set; }
 }
 
 /// <summary>

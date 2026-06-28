@@ -155,7 +155,8 @@ public sealed class ChatRoomManager : NotifyBase
         // 阈值基于可发言的非人类角色数量，至少为 1（即使没有可发言角色也尝试一次后终止）。
         int speakableRoleCount = Math.Max(1, Roles.Count(r =>
             !r.Definition.IsHuman &&
-            r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate));
+            (r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate ||
+             r.Definition.IsManagerRole)));
         int consecutiveEmptyReplies = 0;
 
         try
@@ -647,6 +648,10 @@ public sealed class ChatRoomManager : NotifyBase
                 if (r.Definition.IsHuman)
                 {
                     roleInfo += "（人类）";
+                }
+                else if (r.Definition.IsManagerRole)
+                {
+                    roleInfo += "（管理者）";
                 }
                 else if (r.Definition.ParticipationMode == ChatRoomParticipationMode.MentionOnly)
                 {

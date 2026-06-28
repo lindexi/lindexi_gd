@@ -41,6 +41,20 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
     private string? _lastSeenHistoryLastMessageId;
 
     /// <summary>
+    /// 管理者是否刚发言过且中间没有其他角色发言。
+    /// 管理者通过管理者机制发言后设为 true，防止管理者连续发言（无其他角色介入时重复触发）。
+    /// 任何非管理者角色发言成功后设为 false，使管理者可以在下一轮"所有角色发言完毕"时再次触发。
+    /// 当 history[^1] 变为人类消息（新一轮开始）时清空。
+    /// </summary>
+    private bool _managerJustSpoke;
+
+    /// <summary>
+    /// 标记上一次选择是否为管理者触发。
+    /// 用于 OnSpeakerResult 中区分"管理者触发"和"@ 触发"的管理者发言。
+    /// </summary>
+    private bool _isManagerTrigger;
+
+    /// <summary>
     /// 最大轮次数。为 <see langword="null"/> 时无限循环。
     /// </summary>
     public int? MaxRounds { get; init; }
@@ -84,6 +98,7 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
                 {
                     _spokenRoleIdsInCurrentTurn.Clear();
                     _failedMentionRoleIds.Clear();
+                    _managerJustSpoke = false;
                 }
             }
         }
@@ -127,20 +142,31 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
         }
 
         // === 步骤 3：正常轮流 ===
-        if (autoRoles.Count == 0)
-        {
-            return Task.FromResult<ChatRoomRole?>(null);
-        }
-
-        // 跳过本轮已发言的角色；所有可发言角色都已发言 → 自然暂停
+        // 跳过本轮已发言的角色；所有可发言角色都已发言 → 检查管理者
         var availableRoles = autoRoles
             .Where(r => !_spokenRoleIdsInCurrentTurn.Contains(r.Definition.RoleId))
             .ToList();
 
         if (availableRoles.Count == 0)
         {
+            // 所有 AlwaysParticipate 角色都已发言（或没有 AlwaysParticipate 角色）
+            // === 管理者检查 ===
+            if (!_managerJustSpoke)
+            {
+                ChatRoomRole? managerRole = roles.FirstOrDefault(r => r.Definition.IsManagerRole);
+                if (managerRole is not null)
+                {
+                    _isManagerTrigger = true;
+                    return Task.FromResult<ChatRoomRole?>(managerRole);
+                }
+            }
+
+            // 管理者刚发言且中间无其他角色发言，或没有管理者角色 → 自然暂停
+            _isManagerTrigger = false;
             return Task.FromResult<ChatRoomRole?>(null);
         }
+
+        _isManagerTrigger = false;
 
         _currentIndex = (_currentIndex + 1) % autoRoles.Count;
 
@@ -177,11 +203,30 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
         if (success)
         {
             _spokenRoleIdsInCurrentTurn.Add(role.Definition.RoleId);
+
+            if (_isManagerTrigger && role.Definition.IsManagerRole)
+            {
+                // 管理者通过管理者机制发言，标记防止连续触发
+                _managerJustSpoke = true;
+            }
+            else
+            {
+                // 非管理者角色发言（或管理者被 @ 触发发言），清除标记
+                _managerJustSpoke = false;
+            }
         }
         else
         {
             _failedMentionRoleIds.Add(role.Definition.RoleId);
+
+            if (_isManagerTrigger && role.Definition.IsManagerRole)
+            {
+                // 管理者发言失败也标记，防止死循环
+                _managerJustSpoke = true;
+            }
         }
+
+        _isManagerTrigger = false;
     }
 
     /// <summary>
@@ -260,6 +305,8 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
         _pendingMentionQueue.Clear();
         _spokenRoleIdsInCurrentTurn.Clear();
         _failedMentionRoleIds.Clear();
+        _managerJustSpoke = false;
+        _isManagerTrigger = false;
         _lastSeenHistoryLastMessageId = null;
     }
 }
