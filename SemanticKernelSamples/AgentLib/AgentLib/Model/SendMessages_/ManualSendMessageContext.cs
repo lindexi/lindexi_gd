@@ -105,8 +105,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
 
         ChatClientAgent chatClientAgent = await GetChatClientAgentAsync(cancellationToken).ConfigureAwait(false);
         _agentSession = await chatClientAgent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
-        // 手动模式时，不要去影响状态，不要自动设置到会话
-        //Session.SetAgentSession(_agentSession);
+        Session.SetAgentSession(_agentSession);
         return _agentSession;
     }
 
