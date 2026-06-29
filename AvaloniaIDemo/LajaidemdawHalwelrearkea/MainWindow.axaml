@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lajaidemdawHalwelrearkea="clr-namespace:LajaidemdawHalwelrearkea"
+        xmlns:viewModels="clr-namespace:LajaidemdawHalwelrearkea.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="LajaidemdawHalwelrearkea.MainWindow"
+        Title="LajaidemdawHalwelrearkea"
+        x:DataType="viewModels:MainViewModel">
+    <Window.DataContext>
+        <viewModels:MainViewModel/>
+    </Window.DataContext>
+    <lajaidemdawHalwelrearkea:FooUserControl DataContext="{Binding Path=SubViewModel}"/>
+</Window>
