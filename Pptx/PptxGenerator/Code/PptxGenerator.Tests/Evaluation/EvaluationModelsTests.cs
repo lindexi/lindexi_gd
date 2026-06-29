@@ -50,8 +50,8 @@ public sealed class PromptEvaluationResultTests
         var result = PromptEvaluationResult.Failed("网络超时");
 
         var text = result.ToDisplayText();
-        Assert.IsTrue(text.Contains("失败"));
-        Assert.IsTrue(text.Contains("网络超时"));
+        Assert.Contains("失败", text);
+        Assert.Contains("网络超时", text);
     }
 
     [TestMethod]
@@ -68,9 +68,9 @@ public sealed class PromptEvaluationResultTests
         };
 
         var text = result.ToDisplayText();
-        Assert.IsTrue(text.Contains("9/10"));
-        Assert.IsTrue(text.Contains("建议1"));
-        Assert.IsTrue(text.Contains("建议2"));
+        Assert.Contains("9/10", text);
+        Assert.Contains("建议1", text);
+        Assert.Contains("建议2", text);
     }
 }
 
@@ -130,7 +130,7 @@ public sealed class SlideEvaluationResultTests
         };
 
         var text = result.ToDisplayText();
-        Assert.IsTrue(text.Contains("截图还原"), "显示文本应包含截图还原度维度");
-        Assert.IsTrue(text.Contains("5/10"));
+        Assert.Contains("截图还原", text, "显示文本应包含截图还原度维度");
+        Assert.Contains("5/10", text);
     }
 }

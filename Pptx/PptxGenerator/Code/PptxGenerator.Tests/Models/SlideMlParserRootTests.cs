@@ -19,7 +19,7 @@ public sealed class SlideMlParserRootTests
         var page = _parser.Parse(xml, context);
 
         Assert.AreEqual("#FFFFFF", page.Background);
-        Assert.AreEqual(0, page.Children.Count);
+        Assert.IsEmpty(page.Children);
     }
 
     [TestMethod]
@@ -31,7 +31,7 @@ public sealed class SlideMlParserRootTests
         var exception = Assert.ThrowsExactly<SlideMlRootElementException>(
             () => _parser.Parse(xml, context));
 
-        Assert.IsTrue(exception.Message.Contains("根元素"), $"消息应包含\"根元素\"，实际: {exception.Message}");
+        Assert.Contains("根元素", exception.Message, $"消息应包含\"根元素\"，实际: {exception.Message}");
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public sealed class SlideMlParserRootTests
         var page = _parser.Parse(xml, context);
 
         Assert.AreEqual("#FFFFFF", page.Background);
-        Assert.AreEqual(0, page.Children.Count);
+        Assert.IsEmpty(page.Children);
     }
 
     [TestMethod]
@@ -83,9 +83,9 @@ public sealed class SlideMlParserRootTests
 
         var page = _parser.Parse(xml, context);
 
-        Assert.AreEqual(1, context.Warnings.Count);
-        Assert.IsTrue(
-            context.Warnings[0].Contains("未知属性") && context.Warnings[0].Contains("Foo"),
+        Assert.HasCount(1, context.Warnings);
+        Assert.Contains("未知属性", context.Warnings[0]);
+        Assert.Contains("Foo", context.Warnings[0],
             $"警告应包含未知属性 Foo，实际: {context.Warnings[0]}");
     }
 }

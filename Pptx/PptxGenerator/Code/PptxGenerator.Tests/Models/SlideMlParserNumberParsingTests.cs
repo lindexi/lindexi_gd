@@ -77,7 +77,7 @@ public sealed class SlideMlParserNumberParsingTests
         var page = _parser.Parse(xml, context);
         var rect = (SlideMlRectElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Errors.Count);
+        Assert.HasCount(1, context.Errors);
         Assert.IsTrue(
             context.Errors[0].Contains("X") && context.Errors[0].Contains("abc") && context.Errors[0].Contains("不是有效的数值"),
             $"错误应包含 X 值 abc 不是有效的数值，实际: {context.Errors[0]}");

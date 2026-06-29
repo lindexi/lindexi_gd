@@ -37,7 +37,7 @@ public sealed class SlideMlPromptProviderTests
         // 只更新 systemPrompt
         provider.UpdatePrompts(systemPrompt: "自定义系统", userPromptTemplate: null);
         Assert.AreEqual("自定义系统", provider.BuildSystemPrompt());
-        Assert.IsTrue(provider.BuildInitialUserPrompt("X").Contains("SlideML"), "UserPrompt 不应受影响");
+        Assert.Contains("SlideML", provider.BuildInitialUserPrompt("X"), "UserPrompt 不应受影响");
 
         // 只更新 userPromptTemplate
         provider.UpdatePrompts(systemPrompt: null, userPromptTemplate: "自定义用户：{USER_INPUT}");
@@ -66,8 +66,8 @@ public sealed class SlideMlPromptProviderTests
         var provider = new SlideMlPromptProvider(context);
         var result = provider.BuildSystemPrompt();
 
-        Assert.IsTrue(result.Contains("1920×1080"), "系统提示词应包含自定义画布尺寸");
-        Assert.IsFalse(result.Contains("1280×720"), "系统提示词不应包含默认画布尺寸");
+        Assert.Contains("1920×1080", result, "系统提示词应包含自定义画布尺寸");
+        Assert.DoesNotContain("1280×720", result, "系统提示词不应包含默认画布尺寸");
     }
 
     [TestMethod]
@@ -77,7 +77,7 @@ public sealed class SlideMlPromptProviderTests
         var provider = new SlideMlPromptProvider(context);
         var result = provider.BuildInitialUserPrompt("测试");
 
-        Assert.IsTrue(result.Contains("1920x1080"), "用户提示词应包含自定义画布尺寸");
-        Assert.IsFalse(result.Contains("1280x720"), "用户提示词不应包含默认画布尺寸");
+        Assert.Contains("1920x1080", result, "用户提示词应包含自定义画布尺寸");
+        Assert.DoesNotContain("1280x720", result, "用户提示词不应包含默认画布尺寸");
     }
 }

@@ -133,8 +133,9 @@ public sealed class SlideStreamingErrorIntegrationTests
             useStreaming: true).ConfigureAwait(false);
 
         // Assert — 不抛异常，且不含 Page
-        Assert.IsFalse(
-            chatManager.RenderedXml.Contains("Page"),
+        Assert.DoesNotContain(
+            "Page",
+            chatManager.RenderedXml,
             "空响应不应渲染任何 Page");
     }
 
@@ -237,8 +238,9 @@ public sealed class SlideStreamingErrorIntegrationTests
 
         // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
         StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应被渲染");
-        Assert.IsFalse(
-            chatManager.RenderedXml.Contains("这是一段自然语言"),
+        Assert.DoesNotContain(
+            "这是一段自然语言",
+            chatManager.RenderedXml,
             "自然语言文本不应出现在渲染结果中");
     }
 
@@ -267,8 +269,9 @@ public sealed class SlideStreamingErrorIntegrationTests
 
         // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
         StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应被渲染");
-        Assert.IsFalse(
-            chatManager.RenderedXml.Contains("这是说明文字"),
+        Assert.DoesNotContain(
+            "这是说明文字",
+            chatManager.RenderedXml,
             "自然语言文本不应出现在渲染结果中");
     }
 
@@ -321,8 +324,9 @@ public sealed class SlideStreamingErrorIntegrationTests
 
         // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
         StringAssert.Contains(chatManager.RenderedXml, "r3", "有效片段 r3 应被渲染");
-        Assert.IsFalse(
-            chatManager.RenderedXml.Contains("以上是错误的 XML"),
+        Assert.DoesNotContain(
+            "以上是错误的 XML",
+            chatManager.RenderedXml,
             "自然语言文本不应出现在渲染结果中");
     }
 
@@ -375,8 +379,9 @@ public sealed class SlideStreamingErrorIntegrationTests
 
         // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
         StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应被渲染");
-        Assert.IsFalse(
-            chatManager.RenderedXml.Contains("这段文字解释了上面的错误"),
+        Assert.DoesNotContain(
+            "这段文字解释了上面的错误",
+            chatManager.RenderedXml,
             "自然语言文本不应出现在渲染结果中");
     }
 
@@ -449,8 +454,9 @@ public sealed class SlideStreamingErrorIntegrationTests
             useStreaming: true).ConfigureAwait(false);
 
         // Assert — 小写 rect 被解析器视为未知标签忽略，RenderedXml 不应包含被正确渲染的 r1
-        Assert.IsFalse(
-            chatManager.RenderedXml.Contains("Rect"),
+        Assert.DoesNotContain(
+            "Rect",
+            chatManager.RenderedXml,
             "小写 rect 标签名不应被解析为有效 Rect 元素");
     }
 

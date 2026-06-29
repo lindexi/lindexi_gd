@@ -1,4 +1,6 @@
-﻿namespace PptxGenerator.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace PptxGenerator.Models;
 
 /// <summary>
 /// 包装 PreMeasure 阶段产出的元素测量结果，提供类型安全的查询方法。
@@ -22,7 +24,7 @@ public sealed class SlideMlElementMeasurements
     /// <param name="elementId">元素 Id。</param>
     /// <param name="result">测量结果。</param>
     /// <returns>如果找到则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
-    public bool TryGetValue(string elementId, out SlideMlMeasureResult result)
+    public bool TryGetValue(string elementId, [MaybeNullWhen(false)] out SlideMlMeasureResult result)
         => _measurements.TryGetValue(elementId, out result);
 
     /// <summary>

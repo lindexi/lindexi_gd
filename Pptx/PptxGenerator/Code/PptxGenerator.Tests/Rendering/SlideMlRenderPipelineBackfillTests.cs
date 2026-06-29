@@ -64,15 +64,15 @@ public sealed class SlideMlRenderPipelineBackfillTests
 
         // t1 应有 ActualLineCount
         var t1Index = result.OutputXml.IndexOf("Id=\"t1\"", StringComparison.Ordinal);
-        Assert.IsTrue(t1Index >= 0, "t1 应存在于输出中");
+        Assert.IsGreaterThanOrEqualTo(0, t1Index, "t1 应存在于输出中");
         var t1Segment = result.OutputXml.Substring(t1Index, Math.Min(200, result.OutputXml.Length - t1Index));
         StringAssert.Contains(t1Segment, "ActualLineCount=\"1\"", "t1 应有 ActualLineCount=1");
 
         // r1 不应有 ActualLineCount
         var r1Index = result.OutputXml.IndexOf("Id=\"r1\"", StringComparison.Ordinal);
-        Assert.IsTrue(r1Index >= 0, "r1 应存在于输出中");
+        Assert.IsGreaterThanOrEqualTo(0, r1Index, "r1 应存在于输出中");
         var r1Segment = result.OutputXml.Substring(r1Index, Math.Min(200, result.OutputXml.Length - r1Index));
-        Assert.IsFalse(r1Segment.Contains("ActualLineCount"), "r1 不应有 ActualLineCount 属性");
+        Assert.DoesNotContain("ActualLineCount", r1Segment, "r1 不应有 ActualLineCount 属性");
     }
 
     [TestMethod]
@@ -85,7 +85,7 @@ public sealed class SlideMlRenderPipelineBackfillTests
 
         // 实际行为：FormatRenderedXml 从 XML 元素读取 Id 属性，无 Id 属性时跳过回填
         // 解析器虽然分配了 elem_001，但 XML 中无 Id 属性，所以不会回填 ActualWidth/ActualHeight
-        Assert.IsFalse(result.OutputXml.Contains("elem_001"), "无 Id 元素不应在 XML 中出现 elem_001");
+        Assert.DoesNotContain("elem_001", result.OutputXml, "无 Id 元素不应在 XML 中出现 elem_001");
     }
 
     [TestMethod]
@@ -138,17 +138,17 @@ public sealed class SlideMlRenderPipelineBackfillTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // 只有 TextElement 有 ActualLineCount
-        Assert.IsTrue(result.OutputXml.Contains("ActualLineCount=\"1\""), "t1 应有 ActualLineCount");
+        Assert.Contains("ActualLineCount=\"1\"", result.OutputXml, "t1 应有 ActualLineCount");
 
         // 检查 r1 段不含 ActualLineCount
         var r1Index = result.OutputXml.IndexOf("Id=\"r1\"", StringComparison.Ordinal);
         var r1Segment = result.OutputXml.Substring(r1Index, Math.Min(200, result.OutputXml.Length - r1Index));
-        Assert.IsFalse(r1Segment.Contains("ActualLineCount"), "r1 不应有 ActualLineCount");
+        Assert.DoesNotContain("ActualLineCount", r1Segment, "r1 不应有 ActualLineCount");
 
         // 检查 p1 段不含 ActualLineCount
         var p1Index = result.OutputXml.IndexOf("Id=\"p1\"", StringComparison.Ordinal);
         var p1Segment = result.OutputXml.Substring(p1Index, Math.Min(200, result.OutputXml.Length - p1Index));
-        Assert.IsFalse(p1Segment.Contains("ActualLineCount"), "p1 不应有 ActualLineCount");
+        Assert.DoesNotContain("ActualLineCount", p1Segment, "p1 不应有 ActualLineCount");
     }
 
     [TestMethod]

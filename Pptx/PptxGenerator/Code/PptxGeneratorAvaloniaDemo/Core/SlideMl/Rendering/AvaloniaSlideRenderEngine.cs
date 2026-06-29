@@ -537,6 +537,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
             SlideMlSolidColorBrush solid => CreateBrush(solid.Color, fallbackColor),
             SlideMlLinearGradientBrush gradient => CreateGradientBrush(gradient),
             null => null,
+            _ => null,
         };
     }
 

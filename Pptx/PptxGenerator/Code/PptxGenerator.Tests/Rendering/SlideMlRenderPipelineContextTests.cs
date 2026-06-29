@@ -36,13 +36,13 @@ public sealed class SlideMlRenderPipelineContextTests
         // 第一次调用：元素超出画布，产生 Warning
         var xml1 = """<Page><Rect Id="r1" X="1200" Y="600" Width="200" Height="200"/></Page>""";
         var result1 = await pipeline.RenderAsync(xml1).ConfigureAwait(false);
-        Assert.IsTrue(result1.Warnings.Count > 0, "第一次调用应产生 Warning");
+        Assert.IsNotEmpty(result1.Warnings, "第一次调用应产生 Warning");
 
         // 第二次调用：正常 XML，无 Warning
         var xml2 = """<Page><Rect Id="r2" X="0" Y="0" Width="100" Height="50"/></Page>""";
         var result2 = await pipeline.RenderAsync(xml2).ConfigureAwait(false);
 
-        Assert.AreEqual(0, result2.Warnings.Count, "第二次调用不应包含第一次的 Warning");
+        Assert.IsEmpty(result2.Warnings, "第二次调用不应包含第一次的 Warning");
     }
 
     [TestMethod]
@@ -59,7 +59,7 @@ public sealed class SlideMlRenderPipelineContextTests
         // 两次结果各自独立
         StringAssert.Contains(result1.OutputXml, "Id=\"r1\"", "第一次结果应包含 r1");
         StringAssert.Contains(result2.OutputXml, "Id=\"r2\"", "第二次结果应包含 r2");
-        Assert.IsFalse(result2.OutputXml.Contains("Id=\"r1\""), "第二次结果不应包含 r1");
+        Assert.DoesNotContain("Id=\"r1\"", result2.OutputXml, "第二次结果不应包含 r1");
     }
 
     // ───────── 第 8 章：CancellationToken ─────────
@@ -88,7 +88,7 @@ public sealed class SlideMlRenderPipelineContextTests
         var result = await pipeline.RenderAsync(xml, CancellationToken.None).ConfigureAwait(false);
 
         Assert.IsNotNull(result, "应正常返回结果");
-        Assert.AreEqual(0, result.Warnings.Count, "不应有 Warning");
-        Assert.AreEqual(0, result.Errors.Count, "不应有 Error");
+        Assert.IsEmpty(result.Warnings, "不应有 Warning");
+        Assert.IsEmpty(result.Errors, "不应有 Error");
     }
 }

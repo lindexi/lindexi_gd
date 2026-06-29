@@ -25,7 +25,7 @@ public sealed class SlideMlParserGradientTests
         Assert.AreEqual(0, gradient.Y1);
         Assert.AreEqual(1, gradient.X2);
         Assert.AreEqual(1, gradient.Y2);
-        Assert.AreEqual(2, gradient.Stops.Count);
+        Assert.HasCount(2, gradient.Stops);
     }
 
     [TestMethod]
@@ -60,7 +60,7 @@ public sealed class SlideMlParserGradientTests
 
         Assert.IsInstanceOfType<SlideMlLinearGradientBrush>(rect.Fill);
         var gradient = (SlideMlLinearGradientBrush)rect.Fill!;
-        Assert.AreEqual(1, gradient.Stops.Count);
+        Assert.HasCount(1, gradient.Stops);
     }
 
     [TestMethod]
@@ -78,7 +78,7 @@ public sealed class SlideMlParserGradientTests
 
         Assert.IsInstanceOfType<SlideMlLinearGradientBrush>(rect.Fill);
         var gradient = (SlideMlLinearGradientBrush)rect.Fill!;
-        Assert.AreEqual(1, gradient.Stops.Count);
+        Assert.HasCount(1, gradient.Stops);
     }
 
     [TestMethod]

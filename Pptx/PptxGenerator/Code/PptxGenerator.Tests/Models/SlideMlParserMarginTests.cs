@@ -83,9 +83,10 @@ public sealed class SlideMlParserMarginTests
         var page = _parser.Parse(xml, context);
         var rect = (SlideMlRectElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Errors.Count);
-        Assert.IsTrue(
-            context.Errors[0].Contains("不是有效的间距格式"),
+        Assert.HasCount(1, context.Errors);
+        Assert.Contains(
+            "不是有效的间距格式",
+            context.Errors[0],
             $"错误应包含\"不是有效的间距格式\"，实际: {context.Errors[0]}");
         Assert.IsNull(rect.Margin);
     }

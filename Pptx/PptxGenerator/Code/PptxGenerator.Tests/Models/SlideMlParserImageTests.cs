@@ -70,7 +70,7 @@ public sealed class SlideMlParserImageTests
         var page = _parser.Parse(xml, context);
         var image = (SlideMlImageElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Errors.Count);
+        Assert.HasCount(1, context.Errors);
         Assert.IsTrue(
             context.Errors[0].Contains("Stretch") && context.Errors[0].Contains("Cover") && context.Errors[0].Contains("无效"),
             $"错误应包含 Stretch 值 Cover 无效，实际: {context.Errors[0]}");

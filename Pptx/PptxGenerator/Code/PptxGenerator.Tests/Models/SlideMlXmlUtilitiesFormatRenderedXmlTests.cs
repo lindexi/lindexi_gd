@@ -23,8 +23,8 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
 
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
-        Assert.IsTrue(result.Contains("ActualWidth=\"1280\""));
-        Assert.IsTrue(result.Contains("ActualHeight=\"720\""));
+        Assert.Contains("ActualWidth=\"1280\"", result);
+        Assert.Contains("ActualHeight=\"720\"", result);
     }
 
     [TestMethod]
@@ -62,10 +62,14 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
 
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
-        Assert.IsTrue(result.Contains("Id=\"p1\"") && result.Contains("ActualWidth=\"200\""));
-        Assert.IsTrue(result.Contains("Id=\"r1\"") && result.Contains("ActualWidth=\"100\""));
-        Assert.IsTrue(result.Contains("Id=\"t1\"") && result.Contains("ActualWidth=\"80\""));
-        Assert.IsTrue(result.Contains("Id=\"img1\"") && result.Contains("ActualWidth=\"60\""));
+        Assert.Contains("Id=\"p1\"", result);
+        Assert.Contains("ActualWidth=\"200\"", result);
+        Assert.Contains("Id=\"r1\"", result);
+        Assert.Contains("ActualWidth=\"100\"", result);
+        Assert.Contains("Id=\"t1\"", result);
+        Assert.Contains("ActualWidth=\"80\"", result);
+        Assert.Contains("Id=\"img1\"", result);
+        Assert.Contains("ActualWidth=\"60\"", result);
     }
 
     [TestMethod]
@@ -92,15 +96,15 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
 
         // TextElement 应有 ActualLineCount
         var t1Start = result.IndexOf("Id=\"t1\"");
-        Assert.IsTrue(t1Start >= 0);
+        Assert.IsGreaterThanOrEqualTo(0, t1Start);
         var t1Segment = result.Substring(t1Start, result.IndexOf("/>", t1Start) - t1Start + 2);
-        Assert.IsTrue(t1Segment.Contains("ActualLineCount=\"3\""));
+        Assert.Contains("ActualLineCount=\"3\"", t1Segment);
 
         // Rect 不应有 ActualLineCount
         var r1Start = result.IndexOf("Id=\"r1\"");
-        Assert.IsTrue(r1Start >= 0);
+        Assert.IsGreaterThanOrEqualTo(0, r1Start);
         var r1Segment = result.Substring(r1Start, result.IndexOf("/>", r1Start) - r1Start + 2);
-        Assert.IsFalse(r1Segment.Contains("ActualLineCount"));
+        Assert.DoesNotContain("ActualLineCount", r1Segment);
     }
 
     [TestMethod]
@@ -145,9 +149,12 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
 
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
-        Assert.IsTrue(result.Contains("Id=\"outer\"") && result.Contains("ActualWidth=\"300\""));
-        Assert.IsTrue(result.Contains("Id=\"inner\"") && result.Contains("ActualWidth=\"150\""));
-        Assert.IsTrue(result.Contains("Id=\"leaf\"") && result.Contains("ActualWidth=\"50\""));
+        Assert.Contains("Id=\"outer\"", result);
+        Assert.Contains("ActualWidth=\"300\"", result);
+        Assert.Contains("Id=\"inner\"", result);
+        Assert.Contains("ActualWidth=\"150\"", result);
+        Assert.Contains("Id=\"leaf\"", result);
+        Assert.Contains("ActualWidth=\"50\"", result);
     }
 
     [TestMethod]
@@ -160,12 +167,12 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
         // Page 仍然有 ActualWidth/ActualHeight
-        Assert.IsTrue(result.Contains("ActualWidth=\"1280\""));
+        Assert.Contains("ActualWidth=\"1280\"", result);
         // r1 不应有 ActualWidth（因为 FindMetrics 找不到）
         var r1Start = result.IndexOf("Id=\"r1\"");
-        Assert.IsTrue(r1Start >= 0);
+        Assert.IsGreaterThanOrEqualTo(0, r1Start);
         var r1Segment = result.Substring(r1Start, result.IndexOf("/>", r1Start) - r1Start + 2);
-        Assert.IsFalse(r1Segment.Contains("ActualWidth"));
+        Assert.DoesNotContain("ActualWidth", r1Segment);
     }
 
     [TestMethod]
@@ -201,13 +208,13 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
 
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
-        Assert.IsTrue(result.Contains("X=\"10\""));
-        Assert.IsTrue(result.Contains("Y=\"20\""));
-        Assert.IsTrue(result.Contains("Width=\"100\""));
-        Assert.IsTrue(result.Contains("Height=\"50\""));
-        Assert.IsTrue(result.Contains("Fill=\"#FF0000\""));
-        Assert.IsTrue(result.Contains("CornerRadius=\"8\""));
-        Assert.IsTrue(result.Contains("ActualWidth=\"100\""));
-        Assert.IsTrue(result.Contains("ActualHeight=\"50\""));
+        Assert.Contains("X=\"10\"", result);
+        Assert.Contains("Y=\"20\"", result);
+        Assert.Contains("Width=\"100\"", result);
+        Assert.Contains("Height=\"50\"", result);
+        Assert.Contains("Fill=\"#FF0000\"", result);
+        Assert.Contains("CornerRadius=\"8\"", result);
+        Assert.Contains("ActualWidth=\"100\"", result);
+        Assert.Contains("ActualHeight=\"50\"", result);
     }
 }

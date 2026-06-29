@@ -67,7 +67,7 @@ public sealed class SlideMlParserTextElementTests
         var textElement = (SlideMlTextElement)page.Children[0];
 
         Assert.IsNotNull(textElement.Spans);
-        Assert.AreEqual(2, textElement.Spans!.Count);
+        Assert.HasCount(2, textElement.Spans!);
 
         var span0 = textElement.Spans[0];
         Assert.AreEqual("标题", span0.Text);
@@ -107,7 +107,7 @@ public sealed class SlideMlParserTextElementTests
 
         Assert.AreEqual("AB", textElement.Text);
         Assert.IsNotNull(textElement.Spans);
-        Assert.AreEqual(2, textElement.Spans!.Count);
+        Assert.HasCount(2, textElement.Spans!);
     }
 
     [TestMethod]
@@ -120,7 +120,7 @@ public sealed class SlideMlParserTextElementTests
             () => _parser.Parse(xml, context));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("True", true)]
     [DataRow("true", true)]
     [DataRow("False", false)]
@@ -169,9 +169,10 @@ public sealed class SlideMlParserTextElementTests
         var page = _parser.Parse(xml, context);
         var textElement = (SlideMlTextElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Errors.Count);
-        Assert.IsTrue(
-            context.Errors[0].Contains("TextAlignment") && context.Errors[0].Contains("Justified") && context.Errors[0].Contains("无效"),
+        Assert.HasCount(1, context.Errors);
+        Assert.Contains("TextAlignment", context.Errors[0]);
+        Assert.Contains("Justified", context.Errors[0]);
+        Assert.Contains("无效", context.Errors[0],
             $"错误应包含 TextAlignment 值 Justified 无效，实际: {context.Errors[0]}");
         Assert.AreEqual(SlideMlTextAlignment.Left, textElement.TextAlignment);
     }

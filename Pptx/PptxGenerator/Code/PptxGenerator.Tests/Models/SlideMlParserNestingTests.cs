@@ -35,7 +35,7 @@ public sealed class SlideMlParserNestingTests
         var page = _parser.Parse(xml, context);
         var panel = (SlideMlPanelElement)page.Children[0];
 
-        Assert.AreEqual(4, panel.Children.Count);
+        Assert.HasCount(4, panel.Children);
         Assert.IsInstanceOfType<SlideMlRectElement>(panel.Children[0]);
         Assert.IsInstanceOfType<SlideMlTextElement>(panel.Children[1]);
         Assert.IsInstanceOfType<SlideMlImageElement>(panel.Children[2]);

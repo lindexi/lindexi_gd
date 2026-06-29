@@ -22,7 +22,7 @@ public sealed class SlideStreamingPipelineTests
         pipeline.ProcessIncrementalText("<Page/>", context);
 
         // Assert
-        Assert.AreEqual(1, fragments.Count);
+        Assert.HasCount(1, fragments);
         Assert.AreEqual("<Page/>", fragments[0]);
     }
 
@@ -39,7 +39,7 @@ public sealed class SlideStreamingPipelineTests
         pipeline.ProcessIncrementalText("<Panel Id=\"header\">", context);
 
         // Assert
-        Assert.AreEqual(0, fragments.Count);
+        Assert.IsEmpty(fragments);
     }
 
     [TestMethod]
@@ -55,7 +55,7 @@ public sealed class SlideStreamingPipelineTests
         pipeline.ProcessIncrementalText("<Page><Panel Id=\"a\"/></Page><Rect Id=\"b\"/>", context);
 
         // Assert
-        Assert.AreEqual(2, fragments.Count);
+        Assert.HasCount(2, fragments);
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public sealed class SlideStreamingPipelineTests
         pipeline.ProcessIncrementalText("<Page/>", context);
 
         // Assert
-        Assert.IsTrue(pipeline.CurrentMergedXml.Contains("<Page"));
+        Assert.Contains("<Page", pipeline.CurrentMergedXml);
     }
 
     [TestMethod]
@@ -86,7 +86,7 @@ public sealed class SlideStreamingPipelineTests
         await pipeline.ProcessStreamEndAsync(context);
 
         // Assert
-        Assert.AreEqual(1, renderedResults.Count);
+        Assert.HasCount(1, renderedResults);
     }
 
     [TestMethod]
@@ -159,8 +159,8 @@ public sealed class SlideStreamingPipelineTests
         pipeline.ProcessIncrementalText("<Panel Id=\"p1\"><Rect Id=\"r2\"/></Panel>", context);
 
         // Assert
-        Assert.IsTrue(pipeline.CurrentMergedXml.Contains("r1"));
-        Assert.IsTrue(pipeline.CurrentMergedXml.Contains("r2"));
+        Assert.Contains("r1", pipeline.CurrentMergedXml);
+        Assert.Contains("r2", pipeline.CurrentMergedXml);
     }
 
     private static SlideStreamingPipeline CreatePipeline()

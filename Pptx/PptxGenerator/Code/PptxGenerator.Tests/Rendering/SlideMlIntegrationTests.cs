@@ -32,7 +32,7 @@ public sealed class SlideMlIntegrationTests
     private static string ExtractElementSegment(string xml, string id)
     {
         var index = xml.IndexOf($"Id=\"{id}\"", StringComparison.Ordinal);
-        Assert.IsTrue(index >= 0, $"元素 Id=\"{id}\" 应存在于输出 XML 中");
+        Assert.IsGreaterThanOrEqualTo(0, index, $"元素 Id=\"{id}\" 应存在于输出 XML 中");
         return xml.Substring(index, Math.Min(300, xml.Length - index));
     }
 
@@ -83,11 +83,11 @@ public sealed class SlideMlIntegrationTests
         StringAssert.Contains(card3Segment, "ActualHeight=\"260\"", "card3 ActualHeight 应为 260");
 
         // 无 Warning、无 Error
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
-        Assert.AreEqual(0, result.Errors.Count, "Errors 应为空");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
+        Assert.IsEmpty(result.Errors, "Errors 应为空");
     }
 
-    // ───────── 用例 2：带 Padding 的垂直流式布局端到端 ─────────
+    // ───────── 用例 2：带 Padding 的垂直流式布局端到端
 
     /// <summary>
     /// 验证垂直 Panel 中 Padding 偏移、Gap 间距、TextElement 测量值回填。
@@ -128,10 +128,10 @@ public sealed class SlideMlIntegrationTests
         StringAssert.Contains(colSegment, "ActualHeight=\"110.8\"", "Panel#col ActualHeight 应为 110.8");
 
         // 无 Warning
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
-    // ───────── 用例 3：绝对定位 Panel 嵌套子元素 ─────────
+    // ───────── 用例 3：绝对定位 Panel 嵌套子元素
 
     /// <summary>
     /// 验证绝对定位 Panel 中子元素使用自身 X/Y 坐标，
@@ -174,10 +174,10 @@ public sealed class SlideMlIntegrationTests
         StringAssert.Contains(subSegment, "ActualHeight=\"28.8\"", "sub ActualHeight 应为 28.8");
 
         // 无 Warning
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
-    // ───────── 用例 4：文本溢出容器高度产生 Warning ─────────
+    // ───────── 用例 4：文本溢出容器高度产生 Warning
 
     /// <summary>
     /// 使用 MeasureOverrides 模拟文本实际行数超出容器高度，
@@ -356,7 +356,7 @@ public sealed class SlideMlIntegrationTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // 无解析错误（Errors 为空）
-        Assert.AreEqual(0, result.Errors.Count, "不应有解析错误");
+        Assert.IsEmpty(result.Errors, "不应有解析错误");
 
         // Page 回填画布尺寸
         StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth=1280");
@@ -377,8 +377,8 @@ public sealed class SlideMlIntegrationTests
                                    "card2-title", "card2-desc", "card3-title", "card3-desc" })
         {
             var segment = ExtractElementSegment(result.OutputXml, id);
-            Assert.IsTrue(segment.Contains("ActualWidth="), $"{id} 应回填 ActualWidth");
-            Assert.IsTrue(segment.Contains("ActualHeight="), $"{id} 应回填 ActualHeight");
+            Assert.Contains("ActualWidth=", segment, $"{id} 应回填 ActualWidth");
+            Assert.Contains("ActualHeight=", segment, $"{id} 应回填 ActualHeight");
         }
 
         // 渐变背景被正确解析（LinearGradient 出现在输出 XML 中）

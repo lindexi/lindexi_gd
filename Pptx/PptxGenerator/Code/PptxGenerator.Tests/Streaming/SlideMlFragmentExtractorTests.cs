@@ -14,7 +14,7 @@ public sealed class SlideMlFragmentExtractorTests
         var fragments = extractor.TryExtractFragments();
         var remaining = extractor.GetRemaining();
 
-        Assert.AreEqual(1, fragments.Count);
+        Assert.HasCount(1, fragments);
         Assert.AreEqual("<Page Background=\"#FFFFFF\"></Page>", fragments[0]);
         Assert.AreEqual(string.Empty, remaining);
     }
@@ -29,7 +29,7 @@ public sealed class SlideMlFragmentExtractorTests
 
         var fragments = extractor.TryExtractFragments();
 
-        Assert.AreEqual(1, fragments.Count);
+        Assert.HasCount(1, fragments);
         Assert.AreEqual(
             "<Panel Id=\"header\" X=\"0\"><TextElement Id=\"title\" Text=\"Hi\"/></Panel>",
             fragments[0]);
@@ -43,7 +43,7 @@ public sealed class SlideMlFragmentExtractorTests
 
         var fragments = extractor.TryExtractFragments();
 
-        Assert.AreEqual(1, fragments.Count);
+        Assert.HasCount(1, fragments);
         Assert.AreEqual("<Rect Id=\"bg\" Width=\"100\"/>", fragments[0]);
     }
 
@@ -55,7 +55,7 @@ public sealed class SlideMlFragmentExtractorTests
 
         var fragments = extractor.TryExtractFragments();
 
-        Assert.AreEqual(2, fragments.Count);
+        Assert.HasCount(2, fragments);
         Assert.AreEqual("<Page><Panel Id=\"a\"/></Page>", fragments[0]);
         Assert.AreEqual("<Rect Id=\"b\"/>", fragments[1]);
     }
@@ -69,8 +69,8 @@ public sealed class SlideMlFragmentExtractorTests
         var fragments = extractor.TryExtractFragments();
         var remaining = extractor.GetRemaining();
 
-        Assert.AreEqual(0, fragments.Count);
-        Assert.IsTrue(remaining.Contains("<Panel Id=\"header\">"));
+        Assert.IsEmpty(fragments);
+        Assert.Contains("<Panel Id=\"header\">", remaining);
     }
 
     [TestMethod]
@@ -81,7 +81,7 @@ public sealed class SlideMlFragmentExtractorTests
 
         var fragments = extractor.TryExtractFragments();
 
-        Assert.AreEqual(1, fragments.Count);
+        Assert.HasCount(1, fragments);
         Assert.AreEqual("<Page/>", fragments[0]);
     }
 
@@ -93,7 +93,7 @@ public sealed class SlideMlFragmentExtractorTests
 
         var fragments = extractor.TryExtractFragments();
 
-        Assert.AreEqual(1, fragments.Count);
+        Assert.HasCount(1, fragments);
         Assert.AreEqual("<Page/>", fragments[0]);
     }
 
@@ -105,7 +105,7 @@ public sealed class SlideMlFragmentExtractorTests
 
         var fragments = extractor.TryExtractFragments();
 
-        Assert.AreEqual(1, fragments.Count);
+        Assert.HasCount(1, fragments);
         Assert.AreEqual("<Panel Id=\"outer\"><Panel Id=\"inner\"/></Panel>", fragments[0]);
     }
 
@@ -117,7 +117,7 @@ public sealed class SlideMlFragmentExtractorTests
 
         var fragments = extractor.TryExtractFragments();
 
-        Assert.AreEqual(2, fragments.Count);
+        Assert.HasCount(2, fragments);
         Assert.AreEqual("<Page/>", fragments[0]);
         Assert.AreEqual("<Rect Id=\"r\"/>", fragments[1]);
     }
@@ -143,7 +143,7 @@ public sealed class SlideMlFragmentExtractorTests
         var fragments = extractor.TryExtractFragments();
         var remaining = extractor.GetRemaining();
 
-        Assert.AreEqual(0, fragments.Count);
+        Assert.IsEmpty(fragments);
         Assert.AreEqual(string.Empty, remaining);
     }
 

@@ -19,7 +19,7 @@ public sealed class SlideMlParserPageStylesTests
         var page = _parser.Parse(xml, context);
 
         Assert.IsNotNull(page.Styles);
-        Assert.AreEqual(1, page.Styles!.Count);
+        Assert.HasCount(1, page.Styles!);
 
         var style = page.Styles[0];
         Assert.AreEqual("title", style.Id);

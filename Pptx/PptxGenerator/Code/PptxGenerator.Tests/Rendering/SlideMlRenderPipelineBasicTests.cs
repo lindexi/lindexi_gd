@@ -35,8 +35,8 @@ public sealed class SlideMlRenderPipelineBasicTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         Assert.IsNotNull(result.PreviewImage, "PreviewImage 不应为 null");
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
-        Assert.AreEqual(0, result.Errors.Count, "Errors 应为空");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
+        Assert.IsEmpty(result.Errors, "Errors 应为空");
         StringAssert.Contains(result.OutputXml, "ActualWidth=\"100\"", "Rect 应回填 ActualWidth=100");
         StringAssert.Contains(result.OutputXml, "ActualHeight=\"50\"", "Rect 应回填 ActualHeight=50");
         StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth=1280");
@@ -55,7 +55,7 @@ public sealed class SlideMlRenderPipelineBasicTests
         StringAssert.Contains(result.OutputXml, "ActualWidth=\"88\"", "t1 应回填 ActualWidth=88");
         StringAssert.Contains(result.OutputXml, "ActualHeight=\"19.2\"", "t1 应回填 ActualHeight=19.2");
         StringAssert.Contains(result.OutputXml, "ActualLineCount=\"1\"", "t1 应回填 ActualLineCount=1");
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
     [TestMethod]
@@ -69,7 +69,7 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         StringAssert.Contains(result.OutputXml, "ActualWidth=\"400\"", "img1 应回填 ActualWidth=400");
         StringAssert.Contains(result.OutputXml, "ActualHeight=\"300\"", "img1 应回填 ActualHeight=300");
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
     [TestMethod]
@@ -83,8 +83,8 @@ public sealed class SlideMlRenderPipelineBasicTests
         StringAssert.Contains(result.OutputXml, "Id=\"p1\"", "OutputXml 应包含 p1");
         StringAssert.Contains(result.OutputXml, "Id=\"r1\"", "OutputXml 应包含 r1");
         Assert.IsTrue(result.OutputXml.Contains("ActualWidth=\"400\"") || result.OutputXml.Contains("ActualWidth=\"358\""), "Panel 应回填 ActualWidth");
-        Assert.IsTrue(result.OutputXml.Contains("ActualWidth=\"100\""), "r1 应回填 ActualWidth=100");
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
+        Assert.Contains("ActualWidth=\"100\"", result.OutputXml, "r1 应回填 ActualWidth=100");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
     [TestMethod]
@@ -95,24 +95,24 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
-        StringAssert.Contains(result.OutputXml, "Id=\"c1\"", "c1 应在输出中");
-        StringAssert.Contains(result.OutputXml, "Id=\"c2\"", "c2 应在输出中");
-        StringAssert.Contains(result.OutputXml, "Id=\"c3\"", "c3 应在输出中");
-    }
+                Assert.IsEmpty(result.Warnings, "Warnings 应为空");
+                StringAssert.Contains(result.OutputXml, "Id=\"c1\"", "c1 应在输出中");
+                StringAssert.Contains(result.OutputXml, "Id=\"c2\"", "c2 应在输出中");
+                StringAssert.Contains(result.OutputXml, "Id=\"c3\"", "c3 应在输出中");
+            }
 
-    [TestMethod]
-    public async Task RenderAsync_VerticalFlowPanel_ChildrenArranged()
+            [TestMethod]
+            public async Task RenderAsync_VerticalFlowPanel_ChildrenArranged()
     {
         var xml = """<Page><Panel Id="col" Layout="Vertical" Gap="16" X="100" Y="100" Width="400"><Rect Width="400" Height="60" Fill="#FF0000"/><Rect Width="400" Height="60" Fill="#00FF00"/><Rect Width="400" Height="60" Fill="#0000FF"/></Panel></Page>""";
         var (pipeline, _) = CreatePipeline();
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.AreEqual(0, result.Warnings.Count, "Warnings 应为空");
+        Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
-    // ───────── 第 2 章：XML 预处理 ─────────
+    // ───────── 第 2 章：XML 预处理
 
     [TestMethod]
     public async Task RenderAsync_WithXmlDeclaration_Normalized()
@@ -161,7 +161,7 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.AreEqual(0, result.Errors.Count, "不应有错误");
+        Assert.IsEmpty(result.Errors, "不应有错误");
     }
 
     [TestMethod]
@@ -172,7 +172,7 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.IsTrue(result.Warnings.Count > 0, "应包含解析失败警告");
+        Assert.IsNotEmpty(result.Warnings, "应包含解析失败警告");
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");
     }
 }

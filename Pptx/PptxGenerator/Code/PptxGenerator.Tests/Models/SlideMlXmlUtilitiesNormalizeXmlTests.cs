@@ -13,9 +13,9 @@ public sealed class SlideMlXmlUtilitiesNormalizeXmlTests
 
         var result = SlideMlXmlUtilities.NormalizeXml(input);
 
-        Assert.IsTrue(result.Contains("<Page>"));
-        Assert.IsTrue(result.Contains("<Rect Width=\"100\" />"));
-        Assert.IsTrue(result.Contains("</Page>"));
+        Assert.Contains("<Page>", result);
+        Assert.Contains("<Rect Width=\"100\" />", result);
+        Assert.Contains("</Page>", result);
     }
 
     [TestMethod]
@@ -25,9 +25,9 @@ public sealed class SlideMlXmlUtilitiesNormalizeXmlTests
 
         var result = SlideMlXmlUtilities.NormalizeXml(input);
 
-        Assert.IsTrue(result.Contains("<Page>"));
-        Assert.IsTrue(result.Contains("<Rect Width=\"100\" />"));
-        Assert.IsTrue(result.Contains("</Page>"));
+        Assert.Contains("<Page>", result);
+        Assert.Contains("<Rect Width=\"100\" />", result);
+        Assert.Contains("</Page>", result);
     }
 
     [TestMethod]
@@ -37,7 +37,7 @@ public sealed class SlideMlXmlUtilitiesNormalizeXmlTests
 
         var result = SlideMlXmlUtilities.NormalizeXml(input);
 
-        Assert.IsTrue(result.Contains("<!-- comment -->"));
+        Assert.Contains("<!-- comment -->", result);
     }
 
     [TestMethod]

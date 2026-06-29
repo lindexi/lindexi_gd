@@ -41,7 +41,7 @@ public sealed class SlideMlParserRectTests
         Assert.AreEqual("#00000033", rect.Shadow.Color);
         Assert.AreEqual("0 4 12 #00000033", rect.ShadowString);
         Assert.IsNotNull(rect.StrokeDashArray);
-        Assert.AreEqual(2, rect.StrokeDashArray!.Count);
+        Assert.HasCount(2, rect.StrokeDashArray!);
         Assert.AreEqual(4, rect.StrokeDashArray[0]);
         Assert.AreEqual(2, rect.StrokeDashArray[1]);
         Assert.AreEqual(0.8, rect.Opacity);
@@ -111,7 +111,7 @@ public sealed class SlideMlParserRectTests
 
         Assert.IsInstanceOfType<SlideMlLinearGradientBrush>(rect.Fill);
         var gradient = (SlideMlLinearGradientBrush)rect.Fill!;
-        Assert.AreEqual(2, gradient.Stops.Count);
+        Assert.HasCount(2, gradient.Stops);
         Assert.AreEqual(0, gradient.X1);
         Assert.AreEqual(0, gradient.Y1);
         Assert.AreEqual(1, gradient.X2);
@@ -171,7 +171,7 @@ public sealed class SlideMlParserRectTests
         var rect = (SlideMlRectElement)page.Children[0];
 
         Assert.IsNotNull(rect.StrokeDashArray);
-        Assert.AreEqual(4, rect.StrokeDashArray!.Count);
+        Assert.HasCount(4, rect.StrokeDashArray!);
         Assert.AreEqual(4, rect.StrokeDashArray[0]);
         Assert.AreEqual(2, rect.StrokeDashArray[1]);
         Assert.AreEqual(1, rect.StrokeDashArray[2]);
@@ -187,9 +187,10 @@ public sealed class SlideMlParserRectTests
         var page = _parser.Parse(xml, context);
         var rect = (SlideMlRectElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Errors.Count);
-        Assert.IsTrue(
-            context.Errors[0].Contains("包含无效数值"),
+        Assert.HasCount(1, context.Errors);
+        Assert.Contains(
+            "包含无效数值",
+            context.Errors[0],
             $"错误应包含\"包含无效数值\"，实际: {context.Errors[0]}");
         Assert.IsNull(rect.StrokeDashArray);
     }

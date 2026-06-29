@@ -34,8 +34,8 @@ public sealed class SlideMlXmlUtilitiesExtractXmlTests
 
         var result = SlideMlXmlUtilities.ExtractXml(input);
 
-        Assert.IsTrue(result.StartsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"));
-        Assert.IsTrue(result.Contains("<Page></Page>"));
+        Assert.StartsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", result);
+        Assert.Contains("<Page></Page>", result);
     }
 
     [TestMethod]
@@ -46,10 +46,10 @@ public sealed class SlideMlXmlUtilitiesExtractXmlTests
 
         var result = SlideMlXmlUtilities.ExtractXml(input);
 
-        Assert.IsTrue(result.StartsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-        Assert.IsTrue(result.Contains("<Page><Rect Width=\"100\" Height=\"50\"/></Page>"));
+        Assert.StartsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", result);
+        Assert.Contains("<Page><Rect Width=\"100\" Height=\"50\"/></Page>", result);
         // 前导文本被去除
-        Assert.IsFalse(result.Contains("Here is the slide"));
+        Assert.DoesNotContain("Here is the slide", result);
     }
 
     [TestMethod]

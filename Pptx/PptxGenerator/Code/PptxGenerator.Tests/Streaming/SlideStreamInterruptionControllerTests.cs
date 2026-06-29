@@ -123,7 +123,7 @@ public sealed class SlideStreamInterruptionControllerTests
         var token2 = controller.Token;
 
         // Assert
-        Assert.IsFalse(ReferenceEquals(token1, token2));
+        Assert.IsFalse(token1 == token2);
     }
 
     [TestMethod]

@@ -8,7 +8,7 @@ namespace PptxGenerator.Tests.Streaming;
 /// </summary>
 public sealed class FakeRenderPipeline : ISlideMlRenderPipeline
 {
-    private readonly SlideMlRenderResult _result;
+    private readonly SlideMlRenderResult? _result;
     private readonly Exception? _exception;
 
     /// <summary>
@@ -48,6 +48,6 @@ public sealed class FakeRenderPipeline : ISlideMlRenderPipeline
             throw _exception;
         }
 
-        return Task.FromResult(_result);
+        return Task.FromResult(_result!);
     }
 }

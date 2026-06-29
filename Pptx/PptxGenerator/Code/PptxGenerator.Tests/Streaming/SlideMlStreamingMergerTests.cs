@@ -20,8 +20,8 @@ public sealed class SlideMlStreamingMergerTests
 
         // Assert
         var xml = merger.GetMergedXml();
-        Assert.IsTrue(xml.Contains("Width=\"200\""), "Width 应被覆盖为 200");
-        Assert.IsTrue(xml.Contains("Y=\"0\""), "Y 应保留原有值 0");
+        Assert.Contains("Width=\"200\"", xml, "Width 应被覆盖为 200");
+        Assert.Contains("Y=\"0\"", xml, "Y 应保留原有值 0");
     }
 
     [TestMethod]
@@ -37,8 +37,8 @@ public sealed class SlideMlStreamingMergerTests
 
         // Assert
         var xml = merger.GetMergedXml();
-        Assert.IsTrue(xml.Contains("Fill=\"#FF0000\""), "Fill 应保留原有值");
-        Assert.IsTrue(xml.Contains("Height=\"80\""), "Height 应被覆盖为 80");
+        Assert.Contains("Fill=\"#FF0000\"", xml, "Fill 应保留原有值");
+        Assert.Contains("Height=\"80\"", xml, "Height 应被覆盖为 80");
     }
 
     [TestMethod]
@@ -146,8 +146,8 @@ public sealed class SlideMlStreamingMergerTests
 
         // Assert
         var xml = merger.GetMergedXml();
-        Assert.IsFalse(xml.Contains("r1"), "r1 应被移除");
-        Assert.IsTrue(xml.Contains("r2"), "r2 应保留");
+        Assert.DoesNotContain("r1", xml, "r1 应被移除");
+        Assert.Contains("r2", xml, "r2 应保留");
     }
 
     [TestMethod]
@@ -237,7 +237,7 @@ public sealed class SlideMlStreamingMergerTests
         merger.AcceptFragment("<Panel Id=\"bad\"", context);
 
         // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "应产生 XML 格式错误");
+        Assert.IsNotEmpty(context.Errors, "应产生 XML 格式错误");
         var xml = merger.GetMergedXml();
         var doc = XDocument.Parse(xml);
         Assert.AreEqual("Page", doc.Root!.Name.LocalName, "仅有 Page 根元素");
@@ -255,7 +255,7 @@ public sealed class SlideMlStreamingMergerTests
         merger.AcceptFragment("<Page><Rect Fill=\"#FF0000\"/></Page>", context);
 
         // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "缺少 Id 的 Rect 应产生错误");
+        Assert.IsNotEmpty(context.Errors, "缺少 Id 的 Rect 应产生错误");
     }
 
     [TestMethod]
@@ -270,7 +270,7 @@ public sealed class SlideMlStreamingMergerTests
         merger.AcceptFragment("<Page><Panel Id=\"dup\"><Rect Id=\"dup\"/></Panel></Page>", context);
 
         // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "同片段内不同类型元素共用 Id 应产生错误");
+        Assert.IsNotEmpty(context.Errors, "同片段内不同类型元素共用 Id 应产生错误");
     }
 
     [TestMethod]
@@ -284,8 +284,8 @@ public sealed class SlideMlStreamingMergerTests
         merger.AcceptFragment("<Page><Panel Id=\"p1\"><Rect Id=\"dup\"/><Rect Id=\"dup\"/></Panel></Page>", context);
 
         // Assert
-        Assert.AreEqual(0, context.Errors.Count, "同类型重复 Id 不应产生错误");
-        Assert.IsTrue(context.Warnings.Count > 0, "同类型重复 Id 应产生警告");
+        Assert.IsEmpty(context.Errors, "同类型重复 Id 不应产生错误");
+        Assert.IsNotEmpty(context.Warnings, "同类型重复 Id 应产生警告");
     }
 
     [TestMethod]
@@ -300,7 +300,7 @@ public sealed class SlideMlStreamingMergerTests
         merger.AcceptFragment("<Rect Id=\"dup\" Width=\"100\"/>", context);
 
         // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "跨片段不同类型元素共用 Id 应产生错误");
+        Assert.IsNotEmpty(context.Errors, "跨片段不同类型元素共用 Id 应产生错误");
     }
 
     [TestMethod]
@@ -315,7 +315,7 @@ public sealed class SlideMlStreamingMergerTests
         merger.AcceptFragment("<Page><Rect Id=\"dup\" Width=\"200\"/></Page>", context);
 
         // Assert — MergeChildren 整体替换子元素，Width 来自新片段
-        Assert.AreEqual(0, context.Errors.Count, "同类型跨片段 Id 重复不应产生错误");
+        Assert.IsEmpty(context.Errors, "同类型跨片段 Id 重复不应产生错误");
         var xml = merger.GetMergedXml();
         StringAssert.Contains(xml, "Width=\"200\"", "新片段的 Width 应生效");
         StringAssert.Contains(xml, "Id=\"dup\"", "dup 元素应存在");

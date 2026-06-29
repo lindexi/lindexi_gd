@@ -45,7 +45,7 @@ public sealed class SlideStreamRenderServiceTests
         // Assert
         Assert.AreEqual(outputXml, service.CurrentRenderedXml);
         Assert.IsNotNull(service.CurrentPreviewImage);
-        Assert.AreEqual(0, service.CurrentWarnings.Count);
+        Assert.IsEmpty(service.CurrentWarnings);
     }
 
     [TestMethod]
@@ -81,7 +81,7 @@ public sealed class SlideStreamRenderServiceTests
         await service.RenderAsync("<Page/>").ConfigureAwait(false);
 
         // Assert
-        Assert.AreEqual(2, service.CurrentWarnings.Count);
+        Assert.HasCount(2, service.CurrentWarnings);
         Assert.AreEqual("Warning 1", service.CurrentWarnings[0]);
         Assert.AreEqual("Warning 2", service.CurrentWarnings[1]);
     }

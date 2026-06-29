@@ -45,7 +45,7 @@ public sealed class IterationResultTests
         Assert.AreEqual(0, result.FinalScore);
         Assert.IsFalse(result.IsConverged);
         Assert.AreEqual(string.Empty, result.TerminateReason);
-        Assert.AreEqual(0, result.IterationHistory.Count);
+        Assert.IsEmpty(result.IterationHistory);
     }
 }
 

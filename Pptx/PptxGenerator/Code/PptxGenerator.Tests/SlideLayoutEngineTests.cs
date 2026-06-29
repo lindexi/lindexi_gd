@@ -38,7 +38,7 @@ public sealed class SlideMlLayoutEngineTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, _context.Errors.Count, "不应有错误");
+        Assert.IsEmpty(_context.Errors, "不应有错误");
 
         var r1 = (SlideMlRectElement)panel.Children[0];
         var r2 = (SlideMlRectElement)panel.Children[1];
@@ -258,7 +258,7 @@ public sealed class SlideMlLayoutEngineTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.IsTrue(_context.Warnings.Count > 0, "应有溢出警告");
+        Assert.IsNotEmpty(_context.Warnings, "应有溢出警告");
         Assert.IsTrue(_context.Warnings.Any(w => w.Contains("超出")), "警告应包含溢出信息");
     }
 

@@ -74,7 +74,7 @@ public sealed class SlideMlRenderPipelineErrorTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // SlideMlRootElementException 是 SlideMlParseException 子类，会被 catch 捕获
-        Assert.IsTrue(result.Warnings.Count > 0, "应包含解析失败警告");
+        Assert.IsNotEmpty(result.Warnings, "应包含解析失败警告");
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");
     }
 
@@ -87,7 +87,7 @@ public sealed class SlideMlRenderPipelineErrorTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // XmlException 被捕获，返回错误结果
-        Assert.IsTrue(result.Warnings.Count > 0, "应包含解析失败警告");
+        Assert.IsNotEmpty(result.Warnings, "应包含解析失败警告");
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");
     }
 
@@ -135,7 +135,7 @@ public sealed class SlideMlRenderPipelineErrorTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.IsTrue(result.Errors.Count > 0, "应包含 Error");
+        Assert.IsNotEmpty(result.Errors, "应包含 Error");
         var hasEnumError = result.Errors.Any(e => e.Contains("HorizontalAlignment") && e.Contains("Diagonal"));
         Assert.IsTrue(hasEnumError, "Error 应包含 HorizontalAlignment 值 \"Diagonal\" 无效");
     }
@@ -148,7 +148,7 @@ public sealed class SlideMlRenderPipelineErrorTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.IsTrue(result.Errors.Count > 0, "应包含 Error");
+        Assert.IsNotEmpty(result.Errors, "应包含 Error");
         var hasNumericError = result.Errors.Any(e => e.Contains("Width") && e.Contains("abc"));
         Assert.IsTrue(hasNumericError, "Error 应包含 Width 值 \"abc\" 不是有效的数值");
     }
@@ -161,7 +161,7 @@ public sealed class SlideMlRenderPipelineErrorTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.IsTrue(result.Errors.Count > 0, "应包含 Error");
+        Assert.IsNotEmpty(result.Errors, "应包含 Error");
         var hasMarginError = result.Errors.Any(e => e.Contains("不是有效的间距格式"));
         Assert.IsTrue(hasMarginError, "Error 应包含不是有效的间距格式");
     }
@@ -175,8 +175,8 @@ public sealed class SlideMlRenderPipelineErrorTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.IsTrue(result.Errors.Count > 0, "应包含 Error");
-        Assert.IsTrue(result.Warnings.Count > 0, "应包含 Warning");
+        Assert.IsNotEmpty(result.Errors, "应包含 Error");
+        Assert.IsNotEmpty(result.Warnings, "应包含 Warning");
         // 确认分类正确：Error 中不包含画布边界警告
         Assert.IsFalse(result.Errors.Any(e => e.Contains("超出画布")), "Errors 不应包含画布边界警告");
         // 确认 Warning 中不包含枚举错误

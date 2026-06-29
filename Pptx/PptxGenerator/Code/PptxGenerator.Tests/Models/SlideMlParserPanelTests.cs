@@ -66,7 +66,7 @@ public sealed class SlideMlParserPanelTests
 
         Assert.IsInstanceOfType<SlideMlLinearGradientBrush>(panel.Background);
         var gradient = (SlideMlLinearGradientBrush)panel.Background!;
-        Assert.AreEqual(2, gradient.Stops.Count);
+        Assert.HasCount(2, gradient.Stops);
         Assert.AreEqual(0, gradient.Stops[0].Offset);
         Assert.AreEqual("#FF0000", gradient.Stops[0].Color);
         Assert.AreEqual(1, gradient.Stops[1].Offset);
@@ -98,7 +98,7 @@ public sealed class SlideMlParserPanelTests
         var page = _parser.Parse(xml, context);
         var panel = (SlideMlPanelElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Warnings.Count);
+        Assert.HasCount(1, context.Warnings);
         Assert.IsTrue(
             context.Warnings[0].Contains("未知属性") && context.Warnings[0].Contains("Foo"),
             $"警告应包含未知属性 Foo，实际: {context.Warnings[0]}");
@@ -126,7 +126,7 @@ public sealed class SlideMlParserPanelTests
         var page = _parser.Parse(xml, context);
         var panel = (SlideMlPanelElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Errors.Count);
+        Assert.HasCount(1, context.Errors);
         Assert.IsTrue(
             context.Errors[0].Contains("Layout") && context.Errors[0].Contains("Diagonal") && context.Errors[0].Contains("无效"),
             $"错误应包含 Layout 值 Diagonal 无效，实际: {context.Errors[0]}");
@@ -142,7 +142,7 @@ public sealed class SlideMlParserPanelTests
         var page = _parser.Parse(xml, context);
         var panel = (SlideMlPanelElement)page.Children[0];
 
-        Assert.AreEqual(1, context.Errors.Count);
+        Assert.HasCount(1, context.Errors);
         Assert.IsTrue(
             context.Errors[0].Contains("Padding") && context.Errors[0].Contains("abc") && context.Errors[0].Contains("不是有效的数值"),
             $"错误应包含 Padding 值 abc 不是有效的数值，实际: {context.Errors[0]}");

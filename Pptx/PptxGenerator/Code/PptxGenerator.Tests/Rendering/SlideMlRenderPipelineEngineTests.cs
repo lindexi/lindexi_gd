@@ -116,7 +116,7 @@ public sealed class SlideMlRenderPipelineEngineTests
         StringAssert.Contains(result.OutputXml, "Id=\"card2\"", "card2 应在输出中");
         StringAssert.Contains(result.OutputXml, "Id=\"card3\"", "card3 应在输出中");
         StringAssert.Contains(result.OutputXml, "Id=\"title\"", "title 应在输出中");
-        Assert.IsTrue(result.OutputXml.Contains("ActualWidth=\"380\""), "card 应回填 ActualWidth=380");
+        Assert.Contains("ActualWidth=\"380\"", result.OutputXml, "card 应回填 ActualWidth=380");
     }
 
     [TestMethod]

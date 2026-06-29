@@ -38,7 +38,7 @@ public sealed class SlideMlLayoutEngineAbsoluteLayoutTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, _context.Errors.Count, "不应有错误");
+        Assert.IsEmpty(_context.Errors, "不应有错误");
         Assert.AreEqual(350, panel.ActualWidth, 0.01, "panel ActualWidth 应为 contentRight=350");
         Assert.AreEqual(110, panel.ActualHeight, 0.01, "panel ActualHeight 应为 contentBottom=110");
 

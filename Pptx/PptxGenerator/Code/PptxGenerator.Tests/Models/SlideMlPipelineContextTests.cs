@@ -30,7 +30,7 @@ public sealed class SlideMlPipelineContextTests
 
         context.AddWarning("test warning");
 
-        Assert.AreEqual(1, context.Warnings.Count);
+        Assert.HasCount(1, context.Warnings);
         Assert.AreEqual("test warning", context.Warnings[0]);
     }
 
@@ -41,7 +41,7 @@ public sealed class SlideMlPipelineContextTests
 
         context.AddWarnings(["w1", "w2"]);
 
-        Assert.AreEqual(2, context.Warnings.Count);
+        Assert.HasCount(2, context.Warnings);
         Assert.AreEqual("w1", context.Warnings[0]);
         Assert.AreEqual("w2", context.Warnings[1]);
     }
@@ -53,7 +53,7 @@ public sealed class SlideMlPipelineContextTests
 
         context.AddError("test error");
 
-        Assert.AreEqual(1, context.Errors.Count);
+        Assert.HasCount(1, context.Errors);
         Assert.AreEqual("test error", context.Errors[0]);
     }
 
@@ -64,7 +64,7 @@ public sealed class SlideMlPipelineContextTests
 
         context.AddErrors(["e1", "e2"]);
 
-        Assert.AreEqual(2, context.Errors.Count);
+        Assert.HasCount(2, context.Errors);
         Assert.AreEqual("e1", context.Errors[0]);
         Assert.AreEqual("e2", context.Errors[1]);
     }
@@ -78,8 +78,8 @@ public sealed class SlideMlPipelineContextTests
 
         context.Reset();
 
-        Assert.AreEqual(0, context.Warnings.Count);
-        Assert.AreEqual(0, context.Errors.Count);
+        Assert.IsEmpty(context.Warnings);
+        Assert.IsEmpty(context.Errors);
     }
 
     [TestMethod]
@@ -93,8 +93,8 @@ public sealed class SlideMlPipelineContextTests
         // 验证接口类型以确保只读语义。
         Assert.IsInstanceOfType<IReadOnlyList<string>>(context.Warnings);
         Assert.IsInstanceOfType<IReadOnlyList<string>>(context.Errors);
-        Assert.AreEqual(1, context.Warnings.Count);
-        Assert.AreEqual(1, context.Errors.Count);
+        Assert.HasCount(1, context.Warnings);
+        Assert.HasCount(1, context.Errors);
     }
 
     [TestMethod]
