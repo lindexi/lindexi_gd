@@ -284,7 +284,7 @@ public sealed class ChatViewModel : ViewModelBase
 
     /// <summary>
     /// 是否可以发送消息。允许在自动循环运行时插话，当前正在发言的角色继续说完，
-    /// 下一轮被选中的角色将获得用户插话内容及历史聊天记录。
+    /// 随后助手立即回话用户，并将助手 @ 的角色加入排队发言。
     /// </summary>
     public bool CanSend => _chatRoomService?.HasActiveSession ?? false;
 

@@ -173,6 +173,176 @@ public sealed class ChatRoomManagerIntegrationTests
         }
     }
 
+    // === 插话即时响应测试 ===
+
+    /// <summary>
+    /// 自动循环运行期间用户插话时，当前正在发言的角色继续说完，
+    /// 随后助手立即回话用户，本轮自动循环结束后验证结果。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_InterjectDuringSpeaking_AssistantRepliesImmediately()
+    {
+        // Arrange：A 第一轮发言延迟 300ms，使测试能在发言期间插话
+        int aCallCount = 0;
+        var clientA = new FakeChatClient();
+        clientA.OnGetStreamingResponseAsync = (_, _, _) =>
+        {
+            int index = System.Threading.Interlocked.Increment(ref aCallCount);
+            if (index == 1)
+            {
+                // 第一轮：延迟返回，确保插话在发言期间发生
+                return DelayedStreamUpdates(TimeSpan.FromMilliseconds(300),
+                [
+                    new ChatResponseUpdate
+                    {
+                        Role = ChatRole.Assistant,
+                        Contents = [new TextContent("A 第一轮回复")],
+                    },
+                ]);
+            }
+            return StreamUpdates(
+            [
+                new ChatResponseUpdate
+                {
+                    Role = ChatRole.Assistant,
+                    Contents = [new TextContent("A 第二轮回复")],
+                },
+            ]);
+        };
+        clientA.OnGetResponseAsync = (_, _, _) =>
+        {
+            int index = Math.Max(1, aCallCount);
+            string text = index == 1 ? "A 第一轮回复" : "A 第二轮回复";
+            return Task.FromResult(new ChatResponse(
+                new ChatMessage(ChatRole.Assistant, text)));
+        };
+        var clientB = CreateFakeClient("B 第一轮回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "助手A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "助手B", "p-b"));
+
+        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
+
+        // 人类插话触发对话
+        await manager.HumanInterjectAsync("开始讨论", "human", "Human");
+
+        // Act：在后台启动自动循环
+        var loopTask = Task.Run(() => manager.StartAutoLoopAsync());
+
+        // 等待 A 开始发言（A 第一轮有 300ms 延迟）
+        await Task.Delay(100);
+
+        // 在 A 发言期间插话
+        await manager.HumanInterjectAsync("我有新问题", "human", "Human");
+
+        // 等待循环完成
+        await loopTask;
+
+        // Assert：循环应已终止
+        Assert.IsFalse(manager.IsRunning);
+
+        // A 的第一轮发言应存在（发言期间插话不取消）
+        var aMessages = manager.Session.Messages
+            .Where(m => m.SenderRoleId == "A" && !m.IsSystemMessage)
+            .ToList();
+        Assert.IsTrue(aMessages.Count > 0, "A 的第一轮发言应存在");
+
+        // 人类插话消息应存在
+        var humanMessages = manager.Session.Messages
+            .Where(m => m.IsHumanMessage)
+            .ToList();
+        Assert.AreEqual(2, humanMessages.Count, "应有两条人类消息");
+
+        // 插话后 A 应再次发言（助手回话用户）
+        Assert.IsTrue(aMessages.Count >= 2, "A 应在插话后再次发言（回话用户）");
+    }
+
+    /// <summary>
+    /// 自动循环运行期间用户插话，助手回话后 @ 的角色应继续发言（链式继续）。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_InterjectDuringSpeaking_AssistantMentionsRole_ChainContinues()
+    {
+        // Arrange：A 第一轮发言延迟 300ms，使测试能在发言期间插话
+        // A 第二轮回话用户时 @ expert
+        int aCallCount = 0;
+        var clientA = new FakeChatClient();
+        clientA.OnGetStreamingResponseAsync = (_, _, _) =>
+        {
+            int index = System.Threading.Interlocked.Increment(ref aCallCount);
+            if (index == 1)
+            {
+                // 第一轮：延迟返回，确保插话在发言期间发生
+                return DelayedStreamUpdates(TimeSpan.FromMilliseconds(300),
+                [
+                    new ChatResponseUpdate
+                    {
+                        Role = ChatRole.Assistant,
+                        Contents = [new TextContent("A 第一轮回复")],
+                    },
+                ]);
+            }
+            // 第二轮：回话用户并 @ expert
+            return StreamUpdates(
+            [
+                new ChatResponseUpdate
+                {
+                    Role = ChatRole.Assistant,
+                    Contents = [new TextContent("A 回复用户 @expert")],
+                },
+            ]);
+        };
+        clientA.OnGetResponseAsync = (_, _, _) =>
+        {
+            int index = Math.Max(1, aCallCount);
+            string text = index == 1 ? "A 第一轮回复" : "A 回复用户 @expert";
+            return Task.FromResult(new ChatResponse(
+                new ChatMessage(ChatRole.Assistant, text)));
+        };
+        var clientExpert = CreateFakeClient("expert 的回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-expert"] = CreateProvider("p-expert", clientExpert),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "助手A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("expert", "Expert", "p-expert", ChatRoomParticipationMode.MentionOnly));
+
+        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
+
+        // 人类插话触发对话
+        await manager.HumanInterjectAsync("开始讨论", "human", "Human");
+
+        // Act：在后台启动自动循环
+        var loopTask = Task.Run(() => manager.StartAutoLoopAsync());
+
+        // 等待 A 开始发言（A 第一轮有 300ms 延迟）
+        await Task.Delay(100);
+
+        // 在 A 发言期间插话
+        await manager.HumanInterjectAsync("帮我找专家", "human", "Human");
+
+        // 等待循环完成
+        await loopTask;
+
+        // Assert：expert 应被 @ 后发言
+        Assert.IsFalse(manager.IsRunning);
+        var expertMessages = manager.Session.Messages
+            .Where(m => m.SenderRoleId == "expert" && !m.IsSystemMessage)
+            .ToList();
+        Assert.IsTrue(expertMessages.Count > 0, "expert 应被 @ 后发言");
+    }
+
     // === helper ===
 
     /// <summary>
@@ -458,6 +628,21 @@ public sealed class ChatRoomManagerIntegrationTests
         ChatResponseUpdate[] updates)
     {
         await Task.Yield();
+        foreach (var update in updates)
+        {
+            yield return update;
+        }
+    }
+
+    /// <summary>
+    /// 延迟后将 <see cref="ChatResponseUpdate"/> 数组转为 <see cref="IAsyncEnumerable{T}"/>。
+    /// 用于模拟发言期间插话场景：延迟期间用户可以插话。
+    /// </summary>
+    private static async IAsyncEnumerable<ChatResponseUpdate> DelayedStreamUpdates(
+        TimeSpan delay,
+        ChatResponseUpdate[] updates)
+    {
+        await Task.Delay(delay);
         foreach (var update in updates)
         {
             yield return update;

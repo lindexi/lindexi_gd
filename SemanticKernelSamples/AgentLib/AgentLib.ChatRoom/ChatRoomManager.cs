@@ -29,6 +29,14 @@ public sealed class ChatRoomManager : NotifyBase
     private IReadOnlyDictionary<string, ILanguageModelProvider>? _languageModelProviders;
 
     /// <summary>
+    /// 人类插话信号。当自动循环运行期间用户插话时设置为 1，
+    /// 促使 <see cref="StartAutoLoopAsync"/> 在当前角色发言完成后重启循环，
+    /// 使选择器检测到人类消息并让助手立即回话用户。
+    /// 使用 int + Interlocked 以保证原子消费，避免多次插话时的竞态。
+    /// </summary>
+    private int _humanInterjectSignal;
+
+    /// <summary>
     /// 使用指定的会话创建聊天室管理器。
     /// </summary>
     /// <param name="session">聊天室会话。</param>
@@ -233,6 +241,15 @@ public sealed class ChatRoomManager : NotifyBase
                         break;
                     }
                 }
+
+                // 人类插话信号：当前角色发言完成且消息处理完毕后，
+                // 重启循环让选择器看到人类消息，使助手立即回话用户。
+                // 使用 Interlocked.Exchange 原子消费信号，避免多次插话时的竞态。
+                if (System.Threading.Interlocked.Exchange(ref _humanInterjectSignal, 0) != 0)
+                {
+                    consecutiveEmptyReplies = 0;
+                    continue;
+                }
             }
         }
         catch (OperationCanceledException) when (loopCancellationToken.IsCancellationRequested)
@@ -366,6 +383,13 @@ public sealed class ChatRoomManager : NotifyBase
         }
 
         await AppendMessageAsync(message);
+
+        // 自动循环运行期间插话：设置信号，促使当前循环在角色发言完成后重启，
+        // 让选择器检测到人类消息并让助手立即回话用户
+        if (IsRunning)
+        {
+            System.Threading.Interlocked.Exchange(ref _humanInterjectSignal, 1);
+        }
     }
 
     /// <summary>
