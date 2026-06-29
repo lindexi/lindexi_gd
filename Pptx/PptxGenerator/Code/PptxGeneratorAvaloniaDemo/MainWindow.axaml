@@ -208,6 +208,13 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                    <CheckBox IsChecked="{Binding IsStreamingMode}"
+                              FontSize="13"
+                              Foreground="#FF475569"
+                              VerticalAlignment="Center"
+                              Margin="12,0,0,0">
+                        <TextBlock Text="流式模式" FontSize="13" Foreground="#FF475569" />
+                    </CheckBox>
                 </StackPanel>
             </Border>
             <vm:CharUserControl Grid.Row="1" />

@@ -43,6 +43,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _evaluationSummaryText = string.Empty;
     private string _lastUserPrompt = string.Empty;
     private ModelDisplayItem _selectedModelItem;
+    private bool _isStreamingMode;
 
     public MainWindowViewModel(SlideChatManager slideChatManager)
     {
@@ -243,6 +244,15 @@ public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager
     }
 
     /// <summary>
+    /// 是否使用流式模式发送消息。
+    /// </summary>
+    public bool IsStreamingMode
+    {
+        get => _isStreamingMode;
+        set => SetProperty(ref _isStreamingMode, value);
+    }
+
+    /// <summary>
     /// 是否在发送消息时附加当前渲染预览图。
     /// </summary>
     public bool AttachPreview
@@ -297,7 +307,7 @@ public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, cancellationToken: cancellationTokenSource.Token).ConfigureAwait(false);
+            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, useStreaming: _isStreamingMode, cancellationToken: cancellationTokenSource.Token).ConfigureAwait(false);
 
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
