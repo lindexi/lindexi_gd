@@ -173,7 +173,10 @@ public sealed class SlideMlStreamingMerger
             // 从 _idIndex 中移除该元素及其所有带 Id 的子元素
             UnregisterIdElements(targetElement);
             // 从父节点移除
-            targetElement.Remove();
+            if (targetElement.Parent != null)
+            {
+                targetElement.Remove();
+            }
         }
         else
         {

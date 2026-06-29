@@ -14,18 +14,19 @@ public sealed class SlideStreamingErrorIntegrationTests
     // ───────── 用例 1：格式错误 XML 后继续有效输出 ─────────
 
     /// <summary>
-    /// LLM 先输出有效 XML，然后输出无效文本，最后输出更多有效 XML。
-    /// 验证最终渲染结果包含有效部分。
+    /// LLM 先输出有效 XML + 无效 XML，管道检测到异常后取消流并重试。
+    /// 重试时输出有效 XML，验证最终渲染结果包含重试后的有效片段。
     /// </summary>
-    [TestMethod]
+    [TestMethod(DisplayName = "格式错误 XML：检测到异常后取消流并重试，最终渲染有效片段")]
     public async Task FullStreaming_MalformedXml_LlmContinuesAfterError()
     {
-        // Arrange — 有效片段 + 无效文本 + 有效片段
-        var text =
+        // Arrange — 第一轮：有效片段 + 无效片段（触发取消）；第二轮：有效片段
+        var firstRound =
             "<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>" +
-            "<Panel Id=\"bad\"><Rect Id=\"inner\"></Panel></Rect>" +
+            "<Panel Id=\"bad\"><Rect Id=\"inner\"></Panel></Rect>";
+        var secondRound =
             "<Page><Rect Id=\"r2\" Width=\"50\" Height=\"30\" Fill=\"#00FF00\"/></Page>";
-        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(text);
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -34,9 +35,8 @@ public sealed class SlideStreamingErrorIntegrationTests
             attachPreview: false,
             useStreaming: true).ConfigureAwait(false);
 
-        // Assert — 有效片段应被渲染
-        StringAssert.Contains(chatManager.RenderedXml, "r1", "有效片段 r1 应保留");
-        StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应保留");
+        // Assert — 重试后的有效片段应被渲染
+        StringAssert.Contains(chatManager.RenderedXml, "r2", "重试后的有效片段 r2 应被渲染");
     }
 
     // ───────── 用例 2：不完整 XML 只渲染完整片段 ─────────
@@ -215,19 +215,18 @@ public sealed class SlideStreamingErrorIntegrationTests
     // ───────── 用例 8b：属性值缺引号 + 自然语言 + 有效 XML 混合 ─────────
 
     /// <summary>
-    /// LLM 输出混合内容：无引号属性的无效 XML + 自然语言 + 有效 XML。
-    /// 验证无效片段被跳过、自然语言被忽略、有效片段被正确渲染。
+    /// LLM 输出无引号属性的无效 XML，管道检测到异常后取消流并重试。
+    /// 重试时输出有效 XML，验证最终渲染结果包含有效片段且不含自然语言。
     /// </summary>
-    [TestMethod(DisplayName = "混合输出：无引号属性错误后自然语言和有效 XML 正确处理")]
+    [TestMethod(DisplayName = "混合输出：无引号属性错误后取消流并重试，最终渲染有效 XML")]
     public async Task FullStreaming_InvalidXmlThenTextThenValid_OnlyValidRendered()
     {
-        // Arrange — 无效 XML + 自然语言 + 有效 XML
-        var text =
+        // Arrange — 第一轮：无引号属性的无效 XML；第二轮：有效 XML
+        var firstRound =
             "<Page><Rect Id=r1 Width=100 Height=50 Fill=#FF0000/></Page>\n" +
-            "这是一段自然语言，这是一段自然语言\n" +
-            "<Page><Rect Id=\"r2\" Width=\"300\"/></Page>\n" +
-            "这是一段自然语言\n";
-        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(text);
+            "这是一段自然语言，这是一段自然语言\n";
+        var secondRound = "<Page><Rect Id=\"r2\" Width=\"300\"/></Page>";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -236,8 +235,8 @@ public sealed class SlideStreamingErrorIntegrationTests
             attachPreview: false,
             useStreaming: true).ConfigureAwait(false);
 
-        // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
-        StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应被渲染");
+        // Assert — 重试后的有效片段被渲染，自然语言不出现在渲染结果中
+        StringAssert.Contains(chatManager.RenderedXml, "r2", "重试后的有效片段 r2 应被渲染");
         Assert.DoesNotContain(
             "这是一段自然语言",
             chatManager.RenderedXml,
@@ -247,18 +246,18 @@ public sealed class SlideStreamingErrorIntegrationTests
     // ───────── 用例 8c：未闭合标签 + 自然语言 + 有效 XML 混合 ─────────
 
     /// <summary>
-    /// LLM 输出混合内容：未闭合标签的无效 XML + 自然语言 + 有效 XML。
-    /// 验证无效片段被跳过、自然语言被忽略、有效片段被正确渲染。
+    /// LLM 输出未闭合标签的无效 XML，管道检测到异常后取消流并重试。
+    /// 重试时输出有效 XML，验证最终渲染结果包含有效片段且不含自然语言。
     /// </summary>
-    [TestMethod(DisplayName = "混合输出：未闭合标签错误后自然语言和有效 XML 正确处理")]
+    [TestMethod(DisplayName = "混合输出：未闭合标签错误后取消流并重试，最终渲染有效 XML")]
     public async Task FullStreaming_UnclosedTagThenTextThenValid_OnlyValidRendered()
     {
-        // Arrange — 未闭合标签 + 自然语言 + 有效 XML
-        var text =
+        // Arrange — 第一轮：未闭合标签 + 自然语言；第二轮：有效 XML
+        var firstRound =
             "<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\"></Page>\n" +
-            "这是说明文字\n" +
-            "<Page><Rect Id=\"r2\" Width=\"200\" Height=\"80\" Fill=\"#00FF00\"/></Page>";
-        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(text);
+            "这是说明文字\n";
+        var secondRound = "<Page><Rect Id=\"r2\" Width=\"200\" Height=\"80\" Fill=\"#00FF00\"/></Page>";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -267,8 +266,8 @@ public sealed class SlideStreamingErrorIntegrationTests
             attachPreview: false,
             useStreaming: true).ConfigureAwait(false);
 
-        // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
-        StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应被渲染");
+        // Assert — 重试后的有效片段被渲染，自然语言不出现在渲染结果中
+        StringAssert.Contains(chatManager.RenderedXml, "r2", "重试后的有效片段 r2 应被渲染");
         Assert.DoesNotContain(
             "这是说明文字",
             chatManager.RenderedXml,
@@ -302,18 +301,18 @@ public sealed class SlideStreamingErrorIntegrationTests
     // ───────── 用例 9b：重复属性 + 自然语言 + 有效 XML 混合 ─────────
 
     /// <summary>
-    /// LLM 输出混合内容：重复属性的无效 XML + 自然语言 + 有效 XML。
-    /// 验证无效片段被跳过、自然语言被忽略、有效片段被正确渲染。
+    /// LLM 输出重复属性的无效 XML，管道检测到异常后取消流并重试。
+    /// 重试时输出有效 XML，验证最终渲染结果包含有效片段且不含自然语言。
     /// </summary>
-    [TestMethod(DisplayName = "混合输出：重复属性错误后自然语言和有效 XML 正确处理")]
+    [TestMethod(DisplayName = "混合输出：重复属性错误后取消流并重试，最终渲染有效 XML")]
     public async Task FullStreaming_DuplicateAttributeThenTextThenValid_OnlyValidRendered()
     {
-        // Arrange — 重复属性 + 自然语言 + 有效 XML
-        var text =
+        // Arrange — 第一轮：重复属性 + 自然语言；第二轮：有效 XML
+        var firstRound =
             "<Page><Rect Id=\"r1\" Id=\"r2\" Width=\"100\"/></Page>\n" +
-            "以上是错误的 XML\n" +
-            "<Page><Rect Id=\"r3\" Width=\"300\"/></Page>";
-        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(text);
+            "以上是错误的 XML\n";
+        var secondRound = "<Page><Rect Id=\"r3\" Width=\"300\"/></Page>";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -322,8 +321,8 @@ public sealed class SlideStreamingErrorIntegrationTests
             attachPreview: false,
             useStreaming: true).ConfigureAwait(false);
 
-        // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
-        StringAssert.Contains(chatManager.RenderedXml, "r3", "有效片段 r3 应被渲染");
+        // Assert — 重试后的有效片段被渲染，自然语言不出现在渲染结果中
+        StringAssert.Contains(chatManager.RenderedXml, "r3", "重试后的有效片段 r3 应被渲染");
         Assert.DoesNotContain(
             "以上是错误的 XML",
             chatManager.RenderedXml,
@@ -357,18 +356,18 @@ public sealed class SlideStreamingErrorIntegrationTests
     // ───────── 用例 10b：未转义特殊字符 + 自然语言 + 有效 XML 混合 ─────────
 
     /// <summary>
-    /// LLM 输出混合内容：含未转义 &lt; 的无效 XML + 自然语言 + 有效 XML。
-    /// 验证无效片段被跳过、自然语言被忽略、有效片段被正确渲染。
+    /// LLM 输出含未转义 &lt; 的无效 XML，管道检测到异常后取消流并重试。
+    /// 重试时输出有效 XML，验证最终渲染结果包含有效片段且不含自然语言。
     /// </summary>
-    [TestMethod(DisplayName = "混合输出：未转义特殊字符错误后自然语言和有效 XML 正确处理")]
+    [TestMethod(DisplayName = "混合输出：未转义特殊字符错误后取消流并重试，最终渲染有效 XML")]
     public async Task FullStreaming_UnescapedCharThenTextThenValid_OnlyValidRendered()
     {
-        // Arrange — 未转义特殊字符 + 自然语言 + 有效 XML
-        var text =
+        // Arrange — 第一轮：未转义特殊字符 + 自然语言；第二轮：有效 XML
+        var firstRound =
             "<Page><Rect Id=\"r1\" Fill=\"red<blue\"/></Page>\n" +
-            "这段文字解释了上面的错误\n" +
-            "<Page><Rect Id=\"r2\" Width=\"300\" Fill=\"#00FF00\"/></Page>";
-        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(text);
+            "这段文字解释了上面的错误\n";
+        var secondRound = "<Page><Rect Id=\"r2\" Width=\"300\" Fill=\"#00FF00\"/></Page>";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -377,8 +376,8 @@ public sealed class SlideStreamingErrorIntegrationTests
             attachPreview: false,
             useStreaming: true).ConfigureAwait(false);
 
-        // Assert — 无效片段被跳过，自然语言被忽略，有效片段被渲染
-        StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应被渲染");
+        // Assert — 重试后的有效片段被渲染，自然语言不出现在渲染结果中
+        StringAssert.Contains(chatManager.RenderedXml, "r2", "重试后的有效片段 r2 应被渲染");
         Assert.DoesNotContain(
             "这段文字解释了上面的错误",
             chatManager.RenderedXml,
@@ -463,17 +462,16 @@ public sealed class SlideStreamingErrorIntegrationTests
     // ───────── 用例 14：错误格式 XML 后紧接有效 XML ─────────
 
     /// <summary>
-    /// LLM 先输出重复属性的无效片段，紧接着输出有效片段。
-    /// 验证管道不崩溃，无效片段被跳过，有效片段被正常渲染。
+    /// LLM 先输出重复属性的无效片段，管道检测到异常后取消流并重试。
+    /// 重试时输出有效片段，验证最终渲染结果包含有效片段。
     /// </summary>
-    [TestMethod(DisplayName = "错误后恢复：重复属性错误后有效片段正常渲染")]
+    [TestMethod(DisplayName = "错误后恢复：重复属性错误后取消流并重试，有效片段正常渲染")]
     public async Task FullStreaming_ErrorThenValid_ValidFragmentRendered()
     {
-        // Arrange — 无效片段 + 有效片段
-        var xml =
-            "<Page><Rect Id=\"r1\" Id=\"r2\" Width=\"100\" Height=\"50\"/></Page>" +
-            "<Page><Rect Id=\"r3\" Width=\"50\" Height=\"30\" Fill=\"#00FF00\"/></Page>";
-        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
+        // Arrange — 第一轮：无效片段；第二轮：有效片段
+        var firstRound = "<Page><Rect Id=\"r1\" Id=\"r2\" Width=\"100\" Height=\"50\"/></Page>";
+        var secondRound = "<Page><Rect Id=\"r3\" Width=\"50\" Height=\"30\" Fill=\"#00FF00\"/></Page>";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -482,8 +480,8 @@ public sealed class SlideStreamingErrorIntegrationTests
             attachPreview: false,
             useStreaming: true).ConfigureAwait(false);
 
-        // Assert — 无效片段被跳过，有效片段应被渲染
-        StringAssert.Contains(chatManager.RenderedXml, "r3", "错误后的有效片段 r3 应被渲染");
+        // Assert — 重试后的有效片段应被渲染
+        StringAssert.Contains(chatManager.RenderedXml, "r3", "重试后的有效片段 r3 应被渲染");
     }
 
     // ───────── 用例 15：不完整的 CDATA ─────────

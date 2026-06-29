@@ -51,25 +51,48 @@ internal static class SlideStreamingTestHelper
         TimeSpan delay = default,
         CancellationToken cancellationToken = default)
     {
-        return CreateChatManager(() => StreamTokensAsync(text, delay, cancellationToken));
+        return CreateChatManager(ct => StreamTokensAsync(text, delay, ct));
+    }
+
+    /// <summary>
+    /// 创建配置好的 SlideChatManager 和对应的 FakeChatClient，
+    /// 支持按调用顺序返回不同的流式响应（用于异常检测→重试场景）。
+    /// </summary>
+    /// <param name="sequentialTexts">按调用顺序依次返回的文本列表。
+    /// 第一次调用返回第一段，第二次返回第二段，以此类推。
+    /// 超出列表范围时返回最后一段。</param>
+    public static (SlideChatManager ChatManager, FakeChatClient FakeChatClient) CreateChatManagerWithSequentialTexts(
+        params string[] sequentialTexts)
+    {
+        var callIndex = 0;
+        return CreateChatManager(ct =>
+        {
+            var text = callIndex < sequentialTexts.Length
+                ? sequentialTexts[callIndex]
+                : sequentialTexts[^1];
+            callIndex++;
+            return StreamTokensAsync(text, TimeSpan.Zero, ct);
+        });
     }
 
     /// <summary>
     /// 创建配置好的 SlideChatManager 和对应的 FakeChatClient。
     /// </summary>
+    /// <param name="streamingResponseFactory">接收 CancellationToken 的流式响应工厂。
+    /// 若为 <see langword="null"/>，默认返回一个空 Page。</param>
     public static (SlideChatManager ChatManager, FakeChatClient FakeChatClient) CreateChatManager(
-        Func<IAsyncEnumerable<ChatResponseUpdate>>? streamingResponseFactory = null)
+        Func<CancellationToken, IAsyncEnumerable<ChatResponseUpdate>>? streamingResponseFactory = null)
     {
         var fakeChatClient = new FakeChatClient();
 
         if (streamingResponseFactory is not null)
         {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) => streamingResponseFactory();
+            fakeChatClient.OnGetStreamingResponseAsync = (_, _, ct) => streamingResponseFactory(ct);
         }
         else
         {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) =>
-                StreamTokensAsync("""<Page Background="#FFFFFF"/>""");
+            fakeChatClient.OnGetStreamingResponseAsync = (_, _, ct) =>
+                StreamTokensAsync("""<Page Background="#FFFFFF"/>""", TimeSpan.Zero, ct);
         }
 
         // 非流式也需要配置（工具调用可能用到）
