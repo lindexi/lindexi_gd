@@ -63,6 +63,27 @@ public sealed class SlideMlRenderTool
     public string LatestSlideXml { get; private set; } = string.Empty;
 
     /// <summary>
+    /// 将渲染结果应用到当前实例的 Latest* 属性，供流式渲染路径复用。
+    /// </summary>
+    /// <param name="result">渲染结果。</param>
+    public void ApplyRenderResult(SlideMlRenderResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        _ = _dispatcher.InvokeAsync(() =>
+        {
+            LatestPreviewImage = result.PreviewImage;
+            LatestWarnings = result.Warnings.Count == 0
+                ? "(none)"
+                : string.Join("\n", result.Warnings);
+            LatestRenderedXml = result.OutputXml;
+            LatestSlideXml = result.InputXml;
+            SlideRendered?.Invoke();
+            return Task.CompletedTask;
+        });
+    }
+
+    /// <summary>
     /// 创建 SlideML 渲染 AI Tool。
     /// </summary>
     /// <returns>可用于 <see cref="ChatOptions.Tools"/> 的 AIFunction。</returns>

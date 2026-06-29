@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel;
 using AgentLib;
 using AgentLib.Model;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using PptxGenerator.Evaluation;
 using PptxGenerator.Models;
 using PptxGenerator.Prompt;
+using PptxGenerator.Streaming;
 
 namespace PptxGenerator.Pipeline;
 
@@ -18,6 +20,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
     private readonly ISlideEvaluator? _slideEvaluator;
     private readonly IPromptEvaluator? _promptEvaluator;
     private readonly IPromptOptimizer? _promptOptimizer;
+    private readonly IMainThreadDispatcher _dispatcher;
 
     public SlideGenerationPipeline(
         CopilotChatManager copilotChatManager,
@@ -33,6 +36,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         _slideEvaluator = slideEvaluator;
         _promptEvaluator = promptEvaluator;
         _promptOptimizer = promptOptimizer;
+        _dispatcher = slideMlRenderTool.Dispatcher;
 
         slideMlRenderTool.SlideRendered += OnSlideRendered;
     }
@@ -121,11 +125,18 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         string? systemPrompt = null,
         bool createNewSession = false,
         bool skipAutoEvaluation = false,
+        bool useStreaming = false,
         CancellationToken cancellationToken = default
     )
     {
         if (string.IsNullOrWhiteSpace(userMessage))
         {
+            return;
+        }
+
+        if (useStreaming)
+        {
+            await SendStreamingMessageAsync(userMessage, isFirstMessage, cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -206,6 +217,78 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             context.SnapshotFromRenderTool(SlideMlRenderTool);
             _ = EvaluateContextAsync(context, userMessage, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// 以流式方式发送消息，逐片段接收 LLM 输出并实时渲染。
+    /// </summary>
+    /// <param name="userMessage">用户自然语言需求。</param>
+    /// <param name="isFirstMessage">是否为首次消息。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    private async Task SendStreamingMessageAsync(string userMessage, bool isFirstMessage, CancellationToken cancellationToken)
+    {
+        var context = new SlideMlPipelineContext();
+        var streamingPipeline = new SlideStreamingPipeline(_promptProvider, SlideMlRenderTool.RenderPipeline, _dispatcher);
+
+        // 将流式渲染结果同步到 SlideMlRenderTool，使 Latest* 属性保持最新
+        streamingPipeline.Rendered += renderResult =>
+        {
+            SlideMlRenderTool.ApplyRenderResult(new SlideMlRenderResult
+            {
+                InputXml = renderResult.InputXml,
+                OutputXml = renderResult.OutputXml,
+                Warnings = renderResult.Warnings,
+                Errors = renderResult.Errors,
+                PreviewImage = renderResult.PreviewImage,
+            });
+        };
+
+        var manualContext = await _copilotChatManager.CreateManualSendMessageContextAsync(cancellationToken).ConfigureAwait(false);
+
+        // 填充用户消息
+        var processedText = isFirstMessage
+            ? _promptProvider.BuildInitialUserPrompt(userMessage)
+            : userMessage;
+        manualContext.UserChatMessage.AppendText(processedText);
+
+        var systemPrompt = isFirstMessage
+            ? _promptProvider.BuildStreamingSystemPrompt()
+            : null;
+
+        // 追加消息到会话
+        await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
+
+        using var _ = manualContext.StartChatting();
+
+        var agent = await manualContext.GetChatClientAgentAsync(cancellationToken).ConfigureAwait(false);
+        var session = await manualContext.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
+
+        var messages = systemPrompt is not null
+            ? new[] { new ChatMessage(ChatRole.System, systemPrompt), manualContext.UserChatMessage.ToChatMessage() }
+            : new[] { manualContext.UserChatMessage.ToChatMessage() };
+
+        await foreach (var update in agent.RunStreamingAsync(messages, session, cancellationToken: cancellationToken).ConfigureAwait(false))
+        {
+            manualContext.AppendResponseUpdate(update);
+
+            // 将增量文本喂给流式管道
+            if (!string.IsNullOrEmpty(update.Text))
+            {
+                streamingPipeline.ProcessIncrementalText(update.Text, context);
+            }
+        }
+
+        // 流结束，渲染合并后的 XML
+        await streamingPipeline.ProcessStreamEndAsync(context, cancellationToken).ConfigureAwait(false);
+
+        await _dispatcher.InvokeAsync(() =>
+        {
+            OnPropertyChanged(nameof(PreviewImage));
+            OnPropertyChanged(nameof(CurrentSlideXml));
+            OnPropertyChanged(nameof(RenderedXml));
+            OnPropertyChanged(nameof(WarningText));
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
     }
 
     public async Task<SlideEvaluationResult?> EvaluateAsync(string userPrompt, CancellationToken cancellationToken = default)

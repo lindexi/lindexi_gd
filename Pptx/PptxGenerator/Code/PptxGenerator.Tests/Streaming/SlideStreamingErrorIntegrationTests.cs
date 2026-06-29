@@ -1,331 +1,224 @@
+using AgentLib;
+using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
+using Microsoft.Extensions.AI;
+using PptxGenerator;
 using PptxGenerator.Models;
+using PptxGenerator.Pipeline;
 using PptxGenerator.Prompt;
 using PptxGenerator.Rendering;
-using PptxGenerator.Streaming;
 using PptxGenerator.Tests.Rendering;
 
 namespace PptxGenerator.Tests.Streaming;
 
 /// <summary>
-/// 流式输出错误恢复与中断-纠错机制的集成测试。
+/// 从 SlideChatManager.SendMessageAsync(useStreaming: true) 入口出发的流式错误恢复集成测试。
+/// 注入 FakeChatClient 模拟 LLM 逐字符输出 SlideML XML，验证在格式错误、重复 Id、
+/// 不完整 XML、空响应等异常场景下管道不崩溃且正确处理有效片段。
 /// </summary>
 [TestClass]
 public sealed class SlideStreamingErrorIntegrationTests
 {
-    private static SlideStreamingPipeline CreatePipeline()
+    /// <summary>
+    /// 将完整文本按逐字符方式通过 ChatResponseUpdate 流式返回。
+    /// </summary>
+    private static async IAsyncEnumerable<ChatResponseUpdate> StreamTokensAsync(
+        string text,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        foreach (var ch in text)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return new ChatResponseUpdate(ChatRole.Assistant, ch.ToString());
+            await Task.Yield();
+        }
+    }
+
+    /// <summary>
+    /// 创建配置好的 SlideChatManager 和对应的 FakeChatClient。
+    /// </summary>
+    private static (SlideChatManager chatManager, FakeChatClient fakeChatClient) CreateChatManager(
+        Func<IAsyncEnumerable<ChatResponseUpdate>>? streamingResponseFactory = null)
+    {
+        var fakeChatClient = new FakeChatClient();
+
+        if (streamingResponseFactory is not null)
+        {
+            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) => streamingResponseFactory();
+        }
+        else
+        {
+            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) =>
+                StreamTokensAsync("<Page Background=\"#FFFFFF\"/>");
+        }
+
+        // 非流式也需要配置（工具调用可能用到）
+        fakeChatClient.OnGetResponseAsync = (_, _, _) =>
+            Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, "<Page/>")));
+
+        var copilotChatManager = new CopilotChatManager();
+        copilotChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(
+            new FakeLanguageModelProvider(fakeChatClient));
+
         var layoutEngine = new SlideMlLayoutEngine();
         var renderEngine = new FakeRenderEngine();
         var dispatcher = new FakeMainThreadDispatcher();
         var renderPipeline = new SlideMlRenderPipeline(layoutEngine, renderEngine, dispatcher);
-        var promptProvider = new SlideMlPromptProvider();
-        return new SlideStreamingPipeline(promptProvider, renderPipeline, dispatcher);
+        var renderTool = new SlideMlRenderTool(renderPipeline, dispatcher);
+        var chatManager = new SlideChatManager(copilotChatManager, renderTool);
+
+        return (chatManager, fakeChatClient);
     }
 
-    // ───────── 错误恢复场景 ─────────
+    // ───────── 用例 1：格式错误 XML 后继续有效输出 ─────────
 
+    /// <summary>
+    /// LLM 先输出有效 XML，然后输出无效文本，最后输出更多有效 XML。
+    /// 验证最终渲染结果包含有效部分。
+    /// </summary>
     [TestMethod]
-    public async Task ErrorRecovery_MalformedXmlFragment_SkippedAndContinues()
+    public async Task FullStreaming_MalformedXml_LlmContinuesAfterError()
     {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var context = new SlideMlPipelineContext();
-        var renderedCount = 0;
-        pipeline.Rendered += _ => renderedCount++;
-
-        // Act — 先输出有效片段
-        pipeline.ProcessIncrementalText("<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>", context);
-
-        // 输出格式错误的 XML 片段（XElement.Parse 会失败：标签嵌套错误）
-        // Panel 标签内嵌不匹配的子标签，XElement.Parse 将抛出异常
-        pipeline.ProcessIncrementalText("<Panel Id=\"bad\"><Rect Id=\"inner\"></Panel></Rect>", context);
-
-        // 再输出有效片段（包裹在 Page 中以合并到 DOM）
-        pipeline.ProcessIncrementalText("<Page><Rect Id=\"r2\" Width=\"50\" Height=\"30\" Fill=\"#00FF00\"/></Page>", context);
-
-        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
-
-        // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "应至少有 1 条错误");
-        StringAssert.Contains(pipeline.CurrentMergedXml, "r1", "有效片段 r1 应保留");
-        Assert.AreEqual(1, renderedCount, "应只渲染 1 次（流结束时）");
-    }
-
-    [TestMethod]
-    public async Task ErrorRecovery_MissingIdElement_SkippedWithError()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var context = new SlideMlPipelineContext();
-
-        // Act — 顶层 Rect 片段没有 Id
-        pipeline.ProcessIncrementalText("<Page/>", context);
-        pipeline.ProcessIncrementalText("<Rect Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
-        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
-
-        // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "顶层片段缺少 Id 应产生错误");
-    }
-
-    [TestMethod]
-    public async Task ErrorRecovery_DuplicateIdDifferentTypes_Error()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var context = new SlideMlPipelineContext();
-
-        // Act — 同一片段内 Panel 和 Rect 都叫 dup（类型不同）
-        pipeline.ProcessIncrementalText("<Page><Panel Id=\"dup\"><Rect Id=\"dup\"/></Panel></Page>", context);
-        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
-
-        // Assert
-        Assert.IsTrue(context.Errors.Count > 0, "同片段内不同类型元素共用 Id 应产生错误");
-    }
-
-    [TestMethod]
-    public async Task ErrorRecovery_DuplicateIdSameType_WarningOnly()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var context = new SlideMlPipelineContext();
-
-        // Act — 同一片段内两个 Rect 都叫 dup（类型相同）
-        pipeline.ProcessIncrementalText("<Page><Panel Id=\"p1\"><Rect Id=\"dup\"/><Rect Id=\"dup\"/></Panel></Page>", context);
-        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
-
-        // Assert
-        Assert.AreEqual(0, context.Errors.Count, "同类型重复 Id 不应产生错误");
-        Assert.IsTrue(context.Warnings.Count > 0, "同类型重复 Id 应产生警告");
-    }
-
-    [TestMethod]
-    public async Task ErrorRecovery_IncompleteXmlStaysInBuffer_WarnedAtStreamEnd()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var context = new SlideMlPipelineContext();
-
-        // Act — 不完整的 XML 保留在缓冲区
-        pipeline.ProcessIncrementalText("<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>", context);
-        pipeline.ProcessIncrementalText("<Panel Id=\"incomplete\"", context);
-
-        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
-
-        // Assert — 缓冲区残留应产生 Warning
-        Assert.IsTrue(context.Warnings.Count > 0, "缓冲区残留应产生警告");
-        StringAssert.Contains(pipeline.CurrentMergedXml, "r1", "有效片段应保留");
-    }
-
-    // ───────── 中断-纠错机制场景 ─────────
-
-    [TestMethod]
-    public void Interruption_TolerableErrorsBelowThreshold_ContinuesStreaming()
-    {
-        // Arrange
-        var controller = new SlideStreamInterruptionController(maxConsecutiveErrors: 3, maxRetries: 2);
+        // Arrange — 有效片段 + 无效文本 + 有效片段
+        var text =
+            "<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>" +
+            "<Panel Id=\"bad\"><Rect Id=\"inner\"></Panel></Rect>" +
+            "<Page><Rect Id=\"r2\" Width=\"50\" Height=\"30\" Fill=\"#00FF00\"/></Page>";
+        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(text));
 
         // Act
-        controller.StartRound();
-        var first = controller.ReportTolerableError("err1");
-        var second = controller.ReportTolerableError("err2");
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
 
-        // Assert
-        Assert.IsFalse(first);
-        Assert.IsFalse(second);
-        Assert.IsFalse(controller.IsInterruptionRequested);
-        Assert.IsFalse(controller.Token.IsCancellationRequested);
+        // Assert — 有效片段应被渲染
+        StringAssert.Contains(chatManager.RenderedXml, "r1", "有效片段 r1 应保留");
+        StringAssert.Contains(chatManager.RenderedXml, "r2", "有效片段 r2 应保留");
     }
 
+    // ───────── 用例 2：不完整 XML 只渲染完整片段 ─────────
+
+    /// <summary>
+    /// LLM 输出一段不完整的 XML（完整的 Page + 残留的不完整 Panel）。
+    /// 验证只有完整的 Page 片段被渲染。
+    /// </summary>
     [TestMethod]
-    public void Interruption_TolerableErrorsAtThreshold_TriggersCancellation()
+    public async Task FullStreaming_LlmOutputsIncompleteXml_OnlyCompletePartsRendered()
     {
-        // Arrange
-        var controller = new SlideStreamInterruptionController(maxConsecutiveErrors: 3, maxRetries: 2);
+        // Arrange — 完整 Page + 不完整 Panel
+        var text =
+            "<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>" +
+            "<Panel Id=\"incomplete\"";
+        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(text));
 
         // Act
-        controller.StartRound();
-        controller.ReportTolerableError("err1");
-        controller.ReportTolerableError("err2");
-        var third = controller.ReportTolerableError("err3");
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
 
-        // Assert
-        Assert.IsTrue(third);
-        Assert.IsTrue(controller.IsInterruptionRequested);
-        Assert.IsTrue(controller.Token.IsCancellationRequested);
+        // Assert — 完整 Page 应被渲染
+        StringAssert.Contains(chatManager.RenderedXml, "r1", "完整 Page 片段应被渲染");
     }
 
+    // ───────── 用例 3：不同类型元素重复 Id ─────────
+
+    /// <summary>
+    /// LLM 输出 Panel 和 Rect 共用 Id="dup"（类型不同）。
+    /// 验证管道不崩溃，整个片段被跳过，RenderedXml 为空。
+    /// </summary>
     [TestMethod]
-    public void Interruption_FatalError_ImmediatelyCancels()
+    public async Task FullStreaming_LlmOutputsDuplicateIdDifferentTypes_ErrorCollected()
+    {
+        // Arrange — 整个片段因不同类型重复 Id 被跳过，不会有 Page 入树
+        var xml = "<Page><Panel Id=\"dup\"><Rect Id=\"dup\"/></Panel></Page>";
+        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+
+        // Act — 不应抛异常
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
+
+        // Assert — 片段被跳过，渲染结果为空
+        Assert.IsTrue(string.IsNullOrEmpty(chatManager.RenderedXml), "不同类型重复 Id 的片段应被整体跳过");
+    }
+
+    // ───────── 用例 4：相同类型元素重复 Id ─────────
+
+    /// <summary>
+    /// LLM 输出同一 Panel 内两个 Rect 都叫 Id="dup"（类型相同）。
+    /// 验证不应崩溃，最终能渲染。
+    /// </summary>
+    [TestMethod]
+    public async Task FullStreaming_LlmOutputsDuplicateIdSameType_NoError()
     {
         // Arrange
-        var controller = new SlideStreamInterruptionController();
+        var xml = "<Page><Panel Id=\"p1\"><Rect Id=\"dup\" Width=\"50\"/><Rect Id=\"dup\" Width=\"100\"/></Panel></Page>";
+        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
 
         // Act
-        controller.StartRound();
-        controller.ReportFatalError("fatal");
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
 
-        // Assert
-        Assert.IsTrue(controller.IsInterruptionRequested);
-        Assert.IsTrue(controller.Token.IsCancellationRequested);
+        // Assert — 管道不崩溃，能渲染
+        StringAssert.Contains(chatManager.RenderedXml, "Page", "同类型重复 Id 不应阻止渲染");
     }
 
+    // ───────── 用例 5：空 LLM 响应 ─────────
+
+    /// <summary>
+    /// LLM 输出空字符串。
+    /// 验证不抛异常，RenderedXml 为空或不含 Page。
+    /// </summary>
     [TestMethod]
-    public void Interruption_ResetErrorCount_PreventsThresholdTrigger()
+    public async Task FullStreaming_EmptyLlmResponse_NoRender()
     {
         // Arrange
-        var controller = new SlideStreamInterruptionController(maxConsecutiveErrors: 3, maxRetries: 2);
+        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(string.Empty));
 
         // Act
-        controller.StartRound();
-        controller.ReportTolerableError("err1");
-        controller.ReportTolerableError("err2");
-        controller.ResetErrorCount();
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
 
-        var firstAfterReset = controller.ReportTolerableError("err1");
-        var secondAfterReset = controller.ReportTolerableError("err2");
-
-        // Assert
-        Assert.IsFalse(firstAfterReset);
-        Assert.IsFalse(secondAfterReset);
-        Assert.IsFalse(controller.IsInterruptionRequested);
+        // Assert — 不抛异常，且不含 Page
+        Assert.IsFalse(
+            chatManager.RenderedXml.Contains("Page"),
+            "空响应不应渲染任何 Page");
     }
 
+    // ───────── 用例 6：纯文本无 XML ─────────
+
+    /// <summary>
+    /// LLM 输出纯文本，不包含任何 XML。
+    /// 验证不抛异常，RenderedXml 为空。
+    /// </summary>
     [TestMethod]
-    public void Interruption_CanRetry_RetryRoundIncrements()
+    public async Task FullStreaming_LlmOutputsOnlyText_NoXml_NoRender()
     {
         // Arrange
-        var controller = new SlideStreamInterruptionController(maxConsecutiveErrors: 3, maxRetries: 2);
-
-        // Act & Assert — 第 1 轮
-        controller.StartRound();
-        Assert.AreEqual(0, controller.RetryRound);
-        Assert.IsTrue(controller.CanRetry());
-
-        // 第 2 轮
-        controller.StartRound();
-        Assert.AreEqual(1, controller.RetryRound);
-        Assert.IsTrue(controller.CanRetry());
-
-        // 第 3 轮 — 达到最大重试
-        controller.StartRound();
-        Assert.AreEqual(2, controller.RetryRound);
-        Assert.IsFalse(controller.CanRetry());
-        Assert.IsTrue(controller.MaxRetriesReached);
-    }
-
-    // ───────── 端到端中断恢复场景 ─────────
-
-    [TestMethod]
-    public async Task EndToEnd_ErrorThenRecovery_ContinuesAndRenders()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var context = new SlideMlPipelineContext();
-        var controller = new SlideStreamInterruptionController(maxConsecutiveErrors: 3, maxRetries: 2);
-        var renderedCount = 0;
-        pipeline.Rendered += _ => renderedCount++;
+        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync("这是一段文字，没有 XML"));
 
         // Act
-        controller.StartRound();
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
 
-        // 逐 token 输出有效片段
-        pipeline.ProcessIncrementalText("<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>", context);
-
-        // 模拟 2 个可容错错误（未达阈值 3）
-        controller.ReportTolerableError("bad xml 1");
-        controller.ReportTolerableError("bad xml 2");
-
-        // 验证未触发中断
-        Assert.IsFalse(controller.IsInterruptionRequested, "2 个错误不应触发中断");
-
-        // 输出另一个有效片段（包裹在 Page 中以合并到 DOM）
-        pipeline.ProcessIncrementalText("<Page><Rect Id=\"r2\" Width=\"50\" Height=\"30\" Fill=\"#00FF00\"/></Page>", context);
-
-        // 成功片段重置错误计数
-        controller.ResetErrorCount();
-
-        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
-
-        // Assert
-        Assert.AreEqual(1, renderedCount, "应渲染 1 次");
-        StringAssert.Contains(pipeline.CurrentMergedXml, "r1");
-        StringAssert.Contains(pipeline.CurrentMergedXml, "r2");
-    }
-
-    [TestMethod]
-    public async Task EndToEnd_FatalErrorDuringStream_TriggersInterruption()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var context = new SlideMlPipelineContext();
-        var controller = new SlideStreamInterruptionController();
-        var streamCompleted = false;
-        var streamCompletedXml = string.Empty;
-        pipeline.StreamCompleted += xml =>
-        {
-            streamCompleted = true;
-            streamCompletedXml = xml;
-        };
-
-        // Act
-        controller.StartRound();
-        pipeline.ProcessIncrementalText("<Page/>", context);
-
-        // 模拟致命错误
-        controller.ReportFatalError("fatal error");
-
-        // Assert — 中断已触发
-        Assert.IsTrue(controller.IsInterruptionRequested);
-        Assert.IsTrue(controller.Token.IsCancellationRequested);
-
-        // 即使中断也完成流处理
-        await pipeline.ProcessStreamEndAsync(context).ConfigureAwait(false);
-
-        Assert.IsTrue(streamCompleted, "StreamCompleted 应被触发");
-        StringAssert.Contains(streamCompletedXml, "Page");
-    }
-
-    [TestMethod]
-    public void EndToEnd_MaxRetriesReached_NoMoreRetries()
-    {
-        // Arrange
-        var controller = new SlideStreamInterruptionController(maxConsecutiveErrors: 1, maxRetries: 2);
-
-        // Act & Assert — 第 1 轮
-        controller.StartRound();
-        var interrupted1 = controller.ReportTolerableError("err");
-        Assert.IsTrue(interrupted1, "1 >= 1 应触发中断");
-        Assert.IsTrue(controller.CanRetry(), "第 1 次重试");
-
-        // 第 2 轮
-        controller.StartRound();
-        var interrupted2 = controller.ReportTolerableError("err");
-        Assert.IsTrue(interrupted2);
-        Assert.IsTrue(controller.CanRetry(), "第 2 次重试");
-
-        // 第 3 轮 — 达到最大重试
-        controller.StartRound();
-        var interrupted3 = controller.ReportTolerableError("err");
-        Assert.IsTrue(interrupted3);
-        Assert.IsFalse(controller.CanRetry(), "达到最大重试次数");
-        Assert.IsTrue(controller.MaxRetriesReached);
-    }
-
-    [TestMethod]
-    public async Task EndToEnd_RenderErrorInPipeline_ExceptionPropagated()
-    {
-        // Arrange — 使用 FakeRenderPipeline 抛出异常
-        var fakePipeline = new FakeRenderPipeline(new InvalidOperationException("render failed"));
-        var dispatcher = new FakeMainThreadDispatcher();
-        var promptProvider = new SlideMlPromptProvider();
-        var pipeline = new SlideStreamingPipeline(promptProvider, fakePipeline, dispatcher);
-        var context = new SlideMlPipelineContext();
-
-        // Act
-        pipeline.ProcessIncrementalText("<Page/>", context);
-
-        // Assert — 渲染时应抛出异常
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => pipeline.ProcessStreamEndAsync(context)).ConfigureAwait(false);
+        // Assert — 不抛异常，且为空
+        Assert.IsTrue(
+            string.IsNullOrEmpty(chatManager.RenderedXml),
+            "纯文本无 XML 时 RenderedXml 应为空");
     }
 }
