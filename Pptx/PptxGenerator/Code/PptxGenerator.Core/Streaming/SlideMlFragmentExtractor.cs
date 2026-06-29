@@ -4,7 +4,7 @@ namespace PptxGenerator.Streaming;
 
 /// <summary>
 /// 从 LLM token 流中增量切分出完整 XML 片段。
-/// 维护一个 StringBuilder 缓冲区，使用深度计数器算法识别完整的顶层 XML 元素。
+/// 维护一个 StringBuilder 缓冲区，使用标签名栈算法识别完整的顶层 XML 元素。
 /// </summary>
 public sealed class SlideMlFragmentExtractor
 {
@@ -64,6 +64,7 @@ public sealed class SlideMlFragmentExtractor
 
     /// <summary>
     /// 从指定位置开始扫描，尝试提取一个完整的顶层 XML 元素。
+    /// 使用标签名栈匹配开始/结束标签，当遇到不匹配的结束标签时自动弹出中间未闭合标签。
     /// </summary>
     /// <param name="text">完整缓冲区文本。</param>
     /// <param name="startPos">起始扫描位置。</param>
@@ -73,6 +74,7 @@ public sealed class SlideMlFragmentExtractor
         var pos = startPos;
         var depth = 0;
         var fragmentStart = -1;
+        var tagNameStack = new Stack<string>();
 
         while (pos < text.Length)
         {
@@ -139,7 +141,35 @@ public sealed class SlideMlFragmentExtractor
                         return (null, startPos);
                     }
 
-                    depth--;
+                    // 提取结束标签名
+                    var endTagName = ExtractTagName(text, pos + 2, tagEnd);
+
+                    // 在栈中搜索匹配的开始标签名
+                    var matchIndex = -1;
+                    var stackArray = tagNameStack.ToArray();
+                    for (var i = 0; i < stackArray.Length; i++)
+                    {
+                        if (string.Equals(stackArray[i], endTagName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            matchIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (matchIndex >= 0)
+                    {
+                        // 找到匹配，弹出中间所有未闭合标签和匹配标签
+                        for (var i = 0; i <= matchIndex; i++)
+                        {
+                            tagNameStack.Pop();
+                            depth--;
+                        }
+                    }
+                    else
+                    {
+                        // 没有匹配的开始标签，忽略此结束标签
+                    }
+
                     pos = tagEnd + 1;
 
                     // 深度回到 0，说明顶层元素闭合
@@ -192,6 +222,9 @@ public sealed class SlideMlFragmentExtractor
                     }
                     else
                     {
+                        // 提取开始标签名并压栈
+                        var tagName = ExtractTagName(text, pos + 1, tagEndPos);
+                        tagNameStack.Push(tagName);
                         depth++;
                     }
 
@@ -217,6 +250,24 @@ public sealed class SlideMlFragmentExtractor
 
         // 扫描完毕但深度未归零，说明片段不完整
         return (null, startPos);
+    }
+
+    /// <summary>
+    /// 从标签文本中提取标签名。
+    /// </summary>
+    /// <param name="text">完整文本。</param>
+    /// <param name="nameStart">标签名起始位置（'<' 之后的位置）。</param>
+    /// <param name="tagEnd">'>' 的位置。</param>
+    /// <returns>标签名，去除空白和属性。</returns>
+    private static string ExtractTagName(string text, int nameStart, int tagEnd)
+    {
+        var end = nameStart;
+        while (end < tagEnd && (char.IsLetterOrDigit(text[end]) || text[end] == '_' || text[end] == '.' || text[end] == '-'))
+        {
+            end++;
+        }
+
+        return text.Substring(nameStart, end - nameStart);
     }
 
     /// <summary>
