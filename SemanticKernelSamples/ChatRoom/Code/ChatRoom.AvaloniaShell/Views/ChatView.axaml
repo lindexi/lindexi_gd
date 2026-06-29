@@ -223,12 +223,11 @@
         <!-- 输入栏 -->
         <Border Grid.Row="2" Padding="12,8" Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto">
                 <TextBox Grid.Column="0" Classes="Rounded"
                          Name="InputTextBox"
                          Text="{Binding InputText}"
                          Watermark="输入消息，@角色名 提及特定角色...（Ctrl+Enter 发送）"
-                         IsEnabled="{Binding !IsRunning}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          MaxHeight="120"
@@ -237,9 +236,8 @@
                 <Button Grid.Column="1" Classes="Primary" Content="{Binding SendButtonText}"
                         Margin="8,0,0,0"
                         Command="{Binding SendCommand}"
-                        IsEnabled="{Binding CanSend}"
-                        IsVisible="{Binding !IsRunning}" />
-                <Button Grid.Column="1" Classes="Danger" Content="停止"
+                        IsEnabled="{Binding CanSend}" />
+                <Button Grid.Column="2" Classes="Danger" Content="停止"
                         Margin="8,0,0,0"
                         Command="{Binding StopCommand}"
                         IsEnabled="{Binding CanStop}"
