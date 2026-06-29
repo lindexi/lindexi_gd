@@ -267,9 +267,7 @@ public sealed class ChatViewModel : ViewModelBase
         {
             if (SetField(ref _isRunning, value))
             {
-                OnPropertyChanged(nameof(CanSend));
                 OnPropertyChanged(nameof(CanStop));
-                OnPropertyChanged(nameof(SendButtonText));
                 RaiseCommandCanExecuteChanged();
             }
         }
@@ -285,9 +283,10 @@ public sealed class ChatViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 是否可以发送消息。
+    /// 是否可以发送消息。允许在自动循环运行时插话，当前正在发言的角色继续说完，
+    /// 下一轮被选中的角色将获得用户插话内容及历史聊天记录。
     /// </summary>
-    public bool CanSend => !IsRunning && (_chatRoomService?.HasActiveSession ?? false);
+    public bool CanSend => _chatRoomService?.HasActiveSession ?? false;
 
     /// <summary>
     /// 是否可以停止循环。
@@ -297,7 +296,7 @@ public sealed class ChatViewModel : ViewModelBase
     /// <summary>
     /// 发送按钮文本。
     /// </summary>
-    public string SendButtonText => IsRunning ? "停止" : "发送";
+    public string SendButtonText => "发送";
 
     /// <summary>
     /// 发送命令。
@@ -410,10 +409,10 @@ public sealed class ChatViewModel : ViewModelBase
         string text = InputText.Trim();
         InputText = string.Empty;
 
-        // 人类插话
+        // 人类插话：消息立即追加到界面，正在发言的角色继续说完
         await _chatRoomService.HumanInterjectAsync(text, "human", "我");
 
-        // 启动自动循环让 AI 角色回复
+        // 自动循环未运行时，启动循环让 AI 角色回复
         if (!IsRunning)
         {
             IsRunning = true;
