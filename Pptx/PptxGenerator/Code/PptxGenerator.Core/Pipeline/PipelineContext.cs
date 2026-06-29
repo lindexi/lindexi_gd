@@ -1,4 +1,7 @@
-namespace PptxGenerator;
+﻿using PptxGenerator.Evaluation;
+using PptxGenerator.Models;
+
+namespace PptxGenerator.Pipeline;
 
 /// <summary>
 /// SlideML 生成管道的上下文状态，承载一次生成流程的全部中间结果。
@@ -46,9 +49,9 @@ public sealed class PipelineContext
     public bool IsGenerationComplete { get; set; }
 
     /// <summary>
-    /// 快照 <see cref="SlideRenderTool"/> 的当前状态到上下文。
+    /// 快照 <see cref="SlideMlRenderTool"/> 的当前状态到上下文。
     /// </summary>
-    public void SnapshotFromRenderTool(SlideRenderTool renderTool)
+    public void SnapshotFromRenderTool(SlideMlRenderTool renderTool)
     {
         SlideXml = renderTool.LatestSlideXml;
         RenderedXml = renderTool.LatestRenderedXml;

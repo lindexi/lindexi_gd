@@ -1,6 +1,4 @@
-using System.IO;
-
-namespace PptxGenerator;
+﻿namespace PptxGenerator.Models;
 
 /// <summary>
 /// 预览图片抽象接口，解耦 UI 框架特定的 Bitmap 类型。
@@ -20,13 +18,4 @@ public interface IPreviewImage
     /// <param name="stream">目标流。</param>
     void Save(Stream stream);
 
-    /// <summary>
-    /// 获取图片的像素宽度。
-    /// </summary>
-    int Width { get; }
-
-    /// <summary>
-    /// 获取图片的像素高度。
-    /// </summary>
-    int Height { get; }
-}
+    }

@@ -1,5 +1,7 @@
-using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+﻿using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
+using PptxGenerator.Models;
+using PptxGenerator.Pipeline;
 
 using System;
 using System.Collections.ObjectModel;
@@ -11,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using PptxGenerator.Evaluation;
 
 namespace PptxGenerator;
 
@@ -32,13 +35,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly DelegateCommand _evaluateCommand;
     private readonly DelegateCommand _evaluatePromptCommand;
     private bool _isBusy;
+    private bool _isIterating;
     private bool _isFirstMessage = true;
     private bool _attachPreview;
     private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
     private string _statusText = "等待开始";
+    private string _iterationStatusText = string.Empty;
     private string _evaluationSummaryText = string.Empty;
     private string _lastUserPrompt = string.Empty;
     private ModelDisplayItem _selectedModelItem;
+    private bool _isStreamingMode;
 
     public MainWindowViewModel(SlideChatManager slideChatManager)
     {
@@ -48,6 +54,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         var pipeline = slideChatManager.Pipeline;
         pipeline.EvaluationCompleted += OnEvaluationCompleted;
         pipeline.PromptEvaluationCompleted += OnPromptEvaluationCompleted;
+        pipeline.IterationCompleted += OnIterationCompleted;
 
         var displayItems = SlideChatManager.AvailableModels
             .Select(m => new ModelDisplayItem(m.ModelDefinition.Provider, m.ModelDefinition.ModelName))
@@ -62,7 +69,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _sendMessageCommand = new DelegateCommand(() => _ = RunSendMessageAsync(), WpfDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
         _attachImageCommand = new DelegateCommand(() => { }, WpfDispatcher.Instance, () => !IsBusy);
         _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), WpfDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
-        _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), WpfDispatcher.Instance, () => !IsBusy);
+        _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), WpfDispatcher.Instance, () => !IsBusy && !IsIterating && slideChatManager.Pipeline.CanRunIteration);
     }
 
     /// <summary>
@@ -100,6 +107,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         });
     }
 
+    private void OnIterationCompleted(object? sender, IterationResult result)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            IsIterating = false;
+            IterationStatusText = result.IsConverged
+                ? $"✅ 迭代收敛 | {result.TotalRounds} 轮 | 最终评分: {result.FinalScore:F1}/10"
+                : $"⏹ 迭代完成 | {result.TotalRounds} 轮 | 最终评分: {result.FinalScore:F1}/10";
+            _evaluatePromptCommand.RaiseCanExecuteChanged();
+        });
+    }
+
     /// <summary>
     /// SlideML 聊天管理器，暴露给界面直接绑定。
     /// </summary>
@@ -116,9 +135,38 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public ICommand EvaluateCommand => _evaluateCommand;
 
     /// <summary>
-    /// 手动触发提示词评估命令。
+    /// 提示词迭代优化命令（改造原提示词评估按钮）。
     /// </summary>
     public ICommand EvaluatePromptCommand => _evaluatePromptCommand;
+
+    /// <summary>
+    /// 是否正在运行迭代闭环。
+    /// </summary>
+    public bool IsIterating
+    {
+        get => _isIterating;
+        private set
+        {
+            if (SetProperty(ref _isIterating, value))
+            {
+                _evaluatePromptCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 迭代状态文本，显示当前迭代进度。
+    /// </summary>
+    public string IterationStatusText
+    {
+        get => _iterationStatusText;
+        set => SetProperty(ref _iterationStatusText, value);
+    }
+
+    /// <summary>
+    /// 用户提供的原始 PPT 截图文件列表，用于还原度评估对比。
+    /// </summary>
+    public ObservableCollection<FileInfo> AttachedOriginalScreenshot { get; } = new();
 
     /// <summary>
     /// 附加图片命令。
@@ -197,6 +245,15 @@ public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager
     }
 
     /// <summary>
+    /// 是否使用流式模式发送消息。
+    /// </summary>
+    public bool IsStreamingMode
+    {
+        get => _isStreamingMode;
+        set => SetProperty(ref _isStreamingMode, value);
+    }
+
+    /// <summary>
     /// 是否在发送消息时附加当前渲染预览图。
     /// </summary>
     public bool AttachPreview
@@ -251,7 +308,7 @@ public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, cancellationTokenSource.Token).ConfigureAwait(false);
+            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, useStreaming: _isStreamingMode, cancellationToken: cancellationTokenSource.Token).ConfigureAwait(false);
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -306,16 +363,78 @@ public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager
 
     private async Task RunEvaluatePromptAsync()
     {
-        if (IsBusy)
+        if (IsBusy || IsIterating)
         {
             return;
         }
 
+        if (!SlideChatManager.Pipeline.CanRunIteration)
+        {
+            // 降级为旧版单次提示词评估
+            await RunSinglePromptEvaluationAsync();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_lastUserPrompt))
+        {
+            StatusText = "请先生成 SlideML 页面。";
+            return;
+        }
+
+        IsBusy = true;
+        IsIterating = true;
+        IterationStatusText = "正在运行提示词迭代优化...";
+        StatusText = "提示词迭代优化中...";
+
+        try
+        {
+            // 获取原始截图（如果附件中有图片）
+            IPreviewImage? originalScreenshot = null;
+            if (AttachedOriginalScreenshot.Count > 0)
+            {
+                originalScreenshot = new FilePreviewImage(AttachedOriginalScreenshot[0]);
+            }
+
+            var result = await SlideChatManager.RunPromptIterationAsync(
+                _lastUserPrompt,
+                originalScreenshot,
+                cancellationToken: CancellationToken.None)
+                .ConfigureAwait(false);
+
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                if (result is not null)
+                {
+                    StatusText = result.IsConverged ? "迭代收敛" : "迭代完成";
+                }
+                else
+                {
+                    StatusText = "迭代不可用";
+                }
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "迭代已取消。";
+        }
+        catch (Exception)
+        {
+            StatusText = "迭代失败";
+        }
+        finally
+        {
+            IsBusy = false;
+            IsIterating = false;
+        }
+    }
+
+    private async Task RunSinglePromptEvaluationAsync()
+    {
         IsBusy = true;
         StatusText = "正在评估提示词...";
         try
         {
-            await SlideChatManager.EvaluatePromptAsync();
+            await SlideChatManager.EvaluatePromptAsync().ConfigureAwait(false);
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {

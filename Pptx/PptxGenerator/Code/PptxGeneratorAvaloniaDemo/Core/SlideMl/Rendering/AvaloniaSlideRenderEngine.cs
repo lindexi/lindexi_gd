@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.TextFormatting;
@@ -9,57 +9,66 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using PptxGenerator.Models;
+using PptxGenerator.Models.SlideDocuments;
+using PptxGenerator.Rendering;
 
 namespace PptxGenerator;
 
 /// <summary>
 /// Avalonia 渲染引擎实现，包含全部 UI 框架依赖。
 /// </summary>
-internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
+internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
 {
     private readonly Dictionary<string, TextLayout> _textLayoutCache = new();
+    private readonly Dictionary<string, List<TextLayout>> _spanTextLayoutCache = new();
     private readonly Dictionary<string, Bitmap?> _bitmapCache = new();
 
-    public SlideElementMeasurements PreMeasure(SlidePage page, SlidePipelineContext context)
+    public SlideMlElementMeasurements PreMeasure(SlideMlPage page, SlideMlPipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(page);
         ArgumentNullException.ThrowIfNull(context);
 
         _textLayoutCache.Clear();
+        _spanTextLayoutCache.Clear();
         _bitmapCache.Clear();
 
-        var results = new Dictionary<string, SlideMeasureResult>();
+        var results = new Dictionary<string, SlideMlMeasureResult>();
         PreMeasureElements(page.Children, results, context);
-        return new SlideElementMeasurements(results);
+        return new SlideMlElementMeasurements(results);
     }
 
-    public void Render(SlidePage page, DrawingContext dc, SlidePipelineContext context)
+    public IPreviewImage Render(SlideMlPage page, SlideMlPipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(page);
-        ArgumentNullException.ThrowIfNull(dc);
         ArgumentNullException.ThrowIfNull(context);
 
-        dc.FillRectangle(CreateBrush(page.Background, Colors.White),
-            new Rect(0, 0, context.CanvasWidth, context.CanvasHeight));
-        DrawElements(dc, page.Children, context);
+        var bitmap = new RenderTargetBitmap(new PixelSize(context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight), new Vector(96, 96));
+        using (var dc = bitmap.CreateDrawingContext())
+        {
+            dc.FillRectangle(CreateBrush(page.Background, Colors.White),
+                new Rect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight));
+            DrawElements(dc, page.Children, context);
+        }
+        return new AvaloniaPreviewImage(bitmap);
     }
 
-    public Bitmap RenderErrorPreview(string message, SlidePipelineContext context)
+    public IPreviewImage RenderErrorPreview(string message, SlideMlPipelineContext context)
     {
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(context);
 
-        var bitmap = new RenderTargetBitmap(new PixelSize(context.CanvasWidth, context.CanvasHeight), new Vector(96, 96));
+        var bitmap = new RenderTargetBitmap(new PixelSize(context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight), new Vector(96, 96));
         using (var dc = bitmap.CreateDrawingContext())
         {
-            dc.FillRectangle(CreateBrush("#FFF8FAFC", Colors.White), new Rect(0, 0, context.CanvasWidth, context.CanvasHeight));
-            dc.DrawRectangle(new Pen(CreateBrush("#FFFCA5A5", Colors.Red), 2), new Rect(80, 80, context.CanvasWidth - 160, context.CanvasHeight - 160));
+            dc.FillRectangle(CreateBrush("#FFF8FAFC", Colors.White), new Rect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight));
+            dc.DrawRectangle(new Pen(CreateBrush("#FFFCA5A5", Colors.Red), 2), new Rect(80, 80, context.SlideDocumentContext.CanvasWidth - 160, context.SlideDocumentContext.CanvasHeight - 160));
 
             var typeface = new Typeface(new FontFamily("Microsoft YaHei"));
             var titleText = new FormattedText("SlideML Render Error", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 32, CreateBrush("#FFB91C1C", Colors.Red))
             {
                 TextAlignment = TextAlignment.Left,
-                MaxTextWidth = context.CanvasWidth - 240,
+                MaxTextWidth = context.SlideDocumentContext.CanvasWidth - 240,
                 MaxTextHeight = 80,
                 LineHeight = 40,
             };
@@ -67,8 +76,8 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
             var detailsText = new FormattedText(message, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 18, CreateBrush("#FF7F1D1D", Colors.DarkRed))
             {
                 TextAlignment = TextAlignment.Left,
-                MaxTextWidth = context.CanvasWidth - 240,
-                MaxTextHeight = context.CanvasHeight - 260,
+                MaxTextWidth = context.SlideDocumentContext.CanvasWidth - 240,
+                MaxTextHeight = context.SlideDocumentContext.CanvasHeight - 260,
                 LineHeight = 28,
             };
 
@@ -76,10 +85,10 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
             dc.DrawText(detailsText, new Point(120, 190));
         }
 
-        return bitmap;
+        return new AvaloniaPreviewImage(bitmap);
     }
 
-    private void PreMeasureElements(IReadOnlyList<SlideElement> elements, Dictionary<string, SlideMeasureResult> results, SlidePipelineContext context)
+    private void PreMeasureElements(IReadOnlyList<SlideMlElement> elements, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
     {
         foreach (var element in elements)
         {
@@ -87,30 +96,38 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
     }
 
-    private void PreMeasureElement(SlideElement element, Dictionary<string, SlideMeasureResult> results, SlidePipelineContext context)
+    private void PreMeasureElement(SlideMlElement element, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
     {
         switch (element)
         {
-            case SlidePanelElement panel:
+            case SlideMlPanelElement panel:
                 PreMeasureElements(panel.Children, results, context);
                 break;
-            case SlideTextElement text:
+            case SlideMlTextElement text:
                 PreMeasureText(text, results);
                 break;
-            case SlideImageElement image:
+            case SlideMlImageElement image:
                 PreMeasureImage(image, results, context);
                 break;
         }
     }
 
-    private void PreMeasureText(SlideTextElement text, Dictionary<string, SlideMeasureResult> results)
+    private void PreMeasureText(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results)
     {
-        var foreground = CreateBrush(text.Foreground, Colors.Black);
-        var typeface = new Typeface(new FontFamily(text.FontName));
-
         var maxWidth = text.Width ?? 10000;
         var maxHeight = text.Height ?? 10000;
-        var lineHeight = text.FontSize * text.LineHeight;
+        var lineHeight = text.FontSize;
+
+        if (text.Spans is { Count: > 0 })
+        {
+            PreMeasureSpans(text, results, maxWidth, maxHeight, lineHeight);
+            return;
+        }
+
+        var foreground = CreateBrush(text.Foreground, Colors.Black);
+        var fontWeight = text.IsBold == true ? FontWeight.Bold : FontWeight.Normal;
+        var fontStyle = text.IsItalic == true ? FontStyle.Italic : FontStyle.Normal;
+        var typeface = new Typeface(new FontFamily(text.FontName), fontStyle, fontWeight);
 
         var textLayout = new TextLayout(
             text.Text,
@@ -133,7 +150,7 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         var measuredWidth = text.Width ?? textLayout.WidthIncludingTrailingWhitespace;
         var measuredHeight = text.Height ?? textLayout.Height;
 
-        results[text.Id] = new SlideMeasureResult
+        results[text.Id] = new SlideMlMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,
@@ -141,7 +158,67 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         };
     }
 
-    private void PreMeasureImage(SlideImageElement image, Dictionary<string, SlideMeasureResult> results, SlidePipelineContext context)
+    /// <summary>
+    /// 预测量富文本 Span，逐段创建 TextLayout 并拼接。
+    /// </summary>
+    private void PreMeasureSpans(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results,
+        double maxWidth, double maxHeight, double lineHeight)
+    {
+        var spans = text.Spans!;
+        var layouts = new List<TextLayout>(spans.Count);
+
+        double totalWidth = 0;
+        double totalHeight = 0;
+
+        foreach (var span in spans)
+        {
+            var spanFontWeight = (span.IsBold ?? text.IsBold) == true ? FontWeight.Bold : FontWeight.Normal;
+            var spanFontStyle = (span.IsItalic ?? text.IsItalic) == true ? FontStyle.Italic : FontStyle.Normal;
+            var spanFontName = span.FontName ?? text.FontName;
+            var spanFontSize = span.FontSize ?? text.FontSize;
+            var spanForeground = CreateBrush(span.Foreground ?? text.Foreground, Colors.Black);
+            var spanTypeface = new Typeface(new FontFamily(spanFontName), spanFontStyle, spanFontWeight);
+
+            var spanLayout = new TextLayout(
+                span.Text,
+                spanTypeface,
+                spanFontSize,
+                spanForeground,
+                MapTextAlignment(text.TextAlignment),
+                text.Width is null ? TextWrapping.NoWrap : TextWrapping.Wrap,
+                TextTrimming.None,
+                null,
+                FlowDirection.LeftToRight,
+                Math.Max(0, maxWidth - totalWidth),
+                maxHeight,
+                spanFontSize,
+                0,
+                0);
+
+            layouts.Add(spanLayout);
+            totalWidth += spanLayout.WidthIncludingTrailingWhitespace;
+            totalHeight = Math.Max(totalHeight, spanLayout.Height);
+        }
+
+        _spanTextLayoutCache[text.Id] = layouts;
+
+        var measuredWidth = text.Width ?? totalWidth;
+        var measuredHeight = text.Height ?? totalHeight;
+        var actualLineCount = totalHeight > 0 ? (int)Math.Ceiling(totalHeight / lineHeight) : 0;
+        if (actualLineCount == 0 && spans.Count > 0)
+        {
+            actualLineCount = 1;
+        }
+
+        results[text.Id] = new SlideMlMeasureResult
+        {
+            MeasuredWidth = measuredWidth,
+            MeasuredHeight = measuredHeight,
+            ActualLineCount = actualLineCount,
+        };
+    }
+
+    private void PreMeasureImage(SlideMlImageElement image, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
     {
         var bitmap = TryLoadBitmap(image.Source);
         _bitmapCache[image.Id] = bitmap;
@@ -154,14 +231,14 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         var measuredWidth = image.Width ?? (bitmap?.PixelSize.Width ?? 240);
         var measuredHeight = image.Height ?? (bitmap?.PixelSize.Height ?? 180);
 
-        results[image.Id] = new SlideMeasureResult
+        results[image.Id] = new SlideMlMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,
         };
     }
 
-    private void DrawElements(DrawingContext dc, IReadOnlyList<SlideElement> elements, SlidePipelineContext context)
+    private void DrawElements(DrawingContext dc, IReadOnlyList<SlideMlElement> elements, SlideMlPipelineContext context)
     {
         foreach (var element in elements)
         {
@@ -169,8 +246,14 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
     }
 
-    private void DrawElement(DrawingContext dc, SlideElement element, SlidePipelineContext context)
+    private void DrawElement(DrawingContext dc, SlideMlElement element, SlideMlPipelineContext context)
     {
+        // 先绘制阴影（阴影不受元素 Opacity 影响）
+        if (element is SlideMlRectElement rect && rect.Shadow is not null)
+        {
+            DrawShadow(dc, rect.Shadow, ToRect(rect.LayoutBounds), rect.CornerRadius);
+        }
+
         var opacity = Math.Clamp(element.Opacity, 0, 1);
         if (opacity >= 1)
         {
@@ -185,26 +268,26 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
     }
 
-    private void DrawElementCore(DrawingContext dc, SlideElement element, SlidePipelineContext context)
+    private void DrawElementCore(DrawingContext dc, SlideMlElement element, SlideMlPipelineContext context)
     {
         switch (element)
         {
-            case SlidePanelElement panel:
+            case SlideMlPanelElement panel:
                 DrawPanel(dc, panel, context);
                 break;
-            case SlideRectElement rect:
+            case SlideMlRectElement rect:
                 DrawRect(dc, rect);
                 break;
-            case SlideTextElement text:
+            case SlideMlTextElement text:
                 DrawText(dc, text);
                 break;
-            case SlideImageElement image:
+            case SlideMlImageElement image:
                 DrawImage(dc, image);
                 break;
         }
     }
 
-    private void DrawPanel(DrawingContext dc, SlidePanelElement panel, SlidePipelineContext context)
+    private void DrawPanel(DrawingContext dc, SlideMlPanelElement panel, SlideMlPipelineContext context)
     {
         var bounds = ToRect(panel.LayoutBounds);
         var backgroundBrush = CreateAvaloniaBrush(panel.Background, Colors.Transparent);
@@ -219,29 +302,176 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
     }
 
-    private static void DrawRect(DrawingContext dc, SlideRectElement rect)
+    private static void DrawRect(DrawingContext dc, SlideMlRectElement rect)
     {
         var bounds = ToRect(rect.LayoutBounds);
 
         var fillBrush = CreateAvaloniaBrush(rect.Fill, Colors.Transparent);
-        if (fillBrush is not null)
+        var strokeBrush = rect.StrokeThickness > 0
+            ? CreateAvaloniaBrush(rect.Stroke, Colors.Transparent)
+            : null;
+
+        Pen? pen = null;
+        if (strokeBrush is not null)
         {
-            dc.FillRectangle(fillBrush, bounds);
+            DashStyle? dashStyle = rect.StrokeDashArray is { Count: > 0 }
+                ? new DashStyle(rect.StrokeDashArray, 0)
+                : null;
+            pen = new Pen(strokeBrush, rect.StrokeThickness, dashStyle);
         }
 
-        if (rect.StrokeThickness > 0)
+        if (rect.CornerRadius is { } radius)
         {
-            var strokeBrush = CreateAvaloniaBrush(rect.Stroke, Colors.Transparent);
-            if (strokeBrush is not null)
+            var maxRadius = Math.Min(bounds.Width / 2, bounds.Height / 2);
+            var tl = Math.Clamp(radius.TopLeft, 0, maxRadius);
+            var tr = Math.Clamp(radius.TopRight, 0, maxRadius);
+            var br = Math.Clamp(radius.BottomRight, 0, maxRadius);
+            var bl = Math.Clamp(radius.BottomLeft, 0, maxRadius);
+
+            if (tl > 0 || tr > 0 || br > 0 || bl > 0)
             {
-                var pen = new Pen(strokeBrush, rect.StrokeThickness);
-                dc.DrawRectangle(pen, bounds);
+                var roundedRect = new RoundedRect(bounds, tl, tr, br, bl);
+                dc.DrawRectangle(fillBrush, pen, roundedRect);
             }
+            else
+            {
+                dc.DrawRectangle(fillBrush, pen, bounds);
+            }
+        }
+        else
+        {
+            dc.DrawRectangle(fillBrush, pen, bounds);
         }
     }
 
-    private void DrawText(DrawingContext dc, SlideTextElement text)
+    /// <summary>
+    /// 绘制元素阴影。在元素下方绘制偏移+模糊的半透明矩形。
+    /// </summary>
+    private static void DrawShadow(DrawingContext dc, SlideMlShadow shadow, Rect bounds, SlideMlCornerRadius? radius)
     {
+        if (shadow.Blur <= 0 && shadow.OffsetX == 0 && shadow.OffsetY == 0)
+        {
+            return;
+        }
+
+        var shadowBounds = new Rect(
+            bounds.X + shadow.OffsetX,
+            bounds.Y + shadow.OffsetY,
+            bounds.Width,
+            bounds.Height);
+
+        if (shadowBounds.Width <= 0 || shadowBounds.Height <= 0)
+        {
+            return;
+        }
+
+        var shadowColor = CreateColor(shadow.Color, Colors.Black);
+        shadowColor = new Color(
+            (byte)(shadowColor.A * Math.Clamp(shadow.Opacity, 0, 1)),
+            shadowColor.R,
+            shadowColor.G,
+            shadowColor.B);
+        var shadowBrush = new SolidColorBrush(shadowColor);
+
+        // 模糊半径 > 0 时，通过缩放渲染模拟模糊效果
+        if (shadow.Blur > 0)
+        {
+            DrawBlurredShadow(dc, shadowBrush, shadowBounds, radius, shadow.Blur);
+        }
+        else
+        {
+            DrawShadowRect(dc, shadowBrush, shadowBounds, radius);
+        }
+    }
+
+    /// <summary>
+    /// 绘制无模糊的阴影矩形，圆角跟随元素四角独立值。
+    /// </summary>
+    private static void DrawShadowRect(DrawingContext dc, IBrush shadowBrush, Rect bounds, SlideMlCornerRadius? radius)
+    {
+        if (radius is { } r)
+        {
+            var maxRadius = Math.Min(bounds.Width / 2, bounds.Height / 2);
+            var tl = Math.Clamp(r.TopLeft, 0, maxRadius);
+            var tr = Math.Clamp(r.TopRight, 0, maxRadius);
+            var br = Math.Clamp(r.BottomRight, 0, maxRadius);
+            var bl = Math.Clamp(r.BottomLeft, 0, maxRadius);
+
+            if (tl > 0 || tr > 0 || br > 0 || bl > 0)
+            {
+                dc.DrawRectangle(shadowBrush, null, new RoundedRect(bounds, tl, tr, br, bl));
+            }
+            else
+            {
+                dc.DrawRectangle(shadowBrush, null, bounds);
+            }
+        }
+        else
+        {
+            dc.DrawRectangle(shadowBrush, null, bounds);
+        }
+    }
+
+    /// <summary>
+    /// 通过缩小渲染再放大绘制的方式模拟高斯模糊阴影，圆角按比例缩放。
+    /// </summary>
+    private static void DrawBlurredShadow(DrawingContext dc, IBrush shadowBrush, Rect bounds, SlideMlCornerRadius? radius, double blur)
+    {
+        // 模糊扩展区域
+        var extendedBounds = new Rect(
+            bounds.X - blur,
+            bounds.Y - blur,
+            bounds.Width + blur * 2,
+            bounds.Height + blur * 2);
+
+        if (extendedBounds.Width <= 0 || extendedBounds.Height <= 0)
+        {
+            return;
+        }
+
+        // 缩小渲染到中间位图，再放大绘制实现模糊
+        var scale = Math.Max(0.1, 1.0 - blur / 50.0);
+        var smallWidth = Math.Max(1, (int)Math.Ceiling(extendedBounds.Width * scale));
+        var smallHeight = Math.Max(1, (int)Math.Ceiling(extendedBounds.Height * scale));
+
+        var shadowBitmap = new RenderTargetBitmap(new PixelSize(smallWidth, smallHeight), new Vector(96, 96));
+        using (var sdc = shadowBitmap.CreateDrawingContext())
+        {
+            var smallBounds = new Rect(0, 0, smallWidth, smallHeight);
+            if (radius is { } r)
+            {
+                var tl = r.TopLeft * scale;
+                var tr = r.TopRight * scale;
+                var br = r.BottomRight * scale;
+                var bl = r.BottomLeft * scale;
+
+                if (tl > 0 || tr > 0 || br > 0 || bl > 0)
+                {
+                    sdc.DrawRectangle(shadowBrush, null, new RoundedRect(smallBounds, tl, tr, br, bl));
+                }
+                else
+                {
+                    sdc.DrawRectangle(shadowBrush, null, smallBounds);
+                }
+            }
+            else
+            {
+                sdc.DrawRectangle(shadowBrush, null, smallBounds);
+            }
+        }
+
+        dc.DrawImage(shadowBitmap, extendedBounds);
+    }
+
+    private void DrawText(DrawingContext dc, SlideMlTextElement text)
+    {
+        // 富文本 Span 渲染
+        if (_spanTextLayoutCache.TryGetValue(text.Id, out var spanLayouts) && spanLayouts is { Count: > 0 })
+        {
+            DrawSpans(dc, text, spanLayouts);
+            return;
+        }
+
         if (!_textLayoutCache.TryGetValue(text.Id, out var textLayout) || textLayout is null)
         {
             return;
@@ -257,7 +487,22 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
     }
 
-    private void DrawImage(DrawingContext dc, SlideImageElement image)
+    /// <summary>
+    /// 逐段绘制富文本 Span，每段独立样式。
+    /// </summary>
+    private static void DrawSpans(DrawingContext dc, SlideMlTextElement text, List<TextLayout> spanLayouts)
+    {
+        var x = text.LayoutBounds.X;
+        var y = text.LayoutBounds.Y;
+
+        foreach (var layout in spanLayouts)
+        {
+            layout.Draw(dc, new Point(x, y));
+            x += layout.WidthIncludingTrailingWhitespace;
+        }
+    }
+
+    private void DrawImage(DrawingContext dc, SlideMlImageElement image)
     {
         var bounds = ToRect(image.LayoutBounds);
 
@@ -280,7 +525,7 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         dc.DrawText(label, new Point(bounds.X, bounds.Y + bounds.Height * 0.4));
     }
 
-    private static Rect ToRect(SlideRect r) => new(r.X, r.Y, r.Width, r.Height);
+    private static Rect ToRect(SlideMlRect r) => new(r.X, r.Y, r.Width, r.Height);
 
     /// <summary>
     /// 将 <see cref="ISlideMlBrush"/> 转换为 Avalonia <see cref="IBrush"/>。
@@ -292,6 +537,7 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
             SlideMlSolidColorBrush solid => CreateBrush(solid.Color, fallbackColor),
             SlideMlLinearGradientBrush gradient => CreateGradientBrush(gradient),
             null => null,
+            _ => null,
         };
     }
 
@@ -309,6 +555,25 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
 
         return new SolidColorBrush(fallbackColor);
+    }
+
+    /// <summary>
+    /// 从颜色字符串创建 <see cref="Color"/>，失败返回后备值。
+    /// </summary>
+    private static Color CreateColor(string colorText, Color fallbackColor)
+    {
+        if (!string.IsNullOrWhiteSpace(colorText))
+        {
+            try
+            {
+                return Color.Parse(colorText);
+            }
+            catch (FormatException)
+            {
+            }
+        }
+
+        return fallbackColor;
     }
 
     private static IBrush? CreateGradientBrush(SlideMlLinearGradientBrush gradient)
@@ -372,13 +637,13 @@ internal sealed class AvaloniaSlideRenderEngine : IAvaloniaSlideRenderEngine
         }
     }
 
-    private static TextAlignment MapTextAlignment(SlideTextAlignment textAlignment)
+    private static TextAlignment MapTextAlignment(SlideMlTextAlignment textAlignment)
     {
         return textAlignment switch
         {
-            SlideTextAlignment.Center => TextAlignment.Center,
-            SlideTextAlignment.Right => TextAlignment.Right,
-            SlideTextAlignment.Justify => TextAlignment.Justify,
+            SlideMlTextAlignment.Center => TextAlignment.Center,
+            SlideMlTextAlignment.Right => TextAlignment.Right,
+            SlideMlTextAlignment.Justify => TextAlignment.Justify,
             _ => TextAlignment.Left,
         };
     }

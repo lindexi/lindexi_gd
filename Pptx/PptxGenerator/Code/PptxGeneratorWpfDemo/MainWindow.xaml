@@ -4,13 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PptxGeneratorWpfDemo"
+        xmlns:pg="clr-namespace:PptxGenerator"
+        xmlns:converters="clr-namespace:PptxGeneratorWpfDemo.Converters"
         mc:Ignorable="d"
         Title="PptxGenerator - SlideML Lab"
         Width="1580" Height="980"
         MinWidth="1280" MinHeight="800"
+        d:DesignWidth="1580"
+        d:DesignHeight="980"
+        d:DataContext="{d:DesignInstance Type=pg:MainWindowViewModel, IsDesignTimeCreatable=False}"
         Background="#FFF8FAFC">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:PreviewImageToImageSourceConverter x:Key="PreviewImageToImageSourceConverter" />
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -29,7 +35,7 @@
                             <Viewbox Stretch="Uniform">
                                 <Border Width="1280" Height="720" Background="White" CornerRadius="8"
                                         ClipToBounds="True" MouseLeftButtonDown="ImageBorder_OnMouseLeftButtonDown">
-                                    <Image Source="{Binding SlideChatManager.PreviewImage}" Stretch="Uniform" />
+                                    <Image Source="{Binding SlideChatManager.PreviewImage, Converter={StaticResource PreviewImageToImageSourceConverter}}" Stretch="Uniform" />
                                 </Border>
                             </Viewbox>
                         </Border>
@@ -162,6 +168,45 @@
         </ScrollViewer>
 
         <!-- 右侧：聊天区域 -->
-        <local:CharUserControl Grid.Column="1" Margin="6,12,12,12" />
+        <Grid Grid.Column="1" Margin="6,12,12,12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- 模型选择栏 -->
+            <Border Grid.Row="0"
+                    CornerRadius="10"
+                    Background="White"
+                    BorderBrush="#FFE2E8F0"
+                    BorderThickness="1"
+                    Padding="10,6"
+                    Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="模型:" FontSize="13" FontWeight="SemiBold" Foreground="#FF475569" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding AvailableModelItems}"
+                              SelectedItem="{Binding SelectedModelItem}"
+                              MinWidth="200"
+                              FontSize="12"
+                              Margin="8,0,0,0"
+                              VerticalContentAlignment="Center">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <CheckBox IsChecked="{Binding IsStreamingMode}"
+                              Margin="12,0,0,0"
+                              VerticalAlignment="Center"
+                              FontSize="13"
+                              Foreground="#FF475569">
+                        <TextBlock Text="流式模式" FontSize="13" Foreground="#FF475569" />
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <local:CharUserControl Grid.Row="1" />
+        </Grid>
     </Grid>
 </Window>

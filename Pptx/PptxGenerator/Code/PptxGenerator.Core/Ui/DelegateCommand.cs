@@ -1,24 +1,27 @@
-using System;
+﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
+
+using AgentLib;
 
 namespace PptxGenerator;
 
 /// <summary>
-/// 基于委托的 <see cref="ICommand"/> 实现，使用 <see cref="IDispatcher"/> 抽象 UI 线程调度。
+/// 基于委托的 <see cref="ICommand"/> 实现，使用 <see cref="IMainThreadDispatcher"/> 抽象 UI 线程调度。
 /// </summary>
 public sealed class DelegateCommand : ICommand
 {
     private readonly Func<bool>? _canExecute;
     private readonly Action _execute;
-    private readonly IDispatcher _dispatcher;
+    private readonly IMainThreadDispatcher _dispatcher;
 
     /// <summary>
     /// 初始化 <see cref="DelegateCommand"/> 的新实例。
     /// </summary>
     /// <param name="execute">执行操作。</param>
-    /// <param name="dispatcher">UI 线程调度器。</param>
+    /// <param name="dispatcher">主线程调度器。</param>
     /// <param name="canExecute">可执行条件。</param>
-    public DelegateCommand(Action execute, IDispatcher dispatcher, Func<bool>? canExecute = null)
+    public DelegateCommand(Action execute, IMainThreadDispatcher dispatcher, Func<bool>? canExecute = null)
     {
         _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
@@ -45,29 +48,30 @@ public sealed class DelegateCommand : ICommand
     /// </summary>
     public void RaiseCanExecuteChanged()
     {
-        _dispatcher.InvokeAsync(() =>
+        _ = _dispatcher.InvokeAsync(() =>
         {
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+            return Task.CompletedTask;
         });
     }
 }
 
 /// <summary>
-/// 基于委托的泛型 <see cref="ICommand"/> 实现，使用 <see cref="IDispatcher"/> 抽象 UI 线程调度。
+/// 基于委托的泛型 <see cref="ICommand"/> 实现，使用 <see cref="IMainThreadDispatcher"/> 抽象 UI 线程调度。
 /// </summary>
 public sealed class DelegateCommand<T> : ICommand
 {
     private readonly Func<T?, bool>? _canExecute;
     private readonly Action<T?> _execute;
-    private readonly IDispatcher _dispatcher;
+    private readonly IMainThreadDispatcher _dispatcher;
 
     /// <summary>
     /// 初始化 <see cref="DelegateCommand{T}"/> 的新实例。
     /// </summary>
     /// <param name="execute">执行操作。</param>
-    /// <param name="dispatcher">UI 线程调度器。</param>
+    /// <param name="dispatcher">主线程调度器。</param>
     /// <param name="canExecute">可执行条件。</param>
-    public DelegateCommand(Action<T?> execute, IDispatcher dispatcher, Func<T?, bool>? canExecute = null)
+    public DelegateCommand(Action<T?> execute, IMainThreadDispatcher dispatcher, Func<T?, bool>? canExecute = null)
     {
         _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
@@ -94,9 +98,10 @@ public sealed class DelegateCommand<T> : ICommand
     /// </summary>
     public void RaiseCanExecuteChanged()
     {
-        _dispatcher.InvokeAsync(() =>
+        _ = _dispatcher.InvokeAsync(() =>
         {
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+            return Task.CompletedTask;
         });
     }
 }

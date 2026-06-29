@@ -1,4 +1,4 @@
-using AgentLib;
+﻿using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
@@ -8,6 +8,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PptxGenerator.Evaluation;
+using PptxGenerator.Models;
+using PptxGenerator.Pipeline;
+using PptxGenerator.Prompt;
 
 namespace PptxGenerator;
 
@@ -17,31 +21,47 @@ namespace PptxGenerator;
 /// </summary>
 public sealed class SlideChatManager : INotifyPropertyChanged
 {
-    private readonly SlideGenerationPipeline _pipeline;
     private readonly AgentApiEndpointManager _endpointManager;
+    private ILanguageModel? _currentModel;
 
     public SlideChatManager(
         CopilotChatManager copilotChatManager,
-        SlideRenderTool slideRenderTool,
-        IDispatcher dispatcher,
+        SlideMlRenderTool slideMlRenderTool,
+        ISlideMlPromptProvider? promptProvider = null,
+        SlideDocumentContext? slideDocumentContext = null,
         ISlideEvaluator? slideEvaluator = null,
-        IPromptEvaluator? promptEvaluator = null)
-        : this(copilotChatManager, new SlideMlPromptProvider(), slideRenderTool, dispatcher, slideEvaluator, promptEvaluator)
+        IPromptEvaluator? promptEvaluator = null,
+        IPromptOptimizer? promptOptimizer = null)
     {
+        ArgumentNullException.ThrowIfNull(copilotChatManager);
+        _endpointManager = copilotChatManager.AgentApiEndpointManager;
+        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(slideDocumentContext), slideMlRenderTool, slideEvaluator, promptEvaluator, promptOptimizer);
+        AttachPipelineEvents();
     }
 
-    internal SlideChatManager(
+    /// <summary>
+    /// 使用 <see cref="PipelineConfiguration"/> 创建实例。
+    /// </summary>
+    public SlideChatManager(
         CopilotChatManager copilotChatManager,
-        IPromptProvider promptProvider,
-        SlideRenderTool slideRenderTool,
-        IDispatcher dispatcher,
-        ISlideEvaluator? slideEvaluator = null,
-        IPromptEvaluator? promptEvaluator = null)
+        SlideMlRenderTool slideMlRenderTool,
+        PipelineConfiguration configuration,
+        ISlideMlPromptProvider? promptProvider = null,
+        SlideDocumentContext? slideDocumentContext = null)
     {
+        ArgumentNullException.ThrowIfNull(copilotChatManager);
         _endpointManager = copilotChatManager.AgentApiEndpointManager;
-        _pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider, slideRenderTool, dispatcher, slideEvaluator, promptEvaluator);
-        _pipeline.PropertyChanged += (_, e) => OnPropertyChanged(e.PropertyName!);
-        _pipeline.SlideRendered += () =>
+        Pipeline = new SlideGenerationPipeline(copilotChatManager, promptProvider ?? new SlideMlPromptProvider(slideDocumentContext), slideMlRenderTool, configuration);
+        AttachPipelineEvents();
+    }
+
+    /// <summary>
+    /// 绑定 Pipeline 的事件到当前管理器的属性变更通知。
+    /// </summary>
+    private void AttachPipelineEvents()
+    {
+        Pipeline.PropertyChanged += (_, e) => OnPropertyChanged(e.PropertyName!);
+        Pipeline.SlideRendered += () =>
         {
             OnPropertyChanged(nameof(PreviewImage));
             OnPropertyChanged(nameof(CurrentSlideXml));
@@ -52,9 +72,16 @@ public sealed class SlideChatManager : INotifyPropertyChanged
 
     public IReadOnlyList<ILanguageModel> AvailableModels => _endpointManager.GetSupportedModels();
 
-    public ILanguageModel CurrentModel => _endpointManager.PrimaryModel;
+    public ILanguageModel CurrentModel
+    {
+        get => _currentModel ?? _endpointManager.PrimaryModel;
+        init => _currentModel = value;
+    }
 
-    public string SelectedModelDisplayName => _endpointManager.PrimaryModel.ModelDefinition.ModelName;
+    /// <summary>
+    /// 选择的模型的显示名称，用于界面绑定
+    /// </summary>
+    public string SelectedModelDisplayName => (_currentModel ?? _endpointManager.PrimaryModel).ModelDefinition.ModelName;
 
     public bool SetModel(string modelName, string? provider = null)
     {
@@ -67,61 +94,80 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         }
 
         _endpointManager.PrimaryModel = model;
+        if (_currentModel is not null)
+        {
+            _currentModel = model;
+        }
         OnPropertyChanged(nameof(SelectedModelDisplayName));
         return true;
     }
 
-    [Obsolete("请通过 Pipeline.ChatManager 使用。")]
-    public CopilotChatManager ChatManager => _pipeline.ChatManager;
+    public SlideGenerationPipeline Pipeline { get; }
 
-    public SlideGenerationPipeline Pipeline => _pipeline;
-
-    public SlideRenderTool SlideRenderTool => _pipeline.SlideRenderTool;
+    public SlideMlRenderTool SlideMlRenderTool => Pipeline.SlideMlRenderTool;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public IPreviewImage? PreviewImage => _pipeline.PreviewImage;
+    public IPreviewImage? PreviewImage => Pipeline.PreviewImage;
 
-    public string CurrentSlideXml => _pipeline.CurrentSlideXml;
+    public string CurrentSlideXml => Pipeline.CurrentSlideXml;
 
-    public string RenderedXml => _pipeline.RenderedXml;
+    public string RenderedXml => Pipeline.RenderedXml;
 
-    public string WarningText => _pipeline.WarningText;
+    public string WarningText => Pipeline.WarningText;
 
-    public SlideEvaluationResult? LastEvaluationResult => _pipeline.LastSlideEvaluation;
+    public SlideEvaluationResult? LastEvaluationResult => Pipeline.LastSlideEvaluation;
 
-    public PromptEvaluationResult? LastPromptEvaluationResult => _pipeline.LastPromptEvaluation;
+    public PromptEvaluationResult? LastPromptEvaluationResult => Pipeline.LastPromptEvaluation;
 
     public async Task SendSlideRequestAsync(string userPrompt, CancellationToken cancellationToken = default)
     {
         await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, IReadOnlyList<string>? attachedImageFiles = null, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, IReadOnlyList<string>? attachedImageFiles = null, bool createNewSession = false, bool skipAutoEvaluation = false, bool useStreaming = false, CancellationToken cancellationToken = default)
     {
-        await _pipeline.SendMessageAsync(userMessage, isFirstMessage, attachPreview, attachedImageFiles, cancellationToken).ConfigureAwait(false);
+        await Pipeline.SendMessageAsync(userMessage, isFirstMessage, attachPreview, attachedImageFiles, createNewSession: createNewSession, skipAutoEvaluation: skipAutoEvaluation, useStreaming: useStreaming, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public Task<SlideEvaluationResult?> EvaluateAsync(string userPrompt, CancellationToken cancellationToken = default)
     {
-        return _pipeline.EvaluateAsync(userPrompt, cancellationToken);
+        return Pipeline.EvaluateAsync(userPrompt, cancellationToken);
     }
 
     public Task<PromptEvaluationResult?> EvaluatePromptAsync(CancellationToken cancellationToken = default)
     {
-        return _pipeline.EvaluatePromptAsync(cancellationToken);
+        return Pipeline.EvaluatePromptAsync(cancellationToken);
     }
 
-    [Obsolete("请使用 IPromptProvider.BuildSystemPrompt() 替代。")]
-    public static string BuildSystemPrompt()
+    /// <summary>
+    /// 运行提示词迭代优化闭环。
+    /// </summary>
+    public Task<IterationResult?> RunPromptIterationAsync(
+        string userPrompt,
+        IPreviewImage? originalScreenshot,
+        IterationOptions? options = null,
+        CancellationToken cancellationToken = default)
     {
-        return new SlideMlPromptProvider().BuildSystemPrompt();
+        return Pipeline.RunPromptIterationAsync(userPrompt, originalScreenshot, options, cancellationToken);
     }
 
-    [Obsolete("请使用 IPromptProvider.BuildInitialUserPrompt() 替代。")]
-    public static string BuildInitialUserPrompt(string userPrompt)
+    /// <summary>
+    /// 迭代完成事件。
+    /// </summary>
+    public event EventHandler<IterationResult>? IterationCompleted
     {
-        return new SlideMlPromptProvider().BuildInitialUserPrompt(userPrompt);
+        add => Pipeline.IterationCompleted += value;
+        remove => Pipeline.IterationCompleted -= value;
+    }
+
+    /// <summary>
+    /// 单轮迭代进度事件。
+    /// </summary>
+    public event EventHandler<IterationRound>? IterationProgress
+    {
+        add => Pipeline.IterationProgress += value;
+        remove => Pipeline.IterationProgress -= value;
     }
 
     private void OnPropertyChanged(string propertyName)

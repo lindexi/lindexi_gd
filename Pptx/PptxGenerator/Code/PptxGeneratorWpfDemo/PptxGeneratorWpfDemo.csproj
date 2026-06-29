@@ -26,10 +26,4 @@
     <None Update="app.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-
-  <ItemGroup>
-    <Folder Include="Core\SlideMl\Evaluation\" />
-    <Folder Include="Core\SlideMl\Pipeline\" />
-  </ItemGroup>
-
 </Project>

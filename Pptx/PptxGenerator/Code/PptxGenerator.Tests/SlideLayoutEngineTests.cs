@@ -1,45 +1,48 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using PptxGenerator.Models;
+using PptxGenerator.Models.SlideDocuments;
+using PptxGenerator.Rendering;
 
 namespace PptxGenerator.Tests;
 
 [TestClass]
-public sealed class SlideLayoutEngineTests
+public sealed class SlideMlLayoutEngineTests
 {
-    private SlideLayoutEngine _engine = null!;
-    private SlidePipelineContext _context = null!;
+    private SlideMlLayoutEngine _engine = null!;
+    private SlideMlPipelineContext _context = null!;
 
     [TestInitialize]
     public void Setup()
     {
-        _engine = new SlideLayoutEngine();
-        _context = new SlidePipelineContext();
+        _engine = new SlideMlLayoutEngine();
+        _context = new SlideMlPipelineContext();
     }
 
     [TestMethod]
     public void HorizontalLayout_ChildrenPlacedSequentially()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 8,
             Children =
             {
-                new SlideRectElement { Id = "r1", Width = 100, Height = 50 },
-                new SlideRectElement { Id = "r2", Width = 200, Height = 50 },
-                new SlideRectElement { Id = "r3", Width = 150, Height = 50 },
+                new SlideMlRectElement { Id = "r1", Width = 100, Height = 50 },
+                new SlideMlRectElement { Id = "r2", Width = 200, Height = 50 },
+                new SlideMlRectElement { Id = "r3", Width = 150, Height = 50 },
             },
         };
 
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, _context.Errors.Count, "不应有错误");
+        Assert.IsEmpty(_context.Errors, "不应有错误");
 
-        var r1 = (SlideRectElement)panel.Children[0];
-        var r2 = (SlideRectElement)panel.Children[1];
-        var r3 = (SlideRectElement)panel.Children[2];
+        var r1 = (SlideMlRectElement)panel.Children[0];
+        var r2 = (SlideMlRectElement)panel.Children[1];
+        var r3 = (SlideMlRectElement)panel.Children[2];
 
         Assert.AreEqual(0, r1.LayoutBounds.X, 0.01, "r1 X");
         Assert.AreEqual(100 + 8, r2.LayoutBounds.X, 0.01, "r2 X");
@@ -52,23 +55,23 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void VerticalLayout_ChildrenPlacedSequentially()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Vertical,
+            Layout = SlideMlLayoutDirection.Vertical,
             Gap = 12,
             Children =
             {
-                new SlideRectElement { Id = "r1", Width = 200, Height = 40 },
-                new SlideRectElement { Id = "r2", Width = 200, Height = 60 },
+                new SlideMlRectElement { Id = "r1", Width = 200, Height = 40 },
+                new SlideMlRectElement { Id = "r2", Width = 200, Height = 60 },
             },
         };
 
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        var r1 = (SlideRectElement)panel.Children[0];
-        var r2 = (SlideRectElement)panel.Children[1];
+        var r1 = (SlideMlRectElement)panel.Children[0];
+        var r2 = (SlideMlRectElement)panel.Children[1];
 
         Assert.AreEqual(0, r1.LayoutBounds.Y, 0.01, "r1 Y");
         Assert.AreEqual(40 + 12, r2.LayoutBounds.Y, 0.01, "r2 Y");
@@ -78,23 +81,23 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void HorizontalLayout_MarginAffectsSpacing()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 4,
             Children =
             {
-                new SlideRectElement { Id = "r1", Width = 100, Height = 50, Margin = new SlideThickness { Right = 20 } },
-                new SlideRectElement { Id = "r2", Width = 100, Height = 50, Margin = new SlideThickness { Left = 10 } },
+                new SlideMlRectElement { Id = "r1", Width = 100, Height = 50, Margin = new SlideMlThickness { Right = 20 } },
+                new SlideMlRectElement { Id = "r2", Width = 100, Height = 50, Margin = new SlideMlThickness { Left = 10 } },
             },
         };
 
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        var r1 = (SlideRectElement)panel.Children[0];
-        var r2 = (SlideRectElement)panel.Children[1];
+        var r1 = (SlideMlRectElement)panel.Children[0];
+        var r2 = (SlideMlRectElement)panel.Children[1];
 
         Assert.AreEqual(0, r1.LayoutBounds.X, 0.01, "r1 X");
         Assert.AreEqual(130, r2.LayoutBounds.X, 0.01, "r2 X with margin");
@@ -104,24 +107,24 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void HorizontalLayout_CrossAxisAlignment_Respected()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 8,
             Height = 200,
             Children =
             {
-                new SlideRectElement { Id = "r1", Width = 100, Height = 50, VerticalAlignment = SlideVerticalAlignment.Center },
-                new SlideRectElement { Id = "r2", Width = 100, Height = 50, VerticalAlignment = SlideVerticalAlignment.Bottom },
+                new SlideMlRectElement { Id = "r1", Width = 100, Height = 50, VerticalAlignment = SlideMlVerticalAlignment.Center },
+                new SlideMlRectElement { Id = "r2", Width = 100, Height = 50, VerticalAlignment = SlideMlVerticalAlignment.Bottom },
             },
         };
 
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        var r1 = (SlideRectElement)panel.Children[0];
-        var r2 = (SlideRectElement)panel.Children[1];
+        var r1 = (SlideMlRectElement)panel.Children[0];
+        var r2 = (SlideMlRectElement)panel.Children[1];
 
         Assert.AreEqual(75, r1.LayoutBounds.Y, 0.01, "r1 center Y");
         Assert.AreEqual(150, r2.LayoutBounds.Y, 0.01, "r2 bottom Y");
@@ -130,10 +133,10 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void FlowLayout_EmptyChildren_DoesNotCrash()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 8,
         };
 
@@ -147,22 +150,22 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void AbsoluteLayout_BehaviorUnchanged()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Absolute,
+            Layout = SlideMlLayoutDirection.Absolute,
             Children =
             {
-                new SlideRectElement { Id = "r1", X = 50, Y = 30, Width = 100, Height = 50 },
-                new SlideRectElement { Id = "r2", X = 200, Y = 100, Width = 150, Height = 80 },
+                new SlideMlRectElement { Id = "r1", X = 50, Y = 30, Width = 100, Height = 50 },
+                new SlideMlRectElement { Id = "r2", X = 200, Y = 100, Width = 150, Height = 80 },
             },
         };
 
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        var r1 = (SlideRectElement)panel.Children[0];
-        var r2 = (SlideRectElement)panel.Children[1];
+        var r1 = (SlideMlRectElement)panel.Children[0];
+        var r2 = (SlideMlRectElement)panel.Children[1];
 
         Assert.AreEqual(50, r1.LayoutBounds.X, 0.01, "r1 X");
         Assert.AreEqual(30, r1.LayoutBounds.Y, 0.01, "r1 Y");
@@ -173,22 +176,22 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void HorizontalLayout_WithPadding_OffsetsContent()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 8,
             Padding = 16,
             Children =
             {
-                new SlideRectElement { Id = "r1", Width = 100, Height = 50 },
+                new SlideMlRectElement { Id = "r1", Width = 100, Height = 50 },
             },
         };
 
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        var r1 = (SlideRectElement)panel.Children[0];
+        var r1 = (SlideMlRectElement)panel.Children[0];
 
         Assert.AreEqual(16, r1.LayoutBounds.X, 0.01, "r1 X with padding");
         Assert.AreEqual(16, r1.LayoutBounds.Y, 0.01, "r1 Y with padding");
@@ -198,26 +201,26 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void NestedFlowPanels_LayoutCorrectly()
     {
-        var innerPanel = new SlidePanelElement
+        var innerPanel = new SlideMlPanelElement
         {
             Id = "inner",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 4,
             Children =
             {
-                new SlideRectElement { Id = "ir1", Width = 50, Height = 30 },
-                new SlideRectElement { Id = "ir2", Width = 50, Height = 30 },
+                new SlideMlRectElement { Id = "ir1", Width = 50, Height = 30 },
+                new SlideMlRectElement { Id = "ir2", Width = 50, Height = 30 },
             },
         };
 
-        var outerPanel = new SlidePanelElement
+        var outerPanel = new SlideMlPanelElement
         {
             Id = "outer",
-            Layout = SlideLayoutDirection.Vertical,
+            Layout = SlideMlLayoutDirection.Vertical,
             Gap = 10,
             Children =
             {
-                new SlideRectElement { Id = "or1", Width = 200, Height = 40 },
+                new SlideMlRectElement { Id = "or1", Width = 200, Height = 40 },
                 innerPanel,
             },
         };
@@ -225,13 +228,13 @@ public sealed class SlideLayoutEngineTests
         var page = CreatePage(outerPanel);
         _engine.PreLayout(page, _context);
 
-        var or1 = (SlideRectElement)outerPanel.Children[0];
+        var or1 = (SlideMlRectElement)outerPanel.Children[0];
 
         Assert.AreEqual(0, or1.LayoutBounds.Y, 0.01, "or1 Y");
         Assert.AreEqual(40 + 10, innerPanel.LayoutBounds.Y, 0.01, "inner panel Y");
 
-        var ir1 = (SlideRectElement)innerPanel.Children[0];
-        var ir2 = (SlideRectElement)innerPanel.Children[1];
+        var ir1 = (SlideMlRectElement)innerPanel.Children[0];
+        var ir2 = (SlideMlRectElement)innerPanel.Children[1];
         Assert.AreEqual(0, ir1.LayoutBounds.X, 0.01, "ir1 X");
         Assert.AreEqual(50 + 4, ir2.LayoutBounds.X, 0.01, "ir2 X");
     }
@@ -239,42 +242,42 @@ public sealed class SlideLayoutEngineTests
     [TestMethod]
     public void FlowLayout_Overflow_GeneratesWarning()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 8,
             Width = 150,
             Children =
             {
-                new SlideRectElement { Id = "r1", Width = 100, Height = 50 },
-                new SlideRectElement { Id = "r2", Width = 100, Height = 50 },
+                new SlideMlRectElement { Id = "r1", Width = 100, Height = 50 },
+                new SlideMlRectElement { Id = "r2", Width = 100, Height = 50 },
             },
         };
 
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.IsTrue(_context.Warnings.Count > 0, "应有溢出警告");
+        Assert.IsNotEmpty(_context.Warnings, "应有溢出警告");
         Assert.IsTrue(_context.Warnings.Any(w => w.Contains("超出")), "警告应包含溢出信息");
     }
 
     [TestMethod]
     public void FinalLayout_UsesMeasuredSizes()
     {
-        var panel = new SlidePanelElement
+        var panel = new SlideMlPanelElement
         {
             Id = "panel1",
-            Layout = SlideLayoutDirection.Horizontal,
+            Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 8,
             Children =
             {
-                new SlideTextElement { Id = "t1", Text = "Hello" },
-                new SlideTextElement { Id = "t2", Text = "World" },
+                new SlideMlTextElement { Id = "t1", Text = "Hello" },
+                new SlideMlTextElement { Id = "t2", Text = "World" },
             },
         };
 
-        var measurements = new SlideElementMeasurements(new Dictionary<string, SlideMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 120, MeasuredHeight = 24 },
             ["t2"] = new() { MeasuredWidth = 100, MeasuredHeight = 24 },
@@ -283,17 +286,17 @@ public sealed class SlideLayoutEngineTests
         var page = CreatePage(panel);
         _engine.FinalLayout(page, _context, measurements);
 
-        var t1 = (SlideTextElement)panel.Children[0];
-        var t2 = (SlideTextElement)panel.Children[1];
+        var t1 = (SlideMlTextElement)panel.Children[0];
+        var t2 = (SlideMlTextElement)panel.Children[1];
 
         Assert.AreEqual(120, t1.ActualWidth, 0.01, "t1 measured width");
         Assert.AreEqual(100, t2.ActualWidth, 0.01, "t2 measured width");
         Assert.AreEqual(120 + 8, t2.LayoutBounds.X, 0.01, "t2 X with measured sizes");
     }
 
-    private static SlidePage CreatePage(SlideElement child)
+    private static SlideMlPage CreatePage(SlideMlElement child)
     {
-        var page = new SlidePage();
+        var page = new SlideMlPage();
         page.Children.Add(child);
         return page;
     }

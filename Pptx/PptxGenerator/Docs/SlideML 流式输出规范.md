@@ -244,7 +244,7 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
                Text="流式输出" FontSize="20" IsBold="True" Foreground="#333"/>
   <TextElement Id="card1-desc" X="24" Y="60" Width="292"
                Text="模型持续输出片段，解析器逐片段累积构建页面。"
-               FontSize="14" Foreground="#666" LineHeight="1.5"/>
+               FontSize="14" Foreground="#666"/>
 </Panel>
 
 <!-- 追加第二张卡片 -->
@@ -255,7 +255,7 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
                Text="Id 合并" FontSize="20" IsBold="True" Foreground="#333"/>
   <TextElement Id="card2-desc" X="24" Y="60" Width="292"
                Text="通过 Id 匹配已有元素，属性级 Merge，零冗余。"
-               FontSize="14" Foreground="#666" LineHeight="1.5"/>
+               FontSize="14" Foreground="#666"/>
 </Panel>
 
 <!-- 删除 footer -->

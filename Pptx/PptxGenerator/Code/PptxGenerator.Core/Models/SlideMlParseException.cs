@@ -1,11 +1,9 @@
-using System;
-
-namespace PptxGenerator;
+﻿namespace PptxGenerator.Models;
 
 /// <summary>
 /// SlideML 解析过程中发生的异常的基类。
 /// </summary>
-public abstract class SlideMlParseException : InvalidOperationException
+public abstract class SlideMlParseException : Exception
 {
     /// <summary>
     /// 初始化 <see cref="SlideMlParseException"/> 类的新实例。

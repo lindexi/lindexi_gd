@@ -1,7 +1,4 @@
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace PptxGenerator;
+﻿namespace PptxGenerator.Evaluation;
 
 /// <summary>
 /// 提示词评估器接口，对 SlideML 生成所用的系统提示词和用户提示词模板进行质量评估。

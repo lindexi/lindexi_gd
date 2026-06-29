@@ -1,12 +1,16 @@
-using System;
+﻿using System;
+using System.Threading.Tasks;
+
+using AgentLib;
+
 using Avalonia.Threading;
 
 namespace PptxGenerator;
 
 /// <summary>
-/// Avalonia 实现的 <see cref="IDispatcher"/>，包装 <see cref="Dispatcher.UIThread"/>。
+/// Avalonia 实现的 <see cref="IMainThreadDispatcher"/>，包装 <see cref="Dispatcher.UIThread"/>。
 /// </summary>
-public sealed class AvaloniaDispatcher : IDispatcher
+public sealed class AvaloniaDispatcher : IMainThreadDispatcher
 {
     /// <summary>
     /// 默认实例。
@@ -18,14 +22,22 @@ public sealed class AvaloniaDispatcher : IDispatcher
     }
 
     /// <inheritdoc />
-    public void InvokeAsync(Action action)
+    public Task InvokeAsync(Func<Task> action)
     {
-        Dispatcher.UIThread.InvokeAsync(action);
+        ArgumentNullException.ThrowIfNull(action);
+        return Dispatcher.UIThread.InvokeAsync(async () => await action().ConfigureAwait(false));
     }
 
     /// <inheritdoc />
-    public T InvokeAsync<T>(Func<T> func)
+    public Task<T> InvokeAsync<T>(Func<Task<T>> action)
     {
-        return Dispatcher.UIThread.Invoke(func);
+        ArgumentNullException.ThrowIfNull(action);
+        return Dispatcher.UIThread.InvokeAsync(async () => await action().ConfigureAwait(false));
+    }
+
+    /// <inheritdoc />
+    public bool CheckAccess()
+    {
+        return Dispatcher.UIThread.CheckAccess();
     }
 }

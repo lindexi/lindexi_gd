@@ -1,13 +1,15 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
+
+using AgentLib;
 
 namespace PptxGenerator;
 
 /// <summary>
-/// WPF 实现的 <see cref="IDispatcher"/>，包装 <see cref="Application.Current.Dispatcher"/>。
+/// WPF 实现的 <see cref="IMainThreadDispatcher"/>，包装 <see cref="Application.Current.Dispatcher"/>。
 /// </summary>
-public sealed class WpfDispatcher : IDispatcher
+public sealed class WpfDispatcher : IMainThreadDispatcher
 {
     /// <summary>
     /// 默认实例，使用 <see cref="Application.Current.Dispatcher"/>。
@@ -19,14 +21,22 @@ public sealed class WpfDispatcher : IDispatcher
     }
 
     /// <inheritdoc />
-    public void InvokeAsync(Action action)
+    public Task InvokeAsync(Func<Task> action)
     {
-        Application.Current.Dispatcher.InvokeAsync(action);
+        ArgumentNullException.ThrowIfNull(action);
+        return Application.Current.Dispatcher.InvokeAsync(async () => await action().ConfigureAwait(false)).Task.Unwrap();
     }
 
     /// <inheritdoc />
-    public T InvokeAsync<T>(Func<T> func)
+    public Task<T> InvokeAsync<T>(Func<Task<T>> action)
     {
-        return Application.Current.Dispatcher.Invoke(func);
+        ArgumentNullException.ThrowIfNull(action);
+        return Application.Current.Dispatcher.InvokeAsync(async () => await action().ConfigureAwait(false)).Task.Unwrap();
+    }
+
+    /// <inheritdoc />
+    public bool CheckAccess()
+    {
+        return Application.Current.Dispatcher.CheckAccess();
     }
 }

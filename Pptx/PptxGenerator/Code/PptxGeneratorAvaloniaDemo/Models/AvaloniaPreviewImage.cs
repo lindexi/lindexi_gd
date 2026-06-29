@@ -1,5 +1,6 @@
-using System.IO;
+﻿using System.IO;
 using Avalonia.Media.Imaging;
+using PptxGenerator.Models;
 
 namespace PptxGenerator;
 
@@ -23,12 +24,6 @@ public sealed class AvaloniaPreviewImage : IPreviewImage
     /// 获取内部 Avalonia <see cref="Bitmap"/>。
     /// </summary>
     public Bitmap Source => _bitmap;
-
-    /// <inheritdoc />
-    public int Width => _bitmap.PixelSize.Width;
-
-    /// <inheritdoc />
-    public int Height => _bitmap.PixelSize.Height;
 
     /// <inheritdoc />
     public void Save(string filePath)

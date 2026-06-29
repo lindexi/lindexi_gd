@@ -1,4 +1,4 @@
-using AgentLib;
+﻿using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
@@ -7,6 +7,9 @@ using PptxGenerator;
 using System;
 using System.IO;
 using System.Windows;
+using PptxGenerator.Evaluation;
+using PptxGenerator.Pipeline;
+using PptxGenerator.Rendering;
 
 namespace PptxGeneratorWpfDemo;
 
@@ -42,7 +45,8 @@ public partial class App : Application
     {
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
-        var copilotChatManager = new CopilotChatManager();
+        var dispatcher = WpfDispatcher.Instance;
+        var copilotChatManager = new CopilotChatManager { MainThreadDispatcher = dispatcher };
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
         await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
 
@@ -55,8 +59,8 @@ public partial class App : Application
 
         agentApiEndpointManager.PrimaryModel = languageModel;
 
-        var slideRenderPipeline = new SlideRenderPipeline();
-        var slideRenderTool = new SlideRenderTool(slideRenderPipeline, WpfDispatcher.Instance);
+        var SlideMlRenderPipeline = new SlideMlRenderPipeline(new SlideMlLayoutEngine(), new WpfSlideMlRenderEngine(), dispatcher);
+        var SlideMlRenderTool = new SlideMlRenderTool(SlideMlRenderPipeline, dispatcher);
 
         var evaluatorChatManager = new CopilotChatManager();
         var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
@@ -68,7 +72,8 @@ public partial class App : Application
 
         var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
         var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
+        var promptOptimizer = new AiPromptOptimizer(evaluatorChatManager);
 
-        return new SlideChatManager(copilotChatManager, slideRenderTool, WpfDispatcher.Instance, slideEvaluator, promptEvaluator);
+        return new SlideChatManager(copilotChatManager, SlideMlRenderTool, slideEvaluator: slideEvaluator, promptEvaluator: promptEvaluator, promptOptimizer: promptOptimizer);
     }
 }

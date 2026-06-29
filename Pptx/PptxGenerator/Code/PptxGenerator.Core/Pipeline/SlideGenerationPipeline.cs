@@ -1,17 +1,14 @@
+﻿using System.ComponentModel;
 using AgentLib;
 using AgentLib.Model;
-
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using PptxGenerator.Evaluation;
+using PptxGenerator.Models;
+using PptxGenerator.Prompt;
+using PptxGenerator.Streaming;
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace PptxGenerator;
+namespace PptxGenerator.Pipeline;
 
 /// <summary>
 /// SlideML 生成管道编排器，管理 生成 → 渲染 → 评估 的完整生命周期。
@@ -19,40 +16,59 @@ namespace PptxGenerator;
 public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 {
     private readonly CopilotChatManager _copilotChatManager;
-    private readonly IPromptProvider _promptProvider;
+    private readonly ISlideMlPromptProvider _promptProvider;
     private readonly ISlideEvaluator? _slideEvaluator;
     private readonly IPromptEvaluator? _promptEvaluator;
-    private readonly IDispatcher _dispatcher;
+    private readonly IPromptOptimizer? _promptOptimizer;
+    private readonly IMainThreadDispatcher _dispatcher;
 
     public SlideGenerationPipeline(
         CopilotChatManager copilotChatManager,
-        IPromptProvider promptProvider,
-        SlideRenderTool slideRenderTool,
-        IDispatcher dispatcher,
+        ISlideMlPromptProvider promptProvider,
+        SlideMlRenderTool slideMlRenderTool,
         ISlideEvaluator? slideEvaluator = null,
-        IPromptEvaluator? promptEvaluator = null)
+        IPromptEvaluator? promptEvaluator = null,
+        IPromptOptimizer? promptOptimizer = null)
     {
         _copilotChatManager = copilotChatManager ?? throw new ArgumentNullException(nameof(copilotChatManager));
         _promptProvider = promptProvider ?? throw new ArgumentNullException(nameof(promptProvider));
-        SlideRenderTool = slideRenderTool ?? throw new ArgumentNullException(nameof(slideRenderTool));
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        SlideMlRenderTool = slideMlRenderTool ?? throw new ArgumentNullException(nameof(slideMlRenderTool));
         _slideEvaluator = slideEvaluator;
         _promptEvaluator = promptEvaluator;
+        _promptOptimizer = promptOptimizer;
+        _dispatcher = slideMlRenderTool.Dispatcher;
 
-        SlideRenderTool.SlideRendered += OnSlideRendered;
+        slideMlRenderTool.SlideRendered += OnSlideRendered;
     }
 
-    public SlideRenderTool SlideRenderTool { get; }
+    /// <summary>
+    /// 使用 <see cref="PipelineConfiguration"/> 配置对象创建管道。
+    /// </summary>
+    public SlideGenerationPipeline(
+        CopilotChatManager copilotChatManager,
+        ISlideMlPromptProvider promptProvider,
+        SlideMlRenderTool slideMlRenderTool,
+        PipelineConfiguration configuration)
+        : this(copilotChatManager, promptProvider, slideMlRenderTool,
+              slideEvaluator: configuration.SlideEvaluator,
+              promptEvaluator: configuration.PromptEvaluator,
+              promptOptimizer: configuration.PromptOptimizer)
+    {
+    }
+
+    public SlideMlRenderTool SlideMlRenderTool { get; }
 
     public CopilotChatManager ChatManager => _copilotChatManager;
 
-    public IPreviewImage? PreviewImage => SlideRenderTool.LatestPreviewImage;
+    public ISlideMlPromptProvider PromptProvider => _promptProvider;
 
-    public string CurrentSlideXml => SlideRenderTool.LatestSlideXml;
+    public IPreviewImage? PreviewImage => SlideMlRenderTool.LatestPreviewImage;
 
-    public string RenderedXml => SlideRenderTool.LatestRenderedXml;
+    public string CurrentSlideXml => SlideMlRenderTool.LatestSlideXml;
 
-    public string WarningText => SlideRenderTool.LatestWarnings;
+    public string RenderedXml => SlideMlRenderTool.LatestRenderedXml;
+
+    public string WarningText => SlideMlRenderTool.LatestWarnings;
 
     private SlideEvaluationResult? _lastSlideEvaluation;
     public SlideEvaluationResult? LastSlideEvaluation
@@ -97,28 +113,44 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
     public async Task SendSlideRequestAsync(string userPrompt, CancellationToken cancellationToken = default)
     {
-        await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
+        await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken: cancellationToken);
     }
 
-    public async Task SendMessageAsync(
+    public async Task SendMessageAsync
+    (
         string userMessage,
         bool isFirstMessage,
         bool attachPreview,
         IReadOnlyList<string>? attachedImageFiles = null,
-        CancellationToken cancellationToken = default)
+        string? systemPrompt = null,
+        bool createNewSession = false,
+        bool skipAutoEvaluation = false,
+        bool useStreaming = false,
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(userMessage))
         {
             return;
         }
 
-        var tools = new[] { SlideRenderTool.CreateTool(), SlideRenderTool.CreatePreviewTool() };
+        if (useStreaming)
+        {
+            await SendStreamingMessageAsync(userMessage, isFirstMessage, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        var tools = new[] { SlideMlRenderTool.CreateTool(), SlideMlRenderTool.CreatePreviewTool() };
 
         var processedText = isFirstMessage
             ? _promptProvider.BuildInitialUserPrompt(userMessage)
             : userMessage;
-        var systemPrompt = isFirstMessage ? _promptProvider.BuildSystemPrompt() : null;
+
+        if (isFirstMessage && systemPrompt is null)
+        {
+            // 仅首次且无系统提示词时，才使用默认系统提示词
+            systemPrompt = _promptProvider.BuildSystemPrompt();
+        }
 
         var initialCapacity = 1 + (attachedImageFiles?.Count ?? 0) + (attachPreview ? 1 : 0);
         var contents = new List<AIContent>(initialCapacity) { new TextContent(processedText) };
@@ -129,8 +161,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             {
                 if (!string.IsNullOrWhiteSpace(imageFile) && File.Exists(imageFile))
                 {
-                    var dataContent = await DataContent.LoadFromAsync(imageFile, cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                    var dataContent = await DataContent.LoadFromAsync(imageFile, cancellationToken: cancellationToken);
                     contents.Add(dataContent);
                 }
             }
@@ -138,8 +169,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         if (attachPreview)
         {
-            var previewDataContent = await SlideRenderTool.CreatePreviewDataContentAsync(cancellationToken)
-                .ConfigureAwait(false);
+            var previewDataContent = await SlideMlRenderTool.CreatePreviewDataContentAsync(cancellationToken);
             if (previewDataContent is not null)
             {
                 contents.Add(previewDataContent);
@@ -149,10 +179,13 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         var request = new SendMessageRequest(contents)
         {
             WithHistory = true,
-            CreateNewSession = false,
+            CreateNewSession = createNewSession,
             Tools = tools,
             SystemPrompt = systemPrompt,
             CancellationToken = cancellationToken,
+
+            // 禁用默认的工具，防止去尝试读取本地文件
+            AppendDefaultTools = false,
         };
 
         var requestResult = _copilotChatManager.SendMessage(request);
@@ -169,20 +202,93 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             await _copilotChatManager.SendMessage(toolRequest).RunTask.ConfigureAwait(false);
         }
 
-        _dispatcher.InvokeAsync(() =>
+        _ = _copilotChatManager.MainThreadDispatcher!.InvokeAsync(() =>
         {
             OnPropertyChanged(nameof(PreviewImage));
             OnPropertyChanged(nameof(CurrentSlideXml));
             OnPropertyChanged(nameof(RenderedXml));
             OnPropertyChanged(nameof(WarningText));
+            return Task.CompletedTask;
         });
 
-        if (_slideEvaluator is not null && !string.IsNullOrWhiteSpace(CurrentSlideXml))
+        if (!skipAutoEvaluation && _slideEvaluator is not null && !string.IsNullOrWhiteSpace(CurrentSlideXml))
         {
             var context = new PipelineContext { UserPrompt = userMessage };
-            context.SnapshotFromRenderTool(SlideRenderTool);
+            context.SnapshotFromRenderTool(SlideMlRenderTool);
             _ = EvaluateContextAsync(context, userMessage, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// 以流式方式发送消息，逐片段接收 LLM 输出并实时渲染。
+    /// </summary>
+    /// <param name="userMessage">用户自然语言需求。</param>
+    /// <param name="isFirstMessage">是否为首次消息。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    private async Task SendStreamingMessageAsync(string userMessage, bool isFirstMessage, CancellationToken cancellationToken)
+    {
+        var context = new SlideMlPipelineContext();
+        var streamingPipeline = new SlideStreamingPipeline(_promptProvider, SlideMlRenderTool.RenderPipeline, _dispatcher);
+
+        // 将流式渲染结果同步到 SlideMlRenderTool，使 Latest* 属性保持最新
+        streamingPipeline.Rendered += renderResult =>
+        {
+            SlideMlRenderTool.ApplyRenderResult(new SlideMlRenderResult
+            {
+                InputXml = renderResult.InputXml,
+                OutputXml = renderResult.OutputXml,
+                Warnings = renderResult.Warnings,
+                Errors = renderResult.Errors,
+                PreviewImage = renderResult.PreviewImage,
+            });
+        };
+
+        var manualContext = await _copilotChatManager.CreateManualSendMessageContextAsync(cancellationToken).ConfigureAwait(false);
+
+        // 填充用户消息
+        var processedText = isFirstMessage
+            ? _promptProvider.BuildInitialUserPrompt(userMessage)
+            : userMessage;
+        manualContext.UserChatMessage.AppendText(processedText);
+
+        var systemPrompt = isFirstMessage
+            ? _promptProvider.BuildStreamingSystemPrompt()
+            : null;
+
+        // 追加消息到会话
+        await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
+
+        using var _ = manualContext.StartChatting();
+
+        var agent = await manualContext.GetChatClientAgentAsync(cancellationToken).ConfigureAwait(false);
+        var session = await manualContext.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
+
+        var messages = systemPrompt is not null
+            ? new[] { new ChatMessage(ChatRole.System, systemPrompt), manualContext.UserChatMessage.ToChatMessage() }
+            : new[] { manualContext.UserChatMessage.ToChatMessage() };
+
+        await foreach (var update in agent.RunStreamingAsync(messages, session, cancellationToken: cancellationToken).ConfigureAwait(false))
+        {
+            manualContext.AppendResponseUpdate(update);
+
+            // 将增量文本喂给流式管道
+            if (!string.IsNullOrEmpty(update.Text))
+            {
+                streamingPipeline.ProcessIncrementalText(update.Text, context);
+            }
+        }
+
+        // 流结束，渲染合并后的 XML
+        await streamingPipeline.ProcessStreamEndAsync(context, cancellationToken).ConfigureAwait(false);
+
+        await _dispatcher.InvokeAsync(() =>
+        {
+            OnPropertyChanged(nameof(PreviewImage));
+            OnPropertyChanged(nameof(CurrentSlideXml));
+            OnPropertyChanged(nameof(RenderedXml));
+            OnPropertyChanged(nameof(WarningText));
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
     }
 
     public async Task<SlideEvaluationResult?> EvaluateAsync(string userPrompt, CancellationToken cancellationToken = default)
@@ -193,7 +299,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         }
 
         var context = new PipelineContext { UserPrompt = userPrompt };
-        context.SnapshotFromRenderTool(SlideRenderTool);
+        context.SnapshotFromRenderTool(SlideMlRenderTool);
 
         if (string.IsNullOrWhiteSpace(context.SlideXml))
         {
@@ -202,7 +308,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             return result;
         }
 
-        return await EvaluateContextAsync(context, userPrompt, cancellationToken).ConfigureAwait(false);
+        return await EvaluateContextAsync(context, userPrompt, cancellationToken);
     }
 
     public async Task<PromptEvaluationResult?> EvaluatePromptAsync(CancellationToken cancellationToken = default)
@@ -218,12 +324,11 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             var systemPrompt = _promptProvider.BuildSystemPrompt();
             var userPromptTemplate = _promptProvider.BuildInitialUserPrompt("{USER_INPUT}");
 
-            var result = await _promptEvaluator.EvaluateAsync(systemPrompt, userPromptTemplate, cancellationToken)
-                .ConfigureAwait(false);
+            var result = await _promptEvaluator.EvaluateAsync(systemPrompt, userPromptTemplate, cancellationToken);
 
             LastPromptEvaluation = result;
 
-            AppendEvaluationMessage(result);
+            await AppendEvaluationMessageAsync(result);
 
             PromptEvaluationCompleted?.Invoke(this, result);
             return result;
@@ -254,13 +359,12 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                     context.RenderedXml ?? string.Empty,
                     context.Warnings ?? string.Empty,
                     previewImageBytes,
-                    cancellationToken)
-                .ConfigureAwait(false);
+                    cancellationToken: cancellationToken);
 
             context.SlideEvaluation = result;
             LastSlideEvaluation = result;
 
-            AppendEvaluationMessage(result);
+            await AppendEvaluationMessageAsync(result);
 
             EvaluationCompleted?.Invoke(this, result);
             return result;
@@ -280,18 +384,79 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         SlideRendered?.Invoke();
     }
 
-    private void AppendEvaluationMessage(SlideEvaluationResult result)
+    /// <summary>
+    /// 是否可以进行提示词迭代优化。
+    /// </summary>
+    public bool CanRunIteration => _slideEvaluator is not null && _promptOptimizer is not null;
+
+    /// <summary>
+    /// 单轮迭代进度事件。
+    /// </summary>
+    public event EventHandler<IterationRound>? IterationProgress;
+
+    /// <summary>
+    /// 供 <see cref="PromptIterationPipeline"/> 触发迭代进度事件。
+    /// </summary>
+    internal void RaiseIterationProgress(IterationRound round)
     {
-        var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
-        message.IsPresetInfo = true;
-        _copilotChatManager.ChatMessages.Add(message);
+        IterationProgress?.Invoke(this, round);
     }
 
-    private void AppendEvaluationMessage(PromptEvaluationResult result)
+    /// <summary>
+    /// 迭代完成事件。
+    /// </summary>
+    public event EventHandler<IterationResult>? IterationCompleted;
+
+    /// <summary>
+    /// 运行提示词迭代优化闭环。
+    /// </summary>
+    /// <param name="userPrompt">用户原始自然语言需求。</param>
+    /// <param name="originalScreenshot">原始 PPT 截图，用于还原度对比评估。</param>
+    /// <param name="options">迭代选项，为 <see langword="null"/> 时使用默认值。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>迭代结果。</returns>
+    public async Task<IterationResult?> RunPromptIterationAsync(
+        string userPrompt,
+        IPreviewImage? originalScreenshot,
+        IterationOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!CanRunIteration)
+        {
+            return null;
+        }
+
+        if (_promptProvider is not Prompt.SlideMlPromptProvider mutableProvider)
+        {
+            return null;
+        }
+
+        var iterationPipeline = new PromptIterationPipeline(
+            this,
+            _slideEvaluator!,
+            _promptOptimizer!,
+            mutableProvider,
+            _copilotChatManager);
+
+        var result = await iterationPipeline.RunIterationAsync(userPrompt, originalScreenshot, options, cancellationToken)
+            .ConfigureAwait(false);
+
+        IterationCompleted?.Invoke(this, result);
+        return result;
+    }
+
+    private async Task AppendEvaluationMessageAsync(SlideEvaluationResult result)
     {
         var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
         message.IsPresetInfo = true;
-        _copilotChatManager.ChatMessages.Add(message);
+        await _copilotChatManager.AppendMessageAsync(message);
+    }
+
+    private async Task AppendEvaluationMessageAsync(PromptEvaluationResult result)
+    {
+        var message = CopilotChatMessage.CreateUser(result.ToDisplayText());
+        message.IsPresetInfo = true;
+        await _copilotChatManager.AppendMessageAsync(message);
     }
 
     private void OnPropertyChanged(string propertyName)
