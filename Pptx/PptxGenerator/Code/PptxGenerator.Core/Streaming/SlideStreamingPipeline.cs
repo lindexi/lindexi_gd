@@ -4,11 +4,16 @@ using PptxGenerator.Pipeline;
 using PptxGenerator.Prompt;
 using PptxGenerator.Rendering;
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace PptxGenerator.Streaming;
 
 /// <summary>
 /// 流式渲染编排管道，将片段提取器、合并器和渲染服务串联起来。
-/// 从 LLM 流式输出接收增量文本，提取完整 XML 片段，合并到 DOM 树，在流结束时渲染。
+/// 从 LLM 流式输出接收增量文本，提取完整 XML 片段，合并到 DOM 树，每合并一个片段后立即尝试实时渲染（带节流）。
 /// </summary>
 public sealed class SlideStreamingPipeline
 {
@@ -24,10 +29,12 @@ public sealed class SlideStreamingPipeline
     /// <param name="promptProvider">提示词提供者。</param>
     /// <param name="renderPipeline">SlideML 渲染管道。</param>
     /// <param name="dispatcher">主线程调度器。</param>
+    /// <param name="minRenderInterval">最小渲染间隔，默认为 500 毫秒。传 <see langword="null"/> 使用默认值。</param>
     public SlideStreamingPipeline(
         ISlideMlPromptProvider promptProvider,
         ISlideMlRenderPipeline renderPipeline,
-        IMainThreadDispatcher dispatcher)
+        IMainThreadDispatcher dispatcher,
+        TimeSpan? minRenderInterval = null)
     {
         ArgumentNullException.ThrowIfNull(promptProvider);
         ArgumentNullException.ThrowIfNull(renderPipeline);
@@ -36,7 +43,7 @@ public sealed class SlideStreamingPipeline
         _promptProvider = promptProvider;
         _dispatcher = dispatcher;
         _merger = new SlideMlStreamingMerger();
-        _renderService = new SlideStreamRenderService(renderPipeline, dispatcher);
+        _renderService = new SlideStreamRenderService(renderPipeline, dispatcher, minRenderInterval);
         _renderService.Rendered += result => Rendered?.Invoke(result);
     }
 
@@ -66,11 +73,12 @@ public sealed class SlideStreamingPipeline
     public string CurrentMergedXml => _merger.GetMergedXml();
 
     /// <summary>
-    /// 处理 LLM 流式增量文本。
+    /// 处理 LLM 流式增量文本。提取完整片段后合并到 DOM 树，并在每个片段合并成功后立即尝试实时渲染。
     /// </summary>
     /// <param name="text">增量文本。</param>
     /// <param name="context">渲染上下文。</param>
-    public void ProcessIncrementalText(string text, SlideMlPipelineContext context)
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task ProcessIncrementalTextAsync(string text, SlideMlPipelineContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(context);
@@ -82,11 +90,18 @@ public sealed class SlideStreamingPipeline
         {
             _merger.AcceptFragment(fragment, context);
             FragmentReceived?.Invoke(fragment);
+
+            // 每个片段合并成功后立即尝试实时渲染（带节流）
+            var mergedXml = _merger.GetMergedXml();
+            if (!string.IsNullOrWhiteSpace(mergedXml))
+            {
+                await _renderService.TryRenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 
     /// <summary>
-    /// 处理流结束，渲染合并后的 XML。
+    /// 处理流结束，强制最终渲染（忽略节流）。
     /// </summary>
     /// <param name="context">渲染上下文。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -104,7 +119,7 @@ public sealed class SlideStreamingPipeline
         var mergedXml = _merger.GetMergedXml();
         if (!string.IsNullOrWhiteSpace(mergedXml))
         {
-            await _renderService.RenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+            await _renderService.FinalRenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
         }
 
         StreamCompleted?.Invoke(mergedXml);

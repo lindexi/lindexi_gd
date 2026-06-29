@@ -274,7 +274,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             // 将增量文本喂给流式管道
             if (!string.IsNullOrEmpty(update.Text))
             {
-                streamingPipeline.ProcessIncrementalText(update.Text, context);
+                await streamingPipeline.ProcessIncrementalTextAsync(update.Text, context, cancellationToken).ConfigureAwait(false);
             }
         }
 
