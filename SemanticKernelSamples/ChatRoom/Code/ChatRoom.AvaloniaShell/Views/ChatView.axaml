@@ -167,8 +167,16 @@
                                                 <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
                                             </ContextMenu>
                                         </Border.ContextMenu>
-                                        <ItemsControl ItemsSource="{Binding MessageItems}"
-                                                      ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
+                                        <!-- 有片段时展示片段（流式/实时）；无片段时回退到纯文本（历史恢复） -->
+                                        <StackPanel>
+                                            <ItemsControl ItemsSource="{Binding MessageItems}"
+                                                          ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}"
+                                                          IsVisible="{Binding HasCopilotChatMessage}" />
+                                            <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       MaxWidth="500"
+                                                       IsVisible="{Binding !HasCopilotChatMessage}" />
+                                        </StackPanel>
                                     </Border>
                                     <Border Classes="UsageSummaryBorder"
                                             IsVisible="{Binding HasUsageDetails}"

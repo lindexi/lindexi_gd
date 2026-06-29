@@ -72,6 +72,10 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             ChatOptions = new ChatOptions()
             {
                 Tools = [.. DefaultTools],
+                Reasoning = new ReasoningOptions()
+                {
+                    Effort = ReasoningEffort.None,
+                }
             },
             ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
             {

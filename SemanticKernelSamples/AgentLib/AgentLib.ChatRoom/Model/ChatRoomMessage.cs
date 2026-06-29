@@ -82,7 +82,8 @@ public sealed class ChatRoomMessage : NotifyBase
     /// 仅 AI 角色消息可能携带此对象，用于 UI 直接绑定流式属性（如 Content、Token 用量等）。
     /// 为 <see langword="null"/> 时表示该消息无底层对象（如人类消息、系统消息）。
     /// 设置时自动订阅/退订其 <see cref="INotifyPropertyChanged.PropertyChanged"/>，桥接 <see cref="Content"/> 变更。
-    /// <para>持久化时忽略此属性，消息文本内容通过 <see cref="StaticContent"/> 保存和恢复。</para>
+    /// <para>持久化时忽略此属性，消息文本内容通过 <see cref="StaticContent"/> 保存和恢复。
+    /// 反序列化后通过 <see cref="RestoreCopilotChatMessage"/> 从 <see cref="StaticContent"/> 重建此对象。</para>
     /// </summary>
     [JsonIgnore]
     public CopilotChatMessage? CopilotChatMessage
@@ -189,6 +190,22 @@ public sealed class ChatRoomMessage : NotifyBase
         if (e.PropertyName == nameof(CopilotChatMessage.Content))
         {
             OnPropertyChanged(nameof(Content));
+        }
+    }
+
+    /// <summary>
+    /// 从 <see cref="StaticContent"/> 重建 <see cref="CopilotChatMessage"/>。
+    /// 持久化时 <see cref="CopilotChatMessage"/> 被忽略（<see cref="JsonIgnoreAttribute"/>），
+    /// 反序列化后为 <see langword="null"/>。对于 AI 消息，需要从 <see cref="StaticContent"/>
+    /// 构建一个包含文本片段的 <see cref="CopilotChatMessage"/>，使 UI 绑定的
+    /// <see cref="CopilotChatMessage.MessageItems"/> 能正常渲染历史消息内容。
+    /// 应在从持久化数据反序列化后由加载链路显式调用。
+    /// </summary>
+    internal void RestoreCopilotChatMessage()
+    {
+        if (_copilotChatMessage is null && !string.IsNullOrEmpty(_staticContent) && !IsHumanMessage && !IsSystemMessage)
+        {
+            CopilotChatMessage = new CopilotChatMessage(ChatRole.Assistant, _staticContent);
         }
     }
 }

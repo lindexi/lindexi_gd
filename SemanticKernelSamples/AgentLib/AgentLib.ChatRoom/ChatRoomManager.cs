@@ -599,7 +599,9 @@ public sealed class ChatRoomManager : NotifyBase
         // 用持久化数据替换当前 Session 的状态
         Session.Title = data.Title;
 
-        // 恢复角色
+        // 恢复角色。模型解析失败（如提供商配置已变更）不应阻止会话加载，
+        // 否则消息历史将无法还原。失败的角色仍会被添加到 Roles 列表，
+        // 用户可在设置中重新配置模型后再使用该角色。
         Roles.Clear();
         foreach (ChatRoomRoleDefinition roleDef in data.Roles)
         {
@@ -607,13 +609,27 @@ public sealed class ChatRoomManager : NotifyBase
                         {
                             MainThreadDispatcher = Session.MainThreadDispatcher,
                         };
-            await AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
+            await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                RegisterModelProvidersForRole(role);
+            }
+            catch (InvalidOperationException)
+            {
+                // 模型提供商尚未注册或角色定义的模型已不可用（如提供商配置已变更），
+                // 跳过首选模型设置但不阻止会话恢复，用户可在设置中重新配置模型后再使用该角色。
+            }
+
+            Roles.Add(role);
         }
 
-        // 恢复消息
+        // 恢复消息。反序列化后 CopilotChatMessage 为 null（JsonIgnore），
+        // 需要从 StaticContent 重建，使 UI 绑定的 MessageItems 能正常渲染历史消息内容。
         Session.Messages.Clear();
         foreach (ChatRoomMessage msg in data.Messages)
         {
+            msg.RestoreCopilotChatMessage();
             await Session.AddMessageAsync(msg);
         }
     }
