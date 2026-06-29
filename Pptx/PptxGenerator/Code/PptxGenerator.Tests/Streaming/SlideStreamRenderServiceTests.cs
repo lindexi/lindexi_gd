@@ -38,7 +38,7 @@ public sealed class SlideStreamRenderServiceTests
         return new SlideStreamRenderService(pipeline, new FakeMainThreadDispatcher(), minRenderInterval);
     }
 
-    [TestMethod("TryRender：首次调用立即渲染并更新状态")]
+    [TestMethod(DisplayName = "TryRender：首次调用立即渲染并更新状态")]
     public async Task TryRenderAsync_FirstCall_RendersImmediately()
     {
         // Arrange
@@ -56,7 +56,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.IsEmpty(service.CurrentWarnings);
     }
 
-    [TestMethod("TryRender：间隔内第二次调用被节流跳过")]
+    [TestMethod(DisplayName = "TryRender：间隔内第二次调用被节流跳过")]
     public async Task TryRenderAsync_WithinInterval_SkipsRender()
     {
         // Arrange
@@ -73,7 +73,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.IsFalse(second);
     }
 
-    [TestMethod("TryRender：超过间隔后可以再次渲染")]
+    [TestMethod(DisplayName = "TryRender：超过间隔后可以再次渲染")]
     public async Task TryRenderAsync_AfterInterval_Renders()
     {
         // Arrange
@@ -89,7 +89,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.IsTrue(second);
     }
 
-    [TestMethod("TryRender：空或空白 XML 不渲染")]
+    [TestMethod(DisplayName = "TryRender：空或空白 XML 不渲染")]
     public async Task TryRenderAsync_EmptyXml_ReturnsFalse()
     {
         // Arrange
@@ -103,7 +103,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.IsFalse(rendered);
     }
 
-    [TestMethod("FinalRender：忽略节流直接渲染")]
+    [TestMethod(DisplayName = "FinalRender：忽略节流直接渲染")]
     public async Task FinalRenderAsync_IgnoresThrottle()
     {
         // Arrange
@@ -120,7 +120,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.IsNotNull(service.CurrentPreviewImage);
     }
 
-    [TestMethod("FinalRender：空 XML 不渲染")]
+    [TestMethod(DisplayName = "FinalRender：空 XML 不渲染")]
     public async Task FinalRenderAsync_EmptyXml_DoesNotRender()
     {
         // Arrange
@@ -136,7 +136,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.AreEqual(0, renderedCount);
     }
 
-    [TestMethod("渲染成功后触发 Rendered 事件")]
+    [TestMethod(DisplayName = "渲染成功后触发 Rendered 事件")]
     public async Task TryRenderAsync_ValidXml_TriggersRenderedEvent()
     {
         // Arrange
@@ -157,7 +157,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.AreSame(previewImage, eventResult.PreviewImage);
     }
 
-    [TestMethod("TryRender：带警告时正确存储")]
+    [TestMethod(DisplayName = "TryRender：带警告时正确存储")]
     public async Task TryRenderAsync_WithWarnings_StoresWarnings()
     {
         // Arrange
@@ -174,7 +174,7 @@ public sealed class SlideStreamRenderServiceTests
         Assert.AreEqual("Warning 2", service.CurrentWarnings[1]);
     }
 
-    [TestMethod("渲染异常正确传播")]
+    [TestMethod(DisplayName = "渲染异常正确传播")]
     public async Task TryRenderAsync_RenderThrows_ExceptionPropagated()
     {
         // Arrange
@@ -186,7 +186,7 @@ public sealed class SlideStreamRenderServiceTests
             async () => await service.TryRenderAsync("<Page/>"));
     }
 
-    [TestMethod("构造函数：null renderPipeline 抛出 ArgumentNullException")]
+    [TestMethod(DisplayName = "构造函数：null renderPipeline 抛出 ArgumentNullException")]
     public void Constructor_NullRenderPipeline_ThrowsArgumentNullException()
     {
         // Act & Assert
@@ -194,7 +194,7 @@ public sealed class SlideStreamRenderServiceTests
             () => new SlideStreamRenderService(null!, new FakeMainThreadDispatcher()));
     }
 
-    [TestMethod("构造函数：null dispatcher 抛出 ArgumentNullException")]
+    [TestMethod(DisplayName = "构造函数：null dispatcher 抛出 ArgumentNullException")]
     public void Constructor_NullDispatcher_ThrowsArgumentNullException()
     {
         // Arrange
