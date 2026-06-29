@@ -1,13 +1,4 @@
-using AgentLib;
-using AgentLib.Core;
-using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
-using Microsoft.Extensions.AI;
 using PptxGenerator;
-using PptxGenerator.Models;
-using PptxGenerator.Pipeline;
-using PptxGenerator.Prompt;
-using PptxGenerator.Rendering;
-using PptxGenerator.Tests.Rendering;
 
 namespace PptxGenerator.Tests.Streaming;
 
@@ -19,56 +10,6 @@ namespace PptxGenerator.Tests.Streaming;
 [TestClass]
 public sealed class SlideStreamingErrorIntegrationTests
 {
-    /// <summary>
-    /// 将完整文本按逐字符方式通过 ChatResponseUpdate 流式返回。
-    /// </summary>
-    private static async IAsyncEnumerable<ChatResponseUpdate> StreamTokensAsync(
-        string text,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        foreach (var ch in text)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            yield return new ChatResponseUpdate(ChatRole.Assistant, ch.ToString());
-            await Task.Yield();
-        }
-    }
-
-    /// <summary>
-    /// 创建配置好的 SlideChatManager 和对应的 FakeChatClient。
-    /// </summary>
-    private static (SlideChatManager chatManager, FakeChatClient fakeChatClient) CreateChatManager(
-        Func<IAsyncEnumerable<ChatResponseUpdate>>? streamingResponseFactory = null)
-    {
-        var fakeChatClient = new FakeChatClient();
-
-        if (streamingResponseFactory is not null)
-        {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) => streamingResponseFactory();
-        }
-        else
-        {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) =>
-                StreamTokensAsync("<Page Background=\"#FFFFFF\"/>");
-        }
-
-        // 非流式也需要配置（工具调用可能用到）
-        fakeChatClient.OnGetResponseAsync = (_, _, _) =>
-            Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, "<Page/>")));
-
-        var copilotChatManager = new CopilotChatManager();
-        copilotChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(
-            new FakeLanguageModelProvider(fakeChatClient));
-
-        var layoutEngine = new SlideMlLayoutEngine();
-        var renderEngine = new FakeRenderEngine();
-        var dispatcher = new FakeMainThreadDispatcher();
-        var renderPipeline = new SlideMlRenderPipeline(layoutEngine, renderEngine, dispatcher);
-        var renderTool = new SlideMlRenderTool(renderPipeline, dispatcher);
-        var chatManager = new SlideChatManager(copilotChatManager, renderTool);
-
-        return (chatManager, fakeChatClient);
-    }
 
     // ───────── 用例 1：格式错误 XML 后继续有效输出 ─────────
 
@@ -84,7 +25,7 @@ public sealed class SlideStreamingErrorIntegrationTests
             "<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>" +
             "<Panel Id=\"bad\"><Rect Id=\"inner\"></Panel></Rect>" +
             "<Page><Rect Id=\"r2\" Width=\"50\" Height=\"30\" Fill=\"#00FF00\"/></Page>";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(text));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(text);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -111,7 +52,7 @@ public sealed class SlideStreamingErrorIntegrationTests
         var text =
             "<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\" Fill=\"#FF0000\"/></Page>" +
             "<Panel Id=\"incomplete\"";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(text));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(text);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -135,7 +76,7 @@ public sealed class SlideStreamingErrorIntegrationTests
     {
         // Arrange — 整个片段因不同类型重复 Id 被跳过，不会有 Page 入树
         var xml = "<Page><Panel Id=\"dup\"><Rect Id=\"dup\"/></Panel></Page>";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act — 不应抛异常
         await chatManager.SendMessageAsync(
@@ -159,7 +100,7 @@ public sealed class SlideStreamingErrorIntegrationTests
     {
         // Arrange
         var xml = "<Page><Panel Id=\"p1\"><Rect Id=\"dup\" Width=\"50\"/><Rect Id=\"dup\" Width=\"100\"/></Panel></Page>";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -182,7 +123,7 @@ public sealed class SlideStreamingErrorIntegrationTests
     public async Task FullStreaming_EmptyLlmResponse_NoRender()
     {
         // Arrange
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(string.Empty));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(string.Empty);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -207,7 +148,7 @@ public sealed class SlideStreamingErrorIntegrationTests
     public async Task FullStreaming_LlmOutputsOnlyText_NoXml_NoRender()
     {
         // Arrange
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync("这是一段文字，没有 XML"));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager("这是一段文字，没有 XML");
 
         // Act
         await chatManager.SendMessageAsync(

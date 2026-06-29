@@ -1,16 +1,4 @@
-using AgentLib;
-using AgentLib.Core;
-using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
-
-using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
-
 using PptxGenerator;
-using PptxGenerator.Models;
-using PptxGenerator.Pipeline;
-using PptxGenerator.Prompt;
-using PptxGenerator.Rendering;
-using PptxGenerator.Tests.Rendering;
 
 namespace PptxGenerator.Tests.Streaming;
 
@@ -24,72 +12,6 @@ namespace PptxGenerator.Tests.Streaming;
 [TestClass]
 public sealed class SlideStreamingFullIntegrationTests
 {
-    /// <summary>
-    /// 将完整 XML 按逐字符方式通过 ChatResponseUpdate 流式返回。
-    /// </summary>
-    private static async IAsyncEnumerable<ChatResponseUpdate> StreamTokensAsync(
-        string text,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        foreach (var ch in text)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            yield return new ChatResponseUpdate(ChatRole.Assistant, ch.ToString());
-            await Task.Yield();
-        }
-    }
-
-    /// <summary>
-    /// 将完整 XML 按逐字符方式流式返回，每个字符之间加入指定延迟。
-    /// </summary>
-    private static async IAsyncEnumerable<ChatResponseUpdate> StreamTokensWithDelayAsync(
-        string text,
-        TimeSpan delay,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        foreach (var ch in text)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            yield return new ChatResponseUpdate(ChatRole.Assistant, ch.ToString());
-            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    /// <summary>
-    /// 创建配置好的 SlideChatManager 和对应的 FakeChatClient。
-    /// </summary>
-    private static (SlideChatManager chatManager, FakeChatClient fakeChatClient) CreateChatManager(
-        Func<IAsyncEnumerable<ChatResponseUpdate>>? streamingResponseFactory = null)
-    {
-        var fakeChatClient = new FakeChatClient();
-
-        if (streamingResponseFactory is not null)
-        {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) => streamingResponseFactory();
-        }
-        else
-        {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) =>
-                StreamTokensAsync("""<Page Background="#FFFFFF"/>""");
-        }
-
-        // 非流式也需要配置（工具调用可能用到）
-        fakeChatClient.OnGetResponseAsync = (_, _, _) =>
-            Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, """<Page/>""")));
-
-        var copilotChatManager = new CopilotChatManager();
-        copilotChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(
-            new FakeLanguageModelProvider(fakeChatClient));
-
-        var layoutEngine = new SlideMlLayoutEngine();
-        var renderEngine = new FakeRenderEngine();
-        var dispatcher = new FakeMainThreadDispatcher();
-        var renderPipeline = new SlideMlRenderPipeline(layoutEngine, renderEngine, dispatcher);
-        var renderTool = new SlideMlRenderTool(renderPipeline, dispatcher);
-        var chatManager = new SlideChatManager(copilotChatManager, renderTool);
-
-        return (chatManager, fakeChatClient);
-    }
 
     // ───────── 用例 1：单页流式渲染 ─────────
 
@@ -101,7 +23,7 @@ public sealed class SlideStreamingFullIntegrationTests
     {
         // Arrange
         var xml = """<Page Background="#FFFFFF"><TextElement Id="title" Text="Hello" FontSize="32" X="10" Y="10" Width="200"/></Page>""";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -127,7 +49,7 @@ public sealed class SlideStreamingFullIntegrationTests
     {
         // Arrange
         var xml = """<Page><Rect Id="bg" X="0" Y="0" Width="1280" Height="720" Fill="#FFFFFF"/><TextElement Id="title" Text="Title" FontSize="32" X="50" Y="50"/></Page>""";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -159,7 +81,7 @@ public sealed class SlideStreamingFullIntegrationTests
                 </Panel>
             </Page>
             """;
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -184,7 +106,7 @@ public sealed class SlideStreamingFullIntegrationTests
     {
         // Arrange
         var xml = """<?xml version="1.0"?><Page><Rect Id="r1" X="0" Y="0" Width="100" Height="50" Fill="#0000FF"/></Page>""";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -208,7 +130,7 @@ public sealed class SlideStreamingFullIntegrationTests
     {
         // Arrange
         var xml = """<Page/>""";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(xml));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act
         await chatManager.SendMessageAsync(
@@ -232,7 +154,7 @@ public sealed class SlideStreamingFullIntegrationTests
     {
         // Arrange — 使用足够长的 XML 并在每个字符之间加入延迟，确保取消令牌在流式过程中触发
         var longXml = """<Page>""" + string.Concat(Enumerable.Repeat("""<Rect Id="r" Width="100" Height="50" Fill="#FF0000"/>""", 30)) + """</Page>""";
-        var (chatManager, _) = CreateChatManager(() => StreamTokensWithDelayAsync(longXml, TimeSpan.FromMilliseconds(10)));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(longXml, TimeSpan.FromMilliseconds(10));
 
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
 
@@ -270,7 +192,7 @@ public sealed class SlideStreamingFullIntegrationTests
             <Page><Rect Id="r1" Width="100" Height="50" Fill="#FF0000"/></Page>
             以上是XML。
             """;
-        var (chatManager, _) = CreateChatManager(() => StreamTokensAsync(mixedText));
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(mixedText);
 
         // Act
         await chatManager.SendMessageAsync(
