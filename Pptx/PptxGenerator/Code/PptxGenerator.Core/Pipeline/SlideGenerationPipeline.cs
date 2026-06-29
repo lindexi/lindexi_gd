@@ -247,7 +247,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         // 填充用户消息
         var processedText = isFirstMessage
-            ? _promptProvider.BuildInitialUserPrompt(userMessage)
+            ? _promptProvider.BuildStreamingUserPrompt(userMessage)
             : userMessage;
         manualContext.UserChatMessage.AppendText(processedText);
 

@@ -20,4 +20,10 @@ public interface ISlideMlPromptProvider
     /// 构建流式输出的系统提示词，指导模型逐片段输出 SlideML。
     /// </summary>
     string BuildStreamingSystemPrompt();
+
+    /// <summary>
+    /// 构建流式输出的用户提示词，包裹用户的自然语言需求。
+    /// </summary>
+    /// <param name="userPrompt">用户自然语言需求描述。</param>
+    string BuildStreamingUserPrompt(string userPrompt);
 }

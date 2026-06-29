@@ -11,6 +11,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     private string? _systemPromptOverride;
     private string? _userPromptTemplateOverride;
     private string? _streamingSystemPromptOverride;
+    private string? _streamingUserPromptTemplateOverride;
 
     /// <summary>
     /// 初始化 <see cref="SlideMlPromptProvider"/> 的新实例。
@@ -29,7 +30,9 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     /// <param name="userPromptTemplate">新的用户提示词模板，为 <see langword="null"/> 时保持不变。
     /// 模板中使用 <c>{USER_INPUT}</c> 作为用户输入占位符。</param>
     /// <param name="streamingSystemPrompt">新的流式系统提示词，为 <see langword="null"/> 时保持不变。</param>
-    public void UpdatePrompts(string? systemPrompt, string? userPromptTemplate, string? streamingSystemPrompt = null)
+    /// <param name="streamingUserPromptTemplate">新的流式用户提示词模板，为 <see langword="null"/> 时保持不变。
+    /// 模板中使用 <c>{USER_INPUT}</c> 作为用户输入占位符。</param>
+    public void UpdatePrompts(string? systemPrompt, string? userPromptTemplate, string? streamingSystemPrompt = null, string? streamingUserPromptTemplate = null)
     {
         if (systemPrompt is not null)
         {
@@ -45,6 +48,11 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
         {
             _streamingSystemPromptOverride = streamingSystemPrompt;
         }
+
+        if (streamingUserPromptTemplate is not null)
+        {
+            _streamingUserPromptTemplateOverride = streamingUserPromptTemplate;
+        }
     }
 
     /// <summary>
@@ -55,6 +63,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
         _systemPromptOverride = null;
         _userPromptTemplateOverride = null;
         _streamingSystemPromptOverride = null;
+        _streamingUserPromptTemplateOverride = null;
     }
 
     /// <inheritdoc />
@@ -211,6 +220,43 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 - 不要创造未定义的标签或属性
 - 不要使用 XAML、HTML 等其他语法
 - 不要使用 markdown 代码块包裹 XML
+""";
+    }
+
+    /// <inheritdoc />
+    public string BuildStreamingUserPrompt(string userPrompt)
+    {
+        if (_streamingUserPromptTemplateOverride is not null)
+        {
+            return _streamingUserPromptTemplateOverride.Replace("{USER_INPUT}", userPrompt);
+        }
+
+        return BuildDefaultStreamingUserPrompt(userPrompt);
+    }
+
+    /// <summary>
+    /// 获取默认流式输出用户提示词文本。
+    /// </summary>
+    public string BuildDefaultStreamingUserPrompt(string userPrompt)
+    {
+        ArgumentNullException.ThrowIfNull(userPrompt);
+
+        var canvasSize = $"{_documentContext.CanvasWidth}×{_documentContext.CanvasHeight}";
+        return $"""
+请根据以下需求以流式片段方式生成单页 SlideML：
+
+{userPrompt}
+
+要求：
+1. 尽量使用浅色主题，视觉清爽。
+2. 标题、副标题、正文层级明显，优先使用字号等级（标题 L2、正文 L3、辅助 L4）。
+3. 页面内容要适合画布 {canvasSize}。
+4. 若需图片可用占位资源 ID，如 image_001。
+5. 先输出 Page 骨架，再逐步填充和细化。
+6. 每个元素必须带 Id 且全局唯一；同类元素优先用悬空模板 + StyleFrom 减少重复。
+7. 合理使用 Panel 的 Layout 属性减少手动坐标计算。
+8. 输出过程中可随时调用 get_slide_state 和 get_slide_preview 查看排版效果。
+9. 发现问题用后续片段修正（调整坐标/尺寸，或用 Remove 删除后重来）。
 """;
     }
 
