@@ -100,7 +100,7 @@ public sealed class SlideStreamRenderService
     /// <summary>
     /// 核心渲染逻辑，调度到主线程执行。
     /// </summary>
-    private async Task RenderCoreAsync(string slideXml, CancellationToken cancellationToken)
+    private async Task<SlideMlRenderResult> RenderCoreAsync(string slideXml, CancellationToken cancellationToken)
     {
         _lastRenderTime = DateTimeOffset.UtcNow;
 
@@ -123,5 +123,7 @@ public sealed class SlideStreamRenderService
             Rendered?.Invoke(result);
             return Task.CompletedTask;
         }).ConfigureAwait(false);
+
+        return renderResult;
     }
 }
