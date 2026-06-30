@@ -190,7 +190,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 - 画布尺寸固定为 {canvasSize} 像素，坐标原点在左上角
 - 所有尺寸单位为 px（不写单位），颜色格式为 #RRGGBB 或 #AARRGGBB
 - 标签必须严格遵守定义，不要创造新标签或新属性
-- 元素 Id 可以不写，引擎会自动分配。悬空元素（不在 Page 内的顶层元素）必须带 StyleId 属性。
+- 元素 Id 必须填写且全局唯一。流式输出中 Id 是元素替换和 Remove 删除的核心标识，引擎不会为流式元素自动分配 Id。所有元素都应放在 Page 树内；仅用作样式模板的悬空元素（不在 Page 内的顶层元素）才允许放在 Page 之外，且必须带 Id 和 StyleId 属性。
 
 ## 标签与属性
 ### Page
@@ -206,7 +206,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 ### Remove
 属性: TargetId（必填，要删除的元素 Id）
 ### StyleFrom
-属性: 引用已定义元素的 StyleId，复制其属性作为默认值。悬空元素必须带 StyleId。
+属性: 引用已定义元素的 StyleId，复制其属性作为默认值。仅用于定义样式的元素才允许放在 Page 之外（悬空元素），且必须带 Id 和 StyleId 属性；推荐尽量将所有元素放在 Page 树内，确保存在引用关系。
 
 ## 排版规则
 1. 所有子元素相对于直接父容器定位
@@ -220,6 +220,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 - 不要创造未定义的标签或属性
 - 不要使用 XAML、HTML 等其他语法
 - 不要使用 markdown 代码块包裹 XML
+- 被 Remove 的元素会被彻底删除，包括其在 Page 树中的位置，因此不要用 Remove 来重置元素
 """;
     }
 
