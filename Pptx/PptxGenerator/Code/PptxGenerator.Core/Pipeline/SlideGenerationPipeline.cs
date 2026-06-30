@@ -154,6 +154,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
             await generator.GenerateAsync(
                 userMessage, isFirstMessage, _streamingState, cancellationToken,
+                attachPreview: attachPreview,
                 onPropertiesChanged: () =>
                 {
                     OnPropertyChanged(nameof(PreviewImage));

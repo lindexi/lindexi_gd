@@ -54,12 +54,14 @@ internal sealed class StreamingSlideGenerator
     /// <param name="userMessage">用户自然语言需求。</param>
     /// <param name="isFirstMessage">是否为首次消息。</param>
     /// <param name="streamingState">跨轮复用的流式生成状态，包含合并器和渲染上下文。</param>
+    /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <param name="onPropertiesChanged">流式结束后在主线程调用的回调，用于刷新外部属性通知。</param>
     /// <returns>表示异步操作的任务。</returns>
     public async Task GenerateAsync(
         string userMessage, bool isFirstMessage, SlideStreamingState streamingState,
         CancellationToken cancellationToken,
+        bool attachPreview = false,
         Action? onPropertiesChanged = null)
     {
         ArgumentNullException.ThrowIfNull(streamingState);
@@ -80,7 +82,8 @@ internal sealed class StreamingSlideGenerator
             var (hasErrors, errorFeedback) = await RunStreamingLoopAsync(
                 currentMessage, includeSystemPrompt,
                 linkedCancellationTokenSource, cancellationToken,
-                streamingState.Pipeline, streamingState.Context).ConfigureAwait(false);
+                streamingState.Pipeline, streamingState.Context,
+                attachPreview && attempt == 0).ConfigureAwait(false);
 
             if (!hasErrors || attempt == MaxRetries)
             {
@@ -109,11 +112,13 @@ internal sealed class StreamingSlideGenerator
     /// <param name="externalCancellationToken">外部取消令牌。</param>
     /// <param name="streamingPipeline">流式渲染管道（跨轮复用，保留合并器状态）。</param>
     /// <param name="context">渲染上下文（跨轮复用，诊断信息已由调用方重置）。</param>
+    /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
     /// <returns>是否检测到异常，以及错误反馈文本（无异常时为空字符串）。</returns>
     private async Task<(bool HasErrors, string ErrorFeedback)> RunStreamingLoopAsync(
         string userMessage, bool includeSystemPrompt,
         CancellationTokenSource errorCancellationTokenSource, CancellationToken externalCancellationToken,
-        SlideStreamingPipeline streamingPipeline, SlideMlPipelineContext context)
+        SlideStreamingPipeline streamingPipeline, SlideMlPipelineContext context,
+        bool attachPreview = false)
     {
         var renderErrors = new ConcurrentQueue<string>();
 
@@ -179,9 +184,21 @@ internal sealed class StreamingSlideGenerator
                 externalCancellationToken).ConfigureAwait(false);
             var session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
 
+            var userChatMessage = manualContext.UserChatMessage.ToChatMessage();
+
+            // 附带当前预览图供 LLM 参考（仅在用户勾选且存在预览图时）
+            if (attachPreview)
+            {
+                var previewDataContent = await _renderTool.CreatePreviewDataContentAsync(externalCancellationToken).ConfigureAwait(false);
+                if (previewDataContent is not null)
+                {
+                    userChatMessage.Contents.Add(previewDataContent);
+                }
+            }
+
             var messages = systemPrompt is not null
-                ? new[] { new ChatMessage(ChatRole.System, systemPrompt), manualContext.UserChatMessage.ToChatMessage() }
-                : new[] { manualContext.UserChatMessage.ToChatMessage() };
+                ? new[] { new ChatMessage(ChatRole.System, systemPrompt), userChatMessage }
+                : new[] { userChatMessage };
 
             var loopToken = errorCancellationTokenSource.Token;
 
