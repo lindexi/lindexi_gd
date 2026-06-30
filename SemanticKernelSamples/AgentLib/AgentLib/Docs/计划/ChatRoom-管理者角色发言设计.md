@@ -60,14 +60,19 @@ SelectNextSpeakerAsync(roles, history, ct):
 /// 是否为管理者角色。当所有可发言角色都发言完毕且 @ 队列为空时，
 /// 由管理者进行发言。管理者发言后如果 @ 了其他角色则继续链式对话，
 /// 否则真正结束循环。
-/// 不参与正常轮流发言，建议配合 <see cref="ChatRoomParticipationMode.MentionOnly"/> 使用。
+/// 支持两种配置方式：
+/// - MentionOnly + IsManagerRole：管理者不参与正常轮流，仅在被 @ 或所有人发言完毕后兜底
+/// - AlwaysParticipate + IsManagerRole：管理者正常参与轮流，同时在所有非管理者角色发言完毕后兜底
+///   当 autoRoles 中仅含管理者角色时（如单助手场景），不会触发兜底，避免重复发言
 /// </summary>
 public bool IsManagerRole { get; set; }
 ```
 
 **设计要点：**
 
-- `IsManagerRole = true` 的角色不参与正常轮流（类似 `MentionOnly`，但触发条件不同）
+- `IsManagerRole = true` 的角色支持两种配置方式：
+  - **`MentionOnly` + `IsManagerRole`**：管理者不参与正常轮流，仅在被 @ 或所有人发言完毕后兜底
+  - **`AlwaysParticipate` + `IsManagerRole`**：管理者正常参与轮流发言，同时在所有非管理者角色发言完毕后兜底。当 `autoRoles` 中仅含管理者角色时（如单助手场景），不会触发兜底，避免重复发言
 - 管理者角色建议配置为 `ParticipationMode = MentionOnly` + `IsManagerRole = true`
   - `MentionOnly` 确保不在 `autoRoles` 中、不被正常轮流选中
   - `IsManagerRole` 确保在管理者检查时被触发
@@ -113,7 +118,9 @@ SelectNextSpeakerAsync(roles, history, ct):
 
     // 所有 AlwaysParticipate 角色都已发言
     // === 新增：管理者检查 ===
-    如果 _managerJustSpoke == false：
+    // 仅当 autoRoles 为空（无 AlwaysParticipate 角色）或 autoRoles 中存在非 IsManagerRole 角色时才触发管理者兜底。
+    // 如果 autoRoles 全是 IsManagerRole 角色（如单助手场景），管理者已通过正常轮流发言，不再兜底。
+    如果 _managerJustSpoke == false 且 (autoRoles 为空 或 autoRoles 中存在非 IsManagerRole 角色)：
       查找 roles 中 IsManagerRole == true 的角色
       如果找到：
         _isManagerTrigger = true
@@ -575,4 +582,4 @@ foreach (ChatRoomRole r in Roles)
 2. **管理者发言失败**：标记 `_managerJustSpoke = true` 防止死循环，同时触发 `OnRoleSpeakFailed` 事件通知 UI。
 3. **管理者与 `MaxRounds` 的关系**：管理者发言不消耗 `MaxRounds`（因为它不在 `autoRoles` 中，不走正常轮流逻辑）。如果需要限制管理者发言次数，可以单独添加 `MaxManagerRounds` 属性。
 4. **持久化兼容**：旧配置文件中没有 `IsManagerRole` 字段，反序列化时默认为 `false`，向后兼容。
-5. **管理者角色建议配置**：`ParticipationMode = MentionOnly` + `IsManagerRole = true`。如果误配为 `AlwaysParticipate` + `IsManagerRole = true`，管理者会同时参与正常轮流和管理者检查，行为可能不符合预期但不会崩溃。
+5. **管理者角色建议配置**：`ParticipationMode = MentionOnly` + `IsManagerRole = true`。也支持 `AlwaysParticipate` + `IsManagerRole = true`：管理者正常参与轮流发言，同时在所有非管理者角色发言完毕后兜底。当 `autoRoles` 中仅含管理者角色时（如单助手场景），不会触发兜底，避免重复发言。

@@ -80,7 +80,14 @@ public sealed class ChatRoomRoleDefinition
     /// 是否为管理者角色。当所有可发言角色都发言完毕且 @ 队列为空时，
     /// 由管理者进行发言。管理者发言后如果 @ 了其他角色则继续链式对话，
     /// 否则真正结束循环。
-    /// 不参与正常轮流发言，建议配合 <see cref="ChatRoomParticipationMode.MentionOnly"/> 使用。
+    /// 支持两种配置方式：
+    /// <list type="bullet">
+    /// <item><see cref="ChatRoomParticipationMode.MentionOnly"/> + <see cref="IsManagerRole"/>：
+    ///   管理者不参与正常轮流，仅在被 @ 或所有人发言完毕后兜底。</item>
+    /// <item><see cref="ChatRoomParticipationMode.AlwaysParticipate"/> + <see cref="IsManagerRole"/>：
+    ///   管理者正常参与轮流发言，同时在所有非管理者角色发言完毕后兜底。
+    ///   当 autoRoles 中仅含管理者角色时（如单助手场景），不会触发兜底，避免重复发言。</item>
+    /// </list>
     /// </summary>
     public bool IsManagerRole { get; set; }
 }
