@@ -196,6 +196,55 @@ public sealed class SlideMlParserRectTests
     }
 
     [TestMethod]
+    public void Parse_Rect_CornerRadiusSpaceSeparated_Parsed()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Rect CornerRadius=\"8 16 8 16\"></Rect></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var rect = (SlideMlRectElement)page.Children[0];
+
+        Assert.IsNotNull(rect.CornerRadius);
+        Assert.AreEqual(8, rect.CornerRadius!.Value.TopLeft);
+        Assert.AreEqual(16, rect.CornerRadius.Value.TopRight);
+        Assert.AreEqual(8, rect.CornerRadius.Value.BottomRight);
+        Assert.AreEqual(16, rect.CornerRadius.Value.BottomLeft);
+    }
+
+    [TestMethod]
+    public void Parse_Rect_CornerRadiusMixedCommaAndSpace_Parsed()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Rect CornerRadius=\"8, 16 8, 16\"></Rect></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var rect = (SlideMlRectElement)page.Children[0];
+
+        Assert.IsNotNull(rect.CornerRadius);
+        Assert.AreEqual(8, rect.CornerRadius!.Value.TopLeft);
+        Assert.AreEqual(16, rect.CornerRadius.Value.TopRight);
+        Assert.AreEqual(8, rect.CornerRadius.Value.BottomRight);
+        Assert.AreEqual(16, rect.CornerRadius.Value.BottomLeft);
+    }
+
+    [TestMethod]
+    public void Parse_Rect_CornerRadiusInvalid_GeneratesErrorWithoutIgnored()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Rect Id=\"r1\" CornerRadius=\"abc\"></Rect></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var rect = (SlideMlRectElement)page.Children[0];
+
+        Assert.HasCount(1, context.Errors);
+        Assert.Contains("CornerRadius", context.Errors[0]);
+        Assert.Contains("abc", context.Errors[0]);
+        Assert.DoesNotContain("已忽略", context.Errors[0],
+            $"错误消息不应包含'已忽略'，实际: {context.Errors[0]}");
+        Assert.IsNull(rect.CornerRadius);
+    }
+
+    [TestMethod]
     public void Parse_Rect_UnknownChildTag_GeneratesWarning()
     {
         var context = CreateContext();

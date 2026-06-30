@@ -245,9 +245,10 @@ public sealed class SlideMlParser
             spans.Add(ParseSpan(child, id, context));
         }
 
-        var text = GetOptionalString(element, "Text");
-        if (string.IsNullOrWhiteSpace(text) && spans.Count == 0)
+        string? text = GetOptionalString(element, "Text");
+        if (text is null && spans.Count == 0)
         {
+            // 为什么不能用 string.IsNullOrEmpty？因为空字符串也是合法的文本内容
             throw new SlideMlRequiredAttributeMissingException($"TextElement({id}) 必须包含 Text 属性或 Span 子元素。", id, "Text");
         }
 
@@ -384,7 +385,7 @@ public sealed class SlideMlParser
 
         context.AddError(
             string.Format(
-                "[Error] {0}: HorizontalAlignment 值 \"{1}\" 无效，已忽略（有效值：Left, Center, Right）",
+                "[Error] {0}: HorizontalAlignment 值 \"{1}\" 无效（有效值：Left, Center, Right）",
                 elementId,
                 text));
         return null;
@@ -405,7 +406,7 @@ public sealed class SlideMlParser
 
         context.AddError(
             string.Format(
-                "[Error] {0}: VerticalAlignment 值 \"{1}\" 无效，已忽略（有效值：Top, Center, Bottom）",
+                "[Error] {0}: VerticalAlignment 值 \"{1}\" 无效（有效值：Top, Center, Bottom）",
                 elementId,
                 text));
         return null;
@@ -426,7 +427,7 @@ public sealed class SlideMlParser
 
         context.AddError(
             string.Format(
-                "[Error] {0}: TextAlignment 值 \"{1}\" 无效，已忽略（有效值：Left, Center, Right, Justify）",
+                "[Error] {0}: TextAlignment 值 \"{1}\" 无效（有效值：Left, Center, Right, Justify）",
                 elementId,
                 text));
         return null;
@@ -447,7 +448,7 @@ public sealed class SlideMlParser
 
         context.AddError(
             string.Format(
-                "[Error] {0}: Stretch 值 \"{1}\" 无效，已忽略（有效值：None, Fill, Uniform, UniformToFill）",
+                "[Error] {0}: Stretch 值 \"{1}\" 无效（有效值：None, Fill, Uniform, UniformToFill）",
                 elementId,
                 text));
         return null;
@@ -468,7 +469,7 @@ public sealed class SlideMlParser
 
         context.AddError(
             string.Format(
-                "[Error] {0}: Layout 值 \"{1}\" 无效，已忽略（有效值：Absolute, Horizontal, Vertical）",
+                "[Error] {0}: Layout 值 \"{1}\" 无效（有效值：Absolute, Horizontal, Vertical）",
                 elementId,
                 text));
         return null;
@@ -518,7 +519,7 @@ public sealed class SlideMlParser
 
         context.AddError(
             string.Format(
-                "[Error] {0}: CornerRadius 值 \"{1}\" 无效，已忽略",
+                "[Error] {0}: CornerRadius 值 \"{1}\" 无效",
                 elementId,
                 text));
         return null;
@@ -551,7 +552,7 @@ public sealed class SlideMlParser
                 var elementId = GetOptionalString(element, "Id");
                 context.AddError(
                     string.Format(
-                        "[Error] {0}: {1} 值 \"{2}\" 包含无效数值，已忽略",
+                        "[Error] {0}: {1} 值 \"{2}\" 包含无效数值",
                         elementId ?? "unknown",
                         attributeName,
                         part));

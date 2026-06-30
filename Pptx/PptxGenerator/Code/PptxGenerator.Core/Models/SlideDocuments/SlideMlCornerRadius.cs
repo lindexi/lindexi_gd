@@ -40,7 +40,7 @@ public readonly record struct SlideMlCornerRadius
         };
 
     /// <summary>
-    /// 从逗号分隔的字符串解析，如 "8,16,8,16"。
+    /// 从逗号或空格分隔的字符串解析，如 "8,16,8,16" 或 "8 16 8 16"。
     /// 支持 1~4 个值，按四角简写规则展开。
     /// </summary>
     public static SlideMlCornerRadius? Parse(string? text)
@@ -50,7 +50,7 @@ public readonly record struct SlideMlCornerRadius
             return null;
         }
 
-        var parts = text.Split(',', StringSplitOptions.TrimEntries);
+        var parts = text.Split([',', ' '], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         var values = new double[4];
         for (var i = 0; i < parts.Length && i < 4; i++)
         {

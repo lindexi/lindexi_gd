@@ -130,6 +130,78 @@ public sealed class SlideMlCornerRadiusTests
     }
 
     [TestMethod]
+    public void Parse_SingleValue_SpaceSeparated_AllCornersEqual()
+    {
+        var result = SlideMlCornerRadius.Parse("8");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8, result!.Value.TopLeft);
+        Assert.AreEqual(8, result.Value.TopRight);
+        Assert.AreEqual(8, result.Value.BottomRight);
+        Assert.AreEqual(8, result.Value.BottomLeft);
+    }
+
+    [TestMethod]
+    public void Parse_TwoValues_SpaceSeparated_DiagonalPair()
+    {
+        var result = SlideMlCornerRadius.Parse("8 16");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8, result!.Value.TopLeft);
+        Assert.AreEqual(16, result.Value.TopRight);
+        Assert.AreEqual(8, result.Value.BottomRight);
+        Assert.AreEqual(16, result.Value.BottomLeft);
+    }
+
+    [TestMethod]
+    public void Parse_ThreeValues_SpaceSeparated_Expanded()
+    {
+        var result = SlideMlCornerRadius.Parse("8 16 8");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8, result!.Value.TopLeft);
+        Assert.AreEqual(16, result.Value.TopRight);
+        Assert.AreEqual(8, result.Value.BottomRight);
+        Assert.AreEqual(16, result.Value.BottomLeft);
+    }
+
+    [TestMethod]
+    public void Parse_FourValues_SpaceSeparated_AllIndependent()
+    {
+        var result = SlideMlCornerRadius.Parse("8 16 12 20");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8, result!.Value.TopLeft);
+        Assert.AreEqual(16, result.Value.TopRight);
+        Assert.AreEqual(12, result.Value.BottomRight);
+        Assert.AreEqual(20, result.Value.BottomLeft);
+    }
+
+    [TestMethod]
+    public void Parse_MixedCommaAndSpace_Supported()
+    {
+        var result = SlideMlCornerRadius.Parse("8, 16 12, 20");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8, result!.Value.TopLeft);
+        Assert.AreEqual(16, result.Value.TopRight);
+        Assert.AreEqual(12, result.Value.BottomRight);
+        Assert.AreEqual(20, result.Value.BottomLeft);
+    }
+
+    [TestMethod]
+    public void Parse_MultipleSpacesBetweenValues_Supported()
+    {
+        var result = SlideMlCornerRadius.Parse("8   16    12    20");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8, result!.Value.TopLeft);
+        Assert.AreEqual(16, result.Value.TopRight);
+        Assert.AreEqual(12, result.Value.BottomRight);
+        Assert.AreEqual(20, result.Value.BottomLeft);
+    }
+
+    [TestMethod]
     public void Parse_MoreThanFourValues_FirstFourUsed()
     {
         var result = SlideMlCornerRadius.Parse("1,2,3,4,5,6");
