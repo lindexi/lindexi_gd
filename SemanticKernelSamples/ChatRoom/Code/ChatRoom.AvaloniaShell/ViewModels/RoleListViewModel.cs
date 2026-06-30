@@ -109,6 +109,16 @@ public sealed class RoleListViewModel : ViewModelBase
     public ICommand DeleteRoleCommand { get; }
 
     /// <summary>
+    /// 打开角色大厅命令。
+    /// </summary>
+    public ICommand OpenLobbyCommand { get; }
+
+    /// <summary>
+    /// 提升角色到大厅命令。参数为角色项 ViewModel。
+    /// </summary>
+    public ICommand PromoteToLobbyCommand { get; }
+
+    /// <summary>
     /// 添加角色请求事件。
     /// </summary>
     public event EventHandler? AddRoleRequested;
@@ -117,6 +127,16 @@ public sealed class RoleListViewModel : ViewModelBase
     /// 编辑角色请求事件。参数为角色 ID。
     /// </summary>
     public event EventHandler<string>? EditRoleRequested;
+
+    /// <summary>
+    /// 打开角色大厅请求事件。
+    /// </summary>
+    public event EventHandler? OpenLobbyRequested;
+
+    /// <summary>
+    /// 提升角色到大厅请求事件。参数为角色 ID。
+    /// </summary>
+    public event EventHandler<string>? PromoteToLobbyRequested;
 
     /// <summary>
     /// 使用指定的服务创建角色列表 ViewModel。
@@ -129,6 +149,8 @@ public sealed class RoleListViewModel : ViewModelBase
         AddRoleCommand = new SimpleCommand(() => AddRoleRequested?.Invoke(this, EventArgs.Empty));
         EditRoleCommand = new SimpleCommand<RoleItemViewModel>(role => EditRoleRequested?.Invoke(this, role.RoleId));
         DeleteRoleCommand = new SimpleCommand<RoleItemViewModel>(DeleteRole);
+        OpenLobbyCommand = new SimpleCommand(() => OpenLobbyRequested?.Invoke(this, EventArgs.Empty));
+        PromoteToLobbyCommand = new SimpleCommand<RoleItemViewModel>(role => PromoteToLobbyRequested?.Invoke(this, role.RoleId));
 
         _chatRoomService.SessionChanged += OnSessionChanged;
     }

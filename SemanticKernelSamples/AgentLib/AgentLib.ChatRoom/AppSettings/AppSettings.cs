@@ -27,4 +27,9 @@ public sealed class AppSettings
     /// 模型提供商列表。
     /// </summary>
     public List<ProviderSetting> Providers { get; init; } = [];
+
+    /// <summary>
+    /// 角色模板持久化路径。为空时使用默认路径 {AppData}/AgentRoundtable/RoleTemplates。
+    /// </summary>
+    public string? RoleTemplatesPath { get; set; }
 }

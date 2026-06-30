@@ -24,6 +24,19 @@
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:RoleItemViewModel">
                     <Border Classes="Card" Padding="10,8" Margin="2,2">
+                        <Border.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="📋 提升到角色大厅"
+                                          Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).PromoteToLobbyCommand}"
+                                          CommandParameter="{Binding}" />
+                                <MenuItem Header="✏ 编辑角色"
+                                          Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).EditRoleCommand}"
+                                          CommandParameter="{Binding}" />
+                                <MenuItem Header="🗑 删除角色"
+                                          Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).DeleteRoleCommand}"
+                                          CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </Border.ContextMenu>
                         <Grid ColumnDefinitions="40,*,Auto">
                             <!-- 头像 -->
                             <Border Grid.Column="0" Classes="Avatar"

@@ -123,6 +123,11 @@ public sealed class SessionListViewModel : ViewModelBase
     public ICommand OpenSettingsCommand { get; }
 
     /// <summary>
+    /// 打开角色大厅命令。
+    /// </summary>
+    public ICommand OpenLobbyCommand { get; }
+
+    /// <summary>
     /// 会话打开事件。参数为打开的会话 ID。
     /// </summary>
     public event EventHandler<string>? SessionOpened;
@@ -138,6 +143,11 @@ public sealed class SessionListViewModel : ViewModelBase
     public event EventHandler? SettingsRequested;
 
     /// <summary>
+    /// 打开角色大厅事件。
+    /// </summary>
+    public event EventHandler? OpenLobbyRequested;
+
+    /// <summary>
     /// 使用指定的服务创建会话列表 ViewModel。
     /// </summary>
     public SessionListViewModel(ChatRoomService chatRoomService, SessionService sessionService)
@@ -149,6 +159,7 @@ public sealed class SessionListViewModel : ViewModelBase
         OpenSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(OpenSessionAsync);
         DeleteSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(DeleteSessionAsync, CanDeleteSession);
         OpenSettingsCommand = new SimpleCommand(() => SettingsRequested?.Invoke(this, EventArgs.Empty));
+        OpenLobbyCommand = new SimpleCommand(() => OpenLobbyRequested?.Invoke(this, EventArgs.Empty));
 
         _chatRoomService.SessionChanged += OnSessionChanged;
         RefreshSessions();
