@@ -762,7 +762,7 @@ public class CopilotChatManager : NotifyBase
 
     #region 辅助方法
 
-    private Task TryRunInMainThread(Action action)
+    internal Task TryRunInMainThread(Action action)
     {
         return TryRunInMainThread(() =>
         {
@@ -771,7 +771,7 @@ public class CopilotChatManager : NotifyBase
         });
     }
 
-    private Task TryRunInMainThread(Func<Task> action)
+    internal Task TryRunInMainThread(Func<Task> action)
     {
         if (MainThreadDispatcher is { } dispatcher)
         {

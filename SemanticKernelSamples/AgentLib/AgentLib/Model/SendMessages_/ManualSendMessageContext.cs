@@ -122,18 +122,10 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             _isFirstUpdate = false;
             if (AssistantChatMessage.Content == CopilotChatMessage.PlaceholderContent)
             {
-                if(MainThreadDispatcher is {} dispatcher)
-                {
-                    _ = dispatcher.InvokeAsync(() =>
-                    {
-                         AssistantChatMessage.ClearMessageItems();
-                         return Task.CompletedTask;
-                    });
-                }
-                else
+                _ = ChatManager.TryRunInMainThread(() =>
                 {
                     AssistantChatMessage.ClearMessageItems();
-                }
+                });
             }
         }
 
@@ -143,8 +135,11 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     /// <inheritdoc />
     public async Task AppendMessagesToSessionAsync()
     {
-        await ChatManager.AppendMessageAsync(Session, UserChatMessage).ConfigureAwait(false);
-        await ChatManager.AppendMessageAsync(Session, AssistantChatMessage).ConfigureAwait(false);
+        await ChatManager.TryRunInMainThread(async () =>
+        {
+            await ChatManager.AppendMessageAsync(Session, UserChatMessage).ConfigureAwait(false);
+            await ChatManager.AppendMessageAsync(Session, AssistantChatMessage).ConfigureAwait(false);
+        });
     }
 
     /// <inheritdoc />
