@@ -74,6 +74,7 @@ public sealed class SlideStreamingPipeline
 
     /// <summary>
     /// 处理 LLM 流式增量文本。提取完整片段后合并到 DOM 树，并在每个片段合并成功后立即尝试实时渲染。
+    /// 合并出错的片段会被自动回滚，防止错误状态污染后续合并。
     /// </summary>
     /// <param name="text">增量文本。</param>
     /// <param name="context">渲染上下文。</param>
@@ -88,8 +89,16 @@ public sealed class SlideStreamingPipeline
 
         foreach (var fragment in fragments)
         {
+            var errorCountBefore = context.Errors.Count;
             _merger.AcceptFragment(fragment, context);
             FragmentReceived?.Invoke(fragment);
+
+            // 片段合并产生错误时回滚到合并前状态，防止错误片段污染 DOM 树
+            if (context.Errors.Count > errorCountBefore)
+            {
+                _merger.RollbackLastVersion();
+                continue;
+            }
 
             // 每个片段合并成功后立即尝试实时渲染（带节流）
             var mergedXml = _merger.GetMergedXml();
@@ -102,6 +111,7 @@ public sealed class SlideStreamingPipeline
 
     /// <summary>
     /// 处理流结束，强制最终渲染（忽略节流）。
+    /// 如果流结束时产生错误，自动回滚到最后一个干净版本。
     /// </summary>
     /// <param name="context">渲染上下文。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -109,11 +119,19 @@ public sealed class SlideStreamingPipeline
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        var errorCountBefore = context.Errors.Count;
+
         // 处理缓冲区中剩余的内容（容错）
         var remaining = _extractor.GetRemaining();
         if (!string.IsNullOrWhiteSpace(remaining))
         {
             context.AddWarning($"[Warning] 流结束时缓冲区有未完成的内容: {remaining}");
+        }
+
+        // 流结束时如果有新错误，回滚到最后一个干净版本
+        if (context.Errors.Count > errorCountBefore)
+        {
+            _merger.RollbackLastVersion();
         }
 
         var mergedXml = _merger.GetMergedXml();

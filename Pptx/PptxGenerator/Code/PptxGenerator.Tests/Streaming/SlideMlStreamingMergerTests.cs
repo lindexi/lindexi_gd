@@ -507,4 +507,155 @@ public sealed class SlideMlStreamingMergerTests
         Assert.IsNull(dst.Attribute("StyleId"), "不应从源元素复制 StyleId");
         Assert.AreEqual("#FF0000", dst.Attribute("Fill")?.Value, "应继承 Fill");
     }
+
+    [TestMethod(DisplayName = "回滚：出错片段后调用 RollbackLastVersion 恢复到合并前状态")]
+    public void Rollback_ErrorFragment_RestoresPreviousState()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // 先合并一个成功的 Page
+        merger.AcceptFragment("<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\"/></Page>", context);
+        var xmlBeforeError = merger.GetMergedXml();
+
+        // Act — 合并一个出错的片段（跨片段不同类型 Id 冲突）
+        merger.AcceptFragment("<Panel Id=\"r1\" X=\"0\"/>", context);
+
+        // Assert — 出错后 DOM 已被污染
+        Assert.IsNotEmpty(context.Errors, "应产生类型冲突错误");
+
+        // 回滚到最后一个干净版本
+        var rolledBack = merger.RollbackLastVersion();
+
+        Assert.IsTrue(rolledBack, "回滚应成功");
+        Assert.AreEqual(xmlBeforeError, merger.GetMergedXml(), "回滚后 XML 应恢复到出错前状态");
+    }
+
+    [TestMethod(DisplayName = "回滚：成功片段不产生版本快照，RollbackLastVersion 返回 false")]
+    public void Rollback_NoErrorFragment_ReturnsFalse()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        merger.AcceptFragment("<Page><Rect Id=\"r1\" Width=\"100\"/></Page>", context);
+
+        // Act
+        var rolledBack = merger.RollbackLastVersion();
+
+        // Assert — 成功的合并不产生快照
+        Assert.IsFalse(rolledBack, "无错误时回滚应返回 false");
+        Assert.Contains("r1", merger.GetMergedXml(), "内容不应变化");
+    }
+
+    [TestMethod(DisplayName = "回滚：连续多个错误片段可逐个回滚")]
+    public void Rollback_MultipleErrorFragments_RollsBackOneByOne()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // 第一个成功片段
+        merger.AcceptFragment("<Page><Rect Id=\"r1\" Width=\"100\"/></Page>", context);
+        var xmlAfterFirst = merger.GetMergedXml();
+
+        // 第一个错误片段
+        merger.AcceptFragment("<Panel Id=\"r1\"/>", context);
+
+        // 第二个成功片段（基于被污染的状态）
+        context.Reset();
+        merger.AcceptFragment("<Page><Rect Id=\"r2\" Width=\"200\"/></Page>", context);
+        var xmlAfterSecond = merger.GetMergedXml();
+
+        // Act — 第一次回滚：恢复到第二个片段合并前（即第一个错误片段后的污染状态）
+        var firstRollback = merger.RollbackLastVersion();
+
+        // Assert
+        Assert.IsTrue(firstRollback, "第一次回滚应成功");
+        Assert.AreEqual(xmlAfterFirst, merger.GetMergedXml(), "第一次回滚应恢复到第一个成功片段后的状态");
+    }
+
+    [TestMethod(DisplayName = "回滚：XML 格式错误的片段也产生快照并可回滚")]
+    public void Rollback_XmlFormatError_CanRollback()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        merger.AcceptFragment("<Page><Rect Id=\"r1\" Width=\"100\"/></Page>", context);
+        var xmlBeforeError = merger.GetMergedXml();
+
+        // Act — XML 格式错误
+        merger.AcceptFragment("<Panel Id=\"bad\"", context);
+
+        Assert.IsNotEmpty(context.Errors, "应产生 XML 格式错误");
+
+        var rolledBack = merger.RollbackLastVersion();
+
+        // Assert
+        Assert.IsTrue(rolledBack, "回滚应成功");
+        Assert.AreEqual(xmlBeforeError, merger.GetMergedXml(), "回滚后应恢复到出错前状态");
+    }
+
+    [TestMethod(DisplayName = "回滚：Reset 清空版本栈")]
+    public void Reset_ClearsVersionStack()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        merger.AcceptFragment("<Page/>", context);
+        merger.AcceptFragment("<Panel Id=\"r1\"/>", context); // 类型冲突错误
+
+        // Act
+        merger.Reset();
+
+        // Assert — Reset 后回滚应无效
+        var rolledBack = merger.RollbackLastVersion();
+        Assert.IsFalse(rolledBack, "Reset 后版本栈应为空，回滚应返回 false");
+    }
+
+    [TestMethod(DisplayName = "回滚：回滚后可继续正常合并")]
+    public void Rollback_ThenContinueMerge_WorksCorrectly()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        merger.AcceptFragment("<Page><Rect Id=\"r1\" Width=\"100\"/></Page>", context);
+        merger.AcceptFragment("<Panel Id=\"r1\"/>", context); // 类型冲突错误
+        merger.RollbackLastVersion();
+
+        // Act — 回滚后继续合并一个正确的片段
+        context.Reset();
+        merger.AcceptFragment("<Page><Rect Id=\"r2\" Width=\"200\"/></Page>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "回滚后继续合并不应产生错误");
+        var xml = merger.GetMergedXml();
+        Assert.Contains("r1", xml, "r1 应保留");
+        Assert.Contains("r2", xml, "r2 应存在");
+    }
+
+    [TestMethod(DisplayName = "回滚：回滚后 Id 索引正确，可以再次合并同 Id 元素")]
+    public void Rollback_IdIndexRestored_CanMergeSameIdAgain()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        merger.AcceptFragment("<Page><Rect Id=\"r1\" Width=\"100\" Height=\"50\"/></Page>", context);
+        merger.AcceptFragment("<Panel Id=\"r1\"/>", context); // 类型冲突错误
+        merger.RollbackLastVersion();
+
+        // Act — 回滚后用同类型元素覆盖 r1
+        context.Reset();
+        merger.AcceptFragment("<Rect Id=\"r1\" Width=\"200\"/>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "回滚后同类型合并不应产生错误");
+        var xml = merger.GetMergedXml();
+        Assert.Contains("Width=\"200\"", xml, "Width 应被更新为 200");
+    }
 }
