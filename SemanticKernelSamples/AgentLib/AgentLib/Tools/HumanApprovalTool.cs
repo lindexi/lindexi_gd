@@ -2,6 +2,7 @@ using AgentLib.Model;
 
 using Microsoft.Extensions.AI;
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
@@ -15,6 +16,8 @@ public static class HumanApprovalTool
 {
     private const string DefaultApprovalDescription = "此工具需要人工审批后才会执行。";
 
+    private static readonly ConcurrentDictionary<AITool, string> _approvalDescriptions = new();
+
     /// <summary>
     /// 包装指定工具，使其在执行前等待人工审批。
     /// </summary>
@@ -22,25 +25,26 @@ public static class HumanApprovalTool
     {
         ArgumentNullException.ThrowIfNull(tool);
 
-        if (tool is ConfiguredHumanApprovalFunction configuredHumanApprovalFunction)
+        if (_approvalDescriptions.ContainsKey(tool))
         {
-            return configuredHumanApprovalFunction;
+            return tool;
         }
 
-        if (tool is not AIFunction function)
+        if (tool is not AIFunction)
         {
             throw new ArgumentException("仅支持包装可调用函数工具。", nameof(tool));
         }
 
-        return new ConfiguredHumanApprovalFunction(function, approvalDescription);
+        _approvalDescriptions[tool] = string.IsNullOrWhiteSpace(approvalDescription) ? DefaultApprovalDescription : approvalDescription.Trim();
+        return tool;
     }
 
     internal static AITool BindRuntimeTool(AITool tool, CopilotChatContext? chatContext, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tool);
 
-        return tool is ConfiguredHumanApprovalFunction configuredHumanApprovalFunction
-            ? configuredHumanApprovalFunction.Bind(chatContext, cancellationToken)
+        return _approvalDescriptions.TryGetValue(tool, out string? approvalDescription)
+            ? new RuntimeHumanApprovalFunction((AIFunction) tool, approvalDescription, chatContext, cancellationToken)
             : tool;
     }
 
@@ -48,57 +52,19 @@ public static class HumanApprovalTool
     {
         ArgumentNullException.ThrowIfNull(tool);
 
-        switch (tool)
+        if (_approvalDescriptions.TryGetValue(tool, out approvalDescription))
         {
-            case ConfiguredHumanApprovalFunction configuredHumanApprovalFunction:
-                approvalDescription = configuredHumanApprovalFunction.ApprovalDescription;
-                return true;
-            case RuntimeHumanApprovalFunction runtimeHumanApprovalFunction:
-                approvalDescription = runtimeHumanApprovalFunction.ApprovalDescription;
-                return true;
-            default:
-                approvalDescription = null;
-                return false;
-        }
-    }
-
-    private sealed class ConfiguredHumanApprovalFunction : AIFunction
-    {
-        private readonly AIFunction _innerFunction;
-
-        public ConfiguredHumanApprovalFunction(AIFunction innerFunction, string? approvalDescription)
-        {
-            _innerFunction = innerFunction;
-            Name = innerFunction.Name;
-            Description = innerFunction.Description;
-            JsonSchema = innerFunction.JsonSchema;
-            AdditionalProperties = innerFunction.AdditionalProperties;
-            ApprovalDescription = string.IsNullOrWhiteSpace(approvalDescription) ? DefaultApprovalDescription : approvalDescription.Trim();
+            return true;
         }
 
-        public string ApprovalDescription { get; }
-
-        public override string Name { get; }
-
-        public override string Description { get; }
-
-        public override JsonElement JsonSchema { get; }
-
-        public override IReadOnlyDictionary<string, object?> AdditionalProperties { get; }
-
-        public override JsonSerializerOptions JsonSerializerOptions => _innerFunction.JsonSerializerOptions;
-
-        public override System.Reflection.MethodInfo? UnderlyingMethod => _innerFunction.UnderlyingMethod;
-
-        protected override ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
+        if (tool is RuntimeHumanApprovalFunction runtimeHumanApprovalFunction)
         {
-            return _innerFunction.InvokeAsync(arguments, cancellationToken);
+            approvalDescription = runtimeHumanApprovalFunction.ApprovalDescription;
+            return true;
         }
 
-        public RuntimeHumanApprovalFunction Bind(CopilotChatContext? chatContext, CancellationToken cancellationToken)
-        {
-            return new RuntimeHumanApprovalFunction(_innerFunction, ApprovalDescription, chatContext, cancellationToken);
-        }
+        approvalDescription = null;
+        return false;
     }
 
     private sealed class RuntimeHumanApprovalFunction : AIFunction
