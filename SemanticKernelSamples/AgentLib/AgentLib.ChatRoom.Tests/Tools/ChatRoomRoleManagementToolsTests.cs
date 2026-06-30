@@ -409,4 +409,63 @@ public sealed class ChatRoomRoleManagementToolsTests
         // 新角色应通过 EnsureModelAvailable 校验，不抛异常
         manager.Roles[0].EnsureModelAvailable();
     }
+
+    [TestMethod(DisplayName = "create_character 角色名含空格时返回错误提示且不创建角色")]
+    public async Task CreateCharacter_UnparsableRoleName_ReturnsErrorAndRoleNotAdded()
+    {
+        var manager = new ChatRoomManager();
+        Mock<ILanguageModelProvider> mockProvider = CreateMockProvider("test-provider");
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = mockProvider.Object,
+        });
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction createTool = GetTool(tools, "create_character");
+
+        object resultObj = await createTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleName"] = "Code Expert",
+                ["systemPrompt"] = "你是一个测试角色",
+                ["modelId"] = null,
+                ["modelProviderId"] = null,
+                ["memoryContent"] = null,
+            });
+
+        string result = resultObj.ToString()!;
+        Assert.Contains("无法被 @ 正确解析", result);
+        Assert.HasCount(0, manager.Roles);
+    }
+
+    [TestMethod(DisplayName = "edit_character 修改为不可解析角色名时返回错误提示且不修改角色名")]
+    public async Task EditCharacter_UnparsableRoleName_ReturnsErrorAndRoleNameUnchanged()
+    {
+        var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
+        await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "原角色名",
+            SystemPrompt = "原人设",
+        }));
+
+        IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
+        AIFunction editTool = GetTool(tools, "edit_character");
+
+        object resultObj = await editTool.InvokeAsync(
+            new AIFunctionArguments
+            {
+                ["roleId"] = "role-1",
+                ["roleName"] = "Bad Name",
+                ["systemPrompt"] = null,
+                ["modelId"] = null,
+                ["modelProviderId"] = null,
+                ["memoryContent"] = null,
+            });
+
+        string result = resultObj.ToString()!;
+        Assert.Contains("无法被 @ 正确解析", result);
+        Assert.AreEqual("原角色名", manager.Roles[0].Definition.RoleName);
+    }
 }

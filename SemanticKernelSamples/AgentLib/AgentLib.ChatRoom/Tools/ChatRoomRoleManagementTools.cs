@@ -96,6 +96,14 @@ public static class ChatRoomRoleManagementTools
             return "错误：角色人设不能为空。";
         }
 
+        // 校验角色名能否被 @mention 正确解析
+        string trimmedRoleName = roleName.Trim();
+        if (!MentionParser.CanParseRoleName(trimmedRoleName))
+        {
+            return $"❌ 角色名 \"{trimmedRoleName}\" 无法被 @ 正确解析，其他角色或用户在消息中使用 @ 该角色名时将无法触发其发言。"
+                + "\n\n请使用不含特殊符号的角色名，例如仅包含中文、英文、数字、连字符（-）或下划线（_）的名称。";
+        }
+
         try
         {
             string roleId = Guid.NewGuid().ToString("N")[..8];
@@ -217,6 +225,13 @@ public static class ChatRoomRoleManagementTools
             string newName = roleName.Trim();
             if (!string.Equals(oldRoleName, newName, StringComparison.Ordinal))
             {
+                // 校验新角色名能否被 @mention 正确解析
+                if (!MentionParser.CanParseRoleName(newName))
+                {
+                    return $"❌ 角色名 \"{newName}\" 无法被 @ 正确解析，其他角色或用户在消息中使用 @ 该角色名时将无法触发其发言。"
+                        + "\n\n请使用不含特殊符号的角色名，例如仅包含中文、英文、数字、连字符（-）或下划线（_）的名称。";
+                }
+
                 changes.AppendLine($"| RoleName | {EscapeTableValue(oldRoleName)} | {EscapeTableValue(newName)} |");
                 targetRole.Definition.RoleName = newName;
                 hasChanges = true;

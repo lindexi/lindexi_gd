@@ -96,6 +96,68 @@ public sealed class MentionParserTests
         Assert.AreEqual(0, result.Count);
     }
 
+    [TestMethod(DisplayName = "CanParseRoleName 正常中文名返回 true")]
+    public void CanParseRoleName_ChineseName_ReturnsTrue()
+    {
+        Assert.IsTrue(MentionParser.CanParseRoleName("代码专家"));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 正常英文名返回 true")]
+    public void CanParseRoleName_EnglishName_ReturnsTrue()
+    {
+        Assert.IsTrue(MentionParser.CanParseRoleName("Helper"));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 含数字名称返回 true")]
+    public void CanParseRoleName_WithDigits_ReturnsTrue()
+    {
+        Assert.IsTrue(MentionParser.CanParseRoleName("Expert1"));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 含连字符名称返回 true")]
+    public void CanParseRoleName_WithHyphen_ReturnsTrue()
+    {
+        Assert.IsTrue(MentionParser.CanParseRoleName("Code-Expert"));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 含下划线名称返回 true")]
+    public void CanParseRoleName_WithUnderscore_ReturnsTrue()
+    {
+        Assert.IsTrue(MentionParser.CanParseRoleName("Code_Expert"));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 含中点名称返回 true")]
+    public void CanParseRoleName_WithMiddleDot_ReturnsTrue()
+    {
+        // 正则 \S 可匹配 · (U+00B7)，非贪婪 \S+? 会扩展到完整名称
+        Assert.IsTrue(MentionParser.CanParseRoleName("白帽·信息员"));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 含空格名称返回 false")]
+    public void CanParseRoleName_WithSpace_ReturnsFalse()
+    {
+        // @Code Expert  中 \S+? 只匹配到 "Code" 就遇到空格，提取出 "Code" 而非 "Code Expert"
+        Assert.IsFalse(MentionParser.CanParseRoleName("Code Expert"));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 空字符串抛出 ArgumentException")]
+    public void CanParseRoleName_EmptyString_ThrowsArgumentException()
+    {
+        Assert.ThrowsExactly<ArgumentException>(() => MentionParser.CanParseRoleName(""));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName 空白字符串抛出 ArgumentException")]
+    public void CanParseRoleName_WhitespaceString_ThrowsArgumentException()
+    {
+        Assert.ThrowsExactly<ArgumentException>(() => MentionParser.CanParseRoleName("   "));
+    }
+
+    [TestMethod(DisplayName = "CanParseRoleName null 抛出 ArgumentNullException")]
+    public void CanParseRoleName_Null_ThrowsArgumentNullException()
+    {
+        Assert.ThrowsExactly<ArgumentNullException>(() => MentionParser.CanParseRoleName(null!));
+    }
+
     private static ChatRoomRole CreateRole(string roleId, string roleName)
     {
         var definition = new ChatRoomRoleDefinition

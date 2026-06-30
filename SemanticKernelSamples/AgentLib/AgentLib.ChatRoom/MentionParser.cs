@@ -72,4 +72,35 @@ internal static class MentionParser
 
         return result;
     }
+
+    /// <summary>
+    /// 校验角色名是否能被 @mention 正确解析。
+    /// 构造模拟消息并调用 <see cref="ParseMentions"/> 验证，确保角色名在实际使用中能被 @ 正确匹配。
+    /// </summary>
+    /// <param name="roleName">待校验的角色名。</param>
+    /// <returns>能被解析返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
+    internal static bool CanParseRoleName(string roleName)
+    {
+        ArgumentNullException.ThrowIfNull(roleName);
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ArgumentException("角色名不能为空或空白字符。", nameof(roleName));
+        }
+
+        // 构造一个临时角色用于 ParseMentions 的 RoleName → RoleId 映射
+        var tempRole = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "validation-test",
+            RoleName = roleName,
+        });
+
+        // 构造模拟消息：@角色名 后跟空格（最宽松的 @ 格式）
+        string testMessage = $"@{roleName} ";
+
+        // 用 ParseMentions 尝试解析
+        IReadOnlyList<string> result = ParseMentions(testMessage, [tempRole]);
+
+        // 如果解析结果包含临时角色的 RoleId，说明角色名能被正确提取和匹配
+        return result.Count > 0 && result[0] == "validation-test";
+    }
 }
