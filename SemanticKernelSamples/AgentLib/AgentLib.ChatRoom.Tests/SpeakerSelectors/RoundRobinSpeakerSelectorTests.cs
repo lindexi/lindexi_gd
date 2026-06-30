@@ -1206,6 +1206,115 @@ public sealed class RoundRobinSpeakerSelectorTests
         Assert.AreEqual("manager", result3!.Definition.RoleId);
     }
 
+    [TestMethod]
+    public async Task ManagerRole_AlwaysParticipate_SingleAssistant_SpeaksOnceThenReturnsNull()
+    {
+        // 单助手场景：助手同时具备 AlwaysParticipate + IsManagerRole
+        // 助手正常发言后不应被管理者机制再次触发
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("assistant", isHuman: false, isManagerRole: true),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("你好", "human", "Human");
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        // 第 1 次：助手正常轮流发言
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("assistant", result1!.Definition.RoleId);
+        selector.OnSpeakerResult(result1, success: true);
+
+        // 第 2 次：autoRoles 全是 IsManagerRole 角色 → 不触发兜底 → null
+        var assistantMsg = ChatRoomMessage.CreateAssistant("你好！", "assistant", "Assistant");
+        var history2 = new List<ChatRoomMessage> { humanMessage, assistantMsg };
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.IsNull(result2);
+    }
+
+    [TestMethod]
+    public async Task ManagerRole_AlwaysParticipate_MultiRole_ManagerTriggersAfterAllSpoke()
+    {
+        // 多角色场景：助手(AlwaysParticipate + IsManagerRole) + 审查员(AlwaysParticipate)
+        // 两人都正常发言后，助手作为管理者兜底
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("assistant", isHuman: false, isManagerRole: true),
+            CreateRole("reviewer", isHuman: false),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("帮我审查代码", "human", "Human");
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        // 第 1 次：assistant 正常轮流
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("assistant", result1!.Definition.RoleId);
+        selector.OnSpeakerResult(result1, success: true);
+
+        // 第 2 次：reviewer 正常轮流
+        var assistantMsg = ChatRoomMessage.CreateAssistant("我来安排审查", "assistant", "Assistant");
+        var history2 = new List<ChatRoomMessage> { humanMessage, assistantMsg };
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.AreEqual("reviewer", result2!.Definition.RoleId);
+        selector.OnSpeakerResult(result2, success: true);
+
+        // 第 3 次：所有 autoRoles 都已发言，存在非管理者角色(reviewer) → 管理者兜底
+        var reviewerMsg = ChatRoomMessage.CreateAssistant("代码有3个问题", "reviewer", "Reviewer");
+        var history3 = new List<ChatRoomMessage> { humanMessage, assistantMsg, reviewerMsg };
+        var result3 = await selector.SelectNextSpeakerAsync(roles, history3);
+        Assert.AreEqual("assistant", result3!.Definition.RoleId);
+        selector.OnSpeakerResult(result3, success: true);
+
+        // 第 4 次：管理者刚发言(_managerJustSpoke=true) → null
+        var managerMsg = ChatRoomMessage.CreateAssistant("总结：修复这3个问题", "assistant", "Assistant");
+        var history4 = new List<ChatRoomMessage> { humanMessage, assistantMsg, reviewerMsg, managerMsg };
+        var result4 = await selector.SelectNextSpeakerAsync(roles, history4);
+        Assert.IsNull(result4);
+    }
+
+    [TestMethod]
+    public async Task ManagerRole_AlwaysParticipate_ManagerMentionsOtherRole_Continues()
+    {
+        // 助手(AlwaysParticipate + IsManagerRole) + 审查员(AlwaysParticipate)
+        // 助手兜底发言时 @ 了审查员，审查员继续发言
+        var selector = new RoundRobinSpeakerSelector();
+        var roles = new[]
+        {
+            CreateRole("assistant", isHuman: false, isManagerRole: true),
+            CreateRole("reviewer", isHuman: false),
+        };
+
+        var humanMessage = ChatRoomMessage.CreateHuman("审查代码", "human", "Human");
+        var history = new List<ChatRoomMessage> { humanMessage };
+
+        // assistant 正常发言
+        var result1 = await selector.SelectNextSpeakerAsync(roles, history);
+        Assert.AreEqual("assistant", result1!.Definition.RoleId);
+        selector.OnSpeakerResult(result1, success: true);
+
+        // reviewer 正常发言
+        var assistantMsg = ChatRoomMessage.CreateAssistant("安排审查", "assistant", "Assistant");
+        var history2 = new List<ChatRoomMessage> { humanMessage, assistantMsg };
+        var result2 = await selector.SelectNextSpeakerAsync(roles, history2);
+        Assert.AreEqual("reviewer", result2!.Definition.RoleId);
+        selector.OnSpeakerResult(result2, success: true);
+
+        // 管理者兜底：assistant
+        var reviewerMsg = ChatRoomMessage.CreateAssistant("代码有问题", "reviewer", "Reviewer");
+        var history3 = new List<ChatRoomMessage> { humanMessage, assistantMsg, reviewerMsg };
+        var result3 = await selector.SelectNextSpeakerAsync(roles, history3);
+        Assert.AreEqual("assistant", result3!.Definition.RoleId);
+        selector.OnSpeakerResult(result3, success: true);
+
+        // assistant 管理者发言 @ 了 reviewer → reviewer 继续发言
+        var managerMsg = ChatRoomMessage.CreateAssistant("@reviewer 请详细说明", "assistant", "Assistant");
+        managerMsg.MentionedRoleIds = ["reviewer"];
+        var history4 = new List<ChatRoomMessage> { humanMessage, assistantMsg, reviewerMsg, managerMsg };
+        var result4 = await selector.SelectNextSpeakerAsync(roles, history4);
+        Assert.AreEqual("reviewer", result4!.Definition.RoleId);
+    }
+
     // === helper ===
 
     private static ChatRoomRole CreateRole(

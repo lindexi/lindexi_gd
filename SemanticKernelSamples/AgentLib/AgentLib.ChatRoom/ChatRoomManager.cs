@@ -704,6 +704,7 @@ public sealed class ChatRoomManager : NotifyBase
 
         sb.AppendLine("@机制：");
         sb.AppendLine("- 在消息中使用 @【角色名】 或 @角色名 可以指定某角色接下来回复");
+        sb.AppendLine("- @角色名 后面必须加一个空格，禁止紧跟任何标点符号（如 ，。：；！等），否则无法正确识别");
         sb.AppendLine("- 被 @ 的角色会在当前发言者之后自动发言");
         sb.AppendLine("- 如果只是提及某个角色而非要求其发言，请勿使用 @ 前缀，否则会导致该角色被触发发言");
         sb.AppendLine();

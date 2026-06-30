@@ -210,7 +210,7 @@ public sealed class ChatRoomService
                 MaxRounds = _appConfig.DefaultMaxRounds,
             };
 
-            // 创建默认"助手"角色
+            // 创建默认"助手"角色（正常参与轮流，同时作为管理者在所有角色发言完毕后兜底）
             var defaultRoleDef = new ChatRoomRoleDefinition
             {
                 RoleId = Guid.NewGuid().ToString(),
@@ -218,6 +218,7 @@ public sealed class ChatRoomService
                 SystemPrompt = "你是一个智能助手，参与多角色讨论。",
                 ModelProviderId = _appConfig.DefaultModelProviderName,
                 ModelId = _appConfig.PrimaryModelId,
+                IsManagerRole = true,
             };
 
             var defaultRole = new ChatRoomRole(defaultRoleDef, _endpointManager)

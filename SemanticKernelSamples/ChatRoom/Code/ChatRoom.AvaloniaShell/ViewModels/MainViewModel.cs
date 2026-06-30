@@ -143,6 +143,7 @@ public sealed class MainViewModel : ViewModelBase
             RoleId = Guid.NewGuid().ToString("N"),
             RoleName = "助手",
             SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
+            IsManagerRole = true,
         };
         await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
 
@@ -168,6 +169,7 @@ public sealed class MainViewModel : ViewModelBase
             RoleId = Guid.NewGuid().ToString("N"),
             RoleName = "助手",
             SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
+            IsManagerRole = true,
         };
         await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
 

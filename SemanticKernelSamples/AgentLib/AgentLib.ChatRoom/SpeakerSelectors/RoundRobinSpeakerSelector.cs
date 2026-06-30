@@ -151,7 +151,10 @@ public sealed class RoundRobinSpeakerSelector : ISpeakerSelector
         {
             // 所有 AlwaysParticipate 角色都已发言（或没有 AlwaysParticipate 角色）
             // === 管理者检查 ===
-            if (!_managerJustSpoke)
+            // 仅当 autoRoles 为空（无 AlwaysParticipate 角色，如纯 MentionOnly 管理者场景）
+            // 或 autoRoles 中存在非 IsManagerRole 角色时才触发管理者兜底。
+            // 如果 autoRoles 全是 IsManagerRole 角色（如单助手场景），管理者已通过正常轮流发言，不再兜底。
+            if (!_managerJustSpoke && (autoRoles.Count == 0 || autoRoles.Any(r => !r.Definition.IsManagerRole)))
             {
                 ChatRoomRole? managerRole = roles.FirstOrDefault(r => r.Definition.IsManagerRole);
                 if (managerRole is not null)
