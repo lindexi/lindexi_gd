@@ -162,9 +162,19 @@ internal sealed class StreamingSlideGenerator
             using var _ = manualContext.StartChatting();
 
             var agent = await manualContext.GetChatClientAgentAsync(
-                options => options.ChatOptions.Reasoning = new ReasoningOptions()
+                options =>
                 {
-                    Effort = ReasoningEffort.None,
+                    options.ChatOptions ??= new ChatOptions();
+                    // 直接覆盖工具，因为默认工具业务上不要去用
+                    options.ChatOptions.Tools =
+                    [
+                        _renderTool.CreateTool(),
+                        _renderTool.CreatePreviewTool()
+                    ];
+                    options.ChatOptions.Reasoning = new ReasoningOptions()
+                    {
+                        Effort = ReasoningEffort.None,
+                    };
                 },
                 externalCancellationToken).ConfigureAwait(false);
             var session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
