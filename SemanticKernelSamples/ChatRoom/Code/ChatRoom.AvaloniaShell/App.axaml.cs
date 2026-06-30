@@ -62,8 +62,7 @@ public partial class App : Application
             dispatcher,
             modelProviderService,
             persistencePath,
-            appSettings.DefaultMaxRounds,
-            appSettings.WorkspacePath);
+            appSettings.DefaultMaxRounds);
 
         // 5.1 角色模板服务
         string roleTemplatesPath = string.IsNullOrWhiteSpace(appSettings.RoleTemplatesPath)

@@ -68,16 +68,6 @@ public sealed class ChatRoomRole
     /// </summary>
     public string? ChatRoomContext { get; set; }
 
-    /// <summary>
-    /// 工作区路径。设置后角色的文件系统工具将在此路径下操作文件。
-    /// 转发到内部 <see cref="CopilotChatManager.WorkspacePath"/>。
-    /// </summary>
-    public string? WorkspacePath
-    {
-        get => ChatManager.WorkspacePath;
-        set => ChatManager.WorkspacePath = value;
-    }
-
     private CopilotChatManager ChatManager => _chatManager ??= new CopilotChatManager
     {
         AgentApiEndpointManager = _endpointManager,

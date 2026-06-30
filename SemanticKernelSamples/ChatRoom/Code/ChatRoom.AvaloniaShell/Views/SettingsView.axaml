@@ -41,12 +41,6 @@
                             <TextBox Classes="Rounded" Text="{Binding PrimaryModel}"
                                      Watermark="Provider/ModelName 格式" />
                         </StackPanel>
-
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="工作区路径" Classes="Subtitle" />
-                            <TextBox Classes="Rounded" Text="{Binding WorkspacePath}"
-                                     Watermark="角色文件系统工具的根目录路径" />
-                        </StackPanel>
                     </StackPanel>
                 </Border>
 
