@@ -55,7 +55,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     public IMainThreadDispatcher? MainThreadDispatcher => ChatManager.MainThreadDispatcher;
 
     /// <inheritdoc />
-    public async Task<ChatClientAgent> GetChatClientAgentAsync(CancellationToken cancellationToken = default)
+    public async Task<ChatClientAgent> GetChatClientAgentAsync(Action<ChatClientAgentOptions>? configure = null, CancellationToken cancellationToken = default)
     {
         if (_chatClientAgent is not null)
         {
@@ -72,10 +72,6 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             ChatOptions = new ChatOptions()
             {
                 Tools = [.. DefaultTools],
-                Reasoning = new ReasoningOptions()
-                {
-                    Effort = ReasoningEffort.None,
-                }
             },
             ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
             {
@@ -88,6 +84,9 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
         {
             chatClientAgentOptions.AIContextProviders = AIContextProviders as IList<AIContextProvider> ?? new List<AIContextProvider>(AIContextProviders);
         }
+
+        // 在创建代理之前，允许业务端进一步配置选项
+        configure?.Invoke(chatClientAgentOptions);
 
         _chatClientAgent = ChatClient.AsAIAgent(chatClientAgentOptions);
         return _chatClientAgent;
@@ -107,7 +106,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             return _agentSession;
         }
 
-        ChatClientAgent chatClientAgent = await GetChatClientAgentAsync(cancellationToken).ConfigureAwait(false);
+        ChatClientAgent chatClientAgent = await GetChatClientAgentAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         _agentSession = await chatClientAgent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
         Session.SetAgentSession(_agentSession);
         return _agentSession;

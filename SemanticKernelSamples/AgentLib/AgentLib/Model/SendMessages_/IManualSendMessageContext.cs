@@ -3,6 +3,8 @@ using AgentLib;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using System;
+
 namespace AgentLib.Model;
 
 /// <summary>
@@ -34,11 +36,14 @@ public interface IManualSendMessageContext
 
     /// <summary>
     /// 由聊天客户端创建的代理对象，已装配默认 <see cref="IChatReducer"/> 和 <see cref="AIContextProvider"/>。
+    /// 在调用 <see cref="IChatClient.AsAIAgent"/> 之前，会执行 <paramref name="configure"/> 委托，
+    /// 允许业务端对 <see cref="ChatClientAgentOptions"/> 进行进一步配置。
     /// 延迟创建，首次调用时异步初始化。
     /// </summary>
+    /// <param name="configure">在创建代理之前对 <see cref="ChatClientAgentOptions"/> 进行进一步配置的委托。为 <see langword="null"/> 时不做额外配置。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>聊天客户端代理。</returns>
-    Task<ChatClientAgent> GetChatClientAgentAsync(CancellationToken cancellationToken = default);
+    Task<ChatClientAgent> GetChatClientAgentAsync(Action<ChatClientAgentOptions>? configure = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 代理会话。延迟创建，首次调用时异步初始化。
