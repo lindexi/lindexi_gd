@@ -38,9 +38,8 @@
 
                         <StackPanel Spacing="4">
                             <TextBlock Text="全局首选模型" Classes="Subtitle" />
-                            <ComboBox ItemsSource="{Binding AvailableModels}"
-                                      SelectedItem="{Binding PrimaryModel}"
-                                      PlaceholderText="选择 Provider/ModelName" />
+                            <TextBox Classes="Rounded" Text="{Binding PrimaryModel}"
+                                     Watermark="Provider/ModelName 格式" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
