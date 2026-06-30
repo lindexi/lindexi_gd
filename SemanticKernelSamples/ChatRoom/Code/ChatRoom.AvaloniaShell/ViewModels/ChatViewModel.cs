@@ -490,8 +490,10 @@ public sealed class ChatViewModel : ViewModelBase
         copilotMsg.MessageItems.Add(new CopilotChatReasoningItem("用户想了解项目架构，我需要先查看目录结构，然后分析各模块的职责和依赖关系。"));
         // 工具调用片段
         copilotMsg.MessageItems.Add(new CopilotChatToolItem("tool-1", "ListFiles", "/src", "Controllers/\nModels/\nServices/\nViews/"));
-        // 审批工具片段（等待审批状态）
-        copilotMsg.MessageItems.Add(new CopilotChatApprovalToolItem("approval-1", "DeleteFile", "{\n  \"path\": \"/temp/old_config.json\"\n}", "该文件是旧版配置文件，删除后不可恢复，请确认。"));
+        // 审批工具片段（等待审批状态）：设置工作区路径
+        copilotMsg.MessageItems.Add(new CopilotChatApprovalToolItem("approval-1", "set_workspace_path", "{\n  \"path\": \"C:\\\\Projects\\\\MyApp\"\n}", "AI 请求设置工作区路径，请确认路径是否安全。"));
+        // 审批工具片段（等待审批状态）：删除文件
+        copilotMsg.MessageItems.Add(new CopilotChatApprovalToolItem("approval-2", "DeleteFile", "{\n  \"path\": \"/temp/old_config.json\"\n}", "该文件是旧版配置文件，删除后不可恢复，请确认。"));
         // 子代理片段
         var subAgent = new CopilotChatSubAgentItem("sub-1", "代码分析子智能体", "请分析 Controllers 目录下的代码质量", "Controllers 目录共 5 个文件，代码行数约 1200 行。");
         subAgent.MessageItems.Add(new CopilotChatReasoningItem("先统计文件数量，再逐个分析代码规范。"));
