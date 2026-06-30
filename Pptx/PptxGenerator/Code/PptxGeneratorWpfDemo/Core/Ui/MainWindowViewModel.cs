@@ -44,7 +44,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _evaluationSummaryText = string.Empty;
     private string _lastUserPrompt = string.Empty;
     private ModelDisplayItem _selectedModelItem;
-    private bool _isStreamingMode;
+    private bool _isStreamingMode = true;
 
     public MainWindowViewModel(SlideChatManager slideChatManager)
     {

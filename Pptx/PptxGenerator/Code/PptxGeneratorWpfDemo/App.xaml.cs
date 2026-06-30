@@ -50,7 +50,7 @@ public partial class App : Application
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
         await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
 
-        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("qwen3.7-plus");
+        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("deepseek-v4-flash");
         if (languageModel is null)
         {
             Console.Error.WriteLine("未找到指定的语言模型。");
@@ -66,7 +66,7 @@ public partial class App : Application
         var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
         await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
 
-        ILanguageModel? evaluatorModel = evaluatorEndpointManager.GetModel("qwen3.7-plus")
+        ILanguageModel? evaluatorModel = evaluatorEndpointManager.GetModel("deepseek-v4-flash")
             ?? languageModel;
         evaluatorEndpointManager.PrimaryModel = evaluatorModel;
 

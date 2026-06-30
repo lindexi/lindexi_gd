@@ -74,7 +74,7 @@ class Program
     /// 从 Agent 配置文件创建 <see cref="SlideChatManager"/>，供 GUI 和 CLI 路径共用。
     /// 整个应用共用同一个 <see cref="CopilotChatManager"/>，评估者也复用此实例。
     /// </summary>
-    /// <param name="modelName">可选的主模型名称。为 <see langword="null"/> 时使用默认 "qwen3.7-plus"。</param>
+    /// <param name="modelName">可选的主模型名称。为 <see langword="null"/> 时使用默认 "deepseek-v4-flash"。</param>
     /// <returns>创建成功的 <see cref="SlideChatManager"/>；如果失败则返回 <see langword="null"/>。</returns>
     public static async Task<SlideChatManager?> CreateSlideChatManagerAsync(string? modelName = null)
     {
@@ -85,7 +85,7 @@ class Program
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
         await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
 
-        ILanguageModel? languageModel = agentApiEndpointManager.GetModel(modelName ?? "qwen3.7-plus");
+        ILanguageModel? languageModel = agentApiEndpointManager.GetModel(modelName ?? "deepseek-v4-flash");
         if (languageModel is null)
         {
             Console.Error.WriteLine("未找到指定的语言模型。");
