@@ -121,7 +121,18 @@ public sealed class SlideMlRenderTool
         }
 
         using var memoryStream = new MemoryStream();
-        image.Save(memoryStream);
+        if (Dispatcher.CheckAccess())
+        {
+          image.Save(memoryStream);
+        }
+        else
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                image.Save(memoryStream);
+                return Task.CompletedTask;
+            });
+        }
         memoryStream.Position = 0;
         return await DataContent.LoadFromAsync(memoryStream, "image/png").ConfigureAwait(false);
     }
