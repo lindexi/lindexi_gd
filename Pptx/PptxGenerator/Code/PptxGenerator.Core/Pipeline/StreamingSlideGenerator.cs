@@ -49,16 +49,21 @@ internal sealed class StreamingSlideGenerator
     /// <summary>
     /// 以流式方式生成 SlideML，逐片段接收 LLM 输出并实时渲染。
     /// 检测到异常时取消当前流式输出，将错误反馈重新发送给 agent，最多重试 <see cref="MaxRetries"/> 次。
+    /// 重试和跨轮对话时复用 <paramref name="streamingState"/> 中的合并器 DOM 树和 Id/StyleId 索引。
     /// </summary>
     /// <param name="userMessage">用户自然语言需求。</param>
     /// <param name="isFirstMessage">是否为首次消息。</param>
+    /// <param name="streamingState">跨轮复用的流式生成状态，包含合并器和渲染上下文。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <param name="onPropertiesChanged">流式结束后在主线程调用的回调，用于刷新外部属性通知。</param>
     /// <returns>表示异步操作的任务。</returns>
     public async Task GenerateAsync(
-        string userMessage, bool isFirstMessage, CancellationToken cancellationToken,
+        string userMessage, bool isFirstMessage, SlideStreamingState streamingState,
+        CancellationToken cancellationToken,
         Action? onPropertiesChanged = null)
     {
+        ArgumentNullException.ThrowIfNull(streamingState);
+
         var currentMessage = isFirstMessage
             ? _promptProvider.BuildStreamingUserPrompt(userMessage)
             : userMessage;
@@ -66,9 +71,16 @@ internal sealed class StreamingSlideGenerator
 
         for (var attempt = 0; attempt <= MaxRetries; attempt++)
         {
+            // 每轮重试前清空诊断信息，但保留合并器 DOM 树和 Id/StyleId 索引
+            streamingState.Context.Reset();
+            // 清空片段提取器缓冲区（上一轮残留内容无意义），但保留合并器状态
+            streamingState.Pipeline.ResetExtractor();
+
             using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var (hasErrors, errorFeedback) = await RunStreamingLoopAsync(
-                currentMessage, includeSystemPrompt, linkedCancellationTokenSource, cancellationToken);
+                currentMessage, includeSystemPrompt,
+                linkedCancellationTokenSource, cancellationToken,
+                streamingState.Pipeline, streamingState.Context).ConfigureAwait(false);
 
             if (!hasErrors || attempt == MaxRetries)
             {
@@ -95,17 +107,18 @@ internal sealed class StreamingSlideGenerator
     /// <param name="includeSystemPrompt">是否包含系统提示词。</param>
     /// <param name="errorCancellationTokenSource">用于在检测到异常时取消流式输出的令牌源（已与外部令牌关联）。</param>
     /// <param name="externalCancellationToken">外部取消令牌。</param>
+    /// <param name="streamingPipeline">流式渲染管道（跨轮复用，保留合并器状态）。</param>
+    /// <param name="context">渲染上下文（跨轮复用，诊断信息已由调用方重置）。</param>
     /// <returns>是否检测到异常，以及错误反馈文本（无异常时为空字符串）。</returns>
     private async Task<(bool HasErrors, string ErrorFeedback)> RunStreamingLoopAsync(
         string userMessage, bool includeSystemPrompt,
-        CancellationTokenSource errorCancellationTokenSource, CancellationToken externalCancellationToken)
+        CancellationTokenSource errorCancellationTokenSource, CancellationToken externalCancellationToken,
+        SlideStreamingPipeline streamingPipeline, SlideMlPipelineContext context)
     {
-        var context = new SlideMlPipelineContext();
         var renderErrors = new ConcurrentQueue<string>();
-        var streamingPipeline = new SlideStreamingPipeline(_promptProvider, _renderTool.RenderPipeline, _dispatcher);
 
         // 将流式渲染结果同步到 SlideMlRenderTool，使 Latest* 属性保持最新
-        streamingPipeline.Rendered += renderResult =>
+        Action<SlideStreamRenderResult> onRendered = renderResult =>
         {
             _renderTool.ApplyRenderResult(new SlideMlRenderResult
             {
@@ -129,87 +142,95 @@ internal sealed class StreamingSlideGenerator
             }
         };
 
-        var manualContext = await _copilotChatManager
-            .CreateManualSendMessageContextAsync(externalCancellationToken).ConfigureAwait(false);
-
-        // 填充用户消息
-        manualContext.UserChatMessage.AppendText(userMessage);
-
-        var systemPrompt = includeSystemPrompt
-            ? _promptProvider.BuildStreamingSystemPrompt()
-            : null;
-
-        // 追加消息到会话
-        await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
-
-        using var _ = manualContext.StartChatting();
-
-        var agent = await manualContext.GetChatClientAgentAsync(externalCancellationToken).ConfigureAwait(false);
-        var session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
-
-        var messages = systemPrompt is not null
-            ? new[] { new ChatMessage(ChatRole.System, systemPrompt), manualContext.UserChatMessage.ToChatMessage() }
-            : new[] { manualContext.UserChatMessage.ToChatMessage() };
-
-        var loopToken = errorCancellationTokenSource.Token;
+        streamingPipeline.Rendered += onRendered;
 
         try
         {
-            await foreach (var update in agent.RunStreamingAsync(
-                messages, session, cancellationToken: loopToken).ConfigureAwait(false))
+            var manualContext = await _copilotChatManager
+                .CreateManualSendMessageContextAsync(externalCancellationToken).ConfigureAwait(false);
+
+            // 填充用户消息
+            manualContext.UserChatMessage.AppendText(userMessage);
+
+            var systemPrompt = includeSystemPrompt
+                ? _promptProvider.BuildStreamingSystemPrompt()
+                : null;
+
+            // 追加消息到会话
+            await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
+
+            using var _ = manualContext.StartChatting();
+
+            var agent = await manualContext.GetChatClientAgentAsync(externalCancellationToken).ConfigureAwait(false);
+            var session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
+
+            var messages = systemPrompt is not null
+                ? new[] { new ChatMessage(ChatRole.System, systemPrompt), manualContext.UserChatMessage.ToChatMessage() }
+                : new[] { manualContext.UserChatMessage.ToChatMessage() };
+
+            var loopToken = errorCancellationTokenSource.Token;
+
+            try
             {
-                manualContext.AppendResponseUpdate(update);
-
-                if (string.IsNullOrEmpty(update.Text))
+                await foreach (var update in agent.RunStreamingAsync(
+                    messages, session, cancellationToken: loopToken).ConfigureAwait(false))
                 {
-                    continue;
+                    manualContext.AppendResponseUpdate(update);
+
+                    if (string.IsNullOrEmpty(update.Text))
+                    {
+                        continue;
+                    }
+
+                    // 将增量文本喂给流式管道
+                    await streamingPipeline.ProcessIncrementalTextAsync(
+                        update.Text, context, loopToken).ConfigureAwait(false);
+
+                    // 检查合并阶段是否产生了 XML 解析错误
+                    if (context.Errors.Count > 0)
+                    {
+                        errorCancellationTokenSource.Cancel();
+                        break;
+                    }
                 }
+            }
+            catch (OperationCanceledException) when (errorCancellationTokenSource.IsCancellationRequested && !externalCancellationToken.IsCancellationRequested)
+            {
+                // 由异常检测触发的取消，非外部取消，继续走错误反馈流程
+            }
 
-                // 将增量文本喂给流式管道
-                await streamingPipeline.ProcessIncrementalTextAsync(
-                    update.Text, context, loopToken).ConfigureAwait(false);
+            // 收集所有错误信息
+            var allErrors = new List<string>(context.Errors.Count + renderErrors.Count);
+            allErrors.AddRange(context.Errors);
+            while (renderErrors.TryDequeue(out var renderError))
+            {
+                allErrors.Add(renderError);
+            }
 
-                // 检查合并阶段是否产生了 XML 解析错误
+            if (allErrors.Count == 0)
+            {
+                // 未检测到异常，执行流结束渲染
+                await streamingPipeline.ProcessStreamEndAsync(context, externalCancellationToken).ConfigureAwait(false);
+
+                // ProcessStreamEndAsync 可能也会产生错误（缓冲区残留等）
                 if (context.Errors.Count > 0)
                 {
-                    errorCancellationTokenSource.Cancel();
-                    break;
+                    var feedback = BuildErrorFeedback(streamingPipeline.CurrentMergedXml, context.Errors);
+                    return (true, feedback);
                 }
-            }
-        }
-        catch (OperationCanceledException) when (errorCancellationTokenSource.IsCancellationRequested && !externalCancellationToken.IsCancellationRequested)
-        {
-            // 由异常检测触发的取消，非外部取消，继续走错误反馈流程
-        }
 
-        // 收集所有错误信息
-        var allErrors = new List<string>(context.Errors.Count + renderErrors.Count);
-        allErrors.AddRange(context.Errors);
-        while (renderErrors.TryDequeue(out var renderError))
-        {
-            allErrors.Add(renderError);
-        }
-
-        if (allErrors.Count == 0)
-        {
-            // 未检测到异常，执行流结束渲染
-            await streamingPipeline.ProcessStreamEndAsync(context, externalCancellationToken).ConfigureAwait(false);
-
-            // ProcessStreamEndAsync 可能也会产生错误（缓冲区残留等）
-            if (context.Errors.Count > 0)
-            {
-                var feedback = BuildErrorFeedback(streamingPipeline.CurrentMergedXml, context.Errors);
-                context.Reset();
-                return (true, feedback);
+                return (false, string.Empty);
             }
 
-            return (false, string.Empty);
+            // 有异常，组织错误反馈
+            var errorFeedback = BuildErrorFeedback(streamingPipeline.CurrentMergedXml, allErrors);
+            return (true, errorFeedback);
         }
-
-        // 有异常，组织错误反馈
-        var errorFeedback = BuildErrorFeedback(streamingPipeline.CurrentMergedXml, allErrors);
-        context.Reset();
-        return (true, errorFeedback);
+        finally
+        {
+            // 确保在任何路径下都取消订阅，避免跨轮重复累积
+            streamingPipeline.Rendered -= onRendered;
+        }
     }
 
     /// <summary>
@@ -221,7 +242,7 @@ internal sealed class StreamingSlideGenerator
     private static string BuildErrorFeedback(string mergedXml, IReadOnlyList<string> errors)
     {
         var sb = new StringBuilder(512 + errors.Count * 128);
-        sb.AppendLine("上一轮生成的 SlideML 存在以下错误，请根据错误信息修正后重新生成完整的 SlideML：");
+        sb.AppendLine("上一轮生成的 SlideML 存在以下错误，请根据错误信息修正：");
         sb.AppendLine();
 
         for (var i = 0; i < errors.Count; i++)
@@ -237,7 +258,8 @@ internal sealed class StreamingSlideGenerator
         }
 
         sb.AppendLine();
-        sb.AppendLine("请修正上述错误，重新输出完整的 SlideML XML。");
+        sb.AppendLine("请修正上述错误，仅输出修正和后续片段。");
+        sb.AppendLine("不要重复已成功的片段，合并器已保留之前成功合并的内容。");
 
         return sb.ToString();
     }

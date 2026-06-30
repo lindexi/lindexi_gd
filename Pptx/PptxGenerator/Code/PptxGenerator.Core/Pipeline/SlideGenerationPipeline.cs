@@ -20,6 +20,12 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
     private readonly IPromptOptimizer? _promptOptimizer;
     private readonly IMainThreadDispatcher _dispatcher;
 
+    /// <summary>
+    /// 流式生成状态，跨重试轮次和跨轮对话复用。
+    /// 在首次消息或新建会话时重置。
+    /// </summary>
+    private SlideStreamingState? _streamingState;
+
     public SlideGenerationPipeline(
         CopilotChatManager copilotChatManager,
         ISlideMlPromptProvider promptProvider,
@@ -134,11 +140,20 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         if (useStreaming)
         {
+            // 首次消息或新建会话时重置流式状态
+            if (isFirstMessage || createNewSession)
+            {
+                _streamingState = null;
+            }
+
+            _streamingState ??= new SlideStreamingState(
+                _promptProvider, SlideMlRenderTool.RenderPipeline, _dispatcher);
+
             var generator = new StreamingSlideGenerator(
                 _copilotChatManager, _promptProvider, SlideMlRenderTool, _dispatcher);
 
             await generator.GenerateAsync(
-                userMessage, isFirstMessage, cancellationToken,
+                userMessage, isFirstMessage, _streamingState, cancellationToken,
                 onPropertiesChanged: () =>
                 {
                     OnPropertyChanged(nameof(PreviewImage));

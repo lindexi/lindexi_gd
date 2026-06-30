@@ -133,4 +133,13 @@ public sealed class SlideStreamingPipeline
         _extractor = new SlideMlFragmentExtractor();
         _merger.Reset();
     }
+
+    /// <summary>
+    /// 仅重置片段提取器缓冲区，保留合并器 DOM 树和 Id/StyleId 索引状态。
+    /// 用于错误重试时清理上一轮残留的缓冲区内容，同时保留已成功合并的片段。
+    /// </summary>
+    public void ResetExtractor()
+    {
+        _extractor = new SlideMlFragmentExtractor();
+    }
 }

@@ -15,9 +15,9 @@ public sealed class SlideStreamingErrorIntegrationTests
 
     /// <summary>
     /// LLM 先输出有效 XML + 无效 XML，管道检测到异常后取消流并重试。
-    /// 重试时输出有效 XML，验证最终渲染结果包含重试后的有效片段。
+    /// 状态延续后，第一轮成功合并的 r1 应保留在合并器 DOM 树中。
     /// </summary>
-    [TestMethod(DisplayName = "格式错误 XML：检测到异常后取消流并重试，最终渲染有效片段")]
+    [TestMethod(DisplayName = "格式错误 XML：检测到异常后取消流并重试，第一轮成功片段保留")]
     public async Task FullStreaming_MalformedXml_LlmContinuesAfterError()
     {
         // Arrange — 第一轮：有效片段 + 无效片段（触发取消）；第二轮：有效片段
@@ -35,8 +35,8 @@ public sealed class SlideStreamingErrorIntegrationTests
             attachPreview: false,
             useStreaming: true).ConfigureAwait(false);
 
-        // Assert — 重试后的有效片段应被渲染
-        StringAssert.Contains(chatManager.RenderedXml, "r2", "重试后的有效片段 r2 应被渲染");
+        // Assert — 状态延续后，第一轮成功合并的 r1 应保留
+        StringAssert.Contains(chatManager.RenderedXml, "r1", "第一轮成功合并的 r1 应保留（状态延续）");
     }
 
     // ───────── 用例 2：不完整 XML 只渲染完整片段 ─────────
