@@ -312,11 +312,26 @@ public sealed partial class DeepSeekChatClient : IChatClient
             request["stop"] = stop;
         }
 
-        if (_enableThinkingMode)
+        var enableThinkingMode = _enableThinkingMode;
+        if (options?.Reasoning?.Effort is ReasoningEffort.None)
+        {
+            // 不要思考的状态
+            enableThinkingMode = false;
+        }
+
+        if (enableThinkingMode)
         {
             request["thinking"] = new JsonObject
             {
                 ["type"] = "enabled",
+                ["budget_tokens"] = _reasoningBudgetTokens,
+            };
+        }
+        else
+        {
+            request["thinking"] = new JsonObject
+            {
+                ["type"] = "disabled",
                 ["budget_tokens"] = _reasoningBudgetTokens,
             };
         }
