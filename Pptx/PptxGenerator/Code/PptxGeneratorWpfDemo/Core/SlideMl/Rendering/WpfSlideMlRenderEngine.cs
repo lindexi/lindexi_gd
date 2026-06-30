@@ -22,6 +22,11 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
     private readonly Dictionary<string, List<FormattedText>> _spanFormattedTextCache = new();
     private readonly Dictionary<string, BitmapSource?> _bitmapCache = new();
 
+    /// <summary>
+    /// 是否启用裁剪。默认 false，用于调试时禁用 PushClip 裁剪。
+    /// </summary>
+    private readonly bool _enableClip = false;
+
     /// Helper: convert SlideMlRect to WPF Rect
     private static Rect ToRect(SlideMlRect r) => new(r.X, r.Y, r.Width, r.Height);
     private static Point ToPoint(SlideMlRect r, double offsetX = 0, double offsetY = 0) => new(r.X + offsetX, r.Y + offsetY);
@@ -321,9 +326,10 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
             dc.DrawRectangle(backgroundBrush, null, ToRect(panel.LayoutBounds));
         }
 
-        dc.PushClip(new RectangleGeometry(ToRect(panel.LayoutBounds)));
-        DrawElements(dc, panel.Children, context);
-        dc.Pop();
+        using (PushClip(dc, panel.LayoutBounds.X, panel.LayoutBounds.Y, panel.LayoutBounds.Width, panel.LayoutBounds.Height))
+        {
+            DrawElements(dc, panel.Children, context);
+        }
     }
 
     private static void DrawRect(DrawingContext dc, SlideMlRectElement rect)
@@ -506,9 +512,10 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 
         if (text.Height is double fixedHeight)
         {
-            dc.PushClip(new RectangleGeometry(new Rect(text.LayoutBounds.X, text.LayoutBounds.Y, text.LayoutBounds.Width, fixedHeight)));
-            dc.DrawText(formattedText, new Point(text.LayoutBounds.X, text.LayoutBounds.Y));
-            dc.Pop();
+            using (PushClip(dc, text.LayoutBounds.X, text.LayoutBounds.Y, text.LayoutBounds.Width, fixedHeight))
+            {
+                dc.DrawText(formattedText, new Point(text.LayoutBounds.X, text.LayoutBounds.Y));
+            }
         }
         else
         {
@@ -524,20 +531,21 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         var x = text.LayoutBounds.X;
         var y = text.LayoutBounds.Y;
 
-        if (text.Height is double fixedHeight)
-        {
-            dc.PushClip(new RectangleGeometry(new Rect(x, y, text.LayoutBounds.Width, fixedHeight)));
-        }
+        ClipScope? clipScope = text.Height is double fixedHeight
+            ? PushClip(dc, x, y, text.LayoutBounds.Width, fixedHeight)
+            : null;
 
-        foreach (var ft in spanTexts)
+        try
         {
-            dc.DrawText(ft, new Point(x, y));
-            x += ft.WidthIncludingTrailingWhitespace;
+            foreach (var ft in spanTexts)
+            {
+                dc.DrawText(ft, new Point(x, y));
+                x += ft.WidthIncludingTrailingWhitespace;
+            }
         }
-
-        if (text.Height is not null)
+        finally
         {
-            dc.Pop();
+            clipScope?.Dispose();
         }
     }
 
@@ -735,8 +743,66 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
             return fallbackColor;
         }
 
-        private static double GetDpi()
-    {
-        return VisualTreeHelper.GetDpi(Application.Current.MainWindow ?? Application.Current.Windows.OfType<Window>().FirstOrDefault()).PixelsPerDip;
-    }
-}
+            private static double GetDpi()
+            {
+                return VisualTreeHelper.GetDpi(Application.Current.MainWindow ?? Application.Current.Windows.OfType<Window>().FirstOrDefault()).PixelsPerDip;
+            }
+
+            /// <summary>
+            /// 推入裁剪区域，返回 <see cref="ClipScope"/>。释放或调用 <see cref="ClipScope.Pop"/> 时自动弹出。
+            /// 当 <see cref="_enableClip"/> 为 false 时不执行裁剪，返回空作用域。
+            /// </summary>
+            /// <param name="dc">绘制上下文。</param>
+            /// <param name="x">裁剪区域 X 坐标。</param>
+            /// <param name="y">裁剪区域 Y 坐标。</param>
+            /// <param name="width">裁剪区域宽度。</param>
+            /// <param name="height">裁剪区域高度。</param>
+            /// <returns>裁剪作用域，释放时自动 Pop。</returns>
+            private ClipScope PushClip(DrawingContext dc, double x, double y, double width, double height)
+            {
+                if (!_enableClip)
+                {
+                    return new ClipScope(dc, pushed: false);
+                }
+
+                dc.PushClip(new RectangleGeometry(new Rect(x, y, width, height)));
+                return new ClipScope(dc, pushed: true);
+            }
+
+            /// <summary>
+            /// 裁剪作用域，实现 <see cref="IDisposable"/>。释放时自动调用 <see cref="DrawingContext.Pop"/>。
+            /// </summary>
+            private struct ClipScope : IDisposable
+            {
+                private readonly DrawingContext _dc;
+                private readonly bool _pushed;
+                private bool _disposed;
+
+                internal ClipScope(DrawingContext dc, bool pushed)
+                {
+                    _dc = dc;
+                    _pushed = pushed;
+                    _disposed = false;
+                }
+
+                /// <summary>
+                /// 手动弹出裁剪区域。
+                /// </summary>
+                internal void Pop()
+                {
+                    if (_disposed || !_pushed)
+                    {
+                        return;
+                    }
+
+                    _dc.Pop();
+                    _disposed = true;
+                }
+
+                /// <inheritdoc />
+                public void Dispose()
+                {
+                    Pop();
+                }
+            }
+        }
