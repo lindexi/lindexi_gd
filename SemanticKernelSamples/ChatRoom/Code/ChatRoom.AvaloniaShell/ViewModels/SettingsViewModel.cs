@@ -159,6 +159,11 @@ public sealed class SettingsViewModel : ViewModelBase
     public ObservableCollection<ProviderEditViewModel> Providers { get; } = [];
 
     /// <summary>
+    /// 所有可用模型的扁平列表（"Provider/ModelName" 格式），用于全局首选模型下拉框选择。
+    /// </summary>
+    public ObservableCollection<string> AvailableModels { get; } = [];
+
+    /// <summary>
     /// 保存命令。
     /// </summary>
     public ICommand SaveCommand { get; }
@@ -202,6 +207,13 @@ public sealed class SettingsViewModel : ViewModelBase
             Providers.Add(new ProviderEditViewModel(p));
         }
 
+        Providers.CollectionChanged += OnProvidersChanged;
+        foreach (ProviderEditViewModel p in Providers)
+        {
+            p.PropertyChanged += OnProviderItemChanged;
+        }
+        RefreshAvailableModels();
+
         SaveCommand = new SimpleAsyncCommand(SaveAsync);
         BackCommand = new SimpleCommand(() => BackRequested?.Invoke(this, EventArgs.Empty));
         AddProviderCommand = new SimpleCommand(() => Providers.Add(new ProviderEditViewModel()));
@@ -233,6 +245,69 @@ public sealed class SettingsViewModel : ViewModelBase
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// 当 Providers 集合增删时，订阅/取消订阅单项属性变更并刷新可用模型列表。
+    /// </summary>
+    private void OnProvidersChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+            foreach (ProviderEditViewModel p in e.NewItems)
+            {
+                p.PropertyChanged += OnProviderItemChanged;
+            }
+        }
+
+        if (e.OldItems != null)
+        {
+            foreach (ProviderEditViewModel p in e.OldItems)
+            {
+                p.PropertyChanged -= OnProviderItemChanged;
+            }
+        }
+
+        RefreshAvailableModels();
+    }
+
+    /// <summary>
+    /// 当单个提供商的名称或模型列表变更时刷新可用模型列表。
+    /// </summary>
+    private void OnProviderItemChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ProviderEditViewModel.Name) or nameof(ProviderEditViewModel.ModelsText))
+        {
+            RefreshAvailableModels();
+        }
+    }
+
+    /// <summary>
+    /// 从当前 Providers 重建可用模型下拉列表。若已选模型不再存在则清除选择。
+    /// </summary>
+    private void RefreshAvailableModels()
+    {
+        AvailableModels.Clear();
+
+        foreach (ProviderEditViewModel p in Providers)
+        {
+            foreach (string? line in p.ModelsText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = line.Trim().Split(',');
+                if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
+                {
+                    continue;
+                }
+
+                AvailableModels.Add($"{p.Name}/{parts[0].Trim()}");
+            }
+        }
+
+        // 若当前选中模型已不在列表中，则清除选择
+        if (_primaryModel != null && !AvailableModels.Contains(_primaryModel))
+        {
+            PrimaryModel = null;
         }
     }
 }

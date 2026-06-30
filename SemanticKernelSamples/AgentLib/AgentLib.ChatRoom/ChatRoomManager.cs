@@ -27,6 +27,7 @@ public sealed class ChatRoomManager : NotifyBase
     private ChatRoomRole? _currentSpeaker;
     private CancellationTokenSource? _autoLoopCancellationTokenSource;
     private IReadOnlyDictionary<string, ILanguageModelProvider>? _languageModelProviders;
+    private string? _workspacePath;
 
     /// <summary>
     /// 人类插话信号。当自动循环运行期间用户插话时设置为 1，
@@ -78,6 +79,24 @@ public sealed class ChatRoomManager : NotifyBase
     /// 会回退到此值进行匹配。由外部调用方（如 ChatRoomService）在注册提供商时设置。
     /// </summary>
     public string? DefaultPrimaryModelId { get; set; }
+
+    /// <summary>
+    /// 当前工作区路径。设置后传播到所有角色的文件系统工具。
+    /// </summary>
+    public string? WorkspacePath => _workspacePath;
+
+    /// <summary>
+    /// 设置工作区路径并传播到所有角色。新添加的角色也会自动应用此路径。
+    /// </summary>
+    /// <param name="path">工作区路径。</param>
+    public void SetWorkspacePath(string? path)
+    {
+        _workspacePath = string.IsNullOrWhiteSpace(path) ? null : path;
+        foreach (ChatRoomRole role in Roles)
+        {
+            role.WorkspacePath = _workspacePath;
+        }
+    }
 
     /// <summary>
     /// 是否正在运行自动循环。
@@ -304,8 +323,12 @@ public sealed class ChatRoomManager : NotifyBase
                 return null;
             }
 
-            // 追加角色管理工具到本次发言
-            IReadOnlyList<AITool> additionalTools = ChatRoomRoleManagementTools.CreateTools(this);
+            // 追加角色管理工具和工作区路径审批工具到本次发言
+            List<AITool> additionalTools =
+            [
+                .. ChatRoomRoleManagementTools.CreateTools(this),
+                .. WorkspacePathTools.CreateSetWorkspacePathTool(this),
+            ];
 
             // 调用角色发言，获取包含流式 CopilotChatMessage 的结果
             ChatRoomSpeakResult? speakResult = role.SpeakAsync(
@@ -409,6 +432,9 @@ public sealed class ChatRoomManager : NotifyBase
     public async Task AddRoleAsync(ChatRoomRole role, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(role);
+
+        // 应用工作区路径到新角色
+        role.WorkspacePath = _workspacePath;
 
         await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
         RegisterModelProvidersForRole(role);
@@ -609,6 +635,10 @@ public sealed class ChatRoomManager : NotifyBase
                         {
                             MainThreadDispatcher = Session.MainThreadDispatcher,
                         };
+
+            // 应用工作区路径到恢复的角色
+            role.WorkspacePath = _workspacePath;
+
             await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
             try
