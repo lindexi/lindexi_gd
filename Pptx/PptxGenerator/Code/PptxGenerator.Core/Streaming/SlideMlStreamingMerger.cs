@@ -49,7 +49,7 @@ public sealed class SlideMlStreamingMerger
         XElement fragmentRoot;
         try
         {
-            fragmentRoot = XElement.Parse(fragmentXml, LoadOptions.PreserveWhitespace);
+            fragmentRoot = XElement.Parse(fragmentXml);
         }
         catch (Exception ex)
         {
