@@ -161,7 +161,12 @@ internal sealed class StreamingSlideGenerator
 
             using var _ = manualContext.StartChatting();
 
-            var agent = await manualContext.GetChatClientAgentAsync(externalCancellationToken).ConfigureAwait(false);
+            var agent = await manualContext.GetChatClientAgentAsync(
+                options => options.ChatOptions.Reasoning = new ReasoningOptions()
+                {
+                    Effort = ReasoningEffort.None,
+                },
+                externalCancellationToken).ConfigureAwait(false);
             var session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
 
             var messages = systemPrompt is not null
