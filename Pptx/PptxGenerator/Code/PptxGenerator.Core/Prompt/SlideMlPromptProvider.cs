@@ -207,6 +207,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 3. 流片段只影响显式声明的元素及其子树；未提及的元素保持原样。
 4. 当父元素片段包含子元素列表 F，要与当前子元素列表 L 合并时：从 F 开头寻找第一个已存在于 L 的 Id，取其在 L 中的位置 P；若没有找到，则 P 为 L 末尾。然后从 L 中移除所有 Id 出现在 F 中的元素。最后把整个 F 插入位置 P；若 P 超出当前 L 长度则追加到末尾。
 5. 删除已有元素及其子树时，输出 <Remove TargetId="目标元素Id"/>。
+6. 错误处理：如果某个片段存在 XML 格式错误、Id 类型冲突、缺少必填属性等问题，该片段会被自动丢弃，不会影响已合并的内容。后续片段基于出错前的正确状态继续合并。因此出错后无需重复输出之前已成功的片段，只需输出修正后的片段即可。
 
 StyleFrom 与 StyleId：
 1. StyleFrom 是 Panel、Rect、TextElement、Image 的通用属性，值为源元素的 StyleId。

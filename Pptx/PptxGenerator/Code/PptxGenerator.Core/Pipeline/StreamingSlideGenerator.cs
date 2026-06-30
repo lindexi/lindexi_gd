@@ -255,10 +255,13 @@ internal sealed class StreamingSlideGenerator
             sb.AppendLine($"{i + 1}. {errors[i]}");
         }
 
+        sb.AppendLine();
+        sb.AppendLine("出错的片段已被自动丢弃，不会保留在合并结果中。以下方已合并的 SlideML 为基础，仅输出修正和后续片段。");
+
         if (!string.IsNullOrWhiteSpace(mergedXml))
         {
             sb.AppendLine();
-            sb.AppendLine("上一轮已生成的（可能不完整的）SlideML 如下，供参考：");
+            sb.AppendLine("当前已合并的（可能不完整的）SlideML 如下，供参考：");
             sb.AppendLine(mergedXml);
         }
 
