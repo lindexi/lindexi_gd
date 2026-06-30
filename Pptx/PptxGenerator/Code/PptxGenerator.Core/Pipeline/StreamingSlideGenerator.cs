@@ -168,10 +168,10 @@ internal sealed class StreamingSlideGenerator
                         _renderTool.CreateTool(),
                         _renderTool.CreatePreviewTool()
                     ];
-                    options.ChatOptions.Reasoning = new ReasoningOptions()
-                    {
-                        Effort = ReasoningEffort.None,
-                    };
+                    //options.ChatOptions.Reasoning = new ReasoningOptions()
+                    //{
+                    //    Effort = ReasoningEffort.None,
+                    //};
                 },
                 externalCancellationToken).ConfigureAwait(false);
             var session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
