@@ -549,8 +549,8 @@ public sealed class SlideMlStreamingMergerTests
         Assert.Contains("r1", merger.GetMergedXml(), "内容不应变化");
     }
 
-    [TestMethod(DisplayName = "回滚：连续多个错误片段可逐个回滚")]
-    public void Rollback_MultipleErrorFragments_RollsBackOneByOne()
+    [TestMethod(DisplayName = "回滚：出错后回滚，再出错可再次回滚")]
+    public void Rollback_ErrorFragment_RollbackThenErrorAgain_CanRollbackAgain()
     {
         // Arrange
         var merger = new SlideMlStreamingMerger();
@@ -563,17 +563,21 @@ public sealed class SlideMlStreamingMergerTests
         // 第一个错误片段
         merger.AcceptFragment("<Panel Id=\"r1\"/>", context);
 
-        // 第二个成功片段（基于被污染的状态）
-        context.Reset();
-        merger.AcceptFragment("<Page><Rect Id=\"r2\" Width=\"200\"/></Page>", context);
-        var xmlAfterSecond = merger.GetMergedXml();
-
-        // Act — 第一次回滚：恢复到第二个片段合并前（即第一个错误片段后的污染状态）
+        // 第一次回滚
         var firstRollback = merger.RollbackLastVersion();
+        Assert.IsTrue(firstRollback, "第一次回滚应成功");
+        Assert.AreEqual(xmlAfterFirst, merger.GetMergedXml(), "回滚后应恢复到第一个成功片段后的状态");
+
+        // 第二个错误片段（回滚后再次出错）
+        context.Reset();
+        merger.AcceptFragment("<Panel Id=\"r1\"/>", context);
+
+        // Act — 第二次回滚
+        var secondRollback = merger.RollbackLastVersion();
 
         // Assert
-        Assert.IsTrue(firstRollback, "第一次回滚应成功");
-        Assert.AreEqual(xmlAfterFirst, merger.GetMergedXml(), "第一次回滚应恢复到第一个成功片段后的状态");
+        Assert.IsTrue(secondRollback, "第二次回滚应成功");
+        Assert.AreEqual(xmlAfterFirst, merger.GetMergedXml(), "第二次回滚后应仍恢复到已确认状态");
     }
 
     [TestMethod(DisplayName = "回滚：XML 格式错误的片段也产生快照并可回滚")]

@@ -6,8 +6,8 @@ namespace PptxGenerator.Streaming;
 /// <summary>
 /// 维护 XDocument DOM 树与 Id 索引，逐片段合并 SlideML XML。
 /// 接收完整的 XML 片段，根据元素类型（Page、Panel/Rect/TextElement/Image、Remove）和 Id 执行合并操作。
-/// 内部维护版本栈，每次合并前保存快照；合并出错时可调用 <see cref="RollbackLastVersion"/> 回滚到上一个干净状态，
-/// 防止错误片段持续污染 DOM 树。
+/// 采用双缓冲机制：每次合并从已确认状态克隆出工作副本，在副本上执行合并；
+/// 成功则晋升工作副本为已确认状态，出错则丢弃工作副本，防止错误片段持续污染 DOM 树。
 /// </summary>
 public sealed class SlideMlStreamingMerger
 {
@@ -19,16 +19,20 @@ public sealed class SlideMlStreamingMerger
         "Panel", "Rect", "TextElement", "Image", "Span", "Fill", "Stroke", "Shadow", "LinearGradient", "Stop"
     };
 
-    private SlideMlMergeState _state = new();
+    /// <summary>
+    /// 已确认正确的合并状态，不被合并操作直接修改。
+    /// </summary>
+    private SlideMlMergeState _committed = new();
 
     /// <summary>
-    /// 版本栈，每次 <see cref="AcceptFragment"/> 合并出错的快照入栈，回滚时弹出恢复。
+    /// 当前工作副本，合并操作在此上执行。
+    /// 为 <see langword="null"/> 表示无待提交的工作（上次合并已成功晋升）。
     /// </summary>
-    private readonly Stack<SlideMlMergeState> _versionStack = new();
+    private SlideMlMergeState? _working;
 
     /// <summary>
     /// 接收一个完整 XML 片段并合并到 DOM 树。
-    /// 合并前保存当前状态快照到版本栈，合并出错时可调用 <see cref="RollbackLastVersion"/> 回滚。
+    /// 从已确认状态克隆出工作副本，在副本上执行合并；成功则晋升为已确认状态，出错则保留工作副本待回滚。
     /// </summary>
     /// <param name="fragmentXml">完整的 XML 片段字符串。</param>
     /// <param name="context">渲染上下文，用于收集警告和错误。</param>
@@ -37,8 +41,8 @@ public sealed class SlideMlStreamingMerger
         ArgumentNullException.ThrowIfNull(fragmentXml);
         ArgumentNullException.ThrowIfNull(context);
 
-        // 合并前保存快照，以便出错时回滚
-        var snapshot = _state.Clone();
+        // 从已确认状态克隆出工作副本
+        _working = _committed.Clone();
         var errorCountBefore = context.Errors.Count;
 
         // 解析 XML 片段
@@ -50,7 +54,7 @@ public sealed class SlideMlStreamingMerger
         catch (Exception ex)
         {
             context.AddError($"[Error] XML 格式错误: {ex.Message}");
-            _versionStack.Push(snapshot);
+            // 出错：保留 _working（含错误状态），等外部调 RollbackLastVersion 丢弃
             return;
         }
 
@@ -71,7 +75,7 @@ public sealed class SlideMlStreamingMerger
                 if (!string.Equals(existingTypeName, typeName, StringComparison.OrdinalIgnoreCase))
                 {
                     context.AddError($"[Error] 同一片段内 Id '{id}' 被不同类型元素占用: {existingTypeName} vs {typeName}");
-                    _versionStack.Push(snapshot);
+                    // 出错：保留 _working，等外部调 RollbackLastVersion 丢弃
                     return;
                 }
 
@@ -101,46 +105,48 @@ public sealed class SlideMlStreamingMerger
             context.AddError($"[Error] 未知的片段根元素: {localName}");
         }
 
-        // 合并后根据是否产生错误决定是否保留快照
-        if (context.Errors.Count > errorCountBefore)
+        // 合并成功：晋升工作副本为已确认状态
+        if (context.Errors.Count == errorCountBefore)
         {
-            // 本次合并产生了错误，将快照入栈以供回滚
-            _versionStack.Push(snapshot);
+            _committed = _working;
+            _working = null;
         }
+        // 出错：保留 _working（含错误状态），等外部调 RollbackLastVersion 丢弃
     }
 
     /// <summary>
     /// 输出合并完成的完整 XML 字符串。
+    /// 优先返回工作副本（出错时的当前状态），否则返回已确认状态。
     /// </summary>
     /// <returns>当前合并状态的 XML。如果尚无内容，返回空字符串。</returns>
     public string GetMergedXml()
     {
-        return _state.GetXml();
+        return (_working ?? _committed).GetXml();
     }
 
     /// <summary>
-    /// 回滚到最后一个出错版本之前的状态。
-    /// 如果版本栈为空则不做任何操作。
+    /// 丢弃出错的工作副本，恢复到已确认状态。
+    /// 如果没有出错的工作副本则不做任何操作。
     /// </summary>
-    /// <returns>是否成功回滚（版本栈非空时返回 true）。</returns>
+    /// <returns>是否成功回滚（存在出错的工作副本时返回 true）。</returns>
     public bool RollbackLastVersion()
     {
-        if (_versionStack.Count == 0)
+        if (_working is null)
         {
             return false;
         }
 
-        _state = _versionStack.Pop();
+        _working = null;
         return true;
     }
 
     /// <summary>
-    /// 清空状态以复用，同时清空版本栈。
+    /// 清空状态以复用，重置已确认状态并丢弃工作副本。
     /// </summary>
     public void Reset()
     {
-        _state.Clear();
-        _versionStack.Clear();
+        _committed = new SlideMlMergeState();
+        _working = null;
     }
 
     /// <summary>
@@ -151,25 +157,25 @@ public sealed class SlideMlStreamingMerger
     /// <param name="context">渲染上下文。</param>
     private void ProcessPage(XElement fragmentRoot, SlideMlPipelineContext context)
     {
-        if (_state.Document is null)
+        if (_working!.Document is null)
         {
             // 首次接受 Page：创建文档
-            _state.Document = new XDocument(fragmentRoot);
+            _working.Document = new XDocument(fragmentRoot);
             RegisterIdElements(fragmentRoot);
             RegisterStyleIdElements(fragmentRoot, context);
         }
         else
         {
-            var currentRoot = _state.Document.Root!;
+            var currentRoot = _working.Document.Root!;
 
             if (!string.Equals(currentRoot.Name.LocalName, "Page", StringComparison.OrdinalIgnoreCase))
             {
                 // 当前根元素不是 Page（是之前作为根的悬空元素），降级为悬空元素
                 // 先从文档中分离（不从 _idIndex 移除，悬空元素仍可供 StyleFrom 引用）
                 currentRoot.Remove();
-                _state.DanglingElements.Add(currentRoot);
+                _working.DanglingElements.Add(currentRoot);
                 // Page 成为新的根元素
-                _state.Document = new XDocument(fragmentRoot);
+                _working.Document = new XDocument(fragmentRoot);
                 RegisterIdElements(fragmentRoot);
                 RegisterStyleIdElements(fragmentRoot, context);
 
@@ -204,7 +210,7 @@ public sealed class SlideMlStreamingMerger
             return;
         }
 
-        if (_state.IdIndex.TryGetValue(targetId, out var targetElement))
+        if (_working!.IdIndex.TryGetValue(targetId, out var targetElement))
         {
             // 从 _idIndex 和 _styleIdIndex 中移除该元素及其所有子元素
             UnregisterIdElements(targetElement);
@@ -238,7 +244,7 @@ public sealed class SlideMlStreamingMerger
         // 处理 StyleFrom
         ApplyStyleFrom(fragmentRoot, context);
 
-        if (_state.IdIndex.TryGetValue(id, out var existingElement))
+        if (_working!.IdIndex.TryGetValue(id, out var existingElement))
         {
             // 类型冲突检查：不同类型的元素共用同一 Id 无法替换合并
             if (!string.Equals(existingElement.Name.LocalName, fragmentRoot.Name.LocalName, StringComparison.OrdinalIgnoreCase))
@@ -264,13 +270,13 @@ public sealed class SlideMlStreamingMerger
                 return;
             }
 
-            if (_state.Document is null)
+            if (_working!.Document is null)
             {
-                _state.Document = new XDocument(fragmentRoot);
+                _working.Document = new XDocument(fragmentRoot);
             }
             else
             {
-                _state.DanglingElements.Add(fragmentRoot);
+                _working.DanglingElements.Add(fragmentRoot);
             }
 
             RegisterIdElements(fragmentRoot);
@@ -492,7 +498,7 @@ public sealed class SlideMlStreamingMerger
         // 移除 StyleFrom 属性
         styleFromAttr.Remove();
 
-        if (_state.StyleIdIndex.TryGetValue(sourceStyleId, out var sourceElement))
+        if (_working!.StyleIdIndex.TryGetValue(sourceStyleId, out var sourceElement))
         {
             // 复制源元素的全部属性到当前元素（作为默认值，不覆盖已存在的属性）
             foreach (var attr in sourceElement.Attributes())
@@ -524,7 +530,7 @@ public sealed class SlideMlStreamingMerger
         var id = GetElementId(element);
         if (id is not null)
         {
-            _state.IdIndex[id] = element;
+            _working!.IdIndex[id] = element;
         }
 
         foreach (var descendant in element.Descendants())
@@ -532,7 +538,7 @@ public sealed class SlideMlStreamingMerger
             var descendantId = GetElementId(descendant);
             if (descendantId is not null)
             {
-                _state.IdIndex[descendantId] = descendant;
+                _working.IdIndex[descendantId] = descendant;
             }
         }
     }
@@ -546,7 +552,7 @@ public sealed class SlideMlStreamingMerger
         var id = GetElementId(element);
         if (id is not null)
         {
-            _state.IdIndex.Remove(id);
+            _working!.IdIndex.Remove(id);
         }
 
         foreach (var descendant in element.Descendants())
@@ -554,7 +560,7 @@ public sealed class SlideMlStreamingMerger
             var descendantId = GetElementId(descendant);
             if (descendantId is not null)
             {
-                _state.IdIndex.Remove(descendantId);
+                _working.IdIndex.Remove(descendantId);
             }
         }
     }
@@ -569,13 +575,13 @@ public sealed class SlideMlStreamingMerger
         var styleId = (string?)element.Attribute("StyleId");
         if (styleId is not null)
         {
-            if (_state.StyleIdIndex.ContainsKey(styleId))
+            if (_working!.StyleIdIndex.ContainsKey(styleId))
             {
                 context.AddError($"[Error] StyleId 重复: {styleId}");
             }
             else
             {
-                _state.StyleIdIndex[styleId] = element;
+                _working.StyleIdIndex[styleId] = element;
             }
         }
 
@@ -584,13 +590,13 @@ public sealed class SlideMlStreamingMerger
             var descendantStyleId = (string?)descendant.Attribute("StyleId");
             if (descendantStyleId is not null)
             {
-                if (_state.StyleIdIndex.ContainsKey(descendantStyleId))
+                if (_working.StyleIdIndex.ContainsKey(descendantStyleId))
                 {
                     context.AddError($"[Error] StyleId 重复: {descendantStyleId}");
                 }
                 else
                 {
-                    _state.StyleIdIndex[descendantStyleId] = descendant;
+                    _working.StyleIdIndex[descendantStyleId] = descendant;
                 }
             }
         }
@@ -605,7 +611,7 @@ public sealed class SlideMlStreamingMerger
         var styleId = (string?)element.Attribute("StyleId");
         if (styleId is not null)
         {
-            _state.StyleIdIndex.Remove(styleId);
+            _working!.StyleIdIndex.Remove(styleId);
         }
 
         foreach (var descendant in element.Descendants())
@@ -613,7 +619,7 @@ public sealed class SlideMlStreamingMerger
             var descendantStyleId = (string?)descendant.Attribute("StyleId");
             if (descendantStyleId is not null)
             {
-                _state.StyleIdIndex.Remove(descendantStyleId);
+                _working.StyleIdIndex.Remove(descendantStyleId);
             }
         }
     }
