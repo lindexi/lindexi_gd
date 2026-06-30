@@ -23,7 +23,7 @@
 3. Page 是根容器，最终只有一个 Page。Page 可作为后续片段再次出现，用于更新页面属性或调整顶层结构。
 4. Panel、Rect、TextElement、Image 必须有 Id。复用已有 Id 表示更新该元素。不要把同一个 Id 用作两个不同元素；不要让同一个 Id 出现在两个不同父容器下；同一片段内不要出现重复 Id。
 5. Span、Fill、Stroke、Shadow、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId。
-6. 不在 Page 子树内、作为顶层片段输出的 Panel、Rect、TextElement、Image 是悬空元素。悬空元素不参与渲染，只供 StyleFrom 引用。悬空元素创建后，不要再把同一个 Id 放入 Page 或 Panel 子树。
+6. 不在 Page 子树内、作为顶层片段输出的 Panel、Rect、TextElement、Image 是悬空元素。悬空元素不参与渲染，只供 StyleFrom 引用。悬空元素必须声明 StyleId 属性，否则报错并中断。悬空元素创建后，不要再把同一个 Id 放入 Page 或 Panel 子树。
 
 流式合并规则：
 1. 解析器用 Id 匹配已有元素。匹配到已有元素时，片段中显式声明的属性覆盖旧值；片段中未声明的属性保留旧值；片段中未声明的子元素保留旧子元素。
@@ -32,22 +32,24 @@
 4. 当父元素片段包含子元素列表 F，要与当前子元素列表 L 合并时：从 F 开头寻找第一个已存在于 L 的 Id，取其在 L 中的位置 P；若没有找到，则 P 为 L 末尾。然后从 L 中移除所有 Id 出现在 F 中的元素。最后把整个 F 插入位置 P；若 P 超出当前 L 长度则追加到末尾。
 5. 删除已有元素及其子树时，输出 <Remove TargetId="目标元素Id"/>。
 
-StyleFrom：
-1. StyleFrom 是 Panel、Rect、TextElement、Image 的通用属性，值为源元素 Id。
-2. 解析器先复制源元素的全部属性作为默认值，再用当前元素显式声明的属性覆盖；不复制源元素的子元素。
-3. 优先级：StyleFrom 源属性 < 当前元素显式属性 < 后续片段显式合并属性。
-4. 只引用已经存在的源元素 Id。可先输出悬空模板元素，再由后续元素通过 StyleFrom 复用样式。
+StyleFrom 与 StyleId：
+1. StyleFrom 是 Panel、Rect、TextElement、Image 的通用属性，值为源元素的 StyleId。
+2. StyleId 是 Panel、Rect、TextElement、Image 的通用属性，用于标记元素为样式模板源，全局唯一。悬空元素必须声明 StyleId。Page 子树内元素也可声明 StyleId。
+3. 解析器先复制源元素的全部属性作为默认值，再用当前元素显式声明的属性覆盖；不复制源元素的子元素。
+4. 优先级：StyleFrom 源属性 < 当前元素显式属性 < 后续片段显式合并属性。
+5. 只引用已经存在的源元素 StyleId。可先输出带 StyleId 的悬空模板元素，再由后续元素通过 StyleFrom 复用样式。
 
 通用属性：
 Panel、Rect、TextElement、Image 支持：
 1. Id：必填。
-2. StyleFrom：可选，引用源元素 Id。
-3. X、Y：可选，默认 0。
-4. Width、Height：可选。
-5. HorizontalAlignment：可选，Left、Center、Right，仅不写 X 时生效。
-6. VerticalAlignment：可选，Top、Center、Bottom，仅不写 Y 时生效。
-7. Opacity：可选，0.0 到 1.0，默认 1.0。
-8. Margin：可选，逗号分隔 1 到 4 个值，如 "0,0,0,8"。
+2. StyleFrom：可选，引用源元素 StyleId。
+3. StyleId：可选，标记元素为样式模板源，全局唯一。悬空元素必填。
+4. X、Y：可选，默认 0。
+5. Width、Height：可选。
+6. HorizontalAlignment：可选，Left、Center、Right，仅不写 X 时生效。
+7. VerticalAlignment：可选，Top、Center、Bottom，仅不写 Y 时生效。
+8. Opacity：可选，0.0 到 1.0，默认 1.0。
+9. Margin：可选，逗号分隔 1 到 4 个值，如 "0,0,0,8"。
 
 Page：
 1. Page 是根容器。
@@ -102,7 +104,7 @@ Fill、Stroke、Shadow、LinearGradient、Stop：
 1. 先输出 Page，建立背景和主要区域占位。
 2. 使用 Panel 划分 Header、Content、Footer、Card、Sidebar 等逻辑区域。
 3. 复杂卡片用 Panel 包住 Rect 和 TextElement。
-4. 同样式元素可用 StyleFrom 或悬空模板减少重复。
+4. 同样式元素可用 StyleFrom + StyleId 减少重复。先输出带 StyleId 的悬空模板，再由后续元素通过 StyleFrom 引用。
 5. 后续片段只输出变化部分，依靠 Id 合并保留未变化内容。
 6. 需要重排同一父容器内子元素时，在同一个父容器片段中按目标顺序输出相关子元素。
 7. 需要删除元素时使用 Remove。

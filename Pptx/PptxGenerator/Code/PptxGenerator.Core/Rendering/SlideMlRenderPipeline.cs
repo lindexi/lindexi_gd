@@ -95,7 +95,7 @@ public sealed class SlideMlRenderPipeline : ISlideMlRenderPipeline
             {
                 InputXml = slideXml,
                 OutputXml = slideXml,
-                Errors = new[] { $"[Warning] parser: SlideML 解析失败，{ex.Message}" },
+                Errors = new[] { $"[Error] parser: SlideML 解析失败，{ex.Message}" },
                 PreviewImage = previewImage,
             };
         }

@@ -277,7 +277,7 @@ public sealed class SlideMlIntegrationTests
 
     /// <summary>
     /// 验证非 Page 根元素触发解析异常时，管道捕获异常并返回错误预览，
-    /// Warnings 包含解析失败信息，OutputXml 原样返回。
+    /// Errors 包含解析失败信息，OutputXml 原样返回。
     /// </summary>
     [TestMethod]
     public async Task ParseError_NonPageRoot_ErrorPreviewReturned()
@@ -287,10 +287,10 @@ public sealed class SlideMlIntegrationTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // Warnings 包含解析失败信息
+        // Errors 包含解析失败信息
         Assert.IsTrue(
-            result.Warnings.Any(w => w.Contains("parser") && w.Contains("SlideML 解析失败")),
-            "应包含解析失败 Warning");
+            result.Errors.Any(e => e.Contains("parser") && e.Contains("SlideML 解析失败")),
+            "应包含解析失败 Error");
 
         // PreviewImage 不为 null（错误预览图）
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");

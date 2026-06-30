@@ -202,7 +202,8 @@ public sealed class SlideMlStreamingMerger
 
 - `XDocument` — 文档 DOM 树，根节点为 `<Page>`
 - `Dictionary<string, XElement>` — 全局 Id 索引，O(1) 查找
-- `List<XElement>` — 悬空元素列表（不在 Page 子树内，仅供 StyleFrom 引用）
+- `Dictionary<string, XElement>` — 全局 StyleId 索引，用于 StyleFrom 查找源元素
+- `List<XElement>` — 悬空元素列表（不在 Page 子树内，仅供 StyleFrom 引用，必须带 StyleId）
 
 **片段分发逻辑**：
 
@@ -219,7 +220,7 @@ AcceptFragment(fragmentXml, context)
   │    ├─ Id 在索引中存在 → 属性 Merge + 子元素 Merge
   │    └─ Id 不存在 → 新增元素，注册到索引
   │         ├─ 在 Page 子树内 → 插入到对应父容器
-  │         └─ 不在 Page 子树内 → 悬空元素
+  │         └─ 不在 Page 子树内 → 悬空元素（必须带 StyleId，否则报 Error 并中断）
   │
   └─ 根元素为 Remove
        └─ 从索引和父节点中移除目标元素及其子树
@@ -279,8 +280,11 @@ AcceptFragment(fragmentXml, context)
 | 同一个 `Id` 出现在文档树的两个不同父容器下 | 报 `[Error]`（检测：新元素的 Id 已在索引中，但其 Parent != 当前目标容器） |
 | 同一个片段内出现两个相同 `Id` | 报 `[Error]` |
 | `<Remove>` 的 `TargetId` 不存在 | 报 `[Warning]`，忽略该操作 |
+| 悬空元素缺少 `StyleId` | 报 `[Error]`，中断流 |
+| `StyleFrom` 引用的 `StyleId` 不存在 | 报 `[Error]`，该元素恢复为无 `StyleFrom` 处理 |
+| `StyleId` 重复 | 报 `[Error]` |
 
-### 步骤 5：StyleFrom 支持（§12）
+### 步骤 5：StyleFrom 与 StyleId 支持（§12）
 
 **位置**：`SlideMlStreamingMerger` 内部
 
@@ -289,11 +293,14 @@ AcceptFragment(fragmentXml, context)
 **逻辑**：
 
 1. 解析片段元素时，检查 `StyleFrom` 属性
-2. 如果存在，从 Id 索引中查找源元素
+2. 如果存在，从 StyleId 索引中查找源元素（不是 Id 索引）
 3. 复制源元素的全部属性到当前元素（作为默认值）
 4. 再用当前元素显式声明的属性覆盖
 5. 不复制子元素
-6. 源元素不存在 → `[Error]` + 移除 StyleFrom 属性继续处理
+6. 源元素 StyleId 不存在 → `[Error]` + 移除 StyleFrom 属性继续处理
+7. 悬空元素（不在 Page 子树内的顶层元素）缺少 `StyleId` → `[Error]` + 中断流
+8. `StyleId` 重复 → `[Error]`
+9. Page 子树内元素声明 `StyleId` → 注册到 StyleId 索引，可供其他元素引用
 
 **优先级链**：`StyleFrom` 源属性 < 元素显式声明的属性 < 后续片段 Merge 的属性
 
@@ -465,7 +472,7 @@ public string BuildDefaultStreamingSystemPrompt()
 3. Page 是根容器，最终只有一个 Page。Page 可作为后续片段再次出现，用于更新页面属性或调整顶层结构。
 4. Panel、Rect、TextElement、Image 必须有 Id。复用已有 Id 表示更新该元素。不要把同一个 Id 用作两个不同元素；不要让同一个 Id 出现在两个不同父容器下；同一片段内不要出现重复 Id。
 5. Span、Fill、Stroke、Shadow、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId。
-6. 不在 Page 子树内、作为顶层片段输出的 Panel、Rect、TextElement、Image 是悬空元素。悬空元素不参与渲染，只供 StyleFrom 引用。悬空元素创建后，不要再把同一个 Id 放入 Page 或 Panel 子树。
+6. 不在 Page 子树内、作为顶层片段输出的 Panel、Rect、TextElement、Image 是悬空元素。悬空元素不参与渲染，只供 StyleFrom 引用。悬空元素必须声明 StyleId 属性。悬空元素创建后，不要再把同一个 Id 放入 Page 或 Panel 子树。
 
 流式合并规则：
 1. 解析器用 Id 匹配已有元素。匹配到已有元素时，片段中显式声明的属性覆盖旧值；片段中未声明的属性保留旧值；片段中未声明的子元素保留旧子元素。
@@ -474,13 +481,14 @@ public string BuildDefaultStreamingSystemPrompt()
 4. 当父元素片段包含子元素列表 F，要与当前子元素列表 L 合并时：从 F 开头寻找第一个已存在于 L 的 Id，取其在 L 中的位置 P；若没有找到，则 P 为 L 末尾。然后从 L 中移除所有 Id 出现在 F 中的元素。最后把整个 F 插入位置 P；若 P 超出当前 L 长度则追加到末尾。
 5. 删除已有元素及其子树时，输出 <Remove TargetId="目标元素Id"/>。若目标不存在则忽略。
 
-StyleFrom：
-1. StyleFrom 是 Panel、Rect、TextElement、Image 的通用属性，值为源元素 Id。
-2. 解析器先复制源元素的全部属性作为默认值，再用当前元素显式声明的属性覆盖；不复制源元素的子元素。
-3. 优先级：StyleFrom 源属性 < 当前元素显式属性 < 后续片段显式合并属性。
-4. 只引用已经存在的源元素 Id。可先输出悬空模板元素，再由后续元素通过 StyleFrom 复用样式。
+StyleFrom 与 StyleId：
+1. StyleFrom 是 Panel、Rect、TextElement、Image 的通用属性，值为源元素的 StyleId。
+2. StyleId 是 Panel、Rect、TextElement、Image 的通用属性，用于标记元素为样式模板源，全局唯一。悬空元素必须声明 StyleId。Page 子树内元素也可声明 StyleId。
+3. 解析器先复制源元素的全部属性作为默认值，再用当前元素显式声明的属性覆盖；不复制源元素的子元素。
+4. 优先级：StyleFrom 源属性 < 当前元素显式属性 < 后续片段显式合并属性。
+5. 只引用已经存在的源元素 StyleId。可先输出带 StyleId 的悬空模板元素，再由后续元素通过 StyleFrom 复用样式。
 
-通用属性：Panel、Rect、TextElement、Image 支持：Id（必填）；StyleFrom（可选，引用源元素 Id）；X、Y（可选，默认 0）；Width、Height（可选）；HorizontalAlignment（可选，Left/Center/Right，仅不写 X 时生效）；VerticalAlignment（可选，Top/Center/Bottom，仅不写 Y 时生效）；Opacity（可选，0.0~1.0，默认 1.0）；Margin（可选，逗号分隔 1~4 个值，如 "0,0,0,8"）。
+通用属性：Panel、Rect、TextElement、Image 支持：Id（必填）；StyleFrom（可选，引用源元素 StyleId）；StyleId（可选，标记元素为样式模板源，全局唯一，悬空元素必填）；X、Y（可选，默认 0）；Width、Height（可选）；HorizontalAlignment（可选，Left/Center/Right，仅不写 X 时生效）；VerticalAlignment（可选，Top/Center/Bottom，仅不写 Y 时生效）；Opacity（可选，0.0~1.0，默认 1.0）；Margin（可选，逗号分隔 1~4 个值，如 "0,0,0,8"）。
 
 Page：根容器。属性：Background（可选，默认 #FFFFFF）。Page 可包含 Panel、Rect、TextElement、Image。Page 不需要 Id。
 
@@ -504,7 +512,7 @@ Fill、Stroke、Shadow、LinearGradient、Stop：Fill 用于 Panel、Rect 的渐
 1. 先输出 Page，建立背景和主要区域占位。
 2. 使用 Panel 划分 Header、Content、Footer、Card、Sidebar 等逻辑区域。
 3. 复杂卡片用 Panel 包住 Rect 和 TextElement。
-4. 同样式元素可用 StyleFrom 或悬空模板减少重复。
+4. 同样式元素可用 StyleFrom + StyleId 减少重复。先输出带 StyleId 的悬空模板，再由后续元素通过 StyleFrom 引用。
 5. 后续片段只输出变化部分，依靠 Id 合并保留未变化内容。
 6. 需要重排同一父容器内子元素时，在同一个父容器片段中按目标顺序输出相关子元素。
 7. 需要删除元素时使用 Remove。
@@ -547,7 +555,7 @@ public string BuildDefaultStreamingUserPrompt(string userPrompt)
 3. 页面内容要适合画布 $(SlideWidth) × $(SlideHeight)。
 4. 若需图片可用占位资源 ID，如 image_001。
 5. 先输出 Page 骨架，再逐步填充和细化。
-6. 每个元素必须带 Id 且全局唯一；同类元素优先用悬空模板 + StyleFrom 减少重复。
+6. 每个元素必须带 Id 且全局唯一；同类元素优先用带 StyleId 的悬空模板 + StyleFrom 减少重复。
 7. 合理使用 Panel 的 Layout 属性减少手动坐标计算。
 8. 输出过程中可随时调用 get_slide_state 和 get_slide_preview 查看排版效果。
 9. 发现问题用后续片段修正（调整坐标/尺寸，或用 Remove 删除后重来）。
@@ -626,9 +634,12 @@ string BuildStreamingUserPrompt(string userPrompt);
 | `ContainerNoChildren_PreservesExistingChildren` | 片段容器不含子元素时现有子元素不动 | §15 |
 | `Remove_ExistingElement_RemovesFromTree` | 删除存在的元素 | §9 |
 | `Remove_NonExistingTarget_WarningAndIgnore` | 删除不存在的元素 → [Warning] | §9 |
-| `DanglingElement_RegisteredButNotRendered` | 悬空元素登记到索引但不渲染 | §13 |
-| `StyleFrom_CopiesSourceAttributes` | 复制源元素属性作为默认值 | §12 |
-| `StyleFrom_SourceNotFound_ErrorAndContinue` | 源元素不存在 → [Error] | §12 |
+| `DanglingElement_RegisteredButNotRendered` | 悬空元素（带 StyleId）登记到索引但不渲染 | §13 |
+| `DanglingElement_MissingStyleId_Error` | 悬空元素缺少 StyleId → [Error] 中断 | §13 |
+| `StyleFrom_CopiesSourceAttributes` | 复制源元素属性作为默认值（StyleFrom 引用 StyleId） | §12 |
+| `StyleFrom_SourceNotFound_ErrorAndContinue` | 源元素 StyleId 不存在 → [Error] | §12 |
+| `StyleId_PageElement_CanBeReferenced` | Page 子树内元素带 StyleId 可被 StyleFrom 引用 | §12 |
+| `StyleId_Duplicate_Error` | 两个元素声明相同 StyleId → [Error] | §12 |
 | `Error_XmlFormatError_SkipsFragment` | XML 格式错误 → [Error] + 跳过 | §16 |
 | `Error_MissingId_SkipsElement` | 缺少 Id → [Error] + 跳过 | §16 |
 | `Error_DuplicateIdAcrossParents_Error` | Id 出现在两个不同父容器下 → [Error] | §16 |
@@ -704,8 +715,8 @@ LLM 在流式输出过程中可能产出错误内容（XML 格式错误、Id 冲
 
 | 级别 | 说明 | 处理方式 | 示例 |
 |------|------|----------|------|
-| **可容错** | 跳过坏片段，继续接收后续内容 | 报 `[Error]`/`[Warning]`，跳过片段，不中断 | XML 格式错误（单个片段）、`Remove` 目标不存在、`StyleFrom` 源不存在 |
-| **不可容错** | 继续接收无意义或会导致合并树损坏 | 报 `[Error]`，触发中断 | 同片段内重复 Id、Id 跨父容器冲突、连续 N 个片段格式错误（错误率过高） |
+| **可容错** | 跳过坏片段，继续接收后续内容 | 报 `[Error]`/`[Warning]`，跳过片段，不中断 | XML 格式错误（单个片段）、`Remove` 目标不存在、`StyleFrom` 源 StyleId 不存在 |
+| **不可容错** | 继续接收无意义或会导致合并树损坏 | 报 `[Error]`，触发中断 | 同片段内重复 Id、Id 跨父容器冲突、悬空元素缺少 StyleId、连续 N 个片段格式错误（错误率过高） |
 
 **可配置阈值**：`MaxConsecutiveErrors`（默认 3），连续可容错错误达到此值时升级为不可容错，触发中断。避免 LLM 持续产出垃圾内容。
 
@@ -1133,7 +1144,7 @@ public sealed class SlideStreamRenderService
 
 4. **Page 元素的 Merge**：`<Page>` 可以作为片段反复出现。在 `SlideMlStreamingMerger` 中特殊处理：第一次 `<Page>` 创建 `XDocument` 根节点，后续 `<Page>` 片段合并属性和子元素到根节点。
 
-5. **StyleFrom 依赖顺序**：源元素必须在引用元素之前出现（或在同一片段中先出现）。如果源元素尚不存在，报 `[Error]` 但保留元素（去掉 StyleFrom 处理）。
+5. **StyleFrom 依赖顺序**：源元素必须在引用元素之前出现（或在同一片段中先出现）。如果源元素 StyleId 尚不存在，报 `[Error]` 但保留元素（去掉 StyleFrom 处理）。悬空元素缺少 StyleId 为不可容错错误，直接中断流。
 
 6. **现有 `SlideMlPromptProvider` 的 prompt 指导 LLM 输出完整 XML 并调用 `render_slide`**。流式模式需要独立的提示词，指导 LLM 按片段序列输出、每个元素必须带 Id、可以随时调用 `get_slide_state` / `get_slide_preview` 查看当前状态、不需要主动调用渲染（管线自动渲染）。
 
@@ -1154,3 +1165,4 @@ public sealed class SlideStreamRenderService
 - 引擎回填属性（`ActualWidth`、`ActualHeight`、`ActualLineCount`）在流式输出中同样适用，渲染后回填到最终合并的 XML 中
 - 渲染反馈（Warning、Error、截图）与 V2/V3 保持一致
 - 唯一差异：`Id` 从可选变为必填，且要求全局唯一
+- 新增：`StyleId` 属性用于标记样式模板源，悬空元素必须声明 `StyleId`；`StyleFrom` 引用 `StyleId` 而非 `Id`

@@ -85,8 +85,8 @@ public sealed class SlideStreamingPipelineTests
         await pipeline.ProcessIncrementalTextAsync("<Page><Rect Id=\"r1\"/></Page>", context);
         await pipeline.ProcessStreamEndAsync(context);
 
-        // Assert
-        Assert.HasCount(1, renderedResults);
+        // Assert：ProcessIncrementalTextAsync 触发 1 次实时渲染，ProcessStreamEndAsync 触发 1 次最终渲染
+        Assert.HasCount(2, renderedResults);
     }
 
     [TestMethod(DisplayName = "验证流每次片段合并后触发实时渲染（带节流）")]

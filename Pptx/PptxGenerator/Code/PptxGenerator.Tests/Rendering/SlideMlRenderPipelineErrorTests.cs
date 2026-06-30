@@ -74,7 +74,7 @@ public sealed class SlideMlRenderPipelineErrorTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // SlideMlRootElementException 是 SlideMlParseException 子类，会被 catch 捕获
-        Assert.IsNotEmpty(result.Warnings, "应包含解析失败警告");
+        Assert.IsNotEmpty(result.Errors, "应包含解析失败错误");
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");
     }
 
@@ -87,7 +87,7 @@ public sealed class SlideMlRenderPipelineErrorTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // XmlException 被捕获，返回错误结果
-        Assert.IsNotEmpty(result.Warnings, "应包含解析失败警告");
+        Assert.IsNotEmpty(result.Errors, "应包含解析失败错误");
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");
     }
 

@@ -169,6 +169,9 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
 | 同一个 `Id` 出现在文档树的两个不同父容器下 | 报 `[Error]` |
 | 同一个片段内出现两个相同 `Id` | 报 `[Error]` |
 | `<Remove>` 的 `TargetId` 不存在 | 报 `[Warning]`，忽略该操作 |
+| 悬空元素（不在 Page 子树内的顶层元素）缺少 `StyleId` | 报 `[Error]`，中断流 |
+| `StyleFrom` 引用的 `StyleId` 不存在 | 报 `[Error]`，该元素恢复为无 `StyleFrom` 处理 |
+| `StyleId` 重复（两个元素声明了相同的 `StyleId`） | 报 `[Error]` |
 
 ### 错误说明示例
 
@@ -194,6 +197,9 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
   │     ├─ <TextElement Id="x">...</TextElement> → 同上
   │     ├─ <Image Id="x">...</Image>  → 同上
   │     └─ <Remove TargetId="x"/>    → 删除元素及其子树
+  │
+  │  注：不在 <Page> 子树内的顶层元素为悬空元素，不参与渲染，
+  │      仅供 StyleFrom 引用（必须带 StyleId）
   │
   └─ EOF → 流结束，最终渲染
 ```
@@ -238,7 +244,7 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
 
 <!-- 追加第一张卡片 -->
 <Panel Id="cards">
-  <Rect Id="card1-bg" Width="340" Height="160" Fill="#FFFFFF" CornerRadius="12"
+  <Rect Id="card1-bg" StyleId="card-style" Width="340" Height="160" Fill="#FFFFFF" CornerRadius="12"
         Shadow="0 4 12 #00000033" Stroke="#E8E8E8" StrokeThickness="1"/>
   <TextElement Id="card1-title" X="24" Y="20" Width="292"
                Text="流式输出" FontSize="20" IsBold="True" Foreground="#333"/>
@@ -247,10 +253,9 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
                FontSize="14" Foreground="#666"/>
 </Panel>
 
-<!-- 追加第二张卡片 -->
+<!-- 追加第二张卡片，引用 card-style 样式模板 -->
 <Panel Id="cards">
-  <Rect Id="card2-bg" Width="340" Height="160" Fill="#FFFFFF" CornerRadius="12"
-        Shadow="0 4 12 #00000033" Stroke="#E8E8E8" StrokeThickness="1"/>
+  <Rect Id="card2-bg" StyleFrom="card-style" Stroke="#4A7BF7" StrokeThickness="2"/>
   <TextElement Id="card2-title" X="24" Y="20" Width="292"
                Text="Id 合并" FontSize="20" IsBold="True" Foreground="#333"/>
   <TextElement Id="card2-desc" X="24" Y="60" Width="292"
@@ -271,3 +276,4 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
 - 引擎回填属性（`ActualWidth`、`ActualHeight`、`ActualLineCount`）在流式输出中同样适用，渲染后回填到最终合并的 XML 中
 - 渲染反馈（Warning、Error、截图）与 V2 保持一致
 - **唯一差异**：`Id` 从可选变为必填，且要求全局唯一
+- **新增**：`StyleId` 属性用于标记样式模板源，悬空元素必须声明 `StyleId`；`StyleFrom` 引用 `StyleId` 而非 `Id`

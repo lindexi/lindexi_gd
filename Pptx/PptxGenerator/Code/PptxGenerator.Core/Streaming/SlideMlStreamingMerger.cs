@@ -20,6 +20,7 @@ public sealed class SlideMlStreamingMerger
     private XDocument? _document;
     private readonly Dictionary<string, XElement> _idIndex = new();
     private readonly List<XElement> _danglingElements = new();
+    private readonly Dictionary<string, XElement> _styleIdIndex = new();
 
     /// <summary>
     /// 接收一个完整 XML 片段并合并到 DOM 树。
@@ -107,6 +108,7 @@ public sealed class SlideMlStreamingMerger
         _document = null;
         _idIndex.Clear();
         _danglingElements.Clear();
+        _styleIdIndex.Clear();
     }
 
     /// <summary>
@@ -122,6 +124,7 @@ public sealed class SlideMlStreamingMerger
             // 首次接受 Page：创建文档
             _document = new XDocument(fragmentRoot);
             RegisterIdElements(fragmentRoot);
+            RegisterStyleIdElements(fragmentRoot, context);
         }
         else
         {
@@ -136,6 +139,7 @@ public sealed class SlideMlStreamingMerger
                 // Page 成为新的根元素
                 _document = new XDocument(fragmentRoot);
                 RegisterIdElements(fragmentRoot);
+                RegisterStyleIdElements(fragmentRoot, context);
 
                 // 处理 Page 片段子元素的 StyleFrom 和缺 Id 检查
                 ProcessNewElementChildren(fragmentRoot, context);
@@ -170,8 +174,9 @@ public sealed class SlideMlStreamingMerger
 
         if (_idIndex.TryGetValue(targetId, out var targetElement))
         {
-            // 从 _idIndex 中移除该元素及其所有带 Id 的子元素
+            // 从 _idIndex 和 _styleIdIndex 中移除该元素及其所有子元素
             UnregisterIdElements(targetElement);
+            UnregisterStyleIdElements(targetElement);
             // 从父节点移除
             if (targetElement.Parent != null)
             {
@@ -220,28 +225,24 @@ public sealed class SlideMlStreamingMerger
         }
         else
         {
-            // 新增元素
+            // 新增元素 — 作为悬空元素（不在 Page 子树内），必须带 StyleId
+            if (string.IsNullOrWhiteSpace((string?)fragmentRoot.Attribute("StyleId")))
+            {
+                context.AddError($"[Error] 悬空元素缺少 StyleId: {id}");
+                return;
+            }
+
             if (_document is null)
             {
-                // _document 为 null，创建文档以该元素为根
                 _document = new XDocument(fragmentRoot);
             }
             else
             {
-                var currentRoot = _document.Root!;
-                if (string.Equals(currentRoot.Name.LocalName, "Page", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Page 已存在，顶层片段元素不在 Page 子树内，作为悬空元素
-                    _danglingElements.Add(fragmentRoot);
-                }
-                else
-                {
-                    // 当前根不是 Page，新元素也作为悬空元素
-                    _danglingElements.Add(fragmentRoot);
-                }
+                _danglingElements.Add(fragmentRoot);
             }
 
             RegisterIdElements(fragmentRoot);
+            RegisterStyleIdElements(fragmentRoot, context);
         }
     }
 
@@ -339,6 +340,7 @@ public sealed class SlideMlStreamingMerger
             if (existingChildId is not null && fragmentIdSet.Contains(existingChildId))
             {
                 UnregisterIdElements(existingChildren[i]);
+                UnregisterStyleIdElements(existingChildren[i]);
                 existingChildren[i].Remove();
                 removedIndices.Add(i);
             }
@@ -388,10 +390,11 @@ public sealed class SlideMlStreamingMerger
             }
         }
 
-        // 注册新插入元素的 Id 到 _idIndex
+        // 注册新插入元素的 Id 和 StyleId 到索引
         foreach (var node in nodesToInsert)
         {
             RegisterIdElements(node);
+            RegisterStyleIdElements(node, context);
         }
 
         // 递归处理：对每个片段子元素，如果它有子元素，递归 Merge
@@ -453,15 +456,21 @@ public sealed class SlideMlStreamingMerger
             return;
         }
 
-        var sourceId = styleFromAttr.Value;
+        var sourceStyleId = styleFromAttr.Value;
         // 移除 StyleFrom 属性
         styleFromAttr.Remove();
 
-        if (_idIndex.TryGetValue(sourceId, out var sourceElement))
+        if (_styleIdIndex.TryGetValue(sourceStyleId, out var sourceElement))
         {
             // 复制源元素的全部属性到当前元素（作为默认值，不覆盖已存在的属性）
             foreach (var attr in sourceElement.Attributes())
             {
+                // 不复制 Id 和 StyleId 属性
+                if (attr.Name.LocalName == "Id" || attr.Name.LocalName == "StyleId")
+                {
+                    continue;
+                }
+
                 if (element.Attribute(attr.Name) is null)
                 {
                     element.SetAttributeValue(attr.Name, attr.Value);
@@ -470,7 +479,7 @@ public sealed class SlideMlStreamingMerger
         }
         else
         {
-            context.AddError($"[Error] StyleFrom 源元素不存在: {sourceId}");
+            context.AddError($"[Error] StyleFrom 源元素 StyleId 不存在: {sourceStyleId}");
         }
     }
 
@@ -514,6 +523,65 @@ public sealed class SlideMlStreamingMerger
             if (descendantId is not null)
             {
                 _idIndex.Remove(descendantId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 注册元素及其所有带 StyleId 的子元素到 _styleIdIndex。
+    /// </summary>
+    /// <param name="element">要注册的元素。</param>
+    /// <param name="context">渲染上下文，用于收集错误。</param>
+    private void RegisterStyleIdElements(XElement element, SlideMlPipelineContext context)
+    {
+        var styleId = (string?)element.Attribute("StyleId");
+        if (styleId is not null)
+        {
+            if (_styleIdIndex.ContainsKey(styleId))
+            {
+                context.AddError($"[Error] StyleId 重复: {styleId}");
+            }
+            else
+            {
+                _styleIdIndex[styleId] = element;
+            }
+        }
+
+        foreach (var descendant in element.Descendants())
+        {
+            var descendantStyleId = (string?)descendant.Attribute("StyleId");
+            if (descendantStyleId is not null)
+            {
+                if (_styleIdIndex.ContainsKey(descendantStyleId))
+                {
+                    context.AddError($"[Error] StyleId 重复: {descendantStyleId}");
+                }
+                else
+                {
+                    _styleIdIndex[descendantStyleId] = descendant;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 从 _styleIdIndex 中移除元素及其所有带 StyleId 的子元素。
+    /// </summary>
+    /// <param name="element">要移除的元素。</param>
+    private void UnregisterStyleIdElements(XElement element)
+    {
+        var styleId = (string?)element.Attribute("StyleId");
+        if (styleId is not null)
+        {
+            _styleIdIndex.Remove(styleId);
+        }
+
+        foreach (var descendant in element.Descendants())
+        {
+            var descendantStyleId = (string?)descendant.Attribute("StyleId");
+            if (descendantStyleId is not null)
+            {
+                _styleIdIndex.Remove(descendantStyleId);
             }
         }
     }

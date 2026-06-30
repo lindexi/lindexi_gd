@@ -15,7 +15,7 @@ public sealed class SlideMlStreamingMergerTests
         var context = new SlideMlPipelineContext();
 
         // Act
-        merger.AcceptFragment("<Panel Id=\"card\" X=\"0\" Y=\"0\" Width=\"100\" Height=\"50\"/>", context);
+        merger.AcceptFragment("<Panel Id=\"card\" StyleId=\"card-style\" X=\"0\" Y=\"0\" Width=\"100\" Height=\"50\"/>", context);
         merger.AcceptFragment("<Panel Id=\"card\" Width=\"200\"/>", context);
 
         // Assert
@@ -32,7 +32,7 @@ public sealed class SlideMlStreamingMergerTests
         var context = new SlideMlPipelineContext();
 
         // Act
-        merger.AcceptFragment("<Rect Id=\"bg\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
+        merger.AcceptFragment("<Rect Id=\"bg\" StyleId=\"bg-style\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
         merger.AcceptFragment("<Rect Id=\"bg\" Height=\"80\"/>", context);
 
         // Assert
@@ -175,7 +175,7 @@ public sealed class SlideMlStreamingMergerTests
         var context = new SlideMlPipelineContext();
 
         // Act
-        merger.AcceptFragment("<Rect Id=\"template\" Fill=\"#0000FF\"/>", context);
+        merger.AcceptFragment("<Rect Id=\"template\" StyleId=\"template-style\" Fill=\"#0000FF\"/>", context);
         merger.AcceptFragment("<Page/>", context);
 
         // Assert
@@ -193,8 +193,8 @@ public sealed class SlideMlStreamingMergerTests
         var context = new SlideMlPipelineContext();
 
         // Act
-        merger.AcceptFragment("<Rect Id=\"template\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
-        merger.AcceptFragment("<Page><Rect Id=\"card1\" StyleFrom=\"template\" X=\"0\" Y=\"0\"/></Page>", context);
+        merger.AcceptFragment("<Rect Id=\"template\" StyleId=\"template-style\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"card1\" StyleFrom=\"template-style\" X=\"0\" Y=\"0\"/></Page>", context);
 
         // Assert
         var xml = merger.GetMergedXml();
@@ -353,5 +353,158 @@ public sealed class SlideMlStreamingMergerTests
         var doc = XDocument.Parse(xml);
         Assert.AreEqual("Page", doc.Root!.Name.LocalName);
         Assert.AreEqual("#F5F5F5", doc.Root.Attribute("Background")?.Value, "Background 应被覆盖为 F5F5F5");
+    }
+
+    [TestMethod]
+    public void DanglingElement_MissingStyleId_Error()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 顶层元素不在 Page 子树内，且没有 StyleId
+        merger.AcceptFragment("<Rect Id=\"template\" Fill=\"#FF0000\"/>", context);
+
+        // Assert
+        Assert.IsTrue(context.Errors.Any(e => e.Contains("StyleId")), "悬空元素缺少 StyleId 应产生错误");
+    }
+
+    [TestMethod]
+    public void StyleFrom_ReferencesStyleId_CopiesAttributes()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 悬空模板带 StyleId，后续元素通过 StyleFrom 引用 StyleId
+        merger.AcceptFragment("<Rect Id=\"template\" StyleId=\"card-style\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\" CornerRadius=\"8\"/>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"card1\" StyleFrom=\"card-style\" X=\"10\" Y=\"20\"/></Page>", context);
+
+        // Assert
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var card1 = doc.Root!
+            .Elements()
+            .First(e => e.Attribute("Id")?.Value == "card1");
+
+        Assert.AreEqual("#FF0000", card1.Attribute("Fill")?.Value, "应从 StyleId 源继承 Fill");
+        Assert.AreEqual("100", card1.Attribute("Width")?.Value, "应从 StyleId 源继承 Width");
+        Assert.AreEqual("50", card1.Attribute("Height")?.Value, "应从 StyleId 源继承 Height");
+        Assert.AreEqual("8", card1.Attribute("CornerRadius")?.Value, "应从 StyleId 源继承 CornerRadius");
+        Assert.AreEqual("10", card1.Attribute("X")?.Value, "应保留自身 X");
+        Assert.AreEqual("20", card1.Attribute("Y")?.Value, "应保留自身 Y");
+        Assert.IsNull(card1.Attribute("StyleFrom"), "StyleFrom 属性应被移除");
+        Assert.IsNull(card1.Attribute("StyleId"), "不应从源元素复制 StyleId");
+    }
+
+    [TestMethod]
+    public void StyleFrom_StyleIdNotFound_Error()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — StyleFrom 引用不存在的 StyleId
+        merger.AcceptFragment("<Page/>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"card1\" StyleFrom=\"nonexistent-style\" X=\"0\"/></Page>", context);
+
+        // Assert
+        Assert.IsTrue(context.Errors.Any(e => e.Contains("nonexistent-style")), "应产生包含 nonexistent-style 的错误");
+    }
+
+    [TestMethod]
+    public void StyleFrom_ReferencesIdInsteadOfStyleId_Error()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 元素有 Id 但没有 StyleId，StyleFrom 引用该 Id 应失败
+        merger.AcceptFragment("<Page><Rect Id=\"source\" Fill=\"#FF0000\" Width=\"100\"/></Page>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"target\" StyleFrom=\"source\" X=\"0\"/></Page>", context);
+
+        // Assert — StyleFrom 查找 StyleId "source"，但该元素只有 Id 没有 StyleId
+        Assert.IsTrue(context.Errors.Any(e => e.Contains("source")), "StyleFrom 引用 Id 而非 StyleId 应产生错误");
+    }
+
+    [TestMethod]
+    public void StyleId_PageElement_CanBeReferenced()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — Page 子树内元素带 StyleId，被另一个元素通过 StyleFrom 引用
+        merger.AcceptFragment("<Page><Rect Id=\"base\" StyleId=\"base-style\" Fill=\"#0000FF\" Width=\"200\" Height=\"100\"/></Page>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"derived\" StyleFrom=\"base-style\" Stroke=\"#FF0000\"/></Page>", context);
+
+        // Assert
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var derived = doc.Root!
+            .Elements()
+            .First(e => e.Attribute("Id")?.Value == "derived");
+
+        Assert.AreEqual("#0000FF", derived.Attribute("Fill")?.Value, "应从 Page 内元素的 StyleId 继承 Fill");
+        Assert.AreEqual("200", derived.Attribute("Width")?.Value, "应从 Page 内元素的 StyleId 继承 Width");
+        Assert.AreEqual("100", derived.Attribute("Height")?.Value, "应从 Page 内元素的 StyleId 继承 Height");
+        Assert.AreEqual("#FF0000", derived.Attribute("Stroke")?.Value, "应保留自身 Stroke");
+    }
+
+    [TestMethod]
+    public void StyleId_Duplicate_Error()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 两个元素声明了相同的 StyleId
+        merger.AcceptFragment("<Page><Rect Id=\"a\" StyleId=\"dup-style\" Fill=\"#FF0000\"/></Page>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"b\" StyleId=\"dup-style\" Fill=\"#00FF00\"/></Page>", context);
+
+        // Assert
+        Assert.IsTrue(context.Errors.Any(e => e.Contains("dup-style")), "重复 StyleId 应产生错误");
+    }
+
+    [TestMethod]
+    public void DanglingElement_WithStyleId_RegisteredInStyleIdIndex()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 悬空元素带 StyleId，后续 Page 内元素通过 StyleFrom 引用
+        merger.AcceptFragment("<Rect Id=\"tmpl\" StyleId=\"tmpl-style\" Fill=\"#CCCCCC\" Width=\"300\" Height=\"200\"/>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"card\" StyleFrom=\"tmpl-style\" X=\"50\" Y=\"50\"/></Page>", context);
+
+        // Assert
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        Assert.AreEqual("Page", doc.Root!.Name.LocalName);
+        var card = doc.Root!.Elements().First(e => e.Attribute("Id")?.Value == "card");
+        Assert.AreEqual("#CCCCCC", card.Attribute("Fill")?.Value, "应从悬空模板的 StyleId 继承 Fill");
+        Assert.AreEqual("300", card.Attribute("Width")?.Value, "应从悬空模板的 StyleId 继承 Width");
+        Assert.AreEqual("200", card.Attribute("Height")?.Value, "应从悬空模板的 StyleId 继承 Height");
+        Assert.IsNull(doc.Root!.Elements().FirstOrDefault(e => e.Attribute("Id")?.Value == "tmpl"), "悬空模板不应出现在 Page 子树中");
+    }
+
+    [TestMethod]
+    public void StyleFrom_DoesNotCopyIdOrStyleId()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act
+        merger.AcceptFragment("<Rect Id=\"src\" StyleId=\"src-style\" Fill=\"#FF0000\" Width=\"100\"/>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"dst\" StyleFrom=\"src-style\" X=\"0\"/></Page>", context);
+
+        // Assert
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var dst = doc.Root!.Elements().First(e => e.Attribute("Id")?.Value == "dst");
+        Assert.AreEqual("dst", dst.Attribute("Id")?.Value, "Id 应保持自身值");
+        Assert.IsNull(dst.Attribute("StyleId"), "不应从源元素复制 StyleId");
+        Assert.AreEqual("#FF0000", dst.Attribute("Fill")?.Value, "应继承 Fill");
     }
 }

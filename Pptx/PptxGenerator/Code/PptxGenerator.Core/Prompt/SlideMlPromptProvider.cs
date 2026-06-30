@@ -183,14 +183,14 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 - 每个片段必须是自包含的完整 XML 元素（自闭合标签或配对的开始/结束标签）
 - 可以在任何位置中断并修正之前的输出
 - 不要使用 markdown 代码块包裹 XML
-- 使用 StyleFrom 属性引用已定义的模板元素
+- 使用 StyleFrom 属性引用已定义的模板元素（通过 StyleId）
 - 使用 Remove 标签删除不需要的元素
 
 ## SlideML 基本规则
 - 画布尺寸固定为 {canvasSize} 像素，坐标原点在左上角
 - 所有尺寸单位为 px（不写单位），颜色格式为 #RRGGBB 或 #AARRGGBB
 - 标签必须严格遵守定义，不要创造新标签或新属性
-- 元素 Id 可以不写，引擎会自动分配
+- 元素 Id 可以不写，引擎会自动分配。悬空元素（不在 Page 内的顶层元素）必须带 StyleId 属性。
 
 ## 标签与属性
 ### Page
@@ -206,7 +206,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 ### Remove
 属性: TargetId（必填，要删除的元素 Id）
 ### StyleFrom
-属性: 引用已定义元素的 Id，复制其属性作为默认值
+属性: 引用已定义元素的 StyleId，复制其属性作为默认值。悬空元素必须带 StyleId。
 
 ## 排版规则
 1. 所有子元素相对于直接父容器定位
@@ -253,7 +253,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 3. 页面内容要适合画布 {canvasSize}。
 4. 若需图片可用占位资源 ID，如 image_001。
 5. 先输出 Page 骨架，再逐步填充和细化。
-6. 每个元素必须带 Id 且全局唯一；同类元素优先用悬空模板 + StyleFrom 减少重复。
+6. 每个元素必须带 Id 且全局唯一；同类元素优先用带 StyleId 的悬空模板 + StyleFrom 减少重复。
 7. 合理使用 Panel 的 Layout 属性减少手动坐标计算。
 8. 输出过程中可随时调用 get_slide_state 和 get_slide_preview 查看排版效果。
 9. 发现问题用后续片段修正（调整坐标/尺寸，或用 Remove 删除后重来）。

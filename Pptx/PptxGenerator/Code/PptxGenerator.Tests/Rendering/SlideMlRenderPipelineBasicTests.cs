@@ -172,7 +172,7 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        Assert.IsNotEmpty(result.Warnings, "应包含解析失败警告");
+        Assert.IsNotEmpty(result.Errors, "应包含解析失败错误");
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");
     }
 }
