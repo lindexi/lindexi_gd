@@ -24,6 +24,7 @@ public sealed class ChatRoomService
     private readonly ModelProviderService _modelProviderService;
     private readonly string _persistencePath;
     private readonly int _defaultMaxRounds;
+    private string? _workspacePath;
 
     private ChatRoomManager? _currentManager;
     private ChatRoomPersistence? _persistence;
@@ -60,11 +61,13 @@ public sealed class ChatRoomService
     /// <param name="modelProviderService">模型提供商服务。</param>
     /// <param name="persistencePath">持久化根目录路径。</param>
     /// <param name="defaultMaxRounds">默认最大轮次。</param>
+    /// <param name="workspacePath">工作区路径，启用文件系统工具。为 <see langword="null"/> 时文件系统工具不可用。</param>
     public ChatRoomService(
         IMainThreadDispatcher mainThreadDispatcher,
         ModelProviderService modelProviderService,
         string persistencePath,
-        int defaultMaxRounds = 10)
+        int defaultMaxRounds = 10,
+        string? workspacePath = null)
     {
         ArgumentNullException.ThrowIfNull(mainThreadDispatcher);
         ArgumentNullException.ThrowIfNull(modelProviderService);
@@ -77,6 +80,7 @@ public sealed class ChatRoomService
         _modelProviderService = modelProviderService;
         _persistencePath = persistencePath;
         _defaultMaxRounds = defaultMaxRounds;
+        _workspacePath = workspacePath;
     }
 
     /// <summary>
@@ -101,6 +105,7 @@ public sealed class ChatRoomService
         {
             Persistence = _persistence,
             SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = _defaultMaxRounds },
+            WorkspacePath = _workspacePath,
         };
 
         AttachEvents(_currentManager);
@@ -138,6 +143,7 @@ public sealed class ChatRoomService
         {
             Persistence = _persistence,
             SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = _defaultMaxRounds },
+            WorkspacePath = _workspacePath,
         };
 
         AttachEvents(_currentManager);
@@ -307,13 +313,24 @@ public sealed class ChatRoomService
     /// 应在设置页面保存后调用，确保新配置立即生效。
     /// </summary>
     /// <param name="appSettings">最新的应用设置。</param>
-    public void RefreshProviders(AppSettings appSettings)
+    /// <param name="workspacePath">最新的工作区路径。为 <see langword="null"/> 时不更新工作区路径。</param>
+    public void RefreshProviders(AppSettings appSettings, string? workspacePath = null)
     {
         _modelProviderService.UpdateSettings(appSettings);
+
+        if (workspacePath is not null)
+        {
+            _workspacePath = workspacePath;
+        }
 
         if (_currentManager is null)
         {
             return;
+        }
+
+        if (workspacePath is not null)
+        {
+            _currentManager.WorkspacePath = workspacePath;
         }
 
         RegisterProviders(_currentManager);

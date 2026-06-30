@@ -125,6 +125,7 @@ public sealed class SettingsViewModel : ViewModelBase
     private string _persistencePath = string.Empty;
     private int _defaultMaxRounds = 10;
     private string? _primaryModel;
+    private string? _workspacePath;
 
     /// <summary>
     /// 持久化路径。
@@ -151,6 +152,15 @@ public sealed class SettingsViewModel : ViewModelBase
     {
         get => _primaryModel;
         set => SetField(ref _primaryModel, value);
+    }
+
+    /// <summary>
+    /// 工作区路径。设置后角色的文件系统工具将在此路径下操作文件。
+    /// </summary>
+    public string? WorkspacePath
+    {
+        get => _workspacePath;
+        set => SetField(ref _workspacePath, value);
     }
 
     /// <summary>
@@ -196,6 +206,7 @@ public sealed class SettingsViewModel : ViewModelBase
         _persistencePath = _appSettings.PersistencePath;
         _defaultMaxRounds = _appSettings.DefaultMaxRounds;
         _primaryModel = _appSettings.PrimaryModel;
+        _workspacePath = _appSettings.WorkspacePath;
 
         foreach (ProviderSetting p in _appSettings.Providers)
         {
@@ -216,6 +227,7 @@ public sealed class SettingsViewModel : ViewModelBase
             _appSettings.PersistencePath = _persistencePath;
             _appSettings.DefaultMaxRounds = _defaultMaxRounds;
             _appSettings.PrimaryModel = _primaryModel;
+            _appSettings.WorkspacePath = _workspacePath;
 
             _appSettings.Providers.Clear();
             foreach (ProviderEditViewModel p in Providers)
@@ -225,8 +237,8 @@ public sealed class SettingsViewModel : ViewModelBase
 
             await _settingsService.SaveAsync(_appSettings).ConfigureAwait(false);
 
-                        // 热更新：更新 ModelProviderService 内部设置并重新注册模型提供商
-                        _chatRoomService.RefreshProviders(_appSettings);
+            // 热更新：更新 ModelProviderService 内部设置并重新注册模型提供商
+            _chatRoomService.RefreshProviders(_appSettings, _workspacePath);
 
             BackRequested?.Invoke(this, EventArgs.Empty);
         }

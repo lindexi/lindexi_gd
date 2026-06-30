@@ -27,6 +27,7 @@ public sealed class ChatRoomManager : NotifyBase
     private ChatRoomRole? _currentSpeaker;
     private CancellationTokenSource? _autoLoopCancellationTokenSource;
     private IReadOnlyDictionary<string, ILanguageModelProvider>? _languageModelProviders;
+    private string? _workspacePath;
 
     /// <summary>
     /// 人类插话信号。当自动循环运行期间用户插话时设置为 1，
@@ -78,6 +79,23 @@ public sealed class ChatRoomManager : NotifyBase
     /// 会回退到此值进行匹配。由外部调用方（如 ChatRoomService）在注册提供商时设置。
     /// </summary>
     public string? DefaultPrimaryModelId { get; set; }
+
+    /// <summary>
+    /// 工作区路径。设置后传播到所有角色的 <see cref="ChatRoomRole.WorkspacePath"/>，
+    /// 启用文件系统相关工具。新添加的角色也会自动应用此路径。
+    /// </summary>
+    public string? WorkspacePath
+    {
+        get => _workspacePath;
+        set
+        {
+            _workspacePath = value;
+            foreach (ChatRoomRole role in Roles)
+            {
+                role.WorkspacePath = value;
+            }
+        }
+    }
 
     /// <summary>
     /// 是否正在运行自动循环。
@@ -410,6 +428,9 @@ public sealed class ChatRoomManager : NotifyBase
     {
         ArgumentNullException.ThrowIfNull(role);
 
+        // 应用工作区路径到新角色
+        role.WorkspacePath = _workspacePath;
+
         await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
         RegisterModelProvidersForRole(role);
         Roles.Add(role);
@@ -609,6 +630,10 @@ public sealed class ChatRoomManager : NotifyBase
                         {
                             MainThreadDispatcher = Session.MainThreadDispatcher,
                         };
+
+            // 应用工作区路径到恢复的角色
+            role.WorkspacePath = _workspacePath;
+
             await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
             try

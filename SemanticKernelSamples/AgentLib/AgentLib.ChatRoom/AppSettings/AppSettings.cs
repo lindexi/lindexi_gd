@@ -32,4 +32,10 @@ public sealed class AppSettings
     /// 角色模板持久化路径。为空时使用默认路径 {AppData}/AgentRoundtable/RoleTemplates。
     /// </summary>
     public string? RoleTemplatesPath { get; set; }
+
+    /// <summary>
+    /// 工作区路径。设置后角色的文件系统工具将在此路径下操作文件。
+    /// 为空时文件系统工具不可用。
+    /// </summary>
+    public string? WorkspacePath { get; set; }
 }
