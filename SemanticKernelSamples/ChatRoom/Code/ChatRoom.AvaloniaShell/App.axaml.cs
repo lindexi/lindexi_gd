@@ -64,12 +64,20 @@ public partial class App : Application
             persistencePath,
             appSettings.DefaultMaxRounds);
 
+        // 5.1 角色模板服务
+        string roleTemplatesPath = string.IsNullOrWhiteSpace(appSettings.RoleTemplatesPath)
+            ? Path.Join(appData, "AgentRoundtable", "RoleTemplates")
+            : appSettings.RoleTemplatesPath;
+        var roleTemplateService = new RoleTemplateService(roleTemplatesPath);
+        await roleTemplateService.EnsurePresetTemplatesAsync();
+
         // 6. 主 ViewModel
         var mainViewModel = new MainViewModel(
             chatRoomService,
             settingsService,
             modelProviderService,
-            sessionService);
+            sessionService,
+            roleTemplateService);
 
         // 7. 初始化：创建默认会话和助手角色
         await mainViewModel.InitializeAsync().ConfigureAwait(true);

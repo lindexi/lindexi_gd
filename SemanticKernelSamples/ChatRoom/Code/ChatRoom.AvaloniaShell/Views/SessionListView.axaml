@@ -51,9 +51,14 @@
         <!-- 底部设置按钮 -->
         <Border Grid.Row="2" Padding="12,8" Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-            <Button Classes="Flat" Content="⚙ 设置"
-                    Command="{Binding OpenSettingsCommand}"
-                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+            <StackPanel Spacing="4">
+                <Button Classes="Flat" Content="👥 角色大厅"
+                        Command="{Binding OpenLobbyCommand}"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+                <Button Classes="Flat" Content="⚙ 设置"
+                        Command="{Binding OpenSettingsCommand}"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>

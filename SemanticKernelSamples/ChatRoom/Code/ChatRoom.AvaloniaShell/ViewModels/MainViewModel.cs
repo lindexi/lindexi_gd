@@ -27,6 +27,11 @@ public enum AppPage
     /// 角色编辑界面。
     /// </summary>
     RoleEdit,
+
+    /// <summary>
+    /// 角色大厅界面。
+    /// </summary>
+    RoleLobby,
 }
 
 /// <summary>
@@ -36,9 +41,11 @@ public sealed class MainViewModel : ViewModelBase
 {
     private readonly ChatRoomService _chatRoomService;
     private readonly SettingsService _settingsService;
+    private readonly RoleTemplateService _roleTemplateService;
     private AppPage _currentPage = AppPage.Chat;
     private RoleEditViewModel? _roleEditViewModel;
     private SettingsViewModel? _settingsViewModel;
+    private RoleLobbyViewModel? _roleLobbyViewModel;
 
     /// <summary>
     /// 聊天室服务。
@@ -108,16 +115,32 @@ public sealed class MainViewModel : ViewModelBase
     public bool IsRoleEditPage => CurrentPage == AppPage.RoleEdit;
 
     /// <summary>
+    /// 是否显示角色大厅界面。
+    /// </summary>
+    public bool IsRoleLobbyPage => CurrentPage == AppPage.RoleLobby;
+
+    /// <summary>
+    /// 角色大厅 ViewModel。仅在 <see cref="CurrentPage"/> 为 <see cref="AppPage.RoleLobby"/> 时有效。
+    /// </summary>
+    public RoleLobbyViewModel? RoleLobbyViewModel
+    {
+        get => _roleLobbyViewModel;
+        private set => SetField(ref _roleLobbyViewModel, value);
+    }
+
+    /// <summary>
     /// 使用指定的服务创建主 ViewModel。
     /// </summary>
     public MainViewModel(
         ChatRoomService chatRoomService,
         SettingsService settingsService,
         ModelProviderService modelProviderService,
-        SessionService sessionService)
+        SessionService sessionService,
+        RoleTemplateService roleTemplateService)
     {
         _chatRoomService = chatRoomService;
         _settingsService = settingsService;
+        _roleTemplateService = roleTemplateService;
 
         SessionListViewModel = new SessionListViewModel(chatRoomService, sessionService);
         ChatViewModel = new ChatViewModel(chatRoomService);
@@ -127,8 +150,11 @@ public sealed class MainViewModel : ViewModelBase
         SessionListViewModel.SettingsRequested += OnSettingsRequested;
         SessionListViewModel.SessionOpened += OnSessionOpened;
         SessionListViewModel.NewSessionCreated += OnNewSessionCreated;
+        SessionListViewModel.OpenLobbyRequested += OnOpenLobbyRequested;
         RoleListViewModel.AddRoleRequested += OnAddRoleRequested;
         RoleListViewModel.EditRoleRequested += OnEditRoleRequested;
+        RoleListViewModel.OpenLobbyRequested += OnOpenLobbyRequested;
+        RoleListViewModel.PromoteToLobbyRequested += OnPromoteToLobbyRequested;
     }
 
     /// <summary>
@@ -262,5 +288,52 @@ public sealed class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsChatPage));
         OnPropertyChanged(nameof(IsSettingsPage));
         OnPropertyChanged(nameof(IsRoleEditPage));
+        OnPropertyChanged(nameof(IsRoleLobbyPage));
+    }
+
+    private void OnOpenLobbyRequested(object? sender, EventArgs e)
+    {
+        NavigateToRoleLobby();
+    }
+
+    private void OnPromoteToLobbyRequested(object? sender, string roleId)
+    {
+        NavigateToRoleLobbyForPromote(roleId);
+    }
+
+    /// <summary>
+    /// 导航到角色大厅页面。
+    /// </summary>
+    public void NavigateToRoleLobby()
+    {
+        RoleLobbyViewModel = new RoleLobbyViewModel(_roleTemplateService, _chatRoomService);
+        RoleLobbyViewModel.BackRequested += OnRoleLobbyBack;
+        RoleLobbyViewModel.RefreshTemplates();
+        CurrentPage = AppPage.RoleLobby;
+        RaisePageChanged();
+    }
+
+    /// <summary>
+    /// 导航到角色大厅页面，并展开提升表单预选指定角色。
+    /// </summary>
+    /// <param name="roleId">要提升的角色 ID。</param>
+    public void NavigateToRoleLobbyForPromote(string roleId)
+    {
+        RoleLobbyViewModel = new RoleLobbyViewModel(_roleTemplateService, _chatRoomService);
+        RoleLobbyViewModel.BackRequested += OnRoleLobbyBack;
+        RoleLobbyViewModel.RefreshTemplates();
+        RoleLobbyViewModel.OpenPromotePanelForRole(roleId);
+        CurrentPage = AppPage.RoleLobby;
+        RaisePageChanged();
+    }
+
+    private void OnRoleLobbyBack(object? sender, EventArgs e)
+    {
+        if (RoleLobbyViewModel is not null)
+        {
+            RoleLobbyViewModel.BackRequested -= OnRoleLobbyBack;
+        }
+
+        NavigateToChat();
     }
 }

@@ -31,6 +31,11 @@
             <Panel IsVisible="{Binding IsRoleEditPage}">
                 <views:RoleEditView DataContext="{Binding RoleEditViewModel}" />
             </Panel>
+
+            <!-- 角色大厅页面 -->
+            <Panel IsVisible="{Binding IsRoleLobbyPage}">
+                <views:RoleLobbyView DataContext="{Binding RoleLobbyViewModel}" />
+            </Panel>
         </Grid>
 
         <GridSplitter Grid.Column="3" Background="{StaticResource BorderBrush}"
