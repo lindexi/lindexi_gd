@@ -29,6 +29,14 @@ public sealed class ChatRoomManager : NotifyBase
     private IReadOnlyDictionary<string, ILanguageModelProvider>? _languageModelProviders;
 
     /// <summary>
+    /// 人类插话信号。当自动循环运行期间用户插话时设置为 1，
+    /// 促使 <see cref="StartAutoLoopAsync"/> 在当前角色发言完成后重启循环，
+    /// 使选择器检测到人类消息并让助手立即回话用户。
+    /// 使用 int + Interlocked 以保证原子消费，避免多次插话时的竞态。
+    /// </summary>
+    private int _humanInterjectSignal;
+
+    /// <summary>
     /// 使用指定的会话创建聊天室管理器。
     /// </summary>
     /// <param name="session">聊天室会话。</param>
@@ -233,6 +241,15 @@ public sealed class ChatRoomManager : NotifyBase
                         break;
                     }
                 }
+
+                // 人类插话信号：当前角色发言完成且消息处理完毕后，
+                // 重启循环让选择器看到人类消息，使助手立即回话用户。
+                // 使用 Interlocked.Exchange 原子消费信号，避免多次插话时的竞态。
+                if (System.Threading.Interlocked.Exchange(ref _humanInterjectSignal, 0) != 0)
+                {
+                    consecutiveEmptyReplies = 0;
+                    continue;
+                }
             }
         }
         catch (OperationCanceledException) when (loopCancellationToken.IsCancellationRequested)
@@ -366,6 +383,13 @@ public sealed class ChatRoomManager : NotifyBase
         }
 
         await AppendMessageAsync(message);
+
+        // 自动循环运行期间插话：设置信号，促使当前循环在角色发言完成后重启，
+        // 让选择器检测到人类消息并让助手立即回话用户
+        if (IsRunning)
+        {
+            System.Threading.Interlocked.Exchange(ref _humanInterjectSignal, 1);
+        }
     }
 
     /// <summary>
@@ -575,7 +599,9 @@ public sealed class ChatRoomManager : NotifyBase
         // 用持久化数据替换当前 Session 的状态
         Session.Title = data.Title;
 
-        // 恢复角色
+        // 恢复角色。模型解析失败（如提供商配置已变更）不应阻止会话加载，
+        // 否则消息历史将无法还原。失败的角色仍会被添加到 Roles 列表，
+        // 用户可在设置中重新配置模型后再使用该角色。
         Roles.Clear();
         foreach (ChatRoomRoleDefinition roleDef in data.Roles)
         {
@@ -583,13 +609,27 @@ public sealed class ChatRoomManager : NotifyBase
                         {
                             MainThreadDispatcher = Session.MainThreadDispatcher,
                         };
-            await AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
+            await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                RegisterModelProvidersForRole(role);
+            }
+            catch (InvalidOperationException)
+            {
+                // 模型提供商尚未注册或角色定义的模型已不可用（如提供商配置已变更），
+                // 跳过首选模型设置但不阻止会话恢复，用户可在设置中重新配置模型后再使用该角色。
+            }
+
+            Roles.Add(role);
         }
 
-        // 恢复消息
+        // 恢复消息。反序列化后 CopilotChatMessage 为 null（JsonIgnore），
+        // 需要从 StaticContent 重建，使 UI 绑定的 MessageItems 能正常渲染历史消息内容。
         Session.Messages.Clear();
         foreach (ChatRoomMessage msg in data.Messages)
         {
+            msg.RestoreCopilotChatMessage();
             await Session.AddMessageAsync(msg);
         }
     }
