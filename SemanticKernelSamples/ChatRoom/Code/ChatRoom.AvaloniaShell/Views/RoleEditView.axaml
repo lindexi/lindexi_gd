@@ -61,6 +61,16 @@
                             <TextBox Classes="Rounded" Text="{Binding ModelId}"
                                      Watermark="留空使用默认" />
                         </StackPanel>
+
+                        <!-- 当前实际生效的模型 -->
+                        <Border Background="{StaticResource SurfaceVariantBrush}" CornerRadius="6" Padding="10,8"
+                                IsVisible="{Binding !!CurrentEffectiveModel}">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="当前生效模型" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding CurrentEffectiveModel}"
+                                           Foreground="{StaticResource PrimaryBrush}" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -6,6 +7,8 @@ using System.Windows.Input;
 using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
+using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 namespace ChatRoom.AvaloniaShell.ViewModels;
 
@@ -24,6 +27,7 @@ public sealed class RoleEditViewModel : ViewModelBase
     private string? _modelProviderId;
     private string? _modelId;
     private string? _participationMode;
+    private string? _currentEffectiveModel;
 
     /// <summary>
     /// 是否为编辑模式（而非新建）。
@@ -99,6 +103,17 @@ public sealed class RoleEditViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 当前实际生效的模型显示文本，格式为 "Provider / ModelName"。
+    /// 编辑模式时从角色的 <see cref="AgentLib.Core.AgentApiEndpointManager.PrimaryModel"/> 读取；
+    /// 新建模式时为 <see langword="null"/>。
+    /// </summary>
+    public string? CurrentEffectiveModel
+    {
+        get => _currentEffectiveModel;
+        private set => SetField(ref _currentEffectiveModel, value);
+    }
+
+    /// <summary>
     /// 可选的参与模式列表。
     /// </summary>
     public string[] ParticipationModeOptions { get; } = ["始终参与", "仅被 @ 时发言"];
@@ -168,6 +183,9 @@ public sealed class RoleEditViewModel : ViewModelBase
             ? ParticipationModeOptions[1]
             : ParticipationModeOptions[0];
 
+        // 从角色的 EndpointManager 读取当前实际生效的模型
+        _currentEffectiveModel = ResolveEffectiveModel(role);
+
         OnPropertyChanged(nameof(RoleName));
         OnPropertyChanged(nameof(SystemPrompt));
         OnPropertyChanged(nameof(MemoryContent));
@@ -175,9 +193,34 @@ public sealed class RoleEditViewModel : ViewModelBase
         OnPropertyChanged(nameof(ModelProviderId));
         OnPropertyChanged(nameof(ModelId));
         OnPropertyChanged(nameof(ParticipationMode));
+        OnPropertyChanged(nameof(CurrentEffectiveModel));
     }
 
-    private async Task SaveAsync()
+        /// <summary>
+        /// 从角色运行时的 <see cref="AgentLib.Core.AgentApiEndpointManager.PrimaryModel"/> 读取当前实际生效的模型。
+        /// 若端点管理器尚无可用模型，返回 "加入聊天室后生效"。
+        /// </summary>
+        private static string? ResolveEffectiveModel(ChatRoomRole role)
+        {
+            try
+            {
+                var supportedModels = role.EndpointManager.GetSupportedModels();
+                if (supportedModels.Count == 0)
+                {
+                    return "加入聊天室后生效";
+                }
+
+                var primary = role.EndpointManager.PrimaryModel;
+                var def = primary.ModelDefinition;
+                return $"{def.Provider} / {def.ModelName}";
+            }
+            catch
+            {
+                return "加入聊天室后生效";
+            }
+        }
+
+        private async Task SaveAsync()
     {
         if (_chatRoomService.CurrentManager is null)
         {
