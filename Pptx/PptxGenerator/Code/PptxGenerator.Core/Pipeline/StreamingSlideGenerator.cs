@@ -56,13 +56,11 @@ internal sealed class StreamingSlideGenerator
     /// <param name="streamingState">跨轮复用的流式生成状态，包含合并器和渲染上下文。</param>
     /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <param name="onPropertiesChanged">流式结束后在主线程调用的回调，用于刷新外部属性通知。</param>
     /// <returns>表示异步操作的任务。</returns>
     public async Task GenerateAsync(
         string userMessage, bool isFirstMessage, SlideStreamingState streamingState,
         CancellationToken cancellationToken,
-        bool attachPreview = false,
-        Action? onPropertiesChanged = null)
+        bool attachPreview = false)
     {
         ArgumentNullException.ThrowIfNull(streamingState);
 
@@ -94,12 +92,6 @@ internal sealed class StreamingSlideGenerator
             currentMessage = errorFeedback;
             includeSystemPrompt = false;
         }
-
-        await _dispatcher.InvokeAsync(() =>
-        {
-            onPropertiesChanged?.Invoke();
-            return Task.CompletedTask;
-        }).ConfigureAwait(false);
     }
 
     /// <summary>

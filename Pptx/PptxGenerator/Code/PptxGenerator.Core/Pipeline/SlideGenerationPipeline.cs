@@ -154,14 +154,16 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
             await generator.GenerateAsync(
                 userMessage, isFirstMessage, _streamingState, cancellationToken,
-                attachPreview: attachPreview,
-                onPropertiesChanged: () =>
-                {
-                    OnPropertyChanged(nameof(PreviewImage));
-                    OnPropertyChanged(nameof(CurrentSlideXml));
-                    OnPropertyChanged(nameof(RenderedXml));
-                    OnPropertyChanged(nameof(WarningText));
-                }).ConfigureAwait(false);
+                attachPreview: attachPreview).ConfigureAwait(false);
+
+            _ = _dispatcher.InvokeAsync(() =>
+            {
+                OnPropertyChanged(nameof(PreviewImage));
+                OnPropertyChanged(nameof(CurrentSlideXml));
+                OnPropertyChanged(nameof(RenderedXml));
+                OnPropertyChanged(nameof(WarningText));
+                return Task.CompletedTask;
+            });
             return;
         }
 
