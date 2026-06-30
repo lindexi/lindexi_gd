@@ -285,7 +285,7 @@ Fill、Stroke、Shadow、LinearGradient、Stop：
 </Page>
 
 <Panel Id="Header" Background="#1A1A2E">
-  <TextElement Id="HeaderTitle" X="80" Y="28" Width="1120" Text="标题" FontSize="L2" IsBold="True" Foreground="#FFFFFF" TextAlignment="Center"/>
+  <TextElement Id="HeaderTitle" X="80" Y="28" Width="1120" Text="标题" FontSize="30" IsBold="True" Foreground="#FFFFFF" TextAlignment="Center"/>
 </Panel>
 
 <Panel Id="Content">
@@ -295,8 +295,8 @@ Fill、Stroke、Shadow、LinearGradient、Stop：
 
 <Panel Id="CardOne" X="0" Y="0" Width="340" Height="180">
    <Rect Id="CardOneBackground" X="0" Y="0" Width="340" Height="180" Fill="#FFFFFF" CornerRadius="12" Shadow="0 4 12 #00000033"/>
-   <TextElement Id="CardOneTitle" X="24" Y="24" Width="292" Text="要点" FontSize="L4" IsBold="True" Foreground="#1A1A2E"/>
-   <TextElement Id="CardOneBody" X="24" Y="72" Text="" FontSize="L5" Foreground="#666666" />
+   <TextElement Id="CardOneTitle" X="24" Y="24" Width="292" Text="要点" FontSize="24" IsBold="True" Foreground="#1A1A2E"/>
+   <TextElement Id="CardOneBody" X="24" Y="72" Text="" FontSize="16" Foreground="#666666" />
 </Panel>
 
 <TextElement Id="CardOneBody" Text=" 这里是卡片正文内容。对于可能有大段文本输出的内容，也可以充分利用合并机制，分为多段内容输出。" />
