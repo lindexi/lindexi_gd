@@ -96,6 +96,7 @@ public class CopilotChatManager : NotifyBase
                 return;
             }
 
+            OnPropertyChanged(nameof(IsChatting));
             OnPropertyChanged(nameof(CanEditInput));
             OnPropertyChanged(nameof(SendButtonText));
         }
@@ -673,19 +674,8 @@ public class CopilotChatManager : NotifyBase
         ArgumentNullException.ThrowIfNull(copilotChatMessage);
         ArgumentNullException.ThrowIfNull(responseUpdate);
 
-        if(MainThreadDispatcher is {} dispatcher)
-        {
-            _ = dispatcher.InvokeAsync(() =>
-            {
-                AppendInner();
-                return Task.CompletedTask;
-            });
-        }
-        else
-        {
-            AppendInner();
-        }
-
+        TryRunInMainThread(AppendInner);
+      
         void AppendInner()
         {
             foreach (AIContent content in responseUpdate.Contents)
@@ -769,6 +759,47 @@ public class CopilotChatManager : NotifyBase
         await session.AddMessageAsync(chatMessage);
         await ChatLogger.LogMessageAsync(session.SessionId, chatMessage);
     }
+
+    #region 辅助方法
+
+    private Task TryRunInMainThread(Action action)
+    {
+        return TryRunInMainThread(() =>
+        {
+            action();
+            return Task.CompletedTask;
+        });
+    }
+
+    private Task TryRunInMainThread(Func<Task> action)
+    {
+        if (MainThreadDispatcher is { } dispatcher)
+        {
+            if (dispatcher.CheckAccess())
+            {
+                return action();
+            }
+            else
+            {
+                return dispatcher.InvokeAsync(action);
+            }
+        }
+        else
+        {
+            // 没办法，没有主线程调度器，直接执行
+            return action();
+        }
+    }
+
+    protected override void OnPropertyChanged(string? propertyName = null)
+    {
+        TryRunInMainThread(() =>
+        {
+            base.OnPropertyChanged(propertyName);
+        });
+    }
+
+    #endregion
 
     private static async Task<AgentSession> GetOrCreateAgentSessionAsync(ChatClientAgent chatClientAgent, CopilotChatSession currentSession,
         CancellationToken cancellationToken)
