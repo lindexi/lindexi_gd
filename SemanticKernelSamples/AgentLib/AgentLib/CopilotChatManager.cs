@@ -561,7 +561,6 @@ public class CopilotChatManager : NotifyBase
             Session = currentSession,
             DefaultTools = defaultTools,
             ChatClient = chatClient,
-            MainThreadDispatcher = MainThreadDispatcher,
             UserChatMessage = userChatMessage,
             AssistantChatMessage = assistantChatMessage,
         };

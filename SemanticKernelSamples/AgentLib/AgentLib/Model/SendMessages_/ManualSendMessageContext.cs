@@ -52,7 +52,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     public required IChatClient ChatClient { get; init; }
 
     /// <inheritdoc />
-    public required IMainThreadDispatcher? MainThreadDispatcher { get; init; }
+    public IMainThreadDispatcher? MainThreadDispatcher => ChatManager.MainThreadDispatcher;
 
     /// <inheritdoc />
     public async Task<ChatClientAgent> GetChatClientAgentAsync(CancellationToken cancellationToken = default)
@@ -142,4 +142,6 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     {
         return ChatManager.StartChatting();
     }
+
+
 }
