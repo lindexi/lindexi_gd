@@ -27,12 +27,14 @@
         </DataTemplate>
 
         <DataTemplate x:Key="AssistantReasoningItemTemplate" x:DataType="model:CopilotChatReasoningItem">
-            <StackPanel Margin="0,0,0,8" IsVisible="{Binding HasText}">
-                <TextBlock Classes="SecondaryLabel" Text="思考" />
+            <Expander Classes="ReasoningExpander" Margin="0,0,0,8" IsExpanded="False" IsVisible="{Binding HasText}">
+                <Expander.Header>
+                    <TextBlock Text="思考过程" FontSize="12" FontWeight="SemiBold" Foreground="#FF546E7A" />
+                </Expander.Header>
                 <Border Classes="ReasoningPanel">
                     <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#FF546E7A" />
                 </Border>
-            </StackPanel>
+            </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="AssistantToolItemTemplate" x:DataType="model:CopilotChatToolItem">
@@ -129,9 +131,12 @@
                 <TextBlock Text="聊天室" Classes="Title" />
                 <TextBlock Text="{Binding CurrentSpeakerName}" Classes="Subtitle"
                            IsVisible="{Binding IsRunning}" />
-                <TextBlock Text="正在发言..." Classes="Subtitle"
-                           Foreground="{StaticResource WarningBrush}"
-                           IsVisible="{Binding IsRunning}" />
+                <StackPanel Orientation="Horizontal" Spacing="4"
+                            IsVisible="{Binding IsRunning}">
+                    <Ellipse Classes="StreamingDot" />
+                    <TextBlock Text="正在发言..." Classes="Subtitle"
+                               Foreground="{StaticResource WarningBrush}" />
+                </StackPanel>
             </StackPanel>
         </Border>
 
@@ -156,9 +161,12 @@
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
                                         <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
-                                        <TextBlock Text="正在输入..." Classes="Timestamp"
-                                                   Foreground="{StaticResource WarningBrush}"
-                                                   IsVisible="{Binding IsStreaming}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="4"
+                                                    IsVisible="{Binding IsStreaming}">
+                                            <Ellipse Classes="StreamingDot" />
+                                            <TextBlock Text="正在输出..." Classes="Timestamp"
+                                                       Foreground="{StaticResource WarningBrush}" />
+                                        </StackPanel>
                                     </StackPanel>
                                     <Border Classes="MessageBubbleAI" HorizontalAlignment="Left">
                                         <Border.ContextMenu>
@@ -167,16 +175,8 @@
                                                 <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
                                             </ContextMenu>
                                         </Border.ContextMenu>
-                                        <!-- 有片段时展示片段（流式/实时）；无片段时回退到纯文本（历史恢复） -->
-                                        <StackPanel>
-                                            <ItemsControl ItemsSource="{Binding MessageItems}"
-                                                          ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}"
-                                                          IsVisible="{Binding HasCopilotChatMessage}" />
-                                            <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                                       MaxWidth="500"
-                                                       IsVisible="{Binding !HasCopilotChatMessage}" />
-                                        </StackPanel>
+                                        <ItemsControl ItemsSource="{Binding MessageItems}"
+                                                      ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
                                     </Border>
                                     <Border Classes="UsageSummaryBorder"
                                             IsVisible="{Binding HasUsageDetails}"

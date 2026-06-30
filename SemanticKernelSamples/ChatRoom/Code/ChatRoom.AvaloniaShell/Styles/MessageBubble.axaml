@@ -35,11 +35,36 @@
     </Style>
     <Style Selector="Border.ReasoningPanel">
         <Setter Property="Background" Value="#FFF0F4F8" />
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Padding" Value="8,6" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="10,8" />
         <Setter Property="Margin" Value="0,4,0,4" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#FF90A4AE" />
+        <Setter Property="BorderThickness" Value="3,0,0,0" />
+    </Style>
+    <Style Selector="Ellipse.StreamingDot">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="Fill" Value="{StaticResource WarningBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="INFINITE">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame Cue="50%">
+                    <Setter Property="Opacity" Value="0.2" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="Expander.ReasoningExpander /template/ ToggleButton#PART_ExpanderButton">
+        <Setter Property="Padding" Value="4,2" />
+    </Style>
+    <Style Selector="Expander.ReasoningExpander /template/ ToggleButton#PART_ExpanderButton :checked /template/ Border">
+        <Setter Property="Background" Value="Transparent" />
     </Style>
     <Style Selector="Border.ToolPanel">
         <Setter Property="Background" Value="#FFF5F5F5" />
