@@ -123,11 +123,22 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             _isFirstUpdate = false;
             if (AssistantChatMessage.Content == CopilotChatMessage.PlaceholderContent)
             {
-                AssistantChatMessage.ClearMessageItems();
+                if(MainThreadDispatcher is {} dispatcher)
+                {
+                    _ = dispatcher.InvokeAsync(() =>
+                    {
+                         AssistantChatMessage.ClearMessageItems();
+                         return Task.CompletedTask;
+                    });
+                }
+                else
+                {
+                    AssistantChatMessage.ClearMessageItems();
+                }
             }
         }
 
-        CopilotChatManager.AppendAssistantResponseUpdate(AssistantChatMessage, update);
+        ChatManager.AppendAssistantResponseUpdate(AssistantChatMessage, update);
     }
 
     /// <inheritdoc />
@@ -142,6 +153,4 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     {
         return ChatManager.StartChatting();
     }
-
-
 }

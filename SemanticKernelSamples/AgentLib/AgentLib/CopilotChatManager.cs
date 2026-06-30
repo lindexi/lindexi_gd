@@ -668,31 +668,47 @@ public class CopilotChatManager : NotifyBase
         return agentSession is null ? null : new AgentSessionStateProvider(chatClientAgent, agentSession);
     }
 
-    internal static void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
+    internal void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
     {
         ArgumentNullException.ThrowIfNull(copilotChatMessage);
         ArgumentNullException.ThrowIfNull(responseUpdate);
 
-        foreach (AIContent content in responseUpdate.Contents)
+        if(MainThreadDispatcher is {} dispatcher)
         {
-            switch (content)
+            _ = dispatcher.InvokeAsync(() =>
             {
-                case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
-                    copilotChatMessage.AppendReasoning(textReasoningContent.Text);
-                    break;
-                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
-                    copilotChatMessage.AppendText(textContent.Text);
-                    break;
-                case FunctionCallContent functionCallContent:
-                    copilotChatMessage.AppendFunctionCall(functionCallContent);
-                    break;
-                case FunctionResultContent functionResultContent:
-                    copilotChatMessage.AppendFunctionResult(functionResultContent);
-                    break;
-            }
+                AppendInner();
+                return Task.CompletedTask;
+            });
+        }
+        else
+        {
+            AppendInner();
         }
 
-        copilotChatMessage.AppendUsageDetails(responseUpdate.Contents);
+        void AppendInner()
+        {
+            foreach (AIContent content in responseUpdate.Contents)
+            {
+                switch (content)
+                {
+                    case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
+                        copilotChatMessage.AppendReasoning(textReasoningContent.Text);
+                        break;
+                    case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
+                        copilotChatMessage.AppendText(textContent.Text);
+                        break;
+                    case FunctionCallContent functionCallContent:
+                        copilotChatMessage.AppendFunctionCall(functionCallContent);
+                        break;
+                    case FunctionResultContent functionResultContent:
+                        copilotChatMessage.AppendFunctionResult(functionResultContent);
+                        break;
+                }
+            }
+
+            copilotChatMessage.AppendUsageDetails(responseUpdate.Contents);
+        }
     }
 
     private CopilotChatSession CreateSession()
