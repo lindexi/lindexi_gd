@@ -672,7 +672,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     /// <param name="callId">调用 ID，如果为空则自动生成。</param>
     /// <returns>审批工具项。</returns>
     public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-        string? callId = null)
+        string? callId = null, string? displayName = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -686,6 +686,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             existingItem.ToolName = normalizedToolName;
             existingItem.InputText = normalizedInputText;
             existingItem.ApprovalDescription = resolvedApprovalDescription;
+            existingItem.DisplayName = displayName;
             return existingItem;
         }
 
@@ -704,10 +705,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             }
 
             pendingItem.ApprovalDescription = resolvedApprovalDescription;
+            pendingItem.DisplayName = displayName;
             return pendingItem;
         }
 
-        var approvalToolItem = new CopilotChatApprovalToolItem(resolvedCallId, normalizedToolName, normalizedInputText, resolvedApprovalDescription);
+        var approvalToolItem = new CopilotChatApprovalToolItem(resolvedCallId, normalizedToolName, normalizedInputText, resolvedApprovalDescription, displayName);
         _approvalToolItemsByCallId[resolvedCallId] = approvalToolItem;
         MessageItems.Add(approvalToolItem);
         return approvalToolItem;

@@ -16,12 +16,15 @@ public sealed class CopilotChatApprovalToolItem : NotifyBase, ICopilotChatMessag
     /// <param name="toolName">工具名称。</param>
     /// <param name="inputText">工具输入文本。</param>
     /// <param name="approvalDescription">审批描述信息。</param>
-    public CopilotChatApprovalToolItem(string callId, string toolName, string? inputText, string? approvalDescription = null)
+    /// <param name="displayName">工具显示名称，为空时使用 <paramref name="toolName"/>。</param>
+    public CopilotChatApprovalToolItem(string callId, string toolName, string? inputText, string? approvalDescription = null,
+        string? displayName = null)
     {
         CallId = callId;
         ToolName = string.IsNullOrWhiteSpace(toolName) ? "工具" : toolName;
         InputText = inputText ?? string.Empty;
         ApprovalDescription = approvalDescription;
+        _displayName = string.IsNullOrWhiteSpace(displayName) ? null : displayName.Trim();
     }
 
     /// <summary>
@@ -55,10 +58,25 @@ public sealed class CopilotChatApprovalToolItem : NotifyBase, ICopilotChatMessag
 
     private string _toolName = string.Empty;
 
+    private string? _displayName;
+
     /// <summary>
-    /// 工具显示名称。
+    /// 工具显示名称。优先使用工具提供方设置的友好名称，为空时回退到 <see cref="ToolName"/>。
     /// </summary>
-    public string DisplayName => ToolName;
+    public string DisplayName
+    {
+        get => _displayName ?? ToolName;
+        internal set
+        {
+            string? normalizedValue = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (!SetField(ref _displayName, normalizedValue))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(DisplayName));
+        }
+    }
 
     /// <summary>
     /// 工具输入文本。

@@ -32,7 +32,12 @@ public static class WorkspacePathTools
             description: "设置工作区路径，启用文件系统工具（读写文件、搜索文件等）。调用后需用户审批同意才会生效。" +
                 "参数：path（必填，工作区根目录的绝对路径）。");
 
-        return [HumanApprovalTool.Wrap(tool, "AI 请求设置工作区路径，请确认路径是否安全。")];
+        return [HumanApprovalTool.Wrap(tool, new ApprovalOptions
+        {
+            DisplayName = "设置工作区路径",
+            ApprovalDescription = "AI 请求设置工作区路径，请确认路径是否安全。",
+            InputTemplate = "目标路径：{path}"
+        })];
     }
 
     private static Task<string> SetWorkspacePath(ChatRoomManager chatRoomManager, string path)

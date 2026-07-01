@@ -15,7 +15,7 @@ internal interface ICopilotChatCurrentContent
     void AppendFunctionResult(FunctionResultContent functionResultContent);
 
     CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-        string? callId = null);
+        string? callId = null, string? displayName = null);
 
     CopilotChatSubAgentItem CreateSubAgentItem(string toolName, string? inputText, string? callId = null);
 }

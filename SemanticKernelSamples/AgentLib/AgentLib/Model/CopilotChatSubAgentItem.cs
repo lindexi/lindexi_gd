@@ -233,7 +233,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
 
     /// <inheritdoc/>
     public CopilotChatApprovalToolItem CreateApprovalToolItem(string toolName, string? inputText, string? approvalDescription = null,
-        string? callId = null)
+        string? callId = null, string? displayName = null)
     {
         string resolvedCallId = string.IsNullOrWhiteSpace(callId)
             ? Guid.NewGuid().ToString("N")
@@ -247,6 +247,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
             existingItem.ToolName = normalizedToolName;
             existingItem.InputText = normalizedInputText;
             existingItem.ApprovalDescription = resolvedApprovalDescription;
+            existingItem.DisplayName = displayName;
             return existingItem;
         }
 
@@ -265,10 +266,11 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
             }
 
             pendingItem.ApprovalDescription = resolvedApprovalDescription;
+            pendingItem.DisplayName = displayName;
             return pendingItem;
         }
 
-        var approvalToolItem = new CopilotChatApprovalToolItem(resolvedCallId, normalizedToolName, normalizedInputText, resolvedApprovalDescription);
+        var approvalToolItem = new CopilotChatApprovalToolItem(resolvedCallId, normalizedToolName, normalizedInputText, resolvedApprovalDescription, displayName);
         _approvalToolItemsByCallId[resolvedCallId] = approvalToolItem;
         MessageItems.Add(approvalToolItem);
         return approvalToolItem;
