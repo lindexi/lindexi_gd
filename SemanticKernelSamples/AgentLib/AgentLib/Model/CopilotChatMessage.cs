@@ -693,7 +693,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             existingItem.ToolName = normalizedToolName;
             existingItem.InputText = normalizedInputText;
             existingItem.ApprovalDescription = resolvedApprovalDescription;
-            existingItem.DisplayName = displayName;
+            existingItem.DisplayName = displayName ?? string.Empty;
             return existingItem;
         }
 
@@ -712,7 +712,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             }
 
             pendingItem.ApprovalDescription = resolvedApprovalDescription;
-            pendingItem.DisplayName = displayName;
+            pendingItem.DisplayName = displayName ?? string.Empty;
             return pendingItem;
         }
 
