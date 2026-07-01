@@ -101,7 +101,43 @@ public sealed class SlideMlThicknessTests
         Assert.AreEqual(10.5, result.Value.Bottom);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "通过空格分隔解析四值")]
+    public void Parse_SpaceSeparated_FourValues()
+    {
+        var result = SlideMlThickness.Parse("10 20 30 40");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(10, result!.Value.Left);
+        Assert.AreEqual(20, result.Value.Top);
+        Assert.AreEqual(30, result.Value.Right);
+        Assert.AreEqual(40, result.Value.Bottom);
+    }
+
+    [TestMethod(DisplayName = "通过空格分隔解析两值")]
+    public void Parse_SpaceSeparated_TwoValues()
+    {
+        var result = SlideMlThickness.Parse("10 20");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(20, result!.Value.Left);
+        Assert.AreEqual(10, result.Value.Top);
+        Assert.AreEqual(20, result.Value.Right);
+        Assert.AreEqual(10, result.Value.Bottom);
+    }
+
+    [TestMethod(DisplayName = "通过逗号空格混合分隔解析四值")]
+    public void Parse_MixedSeparator_FourValues()
+    {
+        var result = SlideMlThickness.Parse("10, 20, 30, 40");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(10, result!.Value.Left);
+        Assert.AreEqual(20, result.Value.Top);
+        Assert.AreEqual(30, result.Value.Right);
+        Assert.AreEqual(40, result.Value.Bottom);
+    }
+
+    [TestMethod(DisplayName = "超过四个值只取前四个")]
     public void Parse_MoreThanFourValues_FirstFourUsed()
     {
         var result = SlideMlThickness.Parse("1,2,3,4,5");

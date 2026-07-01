@@ -28,19 +28,57 @@ public readonly record struct SlideMlThickness
     public double Bottom { get; init; }
 
     /// <summary>
-    /// 从逗号分隔的字符串解析，如 "0,0,0,8"。
+    /// 从数值隐式转换（四边统一）。
+    /// </summary>
+    public static implicit operator SlideMlThickness(double uniformValue)
+        => new()
+        {
+            Left = uniformValue,
+            Top = uniformValue,
+            Right = uniformValue,
+            Bottom = uniformValue,
+        };
+
+    /// <summary>
+    /// 从逗号或空格分隔的字符串解析，如 "0,0,0,8" 或 "0 0 0 8"。
     /// 支持 1~4 个值，按四边简写规则展开。
     /// </summary>
     public static SlideMlThickness? Parse(string? text)
+    {
+        var values = TryParseMultiValue(text);
+        if (values is null)
+        {
+            return null;
+        }
+
+        return values.Length switch
+        {
+            1 => new SlideMlThickness { Left = values[0], Top = values[0], Right = values[0], Bottom = values[0] },
+            2 => new SlideMlThickness { Left = values[1], Top = values[0], Right = values[1], Bottom = values[0] },
+            3 => new SlideMlThickness { Left = values[1], Top = values[0], Right = values[1], Bottom = values[2] },
+            _ => new SlideMlThickness { Left = values[0], Top = values[1], Right = values[2], Bottom = values[3] },
+        };
+    }
+
+    /// <summary>
+    /// 按逗号或空格分割字符串，并解析最多 4 个 double 数值。
+    /// 返回的数组长度为 1~4，解析失败返回 null。
+    /// </summary>
+    internal static double[]? TryParseMultiValue(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
             return null;
         }
 
-        var parts = text.Split(',', StringSplitOptions.TrimEntries);
-        var values = new double[4];
-        for (var i = 0; i < parts.Length && i < 4; i++)
+        var parts = text.Split([',', ' '], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return null;
+        }
+
+        var values = new double[Math.Min(parts.Length, 4)];
+        for (var i = 0; i < values.Length; i++)
         {
             if (!double.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
             {
@@ -50,12 +88,6 @@ public readonly record struct SlideMlThickness
             values[i] = v;
         }
 
-        return parts.Length switch
-        {
-            1 => new SlideMlThickness { Left = values[0], Top = values[0], Right = values[0], Bottom = values[0] },
-            2 => new SlideMlThickness { Left = values[1], Top = values[0], Right = values[1], Bottom = values[0] },
-            3 => new SlideMlThickness { Left = values[1], Top = values[0], Right = values[1], Bottom = values[2] },
-            _ => new SlideMlThickness { Left = values[0], Top = values[1], Right = values[2], Bottom = values[3] },
-        };
+        return values;
     }
 }

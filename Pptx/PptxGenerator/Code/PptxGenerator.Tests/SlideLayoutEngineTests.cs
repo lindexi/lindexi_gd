@@ -181,7 +181,7 @@ public sealed class SlideMlLayoutEngineTests
             Id = "panel1",
             Layout = SlideMlLayoutDirection.Horizontal,
             Gap = 8,
-            Padding = 16,
+            Padding = new SlideMlThickness { Left = 16, Top = 16, Right = 16, Bottom = 16 },
             Children =
             {
                 new SlideMlRectElement { Id = "r1", Width = 100, Height = 50 },

@@ -24,7 +24,10 @@ public sealed class SlideMlParserPanelTests
         Assert.AreEqual(20, panel.Y);
         Assert.AreEqual(100, panel.Width);
         Assert.AreEqual(80, panel.Height);
-        Assert.AreEqual(8, panel.Padding);
+        Assert.AreEqual(8, panel.Padding.Left);
+        Assert.AreEqual(8, panel.Padding.Top);
+        Assert.AreEqual(8, panel.Padding.Right);
+        Assert.AreEqual(8, panel.Padding.Bottom);
         Assert.IsInstanceOfType<SlideMlSolidColorBrush>(panel.Background);
         Assert.AreEqual("#FF0000", ((SlideMlSolidColorBrush)panel.Background!).Color);
         Assert.AreEqual(SlideMlLayoutDirection.Horizontal, panel.Layout);
@@ -50,7 +53,10 @@ public sealed class SlideMlParserPanelTests
 
         Assert.AreEqual(SlideMlLayoutDirection.Absolute, panel.Layout);
         Assert.AreEqual(0, panel.Gap);
-        Assert.AreEqual(0, panel.Padding);
+        Assert.AreEqual(0, panel.Padding.Left);
+        Assert.AreEqual(0, panel.Padding.Top);
+        Assert.AreEqual(0, panel.Padding.Right);
+        Assert.AreEqual(0, panel.Padding.Bottom);
         Assert.AreEqual(1, panel.Opacity);
         Assert.IsNull(panel.Background);
     }
@@ -144,8 +150,56 @@ public sealed class SlideMlParserPanelTests
 
         Assert.HasCount(1, context.Errors);
         Assert.IsTrue(
-            context.Errors[0].Contains("Padding") && context.Errors[0].Contains("abc") && context.Errors[0].Contains("不是有效的数值"),
-            $"错误应包含 Padding 值 abc 不是有效的数值，实际: {context.Errors[0]}");
-        Assert.AreEqual(0, panel.Padding);
+            context.Errors[0].Contains("Padding") && context.Errors[0].Contains("abc") && context.Errors[0].Contains("不是有效的间距格式"),
+            $"错误应包含 Padding 值 abc 不是有效的间距格式，实际: {context.Errors[0]}");
+        Assert.AreEqual(0, panel.Padding.Left);
+        Assert.AreEqual(0, panel.Padding.Top);
+        Assert.AreEqual(0, panel.Padding.Right);
+        Assert.AreEqual(0, panel.Padding.Bottom);
+    }
+
+    [TestMethod(DisplayName = "解析 Panel 多值 Padding 逗号分隔")]
+    public void Parse_Panel_MultiValuePadding_CommaSeparated()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Panel Padding=\"8,16,24,32\"></Panel></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var panel = (SlideMlPanelElement)page.Children[0];
+
+        Assert.AreEqual(8, panel.Padding.Left);
+        Assert.AreEqual(16, panel.Padding.Top);
+        Assert.AreEqual(24, panel.Padding.Right);
+        Assert.AreEqual(32, panel.Padding.Bottom);
+    }
+
+    [TestMethod(DisplayName = "解析 Panel 多值 Padding 空格分隔")]
+    public void Parse_Panel_MultiValuePadding_SpaceSeparated()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Panel Padding=\"8 16 24 32\"></Panel></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var panel = (SlideMlPanelElement)page.Children[0];
+
+        Assert.AreEqual(8, panel.Padding.Left);
+        Assert.AreEqual(16, panel.Padding.Top);
+        Assert.AreEqual(24, panel.Padding.Right);
+        Assert.AreEqual(32, panel.Padding.Bottom);
+    }
+
+    [TestMethod(DisplayName = "解析 Panel 多值 Padding 混合分隔")]
+    public void Parse_Panel_MultiValuePadding_MixedSeparator()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Panel Padding=\"8, 16, 24, 32\"></Panel></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var panel = (SlideMlPanelElement)page.Children[0];
+
+        Assert.AreEqual(8, panel.Padding.Left);
+        Assert.AreEqual(16, panel.Padding.Top);
+        Assert.AreEqual(24, panel.Padding.Right);
+        Assert.AreEqual(32, panel.Padding.Bottom);
     }
 }

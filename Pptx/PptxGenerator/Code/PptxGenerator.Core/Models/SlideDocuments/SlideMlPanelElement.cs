@@ -6,9 +6,9 @@
 public sealed class SlideMlPanelElement : SlideMlElement
 {
     /// <summary>
-    /// 内边距。
+    /// 内边距，支持四边独立值。如 "0,0,0,0" 或 "8 16" 格式。
     /// </summary>
-    public double Padding { get; init; }
+    public SlideMlThickness Padding { get; init; }
 
     /// <summary>
     /// 背景画刷（纯色或渐变）。

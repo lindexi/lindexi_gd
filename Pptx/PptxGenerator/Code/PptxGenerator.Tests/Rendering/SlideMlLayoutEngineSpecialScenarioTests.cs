@@ -63,7 +63,7 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
         {
             Id = "panel1",
             Layout = SlideMlLayoutDirection.Absolute,
-            Padding = 24,
+            Padding = new SlideMlThickness { Left = 24, Top = 24, Right = 24, Bottom = 24 },
         };
 
         var page = CreatePage(panel);

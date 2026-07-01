@@ -160,7 +160,7 @@ public sealed class SlideMlParser
             HorizontalAlignment = GetOptionalHorizontalAlignment(element, id, context),
             VerticalAlignment = GetOptionalVerticalAlignment(element, id, context),
             Opacity = GetOptionalDouble(element, "Opacity", context) ?? 1,
-            Padding = GetOptionalDouble(element, "Padding", context) ?? 0,
+            Padding = GetOptionalThickness(element, "Padding", context) ?? default,
             Background = backgroundBrush,
             Layout = GetOptionalLayoutDirection(element, id, context) ?? SlideMlLayoutDirection.Absolute,
             Gap = GetOptionalDouble(element, "Gap", context) ?? 0,
@@ -489,7 +489,7 @@ public sealed class SlideMlParser
             var elementId = GetOptionalString(element, "Id");
             context.AddError(
                 string.Format(
-                    "[Error] {0}: {1} 值 \"{2}\" 不是有效的间距格式（应为逗号分隔的 1~4 个数值）",
+                    "[Error] {0}: {1} 值 \"{2}\" 不是有效的间距格式（应为逗号或空格分隔的 1~4 个数值）",
                     elementId ?? "unknown",
                     attributeName,
                     text));

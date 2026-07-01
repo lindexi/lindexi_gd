@@ -83,7 +83,7 @@ public sealed class SlideMlLayoutEngineAbsoluteLayoutTests
         {
             Id = "panel1",
             Layout = SlideMlLayoutDirection.Absolute,
-            Padding = 16,
+            Padding = new SlideMlThickness { Left = 16, Top = 16, Right = 16, Bottom = 16 },
             Width = 200,
             Height = 200,
             Children =
@@ -107,7 +107,7 @@ public sealed class SlideMlLayoutEngineAbsoluteLayoutTests
         {
             Id = "panel1",
             Layout = SlideMlLayoutDirection.Absolute,
-            Padding = 16,
+            Padding = new SlideMlThickness { Left = 16, Top = 16, Right = 16, Bottom = 16 },
             Children =
             {
                 new SlideMlRectElement { Id = "r1", X = 0, Y = 0, Width = 100, Height = 50 },

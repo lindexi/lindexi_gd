@@ -45,24 +45,13 @@ public readonly record struct SlideMlCornerRadius
     /// </summary>
     public static SlideMlCornerRadius? Parse(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        var values = SlideMlThickness.TryParseMultiValue(text);
+        if (values is null)
         {
             return null;
         }
 
-        var parts = text.Split([',', ' '], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        var values = new double[4];
-        for (var i = 0; i < parts.Length && i < 4; i++)
-        {
-            if (!double.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
-            {
-                return null;
-            }
-
-            values[i] = v;
-        }
-
-        return parts.Length switch
+        return values.Length switch
         {
             1 => new SlideMlCornerRadius { TopLeft = values[0], TopRight = values[0], BottomRight = values[0], BottomLeft = values[0] },
             2 => new SlideMlCornerRadius { TopLeft = values[0], TopRight = values[1], BottomRight = values[0], BottomLeft = values[1] },

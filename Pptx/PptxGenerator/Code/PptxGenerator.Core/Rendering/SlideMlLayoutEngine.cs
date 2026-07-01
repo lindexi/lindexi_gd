@@ -102,11 +102,16 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         bool useMeasured,
         SlideMlElementMeasurements? measurements)
     {
-        var provisionalWidth = panel.Width ?? Math.Max(0, parentBounds.Width - panel.Padding * 2);
-        var provisionalHeight = panel.Height ?? Math.Max(0, parentBounds.Height - panel.Padding * 2);
+        var paddingLeft = panel.Padding.Left;
+        var paddingTop = panel.Padding.Top;
+        var paddingRight = panel.Padding.Right;
+        var paddingBottom = panel.Padding.Bottom;
 
-        var initialChildOriginX = parentBounds.X + (panel.X ?? 0) + panel.Padding;
-        var initialChildOriginY = parentBounds.Y + (panel.Y ?? 0) + panel.Padding;
+        var provisionalWidth = panel.Width ?? Math.Max(0, parentBounds.Width - paddingLeft - paddingRight);
+        var provisionalHeight = panel.Height ?? Math.Max(0, parentBounds.Height - paddingTop - paddingBottom);
+
+        var initialChildOriginX = parentBounds.X + (panel.X ?? 0) + paddingLeft;
+        var initialChildOriginY = parentBounds.Y + (panel.Y ?? 0) + paddingTop;
         var provisionalContentBounds = new SlideMlRect(initialChildOriginX, initialChildOriginY, provisionalWidth, provisionalHeight);
 
         LayoutChildren(panel.Children, provisionalContentBounds, panel.Id, clipToParent: true, context, useMeasured, measurements);
@@ -119,8 +124,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
             contentBottom = Math.Max(contentBottom, child.LocalBounds.Bottom);
         }
 
-        var actualWidth = panel.Width ?? (contentRight + panel.Padding * 2);
-        var actualHeight = panel.Height ?? (contentBottom + panel.Padding * 2);
+        var actualWidth = panel.Width ?? (contentRight + paddingLeft + paddingRight);
+        var actualHeight = panel.Height ?? (contentBottom + paddingTop + paddingBottom);
 
         var originX = ResolveOrigin(parentBounds.X, parentBounds.Width, actualWidth, panel.X, panel.HorizontalAlignment);
         var originY = ResolveOrigin(parentBounds.Y, parentBounds.Height, actualHeight, panel.Y, panel.VerticalAlignment);
@@ -130,7 +135,7 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         panel.ActualWidth = actualWidth;
         panel.ActualHeight = actualHeight;
 
-        var finalContentBounds = new SlideMlRect(originX + panel.Padding, originY + panel.Padding, Math.Max(0, actualWidth - panel.Padding * 2), Math.Max(0, actualHeight - panel.Padding * 2));
+        var finalContentBounds = new SlideMlRect(originX + paddingLeft, originY + paddingTop, Math.Max(0, actualWidth - paddingLeft - paddingRight), Math.Max(0, actualHeight - paddingTop - paddingBottom));
         LayoutChildren(panel.Children, finalContentBounds, panel.Id, clipToParent: true, context, useMeasured, measurements);
 
         ValidateBounds(panel, parentBounds, parentId, clipToParent, context);
@@ -146,9 +151,13 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         SlideMlElementMeasurements? measurements)
     {
         var isHorizontal = panel.Layout == SlideMlLayoutDirection.Horizontal;
+        var paddingLeft = panel.Padding.Left;
+        var paddingTop = panel.Padding.Top;
+        var paddingRight = panel.Padding.Right;
+        var paddingBottom = panel.Padding.Bottom;
 
-        var contentOriginX = parentBounds.X + (panel.X ?? 0) + panel.Padding;
-        var contentOriginY = parentBounds.Y + (panel.Y ?? 0) + panel.Padding;
+        var contentOriginX = parentBounds.X + (panel.X ?? 0) + paddingLeft;
+        var contentOriginY = parentBounds.Y + (panel.Y ?? 0) + paddingTop;
 
         var childSizes = new List<(SlideMlElement Child, double Width, double Height)>(panel.Children.Count);
         foreach (var child in panel.Children)
@@ -158,8 +167,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         }
 
         var crossAxisContentSize = isHorizontal
-            ? (panel.Height ?? Math.Max(0, parentBounds.Height - panel.Padding * 2))
-            : (panel.Width ?? Math.Max(0, parentBounds.Width - panel.Padding * 2));
+            ? (panel.Height ?? Math.Max(0, parentBounds.Height - paddingTop - paddingBottom))
+            : (panel.Width ?? Math.Max(0, parentBounds.Width - paddingLeft - paddingRight));
 
         var flowPosition = isHorizontal ? contentOriginX : contentOriginY;
         var crossAxisSize = 0d;
@@ -274,8 +283,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         }
 
         var totalFlowSize = flowPosition - (isHorizontal ? contentOriginX : contentOriginY);
-        var actualWidth = panel.Width ?? (isHorizontal ? totalFlowSize + panel.Padding * 2 : crossAxisSize + panel.Padding * 2);
-        var actualHeight = panel.Height ?? (isHorizontal ? crossAxisSize + panel.Padding * 2 : totalFlowSize + panel.Padding * 2);
+        var actualWidth = panel.Width ?? (isHorizontal ? totalFlowSize + paddingLeft + paddingRight : crossAxisSize + paddingLeft + paddingRight);
+        var actualHeight = panel.Height ?? (isHorizontal ? crossAxisSize + paddingTop + paddingBottom : totalFlowSize + paddingTop + paddingBottom);
 
         var originX = ResolveOrigin(parentBounds.X, parentBounds.Width, actualWidth, panel.X, panel.HorizontalAlignment);
         var originY = ResolveOrigin(parentBounds.Y, parentBounds.Height, actualHeight, panel.Y, panel.VerticalAlignment);
@@ -285,8 +294,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         panel.ActualWidth = actualWidth;
         panel.ActualHeight = actualHeight;
 
-        var offsetX = originX + panel.Padding - contentOriginX;
-        var offsetY = originY + panel.Padding - contentOriginY;
+        var offsetX = originX + paddingLeft - contentOriginX;
+        var offsetY = originY + paddingTop - contentOriginY;
         foreach (var (child, _, _) in childSizes)
         {
             child.LayoutBounds = new SlideMlRect(
