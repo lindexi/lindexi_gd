@@ -6,6 +6,11 @@
 public sealed class SlideMlPage
 {
     /// <summary>
+    /// 页面元素标识符。未指定时由引擎自动分配。
+    /// </summary>
+    public string Id { get; init; } = string.Empty;
+
+    /// <summary>
     /// 页面背景颜色字符串。
     /// </summary>
     public string Background { get; init; } = "#FFFFFF";

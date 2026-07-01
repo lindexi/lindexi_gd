@@ -14,7 +14,7 @@ public sealed class SlideMlParser
 
     private static readonly HashSet<string> _pageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Background",
+        "Id", "Background",
     };
 
     private static readonly HashSet<string> _panelKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
@@ -66,10 +66,13 @@ public sealed class SlideMlParser
             throw new SlideMlRootElementException("SlideML 根元素必须是 Page。");
         }
 
-        ValidateAttributes(root, "Page", _pageKnownAttributes, context);
+        var pageId = GetOptionalString(root, "Id") ?? $"elem_{_nextId++:000}";
+
+        ValidateAttributes(root, pageId, _pageKnownAttributes, context);
 
         var page = new SlideMlPage
         {
+            Id = pageId,
             Background = GetOptionalString(root, "Background") ?? "#FFFFFF",
         };
 

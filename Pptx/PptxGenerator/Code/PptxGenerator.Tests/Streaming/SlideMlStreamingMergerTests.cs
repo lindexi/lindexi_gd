@@ -168,6 +168,61 @@ public sealed class SlideMlStreamingMergerTests
     }
 
     [TestMethod]
+    public void Remove_PageById_ClearsEntireDocument()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act
+        merger.AcceptFragment("<Page Id=\"my-page\"><Panel Id=\"p1\"><Rect Id=\"r1\"/></Panel></Page>", context);
+        merger.AcceptFragment("<Remove TargetId=\"my-page\"/>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        Assert.IsEmpty(context.Warnings, "不应有警告");
+        var xml = merger.GetMergedXml();
+        Assert.IsTrue(string.IsNullOrWhiteSpace(xml), "移除 Page 后 XML 应为空");
+    }
+
+    [TestMethod]
+    public void Remove_PageById_AllowsReAddingNewPage()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 先创建 Page，移除，再创建新 Page
+        merger.AcceptFragment("<Page Id=\"old-page\"><Rect Id=\"r1\"/></Page>", context);
+        merger.AcceptFragment("<Remove TargetId=\"old-page\"/>", context);
+        merger.AcceptFragment("<Page Id=\"new-page\"><Rect Id=\"r2\"/></Page>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        Assert.AreEqual("new-page", doc.Root!.Attribute("Id")?.Value);
+        Assert.Contains("r2", xml, "新 Page 的子元素应存在");
+        Assert.DoesNotContain("old-page", xml, "旧 Page 不应残留");
+        Assert.DoesNotContain("r1", xml, "旧 Page 的子元素不应残留");
+    }
+
+    [TestMethod]
+    public void Remove_PageWithoutId_TargetNotFoundWarning()
+    {
+        // Arrange — Page 不带 Id 时不会被注册到 IdIndex，Remove 找不到目标
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act
+        merger.AcceptFragment("<Page><Rect Id=\"r1\"/></Page>", context);
+        merger.AcceptFragment("<Remove TargetId=\"some-page-id\"/>", context);
+
+        // Assert
+        Assert.IsTrue(context.Warnings.Any(w => w.Contains("some-page-id")), "应产生目标不存在的警告");
+    }
+
+    [TestMethod]
     public void DanglingElement_RegisteredButNotRendered()
     {
         // Arrange

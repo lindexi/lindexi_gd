@@ -198,6 +198,7 @@ public sealed class SlideMlStreamingMerger
 
     /// <summary>
     /// 处理 Remove 片段：从 DOM 树中移除目标元素。
+    /// 当目标元素是文档根元素（Page）时，清空整个文档状态。
     /// </summary>
     /// <param name="fragmentRoot">片段根元素。</param>
     /// <param name="context">渲染上下文。</param>
@@ -212,6 +213,15 @@ public sealed class SlideMlStreamingMerger
 
         if (_working!.IdIndex.TryGetValue(targetId, out var targetElement))
         {
+            // 目标是文档根元素（Page）时，清空整个文档状态
+            if (ReferenceEquals(targetElement, _working.Document?.Root))
+            {
+                UnregisterIdElements(targetElement);
+                UnregisterStyleIdElements(targetElement);
+                _working.Document = null;
+                return;
+            }
+
             // 从 _idIndex 和 _styleIdIndex 中移除该元素及其所有子元素
             UnregisterIdElements(targetElement);
             UnregisterStyleIdElements(targetElement);
