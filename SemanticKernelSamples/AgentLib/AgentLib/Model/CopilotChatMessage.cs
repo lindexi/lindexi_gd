@@ -632,6 +632,13 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             return;
         }
 
+        // 审批工具的流式调用阶段不创建项（由 RuntimeHumanApprovalFunction 统一创建），
+        // 因此流式结果到达时也没有项可匹配，直接跳过。
+        if (_approvalToolCallIds.Contains(callId))
+        {
+            return;
+        }
+
         if (_subAgentItemsByCallId.ContainsKey(callId))
         {
             AppendSubAgentResult(functionResultContent);
@@ -799,6 +806,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     private readonly Dictionary<string, CopilotChatSubAgentItem> _subAgentItemsByCallId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string?> _approvalToolDescriptions = new(StringComparer.Ordinal);
     private readonly HashSet<string> _invokeSubAgentCallIds = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _approvalToolCallIds = new(StringComparer.Ordinal);
 
     private static string? FormatMessageItem(ICopilotChatMessageItem messageItem)
     {
@@ -939,12 +947,13 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
     private void AppendApprovalToolCall(FunctionCallContent functionCallContent)
     {
+        // 仅跟踪 callId，不创建审批项。
+        // 审批项由 RuntimeHumanApprovalFunction.InvokeCoreAsync 统一创建，
+        // 避免流式阶段和执行阶段各创建一个导致重复。
         string callId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
             ? Guid.NewGuid().ToString("N")
             : functionCallContent.CallId;
-
-        _ = CreateApprovalToolItem(functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent),
-            ResolveApprovalDescription(functionCallContent.Name), callId);
+        _approvalToolCallIds.Add(callId);
     }
 
     private void AppendApprovalToolResult(FunctionResultContent functionResultContent)
