@@ -16,5 +16,5 @@ public abstract class ViewModelBase : NotifyBase
     {
         get => _isBusy;
         set => SetField(ref _isBusy, value);
-    }
+    } 
 }

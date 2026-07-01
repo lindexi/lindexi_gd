@@ -52,6 +52,32 @@ public static class HumanApprovalTool
     }
 
     /// <summary>
+    /// 包装指定工具，使其在执行前等待人工审批，并使用 <see cref="ApprovalOptions"/> 自定义审批面板的展示内容。
+    /// </summary>
+    /// <remarks>
+    /// 此方法在工具注册（配置阶段）调用。通过 <paramref name="options"/> 可设置友好显示名称、
+    /// 审批描述、输入参数模板或自定义格式化回调，从而让用户在审批面板中看到更清晰的信息。
+    /// </remarks>
+    /// <param name="tool">要包装的工具。</param>
+    /// <param name="options">审批展示配置，为 <see langword="null"/> 时等效于 <see cref="Wrap(AITool, string?)"/>。</param>
+    public static AITool Wrap(AITool tool, ApprovalOptions? options)
+    {
+        ArgumentNullException.ThrowIfNull(tool);
+
+        if (tool is ConfiguredHumanApprovalFunction configuredHumanApprovalFunction)
+        {
+            return configuredHumanApprovalFunction;
+        }
+
+        if (tool is not AIFunction function)
+        {
+            throw new ArgumentException("仅支持包装可调用函数工具。", nameof(tool));
+        }
+
+        return new ConfiguredHumanApprovalFunction(function, options);
+    }
+
+    /// <summary>
     /// 将配置阶段的审批工具转换为运行时版本，注入聊天上下文和取消令牌。
     /// </summary>
     /// <remarks>
@@ -99,16 +125,26 @@ public static class HumanApprovalTool
         private readonly AIFunction _innerFunction;
 
         public ConfiguredHumanApprovalFunction(AIFunction innerFunction, string? approvalDescription)
+            : this(innerFunction, new ApprovalOptions { ApprovalDescription = approvalDescription })
+        {
+        }
+
+        public ConfiguredHumanApprovalFunction(AIFunction innerFunction, ApprovalOptions? options)
         {
             _innerFunction = innerFunction;
             Name = innerFunction.Name;
             Description = innerFunction.Description;
             JsonSchema = innerFunction.JsonSchema;
             AdditionalProperties = innerFunction.AdditionalProperties;
-            ApprovalDescription = string.IsNullOrWhiteSpace(approvalDescription) ? DefaultApprovalDescription : approvalDescription.Trim();
+            Options = options ?? new ApprovalOptions();
+            ApprovalDescription = string.IsNullOrWhiteSpace(Options.ApprovalDescription)
+                ? DefaultApprovalDescription
+                : Options.ApprovalDescription.Trim();
         }
 
         public string ApprovalDescription { get; }
+
+        public ApprovalOptions Options { get; }
 
         public override string Name { get; }
 
@@ -134,7 +170,7 @@ public static class HumanApprovalTool
         /// </summary>
         public RuntimeHumanApprovalFunction Bind(CopilotChatContext? chatContext, CancellationToken cancellationToken)
         {
-            return new RuntimeHumanApprovalFunction(_innerFunction, ApprovalDescription, chatContext, cancellationToken);
+            return new RuntimeHumanApprovalFunction(_innerFunction, ApprovalDescription, Options, chatContext, cancellationToken);
         }
     }
 
@@ -151,12 +187,13 @@ public static class HumanApprovalTool
         private readonly CopilotChatContext? _chatContext;
         private readonly CancellationToken _chatCancellationToken;
 
-        public RuntimeHumanApprovalFunction(AIFunction innerFunction, string approvalDescription, CopilotChatContext? chatContext,
-            CancellationToken chatCancellationToken)
+        public RuntimeHumanApprovalFunction(AIFunction innerFunction, string approvalDescription, ApprovalOptions options,
+            CopilotChatContext? chatContext, CancellationToken chatCancellationToken)
         {
             _innerFunction = innerFunction;
             _chatContext = chatContext;
             _chatCancellationToken = chatCancellationToken;
+            _options = options;
             ApprovalDescription = approvalDescription;
             Name = innerFunction.Name;
             Description = innerFunction.Description;
@@ -165,6 +202,8 @@ public static class HumanApprovalTool
         }
 
         public string ApprovalDescription { get; }
+
+        private readonly ApprovalOptions _options;
 
         public override string Name { get; }
 
@@ -178,6 +217,32 @@ public static class HumanApprovalTool
 
         public override System.Reflection.MethodInfo? UnderlyingMethod => _innerFunction.UnderlyingMethod;
 
+        // 按优先级格式化审批输入：自定义回调 > 模板替换 > 默认键值对展开。
+        private string? FormatInputForApproval(IReadOnlyDictionary<string, object?>? arguments)
+        {
+            if (_options.InputFormatter is not null && arguments is not null)
+            {
+                return _options.InputFormatter(arguments);
+            }
+
+            if (!string.IsNullOrWhiteSpace(_options.InputTemplate) && arguments is not null)
+            {
+                return ReplaceTemplate(_options.InputTemplate, arguments);
+            }
+
+            return CopilotChatMessageItemFormatter.FormatArgumentsForApproval(arguments);
+        }
+
+        private static string ReplaceTemplate(string template, IReadOnlyDictionary<string, object?> arguments)
+        {
+            var builder = new System.Text.StringBuilder(template);
+            foreach (KeyValuePair<string, object?> pair in arguments)
+            {
+                builder.Replace($"{{{pair.Key}}}", pair.Value?.ToString() ?? string.Empty);
+            }
+            return builder.ToString();
+        }
+
         // 链接调用方令牌与会话令牌：任一取消即终止审批等待和工具执行。
         protected override async ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
         {
@@ -185,8 +250,10 @@ public static class HumanApprovalTool
                 ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _chatCancellationToken).Token
                 : _chatCancellationToken;
 
-            string? inputText = CopilotChatMessageItemFormatter.FormatValue(arguments.Count > 0 ? arguments.ToDictionary(pair => pair.Key, pair => pair.Value) : null);
-            CopilotChatApprovalToolItem? approvalToolItem = _chatContext?.CurrentContent.CreateApprovalToolItem(Name, inputText, ApprovalDescription);
+            Dictionary<string, object?>? argumentsDict = arguments.Count > 0 ? arguments.ToDictionary(pair => pair.Key, pair => pair.Value) : null;
+            string? inputText = FormatInputForApproval(argumentsDict);
+            string? displayName = string.IsNullOrWhiteSpace(_options.DisplayName) ? null : _options.DisplayName.Trim();
+            CopilotChatApprovalToolItem? approvalToolItem = _chatContext?.CurrentContent.CreateApprovalToolItem(Name, inputText, ApprovalDescription, displayName: displayName);
 
             if (approvalToolItem is not null)
             {
