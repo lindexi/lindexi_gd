@@ -27,7 +27,7 @@
                         <StackPanel Spacing="4">
                             <TextBlock Text="角色名称" Classes="Subtitle" />
                             <TextBox Classes="Rounded" Text="{Binding RoleName}"
-                                     Watermark="输入角色名称" />
+                                     PlaceholderText="输入角色名称" />
                         </StackPanel>
 
                         <CheckBox Content="是否人类角色" IsChecked="{Binding IsHuman}" />
@@ -39,7 +39,7 @@
                     <StackPanel Spacing="8">
                         <TextBlock Text="系统提示词" Classes="Title" />
                         <TextBox Classes="Rounded" Text="{Binding SystemPrompt}"
-                                 Watermark="角色人设/系统提示词"
+                                 PlaceholderText="角色人设/系统提示词"
                                  AcceptsReturn="True" TextWrapping="Wrap"
                                  MinHeight="100" />
                     </StackPanel>
@@ -53,13 +53,13 @@
                         <StackPanel Spacing="4">
                             <TextBlock Text="模型提供商 ID" Classes="Subtitle" />
                             <TextBox Classes="Rounded" Text="{Binding ModelProviderId}"
-                                     Watermark="留空使用默认" />
+                                     PlaceholderText="留空使用默认" />
                         </StackPanel>
 
                         <StackPanel Spacing="4">
                             <TextBlock Text="模型 ID" Classes="Subtitle" />
                             <TextBox Classes="Rounded" Text="{Binding ModelId}"
-                                     Watermark="留空使用默认" />
+                                     PlaceholderText="留空使用默认" />
                         </StackPanel>
 
                         <!-- 当前实际生效的模型 -->
@@ -88,7 +88,7 @@
                     <StackPanel Spacing="8">
                         <TextBlock Text="角色记忆（可选）" Classes="Title" />
                         <TextBox Classes="Rounded" Text="{Binding MemoryContent}"
-                                 Watermark="角色的长期记忆内容"
+                                 PlaceholderText="角色的长期记忆内容"
                                  AcceptsReturn="True" TextWrapping="Wrap"
                                  MinHeight="80" />
                     </StackPanel>

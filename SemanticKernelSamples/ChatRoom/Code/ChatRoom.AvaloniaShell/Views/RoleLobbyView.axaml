@@ -26,20 +26,20 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="4">
                         <TextBlock Text="分类" Classes="Subtitle" />
-                        <TextBox Classes="Rounded" Text="{Binding PromoteCategory}" Watermark="如：开发、产品、通用" />
+                        <TextBox Classes="Rounded" Text="{Binding PromoteCategory}" PlaceholderText="如：开发、产品、通用" />
                     </StackPanel>
                 </Grid>
                 <StackPanel Spacing="4">
                     <TextBlock Text="模板名称" Classes="Subtitle" />
-                    <TextBox Classes="Rounded" Text="{Binding PromoteName}" Watermark="输入模板名称" />
+                    <TextBox Classes="Rounded" Text="{Binding PromoteName}" PlaceholderText="输入模板名称" />
                 </StackPanel>
                 <StackPanel Spacing="4">
                     <TextBlock Text="描述" Classes="Subtitle" />
-                    <TextBox Classes="Rounded" Text="{Binding PromoteDescription}" Watermark="一句话描述角色用途" />
+                    <TextBox Classes="Rounded" Text="{Binding PromoteDescription}" PlaceholderText="一句话描述角色用途" />
                 </StackPanel>
                 <StackPanel Spacing="4">
                     <TextBlock Text="标签（逗号分隔）" Classes="Subtitle" />
-                    <TextBox Classes="Rounded" Text="{Binding PromoteTags}" Watermark="如：架构, 系统设计" />
+                    <TextBox Classes="Rounded" Text="{Binding PromoteTags}" PlaceholderText="如：架构, 系统设计" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                     <Button Classes="Flat" Content="取消" Command="{Binding CancelPromoteCommand}" />
@@ -49,7 +49,7 @@
         </Border>
 
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="16,8">
-            <TextBox Classes="Rounded" Text="{Binding SearchText}" Watermark="搜索模板..." />
+            <TextBox Classes="Rounded" Text="{Binding SearchText}" PlaceholderText="搜索模板..." />
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0">
                 <TextBlock Text="分类:" Classes="Subtitle" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" PlaceholderText="全部" MinWidth="120" />

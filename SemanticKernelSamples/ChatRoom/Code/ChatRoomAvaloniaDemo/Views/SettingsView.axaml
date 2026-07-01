@@ -49,17 +49,17 @@
               <TextBlock Grid.Row="0" Grid.Column="0" Text="持久化路径：" VerticalAlignment="Center" />
               <TextBox Grid.Row="0" Grid.Column="1"
                        Text="{Binding PersistenceBasePath}"
-                       Watermark="选择聊天记录存储目录..." />
+                       PlaceholderText="选择聊天记录存储目录..." />
 
               <TextBlock Grid.Row="1" Grid.Column="0" Text="技能文件夹：" VerticalAlignment="Center" />
               <TextBox Grid.Row="1" Grid.Column="1"
                        Text="{Binding SkillFoldersBasePath}"
-                       Watermark="技能文件夹基础路径..." />
+                       PlaceholderText="技能文件夹基础路径..." />
 
               <TextBlock Grid.Row="2" Grid.Column="0" Text="默认最大轮次：" VerticalAlignment="Center" />
               <TextBox Grid.Row="2" Grid.Column="1"
                        Text="{Binding DefaultMaxRounds}"
-                       Watermark="10" />
+                       PlaceholderText="10" />
             </Grid>
           </StackPanel>
         </Border>
