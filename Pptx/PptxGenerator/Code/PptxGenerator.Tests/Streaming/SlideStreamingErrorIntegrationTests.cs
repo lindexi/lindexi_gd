@@ -507,4 +507,72 @@ public sealed class SlideStreamingErrorIntegrationTests
         // Assert — 完整的 Page 片段应被渲染
         StringAssert.Contains(chatManager.RenderedXml, "r1", "CDATA 之前的完整片段应被渲染");
     }
+
+    // ───────── 用例 16：Panel Padding 格式错误后重试修正 ─────────
+
+    /// <summary>
+    /// LLM 输出 Panel 的 Padding 属性值为非数值 "abc"。
+    /// 合并层不报错（XML 结构合法、Id 存在），渲染层检测到 Padding 格式错误后取消流并重试。
+    /// 重试时输出正确 Padding 值，验证最终渲染结果不包含格式错误。
+    /// 注意：重试时 Panel Id="p1" 相同，MergeChildren 会用第二轮的子元素替换第一轮的子元素。
+    /// </summary>
+    [TestMethod(DisplayName = "Panel Padding 格式错误：渲染检测到错误后取消流并重试，修正后正常渲染")]
+    public async Task FullStreaming_PanelInvalidPadding_RetryWithValid_RendersCorrectly()
+    {
+        // Arrange — 第一轮：Padding 格式错误；第二轮：修正为有效值
+        var firstRound =
+            """<Page><Panel Id="p1" Padding="abc"><Rect Id="r1" Width="100" Height="50" Fill="#FF0000"/></Panel></Page>""";
+        var secondRound =
+            """<Page><Panel Id="p1" Padding="16"><Rect Id="r1" Width="100" Height="50" Fill="#FF0000"/><Rect Id="r2" Width="200" Height="80" Fill="#00FF00"/></Panel></Page>""";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
+
+        // Act
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
+
+        // Assert — 重试后有效片段被渲染，Padding 被修正
+        StringAssert.Contains(chatManager.RenderedXml, "r1", "r1 应保留（第二轮包含 r1）");
+        StringAssert.Contains(chatManager.RenderedXml, "r2", "第二轮新增的 r2 应被渲染");
+        Assert.DoesNotContain(
+            "Padding=\"abc\"",
+            chatManager.RenderedXml,
+            "修正后渲染结果不应包含错误的 Padding=\"abc\"");
+        StringAssert.Contains(chatManager.RenderedXml, "Padding=\"16\"", "Padding 应被修正为 16");
+    }
+
+    // ───────── 用例 17：Panel Padding 格式错误（首个片段）─────────
+
+    /// <summary>
+    /// 首个片段的 Panel Padding 属性值为非数值 "xyz"。
+    /// 合并层不报错，渲染层检测到错误后取消流并重试。
+    /// 重试时用同一 Panel Id 覆盖修正 Padding 值，验证最终渲染结果不含格式错误。
+    /// </summary>
+    [TestMethod(DisplayName = "Panel Padding 格式错误（首个片段）：重试后覆盖修正，正常渲染")]
+    public async Task FullStreaming_PanelInvalidPaddingFirstFragment_RetryRecoversFromEmpty()
+    {
+        // Arrange — 第一轮：首个片段即 Padding 格式错误；第二轮：同 Panel Id 覆盖修正
+        var firstRound =
+            """<Page><Panel Id="p1" Padding="xyz"><Rect Id="r1" Width="100" Height="50"/></Panel></Page>""";
+        var secondRound =
+            """<Page><Panel Id="p1" Padding="8"><Rect Id="r1" Width="100" Height="50"/><Rect Id="r2" Width="200" Height="100" Fill="#00FF00"/></Panel></Page>""";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
+
+        // Act
+        await chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            useStreaming: true).ConfigureAwait(false);
+
+        // Assert — 重试后 Padding 被修正，有效片段被渲染
+        Assert.DoesNotContain(
+            "Padding=\"xyz\"",
+            chatManager.RenderedXml,
+            "修正后渲染结果不应包含错误的 Padding=\"xyz\"");
+        StringAssert.Contains(chatManager.RenderedXml, "r1", "r1 应保留");
+        StringAssert.Contains(chatManager.RenderedXml, "r2", "重试后 r2 应被渲染");
+    }
 }
