@@ -235,7 +235,7 @@
                 <TextBox Grid.Column="0" Classes="Rounded"
                          Name="InputTextBox"
                          Text="{Binding InputText}"
-                         Watermark="输入消息，@角色名 提及特定角色...（Ctrl+Enter 发送）"
+                         PlaceholderText="输入消息，@角色名 提及特定角色...（Ctrl+Enter 发送）"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          MaxHeight="120"

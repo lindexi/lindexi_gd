@@ -27,7 +27,7 @@
                         <StackPanel Spacing="4">
                             <TextBlock Text="持久化路径" Classes="Subtitle" />
                             <TextBox Classes="Rounded" Text="{Binding PersistencePath}"
-                                     Watermark="会话持久化根目录路径" />
+                                     PlaceholderText="会话持久化根目录路径" />
                         </StackPanel>
 
                         <StackPanel Spacing="4">
@@ -39,7 +39,7 @@
                         <StackPanel Spacing="4">
                             <TextBlock Text="全局首选模型" Classes="Subtitle" />
                             <TextBox Classes="Rounded" Text="{Binding PrimaryModel}"
-                                     Watermark="Provider/ModelName 格式" />
+                                     PlaceholderText="Provider/ModelName 格式" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -61,17 +61,17 @@
                                         <StackPanel Spacing="8">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <TextBox Classes="Rounded" Text="{Binding Name}"
-                                                         Watermark="提供商名称" />
+                                                         PlaceholderText="提供商名称" />
                                                 <Button Grid.Column="1" Classes="Danger" Content="删除"
                                                         Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveProviderCommand}"
                                                         CommandParameter="{Binding}" />
                                             </Grid>
                                             <TextBox Classes="Rounded" Text="{Binding Endpoint}"
-                                                     Watermark="API 地址 (https://...)" />
+                                                     PlaceholderText="API 地址 (https://...)" />
                                             <TextBox Classes="Rounded" Text="{Binding Key}"
-                                                     Watermark="API 密钥" PasswordChar="*" />
+                                                     PlaceholderText="API 密钥" PasswordChar="*" />
                                             <TextBox Classes="Rounded" Text="{Binding ModelsText}"
-                                                     Watermark="模型列表，每行一个: ModelName,ModelId,flash"
+                                                     PlaceholderText="模型列表，每行一个: ModelName,ModelId,flash"
                                                      AcceptsReturn="True" TextWrapping="Wrap"
                                                      MinHeight="60" FontSize="12" />
                                         </StackPanel>
