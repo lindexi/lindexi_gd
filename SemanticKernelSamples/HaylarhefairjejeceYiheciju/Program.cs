@@ -28,7 +28,10 @@ ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
     {
         
     },
-    ChatHistoryProvider = new FooChatHistoryProvider()
+    //ChatHistoryProvider = new FooChatHistoryProvider(),
+#pragma warning disable MAAI001
+    RequirePerServiceCallChatHistoryPersistence = true,
+#pragma warning restore MAAI001
 });
 var session = await agent.CreateSessionAsync();
 
@@ -39,6 +42,11 @@ var cancellationTokenSource = new CancellationTokenSource();
 var tokenCount = 0;
 
 var chatMessageList = new List<ChatMessage>();
+
+session.SetInMemoryChatHistory(new List<ChatMessage>()
+{
+    new ChatMessage(ChatRole.System, "如果用户询问你某个人的信息，你不应该直接回答，而是引导用户去查找相关信息。"),
+});
 
 try
 {
@@ -91,10 +99,11 @@ class FooChatHistoryProvider : ChatHistoryProvider
         return base.InvokingCoreAsync(context, cancellationToken);
     }
 
-    protected override ValueTask<IEnumerable<ChatMessage>> ProvideChatHistoryAsync(InvokingContext context,
+    protected override async ValueTask<IEnumerable<ChatMessage>> ProvideChatHistoryAsync(InvokingContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        return base.ProvideChatHistoryAsync(context, cancellationToken);
+        var result = await base.ProvideChatHistoryAsync(context, cancellationToken);
+        return result;
     }
 
     protected override ValueTask InvokedCoreAsync(InvokedContext context, CancellationToken cancellationToken = new CancellationToken())
