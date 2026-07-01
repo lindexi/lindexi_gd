@@ -1,9 +1,12 @@
 using System.Collections.Concurrent;
 using System.Text;
+
 using AgentLib;
 using AgentLib.Model;
+
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+
 using PptxGenerator.Models;
 using PptxGenerator.Prompt;
 using PptxGenerator.Streaming;
@@ -171,9 +174,9 @@ internal sealed class StreamingSlideGenerator
                     //};
                 },
                 externalCancellationToken).ConfigureAwait(false);
-            var session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
+            AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
 
-            var userChatMessage = manualContext.UserChatMessage.ToChatMessage();
+            ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
 
             // 附带当前预览图供 LLM 参考（仅在用户勾选且存在预览图时）
             if (attachPreview)
@@ -185,18 +188,21 @@ internal sealed class StreamingSlideGenerator
                 }
             }
 
-            var messages = systemPrompt is not null
+            var inputMessages = systemPrompt is not null
                 ? new[] { new ChatMessage(ChatRole.System, systemPrompt), userChatMessage }
                 : new[] { userChatMessage };
 
             var loopToken = errorCancellationTokenSource.Token;
 
+            var currentAssistantResponseUpdateList = new List<AgentResponseUpdate>();
+
             try
             {
-                await foreach (var update in agent.RunStreamingAsync(
-                    messages, session, cancellationToken: loopToken).ConfigureAwait(false))
+                await foreach (AgentResponseUpdate update in agent.RunStreamingAsync(
+                    inputMessages, session, cancellationToken: loopToken).ConfigureAwait(false))
                 {
                     manualContext.AppendResponseUpdate(update);
+                    currentAssistantResponseUpdateList.Add(update);
 
                     if (string.IsNullOrEmpty(update.Text))
                     {
@@ -218,6 +224,45 @@ internal sealed class StreamingSlideGenerator
             catch (OperationCanceledException) when (errorCancellationTokenSource.IsCancellationRequested && !externalCancellationToken.IsCancellationRequested)
             {
                 // 由异常检测触发的取消，非外部取消，继续走错误反馈流程
+
+                // 被打断了，但也依然需要将用户消息和 LLM 的输出追加到会话中，以便后续的错误反馈调用
+                if (session.TryGetInMemoryChatHistory(out var chatMessageList))
+                {
+                    // 倒数匹配，如何能够和 messages 一样的，就不用追加，否则就要追加
+                    bool shouldAppendInputMessages = false;
+                    if (chatMessageList.Count >= inputMessages.Length)
+                    {
+                        for (var i = 0; i < inputMessages.Length; i++)
+                        {
+                            var index = chatMessageList.Count - inputMessages.Length + i;
+                            if (chatMessageList[index] != inputMessages[i])
+                            {
+                                // 逻辑不严谨，但是也差不多，不会说只有一个不相同
+                                shouldAppendInputMessages = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        shouldAppendInputMessages = true;
+                    }
+
+                    if (shouldAppendInputMessages)
+                    {
+                        chatMessageList.AddRange(inputMessages);
+                    }
+
+                    var assistantContents = new List<AIContent>();
+                    foreach (AgentResponseUpdate agentResponseUpdate in currentAssistantResponseUpdateList)
+                    {
+                        assistantContents.AddRange(agentResponseUpdate.Contents);
+                    }
+
+                    var assistantChatMessage = new ChatMessage(ChatRole.Assistant, assistantContents);
+                    chatMessageList.Add(assistantChatMessage);
+
+                    session.SetInMemoryChatHistory(chatMessageList);
+                }
             }
 
             // 收集所有错误信息
