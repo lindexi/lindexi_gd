@@ -75,6 +75,7 @@ public sealed class SlideStreamingPipeline
     /// <summary>
     /// 处理 LLM 流式增量文本。提取完整片段后合并到 DOM 树，并在每个片段合并成功后立即尝试实时渲染。
     /// 合并出错的片段会被自动回滚，防止错误状态污染后续合并。
+    /// 渲染出错的片段会将错误写入 context.Errors 并中断当前批次处理，由调用方决定重试。
     /// </summary>
     /// <param name="text">增量文本。</param>
     /// <param name="context">渲染上下文。</param>
@@ -102,9 +103,24 @@ public sealed class SlideStreamingPipeline
 
             // 每个片段合并成功后立即尝试实时渲染（带节流）
             var mergedXml = _merger.GetMergedXml();
-            if (!string.IsNullOrWhiteSpace(mergedXml))
+            if (string.IsNullOrWhiteSpace(mergedXml))
             {
-                await _renderService.TryRenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+                continue;
+            }
+
+            var renderResult = await _renderService.TryRenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+
+            // 因节流跳过时 renderResult 为 null，不做错误检查
+            if (renderResult is null)
+            {
+                continue;
+            }
+
+            // 渲染层检测到错误（如属性值格式错误），写入 context 并中断当前批次
+            if (renderResult.Errors is { Count: > 0 })
+            {
+                context.AddErrors(renderResult.Errors);
+                break;
             }
         }
     }

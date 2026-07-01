@@ -126,16 +126,13 @@ internal sealed class StreamingSlideGenerator
                 PreviewImage = renderResult.PreviewImage,
             });
 
-            // 收集渲染阶段产生的错误
+            // 收集渲染阶段产生的错误（作为 context.Errors 的补充，如 FinalRenderAsync 产生的错误）
             if (renderResult.Errors is { Count: > 0 })
             {
                 foreach (var error in renderResult.Errors)
                 {
                     renderErrors.Enqueue(error);
                 }
-
-                // 渲染出错，取消当前流式输出
-                errorCancellationTokenSource.Cancel();
             }
         };
 

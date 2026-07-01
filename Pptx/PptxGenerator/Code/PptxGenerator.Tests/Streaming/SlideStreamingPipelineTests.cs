@@ -469,8 +469,11 @@ public sealed class SlideStreamingPipelineTests
             "<Page><Panel Id=\"p1\" Padding=\"abc\"><Rect Id=\"r1\" Width=\"100\"/></Panel></Page>",
             context);
 
-        // Assert — 合并层不产生错误
-        Assert.IsEmpty(context.Errors, "合并层不应检测出 Padding 格式错误");
+        // Assert — 渲染层错误已同步写入 context.Errors
+        Assert.IsNotEmpty(context.Errors, "渲染层错误应同步写入 context.Errors");
+        Assert.IsTrue(
+            context.Errors.Any(e => e.Contains("Padding") && e.Contains("abc")),
+            "context.Errors 应包含 Padding 格式错误");
 
         // 渲染层产生错误（SlideMlParser.GetOptionalDouble 检测到非数值）
         Assert.IsNotEmpty(renderedResults, "应触发渲染");
@@ -541,14 +544,13 @@ public sealed class SlideStreamingPipelineTests
             context);
         await pipeline.ProcessStreamEndAsync(context);
 
-        // Assert — 最终渲染产生 Padding 格式错误
-        Assert.IsEmpty(context.Errors, "合并层不应检测出 Padding 格式错误");
-        Assert.IsNotEmpty(renderedResults, "应触发渲染");
-        var lastRender = renderedResults[^1];
-        Assert.IsNotEmpty(lastRender.Errors, "渲染结果应包含 Padding 格式错误");
+        // Assert — 首次渲染不受节流限制（_lastRenderTime 为 default），渲染错误已同步写入 context.Errors
+        Assert.IsNotEmpty(context.Errors, "渲染层错误应同步写入 context.Errors");
         Assert.IsTrue(
-            lastRender.Errors.Any(e => e.Contains("Padding") && e.Contains("xyz")),
-            "错误信息应包含 Padding 和 xyz");
+            context.Errors.Any(e => e.Contains("Padding") && e.Contains("xyz")),
+            "context.Errors 应包含 Padding 格式错误");
+        // ProcessStreamEnd 仍会触发一次渲染（错误已在前一步被捕获，但 DOM 不变）
+        Assert.IsNotEmpty(renderedResults, "应触发渲染（ProcessStreamEnd 的 FinalRender）");
     }
 
     [TestMethod(DisplayName = "首个片段 Panel Padding 格式错误：合并成功，渲染层产生错误")]
@@ -565,8 +567,11 @@ public sealed class SlideStreamingPipelineTests
             "<Page><Panel Id=\"p1\" Padding=\"abc\"><Rect Id=\"r1\" Width=\"100\"/></Panel></Page>",
             context);
 
-        // Assert — 合并层不报错（这是属性值格式问题，不是结构问题）
-        Assert.IsEmpty(context.Errors, "合并层不应检测出属性值格式错误");
+        // Assert — 渲染层错误已同步写入 context.Errors（ProcessIncrementalTextAsync 同步返回）
+        Assert.IsNotEmpty(context.Errors, "渲染层错误应同步写入 context.Errors");
+        Assert.IsTrue(
+            context.Errors.Any(e => e.Contains("Padding") && e.Contains("abc")),
+            "context.Errors 应包含 Padding 格式错误");
         Assert.Contains("p1", pipeline.CurrentMergedXml, "DOM 应包含 Panel");
 
         // 渲染层检测出错误

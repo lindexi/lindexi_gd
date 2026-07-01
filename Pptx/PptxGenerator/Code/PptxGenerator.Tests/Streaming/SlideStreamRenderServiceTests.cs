@@ -47,10 +47,10 @@ public sealed class SlideStreamRenderServiceTests
         var service = CreateService(pipeline);
 
         // Act
-        var rendered = await service.TryRenderAsync("<Page/>");
+        var result = await service.TryRenderAsync("<Page/>");
 
         // Assert
-        Assert.IsTrue(rendered);
+        Assert.IsNotNull(result);
         Assert.AreEqual(outputXml, service.CurrentRenderedXml);
         Assert.IsNotNull(service.CurrentPreviewImage);
         Assert.IsEmpty(service.CurrentWarnings);
@@ -69,8 +69,8 @@ public sealed class SlideStreamRenderServiceTests
         var second = await service.TryRenderAsync("<Page/>");
 
         // Assert
-        Assert.IsTrue(first);
-        Assert.IsFalse(second);
+        Assert.IsNotNull(first);
+        Assert.IsNull(second);
     }
 
     [TestMethod(DisplayName = "TryRender：超过间隔后可以再次渲染")]
@@ -85,8 +85,8 @@ public sealed class SlideStreamRenderServiceTests
         var second = await service.TryRenderAsync("<Page/>");
 
         // Assert
-        Assert.IsTrue(first);
-        Assert.IsTrue(second);
+        Assert.IsNotNull(first);
+        Assert.IsNotNull(second);
     }
 
     [TestMethod(DisplayName = "TryRender：空或空白 XML 不渲染")]
@@ -97,10 +97,10 @@ public sealed class SlideStreamRenderServiceTests
         var service = CreateService(pipeline);
 
         // Act
-        var rendered = await service.TryRenderAsync("");
+        var result = await service.TryRenderAsync("");
 
         // Assert
-        Assert.IsFalse(rendered);
+        Assert.IsNull(result);
     }
 
     [TestMethod(DisplayName = "FinalRender：忽略节流直接渲染")]

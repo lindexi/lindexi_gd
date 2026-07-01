@@ -60,24 +60,23 @@ public sealed class SlideStreamRenderService
     /// </summary>
     /// <param name="slideXml">当前合并后的 XML。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>是否实际执行了渲染。</returns>
-    public async Task<bool> TryRenderAsync(string slideXml, CancellationToken cancellationToken = default)
+    /// <returns>渲染结果；因节流跳过或 XML 为空时返回 <see langword="null"/>。</returns>
+    public async Task<SlideStreamRenderResult?> TryRenderAsync(string slideXml, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(slideXml);
 
         if (string.IsNullOrWhiteSpace(slideXml))
         {
-            return false;
+            return null;
         }
 
         var now = DateTimeOffset.UtcNow;
         if (_lastRenderTime != default && now - _lastRenderTime < _minRenderInterval)
         {
-            return false;
+            return null;
         }
 
-        await RenderCoreAsync(slideXml, cancellationToken).ConfigureAwait(false);
-        return true;
+        return await RenderCoreAsync(slideXml, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -100,7 +99,7 @@ public sealed class SlideStreamRenderService
     /// <summary>
     /// 核心渲染逻辑，调度到主线程执行。
     /// </summary>
-    private async Task<SlideMlRenderResult> RenderCoreAsync(string slideXml, CancellationToken cancellationToken)
+    private async Task<SlideStreamRenderResult> RenderCoreAsync(string slideXml, CancellationToken cancellationToken)
     {
         _lastRenderTime = DateTimeOffset.UtcNow;
 
@@ -124,6 +123,6 @@ public sealed class SlideStreamRenderService
             return Task.CompletedTask;
         }).ConfigureAwait(false);
 
-        return renderResult;
+        return result;
     }
 }
