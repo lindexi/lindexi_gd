@@ -22,7 +22,14 @@ Debug.Assert(languageModel is not null);
 
 var chatClient = await languageModel.GetChatClientAsync();
 
-ChatClientAgent agent = chatClient.AsAIAgent();
+ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
+{
+    ChatOptions = new ChatOptions()
+    {
+        
+    },
+    ChatHistoryProvider = new FooChatHistoryProvider()
+});
 var session = await agent.CreateSessionAsync();
 
 var userMessage = $"今天是 {DateTime.Now}。 Hello, I am a user. I want to use the MiniMax-M3 model to chat with you. 请你回忆你的记忆，告诉我技术领域的 lindexi 是谁，他做了那些技术";
@@ -30,6 +37,8 @@ var userMessage = $"今天是 {DateTime.Now}。 Hello, I am a user. I want to us
 var cancellationTokenSource = new CancellationTokenSource();
 
 var tokenCount = 0;
+
+var chatMessageList = new List<ChatMessage>();
 
 try
 {
@@ -45,9 +54,12 @@ try
             tokenCount++;
         }
 
+        chatMessageList.AddMessages(reasoningAgentResponseUpdate.Origin.AsChatResponseUpdate());
+
+        var currentRunContext = ChatClientAgent.CurrentRunContext;
+
         if (tokenCount == 10)
         {
-
         }
     }
 }
@@ -70,3 +82,33 @@ Debug.Assert(messageList is not null);
 
 
 Console.WriteLine("Hello, World!");
+
+
+class FooChatHistoryProvider : ChatHistoryProvider
+{
+    protected override ValueTask<IEnumerable<ChatMessage>> InvokingCoreAsync(InvokingContext context, CancellationToken cancellationToken = new CancellationToken())
+    {
+        return base.InvokingCoreAsync(context, cancellationToken);
+    }
+
+    protected override ValueTask<IEnumerable<ChatMessage>> ProvideChatHistoryAsync(InvokingContext context,
+        CancellationToken cancellationToken = new CancellationToken())
+    {
+        return base.ProvideChatHistoryAsync(context, cancellationToken);
+    }
+
+    protected override ValueTask InvokedCoreAsync(InvokedContext context, CancellationToken cancellationToken = new CancellationToken())
+    {
+        return base.InvokedCoreAsync(context, cancellationToken);
+    }
+
+    protected override ValueTask StoreChatHistoryAsync(InvokedContext context, CancellationToken cancellationToken = new CancellationToken())
+    {
+        return base.StoreChatHistoryAsync(context, cancellationToken);
+    }
+
+    public override object? GetService(Type serviceType, object? serviceKey = null)
+    {
+        return base.GetService(serviceType, serviceKey);
+    }
+}
