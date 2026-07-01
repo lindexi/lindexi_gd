@@ -94,20 +94,6 @@ internal sealed class StreamingSlideGenerator
         }
     }
 
-    class FooChatHistoryProvider : ChatHistoryProvider
-    {
-        public List<ChatMessage> ChatMessageList { get; set; } = [];
-
-        protected override ValueTask<IEnumerable<ChatMessage>> ProvideChatHistoryAsync(InvokingContext context,
-            CancellationToken cancellationToken = new CancellationToken())
-        {
-            var result = ChatMessageList.ToList();
-            ChatMessageList.AddRange(context.RequestMessages);
-
-            return ValueTask.FromResult<IEnumerable<ChatMessage>>(result);
-        }
-    }
-
     /// <summary>
     /// 执行单轮流式生成循环。在检测到 XML 解析异常或渲染异常时，
     /// 通过 <paramref name="errorCancellationTokenSource"/> 取消当前流式输出，并返回错误反馈信息。
