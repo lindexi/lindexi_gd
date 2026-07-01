@@ -1,12 +1,12 @@
 <UserControl x:Class="CheawuchewalYicheredurlakearja.Views.LeftSidebarPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Width="220"
-             Background="#1e293b">
+             Width="240"
+             Background="White">
 
     <DockPanel>
         <!-- ═══════════ Top: Logo + New Page Button ═══════════ -->
-        <StackPanel DockPanel.Dock="Top" Margin="12,12,12,8">
+        <StackPanel DockPanel.Dock="Top" Margin="16,16,16,12">
 
             <!-- Logo row -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
@@ -19,7 +19,8 @@
                     </Ellipse.Fill>
                 </Ellipse>
                 <TextBlock Text="SlideML Lab"
-                           Foreground="White" FontWeight="Bold" FontSize="16"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           FontWeight="Bold" FontSize="16"
                            VerticalAlignment="Center" Margin="8,0,0,0"/>
             </StackPanel>
 
@@ -27,253 +28,245 @@
             <Button Cursor="Hand">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="#334155" CornerRadius="6" Padding="0,8">
+                        <Border x:Name="Bd" Background="#f1f5f9"
+                                CornerRadius="6" Padding="0,8"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#475569"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#e2e8f0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Button.Template>
-                <TextBlock Text="+ New Page" Foreground="White" FontSize="13"/>
+                <TextBlock Text="+ New Page"
+                           Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"/>
             </Button>
         </StackPanel>
 
-        <!-- ═══════════ Page Thumbnails ═══════════ -->
+        <!-- ═══════════ Page Thumbnails (single column) ═══════════ -->
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled"
-                      Padding="8,0,8,12">
-            <UniformGrid Columns="2">
+                      Padding="12,0,12,12">
+            <UniformGrid Columns="1">
 
                 <!-- ── Page 1 (selected — blue border) ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="#3B82F6" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
                             <!-- bar chart -->
-                            <Rectangle Canvas.Left="12" Canvas.Top="32" Width="10" Height="20" Fill="#3B82F6"/>
-                            <Rectangle Canvas.Left="26" Canvas.Top="22" Width="10" Height="30" Fill="#60A5FA"/>
-                            <Rectangle Canvas.Left="40" Canvas.Top="14" Width="10" Height="38" Fill="#3B82F6"/>
-                            <Rectangle Canvas.Left="54" Canvas.Top="26" Width="10" Height="26" Fill="#60A5FA"/>
-                            <Rectangle Canvas.Left="68" Canvas.Top="18" Width="10" Height="34" Fill="#3B82F6"/>
+                            <Rectangle Canvas.Left="20" Canvas.Top="55" Width="18" Height="40" Fill="#3B82F6"/>
+                            <Rectangle Canvas.Left="46" Canvas.Top="38" Width="18" Height="57" Fill="#60A5FA"/>
+                            <Rectangle Canvas.Left="72" Canvas.Top="22" Width="18" Height="73" Fill="#3B82F6"/>
+                            <Rectangle Canvas.Left="98" Canvas.Top="45" Width="18" Height="50" Fill="#60A5FA"/>
+                            <Rectangle Canvas.Left="124" Canvas.Top="30" Width="18" Height="65" Fill="#3B82F6"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 1" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 1" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 2 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <Rectangle Canvas.Left="8"  Canvas.Top="8"  Width="40" Height="20" Fill="#CBD5E1" RadiusX="2" RadiusY="2"/>
-                            <Rectangle Canvas.Left="8"  Canvas.Top="34" Width="18" Height="18" Fill="#3B82F6" RadiusX="2" RadiusY="2"/>
-                            <Rectangle Canvas.Left="30" Canvas.Top="34" Width="52" Height="6"  Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="30" Canvas.Top="44" Width="40" Height="6"  Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="12" Width="80" Height="36" Fill="#CBD5E1" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="58" Width="36" Height="36" Fill="#3B82F6" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="56" Canvas.Top="58" Width="100" Height="10" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="56" Canvas.Top="76" Width="76" Height="10" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 2" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 2" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 3 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
                             <!-- text lines -->
-                            <Rectangle Canvas.Left="8"  Canvas.Top="8"  Width="34" Height="4" Fill="#CBD5E1" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="8"  Canvas.Top="16" Width="28" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="8"  Canvas.Top="24" Width="30" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="12" Width="60" Height="6" Fill="#CBD5E1" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="24" Width="48" Height="6" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="36" Width="54" Height="6" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
                             <!-- mini chart -->
-                            <Rectangle Canvas.Left="50" Canvas.Top="10" Width="32" Height="40" Fill="#EFF6FF" RadiusX="2" RadiusY="2"/>
-                            <Rectangle Canvas.Left="54" Canvas.Top="34" Width="6"  Height="12" Fill="#3B82F6"/>
-                            <Rectangle Canvas.Left="63" Canvas.Top="26" Width="6"  Height="20" Fill="#60A5FA"/>
-                            <Rectangle Canvas.Left="72" Canvas.Top="30" Width="6"  Height="16" Fill="#3B82F6"/>
+                            <Rectangle Canvas.Left="90" Canvas.Top="14" Width="60" Height="80" Fill="#EFF6FF" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="98" Canvas.Top="60" Width="10" Height="24" Fill="#3B82F6"/>
+                            <Rectangle Canvas.Left="114" Canvas.Top="44" Width="10" Height="40" Fill="#60A5FA"/>
+                            <Rectangle Canvas.Left="130" Canvas.Top="52" Width="10" Height="32" Fill="#3B82F6"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 3" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 3" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 4 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <Rectangle Canvas.Left="8"  Canvas.Top="8"  Width="34" Height="20" Fill="#DBEAFE" RadiusX="2" RadiusY="2"/>
-                            <Rectangle Canvas.Left="48" Canvas.Top="8"  Width="34" Height="20" Fill="#E0E7FF" RadiusX="2" RadiusY="2"/>
-                            <Rectangle Canvas.Left="8"  Canvas.Top="32" Width="34" Height="20" Fill="#E0E7FF" RadiusX="2" RadiusY="2"/>
-                            <Rectangle Canvas.Left="48" Canvas.Top="32" Width="34" Height="20" Fill="#DBEAFE" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="12" Width="66" Height="38" Fill="#DBEAFE" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="92" Canvas.Top="12" Width="66" Height="38" Fill="#E0E7FF" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="58" Width="66" Height="38" Fill="#E0E7FF" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="92" Canvas.Top="58" Width="66" Height="38" Fill="#DBEAFE" RadiusX="2" RadiusY="2"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 4" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 4" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 5 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <Ellipse Canvas.Left="25" Canvas.Top="10" Width="40" Height="40" Fill="#3B82F6"/>
-                            <Path Data="M45,30 L45,10 A20,20 0 0,1 62,22 Z" Fill="#60A5FA"/>
-                            <Path Data="M45,30 L62,22 A20,20 0 0,1 55,48 Z" Fill="#8B5CF6"/>
+                            <Ellipse Canvas.Left="50" Canvas.Top="16" Width="70" Height="70" Fill="#3B82F6"/>
+                            <Path Data="M85,51 L85,16 A35,35 0 0,1 115,38 Z" Fill="#60A5FA"/>
+                            <Path Data="M85,51 L115,38 A35,35 0 0,1 103,87 Z" Fill="#8B5CF6"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 5" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 5" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 6 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <Ellipse Canvas.Left="25" Canvas.Top="10" Width="40" Height="40" Stroke="#3B82F6" StrokeThickness="8" Fill="Transparent"/>
-                            <Path Data="M45,10 A20,20 0 1,1 27,42" Stroke="#8B5CF6" StrokeThickness="8" Fill="Transparent"/>
+                            <Ellipse Canvas.Left="50" Canvas.Top="16" Width="70" Height="70" Stroke="#3B82F6" StrokeThickness="10" Fill="Transparent"/>
+                            <Path Data="M85,16 A35,35 0 1,1 53,74" Stroke="#8B5CF6" StrokeThickness="10" Fill="Transparent"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 6" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 6" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 7 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True"/>
-                    <TextBlock Text="Page 7" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 7" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 8 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True"/>
-                    <TextBlock Text="Page 8" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 8" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 9 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <!-- 3 boxes -->
-                            <Border Canvas.Left="6"  Canvas.Top="20" Width="20" Height="16" Background="#DBEAFE" CornerRadius="2"/>
-                            <Border Canvas.Left="35" Canvas.Top="20" Width="20" Height="16" Background="#DBEAFE" CornerRadius="2"/>
-                            <Border Canvas.Left="64" Canvas.Top="20" Width="20" Height="16" Background="#DBEAFE" CornerRadius="2"/>
-                            <!-- arrows -->
-                            <Rectangle Canvas.Left="27" Canvas.Top="27" Width="7" Height="2" Fill="#94A3B8"/>
-                            <Rectangle Canvas.Left="56" Canvas.Top="27" Width="7" Height="2" Fill="#94A3B8"/>
+                            <Border Canvas.Left="10" Canvas.Top="36" Width="36" Height="30" Background="#DBEAFE" CornerRadius="2"/>
+                            <Border Canvas.Left="67" Canvas.Top="36" Width="36" Height="30" Background="#DBEAFE" CornerRadius="2"/>
+                            <Border Canvas.Left="124" Canvas.Top="36" Width="36" Height="30" Background="#DBEAFE" CornerRadius="2"/>
+                            <Rectangle Canvas.Left="46" Canvas.Top="50" Width="20" Height="2" Fill="#94A3B8"/>
+                            <Rectangle Canvas.Left="103" Canvas.Top="50" Width="20" Height="2" Fill="#94A3B8"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 9" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 9" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 10 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <!-- step indicators -->
-                            <Ellipse Canvas.Left="14" Canvas.Top="22" Width="12" Height="12" Fill="#3B82F6"/>
-                            <Ellipse Canvas.Left="39" Canvas.Top="22" Width="12" Height="12" Fill="#60A5FA"/>
-                            <Ellipse Canvas.Left="64" Canvas.Top="22" Width="12" Height="12" Fill="#CBD5E1"/>
-                            <!-- connectors -->
-                            <Rectangle Canvas.Left="27" Canvas.Top="27" Width="11" Height="2" Fill="#CBD5E1"/>
-                            <Rectangle Canvas.Left="52" Canvas.Top="27" Width="11" Height="2" Fill="#CBD5E1"/>
+                            <Ellipse Canvas.Left="24" Canvas.Top="40" Width="20" Height="20" Fill="#3B82F6"/>
+                            <Ellipse Canvas.Left="75" Canvas.Top="40" Width="20" Height="20" Fill="#60A5FA"/>
+                            <Ellipse Canvas.Left="126" Canvas.Top="40" Width="20" Height="20" Fill="#CBD5E1"/>
+                            <Rectangle Canvas.Left="44" Canvas.Top="49" Width="30" Height="2" Fill="#CBD5E1"/>
+                            <Rectangle Canvas.Left="95" Canvas.Top="49" Width="30" Height="2" Fill="#CBD5E1"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 10" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 10" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 11 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <!-- timeline line -->
-                            <Rectangle Canvas.Left="10" Canvas.Top="29" Width="70" Height="2" Fill="#CBD5E1"/>
-                            <!-- dots -->
-                            <Ellipse Canvas.Left="12" Canvas.Top="25" Width="8" Height="8" Fill="#3B82F6"/>
-                            <Ellipse Canvas.Left="30" Canvas.Top="25" Width="8" Height="8" Fill="#3B82F6"/>
-                            <Ellipse Canvas.Left="48" Canvas.Top="25" Width="8" Height="8" Fill="#3B82F6"/>
-                            <Ellipse Canvas.Left="66" Canvas.Top="25" Width="8" Height="8" Fill="#60A5FA"/>
-                            <!-- labels -->
-                            <Rectangle Canvas.Left="10" Canvas.Top="38" Width="14" Height="3" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="28" Canvas.Top="38" Width="14" Height="3" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="46" Canvas.Top="38" Width="14" Height="3" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="64" Canvas.Top="38" Width="14" Height="3" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="16" Canvas.Top="52" Width="138" Height="2" Fill="#CBD5E1"/>
+                            <Ellipse Canvas.Left="20" Canvas.Top="48" Width="10" Height="10" Fill="#3B82F6"/>
+                            <Ellipse Canvas.Left="52" Canvas.Top="48" Width="10" Height="10" Fill="#3B82F6"/>
+                            <Ellipse Canvas.Left="84" Canvas.Top="48" Width="10" Height="10" Fill="#3B82F6"/>
+                            <Ellipse Canvas.Left="116" Canvas.Top="48" Width="10" Height="10" Fill="#60A5FA"/>
+                            <Rectangle Canvas.Left="16" Canvas.Top="68" Width="24" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="48" Canvas.Top="68" Width="24" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="80" Canvas.Top="68" Width="24" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="112" Canvas.Top="68" Width="24" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 11" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 11" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 12 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <!-- text lines -->
-                            <Rectangle Canvas.Left="8" Canvas.Top="10" Width="36" Height="4" Fill="#CBD5E1" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="8" Canvas.Top="18" Width="30" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="8" Canvas.Top="26" Width="34" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <Rectangle Canvas.Left="8" Canvas.Top="34" Width="28" Height="4" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
-                            <!-- image placeholder -->
-                            <Rectangle Canvas.Left="50" Canvas.Top="10" Width="32" Height="40" Fill="#DBEAFE" RadiusX="2" RadiusY="2"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="16" Width="64" Height="6" Fill="#CBD5E1" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="28" Width="52" Height="6" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="40" Width="60" Height="6" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="12" Canvas.Top="52" Width="48" Height="6" Fill="#E2E8F0" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Canvas.Left="90" Canvas.Top="16" Width="64" Height="78" Fill="#DBEAFE" RadiusX="2" RadiusY="2"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 12" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 12" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 13 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True"/>
-                    <TextBlock Text="Page 13" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 13" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 14 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <!-- 4 numbered cards -->
-                            <Border Canvas.Left="8"  Canvas.Top="8"  Width="34" Height="20" Background="#EFF6FF" CornerRadius="2"/>
-                            <Border Canvas.Left="48" Canvas.Top="8"  Width="34" Height="20" Background="#EFF6FF" CornerRadius="2"/>
-                            <Border Canvas.Left="8"  Canvas.Top="32" Width="34" Height="20" Background="#EFF6FF" CornerRadius="2"/>
-                            <Border Canvas.Left="48" Canvas.Top="32" Width="34" Height="20" Background="#EFF6FF" CornerRadius="2"/>
-                            <!-- number indicators -->
-                            <Ellipse Canvas.Left="12" Canvas.Top="12" Width="8" Height="8" Fill="#3B82F6"/>
-                            <Ellipse Canvas.Left="52" Canvas.Top="12" Width="8" Height="8" Fill="#60A5FA"/>
-                            <Ellipse Canvas.Left="12" Canvas.Top="36" Width="8" Height="8" Fill="#8B5CF6"/>
-                            <Ellipse Canvas.Left="52" Canvas.Top="36" Width="8" Height="8" Fill="#A78BFA"/>
+                            <Border Canvas.Left="12" Canvas.Top="12" Width="66" Height="38" Background="#EFF6FF" CornerRadius="2"/>
+                            <Border Canvas.Left="92" Canvas.Top="12" Width="66" Height="38" Background="#EFF6FF" CornerRadius="2"/>
+                            <Border Canvas.Left="12" Canvas.Top="58" Width="66" Height="38" Background="#EFF6FF" CornerRadius="2"/>
+                            <Border Canvas.Left="92" Canvas.Top="58" Width="66" Height="38" Background="#EFF6FF" CornerRadius="2"/>
+                            <Ellipse Canvas.Left="20" Canvas.Top="20" Width="12" Height="12" Fill="#3B82F6"/>
+                            <Ellipse Canvas.Left="100" Canvas.Top="20" Width="12" Height="12" Fill="#60A5FA"/>
+                            <Ellipse Canvas.Left="20" Canvas.Top="66" Width="12" Height="12" Fill="#8B5CF6"/>
+                            <Ellipse Canvas.Left="100" Canvas.Top="66" Width="12" Height="12" Fill="#A78BFA"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 14" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 14" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- ── Page 15 ── -->
                 <StackPanel Margin="4" HorizontalAlignment="Center">
-                    <Border Background="White" CornerRadius="4" Width="90" Height="60"
+                    <Border Background="White" CornerRadius="4" Width="170" Height="110"
                             BorderBrush="Transparent" BorderThickness="2" ClipToBounds="True">
                         <Canvas>
-                            <Ellipse Canvas.Left="25" Canvas.Top="10" Width="40" Height="40" Fill="#8B5CF6"/>
-                            <Path Data="M45,30 L45,10 A20,20 0 0,1 63,20 Z" Fill="#3B82F6"/>
-                            <Path Data="M45,30 L63,20 A20,20 0 0,1 58,46 Z" Fill="#60A5FA"/>
+                            <Ellipse Canvas.Left="50" Canvas.Top="16" Width="70" Height="70" Fill="#8B5CF6"/>
+                            <Path Data="M85,51 L85,16 A35,35 0 0,1 116,36 Z" Fill="#3B82F6"/>
+                            <Path Data="M85,51 L116,36 A35,35 0 0,1 107,82 Z" Fill="#60A5FA"/>
                         </Canvas>
                     </Border>
-                    <TextBlock Text="Page 15" Foreground="#94A3B8" FontSize="10"
+                    <TextBlock Text="Page 15" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
                                HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
 
