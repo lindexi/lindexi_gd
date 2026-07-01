@@ -73,8 +73,7 @@ public sealed class SlideMlRenderPipelineEngineTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // 测量值应回填到 OutputXml
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"88\"", "测量值宽度应回填");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"19.2\"", "测量值高度应回填");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"88x19.2\"", "测量值应回填");
     }
 
     [TestMethod]
@@ -116,7 +115,7 @@ public sealed class SlideMlRenderPipelineEngineTests
         StringAssert.Contains(result.OutputXml, "Id=\"card2\"", "card2 应在输出中");
         StringAssert.Contains(result.OutputXml, "Id=\"card3\"", "card3 应在输出中");
         StringAssert.Contains(result.OutputXml, "Id=\"title\"", "title 应在输出中");
-        Assert.Contains("ActualWidth=\"380\"", result.OutputXml, "card 应回填 ActualWidth=380");
+        Assert.Contains("RenderSize=\"380x280\"", result.OutputXml, "card 应回填 RenderSize=380x280");
     }
 
     [TestMethod]
@@ -181,8 +180,7 @@ public sealed class SlideMlRenderPipelineEngineTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         StringAssert.Contains(result.OutputXml, "Id=\"r1\"", "r1 应在输出中");
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"100\"", "r1 应回填 ActualWidth=100");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"50\"", "r1 应回填 ActualHeight=50");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"100x50\"", "r1 应回填 RenderSize=100x50");
     }
 
     [TestMethod]
@@ -193,7 +191,6 @@ public sealed class SlideMlRenderPipelineEngineTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1920\"", "Page 应回填 ActualWidth=1920");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"1080\"", "Page 应回填 ActualHeight=1080");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1920x1080\"", "Page 应回填 RenderSize=1920x1080");
     }
 }

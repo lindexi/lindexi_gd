@@ -16,15 +16,14 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
         {
             Children =
             {
-                new SlideMlRectElement { Id = "r1", Width = 100, Height = 50, ActualWidth = 100, ActualHeight = 50 },
+                new SlideMlRectElement { Id = "r1", Width = 100, Height = 50, MeasuredWidth = 100, MeasuredHeight = 50, LayoutBounds = new SlideMlRect(0, 0, 100, 50) },
             },
         };
         var context = CreateContext();
 
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
-        Assert.Contains("ActualWidth=\"1280\"", result);
-        Assert.Contains("ActualHeight=\"720\"", result);
+        Assert.Contains("RenderSize=\"1280x720\"", result);
     }
 
     [TestMethod]
@@ -47,13 +46,14 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
                 new SlideMlPanelElement
                 {
                     Id = "p1",
-                    ActualWidth = 200,
-                    ActualHeight = 150,
+                    MeasuredWidth = 200,
+                    MeasuredHeight = 150,
+                    LayoutBounds = new SlideMlRect(0, 0, 200, 150),
                     Children =
                     {
-                        new SlideMlRectElement { Id = "r1", ActualWidth = 100, ActualHeight = 50 },
-                        new SlideMlTextElement { Id = "t1", ActualWidth = 80, ActualHeight = 20 },
-                        new SlideMlImageElement { Id = "img1", ActualWidth = 60, ActualHeight = 40 },
+                        new SlideMlRectElement { Id = "r1", MeasuredWidth = 100, MeasuredHeight = 50, LayoutBounds = new SlideMlRect(0, 0, 100, 50) },
+                        new SlideMlTextElement { Id = "t1", MeasuredWidth = 80, MeasuredHeight = 20, LayoutBounds = new SlideMlRect(0, 0, 80, 20) },
+                        new SlideMlImageElement { Id = "img1", MeasuredWidth = 60, MeasuredHeight = 40, LayoutBounds = new SlideMlRect(0, 0, 60, 40) },
                     },
                 },
             },
@@ -63,13 +63,13 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
         Assert.Contains("Id=\"p1\"", result);
-        Assert.Contains("ActualWidth=\"200\"", result);
+        Assert.Contains("RenderSize=\"200x150\"", result);
         Assert.Contains("Id=\"r1\"", result);
-        Assert.Contains("ActualWidth=\"100\"", result);
+        Assert.Contains("RenderSize=\"100x50\"", result);
         Assert.Contains("Id=\"t1\"", result);
-        Assert.Contains("ActualWidth=\"80\"", result);
+        Assert.Contains("RenderSize=\"80x20\"", result);
         Assert.Contains("Id=\"img1\"", result);
-        Assert.Contains("ActualWidth=\"60\"", result);
+        Assert.Contains("RenderSize=\"60x40\"", result);
     }
 
     [TestMethod]
@@ -86,21 +86,19 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
         {
             Children =
             {
-                new SlideMlTextElement { Id = "t1", ActualWidth = 80, ActualHeight = 60, ActualLineCount = 3 },
-                new SlideMlRectElement { Id = "r1", ActualWidth = 100, ActualHeight = 50 },
+                new SlideMlTextElement { Id = "t1", MeasuredWidth = 80, MeasuredHeight = 60, LayoutBounds = new SlideMlRect(0, 0, 80, 60), ActualLineCount = 3 },
+                new SlideMlRectElement { Id = "r1", MeasuredWidth = 100, MeasuredHeight = 50, LayoutBounds = new SlideMlRect(0, 0, 100, 50) },
             },
         };
         var context = CreateContext();
 
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
-        // TextElement 应有 ActualLineCount
         var t1Start = result.IndexOf("Id=\"t1\"");
         Assert.IsGreaterThanOrEqualTo(0, t1Start);
         var t1Segment = result.Substring(t1Start, result.IndexOf("/>", t1Start) - t1Start + 2);
         Assert.Contains("ActualLineCount=\"3\"", t1Segment);
 
-        // Rect 不应有 ActualLineCount
         var r1Start = result.IndexOf("Id=\"r1\"");
         Assert.IsGreaterThanOrEqualTo(0, r1Start);
         var r1Segment = result.Substring(r1Start, result.IndexOf("/>", r1Start) - r1Start + 2);
@@ -127,18 +125,20 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
                 new SlideMlPanelElement
                 {
                     Id = "outer",
-                    ActualWidth = 300,
-                    ActualHeight = 200,
+                    MeasuredWidth = 300,
+                    MeasuredHeight = 200,
+                    LayoutBounds = new SlideMlRect(0, 0, 300, 200),
                     Children =
                     {
                         new SlideMlPanelElement
                         {
                             Id = "inner",
-                            ActualWidth = 150,
-                            ActualHeight = 100,
+                            MeasuredWidth = 150,
+                            MeasuredHeight = 100,
+                            LayoutBounds = new SlideMlRect(0, 0, 150, 100),
                             Children =
                             {
-                                new SlideMlRectElement { Id = "leaf", ActualWidth = 50, ActualHeight = 30 },
+                                new SlideMlRectElement { Id = "leaf", MeasuredWidth = 50, MeasuredHeight = 30, LayoutBounds = new SlideMlRect(0, 0, 50, 30) },
                             },
                         },
                     },
@@ -150,11 +150,11 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
         Assert.Contains("Id=\"outer\"", result);
-        Assert.Contains("ActualWidth=\"300\"", result);
+        Assert.Contains("RenderSize=\"300x200\"", result);
         Assert.Contains("Id=\"inner\"", result);
-        Assert.Contains("ActualWidth=\"150\"", result);
+        Assert.Contains("RenderSize=\"150x100\"", result);
         Assert.Contains("Id=\"leaf\"", result);
-        Assert.Contains("ActualWidth=\"50\"", result);
+        Assert.Contains("RenderSize=\"50x30\"", result);
     }
 
     [TestMethod]
@@ -166,13 +166,11 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
 
         var result = SlideMlXmlUtilities.FormatRenderedXml(xml, page, context);
 
-        // Page 仍然有 ActualWidth/ActualHeight
-        Assert.Contains("ActualWidth=\"1280\"", result);
-        // r1 不应有 ActualWidth（因为 FindMetrics 找不到）
+        Assert.Contains("RenderSize=\"1280x720\"", result);
         var r1Start = result.IndexOf("Id=\"r1\"");
         Assert.IsGreaterThanOrEqualTo(0, r1Start);
         var r1Segment = result.Substring(r1Start, result.IndexOf("/>", r1Start) - r1Start + 2);
-        Assert.DoesNotContain("ActualWidth", r1Segment);
+        Assert.DoesNotContain("RenderSize", r1Segment);
     }
 
     [TestMethod]
@@ -201,7 +199,7 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
         {
             Children =
             {
-                new SlideMlRectElement { Id = "r1", ActualWidth = 100, ActualHeight = 50 },
+                new SlideMlRectElement { Id = "r1", MeasuredWidth = 100, MeasuredHeight = 50, LayoutBounds = new SlideMlRect(0, 0, 100, 50) },
             },
         };
         var context = CreateContext();
@@ -214,7 +212,6 @@ public sealed class SlideMlXmlUtilitiesFormatRenderedXmlTests
         Assert.Contains("Height=\"50\"", result);
         Assert.Contains("Fill=\"#FF0000\"", result);
         Assert.Contains("CornerRadius=\"8\"", result);
-        Assert.Contains("ActualWidth=\"100\"", result);
-        Assert.Contains("ActualHeight=\"50\"", result);
+        Assert.Contains("RenderSize=\"100x50\"", result);
     }
 }

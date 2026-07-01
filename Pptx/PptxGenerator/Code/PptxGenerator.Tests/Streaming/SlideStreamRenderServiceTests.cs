@@ -42,7 +42,7 @@ public sealed class SlideStreamRenderServiceTests
     public async Task TryRenderAsync_FirstCall_RendersImmediately()
     {
         // Arrange
-        const string outputXml = """<Page ActualWidth="1280" ActualHeight="720"/>""";
+        const string outputXml = """<Page RenderSize="1280x720"/>""";
         var pipeline = CreatePipeline(outputXml: outputXml);
         var service = CreateService(pipeline);
 
@@ -140,7 +140,7 @@ public sealed class SlideStreamRenderServiceTests
     public async Task TryRenderAsync_ValidXml_TriggersRenderedEvent()
     {
         // Arrange
-        const string outputXml = """<Page ActualWidth="1280"/>""";
+        const string outputXml = """<Page RenderSize="1280"/>""";
         var previewImage = new FakePreviewImage();
         var pipeline = CreatePipeline(outputXml: outputXml, previewImage: previewImage);
         var service = CreateService(pipeline);

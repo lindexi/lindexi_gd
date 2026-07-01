@@ -98,7 +98,7 @@ public sealed class SlideMlLayoutEngineNestedFlowTests
 
         // inner panel 作为一个整体在外层水平排列
         Assert.AreEqual(0, innerPanel.LayoutBounds.X, 0.01, "inner panel X");
-        Assert.AreEqual(100, innerPanel.ActualWidth, 0.01, "inner panel width");
+        Assert.AreEqual(100, innerPanel.MeasuredWidth, 0.01, "inner panel width");
 
         var or1 = (SlideMlRectElement)outerPanel.Children[1];
         // or1.X = inner.Width + Gap = 100 + 10 = 110
@@ -149,16 +149,16 @@ public sealed class SlideMlLayoutEngineNestedFlowTests
         _engine.PreLayout(page, _context);
 
         // innermost: 50+4+50+4+50 = 158
-        Assert.AreEqual(158, innermostPanel.ActualWidth, 0.01, "level3 width");
-        Assert.AreEqual(30, innermostPanel.ActualHeight, 0.01, "level3 height");
+        Assert.AreEqual(158, innermostPanel.MeasuredWidth, 0.01, "level3 width");
+        Assert.AreEqual(30, innermostPanel.MeasuredHeight, 0.01, "level3 height");
 
         // middle: 声明尺寸
-        Assert.AreEqual(158, middlePanel.ActualWidth, 0.01, "level2 width");
-        Assert.AreEqual(30, middlePanel.ActualHeight, 0.01, "level2 height");
+        Assert.AreEqual(158, middlePanel.MeasuredWidth, 0.01, "level2 width");
+        Assert.AreEqual(30, middlePanel.MeasuredHeight, 0.01, "level2 height");
 
         // outer: wraps middle (GetChildSize 返回 middle 声明尺寸)
-        Assert.AreEqual(158, outerPanel.ActualWidth, 0.01, "level1 width");
-        Assert.AreEqual(30, outerPanel.ActualHeight, 0.01, "level1 height");
+        Assert.AreEqual(158, outerPanel.MeasuredWidth, 0.01, "level1 width");
+        Assert.AreEqual(30, outerPanel.MeasuredHeight, 0.01, "level1 height");
 
         // innermost children 相对位置
         var lm1 = (SlideMlRectElement)innermostPanel.Children[0];

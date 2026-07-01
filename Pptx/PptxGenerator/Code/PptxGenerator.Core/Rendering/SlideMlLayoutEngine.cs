@@ -1,4 +1,4 @@
-﻿using PptxGenerator.Models;
+using PptxGenerator.Models;
 using PptxGenerator.Models.SlideDocuments;
 
 namespace PptxGenerator.Rendering;
@@ -28,8 +28,7 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         page.LayoutBounds = new SlideMlRect(0, 0, context.SlideDocumentContext.CanvasWidth, context.SlideDocumentContext.CanvasHeight);
         LayoutChildren(page.Children, page.LayoutBounds, parentId: "Page", clipToParent: false, context, useMeasured: true, measurements);
-        SyncLayoutBoundsToXY(page);
-    }
+            }
 
     private static void LayoutChildren(
         IReadOnlyList<SlideMlElement> children,
@@ -132,8 +131,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         panel.LocalBounds = new SlideMlRect(0, 0, actualWidth, actualHeight);
         panel.LayoutBounds = new SlideMlRect(originX, originY, actualWidth, actualHeight);
-        panel.ActualWidth = actualWidth;
-        panel.ActualHeight = actualHeight;
+        panel.MeasuredWidth = actualWidth;
+        panel.MeasuredHeight = actualHeight;
 
         var finalContentBounds = new SlideMlRect(originX + paddingLeft, originY + paddingTop, Math.Max(0, actualWidth - paddingLeft - paddingRight), Math.Max(0, actualHeight - paddingTop - paddingBottom));
         LayoutChildren(panel.Children, finalContentBounds, panel.Id, clipToParent: true, context, useMeasured, measurements);
@@ -209,8 +208,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
                     child.LayoutBounds = new SlideMlRect(absCrossOrigin, mainAxisPosition, childWidth, childHeight);
                 }
 
-                child.ActualWidth = childWidth;
-                child.ActualHeight = childHeight;
+                child.MeasuredWidth = childWidth;
+                child.MeasuredHeight = childHeight;
 
                 if (child is SlideMlPanelElement absChildPanel)
                 {
@@ -257,8 +256,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
                 child.LayoutBounds = new SlideMlRect(crossOrigin, flowPosition, childWidth, childHeight);
             }
 
-            child.ActualWidth = childWidth;
-            child.ActualHeight = childHeight;
+            child.MeasuredWidth = childWidth;
+            child.MeasuredHeight = childHeight;
 
             flowPosition += (isHorizontal ? childWidth : childHeight);
 
@@ -291,8 +290,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         panel.LocalBounds = new SlideMlRect(0, 0, actualWidth, actualHeight);
         panel.LayoutBounds = new SlideMlRect(originX, originY, actualWidth, actualHeight);
-        panel.ActualWidth = actualWidth;
-        panel.ActualHeight = actualHeight;
+        panel.MeasuredWidth = actualWidth;
+        panel.MeasuredHeight = actualHeight;
 
         var offsetX = originX + paddingLeft - contentOriginX;
         var offsetY = originY + paddingTop - contentOriginY;
@@ -351,8 +350,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         rect.LocalBounds = new SlideMlRect(rect.X ?? 0, rect.Y ?? 0, width, height);
         rect.LayoutBounds = new SlideMlRect(originX, originY, width, height);
-        rect.ActualWidth = width;
-        rect.ActualHeight = height;
+        rect.MeasuredWidth = width;
+        rect.MeasuredHeight = height;
 
         ValidateBounds(rect, parentBounds, parentId, clipToParent, context);
     }
@@ -386,8 +385,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         text.LocalBounds = new SlideMlRect(text.X ?? 0, text.Y ?? 0, measuredWidth, measuredHeight);
         text.LayoutBounds = new SlideMlRect(originX, originY, measuredWidth, measuredHeight);
-        text.ActualWidth = measuredWidth;
-        text.ActualHeight = measuredHeight;
+        text.MeasuredWidth = measuredWidth;
+        text.MeasuredHeight = measuredHeight;
 
         if (useMeasured && text.Height is double fixedHeight && measurements is not null && measurements.TryGetValue(text.Id, out var mr))
         {
@@ -431,8 +430,8 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         image.LocalBounds = new SlideMlRect(image.X ?? 0, image.Y ?? 0, width, height);
         image.LayoutBounds = new SlideMlRect(originX, originY, width, height);
-        image.ActualWidth = width;
-        image.ActualHeight = height;
+        image.MeasuredWidth = width;
+        image.MeasuredHeight = height;
 
         ValidateBounds(image, parentBounds, parentId, clipToParent, context);
     }
@@ -511,30 +510,5 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
             SlideMlVerticalAlignment.Bottom => parentOrigin + Math.Max(0, parentSize - elementSize),
             _ => parentOrigin,
         };
-    }
-
-    /// <summary>
-    /// 遍历页面元素树，将 <see cref="SlideMlElement.LayoutBounds"/> 的坐标同步到 <see cref="SlideMlElement.X"/> 和 <see cref="SlideMlElement.Y"/>。
-    /// </summary>
-    private static void SyncLayoutBoundsToXY(SlideMlPage page)
-    {
-        foreach (var child in page.Children)
-        {
-            SyncElementXY(child);
-        }
-    }
-
-    private static void SyncElementXY(SlideMlElement element)
-    {
-        element.X = element.LayoutBounds.X;
-        element.Y = element.LayoutBounds.Y;
-
-        if (element is SlideMlPanelElement panel)
-        {
-            foreach (var child in panel.Children)
-            {
-                SyncElementXY(child);
-            }
-        }
     }
 }

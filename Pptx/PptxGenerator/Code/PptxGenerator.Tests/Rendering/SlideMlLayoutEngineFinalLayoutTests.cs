@@ -104,8 +104,8 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
         var page = CreatePage(image);
         _engine.FinalLayout(page, _context, measurements);
 
-        Assert.AreEqual(800, image.ActualWidth, 0.01, "Image 测量宽度");
-        Assert.AreEqual(600, image.ActualHeight, 0.01, "Image 测量高度");
+        Assert.AreEqual(800, image.MeasuredWidth, 0.01, "Image 测量宽度");
+        Assert.AreEqual(600, image.MeasuredHeight, 0.01, "Image 测量高度");
     }
 
     [TestMethod]
@@ -122,9 +122,9 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
         _engine.FinalLayout(page, _context, measurements);
 
         // child.Width ?? MeasuredWidth → 500 优先于 120
-        Assert.AreEqual(500, text.ActualWidth, 0.01, "声明 Width 优先于测量值");
+        Assert.AreEqual(500, text.MeasuredWidth, 0.01, "声明 Width 优先于测量值");
         // Height 无声明值，使用测量值 24
-        Assert.AreEqual(24, text.ActualHeight, 0.01, "无声明 Height 时使用测量值");
+        Assert.AreEqual(24, text.MeasuredHeight, 0.01, "无声明 Height 时使用测量值");
     }
 
     [TestMethod]
@@ -138,8 +138,8 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
         var page = CreatePage(rect);
         _engine.FinalLayout(page, _context, measurements);
 
-        Assert.AreEqual(100, rect.ActualWidth, 0.01, "无测量值的 Rect 宽度不变");
-        Assert.AreEqual(50, rect.ActualHeight, 0.01, "无测量值的 Rect 高度不变");
+        Assert.AreEqual(100, rect.MeasuredWidth, 0.01, "无测量值的 Rect 宽度不变");
+        Assert.AreEqual(50, rect.MeasuredHeight, 0.01, "无测量值的 Rect 高度不变");
     }
 
     private static SlideMlPage CreatePage(SlideMlElement child)

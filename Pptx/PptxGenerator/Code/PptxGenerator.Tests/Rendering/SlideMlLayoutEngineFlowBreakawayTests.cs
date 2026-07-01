@@ -74,7 +74,7 @@ public sealed class SlideMlLayoutEngineFlowBreakawayTests
 
         // Panel 宽度 = r1(100) + Gap(8) + 0（r2 脱离流，不参与）
         // 但 r2 的 trailingMargin 也不计入，所以 totalFlowSize = 100
-        Assert.AreEqual(100, panel.ActualWidth, 0.01, "Panel 自动宽度不应包含脱离流元素");
+        Assert.AreEqual(100, panel.MeasuredWidth, 0.01, "Panel 自动宽度不应包含脱离流元素");
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public sealed class SlideMlLayoutEngineFlowBreakawayTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, panel.ActualWidth, 0.01, "全部脱离流时 Panel 自动宽度为 0");
+        Assert.AreEqual(0, panel.MeasuredWidth, 0.01, "全部脱离流时 Panel 自动宽度为 0");
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public sealed class SlideMlLayoutEngineFlowBreakawayTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(40, panel.ActualHeight, 0.01, "Panel 自动高度不应包含脱离流元素");
+        Assert.AreEqual(40, panel.MeasuredHeight, 0.01, "Panel 自动高度不应包含脱离流元素");
     }
 
     /// <summary>

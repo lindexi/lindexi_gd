@@ -140,7 +140,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 9. CornerRadius 支持 1~4 个值逗号分隔（四角简写规则），如 "8" 四角统一，"8,0,8,0" 左上/右下圆角、右上/左下直角
 
 ## 禁止事项
-- 不要写 ActualWidth、ActualHeight、ActualLineCount 属性
+- 不要写 RenderSize、RenderLocation、ActualLineCount 属性
 - 不要创造未定义的标签或属性
 - 不要使用 XAML、HTML 等其他语法
 
@@ -183,7 +183,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 4. 只能使用本文列出的标签和属性，标签名与属性名大小写必须完全一致。
 5. XML 必须格式正确：每个片段都是一个完整顶层 XML 元素；标签必须闭合；属性值必须加引号。
 6. 文本属性中的特殊字符必须转义：& 转为 &amp;，< 转为 &lt;，> 转为 &gt;，" 转为 &quot;，' 转为 &apos;。
-7. 不要输出 ActualWidth、ActualHeight、ActualLineCount，这些由渲染引擎回填。
+7. 不要输出 RenderSize、RenderLocation、ActualLineCount，这些由渲染引擎回填。
 
 画布与基础约定：
 1. 画布宽高分别使用 $(SlideWidth) 和 $(SlideHeight)。

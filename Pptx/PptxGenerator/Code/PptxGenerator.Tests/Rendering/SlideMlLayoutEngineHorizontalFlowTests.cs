@@ -43,7 +43,7 @@ public sealed class SlideMlLayoutEngineHorizontalFlowTests
 
         Assert.AreEqual(0, r1.LayoutBounds.X, 0.01, "r1 X");
         Assert.AreEqual(100, r2.LayoutBounds.X, 0.01, "r2 X 无 Gap 时紧贴");
-        Assert.AreEqual(300, panel.ActualWidth, 0.01, "panel width");
+        Assert.AreEqual(300, panel.MeasuredWidth, 0.01, "panel width");
     }
 
     [TestMethod]
@@ -94,7 +94,7 @@ public sealed class SlideMlLayoutEngineHorizontalFlowTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(100 + 8 + 150 + 8 + 80, panel.ActualWidth, 0.01, "panel 自动宽度");
+        Assert.AreEqual(100 + 8 + 150 + 8 + 80, panel.MeasuredWidth, 0.01, "panel 自动宽度");
     }
 
     [TestMethod]
@@ -116,7 +116,7 @@ public sealed class SlideMlLayoutEngineHorizontalFlowTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(200, panel.ActualHeight, 0.01, "panel 固定高度");
+        Assert.AreEqual(200, panel.MeasuredHeight, 0.01, "panel 固定高度");
 
         var r1 = (SlideMlRectElement)panel.Children[0];
         var r2 = (SlideMlRectElement)panel.Children[1];
@@ -143,7 +143,7 @@ public sealed class SlideMlLayoutEngineHorizontalFlowTests
 
         var r1 = (SlideMlRectElement)panel.Children[0];
         Assert.AreEqual(0, r1.LayoutBounds.X, 0.01, "r1 X");
-        Assert.AreEqual(200, panel.ActualWidth, 0.01, "panel width");
+        Assert.AreEqual(200, panel.MeasuredWidth, 0.01, "panel width");
     }
 
     [TestMethod]
@@ -191,8 +191,8 @@ public sealed class SlideMlLayoutEngineHorizontalFlowTests
         _engine.PreLayout(page, _context);
 
         var t1 = (SlideMlTextElement)panel.Children[0];
-        Assert.AreEqual(0, t1.ActualWidth, 0.01, "PreLayout 中 TextElement 默认宽度 0");
-        Assert.AreEqual(0, t1.ActualHeight, 0.01, "PreLayout 中 TextElement 默认高度 0");
+        Assert.AreEqual(0, t1.MeasuredWidth, 0.01, "PreLayout 中 TextElement 默认宽度 0");
+        Assert.AreEqual(0, t1.MeasuredHeight, 0.01, "PreLayout 中 TextElement 默认高度 0");
     }
 
     [TestMethod]
@@ -212,8 +212,8 @@ public sealed class SlideMlLayoutEngineHorizontalFlowTests
         _engine.PreLayout(page, _context);
 
         var img = (SlideMlImageElement)panel.Children[0];
-        Assert.AreEqual(240, img.ActualWidth, 0.01, "Image 默认宽度 240");
-        Assert.AreEqual(180, img.ActualHeight, 0.01, "Image 默认高度 180");
+        Assert.AreEqual(240, img.MeasuredWidth, 0.01, "Image 默认宽度 240");
+        Assert.AreEqual(180, img.MeasuredHeight, 0.01, "Image 默认高度 180");
     }
 
     [TestMethod]

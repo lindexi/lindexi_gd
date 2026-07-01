@@ -273,7 +273,7 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
 
 - 所有 V2 标签（Page、Panel、Rect、TextElement、Image、Span、Fill、Stroke、Shadow、LinearGradient、Stop）在流式输出中**完全可用**
 - 所有 V2 属性（Layout、Gap、Padding、CornerRadius、Shadow、IsBold、IsItalic 等）在流式输出中**完全可用**
-- 引擎回填属性（`ActualWidth`、`ActualHeight`、`ActualLineCount`）在流式输出中同样适用，渲染后回填到最终合并的 XML 中
+- 引擎回填属性（`RenderSize`、`RenderLocation`、`ActualLineCount`）在流式输出中同样适用，渲染后回填到最终合并的 XML 中
 - 渲染反馈（Warning、Error、截图）与 V2 保持一致
 - **唯一差异**：`Id` 从可选变为必填，且要求全局唯一
 - **新增**：`StyleId` 属性用于标记样式模板源，悬空元素必须声明 `StyleId`；`StyleFrom` 引用 `StyleId` 而非 `Id`

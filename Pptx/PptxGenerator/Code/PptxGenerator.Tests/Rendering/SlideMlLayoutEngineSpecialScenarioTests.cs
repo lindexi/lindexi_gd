@@ -52,8 +52,8 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
         var page = CreatePage(rect);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, rect.ActualWidth, 0.01, "零尺寸元素宽度");
-        Assert.AreEqual(0, rect.ActualHeight, 0.01, "零尺寸元素高度");
+        Assert.AreEqual(0, rect.MeasuredWidth, 0.01, "零尺寸元素宽度");
+        Assert.AreEqual(0, rect.MeasuredHeight, 0.01, "零尺寸元素高度");
     }
 
     [TestMethod]
@@ -71,8 +71,8 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
 
         // 无子元素: contentRight=0, contentBottom=0
         // actualWidth = 0 + 24*2 = 48, actualHeight = 0 + 24*2 = 48
-        Assert.AreEqual(48, panel.ActualWidth, 0.01, "无子元素时 Panel 宽度 = Padding*2");
-        Assert.AreEqual(48, panel.ActualHeight, 0.01, "无子元素时 Panel 高度 = Padding*2");
+        Assert.AreEqual(48, panel.MeasuredWidth, 0.01, "无子元素时 Panel 宽度 = Padding*2");
+        Assert.AreEqual(48, panel.MeasuredHeight, 0.01, "无子元素时 Panel 高度 = Padding*2");
     }
 
     [TestMethod]
@@ -129,8 +129,8 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
         var r2First = (SlideMlRectElement)panel.Children[1];
         var firstR1Bounds = r1First.LayoutBounds;
         var firstR2Bounds = r2First.LayoutBounds;
-        var firstPanelWidth = panel.ActualWidth;
-        var firstPanelHeight = panel.ActualHeight;
+        var firstPanelWidth = panel.MeasuredWidth;
+        var firstPanelHeight = panel.MeasuredHeight;
 
         _engine.PreLayout(page, _context);
 
@@ -139,8 +139,8 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
 
         Assert.AreEqual(firstR1Bounds, r1Second.LayoutBounds, "第二次 PreLayout 后 r1 LayoutBounds 应一致");
         Assert.AreEqual(firstR2Bounds, r2Second.LayoutBounds, "第二次 PreLayout 后 r2 LayoutBounds 应一致");
-        Assert.AreEqual(firstPanelWidth, panel.ActualWidth, 0.01, "第二次 PreLayout 后 panel width 应一致");
-        Assert.AreEqual(firstPanelHeight, panel.ActualHeight, 0.01, "第二次 PreLayout 后 panel height 应一致");
+        Assert.AreEqual(firstPanelWidth, panel.MeasuredWidth, 0.01, "第二次 PreLayout 后 panel width 应一致");
+        Assert.AreEqual(firstPanelHeight, panel.MeasuredHeight, 0.01, "第二次 PreLayout 后 panel height 应一致");
     }
 
     [TestMethod]
@@ -157,13 +157,13 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
 
         // PreLayout: Width=500, Height=0（TextElement 默认）
         _engine.PreLayout(page, _context);
-        Assert.AreEqual(500, text.ActualWidth, 0.01, "PreLayout 后 Width");
-        Assert.AreEqual(0, text.ActualHeight, 0.01, "PreLayout 后 Height 默认 0");
+        Assert.AreEqual(500, text.MeasuredWidth, 0.01, "PreLayout 后 Width");
+        Assert.AreEqual(0, text.MeasuredHeight, 0.01, "PreLayout 后 Height 默认 0");
 
         // FinalLayout: Width=500（声明优先），Height=24（测量值覆盖）
         _engine.FinalLayout(page, _context, measurements);
-        Assert.AreEqual(500, text.ActualWidth, 0.01, "FinalLayout 后 Width 保持声明值");
-        Assert.AreEqual(24, text.ActualHeight, 0.01, "FinalLayout 后 Height 被测量值覆盖");
+        Assert.AreEqual(500, text.MeasuredWidth, 0.01, "FinalLayout 后 Width 保持声明值");
+        Assert.AreEqual(24, text.MeasuredHeight, 0.01, "FinalLayout 后 Height 被测量值覆盖");
     }
 
     private static SlideMlPage CreatePage(SlideMlElement child)

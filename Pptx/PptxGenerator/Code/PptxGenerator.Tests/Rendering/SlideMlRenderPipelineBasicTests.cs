@@ -37,10 +37,8 @@ public sealed class SlideMlRenderPipelineBasicTests
         Assert.IsNotNull(result.PreviewImage, "PreviewImage 不应为 null");
         Assert.IsEmpty(result.Warnings, "Warnings 应为空");
         Assert.IsEmpty(result.Errors, "Errors 应为空");
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"100\"", "Rect 应回填 ActualWidth=100");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"50\"", "Rect 应回填 ActualHeight=50");
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth=1280");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"720\"", "Page 应回填 ActualHeight=720");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"100x50\"", "Rect 应回填 RenderSize=100x50");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1280x720\"", "Page 应回填 RenderSize=1280x720");
     }
 
     [TestMethod]
@@ -52,8 +50,7 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"88\"", "t1 应回填 ActualWidth=88");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"19.2\"", "t1 应回填 ActualHeight=19.2");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"88x19.2\"", "t1 应回填 RenderSize=88x19.2");
         StringAssert.Contains(result.OutputXml, "ActualLineCount=\"1\"", "t1 应回填 ActualLineCount=1");
         Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
@@ -67,8 +64,7 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"400\"", "img1 应回填 ActualWidth=400");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"300\"", "img1 应回填 ActualHeight=300");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"400x300\"", "img1 应回填 RenderSize=400x300");
         Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
@@ -82,8 +78,8 @@ public sealed class SlideMlRenderPipelineBasicTests
 
         StringAssert.Contains(result.OutputXml, "Id=\"p1\"", "OutputXml 应包含 p1");
         StringAssert.Contains(result.OutputXml, "Id=\"r1\"", "OutputXml 应包含 r1");
-        Assert.IsTrue(result.OutputXml.Contains("ActualWidth=\"400\"") || result.OutputXml.Contains("ActualWidth=\"358\""), "Panel 应回填 ActualWidth");
-        Assert.Contains("ActualWidth=\"100\"", result.OutputXml, "r1 应回填 ActualWidth=100");
+        Assert.IsTrue(result.OutputXml.Contains("RenderSize=\"400x300\"") || result.OutputXml.Contains("RenderSize=\"358"), "Panel 应回填 RenderSize");
+        Assert.Contains("RenderSize=\"100x80\"", result.OutputXml, "r1 应回填 RenderSize=100x80");
         Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
@@ -125,7 +121,7 @@ public sealed class SlideMlRenderPipelineBasicTests
         // NormalizeXml 使用 XDocument.Parse(...).ToString()，ToString() 默认不输出 XML 声明
         // 但 XML 内容应被正确解析和回填
         StringAssert.Contains(result.OutputXml, "<Page", "XML 应被正确解析");
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1280x720\"", "Page 应回填 RenderSize");
     }
 
     [TestMethod]
@@ -139,7 +135,7 @@ public sealed class SlideMlRenderPipelineBasicTests
         // ExtractXml 会添加声明头，但 NormalizeXml 的 ToString() 不输出声明
         // 验证 XML 被正确解析和回填
         StringAssert.Contains(result.OutputXml, "<Page", "XML 应被正确解析");
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1280x720\"", "Page 应回填 RenderSize");
     }
 
     [TestMethod]

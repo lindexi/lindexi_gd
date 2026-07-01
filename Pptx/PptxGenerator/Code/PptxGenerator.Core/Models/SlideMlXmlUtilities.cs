@@ -45,7 +45,7 @@ public static class SlideMlXmlUtilities
     }
 
     /// <summary>
-    /// 回填渲染后的实际尺寸到 XML 中，通过遍历 <paramref name="page"/> 的 Children 收集指标。
+    /// 回填渲染后的实际尺寸和位置到 XML 中，通过遍历 <paramref name="page"/> 的 Children 收集指标。
     /// </summary>
     /// <param name="xml">SlideML XML 字符串。</param>
     /// <param name="page">已完成渲染的页面数据模型。</param>
@@ -60,8 +60,7 @@ public static class SlideMlXmlUtilities
         var document = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
         var root = document.Root ?? throw new SlideMlRootElementException("SlideML 缺少根元素。");
 
-        root.SetAttributeValue("ActualWidth", FormatNumber(context.SlideDocumentContext.CanvasWidth));
-        root.SetAttributeValue("ActualHeight", FormatNumber(context.SlideDocumentContext.CanvasHeight));
+        root.SetAttributeValue("RenderSize", $"{FormatNumber(context.SlideDocumentContext.CanvasWidth)}x{FormatNumber(context.SlideDocumentContext.CanvasHeight)}");
 
         foreach (var xmlElement in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image" or "Span" or "Fill" or "Stroke" or "Shadow" or "LinearGradient" or "Stop" or "Page.Styles" or "TextStyle"))
         {
@@ -77,18 +76,8 @@ public static class SlideMlXmlUtilities
                 continue;
             }
 
-            if (modelElement.X is double x)
-            {
-                xmlElement.SetAttributeValue("X", FormatNumber(x));
-            }
-
-            if (modelElement.Y is double y)
-            {
-                xmlElement.SetAttributeValue("Y", FormatNumber(y));
-            }
-
-            xmlElement.SetAttributeValue("ActualWidth", FormatNumber(modelElement.ActualWidth));
-            xmlElement.SetAttributeValue("ActualHeight", FormatNumber(modelElement.ActualHeight));
+            xmlElement.SetAttributeValue("RenderSize", modelElement.RenderSize);
+            xmlElement.SetAttributeValue("RenderLocation", modelElement.RenderLocation);
 
             if (modelElement is SlideMlTextElement text && text.ActualLineCount is int lineCount)
             {

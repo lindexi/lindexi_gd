@@ -31,8 +31,8 @@ public sealed class SlideMlLayoutEngineElementTests
         var page = CreatePage(rect);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, rect.ActualWidth, 0.01, "Rect 默认宽度 0");
-        Assert.AreEqual(0, rect.ActualHeight, 0.01, "Rect 默认高度 0");
+        Assert.AreEqual(0, rect.MeasuredWidth, 0.01, "Rect 默认宽度 0");
+        Assert.AreEqual(0, rect.MeasuredHeight, 0.01, "Rect 默认高度 0");
     }
 
     [TestMethod]
@@ -105,8 +105,8 @@ public sealed class SlideMlLayoutEngineElementTests
         var page = CreatePage(text);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, text.ActualWidth, 0.01, "PreLayout 中 TextElement 默认宽度 0");
-        Assert.AreEqual(0, text.ActualHeight, 0.01, "PreLayout 中 TextElement 默认高度 0");
+        Assert.AreEqual(0, text.MeasuredWidth, 0.01, "PreLayout 中 TextElement 默认宽度 0");
+        Assert.AreEqual(0, text.MeasuredHeight, 0.01, "PreLayout 中 TextElement 默认高度 0");
     }
 
     private static SlideMlPage CreatePage(SlideMlElement child)

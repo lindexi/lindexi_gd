@@ -10,13 +10,13 @@ public sealed class SlideMlRenderedMetricsTests
     {
         var metrics = new SlideMlRenderedMetrics
         {
-            ActualWidth = 200,
-            ActualHeight = 100,
+            RenderSize = "200x100",
+            RenderLocation = "10x20",
             ActualLineCount = 3,
         };
 
-        Assert.AreEqual(200, metrics.ActualWidth);
-        Assert.AreEqual(100, metrics.ActualHeight);
+        Assert.AreEqual("200x100", metrics.RenderSize);
+        Assert.AreEqual("10x20", metrics.RenderLocation);
         Assert.AreEqual(3, metrics.ActualLineCount);
     }
 
@@ -25,8 +25,7 @@ public sealed class SlideMlRenderedMetricsTests
     {
         var metrics = new SlideMlRenderedMetrics
         {
-            ActualWidth = 200,
-            ActualHeight = 100,
+            RenderSize = "200x100",
         };
 
         Assert.IsNull(metrics.ActualLineCount);

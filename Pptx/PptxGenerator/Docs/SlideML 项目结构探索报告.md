@@ -34,8 +34,8 @@ public abstract class SlideMlElement
     // 布局引擎设置
     public SlideMlRect LocalBounds { get; set; }    // 元素自身坐标系边界
     public SlideMlRect LayoutBounds { get; set; }   // 父容器中的布局边界
-    public double ActualWidth { get; set; }          // 实际渲染宽度
-    public double ActualHeight { get; set; }         // 实际渲染高度
+    public string? RenderSize { get; set; }          // 渲染后的实际尺寸 "宽x高"
+    public string? RenderLocation { get; set; }      // 渲染后的实际位置 "XxY"
 }
 ```
 

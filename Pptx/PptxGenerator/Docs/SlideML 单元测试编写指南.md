@@ -143,7 +143,7 @@ public sealed class SlideMlLayoutEngineAbsoluteLayoutTests
         _engine.PreLayout(page, _context);
 
         Assert.AreEqual(0, _context.Errors.Count, "不应有错误");
-        Assert.AreEqual(100, panel.ActualWidth, 0.01, "panel ActualWidth 应为 100");
+        Assert.AreEqual("100x50", panel.RenderSize, "panel RenderSize 应为 100x50");
     }
 
     private static SlideMlPage CreatePage(params SlideMlElement[] children)
@@ -235,7 +235,8 @@ var panel = new SlideMlPanelElement
 | `Margin` | `SlideMlThickness?` | 通过 `SlideMlThickness.Parse` 或直接构造 |
 | `Padding` | `double` | Panel 专用，默认 0 |
 | `LayoutBounds` | `SlideMlRect` | 布局引擎设置，测试中读取验证 |
-| `ActualWidth`, `ActualHeight` | `double` | 布局引擎设置 |
+| `RenderSize` | `string?` | 布局引擎设置，格式 "宽x高" |
+| `RenderLocation` | `string?` | 布局引擎设置，格式 "XxY" |
 
 ### SlideMlThickness 展开规则
 
@@ -287,8 +288,7 @@ renderEngine.MeasureOverrides["t1"] = (88, 19.2, 1);  // (Width, Height, LineCou
 
 var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-StringAssert.Contains(result.OutputXml, "ActualWidth=\"88\"");
-StringAssert.Contains(result.OutputXml, "ActualHeight=\"19.2\"");
+StringAssert.Contains(result.OutputXml, "RenderSize=\"88x19.2\"");
 StringAssert.Contains(result.OutputXml, "ActualLineCount=\"1\"");
 ```
 
@@ -347,7 +347,7 @@ public void Parse_PageRoot_ReturnsPage()
 
 ### 布局引擎测试
 
-直接构造模型对象（不经过解析器），调用 `PreLayout` 或 `FinalLayout`，验证 `LayoutBounds`、`ActualWidth`、`ActualHeight` 等属性：
+直接构造模型对象（不经过解析器），调用 `PreLayout` 或 `FinalLayout`，验证 `LayoutBounds`、`RenderSize`、`RenderLocation` 等属性：
 
 ```csharp
 [TestMethod]
@@ -387,12 +387,11 @@ public async Task RenderAsync_SimplePageWithRect_ReturnsCorrectResult()
 
     Assert.IsNotNull(result.PreviewImage);
     Assert.AreEqual(0, result.Warnings.Count);
-    StringAssert.Contains(result.OutputXml, "ActualWidth=\"100\"");
-    StringAssert.Contains(result.OutputXml, "ActualHeight=\"50\"");
-}
-```
+    StringAssert.Contains(result.OutputXml, "RenderSize=\"100x50\"");
+    }
+    ```
 
-### 端到端集成测试
+    ### 端到端集成测试
 
 完整的从 XML 到回填输出 XML 的验证，使用辅助方法提取局部 XML 片段进行断言：
 
@@ -415,9 +414,8 @@ public async Task HorizontalFlow_ThreeRects_ChildrenArrangedAndBackfilled()
 
     // 验证回填值
     var card1Segment = ExtractElementSegment(result.OutputXml, "card1");
-    StringAssert.Contains(card1Segment, "ActualWidth=\"340\"");
-    StringAssert.Contains(card1Segment, "ActualHeight=\"260\"");
-}
+    StringAssert.Contains(card1Segment, "RenderSize=\"340x260\"");
+    }
 
 private static string ExtractElementSegment(string xml, string id)
 {
@@ -438,7 +436,7 @@ private static string ExtractElementSegment(string xml, string id)
 | 1. 解析 + 预处理 | `SlideMlParser.Parse` + `SlideMlXmlUtilities.NormalizeXml` | XML → 模型对象 |
 | 2. 预布局 | `SlideMlLayoutEngine.PreLayout` | 计算元素初始坐标和尺寸 |
 | 3. 测量 + 终布局 | `ISlideMlRenderEngine.PreMeasure` + `SlideMlLayoutEngine.FinalLayout` | 测量文本/图片实际尺寸，应用最终布局 |
-| 4. 渲染 + 回填 | `ISlideMlRenderEngine.Render` + `SlideMlXmlUtilities.FormatRenderedXml` | 生成预览图，回填 ActualWidth/Height/LineCount |
+| 4. 渲染 + 回填 | `ISlideMlRenderEngine.Render` + `SlideMlXmlUtilities.FormatRenderedXml` | 生成预览图，回填 RenderSize/RenderLocation/ActualLineCount |
 
 ---
 
@@ -460,7 +458,7 @@ public void SlideRectContains_ContainerContainsInner_ReturnsTrue()
 }
 ```
 
-对于 `private` 方法（如 `SlideMlLayoutEngine.GetChildSize`），通过公共 API 间接测试——构造特定输入，调用 `PreLayout`/`FinalLayout`，验证输出的 `ActualWidth`/`ActualHeight` 间接验证私有方法的逻辑。
+对于 `private` 方法（如 `SlideMlLayoutEngine.GetChildSize`），通过公共 API 间接测试——构造特定输入，调用 `PreLayout`/`FinalLayout`，验证输出的 `RenderSize`/`RenderLocation` 间接验证私有方法的逻辑。
 
 ---
 
@@ -476,7 +474,7 @@ public void SlideRectContains_ContainerContainsInner_ReturnsTrue()
 | `RenderAsync(null)` | 抛 `ArgumentNullException` | 抛 `ArgumentException`（`string.IsNullOrWhiteSpace` 拦截） |
 | `RenderAsync("")` | 被捕获返回错误结果 | 抛 `ArgumentException`（在 try-catch 之前被拦截） |
 | 渲染引擎抛异常 | 异常被捕获，返回错误结果 | 异常向上传播（catch 只捕获 `SlideMlParseException` 和 `XmlException`） |
-| Panel ActualWidth | 使用计算的内容宽度 | 声明的 Width 值优先于计算值 |
+| Panel RenderSize | 使用计算的内容宽度 x 高度 | 声明的 Width 值优先于计算值 |
 | 流式布局中 ActualLineCount | 从测量结果回填 | 不回填（保持默认 0），只有绝对定位路径的 `LayoutText` 才会回填 |
 | 声明 Height vs 测量值 | 使用测量值 | 声明 Height 优先于测量值 |
 
@@ -485,7 +483,7 @@ public void SlideRectContains_ContainerContainsInner_ReturnsTrue()
 使用 `Assert.AreEqual(expected, actual, delta)` 进行浮点数比较，delta 通常取 `0.01`：
 
 ```csharp
-Assert.AreEqual(100, panel.ActualWidth, 0.01, "panel ActualWidth 应为 100");
+Assert.AreEqual("100x50", panel.RenderSize, "panel RenderSize 应为 100x50");
 ```
 
 ### 异步测试
@@ -521,11 +519,11 @@ var xml = """
 
 ```csharp
 // 简单断言
-StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"");
+StringAssert.Contains(result.OutputXml, "RenderSize=\"1280x720\"");
 
 // 提取局部片段后断言（避免误匹配其他元素）
 var segment = ExtractElementSegment(result.OutputXml, "card1");
-StringAssert.Contains(segment, "ActualWidth=\"340\"");
+StringAssert.Contains(segment, "RenderSize=\"340x260\"");
 ```
 
 ### Warning/Error 集合验证

@@ -1,19 +1,19 @@
 ﻿namespace PptxGenerator.Models;
 
 /// <summary>
-/// 渲染度量信息，承载回填到 XML 中的实际尺寸。
+/// 渲染度量信息，承载回填到 XML 中的实际尺寸和位置。
 /// </summary>
 public sealed class SlideMlRenderedMetrics
 {
     /// <summary>
-    /// 实际渲染宽度。
+    /// 渲染后的实际尺寸，格式为 "宽x高"（保留两位小数）。
     /// </summary>
-    public double ActualWidth { get; init; }
+    public string? RenderSize { get; init; }
 
     /// <summary>
-    /// 实际渲染高度。
+    /// 渲染后的实际布局位置，格式为 "XxY"（保留两位小数）。
     /// </summary>
-    public double ActualHeight { get; init; }
+    public string? RenderLocation { get; init; }
 
     /// <summary>
     /// 实际行数（仅文本元素有意义）。

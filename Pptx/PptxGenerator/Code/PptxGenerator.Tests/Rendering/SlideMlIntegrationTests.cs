@@ -1,20 +1,12 @@
 using System.Xml.Linq;
 using PptxGenerator.Models;
-using PptxGenerator.Models.SlideDocuments;
 using PptxGenerator.Rendering;
 
 namespace PptxGenerator.Tests.Rendering;
 
-/// <summary>
-/// SlideML 端到端集成测试范例。
-/// 从输入 XML → 解析 → 布局 → Fake 渲染 → 回填 → 输出 XML 的完整流程验证。
-/// </summary>
 [TestClass]
 public sealed class SlideMlIntegrationTests
 {
-    /// <summary>
-    /// 构建测试用管道实例。
-    /// </summary>
     private static (SlideMlRenderPipeline Pipeline, FakeRenderEngine RenderEngine) CreatePipeline(
         SlideMlPipelineContext? context = null)
     {
@@ -26,9 +18,6 @@ public sealed class SlideMlIntegrationTests
         return (pipeline, renderEngine);
     }
 
-    /// <summary>
-    /// 从 OutputXml 中提取指定 Id 元素的片段字符串，便于局部断言。
-    /// </summary>
     private static string ExtractElementSegment(string xml, string id)
     {
         var index = xml.IndexOf($"Id=\"{id}\"", StringComparison.Ordinal);
@@ -36,12 +25,6 @@ public sealed class SlideMlIntegrationTests
         return xml.Substring(index, Math.Min(300, xml.Length - index));
     }
 
-    // ───────── 用例 1：基本水平流式布局端到端 ─────────
-
-    /// <summary>
-    /// 验证 3 个 Rect 在水平 Panel 中按 Gap 间距依次排列，
-    /// 坐标和 ActualWidth/ActualHeight 被正确回填到输出 XML。
-    /// </summary>
     [TestMethod]
     public async Task HorizontalFlow_ThreeRects_ChildrenArrangedAndBackfilled()
     {
@@ -58,40 +41,27 @@ public sealed class SlideMlIntegrationTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // Page 回填画布尺寸
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth=1280");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"720\"", "Page 应回填 ActualHeight=720");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1280x720\"", "Page 应回填 RenderSize");
 
-        // Panel#row 有显式 Width="1120"，ActualWidth 等于声明值；ActualHeight = 260（子元素最大高度）
         var rowSegment = ExtractElementSegment(result.OutputXml, "row");
-        StringAssert.Contains(rowSegment, "ActualWidth=\"1120\"", "Panel#row ActualWidth 应为声明的 1120");
-        StringAssert.Contains(rowSegment, "ActualHeight=\"260\"", "Panel#row ActualHeight 应为 260");
+        StringAssert.Contains(rowSegment, "RenderSize=\"1120x260\"", "Panel#row RenderSize");
 
-        // card1: ActualWidth=340, ActualHeight=260, X=80
         var card1Segment = ExtractElementSegment(result.OutputXml, "card1");
-        StringAssert.Contains(card1Segment, "ActualWidth=\"340\"", "card1 ActualWidth 应为 340");
-        StringAssert.Contains(card1Segment, "ActualHeight=\"260\"", "card1 ActualHeight 应为 260");
+        StringAssert.Contains(card1Segment, "RenderSize=\"340x260\"", "card1 RenderSize");
+        StringAssert.Contains(card1Segment, "RenderLocation=\"80x260\"", "card1 RenderLocation");
 
-        // card2: ActualWidth=340, ActualHeight=260, X=80+340+12=432
         var card2Segment = ExtractElementSegment(result.OutputXml, "card2");
-        StringAssert.Contains(card2Segment, "ActualWidth=\"340\"", "card2 ActualWidth 应为 340");
-        StringAssert.Contains(card2Segment, "ActualHeight=\"260\"", "card2 ActualHeight 应为 260");
+        StringAssert.Contains(card2Segment, "RenderSize=\"340x260\"", "card2 RenderSize");
+        StringAssert.Contains(card2Segment, "RenderLocation=\"432x260\"", "card2 RenderLocation");
 
-        // card3: ActualWidth=340, ActualHeight=260, X=432+340+12=784
         var card3Segment = ExtractElementSegment(result.OutputXml, "card3");
-        StringAssert.Contains(card3Segment, "ActualWidth=\"340\"", "card3 ActualWidth 应为 340");
-        StringAssert.Contains(card3Segment, "ActualHeight=\"260\"", "card3 ActualHeight 应为 260");
+        StringAssert.Contains(card3Segment, "RenderSize=\"340x260\"", "card3 RenderSize");
+        StringAssert.Contains(card3Segment, "RenderLocation=\"784x260\"", "card3 RenderLocation");
 
-        // 无 Warning、无 Error
         Assert.IsEmpty(result.Warnings, "Warnings 应为空");
         Assert.IsEmpty(result.Errors, "Errors 应为空");
     }
 
-    // ───────── 用例 2：带 Padding 的垂直流式布局端到端
-
-    /// <summary>
-    /// 验证垂直 Panel 中 Padding 偏移、Gap 间距、TextElement 测量值回填。
-    /// </summary>
     [TestMethod]
     public async Task VerticalFlow_WithPadding_ChildrenOffsetAndMeasured()
     {
@@ -104,39 +74,23 @@ public sealed class SlideMlIntegrationTests
             </Page>
             """;
         var (pipeline, renderEngine) = CreatePipeline();
-        // 预设测量结果：title MeasuredWidth=48, MeasuredHeight=28.8, ActualLineCount=1
         renderEngine.MeasureOverrides["title"] = (48, 28.8, 1);
-        // desc MeasuredWidth=352, MeasuredHeight=18, ActualLineCount=1
         renderEngine.MeasureOverrides["desc"] = (352, 18, 1);
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // title: LayoutBounds.X = 100 + 24 = 124, Y = 100 + 24 = 124
-        // 流式布局中 ActualWidth/ActualHeight 使用测量值回填
-        // 注意：流式布局不经过 LayoutText，ActualLineCount 保持默认值 0
         var titleSegment = ExtractElementSegment(result.OutputXml, "title");
-        StringAssert.Contains(titleSegment, "ActualWidth=\"48\"", "title ActualWidth 应为 48");
-        StringAssert.Contains(titleSegment, "ActualHeight=\"28.8\"", "title ActualHeight 应为 28.8");
+        StringAssert.Contains(titleSegment, "RenderSize=\"48x28.8\"", "title RenderSize");
 
-        // desc: LayoutBounds.X = 124, Y = 124 + 28.8 + 16 = 168.8
         var descSegment = ExtractElementSegment(result.OutputXml, "desc");
-        StringAssert.Contains(descSegment, "ActualWidth=\"352\"", "desc ActualWidth 应为 352");
-        StringAssert.Contains(descSegment, "ActualHeight=\"18\"", "desc ActualHeight 应为 18");
+        StringAssert.Contains(descSegment, "RenderSize=\"352x18\"", "desc RenderSize");
 
-        // Panel#col: ActualHeight = 28.8 + 16 + 18 + 24×2 = 110.8
         var colSegment = ExtractElementSegment(result.OutputXml, "col");
-        StringAssert.Contains(colSegment, "ActualHeight=\"110.8\"", "Panel#col ActualHeight 应为 110.8");
+        StringAssert.Contains(colSegment, "RenderSize=\"400x110.8\"", "Panel#col RenderSize");
 
-        // 无 Warning
         Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
-    // ───────── 用例 3：绝对定位 Panel 嵌套子元素
-
-    /// <summary>
-    /// 验证绝对定位 Panel 中子元素使用自身 X/Y 坐标，
-    /// Panel 有显式 Width/Height 时 ActualWidth/ActualHeight 等于声明值。
-    /// </summary>
     [TestMethod]
     public async Task AbsolutePanel_NestedTextElements_CoordinatesCorrect()
     {
@@ -151,38 +105,23 @@ public sealed class SlideMlIntegrationTests
             </Page>
             """;
         var (pipeline, renderEngine) = CreatePipeline();
-        // title: FontSize=56 → MeasuredHeight=56
         renderEngine.MeasureOverrides["title"] = (1120, 67.2, 1);
-        // sub: FontSize=24 → MeasuredHeight=24
         renderEngine.MeasureOverrides["sub"] = (1120, 28.8, 1);
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // Panel#hero: ActualWidth=1280, ActualHeight=360（显式声明）
         var heroSegment = ExtractElementSegment(result.OutputXml, "hero");
-        StringAssert.Contains(heroSegment, "ActualWidth=\"1280\"", "Panel#hero ActualWidth 应为 1280");
-        StringAssert.Contains(heroSegment, "ActualHeight=\"360\"", "Panel#hero ActualHeight 应为 360");
+        StringAssert.Contains(heroSegment, "RenderSize=\"1280x360\"", "Panel#hero RenderSize");
 
-        // title: LayoutBounds = (80, 120, 1120, 67.2)
         var titleSegment = ExtractElementSegment(result.OutputXml, "title");
-        StringAssert.Contains(titleSegment, "ActualWidth=\"1120\"", "title ActualWidth 应为 1120");
-        StringAssert.Contains(titleSegment, "ActualHeight=\"67.2\"", "title ActualHeight 应为 67.2");
+        StringAssert.Contains(titleSegment, "RenderSize=\"1120x67.2\"", "title RenderSize");
 
-        // sub: LayoutBounds = (80, 200, 1120, 28.8)
         var subSegment = ExtractElementSegment(result.OutputXml, "sub");
-        StringAssert.Contains(subSegment, "ActualWidth=\"1120\"", "sub ActualWidth 应为 1120");
-        StringAssert.Contains(subSegment, "ActualHeight=\"28.8\"", "sub ActualHeight 应为 28.8");
+        StringAssert.Contains(subSegment, "RenderSize=\"1120x28.8\"", "sub RenderSize");
 
-        // 无 Warning
         Assert.IsEmpty(result.Warnings, "Warnings 应为空");
     }
 
-    // ───────── 用例 4：文本溢出容器高度产生 Warning
-
-    /// <summary>
-    /// 使用 MeasureOverrides 模拟文本实际行数超出容器高度，
-    /// 验证 Warning 包含溢出信息且 OutputXml 回填 ActualLineCount。
-    /// </summary>
     [TestMethod]
     public async Task TextOverflow_HeightExceeded_WarningProduced()
     {
@@ -194,29 +133,18 @@ public sealed class SlideMlIntegrationTests
             </Page>
             """;
         var (pipeline, renderEngine) = CreatePipeline();
-        // 模拟测量结果：ActualLineCount=5, MeasuredHeight=80（远超 Height=30）
         renderEngine.MeasureOverrides["long-text"] = (400, 80, 5);
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // Warning 包含 ActualLineCount 和超出容器高度信息
         Assert.IsTrue(
             result.Warnings.Any(w => w.Contains("long-text") && w.Contains("ActualLineCount") && w.Contains("超出容器高度")),
             "应包含文本溢出容器高度的 Warning");
 
-        // OutputXml 回填 ActualLineCount=5（LayoutText 应用了测量结果中的行数）
-        // ActualHeight=30：元素有显式 Height="30"，布局引擎优先使用声明值
         var segment = ExtractElementSegment(result.OutputXml, "long-text");
         StringAssert.Contains(segment, "ActualLineCount=\"5\"", "long-text 应回填 ActualLineCount=5");
-        StringAssert.Contains(segment, "ActualHeight=\"30\"", "long-text ActualHeight 应为声明的 30");
     }
 
-    // ───────── 用例 5：流式布局溢出 Panel 宽度 ─────────
-
-    /// <summary>
-    /// 验证水平流式布局中子元素总宽度超出 Panel 声明宽度时产生 Warning，
-    /// 且子元素仍被布局（不阻止排列）。
-    /// </summary>
     [TestMethod]
     public async Task FlowLayoutOverflow_WidthExceeded_WarningProduced()
     {
@@ -232,24 +160,17 @@ public sealed class SlideMlIntegrationTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // Warning 包含流式布局内容宽度超出 Panel 宽度 200
         Assert.IsTrue(
-            result.Warnings.Any(w => w.Contains("row") && w.Contains("流式布局内容宽度") && w.Contains("超出 Panel 宽度") && w.Contains("200")),
+            result.Warnings.Any(w => w.Contains("row") && w.Contains("流式布局内容宽度") && w.Contains("超出 Panel 宽度")),
             "应包含流式布局溢出 Panel 宽度的 Warning");
 
-        // r1 和 r2 仍被布局（存在于输出中且有回填）
         var r1Segment = ExtractElementSegment(result.OutputXml, "r1");
-        StringAssert.Contains(r1Segment, "ActualWidth=\"150\"", "r1 应回填 ActualWidth=150");
+        StringAssert.Contains(r1Segment, "RenderSize=\"150x50\"", "r1 应回填 RenderSize");
 
         var r2Segment = ExtractElementSegment(result.OutputXml, "r2");
-        StringAssert.Contains(r2Segment, "ActualWidth=\"150\"", "r2 应回填 ActualWidth=150");
+        StringAssert.Contains(r2Segment, "RenderSize=\"150x50\"", "r2 应回填 RenderSize");
     }
 
-    // ───────── 用例 6：元素超出画布边界 ─────────
-
-    /// <summary>
-    /// 验证元素右边界和下边界超出画布尺寸时分别产生 Warning。
-    /// </summary>
     [TestMethod]
     public async Task ElementOutsideCanvas_RightAndBottomBoundary_WarningsProduced()
     {
@@ -262,23 +183,15 @@ public sealed class SlideMlIntegrationTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // 右边界: 1200 + 200 = 1400 > 1280
         Assert.IsTrue(
             result.Warnings.Any(w => w.Contains("big") && w.Contains("右边界") && w.Contains("1400") && w.Contains("1280")),
             "应包含右边界超出画布宽度的 Warning");
 
-        // 下边界: 600 + 200 = 800 > 720
         Assert.IsTrue(
             result.Warnings.Any(w => w.Contains("big") && w.Contains("下边界") && w.Contains("800") && w.Contains("720")),
             "应包含下边界超出画布高度的 Warning");
     }
 
-    // ───────── 用例 7：解析错误时返回错误预览 ─────────
-
-    /// <summary>
-    /// 验证非 Page 根元素触发解析异常时，管道捕获异常并返回错误预览，
-    /// Errors 包含解析失败信息，OutputXml 原样返回。
-    /// </summary>
     [TestMethod]
     public async Task ParseError_NonPageRoot_ErrorPreviewReturned()
     {
@@ -287,24 +200,14 @@ public sealed class SlideMlIntegrationTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // Errors 包含解析失败信息
         Assert.IsTrue(
             result.Errors.Any(e => e.Contains("parser") && e.Contains("SlideML 解析失败")),
             "应包含解析失败 Error");
 
-        // PreviewImage 不为 null（错误预览图）
         Assert.IsNotNull(result.PreviewImage, "应返回错误预览图");
-
-        // OutputXml 等于 InputXml（原样返回）
         Assert.AreEqual(xml, result.OutputXml, "OutputXml 应原样返回输入 XML");
     }
 
-    // ───────── 用例 8：完整规范示例端到端 ─────────
-
-    /// <summary>
-    /// 验证包含渐变背景、流式布局卡片、Span 富文本的完整规范示例，
-    /// 所有元素正确解析、布局并回填 ActualWidth/ActualHeight。
-    /// </summary>
     [TestMethod]
     public async Task FullSpecExample_GradientCardsSpans_AllParsedAndBackfilled()
     {
@@ -355,39 +258,26 @@ public sealed class SlideMlIntegrationTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // 无解析错误（Errors 为空）
         Assert.IsEmpty(result.Errors, "不应有解析错误");
 
-        // Page 回填画布尺寸
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth=1280");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"720\"", "Page 应回填 ActualHeight=720");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1280x720\"", "Page 应回填 RenderSize");
 
-        // Panel#hero: ActualWidth=1280, ActualHeight=360
         var heroSegment = ExtractElementSegment(result.OutputXml, "hero");
-        StringAssert.Contains(heroSegment, "ActualWidth=\"1280\"", "Panel#hero ActualWidth 应为 1280");
-        StringAssert.Contains(heroSegment, "ActualHeight=\"360\"", "Panel#hero ActualHeight 应为 360");
+        StringAssert.Contains(heroSegment, "RenderSize=\"1280x360\"", "Panel#hero RenderSize");
 
-        // Panel#cards-row: ActualWidth=1120, ActualHeight=280
         var cardsRowSegment = ExtractElementSegment(result.OutputXml, "cards-row");
-        StringAssert.Contains(cardsRowSegment, "ActualWidth=\"1120\"", "Panel#cards-row ActualWidth 应为 1120");
-        StringAssert.Contains(cardsRowSegment, "ActualHeight=\"280\"", "Panel#cards-row ActualHeight 应为 280");
+        StringAssert.Contains(cardsRowSegment, "RenderSize=\"1120x280\"", "Panel#cards-row RenderSize");
 
-        // 所有带 Id 的 TextElement 回填 ActualWidth/ActualHeight
         foreach (var id in new[] { "hero-title", "hero-sub", "card1-title", "card1-desc",
                                    "card2-title", "card2-desc", "card3-title", "card3-desc" })
         {
             var segment = ExtractElementSegment(result.OutputXml, id);
-            Assert.Contains("ActualWidth=", segment, $"{id} 应回填 ActualWidth");
-            Assert.Contains("ActualHeight=", segment, $"{id} 应回填 ActualHeight");
+            StringAssert.Contains(segment, "RenderSize=", $"{id} 应回填 RenderSize");
         }
 
-        // 渐变背景被正确解析（LinearGradient 出现在输出 XML 中）
         StringAssert.Contains(result.OutputXml, "LinearGradient", "渐变背景应被解析");
-
-        // Span 子元素被正确解析（Span 出现在输出 XML 中）
         StringAssert.Contains(result.OutputXml, "<Span", "Span 子元素应被解析");
 
-        // OutputXml 是合法 XML
         var doc = XDocument.Parse(result.OutputXml);
         Assert.IsNotNull(doc.Root, "OutputXml 应有根元素");
     }

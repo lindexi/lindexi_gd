@@ -35,8 +35,7 @@ public sealed class SlideMlRenderPipelineBackfillTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1280\"", "Page 应回填 ActualWidth=1280");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"720\"", "Page 应回填 ActualHeight=720");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1280x720\"", "Page 应回填 RenderSize=1280x720");
     }
 
     [TestMethod]
@@ -48,9 +47,9 @@ public sealed class SlideMlRenderPipelineBackfillTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // 外层 Panel — 无固定 Width/Height 时由子元素决定
-        Assert.IsTrue(result.OutputXml.Contains("Id=\"outer\"") && result.OutputXml.Contains("ActualWidth="), "outer 应回填 ActualWidth");
-        Assert.IsTrue(result.OutputXml.Contains("Id=\"inner\"") && result.OutputXml.Contains("ActualWidth="), "inner 应回填 ActualWidth");
-        Assert.IsTrue(result.OutputXml.Contains("Id=\"leaf\"") && result.OutputXml.Contains("ActualWidth=\"50\""), "leaf 应回填 ActualWidth=50");
+        Assert.IsTrue(result.OutputXml.Contains("Id=\"outer\"") && result.OutputXml.Contains("RenderSize="), "outer 应回填 RenderSize");
+        Assert.IsTrue(result.OutputXml.Contains("Id=\"inner\"") && result.OutputXml.Contains("RenderSize="), "inner 应回填 RenderSize");
+        Assert.IsTrue(result.OutputXml.Contains("Id=\"leaf\"") && result.OutputXml.Contains("RenderSize=\"50x30\""), "leaf 应回填 RenderSize=50x30");
     }
 
     [TestMethod]
@@ -84,7 +83,7 @@ public sealed class SlideMlRenderPipelineBackfillTests
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
         // 实际行为：FormatRenderedXml 从 XML 元素读取 Id 属性，无 Id 属性时跳过回填
-        // 解析器虽然分配了 elem_001，但 XML 中无 Id 属性，所以不会回填 ActualWidth/ActualHeight
+        // 解析器虽然分配了 elem_001，但 XML 中无 Id 属性，所以不会回填 RenderSize
         Assert.DoesNotContain("elem_001", result.OutputXml, "无 Id 元素不应在 XML 中出现 elem_001");
     }
 
@@ -96,8 +95,7 @@ public sealed class SlideMlRenderPipelineBackfillTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"1920\"", "Page 应回填自定义 ActualWidth=1920");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"1080\"", "Page 应回填自定义 ActualHeight=1080");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"1920x1080\"", "Page 应回填自定义 RenderSize=1920x1080");
     }
 
     // ───────── 第 11 章：XML 回填格式验证 ─────────
@@ -124,8 +122,7 @@ public sealed class SlideMlRenderPipelineBackfillTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"100.5\"", "ActualWidth 应为 100.5");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"100\"", "ActualHeight 应为 100（去零）");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"100.5x100\"", "RenderSize 应为 100.5x100");
     }
 
     [TestMethod]
@@ -165,7 +162,6 @@ public sealed class SlideMlRenderPipelineBackfillTests
         StringAssert.Contains(result.OutputXml, "Height=\"50\"", "Height 属性应保留");
         StringAssert.Contains(result.OutputXml, "Fill=\"#FF0000\"", "Fill 属性应保留");
         StringAssert.Contains(result.OutputXml, "CornerRadius=\"8\"", "CornerRadius 属性应保留");
-        StringAssert.Contains(result.OutputXml, "ActualWidth=\"100\"", "应新增 ActualWidth");
-        StringAssert.Contains(result.OutputXml, "ActualHeight=\"50\"", "应新增 ActualHeight");
+        StringAssert.Contains(result.OutputXml, "RenderSize=\"100x50\"", "应新增 RenderSize");
     }
 }

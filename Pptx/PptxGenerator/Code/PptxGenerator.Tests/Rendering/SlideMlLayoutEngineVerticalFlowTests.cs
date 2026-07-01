@@ -58,7 +58,7 @@ public sealed class SlideMlLayoutEngineVerticalFlowTests
         // r2 Y = 40 + max(4, 20+10) = 40 + 30 = 70
         Assert.AreEqual(70, r2.LayoutBounds.Y, 0.01, "r2 Y with margin");
         // panel.H = 70 + 60 = 130
-        Assert.AreEqual(130, panel.ActualHeight, 0.01, "panel height");
+        Assert.AreEqual(130, panel.MeasuredHeight, 0.01, "panel height");
     }
 
     [TestMethod]
@@ -120,7 +120,7 @@ public sealed class SlideMlLayoutEngineVerticalFlowTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(50 + 10 + 80 + 10 + 60, panel.ActualHeight, 0.01, "panel 自动高度");
+        Assert.AreEqual(50 + 10 + 80 + 10 + 60, panel.MeasuredHeight, 0.01, "panel 自动高度");
     }
 
     [TestMethod]
@@ -165,7 +165,7 @@ public sealed class SlideMlLayoutEngineVerticalFlowTests
 
         var r1 = (SlideMlRectElement)panel.Children[0];
         Assert.AreEqual(0, r1.LayoutBounds.Y, 0.01, "r1 Y");
-        Assert.AreEqual(100, panel.ActualHeight, 0.01, "panel height");
+        Assert.AreEqual(100, panel.MeasuredHeight, 0.01, "panel height");
     }
 
     private static SlideMlPage CreatePage(SlideMlElement child)

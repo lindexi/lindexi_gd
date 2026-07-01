@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using PptxGenerator.Models;
 using PptxGenerator.Models.SlideDocuments;
@@ -48,8 +48,8 @@ public sealed class SlideMlLayoutEngineTests
         Assert.AreEqual(100 + 8, r2.LayoutBounds.X, 0.01, "r2 X");
         Assert.AreEqual(100 + 8 + 200 + 8, r3.LayoutBounds.X, 0.01, "r3 X");
 
-        Assert.AreEqual(100 + 8 + 200 + 8 + 150, panel.ActualWidth, 0.01, "panel width");
-        Assert.AreEqual(50, panel.ActualHeight, 0.01, "panel height");
+        Assert.AreEqual(100 + 8 + 200 + 8 + 150, panel.MeasuredWidth, 0.01, "panel width");
+        Assert.AreEqual(50, panel.MeasuredHeight, 0.01, "panel height");
     }
 
     [TestMethod]
@@ -75,7 +75,7 @@ public sealed class SlideMlLayoutEngineTests
 
         Assert.AreEqual(0, r1.LayoutBounds.Y, 0.01, "r1 Y");
         Assert.AreEqual(40 + 12, r2.LayoutBounds.Y, 0.01, "r2 Y");
-        Assert.AreEqual(40 + 12 + 60, panel.ActualHeight, 0.01, "panel height");
+        Assert.AreEqual(40 + 12 + 60, panel.MeasuredHeight, 0.01, "panel height");
     }
 
     [TestMethod]
@@ -101,7 +101,7 @@ public sealed class SlideMlLayoutEngineTests
 
         Assert.AreEqual(0, r1.LayoutBounds.X, 0.01, "r1 X");
         Assert.AreEqual(130, r2.LayoutBounds.X, 0.01, "r2 X with margin");
-        Assert.AreEqual(230, panel.ActualWidth, 0.01, "panel width");
+        Assert.AreEqual(230, panel.MeasuredWidth, 0.01, "panel width");
     }
 
     [TestMethod]
@@ -143,8 +143,8 @@ public sealed class SlideMlLayoutEngineTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(0, panel.ActualWidth, 0.01, "empty panel width");
-        Assert.AreEqual(0, panel.ActualHeight, 0.01, "empty panel height");
+        Assert.AreEqual(0, panel.MeasuredWidth, 0.01, "empty panel width");
+        Assert.AreEqual(0, panel.MeasuredHeight, 0.01, "empty panel height");
     }
 
     [TestMethod]
@@ -195,7 +195,7 @@ public sealed class SlideMlLayoutEngineTests
 
         Assert.AreEqual(16, r1.LayoutBounds.X, 0.01, "r1 X with padding");
         Assert.AreEqual(16, r1.LayoutBounds.Y, 0.01, "r1 Y with padding");
-        Assert.AreEqual(132, panel.ActualWidth, 0.01, "panel width with padding");
+        Assert.AreEqual(132, panel.MeasuredWidth, 0.01, "panel width with padding");
     }
 
     [TestMethod]
@@ -289,8 +289,8 @@ public sealed class SlideMlLayoutEngineTests
         var t1 = (SlideMlTextElement)panel.Children[0];
         var t2 = (SlideMlTextElement)panel.Children[1];
 
-        Assert.AreEqual(120, t1.ActualWidth, 0.01, "t1 measured width");
-        Assert.AreEqual(100, t2.ActualWidth, 0.01, "t2 measured width");
+        Assert.AreEqual(120, t1.MeasuredWidth, 0.01, "t1 measured width");
+        Assert.AreEqual(100, t2.MeasuredWidth, 0.01, "t2 measured width");
         Assert.AreEqual(120 + 8, t2.LayoutBounds.X, 0.01, "t2 X with measured sizes");
     }
 

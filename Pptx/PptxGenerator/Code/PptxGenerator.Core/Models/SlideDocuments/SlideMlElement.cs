@@ -12,12 +12,12 @@ public abstract class SlideMlElement
     public string Id { get; init; } = string.Empty;
 
     /// <summary>
-    /// 元素水平位置。布局完成后由引擎回填。
+    /// 元素水平位置。由用户输入，引擎不再回填。
     /// </summary>
     public double? X { get; set; }
 
     /// <summary>
-    /// 元素垂直位置。布局完成后由引擎回填。
+    /// 元素垂直位置。由用户输入，引擎不再回填。
     /// </summary>
     public double? Y { get; set; }
 
@@ -62,12 +62,22 @@ public abstract class SlideMlElement
     public SlideMlRect LayoutBounds { get; set; }
 
     /// <summary>
-    /// 元素实际渲染宽度。
+    /// 布局引擎内部使用的测量宽度。
     /// </summary>
-    public double ActualWidth { get; set; }
+    internal double MeasuredWidth { get; set; }
 
     /// <summary>
-    /// 元素实际渲染高度。
+    /// 布局引擎内部使用的测量高度。
     /// </summary>
-    public double ActualHeight { get; set; }
+    internal double MeasuredHeight { get; set; }
+
+    /// <summary>
+    /// 渲染后的实际尺寸，格式为 "宽x高"（保留两位小数），由布局引擎设置的测量值计算得出。
+    /// </summary>
+    public string RenderSize => $"{SlideMlXmlUtilities.FormatNumber(MeasuredWidth)}x{SlideMlXmlUtilities.FormatNumber(MeasuredHeight)}";
+
+    /// <summary>
+    /// 渲染后的实际布局位置（相对于父容器内容区），格式为 "XxY"（保留两位小数），由 <see cref="LayoutBounds"/> 计算得出。
+    /// </summary>
+    public string RenderLocation => $"{SlideMlXmlUtilities.FormatNumber(LayoutBounds.X)}x{SlideMlXmlUtilities.FormatNumber(LayoutBounds.Y)}";
 }
