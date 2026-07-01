@@ -62,7 +62,7 @@ public static class SlideMlXmlUtilities
 
         root.SetAttributeValue("RenderSize", $"{FormatNumber(context.SlideDocumentContext.CanvasWidth)}x{FormatNumber(context.SlideDocumentContext.CanvasHeight)}");
 
-        foreach (var xmlElement in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image" or "Span" or "Fill" or "Stroke" or "Shadow" or "LinearGradient" or "Stop" or "Page.Styles" or "TextStyle"))
+        foreach (var xmlElement in root.DescendantsAndSelf().Where(t => t.Name.LocalName is "Page" or "Panel" or "Rect" or "TextElement" or "Image" or "Span" or "Fill" or "Stroke" or "Shadow" or "LinearGradient" or "Stop"))
         {
             var id = (string?) xmlElement.Attribute("Id");
             if (string.IsNullOrWhiteSpace(id))

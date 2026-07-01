@@ -16,11 +16,6 @@ public sealed class SlideMlPage
     public List<SlideMlElement> Children { get; } = [];
 
     /// <summary>
-    /// 页面级文本样式定义，供 <c>Style</c> 属性引用。
-    /// </summary>
-    public IReadOnlyList<SlideMlTextStyle>? Styles { get; init; }
-
-    /// <summary>
     /// 页面布局边界。
     /// </summary>
     public SlideMlRect LayoutBounds { get; set; } = new(0, 0, SlideDocumentContext.DefaultCanvasWidth, SlideDocumentContext.DefaultCanvasHeight);

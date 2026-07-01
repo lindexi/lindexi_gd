@@ -50,8 +50,4 @@ public sealed class SlideMlTextElement : SlideMlElement
     /// </summary>
     public IReadOnlyList<SlideMlSpan>? Spans { get; init; }
 
-    /// <summary>
-    /// 引用的 TextStyle 标识符。
-    /// </summary>
-    public string? Style { get; init; }
-}
+    }

@@ -38,7 +38,7 @@ public sealed class SlideMlParser
         "HorizontalAlignment", "VerticalAlignment", "Opacity",
         "Text", "FontName", "FontSize", "Foreground",
         "TextAlignment", "Margin",
-        "IsBold", "IsItalic", "Style",
+        "IsBold", "IsItalic",
     };
 
     private static readonly HashSet<string> _imageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
@@ -73,42 +73,7 @@ public sealed class SlideMlParser
             Background = GetOptionalString(root, "Background") ?? "#FFFFFF",
         };
 
-        // 解析 Page.Styles 子元素
-        var stylesElement = root.Element("Page.Styles");
-        if (stylesElement is not null)
-        {
-            var styles = new List<SlideMlTextStyle>();
-            foreach (var textStyleElement in stylesElement.Elements("TextStyle"))
-            {
-                var styleId = GetOptionalString(textStyleElement, "Id");
-                if (string.IsNullOrWhiteSpace(styleId))
-                {
-                    context.AddWarning("[Warning] Page.Styles: TextStyle 缺少 Id 属性，已忽略");
-                    continue;
-                }
-
-                styles.Add(new SlideMlTextStyle
-                {
-                    Id = styleId,
-                    FontSize = GetOptionalDouble(textStyleElement, "FontSize", context),
-                    IsBold = GetOptionalBool(textStyleElement, "IsBold"),
-                    Foreground = GetOptionalString(textStyleElement, "Foreground"),
-                    FontName = GetOptionalString(textStyleElement, "FontName"),
-                    TextAlignment = GetOptionalTextAlignment(textStyleElement, styleId, context),
-                });
-            }
-
-            if (styles.Count > 0)
-            {
-                page = new SlideMlPage
-                {
-                    Background = GetOptionalString(root, "Background") ?? "#FFFFFF",
-                    Styles = styles,
-                };
-            }
-        }
-
-        foreach (var child in root.Elements().Where(e => !string.Equals(e.Name.LocalName, "Page.Styles", StringComparison.Ordinal)))
+        foreach (var child in root.Elements())
         {
             var element = ParseElement(child, context);
             if (element is not null)
@@ -275,7 +240,6 @@ public sealed class SlideMlParser
             Margin = GetOptionalThickness(element, "Margin", context),
             IsBold = GetOptionalBool(element, "IsBold"),
             IsItalic = GetOptionalBool(element, "IsItalic"),
-            Style = GetOptionalString(element, "Style"),
             Spans = spans.Count > 0 ? spans : null,
         };
     }
