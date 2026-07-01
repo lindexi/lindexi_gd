@@ -279,6 +279,9 @@ Fill、Stroke、Shadow、LinearGradient、Stop：
 6. 需要重排同一父容器内子元素时，在同一个父容器片段中按目标顺序输出相关子元素。
 7. 需要删除元素时使用 Remove。
 
+机制说明：
+1. 直接输出的文本内容将被视为 XML 片段，解析器会按流式合并规则处理。但调用工具的时候，则必须提供完整的 XML 文档，不做流式合并处理。
+
 示例片段序列：
 <Page Background="#F5F5F5">
   <Panel Id="Header" X="0" Y="0" Width="$(SlideWidth)" Height="100"/>
