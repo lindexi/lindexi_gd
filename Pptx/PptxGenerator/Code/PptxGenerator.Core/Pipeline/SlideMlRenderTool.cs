@@ -85,6 +85,8 @@ public sealed class SlideMlRenderTool
 
     /// <summary>
     /// 创建 SlideML 渲染 AI Tool。
+    /// 此工具要求传入完整的 SlideML 文档（以 Page 为根的完整 XML），适用于非流式模式。
+    /// 流式模式下渲染是自动的，不应使用此工具。
     /// </summary>
     /// <returns>可用于 <see cref="ChatOptions.Tools"/> 的 AIFunction。</returns>
     public AIFunction CreateTool()
@@ -92,38 +94,86 @@ public sealed class SlideMlRenderTool
         return AIFunctionFactory.Create(
             RenderSlideAsync,
             name: "render_slide",
-            description: "将 SlideML XML 字符串渲染为页面预览图，返回回填后的 XML 与警告列表。"
-                + " 生成 SlideML 后必须调用此工具验证排版效果。"
+            description: "将完整的 SlideML XML 文档渲染为页面预览图，返回回填后的 XML 与警告列表。"
+                + " 此工具要求传入以 <Page> 为根的完整 XML 文档，不接受片段或差量内容。"
+                + " 生成完整 SlideML 后必须调用此工具验证排版效果。"
                 + " 如果返回的警告不为空，请根据回填后的 XML 和警告修正问题并重新调用此工具验证。");
     }
 
     /// <summary>
-    /// 创建获取渲染预览图的 AI Tool，返回 PNG 图片数据。
+    /// 创建获取幻灯片预览图的 AI Tool，返回 PNG 图片数据。
+    /// 非流式模式和流式模式共用此工具。
     /// </summary>
     /// <returns>可用于 <see cref="ChatOptions.Tools"/> 的 AIFunction。</returns>
     public AIFunction CreatePreviewTool()
     {
         return AIFunctionFactory.Create(
-            GetRenderPreviewAsync,
-            name: "get_render_preview",
-            description: "获取最近一次 render_slide 渲染的页面预览图（PNG 图片数据）。"
-                + " 调用此工具可以查看渲染后的视觉效果，评估颜色搭配、间距、对齐等。"
-                + " 仅在 render_slide 之后调用有效。");
+            GetPreviewImageAsync,
+            name: "get_slide_preview",
+            description: "获取当前幻灯片的页面预览图（PNG 图片数据）。"
+                + " 用于从视觉层面评估颜色搭配、间距、对齐等渲染效果。"
+                + " 返回最近一次渲染的页面截图。"
+                + " 如果尚未渲染任何内容，返回提示信息。");
     }
 
-    [Description("获取最近一次渲染的页面预览图，返回 PNG 图片数据。")]
-    private async Task<AIContent> GetRenderPreviewAsync()
+    /// <summary>
+    /// 创建获取当前幻灯片状态的 AI Tool，返回回填后的完整 SlideML XML。
+    /// 适用于流式模式，LLM 可查看当前已合并的 DOM 树状态。
+    /// </summary>
+    /// <returns>可用于 <see cref="ChatOptions.Tools"/> 的 AIFunction。</returns>
+    public AIFunction CreateSlideStateTool()
+    {
+        return AIFunctionFactory.Create(
+            GetSlideStateAsync,
+            name: "get_slide_state",
+            description: "获取当前幻灯片的完整 SlideML XML（已回填渲染后的实际尺寸和位置）。"
+                + " 用于查看当前已合并的页面结构、各元素的实际渲染位置和尺寸。"
+                + " XML 中的 RenderSize、RenderLocation、ActualLineCount 属性由引擎回填，不要在输出中设置这些属性。"
+                + " 如果尚未输出任何片段或尚未完成首次渲染，返回为空。");
+    }
+
+    /// <summary>
+    /// 获取当前回填后的 SlideML XML。若尚未渲染则返回提示信息。
+    /// </summary>
+    private Task<string> GetSlideStateAsync()
+    {
+        var xml = LatestRenderedXml;
+        if (string.IsNullOrWhiteSpace(xml))
+        {
+            return Task.FromResult("[get_slide_state] 当前尚未生成内容或尚未完成渲染，请先输出 SlideML 片段。");
+        }
+
+        var warnings = LatestWarnings;
+        var result = new StringBuilder(xml.Length + 128);
+        result.AppendLine("[get_slide_state] 当前已合并的 SlideML（已回填渲染信息）：");
+        result.AppendLine();
+        result.AppendLine(xml);
+
+        if (!string.IsNullOrEmpty(warnings) && warnings != "(none)")
+        {
+            result.AppendLine();
+            result.AppendLine("渲染警告：");
+            result.AppendLine(warnings);
+        }
+
+        return Task.FromResult(result.ToString());
+    }
+
+    /// <summary>
+    /// 获取当前幻灯片预览图（PNG 图片数据）。若尚未渲染则返回提示信息。
+    /// </summary>
+    private async Task<AIContent> GetPreviewImageAsync()
     {
         var image = LatestPreviewImage;
         if (image is null)
         {
-            return new TextContent("[get_render_preview] 错误：尚未渲染任何页面，请先调用 render_slide。");
+            return new TextContent("[get_slide_preview] 尚未渲染任何页面，请先输出 SlideML 内容或调用 render_slide。");
         }
 
         using var memoryStream = new MemoryStream();
         if (Dispatcher.CheckAccess())
         {
-          image.Save(memoryStream);
+            image.Save(memoryStream);
         }
         else
         {
@@ -133,6 +183,7 @@ public sealed class SlideMlRenderTool
                 return Task.CompletedTask;
             });
         }
+
         memoryStream.Position = 0;
         return await DataContent.LoadFromAsync(memoryStream, "image/png").ConfigureAwait(false);
     }
@@ -154,9 +205,9 @@ public sealed class SlideMlRenderTool
         return await DataContent.LoadFromAsync(memoryStream, "image/png", cancellationToken).ConfigureAwait(false);
     }
 
-    [Description("将 SlideML XML 渲染为页面预览图，返回回填后的 XML 和警告列表。")]
+    [Description("将完整的 SlideML XML 文档渲染为页面预览图，返回回填后的 XML 和警告列表。根元素必须为 Page，需包含所有页面内容。")]
     private async Task<string> RenderSlideAsync(
-        [Description("SlideML 格式的 XML 字符串，根元素为 Page。")] string slideXml,
+        [Description("完整的 SlideML XML 字符串，根元素为 <Page>，包含页面全部内容。不接受片段或差量内容。")] string slideXml,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(slideXml))

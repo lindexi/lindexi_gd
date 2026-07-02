@@ -101,7 +101,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 
 ## 核心规则（必须遵守）
 - **生成 SlideML 后必须立即调用 render_slide 工具验证排版效果，不允许跳过。**
-- 调用 render_slide 之后，可以调用 get_render_preview 工具查看渲染后的页面截图，从视觉层面评估颜色、间距、对齐等。
+- 调用 render_slide 之后，可以调用 get_slide_preview 工具查看渲染后的页面截图，从视觉层面评估颜色、间距、对齐等。
 - 如果收到渲染警告和回填后的 XML，请根据反馈修改并重新输出完整 XML，然后再次调用 render_slide。
 - 适可而止，最多调用 render_slide 工具 4 次。
 
@@ -280,7 +280,10 @@ Fill、Stroke、Shadow、LinearGradient、Stop：
 7. 需要删除元素时使用 Remove。
 
 机制说明：
-1. 直接输出的文本内容将被视为 XML 片段，解析器会按流式合并规则处理。但调用工具的时候，则必须提供完整的 XML 文档，不做流式合并处理。
+1. 直接输出的文本内容将被视为 XML 片段，解析器会按流式合并规则处理。每输出一个片段，引擎自动合并并渲染，无需手动调用渲染工具。
+2. 调用 get_slide_state 可获取当前已合并的完整 SlideML XML（包含引擎回填的 RenderSize、RenderLocation、ActualLineCount），用于检查各元素的实际渲染位置和尺寸。
+3. 调用 get_slide_preview 可获取当前页面的渲染截图，用于从视觉层面评估颜色、间距、对齐等效果。
+4. XML 中的 RenderSize、RenderLocation、ActualLineCount 属性由引擎自动回填，不要在输出中设置这些属性。
 
 示例片段序列：
 <Page Background="#F5F5F5">
@@ -343,7 +346,7 @@ Fill、Stroke、Shadow、LinearGradient、Stop：
 5. 先输出 Page 骨架，再逐步填充和细化。
 6. 每个元素必须带 Id 且全局唯一；同类元素优先用带 StyleId 的悬空模板 + StyleFrom 减少重复。
 7. 合理使用 Panel 的 Layout 属性减少手动坐标计算。
-8. 输出过程中可随时调用 get_slide_state 和 get_slide_preview 查看排版效果。
+8. 输出过程中可随时调用 get_slide_state 查看当前已合并的 XML 和实际渲染位置，或调用 get_slide_preview 查看渲染截图。
 9. 发现问题用后续片段修正（调整坐标/尺寸，或用 Remove 删除后重来）。
 """;
     }

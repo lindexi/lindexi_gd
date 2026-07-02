@@ -162,10 +162,10 @@ internal sealed class StreamingSlideGenerator
                 options =>
                 {
                     options.ChatOptions ??= new ChatOptions();
-                    // 直接覆盖工具，因为默认工具业务上不要去用
+                    // 流式模式使用查询工具而非渲染工具，渲染由管道自动完成
                     options.ChatOptions.Tools =
                     [
-                        _renderTool.CreateTool(),
+                        _renderTool.CreateSlideStateTool(),
                         _renderTool.CreatePreviewTool()
                     ];
                     //options.ChatOptions.Reasoning = new ReasoningOptions()
