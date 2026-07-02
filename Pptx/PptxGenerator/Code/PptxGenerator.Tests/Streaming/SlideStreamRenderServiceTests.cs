@@ -45,7 +45,7 @@ public sealed class SlideStreamRenderServiceTests
         var service = CreateService(pipeline);
 
         // Act
-        var result = await service.FinalRenderAsync("<Page/>");
+        var result = await service.RenderAsync("<Page/>");
 
         // Assert
         Assert.IsNotNull(result);
@@ -64,7 +64,7 @@ public sealed class SlideStreamRenderServiceTests
         service.Rendered += _ => renderedCount++;
 
         // Act
-        await service.FinalRenderAsync("");
+        await service.RenderAsync("");
 
         // Assert
         Assert.AreEqual(0, renderedCount);
@@ -83,7 +83,7 @@ public sealed class SlideStreamRenderServiceTests
         service.Rendered += result => eventResult = result;
 
         // Act
-        await service.FinalRenderAsync("<Page/>");
+        await service.RenderAsync("<Page/>");
 
         // Assert
         Assert.IsNotNull(eventResult, "Rendered 事件应被触发");
@@ -100,7 +100,7 @@ public sealed class SlideStreamRenderServiceTests
         var service = CreateService(pipeline);
 
         // Act
-        await service.FinalRenderAsync("<Page/>");
+        await service.RenderAsync("<Page/>");
 
         // Assert
         Assert.HasCount(2, service.CurrentWarnings);
@@ -117,7 +117,7 @@ public sealed class SlideStreamRenderServiceTests
 
         // Act & Assert
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            async () => await service.FinalRenderAsync("<Page/>"));
+            async () => await service.RenderAsync("<Page/>"));
     }
 
     [TestMethod(DisplayName = "构造函数：null renderPipeline 抛出 ArgumentNullException")]

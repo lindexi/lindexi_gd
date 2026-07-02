@@ -56,7 +56,7 @@ public sealed class SlideStreamRenderService
     /// <param name="slideXml">当前合并后的 XML。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>渲染结果；XML 为空时返回 <see langword="null"/>。</returns>
-    public async Task<SlideStreamRenderResult?> FinalRenderAsync(string slideXml, CancellationToken cancellationToken = default)
+    public async Task<SlideStreamRenderResult?> RenderAsync(string slideXml, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(slideXml);
 

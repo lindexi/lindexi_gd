@@ -106,7 +106,7 @@ public sealed class SlideStreamingPipeline
                 continue;
             }
 
-            var renderResult = await _renderService.FinalRenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+            var renderResult = await _renderService.RenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
 
             // 空 XML 时 renderResult 为 null，不做错误检查
             if (renderResult is null)
@@ -151,7 +151,7 @@ public sealed class SlideStreamingPipeline
         var mergedXml = _merger.GetMergedXml();
         if (!string.IsNullOrWhiteSpace(mergedXml))
         {
-            await _renderService.FinalRenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+            await _renderService.RenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
         }
 
         StreamCompleted?.Invoke(mergedXml);
