@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetCampus.LatestCSharpFeatures" Version="13.0.1" />
+    <PackageReference Include="DotNetCampus.ModelContextProtocol" Version="0.1.0-alpha.40" />
   </ItemGroup>
 
   <ItemGroup>
