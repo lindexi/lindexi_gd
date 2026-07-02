@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 namespace PptxGenerator.Streaming;
 
 /// <summary>
-/// 流式渲染编排管道，将片段提取器、合并器和渲染服务串联起来。
-/// 从 LLM 流式输出接收增量文本，提取完整 XML 片段，合并到 DOM 树，每合并一个片段后立即尝试实时渲染（带节流）。
+/// 流式渲染编排管道，将片段提取器、合并器和渲染管道串联起来。
+/// 从 LLM 流式输出接收增量文本，提取完整 XML 片段，合并到 DOM 树，每合并一个片段后立即渲染以检测错误。
 /// </summary>
 public sealed class SlideStreamingPipeline
 {
     private readonly SlideMlStreamingMerger _merger;
-    private readonly SlideStreamRenderService _renderService;
+    private readonly ISlideMlRenderPipeline _renderPipeline;
     private readonly ISlideMlPromptProvider _promptProvider;
     private readonly IMainThreadDispatcher _dispatcher;
     private SlideMlFragmentExtractor _extractor = new();
@@ -41,8 +41,7 @@ public sealed class SlideStreamingPipeline
         _promptProvider = promptProvider;
         _dispatcher = dispatcher;
         _merger = new SlideMlStreamingMerger();
-        _renderService = new SlideStreamRenderService(renderPipeline, dispatcher);
-        _renderService.Rendered += result => Rendered?.Invoke(result);
+        _renderPipeline = renderPipeline;
     }
 
     /// <summary>
@@ -53,7 +52,7 @@ public sealed class SlideStreamingPipeline
     /// <summary>
     /// 渲染完成事件。
     /// </summary>
-    public event Action<SlideStreamRenderResult>? Rendered;
+    public event Action<SlideMlRenderResult>? Rendered;
 
     /// <summary>
     /// 流式输出完成事件。
@@ -106,13 +105,8 @@ public sealed class SlideStreamingPipeline
                 continue;
             }
 
-            var renderResult = await _renderService.RenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
-
-            // 空 XML 时 renderResult 为 null，不做错误检查
-            if (renderResult is null)
-            {
-                continue;
-            }
+            var renderResult = await _renderPipeline.RenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+            Rendered?.Invoke(renderResult);
 
             // 渲染层检测到错误（如属性值格式错误），写入 context 并中断当前批次
             if (renderResult.Errors is { Count: > 0 })
@@ -124,7 +118,7 @@ public sealed class SlideStreamingPipeline
     }
 
     /// <summary>
-    /// 处理流结束，强制最终渲染（忽略节流）。
+    /// 处理流结束，执行最终渲染。
     /// 如果流结束时产生错误，自动回滚到最后一个干净版本。
     /// </summary>
     /// <param name="context">渲染上下文。</param>
@@ -151,7 +145,8 @@ public sealed class SlideStreamingPipeline
         var mergedXml = _merger.GetMergedXml();
         if (!string.IsNullOrWhiteSpace(mergedXml))
         {
-            await _renderService.RenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+            var renderResult = await _renderPipeline.RenderAsync(mergedXml, cancellationToken).ConfigureAwait(false);
+            Rendered?.Invoke(renderResult);
         }
 
         StreamCompleted?.Invoke(mergedXml);

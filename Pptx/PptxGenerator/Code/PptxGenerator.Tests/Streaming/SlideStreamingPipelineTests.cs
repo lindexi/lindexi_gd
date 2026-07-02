@@ -79,7 +79,7 @@ public sealed class SlideStreamingPipelineTests
         // Arrange
         var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
-        var renderedResults = new List<SlideStreamRenderResult>();
+        var renderedResults = new List<SlideMlRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
         // Act
@@ -96,7 +96,7 @@ public sealed class SlideStreamingPipelineTests
         // Arrange
         var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
-        var renderedResults = new List<SlideStreamRenderResult>();
+        var renderedResults = new List<SlideMlRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
         // Act
@@ -112,7 +112,7 @@ public sealed class SlideStreamingPipelineTests
         // Arrange
         var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
-        var renderedResults = new List<SlideStreamRenderResult>();
+        var renderedResults = new List<SlideMlRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
         // Act：先触发一次渲染
@@ -444,7 +444,7 @@ public sealed class SlideStreamingPipelineTests
         // Arrange — 使用真实渲染管道，使 Padding="abc" 在渲染阶段被检测出来
         var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
-        var renderedResults = new List<SlideStreamRenderResult>();
+        var renderedResults = new List<SlideMlRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
         // Act — Panel 的 Padding 值为 "abc"（非数值），合并层不报错（XML 结构合法、Id 存在）
@@ -518,7 +518,7 @@ public sealed class SlideStreamingPipelineTests
         // Arrange
         var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
-        var renderedResults = new List<SlideStreamRenderResult>();
+        var renderedResults = new List<SlideMlRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
         // Act — 片段合并后即时渲染检测到错误，ProcessStreamEnd 再次渲染
@@ -542,7 +542,7 @@ public sealed class SlideStreamingPipelineTests
         // Arrange — 首个片段就是含格式错误 Padding 的 Page
         var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
-        var renderedResults = new List<SlideStreamRenderResult>();
+        var renderedResults = new List<SlideMlRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
         // Act

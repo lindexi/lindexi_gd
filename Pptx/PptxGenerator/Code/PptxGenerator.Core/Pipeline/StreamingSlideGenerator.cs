@@ -118,18 +118,11 @@ internal sealed class StreamingSlideGenerator
         var renderErrors = new ConcurrentQueue<string>();
 
         // 将流式渲染结果同步到 SlideMlRenderTool，使 Latest* 属性保持最新
-        Action<SlideStreamRenderResult> onRendered = renderResult =>
+        Action<SlideMlRenderResult> onRendered = renderResult =>
         {
-            _renderTool.ApplyRenderResult(new SlideMlRenderResult
-            {
-                InputXml = renderResult.InputXml,
-                OutputXml = renderResult.OutputXml,
-                Warnings = renderResult.Warnings,
-                Errors = renderResult.Errors,
-                PreviewImage = renderResult.PreviewImage,
-            });
+            _renderTool.ApplyRenderResult(renderResult);
 
-            // 收集渲染阶段产生的错误（作为 context.Errors 的补充，如 FinalRenderAsync 产生的错误）
+            // 收集渲染阶段产生的错误（作为 context.Errors 的补充，如 ProcessStreamEndAsync 产生的错误）
             if (renderResult.Errors is { Count: > 0 })
             {
                 foreach (var error in renderResult.Errors)
