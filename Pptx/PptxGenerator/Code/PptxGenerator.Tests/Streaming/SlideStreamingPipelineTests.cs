@@ -90,11 +90,11 @@ public sealed class SlideStreamingPipelineTests
         Assert.HasCount(2, renderedResults);
     }
 
-    [TestMethod(DisplayName = "验证流每次片段合并后触发实时渲染（带节流）")]
+    [TestMethod(DisplayName = "验证流每次片段合并后触发即时渲染")]
     public async Task ProcessIncrementalTextAsync_RealTimeRender_TriggeredAfterEachFragment()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.Zero);
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
         var renderedResults = new List<SlideStreamRenderResult>();
         pipeline.Rendered += renderedResults.Add;
@@ -106,37 +106,20 @@ public sealed class SlideStreamingPipelineTests
         Assert.HasCount(1, renderedResults);
     }
 
-    [TestMethod(DisplayName = "验证渲染节流：间隔内多次合并只渲染一次")]
-    public async Task ProcessIncrementalTextAsync_RenderThrottle_SkipsRapidRenders()
+    [TestMethod(DisplayName = "验证最终渲染触发")]
+    public async Task ProcessStreamEndAsync_FinalRender_Triggers()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromSeconds(10));
-        var context = new SlideMlPipelineContext();
-        var renderedCount = 0;
-        pipeline.Rendered += _ => renderedCount++;
-
-        // Act：快速连续合并两个片段
-        await pipeline.ProcessIncrementalTextAsync("<Page><Panel Id=\"a\"/></Page>", context);
-        await pipeline.ProcessIncrementalTextAsync("<Panel Id=\"a\"><Rect Id=\"b\"/></Panel>", context);
-
-        // Assert：第二个片段因节流被跳过
-        Assert.AreEqual(1, renderedCount);
-    }
-
-    [TestMethod(DisplayName = "验证最终渲染忽略节流")]
-    public async Task ProcessStreamEndAsync_FinalRender_IgnoresThrottle()
-    {
-        // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromSeconds(10));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
         var renderedResults = new List<SlideStreamRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
-        // Act：先触发一次渲染（占上次渲染时间）
+        // Act：先触发一次渲染
         await pipeline.ProcessIncrementalTextAsync("<Page><Rect Id=\"r1\"/></Page>", context);
         var countAfterFirst = renderedResults.Count;
 
-        // 最终渲染忽略节流，必定触发
+        // 最终渲染必定触发
         await pipeline.ProcessStreamEndAsync(context);
 
         // Assert：最终渲染一定发生
@@ -205,7 +188,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FragmentMergedIntoDom()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // Act
@@ -221,7 +204,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_ErrorFragment_RolledBack()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // 先合并一个成功的片段
@@ -240,7 +223,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_ErrorRolledBack_SubsequentFragmentMerges()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         await pipeline.ProcessIncrementalTextAsync("<Page><Rect Id=\"r1\" Width=\"100\"/></Page>", context);
@@ -260,7 +243,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_MixedFragments_ErrorSkipped()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // Act — 一个增量文本包含两个片段：一个正确一个错误
@@ -282,7 +265,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstFragmentError_RollsBackToEmpty()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // Act — 首个片段就是错误片段（未知元素）
@@ -298,7 +281,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstFragmentXmlFormatError_RollsBackToEmpty()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // Act — 首个片段是格式错误的 XML（未闭合标签）
@@ -314,7 +297,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstFragmentError_ThenValidFragment_MergesSuccessfully()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // Act — 首个片段出错
@@ -338,7 +321,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstFragmentError_RetryScenario_RecoversFromEmpty()
     {
         // Arrange — 模拟 StreamingSlideGenerator.GenerateAsync 的重试流程
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // 第一轮：首个片段出错
@@ -363,7 +346,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstTwoFragmentsError_ThirdSucceeds()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // 第一次出错
@@ -395,7 +378,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstErrorThenValidInSameBatch_BothProcessed()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // Act — 同一批次中：错误片段在前，正确片段在后
@@ -415,7 +398,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstFragmentError_ThenStreamEnd_EmptyAndNoRender()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
         var renderedCount = 0;
         pipeline.Rendered += _ => renderedCount++;
@@ -433,7 +416,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_FirstFragmentDuplicateIdTypeConflict_RollsBackToEmpty()
     {
         // Arrange
-        var pipeline = CreatePipeline(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipeline();
         var context = new SlideMlPipelineContext();
 
         // Act — 首个片段内 Panel 和 Rect 共用 Id="dup"（类型不同），触发错误
@@ -459,7 +442,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_PanelInvalidPadding_MergerOk_RenderError()
     {
         // Arrange — 使用真实渲染管道，使 Padding="abc" 在渲染阶段被检测出来
-        var pipeline = CreatePipelineWithRealRenderEngine(minRenderInterval: TimeSpan.Zero);
+        var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
         var renderedResults = new List<SlideStreamRenderResult>();
         pipeline.Rendered += renderedResults.Add;
@@ -487,7 +470,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_PanelInvalidPadding_DomRetained_RenderHasError()
     {
         // Arrange
-        var pipeline = CreatePipelineWithRealRenderEngine(minRenderInterval: TimeSpan.Zero);
+        var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
 
         // Act
@@ -506,7 +489,7 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_PanelInvalidPadding_FixedBySubsequentMerge()
     {
         // Arrange
-        var pipeline = CreatePipelineWithRealRenderEngine(minRenderInterval: TimeSpan.Zero);
+        var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
 
         // 第一轮：Padding 格式错误
@@ -533,31 +516,31 @@ public sealed class SlideStreamingPipelineTests
     public async Task ProcessIncrementalTextAsync_PanelInvalidPadding_StreamEndRenderHasError()
     {
         // Arrange
-        var pipeline = CreatePipelineWithRealRenderEngine(minRenderInterval: TimeSpan.FromMinutes(1));
+        var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
         var renderedResults = new List<SlideStreamRenderResult>();
         pipeline.Rendered += renderedResults.Add;
 
-        // Act — 节流期间片段合并不渲染，仅 ProcessStreamEnd 触发渲染
+        // Act — 片段合并后即时渲染检测到错误，ProcessStreamEnd 再次渲染
         await pipeline.ProcessIncrementalTextAsync(
             "<Page><Panel Id=\"p1\" Padding=\"xyz\"/></Page>",
             context);
         await pipeline.ProcessStreamEndAsync(context);
 
-        // Assert — 首次渲染不受节流限制（_lastRenderTime 为 default），渲染错误已同步写入 context.Errors
+        // Assert — 渲染错误已同步写入 context.Errors
         Assert.IsNotEmpty(context.Errors, "渲染层错误应同步写入 context.Errors");
         Assert.IsTrue(
             context.Errors.Any(e => e.Contains("Padding") && e.Contains("xyz")),
             "context.Errors 应包含 Padding 格式错误");
-        // ProcessStreamEnd 仍会触发一次渲染（错误已在前一步被捕获，但 DOM 不变）
-        Assert.IsNotEmpty(renderedResults, "应触发渲染（ProcessStreamEnd 的 FinalRender）");
+        // ProcessStreamEnd 仍会触发一次渲染
+        Assert.IsNotEmpty(renderedResults, "应触发渲染");
     }
 
     [TestMethod(DisplayName = "首个片段 Panel Padding 格式错误：合并成功，渲染层产生错误")]
     public async Task ProcessIncrementalTextAsync_FirstFragmentPanelInvalidPadding_MergerOk_RenderError()
     {
         // Arrange — 首个片段就是含格式错误 Padding 的 Page
-        var pipeline = CreatePipelineWithRealRenderEngine(minRenderInterval: TimeSpan.Zero);
+        var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
         var renderedResults = new List<SlideStreamRenderResult>();
         pipeline.Rendered += renderedResults.Add;
@@ -581,7 +564,7 @@ public sealed class SlideStreamingPipelineTests
             "渲染结果应包含 Padding 格式错误");
     }
 
-    private static SlideStreamingPipeline CreatePipeline(TimeSpan? minRenderInterval = null)
+    private static SlideStreamingPipeline CreatePipeline()
     {
         var renderResult = new SlideMlRenderResult
         {
@@ -594,20 +577,20 @@ public sealed class SlideStreamingPipelineTests
         var fakePipeline = new FakeRenderPipeline(renderResult);
         var dispatcher = new FakeMainThreadDispatcher();
         var promptProvider = new SlideMlPromptProvider();
-        return new SlideStreamingPipeline(promptProvider, fakePipeline, dispatcher, minRenderInterval);
+        return new SlideStreamingPipeline(promptProvider, fakePipeline, dispatcher);
     }
 
     /// <summary>
     /// 使用真实渲染管道（含 SlideMlParser + FakeRenderEngine）创建管道，
     /// 使属性值格式错误（如 Padding="abc"）在渲染阶段被检测出来。
     /// </summary>
-    private static SlideStreamingPipeline CreatePipelineWithRealRenderEngine(TimeSpan? minRenderInterval = null)
+    private static SlideStreamingPipeline CreatePipelineWithRealRenderEngine()
     {
         var layoutEngine = new SlideMlLayoutEngine();
         var renderEngine = new FakeRenderEngine();
         var dispatcher = new FakeMainThreadDispatcher();
         var renderPipeline = new SlideMlRenderPipeline(layoutEngine, renderEngine, dispatcher);
         var promptProvider = new SlideMlPromptProvider();
-        return new SlideStreamingPipeline(promptProvider, renderPipeline, dispatcher, minRenderInterval);
+        return new SlideStreamingPipeline(promptProvider, renderPipeline, dispatcher);
     }
 }

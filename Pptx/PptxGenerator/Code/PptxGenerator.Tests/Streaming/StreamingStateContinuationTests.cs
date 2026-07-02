@@ -246,7 +246,7 @@ public sealed class StreamingStateContinuationTests
 
     // ───────── 辅助方法 ─────────
 
-    private static SlideStreamingPipeline CreatePipeline(TimeSpan? minRenderInterval = null)
+    private static SlideStreamingPipeline CreatePipeline()
     {
         var renderResult = new SlideMlRenderResult
         {
@@ -259,7 +259,7 @@ public sealed class StreamingStateContinuationTests
         var fakePipeline = new FakeRenderPipeline(renderResult);
         var dispatcher = new FakeMainThreadDispatcher();
         var promptProvider = new SlideMlPromptProvider();
-        return new SlideStreamingPipeline(promptProvider, fakePipeline, dispatcher, minRenderInterval);
+        return new SlideStreamingPipeline(promptProvider, fakePipeline, dispatcher);
     }
 
     /// <summary>

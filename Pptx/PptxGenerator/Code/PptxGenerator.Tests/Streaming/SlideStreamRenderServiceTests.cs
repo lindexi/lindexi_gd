@@ -31,15 +31,13 @@ public sealed class SlideStreamRenderServiceTests
         return new FakeRenderPipeline(result);
     }
 
-    private static SlideStreamRenderService CreateService(
-        FakeRenderPipeline pipeline,
-        TimeSpan? minRenderInterval = null)
+    private static SlideStreamRenderService CreateService(FakeRenderPipeline pipeline)
     {
-        return new SlideStreamRenderService(pipeline, new FakeMainThreadDispatcher(), minRenderInterval);
+        return new SlideStreamRenderService(pipeline, new FakeMainThreadDispatcher());
     }
 
-    [TestMethod(DisplayName = "TryRender：首次调用立即渲染并更新状态")]
-    public async Task TryRenderAsync_FirstCall_RendersImmediately()
+    [TestMethod(DisplayName = "FinalRender：调用后立即渲染并更新状态")]
+    public async Task FinalRenderAsync_RendersImmediatelyAndUpdatesState()
     {
         // Arrange
         const string outputXml = """<Page RenderSize="1280x720"/>""";
@@ -47,77 +45,13 @@ public sealed class SlideStreamRenderServiceTests
         var service = CreateService(pipeline);
 
         // Act
-        var result = await service.TryRenderAsync("<Page/>");
+        var result = await service.FinalRenderAsync("<Page/>");
 
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(outputXml, service.CurrentRenderedXml);
         Assert.IsNotNull(service.CurrentPreviewImage);
         Assert.IsEmpty(service.CurrentWarnings);
-    }
-
-    [TestMethod(DisplayName = "TryRender：间隔内第二次调用被节流跳过")]
-    public async Task TryRenderAsync_WithinInterval_SkipsRender()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var service = CreateService(pipeline, minRenderInterval: TimeSpan.FromSeconds(10));
-
-        // Act：首次渲染成功
-        var first = await service.TryRenderAsync("<Page/>");
-        // 第二次应在节流期内被跳过
-        var second = await service.TryRenderAsync("<Page/>");
-
-        // Assert
-        Assert.IsNotNull(first);
-        Assert.IsNull(second);
-    }
-
-    [TestMethod(DisplayName = "TryRender：超过间隔后可以再次渲染")]
-    public async Task TryRenderAsync_AfterInterval_Renders()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var service = CreateService(pipeline, minRenderInterval: TimeSpan.Zero);
-
-        // Act
-        var first = await service.TryRenderAsync("<Page/>");
-        var second = await service.TryRenderAsync("<Page/>");
-
-        // Assert
-        Assert.IsNotNull(first);
-        Assert.IsNotNull(second);
-    }
-
-    [TestMethod(DisplayName = "TryRender：空或空白 XML 不渲染")]
-    public async Task TryRenderAsync_EmptyXml_ReturnsFalse()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var service = CreateService(pipeline);
-
-        // Act
-        var result = await service.TryRenderAsync("");
-
-        // Assert
-        Assert.IsNull(result);
-    }
-
-    [TestMethod(DisplayName = "FinalRender：忽略节流直接渲染")]
-    public async Task FinalRenderAsync_IgnoresThrottle()
-    {
-        // Arrange
-        var pipeline = CreatePipeline();
-        var service = CreateService(pipeline, minRenderInterval: TimeSpan.FromSeconds(10));
-
-        // 先触发一次渲染以设置上次渲染时间
-        await service.TryRenderAsync("<Page/>");
-
-        // Act：FinalRender 忽略节流
-        await service.FinalRenderAsync("<Page/>");
-
-        // Assert：不会抛异常，说明渲染成功
-        Assert.IsNotNull(service.CurrentPreviewImage);
     }
 
     [TestMethod(DisplayName = "FinalRender：空 XML 不渲染")]
@@ -137,7 +71,7 @@ public sealed class SlideStreamRenderServiceTests
     }
 
     [TestMethod(DisplayName = "渲染成功后触发 Rendered 事件")]
-    public async Task TryRenderAsync_ValidXml_TriggersRenderedEvent()
+    public async Task FinalRenderAsync_ValidXml_TriggersRenderedEvent()
     {
         // Arrange
         const string outputXml = """<Page RenderSize="1280"/>""";
@@ -149,7 +83,7 @@ public sealed class SlideStreamRenderServiceTests
         service.Rendered += result => eventResult = result;
 
         // Act
-        await service.TryRenderAsync("<Page/>");
+        await service.FinalRenderAsync("<Page/>");
 
         // Assert
         Assert.IsNotNull(eventResult, "Rendered 事件应被触发");
@@ -157,8 +91,8 @@ public sealed class SlideStreamRenderServiceTests
         Assert.AreSame(previewImage, eventResult.PreviewImage);
     }
 
-    [TestMethod(DisplayName = "TryRender：带警告时正确存储")]
-    public async Task TryRenderAsync_WithWarnings_StoresWarnings()
+    [TestMethod(DisplayName = "FinalRender：带警告时正确存储")]
+    public async Task FinalRenderAsync_WithWarnings_StoresWarnings()
     {
         // Arrange
         var warnings = new[] { "Warning 1", "Warning 2" };
@@ -166,7 +100,7 @@ public sealed class SlideStreamRenderServiceTests
         var service = CreateService(pipeline);
 
         // Act
-        await service.TryRenderAsync("<Page/>");
+        await service.FinalRenderAsync("<Page/>");
 
         // Assert
         Assert.HasCount(2, service.CurrentWarnings);
@@ -175,7 +109,7 @@ public sealed class SlideStreamRenderServiceTests
     }
 
     [TestMethod(DisplayName = "渲染异常正确传播")]
-    public async Task TryRenderAsync_RenderThrows_ExceptionPropagated()
+    public async Task FinalRenderAsync_RenderThrows_ExceptionPropagated()
     {
         // Arrange
         var pipeline = new FakeRenderPipeline(new InvalidOperationException("render failed"));
@@ -183,7 +117,7 @@ public sealed class SlideStreamRenderServiceTests
 
         // Act & Assert
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            async () => await service.TryRenderAsync("<Page/>"));
+            async () => await service.FinalRenderAsync("<Page/>"));
     }
 
     [TestMethod(DisplayName = "构造函数：null renderPipeline 抛出 ArgumentNullException")]
