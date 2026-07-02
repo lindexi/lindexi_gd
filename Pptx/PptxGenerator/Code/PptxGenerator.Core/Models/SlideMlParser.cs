@@ -12,6 +12,57 @@ public sealed class SlideMlParser
 {
     private int _nextId = 1;
 
+    /// <summary>
+    /// 必须携带 Id 属性的元素类型集合。
+    /// </summary>
+    private static readonly HashSet<string> _idRequiredElements = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Panel", "Rect", "TextElement", "Image",
+    };
+
+    /// <summary>
+    /// 不需要 Id 的结构化子元素集合（Fill、Stroke、Shadow、Span、LinearGradient、Stop）。
+    /// </summary>
+    private static readonly HashSet<string> _structuredElements = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Span", "Fill", "Stroke", "Shadow", "LinearGradient", "Stop",
+    };
+
+    /// <summary>
+    /// 可重复出现的结构化子元素集合（Span、Stop）。
+    /// </summary>
+    private static readonly HashSet<string> _repeatableStructuredElements = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Span", "Stop",
+    };
+
+    /// <summary>
+    /// 判断元素是否为需要 Id 的类型（Panel、Rect、TextElement、Image）。
+    /// 供 <see cref="Streaming.SlideMlStreamingMerger"/> 在合并时判断元素分类。
+    /// </summary>
+    /// <param name="localName">元素标签名。</param>
+    /// <returns>需要 Id 返回 true，否则 false。</returns>
+    public static bool IsIdRequiredElement(string localName)
+        => _idRequiredElements.Contains(localName);
+
+    /// <summary>
+    /// 判断元素是否为结构化子元素（Span、Fill、Stroke、Shadow、LinearGradient、Stop）。
+    /// 供 <see cref="Streaming.SlideMlStreamingMerger"/> 在合并时跳过不需要 Id 的子元素。
+    /// </summary>
+    /// <param name="localName">元素标签名。</param>
+    /// <returns>是结构化子元素返回 true，否则 false。</returns>
+    public static bool IsStructuredElement(string localName)
+        => _structuredElements.Contains(localName);
+
+    /// <summary>
+    /// 判断结构化子元素是否可重复出现（Span、Stop）。
+    /// 供 <see cref="Streaming.SlideMlStreamingMerger"/> 在合并时决定替换策略。
+    /// </summary>
+    /// <param name="localName">元素标签名。</param>
+    /// <returns>可重复返回 true，否则 false。</returns>
+    public static bool IsRepeatableStructuredElement(string localName)
+        => _repeatableStructuredElements.Contains(localName);
+
     private static readonly HashSet<string> _pageKnownAttributes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Id", "Background",
@@ -90,15 +141,26 @@ public sealed class SlideMlParser
 
     private SlideMlElement? ParseElement(XElement element, string parentName, SlideMlPipelineContext context)
     {
-        return element.Name.LocalName switch
+        var localName = element.Name.LocalName;
+
+        if (_idRequiredElements.Contains(localName))
         {
-            "Panel" => ParsePanel(element, GetOrCreateElementId(element), context),
-            "Rect" => ParseRect(element, GetOrCreateElementId(element), context),
-            "TextElement" => ParseTextElement(element, GetOrCreateElementId(element), context),
-            "Image" => ParseImageElement(element, GetOrCreateElementId(element), context),
-            "Fill" or "Stroke" or "Shadow" or "Span" or "LinearGradient" or "Stop" => WarnInvalidStructuredChild(element, parentName, context),
-            _ => WarnUnknownTag(element, parentName, context),
-        };
+            return localName switch
+            {
+                "Panel" => ParsePanel(element, GetOrCreateElementId(element), context),
+                "Rect" => ParseRect(element, GetOrCreateElementId(element), context),
+                "TextElement" => ParseTextElement(element, GetOrCreateElementId(element), context),
+                "Image" => ParseImageElement(element, GetOrCreateElementId(element), context),
+                _ => WarnUnknownTag(element, parentName, context),
+            };
+        }
+
+        if (_structuredElements.Contains(localName))
+        {
+            return WarnInvalidStructuredChild(element, parentName, context);
+        }
+
+        return WarnUnknownTag(element, parentName, context);
     }
 
     private string GetOrCreateElementId(XElement element)
@@ -109,18 +171,28 @@ public sealed class SlideMlParser
     private static SlideMlElement? WarnInvalidStructuredChild(XElement element, string parentName, SlideMlPipelineContext context)
     {
         var tagName = element.Name.LocalName;
-        var supportedParent = tagName switch
+        var supportedParent = GetSupportedParent(tagName);
+
+        context.AddWarning($"[Warning] {parentName}: 子标签 \"{tagName}\" 位置无效，{tagName} 只能用于 {supportedParent}，已忽略");
+        return null;
+    }
+
+    /// <summary>
+    /// 获取结构化子元素对应的合法父元素描述文本，用于生成诊断消息。
+    /// </summary>
+    /// <param name="elementName">子元素标签名。</param>
+    /// <returns>合法父元素的描述，如 "Panel 或 Rect"。</returns>
+    private static string GetSupportedParent(string elementName)
+    {
+        return elementName switch
         {
             "Fill" or "Stroke" => "Panel 或 Rect",
             "Shadow" => "Rect",
             "Span" => "TextElement",
             "LinearGradient" => "Fill 或 Stroke",
             "Stop" => "LinearGradient",
-            _ => parentName,
+            _ => elementName,
         };
-
-        context.AddWarning($"[Warning] {parentName}: 子标签 \"{tagName}\" 位置无效，{tagName} 只能用于 {supportedParent}，已忽略");
-        return null;
     }
 
     private static SlideMlElement? WarnUnknownTag(XElement element, string parentName, SlideMlPipelineContext context)

@@ -33,9 +33,9 @@ public sealed class SlideMlParserIdGenerationTests
 
         var page = _parser.Parse(xml, context);
 
-        Assert.AreEqual("elem_001", page.Children[0].Id);
-        Assert.AreEqual("elem_002", page.Children[1].Id);
-        Assert.AreEqual("elem_003", page.Children[2].Id);
+        Assert.AreEqual("elem_002", page.Children[0].Id);
+        Assert.AreEqual("elem_003", page.Children[1].Id);
+        Assert.AreEqual("elem_004", page.Children[2].Id);
     }
 
     [TestMethod]
@@ -59,7 +59,7 @@ public sealed class SlideMlParserIdGenerationTests
         var page = _parser.Parse(xml, context);
 
         Assert.AreEqual("named", page.Children[0].Id);
-        Assert.AreEqual("elem_001", page.Children[1].Id);
-        Assert.AreEqual("elem_002", page.Children[2].Id);
+        Assert.AreEqual("elem_002", page.Children[1].Id);
+        Assert.AreEqual("elem_003", page.Children[2].Id);
     }
 }

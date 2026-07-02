@@ -12,30 +12,6 @@ namespace PptxGenerator.Streaming;
 public sealed class SlideMlStreamingMerger
 {
     /// <summary>
-    /// 需要校验 Id 的元素类型集合（不含 Page 和 Remove）。
-    /// </summary>
-    private static readonly HashSet<string> s_idRequiredElements = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Panel", "Rect", "TextElement", "Image"
-    };
-
-    /// <summary>
-    /// 不要求 Id 的结构化子元素集合。
-    /// </summary>
-    private static readonly HashSet<string> s_structuredElements = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Span", "Fill", "Stroke", "Shadow", "LinearGradient", "Stop"
-    };
-
-    /// <summary>
-    /// 可重复出现的结构化子元素集合。
-    /// </summary>
-    private static readonly HashSet<string> s_repeatableStructuredElements = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Span", "Stop"
-    };
-
-    /// <summary>
     /// 已确认正确的合并状态，不被合并操作直接修改。
     /// </summary>
     private SlideMlMergeState _committed = new();
@@ -112,7 +88,7 @@ public sealed class SlideMlStreamingMerger
         {
             ProcessRemove(fragmentRoot, context);
         }
-        else if (s_idRequiredElements.Contains(localName))
+        else if (SlideMlParser.IsIdRequiredElement(localName))
         {
             ProcessElement(fragmentRoot, context);
         }
@@ -345,7 +321,7 @@ public sealed class SlideMlStreamingMerger
         var fragmentChildrenWithId = new List<XElement>();
         foreach (var child in fragmentChildren)
         {
-            if (!RequiresId(child))
+            if (!SlideMlParser.IsIdRequiredElement(child.Name.LocalName))
             {
                 continue;
             }
@@ -498,7 +474,7 @@ public sealed class SlideMlStreamingMerger
     {
         foreach (var child in parent.Elements())
         {
-            if (RequiresId(child))
+            if (SlideMlParser.IsIdRequiredElement(child.Name.LocalName))
             {
                 var childId = GetElementId(child);
                 if (string.IsNullOrWhiteSpace(childId))
@@ -531,12 +507,12 @@ public sealed class SlideMlStreamingMerger
         foreach (var child in fragmentChildren)
         {
             var localName = child.Name.LocalName;
-            if (!s_structuredElements.Contains(localName))
+            if (!SlideMlParser.IsStructuredElement(localName))
             {
                 continue;
             }
 
-            if (s_repeatableStructuredElements.Contains(localName))
+            if (SlideMlParser.IsRepeatableStructuredElement(localName))
             {
                 if (!processedRepeatableNames.Add(localName))
                 {
@@ -578,11 +554,6 @@ public sealed class SlideMlStreamingMerger
             UnregisterStyleIdElements(existingChild);
             existingChild.Remove();
         }
-    }
-
-    private static bool RequiresId(XElement element)
-    {
-        return s_idRequiredElements.Contains(element.Name.LocalName);
     }
 
     /// <summary>
