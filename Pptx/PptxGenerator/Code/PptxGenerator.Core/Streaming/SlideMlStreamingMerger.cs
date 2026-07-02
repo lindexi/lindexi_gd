@@ -211,12 +211,15 @@ public sealed class SlideMlStreamingMerger
                 UnregisterIdElements(targetElement);
                 UnregisterStyleIdElements(targetElement);
                 _working.Document = null;
+                _working.DanglingElements.Clear();
                 return;
             }
 
             // 从 _idIndex 和 _styleIdIndex 中移除该元素及其所有子元素
             UnregisterIdElements(targetElement);
             UnregisterStyleIdElements(targetElement);
+            // 从悬空元素列表中移除
+            RemoveFromDanglingElements(targetElement);
             // 从父节点移除
             if (targetElement.Parent != null)
             {
@@ -388,6 +391,7 @@ public sealed class SlideMlStreamingMerger
             {
                 UnregisterIdElements(existingChildren[i]);
                 UnregisterStyleIdElements(existingChildren[i]);
+                RemoveFromDanglingElements(existingChildren[i]);
                 existingChildren[i].Remove();
                 removedIndices.Add(i);
             }
@@ -552,6 +556,7 @@ public sealed class SlideMlStreamingMerger
         {
             UnregisterIdElements(existingChild);
             UnregisterStyleIdElements(existingChild);
+            RemoveFromDanglingElements(existingChild);
             existingChild.Remove();
         }
     }
@@ -695,6 +700,22 @@ public sealed class SlideMlStreamingMerger
             if (descendantStyleId is not null)
             {
                 _working.StyleIdIndex.Remove(descendantStyleId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 从 <see cref="SlideMlMergeState.DanglingElements"/> 中移除指定元素（按引用比较）。
+    /// </summary>
+    /// <param name="element">要移除的元素。</param>
+    private void RemoveFromDanglingElements(XElement element)
+    {
+        for (var i = _working!.DanglingElements.Count - 1; i >= 0; i--)
+        {
+            if (ReferenceEquals(_working.DanglingElements[i], element))
+            {
+                _working.DanglingElements.RemoveAt(i);
+                return;
             }
         }
     }

@@ -222,6 +222,137 @@ public sealed class SlideMlStreamingMergerTests
         Assert.IsTrue(context.Warnings.Any(w => w.Contains("some-page-id")), "应产生目标不存在的警告");
     }
 
+    [TestMethod(DisplayName = "移除悬空元素后可以重新添加同 StyleId 的元素")]
+    public void Remove_DanglingElement_AllowsReAddingSameStyleId()
+    {
+        // Arrange — 模拟先移除再添加的重置场景
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 添加悬空模板，再移除，再用相同 StyleId 添加新模板
+        merger.AcceptFragment("<Rect Id=\"tmpl\" StyleId=\"tmpl-style\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
+        merger.AcceptFragment("<Remove TargetId=\"tmpl\"/>", context);
+        merger.AcceptFragment("<Rect Id=\"tmpl-v2\" StyleId=\"tmpl-style\" Fill=\"#00FF00\" Width=\"200\" Height=\"100\"/>", context);
+        merger.AcceptFragment("<Page><Rect Id=\"card\" StyleFrom=\"tmpl-style\" X=\"0\" Y=\"0\"/></Page>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var card = doc.Root!.Elements().First(e => e.Attribute("Id")?.Value == "card");
+        Assert.AreEqual("#00FF00", card.Attribute("Fill")?.Value, "应从新模板的 StyleId 继承 Fill（而非旧模板 #FF0000）");
+        Assert.AreEqual("200", card.Attribute("Width")?.Value, "应从新模板继承 Width");
+        Assert.AreEqual("100", card.Attribute("Height")?.Value, "应从新模板继承 Height");
+    }
+
+    [TestMethod(DisplayName = "移除 Page 根元素时同时清空悬空元素列表")]
+    public void Remove_PageRoot_ClearsDanglingElements()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 添加悬空元素和 Page，然后移除 Page
+        merger.AcceptFragment("<Rect Id=\"tmpl\" StyleId=\"tmpl-style\" Fill=\"#FF0000\"/>", context);
+        merger.AcceptFragment("<Page Id=\"page1\"><Rect Id=\"card\" StyleFrom=\"tmpl-style\" X=\"0\" Y=\"0\"/></Page>", context);
+        merger.AcceptFragment("<Remove TargetId=\"page1\"/>", context);
+
+        // 移除 Page 后，DanglingElements 也应该被清空。重新添加同 StyleId 的悬空元素不应冲突
+        merger.AcceptFragment("<Rect Id=\"tmpl-new\" StyleId=\"tmpl-style\" Fill=\"#00FF00\"/>", context);
+        merger.AcceptFragment("<Page Id=\"page2\"><Rect Id=\"card2\" StyleFrom=\"tmpl-style\" X=\"0\" Y=\"0\"/></Page>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        Assert.AreEqual("page2", doc.Root!.Attribute("Id")?.Value);
+        var card2 = doc.Root!.Elements().First(e => e.Attribute("Id")?.Value == "card2");
+        Assert.AreEqual("#00FF00", card2.Attribute("Fill")?.Value, "应从新模板继承 Fill");
+    }
+
+    [TestMethod(DisplayName = "移除悬空元素后 StyleId 索引也被清理")]
+    public void Remove_DanglingElement_ClearsStyleIdIndex()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 添加悬空模板，移除，再添加同 StyleId 的模板（不应产生 StyleId 重复错误）
+        merger.AcceptFragment("<Rect Id=\"tmpl-1\" StyleId=\"my-style\" Fill=\"#FF0000\"/>", context);
+        merger.AcceptFragment("<Remove TargetId=\"tmpl-1\"/>", context);
+        merger.AcceptFragment("<Rect Id=\"tmpl-2\" StyleId=\"my-style\" Fill=\"#0000FF\"/>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "移除后重新添加同 StyleId 不应产生重复错误");
+        Assert.IsEmpty(context.Warnings, "不应有警告");
+    }
+
+    [TestMethod(DisplayName = "子元素合并冲突移除时同时清理悬空元素列表")]
+    public void MergeChildren_ConflictRemoval_ClearsDanglingElements()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 先添加悬空元素，再在 Page 内创建同 Id 元素（此时悬空元素被提升为 Page 子元素），
+        // 然后再用 MergeChildren 覆盖替换（冲突移除）
+        merger.AcceptFragment("<Rect Id=\"card\" StyleId=\"card-style\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
+        merger.AcceptFragment("<Page><Panel Id=\"panel\"><Rect Id=\"card\"/></Panel></Page>", context);
+        // 此时 card 已在 Page 子树中，再发送同 Id 片段触发 MergeChildren 冲突移除
+        merger.AcceptFragment("<Panel Id=\"panel\"><Rect Id=\"card\" Fill=\"#00FF00\" Width=\"200\"/></Panel>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        Assert.Contains("Fill=\"#00FF00\"", xml, "冲突替换后应使用新属性");
+        Assert.Contains("Width=\"200\"", xml, "冲突替换后应使用新 Width");
+    }
+
+    [TestMethod(DisplayName = "移除 Page 树内带属性的元素后，重新添加同 Id 元素不含旧属性")]
+    public void Remove_InPageTreeElement_ThenReAddSameId_ShouldNotRetainOldAttributes()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 在 Page 下创建带阴影等属性的 Rect，移除，再添加同 Id 但没有任何阴影属性的 Rect
+        merger.AcceptFragment(
+            """
+            <Page>
+              <Panel Id="panel">
+                <Rect Id="box" Width="200" Height="100" Fill="#FF0000" Shadow="2 2 4 #000000" />
+                <Rect Id="other" Width="50" Height="50" Fill="#0000FF" />
+              </Panel>
+            </Page>
+            """, context);
+        merger.AcceptFragment("<Remove TargetId=\"box\"/>", context);
+        merger.AcceptFragment(
+            """
+            <Panel Id="panel">
+              <Rect Id="box" Width="300" Height="150" Fill="#00FF00" />
+            </Panel>
+            """, context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var box = doc.Root!.Element("Panel")!.Elements().First(e => e.Attribute("Id")?.Value == "box");
+
+        // 新元素应使用新属性
+        Assert.AreEqual("300", box.Attribute("Width")?.Value, "Width 应为新值 300");
+        Assert.AreEqual("150", box.Attribute("Height")?.Value, "Height 应为新值 150");
+        Assert.AreEqual("#00FF00", box.Attribute("Fill")?.Value, "Fill 应为新值 #00FF00");
+
+        // 旧元素的 Shadow 属性不应残留
+        Assert.IsNull(box.Attribute("Shadow"), "移除后重新添加不应保留旧元素的 Shadow 属性");
+
+        // other 元素应保留
+        var other = doc.Root!.Element("Panel")!.Elements().First(e => e.Attribute("Id")?.Value == "other");
+        Assert.IsNotNull(other, "other 元素应保留");
+        Assert.AreEqual("#0000FF", other.Attribute("Fill")?.Value, "other 的 Fill 应保留");
+    }
+
     [TestMethod]
     public void DanglingElement_RegisteredButNotRendered()
     {
