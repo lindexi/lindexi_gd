@@ -59,8 +59,9 @@ public partial class App : Application
 
         agentApiEndpointManager.PrimaryModel = languageModel;
 
-        var SlideMlRenderPipeline = new SlideMlRenderPipeline(new SlideMlLayoutEngine(), new WpfSlideMlRenderEngine(), dispatcher);
-        var SlideMlRenderTool = new SlideMlRenderTool(SlideMlRenderPipeline, dispatcher);
+        var defaultPipeline = new SlideMlRenderPipeline(new SlideMlLayoutEngine(), new WpfSlideMlRenderEngine(), dispatcher);
+        var renderPipeline = new SwitchableSlideMlRenderPipeline(defaultPipeline);
+        var slideMlRenderTool = new SlideMlRenderTool(renderPipeline, dispatcher);
 
         var evaluatorChatManager = new CopilotChatManager();
         var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
@@ -74,6 +75,6 @@ public partial class App : Application
         var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
         var promptOptimizer = new AiPromptOptimizer(evaluatorChatManager);
 
-        return new SlideChatManager(copilotChatManager, SlideMlRenderTool, slideEvaluator: slideEvaluator, promptEvaluator: promptEvaluator, promptOptimizer: promptOptimizer);
+        return new SlideChatManager(copilotChatManager, slideMlRenderTool, slideEvaluator: slideEvaluator, promptEvaluator: promptEvaluator, promptOptimizer: promptOptimizer);
     }
 }

@@ -9,14 +9,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using DotNetCampus.ModelContextProtocol.Clients;
-using DotNetCampus.ModelContextProtocol.Protocol.Messages;
 using PptxGenerator.Evaluation;
 
 namespace PptxGenerator;
@@ -49,6 +45,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _lastUserPrompt = string.Empty;
     private ModelDisplayItem _selectedModelItem;
     private bool _isStreamingMode = true;
+    private string _mcpServiceUrl = "http://127.0.0.1:64773/mcp";
 
     public MainWindowViewModel(SlideChatManager slideChatManager)
     {
@@ -257,6 +254,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         get => _isStreamingMode;
         set => SetProperty(ref _isStreamingMode, value);
+    }
+
+    /// <summary>
+    /// 外部 MCP 服务地址。为空时不使用 MCP 渲染。
+    /// </summary>
+    public string McpServiceUrl
+    {
+        get => _mcpServiceUrl;
+        set => SetProperty(ref _mcpServiceUrl, value);
     }
 
     /// <summary>
@@ -478,79 +484,24 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         return true;
     }
 
+    /// <summary>
+    /// 尝试连接 MCP 服务并切换到 MCP 渲染管道。
+    /// 当 MCP 服务不可用或无渲染工具时，保持使用本地渲染引擎。
+    /// 供界面输入框失焦时调用。
+    /// </summary>
+    public async Task TryConnectMcpRenderAsync()
+    {
+        var pipeline = SlideChatManager.SlideMlRenderTool.RenderPipeline as SwitchableSlideMlRenderPipeline;
+        if (pipeline is null)
+        {
+            return;
+        }
+
+        await pipeline.TryEnableMcpAsync(McpServiceUrl).ConfigureAwait(false);
+    }
+
     private async Task UseMcpSlideMlRender()
     {
-        // 这个 Url 需要后续关联到 MainWindow.xaml 里面的输入框
-        var url = "http://127.0.0.1:64773/mcp";
-        var mcpClientBuilder = new McpClientBuilder("SlideML","1.0.0");
-        mcpClientBuilder.WithHttp(url);
-        var mcpClient = mcpClientBuilder.Build();
-        ListToolsResult toolsResult = await mcpClient.ListToolsAsync();
-
-        // 找到一个工具，名字上面同时写了 Render 和 SlideML 的
-        var renderTool = toolsResult.Tools.FirstOrDefault(t =>
-        {
-            return t.Name.Contains("Render", StringComparison.OrdinalIgnoreCase)
-                   && t.Name.Contains("SlideML", StringComparison.OrdinalIgnoreCase);
-        });
-
-        // 封装为 SlideMlRenderPipeline 类型
-        if (renderTool != null)
-        {
-            // 输入参数 SlideML 的内容
-            // 请后续替换为实际的 SlideML 内容
-            // lang=xml
-            var slideMl =
-                """
-                <Page Background="#F0F4F8">
-                  <Panel Id="Header" X="0" Y="0" Width="1280" Height="120"/>
-                  <Panel Id="HeroSection" X="80" Y="150" Width="1120" Height="200"/>
-                  <Panel Id="FeatureCards" X="80" Y="380" Width="1120" Height="280"/>
-                  <Panel Id="Footer" X="0" Y="680" Width="1280" Height="40"/>
-                </Page>
-                """;
-            var jsonObject = new JsonObject();
-            jsonObject["slideXml"] = slideMl;
-
-            var jsonString = jsonObject.ToJsonString();
-            var jsonElement = JsonElement.Parse(jsonString);
-
-            var callToolResult = await mcpClient.CallToolAsync(renderTool.Name, jsonElement);
-            var structuredContent = callToolResult.StructuredContent;
-            if (structuredContent is not null)
-            {
-                var mcpSlideMlRenderResult = structuredContent.Value.Deserialize<McpSlideMlRenderResult>(new JsonSerializerOptions()
-                {
-                    PropertyNameCaseInsensitive = true,
-                });
-            }
-        }
+        await TryConnectMcpRenderAsync().ConfigureAwait(false);
     }
-}
-
-
-/// <summary>
-/// SlideML 渲染的结构化返回结果，包含回填后的 XML、警告、错误和预览图本地路径。
-/// </summary>
-public record McpSlideMlRenderResult
-{
-    /// <summary>
-    /// 渲染回填后的 SlideML XML。
-    /// </summary>
-    public required string OutputXml { get; init; }
-
-    /// <summary>
-    /// 渲染过程中的警告信息。
-    /// </summary>
-    public required IReadOnlyList<string> Warnings { get; init; }
-
-    /// <summary>
-    /// 渲染过程中的错误信息。
-    /// </summary>
-    public required IReadOnlyList<string> Errors { get; init; }
-
-    /// <summary>
-    /// 预览图保存的本地文件路径。
-    /// </summary>
-    public required string PreviewImageFilePath { get; init; }
 }

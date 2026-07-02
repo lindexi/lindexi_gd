@@ -206,7 +206,9 @@
 
                     <!-- 外部 MCP 工具提供渲染 -->
                     <TextBlock Margin="10 0 0 0" Text="MCP服务地址：" VerticalAlignment="Center"></TextBlock>
-                    <TextBox Margin="5,0,0,0" Width="200" VerticalAlignment="Center"></TextBox>
+                    <TextBox Margin="5,0,0,0" Width="200" VerticalAlignment="Center"
+                             Text="{Binding McpServiceUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             LostFocus="McpServiceUrl_LostFocus"></TextBox>
                 </StackPanel>
             </Border>
 
