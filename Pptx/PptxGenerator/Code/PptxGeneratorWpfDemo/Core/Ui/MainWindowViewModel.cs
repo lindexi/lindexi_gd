@@ -201,7 +201,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// 聊天气泡消息列表。
     /// </summary>
-public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
+    public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
 
     public bool IsBusy
     {

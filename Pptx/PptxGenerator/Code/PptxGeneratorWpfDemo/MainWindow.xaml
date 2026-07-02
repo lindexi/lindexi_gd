@@ -203,6 +203,10 @@
                               Foreground="#FF475569">
                         <TextBlock Text="流式模式" FontSize="13" Foreground="#FF475569" />
                     </CheckBox>
+
+                    <!-- 外部 MCP 工具提供渲染 -->
+                    <TextBlock Margin="10 0 0 0" Text="MCP服务地址：" VerticalAlignment="Center"></TextBlock>
+                    <TextBox Margin="5,0,0,0" Width="200" VerticalAlignment="Center"></TextBox>
                 </StackPanel>
             </Border>
 
