@@ -1,5 +1,6 @@
 ﻿
 
+using System.ComponentModel;
 using AgentLib.AgentExtensions;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers;
@@ -26,7 +27,7 @@ ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
 {
     ChatOptions = new ChatOptions()
     {
-        
+        Tools = [AIFunctionFactory.Create(GetWeather)]
     },
     //ChatHistoryProvider = new FooChatHistoryProvider(),
 #pragma warning disable MAAI001
@@ -35,7 +36,7 @@ ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
 });
 var session = await agent.CreateSessionAsync();
 
-var userMessage = $"今天是 {DateTime.Now}。 Hello, I am a user. I want to use the MiniMax-M3 model to chat with you. 请你回忆你的记忆，告诉我技术领域的 lindexi 是谁，他做了那些技术";
+var userMessage = $"今天是 {DateTime.Now}。请问天气多少";
 
 var cancellationTokenSource = new CancellationTokenSource();
 
@@ -91,6 +92,11 @@ Debug.Assert(messageList is not null);
 
 Console.WriteLine("Hello, World!");
 
+[Description("获取温度")]
+string GetWeather()
+{
+    return "温度100度";
+}
 
 class FooChatHistoryProvider : ChatHistoryProvider
 {
