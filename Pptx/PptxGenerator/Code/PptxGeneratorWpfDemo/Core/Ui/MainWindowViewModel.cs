@@ -481,7 +481,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private async Task UseMcpSlideMlRender()
     {
         // 这个 Url 需要后续关联到 MainWindow.xaml 里面的输入框
-        var url = "http://127.0.0.1:62967/mcp";
+        var url = "http://127.0.0.1:64773/mcp";
         var mcpClientBuilder = new McpClientBuilder("SlideML","1.0.0");
         mcpClientBuilder.WithHttp(url);
         var mcpClient = mcpClientBuilder.Build();
@@ -516,6 +516,41 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             var jsonElement = JsonElement.Parse(jsonString);
 
             var callToolResult = await mcpClient.CallToolAsync(renderTool.Name, jsonElement);
+            var structuredContent = callToolResult.StructuredContent;
+            if (structuredContent is not null)
+            {
+                var mcpSlideMlRenderResult = structuredContent.Value.Deserialize<McpSlideMlRenderResult>(new JsonSerializerOptions()
+                {
+                    PropertyNameCaseInsensitive = true,
+                });
+            }
         }
     }
+}
+
+
+/// <summary>
+/// SlideML 渲染的结构化返回结果，包含回填后的 XML、警告、错误和预览图本地路径。
+/// </summary>
+public record McpSlideMlRenderResult
+{
+    /// <summary>
+    /// 渲染回填后的 SlideML XML。
+    /// </summary>
+    public required string OutputXml { get; init; }
+
+    /// <summary>
+    /// 渲染过程中的警告信息。
+    /// </summary>
+    public required IReadOnlyList<string> Warnings { get; init; }
+
+    /// <summary>
+    /// 渲染过程中的错误信息。
+    /// </summary>
+    public required IReadOnlyList<string> Errors { get; init; }
+
+    /// <summary>
+    /// 预览图保存的本地文件路径。
+    /// </summary>
+    public required string PreviewImageFilePath { get; init; }
 }
