@@ -16,7 +16,23 @@ public sealed class SlideMlStreamingMerger
     /// </summary>
     private static readonly HashSet<string> s_idRequiredElements = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Panel", "Rect", "TextElement", "Image", "Span", "Fill", "Stroke", "Shadow", "LinearGradient", "Stop"
+        "Panel", "Rect", "TextElement", "Image"
+    };
+
+    /// <summary>
+    /// 不要求 Id 的结构化子元素集合。
+    /// </summary>
+    private static readonly HashSet<string> s_structuredElements = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Span", "Fill", "Stroke", "Shadow", "LinearGradient", "Stop"
+    };
+
+    /// <summary>
+    /// 可重复出现的结构化子元素集合。
+    /// </summary>
+    private static readonly HashSet<string> s_repeatableStructuredElements = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Span", "Stop"
     };
 
     /// <summary>
@@ -322,11 +338,18 @@ public sealed class SlideMlStreamingMerger
             return;
         }
 
+        MergeStructuredChildren(targetParent, fragmentChildren, context);
+
         // 检查缺少 Id 的子元素并报错
         // 同时处理带 Id 子元素的 StyleFrom
         var fragmentChildrenWithId = new List<XElement>();
         foreach (var child in fragmentChildren)
         {
+            if (!RequiresId(child))
+            {
+                continue;
+            }
+
             var childId = GetElementId(child);
             if (string.IsNullOrWhiteSpace(childId))
             {
@@ -475,20 +498,91 @@ public sealed class SlideMlStreamingMerger
     {
         foreach (var child in parent.Elements())
         {
-            var childId = GetElementId(child);
-            if (string.IsNullOrWhiteSpace(childId))
+            if (RequiresId(child))
             {
-                context.AddError($"[Error] 元素缺少 Id: {child.Name.LocalName}");
-                continue;
-            }
+                var childId = GetElementId(child);
+                if (string.IsNullOrWhiteSpace(childId))
+                {
+                    context.AddError($"[Error] 元素缺少 Id: {child.Name.LocalName}");
+                    continue;
+                }
 
-            ApplyStyleFrom(child, context);
+                ApplyStyleFrom(child, context);
+            }
 
             if (child.HasElements)
             {
                 ProcessNewElementChildren(child, context);
             }
         }
+    }
+
+    /// <summary>
+    /// 合并不要求 Id 的结构化子元素。
+    /// 可重复元素按标签整组替换，单实例元素按最后一个片段值覆盖。
+    /// </summary>
+    /// <param name="targetParent">目标父元素。</param>
+    /// <param name="fragmentChildren">片段中的直接子元素。</param>
+    /// <param name="context">渲染上下文。</param>
+    private void MergeStructuredChildren(XElement targetParent, IReadOnlyList<XElement> fragmentChildren, SlideMlPipelineContext context)
+    {
+        var processedRepeatableNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var child in fragmentChildren)
+        {
+            var localName = child.Name.LocalName;
+            if (!s_structuredElements.Contains(localName))
+            {
+                continue;
+            }
+
+            if (s_repeatableStructuredElements.Contains(localName))
+            {
+                if (!processedRepeatableNames.Add(localName))
+                {
+                    continue;
+                }
+
+                RemoveChildrenByName(targetParent, localName);
+
+                foreach (var structuredChild in fragmentChildren.Where(t => string.Equals(t.Name.LocalName, localName, StringComparison.Ordinal)))
+                {
+                    var clone = new XElement(structuredChild);
+                    targetParent.Add(clone);
+                    RegisterIdElements(clone);
+                    RegisterStyleIdElements(clone, context);
+                }
+
+                continue;
+            }
+
+            RemoveChildrenByName(targetParent, localName);
+            var singleClone = new XElement(child);
+            targetParent.Add(singleClone);
+            RegisterIdElements(singleClone);
+            RegisterStyleIdElements(singleClone, context);
+        }
+    }
+
+    /// <summary>
+    /// 移除父元素下指定标签名的所有直接子元素，并同步索引。
+    /// </summary>
+    /// <param name="parent">父元素。</param>
+    /// <param name="localName">要移除的标签名。</param>
+    private void RemoveChildrenByName(XElement parent, string localName)
+    {
+        var childrenToRemove = parent.Elements(localName).ToList();
+        foreach (var existingChild in childrenToRemove)
+        {
+            UnregisterIdElements(existingChild);
+            UnregisterStyleIdElements(existingChild);
+            existingChild.Remove();
+        }
+    }
+
+    private static bool RequiresId(XElement element)
+    {
+        return s_idRequiredElements.Contains(element.Name.LocalName);
     }
 
     /// <summary>

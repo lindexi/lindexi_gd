@@ -130,6 +130,38 @@ public sealed class SlideMlParserRootTests
         Assert.AreEqual("elem_002", page.Children[1].Id);
     }
 
+    [TestMethod(DisplayName = "解析 Page 下非法 Fill 子元素不生成误导性元素 Id")]
+    public void Parse_PageWithFillChild_GeneratesStructuredChildWarningWithoutAutoId()
+    {
+        var context = CreateContext();
+        var xml = "<Page Id=\"page-1\"><Fill><LinearGradient><Stop Offset=\"0\" Color=\"#000000\"/><Stop Offset=\"1\" Color=\"#FFFFFF\"/></LinearGradient></Fill></Page>";
+
+        var page = _parser.Parse(xml, context);
+
+        Assert.IsEmpty(page.Children);
+        Assert.HasCount(1, context.Warnings);
+        Assert.Contains("Page", context.Warnings[0]);
+        Assert.Contains("Fill", context.Warnings[0]);
+        Assert.Contains("只能用于 Panel 或 Rect", context.Warnings[0]);
+        Assert.DoesNotContain("elem_", context.Warnings[0]);
+    }
+
+    [TestMethod(DisplayName = "解析 Page 下非法 Span 子元素不生成误导性元素 Id")]
+    public void Parse_PageWithSpanChild_GeneratesStructuredChildWarningWithoutAutoId()
+    {
+        var context = CreateContext();
+        var xml = "<Page Id=\"page-1\"><Span Text=\"A\"/></Page>";
+
+        var page = _parser.Parse(xml, context);
+
+        Assert.IsEmpty(page.Children);
+        Assert.HasCount(1, context.Warnings);
+        Assert.Contains("Page", context.Warnings[0]);
+        Assert.Contains("Span", context.Warnings[0]);
+        Assert.Contains("只能用于 TextElement", context.Warnings[0]);
+        Assert.DoesNotContain("elem_", context.Warnings[0]);
+    }
+
     [TestMethod]
     public void Parse_PageWithoutId_ConsumesIdCounter()
     {

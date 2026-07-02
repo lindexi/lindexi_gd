@@ -110,6 +110,24 @@ public sealed class SlideMlParserTextElementTests
         Assert.HasCount(2, textElement.Spans!);
     }
 
+    [TestMethod(DisplayName = "解析 TextElement 的 Span 子元素不会产生未知警告")]
+    public void Parse_TextElement_WithSpans_DoesNotGenerateUnknownWarnings()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Panel><TextElement><Span Text=\"A\" FontSize=\"24\" Foreground=\"#333333\" IsBold=\"True\"/><Span Text=\"B\" TextDecoration=\"Underline\"/></TextElement></Panel></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var panel = (SlideMlPanelElement)page.Children[0];
+        var textElement = (SlideMlTextElement)panel.Children[0];
+
+        Assert.AreEqual("AB", textElement.Text);
+        Assert.IsNotNull(textElement.Spans);
+        Assert.HasCount(2, textElement.Spans!);
+        Assert.IsFalse(
+            context.Warnings.Any(w => w.Contains("Span") || w.Contains("未知标签") || w.Contains("未知属性")),
+            $"结构化 Span 子元素不应产生未知警告，实际: {string.Join("; ", context.Warnings)}");
+    }
+
     [TestMethod]
     public void Parse_Span_NoText_ThrowsException()
     {
@@ -118,6 +136,22 @@ public sealed class SlideMlParserTextElementTests
 
         Assert.ThrowsExactly<SlideMlRequiredAttributeMissingException>(
             () => _parser.Parse(xml, context));
+    }
+
+    [TestMethod(DisplayName = "解析 TextElement 下非 Span 子元素会产生结构化警告")]
+    public void Parse_TextElementWithUnsupportedChild_GeneratesStructuredWarning()
+    {
+        var context = CreateContext();
+        var xml = "<Page><TextElement Text=\"A\"><Fill /></TextElement></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var textElement = (SlideMlTextElement)page.Children[0];
+
+        Assert.AreEqual("A", textElement.Text);
+        Assert.HasCount(1, context.Warnings);
+        Assert.Contains("TextElement", context.Warnings[0]);
+        Assert.Contains("Fill", context.Warnings[0]);
+        Assert.Contains("只支持 Span", context.Warnings[0]);
     }
 
     [TestMethod]

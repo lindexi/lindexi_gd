@@ -147,6 +147,23 @@ public sealed class SlideMlParserRectTests
         Assert.AreEqual(0.12, rect.Shadow.Opacity);
     }
 
+    [TestMethod(DisplayName = "解析 Rect 的 Fill Stroke Shadow 子元素不会产生未知警告")]
+    public void Parse_Rect_WithStructuredChildren_DoesNotGenerateUnknownWarnings()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Rect StrokeThickness=\"2\"><Fill><LinearGradient><Stop Offset=\"0\" Color=\"#4A7BF7\"/><Stop Offset=\"1\" Color=\"#F4F6FA\"/></LinearGradient></Fill><Stroke><LinearGradient><Stop Offset=\"0\" Color=\"#4A7BF7\"/><Stop Offset=\"1\" Color=\"#6C5CE7\"/></LinearGradient></Stroke><Shadow OffsetX=\"0\" OffsetY=\"8\" Blur=\"24\" Color=\"#000000\" Opacity=\"0.12\"/></Rect></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var rect = (SlideMlRectElement)page.Children[0];
+
+        Assert.IsInstanceOfType<SlideMlLinearGradientBrush>(rect.Fill);
+        Assert.IsInstanceOfType<SlideMlLinearGradientBrush>(rect.Stroke);
+        Assert.IsNotNull(rect.Shadow);
+        Assert.IsFalse(
+            context.Warnings.Any(w => w.Contains("未知标签") || w.Contains("未知子标签") || w.Contains("未知属性")),
+            $"结构化 Rect 子元素不应产生未知警告，实际: {string.Join("; ", context.Warnings)}");
+    }
+
     [TestMethod]
     public void Parse_Rect_ShadowElementOverridesShadowAttribute()
     {

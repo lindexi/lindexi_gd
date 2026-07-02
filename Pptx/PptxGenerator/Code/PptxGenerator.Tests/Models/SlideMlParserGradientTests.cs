@@ -45,6 +45,40 @@ public sealed class SlideMlParserGradientTests
         Assert.AreEqual(0, gradient.Y2);
     }
 
+    [TestMethod(DisplayName = "解析 Fill 下非法子元素会产生结构化警告")]
+    public void Parse_FillWithUnsupportedChild_GeneratesStructuredWarning()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Rect><Fill><Stop Offset=\"0\" Color=\"#000000\"/></Fill></Rect></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var rect = (SlideMlRectElement)page.Children[0];
+
+        Assert.IsNull(rect.Fill);
+        Assert.HasCount(1, context.Warnings);
+        Assert.Contains("Fill", context.Warnings[0]);
+        Assert.Contains("Stop", context.Warnings[0]);
+        Assert.Contains("只支持 LinearGradient", context.Warnings[0]);
+    }
+
+    [TestMethod(DisplayName = "解析 LinearGradient 下非法子元素会产生结构化警告")]
+    public void Parse_LinearGradientWithUnsupportedChild_GeneratesStructuredWarning()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Rect><Fill><LinearGradient><Foo/><Stop Offset=\"0\" Color=\"#000000\"/></LinearGradient></Fill></Rect></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var rect = (SlideMlRectElement)page.Children[0];
+
+        Assert.IsInstanceOfType<SlideMlLinearGradientBrush>(rect.Fill);
+        var gradient = (SlideMlLinearGradientBrush)rect.Fill!;
+        Assert.HasCount(1, gradient.Stops);
+        Assert.HasCount(1, context.Warnings);
+        Assert.Contains("LinearGradient", context.Warnings[0]);
+        Assert.Contains("Foo", context.Warnings[0]);
+        Assert.Contains("只支持 Stop", context.Warnings[0]);
+    }
+
     [TestMethod]
     public void Parse_LinearGradient_StopMissingOffset_GeneratesWarning()
     {

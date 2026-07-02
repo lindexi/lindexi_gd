@@ -78,7 +78,7 @@ public sealed class SlideMlParser
 
         foreach (var child in root.Elements())
         {
-            var element = ParseElement(child, context);
+            var element = ParseElement(child, $"Page({pageId})", context);
             if (element is not null)
             {
                 page.Children.Add(element);
@@ -88,26 +88,47 @@ public sealed class SlideMlParser
         return page;
     }
 
-    private SlideMlElement? ParseElement(XElement element, SlideMlPipelineContext context)
+    private SlideMlElement? ParseElement(XElement element, string parentName, SlideMlPipelineContext context)
     {
-        var id = GetOptionalString(element, "Id") ?? $"elem_{_nextId++:000}";
-
         return element.Name.LocalName switch
         {
-            "Panel" => ParsePanel(element, id, context),
-            "Rect" => ParseRect(element, id, context),
-            "TextElement" => ParseTextElement(element, id, context),
-            "Image" => ParseImageElement(element, id, context),
-            _ => WarnUnknownTag(element, id, context),
+            "Panel" => ParsePanel(element, GetOrCreateElementId(element), context),
+            "Rect" => ParseRect(element, GetOrCreateElementId(element), context),
+            "TextElement" => ParseTextElement(element, GetOrCreateElementId(element), context),
+            "Image" => ParseImageElement(element, GetOrCreateElementId(element), context),
+            "Fill" or "Stroke" or "Shadow" or "Span" or "LinearGradient" or "Stop" => WarnInvalidStructuredChild(element, parentName, context),
+            _ => WarnUnknownTag(element, parentName, context),
         };
     }
 
-    private static SlideMlElement? WarnUnknownTag(XElement element, string id, SlideMlPipelineContext context)
+    private string GetOrCreateElementId(XElement element)
+    {
+        return GetOptionalString(element, "Id") ?? $"elem_{_nextId++:000}";
+    }
+
+    private static SlideMlElement? WarnInvalidStructuredChild(XElement element, string parentName, SlideMlPipelineContext context)
+    {
+        var tagName = element.Name.LocalName;
+        var supportedParent = tagName switch
+        {
+            "Fill" or "Stroke" => "Panel 或 Rect",
+            "Shadow" => "Rect",
+            "Span" => "TextElement",
+            "LinearGradient" => "Fill 或 Stroke",
+            "Stop" => "LinearGradient",
+            _ => parentName,
+        };
+
+        context.AddWarning($"[Warning] {parentName}: 子标签 \"{tagName}\" 位置无效，{tagName} 只能用于 {supportedParent}，已忽略");
+        return null;
+    }
+
+    private static SlideMlElement? WarnUnknownTag(XElement element, string parentName, SlideMlPipelineContext context)
     {
         context.AddWarning(
             string.Format(
                 "[Warning] {0}: 未知标签 \"{1}\"，已忽略",
-                id,
+                parentName,
                 element.Name.LocalName));
         return null;
     }
@@ -143,7 +164,7 @@ public sealed class SlideMlParser
                 continue;
             }
 
-            var childElement = ParseElement(child, context);
+            var childElement = ParseElement(child, $"Panel({id})", context);
             if (childElement is not null)
             {
                 panel.Children.Add(childElement);
@@ -208,9 +229,16 @@ public sealed class SlideMlParser
         ValidateAttributes(element, id, _textElementKnownAttributes, context);
 
         var spans = new List<SlideMlSpan>();
-        foreach (var child in element.Elements("Span"))
+        foreach (var child in element.Elements())
         {
-            spans.Add(ParseSpan(child, id, context));
+            if (string.Equals(child.Name.LocalName, "Span", StringComparison.Ordinal))
+            {
+                spans.Add(ParseSpan(child, id, context));
+            }
+            else
+            {
+                context.AddWarning($"[Warning] {id}: TextElement 下未知子标签 \"{child.Name.LocalName}\"，TextElement 只支持 Span 子元素，已忽略");
+            }
         }
 
         string? text = GetOptionalString(element, "Text");
@@ -589,7 +617,26 @@ public sealed class SlideMlParser
             return null;
         }
 
-        var gradientElement = fillElement.Element("LinearGradient");
+        XElement? gradientElement = null;
+        foreach (var child in fillElement.Elements())
+        {
+            if (string.Equals(child.Name.LocalName, "LinearGradient", StringComparison.Ordinal))
+            {
+                if (gradientElement is null)
+                {
+                    gradientElement = child;
+                }
+                else
+                {
+                    context.AddWarning($"[Warning] {elementId}: {childName} 包含多个 LinearGradient 子元素，仅使用第一个，已忽略后续 LinearGradient");
+                }
+            }
+            else
+            {
+                context.AddWarning($"[Warning] {elementId}: {childName} 下未知子标签 \"{child.Name.LocalName}\"，{childName} 只支持 LinearGradient 子元素，已忽略");
+            }
+        }
+
         if (gradientElement is null)
         {
             return null;
@@ -601,8 +648,14 @@ public sealed class SlideMlParser
     private static SlideMlLinearGradientBrush? ParseLinearGradient(XElement gradientElement, string elementId, SlideMlPipelineContext context)
     {
         var stops = new List<SlideMlGradientStop>();
-        foreach (var stopElement in gradientElement.Elements("Stop"))
+        foreach (var stopElement in gradientElement.Elements())
         {
+            if (!string.Equals(stopElement.Name.LocalName, "Stop", StringComparison.Ordinal))
+            {
+                context.AddWarning($"[Warning] {elementId}: LinearGradient 下未知子标签 \"{stopElement.Name.LocalName}\"，LinearGradient 只支持 Stop 子元素，已忽略");
+                continue;
+            }
+
             var offset = GetOptionalDouble(stopElement, "Offset", context);
             var color = GetOptionalString(stopElement, "Color");
             if (offset is null || string.IsNullOrWhiteSpace(color))

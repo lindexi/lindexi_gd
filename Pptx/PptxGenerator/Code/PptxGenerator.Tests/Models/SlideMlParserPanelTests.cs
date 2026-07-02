@@ -83,6 +83,21 @@ public sealed class SlideMlParserPanelTests
         Assert.AreEqual(1, gradient.Y2);
     }
 
+    [TestMethod(DisplayName = "解析 Panel 的 Fill 子元素不会产生未知标签警告")]
+    public void Parse_Panel_WithGradientFill_DoesNotGenerateUnknownWarnings()
+    {
+        var context = CreateContext();
+        var xml = "<Page><Panel><Fill><LinearGradient><Stop Offset=\"0\" Color=\"#000000\"/><Stop Offset=\"1\" Color=\"#FFFFFF\"/></LinearGradient></Fill><TextElement Text=\"内容\"/></Panel></Page>";
+
+        var page = _parser.Parse(xml, context);
+        var panel = (SlideMlPanelElement)page.Children[0];
+
+        Assert.HasCount(1, panel.Children);
+        Assert.IsFalse(
+            context.Warnings.Any(w => w.Contains("未知标签") || w.Contains("未知属性")),
+            $"结构化 Fill 子元素不应产生未知警告，实际: {string.Join("; ", context.Warnings)}");
+    }
+
     [TestMethod]
     public void Parse_Panel_GradientFillOverridesBackgroundAttribute()
     {

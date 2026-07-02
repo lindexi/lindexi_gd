@@ -313,6 +313,58 @@ public sealed class SlideMlStreamingMergerTests
         Assert.IsNotEmpty(context.Errors, "缺少 Id 的 Rect 应产生错误");
     }
 
+    [TestMethod(DisplayName = "流式合并：TextElement 的 Span 子元素不要求 Id")]
+    public void Merge_PageFragmentWithTextElementSpans_DoesNotRequireSpanId()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        merger.AcceptFragment("<Page><TextElement Id=\"title\" Text=\"Old\"/></Page>", context);
+
+        // Act
+        merger.AcceptFragment("<Page><TextElement Id=\"title\"><Span Text=\"新\"/><Span Text=\"标题\"/></TextElement></Page>", context);
+
+        // Assert
+        Assert.IsFalse(context.Errors.Any(e => e.Contains("元素缺少 Id") && e.Contains("Span")),
+            $"Span 子元素不应要求 Id，实际错误: {string.Join("; ", context.Errors)}");
+
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var textElement = doc.Root!.Elements("TextElement").Single();
+        var spans = textElement.Elements("Span").ToList();
+
+        Assert.AreEqual(2, spans.Count);
+        Assert.AreEqual("新", spans[0].Attribute("Text")?.Value);
+        Assert.AreEqual("标题", spans[1].Attribute("Text")?.Value);
+    }
+
+    [TestMethod(DisplayName = "流式合并：Rect 的 Fill 子元素不要求 Id")]
+    public void Merge_PageFragmentWithRectFill_DoesNotRequireFillId()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        merger.AcceptFragment("<Page><Rect Id=\"bg\" Width=\"100\" Height=\"50\"/></Page>", context);
+
+        // Act
+        merger.AcceptFragment("<Page><Rect Id=\"bg\"><Fill><LinearGradient><Stop Offset=\"0\" Color=\"#000000\"/><Stop Offset=\"1\" Color=\"#FFFFFF\"/></LinearGradient></Fill></Rect></Page>", context);
+
+        // Assert
+        Assert.IsFalse(context.Errors.Any(e => e.Contains("元素缺少 Id") && (e.Contains("Fill") || e.Contains("LinearGradient") || e.Contains("Stop"))),
+            $"Fill/LinearGradient/Stop 子元素不应要求 Id，实际错误: {string.Join("; ", context.Errors)}");
+
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var rect = doc.Root!.Elements("Rect").Single();
+        var fill = rect.Element("Fill");
+
+        Assert.IsNotNull(fill);
+        Assert.IsNotNull(fill.Element("LinearGradient"));
+        Assert.AreEqual(2, fill.Element("LinearGradient")!.Elements("Stop").Count());
+    }
+
     [TestMethod]
     public void DuplicateIdInSameFragment_DifferentTypes_Error()
     {
