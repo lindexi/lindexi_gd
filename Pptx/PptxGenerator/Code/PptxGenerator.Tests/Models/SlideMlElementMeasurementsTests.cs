@@ -8,7 +8,7 @@ public sealed class SlideMlElementMeasurementsTests
     [TestMethod]
     public void TryGetValue_ExistingId_ReturnsTrue()
     {
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 100, MeasuredHeight = 50, ActualLineCount = 1 },
         });
@@ -25,7 +25,7 @@ public sealed class SlideMlElementMeasurementsTests
     [TestMethod]
     public void TryGetValue_NonExistingId_ReturnsFalse()
     {
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>());
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>());
 
         var found = measurements.TryGetValue("nonexist", out var result);
 
@@ -36,7 +36,7 @@ public sealed class SlideMlElementMeasurementsTests
     [TestMethod]
     public void Find_ExistingId_ReturnsResult()
     {
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 100, MeasuredHeight = 50, ActualLineCount = 1 },
         });
@@ -51,7 +51,7 @@ public sealed class SlideMlElementMeasurementsTests
     [TestMethod]
     public void Find_NonExistingId_ReturnsNull()
     {
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>());
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>());
 
         var result = measurements.Find("nonexist");
 

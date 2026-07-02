@@ -277,7 +277,7 @@ public sealed class SlideMlLayoutEngineTests
             },
         };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 120, MeasuredHeight = 24 },
             ["t2"] = new() { MeasuredWidth = 100, MeasuredHeight = 24 },

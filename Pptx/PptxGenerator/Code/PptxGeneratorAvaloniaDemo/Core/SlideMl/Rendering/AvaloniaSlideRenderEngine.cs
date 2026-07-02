@@ -33,7 +33,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         _spanTextLayoutCache.Clear();
         _bitmapCache.Clear();
 
-        var results = new Dictionary<string, SlideMlMeasureResult>();
+        var results = new Dictionary<string, SlideMlElementMeasureResult>();
         PreMeasureElements(page.Children, results, context);
         return new SlideMlElementMeasurements(results);
     }
@@ -88,7 +88,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         return new AvaloniaPreviewImage(bitmap);
     }
 
-    private void PreMeasureElements(IReadOnlyList<SlideMlElement> elements, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
+    private void PreMeasureElements(IReadOnlyList<SlideMlElement> elements, Dictionary<string, SlideMlElementMeasureResult> results, SlideMlPipelineContext context)
     {
         foreach (var element in elements)
         {
@@ -96,7 +96,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         }
     }
 
-    private void PreMeasureElement(SlideMlElement element, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
+    private void PreMeasureElement(SlideMlElement element, Dictionary<string, SlideMlElementMeasureResult> results, SlideMlPipelineContext context)
     {
         switch (element)
         {
@@ -112,7 +112,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         }
     }
 
-    private void PreMeasureText(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results)
+    private void PreMeasureText(SlideMlTextElement text, Dictionary<string, SlideMlElementMeasureResult> results)
     {
         var maxWidth = text.Width ?? 10000;
         var maxHeight = text.Height ?? 10000;
@@ -150,7 +150,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         var measuredWidth = text.Width ?? textLayout.WidthIncludingTrailingWhitespace;
         var measuredHeight = text.Height ?? textLayout.Height;
 
-        results[text.Id] = new SlideMlMeasureResult
+        results[text.Id] = new SlideMlElementMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,
@@ -161,7 +161,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
     /// <summary>
     /// 预测量富文本 Span，逐段创建 TextLayout 并拼接。
     /// </summary>
-    private void PreMeasureSpans(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results,
+    private void PreMeasureSpans(SlideMlTextElement text, Dictionary<string, SlideMlElementMeasureResult> results,
         double maxWidth, double maxHeight, double lineHeight)
     {
         var spans = text.Spans!;
@@ -210,7 +210,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
             actualLineCount = 1;
         }
 
-        results[text.Id] = new SlideMlMeasureResult
+        results[text.Id] = new SlideMlElementMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,
@@ -218,7 +218,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         };
     }
 
-    private void PreMeasureImage(SlideMlImageElement image, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
+    private void PreMeasureImage(SlideMlImageElement image, Dictionary<string, SlideMlElementMeasureResult> results, SlideMlPipelineContext context)
     {
         var bitmap = TryLoadBitmap(image.Source);
         _bitmapCache[image.Id] = bitmap;
@@ -231,7 +231,7 @@ internal sealed class AvaloniaSlideRenderEngine : ISlideMlRenderEngine
         var measuredWidth = image.Width ?? (bitmap?.PixelSize.Width ?? 240);
         var measuredHeight = image.Height ?? (bitmap?.PixelSize.Height ?? 180);
 
-        results[image.Id] = new SlideMlMeasureResult
+        results[image.Id] = new SlideMlElementMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,

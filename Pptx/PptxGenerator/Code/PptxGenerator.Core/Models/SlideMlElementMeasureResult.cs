@@ -3,7 +3,7 @@
 /// <summary>
 /// 承载 PreMeasure 阶段的测量结果，无 UI 框架依赖。
 /// </summary>
-public sealed class SlideMlMeasureResult
+public sealed class SlideMlElementMeasureResult
 {
     /// <summary>
     /// 测量后的宽度。

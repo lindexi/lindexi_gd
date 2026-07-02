@@ -41,7 +41,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         _spanFormattedTextCache.Clear();
         _bitmapCache.Clear();
 
-        var results = new Dictionary<string, SlideMlMeasureResult>();
+        var results = new Dictionary<string, SlideMlElementMeasureResult>();
         PreMeasureElements(page.Children, results, context);
         return new SlideMlElementMeasurements(results);
     }
@@ -118,7 +118,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         return new WpfPreviewImage(bitmap);
     }
 
-    private void PreMeasureElements(IReadOnlyList<SlideMlElement> elements, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
+    private void PreMeasureElements(IReadOnlyList<SlideMlElement> elements, Dictionary<string, SlideMlElementMeasureResult> results, SlideMlPipelineContext context)
     {
         foreach (var element in elements)
         {
@@ -126,7 +126,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         }
     }
 
-    private void PreMeasureElement(SlideMlElement element, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
+    private void PreMeasureElement(SlideMlElement element, Dictionary<string, SlideMlElementMeasureResult> results, SlideMlPipelineContext context)
     {
         switch (element)
         {
@@ -142,7 +142,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         }
     }
 
-    private void PreMeasureText(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results)
+    private void PreMeasureText(SlideMlTextElement text, Dictionary<string, SlideMlElementMeasureResult> results)
     {
         var fontWeight = MapIsBold(text.IsBold);
         var foreground = CreateBrush(text.Foreground, Colors.Black);
@@ -186,7 +186,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 
         _formattedTextCache[text.Id] = formattedText;
 
-        results[text.Id] = new SlideMlMeasureResult
+        results[text.Id] = new SlideMlElementMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,
@@ -197,7 +197,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
     /// <summary>
     /// 预测量富文本 Span，逐段创建 FormattedText 并拼接。
     /// </summary>
-    private void PreMeasureSpans(SlideMlTextElement text, Dictionary<string, SlideMlMeasureResult> results,
+    private void PreMeasureSpans(SlideMlTextElement text, Dictionary<string, SlideMlElementMeasureResult> results,
         double maxWidth, double maxHeight, double lineHeight)
     {
         var spans = text.Spans!;
@@ -250,7 +250,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         // 保存各个 Span 的 FormattedText 以便绘制
         _spanFormattedTextCache[text.Id] = formattedTexts;
 
-        results[text.Id] = new SlideMlMeasureResult
+        results[text.Id] = new SlideMlElementMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,
@@ -258,7 +258,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         };
     }
 
-    private void PreMeasureImage(SlideMlImageElement image, Dictionary<string, SlideMlMeasureResult> results, SlideMlPipelineContext context)
+    private void PreMeasureImage(SlideMlImageElement image, Dictionary<string, SlideMlElementMeasureResult> results, SlideMlPipelineContext context)
     {
         var bitmap = TryLoadBitmap(image.Source);
         _bitmapCache[image.Id] = bitmap;
@@ -271,7 +271,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         var measuredWidth = image.Width ?? (bitmap?.PixelWidth ?? 240);
         var measuredHeight = image.Height ?? (bitmap?.PixelHeight ?? 180);
 
-        results[image.Id] = new SlideMlMeasureResult
+        results[image.Id] = new SlideMlElementMeasureResult
         {
             MeasuredWidth = measuredWidth,
             MeasuredHeight = measuredHeight,

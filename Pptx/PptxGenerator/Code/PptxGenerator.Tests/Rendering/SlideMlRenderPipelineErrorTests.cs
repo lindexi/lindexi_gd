@@ -207,7 +207,7 @@ public sealed class SlideMlRenderPipelineErrorTests
     {
         public SlideMlElementMeasurements PreMeasure(SlideMlPage page, SlideMlPipelineContext context)
         {
-            var measurements = new Dictionary<string, SlideMlMeasureResult>();
+            var measurements = new Dictionary<string, SlideMlElementMeasureResult>();
             return new SlideMlElementMeasurements(measurements);
         }
 

@@ -9,10 +9,14 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using DotNetCampus.ModelContextProtocol.Clients;
+using DotNetCampus.ModelContextProtocol.Protocol.Messages;
 using PptxGenerator.Evaluation;
 
 namespace PptxGenerator;
@@ -470,5 +474,46 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    private async Task UseMcpSlideMlRender()
+    {
+        // 这个 Url 需要后续关联到 MainWindow.xaml 里面的输入框
+        var url = "http://127.0.0.1:62967/mcp";
+        var mcpClientBuilder = new McpClientBuilder("SlideML","1.0.0");
+        mcpClientBuilder.WithHttp(url);
+        var mcpClient = mcpClientBuilder.Build();
+        ListToolsResult toolsResult = await mcpClient.ListToolsAsync();
+
+        // 找到一个工具，名字上面同时写了 Render 和 SlideML 的
+        var renderTool = toolsResult.Tools.FirstOrDefault(t =>
+        {
+            return t.Name.Contains("Render", StringComparison.OrdinalIgnoreCase)
+                   && t.Name.Contains("SlideML", StringComparison.OrdinalIgnoreCase);
+        });
+
+        // 封装为 SlideMlRenderPipeline 类型
+        if (renderTool != null)
+        {
+            // 输入参数 SlideML 的内容
+            // 请后续替换为实际的 SlideML 内容
+            // lang=xml
+            var slideMl =
+                """
+                <Page Background="#F0F4F8">
+                  <Panel Id="Header" X="0" Y="0" Width="1280" Height="120"/>
+                  <Panel Id="HeroSection" X="80" Y="150" Width="1120" Height="200"/>
+                  <Panel Id="FeatureCards" X="80" Y="380" Width="1120" Height="280"/>
+                  <Panel Id="Footer" X="0" Y="680" Width="1280" Height="40"/>
+                </Page>
+                """;
+            var jsonObject = new JsonObject();
+            jsonObject["slideXml"] = slideMl;
+
+            var jsonString = jsonObject.ToJsonString();
+            var jsonElement = JsonElement.Parse(jsonString);
+
+            var callToolResult = await mcpClient.CallToolAsync(renderTool.Name, jsonElement);
+        }
     }
 }

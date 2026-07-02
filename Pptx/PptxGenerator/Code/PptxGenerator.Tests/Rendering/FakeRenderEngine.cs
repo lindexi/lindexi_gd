@@ -39,7 +39,7 @@ public sealed class FakeRenderEngine : ISlideMlRenderEngine
     {
         PreMeasureWasCalled = true;
         PreMeasurePage = page;
-        var measurements = new Dictionary<string, SlideMlMeasureResult>();
+        var measurements = new Dictionary<string, SlideMlElementMeasureResult>();
         FillMeasurements(page.Children, measurements);
         return new SlideMlElementMeasurements(measurements);
     }
@@ -56,13 +56,13 @@ public sealed class FakeRenderEngine : ISlideMlRenderEngine
     public IPreviewImage RenderErrorPreview(string message, SlideMlPipelineContext context)
         => new FakePreviewImage();
 
-    private void FillMeasurements(List<SlideMlElement> children, Dictionary<string, SlideMlMeasureResult> dict)
+    private void FillMeasurements(List<SlideMlElement> children, Dictionary<string, SlideMlElementMeasureResult> dict)
     {
         foreach (var child in children)
         {
             if (MeasureOverrides.TryGetValue(child.Id, out var ov))
             {
-                dict[child.Id] = new SlideMlMeasureResult
+                dict[child.Id] = new SlideMlElementMeasureResult
                 {
                     MeasuredWidth = ov.Width,
                     MeasuredHeight = ov.Height,
@@ -81,7 +81,7 @@ public sealed class FakeRenderEngine : ISlideMlRenderEngine
         }
     }
 
-    private static SlideMlMeasureResult ComputeDefaultMeasure(SlideMlElement element)
+    private static SlideMlElementMeasureResult ComputeDefaultMeasure(SlideMlElement element)
     {
         return element switch
         {

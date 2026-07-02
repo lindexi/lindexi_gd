@@ -27,7 +27,7 @@ public sealed class SlideMlLayoutEngineGetChildSizeTests
     {
         var text = new SlideMlTextElement { Id = "t1", Text = "Hello" };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 200, MeasuredHeight = 40 },
         });
@@ -45,7 +45,7 @@ public sealed class SlideMlLayoutEngineGetChildSizeTests
     {
         var text = new SlideMlTextElement { Id = "t1", Width = 500, Text = "Hello" };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 200, MeasuredHeight = 40 },
         });

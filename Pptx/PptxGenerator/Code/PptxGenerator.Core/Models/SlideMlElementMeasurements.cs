@@ -7,13 +7,13 @@ namespace PptxGenerator.Models;
 /// </summary>
 public sealed class SlideMlElementMeasurements
 {
-    private readonly Dictionary<string, SlideMlMeasureResult> _measurements;
+    private readonly Dictionary<string, SlideMlElementMeasureResult> _measurements;
 
     /// <summary>
     /// 初始化 <see cref="SlideMlElementMeasurements"/> 的新实例。
     /// </summary>
     /// <param name="measurements">以元素 Id 为键的测量结果字典。</param>
-    public SlideMlElementMeasurements(Dictionary<string, SlideMlMeasureResult> measurements)
+    public SlideMlElementMeasurements(Dictionary<string, SlideMlElementMeasureResult> measurements)
     {
         _measurements = measurements ?? throw new ArgumentNullException(nameof(measurements));
     }
@@ -24,7 +24,7 @@ public sealed class SlideMlElementMeasurements
     /// <param name="elementId">元素 Id。</param>
     /// <param name="result">测量结果。</param>
     /// <returns>如果找到则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
-    public bool TryGetValue(string elementId, [MaybeNullWhen(false)] out SlideMlMeasureResult result)
+    public bool TryGetValue(string elementId, [MaybeNullWhen(false)] out SlideMlElementMeasureResult result)
         => _measurements.TryGetValue(elementId, out result);
 
     /// <summary>
@@ -32,6 +32,6 @@ public sealed class SlideMlElementMeasurements
     /// </summary>
     /// <param name="elementId">元素 Id。</param>
     /// <returns>测量结果；若未找到则返回 <see langword="null"/>。</returns>
-    public SlideMlMeasureResult? Find(string elementId)
+    public SlideMlElementMeasureResult? Find(string elementId)
         => _measurements.TryGetValue(elementId, out var r) ? r : null;
 }

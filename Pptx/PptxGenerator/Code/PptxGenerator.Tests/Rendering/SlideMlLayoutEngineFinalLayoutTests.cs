@@ -32,7 +32,7 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
             Text = "多行文本内容",
         };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 200, MeasuredHeight = 48, ActualLineCount = 3 },
         });
@@ -54,7 +54,7 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
             Text = "多行文本内容",
         };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 400, MeasuredHeight = 80, ActualLineCount = 5 },
         });
@@ -78,7 +78,7 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
             Text = "文本内容",
         };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 400, MeasuredHeight = 48, ActualLineCount = 3 },
         });
@@ -96,7 +96,7 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
     {
         var image = new SlideMlImageElement { Id = "img", Source = "img.png" };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["img"] = new() { MeasuredWidth = 800, MeasuredHeight = 600 },
         });
@@ -113,7 +113,7 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
     {
         var text = new SlideMlTextElement { Id = "t1", Width = 500, Text = "Hello" };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 120, MeasuredHeight = 24 },
         });
@@ -133,7 +133,7 @@ public sealed class SlideMlLayoutEngineFinalLayoutTests
         var rect = new SlideMlRectElement { Id = "r1", Width = 100, Height = 50 };
 
         // 测量值字典中无此 Rect 的 Id
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>());
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>());
 
         var page = CreatePage(rect);
         _engine.FinalLayout(page, _context, measurements);

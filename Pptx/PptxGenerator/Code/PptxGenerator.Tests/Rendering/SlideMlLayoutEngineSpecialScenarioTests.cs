@@ -148,7 +148,7 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
     {
         var text = new SlideMlTextElement { Id = "t1", Width = 500, Text = "Hello" };
 
-        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlMeasureResult>
+        var measurements = new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>
         {
             ["t1"] = new() { MeasuredWidth = 120, MeasuredHeight = 24 },
         });

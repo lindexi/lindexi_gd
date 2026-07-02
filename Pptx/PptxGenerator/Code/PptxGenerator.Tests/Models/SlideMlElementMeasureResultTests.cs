@@ -3,12 +3,12 @@ using PptxGenerator.Models;
 namespace PptxGenerator.Tests.Models;
 
 [TestClass]
-public sealed class SlideMlMeasureResultTests
+public sealed class SlideMlElementMeasureResultTests
 {
     [TestMethod]
     public void Constructor_PropertiesSet()
     {
-        var result = new SlideMlMeasureResult
+        var result = new SlideMlElementMeasureResult
         {
             MeasuredWidth = 100,
             MeasuredHeight = 50,
@@ -23,7 +23,7 @@ public sealed class SlideMlMeasureResultTests
     [TestMethod]
     public void ActualLineCount_Nullable()
     {
-        var result = new SlideMlMeasureResult
+        var result = new SlideMlElementMeasureResult
         {
             MeasuredWidth = 100,
             MeasuredHeight = 50,
