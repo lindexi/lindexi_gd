@@ -1,129 +1,209 @@
 ﻿
 
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using AgentLib.AgentExtensions;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers;
-
-using Google.Protobuf;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Options;
 
 using System.Diagnostics;
 using Microsoft.Agents.AI.Reasoning;
 
-var agentApiManagerConfiguration = LindexiAgentConfiguration.LoadDefault();
-var agentApiEndpointManager = new AgentApiEndpointManager();
-agentApiEndpointManager.LoadConfiguration(agentApiManagerConfiguration);
+Console.WriteLine("=== 使用 FakeChatClient 模拟工具调用 ===");
 
-var languageModel = agentApiEndpointManager.GetModel("MiniMax-M3");
-Debug.Assert(languageModel is not null);
+// ========== 方式一：最简单的 FakeChatClient 工具调用演示 ==========
+await DemoFakeChatClientToolCallAsync();
 
-var chatClient = await languageModel.GetChatClientAsync();
+// ========== 方式二：使用 FakeLanguageModelProvider 集成到 AgentApiEndpointManager 流程 ==========
+// await DemoWithFakeLanguageModelProviderAsync();
 
-ChatClientAgent agent = chatClient.AsAIAgent(new ChatClientAgentOptions()
+Console.WriteLine();
+Console.WriteLine("完成！");
+
+/// <summary>
+/// 演示如何使用 FakeChatClient 通过 OnGetStreamingResponseAsync 模拟工具调用。
+/// 核心原理：
+/// 1. ChatClientAgent 调用 GetStreamingResponseAsync 获取流式响应
+/// 2. 第一次调用时，返回包含 FunctionCallContent 的 ChatResponseUpdate
+/// 3. ChatClientAgent 检测到 FunctionCallContent 后，执行对应的工具函数
+/// 4. ChatClientAgent 将工具结果作为新消息，再次调用 GetStreamingResponseAsync
+/// 5. 第二次调用时，返回最终文本响应
+/// </summary>
+async Task DemoFakeChatClientToolCallAsync()
 {
-    ChatOptions = new ChatOptions()
+    // 记录 GetStreamingResponseAsync 被调用的次数，用于区分"第一次（返回工具调用）"和"第二次（返回最终结果）"
+    var callCount = 0;
+
+    var fakeChatClient = new FakeChatClient()
     {
-        Tools = [AIFunctionFactory.Create(GetWeather)]
-    },
-    //ChatHistoryProvider = new FooChatHistoryProvider(),
+        OnGetStreamingResponseAsync = (messages, options, cancellationToken) =>
+        {
+            var currentCall = Interlocked.Increment(ref callCount);
+            Console.WriteLine($"[FakeChatClient] GetStreamingResponseAsync 第 {currentCall} 次被调用");
+
+            // 打印当前历史消息，便于调试
+            foreach (var message in messages)
+            {
+                Console.WriteLine($"  -> 历史消息: Role={message.Role}, Text={message.Text}");
+                foreach (var content in message.Contents)
+                {
+                    if (content is FunctionResultContent frc)
+                    {
+                        Console.WriteLine($"     [工具结果] {frc.CallId}: {frc.Result}");
+                    }
+                }
+            }
+
+            if (currentCall == 1)
+            {
+                // 第一次调用：返回一个工具调用，让 ChatClientAgent 执行 GetWeather 工具
+                return GetToolCallStreamAsync(options, cancellationToken);
+            }
+            else
+            {
+                // 第二次调用：返回最终文本响应
+                return GetFinalResponseStreamAsync(cancellationToken);
+            }
+        }
+    };
+
+    // 使用 FakeChatClient 创建 ChatClientAgent
+    ChatClientAgent agent = fakeChatClient.AsAIAgent(new ChatClientAgentOptions()
+    {
+        ChatOptions = new ChatOptions()
+        {
+            Tools = [AIFunctionFactory.Create(GetWeather)]
+        },
 #pragma warning disable MAAI001
-    RequirePerServiceCallChatHistoryPersistence = true,
+        RequirePerServiceCallChatHistoryPersistence = true,
 #pragma warning restore MAAI001
-});
-var session = await agent.CreateSessionAsync();
+    });
 
-var userMessage = $"今天是 {DateTime.Now}。请问天气多少";
+    var session = await agent.CreateSessionAsync();
+    var userMessage = $"今天是 {DateTime.Now}。请问天气多少";
 
-var cancellationTokenSource = new CancellationTokenSource();
+    Console.WriteLine();
+    Console.WriteLine($"[用户] {userMessage}");
+    Console.WriteLine();
 
-var tokenCount = 0;
-
-var chatMessageList = new List<ChatMessage>();
-
-session.SetInMemoryChatHistory(new List<ChatMessage>()
-{
-    new ChatMessage(ChatRole.System, "如果用户询问你某个人的信息，你不应该直接回答，而是引导用户去查找相关信息。"),
-});
-
-try
-{
-    await foreach (var reasoningAgentResponseUpdate in agent.RunReasoningStreamingAsync(
-                       [new ChatMessage(ChatRole.User, userMessage)], session,
-                       cancellationToken: cancellationTokenSource.Token))
+    try
     {
-        Console.Write(reasoningAgentResponseUpdate.Reasoning);
-        Console.Write(reasoningAgentResponseUpdate.Text);
-
-        if (!string.IsNullOrEmpty(reasoningAgentResponseUpdate.Text))
+        await foreach (var reasoningAgentResponseUpdate in agent.RunReasoningStreamingAsync(
+                           [new ChatMessage(ChatRole.User, userMessage)], session))
         {
-            tokenCount++;
+            // 输出推理内容
+            if (!string.IsNullOrEmpty(reasoningAgentResponseUpdate.Reasoning))
+            {
+                Console.Write($"[思考] {reasoningAgentResponseUpdate.Reasoning}");
+            }
+
+            // 输出文本内容
+            if (!string.IsNullOrEmpty(reasoningAgentResponseUpdate.Text))
+            {
+                Console.Write($"[助手] {reasoningAgentResponseUpdate.Text}");
+            }
+
+            // 检查是否有工具调用
+            foreach (var content in reasoningAgentResponseUpdate.Contents)
+            {
+                if (content is FunctionCallContent fcc)
+                {
+                    Console.WriteLine($"[工具调用] {fcc.Name}({fcc.Arguments})");
+                }
+                else if (content is FunctionResultContent frc)
+                {
+                    Console.WriteLine($"[工具结果] {frc.Result}");
+                }
+            }
         }
 
-        chatMessageList.AddMessages(reasoningAgentResponseUpdate.Origin.AsChatResponseUpdate());
+        Console.WriteLine();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[错误] {ex}");
+    }
 
-        var currentRunContext = ChatClientAgent.CurrentRunContext;
-
-        if (tokenCount == 10)
+    // 查看最终的消息历史
+    session.TryGetInMemoryChatHistory(out var messageList);
+    if (messageList is not null)
+    {
+        Console.WriteLine();
+        Console.WriteLine("=== 最终消息历史 ===");
+        foreach (var message in messageList)
         {
+            Console.WriteLine($"[{message.Role}] {message.Text}");
+            foreach (var content in message.Contents)
+            {
+                if (content is FunctionCallContent fcc)
+                    Console.WriteLine($"  工具调用: {fcc.Name}({fcc.Arguments})");
+                if (content is FunctionResultContent frc)
+                    Console.WriteLine($"  工具结果: {frc.Result}");
+            }
         }
     }
 }
-catch (OperationCanceledException e)
+
+/// <summary>
+/// 生成包含工具调用的流式响应。
+/// 关键：ChatResponseUpdate 的 Contents 中包含 FunctionCallContent，
+/// ChatClientAgent 会检测到并自动执行工具。
+/// </summary>
+async IAsyncEnumerable<ChatResponseUpdate> GetToolCallStreamAsync(
+    ChatOptions? options, [EnumeratorCancellation] CancellationToken cancellationToken)
 {
-    if (cancellationTokenSource.IsCancellationRequested)
+    // 在调用工具时，需要先确定 ChatFinishReason 为 ToolCalls，
+    // 告诉 ChatClientAgent 需要处理工具调用
+    // 注意：ChatResponseUpdate 通过 Contents 携带 FunctionCallContent
+
+    // 获取工具列表中的第一个工具名称
+    var toolName = options?.Tools?.FirstOrDefault() is AIFunction tool ? tool.Name : "GetWeather";
+
+    var functionCallContent = new FunctionCallContent(
+        callId: "call_001",
+        name: toolName,
+        arguments: new Dictionary<string, object?>()
+        {
+            // 工具参数（GetWeather 没有参数，但这里展示如何传递）
+        });
+
+    // 返回包含 FunctionCallContent 的 ChatResponseUpdate
+    // ChatClientAgent 会从 Contents 中解析 FunctionCallContent 并执行工具
+    yield return new ChatResponseUpdate(ChatRole.Assistant, [functionCallContent])
     {
-        
-    }
-    else
-    {
-        Console.WriteLine(e);
-        throw;
-    }
+        CreatedAt = DateTimeOffset.UtcNow,
+        // 注意：某些实现可能需要设置 FinishReason
+    };
+
+    await Task.CompletedTask;
 }
 
-session.TryGetInMemoryChatHistory(out var messageList);
-Debug.Assert(messageList is not null);
+/// <summary>
+/// 生成最终文本响应的流式输出。
+/// </summary>
+async IAsyncEnumerable<ChatResponseUpdate> GetFinalResponseStreamAsync(
+    [EnumeratorCancellation] CancellationToken cancellationToken)
+{
+    // 逐字输出最终回复
+    var finalText = "根据查询结果，当前温度是100度，非常热！请注意防暑降温。";
 
+    foreach (var ch in finalText)
+    {
+        yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent(ch.ToString())])
+        {
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
+    }
 
-
-Console.WriteLine("Hello, World!");
+    await Task.CompletedTask;
+}
 
 [Description("获取温度")]
 string GetWeather()
 {
     return "温度100度";
-}
-
-class FooChatHistoryProvider : ChatHistoryProvider
-{
-    protected override ValueTask<IEnumerable<ChatMessage>> InvokingCoreAsync(InvokingContext context, CancellationToken cancellationToken = new CancellationToken())
-    {
-        return base.InvokingCoreAsync(context, cancellationToken);
-    }
-
-    protected override async ValueTask<IEnumerable<ChatMessage>> ProvideChatHistoryAsync(InvokingContext context,
-        CancellationToken cancellationToken = new CancellationToken())
-    {
-        var result = await base.ProvideChatHistoryAsync(context, cancellationToken);
-        return result;
-    }
-
-    protected override ValueTask InvokedCoreAsync(InvokedContext context, CancellationToken cancellationToken = new CancellationToken())
-    {
-        return base.InvokedCoreAsync(context, cancellationToken);
-    }
-
-    protected override ValueTask StoreChatHistoryAsync(InvokedContext context, CancellationToken cancellationToken = new CancellationToken())
-    {
-        return base.StoreChatHistoryAsync(context, cancellationToken);
-    }
-
-    public override object? GetService(Type serviceType, object? serviceKey = null)
-    {
-        return base.GetService(serviceType, serviceKey);
-    }
 }
