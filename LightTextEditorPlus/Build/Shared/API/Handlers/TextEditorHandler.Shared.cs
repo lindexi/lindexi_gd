@@ -163,9 +163,9 @@ public partial class TextEditorHandler
         var startOffset = TextEditorCore.CurrentSelection.StartOffset;
         if (TextEditorCore.TryHitTest(textPoint, out var result))
         {
-            if (result.IsOutOfTextCharacterBounds)
+            if (result.IsOutOfTextCharacterBounds && result.HitParagraphData is not { IsEmptyParagraph: true })
             {
-                // 如果拖动过程超过文本了，那应该忽略，而不是获取文档末尾的 HitCaretOffset 值
+                // 如果拖动过程超过非空文本范围了，那应该忽略，而不是获取文档末尾的 HitCaretOffset 值。空段需要允许命中空段行首。
             }
             else
             {

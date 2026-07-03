@@ -59,6 +59,31 @@ public class TextEditorHandlerTest
     }
 
     [UIContractTestCase]
+    public void DragSelectShouldSelectToEmptyParagraph()
+    {
+        "鼠标拖拽选择到空段时，应扩展选择到空段行首".Test(async () =>
+        {
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+            textEditor.Text = "1\n\n2";
+            await textEditor.WaitForRenderCompletedAsync();
+
+            var startOffset = new CaretOffset(0);
+            var emptyParagraphOffset = new CaretOffset(2, isAtLineStart: true);
+            TextPoint dragPoint = GetClickPoint(textEditor, emptyParagraphOffset);
+            textEditor.CurrentSelection = new Selection(startOffset, startOffset);
+
+            var handler = new TestTextEditorHandler(textEditor);
+            handler.SetClickCountForTest(1);
+
+            bool isHandled = handler.DragSelect(dragPoint);
+
+            Assert.IsTrue(isHandled);
+            Assert.AreEqual(new Selection(startOffset, emptyParagraphOffset), textEditor.CurrentSelection);
+        });
+    }
+
+    [UIContractTestCase]
     public void ShiftRightShouldExtendSelectionFromHandler()
     {
         "键盘 Shift + Right 处理应通过处理器扩展选择".Test(async () =>
@@ -89,6 +114,19 @@ public class TextEditorHandlerTest
         public bool SingleClick(in TextPoint clickPoint, bool isExtendSelection)
         {
             return HandleSingleClick(clickPoint, isExtendSelection);
+        }
+
+        public bool DragSelect(in TextPoint textPoint)
+        {
+            return HandleDragSelect(textPoint);
+        }
+
+        public void SetClickCountForTest(int clickCount)
+        {
+            var inputGestureField = typeof(TextEditorHandler).GetField("_inputGesture", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            object inputGesture = inputGestureField!.GetValue(this)!;
+            var clickCountField = inputGesture.GetType().GetField("<ClickCount>k__BackingField", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            clickCountField!.SetValue(inputGesture, clickCount);
         }
 
         public new void Select(SelectionType selectionType)
