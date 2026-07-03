@@ -430,7 +430,7 @@ public class CopilotChatManager : NotifyBase
             {
                 chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
                 {
-                    ChatReducer = request.ChatReducer
+                    ChatReducer = new ToolCallAwareChatReducer(request.ChatReducer),
                 });
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
             }
@@ -441,7 +441,7 @@ public class CopilotChatManager : NotifyBase
                 IChatClient reducerChatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
                 chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
                 {
-                    ChatReducer = new CopilotChatManagerToolCallChatReducer(reducerChatClient)
+                    ChatReducer = new ToolCallAwareChatReducer(new CopilotChatManagerToolCallChatReducer(reducerChatClient))
                 });
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = true;
             }
