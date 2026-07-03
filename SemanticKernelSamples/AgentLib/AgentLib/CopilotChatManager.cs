@@ -430,7 +430,7 @@ public class CopilotChatManager : NotifyBase
             {
                 chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
                 {
-                    ChatReducer = new ToolCallAwareChatReducer(request.ChatReducer)
+                    ChatReducer = new ToolCallAwareChatReducer(request.ChatReducer),
                 });
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
             }
