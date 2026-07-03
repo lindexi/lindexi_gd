@@ -34,6 +34,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly DelegateCommand _attachImageCommand;
     private readonly DelegateCommand _evaluateCommand;
     private readonly DelegateCommand _evaluatePromptCommand;
+    private readonly DelegateCommand _rerenderCommand;
     private bool _isBusy;
     private bool _isIterating;
     private bool _isFirstMessage = true;
@@ -43,6 +44,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _iterationStatusText = string.Empty;
     private string _evaluationSummaryText = string.Empty;
     private string _lastUserPrompt = string.Empty;
+    private string _editableSlideXml = string.Empty;
     private ModelDisplayItem _selectedModelItem;
     private bool _isStreamingMode = true;
     private string _mcpServiceUrl = "http://127.0.0.1:64773/mcp";
@@ -71,6 +73,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _attachImageCommand = new DelegateCommand(() => { }, WpfDispatcher.Instance, () => !IsBusy);
         _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), WpfDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
         _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), WpfDispatcher.Instance, () => !IsBusy && !IsIterating && slideChatManager.Pipeline.CanRunIteration);
+        _rerenderCommand = new DelegateCommand(() => _ = RunRerenderAsync(), WpfDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(_editableSlideXml));
 
         _ = UseMcpSlideMlRender();
     }
@@ -83,12 +86,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         switch (e.PropertyName)
         {
             case nameof(SlideChatManager.PreviewImage):
-            case nameof(SlideChatManager.CurrentSlideXml):
             case nameof(SlideChatManager.RenderedXml):
             case nameof(SlideChatManager.WarningText):
             case nameof(SlideChatManager.LastEvaluationResult):
             case nameof(SlideChatManager.LastPromptEvaluationResult):
                 OnPropertyChanged(e.PropertyName!);
+                break;
+            case nameof(SlideChatManager.CurrentSlideXml):
+                // 渲染产生新的 SlideML 时，同步到可编辑文本框
+                _editableSlideXml = SlideChatManager.CurrentSlideXml;
+                OnPropertyChanged(nameof(EditableSlideXml));
+                OnPropertyChanged(nameof(SlideChatManager.CurrentSlideXml));
                 break;
         }
     }
@@ -136,6 +144,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// 手动触发 SlideML 评估命令。
     /// </summary>
     public ICommand EvaluateCommand => _evaluateCommand;
+
+    /// <summary>
+    /// 重新渲染当前编辑的 SlideML 命令。
+    /// </summary>
+    public ICommand RerenderCommand => _rerenderCommand;
+
+    /// <summary>
+    /// 可编辑的 SlideML XML 文本，供用户手动修改后重新渲染。
+    /// </summary>
+    public string EditableSlideXml
+    {
+        get => _editableSlideXml;
+        set
+        {
+            if (SetProperty(ref _editableSlideXml, value))
+            {
+                _rerenderCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
 
     /// <summary>
     /// 提示词迭代优化命令（改造原提示词评估按钮）。
@@ -216,6 +244,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 _sendMessageCommand.RaiseCanExecuteChanged();
                 _evaluateCommand.RaiseCanExecuteChanged();
                 _evaluatePromptCommand.RaiseCanExecuteChanged();
+                _rerenderCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -482,6 +511,45 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    /// <summary>
+    /// 使用当前编辑的 SlideML XML 重新渲染页面预览。
+    /// </summary>
+    private async Task RunRerenderAsync()
+    {
+        if (IsBusy || string.IsNullOrWhiteSpace(_editableSlideXml))
+        {
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "正在重新渲染...";
+        try
+        {
+            var renderTool = SlideChatManager.SlideMlRenderTool;
+            var renderResult = await renderTool.RenderPipeline
+                .RenderAsync(_editableSlideXml)
+                .ConfigureAwait(false);
+
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                renderTool.ApplyRenderResult(renderResult);
+                StatusText = "重新渲染完成";
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "重新渲染已取消。";
+        }
+        catch (Exception)
+        {
+            StatusText = "重新渲染失败";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     /// <summary>

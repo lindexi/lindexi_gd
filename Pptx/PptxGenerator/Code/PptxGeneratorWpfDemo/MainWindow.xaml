@@ -46,9 +46,16 @@
                 <Border CornerRadius="14" Background="White"
                         BorderBrush="#FFE2E8F0" BorderThickness="1" Padding="14" Margin="0,0,0,8">
                     <StackPanel>
-                        <TextBlock Text="当前 SlideML" FontSize="16" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <TextBox Text="{Binding SlideChatManager.CurrentSlideXml, Mode=OneWay}"
-                                 IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                        <DockPanel>
+                            <Button Content="重新渲染" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                    Command="{Binding RerenderCommand}"
+                                    Padding="12,4" FontSize="12" FontWeight="SemiBold"
+                                    Background="#FF7C3AED" Foreground="White"
+                                    BorderThickness="0" Cursor="Hand" />
+                            <TextBlock Text="当前 SlideML" FontSize="16" FontWeight="Bold" Foreground="#FF0F172A" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBox Text="{Binding EditableSlideXml, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="NoWrap"
                                  MinHeight="140" MaxHeight="260"
                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                                  FontFamily="Consolas" FontSize="11"
