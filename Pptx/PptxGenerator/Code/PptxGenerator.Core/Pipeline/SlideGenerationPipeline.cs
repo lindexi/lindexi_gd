@@ -1,5 +1,9 @@
 ﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using AgentLib;
+using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
 using Microsoft.Extensions.AI;
 using PptxGenerator.Evaluation;
@@ -118,6 +122,76 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
     public async Task SendSlideRequestAsync(string userPrompt, CancellationToken cancellationToken = default)
     {
         await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// 从指定用户消息重新开始流式生成。
+    /// </summary>
+    /// <param name="targetMessage">作为重新生成起点的用户消息。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task RestartFromMessageAsync(CopilotChatMessage targetMessage, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(targetMessage);
+
+        var replayPlan = CreateReplayPlan(targetMessage);
+        var originalSession = _copilotChatManager.SelectedSession;
+        var endpointManager = _copilotChatManager.AgentApiEndpointManager;
+        ILanguageModel originalPrimaryModel = endpointManager.PrimaryModel;
+
+        _streamingState = null;
+        await SlideMlRenderTool.ResetLatestResultAsync().ConfigureAwait(false);
+
+        if (replayPlan.PreviousTurns.Count > 0)
+        {
+            var replaySession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
+            {
+                MainThreadDispatcher = _copilotChatManager.MainThreadDispatcher,
+            };
+            var replayModel = CreateReplayLanguageModel(replayPlan.PreviousTurns);
+
+            try
+            {
+                _copilotChatManager.ChatSessions.Insert(0, replaySession);
+                _copilotChatManager.SelectedSession = replaySession;
+                endpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([replayModel]));
+                endpointManager.PrimaryModel = replayModel;
+
+                for (var i = 0; i < replayPlan.PreviousTurns.Count; i++)
+                {
+                    ReplayTurn turn = replayPlan.PreviousTurns[i];
+                    await SendMessageAsync(
+                        turn.UserText,
+                        isFirstMessage: i == 0,
+                        attachPreview: false,
+                        skipAutoEvaluation: true,
+                        useStreaming: true,
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                endpointManager.PrimaryModel = originalPrimaryModel;
+                _copilotChatManager.SelectedSession = originalSession;
+            }
+
+            originalSession.SetAgentSession(replaySession.AgentSession);
+        }
+
+        await TruncateOriginalSessionAsync(originalSession, replayPlan.TargetIndex, cancellationToken).ConfigureAwait(false);
+        if (replayPlan.PreviousTurns.Count == 0)
+        {
+            originalSession.SetAgentSession(null);
+        }
+
+        _copilotChatManager.SelectedSession = originalSession;
+
+        await SendMessageAsync(
+            replayPlan.TargetUserText,
+            replayPlan.IsTargetFirstMessage,
+            attachPreview: false,
+            skipAutoEvaluation: false,
+            useStreaming: true,
+            cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task SendMessageAsync
@@ -245,6 +319,136 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             _ = EvaluateContextAsync(context, userMessage, cancellationToken);
         }
     }
+
+    private ReplayPlan CreateReplayPlan(CopilotChatMessage targetMessage)
+    {
+        if (targetMessage.Role != ChatRole.User || targetMessage.IsPresetInfo)
+        {
+            throw new ArgumentException("只能从普通用户消息重新开始。", nameof(targetMessage));
+        }
+
+        var currentSession = _copilotChatManager.SelectedSession;
+        var messages = currentSession.ChatMessages;
+        int targetIndex = messages.IndexOf(targetMessage);
+        if (targetIndex < 0)
+        {
+            throw new InvalidOperationException("在当前会话中找不到要重新开始的用户消息。");
+        }
+
+        var previousTurns = new List<ReplayTurn>();
+        for (var i = 0; i < targetIndex; i++)
+        {
+            CopilotChatMessage message = messages[i];
+            if (message.IsPresetInfo || message.Role != ChatRole.User)
+            {
+                continue;
+            }
+
+            string userText = message.Content;
+            if (string.IsNullOrWhiteSpace(userText))
+            {
+                continue;
+            }
+
+            CopilotChatMessage? assistantMessage = null;
+            for (var j = i + 1; j < targetIndex; j++)
+            {
+                CopilotChatMessage candidate = messages[j];
+                if (candidate.IsPresetInfo)
+                {
+                    continue;
+                }
+
+                if (candidate.Role == ChatRole.User)
+                {
+                    break;
+                }
+
+                if (candidate.Role == ChatRole.Assistant)
+                {
+                    assistantMessage = candidate;
+                    i = j;
+                    break;
+                }
+            }
+
+            if (assistantMessage is null)
+            {
+                break;
+            }
+
+            previousTurns.Add(new ReplayTurn(userText, assistantMessage.Content));
+        }
+
+        return new ReplayPlan(
+            targetIndex,
+            targetMessage.Content,
+            previousTurns,
+            IsTargetFirstMessage: previousTurns.Count == 0);
+    }
+
+    private static FakeLanguageModel CreateReplayLanguageModel(IReadOnlyList<ReplayTurn> replayTurns)
+    {
+        var replayTexts = new Queue<string>(replayTurns.Select(turn => turn.AssistantText));
+        var fakeChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) => Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, string.Empty))),
+            OnGetStreamingResponseAsync = (_, _, ct) => StreamNextReplayTextAsync(replayTexts, ct),
+        };
+
+        return new FakeLanguageModel(fakeChatClient)
+        {
+            ModelDefinition = new ModelDefinition
+            {
+                ModelId = $"SlideReplay-{Guid.NewGuid():N}",
+                ModelName = "SlideML Replay",
+                Provider = "Fake",
+            },
+        };
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> StreamNextReplayTextAsync(
+        Queue<string> replayTexts,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (!replayTexts.TryDequeue(out string? text))
+        {
+            throw new InvalidOperationException("没有可用于回放的助手消息。");
+        }
+
+        foreach (char ch in text)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return new ChatResponseUpdate(ChatRole.Assistant, ch.ToString());
+            await Task.Yield();
+        }
+    }
+
+    private async Task TruncateOriginalSessionAsync(
+        CopilotChatSession originalSession,
+        int targetIndex,
+        CancellationToken cancellationToken)
+    {
+        await _dispatcher.InvokeAsync(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            while (originalSession.ChatMessages.Count > targetIndex)
+            {
+                originalSession.ChatMessages.RemoveAt(originalSession.ChatMessages.Count - 1);
+            }
+
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
+    }
+
+    private sealed record ReplayPlan(
+        int TargetIndex,
+        string TargetUserText,
+        IReadOnlyList<ReplayTurn> PreviousTurns,
+        bool IsTargetFirstMessage);
+
+    private sealed record ReplayTurn(string UserText, string AssistantText);
 
     public async Task<SlideEvaluationResult?> EvaluateAsync(string userPrompt, CancellationToken cancellationToken = default)
     {

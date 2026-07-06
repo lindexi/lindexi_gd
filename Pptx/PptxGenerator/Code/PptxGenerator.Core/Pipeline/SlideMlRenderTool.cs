@@ -84,6 +84,22 @@ public sealed class SlideMlRenderTool
     }
 
     /// <summary>
+    /// 清空最近一次渲染结果，供重新开始流式生成前重置界面状态。
+    /// </summary>
+    public Task ResetLatestResultAsync()
+    {
+        return _dispatcher.InvokeAsync(() =>
+        {
+            LatestPreviewImage = null;
+            LatestWarnings = string.Empty;
+            LatestRenderedXml = string.Empty;
+            LatestSlideXml = string.Empty;
+            SlideRendered?.Invoke();
+            return Task.CompletedTask;
+        });
+    }
+
+    /// <summary>
     /// 创建 SlideML 渲染 AI Tool。
     /// 此工具要求传入完整的 SlideML 文档（以 Page 为根的完整 XML），适用于非流式模式。
     /// 流式模式下渲染是自动的，不应使用此工具。

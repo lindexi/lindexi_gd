@@ -1,6 +1,7 @@
 ﻿using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using AgentLib.Model;
 
 using System;
 using System.Collections.Generic;
@@ -128,6 +129,16 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, IReadOnlyList<string>? attachedImageFiles = null, bool createNewSession = false, bool skipAutoEvaluation = false, bool useStreaming = false, CancellationToken cancellationToken = default)
     {
         await Pipeline.SendMessageAsync(userMessage, isFirstMessage, attachPreview, attachedImageFiles, createNewSession: createNewSession, skipAutoEvaluation: skipAutoEvaluation, useStreaming: useStreaming, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 从指定用户消息重新开始流式生成。
+    /// </summary>
+    /// <param name="message">作为重新生成起点的用户消息。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public Task RestartFromMessageAsync(CopilotChatMessage message, CancellationToken cancellationToken = default)
+    {
+        return Pipeline.RestartFromMessageAsync(message, cancellationToken);
     }
 
     public Task<SlideEvaluationResult?> EvaluateAsync(string userPrompt, CancellationToken cancellationToken = default)

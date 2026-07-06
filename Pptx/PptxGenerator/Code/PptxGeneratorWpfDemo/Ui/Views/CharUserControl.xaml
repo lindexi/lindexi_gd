@@ -260,8 +260,16 @@
                         <DataTemplate DataType="{x:Type agent:CopilotChatMessage}">
                             <Border Margin="4,6" Padding="14" CornerRadius="16"
                                     MaxWidth="640"
+                                    Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                     HorizontalAlignment="{Binding Role, Converter={x:Static converters:ChatBubbleAlignmentConverter.Instance}}"
                                     Background="{Binding Role, Converter={x:Static converters:ChatBubbleBackgroundConverter.Instance}}">
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="重新开始"
+                                                  Command="{Binding PlacementTarget.Tag.RestartFromMessageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
                                 <StackPanel>
                                     <TextBlock Text="{Binding Author}"
                                                FontWeight="Bold"

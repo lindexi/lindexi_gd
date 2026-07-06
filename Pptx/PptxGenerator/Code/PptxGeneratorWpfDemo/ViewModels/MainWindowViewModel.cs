@@ -1,5 +1,7 @@
-﻿using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+﻿using AgentLib;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
+using Microsoft.Extensions.AI;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
 
@@ -35,6 +37,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly DelegateCommand _evaluateCommand;
     private readonly DelegateCommand _evaluatePromptCommand;
     private readonly DelegateCommand _rerenderCommand;
+    private readonly DelegateCommand<CopilotChatMessage> _restartFromMessageCommand;
     private bool _isBusy;
     private bool _isIterating;
     private bool _isFirstMessage = true;
@@ -53,6 +56,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         SlideChatManager = slideChatManager ?? throw new ArgumentNullException(nameof(slideChatManager));
         SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
+        SlideChatManager.Pipeline.ChatManager.PropertyChanged += OnCopilotChatManagerPropertyChanged;
 
         var pipeline = slideChatManager.Pipeline;
         pipeline.EvaluationCompleted += OnEvaluationCompleted;
@@ -74,6 +78,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), WpfDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
         _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), WpfDispatcher.Instance, () => !IsBusy && !IsIterating && slideChatManager.Pipeline.CanRunIteration);
         _rerenderCommand = new DelegateCommand(() => _ = RunRerenderAsync(), WpfDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(_editableSlideXml));
+        _restartFromMessageCommand = new DelegateCommand<CopilotChatMessage>(message => _ = RunRestartFromMessageAsync(message), WpfDispatcher.Instance, CanRestartFromMessage);
 
         _ = UseMcpSlideMlRender();
     }
@@ -97,6 +102,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 _editableSlideXml = SlideChatManager.CurrentSlideXml;
                 OnPropertyChanged(nameof(EditableSlideXml));
                 OnPropertyChanged(nameof(SlideChatManager.CurrentSlideXml));
+                break;
+        }
+    }
+
+    private void OnCopilotChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(CopilotChatManager.ChatMessages):
+            case nameof(CopilotChatManager.CurrentSessionId):
+                OnPropertyChanged(nameof(ChatMessages));
                 break;
         }
     }
@@ -139,6 +155,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ICommand SendMessageCommand => _sendMessageCommand;
+
+    /// <summary>
+    /// 从指定用户消息重新开始流式生成命令。
+    /// </summary>
+    public ICommand RestartFromMessageCommand => _restartFromMessageCommand;
 
     /// <summary>
     /// 手动触发 SlideML 评估命令。
@@ -245,6 +266,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 _evaluateCommand.RaiseCanExecuteChanged();
                 _evaluatePromptCommand.RaiseCanExecuteChanged();
                 _rerenderCommand.RaiseCanExecuteChanged();
+                _restartFromMessageCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -282,7 +304,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public bool IsStreamingMode
     {
         get => _isStreamingMode;
-        set => SetProperty(ref _isStreamingMode, value);
+        set
+        {
+            if (SetProperty(ref _isStreamingMode, value))
+            {
+                _restartFromMessageCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     /// <summary>
@@ -363,6 +391,53 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         catch (Exception)
         {
             StatusText = "执行失败";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private bool CanRestartFromMessage(CopilotChatMessage? message)
+    {
+        return message is not null
+            && !IsBusy
+            && IsStreamingMode
+            && !message.IsPresetInfo
+            && message.Role == ChatRole.User
+            && !string.IsNullOrWhiteSpace(message.Content);
+    }
+
+    private async Task RunRestartFromMessageAsync(CopilotChatMessage? message)
+    {
+        if (!CanRestartFromMessage(message))
+        {
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "正在重新开始生成...";
+        EvaluationSummaryText = string.Empty;
+        _lastUserPrompt = message!.Content;
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        try
+        {
+            await SlideChatManager.RestartFromMessageAsync(message, cancellationTokenSource.Token).ConfigureAwait(false);
+
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                _isFirstMessage = false;
+                StatusText = "重新生成完成";
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "重新生成已取消。";
+        }
+        catch (Exception)
+        {
+            StatusText = "重新生成失败";
         }
         finally
         {
