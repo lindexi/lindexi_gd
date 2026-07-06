@@ -249,7 +249,7 @@
             <!-- 聊天气泡列表 -->
             <Grid Grid.Row="1">
                 <ListBox x:Name="ChatListBox"
-                         ItemsSource="{Binding ChatMessages}"
+                         ItemsSource="{Binding CopilotChatManager.ChatMessages}"
                          Background="White"
                          BorderThickness="0"
                          Padding="8"

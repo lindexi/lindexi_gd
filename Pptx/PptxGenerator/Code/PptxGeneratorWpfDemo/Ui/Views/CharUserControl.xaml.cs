@@ -33,13 +33,13 @@ public partial class CharUserControl : UserControl
         // 取消旧的订阅
         if (e.OldValue is MainWindowViewModel oldVm)
         {
-            oldVm.ChatMessages.CollectionChanged -= OnChatMessagesCollectionChanged;
+            oldVm.CopilotChatManager.ChatMessages.CollectionChanged -= OnChatMessagesCollectionChanged;
         }
 
         // 订阅新的
         if (e.NewValue is MainWindowViewModel newVm)
         {
-            newVm.ChatMessages.CollectionChanged += OnChatMessagesCollectionChanged;
+            newVm.CopilotChatManager.ChatMessages.CollectionChanged += OnChatMessagesCollectionChanged;
         }
     }
 

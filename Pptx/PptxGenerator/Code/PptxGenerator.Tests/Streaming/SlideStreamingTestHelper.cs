@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
+using AgentLib.Model;
 
 using Microsoft.Extensions.AI;
 
@@ -18,6 +19,28 @@ namespace PptxGenerator.Tests.Streaming;
 /// </summary>
 internal static class SlideStreamingTestHelper
 {
+    public sealed class FakeChatClientCallRecorder
+    {
+        private readonly List<IReadOnlyList<ChatMessage>> _streamingMessages = [];
+
+        public int StreamingCallCount { get; private set; }
+
+        public int NonStreamingCallCount { get; private set; }
+
+        public IReadOnlyList<IReadOnlyList<ChatMessage>> StreamingMessages => _streamingMessages;
+
+        public void RecordStreamingCall(IEnumerable<ChatMessage> messages)
+        {
+            StreamingCallCount++;
+            _streamingMessages.Add(messages.ToList());
+        }
+
+        public void RecordNonStreamingCall()
+        {
+            NonStreamingCallCount++;
+        }
+    }
+
     /// <summary>
     /// 将完整文本按逐字符方式通过 ChatResponseUpdate 流式返回，
     /// 可选在每个字符之间加入延迟。
@@ -64,15 +87,25 @@ internal static class SlideStreamingTestHelper
     public static (SlideChatManager ChatManager, FakeChatClient FakeChatClient) CreateChatManagerWithSequentialTexts(
         params string[] sequentialTexts)
     {
+        var (chatManager, fakeChatClient, _) = CreateChatManagerWithSequentialTextsAndRecorder(sequentialTexts);
+        return (chatManager, fakeChatClient);
+    }
+
+    public static (SlideChatManager ChatManager, FakeChatClient FakeChatClient, FakeChatClientCallRecorder Recorder) CreateChatManagerWithSequentialTextsAndRecorder(
+        params string[] sequentialTexts)
+    {
         var callIndex = 0;
-        return CreateChatManager(ct =>
+        var recorder = new FakeChatClientCallRecorder();
+        var result = CreateChatManager((messages, ct) =>
         {
+            recorder.RecordStreamingCall(messages);
             var text = callIndex < sequentialTexts.Length
                 ? sequentialTexts[callIndex]
                 : sequentialTexts[^1];
             callIndex++;
             return StreamTokensAsync(text, TimeSpan.Zero, ct);
-        });
+        }, recorder);
+        return (result.ChatManager, result.FakeChatClient, recorder);
     }
 
     /// <summary>
@@ -83,21 +116,30 @@ internal static class SlideStreamingTestHelper
     public static (SlideChatManager ChatManager, FakeChatClient FakeChatClient) CreateChatManager(
         Func<CancellationToken, IAsyncEnumerable<ChatResponseUpdate>>? streamingResponseFactory = null)
     {
+        return CreateChatManager(streamingResponseFactory is null
+            ? null
+            : (_, ct) => streamingResponseFactory(ct), recorder: null);
+    }
+
+    public static (SlideChatManager ChatManager, FakeChatClient FakeChatClient) CreateChatManager(
+        Func<IEnumerable<ChatMessage>, CancellationToken, IAsyncEnumerable<ChatResponseUpdate>>? streamingResponseFactory,
+        FakeChatClientCallRecorder? recorder)
+    {
         var fakeChatClient = new FakeChatClient();
 
         if (streamingResponseFactory is not null)
         {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, ct) => streamingResponseFactory(ct);
+            fakeChatClient.OnGetStreamingResponseAsync = (messages, _, ct) => streamingResponseFactory(messages, ct);
         }
         else
         {
-            fakeChatClient.OnGetStreamingResponseAsync = (_, _, ct) =>
-                StreamTokensAsync("""<Page Background="#FFFFFF"/>""", TimeSpan.Zero, ct);
+            fakeChatClient.OnGetStreamingResponseAsync = (messages, _, ct) => CreateDefaultStreamingResponse(messages, recorder, ct);
         }
 
         // 非流式也需要配置（工具调用可能用到）
         fakeChatClient.OnGetResponseAsync = (_, _, _) =>
         {
+            recorder?.RecordNonStreamingCall();
             Assert.Fail("不应该调用到此");
             return Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, """<Page/>""")));
         };
@@ -114,5 +156,28 @@ internal static class SlideStreamingTestHelper
         var chatManager = new SlideChatManager(copilotChatManager, renderTool);
 
         return (chatManager, fakeChatClient);
+    }
+
+    private static IAsyncEnumerable<ChatResponseUpdate> CreateDefaultStreamingResponse(
+        IEnumerable<ChatMessage> messages,
+        FakeChatClientCallRecorder? recorder,
+        CancellationToken cancellationToken)
+    {
+        recorder?.RecordStreamingCall(messages);
+        return StreamTokensAsync("""<Page Background="#FFFFFF"/>""", TimeSpan.Zero, cancellationToken);
+    }
+
+    public static IReadOnlyList<CopilotChatMessage> GetNormalUserMessages(SlideChatManager chatManager)
+    {
+        return chatManager.Pipeline.ChatManager.ChatMessages
+            .Where(message => message.Role == ChatRole.User && !message.IsPresetInfo)
+            .ToList();
+    }
+
+    public static IReadOnlyList<CopilotChatMessage> GetNormalAssistantMessages(SlideChatManager chatManager)
+    {
+        return chatManager.Pipeline.ChatManager.ChatMessages
+            .Where(message => message.Role == ChatRole.Assistant && !message.IsPresetInfo)
+            .ToList();
     }
 }

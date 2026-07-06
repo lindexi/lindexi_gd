@@ -56,7 +56,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         SlideChatManager = slideChatManager ?? throw new ArgumentNullException(nameof(slideChatManager));
         SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
-        SlideChatManager.Pipeline.ChatManager.PropertyChanged += OnCopilotChatManagerPropertyChanged;
 
         var pipeline = slideChatManager.Pipeline;
         pipeline.EvaluationCompleted += OnEvaluationCompleted;
@@ -78,7 +77,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), WpfDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
         _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), WpfDispatcher.Instance, () => !IsBusy && !IsIterating && slideChatManager.Pipeline.CanRunIteration);
         _rerenderCommand = new DelegateCommand(() => _ = RunRerenderAsync(), WpfDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(_editableSlideXml));
-        _restartFromMessageCommand = new DelegateCommand<CopilotChatMessage>(message => _ = RunRestartFromMessageAsync(message), WpfDispatcher.Instance, CanRestartFromMessage);
+        _restartFromMessageCommand = new DelegateCommand<CopilotChatMessage>(message => _ = RunRestartFromMessageAsync(message), WpfDispatcher.Instance, message => message is not null && !IsBusy);
 
         _ = UseMcpSlideMlRender();
     }
@@ -102,17 +101,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 _editableSlideXml = SlideChatManager.CurrentSlideXml;
                 OnPropertyChanged(nameof(EditableSlideXml));
                 OnPropertyChanged(nameof(SlideChatManager.CurrentSlideXml));
-                break;
-        }
-    }
-
-    private void OnCopilotChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
-            case nameof(CopilotChatManager.ChatMessages):
-            case nameof(CopilotChatManager.CurrentSessionId):
-                OnPropertyChanged(nameof(ChatMessages));
                 break;
         }
     }
@@ -150,6 +138,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// SlideML 聊天管理器，暴露给界面直接绑定。
     /// </summary>
     public SlideChatManager SlideChatManager { get; }
+
+    /// <summary>
+    /// 聊天会话管理器，供界面直接绑定聊天消息集合。
+    /// </summary>
+    public CopilotChatManager CopilotChatManager => SlideChatManager.Pipeline.ChatManager;
 
     /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -249,11 +242,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             }
         }
     }
-
-    /// <summary>
-    /// 聊天气泡消息列表。
-    /// </summary>
-    public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
 
     public bool IsBusy
     {
@@ -398,19 +386,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool CanRestartFromMessage(CopilotChatMessage? message)
-    {
-        return message is not null
-            && !IsBusy
-            && IsStreamingMode
-            && !message.IsPresetInfo
-            && message.Role == ChatRole.User
-            && !string.IsNullOrWhiteSpace(message.Content);
-    }
-
     private async Task RunRestartFromMessageAsync(CopilotChatMessage? message)
     {
-        if (!CanRestartFromMessage(message))
+        if (message is null || IsBusy)
         {
             return;
         }
