@@ -3,6 +3,7 @@ using AgentLib.Model;
 
 using Microsoft.Extensions.AI;
 
+using System.Reflection;
 using System.Text.Json;
 using System.Xml.Linq;
 
@@ -128,6 +129,45 @@ public class FileCopilotChatLoggerTests
         Assert.AreEqual(1, secondStateProvider.CallCount);
     }
 
+    [TestMethod]
+    [Description("记录多模态和审批消息片段时应写入聊天历史 XML 文件")]
+    public async Task LogMessageAsync_WhenMessageContainsSpecialItems_WritesMessageItemsToHistory()
+    {
+        string logPath = CreatePath("logs");
+        string historyPath = CreatePath("history");
+        var logger = new FileCopilotChatLogger(logPath, historyPath);
+        var message = new CopilotChatMessage(ChatRole.Assistant, "");
+        message.MessageItems.Add(new CopilotChatImageItem(BinaryData.FromBytes([1, 2, 3]), "image/png"));
+        message.MessageItems.Add(new CopilotChatAudioItem(BinaryData.FromBytes([4, 5, 6]), "audio/wav"));
+        var approvalToolItem = new CopilotChatApprovalToolItem("approval-1", "DeleteFile", "demo.txt", "请确认是否删除文件。", "删除文件");
+        InvokeApprovalMethod(approvalToolItem, "Reject", "不允许删除");
+        approvalToolItem.OutputText = "已拒绝";
+        message.MessageItems.Add(approvalToolItem);
+
+        await logger.LogMessageAsync(Guid.NewGuid(), message);
+
+        string historyFile = GetSingleFile(historyPath, "*.xml");
+        XDocument historyDocument = XDocument.Load(historyFile);
+        XElement messageItemsElement = historyDocument.Root?.Element("Messages")?.Element("Message")?.Element("MessageItems")
+                                      ?? throw new AssertFailedException("未找到 MessageItems 元素。");
+        XElement imageElement = messageItemsElement.Element("ImageItem") ?? throw new AssertFailedException("未找到 ImageItem 元素。");
+        XElement audioElement = messageItemsElement.Element("AudioItem") ?? throw new AssertFailedException("未找到 AudioItem 元素。");
+        XElement approvalToolElement = messageItemsElement.Element("ApprovalToolItem") ?? throw new AssertFailedException("未找到 ApprovalToolItem 元素。");
+
+        Assert.AreEqual("image/png", imageElement.Attribute("MimeType")?.Value);
+        Assert.AreEqual(Convert.ToBase64String([1, 2, 3]), imageElement.Value);
+        Assert.AreEqual("audio/wav", audioElement.Attribute("MimeType")?.Value);
+        Assert.AreEqual(Convert.ToBase64String([4, 5, 6]), audioElement.Value);
+        Assert.AreEqual("approval-1", approvalToolElement.Attribute("CallId")?.Value);
+        Assert.AreEqual("DeleteFile", approvalToolElement.Attribute("ToolName")?.Value);
+        Assert.AreEqual("删除文件", approvalToolElement.Attribute("DisplayName")?.Value);
+        Assert.AreEqual(CopilotToolApprovalState.Rejected.ToString(), approvalToolElement.Attribute("ApprovalState")?.Value);
+        Assert.AreEqual("demo.txt", approvalToolElement.Element("Input")?.Value);
+        Assert.AreEqual("已拒绝", approvalToolElement.Element("Output")?.Value);
+        Assert.AreEqual("请确认是否删除文件。", approvalToolElement.Element("ApprovalDescription")?.Value);
+        Assert.AreEqual("不允许删除", approvalToolElement.Element("DecisionReason")?.Value);
+    }
+
     private sealed class TestSessionStateProvider : ICopilotChatSessionStateProvider
     {
         private readonly JsonElement _sessionState;
@@ -158,5 +198,13 @@ public class FileCopilotChatLoggerTests
         string[] files = Directory.GetFiles(rootPath, searchPattern, SearchOption.AllDirectories);
         Assert.HasCount(1, files);
         return files[0];
+    }
+
+    private static void InvokeApprovalMethod(CopilotChatApprovalToolItem approvalToolItem, string methodName, params object?[] arguments)
+    {
+        MethodInfo methodInfo = typeof(CopilotChatApprovalToolItem).GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic)
+                                ?? throw new MissingMethodException(nameof(CopilotChatApprovalToolItem), methodName);
+
+        methodInfo.Invoke(approvalToolItem, arguments);
     }
 }
