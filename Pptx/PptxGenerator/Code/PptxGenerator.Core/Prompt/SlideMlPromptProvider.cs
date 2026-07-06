@@ -117,7 +117,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 ### Panel
 属性: X, Y, Width, Height（均可选）, Padding（可选，默认 0）, Background（可选）, Layout（Absolute/Horizontal/Vertical，默认 Absolute）, Gap（流式布局间距，默认 0）, Margin（外边距，逗号分隔 1~4 个值）
 ### Rect
-属性: X, Y, Width, Height（均可选）, Fill, Stroke, StrokeThickness, CornerRadius（圆角半径，支持 1~4 值逗号分隔，默认 0）, StrokeDashArray（虚线描边，逗号分隔数值）, Shadow（属性形式 "OffsetX OffsetY Blur Color"）, Margin（外边距，逗号分隔 1~4 个值）, HorizontalAlignment（Left/Center/Right）, VerticalAlignment（Top/Center/Bottom）, Opacity（0.0~1.0）
+属性: X, Y, Width, Height（均可选）, Fill, Stroke, StrokeThickness, CornerRadius（圆角半径，支持 1~4 值逗号分隔，默认 0）, StrokeDashArray（虚线描边，逗号分隔数值）, Margin（外边距，逗号分隔 1~4 个值）, HorizontalAlignment（Left/Center/Right）, VerticalAlignment（Top/Center/Bottom）, Opacity（0.0~1.0）
 ### TextElement
 属性: X, Y, Width, Height（均可选）, Text（必填）, FontName（默认 Microsoft YaHei）, FontSize（默认 16）, IsBold（True/False）, IsItalic（True/False）, Foreground（默认 #000000）, TextAlignment（Left/Center/Right/Justify，默认 Left）, HorizontalAlignment, VerticalAlignment, Opacity, Margin（外边距，逗号分隔 1~4 个值）
 ### Image
@@ -125,7 +125,6 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 ### 子元素
 - `<Fill><LinearGradient X1 Y1 X2 Y2><Stop Offset Color/></LinearGradient></Fill>` — 渐变填充，可用于 Rect 和 Panel（Stop Offset 范围 0~1）
 - `<Stroke><LinearGradient>...</LinearGradient></Stroke>` — 渐变描边，可用于 Rect
-- `<Shadow OffsetX OffsetY Blur Color Opacity/>` — 精细阴影子元素，可用于 Rect
 - `<Span Text FontSize FontName Foreground IsBold IsItalic TextDecoration/>` — 富文本片段，可用于 TextElement
 
 ## 排版规则
@@ -179,7 +178,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 输出约束：
 1. 生成幻灯片时，直接输出 XML 片段序列；不要输出 XML 声明；不要使用 Markdown、代码块、反引号、HTML、CSS、XAML、JSON。
 2. 输出完成后直接停止，不要输出任何额外结束标记。
-3. 除非用户明确要求解释，否则不要输出自然语言说明。若用户要求说明，只能输出普通纯文本；不要使用 Markdown 标题、列表、表格或代码块；不要把说明文字混入 XML 片段流。
+3. XML 输出必须始终是完整且格式正确的顶层 XML 片段；如需附加自然语言说明，只能放在该顶层 XML 片段完整闭合之后、XML 之外。禁止将自然语言写在 XML 之前、开始标签或属性列表中、元素正文中，或任何未闭合的 XML 内部；不要使用 Markdown 标题、列表、表格或代码块。
 4. 只能使用本文列出的标签和属性，标签名与属性名大小写必须完全一致。
 5. XML 必须格式正确：每个片段都是一个完整顶层 XML 元素；标签必须闭合；属性值必须加引号。
 6. 文本属性中的特殊字符必须转义：& 转为 &amp;，< 转为 &lt;，> 转为 &gt;，" 转为 &quot;，' 转为 &apos;。
@@ -198,7 +197,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 2. 通常先输出 <Page>...</Page> 定义页面背景和初始布局，再继续输出 <Panel>、<Rect>、<TextElement>、<Image>、<Page> 或 <Remove> 片段来补充、修改、重排或删除内容。
 3. Page 是根容器，最终只有一个 Page。Page 可作为后续片段再次出现，用于更新页面属性或调整顶层结构。
 4. Panel、Rect、TextElement、Image 必须有 Id。复用已有 Id 表示更新该元素。不要把同一个 Id 用作两个不同元素；不要让同一个 Id 出现在两个不同父容器下；同一片段内不要出现重复 Id。
-5. Span、Fill、Stroke、Shadow、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId。
+5. Span、Fill、Stroke、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId。
 6. 不在 Page 子树内、作为顶层片段输出的 Panel、Rect、TextElement、Image 是悬空元素。悬空元素不参与渲染，只供 StyleFrom 引用。悬空元素必须声明 StyleId 属性，否则报错并中断。悬空元素创建后，不要再把同一个 Id 放入 Page 或 Panel 子树。
 
 流式合并规则：
@@ -246,8 +245,8 @@ Panel：
 
 Rect：
 1. Rect 表示矩形。
-2. 属性：Fill 可选，默认透明；Stroke 可选，默认无描边；StrokeThickness 可选，默认 0；CornerRadius 可选，默认 0；StrokeDashArray 可选，如 "4,2"；Shadow 可选，字符串格式 "OffsetX OffsetY Blur Color"。
-3. Rect 可包含 Fill、Stroke、Shadow 子元素；子元素优先于同名 XML 属性。
+2. 属性：Fill 可选，默认透明；Stroke 可选，默认无描边；StrokeThickness 可选，默认 0；CornerRadius 可选，默认 0；StrokeDashArray 可选，如 "4,2"。
+3. Rect 可包含 Fill、Stroke 子元素；子元素优先于同名 XML 属性。
 
 TextElement：
 1. TextElement 表示文本。
@@ -263,12 +262,11 @@ Image：
 1. Image 表示图片。
 2. 属性：Source 必填，表示图片资源 ID，不是 URL；Stretch 可选 None、Fill、Uniform、UniformToFill，默认 Uniform。
 
-Fill、Stroke、Shadow、LinearGradient、Stop：
+Fill、Stroke、LinearGradient、Stop：
 1. Fill 用于 Panel、Rect 的渐变填充，包含 LinearGradient。
 2. Stroke 用于 Rect 的渐变描边，包含 LinearGradient，需配合 StrokeThickness。
 3. LinearGradient 属性：X1、Y1 默认 0、0；X2、Y2 默认 1、0；数值 0 到 1 表示相对元素尺寸比例。
 4. Stop 是 LinearGradient 子元素，属性 Offset 必填，范围 0 到 1；Color 必填。
-5. Shadow 子元素用于 Rect，属性 OffsetX 默认 0；OffsetY 默认 4；Blur 默认 12；Color 默认 #00000033；Opacity 默认 1。
 
 推荐生成策略：
 1. 先输出 Page，建立背景和主要区域占位。
@@ -301,7 +299,7 @@ Fill、Stroke、Shadow、LinearGradient、Stop：
 </Panel>
 
 <Panel Id="CardOne" X="0" Y="0" Width="340" Height="180">
-   <Rect Id="CardOneBackground" X="0" Y="0" Width="340" Height="180" Fill="#FFFFFF" CornerRadius="12" Shadow="0 4 12 #00000033"/>
+   <Rect Id="CardOneBackground" X="0" Y="0" Width="340" Height="180" Fill="#FFFFFF" CornerRadius="12"/>
    <TextElement Id="CardOneTitle" X="24" Y="24" Width="292" Text="要点" FontSize="24" IsBold="True" Foreground="#1A1A2E"/>
    <TextElement Id="CardOneBody" X="24" Y="72" Text="" FontSize="16" Foreground="#666666" />
 </Panel>
