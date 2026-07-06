@@ -250,7 +250,7 @@ Rect：
 
 TextElement：
 1. TextElement 表示文本。
-2. 属性：Text 在无 Span 时必填；FontName 可选，默认 Microsoft YaHei；FontSize 可选，可为绝对 px 数字，默认 16；IsBold 可选 True、False；IsItalic 可选 True、False；Foreground 可选，默认 #000000；TextAlignment 可选 Left、Center、Right、Justify，默认 Left；LineHeight 可选，默认 1.2。
+2. 属性：Text 在无 Span 时必填；FontName 可选，默认 Microsoft YaHei；FontSize 可选，可为绝对 px 数字，默认 16；IsBold 可选 True、False；IsItalic 可选 True、False；Foreground 可选，默认 #000000；TextAlignment 可选 Left、Center、Right、Justify，默认 Left。
 3. Width 不写则单行无限宽；写 Width 则在约束宽度内自动换行。
 4. 可包含 Span 子元素；有 Span 时可省略 Text。
 
