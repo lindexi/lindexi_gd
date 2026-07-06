@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib/AgentLib.csproj" />
+  <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
+  <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+  <Project Path="../../Pptx/PptxGenerator/Code/PptxGenerator.Core/PptxGenerator.Core.csproj" />
+  <Project Path="../../Pptx/PptxGenerator/Code/PptxGeneratorWpfDemo/PptxGeneratorWpfDemo.csproj" />
+  <Project Path="CheawuchewalYicheredurlakearja/CheawuchewalYicheredurlakearja.csproj" />
+  <Project Path="CoursewarePptxGeneratorWpfDemo/CoursewarePptxGeneratorWpfDemo.csproj" />
+</Solution>
