@@ -7,7 +7,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sys="clr-namespace:System.IO;assembly=System.Runtime"
              xmlns:ui="clr-namespace:CoursewarePptxGeneratorWpfDemo.Ui"
+             xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
              Background="{StaticResource LightBackgroundBrush}"
+             d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="760"
              d:DesignWidth="420"
              mc:Ignorable="d">
