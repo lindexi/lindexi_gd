@@ -18,7 +18,11 @@ public sealed class SlideChatManagerFactory
 {
     private const string AgentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
     private const string DefaultModelName = "deepseek-v4-flash";
-    private const string DefaultMcpServiceUrl = "http://127.0.0.1:64773/mcp";
+
+    /// <summary>
+    /// Gets the default MCP service URL used by the courseware renderer.
+    /// </summary>
+    public static string DefaultMcpServiceUrl => "http://127.0.0.1:64773/mcp";
 
     private readonly WpfDispatcher _dispatcher;
 

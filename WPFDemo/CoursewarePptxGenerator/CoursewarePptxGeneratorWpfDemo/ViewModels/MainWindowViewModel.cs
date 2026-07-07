@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using AgentLib;
 using CoursewarePptxGeneratorWpfDemo.Models;
+using CoursewarePptxGeneratorWpfDemo.Rendering;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using PptxGenerator;
 
@@ -18,11 +19,15 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly SlideChatManagerFactory _slideChatManagerFactory;
     private readonly RelayCommand _sendMessageCommand;
     private readonly RelayCommand _rerenderCommand;
+    private readonly RelayCommand _connectMcpCommand;
     private CoursewareSlideItem? _selectedSlide;
     private SlideChatManager _slideChatManager;
     private string _inputText = string.Empty;
     private string _editableSlideXml = string.Empty;
+    private string _mcpServiceUrl = SlideChatManagerFactory.DefaultMcpServiceUrl;
+    private string _mcpStatusText = "本地渲染";
     private bool _isBusy;
+    private bool _isConnectingMcp;
     private bool _attachPreview;
     private string _statusText = "尚未加载课件";
     private CoursewareModelDisplayItem? _selectedModelItem;
@@ -53,6 +58,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         _sendMessageCommand = new RelayCommand(_ => _ = SendMessageAsync(), _ => !IsBusy && !string.IsNullOrWhiteSpace(InputText));
         _rerenderCommand = new RelayCommand(_ => _ = RerenderAsync(), _ => !IsBusy && !string.IsNullOrWhiteSpace(EditableSlideXml));
+        _connectMcpCommand = new RelayCommand(_ => _ = ConnectMcpAsync(), _ => !IsBusy && !IsConnectingMcp && !string.IsNullOrWhiteSpace(McpServiceUrl));
         AddPageCommand = new RelayCommand(_ => AddEmptyPage());
         OpenCoursewareFolderCommand = new RelayCommand(parameter => OpenCoursewareFolder(parameter as string));
 
@@ -197,6 +203,45 @@ public sealed class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Gets or sets the MCP service URL used by the current render pipeline.
+    /// </summary>
+    public string McpServiceUrl
+    {
+        get => _mcpServiceUrl;
+        set
+        {
+            if (SetProperty(ref _mcpServiceUrl, value))
+            {
+                _connectMcpCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the MCP connection status text.
+    /// </summary>
+    public string McpStatusText
+    {
+        get => _mcpStatusText;
+        private set => SetProperty(ref _mcpStatusText, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the MCP connection is being established.
+    /// </summary>
+    public bool IsConnectingMcp
+    {
+        get => _isConnectingMcp;
+        private set
+        {
+            if (SetProperty(ref _isConnectingMcp, value))
+            {
+                _connectMcpCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the current status text.
     /// </summary>
     public string StatusText
@@ -217,6 +262,7 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 _sendMessageCommand.RaiseCanExecuteChanged();
                 _rerenderCommand.RaiseCanExecuteChanged();
+                _connectMcpCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -230,6 +276,11 @@ public sealed class MainWindowViewModel : ObservableObject
     /// Gets the command that reloads the current SlideML preview.
     /// </summary>
     public ICommand RerenderCommand => _rerenderCommand;
+
+    /// <summary>
+    /// Gets the command that connects the current page render pipeline to MCP.
+    /// </summary>
+    public ICommand ConnectMcpCommand => _connectMcpCommand;
 
     /// <summary>
     /// Gets the command that adds an empty page.
@@ -254,6 +305,41 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 AttachedImageFiles.Add(new FileInfo(filePath));
             }
+        }
+    }
+
+    private async Task ConnectMcpAsync()
+    {
+        if (string.IsNullOrWhiteSpace(McpServiceUrl))
+        {
+            return;
+        }
+
+        if (SlideChatManager.SlideMlRenderTool.RenderPipeline is not CoursewareSwitchableSlideMlRenderPipeline renderPipeline)
+        {
+            McpStatusText = "当前管道不支持 MCP";
+            return;
+        }
+
+        IsConnectingMcp = true;
+        McpStatusText = "正在连接 MCP...";
+        var mcpServiceUrl = McpServiceUrl.Trim();
+
+        try
+        {
+            var isEnabled = await renderPipeline.TryEnableMcpAsync(mcpServiceUrl).ConfigureAwait(false);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                McpStatusText = isEnabled ? $"MCP 已连接：{mcpServiceUrl}" : "MCP 连接失败，当前使用本地渲染";
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            await Application.Current.Dispatcher.InvokeAsync(() => McpStatusText = "MCP 连接已取消");
+        }
+        finally
+        {
+            await Application.Current.Dispatcher.InvokeAsync(() => IsConnectingMcp = false);
         }
     }
 
@@ -387,6 +473,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(RenderingLog));
         OnPropertyChanged(nameof(CallbackXml));
         OnPropertyChanged(nameof(HasPreviewImage));
+        RefreshMcpStatusText();
     }
 
     private async Task AddEmptyPageAsync()
@@ -415,6 +502,14 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(SlideChatManager));
         OnPropertyChanged(nameof(CopilotChatManager));
         OnPropertyChanged(nameof(HasPreviewImage));
+        RefreshMcpStatusText();
+    }
+
+    private void RefreshMcpStatusText()
+    {
+        McpStatusText = SlideChatManager.SlideMlRenderTool.RenderPipeline is CoursewareSwitchableSlideMlRenderPipeline { IsMcpEnabled: true }
+            ? "MCP 已连接"
+            : "本地渲染";
     }
 
     private static CoursewareSlideItem CreateEmptySlide(int pageNumber, SlideChatManager slideChatManager)

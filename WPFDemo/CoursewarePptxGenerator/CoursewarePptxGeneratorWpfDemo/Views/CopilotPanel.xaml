@@ -3,9 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:agent="clr-namespace:AgentLib.Model;assembly=AgentLib"
              xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sys="clr-namespace:System.IO;assembly=System.Runtime"
              xmlns:ui="clr-namespace:CoursewarePptxGeneratorWpfDemo.Ui"
-             Background="{StaticResource LightBackgroundBrush}">
+             Background="{StaticResource LightBackgroundBrush}"
+             d:DesignHeight="760"
+             d:DesignWidth="420"
+             mc:Ignorable="d">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
 
@@ -93,6 +98,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -198,7 +204,50 @@
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12">
+        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,8">
+            <Expander FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="高级渲染设置" />
+                        <TextBlock Text=" - " />
+                        <TextBlock Text="{Binding McpStatusText}" FontWeight="SemiBold" />
+                    </StackPanel>
+                </Expander.Header>
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Row="0"
+                             Grid.Column="0"
+                             Text="{Binding McpServiceUrl, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource SingleLineInputTextBoxStyle}"
+                             ToolTip="MCP SlideML 渲染服务地址" />
+                    <Button Grid.Row="0"
+                            Grid.Column="1"
+                            Content="连接 MCP"
+                            Command="{Binding ConnectMcpCommand}"
+                            MinWidth="88"
+                            Height="34"
+                            Margin="8,0,0,0"
+                            Padding="12,4"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="0"
+                               Grid.ColumnSpan="2"
+                               Text="{Binding McpStatusText}"
+                               FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="0,6,0,0" />
+                </Grid>
+            </Expander>
+        </Border>
+
+        <Border Grid.Row="4" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
