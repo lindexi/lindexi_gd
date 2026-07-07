@@ -45,9 +45,36 @@ public class AgentApiEndpointManager
     /// <param name="languageModelProvider">语言模型提供商。</param>
     public void RegisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
     {
+        ArgumentNullException.ThrowIfNull(languageModelProvider);
+
         var languageModels = languageModelProvider.GetSupportedModels();
         SupportedModels.AddRange(languageModels);
         // 有更新内容了，需要重新评估自动选择首选模型
+        _autoSetPrimaryLanguageModel = null;
+    }
+
+    /// <summary>
+    /// 注销指定语言模型提供商注册的语言模型。
+    /// </summary>
+    /// <param name="languageModelProvider">要注销的语言模型提供商。</param>
+    public void UnregisterLanguageModelProvider(ILanguageModelProvider languageModelProvider)
+    {
+        ArgumentNullException.ThrowIfNull(languageModelProvider);
+
+        foreach (ILanguageModel languageModel in languageModelProvider.GetSupportedModels())
+        {
+            SupportedModels.Remove(languageModel);
+            if (ReferenceEquals(_userSetPrimaryLanguageModel, languageModel))
+            {
+                _userSetPrimaryLanguageModel = null;
+            }
+
+            if (ReferenceEquals(_autoSetPrimaryLanguageModel, languageModel))
+            {
+                _autoSetPrimaryLanguageModel = null;
+            }
+        }
+
         _autoSetPrimaryLanguageModel = null;
     }
 
