@@ -77,7 +77,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), WpfDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
         _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), WpfDispatcher.Instance, () => !IsBusy && !IsIterating && slideChatManager.Pipeline.CanRunIteration);
         _rerenderCommand = new DelegateCommand(() => _ = RunRerenderAsync(), WpfDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(_editableSlideXml));
-        _restartFromMessageCommand = new DelegateCommand<CopilotChatMessage>(message => _ = RunRestartFromMessageAsync(message), WpfDispatcher.Instance, message => message is not null && !IsBusy);
+        _restartFromMessageCommand = new DelegateCommand<CopilotChatMessage>(message => _ = RunRestartFromMessageAsync(message), WpfDispatcher.Instance, CanRestartFromMessage);
 
         _ = UseMcpSlideMlRender();
     }
@@ -388,7 +388,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task RunRestartFromMessageAsync(CopilotChatMessage? message)
     {
-        if (message is null || IsBusy)
+        if (!CanRestartFromMessage(message))
         {
             return;
         }
@@ -421,6 +421,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             IsBusy = false;
         }
+    }
+
+    private bool CanRestartFromMessage(CopilotChatMessage? message)
+    {
+        return message is { IsPresetInfo: false }
+            && message.Role == ChatRole.User
+            && !IsBusy
+            && IsStreamingMode;
     }
 
     private async Task RunEvaluateAsync()

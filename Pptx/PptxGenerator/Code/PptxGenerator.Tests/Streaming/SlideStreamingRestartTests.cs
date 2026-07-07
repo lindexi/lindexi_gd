@@ -63,7 +63,7 @@ public sealed class SlideStreamingRestartTests
 
         Assert.AreSame(originalSession, chatManager.Pipeline.ChatManager.SelectedSession, "重新开始结束后应恢复原会话。");
         Assert.AreSame(originalPrimaryModel, chatManager.Pipeline.ChatManager.AgentApiEndpointManager.PrimaryModel, "重新开始结束后应恢复原模型。");
-        Assert.AreEqual(3, recorder.StreamingCallCount, "真实模型只应承担原始两轮和目标重新生成，历史回放由专用回放模型承担。");
+        Assert.AreEqual(3, recorder.StreamingCallCount, "真实模型只应承担原始两轮和目标重新生成，历史回放不应调用聊天模型。");
         Assert.AreEqual(0, recorder.NonStreamingCallCount, "重新开始不应调用非流式接口。");
 
         var userMessages = SlideStreamingTestHelper.GetNormalUserMessages(chatManager)
@@ -121,6 +121,7 @@ public sealed class SlideStreamingRestartTests
         var originalSession = chatManager.Pipeline.ChatManager.SelectedSession;
         var originalPrimaryModel = chatManager.Pipeline.ChatManager.AgentApiEndpointManager.PrimaryModel;
         int originalSessionCount = chatManager.Pipeline.ChatManager.ChatSessions.Count;
+        int originalMessageCount = originalSession.ChatMessages.Count;
         int originalModelCount = chatManager.Pipeline.ChatManager.AgentApiEndpointManager.GetSupportedModels().Count;
 
         await chatManager.RestartFromMessageAsync(targetMessage).ConfigureAwait(false);
@@ -128,6 +129,7 @@ public sealed class SlideStreamingRestartTests
         Assert.AreSame(originalPrimaryModel, chatManager.Pipeline.ChatManager.AgentApiEndpointManager.PrimaryModel, "回放完成后应恢复真实模型。");
         Assert.AreSame(originalSession, chatManager.Pipeline.ChatManager.SelectedSession, "回放完成后应恢复原会话。");
         Assert.AreEqual(originalSessionCount, chatManager.Pipeline.ChatManager.ChatSessions.Count, "回放完成后不应遗留临时回放会话。");
+        Assert.AreEqual(originalMessageCount, originalSession.ChatMessages.Count, "回放不应额外追加可见历史消息，只应截断并重新追加目标轮次。");
         Assert.AreEqual(originalModelCount, chatManager.Pipeline.ChatManager.AgentApiEndpointManager.GetSupportedModels().Count, "回放完成后不应遗留临时回放模型。");
     }
 
@@ -239,8 +241,8 @@ public sealed class SlideStreamingRestartTests
         Assert.IsFalse(chatManager.CurrentSlideXml.Contains("old-second", StringComparison.Ordinal), "目标旧结果不应残留。");
     }
 
-    [TestMethod(DisplayName = "重新开始时历史回放不调用真实模型且目标重新生成使用流式 API")]
-    public async Task RestartFromMessage_ReplaysHistoryWithTemporaryFakeModelAndRegeneratesTargetWithStreamingApi()
+    [TestMethod(DisplayName = "重新开始时历史回放不调用聊天模型且目标重新生成使用流式 API")]
+    public async Task RestartFromMessage_ReplaysHistoryWithoutChatModelAndRegeneratesTargetWithStreamingApi()
     {
         var (chatManager, _, recorder) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTextsAndRecorder(
             CreateRectPageXml("first"),
@@ -252,9 +254,36 @@ public sealed class SlideStreamingRestartTests
 
         await chatManager.RestartFromMessageAsync(GetUserMessage(chatManager, 1)).ConfigureAwait(false);
 
-        Assert.AreEqual(3, recorder.StreamingCallCount, "真实模型应只承担原始两轮生成和目标重新生成，历史回放应由临时 Fake 模型承担。");
+        Assert.AreEqual(3, recorder.StreamingCallCount, "真实模型应只承担原始两轮生成和目标重新生成，历史回放应直接恢复 SlideML 状态。");
         Assert.AreEqual(0, recorder.NonStreamingCallCount, "重新开始链路不应调用非流式接口。");
         Assert.IsTrue(recorder.StreamingMessages.All(messages => messages.Count > 0), "每次流式调用都应携带输入消息。");
+    }
+
+    [TestMethod(DisplayName = "重新开始历史回放不切换可见会话且不追加回放消息")]
+    public async Task RestartFromMessage_ReplaysHistoryWithoutSwitchingVisibleSessionOrAppendingReplayMessages()
+    {
+        var (chatManager, _, recorder) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTextsAndRecorder(
+            CreateRectPageXml("first"),
+            CreateRectPageXml("old-second"),
+            CreateRectPageXml("new-second"));
+
+        await SendStreamingMessageAsync(chatManager, "第一轮", isFirstMessage: true).ConfigureAwait(false);
+        await SendStreamingMessageAsync(chatManager, "第二轮", isFirstMessage: false).ConfigureAwait(false);
+
+        CopilotChatSession originalSession = chatManager.Pipeline.ChatManager.SelectedSession;
+        int originalSessionCount = chatManager.Pipeline.ChatManager.ChatSessions.Count;
+
+        await chatManager.RestartFromMessageAsync(GetUserMessage(chatManager, 1)).ConfigureAwait(false);
+
+        Assert.AreSame(originalSession, chatManager.Pipeline.ChatManager.SelectedSession, "直接回放 SlideML 状态时不应切换可见会话。");
+        Assert.AreEqual(originalSessionCount, chatManager.Pipeline.ChatManager.ChatSessions.Count, "直接回放 SlideML 状态时不应创建临时会话。");
+        Assert.AreEqual(3, recorder.StreamingCallCount, "历史回放不应消耗聊天模型调用次数。");
+        var userMessages = SlideStreamingTestHelper.GetNormalUserMessages(chatManager)
+            .Select(message => message.Content)
+            .ToList();
+        Assert.AreEqual(2, userMessages.Count, "原会话应只保留目标前历史和重新追加的目标用户消息。");
+        StringAssert.Contains(userMessages[0], "第一轮", "第一轮用户消息应保留。");
+        Assert.AreEqual("第二轮", userMessages[1], "目标用户消息应重新追加。");
     }
 
     private static Task SendStreamingMessageAsync(SlideChatManager chatManager, string userMessage, bool isFirstMessage)

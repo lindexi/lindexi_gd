@@ -7,7 +7,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using AgentLib.Model;
 
 using Microsoft.Win32;
 
@@ -173,19 +172,6 @@ public partial class CharUserControl : UserControl
         if (sender is Button { DataContext: FileInfo fileInfo })
         {
             ViewModel.AttachedImageFiles.Remove(fileInfo);
-        }
-    }
-
-    private void RestartFromMessageMenuItem_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is not MenuItem { Parent: ContextMenu { DataContext: CopilotChatMessage message } })
-        {
-            return;
-        }
-
-        if (ViewModel.RestartFromMessageCommand.CanExecute(message))
-        {
-            ViewModel.RestartFromMessageCommand.Execute(message);
         }
     }
 

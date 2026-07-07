@@ -33,6 +33,24 @@ public sealed class ChatBubbleAlignmentConverter : IValueConverter
 }
 
 /// <summary>
+/// 用户聊天消息可见性转换器。
+/// </summary>
+public sealed class UserChatMessageVisibilityConverter : IValueConverter
+{
+    public static readonly UserChatMessageVisibilityConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is ChatRole role && role == ChatRole.User ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
+}
+
+/// <summary>
 /// 聊天气泡背景颜色转换器。
 /// 用户消息蓝色背景，其他浅灰背景。
 /// </summary>
