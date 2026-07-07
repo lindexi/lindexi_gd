@@ -250,8 +250,9 @@ Rect：
 
 TextElement：
 1. TextElement 表示文本。
-2. 属性：Text 在无 Span 时必填；FontName 可选，默认 Microsoft YaHei；FontSize 可选，可为绝对 px 数字，默认 16；IsBold 可选 True、False；IsItalic 可选 True、False；Foreground 可选，默认 #000000；TextAlignment 可选 Left、Center、Right、Justify，默认 Left。
+2. 属性：Text 在无 Span 时必填；FontName 可选，默认 Microsoft YaHei；FontSize 可选，可为绝对 px 数字，默认 16；IsBold 可选 True、False；IsItalic 可选 True、False；Foreground 可选，默认 #000000；TextAlignment 可选 Left、Center、Right，默认 Left。
 3. Width 不写则单行无限宽；写 Width 则在约束宽度内自动换行。
+  - 如果期望文本以一行进行排版，则不要设置 Width，此时文本元素将以宽度自适应模式进行排版。
 4. 可包含 Span 子元素；有 Span 时可省略 Text。
 
 Span：
@@ -282,6 +283,7 @@ Fill、Stroke、LinearGradient、Stop：
 2. 调用 get_slide_state 可获取当前已合并的完整 SlideML XML（包含引擎回填的 RenderSize、RenderLocation、ActualLineCount），用于检查各元素的实际渲染位置和尺寸。
 3. 调用 get_slide_preview 可获取当前页面的渲染截图，用于从视觉层面评估颜色、间距、对齐等效果。
 4. XML 中的 RenderSize、RenderLocation、ActualLineCount 属性由引擎自动回填，不要在输出中设置这些属性。
+5. 需要为文本预留实际渲染的安全边界，建议调用 get_slide_state 获取回填属性，以了解文本的实际渲染位置、尺寸和行数状态，再根据结果调整布局。
 
 示例片段序列：
 <Page Background="#F5F5F5">
