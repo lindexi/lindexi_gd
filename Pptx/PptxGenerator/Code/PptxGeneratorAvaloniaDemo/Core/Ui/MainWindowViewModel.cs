@@ -51,6 +51,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
 
         var pipeline = slideChatManager.Pipeline;
+        pipeline.ChatManager.PropertyChanged += OnCopilotChatManagerPropertyChanged;
         pipeline.EvaluationCompleted += OnEvaluationCompleted;
         pipeline.PromptEvaluationCompleted += OnPromptEvaluationCompleted;
         pipeline.IterationCompleted += OnIterationCompleted;
@@ -85,6 +86,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             case nameof(SlideChatManager.LastEvaluationResult):
             case nameof(SlideChatManager.LastPromptEvaluationResult):
                 OnPropertyChanged(e.PropertyName!);
+                break;
+        }
+    }
+
+    private void OnCopilotChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(AgentLib.CopilotChatManager.ChatMessages):
+            case nameof(AgentLib.CopilotChatManager.CurrentSessionId):
+                OnPropertyChanged(nameof(ChatMessages));
                 break;
         }
     }
@@ -200,7 +212,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// 聊天气泡消息列表。
     /// </summary>
-public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
+    public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
 
     public bool IsBusy
     {

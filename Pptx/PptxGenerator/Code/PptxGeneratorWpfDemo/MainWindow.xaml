@@ -8,7 +8,7 @@
         xmlns:converters="clr-namespace:PptxGeneratorWpfDemo.Converters"
         mc:Ignorable="d"
         Title="PptxGenerator - SlideML Lab"
-        Width="1580" Height="980"
+        Width="1600" Height="1000"
         MinWidth="1280" MinHeight="800"
         d:DesignWidth="1580"
         d:DesignHeight="980"

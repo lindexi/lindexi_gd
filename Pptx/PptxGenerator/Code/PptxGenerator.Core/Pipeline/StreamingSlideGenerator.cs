@@ -11,6 +11,8 @@ using PptxGenerator.Models;
 using PptxGenerator.Prompt;
 using PptxGenerator.Streaming;
 
+#pragma warning disable MAAI001
+
 namespace PptxGenerator.Pipeline;
 
 /// <summary>
@@ -63,7 +65,8 @@ internal sealed class StreamingSlideGenerator
     public async Task GenerateAsync(
         string userMessage, bool isFirstMessage, SlideStreamingState streamingState,
         CancellationToken cancellationToken,
-        bool attachPreview = false)
+        bool attachPreview = false,
+        IChatClient? chatClientOverride = null)
     {
         ArgumentNullException.ThrowIfNull(streamingState);
 
@@ -84,7 +87,8 @@ internal sealed class StreamingSlideGenerator
                 currentMessage, includeSystemPrompt,
                 linkedCancellationTokenSource, cancellationToken,
                 streamingState.Pipeline, streamingState.Context,
-                attachPreview && attempt == 0).ConfigureAwait(false);
+                attachPreview && attempt == 0,
+                chatClientOverride).ConfigureAwait(false);
 
             if (!hasErrors || attempt == MaxRetries)
             {
@@ -109,11 +113,14 @@ internal sealed class StreamingSlideGenerator
     /// <param name="context">渲染上下文（跨轮复用，诊断信息已由调用方重置）。</param>
     /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
     /// <returns>是否检测到异常，以及错误反馈文本（无异常时为空字符串）。</returns>
-    private async Task<(bool HasErrors, string ErrorFeedback)> RunStreamingLoopAsync(
+    private async Task<(bool HasErrors, string ErrorFeedback)> RunStreamingLoopAsync
+    (
         string userMessage, bool includeSystemPrompt,
         CancellationTokenSource errorCancellationTokenSource, CancellationToken externalCancellationToken,
         SlideStreamingPipeline streamingPipeline, SlideMlPipelineContext context,
-        bool attachPreview = false)
+        bool attachPreview = false,
+        IChatClient? chatClientOverride = null
+    )
     {
         var renderErrors = new ConcurrentQueue<string>();
 
@@ -151,22 +158,7 @@ internal sealed class StreamingSlideGenerator
 
             using var _ = manualContext.StartChatting();
 
-            var agent = await manualContext.GetChatClientAgentAsync(
-                options =>
-                {
-                    options.ChatOptions ??= new ChatOptions();
-                    // 流式模式使用查询工具而非渲染工具，渲染由管道自动完成
-                    options.ChatOptions.Tools =
-                    [
-                        _renderTool.CreateSlideStateTool(),
-                        _renderTool.CreatePreviewTool()
-                    ];
-                    //options.ChatOptions.Reasoning = new ReasoningOptions()
-                    //{
-                    //    Effort = ReasoningEffort.None,
-                    //};
-                },
-                externalCancellationToken).ConfigureAwait(false);
+            ChatOptions chatOptions = CreateStreamingChatOptions();
             AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
 
             ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
@@ -191,6 +183,17 @@ internal sealed class StreamingSlideGenerator
 
             try
             {
+                ChatClientAgent agent = chatClientOverride is null
+                    ? await manualContext.GetChatClientAgentAsync(
+                        options => options.ChatOptions = chatOptions,
+                        externalCancellationToken).ConfigureAwait(false)
+                    : chatClientOverride.AsAIAgent(new ChatClientAgentOptions
+                    {
+                        ChatOptions = chatOptions,
+                        ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
+                        RequirePerServiceCallChatHistoryPersistence = true,
+                    });
+
                 await foreach (AgentResponseUpdate update in agent.RunStreamingAsync(
                     inputMessages, session, cancellationToken: loopToken).ConfigureAwait(false))
                 {
@@ -332,4 +335,18 @@ internal sealed class StreamingSlideGenerator
 
         return sb.ToString();
     }
+
+    private ChatOptions CreateStreamingChatOptions()
+    {
+        return new ChatOptions
+        {
+            // 流式模式使用查询工具而非渲染工具，渲染由管道自动完成
+            Tools =
+            [
+                _renderTool.CreateSlideStateTool(),
+                _renderTool.CreatePreviewTool()
+            ],
+        };
+    }
+
 }

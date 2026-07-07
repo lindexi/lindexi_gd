@@ -239,8 +239,8 @@ public sealed class SlideStreamingRestartTests
         Assert.IsFalse(chatManager.CurrentSlideXml.Contains("old-second", StringComparison.Ordinal), "目标旧结果不应残留。");
     }
 
-    [TestMethod(DisplayName = "重新开始时回放和重新生成都使用流式 API")]
-    public async Task RestartFromMessage_UsesStreamingApiForReplayAndTargetRegeneration()
+    [TestMethod(DisplayName = "重新开始时历史回放不调用真实模型且目标重新生成使用流式 API")]
+    public async Task RestartFromMessage_ReplaysHistoryWithTemporaryFakeModelAndRegeneratesTargetWithStreamingApi()
     {
         var (chatManager, _, recorder) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTextsAndRecorder(
             CreateRectPageXml("first"),
@@ -252,7 +252,7 @@ public sealed class SlideStreamingRestartTests
 
         await chatManager.RestartFromMessageAsync(GetUserMessage(chatManager, 1)).ConfigureAwait(false);
 
-        Assert.AreEqual(3, recorder.StreamingCallCount, "真实模型应通过流式接口完成原始生成和目标重新生成。");
+        Assert.AreEqual(3, recorder.StreamingCallCount, "真实模型应只承担原始两轮生成和目标重新生成，历史回放应由临时 Fake 模型承担。");
         Assert.AreEqual(0, recorder.NonStreamingCallCount, "重新开始链路不应调用非流式接口。");
         Assert.IsTrue(recorder.StreamingMessages.All(messages => messages.Count > 0), "每次流式调用都应携带输入消息。");
     }

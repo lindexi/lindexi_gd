@@ -130,12 +130,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
     {
         ArgumentNullException.ThrowIfNull(targetMessage);
 
-        var restartService = new SlideStreamingRestartService(
-            _copilotChatManager,
-            _dispatcher,
-            SendRestartTargetMessageAsync,
-            SendRestartReplayTurnAsync,
-            ResetStreamingRestartStateAsync);
+        var restartService = new SlideStreamingRestartService(this);
 
         await restartService.RestartFromMessageAsync(targetMessage, cancellationToken).ConfigureAwait(false);
     }
@@ -150,7 +145,8 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         bool createNewSession = false,
         bool skipAutoEvaluation = false,
         bool useStreaming = false,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default,
+        IChatClient? chatClientOverride = null
     )
     {
         if (string.IsNullOrWhiteSpace(userMessage))
@@ -174,7 +170,8 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
             await generator.GenerateAsync(
                 userMessage, isFirstMessage, _streamingState, cancellationToken,
-                attachPreview: attachPreview).ConfigureAwait(false);
+                attachPreview: attachPreview,
+                chatClientOverride: chatClientOverride).ConfigureAwait(false);
 
             _ = _dispatcher.InvokeAsync(() =>
             {
@@ -266,33 +263,50 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         }
     }
 
-    private async Task SendRestartTargetMessageAsync(CopilotChatMessage targetMessage, bool isFirstMessage, CancellationToken cancellationToken)
-    {
-        await SendMessageAsync(
-            targetMessage.Content,
-            isFirstMessage,
-            attachPreview: false,
-            skipAutoEvaluation: false,
-            useStreaming: true,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-    }
-
-    private async Task SendRestartReplayTurnAsync(string userText, bool isFirstMessage, CancellationToken cancellationToken)
-    {
-        await SendMessageAsync(
-            userText,
-            isFirstMessage,
-            attachPreview: false,
-            skipAutoEvaluation: true,
-            useStreaming: true,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-    }
-
-    private async Task ResetStreamingRestartStateAsync(CancellationToken cancellationToken)
+    internal async Task ResetStreamingRestartStateAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         _streamingState = null;
         await SlideMlRenderTool.ResetLatestResultAsync().ConfigureAwait(false);
+    }
+
+    internal async Task ReplayStreamingAssistantTextAsync(string assistantText, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(assistantText);
+
+        _streamingState ??= new SlideStreamingState(
+            _promptProvider, SlideMlRenderTool.RenderPipeline, _dispatcher);
+
+        _streamingState.Context.Reset();
+        _streamingState.Pipeline.ResetExtractor();
+
+        void OnRendered(SlideMlRenderResult renderResult)
+        {
+            SlideMlRenderTool.ApplyRenderResult(renderResult);
+        }
+
+        _streamingState.Pipeline.Rendered += OnRendered;
+        try
+        {
+            await _streamingState.Pipeline.ProcessIncrementalTextAsync(
+                assistantText, _streamingState.Context, cancellationToken).ConfigureAwait(false);
+
+            await _streamingState.Pipeline.ProcessStreamEndAsync(
+                _streamingState.Context, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _streamingState.Pipeline.Rendered -= OnRendered;
+        }
+
+        await _dispatcher.InvokeAsync(() =>
+        {
+            OnPropertyChanged(nameof(PreviewImage));
+            OnPropertyChanged(nameof(CurrentSlideXml));
+            OnPropertyChanged(nameof(RenderedXml));
+            OnPropertyChanged(nameof(WarningText));
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
     }
 
     public async Task<SlideEvaluationResult?> EvaluateAsync(string userPrompt, CancellationToken cancellationToken = default)
