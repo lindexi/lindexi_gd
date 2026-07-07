@@ -8,11 +8,18 @@ using Microsoft.Extensions.AI;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+#pragma warning disable MAAI001
+
 namespace AgentLib.Tests;
 
 [TestClass]
 public class CopilotChatManagerManualSendCancellationTests
 {
+    private const string SystemMessageText = "系统消息";
+    private const string UserMessageText = "用户消息";
+    private const string AssistantStreamingText = "助手消息 Streaming 中";
+    private const string ContinueUserMessageText = "请继续";
+
     [TestMethod(DisplayName = "手动发送取消时应补全输入和助手局部输出")]
     public async Task ManualSend_WhenStreamingCancelled_AppendsInputAndPartialAssistantMessages()
     {
@@ -107,6 +114,192 @@ public class CopilotChatManagerManualSendCancellationTests
         Assert.AreEqual("续跑响应，历史消息数：4", messagesAfterSecondLoop[4].Text);
     }
 
+    [TestMethod(DisplayName = "系统用户助手流式工具返回后再次流式取消时续跑应保留完整历史且不重复")]
+    public async Task RunWithHistoryCompletion_WhenCancelledAfterToolResultAndAssistantStreaming_CompletesHistoryForNextLoop()
+    {
+        var fakeChatClient = new FakeChatClient();
+        var callCount = 0;
+        var cancellationTriggerText = "工具后第二段";
+        fakeChatClient.OnGetStreamingResponseAsync = (messages, options, cancellationToken) =>
+        {
+            var currentCall = Interlocked.Increment(ref callCount);
+            return currentCall switch
+            {
+                1 => CreateToolCallAfterTextStreamAsync(options, cancellationToken),
+                2 => CreateTextStreamAsync(cancellationToken, "工具后第一段", cancellationTriggerText, "不会输出"),
+                _ => CreateTextStreamAsync(cancellationToken, $"续跑响应，历史消息数：{messages.Count()}")
+            };
+        };
+
+        AITool weatherTool = AIFunctionFactory.Create(GetWeather);
+        ChatClientAgent agent = CreateAgent(fakeChatClient, [weatherTool]);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        DirectRunResult firstResult = await RunDirectStreamingAsync(
+            agent,
+            session,
+            CreateSystemAndUserInputMessages(),
+            cancellationTokenSource,
+            update =>
+            {
+                if (string.Equals(update.Text, cancellationTriggerText, StringComparison.Ordinal))
+                {
+                    cancellationTokenSource.Cancel();
+                }
+            }).ConfigureAwait(false);
+
+        Assert.IsTrue(firstResult.WasCancelled);
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        AssertSystemUserAndAssistantStreamingPrefix(messages);
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.System, SystemMessageText));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, UserMessageText));
+        Assert.AreEqual(1, CountAssistantTexts(messages, AssistantStreamingText));
+        Assert.AreEqual(1, CountFunctionCalls(messages));
+        Assert.AreEqual(1, CountFunctionResults(messages));
+        Assert.AreEqual(1, CountAssistantTextsContaining(messages, "工具后第一段工具后第二段"));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));
+    }
+
+    [TestMethod(DisplayName = "系统用户助手流式工具返回后取消时续跑应保留工具结果且不重复")]
+    public async Task RunWithHistoryCompletion_WhenCancelledAfterToolResult_CompletesToolResultForNextLoop()
+    {
+        var fakeChatClient = new FakeChatClient();
+        var callCount = 0;
+        fakeChatClient.OnGetStreamingResponseAsync = (messages, _, cancellationToken) =>
+        {
+            var currentCall = Interlocked.Increment(ref callCount);
+            return currentCall switch
+            {
+                1 => CreateToolCallAndResultAfterTextStreamAsync(cancellationToken),
+                _ => CreateTextStreamAsync(cancellationToken, $"续跑响应，历史消息数：{messages.Count()}")
+            };
+        };
+
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        DirectRunResult firstResult = await RunDirectStreamingAsync(
+            agent,
+            session,
+            CreateSystemAndUserInputMessages(),
+            cancellationTokenSource,
+            update =>
+            {
+                if (update.Contents.OfType<FunctionResultContent>().Any())
+                {
+                    cancellationTokenSource.Cancel();
+                }
+            }).ConfigureAwait(false);
+
+        Assert.IsTrue(firstResult.WasCancelled);
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        AssertSystemUserAndAssistantStreamingPrefix(messages);
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.System, SystemMessageText));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, UserMessageText));
+        Assert.AreEqual(1, CountAssistantTexts(messages, AssistantStreamingText));
+        Assert.AreEqual(1, CountFunctionResults(messages));
+        Assert.AreEqual(0, CountAssistantTexts(messages, "工具后第一段"));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));
+    }
+
+    [TestMethod(DisplayName = "系统用户助手流式工具调用后取消时续跑应去掉无结果工具调用")]
+    public async Task RunWithHistoryCompletion_WhenCancelledAfterToolCallWithoutResult_RemovesIncompleteToolCallForNextLoop()
+    {
+        var fakeChatClient = new FakeChatClient();
+        var callCount = 0;
+        fakeChatClient.OnGetStreamingResponseAsync = (messages, _, cancellationToken) =>
+        {
+            var currentCall = Interlocked.Increment(ref callCount);
+            return currentCall switch
+            {
+                1 => CreateToolCallOnlyAfterTextStreamAsync(cancellationToken),
+                _ => CreateTextStreamAsync(cancellationToken, $"续跑响应，历史消息数：{messages.Count()}")
+            };
+        };
+
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        DirectRunResult firstResult = await RunDirectStreamingAsync(
+            agent,
+            session,
+            CreateSystemAndUserInputMessages(),
+            cancellationTokenSource,
+            update =>
+            {
+                if (update.Contents.OfType<FunctionCallContent>().Any())
+                {
+                    cancellationTokenSource.Cancel();
+                }
+            }).ConfigureAwait(false);
+
+        Assert.IsTrue(firstResult.WasCancelled);
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        AssertSystemUserAndAssistantStreamingPrefix(messages);
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.System, SystemMessageText));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, UserMessageText));
+        Assert.AreEqual(1, CountAssistantTexts(messages, AssistantStreamingText));
+        Assert.AreEqual(0, CountFunctionCalls(messages));
+        Assert.AreEqual(0, CountFunctionResults(messages));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));
+    }
+
+    [TestMethod(DisplayName = "系统用户助手流式中取消时续跑应保留局部助手消息")]
+    public async Task RunWithHistoryCompletion_WhenCancelledDuringAssistantStreaming_CompletesPartialAssistantMessageForNextLoop()
+    {
+        var fakeChatClient = new FakeChatClient();
+        var callCount = 0;
+        fakeChatClient.OnGetStreamingResponseAsync = (messages, _, cancellationToken) =>
+        {
+            var currentCall = Interlocked.Increment(ref callCount);
+            return currentCall switch
+            {
+                1 => CreateTextStreamAsync(cancellationToken, AssistantStreamingText, "不会输出"),
+                _ => CreateTextStreamAsync(cancellationToken, $"续跑响应，历史消息数：{messages.Count()}")
+            };
+        };
+
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        DirectRunResult firstResult = await RunDirectStreamingAsync(
+            agent,
+            session,
+            CreateSystemAndUserInputMessages(),
+            cancellationTokenSource,
+            update =>
+            {
+                if (string.Equals(update.Text, AssistantStreamingText, StringComparison.Ordinal))
+                {
+                    cancellationTokenSource.Cancel();
+                }
+            }).ConfigureAwait(false);
+
+        Assert.IsTrue(firstResult.WasCancelled);
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        AssertSystemUserAndAssistantStreamingPrefix(messages);
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.System, SystemMessageText));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, UserMessageText));
+        Assert.AreEqual(1, CountAssistantTexts(messages, AssistantStreamingText));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));
+    }
+
     private static async Task<ManualSendLoopResult> RunManualSendLoopAsync(
         CopilotChatManager chatManager,
         string userMessage,
@@ -136,8 +329,8 @@ public class CopilotChatManagerManualSendCancellationTests
         var wasCancelled = false;
         try
         {
-            await foreach (AgentResponseUpdate update in agent.RunStreamingAsync(
-                inputMessages, session, cancellationToken: loopCancellationTokenSource.Token).ConfigureAwait(false))
+            await foreach (AgentResponseUpdate update in agent.RunWithHistoryCompletionAsync(
+                inputMessages, session, loopCancellationTokenSource.Token).ConfigureAwait(false))
             {
                 manualContext.AppendResponseUpdate(update);
                 currentAssistantResponseUpdateList.Add(update);
@@ -149,135 +342,139 @@ public class CopilotChatManagerManualSendCancellationTests
             wasCancelled = true;
         }
 
-        if (loopCancellationTokenSource.IsCancellationRequested && session.TryGetInMemoryChatHistory(out List<ChatMessage>? chatMessageList))
-        {
-            AppendCancelledManualSendMessages(chatMessageList, inputMessages, currentAssistantResponseUpdateList);
-            session.SetInMemoryChatHistory(chatMessageList);
-        }
-
         return new ManualSendLoopResult(session, currentAssistantResponseUpdateList, wasCancelled);
     }
 
-    private static void AppendCancelledManualSendMessages(
-        List<ChatMessage> chatMessageList,
+    private static async Task<DirectRunResult> RunDirectStreamingAsync(
+        ChatClientAgent agent,
+        AgentSession session,
         IReadOnlyList<ChatMessage> inputMessages,
-        IReadOnlyList<AgentResponseUpdate> currentAssistantResponseUpdateList)
+        CancellationTokenSource loopCancellationTokenSource,
+        Action<AgentResponseUpdate>? onUpdate = null)
     {
-        bool shouldAppendInputMessages = !ContainsMessageSequence(chatMessageList, inputMessages);
-        if (shouldAppendInputMessages)
+        var updates = new List<AgentResponseUpdate>();
+        var wasCancelled = false;
+        try
         {
-            chatMessageList.AddRange(inputMessages);
-        }
-
-        var assistantContents = new List<AIContent>();
-        HashSet<string> existingFunctionCallIds = GetExistingFunctionCallIds(chatMessageList);
-        foreach (AgentResponseUpdate agentResponseUpdate in currentAssistantResponseUpdateList)
-        {
-            foreach (AIContent content in agentResponseUpdate.Contents)
+            await foreach (AgentResponseUpdate update in agent.RunWithHistoryCompletionAsync(
+                inputMessages, session, loopCancellationTokenSource.Token).ConfigureAwait(false))
             {
-                if (content is FunctionCallContent functionCallContent
-                    && existingFunctionCallIds.Contains(functionCallContent.CallId))
+                updates.Add(update);
+                onUpdate?.Invoke(update);
+                if (loopCancellationTokenSource.IsCancellationRequested)
                 {
-                    continue;
-                }
-
-                assistantContents.Add(content);
-            }
-        }
-
-        if (assistantContents.Count == 0 || EndsWithAssistantContents(chatMessageList, assistantContents))
-        {
-            return;
-        }
-
-        chatMessageList.Add(new ChatMessage(ChatRole.Assistant, assistantContents));
-    }
-
-    private static HashSet<string> GetExistingFunctionCallIds(IEnumerable<ChatMessage> chatMessageList)
-    {
-        var result = new HashSet<string>(StringComparer.Ordinal);
-        foreach (ChatMessage chatMessage in chatMessageList)
-        {
-            foreach (FunctionCallContent functionCallContent in chatMessage.Contents.OfType<FunctionCallContent>())
-            {
-                if (!string.IsNullOrWhiteSpace(functionCallContent.CallId))
-                {
-                    result.Add(functionCallContent.CallId);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private static bool EndsWithMessages(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<ChatMessage> expectedTail)
-    {
-        if (messageList.Count < expectedTail.Count)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < expectedTail.Count; i++)
-        {
-            ChatMessage actual = messageList[messageList.Count - expectedTail.Count + i];
-            ChatMessage expected = expectedTail[i];
-            if (actual.Role != expected.Role || !string.Equals(actual.Text, expected.Text, StringComparison.Ordinal))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool ContainsMessageSequence(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<ChatMessage> expectedSequence)
-    {
-        if (expectedSequence.Count == 0)
-        {
-            return true;
-        }
-
-        if (messageList.Count < expectedSequence.Count)
-        {
-            return false;
-        }
-
-        for (var startIndex = 0; startIndex <= messageList.Count - expectedSequence.Count; startIndex++)
-        {
-            var matched = true;
-            for (var i = 0; i < expectedSequence.Count; i++)
-            {
-                ChatMessage actual = messageList[startIndex + i];
-                ChatMessage expected = expectedSequence[i];
-                if (actual.Role != expected.Role || !string.Equals(actual.Text, expected.Text, StringComparison.Ordinal))
-                {
-                    matched = false;
+                    wasCancelled = true;
                     break;
                 }
             }
-
-            if (matched)
-            {
-                return true;
-            }
         }
-
-        return false;
-    }
-
-    private static bool EndsWithAssistantContents(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<AIContent> assistantContents)
-    {
-        if (messageList.Count == 0 || messageList[^1].Role != ChatRole.Assistant)
+        catch (OperationCanceledException) when (loopCancellationTokenSource.IsCancellationRequested)
         {
-            return false;
+            wasCancelled = true;
         }
 
-        return string.Equals(messageList[^1].Text, GetText(assistantContents), StringComparison.Ordinal);
+        return new DirectRunResult(updates, wasCancelled);
     }
 
-    private static string GetText(IEnumerable<AIContent> contents)
+    private static async Task<AgentSession> CreateSessionAsync(FakeChatClient fakeChatClient, IReadOnlyList<AITool>? tools = null)
     {
-        return string.Concat(contents.OfType<TextContent>().Select(content => content.Text));
+        var chatOptions = new ChatOptions();
+        if (tools is not null)
+        {
+            chatOptions.Tools = [.. tools];
+        }
+
+        ChatClientAgent agent = fakeChatClient.AsAIAgent(new ChatClientAgentOptions
+        {
+            ChatOptions = chatOptions,
+            ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
+            RequirePerServiceCallChatHistoryPersistence = true,
+        });
+
+        return await agent.CreateSessionAsync().ConfigureAwait(false);
+    }
+
+    private static ChatClientAgent CreateAgent(FakeChatClient fakeChatClient, IReadOnlyList<AITool>? tools = null)
+    {
+        var chatOptions = new ChatOptions();
+        if (tools is not null)
+        {
+            chatOptions.Tools = [.. tools];
+        }
+
+        return fakeChatClient.AsAIAgent(new ChatClientAgentOptions
+        {
+            ChatOptions = chatOptions,
+            ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
+            RequirePerServiceCallChatHistoryPersistence = true,
+        });
+    }
+
+    private static ChatMessage[] CreateSystemAndUserInputMessages()
+    {
+        return
+        [
+            new ChatMessage(ChatRole.System, SystemMessageText),
+            new ChatMessage(ChatRole.User, UserMessageText),
+        ];
+    }
+
+    private static void AssertSystemUserAndAssistantStreamingPrefix(IReadOnlyList<ChatMessage> messages)
+    {
+        Assert.IsGreaterThanOrEqualTo(3, messages.Count);
+        Assert.AreEqual(ChatRole.System, messages[0].Role);
+        Assert.AreEqual(SystemMessageText, messages[0].Text);
+        Assert.AreEqual(ChatRole.User, messages[1].Role);
+        Assert.AreEqual(UserMessageText, messages[1].Text);
+        Assert.AreEqual(ChatRole.Assistant, messages[2].Role);
+        Assert.AreEqual(AssistantStreamingText, messages[2].Text);
+    }
+
+    private static int CountMessages(IReadOnlyList<ChatMessage> messages, ChatRole role, string text)
+    {
+        return messages.Count(message => message.Role == role && string.Equals(message.Text, text, StringComparison.Ordinal));
+    }
+
+    private static int CountAssistantTexts(IReadOnlyList<ChatMessage> messages, string text)
+    {
+        return messages.Count(message => message.Role == ChatRole.Assistant && string.Equals(message.Text, text, StringComparison.Ordinal));
+    }
+
+    private static int CountAssistantTextsContaining(IReadOnlyList<ChatMessage> messages, string text)
+    {
+        return messages.Count(message => message.Role == ChatRole.Assistant && message.Text.Contains(text, StringComparison.Ordinal));
+    }
+
+    private static int CountFunctionCalls(IReadOnlyList<ChatMessage> messages)
+    {
+        return messages.SelectMany(message => message.Contents).OfType<FunctionCallContent>().Count();
+    }
+
+    private static int CountFunctionResults(IReadOnlyList<ChatMessage> messages)
+    {
+        return messages.SelectMany(message => message.Contents).OfType<FunctionResultContent>().Count();
+    }
+
+    private static int CountFunctionCalls(IReadOnlyList<ChatMessage> messages, string callId)
+    {
+        return messages.SelectMany(message => message.Contents).OfType<FunctionCallContent>()
+            .Count(content => string.Equals(content.CallId, callId, StringComparison.Ordinal));
+    }
+
+    private static int CountFunctionResults(IReadOnlyList<ChatMessage> messages, string callId)
+    {
+        return messages.SelectMany(message => message.Contents).OfType<FunctionResultContent>()
+            .Count(content => string.Equals(content.CallId, callId, StringComparison.Ordinal));
+    }
+
+    private static async Task RunSecondLoopAsync(ChatClientAgent agent, AgentSession session)
+    {
+        using var cancellationTokenSource = new CancellationTokenSource();
+        await RunDirectStreamingAsync(
+            agent,
+            session,
+            [new ChatMessage(ChatRole.User, ContinueUserMessageText)],
+            cancellationTokenSource).ConfigureAwait(false);
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateTextStreamAsync(
@@ -290,6 +487,72 @@ public class CopilotChatManagerManualSendCancellationTests
             yield return CopilotChatManagerTestContext.AssistantText(text);
             await Task.Yield();
         }
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolCallAfterTextStreamAsync(
+        ChatOptions? options,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantText(AssistantStreamingText);
+        await Task.Yield();
+
+        await foreach (ChatResponseUpdate update in CreateToolCallStreamAsync(options, cancellationToken).ConfigureAwait(false))
+        {
+            yield return update;
+        }
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolCallOnlyAfterTextStreamAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantText(AssistantStreamingText);
+        await Task.Yield();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantFunctionCall("weather-call-1", nameof(GetWeather));
+        await Task.Yield();
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolCallAndResultAfterTextStreamAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (ChatResponseUpdate update in CreateToolCallOnlyAfterTextStreamAsync(cancellationToken).ConfigureAwait(false))
+        {
+            yield return update;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantFunctionResult("weather-call-1", GetWeather());
+        await Task.Yield();
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolCallResultAndTextAfterTextStreamAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        params string[] texts)
+    {
+        await foreach (ChatResponseUpdate update in CreateToolCallAndResultAfterTextStreamAsync(cancellationToken).ConfigureAwait(false))
+        {
+            yield return update;
+        }
+
+        foreach (string text in texts)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return CopilotChatManagerTestContext.AssistantText(text);
+            await Task.Yield();
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CancelBeforeTextStreamAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantText("不会输出");
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolCallStreamAsync(
@@ -313,6 +576,10 @@ public class CopilotChatManagerManualSendCancellationTests
 
     private sealed record ManualSendLoopResult(
         AgentSession Session,
+        IReadOnlyList<AgentResponseUpdate> Updates,
+        bool WasCancelled);
+
+    private sealed record DirectRunResult(
         IReadOnlyList<AgentResponseUpdate> Updates,
         bool WasCancelled);
 }
