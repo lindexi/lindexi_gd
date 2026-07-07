@@ -137,4 +137,12 @@ public sealed class SlideMlLayoutEngineInternalTests
 
         Assert.AreEqual(50, result);
     }
+
+    [TestMethod(DisplayName = "默认文本行高大于字号")]
+    public void CalculateDefaultTextLineHeight_ReturnsReadableLineHeight()
+    {
+        var result = SlideMlLayoutEngine.CalculateDefaultTextLineHeight(48);
+
+        Assert.AreEqual(60, result, 0.01);
+    }
 }

@@ -9,6 +9,8 @@ namespace PptxGenerator.Rendering;
 /// </summary>
 public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 {
+    internal const double DefaultTextLineHeightRatio = 1.25;
+
     /// <inheritdoc />
     public void PreLayout(SlideMlPage page, SlideMlPipelineContext context)
     {
@@ -390,7 +392,7 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
 
         if (useMeasured && text.Height is double fixedHeight && measurements is not null && measurements.TryGetValue(text.Id, out var mr))
         {
-            var lineHeight = text.FontSize;
+            var lineHeight = CalculateDefaultTextLineHeight(text.FontSize);
             if (mr.MeasuredHeight > fixedHeight + 0.1)
             {
                 var averageLineHeight = text.ActualLineCount == 0 ? lineHeight : mr.MeasuredHeight / text.ActualLineCount;
@@ -400,6 +402,16 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         }
 
         ValidateBounds(text, parentBounds, parentId, clipToParent, context);
+    }
+
+    /// <summary>
+    /// 根据 SlideML 默认规则计算文本行高。
+    /// </summary>
+    /// <param name="fontSize">文本字号。</param>
+    /// <returns>文本行高。</returns>
+    public static double CalculateDefaultTextLineHeight(double fontSize)
+    {
+        return fontSize * DefaultTextLineHeightRatio;
     }
 
     private static void LayoutImage(

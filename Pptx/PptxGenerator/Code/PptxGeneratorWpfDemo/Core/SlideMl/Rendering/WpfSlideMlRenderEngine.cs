@@ -149,7 +149,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 
         var maxWidth = text.Width ?? 10000;
         var maxHeight = text.Height ?? 10000;
-        var lineHeight = text.FontSize;
+        var lineHeight = SlideMlLayoutEngine.CalculateDefaultTextLineHeight(text.FontSize);
 
         if (text.Spans is { Count: > 0 })
         {
@@ -211,6 +211,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
             var spanFontWeight = MapIsBold(span.IsBold ?? text.IsBold);
             var spanFontName = span.FontName ?? text.FontName;
             var spanFontSize = span.FontSize ?? text.FontSize;
+            var spanLineHeight = SlideMlLayoutEngine.CalculateDefaultTextLineHeight(spanFontSize);
             var spanForeground = CreateBrush(span.Foreground ?? text.Foreground, Colors.Black);
             var spanFontStyle = MapIsItalic(span.IsItalic ?? text.IsItalic);
 
@@ -228,7 +229,7 @@ internal sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
                 TextAlignment = MapTextAlignment(text.TextAlignment),
                 MaxTextWidth = text.Width is null ? 0 : Math.Max(0, maxWidth - totalWidth),
                 MaxTextHeight = maxHeight,
-                LineHeight = lineHeight,
+                LineHeight = spanLineHeight,
             };
 
             formattedTexts.Add(ft);
