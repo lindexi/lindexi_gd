@@ -8,4 +8,12 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DotNetCampus.ModelContextProtocol" Version="0.1.0-alpha.40" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Pptx\PptxGenerator\Code\PptxGenerator.Core\PptxGenerator.Core.csproj" />
+  </ItemGroup>
+
 </Project>

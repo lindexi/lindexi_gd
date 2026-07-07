@@ -1,0 +1,49 @@
+using PptxGenerator;
+
+namespace CoursewarePptxGeneratorWpfDemo.Models;
+
+/// <summary>
+/// Represents a slide item in the courseware workspace.
+/// </summary>
+public sealed class CoursewareSlideItem
+{
+    /// <summary>
+    /// Gets the independent SlideML chat manager for this slide.
+    /// </summary>
+    public required SlideChatManager SlideChatManager { get; init; }
+
+    /// <summary>
+    /// Gets the one-based page number.
+    /// </summary>
+    public required int PageNumber { get; init; }
+
+    /// <summary>
+    /// Gets the slide title.
+    /// </summary>
+    public required string Title { get; init; }
+
+    /// <summary>
+    /// Gets the slide summary.
+    /// </summary>
+    public required string Summary { get; init; }
+
+    /// <summary>
+    /// Gets the current processing status text.
+    /// </summary>
+    public required string Status { get; init; }
+
+    /// <summary>
+    /// Gets the SlideML content for the slide.
+    /// </summary>
+    public required string SlideMl { get; init; }
+
+    /// <summary>
+    /// Gets the rendering log for the slide.
+    /// </summary>
+    public required string RenderingLog { get; init; }
+
+    /// <summary>
+    /// Gets the callback XML content for the slide.
+    /// </summary>
+    public required string CallbackXml { get; init; }
+}

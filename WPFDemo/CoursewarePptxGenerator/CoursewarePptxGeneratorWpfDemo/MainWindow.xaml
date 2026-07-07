@@ -3,10 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:CoursewarePptxGeneratorWpfDemo"
+        xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Courseware Pptx Generator - SlideML Lab"
+        Height="1000"
+        Width="1720"
+        MinHeight="820"
+        MinWidth="1360"
+        WindowStartupLocation="CenterScreen">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="420" />
+        </Grid.ColumnDefinitions>
 
+        <views:LeftSidebarPanel Grid.Column="0" />
+        <views:MainContentPanel Grid.Column="1" />
+        <views:CopilotPanel Grid.Column="2" />
     </Grid>
 </Window>
