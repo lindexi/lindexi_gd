@@ -159,6 +159,23 @@ internal sealed class StreamingSlideGenerator
             using var _ = manualContext.StartChatting();
 
             ChatOptions chatOptions = CreateStreamingChatOptions();
+            ChatClientAgent agent;
+            if (chatClientOverride is null)
+            {
+                agent = await manualContext.GetChatClientAgentAsync(options => options.ChatOptions = chatOptions,
+                    externalCancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                agent = chatClientOverride.AsAIAgent(new ChatClientAgentOptions
+                {
+                    ChatOptions = chatOptions,
+                    ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
+                    RequirePerServiceCallChatHistoryPersistence = true,
+                });
+            }
+
             AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
 
             ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
@@ -183,16 +200,7 @@ internal sealed class StreamingSlideGenerator
 
             try
             {
-                ChatClientAgent agent = chatClientOverride is null
-                    ? await manualContext.GetChatClientAgentAsync(
-                        options => options.ChatOptions = chatOptions,
-                        externalCancellationToken).ConfigureAwait(false)
-                    : chatClientOverride.AsAIAgent(new ChatClientAgentOptions
-                    {
-                        ChatOptions = chatOptions,
-                        ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
-                        RequirePerServiceCallChatHistoryPersistence = true,
-                    });
+                
 
                 await foreach (AgentResponseUpdate update in agent.RunStreamingAsync(
                     inputMessages, session, cancellationToken: loopToken).ConfigureAwait(false))
