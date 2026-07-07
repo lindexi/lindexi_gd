@@ -196,17 +196,12 @@ internal sealed class StreamingSlideGenerator
 
             var loopToken = errorCancellationTokenSource.Token;
 
-            var currentAssistantResponseUpdateList = new List<AgentResponseUpdate>();
-
             try
             {
-                
-
-                await foreach (AgentResponseUpdate update in agent.RunStreamingAsync(
+                await foreach (AgentResponseUpdate update in agent.RunWithHistoryCompletionAsync(
                     inputMessages, session, cancellationToken: loopToken).ConfigureAwait(false))
                 {
                     manualContext.AppendResponseUpdate(update);
-                    currentAssistantResponseUpdateList.Add(update);
 
                     if (string.IsNullOrEmpty(update.Text))
                     {
@@ -228,52 +223,6 @@ internal sealed class StreamingSlideGenerator
             catch (OperationCanceledException) when (errorCancellationTokenSource.IsCancellationRequested && !externalCancellationToken.IsCancellationRequested)
             {
                 // 由异常检测触发的取消，非外部取消，继续走错误反馈流程
-            }
-
-            // 被打断了，但也依然需要将用户消息和 LLM 的输出追加到会话中，以便后续的错误反馈调用。为什么不放在 catch 里面做？原因就是可能刚好干完了
-            if (errorCancellationTokenSource.IsCancellationRequested && session.TryGetInMemoryChatHistory(out var chatMessageList))
-            {
-                // 倒数匹配，如何能够和 messages 一样的，就不用追加，否则就要追加
-                bool shouldAppendInputMessages = false;
-                if (chatMessageList.Count >= inputMessages.Length)
-                {
-                    for (var i = 0; i < inputMessages.Length; i++)
-                    {
-                        var index = chatMessageList.Count - inputMessages.Length + i;
-                        if (chatMessageList[index] != inputMessages[i])
-                        {
-                            // 逻辑不严谨，但是也差不多，不会说只有一个不相同
-                            shouldAppendInputMessages = true;
-                        }
-                    }
-                }
-                else
-                {
-                    shouldAppendInputMessages = true;
-                }
-
-                if (shouldAppendInputMessages)
-                {
-                    chatMessageList.AddRange(inputMessages);
-                }
-
-                // 是否应该追加 LLM 的输出？最后一次非 LLM 输出，则追加。判断 `[^1]` 是安全的，因为必定前面有用户消息
-                var shouldAppendAssistantMessages = chatMessageList[^1].Role != ChatRole.Assistant;
-
-                if (shouldAppendAssistantMessages)
-                {
-                    var assistantContents = new List<AIContent>();
-                    foreach (AgentResponseUpdate agentResponseUpdate in currentAssistantResponseUpdateList)
-                    {
-                        assistantContents.AddRange(agentResponseUpdate.Contents);
-                    }
-
-                    var assistantChatMessage = new ChatMessage(ChatRole.Assistant, assistantContents);
-                    chatMessageList.Add(assistantChatMessage);
-                }
-             
-
-                session.SetInMemoryChatHistory(chatMessageList);
             }
 
             // 收集所有错误信息
