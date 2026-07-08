@@ -371,6 +371,37 @@ public sealed class SlideMlStreamingMergerTests
         Assert.IsNull(doc.Root.Element("Rect"), "Page 根元素下不应包含 template 悬空元素");
     }
 
+    [TestMethod(DisplayName = "首片段为悬空样式元素：先暂存样式，后续 Page 成为根并可引用样式")]
+    public void FirstFragment_DanglingStyleElement_PageBecomesRootAndCanReferenceStyle()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act — 首个片段不是 Page，而是合法悬空样式元素
+        merger.AcceptFragment("<Rect Id=\"card-template\" StyleId=\"card-style\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>", context);
+        var xmlAfterDanglingFragment = merger.GetMergedXml();
+
+        merger.AcceptFragment("<Page><Rect Id=\"card1\" StyleFrom=\"card-style\" X=\"10\" Y=\"20\"/></Page>", context);
+
+        // Assert — 当前实现会将首个悬空元素暂存为内部根；Page 到来后降级为悬空样式源
+        Assert.IsEmpty(context.Errors, "合法悬空样式元素不应产生错误");
+        Assert.Contains("card-template", xmlAfterDanglingFragment, "Page 到来前，合并器内部状态会保留首个悬空样式元素");
+
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        Assert.AreEqual("Page", doc.Root!.Name.LocalName, "后续 Page 片段应成为最终可渲染根元素");
+        Assert.IsNull(doc.Root.Element("Rect")?.Attribute("Id")?.Value == "card-template" ? doc.Root.Element("Rect") : null, "悬空样式元素不应作为 Page 子元素渲染");
+
+        var card1 = doc.Root.Elements("Rect").Single(e => e.Attribute("Id")?.Value == "card1");
+        Assert.AreEqual("#FF0000", card1.Attribute("Fill")?.Value, "Page 内元素应能通过 StyleFrom 继承首片段悬空样式");
+        Assert.AreEqual("100", card1.Attribute("Width")?.Value, "Page 内元素应继承悬空样式 Width");
+        Assert.AreEqual("50", card1.Attribute("Height")?.Value, "Page 内元素应继承悬空样式 Height");
+        Assert.AreEqual("10", card1.Attribute("X")?.Value, "自身显式属性优先保留");
+        Assert.AreEqual("20", card1.Attribute("Y")?.Value, "自身显式属性优先保留");
+        Assert.IsNull(card1.Attribute("StyleFrom"), "StyleFrom 应在应用后被移除");
+    }
+
     [TestMethod]
     public void StyleFrom_CopiesSourceAttributes()
     {

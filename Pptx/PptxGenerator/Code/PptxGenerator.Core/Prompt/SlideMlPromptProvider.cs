@@ -196,9 +196,10 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 1. 输出是连续 XML 片段序列。每个片段是一个完整的顶层 XML 元素。
 2. 通常先输出 <Page>...</Page> 定义页面背景和初始布局，再继续输出 <Panel>、<Rect>、<TextElement>、<Image>、<Page> 或 <Remove> 片段来补充、修改、重排或删除内容。
 3. Page 是根容器，最终只有一个 Page。Page 可作为后续片段再次出现，用于更新页面属性或调整顶层结构。
-4. Panel、Rect、TextElement、Image 必须有 Id。复用已有 Id 表示更新该元素。不要把同一个 Id 用作两个不同元素；不要让同一个 Id 出现在两个不同父容器下；同一片段内不要出现重复 Id。
-5. Span、Fill、Stroke、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId。
-6. 不在 Page 子树内、作为顶层片段输出的 Panel、Rect、TextElement、Image 是悬空元素。悬空元素不参与渲染，只供 StyleFrom 引用。悬空元素必须声明 StyleId 属性，否则报错并中断。悬空元素创建后，不要再把同一个 Id 放入 Page 或 Panel 子树。
+4. 首片段应该是 <Page>...</Page> ，不能是其他标签
+5. Panel、Rect、TextElement、Image 必须有 Id。复用已有 Id 表示更新该元素。不要把同一个 Id 用作两个不同元素；不要让同一个 Id 出现在两个不同父容器下；同一片段内不要出现重复 Id。
+6. Span、Fill、Stroke、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId。
+7. 不在 Page 子树内、作为顶层片段输出的 Panel、Rect、TextElement、Image 是悬空元素。悬空元素不参与渲染，只供 StyleFrom 引用。悬空元素必须声明 StyleId 属性，否则报错并中断。悬空元素创建后，不要再把同一个 Id 放入 Page 或 Panel 子树。
 
 流式合并规则：
 1. 解析器用 Id 匹配已有元素。匹配到已有元素时，片段中显式声明的属性覆盖旧值；片段中未声明的属性保留旧值；片段中未声明的子元素保留旧子元素。

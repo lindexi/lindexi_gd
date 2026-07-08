@@ -106,6 +106,45 @@ public sealed class SlideStreamingPipelineTests
         Assert.HasCount(1, renderedResults);
     }
 
+    [TestMethod(DisplayName = "首片段为悬空样式元素：暂存样式，后续 Page 引用后形成可渲染页面")]
+    public async Task ProcessIncrementalTextAsync_FirstFragmentDanglingStyleElement_ThenPageCanReferenceStyle()
+    {
+        // Arrange
+        var pipeline = CreatePipelineWithRealRenderEngine();
+        var context = new SlideMlPipelineContext();
+        var renderedResults = new List<SlideMlRenderResult>();
+        pipeline.Rendered += renderedResults.Add;
+
+        // Act — 首个片段不是 Page，而是仅用于样式复用的悬空元素
+        await pipeline.ProcessIncrementalTextAsync(
+            "<Rect Id=\"card-template\" StyleId=\"card-style\" Fill=\"#FF0000\" Width=\"100\" Height=\"50\"/>",
+            context);
+        var xmlAfterDanglingFragment = pipeline.CurrentMergedXml;
+        var errorsAfterDanglingFragment = context.Errors.ToArray();
+        context.Reset();
+
+        await pipeline.ProcessIncrementalTextAsync(
+            "<Page><Rect Id=\"card1\" StyleFrom=\"card-style\" X=\"10\" Y=\"20\"/></Page>",
+            context);
+
+        // Assert — 当前实现会先保留悬空样式状态；实时渲染层会报告首片段尚不是 Page
+        Assert.IsNotEmpty(errorsAfterDanglingFragment, "首个悬空样式片段尚未形成 Page，实时渲染层会记录当前状态不可渲染");
+        Assert.IsEmpty(context.Errors, "后续 Page 引用悬空样式时不应产生新的错误");
+        Assert.Contains("card-template", xmlAfterDanglingFragment, "Page 到来前，管道内部合并状态会暂存悬空样式元素");
+
+        var doc = System.Xml.Linq.XDocument.Parse(pipeline.CurrentMergedXml);
+        Assert.AreEqual("Page", doc.Root!.Name.LocalName, "后续 Page 应成为最终可渲染根元素");
+        Assert.IsFalse(
+            doc.Root.Elements().Any(e => e.Attribute("Id")?.Value == "card-template"),
+            "悬空样式元素不应进入 Page 子树参与渲染");
+
+        var card1 = doc.Root.Elements("Rect").Single(e => e.Attribute("Id")?.Value == "card1");
+        Assert.AreEqual("#FF0000", card1.Attribute("Fill")?.Value, "Page 内元素应继承悬空样式 Fill");
+        Assert.AreEqual("100", card1.Attribute("Width")?.Value, "Page 内元素应继承悬空样式 Width");
+        Assert.AreEqual("50", card1.Attribute("Height")?.Value, "Page 内元素应继承悬空样式 Height");
+        Assert.IsTrue(renderedResults.Count >= 2, "首个悬空样式片段和后续 Page 片段都会触发管道渲染事件以暴露当前状态");
+    }
+
     [TestMethod(DisplayName = "验证最终渲染触发")]
     public async Task ProcessStreamEndAsync_FinalRender_Triggers()
     {
