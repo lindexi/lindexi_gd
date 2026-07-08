@@ -252,7 +252,7 @@ public sealed class ChatRoomRole
     }
 
     /// <summary>
-    /// 构建角色的 SystemPrompt，包含角色人设、记忆内容和聊天室协作指引。
+    /// 构建角色的 SystemPrompt，包含聊天室协作指引、当前角色身份、角色人设和记忆内容。
     /// 仅在首次发言时调用。
     /// </summary>
     /// <returns>SystemPrompt 文本；如果角色未配置人设和记忆，返回 <see langword="null"/>。</returns>
@@ -260,8 +260,35 @@ public sealed class ChatRoomRole
     {
         var sb = new StringBuilder();
 
+        // 注入聊天室上下文（角色列表、@用法、协作指引）
+        if (!string.IsNullOrWhiteSpace(ChatRoomContext))
+        {
+            sb.AppendLine(ChatRoomContext);
+        }
+
+        if (!string.IsNullOrWhiteSpace(Definition.RoleName) || !string.IsNullOrWhiteSpace(Definition.RoleId))
+        {
+            if (sb.Length > 0)
+            {
+                sb.AppendLine();
+            }
+            sb.AppendLine("你当前在聊天室中的身份：");
+            if (!string.IsNullOrWhiteSpace(Definition.RoleName))
+            {
+                sb.AppendLine($"- 角色名：{Definition.RoleName}");
+            }
+            if (!string.IsNullOrWhiteSpace(Definition.RoleId))
+            {
+                sb.AppendLine($"- 角色 Id：{Definition.RoleId}");
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(Definition.SystemPrompt))
         {
+            if (sb.Length > 0)
+            {
+                sb.AppendLine();
+            }
             sb.AppendLine(Definition.SystemPrompt);
         }
 
@@ -273,16 +300,6 @@ public sealed class ChatRoomRole
             }
             sb.AppendLine("你的记忆内容：");
             sb.AppendLine(Definition.MemoryContent);
-        }
-
-        // 注入聊天室上下文（角色列表、@用法、协作指引）
-        if (!string.IsNullOrWhiteSpace(ChatRoomContext))
-        {
-            if (sb.Length > 0)
-            {
-                sb.AppendLine();
-            }
-            sb.AppendLine(ChatRoomContext);
         }
 
         return sb.Length > 0 ? sb.ToString().TrimEnd() : null;
