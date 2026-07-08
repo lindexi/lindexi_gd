@@ -70,10 +70,53 @@
                                                      PlaceholderText="API 地址 (https://...)" />
                                             <TextBox Classes="Rounded" Text="{Binding Key}"
                                                      PlaceholderText="API 密钥" PasswordChar="*" />
-                                            <TextBox Classes="Rounded" Text="{Binding ModelsText}"
-                                                     PlaceholderText="模型列表，每行一个: ModelName,ModelId,flash"
-                                                     AcceptsReturn="True" TextWrapping="Wrap"
-                                                     MinHeight="60" FontSize="12" />
+                                             <Border Background="{StaticResource SurfaceBrush}"
+                                                     CornerRadius="6" Padding="12">
+                                                 <StackPanel Spacing="10">
+                                                     <Grid ColumnDefinitions="*,Auto">
+                                                         <StackPanel Spacing="2">
+                                                             <TextBlock Text="模型" Classes="Subtitle" />
+                                                             <TextBlock Text="模型显示名用于界面选择，模型 ID 用于实际请求。"
+                                                                        Classes="Subtitle" TextWrapping="Wrap" />
+                                                         </StackPanel>
+                                                         <Button Grid.Column="1" Classes="Flat" Content="+ 添加模型"
+                                                                 Command="{Binding AddModelCommand}" />
+                                                     </Grid>
+
+                                                     <ItemsControl ItemsSource="{Binding Models}">
+                                                         <ItemsControl.ItemTemplate>
+                                                             <DataTemplate x:DataType="vm:ModelEditViewModel">
+                                                                 <Border Background="{StaticResource SurfaceVariantBrush}"
+                                                                         CornerRadius="6" Padding="10" Margin="0,4">
+                                                                     <StackPanel Spacing="8">
+                                                                         <Grid ColumnDefinitions="*,Auto">
+                                                                             <TextBlock Text="模型配置" Classes="Subtitle" />
+                                                                             <Button Grid.Column="1" Classes="Danger Small" Content="删除"
+                                                                                     Command="{Binding RemoveCommand}" />
+                                                                         </Grid>
+                                                                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                                                             <StackPanel Spacing="4">
+                                                                                 <TextBlock Text="模型显示名" Classes="Subtitle" />
+                                                                                 <TextBox Classes="Rounded" Text="{Binding ModelName}"
+                                                                                          PlaceholderText="例如 GPT-4o" />
+                                                                             </StackPanel>
+                                                                             <StackPanel Grid.Column="1" Spacing="4">
+                                                                                 <TextBlock Text="模型 ID" Classes="Subtitle" />
+                                                                                 <TextBox Classes="Rounded" Text="{Binding ModelId}"
+                                                                                          PlaceholderText="为空则使用显示名" />
+                                                                             </StackPanel>
+                                                                         </Grid>
+                                                                         <StackPanel Orientation="Horizontal" Spacing="16">
+                                                                             <CheckBox Content="Flash" IsChecked="{Binding IsFlash}" />
+                                                                             <CheckBox Content="视觉 (Image)" IsChecked="{Binding IsVision}" />
+                                                                         </StackPanel>
+                                                                     </StackPanel>
+                                                                 </Border>
+                                                             </DataTemplate>
+                                                         </ItemsControl.ItemTemplate>
+                                                     </ItemsControl>
+                                                 </StackPanel>
+                                             </Border>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>

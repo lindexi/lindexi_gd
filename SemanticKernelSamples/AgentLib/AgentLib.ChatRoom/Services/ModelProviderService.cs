@@ -60,7 +60,7 @@ public sealed class ModelProviderService
                     Provider = provider.Name,
                     ModelName = m.ModelName,
                     ModelId = m.ModelId,
-                    Capabilities = BuildDefaultCapabilities(m.IsFlash),
+                    Capabilities = BuildDefaultCapabilities(m.IsFlash, m.IsVision),
                 }).ToList(),
             };
 
@@ -100,14 +100,14 @@ public sealed class ModelProviderService
         return result;
     }
 
-    private static global::AgentLib.Core.AgentApiManagers.Contexts.LlmModelCapabilities BuildDefaultCapabilities(bool isFlash)
+    private static global::AgentLib.Core.AgentApiManagers.Contexts.LlmModelCapabilities BuildDefaultCapabilities(bool isFlash, bool isVision)
     {
         return new global::AgentLib.Core.AgentApiManagers.Contexts.LlmModelCapabilities
         {
             Temperature = true,
             Reasoning = !isFlash,
             ToolCall = true,
-            Input = new global::AgentLib.Core.AgentApiManagers.Contexts.LlmModalityCapability { Text = true },
+            Input = new global::AgentLib.Core.AgentApiManagers.Contexts.LlmModalityCapability { Text = true, Image = isVision },
             Output = new global::AgentLib.Core.AgentApiManagers.Contexts.LlmModalityCapability { Text = true },
             IsFlash = isFlash,
         };

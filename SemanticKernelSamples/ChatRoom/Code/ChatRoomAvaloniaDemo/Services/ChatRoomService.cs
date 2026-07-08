@@ -205,12 +205,8 @@ public sealed class ChatRoomService
         if (_appConfig is not null)
         {
             _chatRoomManager.DefaultPrimaryModelId = _appConfig.PrimaryModelId;
-            _chatRoomManager.SpeakerSelector = new AgentLib.ChatRoom.SpeakerSelectors.RoundRobinSpeakerSelector
-            {
-                MaxRounds = _appConfig.DefaultMaxRounds,
-            };
 
-            // 创建默认"助手"角色（正常参与轮流，同时作为管理者在所有角色发言完毕后兜底）
+            // 创建默认"助手"角色，作为管理者在普通角色无法继续推进时兜底。
             var defaultRoleDef = new ChatRoomRoleDefinition
             {
                 RoleId = Guid.NewGuid().ToString(),
@@ -285,14 +281,6 @@ public sealed class ChatRoomService
             };
             await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
             _chatRoomManager.Roles.Add(role);
-        }
-
-        if (_appConfig is not null)
-        {
-            _chatRoomManager.SpeakerSelector = new AgentLib.ChatRoom.SpeakerSelectors.RoundRobinSpeakerSelector
-            {
-                MaxRounds = _appConfig.DefaultMaxRounds,
-            };
         }
 
         return _chatRoomManager;

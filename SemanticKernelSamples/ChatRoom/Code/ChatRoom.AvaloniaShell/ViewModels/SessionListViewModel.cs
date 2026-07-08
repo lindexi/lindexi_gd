@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -88,6 +89,11 @@ public sealed class SessionListViewModel : ViewModelBase
     public ObservableCollection<SessionItemViewModel> Sessions { get; } = [];
 
     /// <summary>
+    /// 是否选中了当前活跃会话。
+    /// </summary>
+    public bool IsCurrentSessionSelected => SelectedSession is not null && IsCurrentSession(SelectedSession);
+
+    /// <summary>
     /// 当前选中的会话。
     /// </summary>
     public SessionItemViewModel? SelectedSession
@@ -95,9 +101,15 @@ public sealed class SessionListViewModel : ViewModelBase
         get => _selectedSession;
         set
         {
+            bool wasCurrentSessionSelected = IsCurrentSessionSelected;
             if (SetField(ref _selectedSession, value) && value is not null)
             {
                 _ = OpenSessionAsync(value);
+            }
+
+            if (wasCurrentSessionSelected != IsCurrentSessionSelected)
+            {
+                OnPropertyChanged(nameof(IsCurrentSessionSelected));
             }
         }
     }
@@ -167,6 +179,8 @@ public sealed class SessionListViewModel : ViewModelBase
 
     private void OnSessionChanged(object? sender, ChatRoomManager? manager)
     {
+        SelectCurrentSession();
+
         // 会话切换后刷新删除命令的可用状态（当前活跃会话不可删除）
         if (DeleteSessionCommand is SimpleAsyncCommand<SessionItemViewModel> cmd)
         {
@@ -194,11 +208,33 @@ public sealed class SessionListViewModel : ViewModelBase
     /// </summary>
     public void RefreshSessions()
     {
+        string? selectedSessionId = SelectedSession?.SessionId;
         Sessions.Clear();
 
         foreach (SessionSummary summary in _sessionService.ListSessions())
         {
             Sessions.Add(new SessionItemViewModel(summary));
+        }
+
+        ChatRoomManager? currentManager = _chatRoomService.CurrentManager;
+        if (currentManager is not null && !Sessions.Any(session => IsCurrentSession(session)))
+        {
+            Sessions.Insert(0, CreateSessionItem(currentManager));
+        }
+
+        SelectedSession = Sessions.FirstOrDefault(session => session.SessionId == selectedSessionId)
+            ?? Sessions.FirstOrDefault(session => IsCurrentSession(session));
+    }
+
+    /// <summary>
+    /// 选中并打开当前活跃会话。
+    /// </summary>
+    public void OpenCurrentSession()
+    {
+        AddOrSelectCurrentSession();
+        if (SelectedSession is not null)
+        {
+            SessionOpened?.Invoke(this, SelectedSession.SessionId);
         }
     }
 
@@ -207,7 +243,14 @@ public sealed class SessionListViewModel : ViewModelBase
         IsBusy = true;
         try
         {
+            if (TrySelectBlankSession())
+            {
+                SessionOpened?.Invoke(this, SelectedSession!.SessionId);
+                return;
+            }
+
             await _chatRoomService.CreateNewSessionAsync().ConfigureAwait(false);
+            AddOrSelectCurrentSession();
             NewSessionCreated?.Invoke(this, EventArgs.Empty);
         }
         finally
@@ -223,6 +266,12 @@ public sealed class SessionListViewModel : ViewModelBase
             return;
         }
 
+        if (IsCurrentSession(session))
+        {
+            SessionOpened?.Invoke(this, session.SessionId);
+            return;
+        }
+
         IsBusy = true;
         try
         {
@@ -234,6 +283,69 @@ public sealed class SessionListViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    private bool TrySelectBlankSession()
+    {
+        ChatRoomManager? currentManager = _chatRoomService.CurrentManager;
+        if (currentManager?.Session.Messages.Count != 0)
+        {
+            return false;
+        }
+
+        AddOrSelectCurrentSession();
+        return SelectedSession is not null;
+    }
+
+    private void AddOrSelectCurrentSession()
+    {
+        ChatRoomManager? currentManager = _chatRoomService.CurrentManager;
+        if (currentManager is null)
+        {
+            return;
+        }
+
+        SessionItemViewModel? session = Sessions.FirstOrDefault(IsCurrentSession);
+        if (session is null)
+        {
+            session = CreateSessionItem(currentManager);
+            Sessions.Insert(0, session);
+        }
+
+        SelectedSession = session;
+    }
+
+    private void SelectCurrentSession()
+    {
+        ChatRoomManager? currentManager = _chatRoomService.CurrentManager;
+        if (currentManager is null)
+        {
+            return;
+        }
+
+        SessionItemViewModel? session = Sessions.FirstOrDefault(IsCurrentSession);
+        if (session is not null)
+        {
+            SelectedSession = session;
+        }
+    }
+
+    private bool IsCurrentSession(SessionItemViewModel session)
+    {
+        Guid? activeSessionId = _chatRoomService.CurrentManager?.Session.SessionId;
+        return activeSessionId is not null && activeSessionId.Value.ToString("N") == session.SessionId;
+    }
+
+    private static SessionItemViewModel CreateSessionItem(ChatRoomManager manager)
+    {
+        return new SessionItemViewModel(new SessionSummary
+        {
+            SessionId = manager.Session.SessionId.ToString("N"),
+            Title = manager.Session.Title,
+            CreatedAt = manager.Session.CreatedAt,
+            RoleCount = manager.Roles.Count,
+            MessageCount = manager.Session.Messages.Count,
+        });
     }
 
     private Task DeleteSessionAsync(SessionItemViewModel? session)

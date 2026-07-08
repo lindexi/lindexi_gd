@@ -11,6 +11,99 @@ using AgentLib.ChatRoom.Services;
 namespace ChatRoom.AvaloniaShell.ViewModels;
 
 /// <summary>
+/// 模型编辑项 ViewModel。
+/// </summary>
+public sealed class ModelEditViewModel : ViewModelBase
+{
+    private readonly Action<ModelEditViewModel>? _removeAction;
+    private string _modelName = string.Empty;
+    private string? _modelId;
+    private bool _isFlash;
+    private bool _isVision;
+
+    /// <summary>
+    /// 删除模型命令。
+    /// </summary>
+    public ICommand RemoveCommand { get; }
+
+    /// <summary>
+    /// 模型显示名称。
+    /// </summary>
+    public string ModelName
+    {
+        get => _modelName;
+        set => SetField(ref _modelName, value);
+    }
+
+    /// <summary>
+    /// 实际传给 API 的模型 ID。
+    /// </summary>
+    public string? ModelId
+    {
+        get => _modelId;
+        set => SetField(ref _modelId, value);
+    }
+
+    /// <summary>
+    /// 是否为快速模型。
+    /// </summary>
+    public bool IsFlash
+    {
+        get => _isFlash;
+        set => SetField(ref _isFlash, value);
+    }
+
+    /// <summary>
+    /// 是否支持视觉输入。
+    /// </summary>
+    public bool IsVision
+    {
+        get => _isVision;
+        set => SetField(ref _isVision, value);
+    }
+
+    /// <summary>
+    /// 创建空的模型编辑项。
+    /// </summary>
+    public ModelEditViewModel(Action<ModelEditViewModel>? removeAction = null)
+    {
+        _removeAction = removeAction;
+        RemoveCommand = new SimpleCommand(Remove);
+    }
+
+    /// <summary>
+    /// 从 <see cref="ModelSetting"/> 创建模型编辑项。
+    /// </summary>
+    public ModelEditViewModel(ModelSetting setting, Action<ModelEditViewModel>? removeAction = null)
+        : this(removeAction)
+    {
+        _modelName = setting.ModelName;
+        _modelId = setting.ModelId;
+        _isFlash = setting.IsFlash;
+        _isVision = setting.IsVision;
+    }
+
+    /// <summary>
+    /// 转换为 <see cref="ModelSetting"/>。
+    /// </summary>
+    public ModelSetting ToSetting()
+    {
+        return new ModelSetting
+        {
+            ModelName = ModelName.Trim(),
+            ModelId = string.IsNullOrWhiteSpace(ModelId) ? null : ModelId.Trim(),
+            IsFlash = IsFlash,
+            IsVision = IsVision,
+        };
+    }
+
+    private void Remove()
+    {
+        _removeAction?.Invoke(this);
+    }
+}
+
+/// <summary>
 /// 提供商编辑项 ViewModel。
 /// </summary>
 public sealed class ProviderEditViewModel : ViewModelBase
@@ -18,7 +111,6 @@ public sealed class ProviderEditViewModel : ViewModelBase
     private string _name = string.Empty;
     private string _endpoint = string.Empty;
     private string _key = string.Empty;
-    private string _modelsText = string.Empty;
 
     /// <summary>
     /// 提供商名称。
@@ -48,13 +140,19 @@ public sealed class ProviderEditViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 模型列表文本（每行一个 "ModelName,ModelId,IsFlash" 格式）。
+    /// 模型列表。
     /// </summary>
-    public string ModelsText
-    {
-        get => _modelsText;
-        set => SetField(ref _modelsText, value);
-    }
+    public ObservableCollection<ModelEditViewModel> Models { get; } = [];
+
+    /// <summary>
+    /// 添加模型命令。
+    /// </summary>
+    public ICommand AddModelCommand { get; }
+
+    /// <summary>
+    /// 删除模型命令。
+    /// </summary>
+    public ICommand RemoveModelCommand { get; }
 
     /// <summary>
     /// 从 <see cref="ProviderSetting"/> 创建提供商编辑项。
@@ -65,11 +163,13 @@ public sealed class ProviderEditViewModel : ViewModelBase
         _endpoint = setting.Endpoint;
         _key = setting.Key;
 
-        var lines = setting.Models.Select(m =>
-            m.IsFlash
-                ? $"{m.ModelName},{m.ModelId ?? ""},flash"
-                : $"{m.ModelName},{m.ModelId ?? ""}");
-        _modelsText = string.Join("\n", lines);
+        foreach (ModelSetting model in setting.Models)
+        {
+            Models.Add(new ModelEditViewModel(model, RemoveModel));
+        }
+
+        AddModelCommand = new SimpleCommand(AddModel);
+        RemoveModelCommand = new SimpleCommand<ModelEditViewModel>(RemoveModel);
     }
 
     /// <summary>
@@ -77,6 +177,8 @@ public sealed class ProviderEditViewModel : ViewModelBase
     /// </summary>
     public ProviderEditViewModel()
     {
+        AddModelCommand = new SimpleCommand(AddModel);
+        RemoveModelCommand = new SimpleCommand<ModelEditViewModel>(RemoveModel);
     }
 
     /// <summary>
@@ -84,24 +186,10 @@ public sealed class ProviderEditViewModel : ViewModelBase
     /// </summary>
     public ProviderSetting ToSetting()
     {
-        var models = new System.Collections.Generic.List<ModelSetting>();
-
-        foreach (string? line in ModelsText.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-        {
-            string[] parts = line.Trim().Split(',');
-            if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
-            {
-                continue;
-            }
-
-            var model = new ModelSetting
-            {
-                ModelName = parts[0].Trim(),
-                ModelId = parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1]) ? parts[1].Trim() : null,
-                IsFlash = parts.Length > 2 && parts[2].Trim().Equals("flash", StringComparison.OrdinalIgnoreCase),
-            };
-            models.Add(model);
-        }
+        var models = Models
+            .Where(m => !string.IsNullOrWhiteSpace(m.ModelName))
+            .Select(m => m.ToSetting())
+            .ToList();
 
         return new ProviderSetting
         {
@@ -110,6 +198,19 @@ public sealed class ProviderEditViewModel : ViewModelBase
             Key = Key,
             Models = models,
         };
+    }
+
+    private void AddModel()
+    {
+        Models.Add(new ModelEditViewModel(RemoveModel));
+    }
+
+    private void RemoveModel(ModelEditViewModel? model)
+    {
+        if (model is not null)
+        {
+            Models.Remove(model);
+        }
     }
 }
 
@@ -205,7 +306,13 @@ public sealed class SettingsViewModel : ViewModelBase
         SaveCommand = new SimpleAsyncCommand(SaveAsync);
         BackCommand = new SimpleCommand(() => BackRequested?.Invoke(this, EventArgs.Empty));
         AddProviderCommand = new SimpleCommand(() => Providers.Add(new ProviderEditViewModel()));
-        RemoveProviderCommand = new SimpleCommand<ProviderEditViewModel>(p => Providers.Remove(p));
+        RemoveProviderCommand = new SimpleCommand<ProviderEditViewModel>(p =>
+        {
+            if (p is not null)
+            {
+                Providers.Remove(p);
+            }
+        });
     }
 
     private async Task SaveAsync()
@@ -225,8 +332,8 @@ public sealed class SettingsViewModel : ViewModelBase
 
             await _settingsService.SaveAsync(_appSettings).ConfigureAwait(false);
 
-                        // 热更新：更新 ModelProviderService 内部设置并重新注册模型提供商
-                        _chatRoomService.RefreshProviders(_appSettings);
+            // 热更新：更新 ModelProviderService 内部设置并重新注册模型提供商
+            _chatRoomService.RefreshProviders(_appSettings);
 
             BackRequested?.Invoke(this, EventArgs.Empty);
         }

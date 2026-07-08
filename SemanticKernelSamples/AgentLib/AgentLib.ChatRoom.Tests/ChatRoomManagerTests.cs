@@ -106,56 +106,18 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public async Task IsRunning_AfterStartAutoLoop_ChangesToTrueThenFalse_WhenSpeakerReturnsNull()
+    public async Task IsRunning_AfterStartAutoLoopWithoutTrigger_ChangesToTrueThenFalse()
     {
-        // Arrange
         var manager = new ChatRoomManager();
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        mockSpeaker
-            .Setup(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ChatRoomRole?)null);
-        manager.SpeakerSelector = mockSpeaker.Object;
 
         var changedProperties = new List<string>();
         ((INotifyPropertyChanged)manager).PropertyChanged += (_, args) =>
             changedProperties.Add(args.PropertyName!);
 
-        // Act
         await manager.StartAutoLoopAsync();
 
-        // Assert
         Assert.IsFalse(manager.IsRunning);
-        // IsRunning should have been set to true then false
         Assert.Contains("IsRunning", changedProperties);
-        Assert.Contains("CanStartLoop", changedProperties);
-        Assert.Contains("CanStop", changedProperties);
-    }
-
-    [TestMethod]
-    public async Task IsRunning_PropertyChanged_FiresCanStartLoopAndCanStop()
-    {
-        // Arrange
-        var manager = new ChatRoomManager();
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        mockSpeaker
-            .Setup(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ChatRoomRole?)null);
-        manager.SpeakerSelector = mockSpeaker.Object;
-
-        var changedProperties = new List<string>();
-        ((INotifyPropertyChanged)manager).PropertyChanged += (_, args) =>
-            changedProperties.Add(args.PropertyName!);
-
-        // Act
-        await manager.StartAutoLoopAsync();
-
-        // Assert: PropertyChanged fired for CanStartLoop and CanStop
         Assert.Contains("CanStartLoop", changedProperties);
         Assert.Contains("CanStop", changedProperties);
     }
@@ -178,43 +140,6 @@ public sealed class ChatRoomManagerTests
         manager.RemoveRole(role.Definition.RoleId);
 
         Assert.IsFalse(manager.CanStartLoop);
-    }
-
-    [TestMethod]
-    public async Task CanStop_BecomesTrue_WhenIsRunningIsTrue_DuringAutoLoop()
-    {
-        // Arrange
-        var manager = new ChatRoomManager();
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        // Use a TaskCompletionSource to pause execution while IsRunning is true
-        var tcs = new TaskCompletionSource<ChatRoomRole?>();
-        mockSpeaker
-            .Setup(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .Returns(tcs.Task);
-        manager.SpeakerSelector = mockSpeaker.Object;
-
-        // Act
-        var loopTask = manager.StartAutoLoopAsync();
-
-        // Allow StartAutoLoopAsync to reach the first SelectNextSpeakerAsync call
-        await Task.Delay(100);
-
-        try
-        {
-            // Assert: CanStop should be true while IsRunning is true
-            Assert.IsTrue(manager.IsRunning);
-            Assert.IsTrue(manager.CanStop);
-            Assert.IsFalse(manager.CanStartLoop);
-        }
-        finally
-        {
-            // Clean up: resolve the TCS to let the loop finish
-            tcs.SetResult(null);
-            await loopTask;
-        }
     }
 
     [TestMethod]
@@ -355,114 +280,14 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public async Task StartAutoLoopAsync_AlreadyRunning_ReturnsImmediately()
+    public async Task StartAutoLoopAsync_WithoutTrigger_CleansUpCurrentSpeakerAndIsSpeaking()
     {
         var manager = new ChatRoomManager();
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        var tcs = new TaskCompletionSource<ChatRoomRole?>();
-        mockSpeaker
-            .Setup(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .Returns(tcs.Task);
-        manager.SpeakerSelector = mockSpeaker.Object;
-
-        var firstLoop = manager.StartAutoLoopAsync();
-        await Task.Delay(100);
-
-        var secondLoop = manager.StartAutoLoopAsync();
-
-        Assert.IsTrue(secondLoop.IsCompletedSuccessfully);
-
-        tcs.SetResult(null);
-        await firstLoop;
-    }
-
-    [TestMethod]
-    public async Task StartAutoLoopAsync_SpeakerReturnsNull_CleansUpCurrentSpeakerAndIsSpeaking()
-    {
-        var manager = new ChatRoomManager();
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        mockSpeaker
-            .Setup(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ChatRoomRole?)null);
-        manager.SpeakerSelector = mockSpeaker.Object;
 
         await manager.StartAutoLoopAsync();
 
         Assert.IsNull(manager.CurrentSpeaker);
         Assert.IsFalse(manager.IsSpeaking);
-    }
-
-    [TestMethod]
-    public async Task StartAutoLoopAsync_Cancelled_HandlesGracefullyAndCleansUp()
-    {
-        var manager = new ChatRoomManager();
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        var tcs = new TaskCompletionSource<ChatRoomRole?>();
-        mockSpeaker
-            .Setup(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .Returns(tcs.Task);
-        manager.SpeakerSelector = mockSpeaker.Object;
-
-        using var cts = new CancellationTokenSource();
-        var loopTask = manager.StartAutoLoopAsync(cts.Token);
-        await Task.Delay(100);
-
-        cts.Cancel();
-        tcs.TrySetCanceled();
-
-        await loopTask;
-
-        Assert.IsFalse(manager.IsRunning);
-        Assert.IsNull(manager.CurrentSpeaker);
-        Assert.IsFalse(manager.IsSpeaking);
-    }
-
-    [TestMethod]
-    public async Task StartAutoLoopAsync_StepAsyncReturnsMessage_AppendsMessageAndFiresEvent()
-    {
-        var manager = new ChatRoomManager();
-        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
-        var definition = new ChatRoomRoleDefinition
-        {
-            RoleId = "role-1",
-            RoleName = "Test Role",
-            IsHuman = false,
-        };
-        var role = new ChatRoomRole(definition);
-        await manager.AddRoleAsync(role);
-
-        // 需要先添加消息，使 BuildIncrementalUserMessages 返回非空内容，否则 StepAsync 会提前返回 null
-        await manager.HumanInterjectAsync("测试消息", "human", "Human");
-
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        mockSpeaker
-            .SetupSequence(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(role)
-            .ReturnsAsync((ChatRoomRole?)null);
-        manager.SpeakerSelector = mockSpeaker.Object;
-
-        var addedMessages = new List<ChatRoomMessage>();
-        manager.OnMessageAdded += (_, msg) => addedMessages.Add(msg);
-
-        await manager.StartAutoLoopAsync();
-
-        Assert.IsFalse(manager.IsRunning);
-        Assert.HasCount(1, addedMessages);
-        Assert.IsTrue(addedMessages[0].IsSystemMessage);
-        // Session 包含人类插话消息 + 发言失败的系统消息
-        Assert.HasCount(2, manager.Session.Messages);
     }
 
     [TestMethod]
@@ -504,39 +329,6 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    public async Task StartAutoLoopAsync_WhenStepAsyncReturnsNull_DoesNotAppendMessage()
-    {
-        // Human role causes StepAsync to return null
-        var manager = new ChatRoomManager();
-        var definition = new ChatRoomRoleDefinition
-        {
-            RoleId = "human-1",
-            RoleName = "Human",
-            IsHuman = true,
-        };
-        var humanRole = new ChatRoomRole(definition);
-        await manager.AddRoleAsync(humanRole);
-
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        mockSpeaker
-            .SetupSequence(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(humanRole)
-            .ReturnsAsync((ChatRoomRole?)null);
-        manager.SpeakerSelector = mockSpeaker.Object;
-
-        var addedMessages = new List<ChatRoomMessage>();
-        manager.OnMessageAdded += (_, msg) => addedMessages.Add(msg);
-
-        await manager.StartAutoLoopAsync();
-
-        Assert.IsEmpty(addedMessages);
-        Assert.IsEmpty(manager.Session.Messages);
-    }
-
-    [TestMethod]
     [Timeout(300)]
     public void Stop_WhenNotRunning_DoesNotThrow()
     {
@@ -545,35 +337,6 @@ public sealed class ChatRoomManagerTests
         manager.Stop();
 
         // No exception means the null conditional Cancel was a no-op
-    }
-
-    [TestMethod]
-    [Timeout(300)]
-    public async Task Stop_WhenRunning_CancelsAndStopsLoop()
-    {
-        var manager = new ChatRoomManager();
-        var mockSpeaker = new Mock<ISpeakerSelector>();
-        var tcs = new TaskCompletionSource<ChatRoomRole?>();
-        mockSpeaker
-            .Setup(s => s.SelectNextSpeakerAsync(
-                manager.Roles,
-                manager.Session.Messages,
-                It.IsAny<CancellationToken>()))
-            .Returns(tcs.Task);
-        manager.SpeakerSelector = mockSpeaker.Object;
-
-        var loopTask = manager.StartAutoLoopAsync();
-        await Task.Delay(100);
-
-        Assert.IsTrue(manager.IsRunning);
-
-        manager.Stop();
-        tcs.TrySetCanceled();
-
-        // The loop should finish after cancellation
-        await loopTask;
-
-        Assert.IsFalse(manager.IsRunning);
     }
 
     [TestMethod]

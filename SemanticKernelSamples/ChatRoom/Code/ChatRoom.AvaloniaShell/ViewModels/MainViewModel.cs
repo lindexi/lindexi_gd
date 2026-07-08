@@ -177,6 +177,7 @@ public sealed class MainViewModel : ViewModelBase
         // 持久化到磁盘并刷新会话列表
         await _chatRoomService.SaveAsync().ConfigureAwait(false);
         SessionListViewModel.RefreshSessions();
+        SessionListViewModel.OpenCurrentSession();
     }
 
     private void OnSettingsRequested(object? sender, EventArgs e)
@@ -203,6 +204,7 @@ public sealed class MainViewModel : ViewModelBase
         // 持久化到磁盘并刷新会话列表
         await _chatRoomService.SaveAsync().ConfigureAwait(false);
         SessionListViewModel.RefreshSessions();
+        SessionListViewModel.OpenCurrentSession();
         NavigateToChat();
     }
 
