@@ -119,6 +119,11 @@ public sealed class RoleListViewModel : ViewModelBase
     public ICommand PromoteToLobbyCommand { get; }
 
     /// <summary>
+    /// 在聊天输入框插入角色提及命令。参数为角色项 ViewModel。
+    /// </summary>
+    public ICommand InsertMentionCommand { get; }
+
+    /// <summary>
     /// 添加角色请求事件。
     /// </summary>
     public event EventHandler? AddRoleRequested;
@@ -139,6 +144,11 @@ public sealed class RoleListViewModel : ViewModelBase
     public event EventHandler<string>? PromoteToLobbyRequested;
 
     /// <summary>
+    /// 插入角色提及请求事件。参数为角色显示名。
+    /// </summary>
+    public event EventHandler<string>? InsertMentionRequested;
+
+    /// <summary>
     /// 使用指定的服务创建角色列表 ViewModel。
     /// </summary>
     public RoleListViewModel(ChatRoomService chatRoomService, ModelProviderService modelProviderService)
@@ -151,6 +161,7 @@ public sealed class RoleListViewModel : ViewModelBase
         DeleteRoleCommand = new SimpleCommand<RoleItemViewModel>(DeleteRole);
         OpenLobbyCommand = new SimpleCommand(() => OpenLobbyRequested?.Invoke(this, EventArgs.Empty));
         PromoteToLobbyCommand = new SimpleCommand<RoleItemViewModel>(role => PromoteToLobbyRequested?.Invoke(this, role.RoleId));
+        InsertMentionCommand = new SimpleCommand<RoleItemViewModel>(role => InsertMentionRequested?.Invoke(this, role.RoleName));
 
         _chatRoomService.SessionChanged += OnSessionChanged;
     }

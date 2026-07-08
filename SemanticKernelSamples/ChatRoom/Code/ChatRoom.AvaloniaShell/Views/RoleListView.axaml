@@ -26,6 +26,9 @@
                     <Border Classes="Card" Padding="10,8" Margin="2,2">
                         <Border.ContextMenu>
                             <ContextMenu>
+                                <MenuItem Header="@ 提及角色"
+                                          Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).InsertMentionCommand}"
+                                          CommandParameter="{Binding}" />
                                 <MenuItem Header="📋 提升到角色大厅"
                                           Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).PromoteToLobbyCommand}"
                                           CommandParameter="{Binding}" />

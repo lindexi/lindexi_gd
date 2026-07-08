@@ -159,7 +159,15 @@
                                 <!-- AI 消息内容 -->
                                 <StackPanel Grid.Column="1" IsVisible="{Binding IsAiMessage}" Spacing="2">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
+                                        <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName">
+                                            <TextBlock.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="@ 提及角色"
+                                                              Command="{Binding $parent[UserControl].((vm:ChatViewModel)DataContext).InsertMessageSenderMentionCommand}"
+                                                              CommandParameter="{Binding}" />
+                                                </ContextMenu>
+                                            </TextBlock.ContextMenu>
+                                        </TextBlock>
                                         <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
                                         <StackPanel Orientation="Horizontal" Spacing="4"
                                                     IsVisible="{Binding IsStreaming}">
