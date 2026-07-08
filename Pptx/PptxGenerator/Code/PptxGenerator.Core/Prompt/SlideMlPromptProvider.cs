@@ -284,7 +284,8 @@ Fill、Stroke、LinearGradient、Stop：
 2. 调用 get_slide_state 可获取当前已合并的完整 SlideML XML（包含引擎回填的 RenderSize、RenderLocation、ActualLineCount），用于检查各元素的实际渲染位置和尺寸。
 3. 调用 get_slide_preview 可获取当前页面的渲染截图，用于从视觉层面评估颜色、间距、对齐等效果。
 4. XML 中的 RenderSize、RenderLocation、ActualLineCount 属性由引擎自动回填，不要在输出中设置这些属性。
-5. 需要为文本预留实际渲染的安全边界，建议调用 get_slide_state 获取回填属性，以了解文本的实际渲染位置、尺寸和行数状态，再根据结果调整布局。
+5. RenderLocation 表示元素渲染后左上角在整页画布坐标系中的位置，格式为 "XxY"；它不是相对于直接父容器的局部坐标。即使元素位于嵌套 Panel 内，RenderLocation 也已经累加了所有父容器的位置与 Padding，可直接用于判断元素在页面上的实际位置。
+6. 需要为文本预留实际渲染的安全边界，建议调用 get_slide_state 获取回填属性，以了解文本的实际渲染位置、尺寸和行数状态，再根据结果调整布局。
 
 示例片段序列：
 <Page Background="#F5F5F5">

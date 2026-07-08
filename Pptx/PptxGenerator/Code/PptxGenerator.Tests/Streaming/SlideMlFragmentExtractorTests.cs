@@ -350,6 +350,18 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Rect Id=\"r1\" Width=\"100\" Height=\"50\"></Rect>", fragments[0]);
     }
 
+    [TestMethod(DisplayName = "自闭合普通元素返回单个片段")]
+    public void TryExtractFragments_SelfClosingElement_ReturnsSingleFragment()
+    {
+        var extractor = new SlideMlFragmentExtractor();
+        extractor.Append("<Rect Id=\"r1\"/>");
+
+        var fragments = extractor.TryExtractFragments();
+
+        Assert.HasCount(1, fragments);
+        Assert.AreEqual("<Rect Id=\"r1\"/>", fragments[0]);
+    }
+
     [TestMethod(DisplayName = "自闭合标签斜杠前有空格时返回单个片段")]
     public void TryExtractFragments_SelfClosingElementWithSpaceBeforeSlash_ReturnsSingleFragment()
     {
@@ -539,6 +551,17 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<a_b.c-d></a_b.c-d>", fragments[0]);
     }
 
+    [TestMethod(DisplayName = "标签名包含命名空间前缀时返回片段")]
+    public void TryExtractFragments_TagNameWithNamespacePrefix_ReturnsFragment()
+    {
+        var extractor = new SlideMlFragmentExtractor();
+        extractor.Append("<p:sp><a:r><a:t>Hello</a:t></a:r></p:sp>");
+
+        var fragments = extractor.TryExtractFragments();
+        Assert.HasCount(1, fragments);
+        Assert.AreEqual("<p:sp><a:r><a:t>Hello</a:t></a:r></p:sp>", fragments[0]);
+    }
+
     [TestMethod(DisplayName = "双引号属性中大于号不会提前结束标签")]
     public void TryExtractFragments_DoubleQuotedAttributeContainsGreaterThan_DoesNotEndTagEarly()
     {
@@ -699,6 +722,7 @@ public sealed class SlideMlFragmentExtractorTests
     [DataTestMethod(DisplayName = "不完整输入返回空并保留缓冲")]
     [DataRow("<")]
     [DataRow("<Page")]
+    [DataRow("<Page>")]
     [DataRow("<Page></Pa")]
     [DataRow("<Page><Rect/>")]
     public void TryExtractFragments_IncompleteInput_ReturnsEmptyAndKeepsRemaining(string input)
@@ -876,6 +900,17 @@ public sealed class SlideMlFragmentExtractorTests
         var fragments = extractor.TryExtractFragments();
         Assert.HasCount(1, fragments);
         Assert.AreEqual("<Page></page>", fragments[0]);
+    }
+
+    [TestMethod(DisplayName = "特殊标签名结束标签大小写不同也返回片段")]
+    public void TryExtractFragments_SpecialTagNameEndTagDifferentCase_ReturnsFragment()
+    {
+        var extractor = new SlideMlFragmentExtractor();
+        extractor.Append("<a_b.c-d></A_B.C-D>");
+
+        var fragments = extractor.TryExtractFragments();
+        Assert.HasCount(1, fragments);
+        Assert.AreEqual("<a_b.c-d></A_B.C-D>", fragments[0]);
     }
 
     [TestMethod(DisplayName = "嵌套结束标签大小写不同也返回外层片段")]
