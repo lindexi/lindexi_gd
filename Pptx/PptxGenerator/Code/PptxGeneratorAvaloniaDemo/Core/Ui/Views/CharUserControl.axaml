@@ -230,36 +230,50 @@
             </Border>
 
             <!-- 聊天气泡列表 -->
-            <ListBox Grid.Row="1"
-                     ItemsSource="{Binding ChatMessages}"
-                     Background="#FFFFFFFF"
-                     BorderThickness="0"
-                     Padding="8"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ListBox.ItemTemplate>
-                    <DataTemplate DataType="agent:CopilotChatMessage">
-                        <Border Margin="4,6" Padding="14" CornerRadius="16"
-                                MaxWidth="640"
-                                HorizontalAlignment="{Binding Role, Converter={x:Static vm:ChatBubbleAlignmentConverter.Instance}}"
-                                Background="{Binding Role, Converter={x:Static vm:ChatBubbleBackgroundConverter.Instance}}">
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="{Binding Author}"
-                                           FontWeight="Bold"
-                                           FontSize="12"
-                                           Foreground="{Binding Role, Converter={x:Static vm:ChatBubbleAuthorColorConverter.Instance}}" />
-                                <!-- 按 MessageItems 逐项渲染 -->
-                                <ItemsControl ItemsSource="{Binding MessageItems}"
-                                              ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
-                                <!-- Token 用量信息（如存在） -->
-                                <TextBlock Text="{Binding UsageSummaryText}"
-                                           FontSize="10"
-                                           Foreground="{StaticResource ChatUsageTextBrush}"
-                                           IsVisible="{Binding HasUsageDetails}" />
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <Grid Grid.Row="1">
+                <ListBox x:Name="ChatMessagesListBox"
+                         ItemsSource="{Binding ChatMessages}"
+                         Background="#FFFFFFFF"
+                         BorderThickness="0"
+                         Padding="8"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="agent:CopilotChatMessage">
+                            <Border Margin="4,6" Padding="14" CornerRadius="16"
+                                    MaxWidth="640"
+                                    HorizontalAlignment="{Binding Role, Converter={x:Static vm:ChatBubbleAlignmentConverter.Instance}}"
+                                    Background="{Binding Role, Converter={x:Static vm:ChatBubbleBackgroundConverter.Instance}}">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{Binding Author}"
+                                               FontWeight="Bold"
+                                               FontSize="12"
+                                               Foreground="{Binding Role, Converter={x:Static vm:ChatBubbleAuthorColorConverter.Instance}}" />
+                                    <!-- 按 MessageItems 逐项渲染 -->
+                                    <ItemsControl ItemsSource="{Binding MessageItems}"
+                                                  ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
+                                    <!-- Token 用量信息（如存在） -->
+                                    <TextBlock Text="{Binding UsageSummaryText}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource ChatUsageTextBrush}"
+                                               IsVisible="{Binding HasUsageDetails}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Button x:Name="ScrollToBottomButton"
+                        Content="滚动到底部"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,0,12"
+                        Padding="14,8"
+                        CornerRadius="999"
+                        Background="#FF2563EB"
+                        Foreground="White"
+                        FontWeight="SemiBold"
+                        IsVisible="False"
+                        Click="ScrollToBottomButton_OnClick" />
+            </Grid>
 
             <!-- 图片附件横排栏 -->
             <Border Grid.Row="2"
@@ -285,7 +299,8 @@
                                         Background="#FFF1F5F9"
                                         BorderBrush="#FFE2E8F0"
                                         BorderThickness="1"
-                                        ClipToBounds="True">
+                                        ClipToBounds="True"
+                                        PointerPressed="AttachedImageBorder_OnPointerPressed">
                                     <Grid>
                                         <Image Source="{Binding FullName, Converter={x:Static vm:FilePathToBitmapConverter.Instance}}"
                                                Stretch="UniformToFill"

@@ -94,8 +94,9 @@ class Program
 
         agentApiEndpointManager.PrimaryModel = languageModel;
 
-        var slideMlRenderPipeline = new SlideMlRenderPipeline(new SlideMlLayoutEngine(), new AvaloniaSlideRenderEngine(), dispatcher);
-        var slideMlRenderTool = new SlideMlRenderTool(slideMlRenderPipeline, dispatcher);
+        var defaultPipeline = new SlideMlRenderPipeline(new SlideMlLayoutEngine(), new AvaloniaSlideRenderEngine(), dispatcher);
+        var renderPipeline = new SwitchableSlideMlRenderPipeline(defaultPipeline);
+        var slideMlRenderTool = new SlideMlRenderTool(renderPipeline, dispatcher);
 
         // 评估者和优化者复用同一个 CopilotChatManager，共用主模型
         var slideEvaluator = new AiSlideEvaluator(copilotChatManager);

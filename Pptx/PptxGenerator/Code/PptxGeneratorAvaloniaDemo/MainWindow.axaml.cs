@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Path = System.IO.Path;
 
 namespace PptxGenerator;
@@ -23,5 +24,10 @@ public partial class MainWindow : Window
             previewImage.Save(imageFilePath);
             Process.Start(new ProcessStartInfo(imageFilePath) { UseShellExecute = true });
         }
+    }
+
+    private void McpServiceUrlTextBox_OnLostFocus(object? sender, RoutedEventArgs e)
+    {
+        _ = ViewModel.TryConnectMcpRenderAsync();
     }
 }

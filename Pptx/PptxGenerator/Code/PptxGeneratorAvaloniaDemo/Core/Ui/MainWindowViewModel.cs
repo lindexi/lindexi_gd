@@ -33,10 +33,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly DelegateCommand _attachImageCommand;
     private readonly DelegateCommand _evaluateCommand;
     private readonly DelegateCommand _evaluatePromptCommand;
+    private readonly DelegateCommand _rerenderCommand;
     private bool _isBusy;
     private bool _isIterating;
     private bool _isFirstMessage = true;
     private bool _attachPreview;
+    private string _editableSlideXml = string.Empty;
+    private string _mcpServiceUrl = string.Empty;
     private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
     private string _statusText = "等待开始";
     private string _iterationStatusText = string.Empty;
@@ -70,6 +73,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _attachImageCommand = new DelegateCommand(() => { }, AvaloniaDispatcher.Instance, () => !IsBusy);
         _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), AvaloniaDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
         _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), AvaloniaDispatcher.Instance, () => !IsBusy && !IsIterating && slideChatManager.Pipeline.CanRunIteration);
+        _rerenderCommand = new DelegateCommand(() => _ = RunRerenderAsync(), AvaloniaDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(EditableSlideXml));
     }
 
     /// <summary>
@@ -81,6 +85,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             case nameof(SlideChatManager.PreviewImage):
             case nameof(SlideChatManager.CurrentSlideXml):
+                EditableSlideXml = SlideChatManager.CurrentSlideXml;
+                OnPropertyChanged(e.PropertyName!);
+                break;
             case nameof(SlideChatManager.RenderedXml):
             case nameof(SlideChatManager.WarningText):
             case nameof(SlideChatManager.LastEvaluationResult):
@@ -149,6 +156,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// 提示词迭代优化命令（改造原提示词评估按钮）。
     /// </summary>
     public ICommand EvaluatePromptCommand => _evaluatePromptCommand;
+
+    /// <summary>
+    /// 使用当前编辑的 SlideML 重新渲染页面预览的命令。
+    /// </summary>
+    public ICommand RerenderCommand => _rerenderCommand;
 
     /// <summary>
     /// 是否正在运行迭代闭环。
@@ -224,6 +236,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 _sendMessageCommand.RaiseCanExecuteChanged();
                 _evaluateCommand.RaiseCanExecuteChanged();
                 _evaluatePromptCommand.RaiseCanExecuteChanged();
+                _rerenderCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -244,6 +257,30 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         get => _statusText;
         set => SetProperty(ref _statusText, value);
+    }
+
+    /// <summary>
+    /// 用户可编辑的当前 SlideML XML。
+    /// </summary>
+    public string EditableSlideXml
+    {
+        get => _editableSlideXml;
+        set
+        {
+            if (SetProperty(ref _editableSlideXml, value))
+            {
+                _rerenderCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// MCP 渲染服务地址。
+    /// </summary>
+    public string McpServiceUrl
+    {
+        get => _mcpServiceUrl;
+        set => SetProperty(ref _mcpServiceUrl, value);
     }
 
     /// <summary>
@@ -459,6 +496,64 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         catch (Exception)
         {
             StatusText = "提示词评估失败";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// 尝试连接 MCP 服务并切换渲染管线。
+    /// </summary>
+    public async Task TryConnectMcpRenderAsync()
+    {
+        if (SlideChatManager.SlideMlRenderTool.RenderPipeline is not SwitchableSlideMlRenderPipeline pipeline)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(McpServiceUrl))
+        {
+            await pipeline.TryEnableMcpAsync(McpServiceUrl).ConfigureAwait(false);
+            StatusText = "已使用本地渲染";
+            return;
+        }
+
+        StatusText = "正在连接 MCP 渲染服务...";
+        var isEnabled = await pipeline.TryEnableMcpAsync(McpServiceUrl).ConfigureAwait(false);
+        StatusText = isEnabled ? "已连接 MCP 渲染服务" : "MCP 渲染服务不可用，已使用本地渲染";
+    }
+
+    private async Task RunRerenderAsync()
+    {
+        if (IsBusy || string.IsNullOrWhiteSpace(EditableSlideXml))
+        {
+            return;
+        }
+
+        IsBusy = true;
+        StatusText = "正在重新渲染...";
+        try
+        {
+            var renderTool = SlideChatManager.SlideMlRenderTool;
+            var renderResult = await renderTool.RenderPipeline
+                .RenderAsync(EditableSlideXml)
+                .ConfigureAwait(false);
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                renderTool.ApplyRenderResult(renderResult);
+                StatusText = renderResult.Errors.Count > 0 ? "重新渲染完成，存在错误" : "重新渲染完成";
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = "重新渲染已取消。";
+        }
+        catch (Exception)
+        {
+            StatusText = "重新渲染失败";
         }
         finally
         {

@@ -51,9 +51,15 @@
                         BorderThickness="1"
                         Padding="14">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="当前 SlideML" FontSize="16" FontWeight="Bold" Foreground="#FF0F172A" />
-                        <TextBox Text="{Binding SlideChatManager.CurrentSlideXml}"
-                                 IsReadOnly="True"
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="当前 SlideML" FontSize="16" FontWeight="Bold" Foreground="#FF0F172A" VerticalAlignment="Center" />
+                            <Button Grid.Column="1"
+                                    Content="重新渲染"
+                                    Command="{Binding RerenderCommand}"
+                                    Padding="12,4"
+                                    FontSize="12" />
+                        </Grid>
+                        <TextBox Text="{Binding EditableSlideXml}"
                                  AcceptsReturn="True"
                                  TextWrapping="NoWrap"
                                  MinHeight="140"
@@ -215,6 +221,17 @@
                               Margin="12,0,0,0">
                         <TextBlock Text="流式模式" FontSize="13" Foreground="#FF475569" />
                     </CheckBox>
+                     <TextBlock Text="MCP:"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="#FF475569"
+                                VerticalAlignment="Center"
+                                Margin="12,0,0,0" />
+                     <TextBox Text="{Binding McpServiceUrl}"
+                              Watermark="http://localhost:3000/mcp"
+                              LostFocus="McpServiceUrlTextBox_OnLostFocus"
+                              MinWidth="260"
+                              FontSize="12" />
                 </StackPanel>
             </Border>
             <vm:CharUserControl Grid.Row="1" />
