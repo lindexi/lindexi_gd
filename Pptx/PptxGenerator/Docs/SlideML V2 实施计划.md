@@ -53,7 +53,7 @@
 - 实际间距 = `max(Gap, 前元素下Margin + 后元素上Margin)`
 - 跨轴方向（水平布局中的 Y）仍使用显式 Y 或 VerticalAlignment
 - 溢出检测：超出 Panel 尺寸产生 Warning
-- Panel 不设置 Width/Height 时自动包裹子元素（ActualWidth/ActualHeight）
+- Panel 不设置 Width/Height 时自动包裹子元素（RenderSize）
 
 **单元测试（`SlideLayoutEngineTests.cs`，9 个测试用例）：**
 - 水平布局：子元素按声明宽度依次排列，间距为 Gap

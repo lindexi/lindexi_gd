@@ -174,7 +174,7 @@ public sealed class AiSlideEvaluator : ISlideEvaluator
 {slideXml}
 ```
 
-## 渲染回填后的 XML（含 ActualWidth/ActualHeight）
+## 渲染回填后的 XML（含 RenderSize/RenderLocation）
 ```xml
 {renderedXml}
 ```

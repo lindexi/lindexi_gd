@@ -34,7 +34,7 @@
 
 ## 禁止事项
 
-- 不要写 ActualWidth、ActualHeight、ActualLineCount 属性（引擎自动回填）
+- 不要写 RenderSize、RenderLocation、ActualLineCount 属性（引擎自动回填）
 - 不要创造上面未列出的标签或属性
 - 不要使用 XAML、 CSS、HTML 等其他语法
 

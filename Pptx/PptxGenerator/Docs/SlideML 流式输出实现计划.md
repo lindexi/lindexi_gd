@@ -453,7 +453,7 @@ public string BuildDefaultStreamingSystemPrompt()
 4. 只能使用本文列出的标签和属性，标签名与属性名大小写必须完全一致。
 5. XML 必须格式正确：每个片段都是一个完整顶层 XML 元素；标签必须闭合；属性值必须加引号。
 6. 文本属性中的特殊字符必须转义：& 转为 &amp;，< 转为 &lt;，> 转为 &gt;，" 转为 &quot;，' 转为 &apos;。
-7. 不要输出 ActualWidth、ActualHeight、ActualLineCount，这些由渲染引擎回填。
+7. 不要输出 RenderSize、RenderLocation、ActualLineCount，这些由渲染引擎回填。
 
 画布与基础约定：
 1. 画布宽高分别使用 $(SlideWidth) 和 $(SlideHeight)。表示整页宽度或高度时使用这两个占位符，不要写死整页宽高数字。
@@ -1012,9 +1012,9 @@ public sealed class SlideStreamRenderService
 [get_slide_state] 当前页面状态：
 
 回填后的 XML：
-<Page Background="#0F0F23" ActualWidth="1280" ActualHeight="720">
-  <Panel Id="hero" X="0" Y="0" Width="1280" Height="360" ActualWidth="1280" ActualHeight="360">
-    <TextElement Id="hero-title" X="80" Y="120" Width="1120" ActualWidth="1120" ActualHeight="67" ActualLineCount="1"
+<Page Background="#0F0F23" RenderSize="1280x720">
+  <Panel Id="hero" X="0" Y="0" Width="1280" Height="360" RenderSize="1280x360" RenderLocation="0x0">
+    <TextElement Id="hero-title" X="80" Y="120" Width="1120" RenderSize="1120x67" RenderLocation="80x120" ActualLineCount="1"
                  Text="SlideML V3" FontSize="56" IsBold="True"
                  Foreground="#FFFFFF" TextAlignment="Center" />
   </Panel>
@@ -1162,7 +1162,7 @@ public sealed class SlideStreamRenderService
 
 - 所有 V2/V3 标签（Page、Panel、Rect、TextElement、Image、Span、Fill、Stroke、Shadow、LinearGradient、Stop）在流式输出中完全可用
 - 所有 V2/V3 属性在流式输出中完全可用
-- 引擎回填属性（`ActualWidth`、`ActualHeight`、`ActualLineCount`）在流式输出中同样适用，渲染后回填到最终合并的 XML 中
+- 引擎回填属性（`RenderSize`、`RenderLocation`、`ActualLineCount`）在流式输出中同样适用，渲染后回填到最终合并的 XML 中
 - 渲染反馈（Warning、Error、截图）与 V2/V3 保持一致
 - 唯一差异：`Id` 从可选变为必填，且要求全局唯一
 - 新增：`StyleId` 属性用于标记样式模板源，悬空元素必须声明 `StyleId`；`StyleFrom` 引用 `StyleId` 而非 `Id`

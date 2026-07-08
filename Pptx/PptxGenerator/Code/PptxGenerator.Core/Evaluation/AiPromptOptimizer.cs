@@ -73,8 +73,8 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
         Stop：Offset（0~1）、Color（颜色字符串），至少需要两个 Stop
 
         ## 引擎回填属性（模型不应输出）
-        - ActualWidth：渲染后的实际宽度
-        - ActualHeight：渲染后的实际高度
+        - RenderSize：渲染后的实际尺寸，格式为 "宽x高"
+        - RenderLocation：渲染后的实际布局位置，格式为 "XxY"
         - ActualLineCount：文本换行后的实际行数（仅 TextElement）
 
         ## 排版规则
@@ -88,7 +88,7 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
         8. 裁剪：子元素超出父容器边界被裁剪
 
         ## 禁止事项
-        - 不要写 ActualWidth、ActualHeight、ActualLineCount 属性
+        - 不要写 RenderSize、RenderLocation、ActualLineCount 属性
         - 不要创造未定义的标签或属性
         - 不要使用 XAML、CSS、HTML 等其他语法
 

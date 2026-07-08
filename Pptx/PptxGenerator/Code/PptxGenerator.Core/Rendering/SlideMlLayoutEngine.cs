@@ -125,18 +125,18 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
             contentBottom = Math.Max(contentBottom, child.LocalBounds.Bottom);
         }
 
-        var actualWidth = panel.Width ?? (contentRight + paddingLeft + paddingRight);
-        var actualHeight = panel.Height ?? (contentBottom + paddingTop + paddingBottom);
+        var measuredWidth = panel.Width ?? (contentRight + paddingLeft + paddingRight);
+        var measuredHeight = panel.Height ?? (contentBottom + paddingTop + paddingBottom);
 
-        var originX = ResolveOrigin(parentBounds.X, parentBounds.Width, actualWidth, panel.X, panel.HorizontalAlignment);
-        var originY = ResolveOrigin(parentBounds.Y, parentBounds.Height, actualHeight, panel.Y, panel.VerticalAlignment);
+        var originX = ResolveOrigin(parentBounds.X, parentBounds.Width, measuredWidth, panel.X, panel.HorizontalAlignment);
+        var originY = ResolveOrigin(parentBounds.Y, parentBounds.Height, measuredHeight, panel.Y, panel.VerticalAlignment);
 
-        panel.LocalBounds = new SlideMlRect(0, 0, actualWidth, actualHeight);
-        panel.LayoutBounds = new SlideMlRect(originX, originY, actualWidth, actualHeight);
-        panel.MeasuredWidth = actualWidth;
-        panel.MeasuredHeight = actualHeight;
+        panel.LocalBounds = new SlideMlRect(0, 0, measuredWidth, measuredHeight);
+        panel.LayoutBounds = new SlideMlRect(originX, originY, measuredWidth, measuredHeight);
+        panel.MeasuredWidth = measuredWidth;
+        panel.MeasuredHeight = measuredHeight;
 
-        var finalContentBounds = new SlideMlRect(originX + paddingLeft, originY + paddingTop, Math.Max(0, actualWidth - paddingLeft - paddingRight), Math.Max(0, actualHeight - paddingTop - paddingBottom));
+        var finalContentBounds = new SlideMlRect(originX + paddingLeft, originY + paddingTop, Math.Max(0, measuredWidth - paddingLeft - paddingRight), Math.Max(0, measuredHeight - paddingTop - paddingBottom));
         LayoutChildren(panel.Children, finalContentBounds, panel.Id, clipToParent: true, context, useMeasured, measurements);
 
         ValidateBounds(panel, parentBounds, parentId, clipToParent, context);
@@ -284,16 +284,16 @@ public sealed class SlideMlLayoutEngine : ISlideMlLayoutEngine
         }
 
         var totalFlowSize = flowPosition - (isHorizontal ? contentOriginX : contentOriginY);
-        var actualWidth = panel.Width ?? (isHorizontal ? totalFlowSize + paddingLeft + paddingRight : crossAxisSize + paddingLeft + paddingRight);
-        var actualHeight = panel.Height ?? (isHorizontal ? crossAxisSize + paddingTop + paddingBottom : totalFlowSize + paddingTop + paddingBottom);
+        var measuredWidth = panel.Width ?? (isHorizontal ? totalFlowSize + paddingLeft + paddingRight : crossAxisSize + paddingLeft + paddingRight);
+        var measuredHeight = panel.Height ?? (isHorizontal ? crossAxisSize + paddingTop + paddingBottom : totalFlowSize + paddingTop + paddingBottom);
 
-        var originX = ResolveOrigin(parentBounds.X, parentBounds.Width, actualWidth, panel.X, panel.HorizontalAlignment);
-        var originY = ResolveOrigin(parentBounds.Y, parentBounds.Height, actualHeight, panel.Y, panel.VerticalAlignment);
+        var originX = ResolveOrigin(parentBounds.X, parentBounds.Width, measuredWidth, panel.X, panel.HorizontalAlignment);
+        var originY = ResolveOrigin(parentBounds.Y, parentBounds.Height, measuredHeight, panel.Y, panel.VerticalAlignment);
 
-        panel.LocalBounds = new SlideMlRect(0, 0, actualWidth, actualHeight);
-        panel.LayoutBounds = new SlideMlRect(originX, originY, actualWidth, actualHeight);
-        panel.MeasuredWidth = actualWidth;
-        panel.MeasuredHeight = actualHeight;
+        panel.LocalBounds = new SlideMlRect(0, 0, measuredWidth, measuredHeight);
+        panel.LayoutBounds = new SlideMlRect(originX, originY, measuredWidth, measuredHeight);
+        panel.MeasuredWidth = measuredWidth;
+        panel.MeasuredHeight = measuredHeight;
 
         var offsetX = originX + paddingLeft - contentOriginX;
         var offsetY = originY + paddingTop - contentOriginY;

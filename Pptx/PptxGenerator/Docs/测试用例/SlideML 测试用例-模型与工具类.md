@@ -315,17 +315,17 @@
 
 ## 6. SlideMlXmlUtilities.FormatRenderedXml
 
-### 6.1 Page 回填 ActualWidth/ActualHeight
+### 6.1 Page 回填 RenderSize
 - **用例名**: `FormatRenderedXml_Page_BackfillsCanvasSize`
 - **输入**: `"<Page Background=\"#FFF\"><Rect Id=\"r1\" Width=\"100\" Height=\"50\"/></Page>"`
 - **Page 模型**: 默认 SlideMlPage，Children 含 Rect(Id="r1", W=100, H=50)
-- **预期**: 输出 XML 中 Page 有 `ActualWidth="1280"` `ActualHeight="720"`
+- **预期**: 输出 XML 中 Page 有 `RenderSize="1280x720"`
 - **验证点**: 画布尺寸回填
 
 ### 6.2 各元素类型回填
 - **用例名**: `FormatRenderedXml_AllElementTypes_Backfilled`
 - **输入**: 含 Panel、Rect、TextElement、Image 的 XML
-- **预期**: 每个元素都有 ActualWidth/ActualHeight
+- **预期**: 每个带 Id 的元素都有 RenderSize/RenderLocation
 - **验证点**: 全类型回填
 
 ### 6.3 ActualLineCount 仅 TextElement
@@ -338,14 +338,14 @@
 ### 6.4 嵌套元素
 - **用例名**: `FormatRenderedXml_NestedElements_AllBackfilled`
 - **输入**: `<Page><Panel Id="outer"><Panel Id="inner"><Rect Id="leaf"/></Panel></Panel></Page>`
-- **预期**: outer、inner、leaf 均有 ActualWidth/ActualHeight
+- **预期**: outer、inner、leaf 均有 RenderSize/RenderLocation
 - **验证点**: 嵌套回填
 
 ### 6.5 Id 在 page 中不存在（跳过）
 - **用例名**: `FormatRenderedXml_IdNotFound_Skipped`
 - **输入**: `<Page><Rect Id="r1"/></Page>`
 - **Page 模型**: 无子元素（或 Children 为空）
-- **预期**: 输出 XML 中 r1 不添加 ActualWidth/ActualHeight（因为 FindMetrics 找不到）
+- **预期**: 输出 XML 中 r1 不添加 RenderSize/RenderLocation（因为找不到对应模型元素）
 - **验证点**: 不存在的 Id 跳过
 
 ### 6.6 null 参数
@@ -363,7 +363,7 @@
 ### 6.8 原始属性保留
 - **用例名**: `FormatRenderedXml_OriginalAttributes_Preserved`
 - **输入**: `<Rect Id="r1" X="10" Y="20" Width="100" Height="50" Fill="#FF0000" CornerRadius="8"/>`
-- **预期**: 输出 XML 保留 X/Y/Width/Height/Fill/CornerRadius，新增 ActualWidth/ActualHeight
+- **预期**: 输出 XML 保留 X/Y/Width/Height/Fill/CornerRadius，新增 RenderSize/RenderLocation
 - **验证点**: 原属性不被移除
 
 ---
@@ -576,13 +576,13 @@
 
 ### 12.1 构造后属性正确
 - **用例名**: `Constructor_PropertiesSet`
-- **输入**: `new SlideMlRenderedMetrics { ActualWidth=200, ActualHeight=100, ActualLineCount=3 }`
-- **预期**: ActualWidth=200, ActualHeight=100, ActualLineCount=3
+- **输入**: `new SlideMlRenderedMetrics { RenderSize="200x100", RenderLocation="10x20", ActualLineCount=3 }`
+- **预期**: RenderSize="200x100", RenderLocation="10x20", ActualLineCount=3
 - **验证点**: 属性值
 
 ### 12.2 ActualLineCount 可为 null
 - **用例名**: `ActualLineCount_Nullable`
-- **输入**: `new SlideMlRenderedMetrics { ActualWidth=200, ActualHeight=100 }`
+- **输入**: `new SlideMlRenderedMetrics { RenderSize="200x100" }`
 - **预期**: ActualLineCount==null
 - **验证点**: 可空
 

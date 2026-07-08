@@ -17,8 +17,8 @@
 - **输入 XML**: `<Page><Rect Id="r1" X="10" Y="20" Width="100" Height="50" Fill="#FF0000"/></Page>`
 - **Fake 行为**: PreMeasure 返回空字典（Rect 不需要测量）
 - **预期**:
-  - result.OutputXml 包含 `ActualWidth="100"` `ActualHeight="50"` 在 Rect 上
-  - Page 上回填 `ActualWidth="1280"` `ActualHeight="720"`
+  - result.OutputXml 包含 `RenderSize="100x50"` 在 Rect 上
+  - Page 上回填 `RenderSize="1280x720"`
   - result.Warnings 为空
   - result.Errors 为空
   - result.PreviewImage 不为 null
@@ -29,7 +29,7 @@
 - **输入 XML**: `<Page><TextElement Id="t1" Text="Hello World" FontSize="16"/></Page>`
 - **Fake 行为**: PreMeasure 返回 t1: MeasuredWidth=88, MeasuredHeight=19.2, ActualLineCount=1
 - **预期**:
-  - t1 回填 `ActualWidth="88"` `ActualHeight="19.2"` `ActualLineCount="1"`
+  - t1 回填 `RenderSize="88x19.2"` `ActualLineCount="1"`
   - LayoutBounds.X=0（页面原点左对齐）
   - Warnings 为空
 - **验证点**: 测量值回填到 XML、坐标正确
@@ -39,7 +39,7 @@
 - **输入 XML**: `<Page><Image Id="img1" Source="pic_001" Width="400" Height="300"/></Page>`
 - **Fake 行为**: PreMeasure 返回 img1: MeasuredWidth=400, MeasuredHeight=300
 - **预期**:
-  - img1 回填 `ActualWidth="400"` `ActualHeight="300"`
+  - img1 回填 `RenderSize="400x300"`
   - Warnings 为空
 - **验证点**: 图片尺寸回填
 
@@ -48,8 +48,8 @@
 - **输入 XML**: `<Page><Panel Id="p1" X="50" Y="50" Width="400" Height="300"><Rect Id="r1" X="20" Y="20" Width="100" Height="80" Fill="#00FF00"/></Panel></Page>`
 - **Fake 行为**: PreMeasure 返回空
 - **预期**:
-  - OutputXml 中 p1 回填 ActualWidth/ActualHeight
-  - r1 回填 ActualWidth/ActualHeight
+  - OutputXml 中 p1 回填 RenderSize/RenderLocation
+  - r1 回填 RenderSize/RenderLocation
   - Warnings 空
 - **验证点**: 嵌套 Panel + Rect 回填正确
 
@@ -111,16 +111,16 @@
 
 ## 3. 回填验证（FormatRenderedXml）
 
-### 3.1 Page 回填 ActualWidth/ActualHeight
+### 3.1 Page 回填 RenderSize
 - **用例名**: `FormatRenderedXml_Page_BackfillsCanvasSize`
 - **输入**: `<Page Background="#F5F5F5"><Rect Id="r1" X="0" Y="0" Width="100" Height="50"/></Page>`
-- **预期**: OutputXml 中 Page 有 `ActualWidth="1280"` `ActualHeight="720"`
+- **预期**: OutputXml 中 Page 有 `RenderSize="1280x720"`
 - **验证点**: 画布尺寸回填
 
 ### 3.2 嵌套元素全部回填
 - **用例名**: `FormatRenderedXml_NestedElements_AllBackfilled`
 - **输入**: `<Page><Panel Id="outer"><Panel Id="inner"><Rect Id="leaf" Width="50" Height="30"/></Panel></Panel></Page>`
-- **预期**: outer、inner、leaf 均有 ActualWidth/ActualHeight
+- **预期**: outer、inner、leaf 均有 RenderSize/RenderLocation
 - **验证点**: 所有层级元素回填
 
 ### 3.3 ActualLineCount 仅在 TextElement 上出现
@@ -135,13 +135,13 @@
 ### 3.4 无 Id 元素跳过回填
 - **用例名**: `FormatRenderedXml_NoIdElement_Skipped`
 - **输入**: `<Page><Rect Width="100" Height="50"/></Page>`
-- **预期**: Rect 被自动分配 Id（elem_001），仍然回填 ActualWidth/ActualHeight（因为 FindMetrics 会查找它）
+- **预期**: Rect 无 Id 属性时不会回填 RenderSize/RenderLocation
 - **验证点**: 自动 Id 元素也被回填
 
 ### 3.5 自定义画布尺寸回填
 - **用例名**: `FormatRenderedXml_CustomCanvas_Backfilled`
 - **输入**: 使用 SlideMlPipelineContext(1920, 1080)
-- **预期**: OutputXml 中 Page 有 `ActualWidth="1920"` `ActualHeight="1080"`
+- **预期**: OutputXml 中 Page 有 `RenderSize="1920x1080"`
 - **验证点**: 自定义画布尺寸回填
 
 ---
@@ -334,7 +334,7 @@
 - **输入**: 包含渐变背景的 Panel、流式布局卡片 Row、Span 富文本、阴影 Rect 等
 - **Fake 行为**: PreMeasure 为所有 TextElement 返回合理的模拟尺寸
 - **预期**:
-  - 所有元素正确回填 ActualWidth/ActualHeight
+  - 所有元素正确回填 RenderSize/RenderLocation
   - 流式布局卡片按顺序排列
   - Span 被正确解析（Text 拼接）
   - 渐变背景被解析
@@ -363,7 +363,7 @@
 ### 10.5 自定义画布尺寸 + 元素布局
 - **用例名**: `RenderAsync_CustomCanvasSize_LayoutRespected`
 - **输入**: 使用 SlideMlPipelineContext(1920, 1080) 构建管道
-- **预期**: Page 回填 ActualWidth="1920" ActualHeight="1080"，布局使用 1920x1080
+- **预期**: Page 回填 RenderSize="1920x1080"，布局使用 1920x1080
 - **验证点**: 自定义画布
 
 ---
@@ -379,7 +379,7 @@
 ### 11.2 数值格式正确（两位小数去零）
 - **用例名**: `RenderAsync_NumericFormat_DisplayCorrect`
 - **输入**: Rect(W=100.5, H=100.0)
-- **预期**: ActualWidth="100.5" ActualHeight="100"
+- **预期**: RenderSize="100.5x100"
 - **验证点**: 格式化
 
 ### 11.3 ActualLineCount 仅在 TextElement 上
@@ -391,7 +391,7 @@
 ### 11.4 原始属性保留
 - **用例名**: `RenderAsync_OriginalAttributes_Preserved`
 - **输入**: `<Rect Id="r1" X="10" Y="20" Width="100" Height="50" Fill="#FF0000" CornerRadius="8"/>`
-- **预期**: OutputXml 中保留 X/Y/Width/Height/Fill/CornerRadius，新增 ActualWidth/ActualHeight
+- **预期**: OutputXml 中保留 X/Y/Width/Height/Fill/CornerRadius，新增 RenderSize/RenderLocation
 - **验证点**: 原属性不被移除
 
 ---

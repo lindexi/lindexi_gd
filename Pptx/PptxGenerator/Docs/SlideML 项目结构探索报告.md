@@ -348,7 +348,7 @@ public sealed class SlideMlRenderPipeline : ISlideMlRenderPipeline
 4. `parser.Parse(xml, context)` → SlideMlPage
 5. `layoutEngine.PreLayout(page, context)` — 使用声明尺寸
 6. `dispatcher.InvokeAsync(() => { PreMeasure → FinalLayout → Render })` — 在 UI 线程
-7. `FormatRenderedXml(xml, page, context)` — 回填 ActualWidth/ActualHeight/ActualLineCount
+7. `FormatRenderedXml(xml, page, context)` — 回填 RenderSize/RenderLocation/ActualLineCount
 8. 返回 SlideMlRenderResult
 9. 解析异常时：渲染错误预览图，返回包含 Warning 的结果
 
@@ -362,7 +362,7 @@ public sealed class SlideMlRenderPipeline : ISlideMlRenderPipeline
 |------|------|
 | `ExtractXml(string text)` | 从文本中提取 XML（支持 `<?xml` 或 `<Page` 开头） |
 | `NormalizeXml(string xml)` | 规范化 XML 格式 |
-| `FormatRenderedXml(string xml, SlideMlPage page, SlideMlPipelineContext context)` | 回填 ActualWidth/ActualHeight/ActualLineCount 到 XML |
+| `FormatRenderedXml(string xml, SlideMlPage page, SlideMlPipelineContext context)` | 回填 RenderSize/RenderLocation/ActualLineCount 到 XML |
 | `FormatNumber(double value)` | 格式化数字（保留两位小数去零） |
 
 ### 8.2 `IMainThreadDispatcher`

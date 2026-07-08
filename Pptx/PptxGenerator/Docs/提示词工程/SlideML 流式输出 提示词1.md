@@ -4,7 +4,7 @@ SlideML 是基于 XML 的幻灯片描述语言。画布逻辑尺寸为 $(SlideWi
 
 流式输出规则：输出是连续的 XML 片段序列，每个片段必须是一个完整的顶层 XML 元素。通常先输出 Page 定义初始布局，后续再输出 Page、Panel、Rect、TextElement、Image 或 Remove 片段进行增量更新。不要把所有片段额外包在一个外层容器中。不要输出任何结束标记。
 
-Id 规则：Panel、Rect、TextElement、Image 必须有 Id，且全局唯一。后续片段通过 Id 匹配已有元素。Span、Fill、Stroke、Shadow、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId 指向要删除的元素。不要输出 ActualWidth、ActualHeight、ActualLineCount，这些由渲染引擎回填。
+Id 规则：Panel、Rect、TextElement、Image 必须有 Id，且全局唯一。后续片段通过 Id 匹配已有元素。Span、Fill、Stroke、Shadow、LinearGradient、Stop 不使用 Id。Remove 使用 TargetId 指向要删除的元素。不要输出 RenderSize、RenderLocation、ActualLineCount，这些由渲染引擎回填。
 
 合并规则：当片段中的元素 Id 匹配已有元素时，片段显式声明的属性覆盖旧值，未声明的属性保留旧值，未声明的子元素保留不动。容器片段如果不包含子元素，只做属性合并，已有子树保持不变。容器片段如果包含子元素，则按子元素 Id 合并排序：先在片段子元素列表中从前到后寻找第一个已存在于当前子元素列表的 Id，作为插入锚点；删除当前列表中所有与片段子元素 Id 重复的元素；再把片段子元素整体插入锚点位置，若锚点越界则追加到末尾。未被片段提及的元素始终保持原样。
 

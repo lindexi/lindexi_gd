@@ -37,11 +37,11 @@
 ```
 
 **预期输出 XML 关键断言**：
-- `Page` 元素回填 `ActualWidth="1280"` `ActualHeight="720"`
-- `Panel#row` 回填 `ActualWidth` = 340×3 + 12×2 = 1044（加上无 Padding），`ActualHeight` = 260
-- `Rect#card1` 回填 `ActualWidth="340"` `ActualHeight="260"`，LayoutBounds.X = 80
-- `Rect#card2` 回填 `ActualWidth="340"` `ActualHeight="260"`，LayoutBounds.X = 80 + 340 + 12 = 432
-- `Rect#card3` 回填 `ActualWidth="340"` `ActualHeight="260"`，LayoutBounds.X = 432 + 340 + 12 = 784
+- `Page` 元素回填 `RenderSize="1280x720"`
+- `Panel#row` 回填 `RenderSize="1044x260"`
+- `Rect#card1` 回填 `RenderSize="340x260"`，RenderLocation = 80x...
+- `Rect#card2` 回填 `RenderSize="340x260"`，RenderLocation.X = 80 + 340 + 12 = 432
+- `Rect#card3` 回填 `RenderSize="340x260"`，RenderLocation.X = 432 + 340 + 12 = 784
 - Warnings 为空
 - Errors 为空
 
@@ -62,7 +62,7 @@
 - FakeRenderEngine.PreMeasure 为 `desc` 返回模拟尺寸（如 MeasuredWidth=352, MeasuredHeight=18, ActualLineCount=1）
 - `title` 的 LayoutBounds.X = 100 + 24 = 124，LayoutBounds.Y = 100 + 24 = 124
 - `desc` 的 LayoutBounds.X = 124，LayoutBounds.Y = 124 + 28.8 + 16 = 168.8
-- Panel 的 ActualHeight = 28.8 + 16 + 18 + 24×2 = 110.8
+- Panel 的 RenderSize 高度 = 28.8 + 16 + 18 + 24×2 = 110.8
 - OutputXml 中 `title` 回填 ActualLineCount="1"
 
 ### 用例 3：绝对定位 Panel 嵌套子元素
@@ -82,7 +82,7 @@
 **预期**：
 - `title` LayoutBounds = (80, 120, 1120, ~67.2)
 - `sub` LayoutBounds = (80, 200, 1120, ~28.8)
-- Panel#hero ActualWidth=1280, ActualHeight=360
+- Panel#hero RenderSize=1280x360
 - 无 Warning
 
 ### 用例 4：文本溢出容器高度产生 Warning
@@ -192,9 +192,9 @@
 
 **预期**：
 - 无解析错误
-- Panel#hero: ActualWidth=1280, ActualHeight=360
-- Panel#cards-row: ActualWidth=1120, ActualHeight=280
-- 所有元素回填 ActualWidth/ActualHeight
+- Panel#hero: RenderSize=1280x360
+- Panel#cards-row: RenderSize=1120x280
+- 所有元素回填 RenderSize/RenderLocation
 - 卡片在流式布局中按顺序排列（注意：Rect 和 TextElement 混合排列）
 - 渐变背景被正确解析（LinearGradientBrush 对象）
 - Span 子元素被正确解析
@@ -212,7 +212,7 @@
 | Margin 间距 | 间距 = max(Gap, prevMargin + nextMargin) |
 | Padding 偏移 | 子元素原点偏移 Padding |
 | 对齐 | HorizontalAlignment/VerticalAlignment 正确解析 |
-| 回填 | OutputXml 包含 ActualWidth/ActualHeight/ActualLineCount |
+| 回填 | OutputXml 包含 RenderSize/RenderLocation/ActualLineCount |
 | Warning | 超出边界、溢出等场景产生正确 Warning |
 | Error | 解析失败场景正确处理 |
 | 测量值 | FinalLayout 使用 PreMeasure 的结果 |

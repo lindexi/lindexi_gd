@@ -18,13 +18,13 @@
 ### 1.2 Panel 自动尺寸（未指定 Width/Height）
 - **用例名**: `PreLayout_AbsolutePanel_AutoSize_WrapsContent`
 - **输入**: Panel(Absolute, 无 Width/Height) + Rect(X=10,Y=10,W=100,H=50) + Rect(X=150,Y=30,W=200,H=80)
-- **预期**: Panel.ActualWidth = 10+100 (无 padding，contentRight=10+100=110。但注意：实际逻辑是第一次遍历后取 contentRight=110，然后 actualWidth=panel.Width ?? (contentRight+0)=110。但由于第二次布局，所以最终实际宽度要看第二次遍历。根据代码——第一次遍历时 LayoutChildren 设置子元素 LocalBounds，然后计算 contentRight=max(contentRight, child.LocalBounds.Right) = max(10+100=110, 150+200=350) = 350。然后 actualWidth = 350。然后第二次布局以 actualWidth 重算子元素——最终子元素位置应保持不变。)
-- **验证点**: Panel.ActualWidth==350, Panel.ActualHeight==80, 子元素 LayoutBounds 正确
+- **预期**: Panel.MeasuredWidth = 10+100 (无 padding，contentRight=10+100=110。但注意：实际逻辑是第一次遍历后取 contentRight=110，然后 measuredWidth=panel.Width ?? (contentRight+0)=110。但由于第二次布局，所以最终实际宽度要看第二次遍历。根据代码——第一次遍历时 LayoutChildren 设置子元素 LocalBounds，然后计算 contentRight=max(contentRight, child.LocalBounds.Right) = max(10+100=110, 150+200=350) = 350。然后 measuredWidth = 350。然后第二次布局以 measuredWidth 重算子元素——最终子元素位置应保持不变。)
+- **验证点**: Panel.MeasuredWidth==350, Panel.MeasuredHeight==80, 子元素 LayoutBounds 正确
 
 ### 1.3 Panel 固定尺寸
 - **用例名**: `PreLayout_AbsolutePanel_FixedSize_SubelementsInside`
 - **输入**: Panel(W=400,H=300) + Rect(X=50,Y=50,W=200,H=100)
-- **预期**: Panel.ActualWidth==400, Panel.ActualHeight==300
+- **预期**: Panel.MeasuredWidth==400, Panel.MeasuredHeight==300
 - **验证点**: Panel 固定尺寸，子元素坐标相对父容器原点
 
 ### 1.4 Panel Padding 对子元素坐标的影响
@@ -36,7 +36,7 @@
 ### 1.5 Panel Padding 使子元素原点偏移
 - **用例名**: `PreLayout_AbsolutePanel_Padding_AutoSize`
 - **输入**: Panel(Padding=16) + Rect(X=0,Y=0,W=100,H=50)
-- **预期**: Panel.ActualWidth=0+50+16+16=132（contentRight=0+100=100，+16×2=132），Panel.ActualHeight=0+50+16+16=82，Rect.LayoutBounds=(16,16,100,50)
+- **预期**: Panel.MeasuredWidth=0+100+16+16=132（contentRight=0+100=100，+16×2=132），Panel.MeasuredHeight=0+50+16+16=82，Rect.LayoutBounds=(16,16,100,50)
 - **验证点**: 自动尺寸含 Padding，子元素偏移 Padding
 
 ### 1.6 Panel 嵌套（绝对定位内嵌绝对定位）
@@ -154,13 +154,13 @@
 ### 2.13 TextElement 默认尺寸 0×0 在 PreLayout 中
 - **用例名**: `PreLayout_HorizontalFlow_TextElementZeroSize`
 - **输入**: Panel(Horizontal) + TextElement(Text="Hello", 无 Width/Height)
-- **预期**: text.ActualWidth=0, text.ActualHeight=0（因 PreLayout 无测量值）
+- **预期**: text.MeasuredWidth=0, text.MeasuredHeight=0（因 PreLayout 无测量值）
 - **验证点**: 默认尺寸
 
 ### 2.14 Image 默认尺寸 240×180
 - **用例名**: `PreLayout_HorizontalFlow_ImageDefaultSize`
 - **输入**: Panel(Horizontal) + Image(Source="img", 无 Width/Height)
-- **预期**: img.ActualWidth=240, img.ActualHeight=180
+- **预期**: img.MeasuredWidth=240, img.MeasuredHeight=180
 - **验证点**: 默认尺寸
 
 ### 2.15 子元素有 Margin.Top/Bottom（水平流式中被忽略为跨轴间距）
@@ -250,7 +250,7 @@
 ### 5.1 Rect 默认尺寸 0×0
 - **用例名**: `PreLayout_Rect_DefaultSize`
 - **输入**: Rect(无 Width/Height)
-- **预期**: rect.ActualWidth=0, rect.ActualHeight=0
+- **预期**: rect.MeasuredWidth=0, rect.MeasuredHeight=0
 - **验证点**: 默认零尺寸
 
 ### 5.2 Rect 显式尺寸
@@ -278,7 +278,7 @@
 ### 6.2 TextElement 默认尺寸 0×0（PreLayout）
 - **用例名**: `PreLayout_TextElement_DefaultSize`
 - **输入**: TextElement(Text="Hello", 无 Width/Height)
-- **预期**: ActualWidth=0, ActualHeight=0
+- **预期**: MeasuredWidth=0, MeasuredHeight=0
 - **验证点**: PreLayout 默认零尺寸
 
 ---
@@ -288,7 +288,7 @@
 ### 7.1 [已有] 使用测量值替代声明值
 - **用例名**: `FinalLayout_UsesMeasuredSizes`
 - **输入**: Panel(Horizontal,Gap=8) + TextElement(t1) + TextElement(t2)；测量值: t1=(120,24), t2=(100,24)
-- **预期**: t1.ActualWidth=120, t2.ActualWidth=100, t2.X=120+8=128
+- **预期**: t1.MeasuredWidth=120, t2.MeasuredWidth=100, t2.LayoutBounds.X=120+8=128
 - **验证点**: 测量值生效
 
 ### 7.2 TextElement 的 ActualLineCount 回填
@@ -312,19 +312,19 @@
 ### 7.5 Image 使用测量尺寸
 - **用例名**: `FinalLayout_Image_MeasuredSize`
 - **输入**: Image(Source="img", 无声明 Width/Height)；测量值: (800,600)
-- **预期**: image.ActualWidth=800, image.ActualHeight=600
+- **预期**: image.MeasuredWidth=800, image.MeasuredHeight=600
 - **验证点**: 图片测量尺寸
 
 ### 7.6 声明 Width 优先于测量值
 - **用例名**: `FinalLayout_DeclaredWidth_PrecedesMeasured`
 - **输入**: TextElement(W=500,Text="Hello")；测量值: (120,24)
-- **预期**: text.ActualWidth=500（声明值优先）
+- **预期**: text.MeasuredWidth=500（声明值优先）
 - **验证点**: `Width ?? MeasuredWidth` 逻辑
 
 ### 7.7 Rect 没有测量值（不受影响）
 - **用例名**: `FinalLayout_Rect_NoMeasurement_Unchanged`
 - **输入**: Rect(W=100,H=50) + 测量值字典中无此 Rect 的 Id
-- **预期**: rect.ActualWidth=100, rect.ActualHeight=50
+- **预期**: rect.MeasuredWidth=100, rect.MeasuredHeight=50
 - **验证点**: 无测量值的 Rect 不受影响
 
 ---
@@ -466,13 +466,13 @@
 ### 11.2 零尺寸元素
 - **用例名**: `PreLayout_ZeroSizeElement_NoCrash`
 - **输入**: Rect(W=0,H=0)
-- **预期**: ActualWidth=0, ActualHeight=0，无崩溃
+- **预期**: MeasuredWidth=0, MeasuredHeight=0，无崩溃
 - **验证点**: 零尺寸不崩溃
 
 ### 11.3 Panel 只有 Padding 无子元素
 - **用例名**: `PreLayout_PanelPaddingOnly_NoChildren`
 - **输入**: Panel(Padding=24, 无子元素)
-- **预期**: panel.ActualWidth=0（contentRight=0, actualWidth=0+24×2=48? 不，因为 contentRight 初始为 0，没有子元素所以不更新。actualWidth=0(Width)??(0+48)=48）。需要验证具体逻辑。
+- **预期**: panel.MeasuredWidth=48（contentRight=0，measuredWidth=0+24×2=48）。需要验证具体逻辑。
 - **验证点**: 无子元素但有 Padding 时的自动尺寸
 
 ### 11.4 流式布局中子元素有显式排列轴方向的坐标
@@ -496,5 +496,5 @@
 - **用例名**: `PreLayoutThenFinalLayout_CorrectOverride`
 - **输入**: TextElement(W=500,Text="Hello")，测量值 (120,24)
 - **步骤**: 先 PreLayout (W=500,H=0)，再 FinalLayout (W=500,H=24)
-- **预期**: FinalLayout 使用测量值覆盖 ActualHeight
+- **预期**: FinalLayout 使用测量值覆盖 MeasuredHeight
 - **验证点**: 尺寸正确更新

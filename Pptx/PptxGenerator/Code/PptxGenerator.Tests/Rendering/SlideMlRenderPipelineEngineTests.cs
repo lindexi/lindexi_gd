@@ -109,7 +109,7 @@ public sealed class SlideMlRenderPipelineEngineTests
 
         var result = await pipeline.RenderAsync(xml).ConfigureAwait(false);
 
-        // 所有元素正确回填 ActualWidth/ActualHeight
+        // 所有元素正确回填 RenderSize/RenderLocation
         StringAssert.Contains(result.OutputXml, "Id=\"row\"", "row 应在输出中");
         StringAssert.Contains(result.OutputXml, "Id=\"card1\"", "card1 应在输出中");
         StringAssert.Contains(result.OutputXml, "Id=\"card2\"", "card2 应在输出中");

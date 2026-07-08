@@ -70,7 +70,7 @@ public sealed class SlideMlLayoutEngineSpecialScenarioTests
         _engine.PreLayout(page, _context);
 
         // 无子元素: contentRight=0, contentBottom=0
-        // actualWidth = 0 + 24*2 = 48, actualHeight = 0 + 24*2 = 48
+        // measuredWidth = 0 + 24*2 = 48, measuredHeight = 0 + 24*2 = 48
         Assert.AreEqual(48, panel.MeasuredWidth, 0.01, "无子元素时 Panel 宽度 = Padding*2");
         Assert.AreEqual(48, panel.MeasuredHeight, 0.01, "无子元素时 Panel 高度 = Padding*2");
     }

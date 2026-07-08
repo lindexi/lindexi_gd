@@ -39,8 +39,8 @@ public sealed class SlideMlLayoutEngineAbsoluteLayoutTests
         _engine.PreLayout(page, _context);
 
         Assert.IsEmpty(_context.Errors, "不应有错误");
-        Assert.AreEqual(350, panel.MeasuredWidth, 0.01, "panel ActualWidth 应为 contentRight=350");
-        Assert.AreEqual(110, panel.MeasuredHeight, 0.01, "panel ActualHeight 应为 contentBottom=110");
+        Assert.AreEqual(350, panel.MeasuredWidth, 0.01, "panel MeasuredWidth 应为 contentRight=350");
+        Assert.AreEqual(110, panel.MeasuredHeight, 0.01, "panel MeasuredHeight 应为 contentBottom=110");
 
         var r1 = (SlideMlRectElement)panel.Children[0];
         var r2 = (SlideMlRectElement)panel.Children[1];
@@ -68,8 +68,8 @@ public sealed class SlideMlLayoutEngineAbsoluteLayoutTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(400, panel.MeasuredWidth, 0.01, "panel ActualWidth");
-        Assert.AreEqual(300, panel.MeasuredHeight, 0.01, "panel ActualHeight");
+        Assert.AreEqual(400, panel.MeasuredWidth, 0.01, "panel MeasuredWidth");
+        Assert.AreEqual(300, panel.MeasuredHeight, 0.01, "panel MeasuredHeight");
 
         var r1 = (SlideMlRectElement)panel.Children[0];
         Assert.AreEqual(50, r1.LayoutBounds.X, 0.01, "r1 X 相对父容器原点");
@@ -117,8 +117,8 @@ public sealed class SlideMlLayoutEngineAbsoluteLayoutTests
         var page = CreatePage(panel);
         _engine.PreLayout(page, _context);
 
-        Assert.AreEqual(100 + 16 * 2, panel.MeasuredWidth, 0.01, "panel ActualWidth 含 Padding");
-        Assert.AreEqual(50 + 16 * 2, panel.MeasuredHeight, 0.01, "panel ActualHeight 含 Padding");
+        Assert.AreEqual(100 + 16 * 2, panel.MeasuredWidth, 0.01, "panel MeasuredWidth 含 Padding");
+        Assert.AreEqual(50 + 16 * 2, panel.MeasuredHeight, 0.01, "panel MeasuredHeight 含 Padding");
 
         var r1 = (SlideMlRectElement)panel.Children[0];
         Assert.AreEqual(16, r1.LayoutBounds.X, 0.01, "r1 X 偏移 Padding");
