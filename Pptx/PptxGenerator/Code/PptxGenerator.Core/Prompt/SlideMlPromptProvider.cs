@@ -237,12 +237,13 @@ Panel：
 1. Panel 用于组织子元素，支持嵌套、绝对定位和单向流式布局。
 2. 属性：Padding 可选，默认 0；Background 可选，默认透明；Layout 可选 Absolute、Horizontal、Vertical，默认 Absolute；Gap 可选，默认 0。
 3. Width、Height 不写时自动撑开到包裹所有子元素。
-4. Layout="Absolute" 时，子元素按各自 X、Y 定位。
-5. Layout="Horizontal" 时，子元素沿水平方向排列，子元素 X 被忽略；跨轴仍使用 Y 或 VerticalAlignment。
-6. Layout="Vertical" 时，子元素沿垂直方向排列，子元素 Y 被忽略；跨轴仍使用 X 或 HorizontalAlignment。
-7. 流式布局不支持换行；子元素超出 Panel 尺寸时只产生警告。
-8. 流式布局实际间距为 max(Gap, 相邻元素在排列方向上的 Margin 之和)。
-9. Panel 可包含 Fill 子元素定义渐变背景，Fill 优先于 Background。
+4. Panel 内包含 TextElement 且文本高度不确定时，优先不要设置 Panel 的 Height，让 Panel 跟随文本实际渲染高度自动撑开；如果 TextElement 未设置 Width、采用单行宽度自适应，也优先不要设置 Panel 的 Width，让 Panel 跟随文本实际宽度自动撑开，避免内容超出父容器后被裁剪。
+5. Layout="Absolute" 时，子元素按各自 X、Y 定位。
+6. Layout="Horizontal" 时，子元素沿水平方向排列，子元素 X 被忽略；跨轴仍使用 Y 或 VerticalAlignment。
+7. Layout="Vertical" 时，子元素沿垂直方向排列，子元素 Y 被忽略；跨轴仍使用 X 或 HorizontalAlignment。
+8. 流式布局不支持换行；子元素超出 Panel 尺寸时只产生警告。
+9. 流式布局实际间距为 max(Gap, 相邻元素在排列方向上的 Margin 之和)。
+10. Panel 可包含 Fill 子元素定义渐变背景，Fill 优先于 Background。
 
 Rect：
 1. Rect 表示矩形。
@@ -274,10 +275,11 @@ Fill、Stroke、LinearGradient、Stop：
 1. 先输出 Page，建立背景和主要区域占位。
 2. 使用 Panel 划分 Header、Content、Footer、Card、Sidebar 等逻辑区域。
 3. 复杂卡片用 Panel 包住 Rect 和 TextElement。不要一开始就输入大片的页面内容，应该从外到里逐层输出，充分利用流式合并能力。比如先输出骨架版式，再取其中一个 Panel 完善其中的内容，如果此 Panel 内容比较多，请在 Panel 里面添加子 Panel，随后再利用流式合并，细化子 Panel 的内容。
-4. 同样式元素可用 StyleFrom + StyleId 减少重复。先输出带 StyleId 的悬空模板，再由后续元素通过 StyleFrom 引用。
-5. 后续片段只输出变化部分，依靠 Id 合并保留未变化内容。充分利用好此特性，避免一次性输出大量内容，正确做法是逐个内容完善
-6. 需要重排同一父容器内子元素时，在同一个父容器片段中按目标顺序输出相关子元素。
-7. 需要删除元素时使用 Remove。
+4. 若 Panel 主要包裹文本，先判断文本是固定宽度自动换行还是单行自适应：固定宽度文本可给 TextElement 设置 Width 但不要预设 Height，也不要给外层 Panel 及其直接包裹容器预设 Height；单行自适应文本则 TextElement 和外层 Panel 都尽量不设置 Width，让实际文本宽度决定容器宽度。
+5. 同样式元素可用 StyleFrom + StyleId 减少重复。先输出带 StyleId 的悬空模板，再由后续元素通过 StyleFrom 引用。
+6. 后续片段只输出变化部分，依靠 Id 合并保留未变化内容。充分利用好此特性，避免一次性输出大量内容，正确做法是逐个内容完善
+7. 需要重排同一父容器内子元素时，在同一个父容器片段中按目标顺序输出相关子元素。
+8. 需要删除元素时使用 Remove。
 
 机制说明：
 1. 直接输出的文本内容将被视为 XML 片段，解析器会按流式合并规则处理。每输出一个片段，引擎自动合并并渲染，无需手动调用渲染工具。
@@ -290,7 +292,7 @@ Fill、Stroke、LinearGradient、Stop：
 示例片段序列：
 <Page Background="#F5F5F5">
   <Panel Id="Header" X="0" Y="0" Width="$(SlideWidth)" Height="100"/>
-  <Panel Id="Content" X="80" Y="140" Width="1120" Height="500"/>
+  <Panel Id="Content" X="80" Y="140" Width="1120"/>
 </Page>
 
 <Panel Id="Header" Background="#1A1A2E">
@@ -298,19 +300,18 @@ Fill、Stroke、LinearGradient、Stop：
 </Panel>
 
 <Panel Id="Content">
-  <Panel Id="CardOne" X="0" Y="0" Width="340" Height="180">
+  <Panel Id="CardOne" X="0" Y="0" Width="340" Background="#FFFFFF" Padding="24">
   </Panel>
 </Panel>
 
-<Panel Id="CardOne" X="0" Y="0" Width="340" Height="180">
-   <Rect Id="CardOneBackground" X="0" Y="0" Width="340" Height="180" Fill="#FFFFFF" CornerRadius="12"/>
-   <TextElement Id="CardOneTitle" X="24" Y="24" Width="292" Text="要点" FontSize="24" IsBold="True" Foreground="#1A1A2E"/>
-   <TextElement Id="CardOneBody" X="24" Y="72" Text="" FontSize="16" Foreground="#666666" />
+<Panel Id="CardOne" Width="340" Background="#FFFFFF" Padding="24">
+   <TextElement Id="CardOneTitle" X="0" Y="0" Width="292" Text="要点" FontSize="24" IsBold="True" Foreground="#1A1A2E"/>
+   <TextElement Id="CardOneBody" X="0" Y="48" Text="" FontSize="16" Foreground="#666666" />
 </Panel>
 
 <TextElement Id="CardOneBody" Text=" 这里是卡片正文内容。对于可能有大段文本输出的内容，也可以充分利用合并机制，分为多段内容输出。" />
 """;
-
+        // 以上提示词的更改，建议充分利用子智能体的能力，将提示词给到子智能体去理解，看子智能体能否符合你预期的理解到点
         var result = prompt.Replace("$(SlideWidth)", _documentContext.CanvasWidth.ToString())
             .Replace("$(SlideHeight)", _documentContext.CanvasHeight.ToString());
         return result;
