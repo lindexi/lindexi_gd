@@ -1,6 +1,7 @@
 using AgentLib;
 using AgentLib.ChatRoom.Model;
 using AgentLib.Core;
+using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Logging;
 using AgentLib.Model;
 using AgentLib.Tools;
@@ -202,12 +203,30 @@ public sealed class ChatRoomRole
             }
 
             Task<string?> finalContentTask = RunManualSendAsync(manualContext, chatMessages, additionalTools, cancellationToken);
-            return new ChatRoomSpeakResult(manualContext.AssistantChatMessage, finalContentTask);
+            string modelDisplayName = GetCurrentModelDisplayName();
+            return new ChatRoomSpeakResult(manualContext.AssistantChatMessage, finalContentTask, modelDisplayName);
         }
         catch (OperationCanceledException)
         {
             return null;
         }
+    }
+
+    private string GetCurrentModelDisplayName()
+    {
+        ModelDefinition modelDefinition = _endpointManager.PrimaryModel.ModelDefinition;
+        string modelName = !string.IsNullOrWhiteSpace(modelDefinition.ModelName)
+            ? modelDefinition.ModelName
+            : modelDefinition.ModelId ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(modelDefinition.Provider))
+        {
+            return modelName;
+        }
+
+        return string.IsNullOrWhiteSpace(modelName)
+            ? modelDefinition.Provider
+            : $"{modelDefinition.Provider}/{modelName}";
     }
 
     private async Task<string?> RunManualSendAsync(

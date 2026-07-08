@@ -21,6 +21,7 @@ public partial class ChatView : UserControl
     public ChatView()
     {
         InitializeComponent();
+        InputTextBox.AddHandler(KeyDownEvent, InputTextBox_OnKeyDown, RoutingStrategies.Tunnel);
         DataContextChanged += OnDataContextChanged;
     }
 

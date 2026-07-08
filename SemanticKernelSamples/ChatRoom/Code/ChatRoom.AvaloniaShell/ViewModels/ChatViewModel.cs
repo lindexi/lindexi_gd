@@ -108,6 +108,16 @@ public sealed class MessageItemViewModel : NotifyBase
     public bool HasUsageDetails => CopilotChatMessage?.HasUsageDetails ?? false;
 
     /// <summary>
+    /// 是否有模型显示名。
+    /// </summary>
+    public bool HasModelDisplayName => !string.IsNullOrWhiteSpace(Message.ModelDisplayName);
+
+    /// <summary>
+    /// AI 消息实际采用的模型显示名。
+    /// </summary>
+    public string ModelDisplayName => Message.ModelDisplayName;
+
+    /// <summary>
     /// 用量摘要文本（如：用量 总计 123 输入 45 输出 78）。
     /// </summary>
     public string UsageSummaryText => CopilotChatMessage?.UsageSummaryText ?? string.Empty;
@@ -167,6 +177,7 @@ public sealed class MessageItemViewModel : NotifyBase
         {
             case nameof(ChatRoomMessage.Content):
             case nameof(ChatRoomMessage.IsStreaming):
+            case nameof(ChatRoomMessage.ModelDisplayName):
                 break;
             default:
                 return;
@@ -175,10 +186,17 @@ public sealed class MessageItemViewModel : NotifyBase
         if (Dispatcher.UIThread.CheckAccess())
         {
             OnPropertyChanged(e.PropertyName);
+            OnPropertyChanged(nameof(ModelDisplayName));
+            OnPropertyChanged(nameof(HasModelDisplayName));
         }
         else
         {
-            Dispatcher.UIThread.Post(() => OnPropertyChanged(e.PropertyName));
+            Dispatcher.UIThread.Post(() =>
+            {
+                OnPropertyChanged(e.PropertyName);
+                OnPropertyChanged(nameof(ModelDisplayName));
+                OnPropertyChanged(nameof(HasModelDisplayName));
+            });
         }
     }
 
