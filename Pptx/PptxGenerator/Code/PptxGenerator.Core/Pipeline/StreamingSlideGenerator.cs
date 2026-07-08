@@ -233,6 +233,8 @@ internal sealed class StreamingSlideGenerator
                 allErrors.Add(renderError);
             }
 
+            allErrors = allErrors.Distinct().ToList();
+
             if (allErrors.Count == 0)
             {
                 // 未检测到异常，执行流结束渲染
