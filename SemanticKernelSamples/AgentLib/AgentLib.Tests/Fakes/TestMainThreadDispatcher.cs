@@ -86,7 +86,7 @@ internal sealed class TestMainThreadDispatcher : IMainThreadDispatcher
 
         try
         {
-            await action().ConfigureAwait(false);
+            await action();
 
             SynchronizationContextSnapshots.Add(new SynchronizationContextSnapshot(
                 ContextType: SynchronizationContext.Current?.GetType().Name ?? "null",
@@ -129,7 +129,7 @@ internal sealed class TestMainThreadDispatcher : IMainThreadDispatcher
 
         try
         {
-            T result = await action().ConfigureAwait(false);
+            T result = await action();
 
             SynchronizationContextSnapshots.Add(new SynchronizationContextSnapshot(
                 ContextType: SynchronizationContext.Current?.GetType().Name ?? "null",

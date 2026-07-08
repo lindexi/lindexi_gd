@@ -138,8 +138,8 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     {
         await ChatManager.TryRunInMainThread(async () =>
         {
-            await ChatManager.AppendMessageAsync(Session, UserChatMessage).ConfigureAwait(false);
-            await ChatManager.AppendMessageAsync(Session, AssistantChatMessage).ConfigureAwait(false);
+            await ChatManager.AppendMessageAsync(Session, UserChatMessage);
+            await ChatManager.AppendMessageAsync(Session, AssistantChatMessage);
         });
     }
 
