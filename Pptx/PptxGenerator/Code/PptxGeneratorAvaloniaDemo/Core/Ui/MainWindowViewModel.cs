@@ -39,7 +39,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private bool _isFirstMessage = true;
     private bool _attachPreview;
     private string _editableSlideXml = string.Empty;
-    private string _mcpServiceUrl = string.Empty;
+    private string _mcpServiceUrl = "http://127.0.0.1:64773/mcp";
     private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
     private string _statusText = "等待开始";
     private string _iterationStatusText = string.Empty;
@@ -74,6 +74,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _evaluateCommand = new DelegateCommand(() => _ = RunEvaluateAsync(), AvaloniaDispatcher.Instance, () => !IsBusy && slideChatManager.LastEvaluationResult is null && !string.IsNullOrWhiteSpace(_lastUserPrompt));
         _evaluatePromptCommand = new DelegateCommand(() => _ = RunEvaluatePromptAsync(), AvaloniaDispatcher.Instance, () => !IsBusy && !IsIterating && slideChatManager.Pipeline.CanRunIteration);
         _rerenderCommand = new DelegateCommand(() => _ = RunRerenderAsync(), AvaloniaDispatcher.Instance, () => !IsBusy && !string.IsNullOrWhiteSpace(EditableSlideXml));
+
+        _ = UseMcpSlideMlRender();
     }
 
     /// <summary>
@@ -513,16 +515,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(McpServiceUrl))
-        {
-            await pipeline.TryEnableMcpAsync(McpServiceUrl).ConfigureAwait(false);
-            StatusText = "已使用本地渲染";
-            return;
-        }
-
-        StatusText = "正在连接 MCP 渲染服务...";
-        var isEnabled = await pipeline.TryEnableMcpAsync(McpServiceUrl).ConfigureAwait(false);
-        StatusText = isEnabled ? "已连接 MCP 渲染服务" : "MCP 渲染服务不可用，已使用本地渲染";
+        await pipeline.TryEnableMcpAsync(McpServiceUrl).ConfigureAwait(false);
     }
 
     private async Task RunRerenderAsync()
@@ -544,7 +537,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 renderTool.ApplyRenderResult(renderResult);
-                StatusText = renderResult.Errors.Count > 0 ? "重新渲染完成，存在错误" : "重新渲染完成";
+                StatusText = "重新渲染完成";
             });
         }
         catch (OperationCanceledException)
@@ -559,6 +552,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             IsBusy = false;
         }
+    }
+
+    private async Task UseMcpSlideMlRender()
+    {
+        await TryConnectMcpRenderAsync().ConfigureAwait(false);
     }
 
     private void OnPropertyChanged(string propertyName)
