@@ -73,6 +73,20 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.Contains("<Panel Id=\"header\">", remaining);
     }
 
+    [TestMethod(DisplayName = "遇到片段内部不匹配结束标签时返回非法片段供上层报错")]
+    public void Append_MismatchedClosingTagInsideFragment_ReturnsInvalidFragment()
+    {
+        var extractor = new SlideMlFragmentExtractor();
+        extractor.Append("<Panel Id=\"MainContainer\"><Rect Id=\"OverlayShape\"/></MainContainer>");
+
+        var fragments = extractor.TryExtractFragments();
+        var remaining = extractor.GetRemaining();
+
+        Assert.HasCount(1, fragments);
+        Assert.AreEqual("<Panel Id=\"MainContainer\"><Rect Id=\"OverlayShape\"/></MainContainer>", fragments[0]);
+        Assert.AreEqual(string.Empty, remaining);
+    }
+
     [TestMethod]
     public void Append_XmlDeclaration_NotTreatedAsFragment()
     {

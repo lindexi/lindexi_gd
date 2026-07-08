@@ -167,7 +167,12 @@ public sealed class SlideMlFragmentExtractor
                     }
                     else
                     {
-                        // 没有匹配的开始标签，忽略此结束标签
+                        // 片段内部遇到不匹配的结束标签，返回非法片段供上层 XML 解析错误机制处理。
+                        if (fragmentStart >= 0 && depth > 0)
+                        {
+                            pos = tagEnd + 1;
+                            return (text.Substring(fragmentStart, pos - fragmentStart), pos);
+                        }
                     }
 
                     pos = tagEnd + 1;
