@@ -5,7 +5,7 @@ namespace PptxGenerator.Tests.Streaming;
 [TestClass]
 public sealed class SlideMlFragmentExtractorTests
 {
-    [TestMethod]
+    [TestMethod(DisplayName = "单个闭合片段返回片段并清空缓冲")]
     public void Append_SingleFragment_ReturnsAfterClose()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -19,7 +19,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual(string.Empty, remaining);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "片段跨多次追加时补齐后返回片段")]
     public void Append_FragmentSplitAcrossTokens_ReturnsWhenComplete()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -35,7 +35,7 @@ public sealed class SlideMlFragmentExtractorTests
             fragments[0]);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "自闭合标签追加后立即返回片段")]
     public void Append_SelfClosingTag_ReturnsImmediately()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -47,7 +47,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Rect Id=\"bg\" Width=\"100\"/>", fragments[0]);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "多个完整片段追加后全部返回")]
     public void Append_MultipleFragments_ReturnsAll()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -60,7 +60,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Rect Id=\"b\"/>", fragments[1]);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "未闭合片段保留在缓冲区")]
     public void Append_PartialFragment_StaysInBuffer()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -209,7 +209,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual(string.Empty, remaining);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "XML 声明不会作为片段并跳过后返回元素")]
     public void Append_XmlDeclaration_NotTreatedAsFragment()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -221,7 +221,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Page/>", fragments[0]);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "顶层注释不会作为片段并跳过后返回元素")]
     public void Append_Comment_NotTreatedAsFragment()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -233,7 +233,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Page/>", fragments[0]);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "嵌套元素在外层闭合后返回外层片段")]
     public void Append_NestedElements_ReturnsWhenOuterCloses()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -245,8 +245,8 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Panel Id=\"outer\"><Panel Id=\"inner\"/></Panel>", fragments[0]);
     }
 
-    [TestMethod]
-    public void Append_TextBetweenFragments_IgnoredOrPreserved()
+    [TestMethod(DisplayName = "片段之间的空白被跳过并返回后续片段")]
+    public void Append_TextBetweenFragments_SkipsWhitespaceAndReturnsFragments()
     {
         var extractor = new SlideMlFragmentExtractor();
         extractor.Append("<Page/>\n<Rect Id=\"r\"/>");
@@ -258,7 +258,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Rect Id=\"r\"/>", fragments[1]);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "提取完成后获取残留内容返回空字符串")]
     public void GetRemaining_AfterExtraction_ReturnsEmpty()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -270,7 +270,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual(string.Empty, remaining);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "追加空字符串不会产生片段也不会留下残留")]
     public void Append_EmptyString_NoEffect()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -283,7 +283,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual(string.Empty, remaining);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "追加空引用时抛出参数空异常")]
     public void Append_Null_ThrowsArgumentNullException()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -375,7 +375,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<TextElement Text=\"A\"/>", fragments[1]);
     }
 
-    [TestMethod(DisplayName = "片段之间存在空白时返回片段并保留尾随空白")]
+    [TestMethod(DisplayName = "片段之间的空白被跳过且尾随空白保留在缓冲区")]
     public void TryExtractFragments_ElementsSeparatedByWhitespace_ReturnsFragmentsWithoutWhitespace()
     {
         var extractor = new SlideMlFragmentExtractor();
@@ -711,7 +711,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual(input, extractor.GetRemaining());
     }
 
-    [TestMethod(DisplayName = "空白加不完整片段时保留所有残留内容")]
+    [TestMethod(DisplayName = "前导空白加不完整片段时保留全部残留内容")]
     public void TryExtractFragments_LeadingWhitespaceBeforeIncompleteElement_KeepsAllRemaining()
     {
         var input = "  <Page>";
@@ -746,8 +746,8 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<TextElement Text=\"A\"/>", fragments[1]);
     }
 
-    [TestMethod(DisplayName = "只有自然语言文本时返回空并保留当前缓冲")]
-    public void TryExtractFragments_TextWithoutElement_ReturnsEmptyAndMayKeepRemaining()
+    [TestMethod(DisplayName = "只有自然语言文本时不提取片段并保留原始文本")]
+    public void TryExtractFragments_TextWithoutElement_ReturnsEmptyAndKeepsOriginalText()
     {
         var input = "这里没有 XML";
         var extractor = new SlideMlFragmentExtractor();
@@ -803,8 +803,8 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<Page><Panel><Rect></Page>", fragments[0]);
     }
 
-    [TestMethod(DisplayName = "只有结束标签时返回空并保留当前缓冲")]
-    public void TryExtractFragments_OnlyEndTag_ReturnsEmptyAndConsumesOrKeepsByCurrentBehavior()
+    [TestMethod(DisplayName = "只有非法结束标签时不提取片段并保留原始结束标签")]
+    public void TryExtractFragments_OnlyEndTag_ReturnsEmptyAndKeepsOriginalEndTag()
     {
         var input = "</Page>";
         var extractor = new SlideMlFragmentExtractor();
@@ -856,7 +856,7 @@ public sealed class SlideMlFragmentExtractorTests
     }
 
     [TestMethod(DisplayName = "片段后跟空白时返回片段并保留尾随空白")]
-    public void TryExtractFragments_FragmentFollowedByWhitespace_ReturnsFragmentAndRecordsWhitespaceBehavior()
+    public void TryExtractFragments_FragmentFollowedByWhitespace_ReturnsFragmentAndKeepsTrailingWhitespace()
     {
         var extractor = new SlideMlFragmentExtractor();
         extractor.Append("<Rect/>   ");
