@@ -1,0 +1,471 @@
+# ChatRoom 自动发言调度规则设计
+
+## 背景
+
+当前 `ChatRoomManager.RunAutoLoopTurnAsync` 使用单一 `Queue<ChatRoomRole>` 维护待发言角色，并使用 `attemptedRoleIds` 限制同一轮中每个角色最多只发言一次。
+
+这套规则更接近“一轮内广度优先去重调度”，但不符合真实聊天室中的自然对话方式：
+
+1. 角色在消息中 @ 其他角色时，被 @ 的角色应当优先接话，而不是排到已有队列末尾。
+2. 一个角色在被其他角色回复后，应允许再次发言；只要不是连续两次由同一角色发言即可。
+3. `attemptedRoleIds` 会阻止 A → B → A 这类正常对话链。
+4. 管理者角色既可能是正常参与角色，也可能是兜底协调角色，当前实现与角色定义中的注释存在不一致。
+5. 需要防止 A 与 B 互相 @ 导致无限聊天，同时不能简单截断整个自动循环。
+
+## 设计目标
+
+1. 发言调度方式更接近真实聊天室。
+2. 人类消息触发一轮自动对话时，优先处理 trigger 消息中的 @ 角色。
+3. 如果 trigger 消息没有 @ 角色，则所有 `AlwaysParticipate` 非人类角色按照 `Roles` 顺序发言，不排除管理者角色。
+4. 后续角色发言中产生的 @ 应立即触发被 @ 角色优先发言。
+5. 允许同一角色在一轮自动循环中多次发言，但禁止同一角色连续发言两次。
+6. 每个角色在单次 `RunAutoLoopTurnAsync` 中有最大发言次数，默认 5 次。
+7. 当某角色达到最大发言次数时，不直接结束循环，而是交给管理者判断是否继续。
+8. 当没有任何角色可以发言时，由管理者兜底发言。
+9. 管理者如果 @ 了其他角色，则继续推进链式对话；如果没有 @，则结束自动循环。
+10. 人类插话行为保持现有机制：当前角色发言结束后重新以最新人类消息开启一轮。
+
+## 核心规则
+
+### 1. 初始触发规则
+
+`RunAutoLoopTurnAsync` 的入口消息称为 `triggerMessage`。
+
+当 `triggerMessage` 是人类消息时：
+
+1. 如果 `triggerMessage.MentionedRoleIds` 非空：
+   - 优先处理 trigger 消息中被 @ 的角色。
+   - 被 @ 角色按照消息中出现顺序发言。
+2. 如果 `triggerMessage.MentionedRoleIds` 为空：
+   - 将所有满足以下条件的角色加入默认发言队列：
+     - `IsHuman == false`
+     - `ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate`
+   - 不因为 `IsManagerRole == true` 排除角色。
+   - 默认发言队列按照 `Roles` 集合顺序排列。
+
+### 2. 后续 @ 触发规则
+
+某个角色发言成功后，解析该消息中的 @ 角色。
+
+如果消息中 @ 了其他角色，则这些角色加入“优先发言栈”。
+
+为了保持消息中的 @ 顺序，需要按照逆序入栈。
+
+示例：
+
+```text
+消息内容：@A 请检查接口，@B 请检查 UI
+
+入栈顺序：
+  push B
+  push A
+
+实际发言顺序：
+  A
+  B
+```
+
+因此，“消息中先被 @ 的角色”会先发言。
+
+### 3. 调度优先级
+
+每一拍选择下一个发言角色时，按照以下优先级：
+
+1. 优先从 @ 触发的动态栈中取角色。
+2. 动态栈为空时，从默认发言队列中取角色。
+3. 动态栈和默认发言队列都为空时，让管理者角色兜底发言。
+4. 管理者发言后如果 @ 了其他角色，则回到第 1 步继续推进。
+5. 管理者发言后如果没有 @ 任何角色，则自动循环结束。
+
+这使默认发言顺序与 @ 即时响应同时成立：
+
+- 默认队列负责公平顺序参与。
+- 动态栈负责当前消息产生的即时接话。
+
+### 4. 禁止连续发言规则
+
+同一个角色不能连续发言两次。
+
+如果下一个候选角色与上一位成功发言角色相同，则该候选角色不应立即发言。
+
+该规则用于避免以下场景：
+
+```text
+A 发言并 @A
+A 再次发言
+```
+
+这种连续发言通常没有新的外部上下文，`StepAsync` 也可能因为没有增量消息而返回空内容。
+
+### 5. 单角色最大发言次数规则
+
+在单次 `RunAutoLoopTurnAsync` 循环内，每个角色都有最大发言次数。
+
+默认值：
+
+```text
+MaxSpeakCountPerRole = 5
+```
+
+当轮到某个角色发言，但该角色在当前自动循环内已经达到最大发言次数时：
+
+1. 该角色本次不发言。
+2. 将发言权交给管理者角色。
+3. 重置该角色的发言计数，使管理者后续可以通过 @ 再次授权该角色继续发言。
+4. 管理者本次发言需要额外收到一条用户消息，说明触发限制的原因和当前等待状态。
+
+管理者附加消息示例：
+
+```text
+角色「A」在当前自动循环中已经达到最大发言次数 5 次，因此本次未继续让它发言。
+如果你认为「A」仍然需要继续发言，请在回复中明确 @A；否则可以不再 @ 它。
+当前仍在等待发言的角色包括：B、C、D。
+```
+
+该附加消息用于让管理者成为调度仲裁者，而不是由代码直接决定是否终止某个角色。
+
+### 6. 管理者兜底规则
+
+当没有任何普通角色可以继续发言时，让管理者角色发言。
+
+触发条件：
+
+1. @ 动态栈为空。
+2. 默认发言队列为空。
+3. 当前没有其他可执行候选角色。
+4. 本轮空闲兜底尚未触发过，避免管理者无意义地连续兜底。
+
+管理者发言后：
+
+- 如果管理者 @ 了其他角色，则被 @ 的角色进入动态栈，继续链式对话。
+- 如果管理者没有 @ 任何角色，则自动循环结束。
+
+### 7. 人类插话规则
+
+人类插话保持现有行为。
+
+自动循环运行期间，如果人类通过 `HumanInterjectAsync` 插话：
+
+1. 设置 `_humanInterjectSignal`。
+2. 当前正在发言的角色完成发言后，`RunAutoLoopTurnAsync` 返回 `true`。
+3. 外层 `StartAutoLoopAsync` 重新读取最新非系统消息作为新的 `triggerMessage`。
+4. 新一轮自动循环按最新人类消息重新调度。
+
+## 建议数据结构
+
+### 1. 优先发言栈
+
+用于保存由角色消息 @ 产生的即时发言目标。
+
+```csharp
+Stack<ChatRoomRole> priorityRoles;
+```
+
+入栈时应按 @ 角色列表逆序压入，保证实际弹出顺序与消息中 @ 顺序一致。
+
+### 2. 默认发言队列
+
+用于保存人类消息触发时的默认参与角色。
+
+```csharp
+Queue<ChatRoomRole> defaultRoles;
+```
+
+默认队列按照 `Roles` 顺序建立。
+
+### 3. 发言次数表
+
+用于限制单个角色在当前自动循环内的发言次数。
+
+```csharp
+Dictionary<string, int> speakCounts;
+```
+
+当角色成功发言后递增。
+
+当某角色达到上限并被移交给管理者时，只重置该角色的计数。
+
+### 4. 上一位发言者
+
+用于禁止连续发言。
+
+```csharp
+string? lastSpeakerRoleId;
+```
+
+### 5. 管理者空闲兜底标记
+
+用于防止“没有角色可发言 → 管理者发言 → 没有 @ → 再次管理者发言”的死循环。
+
+```csharp
+bool managersInvokedForIdle;
+```
+
+### 6. 全局步数上限
+
+保留当前类似 `maxAutoLoopSteps` 的全局安全网，防止未知调度缺陷导致无限循环。
+
+```csharp
+int maxAutoLoopSteps;
+int stepCount;
+```
+
+## 推荐调度流程
+
+```text
+RunAutoLoopTurnAsync(triggerMessage, ct):
+  priorityRoles = new Stack<ChatRoomRole>()
+  defaultRoles = new Queue<ChatRoomRole>()
+  speakCounts = new Dictionary<string, int>()
+  lastSpeakerRoleId = null
+  managersInvokedForIdle = false
+
+  如果 triggerMessage 有 @：
+    按逆序将被 @ 角色压入 priorityRoles
+  否则如果 triggerMessage 是人类消息：
+    将 AlwaysParticipate 的非人类角色按 Roles 顺序加入 defaultRoles
+
+  while 未取消：
+    如果有人类插话信号：
+      return true
+
+    nextSpeaker = 从 priorityRoles 或 defaultRoles 中选择下一个可发言角色
+
+    如果 nextSpeaker 不存在：
+      如果可以进行管理者空闲兜底：
+        nextSpeaker = 管理者角色
+        managersInvokedForIdle = true
+      否则：
+        return false
+
+    如果 nextSpeaker 是 lastSpeakerRoleId：
+      跳过或延后该角色
+      continue
+
+    如果 nextSpeaker 已达到最大发言次数：
+      重置 nextSpeaker 的计数
+      nextSpeaker = 管理者角色
+      为管理者构造本次附加用户消息
+
+    执行 StepAsync(nextSpeaker)
+
+    如果 message 为空：
+      continue
+
+    更新 lastSpeakerRoleId
+    更新 speakCounts
+    解析 message 中的 @
+    将被 @ 角色按逆序压入 priorityRoles
+
+  return false
+```
+
+## 与当前实现的差异
+
+### 1. 不再使用 attemptedRoleIds 作为本轮去重集合
+
+当前 `attemptedRoleIds` 会限制一个角色在同一轮自动循环中最多只发言一次。
+
+新规则允许：
+
+```text
+A → B → A
+```
+
+只要 A 不是连续发言，且未超过单角色最大发言次数即可。
+
+因此，`attemptedRoleIds` 应替换为更明确的状态：
+
+- `speakCounts`
+- `lastSpeakerRoleId`
+- `managersInvokedForIdle`
+- `stepCount`
+
+### 2. @ 触发从队尾追加改为即时优先
+
+当前实现中，角色 A 发言 @ D 时，D 会被追加到现有 `pendingRoles` 队尾。
+
+新规则中，D 会进入优先发言栈，下一拍优先被选择。
+
+### 3. 管理者参与默认队列
+
+当前 `GetDefaultWorkerRoles` 排除了 `IsManagerRole`。
+
+新规则中，只要管理者满足：
+
+```text
+ParticipationMode == AlwaysParticipate
+IsHuman == false
+```
+
+就应参与默认发言队列。
+
+管理者是否兜底由 `IsManagerRole` 决定，不应影响其是否可以作为普通 `AlwaysParticipate` 角色参与。
+
+### 4. 管理者从“最后兜底”升级为“调度仲裁者”
+
+新规则中，管理者有两类触发方式：
+
+1. 空闲兜底：没有角色可以继续发言时，由管理者总结或决定下一步。
+2. 超限仲裁：某个角色达到单轮最大发言次数时，由管理者判断是否继续授权该角色发言。
+
+## 场景示例
+
+### 场景 1：人类消息没有 @
+
+角色配置：
+
+```text
+A：AlwaysParticipate
+B：AlwaysParticipate
+C：MentionOnly
+M：AlwaysParticipate + IsManagerRole
+```
+
+人类消息：
+
+```text
+请讨论这个方案。
+```
+
+初始默认队列：
+
+```text
+A → B → M
+```
+
+C 不参与，因为它是 `MentionOnly` 且没有被 @。
+
+### 场景 2：人类消息有 @
+
+人类消息：
+
+```text
+@C 请先看一下这个问题。
+```
+
+初始优先栈执行顺序：
+
+```text
+C
+```
+
+不会先跑默认 `AlwaysParticipate` 队列。
+
+### 场景 3：角色发言中 @ 多个角色
+
+A 发言：
+
+```text
+@B 请检查接口，@C 请检查 UI。
+```
+
+入栈顺序：
+
+```text
+C
+B
+```
+
+执行顺序：
+
+```text
+B → C
+```
+
+### 场景 4：允许角色再次发言
+
+对话链：
+
+```text
+A 发言并 @B
+B 发言并 @A
+A 再次发言
+```
+
+该场景合法，因为 A 两次发言之间有 B 的消息作为新增上下文。
+
+### 场景 5：禁止连续发言
+
+A 发言：
+
+```text
+@A 我继续补充。
+```
+
+下一候选仍是 A，但由于上一位发言者也是 A，因此本次不能让 A 连续发言。
+
+### 场景 6：角色达到最大发言次数
+
+A 与 B 持续互相 @。
+
+当 A 在本轮中已经成功发言 5 次后，再次轮到 A：
+
+1. A 不发言。
+2. A 的本轮发言计数重置。
+3. 管理者 M 发言。
+4. M 收到附加用户消息，说明 A 已达到 5 次限制以及当前等待角色。
+5. 如果 M 认为 A 应继续，则 M 可以 @A。
+6. 如果 M 不 @A，则 A 不再继续。
+
+### 场景 7：没有角色可以继续发言
+
+当优先栈和默认队列都为空：
+
+1. 管理者 M 发言。
+2. 如果 M @B，则 B 继续发言。
+3. 如果 M 没有 @ 任何角色，则循环结束。
+
+## 待明确实现细节
+
+### 1. 管理者附加消息是否持久化
+
+推荐不持久化。
+
+管理者超限仲裁消息是调度层内部提示，不应污染公开聊天室历史。
+
+更合适的实现方式是让 `StepAsync` 支持额外的临时用户消息，例如：
+
+```csharp
+Task<ChatRoomMessage?> StepAsync(
+    ChatRoomRole role,
+    IReadOnlyList<string>? additionalUserMessages,
+    CancellationToken cancellationToken = default)
+```
+
+或者引入内部调用上下文，只影响本次 LLM 调用。
+
+### 2. 连续发言候选如何处理
+
+当候选角色等于 `lastSpeakerRoleId` 时，可以有两种策略：
+
+1. 直接丢弃该候选。
+2. 延后该候选，尝试让其他角色先发言。
+
+推荐优先选择“延后”，因为这更接近聊天室调度；但实现上需要避免同一个不可发言角色反复入队导致死循环。
+
+### 3. 多管理者策略
+
+当前建议一个聊天室只有一个管理者角色。
+
+如果存在多个 `IsManagerRole == true` 角色，需要明确策略：
+
+1. 取 `Roles` 中第一个管理者。
+2. 所有管理者按顺序参与兜底。
+3. 根据管理者参与模式或配置权重选择。
+
+推荐初期采用“取第一个管理者”，保持实现简单。
+
+## 总结
+
+新规则将自动发言调度从“一轮去重队列”调整为“默认队列 + @ 优先栈 + 管理者仲裁”的聊天室模型。
+
+它允许角色在一轮中多次参与真实对话，同时通过以下机制防止无限循环：
+
+1. 禁止连续发言。
+2. 单角色最大发言次数。
+3. 管理者超限仲裁。
+4. 管理者空闲兜底只触发一次。
+5. 全局自动循环步数上限。
+
+该规则更符合多角色聊天室的交互直觉，也为后续实现复杂协作、任务分派和管理者调度提供了更清晰的基础。
