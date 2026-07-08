@@ -28,6 +28,31 @@ LLM 的输出是一个连续的 XML 片段序列。每个片段是一个顶层 X
 
 `<Page>` 本身也可以作为片段在后续再次出现，更新页面属性或调整顶层结构。
 
+### 首片段不是 Page
+
+Streaming 模式允许首个完整片段不是 `<Page>`。当首片段是带 `Id` 与 `StyleId` 的顶层 `Panel`、`Rect`、`TextElement` 或 `Image` 时，该片段被视为**悬空样式元素**：
+
+- 它先进入合并器的内部状态，作为可被 `StyleFrom` 引用的样式来源。
+- 在后续 `<Page>` 到来之前，它不代表已经形成最终页面内容。
+- 后续 `<Page>` 到来后，`<Page>` 成为最终可渲染根元素；先前的悬空样式元素不进入 `<Page>` 子树，也不作为页面内容渲染。
+- 后续 `<Page>` 内的元素可以通过 `StyleFrom` 引用该悬空样式元素的 `StyleId`，并继承其样式属性。
+
+示例：
+
+```xml
+<!-- 首片段：只定义样式，不是页面内容 -->
+<Rect Id="card-template" StyleId="card-style" Fill="#FFFFFF" CornerRadius="12"/>
+
+<!-- 后续 Page：形成最终页面，并引用上面的样式 -->
+<Page>
+  <Rect Id="card1" StyleFrom="card-style" X="80" Y="120" Width="340" Height="160"/>
+</Page>
+```
+
+预期结果是最终页面只包含 `card1`。`card-template` 仅作为样式来源存在，不参与渲染。
+
+如果首片段是顶层 `Panel`、`Rect`、`TextElement` 或 `Image`，但缺少 `StyleId`，它会被视为不明确的悬空元素，解析器应报 `[Error]` 并跳过该片段，避免模型误以为该元素已经进入页面。
+
 ### 流结束
 
 解析器以 **EOF** 作为流结束信号，不引入额外的结束标记。
