@@ -337,7 +337,9 @@
                                     <Grid>
                                         <Image Source="{Binding FullName, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
                                                Stretch="UniformToFill"
-                                               Width="64" Height="64" />
+                                               Width="64" Height="64"
+                                               Cursor="Hand"
+                                               MouseDown="AttachedImage_OnMouseDown" />
                                         <Button Content="✕"
                                                 Width="16" Height="16"
                                                 HorizontalAlignment="Right"

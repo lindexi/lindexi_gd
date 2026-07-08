@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 using Microsoft.Win32;
@@ -173,6 +175,28 @@ public partial class CharUserControl : UserControl
         {
             ViewModel.AttachedImageFiles.Remove(fileInfo);
         }
+    }
+
+    private void AttachedImage_OnMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left || sender is not FrameworkElement { DataContext: FileInfo fileInfo })
+        {
+            return;
+        }
+
+        if (!fileInfo.Exists)
+        {
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "explorer.exe",
+            Arguments = $"/select,\"{fileInfo.FullName}\"",
+            UseShellExecute = true,
+        });
+
+        e.Handled = true;
     }
 
 }
