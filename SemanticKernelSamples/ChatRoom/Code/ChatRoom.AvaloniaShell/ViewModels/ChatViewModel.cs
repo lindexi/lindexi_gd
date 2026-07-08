@@ -309,6 +309,16 @@ public sealed class ChatViewModel : ViewModelBase
     public ICommand StopCommand { get; }
 
     /// <summary>
+    /// 插入消息发送者角色提及命令。参数为消息项 ViewModel。
+    /// </summary>
+    public ICommand InsertMessageSenderMentionCommand { get; }
+
+    /// <summary>
+    /// 请求输入框获得焦点事件。
+    /// </summary>
+    public event EventHandler? InputFocusRequested;
+
+    /// <summary>
     /// 设计时无参构造函数。用于 Avalonia 设计器预览，填充示例消息数据。
     /// </summary>
     public ChatViewModel()
@@ -316,6 +326,7 @@ public sealed class ChatViewModel : ViewModelBase
         _chatRoomService = null!;
         SendCommand = new SimpleCommand(() => { }, () => false);
         StopCommand = new SimpleCommand(() => { }, () => false);
+        InsertMessageSenderMentionCommand = new SimpleCommand<MessageItemViewModel>(messageItem => InsertMention(messageItem?.SenderRoleName ?? string.Empty));
 
         if (Design.IsDesignMode)
         {
@@ -332,6 +343,7 @@ public sealed class ChatViewModel : ViewModelBase
 
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
         StopCommand = new SimpleCommand(StopAutoLoop, () => CanStop);
+        InsertMessageSenderMentionCommand = new SimpleCommand<MessageItemViewModel>(messageItem => InsertMention(messageItem?.SenderRoleName ?? string.Empty));
 
 
         _chatRoomService.SpeakingChanged += OnSpeakingChanged;
@@ -467,6 +479,25 @@ public sealed class ChatViewModel : ViewModelBase
     {
         ArgumentNullException.ThrowIfNull(approvalToolItem);
         _chatRoomService.RejectToolExecution(approvalToolItem);
+    }
+
+    /// <summary>
+    /// 向输入框插入指定角色的 @ 提及文本。
+    /// </summary>
+    /// <param name="roleName">要提及的角色显示名。</param>
+    public void InsertMention(string roleName)
+    {
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            return;
+        }
+
+        string mentionText = $"@{roleName.Trim()} ";
+        InputText = string.IsNullOrWhiteSpace(InputText)
+            ? mentionText
+            : $"{InputText.TrimEnd()} {mentionText}";
+
+        InputFocusRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

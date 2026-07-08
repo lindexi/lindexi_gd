@@ -155,6 +155,7 @@ public sealed class MainViewModel : ViewModelBase
         RoleListViewModel.EditRoleRequested += OnEditRoleRequested;
         RoleListViewModel.OpenLobbyRequested += OnOpenLobbyRequested;
         RoleListViewModel.PromoteToLobbyRequested += OnPromoteToLobbyRequested;
+        RoleListViewModel.InsertMentionRequested += OnInsertMentionRequested;
     }
 
     /// <summary>
@@ -213,6 +214,12 @@ public sealed class MainViewModel : ViewModelBase
     private void OnEditRoleRequested(object? sender, string roleId)
     {
         NavigateToEditRole(roleId);
+    }
+
+    private void OnInsertMentionRequested(object? sender, string roleName)
+    {
+        NavigateToChat();
+        ChatViewModel.InsertMention(roleName);
     }
 
     /// <summary>

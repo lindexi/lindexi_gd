@@ -51,6 +51,7 @@ public sealed class SimpleAsyncCommand : ICommand
     private readonly Func<Task> _execute;
     private readonly Func<bool>? _canExecute;
     private EventHandler? _canExecuteChanged;
+    private bool _isExecuting;
 
     /// <summary>
     /// 使用指定的异步执行操作创建命令。
@@ -62,10 +63,28 @@ public sealed class SimpleAsyncCommand : ICommand
     }
 
     /// <inheritdoc/>
-    public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
+    public bool CanExecute(object? parameter) => !_isExecuting && (_canExecute?.Invoke() ?? true);
 
     /// <inheritdoc/>
-    public void Execute(object? parameter) => _ = _execute();
+    public async void Execute(object? parameter)
+    {
+        if (!CanExecute(parameter))
+        {
+            return;
+        }
+
+        _isExecuting = true;
+        RaiseCanExecuteChanged();
+        try
+        {
+            await _execute();
+        }
+        finally
+        {
+            _isExecuting = false;
+            RaiseCanExecuteChanged();
+        }
+    }
 
     /// <summary>
     /// 通知 UI 重新查询 <see cref="CanExecute"/> 状态。
@@ -88,6 +107,7 @@ public sealed class SimpleAsyncCommand<T> : ICommand
     private readonly Func<T?, Task> _execute;
     private readonly Func<T?, bool>? _canExecute;
     private EventHandler? _canExecuteChanged;
+    private bool _isExecuting;
 
     /// <summary>
     /// 使用指定的异步执行操作创建命令。
@@ -99,10 +119,28 @@ public sealed class SimpleAsyncCommand<T> : ICommand
     }
 
     /// <inheritdoc/>
-    public bool CanExecute(object? parameter) => parameter is T or null && (_canExecute?.Invoke((T?)parameter) ?? true);
+    public bool CanExecute(object? parameter) => parameter is T or null && !_isExecuting && (_canExecute?.Invoke((T?)parameter) ?? true);
 
     /// <inheritdoc/>
-    public void Execute(object? parameter) => _ = _execute((T?)parameter);
+    public async void Execute(object? parameter)
+    {
+        if (!CanExecute(parameter))
+        {
+            return;
+        }
+
+        _isExecuting = true;
+        RaiseCanExecuteChanged();
+        try
+        {
+            await _execute((T?)parameter);
+        }
+        finally
+        {
+            _isExecuting = false;
+            RaiseCanExecuteChanged();
+        }
+    }
 
     /// <summary>
     /// 通知 UI 重新查询 <see cref="CanExecute"/> 状态。
