@@ -104,6 +104,7 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     private string _promoteCategory = "通用";
     private string _promoteTags = string.Empty;
     private string? _promoteSelectedRoleId;
+    private string _promoteErrorMessage = string.Empty;
 
     private IReadOnlyList<RoleTemplate> _allTemplates = [];
 
@@ -205,6 +206,26 @@ public sealed class RoleLobbyViewModel : ViewModelBase
         get => _promoteSelectedRoleId;
         set => SetField(ref _promoteSelectedRoleId, value);
     }
+
+    /// <summary>
+    /// 提升表单错误提示。
+    /// </summary>
+    public string PromoteErrorMessage
+    {
+        get => _promoteErrorMessage;
+        set
+        {
+            if (SetField(ref _promoteErrorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasPromoteErrorMessage));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 是否存在提升表单错误提示。
+    /// </summary>
+    public bool HasPromoteErrorMessage => !string.IsNullOrWhiteSpace(PromoteErrorMessage);
 
     /// <summary>
     /// 是否有活跃会话（控制"添加到当前会话"按钮可用性）。
@@ -325,6 +346,7 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     {
         RefreshSessionRoles();
         PromoteSelectedRoleId = roleId;
+        PromoteErrorMessage = string.Empty;
 
         // 预填充表单
         if (roleId is not null)
@@ -452,6 +474,7 @@ public sealed class RoleLobbyViewModel : ViewModelBase
 
     private void ClosePromotePanel()
     {
+        PromoteErrorMessage = string.Empty;
         IsPromotePanelVisible = false;
     }
 
@@ -459,11 +482,13 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(PromoteSelectedRoleId))
         {
+            PromoteErrorMessage = "请选择要提升到大厅的来源角色。";
             return;
         }
 
         if (_chatRoomService.CurrentManager is null)
         {
+            PromoteErrorMessage = "当前没有可用会话，无法提升角色到大厅。";
             return;
         }
 
@@ -471,22 +496,41 @@ public sealed class RoleLobbyViewModel : ViewModelBase
             .FirstOrDefault(r => r.Definition.RoleId == PromoteSelectedRoleId);
         if (role is null)
         {
+            PromoteErrorMessage = "未找到要提升的来源角色，请重新选择。";
             return;
         }
 
         IsBusy = true;
         try
         {
+            PromoteErrorMessage = string.Empty;
             var tags = PromoteTags
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToList();
 
-            RoleTemplate template = _templateService.FromDefinition(
-                role.Definition,
-                string.IsNullOrWhiteSpace(PromoteName) ? role.Definition.RoleName : PromoteName,
-                string.IsNullOrWhiteSpace(PromoteDescription) ? "（无描述）" : PromoteDescription,
-                PromoteCategory,
-                tags);
+            string templateName = string.IsNullOrWhiteSpace(PromoteName) ? role.Definition.RoleName : PromoteName;
+            string templateDescription = string.IsNullOrWhiteSpace(PromoteDescription) ? "（无描述）" : PromoteDescription;
+            RoleTemplate? template = _allTemplates.FirstOrDefault(t =>
+                !t.IsPreset && t.Definition.RoleId == role.Definition.RoleId);
+            if (template is null)
+            {
+                template = _templateService.FromDefinition(
+                    role.Definition,
+                    templateName,
+                    templateDescription,
+                    PromoteCategory,
+                    tags);
+            }
+            else
+            {
+                _templateService.UpdateFromDefinition(
+                    template,
+                    role.Definition,
+                    templateName,
+                    templateDescription,
+                    PromoteCategory,
+                    tags);
+            }
 
             await _templateService.SaveAsync(template).ConfigureAwait(false);
             RefreshTemplates();

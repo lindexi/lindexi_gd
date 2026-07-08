@@ -108,6 +108,16 @@ public sealed class MessageItemViewModel : NotifyBase
     public bool HasUsageDetails => CopilotChatMessage?.HasUsageDetails ?? false;
 
     /// <summary>
+    /// 是否有模型显示名。
+    /// </summary>
+    public bool HasModelDisplayName => !string.IsNullOrWhiteSpace(Message.ModelDisplayName);
+
+    /// <summary>
+    /// AI 消息实际采用的模型显示名。
+    /// </summary>
+    public string ModelDisplayName => Message.ModelDisplayName;
+
+    /// <summary>
     /// 用量摘要文本（如：用量 总计 123 输入 45 输出 78）。
     /// </summary>
     public string UsageSummaryText => CopilotChatMessage?.UsageSummaryText ?? string.Empty;
@@ -167,6 +177,7 @@ public sealed class MessageItemViewModel : NotifyBase
         {
             case nameof(ChatRoomMessage.Content):
             case nameof(ChatRoomMessage.IsStreaming):
+            case nameof(ChatRoomMessage.ModelDisplayName):
                 break;
             default:
                 return;
@@ -175,10 +186,17 @@ public sealed class MessageItemViewModel : NotifyBase
         if (Dispatcher.UIThread.CheckAccess())
         {
             OnPropertyChanged(e.PropertyName);
+            OnPropertyChanged(nameof(ModelDisplayName));
+            OnPropertyChanged(nameof(HasModelDisplayName));
         }
         else
         {
-            Dispatcher.UIThread.Post(() => OnPropertyChanged(e.PropertyName));
+            Dispatcher.UIThread.Post(() =>
+            {
+                OnPropertyChanged(e.PropertyName);
+                OnPropertyChanged(nameof(ModelDisplayName));
+                OnPropertyChanged(nameof(HasModelDisplayName));
+            });
         }
     }
 
@@ -309,6 +327,16 @@ public sealed class ChatViewModel : ViewModelBase
     public ICommand StopCommand { get; }
 
     /// <summary>
+    /// 插入消息发送者角色提及命令。参数为消息项 ViewModel。
+    /// </summary>
+    public ICommand InsertMessageSenderMentionCommand { get; }
+
+    /// <summary>
+    /// 请求输入框获得焦点事件。
+    /// </summary>
+    public event EventHandler? InputFocusRequested;
+
+    /// <summary>
     /// 设计时无参构造函数。用于 Avalonia 设计器预览，填充示例消息数据。
     /// </summary>
     public ChatViewModel()
@@ -316,6 +344,7 @@ public sealed class ChatViewModel : ViewModelBase
         _chatRoomService = null!;
         SendCommand = new SimpleCommand(() => { }, () => false);
         StopCommand = new SimpleCommand(() => { }, () => false);
+        InsertMessageSenderMentionCommand = new SimpleCommand<MessageItemViewModel>(messageItem => InsertMention(messageItem?.SenderRoleName ?? string.Empty));
 
         if (Design.IsDesignMode)
         {
@@ -332,6 +361,7 @@ public sealed class ChatViewModel : ViewModelBase
 
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
         StopCommand = new SimpleCommand(StopAutoLoop, () => CanStop);
+        InsertMessageSenderMentionCommand = new SimpleCommand<MessageItemViewModel>(messageItem => InsertMention(messageItem?.SenderRoleName ?? string.Empty));
 
 
         _chatRoomService.SpeakingChanged += OnSpeakingChanged;
@@ -467,6 +497,25 @@ public sealed class ChatViewModel : ViewModelBase
     {
         ArgumentNullException.ThrowIfNull(approvalToolItem);
         _chatRoomService.RejectToolExecution(approvalToolItem);
+    }
+
+    /// <summary>
+    /// 向输入框插入指定角色的 @ 提及文本。
+    /// </summary>
+    /// <param name="roleName">要提及的角色显示名。</param>
+    public void InsertMention(string roleName)
+    {
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            return;
+        }
+
+        string mentionText = $"@{roleName.Trim()} ";
+        InputText = string.IsNullOrWhiteSpace(InputText)
+            ? mentionText
+            : $"{InputText.TrimEnd()} {mentionText}";
+
+        InputFocusRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

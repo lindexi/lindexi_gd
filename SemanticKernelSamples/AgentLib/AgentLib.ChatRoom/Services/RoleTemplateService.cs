@@ -203,6 +203,47 @@ public sealed class RoleTemplateService
     }
 
     /// <summary>
+    /// 使用会话角色定义更新已有模板。
+    /// </summary>
+    /// <param name="template">要更新的模板。</param>
+    /// <param name="definition">会话中的角色定义。</param>
+    /// <param name="name">模板显示名。</param>
+    /// <param name="description">模板描述。</param>
+    /// <param name="category">模板分类。</param>
+    /// <param name="tags">标签列表。</param>
+    public void UpdateFromDefinition(
+        RoleTemplate template,
+        ChatRoomRoleDefinition definition,
+        string name,
+        string description,
+        string category = "通用",
+        List<string>? tags = null)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        ArgumentNullException.ThrowIfNull(definition);
+
+        template.Name = name;
+        template.Description = description;
+        template.Category = string.IsNullOrWhiteSpace(category) ? "通用" : category;
+        template.Tags.Clear();
+        template.Tags.AddRange(tags ?? []);
+        template.Definition = new ChatRoomRoleDefinition
+        {
+            RoleId = definition.RoleId,
+            RoleName = definition.RoleName,
+            SystemPrompt = definition.SystemPrompt,
+            IsHuman = definition.IsHuman,
+            ModelProviderId = definition.ModelProviderId,
+            ModelId = definition.ModelId,
+            SkillFolders = [..definition.SkillFolders],
+            Tools = [..definition.Tools],
+            MemoryContent = definition.MemoryContent,
+            ParticipationMode = definition.ParticipationMode,
+            IsManagerRole = definition.IsManagerRole,
+        };
+    }
+
+    /// <summary>
     /// 首次启动时写入预置模板。仅当模板目录完全为空时执行。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>

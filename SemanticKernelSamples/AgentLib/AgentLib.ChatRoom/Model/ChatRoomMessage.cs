@@ -20,6 +20,7 @@ public sealed class ChatRoomMessage : NotifyBase
     private IReadOnlyList<string> _mentionedRoleIds = Array.Empty<string>();
     private CopilotChatMessage? _copilotChatMessage;
     private bool _isStreaming;
+    private string _modelDisplayName = string.Empty;
 
     /// <summary>
     /// 消息唯一标识。
@@ -66,6 +67,15 @@ public sealed class ChatRoomMessage : NotifyBase
     /// 是否系统消息（如错误提示、角色发言失败通知等）。
     /// </summary>
     public bool IsSystemMessage { get; init; }
+
+    /// <summary>
+    /// AI 消息实际采用的模型显示名。
+    /// </summary>
+    public string ModelDisplayName
+    {
+        get => _modelDisplayName;
+        set => SetField(ref _modelDisplayName, value);
+    }
 
     /// <summary>
     /// 本条消息中 @ 提及的角色 RoleId 列表。
@@ -165,11 +175,13 @@ public sealed class ChatRoomMessage : NotifyBase
     /// <param name="roleId">角色 Id。</param>
     /// <param name="roleName">角色显示名。</param>
     /// <param name="copilotChatMessage">关联的底层消息对象，用于 UI 流式绑定。可选。</param>
+    /// <param name="modelDisplayName">AI 消息实际采用的模型显示名。</param>
     public static ChatRoomMessage CreateAssistant(
         string content,
         string roleId,
         string roleName,
-        CopilotChatMessage? copilotChatMessage = null)
+        CopilotChatMessage? copilotChatMessage = null,
+        string? modelDisplayName = null)
     {
         ArgumentNullException.ThrowIfNull(content);
         return new ChatRoomMessage
@@ -178,6 +190,7 @@ public sealed class ChatRoomMessage : NotifyBase
             SenderRoleId = roleId,
             SenderRoleName = roleName,
             CopilotChatMessage = copilotChatMessage,
+            ModelDisplayName = modelDisplayName ?? string.Empty,
         };
     }
 

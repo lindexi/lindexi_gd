@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 using AgentLib.Model;
 
 using Avalonia.Controls;
@@ -6,8 +9,6 @@ using Avalonia.Interactivity;
 
 using ChatRoom.AvaloniaShell.ViewModels;
 
-using System.Threading.Tasks;
-
 namespace ChatRoom.AvaloniaShell.Views;
 
 /// <summary>
@@ -15,9 +16,34 @@ namespace ChatRoom.AvaloniaShell.Views;
 /// </summary>
 public partial class ChatView : UserControl
 {
+    private ChatViewModel? _subscribedViewModel;
+
     public ChatView()
     {
         InitializeComponent();
+        InputTextBox.AddHandler(KeyDownEvent, InputTextBox_OnKeyDown, RoutingStrategies.Tunnel);
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object? sender, global::System.EventArgs e)
+    {
+        if (_subscribedViewModel is not null)
+        {
+            _subscribedViewModel.InputFocusRequested -= OnInputFocusRequested;
+            _subscribedViewModel = null;
+        }
+
+        if (DataContext is ChatViewModel newViewModel)
+        {
+            _subscribedViewModel = newViewModel;
+            _subscribedViewModel.InputFocusRequested += OnInputFocusRequested;
+        }
+    }
+
+    private void OnInputFocusRequested(object? sender, global::System.EventArgs e)
+    {
+        InputTextBox.Focus();
+        InputTextBox.CaretIndex = InputTextBox.Text?.Length ?? 0;
     }
 
     private async void CopyContentMenuItem_OnClick(object? sender, RoutedEventArgs e)

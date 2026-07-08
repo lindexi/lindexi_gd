@@ -8,6 +8,7 @@
              xmlns:model="using:AgentLib.Model"
              xmlns:views="using:ChatRoom.AvaloniaShell.Views"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="800"
+             x:Name="ChatViewRoot"
              x:Class="ChatRoom.AvaloniaShell.Views.ChatView"
              x:DataType="vm:ChatViewModel">
 
@@ -18,6 +19,7 @@
     <UserControl.Resources>
         <conv:RoleInitialConverter x:Key="RoleInitial" />
         <conv:RoleColorConverter x:Key="RoleColor" />
+        <conv:ModelDisplayVisibilityConverter x:Key="ModelDisplayVisibility" />
 
         <!-- Message item templates for CopilotChatMessage.MessageItems -->
         <DataTemplate x:Key="AssistantTextItemTemplate" x:DataType="model:CopilotChatTextItem">
@@ -151,6 +153,13 @@
                                 <Border Grid.Column="0" Classes="Avatar"
                                         Background="{Binding SenderRoleName, Converter={StaticResource RoleColor}}"
                                         IsVisible="{Binding IsAiMessage}">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="@ 提及角色"
+                                                      Command="{Binding $parent[UserControl].((vm:ChatViewModel)DataContext).InsertMessageSenderMentionCommand}"
+                                                      CommandParameter="{Binding}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
                                     <TextBlock Text="{Binding Initial}" Foreground="White"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                FontWeight="Bold" />
@@ -159,7 +168,15 @@
                                 <!-- AI 消息内容 -->
                                 <StackPanel Grid.Column="1" IsVisible="{Binding IsAiMessage}" Spacing="2">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
+                                        <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName">
+                                            <TextBlock.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="@ 提及角色"
+                                                              Command="{Binding $parent[UserControl].((vm:ChatViewModel)DataContext).InsertMessageSenderMentionCommand}"
+                                                              CommandParameter="{Binding}" />
+                                                </ContextMenu>
+                                            </TextBlock.ContextMenu>
+                                        </TextBlock>
                                         <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
                                         <StackPanel Orientation="Horizontal" Spacing="4"
                                                     IsVisible="{Binding IsStreaming}">
@@ -178,15 +195,31 @@
                                         <ItemsControl ItemsSource="{Binding MessageItems}"
                                                       ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
                                     </Border>
-                                    <Border Classes="UsageSummaryBorder"
-                                            IsVisible="{Binding HasUsageDetails}"
-                                            Margin="4,2,0,0"
-                                            Opacity="0.9"
-                                            HorizontalAlignment="Right">
-                                        <TextBlock Classes="UsageSummaryText"
-                                                   Text="{Binding UsageSummaryText}"
-                                                   TextWrapping="Wrap" />
-                                    </Border>
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="6"
+                                                Margin="4,2,0,0"
+                                                HorizontalAlignment="Right">
+                                        <Border Classes="UsageSummaryBorder"
+                                                Opacity="0.9">
+                                            <Border.IsVisible>
+                                                <MultiBinding Converter="{StaticResource ModelDisplayVisibility}">
+                                                    <Binding Path="HasModelDisplayName" />
+                                                    <Binding Path="#ChatViewRoot.Bounds.Width" />
+                                                </MultiBinding>
+                                            </Border.IsVisible>
+                                            <TextBlock Classes="UsageSummaryText"
+                                                       Text="{Binding ModelDisplayName}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxWidth="260" />
+                                        </Border>
+                                        <Border Classes="UsageSummaryBorder"
+                                                IsVisible="{Binding HasUsageDetails}"
+                                                Opacity="0.9">
+                                            <TextBlock Classes="UsageSummaryText"
+                                                       Text="{Binding UsageSummaryText}"
+                                                       TextWrapping="Wrap" />
+                                        </Border>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- 人类消息：内容靠右 -->
@@ -197,6 +230,12 @@
                                         <TextBlock Text="{Binding SenderRoleName}" Classes="RoleName" />
                                     </StackPanel>
                                     <Border Classes="MessageBubbleHuman" HorizontalAlignment="Right">
+                                         <Border.ContextMenu>
+                                             <ContextMenu>
+                                                 <MenuItem Header="复制正文" Click="CopyContentMenuItem_OnClick" CommandParameter="{Binding}" />
+                                                 <MenuItem Header="复制整条" Click="CopyFullMessageMenuItem_OnClick" CommandParameter="{Binding}" />
+                                             </ContextMenu>
+                                         </Border.ContextMenu>
                                         <TextBlock Text="{Binding Content}" TextWrapping="Wrap"
                                                    Foreground="{StaticResource TextOnPrimaryBrush}"
                                                    MaxWidth="500" />
@@ -234,13 +273,12 @@
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <TextBox Grid.Column="0" Classes="Rounded"
                          Name="InputTextBox"
-                         Text="{Binding InputText}"
+                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="输入消息，@角色名 提及特定角色...（Ctrl+Enter 发送）"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          MaxHeight="120"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         KeyDown="InputTextBox_OnKeyDown" />
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
                 <Button Grid.Column="1" Classes="Primary" Content="{Binding SendButtonText}"
                         Margin="8,0,0,0"
                         Command="{Binding SendCommand}"
