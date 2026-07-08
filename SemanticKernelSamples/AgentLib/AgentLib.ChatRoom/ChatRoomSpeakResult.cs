@@ -16,8 +16,10 @@ namespace AgentLib.ChatRoom;
 /// 在发言完全结束后完成的任务，结果为角色的公开回复文本。
 /// 如果角色未产生有效回复或被取消，结果为 <see langword="null"/>。
 /// </param>
+/// <param name="ModelDisplayName">本次发言实际采用的模型显示名。</param>
 public sealed record ChatRoomSpeakResult(
     CopilotChatMessage AssistantChatMessage,
-    Task<string?> FinalContentTask)
+    Task<string?> FinalContentTask,
+    string ModelDisplayName)
 {
 }

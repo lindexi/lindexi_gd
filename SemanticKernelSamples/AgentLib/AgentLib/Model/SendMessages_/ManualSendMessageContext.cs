@@ -57,7 +57,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     /// <inheritdoc />
     public async Task<ChatClientAgent> GetChatClientAgentAsync(Action<ChatClientAgentOptions>? configure = null, CancellationToken cancellationToken = default)
     {
-        if (_chatClientAgent is not null)
+        if (configure is null && _chatClientAgent is not null)
         {
             return _chatClientAgent;
         }
@@ -88,8 +88,9 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
         // 在创建代理之前，允许业务端进一步配置选项
         configure?.Invoke(chatClientAgentOptions);
 
-        _chatClientAgent = ChatClient.AsAIAgent(chatClientAgentOptions);
-        return _chatClientAgent;
+        ChatClientAgent chatClientAgent = ChatClient.AsAIAgent(chatClientAgentOptions);
+        _chatClientAgent ??= chatClientAgent;
+        return chatClientAgent;
     }
 
     /// <inheritdoc />

@@ -351,6 +351,7 @@ public sealed class ChatRoomManager : NotifyBase
                 SenderRoleId = role.Definition.RoleId,
                 SenderRoleName = role.Definition.RoleName,
                 CopilotChatMessage = speakResult.AssistantChatMessage,
+                ModelDisplayName = speakResult.ModelDisplayName,
                 IsStreaming = true,
             };
             await Session.AddMessageAsync(streamingMessage).ConfigureAwait(false);
