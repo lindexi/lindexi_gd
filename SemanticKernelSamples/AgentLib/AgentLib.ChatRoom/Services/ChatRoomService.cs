@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AgentLib.ChatRoom.Configuration;
 using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
-using AgentLib.ChatRoom.SpeakerSelectors;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
@@ -23,7 +22,6 @@ public sealed class ChatRoomService
     private readonly IMainThreadDispatcher _mainThreadDispatcher;
     private readonly ModelProviderService _modelProviderService;
     private readonly string _persistencePath;
-    private readonly int _defaultMaxRounds;
 
     private ChatRoomManager? _currentManager;
     private ChatRoomPersistence? _persistence;
@@ -59,7 +57,6 @@ public sealed class ChatRoomService
     /// <param name="mainThreadDispatcher">UI 线程调度器。</param>
     /// <param name="modelProviderService">模型提供商服务。</param>
     /// <param name="persistencePath">持久化根目录路径。</param>
-    /// <param name="defaultMaxRounds">默认最大轮次。</param>
     public ChatRoomService(
         IMainThreadDispatcher mainThreadDispatcher,
         ModelProviderService modelProviderService,
@@ -76,7 +73,6 @@ public sealed class ChatRoomService
         _mainThreadDispatcher = mainThreadDispatcher;
         _modelProviderService = modelProviderService;
         _persistencePath = persistencePath;
-        _defaultMaxRounds = defaultMaxRounds;
     }
 
     /// <summary>
@@ -100,7 +96,6 @@ public sealed class ChatRoomService
         _currentManager = new ChatRoomManager(session)
         {
             Persistence = _persistence,
-            SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = _defaultMaxRounds },
         };
 
         AttachEvents(_currentManager);
@@ -137,7 +132,6 @@ public sealed class ChatRoomService
         _currentManager = new ChatRoomManager(session)
         {
             Persistence = _persistence,
-            SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = _defaultMaxRounds },
         };
 
         AttachEvents(_currentManager);

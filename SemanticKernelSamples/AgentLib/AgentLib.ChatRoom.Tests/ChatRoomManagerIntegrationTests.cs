@@ -1,5 +1,4 @@
 using AgentLib.ChatRoom.Model;
-using AgentLib.ChatRoom.SpeakerSelectors;
 using AgentLib.ChatRoom.Tools;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.Contexts;
@@ -37,9 +36,6 @@ public sealed class ChatRoomManagerIntegrationTests
         await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
         await manager.AddRoleAsync(CreateRole("expert", "Expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
 
-        // 使用 RoundRobinSpeakerSelector，MaxRounds 限制防止万一
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = 5 };
-
         // 人类插话 @ helper → helper 发言 @ expert → expert 返回空
         await manager.HumanInterjectAsync("@helper 开始讨论", "human", "Human");
 
@@ -55,41 +51,42 @@ public sealed class ChatRoomManagerIntegrationTests
     }
 
     /// <summary>
-    /// 被 @ 的角色返回空内容后，应跳过该角色继续选择下一个发言者。
+    /// 被 @ 的角色返回空内容后，应由管理者介入，而不是继续选择无关普通角色。
     /// </summary>
     [TestMethod]
     [Timeout(15000)]
-    public async Task StartAutoLoopAsync_MentionedRoleReturnsEmpty_ContinuesToNextSpeaker()
+    public async Task StartAutoLoopAsync_MentionedRoleReturnsEmpty_ManagersSpeak()
     {
-        // Arrange：helper @ expert，expert 返回空，analyst 正常发言
+        // Arrange：helper @ expert，expert 返回空，两个 manager 兜底发言
         var helperClient = CreateFakeClient("helper 说 @expert 帮忙");
         var expertClient = CreateEmptyFakeClient();
-        var analystClient = CreateFakeClient("analyst 的回复");
+        var managerClientA = CreateFakeClient("manager A 的回复");
+        var managerClientB = CreateFakeClient("manager B 的回复");
 
         var manager = CreateManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {
             ["helper-provider"] = CreateProvider("helper-provider", helperClient),
             ["expert-provider"] = CreateProvider("expert-provider", expertClient),
-            ["analyst-provider"] = CreateProvider("analyst-provider", analystClient),
+            ["manager-a-provider"] = CreateProvider("manager-a-provider", managerClientA),
+            ["manager-b-provider"] = CreateProvider("manager-b-provider", managerClientB),
         });
         await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
         await manager.AddRoleAsync(CreateRole("expert", "Expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
-        await manager.AddRoleAsync(CreateRole("analyst", "Analyst", "analyst-provider"));
-
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = 3 };
+        await manager.AddRoleAsync(CreateRole("manager-a", "ManagerA", "manager-a-provider", isManagerRole: true));
+        await manager.AddRoleAsync(CreateRole("manager-b", "ManagerB", "manager-b-provider", isManagerRole: true));
 
         await manager.HumanInterjectAsync("@helper 开始", "human", "Human");
 
         // Act
         await manager.StartAutoLoopAsync();
 
-        // Assert：analyst 应有发言（expert 空回复后跳过，继续轮流）
+        // Assert：两个管理者应在 expert 空回复后依次介入
         Assert.IsFalse(manager.IsRunning);
-        var analystMessages = manager.Session.Messages
-            .Where(m => m.SenderRoleId == "analyst" && !m.IsSystemMessage)
+        var managerMessages = manager.Session.Messages
+            .Where(m => (m.SenderRoleId == "manager-a" || m.SenderRoleId == "manager-b") && !m.IsSystemMessage)
             .ToList();
-        Assert.IsTrue(analystMessages.Count > 0);
+        Assert.AreEqual(2, managerMessages.Count);
     }
 
     /// <summary>
@@ -110,8 +107,6 @@ public sealed class ChatRoomManagerIntegrationTests
         });
         await manager.AddRoleAsync(CreateRole("A", "RoleA", "provider-a"));
         await manager.AddRoleAsync(CreateRole("B", "RoleB", "provider-b"));
-
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = 1 };
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论吧", "human", "Human");
@@ -153,8 +148,6 @@ public sealed class ChatRoomManagerIntegrationTests
         await manager.AddRoleAsync(CreateRole("A", "A", "p-a"));
         await manager.AddRoleAsync(CreateRole("B", "B", "p-b"));
         await manager.AddRoleAsync(CreateRole("C", "C", "p-c"));
-
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = 2 };
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
@@ -227,8 +220,6 @@ public sealed class ChatRoomManagerIntegrationTests
         });
         await manager.AddRoleAsync(CreateRole("A", "助手A", "p-a"));
         await manager.AddRoleAsync(CreateRole("B", "助手B", "p-b"));
-
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
@@ -318,8 +309,6 @@ public sealed class ChatRoomManagerIntegrationTests
         await manager.AddRoleAsync(CreateRole("A", "助手A", "p-a"));
         await manager.AddRoleAsync(CreateRole("expert", "Expert", "p-expert", ChatRoomParticipationMode.MentionOnly));
 
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
-
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
 
@@ -365,8 +354,6 @@ public sealed class ChatRoomManagerIntegrationTests
         await manager.AddRoleAsync(CreateRole("A", "A", "provider-a"));
         await manager.AddRoleAsync(CreateRole("B", "B", "provider-b"));
 
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
-
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
 
@@ -385,6 +372,31 @@ public sealed class ChatRoomManagerIntegrationTests
             .ToList();
         Assert.AreEqual(1, aMessages.Count);
         Assert.AreEqual(1, bMessages.Count);
+    }
+
+    /// <summary>
+    /// 最新非人类消息没有 @ 时，不应凭空触发管理者兜底。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_NonHumanMessageWithoutMentions_DoesNotInvokeManagers()
+    {
+        var managerClient = CreateFakeClient("manager 的回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["manager-provider"] = CreateProvider("manager-provider", managerClient),
+        });
+        await manager.AddRoleAsync(CreateRole("manager", "Manager", "manager-provider", isManagerRole: true));
+
+        await manager.Session.AddMessageAsync(ChatRoomMessage.CreateAssistant("已有 AI 消息", "assistant", "Assistant"));
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        Assert.AreEqual(1, manager.Session.Messages.Count);
+        Assert.IsFalse(manager.Session.Messages.Any(m => m.SenderRoleId == "manager"));
     }
 
     /// <summary>
@@ -409,8 +421,6 @@ public sealed class ChatRoomManagerIntegrationTests
         await manager.AddRoleAsync(CreateRole("B", "B", "p-b"));
         // 人类角色不影响安全网阈值
         await manager.AddRoleAsync(CreateRole("human", "Human", "", isHuman: true));
-
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector();
 
         await manager.HumanInterjectAsync("开始", "human", "Human");
 
@@ -472,8 +482,6 @@ public sealed class ChatRoomManagerIntegrationTests
         newRole.EnsureModelAvailable();
 
         // 人类 @ helper → helper 发言 @ [新角色] → 新角色被 @ 后发言
-        manager.SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = 3 };
-
         await manager.HumanInterjectAsync("@helper 开始讨论", "human", "Human");
         await manager.StartAutoLoopAsync();
 
@@ -561,13 +569,15 @@ public sealed class ChatRoomManagerIntegrationTests
         string roleName,
         string modelProviderId,
         ChatRoomParticipationMode mode = ChatRoomParticipationMode.AlwaysParticipate,
-        bool isHuman = false)
+        bool isHuman = false,
+        bool isManagerRole = false)
     {
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = roleId,
             RoleName = roleName,
             IsHuman = isHuman,
+            IsManagerRole = isManagerRole,
             ParticipationMode = mode,
             ModelProviderId = string.IsNullOrEmpty(modelProviderId) ? null : modelProviderId,
         };

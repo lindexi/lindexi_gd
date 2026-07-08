@@ -48,7 +48,7 @@ await chatRoom.StartAutoLoopAsync();
 
 - **`ChatRoomSession`** — 共享对话历史，所有角色的公开消息集中存储
 - **`Roles`** — 参与聊天的角色集合
-- **`SpeakerSelector`** — 决定每一轮谁发言的策略
+- **自动调度循环** — 根据人类消息、@mention、普通角色和管理者角色推进对话
 - **`Persistence`** — 可选的持久化支持
 
 ### 角色（ChatRoomRole）
@@ -65,14 +65,14 @@ await chatRoom.StartAutoLoopAsync();
 
 角色内部包装了一个 `CopilotChatManager` 实例，因此天然支持流式输出、工具调用、历史压缩等能力。
 
-### 发言顺序（ISpeakerSelector）
+### 自动发言调度
 
-决定每一轮哪个角色发言。内置实现：
+自动循环围绕当前消息创建一轮调度：
 
-| 选择器 | 行为 |
-|--------|------|
-| `RoundRobinSpeakerSelector`（默认） | 按注册顺序轮流，支持 `MaxRounds` 最大轮次 |
-| 自定义实现 | 实现 `ISpeakerSelector` 接口即可 |
+- 消息中显式 @ 的非人类角色优先发言
+- 人类消息未 @ 任何角色时，所有 `AlwaysParticipate` 普通角色按注册顺序各尝试一次
+- 普通角色无法继续推进时，所有 `IsManagerRole` 管理者按注册顺序依次介入
+- 同一轮调度内同一角色最多自动尝试一次，避免空回复或重复 @ 导致死循环
 
 ### 增量消息注入
 
@@ -90,7 +90,7 @@ await chatRoom.StartAutoLoopAsync();
 await chatRoom.HumanInterjectAsync("我觉得应该先重构再优化", "human", "我");
 ```
 
-人类插话后，`RoundRobinSpeakerSelector` 会自动从插话前最后发言的 LLM 角色之后继续。
+人类插话后，当前正在发言的角色会先完成；随后自动循环从最新人类消息重新调度，让助手优先回应新的上下文。
 
 ## 使用场景
 
@@ -121,9 +121,6 @@ var tester = new ChatRoomRole(new ChatRoomRoleDefinition
 chatRoom.Roles.Add(architect);
 chatRoom.Roles.Add(developer);
 chatRoom.Roles.Add(tester);
-
-// 限制总轮次
-chatRoom.SpeakerSelector = new RoundRobinSpeakerSelector { MaxRounds = 5 };
 
 // 启动自动循环
 await chatRoom.StartAutoLoopAsync();
@@ -209,7 +206,6 @@ if (!chatRoom.IsRunning)
 |------|------|
 | `Session` | 共享会话（`ChatRoomSession`） |
 | `Roles` | 角色集合（`ObservableCollection<ChatRoomRole>`） |
-| `SpeakerSelector` | 发言选择策略，默认 `RoundRobinSpeakerSelector` |
 | `Persistence` | 持久化管理器，null 时不持久化 |
 | `IsRunning` | 是否正在自动循环 |
 | `CurrentSpeaker` | 当前正在发言的角色 |
@@ -275,4 +271,4 @@ if (!chatRoom.IsRunning)
 1. **不使用 InternalsVisibleTo** — 完全通过 `AgentLib` 的 public API 使用其能力
 2. **增量注入** — 角色的 `CopilotChatManager` 持续记录完整历史，每次发言只注入增量消息
 3. **公开/私有分离** — 公开消息仅文本，角色的工具调用和思考细节记录在私有日志中
-4. **可插拔** — 发言选择策略通过 `ISpeakerSelector` 接口可替换
+4. **调度内聚** — 自动发言调度是聊天室核心业务流程，由 `ChatRoomManager` 统一维护

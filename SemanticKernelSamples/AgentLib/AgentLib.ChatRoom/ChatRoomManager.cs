@@ -65,11 +65,6 @@ public sealed class ChatRoomManager : NotifyBase
     public ObservableCollection<ChatRoomRole> Roles { get; } = [];
 
     /// <summary>
-    /// 发言选择策略。默认为 <see cref="SpeakerSelectors.RoundRobinSpeakerSelector"/>。
-    /// </summary>
-    public ISpeakerSelector SpeakerSelector { get; set; } = new SpeakerSelectors.RoundRobinSpeakerSelector();
-
-    /// <summary>
     /// 持久化管理器。为 <see langword="null"/> 时不持久化。
     /// </summary>
     public ChatRoomPersistence? Persistence { get; set; }
@@ -162,7 +157,7 @@ public sealed class ChatRoomManager : NotifyBase
     public event EventHandler<RoleSpeakFailedEventArgs>? OnRoleSpeakFailed;
 
     /// <summary>
-    /// 启动自动循环。由 <see cref="SpeakerSelector"/> 决定每次发言的角色。
+    /// 启动自动循环。自动循环按当前消息上下文调度待发言角色，并在普通角色无法继续推进时让管理者介入。
     /// 流式内容直接追加到 <see cref="ChatRoomSession.Messages"/> 集合，UI 绑定感知实时更新。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -178,96 +173,21 @@ public sealed class ChatRoomManager : NotifyBase
 
         IsRunning = true;
 
-        // 连续空回复计数器：防止任何情况下死循环的安全网。
-        // 阈值基于可发言的非人类角色数量，至少为 1（即使没有可发言角色也尝试一次后终止）。
-        int speakableRoleCount = Math.Max(1, Roles.Count(r =>
-            !r.Definition.IsHuman &&
-            (r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate ||
-             r.Definition.IsManagerRole)));
-        int consecutiveEmptyReplies = 0;
-
         try
         {
             while (!loopCancellationToken.IsCancellationRequested)
             {
-                // 选择下一个发言者（Selector 内部管理 @ 队列和暂停逻辑）
-                ChatRoomRole? nextSpeaker = await SpeakerSelector.SelectNextSpeakerAsync(
-                    Roles,
-                    Session.Messages,
-                    loopCancellationToken);
-
-                if (nextSpeaker is null)
+                ChatRoomMessage? triggerMessage = GetLatestTriggerMessage();
+                if (triggerMessage is null)
                 {
-                    // 对话暂停或自然结束
                     break;
                 }
 
-                // 人类角色不通过 StepAsync 发言，直接跳过
-                if (nextSpeaker.Definition.IsHuman)
+                bool shouldRestart = await RunAutoLoopTurnAsync(triggerMessage, loopCancellationToken)
+                    .ConfigureAwait(false);
+                if (!shouldRestart)
                 {
-                    continue;
-                }
-
-                ChatRoomMessage? message = await StepAsync(nextSpeaker, loopCancellationToken);
-
-                if (message is not null)
-                {
-                    consecutiveEmptyReplies = 0;
-
-                    // 通知 Selector 发言成功
-                    SpeakerSelector.OnSpeakerResult(nextSpeaker, success: true);
-
-                    // 解析消息中的 @mention，填充 MentionedRoleIds
-                    IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
-                    if (mentionedRoleIds.Count > 0)
-                    {
-                        message.MentionedRoleIds = mentionedRoleIds;
-                    }
-
-                    // 系统消息等非流式消息不在 Messages 集合中，需要追加
-                    if (!Session.Messages.Contains(message))
-                    {
-                        await AppendMessageAsync(message).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        // 流式消息已在 Messages 集合中，UI 通过 CollectionChanged 感知；
-                        // 无需重复触发 OnMessageAdded，仅持久化
-                        if (Persistence is not null)
-                        {
-                            _ = Persistence.SavePublicMessageAsync(Session.SessionId, message)
-                                .ContinueWith(static t =>
-                                {
-                                    if (t.IsFaulted && t.Exception is not null)
-                                    {
-                                        Debug.Fail($"持久化公开消息失败: {t.Exception.InnerException?.Message}");
-                                    }
-                                }, TaskContinuationOptions.OnlyOnFaulted);
-                        }
-                    }
-                }
-                else
-                {
-                    // 角色未产生有效回复，递增连续空回复计数
-                    consecutiveEmptyReplies++;
-
-                    // 通知 Selector 发言失败
-                    SpeakerSelector.OnSpeakerResult(nextSpeaker, success: false);
-
-                    // 安全网：连续空回复达到阈值时终止循环，防止死循环
-                    if (consecutiveEmptyReplies >= speakableRoleCount)
-                    {
-                        break;
-                    }
-                }
-
-                // 人类插话信号：当前角色发言完成且消息处理完毕后，
-                // 重启循环让选择器看到人类消息，使助手立即回话用户。
-                // 使用 Interlocked.Exchange 原子消费信号，避免多次插话时的竞态。
-                if (System.Threading.Interlocked.Exchange(ref _humanInterjectSignal, 0) != 0)
-                {
-                    consecutiveEmptyReplies = 0;
-                    continue;
+                    break;
                 }
             }
         }
@@ -296,8 +216,7 @@ public sealed class ChatRoomManager : NotifyBase
     /// <param name="role">要发言的角色。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>角色产生的公开消息（已在 Messages 集合中）。如果角色未产生有效回复，返回 <see langword="null"/>。</returns>
-    public async Task<ChatRoomMessage?> StepAsync(
-        ChatRoomRole role,
+    public async Task<ChatRoomMessage?> StepAsync(ChatRoomRole role,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(role);
@@ -589,7 +508,7 @@ public sealed class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
-    /// 持久化当前会话。空会话（无消息）不会被保存，避免会话列表出现无聊天记录的空记录。
+    /// 持久化当前会话。空会话（无消息且无角色）不会被保存，避免会话列表出现无内容的空记录。
     /// </summary>
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
@@ -598,8 +517,8 @@ public sealed class ChatRoomManager : NotifyBase
             return;
         }
 
-        // 空会话不持久化，避免会话列表出现无消息的空记录
-        if (Session.Messages.Count == 0)
+        // 空会话不持久化，但仅修改角色配置时仍需要保存角色定义。
+        if (Session.Messages.Count == 0 && Roles.Count == 0)
         {
             return;
         }
@@ -710,6 +629,183 @@ public sealed class ChatRoomManager : NotifyBase
         }
 
         return list;
+    }
+
+    private async Task<bool> RunAutoLoopTurnAsync(ChatRoomMessage triggerMessage, CancellationToken cancellationToken)
+    {
+        var pendingRoles = new Queue<ChatRoomRole>();
+        var attemptedRoleIds = new HashSet<string>();
+        bool managersInvoked = false;
+        bool canInvokeManagers = triggerMessage.IsHumanMessage || triggerMessage.MentionedRoleIds.Count > 0;
+        int maxAutoLoopSteps = Math.Max(100, Roles.Count(r => !r.Definition.IsHuman));
+        int stepCount = 0;
+
+        EnqueueInitialRoles(triggerMessage, pendingRoles, attemptedRoleIds);
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (System.Threading.Interlocked.Exchange(ref _humanInterjectSignal, 0) != 0)
+            {
+                return true;
+            }
+
+            if (pendingRoles.Count == 0)
+            {
+                if (managersInvoked || !canInvokeManagers)
+                {
+                    return false;
+                }
+
+                managersInvoked = true;
+                EnqueueManagerRoles(pendingRoles, attemptedRoleIds);
+                if (pendingRoles.Count == 0)
+                {
+                    return false;
+                }
+            }
+
+            stepCount++;
+            if (stepCount > maxAutoLoopSteps)
+            {
+                return false;
+            }
+
+            ChatRoomRole nextSpeaker = pendingRoles.Dequeue();
+            if (nextSpeaker.Definition.IsHuman || !attemptedRoleIds.Add(nextSpeaker.Definition.RoleId))
+            {
+                continue;
+            }
+
+            ChatRoomMessage? message = await StepAsync(nextSpeaker, cancellationToken).ConfigureAwait(false);
+            if (message is null)
+            {
+                continue;
+            }
+
+            await HandleAutoLoopMessageAsync(message, pendingRoles, attemptedRoleIds).ConfigureAwait(false);
+        }
+
+        return false;
+    }
+
+    private ChatRoomMessage? GetLatestTriggerMessage()
+    {
+        for (int i = Session.Messages.Count - 1; i >= 0; i--)
+        {
+            ChatRoomMessage message = Session.Messages[i];
+            if (!message.IsSystemMessage)
+            {
+                return message;
+            }
+        }
+
+        return null;
+    }
+
+    private void EnqueueInitialRoles(
+        ChatRoomMessage triggerMessage,
+        Queue<ChatRoomRole> pendingRoles,
+        HashSet<string> attemptedRoleIds)
+    {
+        if (!triggerMessage.IsSystemMessage)
+        {
+            EnqueueMentionedRoles(pendingRoles, triggerMessage.MentionedRoleIds, attemptedRoleIds);
+        }
+
+        if (pendingRoles.Count > 0)
+        {
+            return;
+        }
+
+        if (triggerMessage.IsHumanMessage)
+        {
+            foreach (ChatRoomRole role in GetDefaultWorkerRoles())
+            {
+                pendingRoles.Enqueue(role);
+            }
+        }
+    }
+
+    private async Task HandleAutoLoopMessageAsync(
+        ChatRoomMessage message,
+        Queue<ChatRoomRole> pendingRoles,
+        HashSet<string> attemptedRoleIds)
+    {
+        IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, Roles);
+        if (mentionedRoleIds.Count > 0)
+        {
+            message.MentionedRoleIds = mentionedRoleIds;
+        }
+
+        // 系统消息等非流式消息不在 Messages 集合中，需要追加。
+        if (!Session.Messages.Contains(message))
+        {
+            await AppendMessageAsync(message).ConfigureAwait(false);
+        }
+        else if (Persistence is not null)
+        {
+            // 流式消息已在 Messages 集合中，UI 通过 CollectionChanged 感知；无需重复触发 OnMessageAdded，仅持久化。
+            _ = Persistence.SavePublicMessageAsync(Session.SessionId, message)
+                .ContinueWith(static t =>
+                {
+                    if (t.IsFaulted && t.Exception is not null)
+                    {
+                        Debug.Fail($"持久化公开消息失败: {t.Exception.InnerException?.Message}");
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+        }
+
+        EnqueueMentionedRoles(pendingRoles, mentionedRoleIds, attemptedRoleIds);
+    }
+
+    private void EnqueueMentionedRoles(
+        Queue<ChatRoomRole> pendingRoles,
+        IReadOnlyList<string> mentionedRoleIds,
+        HashSet<string> attemptedRoleIds)
+    {
+        if (mentionedRoleIds.Count == 0)
+        {
+            return;
+        }
+
+        var queuedRoleIds = new HashSet<string>(pendingRoles.Select(r => r.Definition.RoleId));
+        foreach (string roleId in mentionedRoleIds)
+        {
+            if (string.IsNullOrWhiteSpace(roleId) || attemptedRoleIds.Contains(roleId) || !queuedRoleIds.Add(roleId))
+            {
+                continue;
+            }
+
+            ChatRoomRole? role = Roles.FirstOrDefault(r => r.Definition.RoleId == roleId && !r.Definition.IsHuman);
+            if (role is not null)
+            {
+                pendingRoles.Enqueue(role);
+            }
+        }
+    }
+
+    private void EnqueueManagerRoles(Queue<ChatRoomRole> pendingRoles, HashSet<string> attemptedRoleIds)
+    {
+        foreach (ChatRoomRole role in GetManagerRoles())
+        {
+            if (!attemptedRoleIds.Contains(role.Definition.RoleId))
+            {
+                pendingRoles.Enqueue(role);
+            }
+        }
+    }
+
+    private IEnumerable<ChatRoomRole> GetDefaultWorkerRoles()
+    {
+        return Roles.Where(r =>
+            !r.Definition.IsHuman &&
+            !r.Definition.IsManagerRole &&
+            r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate);
+    }
+
+    private IEnumerable<ChatRoomRole> GetManagerRoles()
+    {
+        return Roles.Where(r => !r.Definition.IsHuman && r.Definition.IsManagerRole);
     }
 
     /// <summary>
