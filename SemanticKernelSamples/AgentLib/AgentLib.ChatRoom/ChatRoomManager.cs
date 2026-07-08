@@ -315,9 +315,9 @@ public sealed class ChatRoomManager : NotifyBase
             // 注入聊天室上下文，供角色首次发言时构建系统提示词
             role.ChatRoomContext = BuildChatRoomContext();
 
-            // 构建增量消息：自该角色上次发言之后的公开消息
-            string incrementalUserText = BuildIncrementalUserText(role);
-            if (string.IsNullOrEmpty(incrementalUserText))
+            // 构建增量消息文本列表：自该角色上次发言之后的公开消息
+            IReadOnlyList<string> incrementalUserMessages = BuildIncrementalUserMessages(role);
+            if (incrementalUserMessages.Count == 0)
             {
                 // 没有新的用户消息，角色无需发言
                 return null;
@@ -331,10 +331,14 @@ public sealed class ChatRoomManager : NotifyBase
             ];
 
             // 调用角色发言，获取包含流式 CopilotChatMessage 的结果
-            ChatRoomSpeakResult? speakResult = role.SpeakAsync(
-                incrementalUserText,
-                additionalTools,
-                cancellationToken);
+            ChatRoomSpeakResult? speakResult = await role
+                .SpeakAsync
+                (
+                    incrementalUserMessages,
+                    additionalTools,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
 
             if (speakResult is null)
             {
@@ -664,20 +668,18 @@ public sealed class ChatRoomManager : NotifyBase
         }
     }
 
-    private string BuildIncrementalUserText(ChatRoomRole role)
+    private IReadOnlyList<string> BuildIncrementalUserMessages(ChatRoomRole role)
     {
-        var sb = new StringBuilder();
+        var list = new List<string>();
 
         // 获取自该角色上次发言后的增量消息
         IReadOnlyList<ChatRoomMessage> incrementalMessages = Session.GetMessagesSinceLastSpeak(role.Definition.RoleId);
 
         if (incrementalMessages.Count == 0)
         {
-            // 该角色从未发言过，且没有其他消息（首次发言，无上下文）
-            return string.Empty;
+            return list;
         }
 
-        // 将增量消息拼接为 User 文本
         foreach (ChatRoomMessage message in incrementalMessages)
         {
             // 跳过系统消息
@@ -686,17 +688,27 @@ public sealed class ChatRoomManager : NotifyBase
                 continue;
             }
 
-            string prefix = message.SenderRoleName;
-            if (string.IsNullOrEmpty(prefix))
+            // 跳过自身的消息
+            if (!string.IsNullOrEmpty(message.SenderRoleId) && message.SenderRoleId == role.Definition.RoleId)
             {
-                prefix = message.IsHumanMessage ? "用户" : "另一位参与者";
+                continue;
             }
 
-            sb.AppendLine($"{prefix}说：{message.Content}");
-            sb.AppendLine();
+            string prefix;
+            if (message.IsHumanMessage)
+            {
+                prefix = "用户";
+            }
+            else
+            {
+                prefix = string.IsNullOrEmpty(message.SenderRoleName) ? "另一位参与者" : message.SenderRoleName;
+            }
+
+            string content = $"{prefix}说：{message.Content}";
+            list.Add(content);
         }
 
-        return sb.ToString().TrimEnd();
+        return list;
     }
 
     /// <summary>

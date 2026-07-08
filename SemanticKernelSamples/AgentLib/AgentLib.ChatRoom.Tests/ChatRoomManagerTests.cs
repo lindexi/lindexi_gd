@@ -338,7 +338,7 @@ public sealed class ChatRoomManagerTests
         };
         var role = new ChatRoomRole(definition);
 
-        // 需要先添加消息，使 BuildIncrementalUserText 返回非空内容，否则 StepAsync 会提前返回 null
+        // 需要先添加消息，使 BuildIncrementalUserMessages 返回非空内容，否则 StepAsync 会提前返回 null
         await manager.HumanInterjectAsync("测试消息", "human", "Human");
 
         RoleSpeakFailedEventArgs? eventArgs = null;
@@ -440,7 +440,7 @@ public sealed class ChatRoomManagerTests
         var role = new ChatRoomRole(definition);
         await manager.AddRoleAsync(role);
 
-        // 需要先添加消息，使 BuildIncrementalUserText 返回非空内容，否则 StepAsync 会提前返回 null
+        // 需要先添加消息，使 BuildIncrementalUserMessages 返回非空内容，否则 StepAsync 会提前返回 null
         await manager.HumanInterjectAsync("测试消息", "human", "Human");
 
         var mockSpeaker = new Mock<ISpeakerSelector>();
