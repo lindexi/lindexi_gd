@@ -5,6 +5,7 @@ using AgentLib.Logging;
 using AgentLib.Model;
 using AgentLib.Tools;
 
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using System;
@@ -135,12 +136,12 @@ public sealed class ChatRoomRole
     /// <summary>
     /// 让角色发言一次。将增量的 User 消息注入到内部的 <see cref="CopilotChatManager"/>，
     /// 利用 AgentSession 历史记录机制延续对话上下文。
-    /// 首次发言时通过 <see cref="SendMessageRequest.SystemPrompt"/> 注入角色人设和记忆。
+    /// 首次发言时注入角色人设和记忆。
     /// 流式增量内容通过返回的 <see cref="ChatRoomSpeakResult.AssistantChatMessage"/> 暴露，
     /// 调用方可直接绑定其 <see cref="CopilotChatMessage.Content"/> 属性感知实时更新。
     /// </summary>
-    /// <param name="incrementalUserText">
-    /// 自上次发言后其他角色产生的公开消息（已拼接为纯文本）。
+    /// <param name="incrementalUserTexts">
+    /// 自上次发言后其他角色产生的公开消息。每项会作为独立的 <see cref="ChatRole.User"/> 消息发送给模型。
     /// </param>
     /// <param name="additionalTools">
     /// 本次发言额外启用的工具集合。为 <see langword="null"/> 或空时仅使用角色默认工具。
@@ -151,15 +152,25 @@ public sealed class ChatRoomRole
     /// 包含底层 <see cref="CopilotChatMessage"/> 和最终内容任务的发言结果。
     /// 如果角色未产生有效回复，返回 <see langword="null"/>。
     /// </returns>
-    public ChatRoomSpeakResult? SpeakAsync(
-        string incrementalUserText,
+    public async Task<ChatRoomSpeakResult?> SpeakAsync
+    (
+        IReadOnlyList<string> incrementalUserTexts,
         IReadOnlyList<AITool>? additionalTools = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        ArgumentNullException.ThrowIfNull(incrementalUserText);
-        if (string.IsNullOrWhiteSpace(incrementalUserText))
+        ArgumentNullException.ThrowIfNull(incrementalUserTexts);
+        if (incrementalUserTexts.Count == 0)
         {
-            throw new ArgumentException("发言内容不能为空或空白。", nameof(incrementalUserText));
+            throw new ArgumentException("发言消息集合不能为空。", nameof(incrementalUserTexts));
+        }
+
+        foreach (string txt in incrementalUserTexts)
+        {
+            if (string.IsNullOrWhiteSpace(txt))
+            {
+                throw new ArgumentException("发言消息中包含空的内容。", nameof(incrementalUserTexts));
+            }
         }
 
         // 早期校验：确保有可用模型，避免进入底层流程后才抛出含糊异常
@@ -174,26 +185,24 @@ public sealed class ChatRoomRole
 
         try
         {
-            var request = new SendMessageRequest(incrementalUserText)
-            {
-                WithHistory = true,
-                SystemPrompt = systemPrompt,
-                CancellationToken = cancellationToken,
-            };
+            IManualSendMessageContext manualContext = await ChatManager.CreateManualSendMessageContextAsync(cancellationToken).ConfigureAwait(false);
+            string combinedText = string.Join("\n", incrementalUserTexts);
+            manualContext.UserChatMessage.AppendText(combinedText);
+            await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
 
-            // 如果有额外工具，追加到 Tools 集合
-            if (additionalTools is { Count: > 0 })
+            var chatMessages = new List<ChatMessage>(incrementalUserTexts.Count + (string.IsNullOrWhiteSpace(systemPrompt) ? 0 : 1));
+            if (!string.IsNullOrWhiteSpace(systemPrompt))
             {
-                request = request with { Tools = [.. request.Tools, .. additionalTools] };
+                chatMessages.Add(new ChatMessage(ChatRole.System, systemPrompt));
             }
 
-            SendMessageResult result = ChatManager.SendMessage(request);
-            CopilotChatMessage assistantMessage = result.AssistantChatMessage;
+            foreach (string incrementalUserText in incrementalUserTexts)
+            {
+                chatMessages.Add(new ChatMessage(ChatRole.User, incrementalUserText));
+            }
 
-            // 构建最终内容任务：等待发言完成后提取最终文本
-            Task<string?> finalContentTask = BuildFinalContentTask(result, cancellationToken);
-
-            return new ChatRoomSpeakResult(assistantMessage, finalContentTask);
+            Task<string?> finalContentTask = RunManualSendAsync(manualContext, chatMessages, additionalTools, cancellationToken);
+            return new ChatRoomSpeakResult(manualContext.AssistantChatMessage, finalContentTask);
         }
         catch (OperationCanceledException)
         {
@@ -201,14 +210,34 @@ public sealed class ChatRoomRole
         }
     }
 
-    /// <summary>
-    /// 构建最终内容提取任务。等待发言完成后从 CopilotChatManager 提取最终文本。
-    /// </summary>
-    private async Task<string?> BuildFinalContentTask(SendMessageResult result, CancellationToken cancellationToken)
+    private async Task<string?> RunManualSendAsync(
+        IManualSendMessageContext manualContext,
+        IReadOnlyList<ChatMessage> chatMessages,
+        IReadOnlyList<AITool>? additionalTools,
+        CancellationToken cancellationToken)
     {
         try
         {
-            await result.RunTask.ConfigureAwait(false);
+            using IDisposable chatting = manualContext.StartChatting();
+
+            ChatClientAgent chatClientAgent = await manualContext.GetChatClientAgentAsync(options =>
+            {
+                if (additionalTools is { Count: > 0 })
+                {
+                    IReadOnlyList<AITool> tools = [.. manualContext.DefaultTools, .. additionalTools];
+                    options.ChatOptions ??= new ChatOptions();
+                    options.ChatOptions.Tools = [.. tools];
+                    options.ChatOptions.ToolMode = tools.Count > 0 ? options.ChatOptions.ToolMode : null;
+                }
+            }, cancellationToken).ConfigureAwait(false);
+            AgentSession agentSession = await manualContext.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
+
+            await foreach (AgentResponseUpdate update in chatClientAgent.RunWithHistoryCompletionAsync(chatMessages,
+                agentSession,
+                cancellationToken))
+            {
+                manualContext.AppendResponseUpdate(update);
+            }
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -216,24 +245,12 @@ public sealed class ChatRoomRole
             }
 
             _hasSpoken = true;
-
-            // 从 CopilotChatManager 的 SelectedSession 提取最后一轮 Assistant 回复
-            CopilotChatSession? session = ChatManager.SelectedSession;
-            if (session is null)
+            if (string.IsNullOrWhiteSpace(manualContext.AssistantChatMessage.Content))
             {
                 return null;
             }
 
-            // 取最后一条非 PresetInfo 的 Assistant 消息
-            CopilotChatMessage? lastAssistant = session.ChatMessages
-                .LastOrDefault(m => m.Role == ChatRole.Assistant && !m.IsPresetInfo);
-
-            if (lastAssistant is null || string.IsNullOrWhiteSpace(lastAssistant.Content))
-            {
-                return null;
-            }
-
-            return lastAssistant.Content;
+            return manualContext.AssistantChatMessage.Content;
         }
         catch (OperationCanceledException)
         {
@@ -246,9 +263,17 @@ public sealed class ChatRoomRole
     /// </summary>
     /// <param name="initialTopic">初始话题文本。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public ChatRoomSpeakResult? SpeakFirstAsync(string initialTopic, CancellationToken cancellationToken = default)
+    public Task<ChatRoomSpeakResult?> SpeakFirstAsync(string initialTopic, CancellationToken cancellationToken = default)
     {
-        return SpeakAsync(initialTopic, cancellationToken: cancellationToken);
+        ArgumentNullException.ThrowIfNull(initialTopic);
+        if (string.IsNullOrWhiteSpace(initialTopic))
+        {
+            throw new ArgumentException("发言内容不能为空或空白。", nameof(initialTopic));
+        }
+
+        return SpeakAsync(
+            new[] { initialTopic },
+            cancellationToken: cancellationToken);
     }
 
     /// <summary>
