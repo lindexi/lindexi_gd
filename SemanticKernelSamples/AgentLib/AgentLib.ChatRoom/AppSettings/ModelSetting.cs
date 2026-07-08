@@ -19,4 +19,9 @@ public sealed class ModelSetting
     /// 是否为快速模型（轻量标记）。
     /// </summary>
     public bool IsFlash { get; set; }
+
+    /// <summary>
+    /// 是否支持视觉输入。
+    /// </summary>
+    public bool IsVision { get; set; }
 }

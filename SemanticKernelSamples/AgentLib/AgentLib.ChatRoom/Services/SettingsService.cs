@@ -109,7 +109,7 @@ public sealed class SettingsService
                         Provider = p.Name,
                         ModelName = m.ModelName,
                         ModelId = m.ModelId,
-                        Capabilities = BuildDefaultCapabilities(m.IsFlash),
+                        Capabilities = BuildDefaultCapabilities(m.IsFlash, m.IsVision),
                     }).ToList(),
                 })
                 .ToList();
@@ -146,6 +146,7 @@ public sealed class SettingsService
                         ModelName = md.ModelName,
                         ModelId = md.ModelId,
                         IsFlash = md.Capabilities?.IsFlash ?? false,
+                        IsVision = md.Capabilities?.Input?.Image ?? false,
                     }).ToList() ?? [],
                 });
             }
@@ -161,14 +162,14 @@ public sealed class SettingsService
     /// <summary>
     /// 基于轻量标记生成默认的模型能力画像。
     /// </summary>
-    private static LlmModelCapabilities BuildDefaultCapabilities(bool isFlash)
+    private static LlmModelCapabilities BuildDefaultCapabilities(bool isFlash, bool isVision)
     {
         return new LlmModelCapabilities
         {
             Temperature = true,
             Reasoning = !isFlash,
             ToolCall = true,
-            Input = new LlmModalityCapability { Text = true },
+            Input = new LlmModalityCapability { Text = true, Image = isVision },
             Output = new LlmModalityCapability { Text = true },
             IsFlash = isFlash,
         };
