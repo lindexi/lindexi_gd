@@ -60,6 +60,12 @@ public sealed class ChatRoomPersistence
     private static string GetRoleHistoryFolder(string sessionFolder, string roleId) => Path.Join(sessionFolder, roleId);
 
     /// <summary>
+    /// 获取角色 AgentSession 状态文件路径。
+    /// </summary>
+    private static string GetRoleAgentSessionStateFilePath(string sessionFolder, string roleId) =>
+        Path.Join(GetRoleHistoryFolder(sessionFolder, roleId), "agent-session-state.json");
+
+    /// <summary>
     /// 获取或创建指定角色在指定会话中的日志记录器。
     /// </summary>
     private FileCopilotChatLogger GetRoleLogger(string sessionFolder, string roleId)
@@ -171,6 +177,81 @@ public sealed class ChatRoomPersistence
         // 使用 roleId 派生一个稳定的 Guid 作为角色日志的 sessionId
         var roleSessionId = DeriveGuidFromString($"{sessionId}:{roleId}");
         await logger.LogMessageAsync(roleSessionId, copilotMessage).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 保存指定角色的 AgentSession 序列化状态。
+    /// </summary>
+    /// <param name="sessionId">聊天室会话 ID。</param>
+    /// <param name="roleId">角色 ID。</param>
+    /// <param name="agentSessionState">通过 ChatClientAgent 序列化得到的 AgentSession 状态。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task SaveRoleAgentSessionStateAsync(Guid sessionId, string roleId, JsonElement agentSessionState,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(roleId);
+
+        string sessionFolder = GetSessionFolder(sessionId.ToString("N"));
+        string stateFilePath = GetRoleAgentSessionStateFilePath(sessionFolder, roleId);
+        Directory.CreateDirectory(Path.GetDirectoryName(stateFilePath)!);
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            string tempStateFilePath = $"{stateFilePath}.{Guid.NewGuid():N}.tmp";
+            await using (FileStream fileStream = File.Create(tempStateFilePath))
+            {
+#if NET6_0
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                };
+                await JsonSerializer.SerializeAsync(fileStream, agentSessionState, options, cancellationToken).ConfigureAwait(false);
+#else
+                await JsonSerializer.SerializeAsync(fileStream, agentSessionState,
+                    ChatRoomJsonSerializerContext.Default.JsonElement,
+                    cancellationToken).ConfigureAwait(false);
+#endif
+            }
+
+            File.Move(tempStateFilePath, stateFilePath, overwrite: true);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// 加载指定角色的 AgentSession 序列化状态。
+    /// </summary>
+    /// <param name="sessionId">聊天室会话 ID。</param>
+    /// <param name="roleId">角色 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>角色 AgentSession 状态；不存在时返回 <see langword="null"/>。</returns>
+    public async Task<JsonElement?> LoadRoleAgentSessionStateAsync(Guid sessionId, string roleId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(roleId);
+
+        string sessionFolder = GetSessionFolder(sessionId.ToString("N"));
+        string stateFilePath = GetRoleAgentSessionStateFilePath(sessionFolder, roleId);
+        if (!File.Exists(stateFilePath))
+        {
+            return null;
+        }
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using FileStream fileStream = File.OpenRead(stateFilePath);
+            using JsonDocument document = await JsonDocument.ParseAsync(fileStream, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return document.RootElement.Clone();
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 
     /// <summary>

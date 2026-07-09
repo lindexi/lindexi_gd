@@ -16,6 +16,7 @@ namespace AgentLib.ChatRoom.Model;
 [JsonSerializable(typeof(List<ChatRoomRoleDefinition>))]
 [JsonSerializable(typeof(List<ToolDefinition>))]
 [JsonSerializable(typeof(List<string>))]
+[JsonSerializable(typeof(JsonElement))]
 public partial class ChatRoomJsonSerializerContext : JsonSerializerContext
 {
 }

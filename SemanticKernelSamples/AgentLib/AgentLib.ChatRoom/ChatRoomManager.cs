@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +25,8 @@ public sealed partial class ChatRoomManager : NotifyBase
     private readonly ChatRoomAutoLoopRunner _autoLoopRunner;
     private IReadOnlyDictionary<string, ILanguageModelProvider>? _languageModelProviders;
     private string? _workspacePath;
+    private Guid? _persistenceSessionId;
+    private DateTimeOffset? _persistenceCreatedAt;
 
     /// <summary>
     /// 使用指定的会话创建聊天室管理器。
@@ -68,6 +71,10 @@ public sealed partial class ChatRoomManager : NotifyBase
     /// 当前工作区路径。设置后传播到所有角色的文件系统工具。
     /// </summary>
     public string? WorkspacePath => _workspacePath;
+
+    private Guid CurrentPersistenceSessionId => _persistenceSessionId ?? Session.SessionId;
+
+    private DateTimeOffset CurrentPersistenceCreatedAt => _persistenceCreatedAt ?? Session.CreatedAt;
 
     /// <summary>
     /// 设置工作区路径并传播到所有角色。新添加的角色也会自动应用此路径。
@@ -378,8 +385,18 @@ public sealed partial class ChatRoomManager : NotifyBase
             return;
         }
 
-        var roleDefinitions = Roles.Select(r => r.Definition).ToList();
-        ChatRoomSessionData data = Session.ToPersistence(roleDefinitions);
+        List<ChatRoomRoleDefinition> roleDefinitions = Roles.Select(r => r.Definition).ToList();
+        ChatRoomSessionData data = new()
+        {
+            SessionId = CurrentPersistenceSessionId,
+            Title = Session.Title,
+            CreatedAt = CurrentPersistenceCreatedAt,
+            LastActivityAt = Session.Messages.Count > 0
+                ? Session.Messages[^1].Timestamp
+                : CurrentPersistenceCreatedAt,
+            Roles = roleDefinitions,
+            Messages = Session.Messages.ToList(),
+        };
         await Persistence.SaveConfigAsync(data, cancellationToken).ConfigureAwait(false);
     }
 
@@ -402,6 +419,8 @@ public sealed partial class ChatRoomManager : NotifyBase
         }
 
         // 用持久化数据替换当前 Session 的状态
+        _persistenceSessionId = data.SessionId;
+        _persistenceCreatedAt = data.CreatedAt;
         Session.Title = data.Title;
 
         // 恢复角色。模型解析失败（如提供商配置已变更）不应阻止会话加载，
@@ -441,6 +460,28 @@ public sealed partial class ChatRoomManager : NotifyBase
             msg.RestoreCopilotChatMessage();
             await Session.AddMessageAsync(msg);
         }
+
+        foreach (ChatRoomRole role in Roles)
+        {
+            JsonElement? agentSessionState = await Persistence
+                .LoadRoleAgentSessionStateAsync(CurrentPersistenceSessionId, role.Definition.RoleId, cancellationToken)
+                .ConfigureAwait(false);
+            if (agentSessionState is JsonElement serializedState)
+            {
+                try
+                {
+                    await role.RestoreAgentSessionStateAsync(serializedState, cancellationToken).ConfigureAwait(false);
+                }
+                catch (ArgumentException)
+                {
+                    Debug.Fail($"恢复角色「{role.Definition.RoleName}」的 AgentSession 状态失败。");
+                }
+                catch (JsonException)
+                {
+                    Debug.Fail($"恢复角色「{role.Definition.RoleName}」的 AgentSession 状态失败。");
+                }
+            }
+        }
     }
 
     private async Task AppendMessageAsync(ChatRoomMessage message)
@@ -454,7 +495,7 @@ public sealed partial class ChatRoomManager : NotifyBase
         // 持久化公开消息到文本日志（fire-and-forget，异常通过 ContinueWith 记录）
         if (Persistence is not null)
         {
-            _ = Persistence.SavePublicMessageAsync(Session.SessionId, message)
+            _ = Persistence.SavePublicMessageAsync(CurrentPersistenceSessionId, message)
                 .ContinueWith(static t =>
                 {
                     if (t.IsFaulted && t.Exception is not null)
@@ -462,6 +503,26 @@ public sealed partial class ChatRoomManager : NotifyBase
                         Debug.Fail($"持久化公开消息失败: {t.Exception.InnerException?.Message}");
                     }
                 }, TaskContinuationOptions.OnlyOnFaulted);
+        }
+    }
+
+    private async Task SaveRoleAgentSessionStateAsync(ChatRoomRole role, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(role);
+
+        if (Persistence is null || role.Definition.IsHuman)
+        {
+            return;
+        }
+
+        JsonElement? agentSessionState = await role
+            .SerializeAgentSessionStateAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (agentSessionState is JsonElement serializedState)
+        {
+            await Persistence
+                .SaveRoleAgentSessionStateAsync(CurrentPersistenceSessionId, role.Definition.RoleId, serializedState, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 
