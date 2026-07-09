@@ -255,7 +255,8 @@ TextElement：
 2. 属性：Text 在无 Span 时必填；FontName 可选，默认 Microsoft YaHei；FontSize 可选，可为绝对 px 数字，默认 16；IsBold 可选 True、False；IsItalic 可选 True、False；Foreground 可选，默认 #000000；TextAlignment 可选 Left、Center、Right，默认 Left。
 3. Width 不写则单行无限宽；写 Width 则在约束宽度内自动换行。
   - 如果期望文本以一行进行排版，则不要设置 Width，此时文本元素将以宽度自适应模式进行排版。
-4. 可包含 Span 子元素；有 Span 时可省略 Text。
+4. 出于美观考虑，标题、章节名、短标签、按钮文字、页眉短文本默认都视为单行文本。除非文本内容确实过长且需要主动换行，否则这类标题类文本不得设置固定 Width，一律采用不写 Width 的自适应宽度；需要居中或靠右时优先用父 Panel 布局、X 坐标或 HorizontalAlignment 控制位置。
+5. 可包含 Span 子元素；有 Span 时可省略 Text。
 
 Span：
 1. Span 只能作为 TextElement 子元素。
@@ -275,11 +276,18 @@ Fill、Stroke、LinearGradient、Stop：
 1. 先输出 Page，建立背景和主要区域占位。
 2. 使用 Panel 划分 Header、Content、Footer、Card、Sidebar 等逻辑区域。
 3. 复杂卡片用 Panel 包住 Rect 和 TextElement。不要一开始就输入大片的页面内容，应该从外到里逐层输出，充分利用流式合并能力。比如先输出骨架版式，再取其中一个 Panel 完善其中的内容，如果此 Panel 内容比较多，请在 Panel 里面添加子 Panel，随后再利用流式合并，细化子 Panel 的内容。
-4. 若 Panel 主要包裹文本，先判断文本是固定宽度自动换行还是单行自适应：固定宽度文本可给 TextElement 设置 Width 但不要预设 Height，也不要给外层 Panel 及其直接包裹容器预设 Height；单行自适应文本则 TextElement 和外层 Panel 都尽量不设置 Width，让实际文本宽度决定容器宽度。
+4. 若 Panel 主要包裹文本，先判断文本是固定宽度自动换行还是单行自适应：固定宽度正文可给 TextElement 设置 Width 但不要预设 Height，也不要给外层 Panel 及其直接包裹容器预设 Height；单行自适应文本则 TextElement 和外层 Panel 都尽量不设置 Width，让实际文本宽度决定容器宽度。
 5. 同样式元素可用 StyleFrom + StyleId 减少重复。先输出带 StyleId 的悬空模板，再由后续元素通过 StyleFrom 引用。
 6. 后续片段只输出变化部分，依靠 Id 合并保留未变化内容。充分利用好此特性，避免一次性输出大量内容，正确做法是逐个内容完善
 7. 需要重排同一父容器内子元素时，在同一个父容器片段中按目标顺序输出相关子元素。
 8. 需要删除元素时使用 Remove。
+
+完成前强制检查：
+1. 生成完整页面后，必须至少调用一次 get_slide_state，确认当前已合并 SlideML 状态符合预期；没有完成此检查前不允许停止输出。
+2. 调用 get_slide_state 后，必须检查所有标题、副标题、正文 TextElement 的 ActualLineCount 是否符合预期，并结合 RenderSize、RenderLocation 判断是否有裁剪或溢出风险。
+3. 标题、章节名、短标签、按钮文字、页眉短文本默认预期为单行。如果检查到这些单行文本的 ActualLineCount 大于 1，必须通过移除固定 Width、调整字号、缩短文本、扩大可用空间或重排布局进行修正，然后再次调用 get_slide_state 检查。
+4. 如果 get_slide_state 返回元素裁剪警告、流式布局超出警告或任何可能影响可读性的布局警告，必须优先修正；除非该裁剪是明确符合用户需求的视觉设计，否则不得忽略。
+5. 修正后必须再次调用 get_slide_state，直到标题、副标题、正文行数和布局警告都符合预期后，才允许停止输出。
 
 机制说明：
 1. 直接输出的文本内容将被视为 XML 片段，解析器会按流式合并规则处理。每输出一个片段，引擎自动合并并渲染，无需手动调用渲染工具。
@@ -296,7 +304,7 @@ Fill、Stroke、LinearGradient、Stop：
 </Page>
 
 <Panel Id="Header" Background="#1A1A2E">
-  <TextElement Id="HeaderTitle" X="80" Y="28" Width="1120" Text="标题" FontSize="30" IsBold="True" Foreground="#FFFFFF" TextAlignment="Center"/>
+  <TextElement Id="HeaderTitle" Y="28" Text="标题" FontSize="30" IsBold="True" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
 </Panel>
 
 <Panel Id="Content">
@@ -305,7 +313,7 @@ Fill、Stroke、LinearGradient、Stop：
 </Panel>
 
 <Panel Id="CardOne" Width="340" Background="#FFFFFF" Padding="24">
-   <TextElement Id="CardOneTitle" X="0" Y="0" Width="292" Text="要点" FontSize="24" IsBold="True" Foreground="#1A1A2E"/>
+   <TextElement Id="CardOneTitle" X="0" Y="0" Text="要点" FontSize="24" IsBold="True" Foreground="#1A1A2E"/>
    <TextElement Id="CardOneBody" X="0" Y="48" Text="" FontSize="16" Foreground="#666666" />
 </Panel>
 
