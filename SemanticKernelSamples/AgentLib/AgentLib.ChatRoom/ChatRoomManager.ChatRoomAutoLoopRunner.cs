@@ -372,6 +372,13 @@ public sealed partial class ChatRoomManager
                 sb.AppendLine();
             }
 
+            sb.AppendLine("消息角色规则：");
+            sb.AppendLine("- 聊天室采用相对视角：对当前正在思考和回复的角色而言，只有你自己在 LLM 对话历史中是 Assistant 角色");
+            sb.AppendLine("- 除你自己之外，聊天室内所有人类和非人类角色在 LLM 对话历史中都会作为 User 角色输入");
+            sb.AppendLine("- 其他不同角色之间的身份差异不会通过 ChatRole 区分，而是通过消息文本说明，例如“某角色说：具体内容”");
+            sb.AppendLine("- 当你看到“用户说：...”或“角色名说：...”时，应理解为对应的人类或非人类角色发表了该内容，而不是你自己的发言");
+            sb.AppendLine();
+
             sb.AppendLine("@机制：");
             sb.AppendLine("- 在消息中使用 @【角色名】 或 @角色名 可以指定某角色接下来回复");
             sb.AppendLine("- @角色名 后面必须加一个空格，禁止紧跟任何标点符号（如 ，。：；！等），否则无法正确识别");
