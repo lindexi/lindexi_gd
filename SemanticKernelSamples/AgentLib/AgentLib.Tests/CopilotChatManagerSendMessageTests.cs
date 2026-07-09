@@ -361,6 +361,60 @@ public class CopilotChatManagerSendMessageTests
         Assert.IsFalse(context.ChatManager.IsChatting, "聊天状态应恢复");
     }
 
+    [TestMethod]
+    [Description("子智能体未返回输出时应追加用户提醒并重试")]
+    public async Task SendMessage_WhenSubAgentDoesNotReturnOutput_RetriesWithToolRequiredPrompt()
+    {
+        var primaryChatClient = new FakeChatClient();
+        primaryChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
+            CreateToolInvocationAsyncEnumerable(options, "sub-agent-call-1", "InvokeSubAgent", new Dictionary<string, object?>
+            {
+                ["prompt"] = "请处理子任务",
+                ["systemPrompt"] = null,
+                ["subAgentType"] = "Flash"
+            }, cancellationToken,
+            CopilotChatManagerTestContext.AssistantText("主智能体收到子结果"));
+
+        var flashChatClient = new FakeChatClient();
+        int flashCallCount = 0;
+        IReadOnlyList<ChatMessage>? retryMessages = null;
+        flashChatClient.OnGetStreamingResponseAsync = (messages, options, cancellationToken) =>
+        {
+            flashCallCount++;
+            if (flashCallCount == 1)
+            {
+                return CreateToolInvocationAsyncEnumerable(options, "nested-sub-agent-call-1", "InvokeSubAgent", new Dictionary<string, object?>
+                {
+                    ["prompt"] = "随便调用一个非返回工具",
+                    ["systemPrompt"] = null,
+                    ["subAgentType"] = "Flash"
+                }, cancellationToken);
+            }
+
+            retryMessages = messages.ToArray();
+            return CreateToolInvocationAsyncEnumerable(options, "return-output-call-1", "ReturnOutputToParent", new Dictionary<string, object?>
+            {
+                ["output"] = "子智能体工具返回结果"
+            }, cancellationToken);
+        };
+
+        var context = CopilotChatManagerTestContext.Create(primaryChatClient, flashChatClient);
+
+        await context.ChatManager.SendMessageAsync(
+            contents: [new TextContent("调用子智能体")],
+            withHistory: true,
+            createNewSession: false,
+            tools: [],
+            toolMode: ChatToolMode.RequireAny);
+
+        Assert.AreEqual(2, flashCallCount, "子智能体未通过 ReturnOutputToParent 返回输出时应重试一次");
+        Assert.IsNotNull(retryMessages, "重试时应重新发送消息");
+        ChatMessage retryPrompt = retryMessages[^1];
+        Assert.AreEqual(ChatRole.User, retryPrompt.Role);
+        Assert.IsTrue(retryPrompt.Text.Contains("必须调用工具", StringComparison.Ordinal));
+        Assert.IsTrue(retryPrompt.Text.Contains("ReturnOutputToParent", StringComparison.Ordinal));
+    }
+
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken,
         params ChatResponseUpdate[] updates)
