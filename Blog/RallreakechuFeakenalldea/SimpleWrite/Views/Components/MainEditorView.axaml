@@ -15,7 +15,7 @@
             <ScrollViewer x:Name="TextEditorScrollViewer" HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Visible"
                           Padding="10,0,20,0">
-                <Grid x:Name="EditorGrid">
+                <Grid x:Name="EditorGrid" Margin="0 0 10 0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
