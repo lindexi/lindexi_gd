@@ -269,6 +269,34 @@ public sealed partial class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
+    /// 清空指定角色的私有 AgentSession 记忆，不修改聊天室公开消息和增量发言进度。
+    /// </summary>
+    /// <param name="roleId">角色 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task ClearRoleSessionMemoryAsync(string roleId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(roleId))
+        {
+            throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
+        }
+
+        ChatRoomRole? role = Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
+        if (role is null)
+        {
+            return;
+        }
+
+        role.ClearSessionMemory();
+
+        if (Persistence is not null)
+        {
+            await Persistence
+                .DeleteRoleAgentSessionStateAsync(CurrentPersistenceSessionId, roleId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
     /// 为单个角色注册所有已存储的模型提供商，并根据角色定义设置首选模型。
     /// 需先通过 <see cref="RegisterRoleModelProviders"/> 注册 providers 字典。
     /// 人类角色跳过注册。

@@ -296,7 +296,7 @@ public sealed class ChatRoomManagerIntegrationTests
 
         Assert.IsFalse(manager.IsRunning);
         string[] roleIds = GetAssistantSenderRoleIds(manager);
-        Assert.IsGreaterThanOrEqualTo(roleIds.Length, 3);
+        Assert.IsGreaterThanOrEqualTo(3, roleIds.Length);
         CollectionAssert.AreEqual(
             new[] { "A", "C", "B" },
             roleIds.Take(3).ToArray());
@@ -463,10 +463,10 @@ public sealed class ChatRoomManagerIntegrationTests
 
         Assert.IsFalse(manager.IsRunning);
         string[] roleIds = GetAssistantSenderRoleIds(manager);
-        Assert.IsGreaterThan(roleIds.Count(roleId => roleId == "A"), 5);
-        Assert.IsGreaterThan(roleIds.Count(roleId => roleId == "B"), 5);
-        Assert.IsGreaterThan(roleIds.Count(roleId => roleId == "C"), 5);
-        Assert.IsGreaterThanOrEqualTo(roleIds.Count(roleId => roleId == "M"), 4);
+        Assert.IsGreaterThan(5, roleIds.Count(roleId => roleId == "A"));
+        Assert.IsGreaterThan(5, roleIds.Count(roleId => roleId == "B"));
+        Assert.IsGreaterThan(5, roleIds.Count(roleId => roleId == "C"));
+        Assert.IsGreaterThanOrEqualTo(4, roleIds.Count(roleId => roleId == "M"));
     }
 
     /// <summary>
@@ -504,8 +504,8 @@ public sealed class ChatRoomManagerIntegrationTests
         Assert.IsFalse(manager.IsRunning);
         string[] roleIds = GetAssistantSenderRoleIds(manager);
         int managerIndex = Array.IndexOf(roleIds, "M");
-        Assert.IsGreaterThanOrEqualTo(managerIndex, 0);
-        Assert.IsLessThan(managerIndex + 1, roleIds.Length);
+        Assert.IsGreaterThanOrEqualTo(0, managerIndex);
+        Assert.IsLessThan(roleIds.Length, managerIndex + 1);
         Assert.AreEqual("D", roleIds[managerIndex + 1]);
     }
 
@@ -538,6 +538,70 @@ public sealed class ChatRoomManagerIntegrationTests
         Assert.IsFalse(manager.IsRunning);
         CollectionAssert.AreEqual(
             new[] { "A", "M", "B" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 管理者兜底发言时 @B，B 发言后没有继续 @ 其他角色时，应由管理者再次发言。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000, CooperativeCancellation = true)]
+    public async Task StartAutoLoopAsync_ManagerMentionsBThenBSpeaks_ManagerSpeaksNext()
+    {
+        var clientA = CreateFakeClient("A 的回复");
+        var clientB = CreateSequenceFakeClient("B 第一次回复", "B 第二次回复");
+        var managerClient = CreateSequenceFakeClient("管理者说 @B 请继续", "管理者再次发言");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+
+        await manager.HumanInterjectAsync("@A @B 请依次处理", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "A", "B", "M", "B", "M" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 管理者指派 B 后，B 又 @ 自己导致无法连续发言时，应让管理者再次仲裁。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000, CooperativeCancellation = true)]
+    public async Task StartAutoLoopAsync_ManagerMentionsRoleThenRoleMentionsSelf_ManagerArbitratesAgain()
+    {
+        var clientA = CreateFakeClient("A 的回复");
+        var clientB = CreateSequenceFakeClient("B 第一次回复", "B 说 @B 需要继续");
+        var managerClient = CreateSequenceFakeClient("管理者说 @B 请继续", "管理者再次仲裁");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+
+        await manager.HumanInterjectAsync("@A @B 请依次处理", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "A", "B", "M", "B", "M" },
             GetAssistantSenderRoleIds(manager));
     }
 
@@ -654,7 +718,7 @@ public sealed class ChatRoomManagerIntegrationTests
         Assert.HasCount(2, humanMessages, "应有两条人类消息");
 
         // 插话后 A 应再次发言（助手回话用户）
-        Assert.IsGreaterThanOrEqualTo(aMessages.Count, 2, "A 应在插话后再次发言（回话用户）");
+        Assert.IsGreaterThanOrEqualTo(2, aMessages.Count, "A 应在插话后再次发言（回话用户）");
     }
 
     /// <summary>
