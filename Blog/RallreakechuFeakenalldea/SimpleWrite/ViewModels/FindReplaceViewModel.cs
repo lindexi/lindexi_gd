@@ -794,7 +794,7 @@ public class FindReplaceViewModel : ViewModelBase
     private bool _isPanelVisible;
     private bool _isReplaceMode;
     private bool _isFolderSearchScope;
-    private bool _isCaseInsensitive;
+    private bool _isCaseInsensitive = true;
     private bool _isSearchingDocument;
     private bool _isDocumentSearchTimedOut;
     private bool _isSearchingFolder;
