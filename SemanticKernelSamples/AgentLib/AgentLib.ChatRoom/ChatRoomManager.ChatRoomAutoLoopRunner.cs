@@ -24,6 +24,8 @@ public sealed partial class ChatRoomManager
 
         private readonly ChatRoomManager _manager;
 
+        private const int MaxSpeakCountPerRole = 5;
+
         private CancellationTokenSource? _autoLoopCancellationTokenSource;
 
         /// <summary>
@@ -88,14 +90,15 @@ public sealed partial class ChatRoomManager
 
         private async Task<bool> RunAutoLoopTurnAsync(ChatRoomMessage triggerMessage, CancellationToken cancellationToken)
         {
-            var pendingRoles = new Queue<ChatRoomRole>();
-            var attemptedRoleIds = new HashSet<string>();
-            bool managersInvoked = false;
-            bool canInvokeManagers = triggerMessage.IsHumanMessage || triggerMessage.MentionedRoleIds.Count > 0;
+            var priorityRoles = new Stack<ChatRoomRole>();
+            var defaultRoles = new Queue<ChatRoomRole>();
+            var speakCounts = new Dictionary<string, int>(_manager.Roles.Count);
+            string? lastSpeakerRoleId = null;
+            bool managersInvokedForIdle = false;
             int maxAutoLoopSteps = Math.Max(100, _manager.Roles.Count(r => !r.Definition.IsHuman));
             int stepCount = 0;
 
-            EnqueueInitialRoles(triggerMessage, pendingRoles, attemptedRoleIds);
+            EnqueueInitialRoles(triggerMessage, priorityRoles, defaultRoles);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -104,46 +107,75 @@ public sealed partial class ChatRoomManager
                     return true;
                 }
 
-                if (pendingRoles.Count == 0)
-                {
-                    if (managersInvoked || !canInvokeManagers)
-                    {
-                        return false;
-                    }
-
-                    managersInvoked = true;
-                    EnqueueManagerRoles(pendingRoles, attemptedRoleIds);
-                    if (pendingRoles.Count == 0)
-                    {
-                        return false;
-                    }
-                }
-
                 stepCount++;
                 if (stepCount > maxAutoLoopSteps)
                 {
                     return false;
                 }
 
-                ChatRoomRole nextSpeaker = pendingRoles.Dequeue();
-                if (nextSpeaker.Definition.IsHuman || !attemptedRoleIds.Add(nextSpeaker.Definition.RoleId))
+                ChatRoomRole? nextSpeaker = TryDequeueNextSpeaker(priorityRoles, defaultRoles, lastSpeakerRoleId);
+                IReadOnlyList<string>? additionalUserMessages = null;
+
+                if (nextSpeaker is null)
+                {
+                    if (managersInvokedForIdle)
+                    {
+                        return false;
+                    }
+
+                    nextSpeaker = GetManagerRole();
+                    if (nextSpeaker is null || nextSpeaker.Definition.RoleId == lastSpeakerRoleId)
+                    {
+                        return false;
+                    }
+
+                    managersInvokedForIdle = true;
+                }
+
+                string nextSpeakerRoleId = nextSpeaker.Definition.RoleId;
+                if (speakCounts.TryGetValue(nextSpeakerRoleId, out int speakCount) && speakCount >= MaxSpeakCountPerRole)
+                {
+                    ChatRoomRole? managerRole = GetManagerRole();
+                    if (managerRole is null || managerRole.Definition.RoleId == lastSpeakerRoleId)
+                    {
+                        return false;
+                    }
+
+                    speakCounts[nextSpeakerRoleId] = 0;
+                    additionalUserMessages = [BuildMaxSpeakCountReachedMessage(nextSpeaker, priorityRoles, defaultRoles)];
+                    nextSpeaker = managerRole;
+                    nextSpeakerRoleId = nextSpeaker.Definition.RoleId;
+                }
+
+                if (nextSpeaker.Definition.IsHuman || nextSpeakerRoleId == lastSpeakerRoleId)
                 {
                     continue;
                 }
 
-                ChatRoomMessage? message = await StepAsync(nextSpeaker, cancellationToken).ConfigureAwait(false);
+                ChatRoomMessage? message = await StepAsync(nextSpeaker, additionalUserMessages, cancellationToken).ConfigureAwait(false);
                 if (message is null)
                 {
                     continue;
                 }
 
-                await HandleAutoLoopMessageAsync(message, pendingRoles, attemptedRoleIds).ConfigureAwait(false);
+                lastSpeakerRoleId = nextSpeakerRoleId;
+                speakCounts[nextSpeakerRoleId] = speakCounts.GetValueOrDefault(nextSpeakerRoleId) + 1;
+
+                IReadOnlyList<string> mentionedRoleIds = await HandleAutoLoopMessageAsync(message).ConfigureAwait(false);
+                PushMentionedRoles(priorityRoles, mentionedRoleIds);
             }
 
             return false;
         }
 
         public async Task<ChatRoomMessage?> StepAsync(ChatRoomRole role,
+            CancellationToken cancellationToken = default)
+        {
+            return await StepAsync(role, additionalUserMessages: null, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ChatRoomMessage?> StepAsync(ChatRoomRole role,
+            IReadOnlyList<string>? additionalUserMessages,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(role);
@@ -162,7 +194,7 @@ public sealed partial class ChatRoomManager
                 role.ChatRoomContext = BuildChatRoomContext();
 
                 // 构建增量消息文本列表：自该角色上次发言之后的公开消息
-                IReadOnlyList<string> incrementalUserMessages = BuildIncrementalUserMessages(role);
+                IReadOnlyList<string> incrementalUserMessages = BuildIncrementalUserMessages(role, additionalUserMessages);
                 if (incrementalUserMessages.Count == 0)
                 {
                     // 没有新的用户消息，角色无需发言
@@ -244,16 +276,24 @@ public sealed partial class ChatRoomManager
             }
         }
 
-        private IReadOnlyList<string> BuildIncrementalUserMessages(ChatRoomRole role)
+        private IReadOnlyList<string> BuildIncrementalUserMessages(
+            ChatRoomRole role,
+            IReadOnlyList<string>? additionalUserMessages = null)
         {
-            var list = new List<string>();
+            int additionalMessageCount = additionalUserMessages?.Count ?? 0;
+            var list = new List<string>(additionalMessageCount);
 
             // 获取自该角色上次发言后的增量消息
             IReadOnlyList<ChatRoomMessage> incrementalMessages = _manager.Session.GetMessagesSinceLastSpeak(role.Definition.RoleId);
 
-            if (incrementalMessages.Count == 0)
+            if (incrementalMessages.Count == 0 && additionalMessageCount == 0)
             {
                 return list;
+            }
+
+            if (incrementalMessages.Count > 0)
+            {
+                list.EnsureCapacity(incrementalMessages.Count + additionalMessageCount);
             }
 
             foreach (ChatRoomMessage message in incrementalMessages)
@@ -282,6 +322,17 @@ public sealed partial class ChatRoomManager
 
                 string content = $"{prefix}说：{message.Content}";
                 list.Add(content);
+            }
+
+            if (additionalUserMessages is not null)
+            {
+                foreach (string additionalUserMessage in additionalUserMessages)
+                {
+                    if (!string.IsNullOrWhiteSpace(additionalUserMessage))
+                    {
+                        list.Add(additionalUserMessage);
+                    }
+                }
             }
 
             return list;
@@ -350,16 +401,13 @@ public sealed partial class ChatRoomManager
 
         private void EnqueueInitialRoles(
             ChatRoomMessage triggerMessage,
-            Queue<ChatRoomRole> pendingRoles,
-            HashSet<string> attemptedRoleIds)
+            Stack<ChatRoomRole> priorityRoles,
+            Queue<ChatRoomRole> defaultRoles)
         {
-            if (!triggerMessage.IsSystemMessage)
+            IReadOnlyList<string> mentionedRoleIds = GetMentionedRoleIds(triggerMessage);
+            if (mentionedRoleIds.Count > 0)
             {
-                EnqueueMentionedRoles(pendingRoles, triggerMessage.MentionedRoleIds, attemptedRoleIds);
-            }
-
-            if (pendingRoles.Count > 0)
-            {
+                PushMentionedRoles(priorityRoles, mentionedRoleIds);
                 return;
             }
 
@@ -367,15 +415,12 @@ public sealed partial class ChatRoomManager
             {
                 foreach (ChatRoomRole role in GetDefaultWorkerRoles())
                 {
-                    pendingRoles.Enqueue(role);
+                    defaultRoles.Enqueue(role);
                 }
             }
         }
 
-        private async Task HandleAutoLoopMessageAsync(
-            ChatRoomMessage message,
-            Queue<ChatRoomRole> pendingRoles,
-            HashSet<string> attemptedRoleIds)
+        private async Task<IReadOnlyList<string>> HandleAutoLoopMessageAsync(ChatRoomMessage message)
         {
             IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, _manager.Roles);
             if (mentionedRoleIds.Count > 0)
@@ -401,57 +446,155 @@ public sealed partial class ChatRoomManager
                     }, TaskContinuationOptions.OnlyOnFaulted);
             }
 
-            EnqueueMentionedRoles(pendingRoles, mentionedRoleIds, attemptedRoleIds);
+            return mentionedRoleIds;
         }
 
-        private void EnqueueMentionedRoles(
-            Queue<ChatRoomRole> pendingRoles,
-            IReadOnlyList<string> mentionedRoleIds,
-            HashSet<string> attemptedRoleIds)
+        private IReadOnlyList<string> GetMentionedRoleIds(ChatRoomMessage message)
+        {
+            if (message.IsSystemMessage)
+            {
+                return [];
+            }
+
+            if (message.MentionedRoleIds.Count > 0)
+            {
+                return message.MentionedRoleIds;
+            }
+
+            return MentionParser.ParseMentions(message.Content, _manager.Roles);
+        }
+
+        private void PushMentionedRoles(Stack<ChatRoomRole> priorityRoles, IReadOnlyList<string> mentionedRoleIds)
         {
             if (mentionedRoleIds.Count == 0)
             {
                 return;
             }
 
-            var queuedRoleIds = new HashSet<string>(pendingRoles.Select(r => r.Definition.RoleId));
-            foreach (string roleId in mentionedRoleIds)
+            var pushedRoleIds = new HashSet<string>(StringComparer.Ordinal);
+            for (int i = mentionedRoleIds.Count - 1; i >= 0; i--)
             {
-                if (string.IsNullOrWhiteSpace(roleId) || attemptedRoleIds.Contains(roleId) || !queuedRoleIds.Add(roleId))
+                string roleId = mentionedRoleIds[i];
+                if (string.IsNullOrWhiteSpace(roleId) || !pushedRoleIds.Add(roleId))
                 {
                     continue;
                 }
 
-                ChatRoomRole? role = _manager.Roles.FirstOrDefault(r => r.Definition.RoleId == roleId && !r.Definition.IsHuman);
+                ChatRoomRole? role = _manager.Roles.FirstOrDefault(r =>
+                    r.Definition.RoleId == roleId &&
+                    !r.Definition.IsHuman);
                 if (role is not null)
                 {
-                    pendingRoles.Enqueue(role);
+                    priorityRoles.Push(role);
                 }
             }
         }
 
-        private void EnqueueManagerRoles(Queue<ChatRoomRole> pendingRoles, HashSet<string> attemptedRoleIds)
+        private static ChatRoomRole? TryDequeueNextSpeaker(
+            Stack<ChatRoomRole> priorityRoles,
+            Queue<ChatRoomRole> defaultRoles,
+            string? lastSpeakerRoleId)
         {
-            foreach (ChatRoomRole role in GetManagerRoles())
+            var postponedPriorityRoles = new List<ChatRoomRole>();
+            while (priorityRoles.Count > 0)
             {
-                if (!attemptedRoleIds.Contains(role.Definition.RoleId))
+                ChatRoomRole role = priorityRoles.Pop();
+                if (role.Definition.IsHuman)
                 {
-                    pendingRoles.Enqueue(role);
+                    continue;
+                }
+
+                if (role.Definition.RoleId == lastSpeakerRoleId)
+                {
+                    postponedPriorityRoles.Add(role);
+                    continue;
+                }
+
+                RestorePriorityRoles(priorityRoles, postponedPriorityRoles);
+                return role;
+            }
+
+            int defaultRoleCount = defaultRoles.Count;
+            var postponedDefaultRoles = new List<ChatRoomRole>();
+            for (int i = 0; i < defaultRoleCount; i++)
+            {
+                ChatRoomRole role = defaultRoles.Dequeue();
+                if (role.Definition.IsHuman)
+                {
+                    continue;
+                }
+
+                if (role.Definition.RoleId == lastSpeakerRoleId)
+                {
+                    postponedDefaultRoles.Add(role);
+                    continue;
+                }
+
+                RestorePriorityRoles(priorityRoles, postponedPriorityRoles);
+                foreach (ChatRoomRole postponedRole in postponedDefaultRoles)
+                {
+                    defaultRoles.Enqueue(postponedRole);
+                }
+
+                return role;
+            }
+
+            return null;
+        }
+
+        private static void RestorePriorityRoles(Stack<ChatRoomRole> priorityRoles, List<ChatRoomRole> postponedPriorityRoles)
+        {
+            for (int i = postponedPriorityRoles.Count - 1; i >= 0; i--)
+            {
+                priorityRoles.Push(postponedPriorityRoles[i]);
+            }
+        }
+
+        private static string BuildMaxSpeakCountReachedMessage(
+            ChatRoomRole limitedRole,
+            Stack<ChatRoomRole> priorityRoles,
+            Queue<ChatRoomRole> defaultRoles)
+        {
+            string waitingRoleNames = BuildWaitingRoleNames(priorityRoles, defaultRoles);
+            return $"角色「{limitedRole.Definition.RoleName}」在当前自动循环中已经达到最大发言次数 {MaxSpeakCountPerRole} 次，因此本次未继续让它发言。\n" +
+                $"如果你认为「{limitedRole.Definition.RoleName}」仍然需要继续发言，请在回复中明确 @{limitedRole.Definition.RoleName}；否则可以不再 @ 它。\n" +
+                $"当前仍在等待发言的角色包括：{waitingRoleNames}。";
+        }
+
+        private static string BuildWaitingRoleNames(Stack<ChatRoomRole> priorityRoles, Queue<ChatRoomRole> defaultRoles)
+        {
+            var roleNames = new List<string>(priorityRoles.Count + defaultRoles.Count);
+            var roleIds = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (ChatRoomRole role in priorityRoles.Reverse())
+            {
+                if (!role.Definition.IsHuman && roleIds.Add(role.Definition.RoleId))
+                {
+                    roleNames.Add(role.Definition.RoleName);
                 }
             }
+
+            foreach (ChatRoomRole role in defaultRoles)
+            {
+                if (!role.Definition.IsHuman && roleIds.Add(role.Definition.RoleId))
+                {
+                    roleNames.Add(role.Definition.RoleName);
+                }
+            }
+
+            return roleNames.Count == 0 ? "无" : string.Join('、', roleNames);
         }
 
         private IEnumerable<ChatRoomRole> GetDefaultWorkerRoles()
         {
             return _manager.Roles.Where(r =>
                 !r.Definition.IsHuman &&
-                !r.Definition.IsManagerRole &&
                 r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate);
         }
 
-        private IEnumerable<ChatRoomRole> GetManagerRoles()
+        private ChatRoomRole? GetManagerRole()
         {
-            return _manager.Roles.Where(r => !r.Definition.IsHuman && r.Definition.IsManagerRole);
+            return _manager.Roles.FirstOrDefault(r => !r.Definition.IsHuman && r.Definition.IsManagerRole);
         }
     }
 }
