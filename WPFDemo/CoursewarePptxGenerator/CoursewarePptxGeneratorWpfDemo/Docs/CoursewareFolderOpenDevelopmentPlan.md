@@ -1,6 +1,6 @@
 # 打开课件文件夹功能开发计划
 
-本文基于 `CoursewareFolderOpenWorkflowThinking.md` 和 `CoursewareMarkdownExportFormat.md`，细化 `CoursewarePptxGeneratorWpfDemo` 中“打开课件文件夹”功能的开发计划、设计细节和实现步骤。
+本文基于 `CoursewareFolderOpenWorkflowThinking.md`、`CoursewareMarkdownExportFormat.md` 和 `CoursewareOutputExportFormat.md`，细化 `CoursewarePptxGeneratorWpfDemo` 中“打开课件文件夹”功能的开发计划、设计细节和实现步骤。
 
 目标是把当前仅记录文件夹路径的入口，升级为课件 Markdown 导出目录的本地加载入口，为后续全局主题分析、逐页美化、资源引用解析和批量输出打好基础。
 
@@ -59,7 +59,7 @@
 
 因此，本次开发应优先补齐“导出目录读取服务”和“页面输入模型”，再最小修改 ViewModel 与 XAML 绑定。
 
-// 注： 现在还缺少保存/导出 的功能，保存的格式应该是什么还没定
+保存/导出结果格式已经在 `CoursewareOutputExportFormat.md` 中确定。本阶段只需要在加载模型中保留后续输出所需的路径和状态字段，不实现保存命令；后续保存功能应按 `CoursewareOutput.json`、`Theme/`、`Slides/Slide_XXX/` 和 `Summary.md` 的生成结果目录格式落地。
 
 ---
 
@@ -94,7 +94,7 @@ CoursewarePptxGeneratorWpfDemo/
 - `CoursewareFolderLoader`
   - 只负责本地 I/O、JSON 解析、路径解析、格式校验和加载警告收集。
   - 不依赖 WPF UI。
-  - 不创建 `SlideChatManager`。
+  - 不创建 `SlideChatManager`。 // 注： 我计划将这部分逻辑进行拆分，与 UI 框架无关的逻辑应该在一个独立的程序集里面，类似 PptxGenerator.Core 的角色
 - `CoursewareInputPackage`
   - 表示已经加载完成的课件输入包。
   - 包含课件根目录、课件名、页面集合、资源集合和加载警告。
@@ -140,6 +140,8 @@ CoursewarePptxGeneratorWpfDemo/
 
 服务层与 UI 无关的 `await` 使用 `ConfigureAwait(false)`。回到 `ObservableCollection` 和属性更新时，通过 WPF Dispatcher 或当前 ViewModel 已有的 UI 线程上下文处理。
 
+// 注： 采用 `ConfigureAwait(false)` 时，需要提示要分派子智能体去审查，确保上下路径里面没有 UI 线程依赖的代码。否则应该用 `ConfigureAwait(true)`  逻辑。要用子智能体去审查
+
 ---
 
 ## 四、模型设计
@@ -161,7 +163,7 @@ CoursewarePptxGeneratorWpfDemo/
 
 - 使用 `System.Text.Json`。
 - JSON 属性名通过 `[JsonPropertyName]` 显式映射小驼峰字段。
-- 如果后续开启 AOT，可补充 `JsonSerializerContext` 源生成上下文。
+- 如果后续开启 AOT，可补充 `JsonSerializerContext` 源生成上下文。 // 注： 现在就要做
 - 当前支持 `exportVersion = 1`。
 
 ### 4.2 CoursewareExportSlideEntry
@@ -854,9 +856,10 @@ private async Task OpenCoursewareFolderAsync(string? folderPath)
    - 输出 SlideML、渲染预览、日志和错误状态。
 
 3. **输出目录规则**
-   - 在导出目录旁边或导出目录内创建独立输出目录，例如 `beautified-output`。
-   - 保存 `.slideml`、渲染截图、对话日志和错误日志。
-   - 避免污染原始 Markdown 导出源文件。
+   - 输出格式以 `CoursewareOutputExportFormat.md` 为准，生成结果根目录包含 `CoursewareOutput.json`、`Theme/`、`Slides/` 和 `Summary.md`。
+   - 每页结果保存到 `Slides/Slide_XXX/`，包含 `Slide.slideml`、`Preview.png`、`Generation.md`、`RenderLog.txt`、`SlideResult.json`，并可选复制原始 Markdown 为 `SourceMarkdown.md`。
+   - 所有索引文件中的路径使用相对路径，不写入本机磁盘绝对路径、API Key、访问令牌、连接字符串或其他敏感信息。
+   - 保存生成结果时不修改原始 Markdown 导出目录，生成结果可以依赖原始导出目录继续存在；后续如需独立分发，再扩展 portable 模式。
 
 4. **资源引用解析**
    - 统一约定 SlideML 中图片使用 `resources/img_1.png` 或资源 ID。
@@ -915,3 +918,5 @@ private async Task OpenCoursewareFolderAsync(string? folderPath)
 7. 后续再进入全局主题分析和逐页美化。
 
 该顺序可以先形成稳定的本地输入初始化闭环，避免过早引入 LLM 调用、主题分析和批量生成带来的复杂度。
+
+// 注： 一口气完成，不要分开兼容

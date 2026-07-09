@@ -1,6 +1,7 @@
 <UserControl x:Class="CoursewarePptxGeneratorWpfDemo.Views.LeftSidebarPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="clr-namespace:CoursewarePptxGeneratorWpfDemo.Models"
@@ -35,18 +36,24 @@
                         CornerRadius="6"
                         ClipToBounds="True">
                     <Grid Background="#f8fafc">
+                        <Image Source="{Binding SourceScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
+                               Stretch="UniformToFill" />
+                        <Image Source="{Binding SlideChatManager.PreviewImage, Converter={x:Static converters:PreviewImageToImageSourceConverter.Instance}}"
+                               Stretch="UniformToFill" />
                         <Border Width="76"
                                 Height="48"
                                 BorderBrush="#CBD5E1"
                                 BorderThickness="1"
                                 CornerRadius="4"
                                 HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
+                                VerticalAlignment="Center"
+                                Visibility="{Binding HasSourceScreenshot, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}" />
                         <TextBlock Text="Empty"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    FontSize="11"
                                    HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding HasSourceScreenshot, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}" />
                     </Grid>
                 </Border>
                 <TextBlock Text="{Binding Title}"
@@ -54,6 +61,12 @@
                            FontSize="11"
                            HorizontalAlignment="Center"
                            Margin="0,4,0,0" />
+                <TextBlock Text="{Binding SlideId, StringFormat=Id: {0}}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="10"
+                           HorizontalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="170" />
                 <TextBlock Text="{Binding Status}"
                            Foreground="{StaticResource PrimaryBlueBrush}"
                            FontSize="10"
@@ -91,7 +104,8 @@
             </Button>
         </StackPanel>
 
-        <ListBox ItemsSource="{Binding Slides}"
+        <ListBox x:Name="SlideListBox"
+                 ItemsSource="{Binding Slides}"
                  SelectedItem="{Binding SelectedSlide, Mode=TwoWay}"
                  ItemContainerStyle="{StaticResource SlideListBoxItemStyle}"
                  BorderThickness="0"

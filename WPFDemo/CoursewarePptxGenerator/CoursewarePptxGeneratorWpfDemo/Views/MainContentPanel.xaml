@@ -10,6 +10,10 @@
              d:DesignHeight="760"
              d:DesignWidth="1060"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+    </UserControl.Resources>
+
     <Grid Background="{StaticResource LightBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -20,10 +24,12 @@
         <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="24,12">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="打开课件文件夹"
+                    <Button x:Name="OpenCoursewareFolderButton"
+                            Content="打开课件文件夹"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Padding="12,6"
                             Margin="0,0,12,0"
+                            IsEnabled="{Binding IsNotBusy}"
                             Click="OpenCoursewareFolderButton_OnClick" />
                     <TextBlock Text="{Binding SelectedSlide.Status, TargetNullValue=No Courseware}"
                                Foreground="{StaticResource TextSecondaryBrush}"
@@ -59,19 +65,23 @@
                         <Border BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1"
                                 Background="#f8fafc">
-                            <Image Source="{Binding SlideChatManager.PreviewImage, Converter={x:Static converters:PreviewImageToImageSourceConverter.Instance}}"
+                            <Image Source="{Binding SelectedSlide.SourceScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
+                                   Visibility="{Binding ShowSourceScreenshot, Converter={StaticResource BooleanToVisibility}}"
                                    Stretch="Uniform" />
                         </Border>
+                        <Image Source="{Binding SlideChatManager.PreviewImage, Converter={x:Static converters:PreviewImageToImageSourceConverter.Instance}}"
+                               Visibility="{Binding HasRenderedPreviewImage, Converter={StaticResource BooleanToVisibility}}"
+                               Stretch="Uniform" />
                         <StackPanel HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Visibility="{Binding HasPreviewImage, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}"
+                                    Visibility="{Binding HasAnyPreviewImage, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}"
                                     IsHitTestVisible="False">
                             <TextBlock Text="未加载课件页面"
                                        FontSize="28"
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource TextPrimaryBrush}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="选择课件文件夹并生成 SlideML 后，这里显示 16:9 页面预览。"
+                            <TextBlock Text="选择课件文件夹后优先显示原始截图，生成 SlideML 后显示渲染预览。"
                                        FontSize="18"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        TextAlignment="Center"

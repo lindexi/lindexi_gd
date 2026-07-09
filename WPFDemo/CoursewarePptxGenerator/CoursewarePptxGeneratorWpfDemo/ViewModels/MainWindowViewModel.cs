@@ -1,12 +1,14 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using AgentLib;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Rendering;
 using CoursewarePptxGeneratorWpfDemo.Services;
+using CoursewarePptxGeneratorWpfDemo.Threading;
 using PptxGenerator;
 
 namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
@@ -16,7 +18,10 @@ namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
 /// </summary>
 public sealed class MainWindowViewModel : ObservableObject
 {
-    private readonly SlideChatManagerFactory _slideChatManagerFactory;
+    private readonly ISlideChatManagerFactory _slideChatManagerFactory;
+    private readonly CoursewareFolderLoader _coursewareFolderLoader;
+    private readonly CoursewareSlideSummaryService _slideSummaryService;
+    private readonly IViewModelDispatcher _dispatcher;
     private readonly RelayCommand _sendMessageCommand;
     private readonly RelayCommand _rerenderCommand;
     private readonly RelayCommand _connectMcpCommand;
@@ -36,12 +41,22 @@ public sealed class MainWindowViewModel : ObservableObject
     /// <summary>
     /// Initializes a new instance of the <see cref="MainWindowViewModel" /> class.
     /// </summary>
-    public MainWindowViewModel(SlideChatManagerFactory slideChatManagerFactory, SlideChatManager slideChatManager)
+    public MainWindowViewModel(
+        ISlideChatManagerFactory slideChatManagerFactory,
+        SlideChatManager slideChatManager,
+        CoursewareFolderLoader coursewareFolderLoader,
+        CoursewareSlideSummaryService slideSummaryService,
+        IViewModelDispatcher? dispatcher = null)
     {
         ArgumentNullException.ThrowIfNull(slideChatManagerFactory);
         ArgumentNullException.ThrowIfNull(slideChatManager);
+        ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
+        ArgumentNullException.ThrowIfNull(slideSummaryService);
 
         _slideChatManagerFactory = slideChatManagerFactory;
+        _coursewareFolderLoader = coursewareFolderLoader;
+        _slideSummaryService = slideSummaryService;
+        _dispatcher = dispatcher ?? WpfViewModelDispatcher.Instance;
         _slideChatManager = slideChatManager;
         _slideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
 
@@ -60,7 +75,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _rerenderCommand = new RelayCommand(_ => _ = RerenderAsync(), _ => !IsBusy && !string.IsNullOrWhiteSpace(EditableSlideXml));
         _connectMcpCommand = new RelayCommand(_ => _ = ConnectMcpAsync(), _ => !IsBusy && !IsConnectingMcp && !string.IsNullOrWhiteSpace(McpServiceUrl));
         AddPageCommand = new RelayCommand(_ => AddEmptyPage());
-        OpenCoursewareFolderCommand = new RelayCommand(parameter => OpenCoursewareFolder(parameter as string));
+        OpenCoursewareFolderCommand = new RelayCommand(parameter => _ = OpenCoursewareFolderAsync(parameter as string), _ => !IsBusy);
 
         var firstSlide = CreateEmptySlide(1, _slideChatManager);
         Slides.Add(firstSlide);
@@ -89,7 +104,27 @@ public sealed class MainWindowViewModel : ObservableObject
     /// <summary>
     /// Gets a value indicating whether the current slide has a rendered preview image.
     /// </summary>
-    public bool HasPreviewImage => SlideChatManager.PreviewImage is not null;
+    public bool HasRenderedPreviewImage => SlideChatManager.PreviewImage is not null;
+
+    /// <summary>
+    /// Gets a value indicating whether the current slide has a source screenshot.
+    /// </summary>
+    public bool HasSourceScreenshot => SelectedSlide?.HasSourceScreenshot == true;
+
+    /// <summary>
+    /// Gets a value indicating whether the source screenshot should be displayed.
+    /// </summary>
+    public bool ShowSourceScreenshot => !HasRenderedPreviewImage && HasSourceScreenshot;
+
+    /// <summary>
+    /// Gets a value indicating whether any preview image is available.
+    /// </summary>
+    public bool HasAnyPreviewImage => HasRenderedPreviewImage || HasSourceScreenshot;
+
+    /// <summary>
+    /// Gets a value indicating whether the current slide has a rendered preview image.
+    /// </summary>
+    public bool HasPreviewImage => HasRenderedPreviewImage;
 
     /// <summary>
     /// Gets the Copilot chat manager used by the current page.
@@ -260,12 +295,19 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _isBusy, value))
             {
+                OnPropertyChanged(nameof(IsNotBusy));
                 _sendMessageCommand.RaiseCanExecuteChanged();
                 _rerenderCommand.RaiseCanExecuteChanged();
                 _connectMcpCommand.RaiseCanExecuteChanged();
+                (OpenCoursewareFolderCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
         }
     }
+
+    /// <summary>
+    /// Gets a value indicating whether no operation is running.
+    /// </summary>
+    public bool IsNotBusy => !IsBusy;
 
     /// <summary>
     /// Gets the command that sends a chat message.
@@ -328,18 +370,18 @@ public sealed class MainWindowViewModel : ObservableObject
         try
         {
             var isEnabled = await renderPipeline.TryEnableMcpAsync(mcpServiceUrl).ConfigureAwait(false);
-            await Application.Current.Dispatcher.InvokeAsync(() =>
+            await _dispatcher.InvokeAsync(() =>
             {
                 McpStatusText = isEnabled ? $"MCP 已连接：{mcpServiceUrl}" : "MCP 连接失败，当前使用本地渲染";
             });
         }
         catch (OperationCanceledException)
         {
-            await Application.Current.Dispatcher.InvokeAsync(() => McpStatusText = "MCP 连接已取消");
+            await _dispatcher.InvokeAsync(() => McpStatusText = "MCP 连接已取消");
         }
         finally
         {
-            await Application.Current.Dispatcher.InvokeAsync(() => IsConnectingMcp = false);
+            await _dispatcher.InvokeAsync(() => IsConnectingMcp = false);
         }
     }
 
@@ -348,13 +390,66 @@ public sealed class MainWindowViewModel : ObservableObject
     /// </summary>
     public void OpenCoursewareFolder(string? folderPath)
     {
+        _ = OpenCoursewareFolderAsync(folderPath);
+    }
+
+    /// <summary>
+    /// Opens the courseware folder selected by the view and waits for the loading workflow to complete.
+    /// </summary>
+    /// <param name="folderPath">The selected folder path.</param>
+    /// <returns>A task that represents the asynchronous loading operation.</returns>
+    public async Task OpenCoursewareFolderAsync(string? folderPath)
+    {
         if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
         {
             return;
         }
 
-        CoursewareFolder = new DirectoryInfo(folderPath);
-        StatusText = "已选择课件文件夹";
+        IsBusy = true;
+        StatusText = "正在加载课件导出目录...";
+
+        try
+        {
+            var package = await _coursewareFolderLoader.LoadAsync(folderPath).ConfigureAwait(false);
+            await _dispatcher.InvokeAsync(async () =>
+            {
+                var slideItems = new List<CoursewareSlideItem>(package.Slides.Count);
+                foreach (var slideInput in package.Slides)
+                {
+                    slideItems.Add(await CreateSlideItemAsync(slideInput).ConfigureAwait(true));
+                }
+
+                Slides.Clear();
+                foreach (var slideItem in slideItems)
+                {
+                    Slides.Add(slideItem);
+                }
+
+                CoursewareFolder = package.RootDirectory;
+                SelectedSlide = Slides.FirstOrDefault();
+                StatusText = CreateLoadedStatusText(package);
+            });
+        }
+        catch (InvalidDataException ex)
+        {
+            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：{ex.Message}");
+        }
+        catch (IOException ex)
+        {
+            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：{ex.Message}");
+        }
+        catch (JsonException ex)
+        {
+            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：JSON 格式无效。{ex.Message}");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：没有访问权限。{ex.Message}");
+        }
+        finally
+        {
+            await _dispatcher.InvokeAsync(() => IsBusy = false);
+        }
     }
 
     private void OnSlideChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -366,6 +461,9 @@ public sealed class MainWindowViewModel : ObservableObject
                 OnPropertyChanged(nameof(SlideChatManager));
                 break;
             case nameof(SlideChatManager.PreviewImage):
+                OnPropertyChanged(nameof(HasRenderedPreviewImage));
+                OnPropertyChanged(nameof(ShowSourceScreenshot));
+                OnPropertyChanged(nameof(HasAnyPreviewImage));
                 OnPropertyChanged(nameof(HasPreviewImage));
                 OnPropertyChanged(nameof(SlideChatManager));
                 break;
@@ -407,7 +505,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     useStreaming: true)
                 .ConfigureAwait(false);
 
-            await Application.Current.Dispatcher.InvokeAsync(() => StatusText = "处理完成");
+            await _dispatcher.InvokeAsync(() => StatusText = "处理完成");
         }
         catch (OperationCanceledException)
         {
@@ -436,7 +534,7 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             var renderTool = SlideChatManager.SlideMlRenderTool;
             var renderResult = await renderTool.RenderPipeline.RenderAsync(EditableSlideXml).ConfigureAwait(false);
-            await Application.Current.Dispatcher.InvokeAsync(() =>
+            await _dispatcher.InvokeAsync(() =>
             {
                 renderTool.ApplyRenderResult(renderResult);
                 StatusText = "重新加载完成";
@@ -469,9 +567,14 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         EditableSlideXml = SelectedSlide?.SlideMl ?? string.Empty;
+        PrepareSelectedSlideCopilotInput();
         StatusText = SelectedSlide?.Status ?? (CoursewareFolder is null ? "尚未加载课件" : "请选择页面");
         OnPropertyChanged(nameof(RenderingLog));
         OnPropertyChanged(nameof(CallbackXml));
+        OnPropertyChanged(nameof(HasRenderedPreviewImage));
+        OnPropertyChanged(nameof(HasSourceScreenshot));
+        OnPropertyChanged(nameof(ShowSourceScreenshot));
+        OnPropertyChanged(nameof(HasAnyPreviewImage));
         OnPropertyChanged(nameof(HasPreviewImage));
         RefreshMcpStatusText();
     }
@@ -482,11 +585,100 @@ public sealed class MainWindowViewModel : ObservableObject
         var slideChatManager = await _slideChatManagerFactory.CreateAsync().ConfigureAwait(false);
         var slide = CreateEmptySlide(pageNumber, slideChatManager);
 
-        await Application.Current.Dispatcher.InvokeAsync(() =>
+        await _dispatcher.InvokeAsync(() =>
         {
             Slides.Add(slide);
             SelectedSlide = slide;
         });
+    }
+
+    private async Task<CoursewareSlideItem> CreateSlideItemAsync(CoursewareSlideInput input)
+    {
+        var (slideChatManager, initializationError) = await CreateSlideChatManagerForSlideAsync().ConfigureAwait(false);
+        var status = CreateSlideStatus(input);
+        return new CoursewareSlideItem
+        {
+            SlideChatManager = slideChatManager,
+            PageNumber = input.PageNumber,
+            SlideId = input.SlideId,
+            SlideIndex = input.SlideIndex,
+            Width = input.Width,
+            Height = input.Height,
+            Title = _slideSummaryService.CreateTitle(input.MarkdownText, input.PageNumber),
+            Summary = _slideSummaryService.CreateSummary(input.MarkdownText),
+            Status = initializationError is null ? status : $"{status}，聊天初始化失败",
+            SourceMarkdownFilePath = input.MarkdownFile.FullName,
+            SourceMarkdownText = input.MarkdownText,
+            SourceScreenshotFilePath = input.ScreenshotFile?.FullName,
+            LoadWarnings = input.Warnings,
+            ErrorMessage = initializationError,
+            SlideMl = string.Empty,
+            RenderingLog = initializationError is null ? "尚未执行渲染。" : $"聊天管理器初始化失败：{initializationError}",
+            CallbackXml = string.Empty,
+        };
+    }
+
+    private async Task<(SlideChatManager SlideChatManager, string? InitializationError)> CreateSlideChatManagerForSlideAsync()
+    {
+        try
+        {
+            return (await _slideChatManagerFactory.CreateAsync().ConfigureAwait(false), null);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return (_slideChatManager, ex.Message);
+        }
+        catch (IOException ex)
+        {
+            return (_slideChatManager, ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return (_slideChatManager, ex.Message);
+        }
+    }
+
+    private static string CreateSlideStatus(CoursewareSlideInput input)
+    {
+        return input.ScreenshotFile is null ? "已加载，缺失截图" : "已加载";
+    }
+
+    private static string CreateLoadedStatusText(CoursewareInputPackage package)
+    {
+        var warningCount = package.Warnings.Count(warning => warning.Level == CoursewareLoadWarningLevel.Warning);
+        return warningCount == 0
+            ? $"已加载 {package.SlideCount} 页，等待主题分析"
+            : $"已加载 {package.SlideCount} 页，存在 {warningCount} 个警告，等待主题分析";
+    }
+
+    private void PrepareSelectedSlideCopilotInput()
+    {
+        AttachedImageFiles.Clear();
+        if (SelectedSlide is null || string.IsNullOrWhiteSpace(SelectedSlide.SourceMarkdownText))
+        {
+            InputText = string.Empty;
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(SelectedSlide.SourceScreenshotFilePath) && File.Exists(SelectedSlide.SourceScreenshotFilePath))
+        {
+            AttachedImageFiles.Add(new FileInfo(SelectedSlide.SourceScreenshotFilePath));
+        }
+
+        InputText = CreateBeautifyPrompt(SelectedSlide);
+    }
+
+    private static string CreateBeautifyPrompt(CoursewareSlideItem slide)
+    {
+        return $"""
+请根据当前课件页面 Markdown 内容美化第 {slide.PageNumber} 页，保持教学语义准确，输出可渲染的 SlideML。
+
+页面 Id：{slide.SlideId}
+页面尺寸：{slide.Width:0} x {slide.Height:0}
+
+页面 Markdown：
+{slide.SourceMarkdownText}
+""";
     }
 
     private void SetCurrentSlideChatManager(SlideChatManager slideChatManager)
@@ -501,6 +693,9 @@ public sealed class MainWindowViewModel : ObservableObject
         _slideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
         OnPropertyChanged(nameof(SlideChatManager));
         OnPropertyChanged(nameof(CopilotChatManager));
+        OnPropertyChanged(nameof(HasRenderedPreviewImage));
+        OnPropertyChanged(nameof(ShowSourceScreenshot));
+        OnPropertyChanged(nameof(HasAnyPreviewImage));
         OnPropertyChanged(nameof(HasPreviewImage));
         RefreshMcpStatusText();
     }
@@ -518,9 +713,15 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             SlideChatManager = slideChatManager,
             PageNumber = pageNumber,
+            SlideId = $"empty-{pageNumber}",
+            SlideIndex = pageNumber - 1,
+            Width = 1280,
+            Height = 720,
             Title = $"未命名页面 {pageNumber}",
             Summary = "尚未加载页面内容。",
             Status = "Empty",
+            SourceMarkdownFilePath = string.Empty,
+            SourceMarkdownText = string.Empty,
             SlideMl = string.Empty,
             RenderingLog = "尚未执行渲染。",
             CallbackXml = string.Empty,

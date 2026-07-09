@@ -1,6 +1,6 @@
 using System.Windows.Controls;
+using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
-using Microsoft.Win32;
 
 namespace CoursewarePptxGeneratorWpfDemo.Views;
 
@@ -9,22 +9,37 @@ namespace CoursewarePptxGeneratorWpfDemo.Views;
 /// </summary>
 public partial class MainContentPanel : UserControl
 {
+    private ICoursewareFolderPicker _coursewareFolderPicker = new OpenFolderDialogCoursewareFolderPicker();
+
     public MainContentPanel()
     {
         InitializeComponent();
     }
 
+    /// <summary>
+    /// Sets the courseware folder picker used by the open button.
+    /// </summary>
+    /// <param name="coursewareFolderPicker">The folder picker to use.</param>
+    public void SetCoursewareFolderPicker(ICoursewareFolderPicker coursewareFolderPicker)
+    {
+        ArgumentNullException.ThrowIfNull(coursewareFolderPicker);
+        _coursewareFolderPicker = coursewareFolderPicker;
+    }
+
     private void OpenCoursewareFolderButton_OnClick(object sender, System.Windows.RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog
-        {
-            Title = "选择课件 Markdown 导出文件夹",
-            Multiselect = false,
-        };
+        OpenSelectedCoursewareFolder();
+    }
 
-        if (dialog.ShowDialog() == true && DataContext is MainWindowViewModel viewModel)
+    /// <summary>
+    /// Opens the courseware folder selected by the configured folder picker.
+    /// </summary>
+    public void OpenSelectedCoursewareFolder()
+    {
+        var folderPath = _coursewareFolderPicker.PickCoursewareFolder();
+        if (!string.IsNullOrWhiteSpace(folderPath) && DataContext is MainWindowViewModel viewModel)
         {
-            viewModel.OpenCoursewareFolder(dialog.FolderName);
+            viewModel.OpenCoursewareFolder(folderPath);
         }
     }
 }

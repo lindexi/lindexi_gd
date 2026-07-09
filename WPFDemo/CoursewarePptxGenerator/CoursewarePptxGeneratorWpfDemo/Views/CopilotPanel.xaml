@@ -176,7 +176,8 @@
 
         <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,8">
             <DockPanel>
-                <ItemsControl ItemsSource="{Binding AttachedImageFiles}" DockPanel.Dock="Left">
+                <ItemsControl x:Name="AttachedImageFilesItemsControl"
+                              ItemsSource="{Binding AttachedImageFiles}" DockPanel.Dock="Left">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
@@ -259,7 +260,8 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Row="0"
+                <TextBox x:Name="ChatInputTextBox"
+                         Grid.Row="0"
                          Grid.Column="0"
                          Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                          AcceptsReturn="True"

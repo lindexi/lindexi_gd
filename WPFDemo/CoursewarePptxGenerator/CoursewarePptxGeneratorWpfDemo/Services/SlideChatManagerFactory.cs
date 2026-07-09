@@ -14,10 +14,10 @@ namespace CoursewarePptxGeneratorWpfDemo.Services;
 /// <summary>
 /// Creates configured <see cref="SlideChatManager" /> instances for independent courseware pages.
 /// </summary>
-public sealed class SlideChatManagerFactory
+public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
 {
     private const string AgentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
-    private const string DefaultModelName = "deepseek-v4-flash";
+    private const string DefaultModelName = "qwen3.7-plus";
 
     /// <summary>
     /// Gets the default MCP service URL used by the courseware renderer.
@@ -47,7 +47,10 @@ public sealed class SlideChatManagerFactory
             new CoursewareWpfSlideMlRenderEngine(),
             _dispatcher);
         var renderPipeline = new CoursewareSwitchableSlideMlRenderPipeline(localPipeline);
-        _ = await renderPipeline.TryEnableMcpAsync(DefaultMcpServiceUrl).ConfigureAwait(false);
+        _ = Task.Run(async () =>
+        {
+            _ = await renderPipeline.TryEnableMcpAsync(DefaultMcpServiceUrl).ConfigureAwait(false);
+        });
 
         var slideMlRenderTool = new SlideMlRenderTool(renderPipeline, _dispatcher);
 

@@ -1,5 +1,6 @@
 using System.Windows.Controls;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
@@ -14,6 +15,7 @@ namespace CoursewarePptxGeneratorWpfDemo.Views;
 public partial class CopilotPanel : UserControl
 {
     private ScrollViewer? _chatScrollViewer;
+    private INotifyCollectionChanged? _subscribedChatMessages;
     private bool _isUserAtBottom = true;
 
     public CopilotPanel()
@@ -30,12 +32,39 @@ public partial class CopilotPanel : UserControl
     {
         if (e.OldValue is MainWindowViewModel oldViewModel)
         {
-            oldViewModel.CopilotChatManager.ChatMessages.CollectionChanged -= OnChatMessagesCollectionChanged;
+            oldViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            UnsubscribeChatMessages();
         }
 
         if (e.NewValue is MainWindowViewModel newViewModel)
         {
-            newViewModel.CopilotChatManager.ChatMessages.CollectionChanged += OnChatMessagesCollectionChanged;
+            newViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            SubscribeChatMessages(newViewModel);
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.CopilotChatManager) && sender is MainWindowViewModel viewModel)
+        {
+            SubscribeChatMessages(viewModel);
+            ScrollToEndAndKeep();
+        }
+    }
+
+    private void SubscribeChatMessages(MainWindowViewModel viewModel)
+    {
+        UnsubscribeChatMessages();
+        _subscribedChatMessages = viewModel.CopilotChatManager.ChatMessages;
+        _subscribedChatMessages.CollectionChanged += OnChatMessagesCollectionChanged;
+    }
+
+    private void UnsubscribeChatMessages()
+    {
+        if (_subscribedChatMessages is not null)
+        {
+            _subscribedChatMessages.CollectionChanged -= OnChatMessagesCollectionChanged;
+            _subscribedChatMessages = null;
         }
     }
 
