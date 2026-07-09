@@ -277,10 +277,12 @@ public sealed class SlideMlStreamingMerger
 
             if (_working!.Document is null)
             {
+                RemoveClearAttributeMarkers(fragmentRoot);
                 _working.Document = new XDocument(fragmentRoot);
             }
             else
             {
+                RemoveClearAttributeMarkers(fragmentRoot);
                 _working.DanglingElements.Add(fragmentRoot);
             }
 
@@ -290,7 +292,7 @@ public sealed class SlideMlStreamingMerger
     }
 
     /// <summary>
-    /// 合并片段元素属性到目标元素（片段属性覆盖已有属性）。
+    /// 合并片段元素属性到目标元素（片段属性覆盖已有属性，空字符串可清除可选属性）。
     /// </summary>
     /// <param name="source">片段元素（属性来源）。</param>
     /// <param name="target">目标元素（接收属性）。</param>
@@ -298,8 +300,55 @@ public sealed class SlideMlStreamingMerger
     {
         foreach (var attr in source.Attributes())
         {
+            if (attr.Value.Length == 0 && CanClearAttribute(attr.Name.LocalName))
+            {
+                target.SetAttributeValue(attr.Name, null);
+                continue;
+            }
+
             target.SetAttributeValue(attr.Name, attr.Value);
         }
+    }
+
+    /// <summary>
+    /// 判断空字符串是否可作为清除指定属性的语义。
+    /// </summary>
+    /// <param name="localName">属性本地名称。</param>
+    /// <returns>可清除返回 true，否则返回 false。</returns>
+    private static bool CanClearAttribute(string localName)
+    {
+        return !IsRequiredOrContentAttribute(localName);
+    }
+
+    /// <summary>
+    /// 移除元素上用于清除可选属性的空字符串标记。
+    /// </summary>
+    /// <param name="element">要处理的元素。</param>
+    private static void RemoveClearAttributeMarkers(XElement element)
+    {
+        foreach (var attr in element.Attributes().ToList())
+        {
+            if (attr.Value.Length == 0 && CanClearAttribute(attr.Name.LocalName))
+            {
+                attr.Remove();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 判断属性是否为必填属性、索引属性或内容属性。
+    /// </summary>
+    /// <param name="localName">属性本地名称。</param>
+    /// <returns>不可用空字符串清除返回 true，否则返回 false。</returns>
+    private static bool IsRequiredOrContentAttribute(string localName)
+    {
+        return localName is "Id"
+            or "StyleId"
+            or "TargetId"
+            or "Source"
+            or "Text"
+            or "Offset"
+            or "Color";
     }
 
     /// <summary>
@@ -338,6 +387,7 @@ public sealed class SlideMlStreamingMerger
 
             // 处理 StyleFrom
             ApplyStyleFrom(child, context);
+            RemoveClearAttributeMarkers(child);
             fragmentChildrenWithId.Add(child);
         }
 
@@ -488,6 +538,7 @@ public sealed class SlideMlStreamingMerger
                 }
 
                 ApplyStyleFrom(child, context);
+                RemoveClearAttributeMarkers(child);
             }
 
             if (child.HasElements)

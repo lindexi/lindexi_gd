@@ -41,6 +41,95 @@ public sealed class SlideMlStreamingMergerTests
         Assert.Contains("Height=\"80\"", xml, "Height 应被覆盖为 80");
     }
 
+    [TestMethod(DisplayName = "流式合并：空字符串清除 TextElement 的 Width 属性")]
+    public void AttributeMerge_EmptyOptionalWidth_RemovesExistingWidth()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act
+        merger.AcceptFragment("<Page><TextElement Id=\"title\" X=\"80\" Y=\"48\" Width=\"420\" Text=\"SlideML 流式输出\" FontSize=\"36\"/></Page>", context);
+        merger.AcceptFragment("<TextElement Id=\"title\" Width=\"\"/>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var title = doc.Root!.Elements("TextElement").Single(e => e.Attribute("Id")?.Value == "title");
+
+        Assert.IsNull(title.Attribute("Width"), "Width 应被清除，恢复为未设置状态");
+        Assert.AreEqual("80", title.Attribute("X")?.Value, "未声明的 X 应保留");
+        Assert.AreEqual("SlideML 流式输出", title.Attribute("Text")?.Value, "未声明的 Text 应保留");
+    }
+
+    [TestMethod(DisplayName = "流式合并：空字符串清除 X 后保留 HorizontalAlignment")]
+    public void AttributeMerge_EmptyOptionalX_RemovesXAndKeepsAlignment()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act
+        merger.AcceptFragment("<Page><TextElement Id=\"title\" X=\"80\" Text=\"标题\"/></Page>", context);
+        merger.AcceptFragment("<TextElement Id=\"title\" X=\"\" HorizontalAlignment=\"Center\"/>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var title = doc.Root!.Elements("TextElement").Single(e => e.Attribute("Id")?.Value == "title");
+
+        Assert.IsNull(title.Attribute("X"), "X 应被清除，让 HorizontalAlignment 能够生效");
+        Assert.AreEqual("Center", title.Attribute("HorizontalAlignment")?.Value, "HorizontalAlignment 应被设置为 Center");
+    }
+
+    [TestMethod(DisplayName = "流式合并：Text 空字符串表示空文本而不是清除属性")]
+    public void AttributeMerge_EmptyText_PreservesEmptyTextAttribute()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act
+        merger.AcceptFragment("<Page><TextElement Id=\"body\" Text=\"旧文本\" Width=\"300\"/></Page>", context);
+        merger.AcceptFragment("<TextElement Id=\"body\" Text=\"\"/>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var body = doc.Root!.Elements("TextElement").Single(e => e.Attribute("Id")?.Value == "body");
+
+        Assert.IsNotNull(body.Attribute("Text"), "Text 属性不应被清除");
+        Assert.AreEqual(string.Empty, body.Attribute("Text")?.Value, "Text 应被覆盖为空文本");
+        Assert.AreEqual("300", body.Attribute("Width")?.Value, "未声明的 Width 应保留");
+    }
+
+    [TestMethod(DisplayName = "流式合并：子元素合并时空字符串清除继承样式属性")]
+    public void AttributeMerge_ChildWithStyleFromAndEmptyWidth_RemovesInheritedWidth()
+    {
+        // Arrange
+        var merger = new SlideMlStreamingMerger();
+        var context = new SlideMlPipelineContext();
+
+        // Act
+        merger.AcceptFragment("<TextElement Id=\"title-template\" StyleId=\"title-style\" Width=\"420\" FontSize=\"36\"/>", context);
+        merger.AcceptFragment("<Page><Panel Id=\"header\"><TextElement Id=\"title\" StyleFrom=\"title-style\" Width=\"\" Text=\"标题\"/></Panel></Page>", context);
+
+        // Assert
+        Assert.IsEmpty(context.Errors, "不应有错误");
+        var xml = merger.GetMergedXml();
+        var doc = XDocument.Parse(xml);
+        var title = doc.Root!
+            .Element("Panel")!
+            .Elements("TextElement")
+            .Single(e => e.Attribute("Id")?.Value == "title");
+
+        Assert.IsNull(title.Attribute("Width"), "显式 Width 空字符串应清除 StyleFrom 继承来的 Width");
+        Assert.AreEqual("36", title.Attribute("FontSize")?.Value, "未清除的样式属性应继续继承");
+    }
+
     [TestMethod]
     public void ChildrenMerge_NewElementAppended()
     {
