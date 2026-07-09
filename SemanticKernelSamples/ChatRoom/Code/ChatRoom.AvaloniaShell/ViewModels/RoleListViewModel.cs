@@ -138,6 +138,11 @@ public sealed class RoleListViewModel : ViewModelBase
     public ICommand ReduceRoleSessionCommand { get; }
 
     /// <summary>
+    /// 清空角色内部记忆命令。参数为角色项 ViewModel。
+    /// </summary>
+    public ICommand ClearRoleSessionMemoryCommand { get; }
+
+    /// <summary>
     /// 添加角色请求事件。
     /// </summary>
     public event EventHandler? AddRoleRequested;
@@ -195,6 +200,7 @@ public sealed class RoleListViewModel : ViewModelBase
             }
         });
         ReduceRoleSessionCommand = new SimpleAsyncCommand<RoleItemViewModel>(ReduceRoleSessionAsync, role => role is { IsHuman: false });
+        ClearRoleSessionMemoryCommand = new SimpleAsyncCommand<RoleItemViewModel>(ClearRoleSessionMemoryAsync);
 
         _chatRoomService.SessionChanged += OnSessionChanged;
     }
@@ -252,6 +258,16 @@ public sealed class RoleListViewModel : ViewModelBase
         }
 
         await _chatRoomService.ReduceRoleSessionAsync(role.RoleId).ConfigureAwait(false);
+    }
+
+    private async System.Threading.Tasks.Task ClearRoleSessionMemoryAsync(RoleItemViewModel? role)
+    {
+        if (role is null)
+        {
+            return;
+        }
+
+        await _chatRoomService.ClearRoleSessionMemoryAsync(role.RoleId).ConfigureAwait(false);
     }
 }
 

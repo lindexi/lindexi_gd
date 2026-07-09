@@ -255,6 +255,34 @@ public sealed class ChatRoomPersistence
     }
 
     /// <summary>
+    /// 删除指定角色的 AgentSession 序列化状态。
+    /// </summary>
+    /// <param name="sessionId">聊天室会话 ID。</param>
+    /// <param name="roleId">角色 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task DeleteRoleAgentSessionStateAsync(Guid sessionId, string roleId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(roleId);
+
+        string sessionFolder = GetSessionFolder(sessionId.ToString("N"));
+        string stateFilePath = GetRoleAgentSessionStateFilePath(sessionFolder, roleId);
+
+        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (File.Exists(stateFilePath))
+            {
+                File.Delete(stateFilePath);
+            }
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    /// <summary>
     /// 列出所有已持久化的会话 ID。
     /// </summary>
     public IReadOnlyList<string> ListSessionIds()

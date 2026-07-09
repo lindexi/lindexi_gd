@@ -35,6 +35,9 @@
                                 <MenuItem Header="🗜 压缩对话"
                                           Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).ReduceRoleSessionCommand}"
                                           CommandParameter="{Binding}" />
+                                <MenuItem Header="🧹 清空记忆"
+                                          Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).ClearRoleSessionMemoryCommand}"
+                                          CommandParameter="{Binding}" />
                                 <MenuItem Header="✏ 编辑角色"
                                           Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).EditRoleCommand}"
                                           CommandParameter="{Binding}" />

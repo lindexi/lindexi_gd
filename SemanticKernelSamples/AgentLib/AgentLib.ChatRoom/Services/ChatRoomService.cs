@@ -310,6 +310,26 @@ public sealed class ChatRoomService
     }
 
     /// <summary>
+    /// 清空指定角色的私有 AgentSession 记忆，不修改聊天室公开消息和增量发言进度。
+    /// </summary>
+    /// <param name="roleId">角色 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task ClearRoleSessionMemoryAsync(string roleId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(roleId))
+        {
+            throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
+        }
+
+        if (_currentManager is null)
+        {
+            return;
+        }
+
+        await _currentManager.ClearRoleSessionMemoryAsync(roleId, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 设置变更后重新注册模型提供商到当前会话的所有角色。
     /// </summary>
     public void RefreshProviders()

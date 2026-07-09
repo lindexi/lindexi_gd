@@ -364,7 +364,18 @@ public sealed class ChatRoomRole : NotifyBase
 
     private void UpdateLastUsageDetails(UsageDetails? usageDetails)
     {
-        LastUsageDetails = usageDetails;
+        if (MainThreadDispatcher == null)
+        {
+            LastUsageDetails = usageDetails;
+        }
+        else
+        {
+            MainThreadDispatcher.InvokeAsync(() =>
+            {
+                LastUsageDetails = usageDetails;
+                return Task.CompletedTask;
+            });
+        }
     }
 
     /// <summary>
@@ -397,6 +408,16 @@ public sealed class ChatRoomRole : NotifyBase
         }
 
         await ChatManager.ReduceAgentSessionOnlyAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 清空当前角色的内部会话记忆，不修改聊天室公开消息和增量发言进度。
+    /// </summary>
+    public void ClearSessionMemory()
+    {
+        ChatManager.CreateNewSession();
+        _hasSpoken = false;
+        LastUsageDetails = null;
     }
 
     /// <summary>
