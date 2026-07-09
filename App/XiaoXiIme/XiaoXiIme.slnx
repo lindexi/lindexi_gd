@@ -1,0 +1,49 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.Dictionary/XiaoXiIme.Dictionary.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.Foundation/XiaoXiIme.Foundation.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.ImeCore/XiaoXiIme.ImeCore.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.ImeHost/XiaoXiIme.ImeHost.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.ImeInterop/XiaoXiIme.ImeInterop.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.ImeIpc/XiaoXiIme.ImeIpc.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/XiaoXiIme.Dictionary.Tests/XiaoXiIme.Dictionary.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/XiaoXiIme.ImeCore.Tests/XiaoXiIme.ImeCore.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/XiaoXiIme.ImeIpc.Tests/XiaoXiIme.ImeIpc.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/XiaoXiIme.ImeModule.Tests/XiaoXiIme.ImeModule.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/XiaoXiIme.IntegrationTests/XiaoXiIme.IntegrationTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+  </Folder>
+  <Project Path="Docs/Docs.csproj" />
+</Solution>

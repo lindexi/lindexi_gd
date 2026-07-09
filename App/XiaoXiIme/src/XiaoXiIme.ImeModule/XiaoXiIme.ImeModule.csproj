@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <PublishAot>true</PublishAot>
+    <NativeLib>Shared</NativeLib>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <IsAotCompatible>true</IsAotCompatible>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XiaoXiIme.Dictionary\XiaoXiIme.Dictionary.csproj" />
+    <ProjectReference Include="..\XiaoXiIme.Foundation\XiaoXiIme.Foundation.csproj" />
+    <ProjectReference Include="..\XiaoXiIme.ImeCore\XiaoXiIme.ImeCore.csproj" />
+    <ProjectReference Include="..\XiaoXiIme.ImeInterop\XiaoXiIme.ImeInterop.csproj" />
+    <ProjectReference Include="..\XiaoXiIme.ImeIpc\XiaoXiIme.ImeIpc.csproj" />
+  </ItemGroup>
+
+</Project>
