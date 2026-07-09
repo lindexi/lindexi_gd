@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             x:Class="NucerenihaHalqahehi.Views.KeepScrollToBottomView">
+    <!-- 保存触发：无功能变更 -->
+    <Grid x:Name="RootGrid" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12" Margin="16">
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Text="Avalonia 列表保持滚动到底部实验" FontSize="22" FontWeight="SemiBold" />
+            <TextBlock Text="对比普通 ScrollViewer + ItemsControl 与 ListBox 默认滚动/虚拟化行为。追加或增长内容前会判断是否接近底部，再执行立即滚动与 Dispatcher 延迟滚动。"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+            <CheckBox x:Name="KeepToBottomCheckBox" Content="保持到底部" IsChecked="True" VerticalAlignment="Center" />
+            <Button x:Name="AddNormalMessageButton" Content="普通列表追加" />
+            <Button x:Name="GrowNormalLastButton" Content="普通列表增长最后一条" />
+            <Button x:Name="ClearNormalButton" Content="清空普通列表" />
+            <Button x:Name="AddListBoxMessageButton" Content="ListBox 追加" />
+            <Button x:Name="GrowListBoxLastButton" Content="ListBox 增长最后一条" />
+            <Button x:Name="ClearListBoxButton" Content="清空 ListBox" />
+        </StackPanel>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12">
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                    <TextBlock Text="普通 ScrollViewer + ItemsControl" FontWeight="SemiBold" />
+                    <TextBlock x:Name="NormalScrollStateTextBlock" TextWrapping="Wrap" />
+                    <ScrollViewer x:Name="NormalScrollViewer" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="NormalItemsControl">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="sys:String">
+                                    <Border Margin="0,0,0,6" Padding="8" Background="#1F4F8AEE" CornerRadius="4">
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                    <TextBlock Text="ListBox 默认滚动/虚拟化" FontWeight="SemiBold" />
+                    <TextBlock x:Name="ListBoxScrollStateTextBlock" TextWrapping="Wrap" />
+                    <ListBox x:Name="MessagesListBox" Grid.Row="2">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="sys:String">
+                                <Border Margin="0,0,0,6" Padding="8" Background="#1F22AA66" CornerRadius="4">
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="8" Height="150">
+            <Grid RowDefinitions="Auto,*" RowSpacing="6">
+                <TextBlock Text="实验日志" FontWeight="SemiBold" />
+                <ListBox x:Name="LogListBox" Grid.Row="1" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
