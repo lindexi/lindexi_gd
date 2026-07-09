@@ -95,6 +95,7 @@ public sealed partial class ChatRoomManager
             var speakCounts = new Dictionary<string, int>(_manager.Roles.Count);
             string? lastSpeakerRoleId = null;
             bool managersInvokedForIdle = false;
+            bool lastMessageMentionedLastSpeaker = false;
             int maxAutoLoopSteps = Math.Max(100, _manager.Roles.Count(r => !r.Definition.IsHuman));
             int stepCount = 0;
 
@@ -113,12 +114,14 @@ public sealed partial class ChatRoomManager
                     return false;
                 }
 
-                ChatRoomRole? nextSpeaker = TryDequeueNextSpeaker(priorityRoles, defaultRoles, lastSpeakerRoleId);
+                ChatRoomRole? nextSpeaker = TryDequeueNextSpeaker(priorityRoles, defaultRoles, lastSpeakerRoleId, out bool hasPostponedRole);
+                bool clearPostponedRolesAfterManager = false;
+                string? postponedRoleIdToClear = null;
                 IReadOnlyList<string>? additionalUserMessages = null;
 
                 if (nextSpeaker is null)
                 {
-                    if (managersInvokedForIdle)
+                    if (managersInvokedForIdle && !hasPostponedRole)
                     {
                         return false;
                     }
@@ -130,6 +133,8 @@ public sealed partial class ChatRoomManager
                     }
 
                     managersInvokedForIdle = true;
+                    clearPostponedRolesAfterManager = hasPostponedRole && lastMessageMentionedLastSpeaker;
+                    postponedRoleIdToClear = clearPostponedRolesAfterManager ? lastSpeakerRoleId : null;
                 }
 
                 string nextSpeakerRoleId = nextSpeaker.Definition.RoleId;
@@ -162,7 +167,18 @@ public sealed partial class ChatRoomManager
                 speakCounts[nextSpeakerRoleId] = speakCounts.GetValueOrDefault(nextSpeakerRoleId) + 1;
 
                 IReadOnlyList<string> mentionedRoleIds = await HandleAutoLoopMessageAsync(message).ConfigureAwait(false);
+                lastMessageMentionedLastSpeaker = mentionedRoleIds.Contains(nextSpeakerRoleId, StringComparer.Ordinal);
+                if (clearPostponedRolesAfterManager && postponedRoleIdToClear is not null)
+                {
+                    RemoveQueuedRoles(priorityRoles, defaultRoles, postponedRoleIdToClear);
+                }
+                bool shouldAllowNextIdleManager = nextSpeaker.Definition.IsManagerRole &&
+                    mentionedRoleIds.Any(roleId => speakCounts.GetValueOrDefault(roleId) > 0);
                 PushMentionedRoles(priorityRoles, mentionedRoleIds);
+                if (shouldAllowNextIdleManager)
+                {
+                    managersInvokedForIdle = false;
+                }
             }
 
             return false;
@@ -493,16 +509,32 @@ public sealed partial class ChatRoomManager
                     !r.Definition.IsHuman);
                 if (role is not null)
                 {
+                    RemoveQueuedRole(priorityRoles, roleId);
                     priorityRoles.Push(role);
                 }
+            }
+        }
+
+        private static void RemoveQueuedRole(Stack<ChatRoomRole> priorityRoles, string roleId)
+        {
+            ChatRoomRole[] remainingRoles = priorityRoles
+                .Where(role => role.Definition.RoleId != roleId)
+                .Reverse()
+                .ToArray();
+            priorityRoles.Clear();
+            foreach (ChatRoomRole role in remainingRoles)
+            {
+                priorityRoles.Push(role);
             }
         }
 
         private static ChatRoomRole? TryDequeueNextSpeaker(
             Stack<ChatRoomRole> priorityRoles,
             Queue<ChatRoomRole> defaultRoles,
-            string? lastSpeakerRoleId)
+            string? lastSpeakerRoleId,
+            out bool hasPostponedRole)
         {
+            hasPostponedRole = false;
             var postponedPriorityRoles = new List<ChatRoomRole>();
             while (priorityRoles.Count > 0)
             {
@@ -514,6 +546,7 @@ public sealed partial class ChatRoomManager
 
                 if (role.Definition.RoleId == lastSpeakerRoleId)
                 {
+                    hasPostponedRole = true;
                     postponedPriorityRoles.Add(role);
                     continue;
                 }
@@ -534,6 +567,7 @@ public sealed partial class ChatRoomManager
 
                 if (role.Definition.RoleId == lastSpeakerRoleId)
                 {
+                    hasPostponedRole = true;
                     postponedDefaultRoles.Add(role);
                     continue;
                 }
@@ -547,6 +581,12 @@ public sealed partial class ChatRoomManager
                 return role;
             }
 
+            RestorePriorityRoles(priorityRoles, postponedPriorityRoles);
+            foreach (ChatRoomRole postponedRole in postponedDefaultRoles)
+            {
+                defaultRoles.Enqueue(postponedRole);
+            }
+
             return null;
         }
 
@@ -555,6 +595,37 @@ public sealed partial class ChatRoomManager
             for (int i = postponedPriorityRoles.Count - 1; i >= 0; i--)
             {
                 priorityRoles.Push(postponedPriorityRoles[i]);
+            }
+        }
+
+        private static void RemoveQueuedRoles(
+            Stack<ChatRoomRole> priorityRoles,
+            Queue<ChatRoomRole> defaultRoles,
+            string roleId)
+        {
+            if (string.IsNullOrWhiteSpace(roleId))
+            {
+                return;
+            }
+
+            ChatRoomRole[] remainingPriorityRoles = priorityRoles
+                .Where(role => role.Definition.RoleId != roleId)
+                .Reverse()
+                .ToArray();
+            priorityRoles.Clear();
+            foreach (ChatRoomRole role in remainingPriorityRoles)
+            {
+                priorityRoles.Push(role);
+            }
+
+            int defaultRoleCount = defaultRoles.Count;
+            for (int i = 0; i < defaultRoleCount; i++)
+            {
+                ChatRoomRole role = defaultRoles.Dequeue();
+                if (role.Definition.RoleId != roleId)
+                {
+                    defaultRoles.Enqueue(role);
+                }
             }
         }
 
