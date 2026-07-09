@@ -23,11 +23,12 @@ namespace AgentLib.ChatRoom;
 /// 流式响应和历史压缩等能力。每个角色拥有独立的 <see cref="AgentApiEndpointManager"/> 和
 /// <see cref="CopilotChatManager"/> 实例。
 /// </summary>
-public sealed class ChatRoomRole
+public sealed class ChatRoomRole : NotifyBase
 {
     private IMainThreadDispatcher? _mainThreadDispatcher;
     private CopilotChatManager? _chatManager;
     private readonly AgentApiEndpointManager _endpointManager;
+    private UsageDetails? _lastUsageDetails;
     private bool _hasSpoken;
 
     /// <summary>
@@ -70,6 +71,46 @@ public sealed class ChatRoomRole
     /// 用于在系统提示词中注入当前聊天室的角色列表和协作指引。
     /// </summary>
     public string? ChatRoomContext { get; set; }
+
+    /// <summary>
+    /// 角色最后一次发言的 Token 用量详情。没有返回用量信息时为 <see langword="null"/>。
+    /// </summary>
+    public UsageDetails? LastUsageDetails
+    {
+        get => _lastUsageDetails;
+        private set
+        {
+            if (SetField(ref _lastUsageDetails, value))
+            {
+                OnPropertyChanged(nameof(LastUsageSummaryText));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 角色最后一次发言总用量的显示文本。
+    /// </summary>
+    public string LastUsageSummaryText
+    {
+        get
+        {
+            UsageDetails? usageDetails = LastUsageDetails;
+            long? totalTokenCount = usageDetails?.TotalTokenCount;
+            if (totalTokenCount is null && usageDetails is not null)
+            {
+                long? inputTokenCount = usageDetails.InputTokenCount;
+                long? outputTokenCount = usageDetails.OutputTokenCount;
+                if (inputTokenCount is not null || outputTokenCount is not null)
+                {
+                    totalTokenCount = (inputTokenCount ?? 0) + (outputTokenCount ?? 0);
+                }
+            }
+
+            return totalTokenCount is { }
+                ? $"上次用量 {totalTokenCount:N0}"
+                : string.Empty;
+        }
+    }
 
     /// <summary>
     /// 工作区路径。设置后角色的文件系统工具将在此路径下操作文件。
@@ -307,6 +348,7 @@ public sealed class ChatRoomRole
             }
 
             _hasSpoken = true;
+            UpdateLastUsageDetails(manualContext.AssistantChatMessage.CurrentUsageDetails);
             if (string.IsNullOrWhiteSpace(manualContext.AssistantChatMessage.Content))
             {
                 return null;
@@ -318,6 +360,11 @@ public sealed class ChatRoomRole
         {
             return null;
         }
+    }
+
+    private void UpdateLastUsageDetails(UsageDetails? usageDetails)
+    {
+        LastUsageDetails = usageDetails;
     }
 
     /// <summary>
