@@ -284,6 +284,32 @@ public sealed class ChatRoomService
     }
 
     /// <summary>
+    /// 压缩指定角色的内部对话历史，不修改聊天室共享消息。
+    /// </summary>
+    /// <param name="roleId">角色 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task ReduceRoleSessionAsync(string roleId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(roleId))
+        {
+            throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
+        }
+
+        if (_currentManager is null)
+        {
+            return;
+        }
+
+        ChatRoomRole? role = _currentManager.Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
+        if (role is null)
+        {
+            return;
+        }
+
+        await role.ReduceSessionAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 设置变更后重新注册模型提供商到当前会话的所有角色。
     /// </summary>
     public void RefreshProviders()

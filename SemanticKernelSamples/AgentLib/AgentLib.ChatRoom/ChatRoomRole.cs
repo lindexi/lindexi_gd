@@ -339,6 +339,20 @@ public sealed class ChatRoomRole
     }
 
     /// <summary>
+    /// 压缩当前角色的内部 Agent 会话历史，不修改聊天室共享消息和其他角色状态。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task ReduceSessionAsync(CancellationToken cancellationToken = default)
+    {
+        if (Definition.IsHuman)
+        {
+            return;
+        }
+
+        await ChatManager.ReduceAgentSessionOnlyAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 构建角色的 SystemPrompt，包含聊天室协作指引、当前角色身份、角色人设和记忆内容。
     /// 仅在首次发言时调用。
     /// </summary>

@@ -32,6 +32,9 @@
                                 <MenuItem Header="📋 提升到角色大厅"
                                           Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).PromoteToLobbyCommand}"
                                           CommandParameter="{Binding}" />
+                                <MenuItem Header="🗜 压缩对话"
+                                          Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).ReduceRoleSessionCommand}"
+                                          CommandParameter="{Binding}" />
                                 <MenuItem Header="✏ 编辑角色"
                                           Command="{Binding $parent[ListBox].((vm:RoleListViewModel)DataContext).EditRoleCommand}"
                                           CommandParameter="{Binding}" />

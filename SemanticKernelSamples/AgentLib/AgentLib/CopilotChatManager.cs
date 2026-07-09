@@ -591,30 +591,7 @@ public class CopilotChatManager : NotifyBase
     public async Task ReduceSessionAsync(IChatReducer? chatReducer = null)
     {
         CopilotChatSession currentSession = SelectedSession;
-        AgentSession? agentSession = currentSession.AgentSession;
-        if (agentSession is null)
-        {
-            return;
-        }
-
-        if (!agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages))
-        {
-            return;
-        }
-
-        if (chatReducer is null)
-        {
-            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-
-            //#pragma warning disable MEAI001
-            //            chatReducer = new SummarizingChatReducer(chatClient,2, 3);
-            //#pragma warning restore MEAI001
-            chatReducer = new CopilotChatManagerChatReducer(chatClient);
-        }
-
-        IEnumerable<ChatMessage> result = await chatReducer.ReduceAsync(messages, CancellationToken.None);
-        var resultList = result.ToList();
-        agentSession.SetInMemoryChatHistory(resultList);
+        List<ChatMessage> resultList = await ReduceAgentSessionAsync(currentSession.AgentSession, chatReducer).ConfigureAwait(false);
 
         // 从压缩结果中提取 Assistant 角色的完整内容（含文本、图片、音频等多模态），保留原始 AIContent
         List<AIContent> assistantContents = resultList
@@ -634,6 +611,48 @@ public class CopilotChatManager : NotifyBase
             };
             await AppendMessageAsync(currentSession, assistantMessage);
         }
+    }
+
+    /// <summary>
+    /// 只压缩指定 Agent 会话的内部历史，不追加任何聊天消息。
+    /// </summary>
+    /// <param name="agentSession">要压缩的 Agent 会话。</param>
+    /// <param name="chatReducer">自定义压缩器；为 <see langword="null"/> 时使用默认压缩器。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task ReduceAgentSessionOnlyAsync(AgentSession? agentSession = null, IChatReducer? chatReducer = null,
+        CancellationToken cancellationToken = default)
+    {
+        await ReduceAgentSessionAsync(agentSession ?? SelectedSession.AgentSession, chatReducer, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private async Task<List<ChatMessage>> ReduceAgentSessionAsync(AgentSession? agentSession, IChatReducer? chatReducer = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (agentSession is null)
+        {
+            return [];
+        }
+
+        if (!agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages))
+        {
+            return [];
+        }
+
+        if (chatReducer is null)
+        {
+            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+
+            //#pragma warning disable MEAI001
+            //            chatReducer = new SummarizingChatReducer(chatClient,2, 3);
+            //#pragma warning restore MEAI001
+            chatReducer = new CopilotChatManagerChatReducer(chatClient);
+        }
+
+        IEnumerable<ChatMessage> result = await chatReducer.ReduceAsync(messages, cancellationToken).ConfigureAwait(false);
+        var resultList = result.ToList();
+        agentSession.SetInMemoryChatHistory(resultList);
+        return resultList;
     }
 
     private List<AITool> ResolveTools(IReadOnlyList<AITool> tools, CopilotChatContext? chatContext = null,
