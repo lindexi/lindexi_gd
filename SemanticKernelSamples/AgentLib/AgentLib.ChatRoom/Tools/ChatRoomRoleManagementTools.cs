@@ -212,8 +212,8 @@ public static class ChatRoomRoleManagementTools
         // 记录修改前的值用于对比
         string oldRoleName = targetRole.Definition.RoleName;
         string oldSystemPrompt = targetRole.Definition.SystemPrompt;
-        string oldModelId = targetRole.Definition.ModelId;
-        string oldModelProviderId = targetRole.Definition.ModelProviderId;
+        string oldModelId = targetRole.Definition.ModelId ?? string.Empty;
+        string oldModelProviderId = targetRole.Definition.ModelProviderId ?? string.Empty;
         string oldMemoryContent = targetRole.Definition.MemoryContent ?? "(空)";
 
         bool hasChanges = false;

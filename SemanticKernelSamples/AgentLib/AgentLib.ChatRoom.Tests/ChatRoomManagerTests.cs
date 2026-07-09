@@ -329,7 +329,7 @@ public sealed class ChatRoomManagerTests
     }
 
     [TestMethod]
-    [Timeout(300)]
+    [Timeout(300, CooperativeCancellation = true)]
     public void Stop_WhenNotRunning_DoesNotThrow()
     {
         var manager = new ChatRoomManager();

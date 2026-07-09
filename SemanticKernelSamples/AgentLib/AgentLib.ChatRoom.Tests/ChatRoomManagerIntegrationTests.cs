@@ -22,7 +22,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 助手 @ 了 MentionOnly 角色，但该角色 LLM 返回空内容时，循环应在有限步骤内终止，不死循环。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_MentionedRoleReturnsEmpty_LoopTerminatesWithoutDeadLoop()
     {
         // Arrange：helper 发言后 @ expert，expert 的 FakeChatClient 返回空内容
@@ -49,14 +49,14 @@ public sealed class ChatRoomManagerIntegrationTests
         var helperMessages = manager.Session.Messages
             .Where(m => m.SenderRoleId == "helper" && !m.IsSystemMessage)
             .ToList();
-        Assert.IsTrue(helperMessages.Count > 0);
+        Assert.IsNotEmpty(helperMessages);
     }
 
     /// <summary>
     /// 被 @ 的角色返回空内容后，应由管理者介入，而不是继续选择无关普通角色。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_MentionedRoleReturnsEmpty_ManagersSpeak()
     {
         // Arrange：helper @ expert，expert 返回空，两个 manager 兜底发言
@@ -88,7 +88,7 @@ public sealed class ChatRoomManagerIntegrationTests
         var managerMessages = manager.Session.Messages
             .Where(m => (m.SenderRoleId == "manager-a" || m.SenderRoleId == "manager-b") && !m.IsSystemMessage)
             .ToList();
-        Assert.AreEqual(1, managerMessages.Count);
+        Assert.HasCount(1, managerMessages);
         Assert.AreEqual("manager-a", managerMessages[0].SenderRoleId);
     }
 
@@ -96,7 +96,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 正常流程：两个 AlwaysParticipate 角色各发言一次后循环结束（MaxRounds=1）。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_NormalFlow_AllRolesSpeak()
     {
         var clientA = CreateFakeClient("A 的回复");
@@ -125,15 +125,15 @@ public sealed class ChatRoomManagerIntegrationTests
         var bMessages = manager.Session.Messages
             .Where(m => m.SenderRoleId == "B" && !m.IsSystemMessage)
             .ToList();
-        Assert.IsTrue(aMessages.Count > 0);
-        Assert.IsTrue(bMessages.Count > 0);
+        Assert.IsNotEmpty(aMessages);
+        Assert.IsNotEmpty(bMessages);
     }
 
     /// <summary>
     /// @ 链式调用：A @ B → B 发言 → B @ C → C 发言 → 循环继续。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_MentionChain_AllMentionedRolesSpeak()
     {
         // A 发言并 @ B，B 发言并 @ C，C 正常发言
@@ -165,7 +165,7 @@ public sealed class ChatRoomManagerIntegrationTests
             var messages = manager.Session.Messages
                 .Where(m => m.SenderRoleId == roleId && !m.IsSystemMessage)
                 .ToList();
-            Assert.IsTrue(messages.Count > 0, $"{roleId} 应有发言");
+            Assert.IsNotEmpty(messages, $"{roleId} 应有发言");
         }
     }
 
@@ -173,7 +173,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 人类消息显式 @ 多个角色时，应按消息中的 @ 顺序优先发言，且不启动默认队列。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_HumanMentionsMultipleRoles_MentionedRolesSpeakInMentionOrder()
     {
         var clientA = CreateFakeClient("A 的回复");
@@ -205,7 +205,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 人类消息没有 @ 时，所有 AlwaysParticipate 非人类角色应按注册顺序发言，管理者也参与默认队列。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_HumanWithoutMentions_DefaultRolesIncludeManagerInRoleOrder()
     {
         var clientA = CreateFakeClient("A 的回复");
@@ -240,7 +240,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 后续角色发言中产生的 @ 应进入优先栈，在默认队列剩余角色之前发言。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_RoleMentionsAnotherRole_MentionedRoleSpeaksBeforeRemainingDefaultRoles()
     {
         var clientA = CreateFakeClient("A 说 @D 请处理");
@@ -272,7 +272,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 初始消息 @A @B @C 后，A 再次 @C 时，C 应插队到 B 之前发言。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_PriorityMentionFromCurrentSpeaker_SpeaksBeforePendingMentionRoles()
     {
         var clientA = CreateFakeClient("A 说 @C 请优先处理");
@@ -296,7 +296,7 @@ public sealed class ChatRoomManagerIntegrationTests
 
         Assert.IsFalse(manager.IsRunning);
         string[] roleIds = GetAssistantSenderRoleIds(manager);
-        Assert.IsTrue(roleIds.Length >= 3);
+        Assert.IsGreaterThanOrEqualTo(roleIds.Length, 3);
         CollectionAssert.AreEqual(
             new[] { "A", "C", "B" },
             roleIds.Take(3).ToArray());
@@ -306,7 +306,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 同一角色在中间有其他角色回复后，应允许在同一轮自动循环中再次发言。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_MentionChainReturnsToPreviousRole_PreviousRoleSpeaksAgain()
     {
         var clientA = CreateSequenceFakeClient("A 第一次 @B 请回复", "A 第二次回复");
@@ -335,7 +335,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 角色 @ 自己时，不应让同一角色连续发言两次。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_RoleMentionsSelf_DoesNotSpeakConsecutively()
     {
         var clientA = CreateFakeClient("A 说 @A 我继续补充");
@@ -361,7 +361,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 某个角色达到单轮最大发言次数时，应跳过该角色并交给管理者仲裁。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_RoleReachesMaxSpeakCount_ManagerArbitrates()
     {
         var clientA = CreateFakeClient("A 说 @B 请继续");
@@ -395,7 +395,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// A、B、C 三个角色循环相互 @ 时，达到单角色最大发言次数后应由管理者打断。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_ThreeRoleMentionCycle_ManagerInterruptsWhenRoleReachesLimit()
     {
         var clientA = CreateFakeClient("A 说 @B 继续");
@@ -432,7 +432,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 管理者在超限仲裁时重新 @A，应允许 A 重置计数后继续参与后续多轮对话。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_ManagerReassignsLimitedRoleToA_AllowsAContinueMultipleTurns()
     {
         var clientA = CreateFakeClient("A 说 @B 继续");
@@ -463,17 +463,17 @@ public sealed class ChatRoomManagerIntegrationTests
 
         Assert.IsFalse(manager.IsRunning);
         string[] roleIds = GetAssistantSenderRoleIds(manager);
-        Assert.IsTrue(roleIds.Count(roleId => roleId == "A") > 5);
-        Assert.IsTrue(roleIds.Count(roleId => roleId == "B") > 5);
-        Assert.IsTrue(roleIds.Count(roleId => roleId == "C") > 5);
-        Assert.IsTrue(roleIds.Count(roleId => roleId == "M") >= 4);
+        Assert.IsGreaterThan(roleIds.Count(roleId => roleId == "A"), 5);
+        Assert.IsGreaterThan(roleIds.Count(roleId => roleId == "B"), 5);
+        Assert.IsGreaterThan(roleIds.Count(roleId => roleId == "C"), 5);
+        Assert.IsGreaterThanOrEqualTo(roleIds.Count(roleId => roleId == "M"), 4);
     }
 
     /// <summary>
     /// 管理者在超限仲裁时 @D，应将对话指派给 D 继续。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_ManagerReassignsToD_DContinuesConversation()
     {
         var clientA = CreateFakeClient("A 说 @B 继续");
@@ -504,8 +504,8 @@ public sealed class ChatRoomManagerIntegrationTests
         Assert.IsFalse(manager.IsRunning);
         string[] roleIds = GetAssistantSenderRoleIds(manager);
         int managerIndex = Array.IndexOf(roleIds, "M");
-        Assert.IsTrue(managerIndex >= 0);
-        Assert.IsTrue(managerIndex + 1 < roleIds.Length);
+        Assert.IsGreaterThanOrEqualTo(managerIndex, 0);
+        Assert.IsLessThan(managerIndex + 1, roleIds.Length);
         Assert.AreEqual("D", roleIds[managerIndex + 1]);
     }
 
@@ -513,7 +513,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 没有普通角色可发言时，管理者兜底；如果管理者 @ 其他角色，则继续推进链式对话。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_IdleManagerMentionsRole_ChainContinues()
     {
         var clientA = CreateFakeClient("A 完成回复");
@@ -545,7 +545,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 当 trigger 消息只 @ 到人类角色而没有任何非人类角色可发言时，应由管理者兜底发言。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_NoSpeakableRoleFromTrigger_ManagerFallbackSpeaks()
     {
         var managerClient = CreateFakeClient("管理者兜底回复");
@@ -575,7 +575,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 随后助手立即回话用户，本轮自动循环结束后验证结果。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_InterjectDuringSpeaking_AssistantRepliesImmediately()
     {
         // Arrange：A 第一轮发言延迟 300ms，使测试能在发言期间插话
@@ -645,23 +645,23 @@ public sealed class ChatRoomManagerIntegrationTests
         var aMessages = manager.Session.Messages
             .Where(m => m.SenderRoleId == "A" && !m.IsSystemMessage)
             .ToList();
-        Assert.IsTrue(aMessages.Count > 0, "A 的第一轮发言应存在");
+        Assert.IsNotEmpty(aMessages, "A 的第一轮发言应存在");
 
         // 人类插话消息应存在
         var humanMessages = manager.Session.Messages
             .Where(m => m.IsHumanMessage)
             .ToList();
-        Assert.AreEqual(2, humanMessages.Count, "应有两条人类消息");
+        Assert.HasCount(2, humanMessages, "应有两条人类消息");
 
         // 插话后 A 应再次发言（助手回话用户）
-        Assert.IsTrue(aMessages.Count >= 2, "A 应在插话后再次发言（回话用户）");
+        Assert.IsGreaterThanOrEqualTo(aMessages.Count, 2, "A 应在插话后再次发言（回话用户）");
     }
 
     /// <summary>
     /// 自动循环运行期间用户插话，助手回话后 @ 的角色应继续发言（链式继续）。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_InterjectDuringSpeaking_AssistantMentionsRole_ChainContinues()
     {
         // Arrange：A 第一轮发言延迟 300ms，使测试能在发言期间插话
@@ -731,11 +731,11 @@ public sealed class ChatRoomManagerIntegrationTests
         var expertMessages = manager.Session.Messages
             .Where(m => m.SenderRoleId == "expert" && !m.IsSystemMessage)
             .ToList();
-        Assert.IsTrue(expertMessages.Count > 0, "expert 应被 @ 后发言");
+        Assert.IsNotEmpty(expertMessages, "expert 应被 @ 后发言");
     }
 
     [TestMethod(DisplayName = "LoadAsync 恢复历史后角色发言应携带之前上下文")]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task LoadAsync_RestoredRoleSpeaks_MessagesContainPreviousContext()
     {
         string tempFolder = Path.Join(Path.GetTempPath(), "ChatRoomManagerIntegrationTests", Path.GetRandomFileName());
@@ -815,7 +815,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 验证"人类说话后无尽发言"的 Bug 已修复。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_HumanInterject_AllRolesSpeakOnceThenStop()
     {
         var clientA = CreateFakeClient("A 的回复");
@@ -846,15 +846,15 @@ public sealed class ChatRoomManagerIntegrationTests
         var bMessages = manager.Session.Messages
             .Where(m => m.SenderRoleId == "B" && !m.IsSystemMessage)
             .ToList();
-        Assert.AreEqual(1, aMessages.Count);
-        Assert.AreEqual(1, bMessages.Count);
+        Assert.HasCount(1, aMessages);
+        Assert.HasCount(1, bMessages);
     }
 
     /// <summary>
     /// 最新非人类消息没有 @ 且没有其他角色可发言时，应触发管理者兜底。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_NonHumanMessageWithoutMentions_InvokesIdleManagerFallback()
     {
         var managerClient = CreateFakeClient("manager 的回复");
@@ -871,7 +871,7 @@ public sealed class ChatRoomManagerIntegrationTests
         await manager.StartAutoLoopAsync();
 
         Assert.IsFalse(manager.IsRunning);
-        Assert.AreEqual(2, manager.Session.Messages.Count);
+        Assert.HasCount(2, manager.Session.Messages);
         Assert.IsTrue(manager.Session.Messages.Any(m => m.SenderRoleId == "manager"));
     }
 
@@ -880,7 +880,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 当所有可发言角色都连续返回空时，循环应终止。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task StartAutoLoopAsync_AllSpeakableRolesReturnEmpty_TerminatesQuickly()
     {
         // 两个 AlwaysParticipate 角色都返回空
@@ -917,7 +917,7 @@ public sealed class ChatRoomManagerIntegrationTests
     /// 验证 CreateCharacter 添加的新角色模型注册正确，EnsureModelAvailable 不抛异常。
     /// </summary>
     [TestMethod]
-    [Timeout(15000)]
+    [Timeout(15000, CooperativeCancellation = true)]
     public async Task CreateCharacterTool_ThenMentionNewRole_NewRoleSpeaksSuccessfully()
     {
         // helper 发言后会 @ "新角色"（与 create_character 创建的角色名一致）
@@ -968,13 +968,13 @@ public sealed class ChatRoomManagerIntegrationTests
         var helperMessages = manager.Session.Messages
             .Where(m => m.SenderRoleId == "helper" && !m.IsSystemMessage)
             .ToList();
-        Assert.IsTrue(helperMessages.Count > 0, "helper 应有发言");
+        Assert.IsNotEmpty(helperMessages, "helper 应有发言");
 
         // 新角色应有发言（被 @ 后正常发言，而非因 EnsureModelAvailable 失败）
         var newRoleMessages = manager.Session.Messages
             .Where(m => m.SenderRoleId == newRole.Definition.RoleId && !m.IsSystemMessage)
             .ToList();
-        Assert.IsTrue(newRoleMessages.Count > 0, "新角色被 @ 后应有发言");
+        Assert.IsNotEmpty(newRoleMessages, "新角色被 @ 后应有发言");
 
         // 不应有发言失败的系统消息
         var failedMessages = manager.Session.Messages
@@ -995,7 +995,7 @@ public sealed class ChatRoomManagerIntegrationTests
         AIFunction? createTool = tools.OfType<AIFunction>().FirstOrDefault(t => t.Name == "create_character");
         Assert.IsNotNull(createTool, "未找到 create_character 工具");
 
-        object resultObj = await createTool.InvokeAsync(
+        object? resultObj = await createTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleName"] = "无模型角色",
@@ -1005,7 +1005,8 @@ public sealed class ChatRoomManagerIntegrationTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        Assert.IsNotNull(resultObj);
+        string result = resultObj.ToString() ?? string.Empty;
         Assert.Contains("创建角色失败", result);
         Assert.HasCount(0, manager.Roles);
     }
@@ -1160,7 +1161,7 @@ public sealed class ChatRoomManagerIntegrationTests
 
     /// <summary>
     /// 延迟后将 <see cref="ChatResponseUpdate"/> 数组转为 <see cref="IAsyncEnumerable{T}"/>。
-    /// 用于模拟发言期间插话场景：延迟期间用户可以插话。
+    /// 用于模拟发言期间插话场景：延迟期间用户可以插話。
     /// </summary>
     private static async IAsyncEnumerable<ChatResponseUpdate> DelayedStreamUpdates(
         TimeSpan delay,

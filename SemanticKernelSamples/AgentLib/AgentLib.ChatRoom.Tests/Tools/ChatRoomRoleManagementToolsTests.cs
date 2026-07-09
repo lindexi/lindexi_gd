@@ -49,6 +49,12 @@ public sealed class ChatRoomRoleManagementToolsTests
         return tool;
     }
 
+    private static string GetResultString(object? resultObj)
+    {
+        Assert.IsNotNull(resultObj);
+        return resultObj.ToString() ?? string.Empty;
+    }
+
     [TestMethod]
     public async Task CreateCharacter_WithRegisteredProviders_NewRoleHasModels()
     {
@@ -62,7 +68,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction createTool = GetTool(tools, "create_character");
 
-        object resultObj = await createTool.InvokeAsync(
+        object? resultObj = await createTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleName"] = "代码审查员",
@@ -72,7 +78,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("✅", result);
         Assert.HasCount(1, manager.Roles);
 
@@ -93,7 +99,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction createTool = GetTool(tools, "create_character");
 
-        object resultObj = await createTool.InvokeAsync(
+        object? resultObj = await createTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleName"] = "架构师",
@@ -103,7 +109,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = "熟悉微服务架构",
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("✅", result);
         Assert.Contains("架构师", result);
         Assert.HasCount(1, manager.Roles);
@@ -147,7 +153,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction createTool = GetTool(tools, "create_character");
 
-        object resultObj = await createTool.InvokeAsync(
+        object? resultObj = await createTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleName"] = "",
@@ -157,7 +163,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("错误", result);
         Assert.HasCount(0, manager.Roles);
     }
@@ -170,7 +176,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction createTool = GetTool(tools, "create_character");
 
-        object resultObj = await createTool.InvokeAsync(
+        object? resultObj = await createTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleName"] = "测试角色",
@@ -180,7 +186,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("错误", result);
         Assert.HasCount(0, manager.Roles);
     }
@@ -200,8 +206,8 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction listTool = GetTool(tools, "list_characters");
 
-        object resultObj = await listTool.InvokeAsync(new AIFunctionArguments());
-        string result = resultObj.ToString()!;
+        object? resultObj = await listTool.InvokeAsync(new AIFunctionArguments());
+        string result = GetResultString(resultObj);
 
         Assert.Contains("架构师", result);
         Assert.Contains("architect", result);
@@ -215,8 +221,8 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction listTool = GetTool(tools, "list_characters");
 
-        object resultObj = await listTool.InvokeAsync(new AIFunctionArguments());
-        string result = resultObj.ToString()!;
+        object? resultObj = await listTool.InvokeAsync(new AIFunctionArguments());
+        string result = GetResultString(resultObj);
 
         Assert.Contains("没有角色", result);
     }
@@ -236,7 +242,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction editTool = GetTool(tools, "edit_character");
 
-        object resultObj = await editTool.InvokeAsync(
+        object? resultObj = await editTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleId"] = "role-1",
@@ -247,7 +253,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("✅", result);
         Assert.AreEqual("新角色名", manager.Roles[0].Definition.RoleName);
         Assert.AreEqual("新人设", manager.Roles[0].Definition.SystemPrompt);
@@ -261,7 +267,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction editTool = GetTool(tools, "edit_character");
 
-        object resultObj = await editTool.InvokeAsync(
+        object? resultObj = await editTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleId"] = "non-existent",
@@ -272,7 +278,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("❌", result);
     }
 
@@ -368,7 +374,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction createTool = GetTool(tools, "create_character");
 
-        object resultObj = await createTool.InvokeAsync(
+        object? resultObj = await createTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleName"] = "无模型角色",
@@ -378,7 +384,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("创建角色失败", result);
         Assert.HasCount(0, manager.Roles);
     }
@@ -423,7 +429,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction createTool = GetTool(tools, "create_character");
 
-        object resultObj = await createTool.InvokeAsync(
+        object? resultObj = await createTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleName"] = "Code Expert",
@@ -433,7 +439,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("无法被 @ 正确解析", result);
         Assert.HasCount(0, manager.Roles);
     }
@@ -453,7 +459,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction editTool = GetTool(tools, "edit_character");
 
-        object resultObj = await editTool.InvokeAsync(
+        object? resultObj = await editTool.InvokeAsync(
             new AIFunctionArguments
             {
                 ["roleId"] = "role-1",
@@ -464,7 +470,7 @@ public sealed class ChatRoomRoleManagementToolsTests
                 ["memoryContent"] = null,
             });
 
-        string result = resultObj.ToString()!;
+        string result = GetResultString(resultObj);
         Assert.Contains("无法被 @ 正确解析", result);
         Assert.AreEqual("原角色名", manager.Roles[0].Definition.RoleName);
     }
