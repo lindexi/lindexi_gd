@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using LightTextEditorPlus.Core.Utils;
+
 using SimpleWrite.Business.FileHandlers;
 using SimpleWrite.Business.FindReplaces;
 
@@ -76,8 +78,10 @@ internal class FolderSearchService
             var firstMatch = matchList[0];
             var relativePath = Path.GetRelativePath(rootDirectory.FullName, file.FullName);
             var previewText = CreatePreview(text, firstMatch.StartOffset, firstMatch.Length);
+            var firstMatchDocumentOffset = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(text, firstMatch.StartOffset);
+            var firstMatchDocumentLength = TextIndexConverter.GetDocumentLength(text, firstMatch.StartOffset, firstMatch.Length);
 
-            resultList.Add(new FolderSearchResult(file.FullName, relativePath, previewText, matchList.Count, firstMatch.StartOffset, firstMatch.Length));
+            resultList.Add(new FolderSearchResult(file.FullName, relativePath, previewText, matchList.Count, firstMatchDocumentOffset.Offset, firstMatchDocumentLength));
         }
 
         return new FolderSearchSummary(resultList, false);
