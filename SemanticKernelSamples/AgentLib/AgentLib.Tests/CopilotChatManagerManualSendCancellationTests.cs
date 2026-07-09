@@ -256,6 +256,218 @@ public class CopilotChatManagerManualSendCancellationTests
         Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));
     }
 
+    [TestMethod(DisplayName = "历史中存在未配对工具调用时续跑应先移除该工具调用")]
+    public async Task RunWithHistoryCompletion_WhenHistoryContainsUnpairedToolCall_RemovesToolCallBeforeNextLoop()
+    {
+        var fakeChatClient = new FakeChatClient();
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateTextStreamAsync(cancellationToken, AssistantStreamingText);
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        session.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.User, "上一轮用户消息"),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new TextContent("上一轮助手消息"),
+                new FunctionCallContent("unpaired-call-1", "ReadFileLines", new Dictionary<string, object?>()),
+            ]),
+        ]);
+
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        Assert.AreEqual(0, CountFunctionCalls(messages, "unpaired-call-1"));
+        Assert.AreEqual(1, CountAssistantTexts(messages, "上一轮助手消息"));
+        Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));
+        Assert.AreEqual(1, CountAssistantTexts(messages, AssistantStreamingText));
+    }
+
+    [TestMethod(DisplayName = "历史中存在重复工具结果时续跑应只保留第一条工具结果")]
+    public async Task RunWithHistoryCompletion_WhenHistoryContainsDuplicateToolResults_RemovesLaterToolResult()
+    {
+        var fakeChatClient = new FakeChatClient();
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateTextStreamAsync(cancellationToken, AssistantStreamingText);
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        session.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.User, "上一轮用户消息"),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new FunctionCallContent("duplicate-call-1", "ReadFileLines", new Dictionary<string, object?>()),
+            ]),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new FunctionResultContent("duplicate-call-1", "第一次结果"),
+            ]),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new FunctionResultContent("duplicate-call-1", "第二次结果"),
+            ]),
+        ]);
+
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        Assert.AreEqual(1, CountFunctionResults(messages, "duplicate-call-1"));
+        Assert.IsTrue(messages.SelectMany(message => message.Contents).OfType<FunctionResultContent>()
+            .Any(content => string.Equals(content.Result?.ToString(), "第一次结果", StringComparison.Ordinal)));
+        Assert.IsFalse(messages.SelectMany(message => message.Contents).OfType<FunctionResultContent>()
+            .Any(content => string.Equals(content.Result?.ToString(), "第二次结果", StringComparison.Ordinal)));
+    }
+
+    [TestMethod(DisplayName = "历史中工具调用后接普通内容时续跑应移除非相邻工具调用")]
+    public async Task RunWithHistoryCompletion_WhenFunctionCallIsNotFollowedByFunctionResult_RemovesFunctionCall()
+    {
+        var fakeChatClient = new FakeChatClient();
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateTextStreamAsync(cancellationToken, AssistantStreamingText);
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        session.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.User, "上一轮用户消息"),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new TextContent("调用前文本"),
+                new FunctionCallContent("not-adjacent-call-1", "ReadFileLines", new Dictionary<string, object?>()),
+                new TextContent("普通助手消息"),
+                new FunctionResultContent("not-adjacent-call-1", "非相邻工具结果"),
+            ]),
+            new ChatMessage(ChatRole.Assistant, "后续助手消息"),
+        ]);
+
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        Assert.AreEqual(0, CountFunctionCalls(messages, "not-adjacent-call-1"));
+        Assert.AreEqual(0, CountFunctionResults(messages, "not-adjacent-call-1"));
+        Assert.AreEqual(1, CountAssistantTexts(messages, "调用前文本普通助手消息"));
+    }
+
+    [TestMethod(DisplayName = "历史中工具调用后接错误工具结果时续跑应同时移除调用和结果")]
+    public async Task RunWithHistoryCompletion_WhenFunctionCallIsFollowedByDifferentFunctionResult_RemovesFunctionCallAndResult()
+    {
+        var fakeChatClient = new FakeChatClient();
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateTextStreamAsync(cancellationToken, AssistantStreamingText);
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        session.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.User, "上一轮用户消息"),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new TextContent("调用前文本"),
+                new FunctionCallContent("expected-call-1", "ReadFileLines", new Dictionary<string, object?>()),
+                new FunctionResultContent("actual-call-1", "错误结果"),
+            ]),
+            new ChatMessage(ChatRole.Assistant, "后续助手消息"),
+        ]);
+
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        Assert.AreEqual(0, CountFunctionCalls(messages, "expected-call-1"));
+        Assert.AreEqual(0, CountFunctionResults(messages, "actual-call-1"));
+        Assert.AreEqual(1, CountAssistantTexts(messages, "调用前文本"));
+    }
+
+    [TestMethod(DisplayName = "历史中工具结果前没有工具调用时续跑应移除孤立结果")]
+    public async Task RunWithHistoryCompletion_WhenFunctionResultHasNoPreviousFunctionCall_RemovesFunctionResult()
+    {
+        var fakeChatClient = new FakeChatClient();
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateTextStreamAsync(cancellationToken, AssistantStreamingText);
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        session.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.User, "上一轮用户消息"),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new TextContent("结果前文本"),
+                new FunctionResultContent("orphan-result-1", "孤立结果"),
+                new TextContent("结果后文本"),
+            ]),
+            new ChatMessage(ChatRole.Assistant, "后续助手消息"),
+        ]);
+
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        Assert.AreEqual(0, CountFunctionResults(messages, "orphan-result-1"));
+        Assert.AreEqual(1, CountAssistantTexts(messages, "结果前文本结果后文本"));
+    }
+
+    [TestMethod(DisplayName = "历史中相邻工具调用和结果分散在两条消息时续跑应保留配对内容")]
+    public async Task RunWithHistoryCompletion_WhenFunctionCallAndResultAreAdjacentAcrossMessages_KeepsPair()
+    {
+        var fakeChatClient = new FakeChatClient();
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateTextStreamAsync(cancellationToken, AssistantStreamingText);
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        session.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.User, "上一轮用户消息"),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new TextContent("调用前文本"),
+                new FunctionCallContent("adjacent-call-1", "ReadFileLines", new Dictionary<string, object?>()),
+            ]),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new FunctionResultContent("adjacent-call-1", "工具结果"),
+                new TextContent("结果后文本"),
+            ]),
+        ]);
+
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        Assert.AreEqual(1, CountFunctionCalls(messages, "adjacent-call-1"));
+        Assert.AreEqual(1, CountFunctionResults(messages, "adjacent-call-1"));
+    }
+
+    [TestMethod(DisplayName = "历史中并行工具调用乱序相邻返回时续跑应保留全部配对内容")]
+    public async Task RunWithHistoryCompletion_WhenParallelFunctionCallsReturnOutOfOrderAdjacently_KeepsAllPairs()
+    {
+        var fakeChatClient = new FakeChatClient();
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreateTextStreamAsync(cancellationToken, AssistantStreamingText);
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+        session.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.User, "上一轮用户消息"),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new FunctionCallContent("parallel-call-1", "ReadFileLines", new Dictionary<string, object?>()),
+                new FunctionCallContent("parallel-call-2", "ReadFileLines", new Dictionary<string, object?>()),
+            ]),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new FunctionResultContent("parallel-call-2", "第二个结果"),
+            ]),
+            new ChatMessage(ChatRole.Assistant,
+            [
+                new FunctionResultContent("parallel-call-1", "第一个结果"),
+                new TextContent("结果后文本"),
+            ]),
+        ]);
+
+        await RunSecondLoopAsync(agent, session).ConfigureAwait(false);
+
+        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
+        Assert.IsNotNull(messages);
+        Assert.AreEqual(1, CountFunctionCalls(messages, "parallel-call-1"));
+        Assert.AreEqual(1, CountFunctionCalls(messages, "parallel-call-2"));
+        Assert.AreEqual(1, CountFunctionResults(messages, "parallel-call-1"));
+        Assert.AreEqual(1, CountFunctionResults(messages, "parallel-call-2"));
+    }
+
     [TestMethod(DisplayName = "系统用户助手流式中取消时续跑应保留局部助手消息")]
     public async Task RunWithHistoryCompletion_WhenCancelledDuringAssistantStreaming_CompletesPartialAssistantMessageForNextLoop()
     {

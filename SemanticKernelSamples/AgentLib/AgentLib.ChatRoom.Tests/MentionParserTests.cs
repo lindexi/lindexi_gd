@@ -11,7 +11,7 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("r1", "Role1") };
         var result = MentionParser.ParseMentions("", roles);
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -19,7 +19,7 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("r1", "Helper") };
         var result = MentionParser.ParseMentions("hello world", roles);
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -27,7 +27,7 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("expert1", "代码专家") };
         var result = MentionParser.ParseMentions("@代码专家 帮我看看", roles);
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("expert1", result[0]);
     }
 
@@ -41,7 +41,7 @@ public sealed class MentionParserTests
         };
 
         var result = MentionParser.ParseMentions("@专家A @专家B 一起看看", roles);
-        Assert.AreEqual(2, result.Count);
+        Assert.HasCount(2, result);
         Assert.AreEqual("r1", result[0]);
         Assert.AreEqual("r2", result[1]);
     }
@@ -51,7 +51,7 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("r1", "专家") };
         var result = MentionParser.ParseMentions("@专家 和 @专家 再确认", roles);
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("r1", result[0]);
     }
 
@@ -60,7 +60,7 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("r1", "Expert") };
         var result = MentionParser.ParseMentions("@expert help", roles);
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("r1", result[0]);
     }
 
@@ -69,7 +69,7 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("r1", "Code Expert") };
         var result = MentionParser.ParseMentions("@[Code Expert] help", roles);
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("r1", result[0]);
     }
 
@@ -78,14 +78,14 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("r1", "Helper") };
         var result = MentionParser.ParseMentions("@Nobody here", roles);
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
     public void ParseMentions_EmptyRoles_ReturnsEmpty()
     {
         var result = MentionParser.ParseMentions("@Hello", Array.Empty<ChatRoomRole>());
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -93,7 +93,7 @@ public sealed class MentionParserTests
     {
         var roles = new[] { CreateRole("r1", "Helper") };
         var result = MentionParser.ParseMentions("email@example.com test", roles);
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod(DisplayName = "CanParseRoleName 正常中文名返回 true")]
