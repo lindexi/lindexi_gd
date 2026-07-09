@@ -7,6 +7,8 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 
 using Microsoft.Extensions.AI;
 
+using System.Text.Json;
+
 namespace AgentLib.ChatRoom.Tests;
 
 /// <summary>
@@ -730,6 +732,80 @@ public sealed class ChatRoomManagerIntegrationTests
             .Where(m => m.SenderRoleId == "expert" && !m.IsSystemMessage)
             .ToList();
         Assert.IsTrue(expertMessages.Count > 0, "expert 应被 @ 后发言");
+    }
+
+    [TestMethod(DisplayName = "LoadAsync 恢复历史后角色发言应携带之前上下文")]
+    [Timeout(15000)]
+    public async Task LoadAsync_RestoredRoleSpeaks_MessagesContainPreviousContext()
+    {
+        string tempFolder = Path.Join(Path.GetTempPath(), "ChatRoomManagerIntegrationTests", Path.GetRandomFileName());
+        try
+        {
+            var persistence = new ChatRoomPersistence(tempFolder);
+            var firstClient = CreateFakeClient("历史回答");
+            var firstManager = CreateManager();
+            firstManager.Persistence = persistence;
+            firstManager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+            {
+                ["test-provider"] = CreateProvider("test-provider", firstClient),
+            });
+            await firstManager.AddRoleAsync(CreateRole("assistant", "test-provider"));
+            await firstManager.HumanInterjectAsync("历史问题", "human", "Human");
+
+            ChatRoomRole firstRole = firstManager.Roles.Single(r => r.Definition.RoleId == "assistant");
+            ChatRoomMessage? historyAnswer = await firstManager.StepAsync(firstRole);
+            Assert.IsNotNull(historyAnswer);
+            await firstManager.SaveAsync();
+
+            await firstManager.HumanInterjectAsync("继续追问", "human", "Human");
+            string sessionId = firstManager.Session.SessionId.ToString("N");
+            Assert.IsNotNull(await persistence.LoadRoleAgentSessionStateAsync(firstManager.Session.SessionId, "assistant"));
+
+            var client = new FakeChatClient();
+            client.OnGetStreamingResponseAsync = (messages, _, _) =>
+            {
+                string[] messageTexts = messages.Select(message => message.Text ?? string.Empty).ToArray();
+                Assert.IsTrue(messageTexts.Any(text => text.Contains("继续追问", StringComparison.Ordinal)), "应携带本轮增量消息。实际消息：" + string.Join(" | ", messageTexts));
+                return StreamUpdates(
+                [
+                    new ChatResponseUpdate
+                    {
+                        Role = ChatRole.Assistant,
+                        Contents = [new TextContent("新的回答")],
+                    },
+                ]);
+            };
+            client.OnGetResponseAsync = (_, _, _) => Task.FromResult(new ChatResponse(
+                new ChatMessage(ChatRole.Assistant, "新的回答")));
+
+            var manager = CreateManager();
+            manager.Persistence = persistence;
+            manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+            {
+                ["test-provider"] = CreateProvider("test-provider", client),
+            });
+
+            await manager.LoadAsync(sessionId);
+
+            ChatRoomRole role = manager.Roles.Single(r => r.Definition.RoleId == "assistant");
+            JsonElement? restoredState = await role.SerializeAgentSessionStateAsync();
+            Assert.IsNotNull(restoredState);
+            string restoredStateText = restoredState.Value.GetRawText();
+            Assert.IsTrue(restoredStateText.Contains("历史问题", StringComparison.Ordinal), "恢复后的 AgentSession 状态应包含历史用户问题。实际状态：" + restoredStateText);
+            Assert.IsTrue(restoredStateText.Contains("历史回答", StringComparison.Ordinal), "恢复后的 AgentSession 状态应包含历史助手回答。实际状态：" + restoredStateText);
+
+            ChatRoomMessage? message = await manager.StepAsync(role);
+
+            Assert.IsNotNull(message);
+            Assert.AreEqual("新的回答", message.Content);
+        }
+        finally
+        {
+            if (Directory.Exists(tempFolder))
+            {
+                Directory.Delete(tempFolder, recursive: true);
+            }
+        }
     }
 
     // === helper ===

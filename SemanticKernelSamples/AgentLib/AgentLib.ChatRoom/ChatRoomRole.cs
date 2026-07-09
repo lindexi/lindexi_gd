@@ -12,6 +12,7 @@ using Microsoft.Extensions.AI;
 using System;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -115,6 +116,48 @@ public sealed class ChatRoomRole
         }
 
         await Task.CompletedTask;
+    }
+
+    internal async Task<JsonElement?> SerializeAgentSessionStateAsync(CancellationToken cancellationToken = default)
+    {
+        if (Definition.IsHuman || ChatManager.SelectedSession.AgentSession is not { } agentSession)
+        {
+            return null;
+        }
+
+        IManualSendMessageContext manualContext = await ChatManager
+            .CreateManualSendMessageContextAsync(cancellationToken)
+            .ConfigureAwait(false);
+        ChatClientAgent chatClientAgent = await manualContext
+            .GetChatClientAgentAsync(cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        JsonElement serializedSessionState = await chatClientAgent
+            .SerializeSessionAsync(agentSession, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+        return serializedSessionState.Clone();
+    }
+
+    internal async Task RestoreAgentSessionStateAsync(JsonElement agentSessionState,
+        CancellationToken cancellationToken = default)
+    {
+        if (Definition.IsHuman || _endpointManager.GetSupportedModels().Count == 0)
+        {
+            return;
+        }
+
+        IManualSendMessageContext manualContext = await ChatManager
+            .CreateManualSendMessageContextAsync(cancellationToken)
+            .ConfigureAwait(false);
+        ChatClientAgent chatClientAgent = await manualContext
+            .GetChatClientAgentAsync(cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+        AgentSession agentSession = await chatClientAgent
+            .DeserializeSessionAsync(agentSessionState, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        ChatManager.SelectedSession.SetAgentSession(agentSession);
+        _hasSpoken = true;
     }
 
     /// <summary>
@@ -293,6 +336,20 @@ public sealed class ChatRoomRole
         return SpeakAsync(
             new[] { initialTopic },
             cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// 压缩当前角色的内部 Agent 会话历史，不修改聊天室共享消息和其他角色状态。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task ReduceSessionAsync(CancellationToken cancellationToken = default)
+    {
+        if (Definition.IsHuman)
+        {
+            return;
+        }
+
+        await ChatManager.ReduceAgentSessionOnlyAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

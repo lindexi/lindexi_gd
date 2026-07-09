@@ -124,6 +124,11 @@ public sealed class RoleListViewModel : ViewModelBase
     public ICommand InsertMentionCommand { get; }
 
     /// <summary>
+    /// 压缩角色内部对话命令。参数为角色项 ViewModel。
+    /// </summary>
+    public ICommand ReduceRoleSessionCommand { get; }
+
+    /// <summary>
     /// 添加角色请求事件。
     /// </summary>
     public event EventHandler? AddRoleRequested;
@@ -157,11 +162,30 @@ public sealed class RoleListViewModel : ViewModelBase
         _modelProviderService = modelProviderService;
 
         AddRoleCommand = new SimpleCommand(() => AddRoleRequested?.Invoke(this, EventArgs.Empty));
-        EditRoleCommand = new SimpleCommand<RoleItemViewModel>(role => EditRoleRequested?.Invoke(this, role.RoleId));
+        EditRoleCommand = new SimpleCommand<RoleItemViewModel>(role =>
+        {
+            if (role is not null)
+            {
+                EditRoleRequested?.Invoke(this, role.RoleId);
+            }
+        });
         DeleteRoleCommand = new SimpleCommand<RoleItemViewModel>(DeleteRole);
         OpenLobbyCommand = new SimpleCommand(() => OpenLobbyRequested?.Invoke(this, EventArgs.Empty));
-        PromoteToLobbyCommand = new SimpleCommand<RoleItemViewModel>(role => PromoteToLobbyRequested?.Invoke(this, role.RoleId));
-        InsertMentionCommand = new SimpleCommand<RoleItemViewModel>(role => InsertMentionRequested?.Invoke(this, role.RoleName));
+        PromoteToLobbyCommand = new SimpleCommand<RoleItemViewModel>(role =>
+        {
+            if (role is not null)
+            {
+                PromoteToLobbyRequested?.Invoke(this, role.RoleId);
+            }
+        });
+        InsertMentionCommand = new SimpleCommand<RoleItemViewModel>(role =>
+        {
+            if (role is not null)
+            {
+                InsertMentionRequested?.Invoke(this, role.RoleName);
+            }
+        });
+        ReduceRoleSessionCommand = new SimpleAsyncCommand<RoleItemViewModel>(ReduceRoleSessionAsync, role => role is { IsHuman: false });
 
         _chatRoomService.SessionChanged += OnSessionChanged;
     }
@@ -209,6 +233,16 @@ public sealed class RoleListViewModel : ViewModelBase
 
         // 确保持久化到磁盘
         _ = _chatRoomService.SaveAsync();
+    }
+
+    private async System.Threading.Tasks.Task ReduceRoleSessionAsync(RoleItemViewModel? role)
+    {
+        if (role is null)
+        {
+            return;
+        }
+
+        await _chatRoomService.ReduceRoleSessionAsync(role.RoleId).ConfigureAwait(false);
     }
 }
 

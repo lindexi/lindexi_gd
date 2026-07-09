@@ -248,6 +248,7 @@ public sealed partial class ChatRoomManager
                 streamingMessage.IsStreaming = false;
                 // 将最终内容回写到 StaticContent，确保持久化序列化时消息内容不丢失
                 streamingMessage.StaticContent = assistantContent;
+                await _manager.SaveRoleAgentSessionStateAsync(role, cancellationToken).ConfigureAwait(false);
                 return streamingMessage;
             }
             catch (OperationCanceledException)
@@ -436,7 +437,7 @@ public sealed partial class ChatRoomManager
             else if (_manager.Persistence is not null)
             {
                 // 流式消息已在 Messages 集合中，UI 通过 CollectionChanged 感知；无需重复触发 OnMessageAdded，仅持久化。
-                _ = _manager.Persistence.SavePublicMessageAsync(_manager.Session.SessionId, message)
+                _ = _manager.Persistence.SavePublicMessageAsync(_manager.CurrentPersistenceSessionId, message)
                     .ContinueWith(static t =>
                     {
                         if (t.IsFaulted && t.Exception is not null)

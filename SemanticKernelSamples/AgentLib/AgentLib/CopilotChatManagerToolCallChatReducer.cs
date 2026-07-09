@@ -83,21 +83,31 @@ internal class CopilotChatManagerToolCallChatReducer : IChatReducer
 
         messagesToSummarize.Add(new ChatMessage(ChatRole.System, SummarizationEndPrompt));
 
-        // 调用 LLM 生成摘要
-        var chatResponse = await _chatClient.GetResponseAsync(messagesToSummarize, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        // 构建结果：保留非压缩部分 + 摘要消息
-        var result = new List<ChatMessage>(tailStartIndex + 1);
-
-        for (int i = 0; i < tailStartIndex; i++)
+        try
         {
-            result.Add(input[i]);
+            // 调用 LLM 生成摘要
+            var chatResponse = await _chatClient
+                .GetResponseAsync(messagesToSummarize, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // 构建结果：保留非压缩部分 + 摘要消息
+            var result = new List<ChatMessage>(tailStartIndex + 1);
+
+            for (int i = 0; i < tailStartIndex; i++)
+            {
+                result.Add(input[i]);
+            }
+
+            // 将 LLM 返回的摘要消息加入结果
+            result.AddRange(chatResponse.Messages);
+
+            return result;
         }
-
-        // 将 LLM 返回的摘要消息加入结果
-        result.AddRange(chatResponse.Messages);
-
-        return result;
+        catch (Exception e)
+        {
+            // 忽略
+            // 压缩失败，就不影响了
+            return input;
+        }
     }
 
     /// <summary>
