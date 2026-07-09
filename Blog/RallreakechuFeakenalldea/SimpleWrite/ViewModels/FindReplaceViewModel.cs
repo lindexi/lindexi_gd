@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Utils;
 
 using SimpleWrite.Business.FindReplaces;
 using SimpleWrite.Business.FolderExplorers;
@@ -345,6 +347,7 @@ public class FindReplaceViewModel : ViewModelBase
 
         var documentText = textEditor.Text;
         var match = searchMatches[matchIndex];
+        var matchStartDocumentOffset = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(documentText, match.StartOffset);
         if (!searchMatcher.TryGetReplacementText(documentText, match.ToSearchMatchResult(), ReplaceText, out var replacementText))
         {
             _isDocumentSearchTimedOut = true;
@@ -352,8 +355,9 @@ public class FindReplaceViewModel : ViewModelBase
             return;
         }
 
-        var nextAnchorOffset = match.StartOffset + replacementText.Length;
-        textEditor.EditAndReplace(replacementText, match.ToSelection());
+        var replacementDocumentLength = TextIndexConverter.GetDocumentLength(replacementText, 0, replacementText.Length);
+        var nextAnchorOffset = matchStartDocumentOffset.Offset + replacementDocumentLength;
+        textEditor.EditAndReplace(replacementText, match.ToSelection(matchStartDocumentOffset, TextIndexConverter.GetDocumentLength(documentText, match.StartOffset, match.Length)));
 
         RefreshSearchMatches();
 
@@ -364,7 +368,8 @@ public class FindReplaceViewModel : ViewModelBase
             return;
         }
 
-        var nextIndex = FindNextMatchIndexFromOffset(refreshedSearchMatches, nextAnchorOffset);
+        var nextAnchorUtf16Offset = TextIndexConverter.ConvertDocumentOffsetToUtf16Index(textEditor.Text, new DocumentOffset(nextAnchorOffset));
+        var nextIndex = FindNextMatchIndexFromOffset(refreshedSearchMatches, nextAnchorUtf16Offset);
         ApplyMatch(textEditor, refreshedSearchMatches[nextIndex]);
     }
 
@@ -393,7 +398,7 @@ public class FindReplaceViewModel : ViewModelBase
                 return;
             }
 
-            textEditor.EditAndReplace(replacementText, match.ToSelection());
+            textEditor.EditAndReplace(replacementText, match.ToSelection(documentText));
         }
 
         RefreshSearchMatches();
@@ -503,7 +508,7 @@ public class FindReplaceViewModel : ViewModelBase
 
     private void ApplyMatch(TextEditor textEditor, SearchMatch searchMatch)
     {
-        textEditor.CurrentSelection = searchMatch.ToSelection();
+        textEditor.CurrentSelection = searchMatch.ToSelection(textEditor.Text);
         UpdateSearchStatus();
     }
 
@@ -805,9 +810,16 @@ public class FindReplaceViewModel : ViewModelBase
     {
         public int EndOffset => StartOffset + Length;
 
-        public Selection ToSelection()
+        public Selection ToSelection(string documentText)
         {
-            return new Selection(new CaretOffset(StartOffset), new CaretOffset(EndOffset));
+            var startOffset = TextIndexConverter.ConvertUtf16IndexToDocumentOffset(documentText, StartOffset);
+            var length = TextIndexConverter.GetDocumentLength(documentText, StartOffset, Length);
+            return new Selection(ToCaretOffset(startOffset), length);
+        }
+
+        public Selection ToSelection(DocumentOffset startOffset, int length)
+        {
+            return new Selection(ToCaretOffset(startOffset), length);
         }
 
         public bool IsMatch(Selection selection)
@@ -818,6 +830,11 @@ public class FindReplaceViewModel : ViewModelBase
         public SearchMatchResult ToSearchMatchResult()
         {
             return new SearchMatchResult(StartOffset, Length, Value);
+        }
+
+        private static CaretOffset ToCaretOffset(DocumentOffset documentOffset)
+        {
+            return new CaretOffset(documentOffset.Offset);
         }
     }
 }
