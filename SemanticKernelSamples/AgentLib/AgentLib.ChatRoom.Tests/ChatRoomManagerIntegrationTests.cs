@@ -33,8 +33,8 @@ public sealed class ChatRoomManagerIntegrationTests
             ["helper-provider"] = CreateProvider("helper-provider", helperClient),
             ["expert-provider"] = CreateProvider("expert-provider", expertClient),
         });
-        await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
-        await manager.AddRoleAsync(CreateRole("expert", "Expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
+        await manager.AddRoleAsync(CreateRole("helper", "helper-provider"));
+        await manager.AddRoleAsync(CreateRole("expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
 
         // 人类插话 @ helper → helper 发言 @ expert → expert 返回空
         await manager.HumanInterjectAsync("@helper 开始讨论", "human", "Human");
@@ -71,22 +71,23 @@ public sealed class ChatRoomManagerIntegrationTests
             ["manager-a-provider"] = CreateProvider("manager-a-provider", managerClientA),
             ["manager-b-provider"] = CreateProvider("manager-b-provider", managerClientB),
         });
-        await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
-        await manager.AddRoleAsync(CreateRole("expert", "Expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
-        await manager.AddRoleAsync(CreateRole("manager-a", "ManagerA", "manager-a-provider", isManagerRole: true));
-        await manager.AddRoleAsync(CreateRole("manager-b", "ManagerB", "manager-b-provider", isManagerRole: true));
+        await manager.AddRoleAsync(CreateRole("helper", "helper-provider"));
+        await manager.AddRoleAsync(CreateRole("expert", "expert-provider", ChatRoomParticipationMode.MentionOnly));
+        await manager.AddRoleAsync(CreateRole("manager-a", "manager-a-provider", isManagerRole: true));
+        await manager.AddRoleAsync(CreateRole("manager-b", "manager-b-provider", isManagerRole: true));
 
         await manager.HumanInterjectAsync("@helper 开始", "human", "Human");
 
         // Act
         await manager.StartAutoLoopAsync();
 
-        // Assert：两个管理者应在 expert 空回复后依次介入
+        // Assert：按调度规则取第一个管理者兜底介入
         Assert.IsFalse(manager.IsRunning);
         var managerMessages = manager.Session.Messages
             .Where(m => (m.SenderRoleId == "manager-a" || m.SenderRoleId == "manager-b") && !m.IsSystemMessage)
             .ToList();
-        Assert.AreEqual(2, managerMessages.Count);
+        Assert.AreEqual(1, managerMessages.Count);
+        Assert.AreEqual("manager-a", managerMessages[0].SenderRoleId);
     }
 
     /// <summary>
@@ -105,8 +106,8 @@ public sealed class ChatRoomManagerIntegrationTests
             ["provider-a"] = CreateProvider("provider-a", clientA),
             ["provider-b"] = CreateProvider("provider-b", clientB),
         });
-        await manager.AddRoleAsync(CreateRole("A", "RoleA", "provider-a"));
-        await manager.AddRoleAsync(CreateRole("B", "RoleB", "provider-b"));
+        await manager.AddRoleAsync(CreateRole("A", "provider-a"));
+        await manager.AddRoleAsync(CreateRole("B", "provider-b"));
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论吧", "human", "Human");
@@ -145,9 +146,9 @@ public sealed class ChatRoomManagerIntegrationTests
             ["p-b"] = CreateProvider("p-b", clientB),
             ["p-c"] = CreateProvider("p-c", clientC),
         });
-        await manager.AddRoleAsync(CreateRole("A", "A", "p-a"));
-        await manager.AddRoleAsync(CreateRole("B", "B", "p-b"));
-        await manager.AddRoleAsync(CreateRole("C", "C", "p-c"));
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("C", "p-c"));
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
@@ -164,6 +165,405 @@ public sealed class ChatRoomManagerIntegrationTests
                 .ToList();
             Assert.IsTrue(messages.Count > 0, $"{roleId} 应有发言");
         }
+    }
+
+    /// <summary>
+    /// 人类消息显式 @ 多个角色时，应按消息中的 @ 顺序优先发言，且不启动默认队列。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_HumanMentionsMultipleRoles_MentionedRolesSpeakInMentionOrder()
+    {
+        var clientA = CreateFakeClient("A 的回复");
+        var clientB = CreateFakeClient("B 的回复");
+        var clientC = CreateFakeClient("C 的回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-c"] = CreateProvider("p-c", clientC),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b", ChatRoomParticipationMode.MentionOnly));
+        await manager.AddRoleAsync(CreateRole("C", "p-c"));
+
+        await manager.HumanInterjectAsync("@B 请先看，@A 接着看", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "B", "A" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 人类消息没有 @ 时，所有 AlwaysParticipate 非人类角色应按注册顺序发言，管理者也参与默认队列。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_HumanWithoutMentions_DefaultRolesIncludeManagerInRoleOrder()
+    {
+        var clientA = CreateFakeClient("A 的回复");
+        var clientB = CreateFakeClient("B 的回复");
+        var managerClient = CreateFakeClient("管理者的回复");
+        var mentionOnlyClient = CreateFakeClient("C 的回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+            ["p-c"] = CreateProvider("p-c", mentionOnlyClient),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("C", "p-c", ChatRoomParticipationMode.MentionOnly));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+
+        await manager.HumanInterjectAsync("请讨论这个方案", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "A", "B", "M" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 后续角色发言中产生的 @ 应进入优先栈，在默认队列剩余角色之前发言。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_RoleMentionsAnotherRole_MentionedRoleSpeaksBeforeRemainingDefaultRoles()
+    {
+        var clientA = CreateFakeClient("A 说 @D 请处理");
+        var clientB = CreateFakeClient("B 的回复");
+        var clientD = CreateFakeClient("D 的回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-d"] = CreateProvider("p-d", clientD),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("D", "p-d", ChatRoomParticipationMode.MentionOnly));
+
+        await manager.HumanInterjectAsync("开始讨论", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "A", "D", "B" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 初始消息 @A @B @C 后，A 再次 @C 时，C 应插队到 B 之前发言。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_PriorityMentionFromCurrentSpeaker_SpeaksBeforePendingMentionRoles()
+    {
+        var clientA = CreateFakeClient("A 说 @C 请优先处理");
+        var clientB = CreateFakeClient("B 的回复");
+        var clientC = CreateFakeClient("C 的回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-c"] = CreateProvider("p-c", clientC),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("C", "p-c"));
+
+        await manager.HumanInterjectAsync("@A @B @C 请依次处理", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        string[] roleIds = GetAssistantSenderRoleIds(manager);
+        Assert.IsTrue(roleIds.Length >= 3);
+        CollectionAssert.AreEqual(
+            new[] { "A", "C", "B" },
+            roleIds.Take(3).ToArray());
+    }
+
+    /// <summary>
+    /// 同一角色在中间有其他角色回复后，应允许在同一轮自动循环中再次发言。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_MentionChainReturnsToPreviousRole_PreviousRoleSpeaksAgain()
+    {
+        var clientA = CreateSequenceFakeClient("A 第一次 @B 请回复", "A 第二次回复");
+        var clientB = CreateFakeClient("B 回复 @A 请继续");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+
+        await manager.HumanInterjectAsync("@A 请开始", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "A", "B", "A" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 角色 @ 自己时，不应让同一角色连续发言两次。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_RoleMentionsSelf_DoesNotSpeakConsecutively()
+    {
+        var clientA = CreateFakeClient("A 说 @A 我继续补充");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+
+        await manager.HumanInterjectAsync("@A 请开始", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "A" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 某个角色达到单轮最大发言次数时，应跳过该角色并交给管理者仲裁。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_RoleReachesMaxSpeakCount_ManagerArbitrates()
+    {
+        var clientA = CreateFakeClient("A 说 @B 请继续");
+        var clientB = CreateFakeClient("B 说 @A 请继续");
+        var managerClient = CreateFakeClient("管理者决定暂停");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+
+        await manager.HumanInterjectAsync("@A 请开始", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+
+        var roleIds = GetAssistantSenderRoleIds(manager);
+        Assert.AreEqual(5, roleIds.Count(roleId => roleId == "A"));
+        Assert.AreEqual(5, roleIds.Count(roleId => roleId == "B"));
+        Assert.AreEqual("M", roleIds.Last());
+    }
+
+    /// <summary>
+    /// A、B、C 三个角色循环相互 @ 时，达到单角色最大发言次数后应由管理者打断。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_ThreeRoleMentionCycle_ManagerInterruptsWhenRoleReachesLimit()
+    {
+        var clientA = CreateFakeClient("A 说 @B 继续");
+        var clientB = CreateFakeClient("B 说 @C 继续");
+        var clientC = CreateFakeClient("C 说 @A 继续");
+        var managerClient = CreateFakeClient("管理者决定暂停");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-c"] = CreateProvider("p-c", clientC),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("C", "p-c"));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+
+        await manager.HumanInterjectAsync("@A 请开始", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        string[] roleIds = GetAssistantSenderRoleIds(manager);
+        Assert.AreEqual(5, roleIds.Count(roleId => roleId == "A"));
+        Assert.AreEqual(5, roleIds.Count(roleId => roleId == "B"));
+        Assert.AreEqual(5, roleIds.Count(roleId => roleId == "C"));
+        Assert.AreEqual("M", roleIds.Last());
+    }
+
+    /// <summary>
+    /// 管理者在超限仲裁时重新 @A，应允许 A 重置计数后继续参与后续多轮对话。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_ManagerReassignsLimitedRoleToA_AllowsAContinueMultipleTurns()
+    {
+        var clientA = CreateFakeClient("A 说 @B 继续");
+        var clientB = CreateFakeClient("B 说 @C 继续");
+        var clientC = CreateFakeClient("C 说 @A 继续");
+        var managerClient = CreateSequenceFakeClient(
+            "管理者说 @A 可以继续",
+            "管理者说 @B 可以继续",
+            "管理者说 @C 可以继续",
+            "管理者决定暂停");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-c"] = CreateProvider("p-c", clientC),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("C", "p-c"));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+
+        await manager.HumanInterjectAsync("@A 请开始", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        string[] roleIds = GetAssistantSenderRoleIds(manager);
+        Assert.IsTrue(roleIds.Count(roleId => roleId == "A") > 5);
+        Assert.IsTrue(roleIds.Count(roleId => roleId == "B") > 5);
+        Assert.IsTrue(roleIds.Count(roleId => roleId == "C") > 5);
+        Assert.IsTrue(roleIds.Count(roleId => roleId == "M") >= 4);
+    }
+
+    /// <summary>
+    /// 管理者在超限仲裁时 @D，应将对话指派给 D 继续。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_ManagerReassignsToD_DContinuesConversation()
+    {
+        var clientA = CreateFakeClient("A 说 @B 继续");
+        var clientB = CreateFakeClient("B 说 @C 继续");
+        var clientC = CreateFakeClient("C 说 @A 继续");
+        var managerClient = CreateFakeClient("管理者说 @D 请接手");
+        var clientD = CreateFakeClient("D 接手处理");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-b"] = CreateProvider("p-b", clientB),
+            ["p-c"] = CreateProvider("p-c", clientC),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+            ["p-d"] = CreateProvider("p-d", clientD),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("C", "p-c"));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+        await manager.AddRoleAsync(CreateRole("D", "p-d", ChatRoomParticipationMode.MentionOnly));
+
+        await manager.HumanInterjectAsync("@A 请开始", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        string[] roleIds = GetAssistantSenderRoleIds(manager);
+        int managerIndex = Array.IndexOf(roleIds, "M");
+        Assert.IsTrue(managerIndex >= 0);
+        Assert.IsTrue(managerIndex + 1 < roleIds.Length);
+        Assert.AreEqual("D", roleIds[managerIndex + 1]);
+    }
+
+    /// <summary>
+    /// 没有普通角色可发言时，管理者兜底；如果管理者 @ 其他角色，则继续推进链式对话。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_IdleManagerMentionsRole_ChainContinues()
+    {
+        var clientA = CreateFakeClient("A 完成回复");
+        var managerClient = CreateFakeClient("管理者说 @B 请补充");
+        var clientB = CreateFakeClient("B 的补充");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-a"] = CreateProvider("p-a", clientA),
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+            ["p-b"] = CreateProvider("p-b", clientB),
+        });
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+        await manager.AddRoleAsync(CreateRole("B", "p-b", ChatRoomParticipationMode.MentionOnly));
+
+        await manager.HumanInterjectAsync("@A 请开始", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "A", "M", "B" },
+            GetAssistantSenderRoleIds(manager));
+    }
+
+    /// <summary>
+    /// 当 trigger 消息只 @ 到人类角色而没有任何非人类角色可发言时，应由管理者兜底发言。
+    /// </summary>
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task StartAutoLoopAsync_NoSpeakableRoleFromTrigger_ManagerFallbackSpeaks()
+    {
+        var managerClient = CreateFakeClient("管理者兜底回复");
+
+        var manager = CreateManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["p-manager"] = CreateProvider("p-manager", managerClient),
+        });
+        await manager.AddRoleAsync(CreateRole("human", "", isHuman: true));
+        await manager.AddRoleAsync(CreateRole("M", "p-manager", isManagerRole: true));
+
+        await manager.HumanInterjectAsync("@human 请确认", "human", "Human");
+
+        await manager.StartAutoLoopAsync();
+
+        Assert.IsFalse(manager.IsRunning);
+        CollectionAssert.AreEqual(
+            new[] { "M" },
+            GetAssistantSenderRoleIds(manager));
     }
 
     // === 插话即时响应测试 ===
@@ -218,8 +618,8 @@ public sealed class ChatRoomManagerIntegrationTests
             ["p-a"] = CreateProvider("p-a", clientA),
             ["p-b"] = CreateProvider("p-b", clientB),
         });
-        await manager.AddRoleAsync(CreateRole("A", "助手A", "p-a"));
-        await manager.AddRoleAsync(CreateRole("B", "助手B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
@@ -306,8 +706,8 @@ public sealed class ChatRoomManagerIntegrationTests
             ["p-a"] = CreateProvider("p-a", clientA),
             ["p-expert"] = CreateProvider("p-expert", clientExpert),
         });
-        await manager.AddRoleAsync(CreateRole("A", "助手A", "p-a"));
-        await manager.AddRoleAsync(CreateRole("expert", "Expert", "p-expert", ChatRoomParticipationMode.MentionOnly));
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("expert", "p-expert", ChatRoomParticipationMode.MentionOnly));
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
@@ -351,8 +751,8 @@ public sealed class ChatRoomManagerIntegrationTests
             ["provider-a"] = CreateProvider("provider-a", clientA),
             ["provider-b"] = CreateProvider("provider-b", clientB),
         });
-        await manager.AddRoleAsync(CreateRole("A", "A", "provider-a"));
-        await manager.AddRoleAsync(CreateRole("B", "B", "provider-b"));
+        await manager.AddRoleAsync(CreateRole("A", "provider-a"));
+        await manager.AddRoleAsync(CreateRole("B", "provider-b"));
 
         // 人类插话触发对话
         await manager.HumanInterjectAsync("开始讨论", "human", "Human");
@@ -375,11 +775,11 @@ public sealed class ChatRoomManagerIntegrationTests
     }
 
     /// <summary>
-    /// 最新非人类消息没有 @ 时，不应凭空触发管理者兜底。
+    /// 最新非人类消息没有 @ 且没有其他角色可发言时，应触发管理者兜底。
     /// </summary>
     [TestMethod]
     [Timeout(15000)]
-    public async Task StartAutoLoopAsync_NonHumanMessageWithoutMentions_DoesNotInvokeManagers()
+    public async Task StartAutoLoopAsync_NonHumanMessageWithoutMentions_InvokesIdleManagerFallback()
     {
         var managerClient = CreateFakeClient("manager 的回复");
 
@@ -388,15 +788,15 @@ public sealed class ChatRoomManagerIntegrationTests
         {
             ["manager-provider"] = CreateProvider("manager-provider", managerClient),
         });
-        await manager.AddRoleAsync(CreateRole("manager", "Manager", "manager-provider", isManagerRole: true));
+        await manager.AddRoleAsync(CreateRole("manager", "manager-provider", isManagerRole: true));
 
         await manager.Session.AddMessageAsync(ChatRoomMessage.CreateAssistant("已有 AI 消息", "assistant", "Assistant"));
 
         await manager.StartAutoLoopAsync();
 
         Assert.IsFalse(manager.IsRunning);
-        Assert.AreEqual(1, manager.Session.Messages.Count);
-        Assert.IsFalse(manager.Session.Messages.Any(m => m.SenderRoleId == "manager"));
+        Assert.AreEqual(2, manager.Session.Messages.Count);
+        Assert.IsTrue(manager.Session.Messages.Any(m => m.SenderRoleId == "manager"));
     }
 
     /// <summary>
@@ -417,10 +817,10 @@ public sealed class ChatRoomManagerIntegrationTests
             ["p-a"] = CreateProvider("p-a", emptyClientA),
             ["p-b"] = CreateProvider("p-b", emptyClientB),
         });
-        await manager.AddRoleAsync(CreateRole("A", "A", "p-a"));
-        await manager.AddRoleAsync(CreateRole("B", "B", "p-b"));
+        await manager.AddRoleAsync(CreateRole("A", "p-a"));
+        await manager.AddRoleAsync(CreateRole("B", "p-b"));
         // 人类角色不影响安全网阈值
-        await manager.AddRoleAsync(CreateRole("human", "Human", "", isHuman: true));
+        await manager.AddRoleAsync(CreateRole("human", "", isHuman: true));
 
         await manager.HumanInterjectAsync("开始", "human", "Human");
 
@@ -456,7 +856,7 @@ public sealed class ChatRoomManagerIntegrationTests
             ["helper-provider"] = CreateProvider("helper-provider", helperClient),
             ["newrole-provider"] = CreateProvider("newrole-provider", newRoleClient),
         });
-        await manager.AddRoleAsync(CreateRole("helper", "Helper", "helper-provider"));
+        await manager.AddRoleAsync(CreateRole("helper", "helper-provider"));
 
         // 模拟角色调用 create_character 工具创建新角色
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
@@ -565,7 +965,6 @@ public sealed class ChatRoomManagerIntegrationTests
     }
 
     private static ChatRoomRole CreateRole(
-        string roleId,
         string roleName,
         string modelProviderId,
         ChatRoomParticipationMode mode = ChatRoomParticipationMode.AlwaysParticipate,
@@ -574,7 +973,7 @@ public sealed class ChatRoomManagerIntegrationTests
     {
         var definition = new ChatRoomRoleDefinition
         {
-            RoleId = roleId,
+            RoleId = roleName,
             RoleName = roleName,
             IsHuman = isHuman,
             IsManagerRole = isManagerRole,
@@ -605,6 +1004,45 @@ public sealed class ChatRoomManagerIntegrationTests
             new ChatMessage(ChatRole.Assistant, responseText)));
 
         return client;
+    }
+
+    /// <summary>
+    /// 创建按调用顺序返回指定文本的 <see cref="FakeChatClient"/>。
+    /// </summary>
+    private static FakeChatClient CreateSequenceFakeClient(params string[] responseTexts)
+    {
+        var client = new FakeChatClient();
+        int callCount = 0;
+
+        client.OnGetStreamingResponseAsync = (_, _, _) =>
+        {
+            int index = Math.Min(System.Threading.Interlocked.Increment(ref callCount), responseTexts.Length) - 1;
+            return StreamUpdates(
+            [
+                new ChatResponseUpdate
+                {
+                    Role = ChatRole.Assistant,
+                    Contents = [new TextContent(responseTexts[index])],
+                },
+            ]);
+        };
+
+        client.OnGetResponseAsync = (_, _, _) =>
+        {
+            int index = Math.Clamp(callCount - 1, 0, responseTexts.Length - 1);
+            return Task.FromResult(new ChatResponse(
+                new ChatMessage(ChatRole.Assistant, responseTexts[index])));
+        };
+
+        return client;
+    }
+
+    private static string[] GetAssistantSenderRoleIds(ChatRoomManager manager)
+    {
+        return manager.Session.Messages
+            .Where(m => !m.IsSystemMessage && !m.IsHumanMessage)
+            .Select(m => m.SenderRoleId)
+            .ToArray();
     }
 
     /// <summary>
