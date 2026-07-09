@@ -334,7 +334,7 @@ public sealed class RoleLobbyViewModel : ViewModelBase
 
         foreach (ChatRoomRole role in _chatRoomService.CurrentManager.Roles)
         {
-            SessionRoles.Add(new RoleItemViewModel(role.Definition));
+            SessionRoles.Add(new RoleItemViewModel(role));
         }
     }
 

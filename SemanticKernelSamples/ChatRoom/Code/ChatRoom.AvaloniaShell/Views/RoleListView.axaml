@@ -63,6 +63,7 @@
                                 <TextBlock Text="{Binding SystemPromptSummary}" Classes="Subtitle"
                                            TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding ModelDisplay}" Classes="Subtitle" />
+                                <TextBlock Text="{Binding Role.LastUsageSummaryText}" Classes="Subtitle" />
                             </StackPanel>
 
                             <!-- 操作按钮 -->

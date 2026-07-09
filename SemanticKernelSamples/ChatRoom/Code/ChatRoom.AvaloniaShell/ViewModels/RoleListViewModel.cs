@@ -53,6 +53,11 @@ public sealed class RoleItemViewModel : ViewModelBase
     public string ParticipationModeDisplay => IsHuman ? "人类" : "AI 角色";
 
     /// <summary>
+    /// 角色运行时对象。
+    /// </summary>
+    public ChatRoomRole Role { get; }
+
+    /// <summary>
     /// 是否选中。
     /// </summary>
     public bool IsSelected
@@ -64,8 +69,12 @@ public sealed class RoleItemViewModel : ViewModelBase
     /// <summary>
     /// 从角色定义创建角色列表项。
     /// </summary>
-    public RoleItemViewModel(ChatRoomRoleDefinition definition)
+    public RoleItemViewModel(ChatRoomRole role)
     {
+        ArgumentNullException.ThrowIfNull(role);
+
+        Role = role;
+        ChatRoomRoleDefinition definition = role.Definition;
         RoleId = definition.RoleId;
         RoleName = definition.RoleName;
         IsHuman = definition.IsHuman;
@@ -201,7 +210,7 @@ public sealed class RoleListViewModel : ViewModelBase
 
         foreach (ChatRoomRole role in manager.Roles)
         {
-            Roles.Add(new RoleItemViewModel(role.Definition));
+            Roles.Add(new RoleItemViewModel(role));
         }
 
         manager.Roles.CollectionChanged += OnRolesCollectionChanged;
@@ -218,7 +227,7 @@ public sealed class RoleListViewModel : ViewModelBase
 
         foreach (ChatRoomRole role in _chatRoomService.CurrentManager.Roles)
         {
-            Roles.Add(new RoleItemViewModel(role.Definition));
+            Roles.Add(new RoleItemViewModel(role));
         }
     }
 
