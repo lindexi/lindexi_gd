@@ -23,6 +23,7 @@ public sealed class SubAgentToolProvider
     internal const string InvokeSubAgentToolName = "InvokeSubAgent";
     internal const string ReturnOutputToParentToolName = "ReturnOutputToParent";
     internal const string InvokeSubAgentDisplayName = "调用子智能体";
+    private const string RequireToolCallPrompt = "你刚才没有调用任何工具。必须调用工具方法将内容返回给上一级智能体；如果需要返回文本结果，请调用 ReturnOutputToParent 工具。";
 
     private readonly AgentApiEndpointManager _agentApiEndpointManager;
     private readonly WorkspaceToolProvider _workspaceToolProvider;
@@ -115,10 +116,11 @@ public sealed class SubAgentToolProvider
 
             messages.Add(new ChatMessage(ChatRole.User, prompt));
 
-            await foreach (AgentResponseUpdate responseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: _cancellationToken))
+            await RunSubAgentOnceAsync(chatClientAgent, messages, subAgentItem).ConfigureAwait(false);
+            if (!_outputCollector.HasOutput)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
-                AppendSubAgentResponseUpdate(subAgentItem, responseUpdate);
+                messages.Add(new ChatMessage(ChatRole.User, RequireToolCallPrompt));
+                await RunSubAgentOnceAsync(chatClientAgent, messages, subAgentItem).ConfigureAwait(false);
             }
 
             string output = _outputCollector.OutputText;
@@ -128,6 +130,18 @@ public sealed class SubAgentToolProvider
             }
 
             return output;
+        }
+
+        private async Task RunSubAgentOnceAsync(ChatClientAgent chatClientAgent, List<ChatMessage> messages, CopilotChatSubAgentItem? subAgentItem)
+        {
+            ArgumentNullException.ThrowIfNull(chatClientAgent);
+            ArgumentNullException.ThrowIfNull(messages);
+
+            await foreach (AgentResponseUpdate responseUpdate in chatClientAgent.RunStreamingAsync(messages, cancellationToken: _cancellationToken).ConfigureAwait(false))
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+                AppendSubAgentResponseUpdate(subAgentItem, responseUpdate);
+            }
         }
 
         /// <summary>
@@ -226,6 +240,8 @@ public sealed class SubAgentToolProvider
     {
         private CopilotChatSubAgentItem? _subAgentItem;
 
+        public bool HasOutput { get; private set; }
+
         public string OutputText { get; private set; } = string.Empty;
 
         public void Attach(CopilotChatSubAgentItem? subAgentItem)
@@ -239,6 +255,7 @@ public sealed class SubAgentToolProvider
 
         public void SetOutput(string output)
         {
+            HasOutput = true;
             OutputText = output ?? string.Empty;
             if (_subAgentItem is not null)
             {
