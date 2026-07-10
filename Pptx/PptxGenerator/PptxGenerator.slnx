@@ -1,10 +1,16 @@
 <Solution>
+  <Folder Name="/Code/">
+    <Project Path="Code/CoursewarePptxGeneratorWpfDemo/CoursewarePptxGeneratorWpfDemo.csproj" />
+    <Project Path="Code/PptxGenerator.Wpf/PptxGenerator.Wpf.csproj" />
+  </Folder>
   <Folder Name="/Lib/">
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib.Tests/AgentLib.Tests.csproj" />
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib/AgentLib.csproj" />
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
   </Folder>
+  <Project Path="../../WPFDemo/CoursewarePptxGenerator/CheawuchewalYicheredurlakearja/CheawuchewalYicheredurlakearja.csproj" />
+  <Project Path="../../WPFDemo/CoursewarePptxGenerator/CoursewarePptxGeneratorWpfDemo.Tests/CoursewarePptxGeneratorWpfDemo.Tests.csproj" />
   <Project Path="Code/PptxGenerator.Core/PptxGenerator.Core.csproj" />
   <Project Path="Code/PptxGenerator.Tests/PptxGenerator.Tests.csproj" />
   <Project Path="Code/PptxGeneratorAvaloniaDemo/PptxGeneratorAvaloniaDemo.csproj" />

@@ -69,7 +69,7 @@
 
 ### 目标项目现状
 
-目标项目：`WPFDemo/CoursewarePptxGenerator/CoursewarePptxGeneratorWpfDemo`
+目标项目：`Pptx/PptxGenerator/Code/CoursewarePptxGeneratorWpfDemo`
 
 当前状态：
 

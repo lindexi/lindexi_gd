@@ -127,7 +127,13 @@ public sealed class MainWindowCompositionTests
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            var candidate = Path.Join(directory.FullName, "CoursewarePptxGeneratorWpfDemo", "MainWindow.xaml");
+            var candidate = Path.Join(
+                directory.FullName,
+                "Pptx",
+                "PptxGenerator",
+                "Code",
+                "CoursewarePptxGeneratorWpfDemo",
+                "MainWindow.xaml");
             if (File.Exists(candidate))
             {
                 return Path.GetDirectoryName(candidate)!;
@@ -136,7 +142,7 @@ public sealed class MainWindowCompositionTests
             directory = directory.Parent;
         }
 
-        throw new FileNotFoundException("未找到 CoursewarePptxGeneratorWpfDemo/MainWindow.xaml。");
+        throw new FileNotFoundException("未找到 Pptx/PptxGenerator/Code/CoursewarePptxGeneratorWpfDemo/MainWindow.xaml。");
     }
 
     private static DirectoryInfo GetRealCoursewareDirectory()
