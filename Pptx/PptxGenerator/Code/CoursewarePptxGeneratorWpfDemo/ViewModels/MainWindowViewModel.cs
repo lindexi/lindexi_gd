@@ -6,10 +6,10 @@ using System.Windows;
 using System.Windows.Input;
 using AgentLib;
 using CoursewarePptxGeneratorWpfDemo.Models;
-using CoursewarePptxGeneratorWpfDemo.Rendering;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Threading;
 using PptxGenerator;
+using PptxGenerator.Rendering;
 
 namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
 
@@ -357,7 +357,7 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        if (SlideChatManager.SlideMlRenderTool.RenderPipeline is not CoursewareSwitchableSlideMlRenderPipeline renderPipeline)
+        if (SlideChatManager.SlideMlRenderTool.RenderPipeline is not SwitchableSlideMlRenderPipeline renderPipeline)
         {
             McpStatusText = "当前管道不支持 MCP";
             return;
@@ -702,7 +702,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private void RefreshMcpStatusText()
     {
-        McpStatusText = SlideChatManager.SlideMlRenderTool.RenderPipeline is CoursewareSwitchableSlideMlRenderPipeline { IsMcpEnabled: true }
+        McpStatusText = SlideChatManager.SlideMlRenderTool.RenderPipeline is SwitchableSlideMlRenderPipeline { IsMcpEnabled: true }
             ? "MCP 已连接"
             : "本地渲染";
     }

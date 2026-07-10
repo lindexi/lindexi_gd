@@ -23,15 +23,4 @@
     <ProjectReference Include="..\PptxGenerator.Wpf\PptxGenerator.Wpf.csproj" />
   </ItemGroup>
 
-
-  <ItemGroup>
-    <None Update="app.manifest" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <Folder Include="Core\SlideMl\Rendering\" />
-    <Folder Include="Models\" />
-  </ItemGroup>
-
 </Project>

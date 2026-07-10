@@ -2,7 +2,6 @@ using System.IO;
 using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-using CoursewarePptxGeneratorWpfDemo.Rendering;
 using CoursewarePptxGeneratorWpfDemo.Threading;
 using PptxGenerator;
 using PptxGenerator.Evaluation;
@@ -46,7 +45,7 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
             new SlideMlLayoutEngine(),
             new WpfSlideMlRenderEngine(),
             _dispatcher);
-        var renderPipeline = new CoursewareSwitchableSlideMlRenderPipeline(localPipeline);
+        var renderPipeline = new SwitchableSlideMlRenderPipeline(localPipeline);
         _ = Task.Run(async () =>
         {
             _ = await renderPipeline.TryEnableMcpAsync(DefaultMcpServiceUrl).ConfigureAwait(false);

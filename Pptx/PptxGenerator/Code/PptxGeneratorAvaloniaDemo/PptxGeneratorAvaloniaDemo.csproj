@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\PptxGenerator.Wpf\Rendering\McpSlideMlRenderPipeline.cs"
+             Link="Core\SlideMl\Rendering\McpSlideMlRenderPipeline.cs" />
+    <Compile Include="..\PptxGenerator.Wpf\Rendering\McpSlideMlRenderResult.cs"
+             Link="Core\SlideMl\Rendering\McpSlideMlRenderResult.cs" />
     <Compile Include="..\PptxGenerator.Wpf\Rendering\SwitchableSlideMlRenderPipeline.cs"
              Link="Core\SlideMl\Rendering\SwitchableSlideMlRenderPipeline.cs" />
   </ItemGroup>
