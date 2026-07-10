@@ -1,8 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
+
 using AgentLib.Model;
 
-namespace CoursewarePptxGeneratorWpfDemo.Ui;
+namespace CoursewarePptxGeneratorWpfDemo.Views;
 
 /// <summary>
 /// Selects a data template for Copilot chat message items.

@@ -6,8 +6,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sys="clr-namespace:System.IO;assembly=System.Runtime"
-             xmlns:ui="clr-namespace:CoursewarePptxGeneratorWpfDemo.Ui"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
+             xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
              Background="{StaticResource LightBackgroundBrush}"
              d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="760"
@@ -16,13 +16,13 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
 
-        <ui:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
-            <ui:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
+        <views:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
+            <views:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
                 <DataTemplate DataType="{x:Type agent:CopilotChatTextItem}">
                     <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" />
                 </DataTemplate>
-            </ui:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
-            <ui:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
+            </views:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
+            <views:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
                 <DataTemplate DataType="{x:Type agent:CopilotChatReasoningItem}">
                     <Border Background="#FFF1F5F9" BorderBrush="#FFCBD5E1" BorderThickness="3,0,0,0" CornerRadius="4" Padding="12,8" Margin="0,2">
                         <StackPanel>
@@ -31,8 +31,8 @@
                         </StackPanel>
                     </Border>
                 </DataTemplate>
-            </ui:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
-            <ui:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
+            </views:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
+            <views:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
                 <DataTemplate DataType="{x:Type agent:CopilotChatToolItem}">
                     <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="0,2">
                         <StackPanel>
@@ -61,8 +61,8 @@
                         </StackPanel>
                     </Border>
                 </DataTemplate>
-            </ui:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
-            <ui:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
+            </views:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
+            <views:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
                 <DataTemplate DataType="{x:Type agent:CopilotChatSubAgentItem}">
                     <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="0,2">
                         <StackPanel>
@@ -80,20 +80,20 @@
                         </StackPanel>
                     </Border>
                 </DataTemplate>
-            </ui:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
-            <ui:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
+            </views:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
+            <views:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
                 <DataTemplate DataType="{x:Type agent:CopilotChatImageItem}">
                     <Image Source="{Binding Data, Converter={x:Static converters:BinaryDataToBitmapConverter.Instance}}" MaxWidth="320" Stretch="Uniform" Margin="0,4" />
                 </DataTemplate>
-            </ui:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
-            <ui:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
+            </views:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
+            <views:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
                 <DataTemplate DataType="{x:Type agent:CopilotChatAudioItem}">
                     <Border Background="#FFF1F5F9" CornerRadius="8" Padding="12,8">
                         <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
                     </Border>
                 </DataTemplate>
-            </ui:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
-        </ui:CopilotChatMessageItemTemplateSelector>
+            </views:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
+        </views:CopilotChatMessageItemTemplateSelector>
     </UserControl.Resources>
 
     <Grid>
