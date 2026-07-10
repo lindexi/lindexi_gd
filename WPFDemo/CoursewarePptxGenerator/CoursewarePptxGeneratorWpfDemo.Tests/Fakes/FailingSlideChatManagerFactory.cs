@@ -10,4 +10,9 @@ internal sealed class FailingSlideChatManagerFactory : ISlideChatManagerFactory
     {
         throw new InvalidOperationException("聊天管理器初始化失败。");
     }
+
+    public SlideChatManager CreateFallback()
+    {
+        return new FakeSlideChatManagerFactory().CreateFallback();
+    }
 }

@@ -67,9 +67,7 @@ public sealed class CoursewareFolderLoader
         {
             RootDirectory = rootDirectory,
             CoursewareName = coursewareName,
-            ManifestSlideCount = manifest.SlideCount,
             Slides = slides,
-            ResourcesIndexFile = resourcesResult.ResourcesIndexFile,
             Resources = resourcesResult.Resources,
             Warnings = warnings,
         };
@@ -96,7 +94,6 @@ public sealed class CoursewareFolderLoader
         if (manifest.SlideCount != manifest.Slides.Count)
         {
             warnings.Add(new CoursewareLoadWarning(
-                CoursewareLoadWarningLevel.Warning,
                 "SlideCountMismatch",
                 $"课件声明页数 {manifest.SlideCount} 与页面列表数量 {manifest.Slides.Count} 不一致。"));
         }
@@ -191,7 +188,7 @@ public sealed class CoursewareFolderLoader
     {
         if (string.IsNullOrWhiteSpace(resourcesFilePath))
         {
-            warnings.Add(new CoursewareLoadWarning(CoursewareLoadWarningLevel.Warning, "MissingResourcesFile", "课件清单未声明资源索引文件。"));
+            warnings.Add(new CoursewareLoadWarning("MissingResourcesFile", "课件清单未声明资源索引文件。"));
             return (null, []);
         }
 
@@ -199,7 +196,7 @@ public sealed class CoursewareFolderLoader
         var resourcesIndexFile = new FileInfo(resourcesIndexPath);
         if (!resourcesIndexFile.Exists)
         {
-            warnings.Add(new CoursewareLoadWarning(CoursewareLoadWarningLevel.Warning, "MissingResourcesIndex", "资源索引文件不存在。", resourcesFilePath));
+            warnings.Add(new CoursewareLoadWarning("MissingResourcesIndex", "资源索引文件不存在。", resourcesFilePath));
             return (null, []);
         }
 
@@ -211,7 +208,7 @@ public sealed class CoursewareFolderLoader
             cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(resource.ExportFile))
             {
-                warnings.Add(new CoursewareLoadWarning(CoursewareLoadWarningLevel.Warning, "MissingResourceExportFile", "资源条目缺少 exportFile。"));
+                warnings.Add(new CoursewareLoadWarning("MissingResourceExportFile", "资源条目缺少 exportFile。"));
                 resolvedResources.Add(resource with { Exists = false });
                 continue;
             }
@@ -220,7 +217,7 @@ public sealed class CoursewareFolderLoader
             var exists = File.Exists(resolvedPath);
             if (!exists)
             {
-                warnings.Add(new CoursewareLoadWarning(CoursewareLoadWarningLevel.Warning, "MissingResourceFile", "资源文件不存在。", resource.ExportFile));
+                warnings.Add(new CoursewareLoadWarning("MissingResourceFile", "资源文件不存在。", resource.ExportFile));
             }
 
             resolvedResources.Add(resource with
@@ -292,7 +289,7 @@ public sealed class CoursewareFolderLoader
         string? relativePath,
         int slideIndex)
     {
-        var warning = new CoursewareLoadWarning(CoursewareLoadWarningLevel.Warning, code, message, relativePath, slideIndex);
+        var warning = new CoursewareLoadWarning(code, message, relativePath, slideIndex);
         slideWarnings.Add(warning);
         allWarnings.Add(warning);
     }

@@ -39,18 +39,13 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
     public async Task<SlideChatManager> CreateAsync()
     {
         var copilotChatManager = await CreateCopilotChatManagerAsync(useMainThreadDispatcher: true).ConfigureAwait(false);
-
-        var localPipeline = new SlideMlRenderPipeline(
-            new SlideMlLayoutEngine(),
-            new WpfSlideMlRenderEngine(),
-            _dispatcher);
-        var renderPipeline = new SwitchableSlideMlRenderPipeline(localPipeline);
+        var renderPipeline = CreateRenderPipeline();
         _ = Task.Run(async () =>
         {
             _ = await renderPipeline.TryEnableMcpAsync(DefaultMcpServiceUrl).ConfigureAwait(false);
         });
 
-        var slideMlRenderTool = new SlideMlRenderTool(renderPipeline, _dispatcher);
+        var slideMlRenderTool = CreateRenderTool(renderPipeline);
 
         var evaluatorChatManager = await CreateCopilotChatManagerAsync(useMainThreadDispatcher: false).ConfigureAwait(false);
         var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
@@ -63,6 +58,27 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
             slideEvaluator: slideEvaluator,
             promptEvaluator: promptEvaluator,
             promptOptimizer: promptOptimizer);
+    }
+
+    /// <inheritdoc />
+    public SlideChatManager CreateFallback()
+    {
+        var copilotChatManager = new CopilotChatManager { MainThreadDispatcher = _dispatcher };
+        return new SlideChatManager(copilotChatManager, CreateRenderTool(CreateRenderPipeline()));
+    }
+
+    private SwitchableSlideMlRenderPipeline CreateRenderPipeline()
+    {
+        var localPipeline = new SlideMlRenderPipeline(
+            new SlideMlLayoutEngine(),
+            new WpfSlideMlRenderEngine(),
+            _dispatcher);
+        return new SwitchableSlideMlRenderPipeline(localPipeline);
+    }
+
+    private SlideMlRenderTool CreateRenderTool(ISlideMlRenderPipeline renderPipeline)
+    {
+        return new SlideMlRenderTool(renderPipeline, _dispatcher);
     }
 
     private async Task<CopilotChatManager> CreateCopilotChatManagerAsync(bool useMainThreadDispatcher)

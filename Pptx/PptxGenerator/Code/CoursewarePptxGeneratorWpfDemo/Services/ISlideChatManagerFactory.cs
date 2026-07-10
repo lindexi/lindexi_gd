@@ -12,4 +12,10 @@ public interface ISlideChatManagerFactory
     /// </summary>
     /// <returns>The configured <see cref="SlideChatManager" />.</returns>
     Task<SlideChatManager> CreateAsync();
+
+    /// <summary>
+    /// Creates an independent local fallback manager when configured chat initialization fails.
+    /// </summary>
+    /// <returns>An independent manager with local rendering support.</returns>
+    SlideChatManager CreateFallback();
 }

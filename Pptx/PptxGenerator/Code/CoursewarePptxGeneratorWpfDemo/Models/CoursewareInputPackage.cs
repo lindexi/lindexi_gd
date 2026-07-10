@@ -23,19 +23,9 @@ public sealed class CoursewareInputPackage
     public int SlideCount => Slides.Count;
 
     /// <summary>
-    /// Gets the slide count declared by the manifest.
-    /// </summary>
-    public required int ManifestSlideCount { get; init; }
-
-    /// <summary>
     /// Gets the loaded slides.
     /// </summary>
     public IReadOnlyList<CoursewareSlideInput> Slides { get; init; } = [];
-
-    /// <summary>
-    /// Gets the resources index file, if available.
-    /// </summary>
-    public FileInfo? ResourcesIndexFile { get; init; }
 
     /// <summary>
     /// Gets the loaded resources.

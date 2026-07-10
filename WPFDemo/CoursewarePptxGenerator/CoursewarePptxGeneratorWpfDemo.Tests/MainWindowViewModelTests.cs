@@ -52,6 +52,7 @@ public sealed class MainWindowViewModelTests
     {
         var exportDirectory = new TestCoursewareExportBuilder()
             .AddSlide("slide-alpha", "# Slide 1\n\n## 第一页主题\n第一页 Markdown 内容。")
+            .AddSlide("slide-beta", "# Slide 2\n\n## 第二页主题\n第二页 Markdown 内容。")
             .Build();
         var firstChatManager = await new FakeSlideChatManagerFactory().CreateAsync();
         var viewModel = new MainWindowViewModel(
@@ -63,12 +64,14 @@ public sealed class MainWindowViewModelTests
 
         await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
 
-        Assert.HasCount(1, viewModel.Slides);
+        Assert.HasCount(2, viewModel.Slides);
         Assert.AreEqual("slide-alpha", viewModel.Slides[0].SlideId);
         Assert.AreSame(viewModel.Slides[0], viewModel.SelectedSlide);
+        Assert.AreNotSame(firstChatManager, viewModel.Slides[0].SlideChatManager);
+        Assert.AreNotSame(viewModel.Slides[0].SlideChatManager, viewModel.Slides[1].SlideChatManager);
         StringAssert.Contains(viewModel.InputText, "页面 Id：slide-alpha");
         StringAssert.Contains(viewModel.InputText, "第一页 Markdown 内容");
-        StringAssert.Contains(viewModel.StatusText, "已加载 1 页");
+        StringAssert.Contains(viewModel.StatusText, "已加载 2 页");
     }
 
 }

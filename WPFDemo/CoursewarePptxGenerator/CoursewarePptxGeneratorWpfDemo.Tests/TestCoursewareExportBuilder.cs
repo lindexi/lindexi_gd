@@ -8,8 +8,6 @@ internal sealed class TestCoursewareExportBuilder
 {
     private readonly List<TestSlideEntry> _slides = new();
     private readonly List<CoursewareResourceEntry> _resources = new();
-    private bool _writeResourcesFile = true;
-
     public DirectoryInfo RootDirectory { get; }
 
     public TestCoursewareExportBuilder()
@@ -51,12 +49,6 @@ internal sealed class TestCoursewareExportBuilder
         return this;
     }
 
-    public TestCoursewareExportBuilder WithoutResourcesFile()
-    {
-        _writeResourcesFile = false;
-        return this;
-    }
-
     public DirectoryInfo Build()
     {
         var manifest = new CoursewareExportManifest
@@ -65,7 +57,7 @@ internal sealed class TestCoursewareExportBuilder
             CreatedAt = DateTimeOffset.Parse("2026-07-07T10:20:13+08:00"),
             CoursewareName = "测试课件",
             SlideCount = _slides.Count,
-            ResourcesFile = _writeResourcesFile ? "resources/resources.json" : null,
+            ResourcesFile = "resources/resources.json",
             Slides = _slides.Select(slide => new CoursewareExportSlideEntry
             {
                 SlideIndex = slide.SlideIndex,
@@ -78,10 +70,7 @@ internal sealed class TestCoursewareExportBuilder
         };
 
         WriteJson("courseware.json", manifest, CoursewareExportJsonSerializerContext.Default.CoursewareExportManifest);
-        if (_writeResourcesFile)
-        {
-            WriteJson("resources/resources.json", new CoursewareResourceManifest { Resources = _resources }, CoursewareExportJsonSerializerContext.Default.CoursewareResourceManifest);
-        }
+        WriteJson("resources/resources.json", new CoursewareResourceManifest { Resources = _resources }, CoursewareExportJsonSerializerContext.Default.CoursewareResourceManifest);
 
         return RootDirectory;
     }

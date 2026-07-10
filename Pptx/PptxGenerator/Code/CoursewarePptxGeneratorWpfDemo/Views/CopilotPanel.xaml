@@ -194,8 +194,7 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <Button x:Name="AttachImageButton"
-                        Content="添加图片"
+                <Button Content="添加图片"
                         DockPanel.Dock="Right"
                         HorizontalAlignment="Left"
                         MinWidth="88"

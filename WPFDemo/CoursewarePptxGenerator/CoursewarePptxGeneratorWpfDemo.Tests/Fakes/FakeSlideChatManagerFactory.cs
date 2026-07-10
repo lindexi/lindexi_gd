@@ -11,6 +11,11 @@ internal sealed class FakeSlideChatManagerFactory : ISlideChatManagerFactory
 {
     public Task<SlideChatManager> CreateAsync()
     {
+        return Task.FromResult(CreateFallback());
+    }
+
+    public SlideChatManager CreateFallback()
+    {
         var fakeChatClient = new FakeChatClient
         {
             OnGetStreamingResponseAsync = (_, _, _) => StreamResponseAsync(),
@@ -22,7 +27,7 @@ internal sealed class FakeSlideChatManagerFactory : ISlideChatManagerFactory
 
         var dispatcher = new FakeMainThreadDispatcher();
         var renderTool = new SlideMlRenderTool(new FakeSlideMlRenderPipeline(), dispatcher);
-        return Task.FromResult(new SlideChatManager(copilotChatManager, renderTool));
+        return new SlideChatManager(copilotChatManager, renderTool);
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> StreamResponseAsync()

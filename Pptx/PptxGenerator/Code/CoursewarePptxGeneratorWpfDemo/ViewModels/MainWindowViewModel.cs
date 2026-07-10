@@ -75,8 +75,6 @@ public sealed class MainWindowViewModel : ObservableObject
         _rerenderCommand = new RelayCommand(_ => _ = RerenderAsync(), _ => !IsBusy && !string.IsNullOrWhiteSpace(EditableSlideXml));
         _connectMcpCommand = new RelayCommand(_ => _ = ConnectMcpAsync(), _ => !IsBusy && !IsConnectingMcp && !string.IsNullOrWhiteSpace(McpServiceUrl));
         AddPageCommand = new RelayCommand(_ => AddEmptyPage());
-        OpenCoursewareFolderCommand = new RelayCommand(parameter => _ = OpenCoursewareFolderAsync(parameter as string), _ => !IsBusy);
-
         var firstSlide = CreateEmptySlide(1, _slideChatManager);
         Slides.Add(firstSlide);
         SelectedSlide = firstSlide;
@@ -120,11 +118,6 @@ public sealed class MainWindowViewModel : ObservableObject
     /// Gets a value indicating whether any preview image is available.
     /// </summary>
     public bool HasAnyPreviewImage => HasRenderedPreviewImage || HasSourceScreenshot;
-
-    /// <summary>
-    /// Gets a value indicating whether the current slide has a rendered preview image.
-    /// </summary>
-    public bool HasPreviewImage => HasRenderedPreviewImage;
 
     /// <summary>
     /// Gets the Copilot chat manager used by the current page.
@@ -299,7 +292,6 @@ public sealed class MainWindowViewModel : ObservableObject
                 _sendMessageCommand.RaiseCanExecuteChanged();
                 _rerenderCommand.RaiseCanExecuteChanged();
                 _connectMcpCommand.RaiseCanExecuteChanged();
-                (OpenCoursewareFolderCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
         }
     }
@@ -328,11 +320,6 @@ public sealed class MainWindowViewModel : ObservableObject
     /// Gets the command that adds an empty page.
     /// </summary>
     public ICommand AddPageCommand { get; }
-
-    /// <summary>
-    /// Gets the command that opens a courseware folder.
-    /// </summary>
-    public ICommand OpenCoursewareFolderCommand { get; }
 
     /// <summary>
     /// Adds image attachments selected by the view.
@@ -464,7 +451,6 @@ public sealed class MainWindowViewModel : ObservableObject
                 OnPropertyChanged(nameof(HasRenderedPreviewImage));
                 OnPropertyChanged(nameof(ShowSourceScreenshot));
                 OnPropertyChanged(nameof(HasAnyPreviewImage));
-                OnPropertyChanged(nameof(HasPreviewImage));
                 OnPropertyChanged(nameof(SlideChatManager));
                 break;
             case nameof(SlideChatManager.RenderedXml):
@@ -509,15 +495,15 @@ public sealed class MainWindowViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            StatusText = "操作已取消";
+            await _dispatcher.InvokeAsync(() => StatusText = "操作已取消");
         }
         catch (Exception)
         {
-            StatusText = "处理失败";
+            await _dispatcher.InvokeAsync(() => StatusText = "处理失败");
         }
         finally
         {
-            IsBusy = false;
+            await _dispatcher.InvokeAsync(() => IsBusy = false);
         }
     }
 
@@ -542,15 +528,15 @@ public sealed class MainWindowViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            StatusText = "重新加载已取消";
+            await _dispatcher.InvokeAsync(() => StatusText = "重新加载已取消");
         }
         catch (Exception)
         {
-            StatusText = "重新加载失败";
+            await _dispatcher.InvokeAsync(() => StatusText = "重新加载失败");
         }
         finally
         {
-            IsBusy = false;
+            await _dispatcher.InvokeAsync(() => IsBusy = false);
         }
     }
 
@@ -575,7 +561,6 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(HasSourceScreenshot));
         OnPropertyChanged(nameof(ShowSourceScreenshot));
         OnPropertyChanged(nameof(HasAnyPreviewImage));
-        OnPropertyChanged(nameof(HasPreviewImage));
         RefreshMcpStatusText();
     }
 
@@ -601,17 +586,13 @@ public sealed class MainWindowViewModel : ObservableObject
             SlideChatManager = slideChatManager,
             PageNumber = input.PageNumber,
             SlideId = input.SlideId,
-            SlideIndex = input.SlideIndex,
             Width = input.Width,
             Height = input.Height,
             Title = _slideSummaryService.CreateTitle(input.MarkdownText, input.PageNumber),
             Summary = _slideSummaryService.CreateSummary(input.MarkdownText),
             Status = initializationError is null ? status : $"{status}，聊天初始化失败",
-            SourceMarkdownFilePath = input.MarkdownFile.FullName,
             SourceMarkdownText = input.MarkdownText,
             SourceScreenshotFilePath = input.ScreenshotFile?.FullName,
-            LoadWarnings = input.Warnings,
-            ErrorMessage = initializationError,
             SlideMl = string.Empty,
             RenderingLog = initializationError is null ? "尚未执行渲染。" : $"聊天管理器初始化失败：{initializationError}",
             CallbackXml = string.Empty,
@@ -626,15 +607,15 @@ public sealed class MainWindowViewModel : ObservableObject
         }
         catch (InvalidOperationException ex)
         {
-            return (_slideChatManager, ex.Message);
+            return (_slideChatManagerFactory.CreateFallback(), ex.Message);
         }
         catch (IOException ex)
         {
-            return (_slideChatManager, ex.Message);
+            return (_slideChatManagerFactory.CreateFallback(), ex.Message);
         }
         catch (UnauthorizedAccessException ex)
         {
-            return (_slideChatManager, ex.Message);
+            return (_slideChatManagerFactory.CreateFallback(), ex.Message);
         }
     }
 
@@ -645,7 +626,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private static string CreateLoadedStatusText(CoursewareInputPackage package)
     {
-        var warningCount = package.Warnings.Count(warning => warning.Level == CoursewareLoadWarningLevel.Warning);
+        var warningCount = package.Warnings.Count;
         return warningCount == 0
             ? $"已加载 {package.SlideCount} 页，等待主题分析"
             : $"已加载 {package.SlideCount} 页，存在 {warningCount} 个警告，等待主题分析";
@@ -696,7 +677,6 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(HasRenderedPreviewImage));
         OnPropertyChanged(nameof(ShowSourceScreenshot));
         OnPropertyChanged(nameof(HasAnyPreviewImage));
-        OnPropertyChanged(nameof(HasPreviewImage));
         RefreshMcpStatusText();
     }
 
@@ -714,13 +694,11 @@ public sealed class MainWindowViewModel : ObservableObject
             SlideChatManager = slideChatManager,
             PageNumber = pageNumber,
             SlideId = $"empty-{pageNumber}",
-            SlideIndex = pageNumber - 1,
             Width = 1280,
             Height = 720,
             Title = $"未命名页面 {pageNumber}",
             Summary = "尚未加载页面内容。",
             Status = "Empty",
-            SourceMarkdownFilePath = string.Empty,
             SourceMarkdownText = string.Empty,
             SlideMl = string.Empty,
             RenderingLog = "尚未执行渲染。",
