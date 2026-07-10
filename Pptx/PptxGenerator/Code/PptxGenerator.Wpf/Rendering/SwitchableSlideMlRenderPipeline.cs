@@ -1,18 +1,21 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 using DotNetCampus.ModelContextProtocol.Clients;
 using DotNetCampus.ModelContextProtocol.Protocol.Messages;
 using PptxGenerator.Models;
-using PptxGenerator.Rendering;
 
-namespace PptxGenerator;
+namespace PptxGenerator.Rendering;
 
 /// <summary>
-/// 可切换的 SlideML 渲染管道。内部持有一个默认的本地渲染管道和一个可选的 MCP 远程渲染管道。
-/// 当 MCP 管道可用时自动切换为 MCP 渲染；不可用时回退到默认本地渲染。
+/// 可切换的 SlideML 渲染管道，优先使用 MCP 远程渲染，未连接时回退到本地渲染。
 /// </summary>
-internal sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
+public sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
 {
     private readonly ISlideMlRenderPipeline _defaultPipeline;
     private McpSlideMlRenderPipeline? _mcpPipeline;
@@ -20,7 +23,7 @@ internal sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
     /// <summary>
     /// 初始化 <see cref="SwitchableSlideMlRenderPipeline"/> 的新实例。
     /// </summary>
-    /// <param name="defaultPipeline">默认的本地渲染管道。</param>
+    /// <param name="defaultPipeline">默认本地渲染管道。</param>
     public SwitchableSlideMlRenderPipeline(ISlideMlRenderPipeline defaultPipeline)
     {
         ArgumentNullException.ThrowIfNull(defaultPipeline);
@@ -28,18 +31,17 @@ internal sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
     }
 
     /// <summary>
-    /// 获取当前是否已切换到 MCP 渲染管道。
+    /// 获取当前是否已启用 MCP 渲染管道。
     /// </summary>
     public bool IsMcpEnabled => _mcpPipeline is not null;
 
     /// <summary>
-    /// 尝试连接 MCP 服务并切换到 MCP 渲染管道。
-    /// 连接失败或未找到渲染工具时保持使用默认本地渲染管道。
+    /// 尝试连接 MCP 服务并切换到 MCP 渲染管道；失败时回退到本地渲染。
     /// </summary>
     /// <param name="mcpServiceUrl">MCP 服务地址。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>是否成功切换到 MCP 渲染管道。</returns>
-    public async Task<bool> TryEnableMcpAsync(string mcpServiceUrl, CancellationToken cancellationToken = default)
+    /// <returns>连接并切换成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
+    public async Task<bool> TryEnableMcpAsync(string? mcpServiceUrl, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(mcpServiceUrl))
         {
@@ -93,20 +95,11 @@ internal sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
     }
 }
 
-/// <summary>
-/// 基于 MCP 工具的 SlideML 渲染管道实现。
-/// 通过连接外部 MCP 服务器，调用其提供的渲染工具完成 SlideML 渲染。
-/// </summary>
 internal sealed class McpSlideMlRenderPipeline : ISlideMlRenderPipeline
 {
     private readonly McpClient _mcpClient;
     private readonly string _renderToolName;
 
-    /// <summary>
-    /// 初始化 <see cref="McpSlideMlRenderPipeline"/> 的新实例。
-    /// </summary>
-    /// <param name="mcpClient">已连接的 MCP 客户端。</param>
-    /// <param name="renderToolName">MCP 服务器上渲染工具的名称。</param>
     public McpSlideMlRenderPipeline(McpClient mcpClient, string renderToolName)
     {
         ArgumentNullException.ThrowIfNull(mcpClient);
@@ -119,7 +112,6 @@ internal sealed class McpSlideMlRenderPipeline : ISlideMlRenderPipeline
         _renderToolName = renderToolName;
     }
 
-    /// <inheritdoc />
     public async Task<SlideMlRenderResult> RenderAsync(string slideXml, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(slideXml))
@@ -128,10 +120,8 @@ internal sealed class McpSlideMlRenderPipeline : ISlideMlRenderPipeline
         }
 
         var jsonObject = new JsonObject { ["slideXml"] = slideXml };
-        var jsonString = jsonObject.ToJsonString();
-        var jsonElement = JsonElement.Parse(jsonString);
-
-        var callToolResult = await _mcpClient.CallToolAsync(_renderToolName, jsonElement, cancellationToken)
+        using var jsonDocument = JsonDocument.Parse(jsonObject.ToJsonString());
+        var callToolResult = await _mcpClient.CallToolAsync(_renderToolName, jsonDocument.RootElement, cancellationToken)
             .ConfigureAwait(false);
 
         if (callToolResult.IsError is true)
@@ -185,4 +175,15 @@ internal sealed class McpSlideMlRenderPipeline : ISlideMlRenderPipeline
             PreviewImage = previewImage,
         };
     }
+}
+
+internal sealed record McpSlideMlRenderResult
+{
+    public required string OutputXml { get; init; }
+
+    public required IReadOnlyList<string> Warnings { get; init; }
+
+    public required IReadOnlyList<string> Errors { get; init; }
+
+    public required string PreviewImageFilePath { get; init; }
 }

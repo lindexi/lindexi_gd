@@ -30,6 +30,7 @@
 
 
   <ItemGroup>
+    <Folder Include="Core\SlideMl\Rendering\" />
     <Folder Include="Models\" />
   </ItemGroup>
 

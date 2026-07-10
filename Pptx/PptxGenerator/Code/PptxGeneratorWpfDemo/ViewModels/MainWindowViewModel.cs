@@ -4,6 +4,7 @@ using AgentLib.Model;
 using Microsoft.Extensions.AI;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
+using PptxGenerator.Rendering;
 
 using System;
 using System.Collections.ObjectModel;
