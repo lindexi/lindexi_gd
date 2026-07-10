@@ -5,7 +5,7 @@ using CoursewarePptxGeneratorWpfDemo.Models;
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
 /// <summary>
-/// Loads courseware Markdown export folders from the local file system.
+/// 从本地文件系统加载课件 Markdown 导出目录。
 /// </summary>
 public sealed class CoursewareFolderLoader
 {
@@ -15,14 +15,14 @@ public sealed class CoursewareFolderLoader
     private const string ManifestFileName = "courseware.json";
 
     /// <summary>
-    /// Loads and validates a courseware Markdown export folder.
+    /// 加载并验证课件 Markdown 导出目录。
     /// </summary>
-    /// <param name="folderPath">The folder path selected by the user.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The loaded courseware input package.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="folderPath" /> is empty.</exception>
-    /// <exception cref="DirectoryNotFoundException">Thrown when the folder does not exist.</exception>
-    /// <exception cref="InvalidDataException">Thrown when the export folder is invalid.</exception>
+    /// <param name="folderPath">用户选择的目录路径。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>加载完成的课件输入包。</returns>
+    /// <exception cref="ArgumentException">当 <paramref name="folderPath" /> 为空时抛出。</exception>
+    /// <exception cref="DirectoryNotFoundException">当目录不存在时抛出。</exception>
+    /// <exception cref="InvalidDataException">当导出目录无效时抛出。</exception>
     public async Task<CoursewareInputPackage> LoadAsync(string folderPath, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(folderPath))
