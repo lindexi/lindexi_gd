@@ -1,0 +1,6 @@
+﻿<Project>
+  <PropertyGroup>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+</Project>
