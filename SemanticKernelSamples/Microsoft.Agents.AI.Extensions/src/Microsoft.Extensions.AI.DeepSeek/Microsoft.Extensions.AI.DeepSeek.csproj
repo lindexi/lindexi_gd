@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <SuppressTfmSupportBuildWarnings Condition="'$(TargetFramework)' == 'net6.0'">true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>

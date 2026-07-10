@@ -256,7 +256,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
             existingItem.ToolName = normalizedToolName;
             existingItem.InputText = normalizedInputText;
             existingItem.ApprovalDescription = resolvedApprovalDescription;
-            existingItem.DisplayName = displayName;
+            existingItem.DisplayName = displayName ?? string.Empty;
             return existingItem;
         }
 
@@ -275,7 +275,7 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
             }
 
             pendingItem.ApprovalDescription = resolvedApprovalDescription;
-            pendingItem.DisplayName = displayName;
+            pendingItem.DisplayName = displayName ?? string.Empty;
             return pendingItem;
         }
 

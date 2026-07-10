@@ -40,7 +40,7 @@ public class CopilotChatManagerToolCallChatReducerTests
 
         Assert.IsNotNull(result);
         var resultList = result.ToList();
-        Assert.IsTrue(resultList.Count < messages.Count, "压缩后消息数量应减少");
+        Assert.IsLessThan(messages.Count, resultList.Count, "压缩后消息数量应减少");
         Assert.IsTrue(resultList.Any(m => m.Text?.Contains(summaryText) == true), "应包含摘要内容");
     }
 
@@ -68,7 +68,7 @@ public class CopilotChatManagerToolCallChatReducerTests
 
         Assert.IsNotNull(result);
         var resultList = result.ToList();
-        Assert.AreEqual(messages.Count, resultList.Count, "未超过阈值时消息数量应保持不变");
+        Assert.HasCount(messages.Count, resultList, "未超过阈值时消息数量应保持不变");
     }
 
     [TestMethod]
@@ -112,7 +112,7 @@ public class CopilotChatManagerToolCallChatReducerTests
 
         Assert.IsNotNull(result);
         var resultList = result.ToList();
-        Assert.IsTrue(resultList.Count < messages.Count, "压缩后消息数量应减少");
+        Assert.IsLessThan(messages.Count, resultList.Count, "压缩后消息数量应减少");
         Assert.IsTrue(resultList.Any(m => m.Text?.Contains(summaryText) == true), "应包含摘要内容");
     }
 

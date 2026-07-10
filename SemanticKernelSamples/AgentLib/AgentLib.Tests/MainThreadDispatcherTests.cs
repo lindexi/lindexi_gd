@@ -303,9 +303,9 @@ public class MainThreadDispatcherTests
 
         Assert.IsNotNull(exception,
             "严格模式下，CheckAccess 在非主线程调用时应抛出 InvalidOperationException");
-        Assert.IsTrue(exception.Message.Contains("非主线程"),
+        Assert.Contains("非主线程", exception.Message,
             "异常消息应包含'非主线程'");
-        Assert.IsTrue(exception.Message.Contains(dispatcher.MainThreadId.ToString()),
+        Assert.Contains(dispatcher.MainThreadId.ToString(), exception.Message,
             "异常消息应包含期望的主线程 ID");
     }
 
