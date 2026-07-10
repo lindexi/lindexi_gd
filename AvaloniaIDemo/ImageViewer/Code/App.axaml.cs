@@ -6,6 +6,8 @@ namespace ImageViewer;
 
 public partial class App : Application
 {
+    private static MainWindow? MainWindowInstance { get; set; }
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -15,9 +17,15 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            MainWindowInstance = new MainWindow(desktop.Args);
+            desktop.MainWindow = MainWindowInstance;
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    public static void OpenFromExternalInstance(string filePath)
+    {
+        MainWindowInstance?.OpenFromExternalInstance(filePath);
     }
 }
