@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
-namespace CoursewarePptxGeneratorWpfDemo.Converters;
+namespace CoursewarePptxGeneratorWpfDemo.Views.Converters;
 
 /// <summary>
 /// Converts a file path to an image source.

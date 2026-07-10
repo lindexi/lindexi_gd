@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace CoursewarePptxGeneratorWpfDemo.Converters;
+namespace CoursewarePptxGeneratorWpfDemo.Views.Converters;
 
 /// <summary>
 /// Converts a boolean value to inverse visibility.

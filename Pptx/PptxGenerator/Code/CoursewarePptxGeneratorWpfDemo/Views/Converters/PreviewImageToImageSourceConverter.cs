@@ -4,7 +4,7 @@ using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using PptxGenerator.Models;
 
-namespace CoursewarePptxGeneratorWpfDemo.Converters;
+namespace CoursewarePptxGeneratorWpfDemo.Views.Converters;
 
 /// <summary>
 /// Converts a preview image to an image source.

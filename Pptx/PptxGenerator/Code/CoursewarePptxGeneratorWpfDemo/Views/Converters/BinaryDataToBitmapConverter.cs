@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
-namespace CoursewarePptxGeneratorWpfDemo.Converters;
+namespace CoursewarePptxGeneratorWpfDemo.Views.Converters;
 
 /// <summary>
 /// Converts binary image data to a bitmap image.

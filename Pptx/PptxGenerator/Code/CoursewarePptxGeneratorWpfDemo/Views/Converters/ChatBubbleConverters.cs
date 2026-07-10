@@ -4,7 +4,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using Microsoft.Extensions.AI;
 
-namespace CoursewarePptxGeneratorWpfDemo.Converters;
+namespace CoursewarePptxGeneratorWpfDemo.Views.Converters;
 
 /// <summary>
 /// Converts a chat role to chat bubble alignment.
