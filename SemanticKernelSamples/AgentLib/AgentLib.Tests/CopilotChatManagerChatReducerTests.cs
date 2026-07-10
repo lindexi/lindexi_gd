@@ -47,7 +47,7 @@ public class CopilotChatManagerChatReducerTests
         await context.ChatManager.ReduceSessionAsync();
 
         Assert.IsNotNull(capturedMessages, "Reducer 应该收到消息");
-        Assert.IsTrue(capturedMessages.Count >= 2, "消息数量应至少包含历史对话");
+        Assert.IsGreaterThanOrEqualTo(2, capturedMessages.Count, "消息数量应至少包含历史对话");
         Assert.IsTrue(capturedMessages.Any(m => m.Role == ChatRole.System), "应包含系统 prompt");
     }
 
@@ -111,7 +111,7 @@ public class CopilotChatManagerChatReducerTests
 
         // 装饰器应跳过压缩，原样返回
         var resultList = result.ToList();
-        Assert.AreEqual(messages.Count, resultList.Count, "未配对工具调用时应原样返回，不压缩");
+        Assert.HasCount(messages.Count, resultList, "未配对工具调用时应原样返回，不压缩");
         Assert.IsFalse(innerReducerCalled, "内部 reducer 不应被调用");
     }
 

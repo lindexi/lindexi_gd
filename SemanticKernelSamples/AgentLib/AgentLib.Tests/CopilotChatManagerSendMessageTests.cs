@@ -465,7 +465,6 @@ public class CopilotChatManagerSendMessageTests
             // 两个 FakeChatClient：primary 和 custom，各自记录是否被调用
             var primaryChatClient = new FakeChatClient();
             var customChatClient = new FakeChatClient();
-            bool primaryWasCalled = false;
             bool customWasCalled = false;
 
             primaryChatClient.OnGetStreamingResponseAsync = (messages, options, cancellationToken) =>
@@ -522,8 +521,8 @@ public class CopilotChatManagerSendMessageTests
 
             await resultWithoutDefaults.RunTask;
 
-            Assert.IsTrue(defaultToolCount > 0, "基准应有默认工具");
-            Assert.AreEqual(0, resultWithoutDefaults.ToolList.Count, "跳过默认工具后应为空");
+            Assert.IsGreaterThan(0, defaultToolCount, "基准应有默认工具");
+            Assert.IsEmpty(resultWithoutDefaults.ToolList, "跳过默认工具后应为空");
         }
 
         private static object? NormalizeResult(object? result)

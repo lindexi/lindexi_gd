@@ -102,7 +102,7 @@ internal class CopilotChatManagerToolCallChatReducer : IChatReducer
 
             return result;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // 忽略
             // 压缩失败，就不影响了
