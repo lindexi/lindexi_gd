@@ -1,4 +1,3 @@
-# 打开课件文件夹功能开发计划
 
 本文基于 `CoursewareFolderOpenWorkflowThinking.md`、`CoursewareMarkdownExportFormat.md` 和 `CoursewareOutputExportFormat.md`，细化 `CoursewarePptxGeneratorWpfDemo` 中“打开课件文件夹”功能的开发计划、设计细节和实现步骤。
 
