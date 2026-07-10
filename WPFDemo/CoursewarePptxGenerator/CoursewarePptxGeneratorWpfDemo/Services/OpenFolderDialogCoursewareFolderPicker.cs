@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Win32;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;
@@ -10,12 +11,14 @@ public sealed class OpenFolderDialogCoursewareFolderPicker : ICoursewareFolderPi
     /// <inheritdoc />
     public string? PickCoursewareFolder()
     {
-        var dialog = new OpenFolderDialog
+        var dialog = new OpenFileDialog
         {
             Title = "选择课件 Markdown 导出文件夹",
-            Multiselect = false,
+            CheckFileExists = false,
+            ValidateNames = false,
+            FileName = "选择文件夹",
         };
 
-        return dialog.ShowDialog() == true ? dialog.FolderName : null;
+        return dialog.ShowDialog() == true ? Path.GetDirectoryName(dialog.FileName) : null;
     }
 }

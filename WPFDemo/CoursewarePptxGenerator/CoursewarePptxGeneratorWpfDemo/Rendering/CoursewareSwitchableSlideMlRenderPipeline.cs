@@ -107,7 +107,10 @@ internal sealed class CoursewareMcpSlideMlRenderPipeline : ISlideMlRenderPipelin
     public CoursewareMcpSlideMlRenderPipeline(McpClient mcpClient, string renderToolName)
     {
         ArgumentNullException.ThrowIfNull(mcpClient);
-        ArgumentException.ThrowIfNullOrWhiteSpace(renderToolName);
+        if (string.IsNullOrWhiteSpace(renderToolName))
+        {
+            throw new ArgumentException("The render tool name cannot be null or whitespace.", nameof(renderToolName));
+        }
 
         _mcpClient = mcpClient;
         _renderToolName = renderToolName;
@@ -116,7 +119,10 @@ internal sealed class CoursewareMcpSlideMlRenderPipeline : ISlideMlRenderPipelin
     /// <inheritdoc />
     public async Task<SlideMlRenderResult> RenderAsync(string slideXml, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(slideXml);
+        if (string.IsNullOrWhiteSpace(slideXml))
+        {
+            throw new ArgumentException("The slide XML cannot be null or whitespace.", nameof(slideXml));
+        }
 
         var jsonObject = new JsonObject { ["slideXml"] = slideXml };
         using var jsonDocument = JsonDocument.Parse(jsonObject.ToJsonString());

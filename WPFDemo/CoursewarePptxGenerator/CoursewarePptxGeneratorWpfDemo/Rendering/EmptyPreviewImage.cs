@@ -11,7 +11,11 @@ internal sealed class EmptyPreviewImage : IPreviewImage
     /// <inheritdoc />
     public void Save(string filePath)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            throw new ArgumentException("The file path cannot be null or whitespace.", nameof(filePath));
+        }
+
         File.WriteAllBytes(filePath, []);
     }
 
