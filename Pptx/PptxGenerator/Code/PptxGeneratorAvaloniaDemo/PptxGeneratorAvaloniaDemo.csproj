@@ -33,7 +33,4 @@
              Link="Core\SlideMl\Rendering\SwitchableSlideMlRenderPipeline.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Core\SlideMl\Evaluation\" />
-  </ItemGroup>
 </Project>
