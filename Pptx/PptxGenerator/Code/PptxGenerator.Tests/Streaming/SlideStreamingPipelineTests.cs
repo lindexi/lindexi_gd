@@ -142,7 +142,7 @@ public sealed class SlideStreamingPipelineTests
         Assert.AreEqual("#FF0000", card1.Attribute("Fill")?.Value, "Page 内元素应继承悬空样式 Fill");
         Assert.AreEqual("100", card1.Attribute("Width")?.Value, "Page 内元素应继承悬空样式 Width");
         Assert.AreEqual("50", card1.Attribute("Height")?.Value, "Page 内元素应继承悬空样式 Height");
-        Assert.IsTrue(renderedResults.Count >= 2, "首个悬空样式片段和后续 Page 片段都会触发管道渲染事件以暴露当前状态");
+        Assert.IsGreaterThanOrEqualTo(2, renderedResults.Count, "首个悬空样式片段和后续 Page 片段都会触发管道渲染事件以暴露当前状态");
     }
 
     [TestMethod(DisplayName = "验证最终渲染触发")]
@@ -162,7 +162,7 @@ public sealed class SlideStreamingPipelineTests
         await pipeline.ProcessStreamEndAsync(context);
 
         // Assert：最终渲染一定发生
-        Assert.AreEqual(countAfterFirst + 1, renderedResults.Count);
+        Assert.HasCount(countAfterFirst + 1, renderedResults);
     }
 
     [TestMethod(DisplayName = "验证空流不触发渲染")]

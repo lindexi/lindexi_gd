@@ -69,7 +69,7 @@ public sealed class SlideStreamingRestartTests
         var userMessages = SlideStreamingTestHelper.GetNormalUserMessages(chatManager)
             .Select(message => message.Content)
             .ToList();
-        Assert.AreEqual(2, userMessages.Count, "原会话应截断后只保留目标前一轮和重新追加的目标用户消息。");
+        Assert.HasCount(2, userMessages, "原会话应截断后只保留目标前一轮和重新追加的目标用户消息。");
         StringAssert.Contains(userMessages[0], "生成首页", "第一轮用户消息应保留在原会话中。");
         Assert.AreEqual("加一个卡片", userMessages[1], "目标用户消息应被重新追加到原会话。");
 
@@ -128,9 +128,9 @@ public sealed class SlideStreamingRestartTests
 
         Assert.AreSame(originalPrimaryModel, chatManager.Pipeline.ChatManager.AgentApiEndpointManager.PrimaryModel, "回放完成后应恢复真实模型。");
         Assert.AreSame(originalSession, chatManager.Pipeline.ChatManager.SelectedSession, "回放完成后应恢复原会话。");
-        Assert.AreEqual(originalSessionCount, chatManager.Pipeline.ChatManager.ChatSessions.Count, "回放完成后不应遗留临时回放会话。");
-        Assert.AreEqual(originalMessageCount, originalSession.ChatMessages.Count, "回放不应额外追加可见历史消息，只应截断并重新追加目标轮次。");
-        Assert.AreEqual(originalModelCount, chatManager.Pipeline.ChatManager.AgentApiEndpointManager.GetSupportedModels().Count, "回放完成后不应遗留临时回放模型。");
+        Assert.HasCount(originalSessionCount, chatManager.Pipeline.ChatManager.ChatSessions, "回放完成后不应遗留临时回放会话。");
+        Assert.HasCount(originalMessageCount, originalSession.ChatMessages, "回放不应额外追加可见历史消息，只应截断并重新追加目标轮次。");
+        Assert.HasCount(originalModelCount, chatManager.Pipeline.ChatManager.AgentApiEndpointManager.GetSupportedModels(), "回放完成后不应遗留临时回放模型。");
     }
 
     [TestMethod(DisplayName = "重新生成目标消息失败时保持原模型和原会话已恢复")]
@@ -276,12 +276,12 @@ public sealed class SlideStreamingRestartTests
         await chatManager.RestartFromMessageAsync(GetUserMessage(chatManager, 1)).ConfigureAwait(false);
 
         Assert.AreSame(originalSession, chatManager.Pipeline.ChatManager.SelectedSession, "直接回放 SlideML 状态时不应切换可见会话。");
-        Assert.AreEqual(originalSessionCount, chatManager.Pipeline.ChatManager.ChatSessions.Count, "直接回放 SlideML 状态时不应创建临时会话。");
+        Assert.HasCount(originalSessionCount, chatManager.Pipeline.ChatManager.ChatSessions, "直接回放 SlideML 状态时不应创建临时会话。");
         Assert.AreEqual(3, recorder.StreamingCallCount, "历史回放不应消耗聊天模型调用次数。");
         var userMessages = SlideStreamingTestHelper.GetNormalUserMessages(chatManager)
             .Select(message => message.Content)
             .ToList();
-        Assert.AreEqual(2, userMessages.Count, "原会话应只保留目标前历史和重新追加的目标用户消息。");
+        Assert.HasCount(2, userMessages, "原会话应只保留目标前历史和重新追加的目标用户消息。");
         StringAssert.Contains(userMessages[0], "第一轮", "第一轮用户消息应保留。");
         Assert.AreEqual("第二轮", userMessages[1], "目标用户消息应重新追加。");
     }

@@ -102,7 +102,7 @@ public sealed class StreamingStateContinuationTests
         await pipeline.ProcessIncrementalTextAsync(firstRoundText, context);
 
         // Assert — 第一轮应有错误（UnknownElement），且 r1 已成功合并
-        Assert.IsTrue(context.Errors.Count > 0, "第一轮应有错误（UnknownElement）");
+        Assert.IsNotEmpty(context.Errors, "第一轮应有错误（UnknownElement）");
         StringAssert.Contains(pipeline.CurrentMergedXml, "r1",
             "第一轮应成功合并 r1 元素");
 
@@ -111,7 +111,7 @@ public sealed class StreamingStateContinuationTests
         pipeline.ResetExtractor();
 
         // Assert — 重置后合并器状态保留
-        Assert.AreEqual(0, context.Errors.Count, "重置后错误应清空");
+        Assert.IsEmpty(context.Errors, "重置后错误应清空");
         StringAssert.Contains(pipeline.CurrentMergedXml, "r1",
             "ResetExtractor 后 r1 应保留在合并器 DOM 中");
 
@@ -119,7 +119,7 @@ public sealed class StreamingStateContinuationTests
         await pipeline.ProcessIncrementalTextAsync(secondRoundText, context);
 
         // Assert — 第二轮无错误，且 r1 和 r2 都在合并结果中
-        Assert.AreEqual(0, context.Errors.Count, "第二轮不应有错误");
+        Assert.IsEmpty(context.Errors, "第二轮不应有错误");
         StringAssert.Contains(pipeline.CurrentMergedXml, "r1",
             "重试后应保留第一轮成功合并的 r1 元素");
         StringAssert.Contains(pipeline.CurrentMergedXml, "r2",
@@ -129,7 +129,7 @@ public sealed class StreamingStateContinuationTests
         await pipeline.ProcessStreamEndAsync(context);
 
         // Assert — 最终渲染输入包含 r1 和 r2
-        Assert.IsTrue(renderPipeline.RenderCallCount > 0, "应有渲染调用");
+        Assert.IsGreaterThan(0, renderPipeline.RenderCallCount, "应有渲染调用");
         StringAssert.Contains(renderPipeline.LastInputXml, "r1",
             "最终渲染输入应包含 r1");
         StringAssert.Contains(renderPipeline.LastInputXml, "r2",
@@ -162,7 +162,7 @@ public sealed class StreamingStateContinuationTests
         await pipeline.ProcessStreamEndAsync(context);
 
         // Assert — 第一轮应渲染 r1
-        Assert.AreEqual(0, context.Errors.Count, "第一轮不应有错误");
+        Assert.IsEmpty(context.Errors, "第一轮不应有错误");
         StringAssert.Contains(pipeline.CurrentMergedXml, "r1",
             "第一轮应合并 r1 元素");
         StringAssert.Contains(renderPipeline.LastInputXml, "r1",
@@ -177,7 +177,7 @@ public sealed class StreamingStateContinuationTests
         await pipeline.ProcessStreamEndAsync(context);
 
         // Assert — 第二轮应在第一轮基础上增量合并 r2
-        Assert.AreEqual(0, context.Errors.Count, "第二轮不应有错误");
+        Assert.IsEmpty(context.Errors, "第二轮不应有错误");
         StringAssert.Contains(pipeline.CurrentMergedXml, "r1",
             "跨轮后 r1 应仍然保留");
         StringAssert.Contains(pipeline.CurrentMergedXml, "r2",
@@ -232,7 +232,7 @@ public sealed class StreamingStateContinuationTests
             useStreaming: true).ConfigureAwait(false);
 
         // Assert — 应捕获到至少一次重试消息
-        Assert.IsTrue(capturedMessages.Count > 0,
+        Assert.IsNotEmpty(capturedMessages,
             "应触发至少一次重试，捕获到反馈消息");
 
         // 将所有捕获消息的文本拼接，检查是否包含目标措辞

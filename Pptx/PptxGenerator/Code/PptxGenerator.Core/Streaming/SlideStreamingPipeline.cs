@@ -112,6 +112,7 @@ public sealed class SlideStreamingPipeline
             if (renderResult.Errors is { Count: > 0 })
             {
                 context.AddErrors(renderResult.Errors);
+                StreamInterrupted?.Invoke(string.Join(Environment.NewLine, renderResult.Errors));
                 break;
             }
         }

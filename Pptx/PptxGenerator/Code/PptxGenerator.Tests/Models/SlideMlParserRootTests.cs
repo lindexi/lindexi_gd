@@ -171,8 +171,9 @@ public sealed class SlideMlParserRootTests
         var page = _parser.Parse(xml, context);
 
         Assert.IsTrue(page.Id.StartsWith("elem_", StringComparison.Ordinal));
-        Assert.IsTrue(
-            page.Children[0].Id != page.Id,
+        Assert.AreNotEqual(
+            page.Id,
+            page.Children[0].Id,
             "子元素 Id 不应与 Page 自动分配的 Id 相同");
     }
 }

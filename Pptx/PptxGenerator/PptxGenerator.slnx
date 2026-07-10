@@ -1,25 +1,29 @@
 <Solution>
-  <Folder Name="/00-Docs/">
+  <Folder Name="/00-Soluction Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+  </Folder>
+  <Folder Name="/01-Docs/">
     <Project Path="Docs/Docs.csproj" />
   </Folder>
-  <Folder Name="/01-Lib/">
+  <Folder Name="/02-Lib/">
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib.Tests/AgentLib.Tests.csproj" />
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/AgentLib/AgentLib/AgentLib.csproj" />
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
     <Project Path="../../../SemanticKernelLib/SemanticKernelSamples/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
   </Folder>
-  <Folder Name="/02-Core/">
+  <Folder Name="/03-Core/">
     <Project Path="Code/PptxGenerator.Core/PptxGenerator.Core.csproj" />
     <Project Path="Code/PptxGenerator.Wpf/PptxGenerator.Wpf.csproj" />
   </Folder>
-  <Folder Name="/03-SingleSlideGenerator/">
+  <Folder Name="/04-SingleSlideGenerator/">
     <Project Path="Code/PptxGeneratorAvaloniaDemo/PptxGeneratorAvaloniaDemo.csproj" />
     <Project Path="Code/PptxGeneratorWpfDemo/PptxGeneratorWpfDemo.csproj" />
   </Folder>
-  <Folder Name="/04-CoursewareGenerator/">
+  <Folder Name="/05-CoursewareGenerator/">
     <Project Path="Code/CoursewarePptxGeneratorWpfDemo/CoursewarePptxGeneratorWpfDemo.csproj" />
   </Folder>
-  <Folder Name="/05-Test/">
+  <Folder Name="/06-Test/">
     <Project Path="../../WPFDemo/CoursewarePptxGenerator/CoursewarePptxGeneratorWpfDemo.Tests/CoursewarePptxGeneratorWpfDemo.Tests.csproj" />
     <Project Path="Code/PptxGenerator.Tests/PptxGenerator.Tests.csproj" />
   </Folder>

@@ -29,7 +29,7 @@ public sealed class CoursewareFolderLoaderTests
         Assert.AreEqual("slide-second", package.Slides[1].SlideId);
         Assert.IsNull(package.Slides[1].ScreenshotFile);
         StringAssert.Contains(package.Slides[0].MarkdownText, "第一页 Markdown");
-        Assert.AreEqual(2, package.Resources.Count);
+        Assert.HasCount(2, package.Resources);
         Assert.IsTrue(package.Resources[0].Exists);
         Assert.IsFalse(package.Resources[1].Exists);
         StringAssert.Contains(package.Resources[0].ResolvedFilePath!, Path.Join("resources", "img_1.png"));

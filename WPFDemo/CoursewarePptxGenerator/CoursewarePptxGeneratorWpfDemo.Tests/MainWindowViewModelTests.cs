@@ -28,11 +28,11 @@ public sealed class MainWindowViewModelTests
 
         await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
 
-        Assert.AreEqual(2, viewModel.Slides.Count);
+        Assert.HasCount(2, viewModel.Slides);
         Assert.AreEqual("slide-alpha", viewModel.Slides[0].SlideId);
         Assert.AreEqual("slide-beta", viewModel.Slides[1].SlideId);
         Assert.AreSame(viewModel.Slides[0], viewModel.SelectedSlide);
-        Assert.AreEqual(1, viewModel.AttachedImageFiles.Count);
+        Assert.HasCount(1, viewModel.AttachedImageFiles);
         Assert.AreEqual(viewModel.Slides[0].SourceScreenshotFilePath, viewModel.AttachedImageFiles[0].FullName);
         StringAssert.Contains(viewModel.InputText, "页面 Id：slide-alpha");
         StringAssert.Contains(viewModel.InputText, "第一页 Markdown 内容");
@@ -40,7 +40,7 @@ public sealed class MainWindowViewModelTests
 
         viewModel.SelectedSlide = viewModel.Slides[1];
 
-        Assert.AreEqual(1, viewModel.AttachedImageFiles.Count);
+        Assert.HasCount(1, viewModel.AttachedImageFiles);
         Assert.AreEqual(viewModel.Slides[1].SourceScreenshotFilePath, viewModel.AttachedImageFiles[0].FullName);
         StringAssert.Contains(viewModel.InputText, "页面 Id：slide-beta");
         StringAssert.Contains(viewModel.InputText, "第二页 Markdown 内容");
@@ -63,7 +63,7 @@ public sealed class MainWindowViewModelTests
 
         await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
 
-        Assert.AreEqual(1, viewModel.Slides.Count);
+        Assert.HasCount(1, viewModel.Slides);
         Assert.AreEqual("slide-alpha", viewModel.Slides[0].SlideId);
         Assert.AreSame(viewModel.Slides[0], viewModel.SelectedSlide);
         StringAssert.Contains(viewModel.InputText, "页面 Id：slide-alpha");

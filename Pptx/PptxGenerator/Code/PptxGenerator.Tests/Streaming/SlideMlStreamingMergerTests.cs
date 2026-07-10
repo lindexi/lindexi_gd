@@ -585,7 +585,7 @@ public sealed class SlideMlStreamingMergerTests
         var textElement = doc.Root!.Elements("TextElement").Single();
         var spans = textElement.Elements("Span").ToList();
 
-        Assert.AreEqual(2, spans.Count);
+        Assert.HasCount(2, spans);
         Assert.AreEqual("新", spans[0].Attribute("Text")?.Value);
         Assert.AreEqual("标题", spans[1].Attribute("Text")?.Value);
     }

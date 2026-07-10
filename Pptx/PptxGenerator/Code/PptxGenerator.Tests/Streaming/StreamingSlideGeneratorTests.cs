@@ -106,8 +106,8 @@ public sealed class StreamingSlideGeneratorTests
 
         // Assert
         Assert.AreEqual(2, recorder.StreamingCallCount, "错误闭合标签片段应触发一次重试");
-        Assert.AreEqual(0, streamingState.Context.Errors.Count, "重试修正后不应留下错误");
-        Assert.IsTrue(recorder.StreamingMessages.Count >= 2, "应能捕获重试反馈请求");
+        Assert.IsEmpty(streamingState.Context.Errors, "重试修正后不应留下错误");
+        Assert.IsGreaterThanOrEqualTo(2, recorder.StreamingMessages.Count, "应能捕获重试反馈请求");
 
         var retryText = string.Join("\n", recorder.StreamingMessages[1].Select(message => message.Text));
         StringAssert.Contains(retryText, "MainContainer", "重试反馈应包含已合并的页面骨架，便于模型基于当前状态续写");
@@ -182,12 +182,12 @@ public sealed class StreamingSlideGeneratorTests
 
         // Assert
         Assert.AreEqual(2, recorder.StreamingCallCount, "首个悬空样式片段不可渲染，应触发一次重试");
-        Assert.IsTrue(capturedMessages.Count >= 2, "应能捕获首次请求和重试反馈请求");
+        Assert.IsGreaterThanOrEqualTo(2, capturedMessages.Count, "应能捕获首次请求和重试反馈请求");
         var retryText = string.Join("\n", capturedMessages[1].Select(message => message.Text));
         StringAssert.Contains(retryText, "card-template", "重试反馈应包含第一轮已合并的悬空样式片段，便于模型基于当前状态续写");
         StringAssert.Contains(retryText, "仅输出修正和后续片段", "重试反馈应要求模型只输出后续 Page 片段");
 
-        Assert.AreEqual(0, streamingState.Context.Errors.Count, "第二轮 Page 引用悬空样式时不应留下错误");
+        Assert.IsEmpty(streamingState.Context.Errors, "第二轮 Page 引用悬空样式时不应留下错误");
         var doc = XDocument.Parse(streamingState.Pipeline.CurrentMergedXml);
         Assert.AreEqual("Page", doc.Root!.Name.LocalName, "后续 Page 片段应成为最终可渲染根元素");
         Assert.IsFalse(doc.Root.Elements().Any(element => element.Attribute("Id")?.Value == "card-template"),
@@ -272,7 +272,7 @@ public sealed class StreamingSlideGeneratorTests
 
         // Assert
         Assert.AreEqual(1, recorder.StreamingCallCount, "完整合法 Page 输出不应触发重试");
-        Assert.AreEqual(0, streamingState.Context.Errors.Count, "完整 Page 合并渲染后不应留下错误");
+        Assert.IsEmpty(streamingState.Context.Errors, "完整 Page 合并渲染后不应留下错误");
 
         var doc = XDocument.Parse(chatManager.RenderedXml);
         Assert.AreEqual("Page", doc.Root!.Name.LocalName, "完整输出应合并为 Page 根元素");

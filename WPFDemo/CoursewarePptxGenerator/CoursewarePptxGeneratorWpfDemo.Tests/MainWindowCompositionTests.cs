@@ -103,7 +103,7 @@ public sealed class MainWindowCompositionTests
             StringAssert.Contains(chatInputTextBox.Text, expectedFirstSlide.SlideId);
             StringAssert.Contains(chatInputTextBox.Text, expectedFirstSlide.MarkdownText.Trim().Split('\n')[0].Trim());
             Assert.AreEqual(viewModel.AttachedImageFiles.Count, attachedImageFilesItemsControl.Items.Count, "右侧附件显示数量应与 ViewModel 一致。");
-            Assert.IsTrue(chatInputTextBox.Text.Length > 0, "右侧聊天输入框应显示美化提示词。");
+            Assert.IsGreaterThan(0, chatInputTextBox.Text.Length, "右侧聊天输入框应显示美化提示词。");
         }
         finally
         {

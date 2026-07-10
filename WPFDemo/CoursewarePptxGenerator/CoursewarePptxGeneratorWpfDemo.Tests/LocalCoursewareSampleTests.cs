@@ -32,7 +32,7 @@ public sealed class LocalCoursewareSampleTests
 
         await viewModel.OpenCoursewareFolderAsync(sampleDirectory);
 
-        Assert.IsTrue(viewModel.Slides.Count > 1, "左侧页面列表应显示足够的页面数量。") ;
+        Assert.IsGreaterThan(1, viewModel.Slides.Count, "左侧页面列表应显示足够的页面数量。") ;
         foreach (var slide in viewModel.Slides)
         {
             viewModel.SelectedSlide = slide;
@@ -43,7 +43,7 @@ public sealed class LocalCoursewareSampleTests
 
             if (slide.HasSourceScreenshot)
             {
-                Assert.AreEqual(1, viewModel.AttachedImageFiles.Count, "有截图的页面应准备附加图片。") ;
+                Assert.HasCount(1, viewModel.AttachedImageFiles, "有截图的页面应准备附加图片。") ;
                 Assert.AreEqual(slide.SourceScreenshotFilePath, viewModel.AttachedImageFiles[0].FullName);
             }
         }

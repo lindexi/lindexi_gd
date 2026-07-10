@@ -658,10 +658,11 @@ public sealed class SlideMlStreamingMerger
     /// <param name="element">要注册的元素。</param>
     private void RegisterIdElements(XElement element)
     {
+        var working = _working ?? throw new InvalidOperationException("注册元素前必须先创建工作副本。");
         var id = GetElementId(element);
         if (id is not null)
         {
-            _working!.IdIndex[id] = element;
+            working.IdIndex[id] = element;
         }
 
         foreach (var descendant in element.Descendants())
@@ -669,7 +670,7 @@ public sealed class SlideMlStreamingMerger
             var descendantId = GetElementId(descendant);
             if (descendantId is not null)
             {
-                _working.IdIndex[descendantId] = descendant;
+                working.IdIndex[descendantId] = descendant;
             }
         }
     }
@@ -680,10 +681,11 @@ public sealed class SlideMlStreamingMerger
     /// <param name="element">要移除的元素。</param>
     private void UnregisterIdElements(XElement element)
     {
+        var working = _working ?? throw new InvalidOperationException("移除元素前必须先创建工作副本。");
         var id = GetElementId(element);
         if (id is not null)
         {
-            _working!.IdIndex.Remove(id);
+            working.IdIndex.Remove(id);
         }
 
         foreach (var descendant in element.Descendants())
@@ -691,7 +693,7 @@ public sealed class SlideMlStreamingMerger
             var descendantId = GetElementId(descendant);
             if (descendantId is not null)
             {
-                _working.IdIndex.Remove(descendantId);
+                working.IdIndex.Remove(descendantId);
             }
         }
     }
@@ -703,16 +705,17 @@ public sealed class SlideMlStreamingMerger
     /// <param name="context">渲染上下文，用于收集错误。</param>
     private void RegisterStyleIdElements(XElement element, SlideMlPipelineContext context)
     {
+        var working = _working ?? throw new InvalidOperationException("注册样式前必须先创建工作副本。");
         var styleId = (string?)element.Attribute("StyleId");
         if (styleId is not null)
         {
-            if (_working!.StyleIdIndex.ContainsKey(styleId))
+            if (working.StyleIdIndex.ContainsKey(styleId))
             {
                 context.AddError($"[Error] StyleId 重复: {styleId}");
             }
             else
             {
-                _working.StyleIdIndex[styleId] = element;
+                working.StyleIdIndex[styleId] = element;
             }
         }
 
@@ -721,13 +724,13 @@ public sealed class SlideMlStreamingMerger
             var descendantStyleId = (string?)descendant.Attribute("StyleId");
             if (descendantStyleId is not null)
             {
-                if (_working.StyleIdIndex.ContainsKey(descendantStyleId))
+                if (working.StyleIdIndex.ContainsKey(descendantStyleId))
                 {
                     context.AddError($"[Error] StyleId 重复: {descendantStyleId}");
                 }
                 else
                 {
-                    _working.StyleIdIndex[descendantStyleId] = descendant;
+                    working.StyleIdIndex[descendantStyleId] = descendant;
                 }
             }
         }
@@ -739,10 +742,11 @@ public sealed class SlideMlStreamingMerger
     /// <param name="element">要移除的元素。</param>
     private void UnregisterStyleIdElements(XElement element)
     {
+        var working = _working ?? throw new InvalidOperationException("移除样式前必须先创建工作副本。");
         var styleId = (string?)element.Attribute("StyleId");
         if (styleId is not null)
         {
-            _working!.StyleIdIndex.Remove(styleId);
+            working.StyleIdIndex.Remove(styleId);
         }
 
         foreach (var descendant in element.Descendants())
@@ -750,7 +754,7 @@ public sealed class SlideMlStreamingMerger
             var descendantStyleId = (string?)descendant.Attribute("StyleId");
             if (descendantStyleId is not null)
             {
-                _working.StyleIdIndex.Remove(descendantStyleId);
+                working.StyleIdIndex.Remove(descendantStyleId);
             }
         }
     }

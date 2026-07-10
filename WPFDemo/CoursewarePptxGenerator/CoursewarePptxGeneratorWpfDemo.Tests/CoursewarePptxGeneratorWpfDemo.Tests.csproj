@@ -7,6 +7,8 @@
     <IsPackable>false</IsPackable>
     <UseWPF>true</UseWPF>
     <RunSettingsFilePath>$(MSBuildProjectDirectory)\CoursewarePptxGeneratorWpfDemo.Tests.runsettings</RunSettingsFilePath>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <NoWarn>$(NoWarn);MSTEST0045</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Pptx\PptxGenerator\Code\CoursewarePptxGeneratorWpfDemo\CoursewarePptxGeneratorWpfDemo.csproj" />
+    <ProjectReference Include="..\..\..\Pptx\PptxGenerator\Code\CoursewarePptxGeneratorWpfDemo\CoursewarePptxGeneratorWpfDemo.csproj"
+                      AdditionalProperties="SuppressTfmSupportBuildWarnings=true" />
   </ItemGroup>
 
 </Project>

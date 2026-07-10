@@ -719,7 +719,7 @@ public sealed class SlideMlFragmentExtractorTests
         Assert.AreEqual("<TextElement><![CDATA[abc]]></TextElement>", fragments[0]);
     }
 
-    [DataTestMethod(DisplayName = "不完整输入返回空并保留缓冲")]
+    [TestMethod(DisplayName = "不完整输入返回空并保留缓冲")]
     [DataRow("<")]
     [DataRow("<Page")]
     [DataRow("<Page>")]
