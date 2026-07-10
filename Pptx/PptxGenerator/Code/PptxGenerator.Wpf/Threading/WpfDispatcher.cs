@@ -1,18 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
 using System.Windows;
-
 using AgentLib;
 
 namespace PptxGenerator;
 
 /// <summary>
-/// WPF 实现的 <see cref="IMainThreadDispatcher"/>，包装 <see cref="Application.Current.Dispatcher"/>。
+/// WPF 实现的 <see cref="IMainThreadDispatcher"/>，用于将工作调度到 UI 线程。
 /// </summary>
 public sealed class WpfDispatcher : IMainThreadDispatcher
 {
     /// <summary>
-    /// 默认实例，使用 <see cref="Application.Current.Dispatcher"/>。
+    /// 获取共享的调度器实例。
     /// </summary>
     public static readonly WpfDispatcher Instance = new();
 
@@ -24,14 +21,28 @@ public sealed class WpfDispatcher : IMainThreadDispatcher
     public Task InvokeAsync(Func<Task> action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        return Application.Current.Dispatcher.InvokeAsync(async () => await action().ConfigureAwait(false)).Task.Unwrap();
+
+        var dispatcher = Application.Current.Dispatcher;
+        if (dispatcher.CheckAccess())
+        {
+            return action();
+        }
+
+        return dispatcher.InvokeAsync(action).Task.Unwrap();
     }
 
     /// <inheritdoc />
     public Task<T> InvokeAsync<T>(Func<Task<T>> action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        return Application.Current.Dispatcher.InvokeAsync(async () => await action().ConfigureAwait(false)).Task.Unwrap();
+
+        var dispatcher = Application.Current.Dispatcher;
+        if (dispatcher.CheckAccess())
+        {
+            return action();
+        }
+
+        return dispatcher.InvokeAsync(action).Task.Unwrap();
     }
 
     /// <inheritdoc />

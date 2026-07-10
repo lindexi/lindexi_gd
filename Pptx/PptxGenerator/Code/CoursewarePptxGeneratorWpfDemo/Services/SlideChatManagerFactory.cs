@@ -2,7 +2,6 @@ using System.IO;
 using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-using CoursewarePptxGeneratorWpfDemo.Threading;
 using PptxGenerator;
 using PptxGenerator.Evaluation;
 using PptxGenerator.Pipeline;
