@@ -44,7 +44,7 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
 
         var localPipeline = new SlideMlRenderPipeline(
             new SlideMlLayoutEngine(),
-            new CoursewareWpfSlideMlRenderEngine(),
+            new WpfSlideMlRenderEngine(),
             _dispatcher);
         var renderPipeline = new CoursewareSwitchableSlideMlRenderPipeline(localPipeline);
         _ = Task.Run(async () =>

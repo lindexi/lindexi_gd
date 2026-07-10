@@ -20,11 +20,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PptxGenerator.Core\PptxGenerator.Core.csproj" />
+    <ProjectReference Include="..\PptxGenerator.Wpf\PptxGenerator.Wpf.csproj" />
   </ItemGroup>
 
 
   <ItemGroup>
     <None Update="app.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

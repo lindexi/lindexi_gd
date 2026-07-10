@@ -2,12 +2,12 @@ using System.Diagnostics;
 using System.Windows.Media;
 using PptxGenerator.Models.SlideDocuments;
 
-namespace CoursewarePptxGeneratorWpfDemo.Rendering;
+namespace PptxGenerator.Rendering;
 
 /// <summary>
 /// 将 SlideML 画刷转换为 WPF 画刷。
 /// </summary>
-internal static class CoursewareWpfSlideMlBrushConverter
+public static class WpfSlideMlBrushConverter
 {
     /// <summary>
     /// 将 SlideML 画刷转换为 WPF 画刷。
@@ -52,7 +52,12 @@ internal static class CoursewareWpfSlideMlBrushConverter
         return success ? Color.FromArgb(a, r, g, b) : Colors.Transparent;
     }
 
-    private static SolidColorBrush? ToSolidColorBrush(string hexColorText)
+    /// <summary>
+    /// 将十六进制颜色字符串转换为 WPF 纯色画刷。
+    /// </summary>
+    /// <param name="hexColorText">十六进制颜色字符串。</param>
+    /// <returns>转换成功的 WPF 纯色画刷；无法转换时返回 null。</returns>
+    public static SolidColorBrush? ToSolidColorBrush(string hexColorText)
     {
         var (success, a, r, g, b) = ConvertToColor(hexColorText);
         return success ? new SolidColorBrush(Color.FromArgb(a, r, g, b)) : null;

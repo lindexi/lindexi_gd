@@ -5,19 +5,34 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using PptxGenerator.Models;
 using PptxGenerator.Models.SlideDocuments;
-using PptxGenerator.Rendering;
 
-namespace CoursewarePptxGeneratorWpfDemo.Rendering;
+namespace PptxGenerator.Rendering;
 
 /// <summary>
-/// 课件 WPF 渲染引擎实现，负责将 SlideML 页面渲染为预览图。
+/// 渲染引擎 WPF 实现，负责将 SlideML 页面渲染为预览图。
 /// </summary>
-internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
+public sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 {
     private readonly Dictionary<string, FormattedText> _formattedTextCache = new();
     private readonly Dictionary<string, List<FormattedText>> _spanFormattedTextCache = new();
     private readonly Dictionary<string, BitmapSource?> _bitmapCache = new();
-    private readonly bool _enableClip = false;
+    private readonly bool _enableClip;
+
+    /// <summary>
+    /// 初始化 <see cref="WpfSlideMlRenderEngine" /> 的新实例。
+    /// </summary>
+    public WpfSlideMlRenderEngine()
+    {
+    }
+
+    /// <summary>
+    /// 初始化 <see cref="WpfSlideMlRenderEngine" /> 的新实例。
+    /// </summary>
+    /// <param name="enableClip">是否启用元素裁剪。</param>
+    public WpfSlideMlRenderEngine(bool enableClip)
+    {
+        _enableClip = enableClip;
+    }
 
     /// <inheritdoc />
     public SlideMlElementMeasurements PreMeasure(SlideMlPage page, SlideMlPipelineContext context)
@@ -58,7 +73,7 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
         }
 
         bitmap.Render(visual);
-        return new CoursewareWpfPreviewImage(bitmap);
+        return new WpfPreviewImage(bitmap);
     }
 
     /// <inheritdoc />
@@ -111,7 +126,7 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
         }
 
         bitmap.Render(visual);
-        return new CoursewareWpfPreviewImage(bitmap);
+        return new WpfPreviewImage(bitmap);
     }
 
     private static Rect ToRect(SlideMlRect rect) => new(rect.X, rect.Y, rect.Width, rect.Height);
@@ -144,7 +159,7 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
     {
         var maxWidth = text.Width ?? 10000;
         var maxHeight = text.Height ?? 10000;
-        var lineHeight = text.FontSize;
+        var lineHeight = SlideMlLayoutEngine.CalculateDefaultTextLineHeight(text.FontSize);
 
         if (text.Spans is { Count: > 0 })
         {
@@ -183,18 +198,19 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
 
         foreach (var span in spans)
         {
+            var spanFontSize = span.FontSize ?? text.FontSize;
             var formattedText = CreateFormattedText(
                 span.Text,
                 span.FontName ?? text.FontName,
                 MapIsItalic(span.IsItalic ?? text.IsItalic),
                 MapIsBold(span.IsBold ?? text.IsBold),
-                span.FontSize ?? text.FontSize,
+                spanFontSize,
                 CreateBrush(span.Foreground ?? text.Foreground, Colors.Black));
 
             formattedText.TextAlignment = MapTextAlignment(text.TextAlignment);
             formattedText.MaxTextWidth = text.Width is null ? 0 : Math.Max(0, maxWidth - totalWidth);
             formattedText.MaxTextHeight = maxHeight;
-            formattedText.LineHeight = lineHeight;
+            formattedText.LineHeight = SlideMlLayoutEngine.CalculateDefaultTextLineHeight(spanFontSize);
 
             formattedTexts.Add(formattedText);
             totalWidth += formattedText.WidthIncludingTrailingWhitespace;
@@ -270,7 +286,7 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
 
     private void DrawPanel(DrawingContext dc, SlideMlPanelElement panel, SlideMlPipelineContext context)
     {
-        var backgroundBrush = CoursewareWpfSlideMlBrushConverter.CreateWpfBrush(panel.Background);
+        var backgroundBrush = WpfSlideMlBrushConverter.CreateWpfBrush(panel.Background);
         if (backgroundBrush is not null)
         {
             dc.DrawRectangle(backgroundBrush, null, ToRect(panel.LayoutBounds));
@@ -284,11 +300,11 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
 
     private static void DrawRect(DrawingContext dc, SlideMlRectElement rect)
     {
-        var fillBrush = CoursewareWpfSlideMlBrushConverter.CreateWpfBrush(rect.Fill);
+        var fillBrush = WpfSlideMlBrushConverter.CreateWpfBrush(rect.Fill);
         Pen? pen = null;
         if (rect.StrokeThickness > 0)
         {
-            var strokeBrush = CoursewareWpfSlideMlBrushConverter.CreateWpfBrush(rect.Stroke);
+            var strokeBrush = WpfSlideMlBrushConverter.CreateWpfBrush(rect.Stroke);
             if (strokeBrush is not null)
             {
                 pen = new Pen(strokeBrush, rect.StrokeThickness);
@@ -341,13 +357,28 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
 
             ctx.BeginFigure(new Point(x + tl, y), fill is not null, true);
             ctx.LineTo(new Point(x + w - tr, y), true, true);
-            if (tr > 0) ctx.ArcTo(new Point(x + w, y + tr), new Size(tr, tr), 0, false, SweepDirection.Clockwise, true, true);
+            if (tr > 0)
+            {
+                ctx.ArcTo(new Point(x + w, y + tr), new Size(tr, tr), 0, false, SweepDirection.Clockwise, true, true);
+            }
+
             ctx.LineTo(new Point(x + w, y + h - br), true, true);
-            if (br > 0) ctx.ArcTo(new Point(x + w - br, y + h), new Size(br, br), 0, false, SweepDirection.Clockwise, true, true);
+            if (br > 0)
+            {
+                ctx.ArcTo(new Point(x + w - br, y + h), new Size(br, br), 0, false, SweepDirection.Clockwise, true, true);
+            }
+
             ctx.LineTo(new Point(x + bl, y + h), true, true);
-            if (bl > 0) ctx.ArcTo(new Point(x, y + h - bl), new Size(bl, bl), 0, false, SweepDirection.Clockwise, true, true);
+            if (bl > 0)
+            {
+                ctx.ArcTo(new Point(x, y + h - bl), new Size(bl, bl), 0, false, SweepDirection.Clockwise, true, true);
+            }
+
             ctx.LineTo(new Point(x, y + tl), true, true);
-            if (tl > 0) ctx.ArcTo(new Point(x + tl, y), new Size(tl, tl), 0, false, SweepDirection.Clockwise, true, true);
+            if (tl > 0)
+            {
+                ctx.ArcTo(new Point(x + tl, y), new Size(tl, tl), 0, false, SweepDirection.Clockwise, true, true);
+            }
         }
 
         geometry.Freeze();
@@ -399,8 +430,8 @@ internal sealed class CoursewareWpfSlideMlRenderEngine : ISlideMlRenderEngine
         }
 
         var renderTarget = new RenderTargetBitmap(
-            (int)Math.Ceiling(shadowBounds.Right + shadow.Blur),
-            (int)Math.Ceiling(shadowBounds.Bottom + shadow.Blur),
+            Math.Max(1, (int)Math.Ceiling(shadowBounds.Right + shadow.Blur)),
+            Math.Max(1, (int)Math.Ceiling(shadowBounds.Bottom + shadow.Blur)),
             96.0,
             96.0,
             PixelFormats.Pbgra32);
