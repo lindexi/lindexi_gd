@@ -11,6 +11,8 @@
 - `install-checklist [ime-file]`：输出人工安装和注册检查步骤。
 - `install <ime-file>`：调用 Windows API 安装输入法，可由最终安装包直接调用。
 - `uninstall-checklist`：输出人工卸载和回滚检查步骤。
+- `system-test-plan [--json]`：输出覆盖传统 IME、TSF、Host、IPC、UI、安装和回滚的全局系统测试计划。
+- `system-test-run <abi-host> <tsf-dll> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行隔离 ABI/COM 测试并生成 JSON 报告。
 
 真实安装和注册涉及管理员权限及系统注册表。执行 `install` 即表示调用方要求安装，CLI 会在基本参数检查通过后调用 `ImmInstallIME`。
 
@@ -89,6 +91,16 @@ CLI 会在调用 `ImmInstallIME` 前检查：
 仍可使用 `install-checklist [ime-file]` 输出不修改系统的检查清单。
 
 > 建议仅在虚拟机或专用测试机中首次安装，并在修改注册表前创建备份或系统还原点。
+
+## 系统自动化测试
+
+使用 `system-test-plan --json` 获取机器可读测试计划。在已创建快照的测试 VM 中发布 TSF NativeAOT DLL 和 `XiaoXiIme.TsfAbiHost.exe` 后，执行：
+
+```powershell
+XiaoXiIme.Cli.exe system-test-run "C:\Test\XiaoXiIme.TsfAbiHost.exe" "C:\Test\XiaoXiIme.TsfModule.dll" --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --report "C:\TestResults\system-tests.json"
+```
+
+命令默认拒绝执行。确认令牌表示调用方已保证当前机器是可还原 VM。当前自动执行 TSF 导出/vtable 和临时 CLSID COM 激活；测试计划同时定义传统 IME、Host/IPC、输入切换、候选与上屏、证据采集和清理阶段，后续阶段应继续作为独立子进程接入同一报告。
 
 ## 集成测试约束
 

@@ -35,11 +35,19 @@ public sealed class XiaoXiImeIpcClient : IDisposable
 
     public async Task<ImeProcessResult> ProcessKeyAsync(ImeKey key)
     {
+        var response = await ProcessKeyRequestAsync(new ImeProcessKeyRequest(key)).ConfigureAwait(false);
+
+        return response.Result;
+    }
+
+    public async Task<ImeProcessKeyResponse> ProcessKeyRequestAsync(ImeProcessKeyRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
         var response = await SendWithRetryAsync(proxy => proxy.GetResponseAsync<ImeProcessKeyResponse>(
                 XiaoXiImeIpcRoutes.ProcessKey,
-                new ImeProcessKeyRequest(key))).ConfigureAwait(false);
+                request)).ConfigureAwait(false);
 
-        return response?.Result ?? throw new InvalidOperationException("IME IPC server returned an empty process-key response.");
+        return response ?? throw new InvalidOperationException("IME IPC server returned an empty process-key response.");
     }
 
     public async Task<ImeSessionSnapshot> GetSnapshotAsync()

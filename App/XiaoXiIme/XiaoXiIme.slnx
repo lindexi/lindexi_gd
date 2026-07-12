@@ -27,8 +27,14 @@
     <Project Path="src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj">
       <Build Solution="Debug|*" Project="false" />
     </Project>
+    <Project Path="src/XiaoXiIme.TsfModule/XiaoXiIme.TsfModule.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/XiaoXiIme.Cli.Tests/XiaoXiIme.Cli.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="tests/XiaoXiIme.Dictionary.Tests/XiaoXiIme.Dictionary.Tests.csproj">
       <Build Solution="Debug|*" Project="false" />
     </Project>
@@ -42,6 +48,12 @@
       <Build Solution="Debug|*" Project="false" />
     </Project>
     <Project Path="tests/XiaoXiIme.IntegrationTests/XiaoXiIme.IntegrationTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/XiaoXiIme.TsfAbiHost/XiaoXiIme.TsfAbiHost.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="tests/XiaoXiIme.TsfModule.Tests/XiaoXiIme.TsfModule.Tests.csproj">
       <Build Solution="Debug|*" Project="false" />
     </Project>
   </Folder>

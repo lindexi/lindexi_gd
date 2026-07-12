@@ -11,4 +11,8 @@
     <PackageReference Include="DotNetCampus.CommandLine" Version="4.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="XiaoXiIme.Cli.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -10,7 +10,7 @@ public sealed class XiaoXiImeIpcServer : IDisposable
     private bool _started;
 
     public XiaoXiImeIpcServer(
-        Func<ImeKey, Task<ImeProcessResult>> processKeyAsync,
+        Func<ImeProcessKeyRequest, Task<ImeProcessKeyResponse>> processKeyAsync,
         Func<Task<ImeSessionSnapshot>> getSnapshotAsync,
         Func<Task<ImeUiState>>? getUiStateAsync = null,
         Func<Task<ImeHostStatus>>? getHostStatusAsync = null,
@@ -21,7 +21,7 @@ public sealed class XiaoXiImeIpcServer : IDisposable
 
     internal XiaoXiImeIpcServer(
         JsonIpcDirectRoutedProvider provider,
-        Func<ImeKey, Task<ImeProcessResult>> processKeyAsync,
+        Func<ImeProcessKeyRequest, Task<ImeProcessKeyResponse>> processKeyAsync,
         Func<Task<ImeSessionSnapshot>> getSnapshotAsync,
         Func<Task<ImeUiState>>? getUiStateAsync = null,
         Func<Task<ImeHostStatus>>? getHostStatusAsync = null)
@@ -33,7 +33,7 @@ public sealed class XiaoXiImeIpcServer : IDisposable
 
         _provider.AddRequestHandler<ImeProcessKeyRequest, ImeProcessKeyResponse>(
             XiaoXiImeIpcRoutes.ProcessKey,
-            async request => new ImeProcessKeyResponse(await SafeProcessKeyAsync(processKeyAsync, request.Key).ConfigureAwait(false)));
+            request => SafeProcessKeyAsync(processKeyAsync, request));
 
         _provider.AddRequestHandler<ImeSnapshotRequest, ImeSnapshotResponse>(
             XiaoXiImeIpcRoutes.GetSnapshot,
@@ -67,15 +67,21 @@ public sealed class XiaoXiImeIpcServer : IDisposable
         }
     }
 
-    private static async Task<ImeProcessResult> SafeProcessKeyAsync(Func<ImeKey, Task<ImeProcessResult>> processKeyAsync, ImeKey key)
+    private static async Task<ImeProcessKeyResponse> SafeProcessKeyAsync(
+        Func<ImeProcessKeyRequest, Task<ImeProcessKeyResponse>> processKeyAsync,
+        ImeProcessKeyRequest request)
     {
         try
         {
-            return await processKeyAsync(key).ConfigureAwait(false);
+            return await processKeyAsync(request).ConfigureAwait(false);
         }
         catch
         {
-            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, false);
+            return new ImeProcessKeyResponse(
+                new ImeProcessResult(ImeSessionSnapshot.Empty, null, false),
+                request.EffectiveSessionId,
+                request.Generation,
+                request.SequenceNumber);
         }
     }
 
