@@ -6,13 +6,11 @@
 
 当前支持以下检查和安装命令：
 
-- `publish-checklist`：输出 Native AOT 发布检查步骤。
-- `export-checklist [ime-file]`：输出 IME 二进制导出检查命令。
-- `install-checklist [ime-file]`：输出人工安装和注册检查步骤。
-- `install <ime-file>`：调用 Windows API 安装输入法，可由最终安装包直接调用。
-- `uninstall-checklist`：输出人工卸载和回滚检查步骤。
 - `system-test-plan [--json]`：输出覆盖传统 IME、TSF、Host、IPC、UI、安装和回滚的全局系统测试计划。
 - `system-test-run <abi-host> <tsf-dll> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行隔离 ABI/COM 测试并生成 JSON 报告。
+- `payload-build [--output <directory>] [--runtime win-x64]`：在开发机上构建并收集完整集成测试负载，不修改 Windows 输入法配置。
+- `integration-run <payload-directory> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行旧版卸载、新版安装、TSF 验证、集成测试和清理。
+- `install <ime-file> --allow-system-changes`：显式调用 Windows API 安装输入法；同时要求 `XIAOXIIME_ENVIRONMENT=Test` 或 `VirtualMachine`。
 
 真实安装和注册涉及管理员权限及系统注册表。执行 `install` 即表示调用方要求安装，CLI 会在基本参数检查通过后调用 `ImmInstallIME`。
 
@@ -36,96 +34,58 @@ dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- <command> [argu
 dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- --help
 ```
 
-## 安装输入法
+## 构建可复制的集成测试负载
 
-### 1. 发布并检查 IME 文件
-
-先输出 Native AOT 发布检查步骤：
+在开发机的 `App\XiaoXiIme` 目录执行：
 
 ```powershell
-dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- publish-checklist
+dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- payload-build --output .\artifacts\integration-payload\win-x64 --runtime win-x64
 ```
 
-发布 IME 模块后，检查二进制是否导出了必需的传统 IME 入口点：
+该命令依次执行解决方案 Release 构建，并以 `win-x64` 自包含方式发布传统 IME NativeAOT 模块、TSF NativeAOT 模块、CLI、ImeHost、TSF ABI Host 和集成测试程序集。输出目录可以整体复制到 VM，也可以直接作为安装包负载。
+
+负载目录结构：
+
+```text
+win-x64/
+├── xiaoxiime-payload.json
+├── ime/       # XiaoXiIme.ime 及 NativeAOT 依赖
+├── tsf/       # XiaoXiIme.TsfModule.dll
+├── cli/       # VM 命令入口
+├── host/      # IPC 上层宿主应用
+├── tools/     # XiaoXiIme.TsfAbiHost
+└── tests/     # 已发布的集成测试程序集及运行依赖
+```
+
+`xiaoxiime-payload.json` 仅保存相对路径，并记录每个文件的长度和 SHA-256。复制到 VM 后，`integration-run` 会在修改系统前验证全部文件。
+
+如果已提前生成 `artifacts\integration-publish\win-x64` 下的全部发布结果，可使用 `--no-build` 只重新组织负载。
+
+## 在 VM 中执行一键集成验证
+
+将整个负载目录复制到已创建快照的 Windows VM。使用管理员 PowerShell 执行：
 
 ```powershell
-dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- export-checklist ".\src\XiaoXiIme.ImeModule\bin\Release\net10.0\win-x64\publish\XiaoXiIme.ImeModule.dll"
+$env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
+.\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --report .\results\integration.json
 ```
 
-必须确认以下入口点均已导出，才能继续注册：
+命令会依次完成：
 
-- `ImeInquire`
-- `ImeProcessKey`
-- `ImeToAsciiEx`
-- `ImeSelect`
-- `NotifyIME`
+1. 校验 manifest、文件长度和 SHA-256。
+2. 仅卸载注册表中明确归属于 `XiaoXi IME` / `XiaoXiIme.ime` 的旧布局。
+3. 安装负载中的新 `XiaoXiIme.ime`。
+4. 执行 TSF ABI/vtable 和隔离 COM 激活验证。
+5. 执行负载中的集成测试程序集，覆盖 Host、IPC 和上层逻辑。
+6. 输出单行 JSON 控制台事件并写入完整 JSON 报告。
+7. 默认卸载测试输入法；传入 `--keep-installed` 才保留安装状态，以便继续人工输入测试。
 
-### 2. 执行安装
-
-将位于稳定安装目录中的 `.ime` 文件完整路径传给 `install`。当前进程需要具有管理员权限：
-
-```powershell
-dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- install "C:\Program Files\XiaoXiIme\XiaoXiIme.ime"
-```
-
-最终安装包可以直接调用已发布的 CLI：
-
-```powershell
-.\XiaoXiIme.Cli.exe install "C:\Program Files\XiaoXiIme\XiaoXiIme.ime"
-```
-
-CLI 会在调用 `ImmInstallIME` 前检查：
-
-1. 文件存在且扩展名为 `.ime`。
-2. 当前进程具有管理员权限。
-
-成功后命令会输出 `ImmInstallIME` 返回的 HKL / 布局 ID。安装包应记录命令退出码和输出，以便诊断安装失败问题。
-
-安装后继续人工验证：
-
-1. 检查 `HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\<layout id>` 中的输入法元数据。
-2. 注销并重新登录；如果布局仍未出现，重启 Windows。
-3. 从 Windows 输入法切换界面选择小希输入法并执行冒烟测试。
-4. 在测试机验证时，测试完成后按卸载清单回滚并恢复虚拟机快照。
-
-仍可使用 `install-checklist [ime-file]` 输出不修改系统的检查清单。
-
-> 建议仅在虚拟机或专用测试机中首次安装，并在修改注册表前创建备份或系统还原点。
-
-## 系统自动化测试
-
-使用 `system-test-plan --json` 获取机器可读测试计划。在已创建快照的测试 VM 中发布 TSF NativeAOT DLL 和 `XiaoXiIme.TsfAbiHost.exe` 后，执行：
-
-```powershell
-XiaoXiIme.Cli.exe system-test-run "C:\Test\XiaoXiIme.TsfAbiHost.exe" "C:\Test\XiaoXiIme.TsfModule.dll" --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --report "C:\TestResults\system-tests.json"
-```
-
-命令默认拒绝执行。确认令牌表示调用方已保证当前机器是可还原 VM。当前自动执行 TSF 导出/vtable 和临时 CLSID COM 激活；测试计划同时定义传统 IME、Host/IPC、输入切换、候选与上屏、证据采集和清理阶段，后续阶段应继续作为独立子进程接入同一报告。
+控制台每一行都是独立 JSON，包含 `timestampUtc`、`level`、`stage`、`message` 和 `data`，便于 LLM 或自动化脚本实时判断当前阶段、退出码、标准输出和错误输出。
 
 ## 集成测试约束
 
 - CLI 不判断当前机器是否为开发机、测试机或最终用户机器。
-- 后续执行真实安装的集成测试必须部署到专用测试机或可还原虚拟机。
-- 不应让普通开发机上的默认测试集合自动调用 `install`。
+- `payload-build` 不修改系统，可在开发机执行。
+- `integration-run` 和 `install` 会修改系统，只能部署到专用测试机或可还原虚拟机。
+- 普通开发机上的 `dotnet test`、Visual Studio Test Explorer 和默认测试集合不得调用 `integration-run` 或 `install`。
 - 安装包调用 CLI 时，应等待进程结束并检查退出码；退出码为 `0` 表示安装 API 调用成功。
-
-## 卸载输入法
-
-输出人工卸载和回滚清单：
-
-```powershell
-dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- uninstall-checklist
-```
-
-该命令不会删除文件或注册表项。请使用管理员权限，并根据安装时记录的布局 ID 依次完成：
-
-1. 在所有用户会话中切换到其他输入法，避免小希输入法仍被进程占用。
-2. 尽可能使用 `UnloadKeyboardLayout` 卸载安装时记录的 HKL。
-3. 删除当前用户 `Keyboard Layout\Preload` 中引用小希输入法布局 ID 的项目。
-4. 如果安装时写入过默认用户配置，删除 `HKEY_USERS\.DEFAULT\Keyboard Layout\Preload` 中对应的项目。
-5. 删除 `Control Panel\International\User Profile` 中引用该布局 ID 的项目（如果存在）。
-6. 备份后删除 `HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\<layout id>` 注册项。
-7. 确认布局已卸载且文件未被进程占用后，再删除安装目录中的 `.ime` 文件。
-8. 如果输入法仍显示在系统列表中，重启相关应用；必要时重启 Windows。
-
-卸载前应保存布局注册项备份和安装时记录的布局 ID，以便卸载失败时回滚。不要删除无法确认归属的键盘布局或注册表项。

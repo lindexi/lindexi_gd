@@ -7,6 +7,9 @@ internal sealed class InstallOptions
 {
     [Value(0, Description = "Full path to the .ime file.")]
     public string? ImeFile { get; init; }
+
+    [Option("allow-system-changes", Description = "Confirm that this command may modify Windows.")]
+    public bool AllowSystemChanges { get; init; }
 }
 
 [Command("install-checklist", Description = "Print the manual Windows IME installation checklist.")]
@@ -50,4 +53,33 @@ internal sealed class SystemTestRunOptions
 
     [Option("report", Description = "Path to the generated report.", ValueName = "file")]
     public string? Report { get; init; }
+}
+
+[Command("payload-build", Description = "Build a self-contained integration-test payload directory.")]
+internal sealed class PayloadBuildOptions
+{
+    [Option("output", Description = "Payload output directory.", ValueName = "directory")]
+    public string? Output { get; init; }
+
+    [Option("runtime", Description = "Windows runtime identifier.", ValueName = "rid")]
+    public string RuntimeIdentifier { get; init; } = "win-x64";
+
+    [Option("no-build", Description = "Collect existing publish outputs without invoking dotnet build/publish.")]
+    public bool NoBuild { get; init; }
+}
+
+[Command("integration-run", Description = "Run the destructive VM integration-test lifecycle from a payload manifest.")]
+internal sealed class IntegrationRunOptions
+{
+    [Value(0, Description = "Payload directory or payload manifest path.")]
+    public string? Payload { get; init; }
+
+    [Option("confirm", Description = "Disposable-VM confirmation token.", ValueName = "token")]
+    public string? Confirm { get; init; }
+
+    [Option("report", Description = "Path to the generated report.", ValueName = "file")]
+    public string? Report { get; init; }
+
+    [Option("keep-installed", Description = "Do not uninstall XiaoXiIme after validation.")]
+    public bool KeepInstalled { get; init; }
 }
