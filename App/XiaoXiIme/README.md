@@ -14,7 +14,7 @@ XiaoXiIme 是一个基于 .NET 10 的小希输入法实验项目，用于探索 
 - 宿主进程：承载输入法运行时服务，通过 IPC 与 IME 模块交互。
 - IPC 协议：定义输入法模块与宿主进程之间的请求、响应和通知模型。
 - Avalonia UI：维护候选窗口状态映射和候选词展示控制逻辑。
-- 命令行工具：输出发布、导出检查、安装和卸载相关的人工检查清单。
+- 命令行工具：输出发布、导出检查和卸载清单，并提供可由最终安装包调用的输入法安装命令。
 - 自动化测试：覆盖核心、词典、IPC、IME 模块以及端到端集成场景。
 
 ## 项目结构
@@ -31,7 +31,7 @@ XiaoXiIme/
 │   ├── XiaoXiIme.ImeModule/           # Native AOT IME 模块与传统 IME 入口导出
 │   ├── XiaoXiIme.ImeHost/             # 输入法宿主进程
 │   ├── XiaoXiIme.ImeUi.Avalonia/      # 候选窗口 UI 状态与控制逻辑
-│   └── XiaoXiIme.Cli/                 # 发布、安装、卸载检查清单工具
+│   └── XiaoXiIme.Cli/                 # 发布检查和输入法安装工具
 └── tests/
     ├── XiaoXiIme.Dictionary.Tests/    # 词典测试
     ├── XiaoXiIme.ImeCore.Tests/       # 输入法核心测试
@@ -66,6 +66,8 @@ dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- publish-checklist
 dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r win-x64 --self-contained true -p:PublishAot=true
 ```
 
+最终安装包可以使用管理员权限直接调用 `XiaoXiIme.Cli.exe install <ime-file>` 完成注册。CLI 不判断机器用途；后续涉及真实系统安装的集成测试必须仅部署到专用测试机或可还原虚拟机，不能加入开发机默认测试集合。完整步骤见 `src/XiaoXiIme.Cli/README.md`。
+
 ## 维护文档
 
 维护文档用于记录项目演进过程中的约定、决策和操作步骤。建议按以下方式持续补充：
@@ -90,7 +92,7 @@ dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r 
 - 解决方案和多项目结构已建立。
 - 基础模型、输入法核心、词典、IPC、IME 模块、宿主进程和候选窗口 UI 项目已拆分。
 - IME 模块已包含传统 IME 入口相关导出逻辑。
-- CLI 已提供发布、导出检查、安装和卸载检查清单。
+- CLI 已提供发布、导出和卸载检查清单，以及可供最终安装包调用的 Windows IME 安装命令。
 - 已建立核心、词典、IPC、IME 模块和集成测试项目。
 
 持续推进方向：
@@ -107,5 +109,5 @@ dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r 
 - 修改共享模型时，请同步检查 `Foundation`、`ImeIpc`、`ImeCore`、`ImeModule` 和相关测试项目。
 - 修改 IPC 消息时，请同步更新协议文档和集成测试。
 - 修改 Native AOT 相关代码时，请关注发布警告和导出符号验证。
-- 修改安装、卸载或注册流程时，请优先通过 CLI 检查清单补齐可复现步骤。
+- 修改安装、卸载或注册流程时，真实安装集成测试必须单独部署到可还原虚拟机或专用测试机，不得由开发机默认测试集合执行。
 - 提交前建议至少执行一次 `dotnet build XiaoXiIme.slnx` 和相关测试项目。
