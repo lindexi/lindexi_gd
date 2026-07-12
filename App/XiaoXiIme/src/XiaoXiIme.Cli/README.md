@@ -2,6 +2,8 @@
 
 小希输入法命令行工具。职责：安装、卸载、重新安装、状态检查、诊断、Host 管理和系统级冒烟测试入口。
 
+本项目使用 `DotNetCampus.CommandLine` 进行命令行解析。命令建模、处理器注册、内置帮助、异步入口、Native AOT 注意事项和踩坑记录见 [DotNetCampus.CommandLine 使用与踩坑记录](./DotNetCampus.CommandLine.md)。
+
 当前支持以下检查和安装命令：
 
 - `publish-checklist`：输出 Native AOT 发布检查步骤。
@@ -73,8 +75,7 @@ dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- install "C:\Pro
 CLI 会在调用 `ImmInstallIME` 前检查：
 
 1. 文件存在且扩展名为 `.ime`。
-2. 当前系统为 Windows。
-3. 当前进程具有管理员权限。
+2. 当前进程具有管理员权限。
 
 成功后命令会输出 `ImmInstallIME` 返回的 HKL / 布局 ID。安装包应记录命令退出码和输出，以便诊断安装失败问题。
 

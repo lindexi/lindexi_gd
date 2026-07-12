@@ -4,15 +4,10 @@ using System.Security.Principal;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed class WindowsImeInstaller : IImeInstaller
+internal sealed class WindowsImeInstaller
 {
     public ImeInstallationResult Install(string imeFilePath, string displayName)
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return new ImeInstallationResult(false, "IME installation is supported only on Windows.");
-        }
-
         using var identity = WindowsIdentity.GetCurrent();
         var principal = new WindowsPrincipal(identity);
         if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
@@ -36,3 +31,5 @@ internal sealed class WindowsImeInstaller : IImeInstaller
     [DllImport("imm32.dll", EntryPoint = "ImmInstallIMEW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint ImmInstallIME(string imeFileName, string layoutText);
 }
+
+internal readonly record struct ImeInstallationResult(bool Succeeded, string Message);
