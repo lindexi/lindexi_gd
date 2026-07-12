@@ -1,5 +1,8 @@
 using System.Reflection;
 using System.Text;
+using DotNetCampus.Cli;
+using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Exceptions;
 
 namespace XiaoXiIme.Cli;
 
@@ -11,44 +14,60 @@ internal static class CliApplication
         TextWriter error,
         Func<IImeInstaller> createInstaller)
     {
-        var command = args.Length > 0 ? args[0] : "help";
-        var commandArguments = args.Skip(1).ToArray();
-
-        switch (command.ToLowerInvariant())
+        if (args.Length == 0 || args is ["--help"] or ["-h"])
         {
-            case "install":
-                return Install(commandArguments, output, error, createInstaller);
-            case "install-checklist":
-                PrintInstallChecklist(commandArguments, output);
-                return 0;
-            case "uninstall-checklist":
-                PrintUninstallChecklist(output);
-                return 0;
-            case "publish-checklist":
-                PrintPublishChecklist(output);
-                return 0;
-            case "export-checklist":
-                PrintExportChecklist(commandArguments, output);
-                return 0;
-            case "help":
-            case "--help":
-            case "-h":
-                PrintHelp(output);
-                return 0;
-            default:
-                error.WriteLine($"Unknown command: {command}");
-                PrintHelp(error);
-                return 1;
+            args = ["help"];
+        }
+
+        try
+        {
+            return CommandLine.Parse(args)
+                .AddHandler<InstallOptions>(options => Install(options.ImeFile, output, error, createInstaller))
+                .AddHandler<InstallChecklistOptions>(options =>
+                {
+                    PrintInstallChecklist(options.ImeFile, output);
+                    return 0;
+                })
+                .AddHandler<UninstallChecklistOptions>(_ =>
+                {
+                    PrintUninstallChecklist(output);
+                    return 0;
+                })
+                .AddHandler<PublishChecklistOptions>(_ =>
+                {
+                    PrintPublishChecklist(output);
+                    return 0;
+                })
+                .AddHandler<ExportChecklistOptions>(options =>
+                {
+                    PrintExportChecklist(options.ImeFile, output);
+                    return 0;
+                })
+                .AddHandler<SystemTestPlanOptions>(options => PrintSystemTestPlan(options.Json, output, error))
+                .AddHandler<SystemTestRunOptions>(options => RunSystemTests(options, output, error))
+                .AddHandler<HelpOptions>(_ =>
+                {
+                    PrintHelp(output);
+                    return 0;
+                })
+                .RunAsync()
+                .GetAwaiter()
+                .GetResult();
+        }
+        catch (CommandNameNotFoundException)
+        {
+            error.WriteLine($"Unknown command: {args[0]}");
+            PrintHelp(error);
+            return 1;
         }
     }
 
     private static int Install(
-        string[] args,
+        string? imeFile,
         TextWriter output,
         TextWriter error,
         Func<IImeInstaller> createInstaller)
     {
-        var imeFile = args.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(imeFile))
         {
             error.WriteLine("The install command requires the full path to an .ime file.");
@@ -90,6 +109,55 @@ internal static class CliApplication
         output.WriteLine("  install <ime-file>                  Install the IME by calling the Windows ImmInstallIME API.");
         output.WriteLine("  install-checklist [ime-file]       Print manual Windows IME installation checklist.");
         output.WriteLine("  uninstall-checklist                Print manual Windows IME uninstall and rollback checklist.");
+        output.WriteLine("  system-test-plan [--json]          Print the global Windows/VM system validation plan.");
+        output.WriteLine("  system-test-run <abi-host> <tsf-dll> --confirm <token> [--report <file>]");
+    }
+
+    private static int PrintSystemTestPlan(bool json, TextWriter output, TextWriter error)
+    {
+        var plan = SystemTestPlan.CreateDefault();
+        if (json)
+        {
+            output.WriteLine(plan.ToJson());
+            return 0;
+        }
+
+        output.WriteLine(plan.Name);
+        foreach (var step in plan.Steps)
+        {
+            output.WriteLine($"[{step.Id}] {step.Area}: {step.Description}");
+            output.WriteLine($"  Destructive: {step.Destructive}; Evidence: {step.Evidence}");
+        }
+
+        error.WriteLine("Execution is separate and requires an explicit disposable-VM confirmation token.");
+        return 0;
+    }
+
+    private static Task<int> RunSystemTests(SystemTestRunOptions options, TextWriter output, TextWriter error)
+    {
+        if (string.IsNullOrWhiteSpace(options.AbiHost) || string.IsNullOrWhiteSpace(options.TsfDll))
+        {
+            error.WriteLine("system-test-run requires <abi-host> and <tsf-dll>.");
+            return Task.FromResult(2);
+        }
+
+        var reportPath = options.Report
+            ?? Path.Combine(Environment.CurrentDirectory, "artifacts", "system-tests", "report.json");
+        var allowDestructive = string.Equals(options.Confirm, SystemTestRunner.VmConfirmation, StringComparison.Ordinal);
+        var host = Path.GetFullPath(options.AbiHost);
+        var tsfDll = Path.GetFullPath(options.TsfDll);
+        if (!File.Exists(host) || !File.Exists(tsfDll))
+        {
+            error.WriteLine("The ABI host and TSF DLL must both exist.");
+            return Task.FromResult(4);
+        }
+
+        SystemTestCommand[] commands =
+        [
+            new("tsf-abi", host, ["abi", tsfDll]),
+            new("tsf-com-activation", host, ["com-activation", tsfDll]),
+        ];
+        return SystemTestRunner.RunAsync(commands, reportPath, allowDestructive, output, error);
     }
 
     private static void PrintPublishChecklist(TextWriter output)
@@ -102,9 +170,9 @@ internal static class CliApplication
         output.WriteLine("5. Record all Native AOT warnings; known dotnetCampus.Ipc package warnings must not be confused with project-side reflection paths.");
     }
 
-    private static void PrintExportChecklist(string[] args, TextWriter output)
+    private static void PrintExportChecklist(string? imeFile, TextWriter output)
     {
-        var imeFile = args.Length > 0 ? args[0] : "src\\XiaoXiIme.ImeModule\\bin\\Release\\net10.0\\win-x64\\publish\\XiaoXiIme.ImeModule.dll";
+        imeFile ??= "src\\XiaoXiIme.ImeModule\\bin\\Release\\net10.0\\win-x64\\publish\\XiaoXiIme.ImeModule.dll";
         var commands = new StringBuilder()
             .AppendLine("Export verification checklist")
             .AppendLine("This command does not inspect or modify the system. Run one of the following checks manually before registration.")
@@ -120,9 +188,9 @@ internal static class CliApplication
         output.Write(commands.ToString());
     }
 
-    private static void PrintInstallChecklist(string[] args, TextWriter output)
+    private static void PrintInstallChecklist(string? imeFile, TextWriter output)
     {
-        var imeFile = args.Length > 0 ? args[0] : "<published XiaoXiIme .ime path>";
+        imeFile ??= "<published XiaoXiIme .ime path>";
         output.WriteLine("Windows IME install checklist");
         output.WriteLine($"1. Confirm the IME file exists in a stable location: {imeFile}");
         output.WriteLine($"2. Run from an elevated process: install \"{imeFile}\"");
@@ -146,4 +214,57 @@ internal static class CliApplication
         output.WriteLine("8. Restart affected applications or Windows if the layout remains visible.");
         output.WriteLine($"9. Keep this CLI version for audit: {Assembly.GetExecutingAssembly().GetName().Version}");
     }
+}
+
+[Command("install")]
+internal sealed class InstallOptions
+{
+    [Value(0)]
+    public string? ImeFile { get; init; }
+}
+
+[Command("install-checklist")]
+internal sealed class InstallChecklistOptions
+{
+    [Value(0)]
+    public string? ImeFile { get; init; }
+}
+
+[Command("uninstall-checklist")]
+internal sealed class UninstallChecklistOptions;
+
+[Command("publish-checklist")]
+internal sealed class PublishChecklistOptions;
+
+[Command("export-checklist")]
+internal sealed class ExportChecklistOptions
+{
+    [Value(0)]
+    public string? ImeFile { get; init; }
+}
+
+[Command("help")]
+internal sealed class HelpOptions;
+
+[Command("system-test-plan")]
+internal sealed class SystemTestPlanOptions
+{
+    [Option("json")]
+    public bool Json { get; init; }
+}
+
+[Command("system-test-run")]
+internal sealed class SystemTestRunOptions
+{
+    [Value(0)]
+    public string? AbiHost { get; init; }
+
+    [Value(1)]
+    public string? TsfDll { get; init; }
+
+    [Option("confirm")]
+    public string? Confirm { get; init; }
+
+    [Option("report")]
+    public string? Report { get; init; }
 }
