@@ -1,3 +1,7 @@
 <Solution>
+  <Project Path="../CodingwhejeedenochaDeelemjuher.TestLanguageServer/CodingwhejeedenochaDeelemjuher.TestLanguageServer.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
+  <Project Path="../CodingwhejeedenochaDeelemjuher.Tests/CodingwhejeedenochaDeelemjuher.Tests.csproj" />
   <Project Path="CodingwhejeedenochaDeelemjuher.csproj" />
 </Solution>
