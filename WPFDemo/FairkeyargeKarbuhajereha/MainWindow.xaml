@@ -1,0 +1,76 @@
+﻿<Window x:Class="FairkeyargeKarbuhajereha.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FairkeyargeKarbuhajereha"
+        mc:Ignorable="d"
+        Title="图标导出工具"
+        Width="880"
+        Height="650"
+        MinWidth="700"
+        MinHeight="560"
+        Background="{StaticResource PageBackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="36">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="32" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Padding="28"
+                Background="#D9FFFFFF"
+                CornerRadius="28">
+            <Viewbox Stretch="Uniform">
+                <Image Width="512"
+                       Height="512"
+                       Source="{StaticResource ApplicationIconDrawingImage}"
+                       Stretch="Uniform" />
+            </Viewbox>
+        </Border>
+
+        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+            <TextBlock Foreground="#FF063D55"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Text="应用图标" />
+            <TextBlock Margin="0,12,0,0"
+                       Foreground="#FF46636E"
+                       FontSize="15"
+                       LineHeight="24"
+                       Text="点击按钮后，图标将导出到可执行文件所在目录的 Icons 文件夹。"
+                       TextWrapping="Wrap" />
+
+            <Border Margin="0,24,0,0"
+                    Padding="16"
+                    Background="#BFFFFFFF"
+                    CornerRadius="12">
+                <StackPanel>
+                    <TextBlock Foreground="#FF063D55" FontWeight="SemiBold" Text="导出内容" />
+                    <TextBlock Margin="0,8,0,0"
+                               Foreground="#FF46636E"
+                               LineHeight="22"
+                               Text="• Png16x16IconFile.png&#10;• Png24x24IconFile.png&#10;• Png32x32IconFile.png&#10;• Png256x256IconFile.png&#10;• AppIcon.ico"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Button Margin="0,24,0,0"
+                    Command="{Binding ExportCommand}"
+                    Content="导出全部图标" />
+
+            <ProgressBar Height="4"
+                         Margin="0,16,0,0"
+                         IsIndeterminate="True"
+                         Visibility="{Binding IsExporting, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+            <TextBlock Margin="0,14,0,0"
+                       Foreground="#FF46636E"
+                       FontSize="13"
+                       Text="{Binding StatusText}"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</Window>
