@@ -4,13 +4,28 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Icons/AppIcon.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AppId>com.dotnetcampus.imageviewer</AppId>
+    <AppName>ImageViewer</AppName>
+    <AppNameZhCN>图片查看器</AppNameZhCN>
+    <DesktopComment>Image viewer.</DesktopComment>
+    <DesktopCommentZhCN>图片查看器</DesktopCommentZhCN>
+    <DebControlDescription>Image viewer.</DebControlDescription>
+    <DebControlMaintainer>dotnet-campus</DebControlMaintainer>
+    <Png16x16IconFile>Icons/AppIcon-16.png</Png16x16IconFile>
+    <Png24x24IconFile>Icons/AppIcon-24.png</Png24x24IconFile>
+    <Png32x32IconFile>Icons/AppIcon-32.png</Png32x32IconFile>
+    <Png256x256IconFile>Icons/AppIcon-256.png</Png256x256IconFile>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="ImageViewer.Tests" />
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Icons/AppIcon.ico" />
+    <None Include="Icons/AppIcon-*.png" CopyToOutputDirectory="PreserveNewest" />
+
     <PackageReference Include="Avalonia" Version="12.0.5" />
     <PackageReference Include="Avalonia.Desktop" Version="12.0.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.5" />
@@ -18,6 +33,10 @@
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Packaging.DebUOS" Version="3.20.0">
+      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 </Project>

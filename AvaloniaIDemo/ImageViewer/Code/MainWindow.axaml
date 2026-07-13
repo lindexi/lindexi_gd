@@ -5,6 +5,7 @@
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="680"
         x:Class="ImageViewer.MainWindow"
         Title="图片查看器"
+        Icon="avares://ImageViewer/Icons/AppIcon.ico"
         Width="900"
         Height="680"
         MinWidth="640"
