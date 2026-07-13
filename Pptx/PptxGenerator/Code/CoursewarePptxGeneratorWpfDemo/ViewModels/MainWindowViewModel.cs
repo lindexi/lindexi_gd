@@ -35,7 +35,6 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isBusy;
     private bool _isConnectingMcp;
     private bool _attachPreview;
-    private string _statusText = "尚未加载课件";
     private CoursewareModelDisplayItem? _selectedModelItem;
     private DirectoryInfo? _coursewareFolder;
 
@@ -146,19 +145,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public DirectoryInfo? CoursewareFolder
     {
         get => _coursewareFolder;
-        private set
-        {
-            if (SetProperty(ref _coursewareFolder, value))
-            {
-                OnPropertyChanged(nameof(CoursewareFolderDisplayText));
-            }
-        }
+        private set => SetProperty(ref _coursewareFolder, value);
     }
-
-    /// <summary>
-    /// Gets the text displayed for the selected courseware folder.
-    /// </summary>
-    public string CoursewareFolderDisplayText => CoursewareFolder?.FullName ?? "尚未选择课件文件夹";
 
     /// <summary>
     /// Gets or sets the currently selected slide.
@@ -268,15 +256,6 @@ public sealed class MainWindowViewModel : ObservableObject
                 _connectMcpCommand.RaiseCanExecuteChanged();
             }
         }
-    }
-
-    /// <summary>
-    /// Gets or sets the current status text.
-    /// </summary>
-    public string StatusText
-    {
-        get => _statusText;
-        set => SetProperty(ref _statusText, value);
     }
 
     /// <summary>
@@ -406,7 +385,6 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         IsBusy = true;
-        StatusText = "正在加载课件导出目录...";
 
         try
         {
@@ -427,24 +405,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
                 CoursewareFolder = package.RootDirectory;
                 SelectedSlide = Slides.FirstOrDefault();
-                StatusText = CreateLoadedStatusText(package);
             });
-        }
-        catch (InvalidDataException ex)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：{ex.Message}");
-        }
-        catch (IOException ex)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：{ex.Message}");
-        }
-        catch (JsonException ex)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：JSON 格式无效。{ex.Message}");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = $"加载课件目录失败：没有访问权限。{ex.Message}");
         }
         finally
         {
@@ -487,7 +448,6 @@ public sealed class MainWindowViewModel : ObservableObject
         var message = InputText.Trim();
         InputText = string.Empty;
         IsBusy = true;
-        StatusText = "正在处理当前页面...";
 
         var imageFiles = AttachedImageFiles.Count > 0
             ? AttachedImageFiles.Select(file => file.FullName).ToList()
@@ -503,16 +463,6 @@ public sealed class MainWindowViewModel : ObservableObject
                     attachedImageFiles: imageFiles,
                     useStreaming: true)
                 .ConfigureAwait(false);
-
-            await _dispatcher.InvokeAsync(() => StatusText = "处理完成");
-        }
-        catch (OperationCanceledException)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = "操作已取消");
-        }
-        catch (Exception)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = "处理失败");
         }
         finally
         {
@@ -528,7 +478,6 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         IsBusy = true;
-        StatusText = "正在重新加载预览...";
         try
         {
             var renderTool = SlideChatManager.SlideMlRenderTool;
@@ -536,16 +485,7 @@ public sealed class MainWindowViewModel : ObservableObject
             await _dispatcher.InvokeAsync(() =>
             {
                 renderTool.ApplyRenderResult(renderResult);
-                StatusText = "重新加载完成";
             });
-        }
-        catch (OperationCanceledException)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = "重新加载已取消");
-        }
-        catch (Exception)
-        {
-            await _dispatcher.InvokeAsync(() => StatusText = "重新加载失败");
         }
         finally
         {
@@ -567,7 +507,6 @@ public sealed class MainWindowViewModel : ObservableObject
 
         EditableSlideXml = SelectedSlide?.SlideMl ?? string.Empty;
         PrepareSelectedSlideCopilotInput();
-        StatusText = SelectedSlide?.Status ?? (CoursewareFolder is null ? "尚未加载课件" : "请选择页面");
         OnPropertyChanged(nameof(RenderingLog));
         OnPropertyChanged(nameof(CallbackXml));
         OnPropertyChanged(nameof(HasRenderedPreviewImage));
@@ -604,7 +543,6 @@ public sealed class MainWindowViewModel : ObservableObject
             Width = input.Width,
             Height = input.Height,
             Title = _slideSummaryService.CreateTitle(input.MarkdownText, input.PageNumber),
-            Summary = _slideSummaryService.CreateSummary(input.MarkdownText),
             Status = initializationError is null ? status : $"{status}，聊天初始化失败",
             SourceMarkdownText = input.MarkdownText,
             SourceScreenshotFilePath = input.ScreenshotFile?.FullName,
@@ -648,14 +586,6 @@ public sealed class MainWindowViewModel : ObservableObject
     private static string CreateSlideStatus(CoursewareSlideInput input)
     {
         return input.ScreenshotFile is null ? "已加载，缺失截图" : "已加载";
-    }
-
-    private static string CreateLoadedStatusText(CoursewareInputPackage package)
-    {
-        var warningCount = package.Warnings.Count;
-        return warningCount == 0
-            ? $"已加载 {package.SlideCount} 页，等待主题分析"
-            : $"已加载 {package.SlideCount} 页，存在 {warningCount} 个警告，等待主题分析";
     }
 
     private void PrepareSelectedSlideCopilotInput()
@@ -723,7 +653,6 @@ public sealed class MainWindowViewModel : ObservableObject
             Width = 1280,
             Height = 720,
             Title = $"未命名页面 {pageNumber}",
-            Summary = "尚未加载页面内容。",
             Status = "Empty",
             SourceMarkdownText = string.Empty,
             SlideMl = string.Empty,

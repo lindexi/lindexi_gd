@@ -89,8 +89,6 @@ public sealed class MainWindowCompositionTests
                 ?? throw new AssertFailedException("未找到右侧聊天输入框。");
             var attachedImageFilesItemsControl = FindVisualChildByName<ItemsControl>(copilotPanel, "AttachedImageFilesItemsControl")
                 ?? throw new AssertFailedException("未找到右侧附件列表控件。");
-            var statusTextBlock = FindVisualChildByName<TextBlock>(mainContentPanel, "StatusTextBlock")
-                ?? throw new AssertFailedException("未找到工作台状态文本。");
 
             Assert.AreEqual(expectedPackage.SlideCount, slideListBox.Items.Count, "左侧页面列表数量应与课件页面数量一致。");
             Assert.AreSame(viewModel.SelectedSlide, slideListBox.SelectedItem, "左侧页面列表应选中当前页面。");
@@ -104,7 +102,6 @@ public sealed class MainWindowCompositionTests
             StringAssert.Contains(chatInputTextBox.Text, expectedFirstSlide.MarkdownText.Trim().Split('\n')[0].Trim());
             Assert.AreEqual(viewModel.AttachedImageFiles.Count, attachedImageFilesItemsControl.Items.Count, "右侧附件显示数量应与 ViewModel 一致。");
             Assert.IsGreaterThan(0, chatInputTextBox.Text.Length, "右侧聊天输入框应显示美化提示词。");
-            Assert.AreEqual(viewModel.StatusText, statusTextBlock.Text, "工作台应显示 ViewModel 的全局状态。");
         }
         finally
         {

@@ -43,23 +43,6 @@
                                FontWeight="Bold"
                                FontSize="20"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="{Binding SelectedSlide.Summary, TargetNullValue=尚未加载课件内容。}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="12"
-                               Margin="0,4,0,0" />
-                    <TextBlock Text="{Binding CoursewareFolderDisplayText}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="11"
-                               TextTrimming="CharacterEllipsis"
-                               MaxWidth="680"
-                               Margin="0,4,0,0" />
-                    <TextBlock x:Name="StatusTextBlock"
-                               Text="{Binding StatusText}"
-                               Foreground="{StaticResource PrimaryBlueBrush}"
-                               FontSize="12"
-                               TextWrapping="Wrap"
-                               MaxWidth="680"
-                               Margin="0,4,0,0" />
                 </StackPanel>
             </DockPanel>
         </Border>

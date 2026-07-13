@@ -36,7 +36,6 @@ public sealed class MainWindowViewModelTests
         Assert.AreEqual(viewModel.Slides[0].SourceScreenshotFilePath, viewModel.AttachedImageFiles[0].FullName);
         StringAssert.Contains(viewModel.InputText, "页面 Id：slide-alpha");
         StringAssert.Contains(viewModel.InputText, "第一页 Markdown 内容");
-        StringAssert.Contains(viewModel.StatusText, "已加载 2 页");
 
         viewModel.SelectedSlide = viewModel.Slides[1];
 
@@ -71,7 +70,6 @@ public sealed class MainWindowViewModelTests
         Assert.AreNotSame(viewModel.Slides[0].SlideChatManager, viewModel.Slides[1].SlideChatManager);
         StringAssert.Contains(viewModel.InputText, "页面 Id：slide-alpha");
         StringAssert.Contains(viewModel.InputText, "第一页 Markdown 内容");
-        StringAssert.Contains(viewModel.StatusText, "已加载 2 页");
     }
 
     private static string CreateSlideMarkdown(string title, string content)

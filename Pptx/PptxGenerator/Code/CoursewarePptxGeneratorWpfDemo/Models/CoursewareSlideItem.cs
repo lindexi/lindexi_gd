@@ -38,11 +38,6 @@ public sealed class CoursewareSlideItem
     public required string Title { get; init; }
 
     /// <summary>
-    /// Gets the slide summary.
-    /// </summary>
-    public required string Summary { get; init; }
-
-    /// <summary>
     /// Gets the current processing status text.
     /// </summary>
     public required string Status { get; init; }
