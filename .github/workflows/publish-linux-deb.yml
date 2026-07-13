@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           PROJECT="AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj"
-          OUTPUT_DIR="AvaloniaIDemo/ImageViewer/artifacts/${{ matrix.platform }}"
+          OUTPUT_DIR="$GITHUB_WORKSPACE/AvaloniaIDemo/ImageViewer/artifacts/${{ matrix.platform }}"
           PACKAGE_ID="$(dotnet msbuild "$PROJECT" -getProperty:AppName | tail -n 1 | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
           VERSION="$(dotnet msbuild "$PROJECT" -getProperty:Version -p:Configuration=Release | tail -n 1 | tr -d '\r')"
           BUILD_DATE="$(date -u +%Y%m%d%H%M%S)"
@@ -113,7 +113,7 @@ jobs:
           set -euo pipefail
           PROJECT="AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj"
           PLATFORM="linux-loongarch64-${{ matrix.abi }}"
-          OUTPUT_DIR="AvaloniaIDemo/ImageViewer/artifacts/$PLATFORM"
+          OUTPUT_DIR="$GITHUB_WORKSPACE/AvaloniaIDemo/ImageViewer/artifacts/$PLATFORM"
           PACKAGE_ID="$(dotnet msbuild "$PROJECT" -getProperty:AppName | tail -n 1 | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
           VERSION="$(dotnet msbuild "$PROJECT" -getProperty:Version -p:Configuration=Release | tail -n 1 | tr -d '\r')"
           BUILD_DATE="$(date -u +%Y%m%d%H%M%S)"
