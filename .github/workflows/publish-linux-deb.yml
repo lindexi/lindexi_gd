@@ -1,0 +1,146 @@
+name: Publish Linux deb packages
+
+on:
+  push:
+    branches:
+      - ImageViewer
+
+permissions:
+  contents: read
+
+jobs:
+  publish-native-aot:
+    name: Publish ${{ matrix.platform }} NativeAOT
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runtime: linux-x64
+          - platform: amd64
+            runtime: linux-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install NativeAOT prerequisites
+        run: sudo apt-get update && sudo apt-get install --yes clang zlib1g-dev
+
+      - name: Prepare package path
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj"
+          OUTPUT_DIR="AvaloniaIDemo/ImageViewer/artifacts/${{ matrix.platform }}"
+          PACKAGE_ID="$(dotnet msbuild "$PROJECT" -getProperty:AppName | tail -n 1 | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
+          VERSION="$(dotnet msbuild "$PROJECT" -getProperty:Version -p:Configuration=Release | tail -n 1 | tr -d '\r')"
+          BUILD_DATE="$(date -u +%Y%m%d%H%M%S)"
+          COMMIT_SHORT="$(git rev-parse --short=10 HEAD)"
+          OUTPUT_NAME="${PACKAGE_ID}_${{ matrix.platform }}_${VERSION}-${BUILD_DATE}-${COMMIT_SHORT}.deb"
+          OUTPUT_PATH="$OUTPUT_DIR/$OUTPUT_NAME"
+
+          rm -rf "$OUTPUT_DIR"
+          mkdir -p "$OUTPUT_DIR"
+          echo "path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
+          echo "name=$OUTPUT_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Publish deb package
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj \
+            --configuration Release \
+            --runtime "${{ matrix.runtime }}" \
+            --self-contained true \
+            -p:PublishAot=true \
+            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" \
+            -t:CreateDebUOS
+
+      - name: Upload ${{ matrix.platform }} package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error
+
+  publish-loongarch64:
+    name: Publish linux-loongarch64-${{ matrix.abi }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: ABI1.0
+            source_name: nuget.loongnix.cn
+            source_url: https://nuget.loongnix.cn/v3/index.json
+          - abi: ABI2.0
+            source_name: lnuget.loongnix.cn
+            source_url: https://lnuget.loongnix.cn/v3/index.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Add LoongArch NuGet source
+        shell: bash
+        run: |
+          dotnet nuget add source "${{ matrix.source_url }}" \
+            --name "${{ matrix.source_name }}" \
+            --protocol-version 3 \
+            --allow-insecure-connections
+
+      - name: Prepare package path
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj"
+          PLATFORM="linux-loongarch64-${{ matrix.abi }}"
+          OUTPUT_DIR="AvaloniaIDemo/ImageViewer/artifacts/$PLATFORM"
+          PACKAGE_ID="$(dotnet msbuild "$PROJECT" -getProperty:AppName | tail -n 1 | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
+          VERSION="$(dotnet msbuild "$PROJECT" -getProperty:Version -p:Configuration=Release | tail -n 1 | tr -d '\r')"
+          BUILD_DATE="$(date -u +%Y%m%d%H%M%S)"
+          COMMIT_SHORT="$(git rev-parse --short=10 HEAD)"
+          OUTPUT_NAME="${PACKAGE_ID}_${PLATFORM}_${VERSION}-${BUILD_DATE}-${COMMIT_SHORT}.deb"
+          OUTPUT_PATH="$OUTPUT_DIR/$OUTPUT_NAME"
+
+          rm -rf "$OUTPUT_DIR"
+          mkdir -p "$OUTPUT_DIR"
+          echo "path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
+          echo "name=$OUTPUT_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Publish deb package
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj \
+            --configuration Release \
+            --runtime linux-loongarch64 \
+            --self-contained true \
+            -p:PublishAot=false \
+            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" \
+            -t:CreateDebUOS
+
+      - name: Upload linux-loongarch64-${{ matrix.abi }} package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error
