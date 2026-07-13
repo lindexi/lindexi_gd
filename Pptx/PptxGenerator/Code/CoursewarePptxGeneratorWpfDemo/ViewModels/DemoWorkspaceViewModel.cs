@@ -73,6 +73,7 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     {
         Slides = new ObservableCollection<DemoSlideViewModel>(CreateSlides());
         ThemeColors = new ObservableCollection<DemoThemeColorViewModel>(CreateThemeColors());
+        TypographyLevels = new ObservableCollection<DemoTypographyLevelViewModel>(CreateTypographyLevels());
         LayoutPrinciples = new ObservableCollection<string>(
         [
             "标题区保持稳定高度和对齐起点",
@@ -81,6 +82,8 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
             "例题、步骤和结论使用一致的视觉节奏",
             "章节页与普通内容页形成明确变化",
         ]);
+        PageTypeRecommendations = new ObservableCollection<DemoPageTypeRecommendationViewModel>(CreatePageTypeRecommendations());
+        ContentRules = new ObservableCollection<DemoThemeRuleViewModel>(CreateContentRules());
         AnalysisSteps = new ObservableCollection<DemoAnalysisStepViewModel>(CreateAnalysisSteps());
         ChatMessages = new ObservableCollection<DemoChatMessageViewModel>(
         [
@@ -151,9 +154,24 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     public ObservableCollection<DemoThemeColorViewModel> ThemeColors { get; }
 
     /// <summary>
+    /// Gets the demonstration typography hierarchy.
+    /// </summary>
+    public ObservableCollection<DemoTypographyLevelViewModel> TypographyLevels { get; }
+
+    /// <summary>
     /// Gets the recommended layout principles.
     /// </summary>
     public ObservableCollection<string> LayoutPrinciples { get; }
+
+    /// <summary>
+    /// Gets the demonstration recommendations for each slide type.
+    /// </summary>
+    public ObservableCollection<DemoPageTypeRecommendationViewModel> PageTypeRecommendations { get; }
+
+    /// <summary>
+    /// Gets the demonstration rules for mathematical content presentation.
+    /// </summary>
+    public ObservableCollection<DemoThemeRuleViewModel> ContentRules { get; }
 
     /// <summary>
     /// Gets the completed analysis stages.
@@ -414,6 +432,29 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
         yield return new DemoThemeColorViewModel("次文字", "石板灰", "#475569");
     }
 
+    private static IEnumerable<DemoTypographyLevelViewModel> CreateTypographyLevels()
+    {
+        yield return new DemoTypographyLevelViewModel("一级标题", "32 pt / Bold", "建立课题与章节焦点");
+        yield return new DemoTypographyLevelViewModel("二级标题", "24 pt / SemiBold", "组织推导步骤与知识模块");
+        yield return new DemoTypographyLevelViewModel("正文", "18 pt / Regular", "保证教室投影下的远距离阅读");
+        yield return new DemoTypographyLevelViewModel("辅助文字", "14 pt / Regular", "仅用于注释、来源和次要说明");
+    }
+
+    private static IEnumerable<DemoPageTypeRecommendationViewModel> CreatePageTypeRecommendations()
+    {
+        yield return new DemoPageTypeRecommendationViewModel("封面页", "01", "聚焦课题名称，以几何线框建立学科识别，减少说明文字。");
+        yield return new DemoPageTypeRecommendationViewModel("章节页", "02", "使用大标题、章节编号和留白，形成清晰的课堂节奏变化。");
+        yield return new DemoPageTypeRecommendationViewModel("内容页", "03", "优先展示推导关系，图形、公式和解释沿统一基线组织。");
+        yield return new DemoPageTypeRecommendationViewModel("练习与总结", "04", "练习页突出任务边界，总结页集中呈现方法与关键结论。");
+    }
+
+    private static IEnumerable<DemoThemeRuleViewModel> CreateContentRules()
+    {
+        yield return new DemoThemeRuleViewModel("公式与推导", "按步骤逐层展开；等号与关键符号对齐；最终结论使用橙色强调带。");
+        yield return new DemoThemeRuleViewModel("几何图形", "图形与条件说明成组摆放，辅助线使用低饱和蓝，避免与结论争夺焦点。");
+        yield return new DemoThemeRuleViewModel("课堂节奏", "导入保持轻量，例题强化步骤，练习减少装饰，总结回收核心方法。");
+    }
+
     private static IEnumerable<DemoAnalysisStepViewModel> CreateAnalysisSteps()
     {
         yield return new DemoAnalysisStepViewModel("1. 课件读取", "已读取课件基本信息");
@@ -472,6 +513,21 @@ public sealed record DemoSlideViewModel(int Number, string Title, int LayoutVari
 /// Represents a color in the demonstration theme.
 /// </summary>
 public sealed record DemoThemeColorViewModel(string Usage, string Name, string HexValue);
+
+/// <summary>
+/// Represents one level in the demonstration typography hierarchy.
+/// </summary>
+public sealed record DemoTypographyLevelViewModel(string Name, string Specification, string Purpose);
+
+/// <summary>
+/// Represents the demonstration recommendation for one slide type.
+/// </summary>
+public sealed record DemoPageTypeRecommendationViewModel(string Name, string Number, string Description);
+
+/// <summary>
+/// Represents one demonstration content presentation rule.
+/// </summary>
+public sealed record DemoThemeRuleViewModel(string Title, string Description);
 
 /// <summary>
 /// Represents a completed analysis stage.

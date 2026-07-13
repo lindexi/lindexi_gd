@@ -25,19 +25,20 @@
 
     <Style x:Key="AnalysisSectionTitleTextStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AnalysisNavyBrush}" />
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="Bold" />
     </Style>
 
     <Style x:Key="AnalysisCardTitleTextStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AnalysisNavyBrush}" />
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontSize" Value="17" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="AnalysisBodyTextStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AnalysisBodyBrush}" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="LineHeight" Value="21" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -164,9 +165,9 @@
         <Setter Property="BorderBrush" Value="{StaticResource AnalysisBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Padding" Value="10,9" />
+        <Setter Property="Padding" Value="12,11" />
         <Setter Property="Margin" Value="0,0,8,0" />
-        <Setter Property="MinHeight" Value="68" />
+        <Setter Property="MinHeight" Value="84" />
     </Style>
 
     <Style x:Key="WorkspacePanelStyle" TargetType="Border">
