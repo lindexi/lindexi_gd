@@ -18,9 +18,8 @@ internal sealed class TestCoursewareExportBuilder
     public TestCoursewareExportBuilder AddSlide(string slideId, string markdownText, bool hasScreenshot = true)
     {
         var slideIndex = _slides.Count;
-        var pageNumber = slideIndex + 1;
-        var markdownFile = $"slides/Slide_{pageNumber:D3}.md";
-        var screenshotFile = hasScreenshot ? $"screenshots/Slide_{pageNumber:D3}.png" : $"screenshots/Missing_{pageNumber:D3}.png";
+        var markdownFile = $"Slides/Slide{slideIndex:D3}.md";
+        var screenshotFile = $"Slides/Slide{slideIndex:D3}.jpg";
 
         WriteText(markdownFile, markdownText);
         if (hasScreenshot)
@@ -32,18 +31,18 @@ internal sealed class TestCoursewareExportBuilder
         return this;
     }
 
-    public TestCoursewareExportBuilder AddResource(string imageId, string sourceFileName, string exportFile, bool exists = true)
+    public TestCoursewareExportBuilder AddResource(string resourceId, string resourceType, string exportFile, bool exists = true)
     {
         _resources.Add(new CoursewareResourceEntry
         {
-            ImageId = imageId,
-            SourceFileName = sourceFileName,
+            ResourceId = resourceId,
+            ResourceType = resourceType,
             ExportFile = exportFile,
         });
 
         if (exists)
         {
-            WriteBytes(Path.Join("resources", exportFile), [1, 2, 3, 4]);
+            WriteBytes(Path.Join("Resources", exportFile), [1, 2, 3, 4]);
         }
 
         return this;
@@ -57,7 +56,7 @@ internal sealed class TestCoursewareExportBuilder
             CreatedAt = DateTimeOffset.Parse("2026-07-07T10:20:13+08:00"),
             CoursewareName = "测试课件",
             SlideCount = _slides.Count,
-            ResourcesFile = "resources/resources.json",
+            ResourcesFile = "Resources/Resources.json",
             Slides = _slides.Select(slide => new CoursewareExportSlideEntry
             {
                 SlideIndex = slide.SlideIndex,
@@ -69,8 +68,8 @@ internal sealed class TestCoursewareExportBuilder
             }).ToArray(),
         };
 
-        WriteJson("courseware.json", manifest, CoursewareExportJsonSerializerContext.Default.CoursewareExportManifest);
-        WriteJson("resources/resources.json", new CoursewareResourceManifest { Resources = _resources }, CoursewareExportJsonSerializerContext.Default.CoursewareResourceManifest);
+        WriteJson("Courseware.json", manifest, CoursewareExportJsonSerializerContext.Default.CoursewareExportManifest);
+        WriteJson("Resources/Resources.json", _resources.ToArray(), CoursewareExportJsonSerializerContext.Default.CoursewareResourceEntryArray);
 
         return RootDirectory;
     }

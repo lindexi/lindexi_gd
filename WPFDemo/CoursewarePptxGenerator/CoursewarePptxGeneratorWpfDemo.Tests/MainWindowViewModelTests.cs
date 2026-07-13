@@ -13,9 +13,9 @@ public sealed class MainWindowViewModelTests
     public async Task OpenCoursewareFolderAsyncShouldPrepareSlidesAttachmentsAndPrompt()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-alpha", "# Slide 1\n\n## 第一页主题\n第一页 Markdown 内容。")
-            .AddSlide("slide-beta", "# Slide 2\n\n## 第二页主题\n第二页 Markdown 内容。")
-            .AddResource("img_1", "picture.png", "picture.png")
+            .AddSlide("slide-alpha", CreateSlideMarkdown("第一页主题", "第一页 Markdown 内容。"))
+            .AddSlide("slide-beta", CreateSlideMarkdown("第二页主题", "第二页 Markdown 内容。"))
+            .AddResource("img_1", "image", "picture.png")
             .Build();
         var chatManagerFactory = new FakeSlideChatManagerFactory();
         var firstChatManager = await chatManagerFactory.CreateAsync();
@@ -51,8 +51,8 @@ public sealed class MainWindowViewModelTests
     public async Task OpenCoursewareFolderAsyncShouldStillShowSlidesWhenSlideChatManagerCreationFails()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-alpha", "# Slide 1\n\n## 第一页主题\n第一页 Markdown 内容。")
-            .AddSlide("slide-beta", "# Slide 2\n\n## 第二页主题\n第二页 Markdown 内容。")
+            .AddSlide("slide-alpha", CreateSlideMarkdown("第一页主题", "第一页 Markdown 内容。"))
+            .AddSlide("slide-beta", CreateSlideMarkdown("第二页主题", "第二页 Markdown 内容。"))
             .Build();
         var firstChatManager = await new FakeSlideChatManagerFactory().CreateAsync();
         var viewModel = new MainWindowViewModel(
@@ -72,6 +72,11 @@ public sealed class MainWindowViewModelTests
         StringAssert.Contains(viewModel.InputText, "页面 Id：slide-alpha");
         StringAssert.Contains(viewModel.InputText, "第一页 Markdown 内容");
         StringAssert.Contains(viewModel.StatusText, "已加载 2 页");
+    }
+
+    private static string CreateSlideMarkdown(string title, string content)
+    {
+        return $"## 页面信息\n\n- Id: slide-id\n- 尺寸: 1280×720\n- 序号(1-base): 1\n\n---\n\n## 元素简要信息\n\n- 文本.1: (100, 80) 400×60\n\n---\n\n## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
     }
 
 }

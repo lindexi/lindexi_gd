@@ -8,21 +8,21 @@ namespace CoursewarePptxGeneratorWpfDemo.Models;
 public sealed record CoursewareResourceEntry
 {
     /// <summary>
-    /// Gets the resource image identifier.
+    /// Gets the resource identifier.
     /// </summary>
-    [JsonPropertyName("imageId")]
-    public string? ImageId { get; init; }
+    [JsonPropertyName("ResourceId")]
+    public string? ResourceId { get; init; }
 
     /// <summary>
-    /// Gets the original source file name.
+    /// Gets the resource type.
     /// </summary>
-    [JsonPropertyName("sourceFileName")]
-    public string? SourceFileName { get; init; }
+    [JsonPropertyName("ResourceType")]
+    public string? ResourceType { get; init; }
 
     /// <summary>
     /// Gets the exported file path relative to the resources directory.
     /// </summary>
-    [JsonPropertyName("exportFile")]
+    [JsonPropertyName("ExportFile")]
     public string? ExportFile { get; init; }
 
     /// <summary>

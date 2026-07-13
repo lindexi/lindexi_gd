@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
 /// <summary>
@@ -8,8 +6,6 @@ namespace CoursewarePptxGeneratorWpfDemo.Services;
 public sealed class CoursewareSlideSummaryService
 {
     private const int MaxSummaryLength = 110;
-    private static readonly Regex DefaultSlideTitlePattern = new("^Slide\\s+\\d+$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-    private static readonly Regex BoldTextPattern = new("\\*\\*(.+?)\\*\\*", RegexOptions.CultureInvariant);
 
     /// <summary>
     /// Creates a display title for a loaded slide.
@@ -24,37 +20,7 @@ public sealed class CoursewareSlideSummaryService
             return $"第 {pageNumber} 页";
         }
 
-        var lines = SplitLines(markdownText);
-        var firstHeading = lines
-            .Select(line => line.Trim())
-            .FirstOrDefault(line => line.StartsWith("# ", StringComparison.Ordinal));
-
-        if (!string.IsNullOrWhiteSpace(firstHeading))
-        {
-            var title = firstHeading[2..].Trim();
-            if (!IsDefaultSlideTitle(title))
-            {
-                return title;
-            }
-        }
-
-        var secondaryHeading = lines
-            .Select(line => line.Trim())
-            .FirstOrDefault(line => line.StartsWith("## ", StringComparison.Ordinal));
-        if (!string.IsNullOrWhiteSpace(secondaryHeading))
-        {
-            return secondaryHeading[3..].Trim();
-        }
-
-        var boldText = lines
-            .Select(line => BoldTextPattern.Match(line))
-            .FirstOrDefault(match => match.Success);
-        if (boldText is not null)
-        {
-            return boldText.Groups[1].Value.Trim();
-        }
-
-        return $"第 {pageNumber} 页";
+        return ExtractReadableLines(markdownText).FirstOrDefault() ?? $"第 {pageNumber} 页";
     }
 
     /// <summary>
@@ -69,11 +35,7 @@ public sealed class CoursewareSlideSummaryService
             return "已加载页面 Markdown，等待美化。";
         }
 
-        var summaryLines = SplitLines(markdownText)
-            .Select(line => line.Trim())
-            .Where(line => !string.IsNullOrWhiteSpace(line))
-            .Where(line => !IsMetadataLine(line))
-            .Where(line => !line.StartsWith("# ", StringComparison.Ordinal))
+        var summaryLines = ExtractReadableLines(markdownText)
             .Take(3)
             .ToArray();
 
@@ -86,18 +48,44 @@ public sealed class CoursewareSlideSummaryService
         return summary.Length <= MaxSummaryLength ? summary : $"{summary[..MaxSummaryLength]}...";
     }
 
-    private static bool IsDefaultSlideTitle(string title)
+    private static IEnumerable<string> ExtractReadableLines(string markdownText)
     {
-        return DefaultSlideTitlePattern.IsMatch(title);
+        var inContentCodeBlock = false;
+        var expectingContentCodeBlock = false;
+        foreach (var rawLine in SplitLines(markdownText))
+        {
+            var line = rawLine.Trim();
+            if (line == "#### 内容")
+            {
+                expectingContentCodeBlock = true;
+                continue;
+            }
+
+            if (IsCodeFence(line))
+            {
+                if (expectingContentCodeBlock)
+                {
+                    inContentCodeBlock = true;
+                    expectingContentCodeBlock = false;
+                }
+                else if (inContentCodeBlock)
+                {
+                    inContentCodeBlock = false;
+                }
+
+                continue;
+            }
+
+            if (inContentCodeBlock && !string.IsNullOrWhiteSpace(line))
+            {
+                yield return line;
+            }
+        }
     }
 
-    private static bool IsMetadataLine(string line)
+    private static bool IsCodeFence(string line)
     {
-        return line == "---"
-            || line.StartsWith("- SlideIndex:", StringComparison.OrdinalIgnoreCase)
-            || line.StartsWith("- SlideId:", StringComparison.OrdinalIgnoreCase)
-            || line.StartsWith("- Size:", StringComparison.OrdinalIgnoreCase)
-            || line.StartsWith("- Screenshot:", StringComparison.OrdinalIgnoreCase);
+        return line.Length >= 3 && line.All(character => character == '`');
     }
 
     private static string[] SplitLines(string text)

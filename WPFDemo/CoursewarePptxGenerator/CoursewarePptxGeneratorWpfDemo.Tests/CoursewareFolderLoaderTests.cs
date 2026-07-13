@@ -12,10 +12,10 @@ public sealed class CoursewareFolderLoaderTests
     public async Task LoadAsyncShouldResolveSlidesAndResources()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", "# 第一页\n\n- SlideIndex: 0\n- SlideId: slide-first\n\n## 页面主题\n这里是第一页 Markdown。")
-            .AddSlide("slide-second", "# 第二页\n\n这里是第二页 Markdown。", hasScreenshot: false)
-            .AddResource("img_1", "source.png", "img_1.png")
-            .AddResource("img_2", "missing.png", "missing.png", exists: false)
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页 Markdown。"))
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页 Markdown。"), hasScreenshot: false)
+            .AddResource("img_1", "image", "img_1.png")
+            .AddResource("video_1", "video", "video_1.mp4", exists: false)
             .Build();
 
         var loader = new CoursewareFolderLoader();
@@ -32,7 +32,9 @@ public sealed class CoursewareFolderLoaderTests
         Assert.HasCount(2, package.Resources);
         Assert.IsTrue(package.Resources[0].Exists);
         Assert.IsFalse(package.Resources[1].Exists);
-        StringAssert.Contains(package.Resources[0].ResolvedFilePath!, Path.Join("resources", "img_1.png"));
+        Assert.AreEqual("img_1", package.Resources[0].ResourceId);
+        Assert.AreEqual("image", package.Resources[0].ResourceType);
+        StringAssert.Contains(package.Resources[0].ResolvedFilePath!, Path.Join("Resources", "img_1.png"));
         Assert.IsTrue(package.Warnings.Any(warning => warning.Code == "MissingScreenshotFile"));
         Assert.IsTrue(package.Warnings.Any(warning => warning.Code == "MissingResourceFile"));
     }
@@ -44,15 +46,71 @@ public sealed class CoursewareFolderLoaderTests
         var exportDirectory = new TestCoursewareExportBuilder()
             .AddSlide("slide-first", "# 第一页")
             .Build();
-        var manifestPath = Path.Join(exportDirectory.FullName, "courseware.json");
+        var manifestPath = Path.Join(exportDirectory.FullName, "Courseware.json");
         var manifestJson = await File.ReadAllTextAsync(manifestPath);
-        manifestJson = manifestJson.Replace("slides/Slide_001.md", "../Slide_001.md", StringComparison.Ordinal);
+        manifestJson = manifestJson.Replace("Slides/Slide000.md", "Slides/../Slide000.md", StringComparison.Ordinal);
         await File.WriteAllTextAsync(manifestPath, manifestJson);
         var loader = new CoursewareFolderLoader();
 
         var exception = await ThrowsAsync<InvalidDataException>(() => loader.LoadAsync(exportDirectory.FullName));
 
-        StringAssert.Contains(exception.Message, "路径越界");
+        StringAssert.Contains(exception.Message, "不能包含空、. 或 .. 路径片段");
+    }
+
+    [TestMethod(DisplayName = "课件清单使用反斜杠路径时应阻止加载")]
+    [Timeout(60_000)]
+    public async Task LoadAsyncShouldRejectBackslashPath()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
+            .Build();
+        var manifestPath = Path.Join(exportDirectory.FullName, "Courseware.json");
+        var manifestJson = await File.ReadAllTextAsync(manifestPath);
+        manifestJson = manifestJson.Replace("Slides/Slide000.md", "Slides\\\\Slide000.md", StringComparison.Ordinal);
+        await File.WriteAllTextAsync(manifestPath, manifestJson);
+        var loader = new CoursewareFolderLoader();
+
+        var exception = await ThrowsAsync<InvalidDataException>(() => loader.LoadAsync(exportDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "必须使用 / 作为分隔符");
+    }
+
+    [TestMethod(DisplayName = "资源索引使用对象包装时应阻止加载")]
+    [Timeout(60_000)]
+    public async Task LoadAsyncShouldRejectObjectWrappedResources()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
+            .AddResource("img_1", "image", "img_1.png")
+            .Build();
+        var resourcesPath = Path.Join(exportDirectory.FullName, "Resources", "Resources.json");
+        var resourcesJson = await File.ReadAllTextAsync(resourcesPath);
+        await File.WriteAllTextAsync(resourcesPath, $"{{\"Resources\":{resourcesJson}}}");
+        var loader = new CoursewareFolderLoader();
+
+        var exception = await ThrowsAsync<InvalidDataException>(() => loader.LoadAsync(exportDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "必须是资源条目数组");
+    }
+
+    [TestMethod(DisplayName = "资源类型不在文档范围内时应阻止加载")]
+    [Timeout(60_000)]
+    public async Task LoadAsyncShouldRejectUnknownResourceType()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
+            .AddResource("document_1", "document", "document_1.pdf")
+            .Build();
+        var loader = new CoursewareFolderLoader();
+
+        var exception = await ThrowsAsync<InvalidDataException>(() => loader.LoadAsync(exportDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "ResourceType 无效");
+    }
+
+    private static string CreateSlideMarkdown(string content)
+    {
+        return $"## 页面信息\n\n- Id: slide-id\n- 尺寸: 1280×720\n- 序号(1-base): 1\n\n---\n\n## 元素简要信息\n\n- 文本.1: (100, 80) 400×60\n\n---\n\n## 元素细节\n\n### 文本.1\n字号: 32px | 字体: Microsoft YaHei\n#### 内容\n```\n{content}\n```";
     }
 
     private static async Task<TException> ThrowsAsync<TException>(Func<Task> action)

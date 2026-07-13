@@ -17,8 +17,6 @@ namespace CoursewarePptxGeneratorWpfDemo.Tests;
 [TestClass]
 public sealed class MainWindowCompositionTests
 {
-    private const string SampleDirectoryEnvironmentVariable = "COURSEWARE_PPTX_GENERATOR_SAMPLE_DIR";
-
     [STATestMethod(DisplayName = "主窗口设置数据上下文后子面板应继承同一个工作台视图模型")]
     [Timeout(60_000)]
     public void MainWindowPanelsShouldInheritMainWindowViewModel()
@@ -35,20 +33,20 @@ public sealed class MainWindowCompositionTests
         AssertPanelIsDirectChild(rootGrid, views + "CopilotPanel", "右侧聊天框");
     }
 
-    [TestMethod(DisplayName = "真实窗口打开本机课件文件夹后应显示左侧页面和右侧美化输入")]
+    [TestMethod(DisplayName = "真实窗口打开当前格式课件文件夹后应显示左侧页面和右侧美化输入")]
     [Timeout(60_000)]
-    public void MainWindowShouldShowSlidesAndChatInputAfterOpeningRealCoursewareFolder()
+    public void MainWindowShouldShowSlidesAndChatInputAfterOpeningCoursewareFolder()
     {
-        RunOnStaThreadAsync(MainWindowShouldShowSlidesAndChatInputAfterOpeningRealCoursewareFolderAsync).GetAwaiter().GetResult();
+        RunOnStaThreadAsync(MainWindowShouldShowSlidesAndChatInputAfterOpeningCoursewareFolderAsync).GetAwaiter().GetResult();
     }
 
-    private static async Task MainWindowShouldShowSlidesAndChatInputAfterOpeningRealCoursewareFolderAsync()
+    private static async Task MainWindowShouldShowSlidesAndChatInputAfterOpeningCoursewareFolderAsync()
     {
-        var sampleDirectory = GetRealCoursewareDirectory();
-        if (!sampleDirectory.Exists)
-        {
-            Assert.Inconclusive($"未找到本机课件样例目录：{sampleDirectory.FullName}");
-        }
+        var sampleDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页 Markdown 内容。"))
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页标题", "第二页 Markdown 内容。"))
+            .AddResource("img_1", "image", "img_1.png")
+            .Build();
 
         EnsureApplicationResources();
         var loader = new CoursewareFolderLoader();
@@ -148,16 +146,9 @@ public sealed class MainWindowCompositionTests
         throw new FileNotFoundException("未找到 Pptx/PptxGenerator/Code/CoursewarePptxGeneratorWpfDemo/MainWindow.xaml。");
     }
 
-    private static DirectoryInfo GetRealCoursewareDirectory()
+    private static string CreateSlideMarkdown(string title, string content)
     {
-        var configuredDirectory = Environment.GetEnvironmentVariable(SampleDirectoryEnvironmentVariable);
-        if (!string.IsNullOrWhiteSpace(configuredDirectory))
-        {
-            return new DirectoryInfo(configuredDirectory);
-        }
-
-        var systemDrive = Path.GetPathRoot(Environment.SystemDirectory) ?? string.Empty;
-        return new DirectoryInfo(Path.Join(systemDrive, Environment.UserName, "Work", "CoursewareMarkdownExport"));
+        return $"## 页面信息\n\n- Id: slide-id\n- 尺寸: 1280×720\n- 序号(1-base): 1\n\n---\n\n## 元素简要信息\n\n- 文本.1: (100, 80) 400×60\n\n---\n\n## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
     }
 
     private static void EnsureApplicationResources()

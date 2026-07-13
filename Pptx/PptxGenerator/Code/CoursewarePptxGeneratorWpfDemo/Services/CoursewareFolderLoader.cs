@@ -10,9 +10,13 @@ namespace CoursewarePptxGeneratorWpfDemo.Services;
 public sealed class CoursewareFolderLoader
 {
     private const int SupportedExportVersion = 1;
-    private const double DefaultSlideWidth = 1280;
-    private const double DefaultSlideHeight = 720;
-    private const string ManifestFileName = "courseware.json";
+    private const string ManifestFileName = "Courseware.json";
+    private static readonly HashSet<string> SupportedResourceTypes = new(StringComparer.Ordinal)
+    {
+        "image",
+        "audio",
+        "video",
+    };
 
     /// <summary>
     /// 加载并验证课件 Markdown 导出目录。
@@ -40,7 +44,7 @@ public sealed class CoursewareFolderLoader
         var manifestFile = new FileInfo(Path.Join(rootDirectory.FullName, ManifestFileName));
         if (!manifestFile.Exists)
         {
-            throw new InvalidDataException("缺少 courseware.json，无法识别课件导出目录。");
+            throw new InvalidDataException("缺少 Courseware.json，无法识别课件导出目录。");
         }
 
         var manifest = await ReadJsonAsync(
@@ -48,7 +52,7 @@ public sealed class CoursewareFolderLoader
                 CoursewareExportJsonSerializerContext.Default.CoursewareExportManifest,
                 cancellationToken)
             .ConfigureAwait(false)
-            ?? throw new InvalidDataException("courseware.json 内容为空或无法解析。");
+            ?? throw new InvalidDataException("Courseware.json 内容为空或无法解析。");
 
         ValidateManifest(manifest, warnings);
 
@@ -58,7 +62,7 @@ public sealed class CoursewareFolderLoader
             throw new InvalidDataException("课件导出目录中没有可加载的页面 Markdown。");
         }
 
-        var resourcesResult = await LoadResourcesAsync(rootDirectory, manifest.ResourcesFile, warnings, cancellationToken).ConfigureAwait(false);
+        var resources = await LoadResourcesAsync(rootDirectory, manifest.ResourcesFile!, warnings, cancellationToken).ConfigureAwait(false);
         var coursewareName = string.IsNullOrWhiteSpace(manifest.CoursewareName)
             ? rootDirectory.Name
             : manifest.CoursewareName.Trim();
@@ -68,7 +72,7 @@ public sealed class CoursewareFolderLoader
             RootDirectory = rootDirectory,
             CoursewareName = coursewareName,
             Slides = slides,
-            Resources = resourcesResult.Resources,
+            Resources = resources,
             Warnings = warnings,
         };
     }
@@ -88,15 +92,20 @@ public sealed class CoursewareFolderLoader
 
         if (manifest.Slides.Count == 0)
         {
-            throw new InvalidDataException("courseware.json 中没有页面列表。");
+            throw new InvalidDataException("Courseware.json 中没有页面列表。");
         }
 
         if (manifest.SlideCount != manifest.Slides.Count)
         {
-            warnings.Add(new CoursewareLoadWarning(
-                "SlideCountMismatch",
-                $"课件声明页数 {manifest.SlideCount} 与页面列表数量 {manifest.Slides.Count} 不一致。"));
+            throw new InvalidDataException($"课件声明页数 {manifest.SlideCount} 与页面列表数量 {manifest.Slides.Count} 不一致。");
         }
+
+        if (string.IsNullOrWhiteSpace(manifest.ResourcesFile))
+        {
+            throw new InvalidDataException("Courseware.json 缺少 ResourcesFile。");
+        }
+
+        ValidateRelativePath(manifest.ResourcesFile);
     }
 
     private static async Task<IReadOnlyList<CoursewareSlideInput>> LoadSlidesAsync(
@@ -114,18 +123,20 @@ public sealed class CoursewareFolderLoader
 
             if (entry.SlideIndex != i)
             {
-                AddSlideWarning(slideWarnings, warnings, "SlideIndexMismatch", $"页面索引 {entry.SlideIndex} 与列表位置 {i} 不一致。", null, entry.SlideIndex);
+                throw new InvalidDataException($"页面索引 {entry.SlideIndex} 与列表位置 {i} 不一致。");
             }
 
             if (string.IsNullOrWhiteSpace(entry.SlideId))
             {
-                AddSlideWarning(slideWarnings, warnings, "MissingSlideId", $"第 {i + 1} 页缺少 slideId。", null, i);
+                throw new InvalidDataException($"第 {i + 1} 页缺少 SlideId。");
             }
 
             if (string.IsNullOrWhiteSpace(entry.MarkdownFile))
             {
-                throw new InvalidDataException($"第 {i + 1} 页缺少 markdownFile。");
+                throw new InvalidDataException($"第 {i + 1} 页缺少 MarkdownFile。");
             }
+
+            ValidateSlideFilePath(entry.MarkdownFile, i, ".md", "MarkdownFile");
 
             var markdownPath = ResolvePathUnderRoot(rootDirectory, entry.MarkdownFile);
             var markdownFile = new FileInfo(markdownPath);
@@ -139,18 +150,17 @@ public sealed class CoursewareFolderLoader
             var height = entry.Height;
             if (width <= 0 || height <= 0)
             {
-                width = DefaultSlideWidth;
-                height = DefaultSlideHeight;
-                AddSlideWarning(slideWarnings, warnings, "InvalidSlideSize", $"第 {i + 1} 页尺寸无效，已回退到 1280 x 720。", entry.MarkdownFile, i);
+                throw new InvalidDataException($"第 {i + 1} 页尺寸必须大于 0。");
             }
 
             FileInfo? screenshotFile = null;
             if (string.IsNullOrWhiteSpace(entry.ScreenshotFile))
             {
-                AddSlideWarning(slideWarnings, warnings, "MissingScreenshotPath", $"第 {i + 1} 页缺少截图路径。", null, i);
+                throw new InvalidDataException($"第 {i + 1} 页缺少 ScreenshotFile。");
             }
             else
             {
+                ValidateSlideFilePath(entry.ScreenshotFile, i, ".jpg", "ScreenshotFile");
                 var screenshotPath = ResolvePathUnderRoot(rootDirectory, entry.ScreenshotFile);
                 var candidateScreenshotFile = new FileInfo(screenshotPath);
                 if (candidateScreenshotFile.Exists)
@@ -180,24 +190,17 @@ public sealed class CoursewareFolderLoader
         return slides;
     }
 
-    private static async Task<(FileInfo? ResourcesIndexFile, IReadOnlyList<CoursewareResourceEntry> Resources)> LoadResourcesAsync(
+    private static async Task<IReadOnlyList<CoursewareResourceEntry>> LoadResourcesAsync(
         DirectoryInfo rootDirectory,
-        string? resourcesFilePath,
+        string resourcesFilePath,
         List<CoursewareLoadWarning> warnings,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(resourcesFilePath))
-        {
-            warnings.Add(new CoursewareLoadWarning("MissingResourcesFile", "课件清单未声明资源索引文件。"));
-            return (null, []);
-        }
-
         var resourcesIndexPath = ResolvePathUnderRoot(rootDirectory, resourcesFilePath);
         var resourcesIndexFile = new FileInfo(resourcesIndexPath);
         if (!resourcesIndexFile.Exists)
         {
-            warnings.Add(new CoursewareLoadWarning("MissingResourcesIndex", "资源索引文件不存在。", resourcesFilePath));
-            return (null, []);
+            throw new FileNotFoundException("资源索引文件不存在。", resourcesIndexPath);
         }
 
         var resources = await ReadResourcesAsync(resourcesIndexFile, cancellationToken).ConfigureAwait(false);
@@ -206,13 +209,22 @@ public sealed class CoursewareFolderLoader
         foreach (var resource in resources)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(resource.ExportFile))
+            if (string.IsNullOrWhiteSpace(resource.ResourceId))
             {
-                warnings.Add(new CoursewareLoadWarning("MissingResourceExportFile", "资源条目缺少 exportFile。"));
-                resolvedResources.Add(resource with { Exists = false });
-                continue;
+                throw new InvalidDataException("资源条目缺少 ResourceId。");
             }
 
+            if (!SupportedResourceTypes.Contains(resource.ResourceType ?? string.Empty))
+            {
+                throw new InvalidDataException($"资源 {resource.ResourceId} 的 ResourceType 无效：{resource.ResourceType}");
+            }
+
+            if (string.IsNullOrWhiteSpace(resource.ExportFile))
+            {
+                throw new InvalidDataException($"资源 {resource.ResourceId} 缺少 ExportFile。");
+            }
+
+            ValidateResourceFileName(resource.ExportFile);
             var resolvedPath = ResolvePathUnderDirectory(resourcesDirectory, resource.ExportFile);
             var exists = File.Exists(resolvedPath);
             if (!exists)
@@ -227,7 +239,12 @@ public sealed class CoursewareFolderLoader
             });
         }
 
-        return (resourcesIndexFile, resolvedResources);
+        if (resolvedResources.Select(resource => resource.ResourceId).Distinct(StringComparer.Ordinal).Count() != resolvedResources.Count)
+        {
+            throw new InvalidDataException("Resources.json 包含重复的 ResourceId。");
+        }
+
+        return resolvedResources;
     }
 
     private static async Task<IReadOnlyList<CoursewareResourceEntry>> ReadResourcesAsync(FileInfo resourcesIndexFile, CancellationToken cancellationToken)
@@ -240,17 +257,7 @@ public sealed class CoursewareFolderLoader
             return JsonSerializer.Deserialize(arrayJson, CoursewareExportJsonSerializerContext.Default.CoursewareResourceEntryArray) ?? [];
         }
 
-        if (document.RootElement.ValueKind == JsonValueKind.Object)
-        {
-            var manifestJson = document.RootElement.GetRawText();
-            var manifest = JsonSerializer.Deserialize(manifestJson, CoursewareExportJsonSerializerContext.Default.CoursewareResourceManifest);
-            if (manifest is not null)
-            {
-                return manifest.Resources;
-            }
-        }
-
-        throw new InvalidDataException("resources.json 格式无效。");
+        throw new InvalidDataException("Resources.json 必须是资源条目数组。");
     }
 
     private static string ResolvePathUnderRoot(DirectoryInfo rootDirectory, string relativePath)
@@ -259,6 +266,21 @@ public sealed class CoursewareFolderLoader
     }
 
     private static string ResolvePathUnderDirectory(DirectoryInfo baseDirectory, string relativePath)
+    {
+        ValidateRelativePath(relativePath);
+
+        var basePath = Path.GetFullPath(baseDirectory.FullName);
+        var resolvedPath = Path.GetFullPath(Path.Join(basePath, relativePath));
+        var basePathWithSeparator = Path.EndsInDirectorySeparator(basePath) ? basePath : basePath + Path.DirectorySeparatorChar;
+        if (!resolvedPath.StartsWith(basePathWithSeparator, StringComparison.OrdinalIgnoreCase) && !string.Equals(resolvedPath, basePath, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException($"导出目录中的路径越界：{relativePath}");
+        }
+
+        return resolvedPath;
+    }
+
+    private static void ValidateRelativePath(string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath))
         {
@@ -270,15 +292,36 @@ public sealed class CoursewareFolderLoader
             throw new InvalidDataException($"导出目录中的路径必须是相对路径：{relativePath}");
         }
 
-        var basePath = Path.GetFullPath(baseDirectory.FullName);
-        var resolvedPath = Path.GetFullPath(Path.Join(basePath, relativePath));
-        var basePathWithSeparator = Path.EndsInDirectorySeparator(basePath) ? basePath : basePath + Path.DirectorySeparatorChar;
-        if (!resolvedPath.StartsWith(basePathWithSeparator, StringComparison.OrdinalIgnoreCase) && !string.Equals(resolvedPath, basePath, StringComparison.OrdinalIgnoreCase))
+        if (relativePath.Contains('\\'))
         {
-            throw new InvalidDataException($"导出目录中的路径越界：{relativePath}");
+            throw new InvalidDataException($"导出目录中的路径必须使用 / 作为分隔符：{relativePath}");
         }
 
-        return resolvedPath;
+        var segments = relativePath.Split('/');
+        if (segments.Any(segment => segment.Length == 0 || segment is "." or ".."))
+        {
+            throw new InvalidDataException($"导出目录中的路径不能包含空、. 或 .. 路径片段：{relativePath}");
+        }
+    }
+
+    private static void ValidateSlideFilePath(string relativePath, int slideIndex, string extension, string fieldName)
+    {
+        ValidateRelativePath(relativePath);
+        var expectedFileName = $"Slide{slideIndex:D3}{extension}";
+        var expectedPath = $"Slides/{expectedFileName}";
+        if (!string.Equals(relativePath, expectedPath, StringComparison.Ordinal))
+        {
+            throw new InvalidDataException($"第 {slideIndex + 1} 页的 {fieldName} 应为 {expectedPath}。");
+        }
+    }
+
+    private static void ValidateResourceFileName(string exportFile)
+    {
+        ValidateRelativePath(exportFile);
+        if (exportFile.Contains('/'))
+        {
+            throw new InvalidDataException($"Resources.json 中的 ExportFile 必须是相对于 Resources 目录的文件名：{exportFile}");
+        }
     }
 
     private static void AddSlideWarning(

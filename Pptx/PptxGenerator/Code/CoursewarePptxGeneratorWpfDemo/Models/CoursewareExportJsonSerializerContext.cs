@@ -10,7 +10,6 @@ namespace CoursewarePptxGeneratorWpfDemo.Models;
     ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip)]
 [JsonSerializable(typeof(CoursewareExportManifest))]
 [JsonSerializable(typeof(CoursewareExportSlideEntry))]
-[JsonSerializable(typeof(CoursewareResourceManifest))]
 [JsonSerializable(typeof(CoursewareResourceEntry))]
 [JsonSerializable(typeof(CoursewareResourceEntry[]))]
 public sealed partial class CoursewareExportJsonSerializerContext : JsonSerializerContext;
