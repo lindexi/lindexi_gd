@@ -670,7 +670,7 @@ public sealed class WorkspaceToolProvider
     /// <param name="filePath">要写入的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。</param>
     /// <param name="content">要写入的内容。</param>
     /// <returns>成功时返回 "OK"，失败时返回错误信息。</returns>
-    [Description("将内容覆写到工作区内的文件，整体覆盖原内容。写入前要求先通过 ReadFileLines 读取过该文件，且文件自读取后未被外部修改。")]
+    [Description("将内容覆写到工作区内的文件，整体覆盖原内容。若文件不存在则创建新文件。写入前要求先通过 ReadFileLines 读取过该文件，且文件自读取后未被外部修改。")]
     public string WriteFileContent(
         [Description("要写入的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
         [Description("要写入的内容。")] string content)
