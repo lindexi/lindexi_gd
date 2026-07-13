@@ -29,7 +29,12 @@ public partial class MainWindow : Window
     private Bitmap? _currentBitmap;
     private bool _isFullscreen;
 
-    public MainWindow(string[]? args = null)
+    public MainWindow()
+        : this(null)
+    {
+    }
+
+    public MainWindow(string[]? args)
     {
         InitializeComponent();
 
