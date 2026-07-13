@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace AgentLib.ChatRoom.Tools;
+namespace AgentLib.ChatRoom.Tools.Coding;
 
 internal sealed class RoslynLspClient : IAsyncDisposable
 {

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-using AgentLib.ChatRoom.Tools;
+using AgentLib.ChatRoom.Tools.Coding;
 
 namespace AgentLib.ChatRoom.Tests.Tools;
 
