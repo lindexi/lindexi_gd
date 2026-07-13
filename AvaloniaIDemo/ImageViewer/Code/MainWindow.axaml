@@ -26,12 +26,14 @@
         <Style Selector="Button.toolbar-button">
             <Setter Property="MinWidth" Value="34" />
             <Setter Property="Height" Value="30" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.toolbar-button:pointerover">
             <Setter Property="Background" Value="#0FFFFFFF" />
@@ -47,9 +49,9 @@
                 Background="{StaticResource ChromeBrush}"
                 BorderBrush="{StaticResource DividerBrush}"
                 BorderThickness="0,0,0,1"
-                Padding="12,8">
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" Spacing="4" DockPanel.Dock="Left">
+                Padding="14,9">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
                     <Button x:Name="OpenButton" Classes="toolbar-button" Content="打开" />
                     <Button x:Name="PreviousButton" Classes="toolbar-button" Content="←" />
                     <Button x:Name="NextButton" Classes="toolbar-button" Content="→" />
@@ -60,12 +62,14 @@
                     <Button x:Name="FullscreenButton" Classes="toolbar-button" Content="全屏" />
                 </StackPanel>
                 <TextBlock x:Name="ToolbarFileNameText"
-                           DockPanel.Dock="Right"
+                           Grid.Column="2"
                            Foreground="{StaticResource SecondaryTextBrush}"
                            FontSize="12"
                            VerticalAlignment="Center"
-                           Margin="12,0,0,0" />
-            </DockPanel>
+                           Margin="20,0,0,0"
+                           MaxWidth="300"
+                           TextTrimming="CharacterEllipsis" />
+            </Grid>
         </Border>
 
         <Grid x:Name="ViewerHost"
@@ -85,18 +89,29 @@
             <StackPanel x:Name="EmptyStatePanel"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="8">
-                <TextBlock Text="□"
-                           Foreground="{StaticResource PrimaryTextBrush}"
-                           FontSize="28"
-                           HorizontalAlignment="Center" />
+                        Spacing="12">
+                <Border Width="44"
+                        Height="44"
+                        HorizontalAlignment="Center"
+                        Background="#202020"
+                        BorderBrush="{StaticResource DividerBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10">
+                    <TextBlock Text="□"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontSize="24"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
                 <TextBlock Text="请打开一张图片"
                            Foreground="{StaticResource PrimaryTextBrush}"
-                           FontSize="20"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,4,0,0"
                            HorizontalAlignment="Center" />
                 <TextBlock Text="支持 JPEG / PNG / BMP / GIF / WebP / TIFF"
                            Foreground="{StaticResource SecondaryTextBrush}"
-                           FontSize="12"
+                           FontSize="13"
                            HorizontalAlignment="Center" />
             </StackPanel>
 
@@ -104,21 +119,32 @@
                         IsVisible="False"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="8">
-                <TextBlock x:Name="ErrorIconText"
-                           Text="!"
-                           Foreground="{StaticResource ErrorBrush}"
-                           FontSize="28"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
+                        Spacing="12">
+                <Border Width="44"
+                        Height="44"
+                        HorizontalAlignment="Center"
+                        Background="#202020"
+                        BorderBrush="{StaticResource DividerBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10">
+                    <TextBlock x:Name="ErrorIconText"
+                               Text="!"
+                               Foreground="{StaticResource ErrorBrush}"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
                 <TextBlock Text="无法打开此文件"
                            Foreground="{StaticResource PrimaryTextBrush}"
-                           FontSize="20"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,4,0,0"
                            HorizontalAlignment="Center" />
                 <TextBlock x:Name="ErrorMessageText"
                            Text="不支持的图片格式"
                            Foreground="{StaticResource SecondaryTextBrush}"
-                           FontSize="12"
+                           FontSize="13"
                            HorizontalAlignment="Center" />
             </StackPanel>
 
@@ -144,7 +170,7 @@
                 Background="{StaticResource ChromeBrush}"
                 BorderBrush="{StaticResource DividerBrush}"
                 BorderThickness="0,1,0,0"
-                Padding="12,6">
+                Padding="14,7">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock x:Name="StatusText"
                            Grid.Column="0"
