@@ -30,6 +30,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _inputText = string.Empty;
     private string _editableSlideXml = string.Empty;
     private string _mcpServiceUrl = SlideChatManagerFactory.DefaultMcpServiceUrl;
+    private string? _enabledMcpServiceUrl;
     private string _mcpStatusText = "本地渲染";
     private bool _isBusy;
     private bool _isConnectingMcp;
@@ -344,22 +345,34 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        if (SlideChatManager.SlideMlRenderTool.RenderPipeline is not SwitchableSlideMlRenderPipeline renderPipeline)
-        {
-            McpStatusText = "当前管道不支持 MCP";
-            return;
-        }
-
         IsConnectingMcp = true;
         McpStatusText = "正在连接 MCP...";
         var mcpServiceUrl = McpServiceUrl.Trim();
 
         try
         {
-            var isEnabled = await renderPipeline.TryEnableMcpAsync(mcpServiceUrl).ConfigureAwait(false);
+            var renderPipelines = Slides
+                .Select(slide => slide.SlideChatManager.SlideMlRenderTool.RenderPipeline)
+                .OfType<SwitchableSlideMlRenderPipeline>()
+                .Distinct()
+                .ToArray();
+            if (renderPipelines.Length == 0)
+            {
+                await _dispatcher.InvokeAsync(() => McpStatusText = "当前管道不支持 MCP");
+                return;
+            }
+
+            var connectionResults = await Task.WhenAll(renderPipelines.Select(
+                renderPipeline => renderPipeline.TryEnableMcpAsync(mcpServiceUrl))).ConfigureAwait(false);
+            var connectedPageCount = connectionResults.Count(isEnabled => isEnabled);
             await _dispatcher.InvokeAsync(() =>
             {
-                McpStatusText = isEnabled ? $"MCP 已连接：{mcpServiceUrl}" : "MCP 连接失败，当前使用本地渲染";
+                _enabledMcpServiceUrl = connectedPageCount > 0 ? mcpServiceUrl : null;
+                McpStatusText = connectedPageCount == renderPipelines.Length
+                    ? $"MCP 已连接：{mcpServiceUrl}"
+                    : connectedPageCount == 0
+                        ? "MCP 连接失败，当前使用本地渲染"
+                        : $"MCP 部分连接：{connectedPageCount}/{renderPipelines.Length} 页";
             });
         }
         catch (OperationCanceledException)
@@ -568,6 +581,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         var pageNumber = Slides.Count + 1;
         var slideChatManager = await _slideChatManagerFactory.CreateAsync().ConfigureAwait(false);
+        await ApplyMcpSettingAsync(slideChatManager).ConfigureAwait(false);
         var slide = CreateEmptySlide(pageNumber, slideChatManager);
 
         await _dispatcher.InvokeAsync(() =>
@@ -580,6 +594,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private async Task<CoursewareSlideItem> CreateSlideItemAsync(CoursewareSlideInput input)
     {
         var (slideChatManager, initializationError) = await CreateSlideChatManagerForSlideAsync().ConfigureAwait(false);
+        await ApplyMcpSettingAsync(slideChatManager).ConfigureAwait(false);
         var status = CreateSlideStatus(input);
         return new CoursewareSlideItem
         {
@@ -617,6 +632,17 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             return (_slideChatManagerFactory.CreateFallback(), ex.Message);
         }
+    }
+
+    private async Task ApplyMcpSettingAsync(SlideChatManager slideChatManager)
+    {
+        if (_enabledMcpServiceUrl is null
+            || slideChatManager.SlideMlRenderTool.RenderPipeline is not SwitchableSlideMlRenderPipeline renderPipeline)
+        {
+            return;
+        }
+
+        _ = await renderPipeline.TryEnableMcpAsync(_enabledMcpServiceUrl).ConfigureAwait(false);
     }
 
     private static string CreateSlideStatus(CoursewareSlideInput input)
