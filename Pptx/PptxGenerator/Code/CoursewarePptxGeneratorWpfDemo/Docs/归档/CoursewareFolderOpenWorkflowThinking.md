@@ -41,7 +41,7 @@
 
 ### 2. 加载课件输入包
 
-校验通过后，应把导出目录加载成一个内存中的课件输入包。这个输入包可以理解为 Demo 侧的 `CoursewareSnapshot + CoursewareResourceIndex`。
+校验通过后，应把导出目录加载成一个内存中的 `CoursewareInputPackage`，统一承载页面输入和资源索引。
 
 建议包含信息：
 
@@ -54,8 +54,7 @@
 
 这里的关键点是：
 
-- 不再依赖 EasiNote 的 `Board` / `Slide` 对象。
-- 不再执行 `ReadableSlideInfoHelper.FormatSlideToMarkdown`。
+- 不再重复执行 Markdown 提取。
 - 不再执行截图。
 - 不再重新提取资源。
 - 使用导出目录中的 Markdown、截图和资源作为后续全课件美化的输入。
@@ -169,7 +168,7 @@
 
 ## 阶段二逐页美化在 Demo 中的落点
 
-在当前 Demo 中，逐页美化不再对应 EasiNote 的 `SingleSlideBeautifier` 直接操作 `Board` 和 `Slide`，而应该对应“从导出的 Markdown + 截图 + 资源索引生成每页 SlideML”。
+在当前 Demo 中，逐页美化直接从导出的 Markdown、截图和资源索引生成每页 SlideML，不再依赖原始运行时课件对象。
 
 每一页的输入建议包括：
 
@@ -237,22 +236,16 @@
 
 ---
 
-## 与全课件美化设计文档的差异
+## 与全课件美化设计文档的衔接
 
-原全课件美化设计面向 EasiNote 内部对象，入口是 `Board`，预备阶段包含：
-
-- Markdown 提取。
-- 全局主题分析。
-- 资源提取与索引。
-
-但在当前 Demo 中，课件输入来源是 Markdown 导出文件夹，因此预备阶段需要调整为：
+当前 Demo 的课件输入来源是 Markdown 导出文件夹，Markdown、截图和资源索引已经准备完成。因此，全课件美化的预备阶段应直接执行：
 
 - 读取并验证导出目录。
 - 加载已有 Markdown 快照。
 - 加载已有资源索引。
 - 从已有 Markdown 执行全局主题分析。
 
-也就是说，当前 Demo 的“打开课件文件夹”相当于补齐 `CoursewareSnapshot` 和 `CoursewareResourceIndex`，而不是重新创建它们。后续只需要从该快照进入全局主题分析和逐页美化。
+“打开课件文件夹”完成后，`CoursewareInputPackage` 即作为后续全局主题分析和逐页美化的统一输入边界，不再重复提取页面内容和资源。
 
 ---
 

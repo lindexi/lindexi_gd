@@ -30,7 +30,7 @@
 - 自动生成或批量生成 SlideML。
 - 自动一致性校验和返工。
 - 修改课件导出格式。
-- 重新从 EasiNote 的 `Board` / `Slide` 对象提取 Markdown、截图或资源。
+- 重新从原始运行时课件对象提取 Markdown、截图或资源。
 - 并发美化流程。
 
 这些能力应在后续阶段基于本阶段加载出的课件输入包继续扩展。
@@ -246,7 +246,7 @@ CoursewarePptxGeneratorWpfDemo/
 - `PageNumber = SlideIndex + 1`。
 - `ScreenshotFile` 允许为空。
 - Markdown 文本读取失败时该页不可加载，应作为错误处理。
-- 后续主题分析和逐页美化都应从这里读取 Markdown，而不是再访问 EasiNote 对象。
+- 后续主题分析和逐页美化都应从这里读取 Markdown，只依赖已经加载的课件输入包。
 
 ### 4.6 CoursewareLoadWarning
 
