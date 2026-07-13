@@ -1,0 +1,78 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+    <LinearGradientBrush x:Key="PageBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FFF3F8FA" />
+        <GradientStop Offset="1" Color="#FFDDE9ED" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="IconBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FFFDFEFE" />
+        <GradientStop Offset="1" Color="#FFE5E9EB" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="IconAccentBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FF17C7CF" />
+        <GradientStop Offset="1" Color="#FF0AAEB8" />
+    </LinearGradientBrush>
+
+    <DrawingImage x:Key="ApplicationIconDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M 0,0 L 512,0 512,512 0,512 Z">
+                <GeometryDrawing Brush="{StaticResource IconBackgroundBrush}"
+                                 Geometry="M 96,8 L 416,8 C 469,8 504,43 504,96 L 504,416 C 504,469 469,504 416,504 L 96,504 C 43,504 8,469 8,416 L 8,96 C 8,43 43,8 96,8 Z" />
+                <GeometryDrawing Brush="{StaticResource IconAccentBrush}"
+                                 Geometry="M 72,72 L 440,72 C 454,72 464,82 464,96 L 464,126 48,126 48,96 C 48,82 58,72 72,72 Z" />
+                <GeometryDrawing Brush="{StaticResource IconAccentBrush}"
+                                 Geometry="M 146,190 L 366,190 C 382,190 394,202 394,218 L 394,366 C 394,382 382,394 366,394 L 146,394 C 130,394 118,382 118,366 L 118,218 C 118,202 130,190 146,190 Z" />
+                <GeometryDrawing Brush="Transparent"
+                                 Geometry="M 72,64 L 440,64 C 458,64 472,78 472,96 L 472,416 C 472,434 458,448 440,448 L 72,448 C 54,448 40,434 40,416 L 40,96 C 40,78 54,64 72,64 Z M 40,136 L 472,136">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#FF063D55" Thickness="14" LineJoin="Round" StartLineCap="Round" EndLineCap="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#FF063D55" Geometry="M 74,88 A 9,9 0 1 1 73.99,88 M 104,88 A 9,9 0 1 1 103.99,88 M 134,88 A 9,9 0 1 1 133.99,88" />
+                <GeometryDrawing Brush="Transparent"
+                                 Geometry="M 146,184 L 366,184 C 386,184 400,198 400,218 L 400,366 C 400,386 386,400 366,400 L 146,400 C 126,400 112,386 112,366 L 112,218 C 112,198 126,184 146,184 Z M 158,218 L 226,218 226,278 158,278 Z">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#FF063D55" Thickness="14" LineJoin="Round" StartLineCap="Round" EndLineCap="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <Style TargetType="Button">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Background" Value="#FF063D55" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="24,12" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="10">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#FF0A5871" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#FF032C3D" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Border" Property="Opacity" Value="0.55" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
