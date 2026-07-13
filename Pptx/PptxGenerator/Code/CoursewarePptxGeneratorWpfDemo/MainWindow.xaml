@@ -6,22 +6,38 @@
         xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
         xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=False}"
-        Title="Courseware Pptx Generator - SlideML Lab"
+        d:DataContext="{d:DesignInstance Type=viewModels:DemoWorkspaceViewModel, IsDesignTimeCreatable=True}"
+        Title="课件智绘 - 全课件美化原型"
         Height="1000"
         Width="1720"
         MinHeight="820"
         MinWidth="1360"
         WindowStartupLocation="CenterScreen">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="420" />
-        </Grid.ColumnDefinitions>
+    <Grid Background="{StaticResource AnalysisPageBackgroundBrush}">
+        <views:CoursewareAnalysisView x:Name="AnalysisView">
+            <views:CoursewareAnalysisView.Style>
+                <Style TargetType="views:CoursewareAnalysisView">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsAnalysisPage}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </views:CoursewareAnalysisView.Style>
+        </views:CoursewareAnalysisView>
 
-        <views:LeftSidebarPanel Grid.Column="0" />
-        <views:MainContentPanel Grid.Column="1" />
-        <views:CopilotPanel Grid.Column="2" />
+        <views:SlideWorkspaceView x:Name="WorkspaceView">
+            <views:SlideWorkspaceView.Style>
+                <Style TargetType="views:SlideWorkspaceView">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsWorkspacePage}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </views:SlideWorkspaceView.Style>
+        </views:SlideWorkspaceView>
     </Grid>
 </Window>

@@ -1,13 +1,8 @@
 using System.IO;
 using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml.Linq;
-using CoursewarePptxGeneratorWpfDemo.Models;
-using CoursewarePptxGeneratorWpfDemo.Services;
-using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
 using CoursewarePptxGeneratorWpfDemo.Views;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,9 +12,8 @@ namespace CoursewarePptxGeneratorWpfDemo.Tests;
 [TestClass]
 public sealed class MainWindowCompositionTests
 {
-    [STATestMethod(DisplayName = "主窗口设置数据上下文后子面板应继承同一个工作台视图模型")]
-    [Timeout(60_000)]
-    public void MainWindowPanelsShouldInheritMainWindowViewModel()
+    [TestMethod(DisplayName = "主窗口应直接承载全课件分析页和单页工作台")]
+    public void MainWindowShouldHostBothPrototypePages()
     {
         var mainWindowXaml = XDocument.Load(Path.Join(GetApplicationProjectDirectory(), "MainWindow.xaml"));
         XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
@@ -27,37 +21,22 @@ public sealed class MainWindowCompositionTests
 
         var rootGrid = mainWindowXaml.Root?.Element(presentation + "Grid");
 
-        Assert.IsNotNull(rootGrid, "主窗口根布局应承载工作区子面板。");
-        AssertPanelIsDirectChild(rootGrid, views + "LeftSidebarPanel", "左侧缩略图列表");
-        AssertPanelIsDirectChild(rootGrid, views + "MainContentPanel", "打开课件按钮所在面板");
-        AssertPanelIsDirectChild(rootGrid, views + "CopilotPanel", "右侧聊天框");
+        Assert.IsNotNull(rootGrid, "主窗口根布局应承载双页视图。");
+        Assert.IsNotNull(rootGrid.Element(views + "CoursewareAnalysisView"), "主窗口应直接承载全课件分析页。");
+        Assert.IsNotNull(rootGrid.Element(views + "SlideWorkspaceView"), "主窗口应直接承载单页工作台。");
     }
 
-    [TestMethod(DisplayName = "真实窗口打开当前格式课件文件夹后应显示左侧页面和右侧美化输入")]
+    [TestMethod(DisplayName = "双页原型往返导航应保留工作台界面状态")]
     [Timeout(60_000)]
-    public void MainWindowShouldShowSlidesAndChatInputAfterOpeningCoursewareFolder()
+    public void PrototypeNavigationShouldPreserveWorkspaceState()
     {
-        RunOnStaThreadAsync(MainWindowShouldShowSlidesAndChatInputAfterOpeningCoursewareFolderAsync).GetAwaiter().GetResult();
+        RunOnStaThreadAsync(PrototypeNavigationShouldPreserveWorkspaceStateAsync).GetAwaiter().GetResult();
     }
 
-    private static async Task MainWindowShouldShowSlidesAndChatInputAfterOpeningCoursewareFolderAsync()
+    private static async Task PrototypeNavigationShouldPreserveWorkspaceStateAsync()
     {
-        var sampleDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页 Markdown 内容。"))
-            .AddSlide("slide-second", CreateSlideMarkdown("第二页标题", "第二页 Markdown 内容。"))
-            .AddResource("img_1", "image", "img_1.png")
-            .Build();
-
         EnsureApplicationResources();
-        var loader = new CoursewareFolderLoader();
-        var expectedPackage = await loader.LoadAsync(sampleDirectory.FullName);
-        var chatManagerFactory = new FakeSlideChatManagerFactory();
-        var firstChatManager = await chatManagerFactory.CreateAsync();
-        var viewModel = new MainWindowViewModel(
-            chatManagerFactory,
-            firstChatManager,
-            loader,
-            new CoursewareSlideSummaryService());
+        var viewModel = new DemoWorkspaceViewModel();
         var window = new MainWindow
         {
             DataContext = viewModel,
@@ -68,56 +47,32 @@ public sealed class MainWindowCompositionTests
             window.Show();
             await PumpDispatcherAsync(window);
 
-            var mainContentPanel = FindVisualChild<MainContentPanel>(window)
-                ?? throw new AssertFailedException("未找到打开课件按钮所在面板。");
-            var leftSidebarPanel = FindVisualChild<LeftSidebarPanel>(window)
-                ?? throw new AssertFailedException("未找到左侧缩略图面板。");
-            var copilotPanel = FindVisualChild<CopilotPanel>(window)
-                ?? throw new AssertFailedException("未找到右侧聊天面板。");
-            var openButton = FindVisualChildByName<Button>(mainContentPanel, "OpenCoursewareFolderButton")
-                ?? throw new AssertFailedException("未找到打开课件按钮。");
-            Assert.IsTrue(openButton.IsEnabled, "打开课件按钮初始应可点击。");
+            var analysisView = window.FindName("AnalysisView") as CoursewareAnalysisView;
+            var workspaceView = window.FindName("WorkspaceView") as SlideWorkspaceView;
+            Assert.IsNotNull(analysisView, "未找到全课件分析页。");
+            Assert.IsNotNull(workspaceView, "未找到单页工作台。");
+            Assert.IsTrue(viewModel.IsWelcome, "应用启动时应显示 Welcome 演示状态。");
+            Assert.AreEqual(Visibility.Visible, analysisView.Visibility, "应用启动时应显示分析页。");
+            Assert.AreEqual(Visibility.Collapsed, workspaceView.Visibility, "应用启动时不应显示单页工作台。");
 
-            mainContentPanel.SetCoursewareFolderPicker(new FakeCoursewareFolderPicker(sampleDirectory.FullName));
-            mainContentPanel.OpenSelectedCoursewareFolder();
-            await WaitUntilAsync(() => !viewModel.IsBusy, window, TimeSpan.FromSeconds(10));
+            viewModel.ShowDemoStageCommand.Execute(nameof(CoursewareAnalysisStage.AnalysisReady));
+            viewModel.SelectedSlide = viewModel.Slides[8];
+            viewModel.EnterWorkspaceCommand.Execute(null);
             await PumpDispatcherAsync(window);
 
-            var slideListBox = FindVisualChildByName<ListBox>(leftSidebarPanel, "SlideListBox")
-                ?? throw new AssertFailedException("未找到左侧页面列表控件。");
-            var chatInputTextBox = FindVisualChildByName<TextBox>(copilotPanel, "ChatInputTextBox")
-                ?? throw new AssertFailedException("未找到右侧聊天输入框。");
-            var attachedImageFilesItemsControl = FindVisualChildByName<ItemsControl>(copilotPanel, "AttachedImageFilesItemsControl")
-                ?? throw new AssertFailedException("未找到右侧附件列表控件。");
+            Assert.AreEqual(Visibility.Collapsed, analysisView.Visibility, "进入工作台后应隐藏分析页。");
+            Assert.AreEqual(Visibility.Visible, workspaceView.Visibility, "分析完成后应能进入单页工作台。");
 
-            Assert.AreEqual(expectedPackage.SlideCount, slideListBox.Items.Count, "左侧页面列表数量应与课件页面数量一致。");
-            Assert.AreSame(viewModel.SelectedSlide, slideListBox.SelectedItem, "左侧页面列表应选中当前页面。");
-            Assert.IsInstanceOfType<CoursewareSlideItem>(slideListBox.Items[0], "左侧页面列表应绑定页面项。");
-            var firstSlideItem = (CoursewareSlideItem) slideListBox.Items[0];
-            var expectedFirstSlide = expectedPackage.Slides[0];
-            Assert.AreEqual(expectedFirstSlide.SlideId, firstSlideItem.SlideId, "左侧第一页 Id 应来自真实课件清单。");
-            Assert.IsFalse(string.IsNullOrWhiteSpace(firstSlideItem.Title), "左侧第一页标题不应为空。");
-            Assert.IsFalse(string.IsNullOrWhiteSpace(firstSlideItem.Status), "左侧第一页状态不应为空。");
-            StringAssert.Contains(chatInputTextBox.Text, expectedFirstSlide.SlideId);
-            StringAssert.Contains(chatInputTextBox.Text, expectedFirstSlide.MarkdownText.Trim().Split('\n')[0].Trim());
-            Assert.AreEqual(viewModel.AttachedImageFiles.Count, attachedImageFilesItemsControl.Items.Count, "右侧附件显示数量应与 ViewModel 一致。");
-            Assert.IsGreaterThan(0, chatInputTextBox.Text.Length, "右侧聊天输入框应显示美化提示词。");
+            viewModel.BackToAnalysisCommand.Execute(null);
+            viewModel.EnterWorkspaceCommand.Execute(null);
+            await PumpDispatcherAsync(window);
+
+            Assert.AreSame(viewModel.Slides[8], viewModel.SelectedSlide, "往返导航不应重置工作台当前页面选择。");
         }
         finally
         {
             window.Close();
         }
-    }
-
-    private static void AssertPanelIsDirectChild(XElement rootGrid, XName panelName, string displayName)
-    {
-        XNamespace xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
-        ArgumentNullException.ThrowIfNull(rootGrid);
-
-        var panel = rootGrid.Elements(panelName).SingleOrDefault();
-        Assert.IsNotNull(panel, $"主窗口应直接包含{displayName}，否则 DataContext 不会按预期从主窗口继承。");
-        Assert.IsNull(panel.Attribute("DataContext"), $"{displayName}不应覆盖主窗口 DataContext。");
-        Assert.IsNull(panel.Attribute(xaml + "Name"), $"{displayName}不需要通过名称在代码后置里手动转发 DataContext。");
     }
 
     private static string GetApplicationProjectDirectory()
@@ -143,11 +98,6 @@ public sealed class MainWindowCompositionTests
         throw new FileNotFoundException("未找到 Pptx/PptxGenerator/Code/CoursewarePptxGeneratorWpfDemo/MainWindow.xaml。");
     }
 
-    private static string CreateSlideMarkdown(string title, string content)
-    {
-        return $"## 页面信息\n\n- Id: slide-id\n- 尺寸: 1280×720\n- 序号(1-base): 1\n\n---\n\n## 元素简要信息\n\n- 文本.1: (100, 80) 400×60\n\n---\n\n## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
-    }
-
     private static void EnsureApplicationResources()
     {
         var application = Application.Current;
@@ -165,24 +115,6 @@ public sealed class MainWindowCompositionTests
         await window.Dispatcher.InvokeAsync(() => { }).Task;
         await Task.Delay(50);
         await window.Dispatcher.InvokeAsync(() => { }).Task;
-    }
-
-    private static async Task WaitUntilAsync(Func<bool> predicate, Window window, TimeSpan timeout)
-    {
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(window);
-
-        var startTime = DateTimeOffset.UtcNow;
-        while (!predicate())
-        {
-            if (DateTimeOffset.UtcNow - startTime > timeout)
-            {
-                Assert.Fail("等待界面加载课件超时。");
-            }
-
-            await Task.Delay(50);
-            await window.Dispatcher.InvokeAsync(() => { }).Task;
-        }
     }
 
     private static Task RunOnStaThreadAsync(Func<Task> action)
@@ -219,52 +151,5 @@ public sealed class MainWindowCompositionTests
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         return taskCompletionSource.Task;
-    }
-
-    private static T? FindVisualChild<T>(DependencyObject parent)
-        where T : DependencyObject
-    {
-        ArgumentNullException.ThrowIfNull(parent);
-
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T result)
-            {
-                return result;
-            }
-
-            var descendant = FindVisualChild<T>(child);
-            if (descendant is not null)
-            {
-                return descendant;
-            }
-        }
-
-        return null;
-    }
-
-    private static T? FindVisualChildByName<T>(DependencyObject parent, string name)
-        where T : FrameworkElement
-    {
-        ArgumentNullException.ThrowIfNull(parent);
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T { Name: var childName } result && string.Equals(childName, name, StringComparison.Ordinal))
-            {
-                return result;
-            }
-
-            var descendant = FindVisualChildByName<T>(child, name);
-            if (descendant is not null)
-            {
-                return descendant;
-            }
-        }
-
-        return null;
     }
 }

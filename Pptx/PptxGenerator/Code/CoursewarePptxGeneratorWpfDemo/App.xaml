@@ -10,6 +10,7 @@
                 <ResourceDictionary Source="Resources/ScrollViewerStyles.xaml" />
                 <ResourceDictionary Source="Resources/TabStyles.xaml" />
                 <ResourceDictionary Source="Resources/CardStyles.xaml" />
+                <ResourceDictionary Source="Resources/CoursewareAnalysisStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

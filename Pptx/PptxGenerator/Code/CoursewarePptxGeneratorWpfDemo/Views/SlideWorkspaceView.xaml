@@ -1,0 +1,267 @@
+<UserControl x:Class="CoursewarePptxGeneratorWpfDemo.Views.SlideWorkspaceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
+             d:DataContext="{d:DesignInstance Type=viewModels:DemoWorkspaceViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="1000"
+             d:DesignWidth="1720"
+             Background="{StaticResource LightBackgroundBrush}"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="DemoSlideListItemStyle" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{StaticResource AnalysisTealBrush}" />
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#EEF9F8" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#F4F8FA" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="58" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="18,10">
+            <DockPanel>
+                <Button x:Name="BackToAnalysisButton"
+                        DockPanel.Dock="Left"
+                        Content="← 返回主题概览"
+                        Command="{Binding BackToAnalysisCommand}"
+                        Style="{StaticResource AnalysisSecondaryButtonStyle}"
+                        AutomationProperties.Name="返回主题概览" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Style="{StaticResource AnalysisPillStyle}">
+                        <TextBlock Text="演示模式" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" />
+                    </Border>
+                    <TextBlock Text="真实生成、渲染和保存操作未接入"
+                               Foreground="{StaticResource AnalysisMutedBrush}"
+                               FontSize="12"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Margin="18,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="单页美化工作台" Foreground="{StaticResource TextPrimaryBrush}" FontSize="17" FontWeight="Bold" />
+                    <TextBlock Text="{Binding SelectedSlideNumberText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="390" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource WorkspacePanelStyle}" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="16">
+                        <TextBlock Text="课件页面" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" />
+                        <TextBlock Text="{Binding SlideCountText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding Slides}"
+                             SelectedItem="{Binding SelectedSlide, Mode=TwoWay}"
+                             ItemContainerStyle="{StaticResource DemoSlideListItemStyle}"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Padding="10,0,10,12"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             AutomationProperties.Name="演示课件页面列表">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Border Height="106" Background="White" BorderBrush="#C8D8DE" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+                                        <Grid>
+                                            <Border Height="9" Background="#123B5D" VerticalAlignment="Top" />
+                                            <Grid Margin="12,18,12,12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="52" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <Border Height="6" Background="#1A5A78" CornerRadius="3" Margin="0,0,18,8" />
+                                                    <Border Height="4" Background="#9EB4BE" CornerRadius="2" Margin="0,0,5,6" />
+                                                    <Border Height="4" Background="#D3DEE2" CornerRadius="2" Margin="0,0,15,0" />
+                                                </StackPanel>
+                                                <Border Grid.Column="1" Background="#E8EEF1" CornerRadius="5" Margin="8,0,0,0">
+                                                    <Ellipse Width="25" Height="25" Fill="#43B8C4" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                    <DockPanel Margin="2,5,2,0">
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding NumberText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" />
+                                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="11" FontWeight="SemiBold" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <Grid Grid.Column="1" Background="{StaticResource LightBackgroundBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="250" />
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="22,12">
+                    <StackPanel>
+                        <TextBlock Text="{Binding SelectedSlideSummary}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock Text="页面预览仅用于检查工作台布局和状态保留" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
+                    </StackPanel>
+                </Border>
+                <Grid Grid.Row="1" Margin="24,18">
+                    <Border Style="{StaticResource WorkspaceCardStyle}" Padding="18">
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                            <Grid Width="1280" Height="720" Background="#F8FAFC">
+                                <Border Background="#123B5D" Width="390" HorizontalAlignment="Left" />
+                                <StackPanel Width="310" Margin="54,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedSlide.NumberText, StringFormat=课件页面 {0}}" Foreground="#8FD8D2" FontSize="20" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding SelectedSlide.Title}" Foreground="White" FontSize="48" FontWeight="Bold" TextWrapping="Wrap" Margin="0,18,0,0" />
+                                    <Border Height="6" Width="90" Background="#F59E0B" CornerRadius="3" HorizontalAlignment="Left" Margin="0,28,0,0" />
+                                </StackPanel>
+                                <Grid Margin="450,90,70,90">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="清晰推导 · 理性表达" Foreground="#0F172A" FontSize="32" FontWeight="Bold" />
+                                    <Grid Grid.Row="1" Margin="0,36,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.15*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <Border Height="18" Background="#2563EB" CornerRadius="9" Margin="0,0,90,20" />
+                                            <Border Height="12" Background="#CBD5E1" CornerRadius="6" Margin="0,0,25,14" />
+                                            <Border Height="12" Background="#E2E8F0" CornerRadius="6" Margin="0,0,60,14" />
+                                            <Border Height="12" Background="#E2E8F0" CornerRadius="6" Margin="0,0,40,0" />
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Background="#EEF5FF" CornerRadius="18" Margin="30,0,0,0">
+                                            <Grid>
+                                                <Ellipse Width="150" Height="150" Fill="#2563EB" Opacity="0.14" />
+                                                <Ellipse Width="82" Height="82" Fill="#F59E0B" Opacity="0.85" />
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Viewbox>
+                    </Border>
+                </Grid>
+                <Border Grid.Row="2" Margin="24,0,24,20" Style="{StaticResource WorkspaceCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <DockPanel Grid.Column="0">
+                            <TextBlock DockPanel.Dock="Top" Text="演示 SlideML" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
+                            <TextBox Text="{Binding SelectedSlideXml, Mode=OneWay}" IsReadOnly="True" Style="{StaticResource CodeTextBoxStyle}" />
+                        </DockPanel>
+                        <DockPanel Grid.Column="1" Background="#F8FAFC">
+                            <TextBlock DockPanel.Dock="Top" Text="渲染日志" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
+                            <TextBox Text="{Binding DemoRenderingLog, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="#F8FAFC" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Padding="14" />
+                        </DockPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Border Grid.Column="2" Style="{StaticResource WorkspacePanelStyle}" BorderThickness="1,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                        <StackPanel>
+                            <TextBlock Text="Copilot" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="基于已确认的全课件主题进行演示" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding ChatMessages}" BorderThickness="0" Background="White" Padding="10" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="IsHitTestVisible" Value="False" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,0,10" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="MessageBubble" MaxWidth="315" HorizontalAlignment="Left" Background="#F1F5F9" CornerRadius="14" Padding="12">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Author}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Text}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsUser}" Value="True">
+                                        <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
+                                        <Setter TargetName="MessageBubble" Property="Background" Value="#E7F8F6" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBox Grid.Row="0"
+                                     Text="{Binding DemoInputText, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="64"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     Padding="10"
+                                     AutomationProperties.Name="演示消息输入框" />
+                            <DockPanel Grid.Row="1" Margin="0,9,0,0">
+                                <TextBlock Text="仅追加演示消息" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" VerticalAlignment="Center" />
+                                <Button DockPanel.Dock="Right"
+                                        Content="发送演示"
+                                        Command="{Binding SendDemoMessageCommand}"
+                                        Style="{StaticResource AnalysisPrimaryButtonStyle}"
+                                        Padding="14,7"
+                                        AutomationProperties.Name="发送演示消息" />
+                            </DockPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
