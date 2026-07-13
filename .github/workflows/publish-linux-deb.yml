@@ -18,7 +18,7 @@ jobs:
         include:
           - platform: linux-x64
             runtime: linux-x64
-          - platform: amd64
+          - platform: linux-amd64
             runtime: linux-x64
 
     steps:

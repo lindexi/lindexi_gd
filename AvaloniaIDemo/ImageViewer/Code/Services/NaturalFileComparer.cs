@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace ImageViewer.Services;
 
-internal sealed class NaturalFileComparer : IComparer<string>
+internal sealed class NaturalFileComparer : IComparer<string?>
 {
     public int Compare(string? x, string? y)
     {
