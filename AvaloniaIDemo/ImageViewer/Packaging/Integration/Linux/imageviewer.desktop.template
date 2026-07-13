@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Image Viewer
+Name[zh_CN]=图片查看器
+GenericName=Image Viewer
+GenericName[zh_CN]=图片查看器
+Comment=View image files
+Comment[zh_CN]=查看图片文件
+Exec="{{EXECUTABLE_PATH}}" %U
+Icon={{ICON_NAME}}
+Terminal=false
+StartupNotify=true
+Categories=Graphics;Viewer;Photography;
+MimeType=image/jpeg;image/png;image/bmp;image/gif;image/webp;image/tiff;
+Keywords=image;viewer;photo;picture;graphics;
+Keywords[zh_CN]=图片;查看器;照片;图像;
