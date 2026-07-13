@@ -117,7 +117,7 @@ public sealed class WorkspaceToolProvider
     }
 
     [Description("在工作路径下递归查找名称包含指定关键字的文件或文件夹。")]
-    public Task<string> FindEntriesByName(
+    public async Task<string> FindEntriesByName(
         [Description("名称中要包含的关键字。")] string query,
         [Description("要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。")] string? directoryPath = null,
         [Description("是否包含文件。")] bool includeFiles = true,
@@ -138,16 +138,17 @@ public sealed class WorkspaceToolProvider
 
         if (!TryResolveDirectory(directoryPath, out var directory, out var errorMessage))
         {
-            return Task.FromResult(errorMessage);
+            return errorMessage;
         }
 
-        List<FileSystemInfo> entries = EnumerateEntriesRecursively(directory)
-            .Where(entry => (includeDirectories && entry is DirectoryInfo || includeFiles && entry is FileInfo)
-                && entry.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(static entry => entry is FileInfo)
-            .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
-            .Take(maxResults + 1)
-            .ToList();
+        List<FileSystemInfo> entries = await Task.Run(() =>
+            EnumerateEntriesRecursively(directory)
+                .Where(entry => (includeDirectories && entry is DirectoryInfo || includeFiles && entry is FileInfo)
+                    && entry.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(static entry => entry is FileInfo)
+                .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+                .Take(maxResults + 1)
+                .ToList()).ConfigureAwait(false);
 
         var builder = new StringBuilder();
         builder.AppendLine($"工作路径: {GetWorkspaceRootDisplayText()}");
@@ -157,7 +158,7 @@ public sealed class WorkspaceToolProvider
         if (entries.Count == 0)
         {
             builder.Append("没有找到匹配项。");
-            return Task.FromResult(builder.ToString());
+            return builder.ToString();
         }
 
         foreach (var entry in entries.Take(maxResults))
@@ -170,7 +171,7 @@ public sealed class WorkspaceToolProvider
             builder.Append("已截断，仍有至少 1 个匹配项未显示。");
         }
 
-        return Task.FromResult(builder.ToString().TrimEnd());
+        return builder.ToString().TrimEnd();
     }
 
     /// <summary>
