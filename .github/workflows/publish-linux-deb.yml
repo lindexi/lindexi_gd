@@ -18,8 +18,8 @@ jobs:
         include:
           - platform: linux-x64
             runtime: linux-x64
-          - platform: linux-amd64
-            runtime: linux-x64
+          - platform: linux-arm64
+            runtime: linux-arm64
 
     steps:
       - name: Checkout
