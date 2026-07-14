@@ -9,6 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="bin\**\*" />
+    <Compile Remove="obj\**\*" />
+    <Compile Remove="artifacts\**\*" />
     <PackageReference Include="Microsoft.Extensions.AI" Version="10.5.2" />
   </ItemGroup>
 
