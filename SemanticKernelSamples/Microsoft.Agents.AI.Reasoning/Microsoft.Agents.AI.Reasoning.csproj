@@ -9,6 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="bin\**\*" />
+    <Compile Remove="obj\**\*" />
+    <Compile Remove="artifacts\**\*" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0" />
   </ItemGroup>
 
