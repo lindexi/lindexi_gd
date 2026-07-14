@@ -108,7 +108,6 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="16,9" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle">
             <Setter.Value>

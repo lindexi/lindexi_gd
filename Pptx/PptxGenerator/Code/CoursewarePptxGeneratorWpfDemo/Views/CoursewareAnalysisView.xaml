@@ -194,6 +194,7 @@
                                     Content="打开其他课件"
                                     Click="OpenCoursewareButton_OnClick"
                                     Style="{StaticResource AnalysisSecondaryButtonStyle}"
+                                    VerticalAlignment="Center"
                                     AutomationProperties.Name="打开其他课件文件夹" />
                             <StackPanel>
                                 <TextBlock Text="课件已加载" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="26" />
