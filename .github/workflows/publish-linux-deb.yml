@@ -18,8 +18,10 @@ jobs:
         include:
           - platform: linux-x64
             runtime: linux-x64
+            native_aot_packages: clang zlib1g-dev
           - platform: linux-arm64
             runtime: linux-arm64
+            native_aot_packages: clang zlib1g-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu
 
     steps:
       - name: Checkout
@@ -33,7 +35,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Install NativeAOT prerequisites
-        run: sudo apt-get update && sudo apt-get install --yes clang zlib1g-dev
+        run: sudo apt-get update && sudo apt-get install --yes ${{ matrix.native_aot_packages }}
 
       - name: Prepare package path
         id: package
