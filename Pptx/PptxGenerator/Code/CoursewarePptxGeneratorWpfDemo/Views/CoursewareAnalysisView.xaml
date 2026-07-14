@@ -203,75 +203,44 @@
                             <views:CoursewareThumbnailOverview />
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource AnalysisCardStyle}" Padding="13,11" Margin="0,0,0,14">
-                        <StackPanel>
-                            <DockPanel Margin="0,0,0,8">
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Button Content="取消分析" Command="{Binding CancelDemoCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" />
-                                    <Button Content="完成演示分析" Command="{Binding CompleteAnalysisCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" Margin="10,0,0,0" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="分析过程" Style="{StaticResource AnalysisSectionTitleTextStyle}" FontSize="16" />
-                                    <TextBlock Text=" · 正在读取结构、分析视觉并校验主题" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="11" VerticalAlignment="Center" Margin="8,1,0,0" />
-                                </StackPanel>
-                            </DockPanel>
-                            <ItemsControl ItemsSource="{Binding AnalysisSteps}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Rows="1" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#F8FBFC" CornerRadius="7" Padding="10" Margin="0,0,8,0" MinHeight="68">
-                                            <StackPanel>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Border Width="17" Height="17" Background="{StaticResource AnalysisTealLightBrush}" CornerRadius="9" Margin="0,0,7,0">
-                                                        <TextBlock Text="✓" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                                </StackPanel>
-                                                <TextBlock Text="{Binding Description}" Style="{StaticResource AnalysisBodyTextStyle}" FontSize="10" LineHeight="14" Margin="24,4,0,0" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource AnalysisCardStyle}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1.1*" />
-                                <ColumnDefinition Width="2*" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.25*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource AnalysisCardStyle}" Margin="0,0,14,0">
+                            <StackPanel>
                                 <TextBlock Text="正在形成主题方案" Style="{StaticResource AnalysisSectionTitleTextStyle}" />
-                                <TextBlock Text="已识别现代、清晰、理性和轻量科技方向，正在校验主题一致性。"
-                                           Style="{StaticResource AnalysisBodyTextStyle}" FontSize="12" Margin="0,7,0,0" />
+                                <TextBlock Text="已识别现代、清晰、理性和轻量科技方向，正在校验配色、字体与版式的一致性。"
+                                           Style="{StaticResource AnalysisBodyTextStyle}" Margin="0,8,0,18" />
+                                <Border Height="18" Background="#DCE8EC" CornerRadius="9" Margin="0,0,140,12" />
+                                <Border Height="12" Background="#E9F0F2" CornerRadius="6" Margin="0,0,40,10" />
+                                <Border Height="12" Background="#E9F0F2" CornerRadius="6" Margin="0,0,90,0" />
                             </StackPanel>
-                            <UniformGrid Grid.Column="1" Rows="1">
-                                <Border Background="#EAF8F7" CornerRadius="7" Padding="12" Margin="0,0,10,0">
-                                    <StackPanel>
-                                        <TextBlock Text="配色方案" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" />
-                                        <Border Height="8" Background="{StaticResource AnalysisTealBrush}" CornerRadius="4" Margin="0,10,34,0" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#F4F8FA" CornerRadius="7" Padding="12" Margin="0,0,10,0">
-                                    <StackPanel>
-                                        <TextBlock Text="字体层级" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" />
-                                        <Border Height="8" Background="#CBDCE2" CornerRadius="4" Margin="0,10,22,0" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#F4F8FA" CornerRadius="7" Padding="12">
-                                    <StackPanel>
-                                        <TextBlock Text="版式与安全区" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" />
-                                        <Border Height="8" Background="#DCE8EC" CornerRadius="4" Margin="0,10,12,0" />
-                                    </StackPanel>
-                                </Border>
-                            </UniformGrid>
-                        </Grid>
-                    </Border>
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource AnalysisCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="分析过程" Style="{StaticResource AnalysisSectionTitleTextStyle}" />
+                                <ItemsControl ItemsSource="{Binding AnalysisSteps}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="0,0,0,10">
+                                                <Border Width="18" Height="18" Background="{StaticResource AnalysisTealLightBrush}" CornerRadius="9" Margin="0,0,8,0">
+                                                    <TextBlock Text="✓" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Description}" Style="{StaticResource AnalysisBodyTextStyle}" FontSize="10" />
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Content="取消分析" Command="{Binding CancelDemoCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0" />
+                                <Button Content="完成演示分析" Command="{Binding CompleteAnalysisCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </StackPanel>
             </ScrollViewer>
 
@@ -292,7 +261,9 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Border Grid.Row="0" Style="{StaticResource AnalysisCardStyle}" Padding="13,11">
+                    <views:CoursewareThemeSummaryView Grid.Row="0" />
+
+                    <Border Grid.Row="1" Style="{StaticResource AnalysisCardStyle}" Margin="0,12,0,0" Padding="13,11">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <TextBlock Text="分析过程摘要：构造用户信任来源" Style="{StaticResource AnalysisSectionTitleTextStyle}" FontSize="16" />
@@ -322,8 +293,6 @@
                             </ItemsControl>
                         </StackPanel>
                     </Border>
-
-                    <views:CoursewareThemeSummaryView Grid.Row="1" Margin="0,12,0,0" />
 
                     <Grid Grid.Row="2" Margin="0,13,0,0">
                         <TextBlock Text="当前为演示数据，仅用于确认界面信息层级和交互。" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="11" VerticalAlignment="Center" />
