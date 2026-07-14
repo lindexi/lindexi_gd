@@ -185,7 +185,7 @@ public class AgentApiEndpointManager
                 }
 
                 // 全模态优先 Omni
-                _autoSetPrimaryLanguageModel = supportedModels.ToList()
+                _autoSetPrimaryLanguageModel = supportedModels
                     .OrderByDescending(x => x, new LanguageModelCapabilityComparer()).First();
             }
 

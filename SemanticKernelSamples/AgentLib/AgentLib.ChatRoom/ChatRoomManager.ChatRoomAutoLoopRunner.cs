@@ -437,7 +437,9 @@ public sealed partial class ChatRoomManager
 
             if (triggerMessage.IsHumanMessage)
             {
-                foreach (ChatRoomRole role in GetDefaultWorkerRoles())
+                foreach (ChatRoomRole role in _manager.Roles.Where(r =>
+                             !r.Definition.IsHuman &&
+                             r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate))
                 {
                     defaultRoles.Enqueue(role);
                 }
@@ -662,13 +664,6 @@ public sealed partial class ChatRoomManager
             }
 
             return roleNames.Count == 0 ? "无" : string.Join('、', roleNames);
-        }
-
-        private IEnumerable<ChatRoomRole> GetDefaultWorkerRoles()
-        {
-            return _manager.Roles.Where(r =>
-                !r.Definition.IsHuman &&
-                r.Definition.ParticipationMode == ChatRoomParticipationMode.AlwaysParticipate);
         }
 
         private ChatRoomRole? GetManagerRole()

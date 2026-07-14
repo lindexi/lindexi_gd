@@ -174,6 +174,26 @@ public class WorkspaceToolProviderTests
     }
 
     [TestMethod]
+    [Description("列目录结果超过上限时应提示仍有未显示项")]
+    public async Task ListDirectory_WhenResultsExceedLimit_ShowsTruncationMessage()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        await File.WriteAllTextAsync(Path.Join(workspacePath, "a.txt"), "a");
+        await File.WriteAllTextAsync(Path.Join(workspacePath, "b.txt"), "b");
+
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.ListDirectory(maxResults: 1);
+
+        StringAssert.Contains(result, "已截断，仍有至少 1 个结果未显示。");
+    }
+
+    [TestMethod]
     [Description("读取部分行时应显示剩余行数")]
     public async Task ReadFileLines_WhenHasRemainingLines_ShowsRemainingLineCount()
     {

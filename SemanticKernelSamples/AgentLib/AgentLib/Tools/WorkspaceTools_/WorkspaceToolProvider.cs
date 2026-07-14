@@ -84,13 +84,14 @@ public sealed class WorkspaceToolProvider
             return Task.FromResult(errorMessage);
         }
 
-        List<FileSystemInfo> entries = recursive
-            ? EnumerateEntriesRecursively(directory).ToList()
-            : GetDirectoryEntries(directory).ToList();
+        IEnumerable<FileSystemInfo> directoryEntries = recursive
+            ? EnumerateEntriesRecursively(directory)
+            : directory.EnumerateFileSystemInfos();
 
-        entries = entries
+        List<FileSystemInfo> entries = directoryEntries
             .OrderBy(static entry => entry is FileInfo)
             .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+            .Take(maxResults + 1)
             .ToList();
 
         var builder = new StringBuilder();
@@ -110,7 +111,7 @@ public sealed class WorkspaceToolProvider
 
         if (entries.Count > maxResults)
         {
-            builder.Append($"已截断，仍有 {entries.Count - maxResults} 个结果未显示。");
+            builder.Append("已截断，仍有至少 1 个结果未显示。");
         }
 
         return Task.FromResult(builder.ToString().TrimEnd());
@@ -216,7 +217,7 @@ public sealed class WorkspaceToolProvider
 
         var results = new List<(string Path, WorkspaceFileMatchResults MatchResults)>();
         var matcher = new WorkspaceFilePatternMatcher(DefaultMaxLineContextChars, DefaultMaxLineHitsPerFile, query, regex);
-        foreach (var file in EnumerateFilesRecursively(directory))
+        foreach (FileInfo file in EnumerateEntriesRecursively(directory).OfType<FileInfo>())
         {
             WorkspaceFileMatchResults matchResults = await matcher.FindAsync(file.FullName).ConfigureAwait(false);
 
@@ -519,22 +520,6 @@ public sealed class WorkspaceToolProvider
         return false;
     }
 
-    private static IEnumerable<FileSystemInfo> GetDirectoryEntries(DirectoryInfo directory)
-    {
-        try
-        {
-            return directory.EnumerateFileSystemInfos().ToArray();
-        }
-        catch (IOException)
-        {
-            return [];
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return [];
-        }
-    }
-
     private static IEnumerable<FileSystemInfo> EnumerateEntriesRecursively(DirectoryInfo rootDirectory)
     {
         var stack = new Stack<DirectoryInfo>();
@@ -543,27 +528,30 @@ public sealed class WorkspaceToolProvider
         while (stack.Count > 0)
         {
             DirectoryInfo currentDirectory = stack.Pop();
-            FileSystemInfo[] entries = GetDirectoryEntries(currentDirectory).ToArray();
+            FileSystemInfo[] entries;
+            try
+            {
+                entries = currentDirectory.GetFileSystemInfos();
+            }
+            catch (IOException)
+            {
+                continue;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
 
-            foreach (var entry in entries)
+            foreach (FileSystemInfo entry in entries)
             {
                 yield return entry;
             }
 
-            foreach (var childDirectory in entries.OfType<DirectoryInfo>().OrderByDescending(directory => directory.FullName, StringComparer.OrdinalIgnoreCase))
+            foreach (DirectoryInfo childDirectory in entries
+                         .OfType<DirectoryInfo>()
+                         .OrderByDescending(directory => directory.FullName, StringComparer.OrdinalIgnoreCase))
             {
                 stack.Push(childDirectory);
-            }
-        }
-    }
-
-    private static IEnumerable<FileInfo> EnumerateFilesRecursively(DirectoryInfo rootDirectory)
-    {
-        foreach (var entry in EnumerateEntriesRecursively(rootDirectory))
-        {
-            if (entry is FileInfo file)
-            {
-                yield return file;
             }
         }
     }
