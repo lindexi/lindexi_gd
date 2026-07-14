@@ -60,6 +60,7 @@ public enum CoursewareAnalysisStage
 /// </summary>
 public sealed class DemoWorkspaceViewModel : ObservableObject
 {
+    private const int DemoSlideCount = 60;
     private readonly RelayCommand _enterWorkspaceCommand;
     private DemoSlideViewModel? _selectedSlide;
     private string _demoInputText = string.Empty;
@@ -345,9 +346,9 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     public string AnalysisCaption => AnalysisStage switch
     {
         CoursewareAnalysisStage.Welcome => "打开课件后将先形成统一视觉主题",
-        CoursewareAnalysisStage.LoadingCourseware => "正在准备 24 页演示课件内容",
+        CoursewareAnalysisStage.LoadingCourseware => $"正在准备 {Slides.Count} 页演示课件内容",
         CoursewareAnalysisStage.AnalyzingTheme => "正在归纳内容层级、配色、字体与版式",
-        CoursewareAnalysisStage.AnalysisReady => "已完整查看 24 页课件并形成统一主题",
+        CoursewareAnalysisStage.AnalysisReady => $"已完整查看 {Slides.Count} 页课件并形成统一主题",
         CoursewareAnalysisStage.AnalysisFailed => "演示错误：主题结构校验未通过",
         CoursewareAnalysisStage.Canceled => "已保留课件概览，可随时重新分析",
         _ => string.Empty,
@@ -417,9 +418,10 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
             "拓展思考", "小组讨论", "课堂检测", "本章小结", "作业布置", "学习评价", "拓展阅读", "结束页",
         };
 
-        for (var index = 0; index < titles.Length; index++)
+        for (var index = 0; index < DemoSlideCount; index++)
         {
-            yield return new DemoSlideViewModel(index + 1, titles[index], index % 8, index is 9 or 14 or 22);
+            var title = titles[index % titles.Length];
+            yield return new DemoSlideViewModel(index + 1, title, index % 8, index is 9 or 14 or 22 or 35 or 47 or 58);
         }
     }
 
