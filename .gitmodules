@@ -1,0 +1,3 @@
+[submodule "App/LightNotePad/Lib/LightTextEditorPlus"]
+	path = App/LightNotePad/Lib/LightTextEditorPlus
+	url = git@github.com:dotnet-campus/LightTextEditorPlus.git
