@@ -19,9 +19,11 @@ jobs:
           - platform: linux-x64
             runtime: linux-x64
             native_aot_packages: clang zlib1g-dev
+            objcopy: objcopy
           - platform: linux-arm64
             runtime: linux-arm64
             native_aot_packages: clang zlib1g-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu
+            objcopy: aarch64-linux-gnu-objcopy
 
     steps:
       - name: Checkout
@@ -65,6 +67,7 @@ jobs:
             --runtime "${{ matrix.runtime }}" \
             --self-contained true \
             -p:PublishAot=true \
+            -p:ObjCopyName="${{ matrix.objcopy }}" \
             -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" \
             -t:CreateDebUOS
 
