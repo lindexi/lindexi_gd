@@ -61,11 +61,23 @@
                 </Style>
             </Border.Style>
             <DockPanel LastChildFill="True">
-                <Button DockPanel.Dock="Right"
-                        Content="打开其他课件"
-                        Command="{Binding OpenOtherCoursewareCommand}"
-                        Style="{StaticResource AnalysisSecondaryButtonStyle}"
-                        AutomationProperties.Name="打开其他课件演示" />
+                <Border DockPanel.Dock="Right">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsLoadingCourseware}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Button Content="进入页面美化"
+                            Command="{Binding EnterWorkspaceCommand}"
+                            IsEnabled="{Binding IsAnalysisReady}"
+                            Style="{StaticResource AnalysisPrimaryButtonStyle}"
+                            AutomationProperties.Name="进入页面美化" />
+                </Border>
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="40" Height="40" Background="#E7F8F6" CornerRadius="10" Margin="0,0,12,0">
                         <TextBlock Text="▱" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="23" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -251,7 +263,7 @@
                     <Grid Grid.Row="1" Margin="0,13,0,0">
                         <TextBlock Text="当前为演示数据，仅用于确认界面信息层级和交互。" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" VerticalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="进入单页美化工作台" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" MinWidth="205" AutomationProperties.Name="进入单页美化工作台" />
+                            <Button Content="进入页面美化" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" MinWidth="205" AutomationProperties.Name="进入页面美化" />
                             <Button Content="重新分析" Command="{Binding ReanalyzeCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" Margin="10,0,0,0" AutomationProperties.Name="重新分析演示" />
                         </StackPanel>
                     </Grid>
@@ -286,7 +298,7 @@
                             </Expander>
                             <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
                                 <Button Content="重试主题分析" Command="{Binding RetryDemoCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" />
-                                <Button Content="打开其他课件" Command="{Binding OpenOtherCoursewareCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" Margin="10,0,0,0" />
+                                <Button Content="进入页面美化" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" IsEnabled="False" Margin="10,0,0,0" AutomationProperties.Name="进入页面美化，不可用" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -324,7 +336,7 @@
                             </ItemsControl>
                             <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                                 <Button Content="重新分析" Command="{Binding ReanalyzeCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" />
-                                <Button Content="打开其他课件" Command="{Binding OpenOtherCoursewareCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" Margin="10,0,0,0" />
+                                <Button Content="进入页面美化" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" IsEnabled="False" Margin="10,0,0,0" AutomationProperties.Name="进入页面美化，不可用" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
