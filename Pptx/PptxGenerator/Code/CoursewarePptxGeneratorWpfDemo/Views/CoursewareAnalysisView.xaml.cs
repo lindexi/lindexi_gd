@@ -1,4 +1,6 @@
 using System.Windows.Controls;
+using CoursewarePptxGeneratorWpfDemo.Services;
+using CoursewarePptxGeneratorWpfDemo.ViewModels;
 
 namespace CoursewarePptxGeneratorWpfDemo.Views;
 
@@ -7,6 +9,8 @@ namespace CoursewarePptxGeneratorWpfDemo.Views;
 /// </summary>
 public partial class CoursewareAnalysisView : UserControl
 {
+    private readonly ICoursewareFolderPicker _coursewareFolderPicker = new OpenFolderDialogCoursewareFolderPicker();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursewareAnalysisView" /> class.
     /// </summary>
@@ -27,5 +31,14 @@ public partial class CoursewareAnalysisView : UserControl
         }
 
         PageTitle.Focus();
+    }
+
+    private void OpenCoursewareButton_OnClick(object sender, System.Windows.RoutedEventArgs e)
+    {
+        var folderPath = _coursewareFolderPicker.PickCoursewareFolder();
+        if (!string.IsNullOrWhiteSpace(folderPath) && DataContext is DemoWorkspaceViewModel viewModel)
+        {
+            viewModel.OpenDemoCommand.Execute(folderPath);
+        }
     }
 }

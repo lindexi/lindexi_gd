@@ -57,9 +57,9 @@ public sealed class CoursewareFolderLoaderTests
         StringAssert.Contains(exception.Message, "不能包含空、. 或 .. 路径片段");
     }
 
-    [TestMethod(DisplayName = "课件清单使用反斜杠路径时应阻止加载")]
+    [TestMethod(DisplayName = "课件清单使用反斜杠路径时应兼容加载")]
     [Timeout(60_000)]
-    public async Task LoadAsyncShouldRejectBackslashPath()
+    public async Task LoadAsyncShouldAcceptBackslashPath()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
             .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
@@ -70,9 +70,11 @@ public sealed class CoursewareFolderLoaderTests
         await File.WriteAllTextAsync(manifestPath, manifestJson);
         var loader = new CoursewareFolderLoader();
 
-        var exception = await ThrowsAsync<InvalidDataException>(() => loader.LoadAsync(exportDirectory.FullName));
+        var package = await loader.LoadAsync(exportDirectory.FullName);
 
-        StringAssert.Contains(exception.Message, "必须使用 / 作为分隔符");
+        Assert.HasCount(1, package.Slides);
+        Assert.AreEqual("slide-first", package.Slides[0].SlideId);
+        Assert.IsTrue(package.Slides[0].MarkdownFile.Exists);
     }
 
     [TestMethod(DisplayName = "资源索引使用对象包装时应阻止加载")]

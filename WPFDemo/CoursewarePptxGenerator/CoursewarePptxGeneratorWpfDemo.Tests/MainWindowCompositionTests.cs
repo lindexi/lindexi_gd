@@ -26,6 +26,21 @@ public sealed class MainWindowCompositionTests
         Assert.IsNotNull(rootGrid.Element(views + "SlideWorkspaceView"), "主窗口应直接承载单页工作台。");
     }
 
+    [TestMethod(DisplayName = "首页打开课件按钮应调用真实文件夹选择事件")]
+    public void WelcomeOpenCoursewareButtonShouldUseFolderPickerClickHandler()
+    {
+        var analysisViewXaml = XDocument.Load(Path.Join(GetApplicationProjectDirectory(), "Views", "CoursewareAnalysisView.xaml"));
+        XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        var openButton = analysisViewXaml
+            .Descendants(presentation + "Button")
+            .Single(element => string.Equals((string?) element.Attribute(x + "Name"), "OpenCoursewareButton", StringComparison.Ordinal));
+
+        Assert.AreEqual("OpenCoursewareButton_OnClick", (string?) openButton.Attribute("Click"));
+        Assert.IsNull(openButton.Attribute("Command"), "首页按钮不应直接执行缺少文件夹路径的命令。");
+    }
+
     [TestMethod(DisplayName = "双页原型往返导航应保留工作台界面状态")]
     [Timeout(60_000)]
     public void PrototypeNavigationShouldPreserveWorkspaceState()

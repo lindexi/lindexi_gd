@@ -27,22 +27,10 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#EAF1F4" BorderBrush="{StaticResource AnalysisBorderBrush}" BorderThickness="0,0,0,1" Padding="18,7">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Left"
-                           Text="原型状态预览"
-                           Foreground="{StaticResource AnalysisMutedBrush}"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center" />
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Content="欢迎" Command="{Binding ShowDemoStageCommand}" CommandParameter="Welcome" Style="{StaticResource PrototypeStateButtonStyle}" />
-                    <Button Content="加载" Command="{Binding ShowDemoStageCommand}" CommandParameter="LoadingCourseware" Style="{StaticResource PrototypeStateButtonStyle}" />
-                    <Button Content="分析中" Command="{Binding ShowDemoStageCommand}" CommandParameter="AnalyzingTheme" Style="{StaticResource PrototypeStateButtonStyle}" />
-                    <Button Content="完成" Command="{Binding ShowDemoStageCommand}" CommandParameter="AnalysisReady" Style="{StaticResource PrototypeStateButtonStyle}" />
-                    <Button Content="失败" Command="{Binding ShowDemoStageCommand}" CommandParameter="AnalysisFailed" Style="{StaticResource PrototypeStateButtonStyle}" />
-                    <Button Content="已取消" Command="{Binding ShowDemoStageCommand}" CommandParameter="Canceled" Style="{StaticResource PrototypeStateButtonStyle}" />
-                </StackPanel>
-            </DockPanel>
+            <TextBlock Text="课件文件夹读取与缩略图预览"
+                       Foreground="{StaticResource AnalysisMutedBrush}"
+                       FontSize="12"
+                       FontWeight="SemiBold" />
         </Border>
 
         <Border Grid.Row="1"
@@ -52,10 +40,10 @@
                 Padding="24,12">
             <Border.Style>
                 <Style TargetType="Border">
-                    <Setter Property="Visibility" Value="Visible" />
+                    <Setter Property="Visibility" Value="Collapsed" />
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsWelcome}" Value="True">
-                            <Setter Property="Visibility" Value="Collapsed" />
+                        <DataTrigger Binding="{Binding IsCoursewareLoaded}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
@@ -64,12 +52,7 @@
                 <Border DockPanel.Dock="Right">
                     <Border.Style>
                         <Style TargetType="Border">
-                            <Setter Property="Visibility" Value="Visible" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsLoadingCourseware}" Value="True">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
-                            </Style.Triggers>
+                            <Setter Property="Visibility" Value="Collapsed" />
                         </Style>
                     </Border.Style>
                     <Button Content="进入页面美化"
@@ -115,7 +98,7 @@
                     <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsWelcome}" Value="True">
+                            <DataTrigger Binding="{Binding IsCoursewareWelcome}" Value="True">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -149,11 +132,11 @@
                     <StackPanel Grid.Row="3" HorizontalAlignment="Center" Margin="0,28,0,0">
                         <Button x:Name="OpenCoursewareButton"
                                 Content="打开课件文件夹"
-                                Command="{Binding OpenDemoCommand}"
+                                Click="OpenCoursewareButton_OnClick"
                                 Style="{StaticResource AnalysisPrimaryButtonStyle}"
                                 MinWidth="210"
-                                AutomationProperties.Name="打开课件文件夹演示" />
-                        <TextBlock Text="{Binding SlideCountText, StringFormat=界面原型将使用内置的 {0}演示课件，不会读取本地文件。}"
+                                AutomationProperties.Name="打开课件文件夹" />
+                        <TextBlock Text="请选择符合课件 Markdown 导出格式的本地文件夹。"
                                    Foreground="{StaticResource AnalysisMutedBrush}"
                                    FontSize="12"
                                    HorizontalAlignment="Center"
@@ -167,7 +150,7 @@
                     <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsLoadingCourseware}" Value="True">
+                            <DataTrigger Binding="{Binding IsCoursewareLoading}" Value="True">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -180,7 +163,7 @@
                                 <TextBlock Text="…" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="正在读取课件" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="28" HorizontalAlignment="Center" Margin="0,20,0,0" />
-                            <TextBlock Text="{Binding SlideCountText, StringFormat=正在准备“初中数学八年级上册”的 {0}演示内容、缩略图和页面结构。}"
+                            <TextBlock Text="正在解析课件清单、页面 Markdown、资源索引和页面截图。"
                                        Style="{StaticResource AnalysisBodyTextStyle}"
                                        TextAlignment="Center"
                                        HorizontalAlignment="Center"
@@ -188,18 +171,82 @@
                             <Border Height="8" Background="#DCE8EC" CornerRadius="4" Margin="30,24,30,0">
                                 <Border Width="250" Background="{StaticResource AnalysisTealBrush}" CornerRadius="4" HorizontalAlignment="Left" />
                             </Border>
-                            <Button Content="继续查看分析状态"
-                                    Command="{Binding ContinueLoadingCommand}"
-                                    Style="{StaticResource AnalysisSecondaryButtonStyle}"
-                                    HorizontalAlignment="Center"
-                                    Margin="0,24,0,0" />
                         </StackPanel>
-                        <Border Style="{StaticResource AnalysisCardStyle}" Padding="14" Margin="0,24,0,0">
-                            <views:CoursewareThumbnailOverview />
-                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Type ScrollViewer}}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCoursewareLoaded}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ScrollViewer.Style>
+                <StackPanel Margin="24,18,24,24">
+                    <Border Style="{StaticResource AnalysisCardStyle}" Padding="20">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right"
+                                    Content="打开其他课件"
+                                    Click="OpenCoursewareButton_OnClick"
+                                    Style="{StaticResource AnalysisSecondaryButtonStyle}"
+                                    AutomationProperties.Name="打开其他课件文件夹" />
+                            <StackPanel>
+                                <TextBlock Text="课件已加载" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="26" />
+                                <TextBlock Text="{Binding InputHealthText}" Style="{StaticResource AnalysisBodyTextStyle}" Margin="0,7,0,0" />
+                                <TextBlock Text="已完成本地解析和缩略图加载。主题分析、页面会话与 MCP 初始化将在后续阶段接入。"
+                                           Foreground="{StaticResource AnalysisMutedBrush}"
+                                           FontSize="12"
+                                           Margin="0,5,0,0" />
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <Border Style="{StaticResource AnalysisCardStyle}" Padding="14" Margin="0,14,0,0">
+                        <views:CoursewareThumbnailOverview />
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Type ScrollViewer}}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCoursewareLoadFailed}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ScrollViewer.Style>
+                <Border Style="{StaticResource AnalysisCardStyle}" MaxWidth="820" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="26" Margin="24">
+                    <StackPanel>
+                        <Border Width="54" Height="54" Background="#FFF3D6" CornerRadius="27" HorizontalAlignment="Left">
+                            <TextBlock Text="!" Foreground="#B76C00" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="无法读取课件文件夹" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="25" Margin="0,16,0,0" />
+                        <TextBlock Text="{Binding LoadErrorMessage}" Style="{StaticResource AnalysisBodyTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap" />
+                        <Expander Header="查看技术详情" Margin="0,16,0,0">
+                            <TextBox Text="{Binding LoadErrorDetails, Mode=OneWay}"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     MaxHeight="220"
+                                     Padding="10"
+                                     Margin="0,8,0,0" />
+                        </Expander>
+                        <Button Content="重新选择课件文件夹"
+                                Click="OpenCoursewareButton_OnClick"
+                                Style="{StaticResource AnalysisPrimaryButtonStyle}"
+                                HorizontalAlignment="Left"
+                                Margin="0,20,0,0"
+                                AutomationProperties.Name="重新选择课件文件夹" />
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                 <ScrollViewer.Style>

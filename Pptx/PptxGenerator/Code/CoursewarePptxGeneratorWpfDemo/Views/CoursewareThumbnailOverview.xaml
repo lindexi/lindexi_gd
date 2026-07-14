@@ -3,62 +3,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views.Converters"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
              d:DesignHeight="190"
              d:DesignWidth="1500"
              mc:Ignorable="d">
     <UserControl.Resources>
-        <DataTemplate DataType="{x:Type viewModels:DemoSlideViewModel}">
-            <Border Width="108"
-                    Height="61"
+        <DataTemplate DataType="{x:Type viewModels:CoursewareThumbnailItemViewModel}">
+            <Border Width="180"
+                    Height="132"
                     Margin="0,0,8,8"
                     Background="White"
                     BorderBrush="#C8D8DE"
                     BorderThickness="1"
                     CornerRadius="6"
                     ClipToBounds="True"
-                    ToolTip="{Binding AccessibleName}"
+                    ToolTip="{Binding WarningSummary}"
                     AutomationProperties.Name="{Binding AccessibleName}">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="7" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="34" />
                     </Grid.RowDefinitions>
-                    <Border Background="#123B5D" />
-                    <Grid Grid.Row="1" Margin="7,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="32" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
-                            <Border Height="4" Background="#1A5A78" CornerRadius="2" Margin="0,0,14,5" />
-                            <Border Height="3" Background="#9EB4BE" CornerRadius="2" Margin="0,0,5,4" />
-                            <Border Height="3" Background="#D3DEE2" CornerRadius="2" Margin="0,0,11,0" />
-                        </StackPanel>
-                        <Grid Grid.Column="1" Margin="5,0,0,0">
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Background" Value="#E8EEF1" />
+                    <Grid Background="#F1F5F9">
+                        <Image Source="{Binding ScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
+                               Stretch="Uniform" />
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding LayoutVariant}" Value="0">
-                                            <Setter Property="Background" Value="#123B5D" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding LayoutVariant}" Value="1">
-                                            <Setter Property="Background" Value="#237E91" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding LayoutVariant}" Value="2">
-                                            <Setter Property="Background" Value="#43B8C4" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding LayoutVariant}" Value="3">
-                                            <Setter Property="Background" Value="#F29A38" />
+                                        <DataTrigger Binding="{Binding HasScreenshot}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Grid.Style>
-                            <Ellipse Width="16" Height="16" Fill="#C6D5DB" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Grid>
+                            </StackPanel.Style>
+                            <TextBlock Text="无截图" Foreground="{StaticResource AnalysisMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <TextBlock Text="仍可读取页面 Markdown" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="10" Margin="0,3,0,0" />
+                        </StackPanel>
                     </Grid>
-                    <Border Grid.RowSpan="2"
+                    <DockPanel Grid.Row="1" Margin="7,4">
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding PageNumber, StringFormat=第 {0} 页}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="10" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Border
                             Width="18"
                             Height="18"
                             Margin="0,3,3,0"
@@ -84,7 +73,7 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <ItemsControl ItemsSource="{Binding Slides}"
+    <ItemsControl ItemsSource="{Binding CoursewareThumbnails}"
                   AutomationProperties.Name="全课件缩略图概览">
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

@@ -1,5 +1,10 @@
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
 using System.Windows.Input;
+using CoursewarePptxGeneratorWpfDemo.Models;
+using CoursewarePptxGeneratorWpfDemo.Services;
+using CoursewarePptxGeneratorWpfDemo.Threading;
 
 namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
 
@@ -61,18 +66,47 @@ public enum CoursewareAnalysisStage
 public sealed class DemoWorkspaceViewModel : ObservableObject
 {
     private const int DemoSlideCount = 60;
+    private readonly CoursewareFolderLoader _coursewareFolderLoader;
+    private readonly CoursewareSlideSummaryService _slideSummaryService;
+    private readonly IViewModelDispatcher _dispatcher;
     private readonly RelayCommand _enterWorkspaceCommand;
     private DemoSlideViewModel? _selectedSlide;
     private string _demoInputText = string.Empty;
     private PrototypePage _currentPage = PrototypePage.CoursewareAnalysis;
     private CoursewareAnalysisStage _analysisStage = CoursewareAnalysisStage.Welcome;
+    private CoursewareWorkspaceState _workspaceState = CoursewareWorkspaceState.Welcome;
+    private CoursewareWorkspaceSession? _coursewareSession;
+    private string? _loadErrorMessage;
+    private string? _loadErrorDetails;
+    private CancellationTokenSource? _loadCancellationTokenSource;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DemoWorkspaceViewModel" /> class.
     /// </summary>
     public DemoWorkspaceViewModel()
+        : this(new CoursewareFolderLoader(), new CoursewareSlideSummaryService())
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DemoWorkspaceViewModel" /> class.
+    /// </summary>
+    /// <param name="coursewareFolderLoader">The courseware export folder loader.</param>
+    /// <param name="slideSummaryService">The service used to extract slide titles.</param>
+    /// <param name="dispatcher">The dispatcher used for ViewModel state updates.</param>
+    public DemoWorkspaceViewModel(
+        CoursewareFolderLoader coursewareFolderLoader,
+        CoursewareSlideSummaryService slideSummaryService,
+        IViewModelDispatcher? dispatcher = null)
+    {
+        ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
+        ArgumentNullException.ThrowIfNull(slideSummaryService);
+
+        _coursewareFolderLoader = coursewareFolderLoader;
+        _slideSummaryService = slideSummaryService;
+        _dispatcher = dispatcher ?? WpfViewModelDispatcher.Instance;
         Slides = new ObservableCollection<DemoSlideViewModel>(CreateSlides());
+        CoursewareThumbnails = new ObservableCollection<CoursewareThumbnailItemViewModel>();
         ThemeColors = new ObservableCollection<DemoThemeColorViewModel>(CreateThemeColors());
         TypographyLevels = new ObservableCollection<DemoTypographyLevelViewModel>(CreateTypographyLevels());
         LayoutPrinciples = new ObservableCollection<string>(
@@ -98,7 +132,15 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
             _ => CurrentPage = PrototypePage.SlideWorkspace,
             _ => AnalysisStage == CoursewareAnalysisStage.AnalysisReady);
         BackToAnalysisCommand = new RelayCommand(_ => CurrentPage = PrototypePage.CoursewareAnalysis);
-        OpenDemoCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.LoadingCourseware);
+        OpenDemoCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is string folderPath)
+                {
+                    _ = OpenCoursewareFolderAsync(folderPath);
+                }
+            },
+            _ => !IsCoursewareLoading);
         ContinueLoadingCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.AnalyzingTheme);
         CompleteAnalysisCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.AnalysisReady);
         CancelDemoCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.Canceled);
@@ -112,7 +154,7 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     /// <summary>
     /// Gets the courseware title shown by the prototype.
     /// </summary>
-    public string CoursewareTitle => "初中数学八年级上册";
+    public string CoursewareTitle => CoursewareSession?.InputPackage.CoursewareName ?? "尚未打开课件";
 
     /// <summary>
     /// Gets the prototype product title.
@@ -132,12 +174,19 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     /// <summary>
     /// Gets the slide count summary.
     /// </summary>
-    public string SlideCountText => $"共 {Slides.Count} 页";
+    public string SlideCountText => CoursewareSession is null ? "尚未加载页面" : $"共 {CoursewareThumbnails.Count} 页";
 
     /// <summary>
     /// Gets the demonstration input health summary.
     /// </summary>
-    public string InputHealthText => "输入完整，无缺失截图和资源警告";
+    public string InputHealthText
+    {
+        get
+        {
+            var warningCount = CoursewareSession?.InputPackage.Warnings.Count ?? 0;
+            return warningCount == 0 ? "输入完整，无缺失截图和资源警告" : $"发现 {warningCount} 项输入警告";
+        }
+    }
 
     /// <summary>
     /// Gets the demonstration rendering log for the selected page.
@@ -148,6 +197,86 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     /// Gets the presentation thumbnails and workspace pages.
     /// </summary>
     public ObservableCollection<DemoSlideViewModel> Slides { get; }
+
+    /// <summary>
+    /// Gets the thumbnails loaded from the selected courseware folder.
+    /// </summary>
+    public ObservableCollection<CoursewareThumbnailItemViewModel> CoursewareThumbnails { get; }
+
+    /// <summary>
+    /// Gets the current lightweight courseware session.
+    /// </summary>
+    public CoursewareWorkspaceSession? CoursewareSession
+    {
+        get => _coursewareSession;
+        private set
+        {
+            if (SetProperty(ref _coursewareSession, value))
+            {
+                OnPropertyChanged(nameof(CoursewareTitle));
+                OnPropertyChanged(nameof(SlideCountText));
+                OnPropertyChanged(nameof(InputHealthText));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the state of the real courseware loading workflow.
+    /// </summary>
+    public CoursewareWorkspaceState WorkspaceState
+    {
+        get => _workspaceState;
+        private set
+        {
+            if (SetProperty(ref _workspaceState, value))
+            {
+                OnPropertyChanged(nameof(IsCoursewareWelcome));
+                OnPropertyChanged(nameof(IsCoursewareLoading));
+                OnPropertyChanged(nameof(IsCoursewareLoaded));
+                OnPropertyChanged(nameof(IsCoursewareLoadFailed));
+                OnPropertyChanged(nameof(AnalysisStatus));
+                OnPropertyChanged(nameof(AnalysisCaption));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether no real courseware has been selected.
+    /// </summary>
+    public bool IsCoursewareWelcome => WorkspaceState == CoursewareWorkspaceState.Welcome;
+
+    /// <summary>
+    /// Gets a value indicating whether a real courseware folder is being loaded.
+    /// </summary>
+    public bool IsCoursewareLoading => WorkspaceState == CoursewareWorkspaceState.LoadingCourseware;
+
+    /// <summary>
+    /// Gets a value indicating whether a real courseware package is available.
+    /// </summary>
+    public bool IsCoursewareLoaded => WorkspaceState == CoursewareWorkspaceState.CoursewareLoaded;
+
+    /// <summary>
+    /// Gets a value indicating whether the last real courseware load failed.
+    /// </summary>
+    public bool IsCoursewareLoadFailed => WorkspaceState == CoursewareWorkspaceState.LoadFailed;
+
+    /// <summary>
+    /// Gets the user-facing courseware load error.
+    /// </summary>
+    public string? LoadErrorMessage
+    {
+        get => _loadErrorMessage;
+        private set => SetProperty(ref _loadErrorMessage, value);
+    }
+
+    /// <summary>
+    /// Gets the technical courseware load error details.
+    /// </summary>
+    public string? LoadErrorDetails
+    {
+        get => _loadErrorDetails;
+        private set => SetProperty(ref _loadErrorDetails, value);
+    }
 
     /// <summary>
     /// Gets the theme color swatches.
@@ -329,29 +458,41 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     /// <summary>
     /// Gets the current analysis status.
     /// </summary>
-    public string AnalysisStatus => AnalysisStage switch
+    public string AnalysisStatus => WorkspaceState switch
     {
-        CoursewareAnalysisStage.Welcome => "等待打开课件",
-        CoursewareAnalysisStage.LoadingCourseware => "正在读取课件",
-        CoursewareAnalysisStage.AnalyzingTheme => "正在分析全课件主题",
-        CoursewareAnalysisStage.AnalysisReady => "全课件分析已完成",
-        CoursewareAnalysisStage.AnalysisFailed => "主题分析失败",
-        CoursewareAnalysisStage.Canceled => "主题分析已取消",
-        _ => string.Empty,
+        CoursewareWorkspaceState.LoadingCourseware => "正在读取课件",
+        CoursewareWorkspaceState.CoursewareLoaded => "课件已加载",
+        CoursewareWorkspaceState.LoadFailed => "课件读取失败",
+        _ => AnalysisStage switch
+        {
+            CoursewareAnalysisStage.Welcome => "等待打开课件",
+            CoursewareAnalysisStage.LoadingCourseware => "正在读取课件",
+            CoursewareAnalysisStage.AnalyzingTheme => "正在分析全课件主题",
+            CoursewareAnalysisStage.AnalysisReady => "全课件分析已完成",
+            CoursewareAnalysisStage.AnalysisFailed => "主题分析失败",
+            CoursewareAnalysisStage.Canceled => "主题分析已取消",
+            _ => string.Empty,
+        },
     };
 
     /// <summary>
     /// Gets the secondary analysis status text.
     /// </summary>
-    public string AnalysisCaption => AnalysisStage switch
+    public string AnalysisCaption => WorkspaceState switch
     {
-        CoursewareAnalysisStage.Welcome => "打开课件后将先形成统一视觉主题",
-        CoursewareAnalysisStage.LoadingCourseware => $"正在准备 {Slides.Count} 页演示课件内容",
-        CoursewareAnalysisStage.AnalyzingTheme => "正在归纳内容层级、配色、字体与版式",
-        CoursewareAnalysisStage.AnalysisReady => $"已完整查看 {Slides.Count} 页课件并形成统一主题",
-        CoursewareAnalysisStage.AnalysisFailed => "演示错误：主题结构校验未通过",
-        CoursewareAnalysisStage.Canceled => "已保留课件概览，可随时重新分析",
-        _ => string.Empty,
+        CoursewareWorkspaceState.LoadingCourseware => "正在解析清单、Markdown、资源和截图",
+        CoursewareWorkspaceState.CoursewareLoaded => $"已加载 {CoursewareThumbnails.Count} 页，等待后续主题分析",
+        CoursewareWorkspaceState.LoadFailed => "请选择有效的课件 Markdown 导出文件夹",
+        _ => AnalysisStage switch
+        {
+            CoursewareAnalysisStage.Welcome => "打开课件后将先形成统一视觉主题",
+            CoursewareAnalysisStage.LoadingCourseware => $"正在准备 {Slides.Count} 页演示课件内容",
+            CoursewareAnalysisStage.AnalyzingTheme => "正在归纳内容层级、配色、字体与版式",
+            CoursewareAnalysisStage.AnalysisReady => $"已完整查看 {Slides.Count} 页课件并形成统一主题",
+            CoursewareAnalysisStage.AnalysisFailed => "演示错误：主题结构校验未通过",
+            CoursewareAnalysisStage.Canceled => "已保留课件概览，可随时重新分析",
+            _ => string.Empty,
+        },
     };
 
     /// <summary>
@@ -408,6 +549,78 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     /// Gets the command that appends a demonstration chat response.
     /// </summary>
     public ICommand SendDemoMessageCommand { get; }
+
+    /// <summary>
+    /// Loads the selected courseware export folder without starting theme analysis or page generation.
+    /// </summary>
+    /// <param name="folderPath">The selected courseware export folder.</param>
+    /// <returns>A task that represents the loading operation.</returns>
+    public async Task OpenCoursewareFolderAsync(string? folderPath)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath))
+        {
+            return;
+        }
+
+        var cancellationTokenSource = new CancellationTokenSource();
+        var previousCancellationTokenSource = Interlocked.Exchange(ref _loadCancellationTokenSource, cancellationTokenSource);
+        previousCancellationTokenSource?.Cancel();
+        previousCancellationTokenSource?.Dispose();
+
+        await _dispatcher.InvokeAsync(() =>
+        {
+            WorkspaceState = CoursewareWorkspaceState.LoadingCourseware;
+            LoadErrorMessage = null;
+            LoadErrorDetails = null;
+        });
+
+        try
+        {
+            var package = await _coursewareFolderLoader.LoadAsync(folderPath, cancellationTokenSource.Token).ConfigureAwait(false);
+            var thumbnails = new List<CoursewareThumbnailItemViewModel>(package.Slides.Count);
+            foreach (var slide in package.Slides)
+            {
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                var title = _slideSummaryService.CreateTitle(slide.MarkdownText, slide.PageNumber);
+                thumbnails.Add(CoursewareThumbnailItemViewModel.Create(slide, title));
+            }
+
+            await _dispatcher.InvokeAsync(() =>
+            {
+                CoursewareThumbnails.Clear();
+                foreach (var thumbnail in thumbnails)
+                {
+                    CoursewareThumbnails.Add(thumbnail);
+                }
+
+                CoursewareSession = new CoursewareWorkspaceSession(package);
+                WorkspaceState = CoursewareWorkspaceState.CoursewareLoaded;
+                OnPropertyChanged(nameof(SlideCountText));
+                OnPropertyChanged(nameof(InputHealthText));
+            });
+        }
+        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or InvalidDataException or IOException or UnauthorizedAccessException or JsonException)
+        {
+            await _dispatcher.InvokeAsync(() =>
+            {
+                CoursewareSession = null;
+                CoursewareThumbnails.Clear();
+                LoadErrorMessage = ex.Message;
+                LoadErrorDetails = ex.ToString();
+                WorkspaceState = CoursewareWorkspaceState.LoadFailed;
+            });
+        }
+        finally
+        {
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _loadCancellationTokenSource, null, cancellationTokenSource), cancellationTokenSource))
+            {
+                cancellationTokenSource.Dispose();
+            }
+        }
+    }
 
     private static IEnumerable<DemoSlideViewModel> CreateSlides()
     {
