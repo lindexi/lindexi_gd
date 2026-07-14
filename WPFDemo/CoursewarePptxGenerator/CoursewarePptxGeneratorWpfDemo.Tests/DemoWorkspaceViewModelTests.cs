@@ -27,7 +27,7 @@ public sealed class DemoWorkspaceViewModelTests
         Assert.AreEqual("测试课件", viewModel.CoursewareTitle);
         Assert.HasCount(2, viewModel.CoursewareThumbnails);
         Assert.AreEqual("slide-first", viewModel.CoursewareThumbnails[0].SlideId);
-        Assert.AreEqual("第一页标题", viewModel.CoursewareThumbnails[0].Title);
+        Assert.AreEqual("第 1 页", viewModel.CoursewareThumbnails[0].AccessibleName);
         Assert.IsTrue(viewModel.CoursewareThumbnails[0].HasScreenshot);
         Assert.AreEqual("slide-second", viewModel.CoursewareThumbnails[1].SlideId);
         Assert.IsFalse(viewModel.CoursewareThumbnails[1].HasScreenshot);
@@ -70,7 +70,6 @@ public sealed class DemoWorkspaceViewModelTests
     {
         return new DemoWorkspaceViewModel(
             new CoursewareFolderLoader(),
-            new CoursewareSlideSummaryService(),
             new ImmediateViewModelDispatcher());
     }
 

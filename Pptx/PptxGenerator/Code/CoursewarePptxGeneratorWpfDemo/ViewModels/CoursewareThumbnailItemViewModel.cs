@@ -11,21 +11,15 @@ public sealed class CoursewareThumbnailItemViewModel
     /// Creates a thumbnail from a loaded slide input.
     /// </summary>
     /// <param name="slide">The loaded slide input.</param>
-    /// <param name="title">The display title extracted from the slide Markdown.</param>
     /// <returns>The lightweight thumbnail view model.</returns>
-    public static CoursewareThumbnailItemViewModel Create(CoursewareSlideInput slide, string title)
+    public static CoursewareThumbnailItemViewModel Create(CoursewareSlideInput slide)
     {
         ArgumentNullException.ThrowIfNull(slide);
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            throw new ArgumentException("页面标题不能为空。", nameof(title));
-        }
 
         return new CoursewareThumbnailItemViewModel
         {
             PageNumber = slide.PageNumber,
             SlideId = slide.SlideId,
-            Title = title,
             Width = slide.Width,
             Height = slide.Height,
             ScreenshotFilePath = slide.ScreenshotFile?.FullName,
@@ -42,11 +36,6 @@ public sealed class CoursewareThumbnailItemViewModel
     /// Gets the exported slide identifier.
     /// </summary>
     public required string SlideId { get; init; }
-
-    /// <summary>
-    /// Gets the slide title.
-    /// </summary>
-    public required string Title { get; init; }
 
     /// <summary>
     /// Gets the source slide width.
@@ -82,8 +71,8 @@ public sealed class CoursewareThumbnailItemViewModel
     /// Gets the accessible description for the thumbnail.
     /// </summary>
     public string AccessibleName => HasWarning
-        ? $"第 {PageNumber} 页，{Title}，存在输入警告"
-        : $"第 {PageNumber} 页，{Title}";
+        ? $"第 {PageNumber} 页，存在输入警告"
+        : $"第 {PageNumber} 页";
 
     /// <summary>
     /// Gets the warning summary shown by the thumbnail tooltip.

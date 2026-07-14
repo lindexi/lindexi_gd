@@ -67,7 +67,6 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
 {
     private const int DemoSlideCount = 60;
     private readonly CoursewareFolderLoader _coursewareFolderLoader;
-    private readonly CoursewareSlideSummaryService _slideSummaryService;
     private readonly IViewModelDispatcher _dispatcher;
     private readonly RelayCommand _enterWorkspaceCommand;
     private DemoSlideViewModel? _selectedSlide;
@@ -84,7 +83,7 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     /// Initializes a new instance of the <see cref="DemoWorkspaceViewModel" /> class.
     /// </summary>
     public DemoWorkspaceViewModel()
-        : this(new CoursewareFolderLoader(), new CoursewareSlideSummaryService())
+        : this(new CoursewareFolderLoader())
     {
     }
 
@@ -92,18 +91,14 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     /// Initializes a new instance of the <see cref="DemoWorkspaceViewModel" /> class.
     /// </summary>
     /// <param name="coursewareFolderLoader">The courseware export folder loader.</param>
-    /// <param name="slideSummaryService">The service used to extract slide titles.</param>
     /// <param name="dispatcher">The dispatcher used for ViewModel state updates.</param>
     public DemoWorkspaceViewModel(
         CoursewareFolderLoader coursewareFolderLoader,
-        CoursewareSlideSummaryService slideSummaryService,
         IViewModelDispatcher? dispatcher = null)
     {
         ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
-        ArgumentNullException.ThrowIfNull(slideSummaryService);
 
         _coursewareFolderLoader = coursewareFolderLoader;
-        _slideSummaryService = slideSummaryService;
         _dispatcher = dispatcher ?? WpfViewModelDispatcher.Instance;
         Slides = new ObservableCollection<DemoSlideViewModel>(CreateSlides());
         CoursewareThumbnails = new ObservableCollection<CoursewareThumbnailItemViewModel>();
@@ -581,8 +576,7 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
             foreach (var slide in package.Slides)
             {
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                var title = _slideSummaryService.CreateTitle(slide.MarkdownText, slide.PageNumber);
-                thumbnails.Add(CoursewareThumbnailItemViewModel.Create(slide, title));
+                thumbnails.Add(CoursewareThumbnailItemViewModel.Create(slide));
             }
 
             await _dispatcher.InvokeAsync(() =>

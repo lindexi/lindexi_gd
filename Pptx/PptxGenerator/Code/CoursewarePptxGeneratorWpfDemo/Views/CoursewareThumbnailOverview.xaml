@@ -5,13 +5,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views.Converters"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
-             d:DesignHeight="190"
+             d:DesignHeight="145"
              d:DesignWidth="1500"
              mc:Ignorable="d">
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type viewModels:CoursewareThumbnailItemViewModel}">
             <Border Width="180"
-                    Height="132"
+                    Height="101.25"
                     Margin="0,0,8,8"
                     Background="White"
                     BorderBrush="#C8D8DE"
@@ -21,13 +21,9 @@
                     ToolTip="{Binding WarningSummary}"
                     AutomationProperties.Name="{Binding AccessibleName}">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="34" />
-                    </Grid.RowDefinitions>
                     <Grid Background="#F1F5F9">
                         <Image Source="{Binding ScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
-                               Stretch="Uniform" />
+                               Stretch="UniformToFill" />
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <StackPanel.Style>
                                 <Style TargetType="StackPanel">
@@ -43,10 +39,6 @@
                             <TextBlock Text="仍可读取页面 Markdown" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="10" Margin="0,3,0,0" />
                         </StackPanel>
                     </Grid>
-                    <DockPanel Grid.Row="1" Margin="7,4">
-                        <TextBlock DockPanel.Dock="Right" Text="{Binding PageNumber, StringFormat=第 {0} 页}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="10" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    </DockPanel>
                     <Border
                             Width="18"
                             Height="18"
