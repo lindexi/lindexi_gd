@@ -61,14 +61,14 @@
                                         <Border Height="32" CornerRadius="16" BorderBrush="#D7E2E7" BorderThickness="1">
                                             <Border.Background><SolidColorBrush Color="{Binding HexValue}" /></Border.Background>
                                         </Border>
-                                        <TextBlock Text="{Binding Usage}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,6,0,0" />
-                                        <TextBlock Text="{Binding HexValue}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="9" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding Usage}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                                        <TextBlock Text="{Binding HexValue}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <Border Background="#F4F8FA" CornerRadius="6" Margin="0,13,0,0" Padding="9">
-                            <TextBlock Text="蓝色建立教学秩序，橙色只用于结论、重点和课堂提示。" Style="{StaticResource AnalysisBodyTextStyle}" FontSize="10" LineHeight="15" />
+                            <TextBlock Text="蓝色建立教学秩序，橙色只用于结论、重点和课堂提示。" Style="{StaticResource AnalysisBodyTextStyle}" FontSize="12" LineHeight="18" />
                         </Border>
                     </StackPanel>
                 </Border>
@@ -81,13 +81,13 @@
                                 <DataTemplate>
                                     <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="11" FontWeight="SemiBold" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Specification}" Foreground="#2563EB" FontSize="10" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Specification}" Foreground="#2563EB" FontSize="12" FontWeight="SemiBold" />
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="微软雅黑 / 等宽无衬线中文字体" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="10" Margin="0,4,0,0" TextWrapping="Wrap" />
+                        <TextBlock Text="微软雅黑 / 等宽无衬线中文字体" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
@@ -98,7 +98,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="#F3F9F9" CornerRadius="6" Padding="7" Margin="0,0,0,7">
-                                        <TextBlock Text="{Binding}" Foreground="{StaticResource AnalysisBodyBrush}" FontSize="10" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding}" Foreground="{StaticResource AnalysisBodyBrush}" FontSize="12" TextWrapping="Wrap" />
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -114,20 +114,20 @@
                                 <Grid Margin="10">
                                     <Rectangle Fill="White" Stroke="#C2D3D9" StrokeThickness="1" />
                                     <Rectangle Margin="12,9" Stroke="{StaticResource AnalysisTealBrush}" StrokeThickness="1.5" StrokeDashArray="4,3" />
-                                    <TextBlock Text="安全区" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="10" FontWeight="SemiBold" />
+                                    <TextBlock Text="安全区" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" />
                                 </Grid>
                             </Border>
-                            <TextBlock Text="左右 0.6 in · 上下 0.4 in" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="9" Margin="0,7,0,0" />
+                            <TextBlock Text="左右 0.6 in · 上下 0.4 in" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" Margin="0,7,0,0" />
                         </StackPanel>
                         <StackPanel Margin="0,14,0,0">
                             <TextBlock Text="输入风险提示" Style="{StaticResource ThemeColumnTitleStyle}" />
                             <StackPanel Margin="0,1,0,0">
-                                <TextBlock Text="▲ 第 3 页背景图像素较低" Foreground="#B76C00" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                <TextBlock Text="▲ 第 8 页公式字号偏小" Foreground="#B76C00" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                <TextBlock Text="▲ 第 15 页单位不统一" Foreground="#B76C00" FontSize="10" TextWrapping="Wrap" />
+                                <TextBlock Text="▲ 第 3 页背景图像素较低" Foreground="#B76C00" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                <TextBlock Text="▲ 第 8 页公式字号偏小" Foreground="#B76C00" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                <TextBlock Text="▲ 第 15 页单位不统一" Foreground="#B76C00" FontSize="12" TextWrapping="Wrap" />
                             </StackPanel>
                             <Border Background="#EAF8F5" CornerRadius="6" Padding="7" Margin="0,12,0,0">
-                                <TextBlock Text="演示提示，不影响进入工作台" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="9" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="演示提示，不影响进入工作台" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
                             </Border>
                         </StackPanel>
                     </StackPanel>

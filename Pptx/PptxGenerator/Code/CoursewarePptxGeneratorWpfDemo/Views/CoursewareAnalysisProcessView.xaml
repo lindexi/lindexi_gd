@@ -1,0 +1,66 @@
+<UserControl x:Class="CoursewarePptxGeneratorWpfDemo.Views.CoursewareAnalysisProcessView"
+             x:Name="Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="420"
+             d:DesignWidth="360"
+             mc:Ignorable="d">
+    <Border Style="{StaticResource AnalysisCardStyle}">
+        <StackPanel>
+            <TextBlock Text="分析过程" Style="{StaticResource AnalysisSectionTitleTextStyle}" />
+            <ItemsControl ItemsSource="{Binding AnalysisSteps}" Margin="0,12,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel Margin="0,0,0,12">
+                            <Border Width="20"
+                                    Height="20"
+                                    Background="{StaticResource AnalysisTealLightBrush}"
+                                    CornerRadius="10"
+                                    Margin="0,0,9,0">
+                                <TextBlock Text="✓"
+                                           Foreground="{StaticResource AnalysisTealDarkBrush}"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}"
+                                           Foreground="{StaticResource AnalysisNavyBrush}"
+                                           FontSize="14"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Description}"
+                                           Style="{StaticResource AnalysisBodyTextStyle}"
+                                           FontSize="12"
+                                           LineHeight="18" />
+                            </StackPanel>
+                        </DockPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <StackPanel Margin="0,4,0,0">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ShowActions, ElementName=Root}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <Button Content="取消分析"
+                        Command="{Binding CancelDemoCommand}"
+                        Style="{StaticResource AnalysisSecondaryButtonStyle}"
+                        HorizontalAlignment="Left" />
+                <Button Content="完成演示分析"
+                        Command="{Binding CompleteAnalysisCommand}"
+                        Style="{StaticResource AnalysisPrimaryButtonStyle}"
+                        HorizontalAlignment="Left"
+                        Margin="0,8,0,0" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -77,7 +77,7 @@
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
-                        <TextBlock Text="!" Foreground="#C57900" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Text="!" Foreground="#C57900" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                 </Grid>
             </Border>
