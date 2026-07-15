@@ -653,6 +653,18 @@ public partial class MainWindow : Window
 
     private void ApplyTouchGesture()
     {
+        if (_touchPoints.Count == 1 && _lastTouchCenter is not null)
+        {
+            var currentPosition = _touchPoints.Values.Single();
+            var previousPosition = _lastTouchCenter.Value;
+            _state.PanOffset = new Point(
+                _state.PanOffset.X + currentPosition.X - previousPosition.X,
+                _state.PanOffset.Y + currentPosition.Y - previousPosition.Y);
+            ApplyImageLayout();
+            _lastTouchCenter = currentPosition;
+            return;
+        }
+
         if (_touchPoints.Count != 2 || _lastTouchCenter is null || _lastTouchDistance <= 0)
         {
             UpdateTouchGestureBaseline();
@@ -681,6 +693,11 @@ public partial class MainWindow : Window
         if (_touchPoints.Count == 2)
         {
             (_lastTouchCenter, _lastTouchDistance) = GetTouchGestureGeometry();
+        }
+        else if (_touchPoints.Count == 1)
+        {
+            _lastTouchCenter = _touchPoints.Values.Single();
+            _lastTouchDistance = 0;
         }
         else
         {
