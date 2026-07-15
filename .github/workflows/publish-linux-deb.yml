@@ -11,19 +11,15 @@ permissions:
 jobs:
   publish-native-aot:
     name: Publish ${{ matrix.platform }} NativeAOT
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux-x64
             runtime: linux-x64
-            native_aot_packages: clang zlib1g-dev
-            objcopy: objcopy
           - platform: linux-arm64
             runtime: linux-arm64
-            native_aot_packages: clang zlib1g-dev binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu
-            objcopy: aarch64-linux-gnu-objcopy
 
     steps:
       - name: Checkout
@@ -36,39 +32,37 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Install NativeAOT prerequisites
-        run: sudo apt-get update && sudo apt-get install --yes ${{ matrix.native_aot_packages }}
-
       - name: Prepare package path
         id: package
-        shell: bash
+        shell: pwsh
         run: |
-          set -euo pipefail
-          PROJECT="AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj"
-          OUTPUT_DIR="$GITHUB_WORKSPACE/AvaloniaIDemo/ImageViewer/artifacts/${{ matrix.platform }}"
-          PACKAGE_ID="$(dotnet msbuild "$PROJECT" -getProperty:AppName | tail -n 1 | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
-          VERSION="$(dotnet msbuild "$PROJECT" -getProperty:Version -p:Configuration=Release | tail -n 1 | tr -d '\r')"
-          BUILD_DATE="$(date -u +%Y%m%d%H%M%S)"
-          COMMIT_SHORT="$(git rev-parse --short=10 HEAD)"
-          OUTPUT_NAME="${PACKAGE_ID}_${{ matrix.platform }}_${VERSION}-${BUILD_DATE}-${COMMIT_SHORT}.deb"
-          OUTPUT_PATH="$OUTPUT_DIR/$OUTPUT_NAME"
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $project = 'AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj'
+          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE 'AvaloniaIDemo/ImageViewer/artifacts/${{ matrix.platform }}'
+          $packageId = (& dotnet msbuild $project -getProperty:AppName | Select-Object -Last 1).Trim().ToLowerInvariant()
+          $version = (& dotnet msbuild $project -getProperty:Version -p:Configuration=Release | Select-Object -Last 1).Trim()
+          $buildDate = [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')
+          $commitShort = (& git rev-parse --short=10 HEAD).Trim()
+          $outputName = "${packageId}_${{ matrix.platform }}_${version}-${buildDate}-${commitShort}.deb"
+          $outputPath = Join-Path $outputDirectory $outputName
 
-          rm -rf "$OUTPUT_DIR"
-          mkdir -p "$OUTPUT_DIR"
-          echo "path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
-          echo "name=$OUTPUT_NAME" >> "$GITHUB_OUTPUT"
+          Remove-Item $outputDirectory -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item $outputDirectory -ItemType Directory -Force | Out-Null
+          "path=$outputPath" >> $env:GITHUB_OUTPUT
+          "name=$outputName" >> $env:GITHUB_OUTPUT
 
       - name: Publish deb package
-        shell: bash
+        shell: pwsh
         run: |
-          set -euo pipefail
-          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj \
-            --configuration Release \
-            --runtime "${{ matrix.runtime }}" \
-            --self-contained true \
-            -p:PublishAot=true \
-            -p:ObjCopyName="${{ matrix.objcopy }}" \
-            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" \
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj `
+            --configuration Release `
+            --runtime "${{ matrix.runtime }}" `
+            --self-contained true `
+            -p:PublishAot=true `
+            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" `
             -t:CreateDebUOS
 
       - name: Upload ${{ matrix.platform }} package
@@ -80,7 +74,7 @@ jobs:
 
   publish-loongarch64:
     name: Publish linux-loongarch64-${{ matrix.abi }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
@@ -104,43 +98,47 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Add LoongArch NuGet source
-        shell: bash
+        shell: pwsh
         run: |
-          dotnet nuget add source "${{ matrix.source_url }}" \
-            --name "${{ matrix.source_name }}" \
-            --protocol-version 3 \
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet nuget add source "${{ matrix.source_url }}" `
+            --name "${{ matrix.source_name }}" `
+            --protocol-version 3 `
             --allow-insecure-connections
 
       - name: Prepare package path
         id: package
-        shell: bash
+        shell: pwsh
         run: |
-          set -euo pipefail
-          PROJECT="AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj"
-          PLATFORM="linux-loongarch64-${{ matrix.abi }}"
-          OUTPUT_DIR="$GITHUB_WORKSPACE/AvaloniaIDemo/ImageViewer/artifacts/$PLATFORM"
-          PACKAGE_ID="$(dotnet msbuild "$PROJECT" -getProperty:AppName | tail -n 1 | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
-          VERSION="$(dotnet msbuild "$PROJECT" -getProperty:Version -p:Configuration=Release | tail -n 1 | tr -d '\r')"
-          BUILD_DATE="$(date -u +%Y%m%d%H%M%S)"
-          COMMIT_SHORT="$(git rev-parse --short=10 HEAD)"
-          OUTPUT_NAME="${PACKAGE_ID}_${PLATFORM}_${VERSION}-${BUILD_DATE}-${COMMIT_SHORT}.deb"
-          OUTPUT_PATH="$OUTPUT_DIR/$OUTPUT_NAME"
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $project = 'AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj'
+          $platform = 'linux-loongarch64-${{ matrix.abi }}'
+          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE "AvaloniaIDemo/ImageViewer/artifacts/$platform"
+          $packageId = (& dotnet msbuild $project -getProperty:AppName | Select-Object -Last 1).Trim().ToLowerInvariant()
+          $version = (& dotnet msbuild $project -getProperty:Version -p:Configuration=Release | Select-Object -Last 1).Trim()
+          $buildDate = [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')
+          $commitShort = (& git rev-parse --short=10 HEAD).Trim()
+          $outputName = "${packageId}_${platform}_${version}-${buildDate}-${commitShort}.deb"
+          $outputPath = Join-Path $outputDirectory $outputName
 
-          rm -rf "$OUTPUT_DIR"
-          mkdir -p "$OUTPUT_DIR"
-          echo "path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
-          echo "name=$OUTPUT_NAME" >> "$GITHUB_OUTPUT"
+          Remove-Item $outputDirectory -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item $outputDirectory -ItemType Directory -Force | Out-Null
+          "path=$outputPath" >> $env:GITHUB_OUTPUT
+          "name=$outputName" >> $env:GITHUB_OUTPUT
 
       - name: Publish deb package
-        shell: bash
+        shell: pwsh
         run: |
-          set -euo pipefail
-          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj \
-            --configuration Release \
-            --runtime linux-loongarch64 \
-            --self-contained true \
-            -p:PublishAot=false \
-            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" \
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj `
+            --configuration Release `
+            --runtime linux-loongarch64 `
+            --self-contained true `
+            -p:PublishAot=false `
+            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" `
             -t:CreateDebUOS
 
       - name: Upload linux-loongarch64-${{ matrix.abi }} package

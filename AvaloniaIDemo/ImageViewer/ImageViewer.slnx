@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Code/">
+    <File Path="../../.github/workflows/publish-linux-deb.yml" />
     <Project Path="Code/ImageViewer.csproj" />
   </Folder>
   <Project Path="Docs/Docs.csproj" />
