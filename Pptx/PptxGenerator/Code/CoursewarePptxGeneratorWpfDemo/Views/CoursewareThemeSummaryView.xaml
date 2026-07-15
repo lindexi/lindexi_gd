@@ -127,7 +127,7 @@
                                 <TextBlock Text="▲ 第 15 页单位不统一" Foreground="#B76C00" FontSize="12" TextWrapping="Wrap" />
                             </StackPanel>
                             <Border Background="#EAF8F5" CornerRadius="6" Padding="7" Margin="0,12,0,0">
-                                <TextBlock Text="演示提示，不影响进入工作台" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="这些提示不影响进入工作台" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
                             </Border>
                         </StackPanel>
                     </StackPanel>

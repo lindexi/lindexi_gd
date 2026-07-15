@@ -184,9 +184,9 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Gets the demonstration rendering log for the selected page.
+    /// Gets the rendering log for the selected page.
     /// </summary>
-    public string DemoRenderingLog => "演示模式：当前页面已应用全局主题。本轮不会调用 SlideML 渲染、生成或保存服务。";
+    public string RenderingLog => "当前页面已应用全局主题。";
 
     /// <summary>
     /// Gets the presentation thumbnails and workspace pages.

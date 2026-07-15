@@ -10,7 +10,7 @@
              Background="{StaticResource LightBackgroundBrush}"
              mc:Ignorable="d">
     <UserControl.Resources>
-        <Style x:Key="DemoSlideListItemStyle" TargetType="ListBoxItem">
+        <Style x:Key="SlideListItemStyle" TargetType="ListBoxItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="8" />
             <Setter Property="Margin" Value="0,0,0,8" />
@@ -57,15 +57,6 @@
                         Command="{Binding BackToAnalysisCommand}"
                         Style="{StaticResource AnalysisSecondaryButtonStyle}"
                         AutomationProperties.Name="返回主题概览" />
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Style="{StaticResource AnalysisPillStyle}">
-                        <TextBlock Text="演示模式" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" />
-                    </Border>
-                    <TextBlock Text="真实生成、渲染和保存操作未接入"
-                               Foreground="{StaticResource AnalysisMutedBrush}"
-                               FontSize="12"
-                               VerticalAlignment="Center" />
-                </StackPanel>
                 <StackPanel Margin="18,0,0,0" VerticalAlignment="Center">
                     <TextBlock Text="单页美化工作台" Foreground="{StaticResource TextPrimaryBrush}" FontSize="17" FontWeight="Bold" />
                     <TextBlock Text="{Binding SelectedSlideNumberText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
@@ -88,12 +79,12 @@
                     </StackPanel>
                     <ListBox ItemsSource="{Binding Slides}"
                              SelectedItem="{Binding SelectedSlide, Mode=TwoWay}"
-                             ItemContainerStyle="{StaticResource DemoSlideListItemStyle}"
+                             ItemContainerStyle="{StaticResource SlideListItemStyle}"
                              BorderThickness="0"
                              Background="Transparent"
                              Padding="10,0,10,12"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                             AutomationProperties.Name="演示课件页面列表">
+                             AutomationProperties.Name="课件页面列表">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
@@ -134,10 +125,7 @@
                     <RowDefinition Height="250" />
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="22,12">
-                    <StackPanel>
-                        <TextBlock Text="{Binding SelectedSlideSummary}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="SemiBold" />
-                        <TextBlock Text="页面预览仅用于检查工作台布局和状态保留" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
-                    </StackPanel>
+                    <TextBlock Text="{Binding SelectedSlideSummary}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="SemiBold" />
                 </Border>
                 <Grid Grid.Row="1" Margin="24,18">
                     <Border Style="{StaticResource WorkspaceCardStyle}" Padding="18">
@@ -185,12 +173,12 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <DockPanel Grid.Column="0">
-                            <TextBlock DockPanel.Dock="Top" Text="演示 SlideML" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
+                            <TextBlock DockPanel.Dock="Top" Text="SlideML" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
                             <TextBox Text="{Binding SelectedSlideXml, Mode=OneWay}" IsReadOnly="True" Style="{StaticResource CodeTextBoxStyle}" />
                         </DockPanel>
                         <DockPanel Grid.Column="1" Background="#F8FAFC">
                             <TextBlock DockPanel.Dock="Top" Text="渲染日志" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
-                            <TextBox Text="{Binding DemoRenderingLog, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="#F8FAFC" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Padding="14" />
+                            <TextBox Text="{Binding RenderingLog, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="#F8FAFC" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Padding="14" />
                         </DockPanel>
                     </Grid>
                 </Border>
@@ -206,7 +194,7 @@
                     <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,14">
                         <StackPanel>
                             <TextBlock Text="Copilot" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" />
-                            <TextBlock Text="基于已确认的全课件主题进行演示" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
+                            <TextBlock Text="基于已确认的全课件主题优化当前页面" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
                         </StackPanel>
                     </Border>
                     <ListBox Grid.Row="1" ItemsSource="{Binding ChatMessages}" BorderThickness="0" Background="White" Padding="10" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -248,15 +236,14 @@
                                      TextWrapping="Wrap"
                                      Style="{StaticResource InputTextBoxStyle}"
                                      Padding="10"
-                                     AutomationProperties.Name="演示消息输入框" />
+                                     AutomationProperties.Name="消息输入框" />
                             <DockPanel Grid.Row="1" Margin="0,9,0,0">
-                                <TextBlock Text="仅追加演示消息" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" VerticalAlignment="Center" />
                                 <Button DockPanel.Dock="Right"
-                                        Content="发送演示"
+                                        Content="发送"
                                         Command="{Binding SendDemoMessageCommand}"
                                         Style="{StaticResource AnalysisPrimaryButtonStyle}"
                                         Padding="14,7"
-                                        AutomationProperties.Name="发送演示消息" />
+                                        AutomationProperties.Name="发送消息" />
                             </DockPanel>
                         </Grid>
                     </Border>

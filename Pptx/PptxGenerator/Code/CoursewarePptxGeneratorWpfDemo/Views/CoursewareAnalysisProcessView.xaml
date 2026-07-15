@@ -55,7 +55,7 @@
                         Command="{Binding CancelDemoCommand}"
                         Style="{StaticResource AnalysisSecondaryButtonStyle}"
                         HorizontalAlignment="Left" />
-                <Button Content="完成演示分析"
+                <Button Content="完成分析"
                         Command="{Binding CompleteAnalysisCommand}"
                         Style="{StaticResource AnalysisPrimaryButtonStyle}"
                         HorizontalAlignment="Left"

@@ -7,7 +7,7 @@
         xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:DemoWorkspaceViewModel, IsDesignTimeCreatable=True}"
-        Title="课件智绘 - 全课件美化原型"
+        Title="课件智绘"
         Height="1000"
         Width="1720"
         MinHeight="820"
