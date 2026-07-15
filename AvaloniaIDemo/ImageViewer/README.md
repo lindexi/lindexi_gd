@@ -1,4 +1,4 @@
-# ImageViewer
+﻿# ImageViewer
 
 ImageViewer 是一个基于 Avalonia 的跨平台图片查看器示例项目，目标框架为 .NET 10。项目用于演示桌面端图片查看、缩放、旋转、目录浏览以及 Linux deb 包发布等能力。
 
@@ -127,3 +127,12 @@ dotnet publish -r linux-loongarch64 -c release --self-contained true -t:CreateDe
 - [Avalonia 官方文档](https://docs.avaloniaui.net/)
 - [Packaging.DebUOS 专门为 dotnet 应用制作 UOS 安装包 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/17995729)
 - [dotnet 解决使用本地不安全 http 的 NuGet 源 NU1803 警告或构建失败问题 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18312649)
+- [使用 PublishAotClang 轻松交叉编译 Linux Native AOT - jiulang - 博客园](https://www.cnblogs.com/kewei/p/20887495 )
+
+---
+
+## 待办
+
+- 触控优化
+  - 双指缩放
+- 修复旋转的坐标系错误  
