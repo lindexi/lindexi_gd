@@ -207,7 +207,7 @@
                         </DockPanel>
                     </Border>
                     <Border Style="{StaticResource AnalysisCardStyle}" Padding="14" Margin="0,14,0,0">
-                        <views:CoursewareThumbnailOverview />
+                        <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, RelativeSource={RelativeSource AncestorType={x:Type views:CoursewareAnalysisView}}}" />
                     </Border>
                 </StackPanel>
             </ScrollViewer>
@@ -262,11 +262,11 @@
                 </ScrollViewer.Style>
                 <StackPanel Margin="24,16,24,22">
                     <Border Style="{StaticResource AnalysisCardStyle}" Padding="14" Margin="0,0,0,14">
-                        <ScrollViewer MaxHeight="138"
+                        <ScrollViewer MaxHeight="147"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled"
                                       PanningMode="VerticalOnly">
-                            <views:CoursewareThumbnailOverview />
+                            <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, RelativeSource={RelativeSource AncestorType={x:Type views:CoursewareAnalysisView}}}" />
                         </ScrollViewer>
                     </Border>
                     <Grid>
@@ -337,7 +337,7 @@
                 </ScrollViewer.Style>
                 <StackPanel Margin="24,16,24,24">
                     <Border Style="{StaticResource AnalysisCardStyle}" Padding="12" Margin="0,0,0,16">
-                        <views:CoursewareThumbnailOverview />
+                        <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, RelativeSource={RelativeSource AncestorType={x:Type views:CoursewareAnalysisView}}}" />
                     </Border>
                     <Border Style="{StaticResource AnalysisCardStyle}" MaxWidth="820" HorizontalAlignment="Center" Padding="26">
                         <StackPanel>
@@ -372,7 +372,7 @@
                 </ScrollViewer.Style>
                 <StackPanel Margin="24,16,24,24">
                     <Border Style="{StaticResource AnalysisCardStyle}" Padding="12" Margin="0,0,0,16">
-                        <views:CoursewareThumbnailOverview />
+                        <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, RelativeSource={RelativeSource AncestorType={x:Type views:CoursewareAnalysisView}}}" />
                     </Border>
                     <Border Style="{StaticResource AnalysisCardStyle}" MaxWidth="900" HorizontalAlignment="Center" Padding="26">
                         <StackPanel>

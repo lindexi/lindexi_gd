@@ -5,25 +5,40 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views.Converters"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
+             xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
              d:DesignHeight="145"
              d:DesignWidth="1500"
              mc:Ignorable="d">
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type viewModels:CoursewareThumbnailItemViewModel}">
-            <Border Width="180"
-                    Height="101.25"
-                    Margin="0,0,8,8"
-                    Background="White"
-                    BorderBrush="#C8D8DE"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    ClipToBounds="True"
-                    ToolTip="{Binding WarningSummary}"
-                    AutomationProperties.Name="{Binding AccessibleName}">
+            <Grid Margin="{StaticResource CoursewareThumbnailItemMargin}"
+                  ToolTip="{Binding WarningSummary}"
+                  AutomationProperties.Name="{Binding AccessibleName}">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Width" Value="{StaticResource CoursewareThumbnailFrameWidth}" />
+                        <Setter Property="Height" Value="{StaticResource CoursewareWidescreenThumbnailFrameHeight}" />
+                        <Setter Property="Background" Value="{StaticResource CoursewareThumbnailLetterboxBrush}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ThumbnailAspectRatio, RelativeSource={RelativeSource AncestorType={x:Type views:CoursewareThumbnailOverview}}}"
+                                         Value="{x:Static views:ThumbnailAspectRatio.Standard}">
+                                <Setter Property="Height" Value="{StaticResource CoursewareStandardThumbnailFrameHeight}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Grid.OpacityMask>
+                    <VisualBrush Stretch="Fill">
+                        <VisualBrush.Visual>
+                            <Border Background="White"
+                                    CornerRadius="{StaticResource CoursewareThumbnailCornerRadius}" />
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Grid.OpacityMask>
                 <Grid>
-                    <Grid Background="#F1F5F9">
+                    <Grid Background="{StaticResource CoursewareThumbnailLetterboxBrush}">
                         <Image Source="{Binding ScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
-                               Stretch="UniformToFill" />
+                               Stretch="Uniform" />
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <StackPanel.Style>
                                 <Style TargetType="StackPanel">
@@ -61,7 +76,11 @@
                         <TextBlock Text="!" Foreground="#C57900" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                 </Grid>
-            </Border>
+                <Border BorderBrush="{StaticResource CoursewareThumbnailBorderBrush}"
+                        BorderThickness="{StaticResource CoursewareThumbnailBorderThickness}"
+                        CornerRadius="{StaticResource CoursewareThumbnailCornerRadius}"
+                        IsHitTestVisible="False" />
+            </Grid>
         </DataTemplate>
     </UserControl.Resources>
 
