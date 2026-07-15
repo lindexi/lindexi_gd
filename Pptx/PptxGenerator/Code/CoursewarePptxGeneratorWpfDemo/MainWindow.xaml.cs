@@ -33,7 +33,7 @@ public partial class MainWindow : Window
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(DemoWorkspaceViewModel.CurrentPage))
+        if (e.PropertyName == nameof(CoursewareWorkspaceViewModel.CurrentPage))
         {
             MoveFocusToCurrentPage();
         }
@@ -43,7 +43,7 @@ public partial class MainWindow : Window
     {
         Dispatcher.BeginInvoke(() =>
         {
-            if (DataContext is not DemoWorkspaceViewModel viewModel)
+            if (DataContext is not CoursewareWorkspaceViewModel viewModel)
             {
                 return;
             }

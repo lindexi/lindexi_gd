@@ -51,7 +51,7 @@ public sealed class MainWindowCompositionTests
     private static async Task PrototypeNavigationShouldPreserveWorkspaceStateAsync()
     {
         EnsureApplicationResources();
-        var viewModel = new DemoWorkspaceViewModel();
+        var viewModel = new CoursewareWorkspaceViewModel();
         var window = new MainWindow
         {
             DataContext = viewModel,

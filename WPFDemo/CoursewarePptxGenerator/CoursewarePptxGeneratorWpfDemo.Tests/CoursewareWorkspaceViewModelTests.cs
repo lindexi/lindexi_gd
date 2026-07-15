@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CoursewarePptxGeneratorWpfDemo.Tests;
 
 [TestClass]
-public sealed class DemoWorkspaceViewModelTests
+public sealed class CoursewareWorkspaceViewModelTests
 {
     [TestMethod(DisplayName = "打开课件文件夹后应加载真实缩略图而不启动页面会话")]
     [Timeout(60_000)]
@@ -66,9 +66,9 @@ public sealed class DemoWorkspaceViewModelTests
         Assert.IsEmpty(viewModel.CoursewareThumbnails);
     }
 
-    private static DemoWorkspaceViewModel CreateViewModel()
+    private static CoursewareWorkspaceViewModel CreateViewModel()
     {
-        return new DemoWorkspaceViewModel(
+        return new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
             new ImmediateViewModelDispatcher());
     }

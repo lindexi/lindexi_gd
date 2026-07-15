@@ -67,7 +67,7 @@ public partial class CoursewareAnalysisView : UserControl
     private void OpenCoursewareButton_OnClick(object sender, System.Windows.RoutedEventArgs e)
     {
         var folderPath = _coursewareFolderPicker.PickCoursewareFolder();
-        if (!string.IsNullOrWhiteSpace(folderPath) && DataContext is DemoWorkspaceViewModel viewModel)
+        if (!string.IsNullOrWhiteSpace(folderPath) && DataContext is CoursewareWorkspaceViewModel viewModel)
         {
             viewModel.OpenDemoCommand.Execute(folderPath);
         }
@@ -112,7 +112,7 @@ public partial class CoursewareAnalysisView : UserControl
 
     private void AttachCoursewareThumbnails()
     {
-        var coursewareThumbnails = (DataContext as DemoWorkspaceViewModel)?.CoursewareThumbnails;
+        var coursewareThumbnails = (DataContext as CoursewareWorkspaceViewModel)?.CoursewareThumbnails;
         if (ReferenceEquals(_coursewareThumbnails, coursewareThumbnails))
         {
             return;

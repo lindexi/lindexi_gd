@@ -6,7 +6,7 @@
         xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
         xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance Type=viewModels:DemoWorkspaceViewModel, IsDesignTimeCreatable=True}"
+        d:DataContext="{d:DesignInstance Type=viewModels:CoursewareWorkspaceViewModel, IsDesignTimeCreatable=True}"
         Title="课件智绘"
         Height="1000"
         Width="1720"

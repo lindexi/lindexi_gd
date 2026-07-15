@@ -14,7 +14,7 @@ public partial class App : Application
 
         var mainWindow = new MainWindow
         {
-            DataContext = new DemoWorkspaceViewModel(),
+            DataContext = new CoursewareWorkspaceViewModel(),
         };
         mainWindow.Show();
     }

@@ -22,7 +22,7 @@ public sealed class CoursewareThumbnailOverviewTests
         {
             EnsureApplicationResources();
             var screenshotPath = CreateScreenshot(1024, 768);
-            var viewModel = new DemoWorkspaceViewModel();
+            var viewModel = new CoursewareWorkspaceViewModel();
             var view = new CoursewareAnalysisView
             {
                 DataContext = viewModel,
@@ -57,7 +57,7 @@ public sealed class CoursewareThumbnailOverviewTests
             EnsureApplicationResources();
             var validStandardScreenshotPath = CreateScreenshot(1024, 768);
             var missingScreenshotPath = Path.Join(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}.png");
-            var viewModel = new DemoWorkspaceViewModel();
+            var viewModel = new CoursewareWorkspaceViewModel();
             var view = new CoursewareAnalysisView
             {
                 DataContext = viewModel,

@@ -61,9 +61,9 @@ public enum CoursewareAnalysisStage
 }
 
 /// <summary>
-/// Provides presentation-only data and navigation for the courseware analysis prototype.
+/// Provides data and navigation for the courseware workspace.
 /// </summary>
-public sealed class DemoWorkspaceViewModel : ObservableObject
+public sealed class CoursewareWorkspaceViewModel : ObservableObject
 {
     private const int DemoSlideCount = 60;
     private readonly CoursewareFolderLoader _coursewareFolderLoader;
@@ -80,19 +80,19 @@ public sealed class DemoWorkspaceViewModel : ObservableObject
     private CancellationTokenSource? _loadCancellationTokenSource;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DemoWorkspaceViewModel" /> class.
+    /// Initializes a new instance of the <see cref="CoursewareWorkspaceViewModel" /> class.
     /// </summary>
-    public DemoWorkspaceViewModel()
+    public CoursewareWorkspaceViewModel()
         : this(new CoursewareFolderLoader())
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DemoWorkspaceViewModel" /> class.
+    /// Initializes a new instance of the <see cref="CoursewareWorkspaceViewModel" /> class.
     /// </summary>
     /// <param name="coursewareFolderLoader">The courseware export folder loader.</param>
     /// <param name="dispatcher">The dispatcher used for ViewModel state updates.</param>
-    public DemoWorkspaceViewModel(
+    public CoursewareWorkspaceViewModel(
         CoursewareFolderLoader coursewareFolderLoader,
         IViewModelDispatcher? dispatcher = null)
     {

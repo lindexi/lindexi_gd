@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
-             d:DataContext="{d:DesignInstance Type=viewModels:DemoWorkspaceViewModel, IsDesignTimeCreatable=True}"
+             d:DataContext="{d:DesignInstance Type=viewModels:CoursewareWorkspaceViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="1000"
              d:DesignWidth="1720"
              Background="{StaticResource LightBackgroundBrush}"
