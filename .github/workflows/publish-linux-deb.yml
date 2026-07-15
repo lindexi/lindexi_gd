@@ -38,8 +38,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
-          $project = 'AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj'
-          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE 'AvaloniaIDemo/ImageViewer/artifacts/${{ matrix.platform }}'
+          $project = 'App/Code/ImageViewer.csproj'
+          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE 'App/artifacts/${{ matrix.platform }}'
           $packageId = (& dotnet msbuild $project -getProperty:AppName | Select-Object -Last 1).Trim().ToLowerInvariant()
           $version = (& dotnet msbuild $project -getProperty:Version -p:Configuration=Release | Select-Object -Last 1).Trim()
           $buildDate = [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')
@@ -57,7 +57,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
-          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj `
+          dotnet publish App/Code/ImageViewer.csproj `
             --configuration Release `
             --runtime "${{ matrix.runtime }}" `
             --self-contained true `
@@ -113,9 +113,9 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
-          $project = 'AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj'
+          $project = 'App/Code/ImageViewer.csproj'
           $platform = 'linux-loongarch64-${{ matrix.abi }}'
-          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE "AvaloniaIDemo/ImageViewer/artifacts/$platform"
+          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE "App/artifacts/$platform"
           $packageId = (& dotnet msbuild $project -getProperty:AppName | Select-Object -Last 1).Trim().ToLowerInvariant()
           $version = (& dotnet msbuild $project -getProperty:Version -p:Configuration=Release | Select-Object -Last 1).Trim()
           $buildDate = [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')
@@ -133,7 +133,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
-          dotnet publish AvaloniaIDemo/ImageViewer/Code/ImageViewer.csproj `
+          dotnet publish App/Code/ImageViewer.csproj `
             --configuration Release `
             --runtime linux-loongarch64 `
             --self-contained true `
