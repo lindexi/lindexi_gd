@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private const double WheelZoomStep = 1.10;
 
     private readonly ImageDirectoryService _directoryService = new();
+    private readonly ImageLayoutService _layoutService = new();
     private readonly ImageZoomService _zoomService = new();
     private readonly ImageViewerState _state = new();
     private readonly DispatcherTimer _zoomIndicatorTimer;
@@ -434,15 +435,19 @@ public partial class MainWindow : Window
             return;
         }
 
-        var imageSize = GetUnrotatedImageSize(_state.Zoom);
-        var rotatedBounds = GetRotatedBoundsSize(_state.Zoom);
-        ViewerImage.Width = imageSize.Width;
-        ViewerImage.Height = imageSize.Height;
-        ViewerImage.RenderTransform = new RotateTransform(_state.RotationDegrees);
-
         ConstrainPan();
-        Canvas.SetLeft(ViewerImage, (ViewerHost.Bounds.Width - imageSize.Width) / 2 + _state.PanOffset.X + (rotatedBounds.Width - imageSize.Width) / 2);
-        Canvas.SetTop(ViewerImage, (ViewerHost.Bounds.Height - imageSize.Height) / 2 + _state.PanOffset.Y + (rotatedBounds.Height - imageSize.Height) / 2);
+        var layout = _layoutService.CalculateLayout(
+            ViewerHost.Bounds.Size,
+            GetImagePixelSize(),
+            _state.Zoom,
+            _state.RotationDegrees,
+            _state.PanOffset);
+
+        ViewerImage.Width = layout.ImageSize.Width;
+        ViewerImage.Height = layout.ImageSize.Height;
+        ViewerImage.RenderTransform = new RotateTransform(_state.RotationDegrees);
+        Canvas.SetLeft(ViewerImage, layout.CanvasPosition.X);
+        Canvas.SetTop(ViewerImage, layout.CanvasPosition.Y);
     }
 
     private double CalculateFitZoom()

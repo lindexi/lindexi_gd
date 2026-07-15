@@ -135,4 +135,3 @@ dotnet publish -r linux-loongarch64 -c release --self-contained true -t:CreateDe
 
 - 触控优化
   - 双指缩放
-- 修复旋转的坐标系错误  
