@@ -28,12 +28,17 @@
                     </Style>
                 </Grid.Style>
                 <Grid.OpacityMask>
-                    <VisualBrush Stretch="Fill">
-                        <VisualBrush.Visual>
-                            <Border Background="White"
-                                    CornerRadius="{StaticResource CoursewareThumbnailCornerRadius}" />
-                        </VisualBrush.Visual>
-                    </VisualBrush>
+                    <DrawingBrush Stretch="Fill"
+                                  Viewbox="0,0,1,1"
+                                  ViewboxUnits="Absolute">
+                        <DrawingBrush.Drawing>
+                            <GeometryDrawing Brush="White">
+                                <GeometryDrawing.Geometry>
+                                    <RectangleGeometry Rect="0,0,1,1" RadiusX="0.035" RadiusY="0.06" />
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
                 </Grid.OpacityMask>
                 <Grid>
                     <Grid Background="{StaticResource CoursewareThumbnailLetterboxBrush}">
