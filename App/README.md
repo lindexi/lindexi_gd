@@ -134,4 +134,4 @@ dotnet publish -r linux-loongarch64 -c release --self-contained true -t:CreateDe
 ## 待办
 
 - 触控优化
-  - 双指缩放
+	- [x] 双指缩放和平移

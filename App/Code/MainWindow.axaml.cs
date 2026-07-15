@@ -27,7 +27,10 @@ public partial class MainWindow : Window
     private readonly ImageViewerState _state = new();
     private readonly DispatcherTimer _zoomIndicatorTimer;
     private readonly DispatcherTimer _fullscreenChromeTimer;
+    private readonly Dictionary<IPointer, Point> _touchPoints = new();
     private Bitmap? _currentBitmap;
+    private Point? _lastTouchCenter;
+    private double _lastTouchDistance;
     private bool _isFullscreen;
 
     public MainWindow()
@@ -74,7 +77,7 @@ public partial class MainWindow : Window
         ViewerHost.PointerPressed += ViewerHostPointerPressed;
         ViewerHost.PointerMoved += ViewerHostPointerMoved;
         ViewerHost.PointerReleased += ViewerHostPointerReleased;
-        ViewerHost.PointerCaptureLost += (_, _) => EndPan();
+        ViewerHost.PointerCaptureLost += ViewerHostPointerCaptureLost;
         ViewerHost.DoubleTapped += (_, _) => ToggleActualSize();
         ViewerHost.PointerMoved += (_, _) => ShowChromeIfFullscreen();
         KeyDown += MainWindowKeyDown;
@@ -558,7 +561,25 @@ public partial class MainWindow : Window
 
     private void ViewerHostPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (_state.CurrentInfo is null || !CanPan())
+        if (_state.CurrentInfo is null)
+        {
+            return;
+        }
+
+        if (e.Pointer.Type == PointerType.Touch)
+        {
+            if (_touchPoints.Count < 2)
+            {
+                _touchPoints[e.Pointer] = e.GetPosition(ViewerHost);
+                e.Pointer.Capture(ViewerHost);
+                UpdateTouchGestureBaseline();
+                e.Handled = true;
+            }
+
+            return;
+        }
+
+        if (!CanPan())
         {
             return;
         }
@@ -577,6 +598,14 @@ public partial class MainWindow : Window
 
     private void ViewerHostPointerMoved(object? sender, PointerEventArgs e)
     {
+        if (e.Pointer.Type == PointerType.Touch && _touchPoints.ContainsKey(e.Pointer))
+        {
+            _touchPoints[e.Pointer] = e.GetPosition(ViewerHost);
+            ApplyTouchGesture();
+            e.Handled = true;
+            return;
+        }
+
         if (_state.LastPanPoint is null)
         {
             return;
@@ -599,8 +628,85 @@ public partial class MainWindow : Window
 
     private void ViewerHostPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        if (e.Pointer.Type == PointerType.Touch)
+        {
+            EndTouch(e.Pointer);
+            e.Pointer.Capture(null);
+            e.Handled = true;
+            return;
+        }
+
         EndPan();
         e.Pointer.Capture(null);
+    }
+
+    private void ViewerHostPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        if (e.Pointer.Type == PointerType.Touch)
+        {
+            EndTouch(e.Pointer);
+            return;
+        }
+
+        EndPan();
+    }
+
+    private void ApplyTouchGesture()
+    {
+        if (_touchPoints.Count != 2 || _lastTouchCenter is null || _lastTouchDistance <= 0)
+        {
+            UpdateTouchGestureBaseline();
+            return;
+        }
+
+        var (center, distance) = GetTouchGestureGeometry();
+        if (distance <= 0)
+        {
+            return;
+        }
+
+        var previousCenter = _lastTouchCenter.Value;
+        ZoomAt(distance / _lastTouchDistance, previousCenter);
+        _state.PanOffset = new Point(
+            _state.PanOffset.X + center.X - previousCenter.X,
+            _state.PanOffset.Y + center.Y - previousCenter.Y);
+        ApplyImageLayout();
+
+        _lastTouchCenter = center;
+        _lastTouchDistance = distance;
+    }
+
+    private void UpdateTouchGestureBaseline()
+    {
+        if (_touchPoints.Count == 2)
+        {
+            (_lastTouchCenter, _lastTouchDistance) = GetTouchGestureGeometry();
+        }
+        else
+        {
+            _lastTouchCenter = null;
+            _lastTouchDistance = 0;
+        }
+    }
+
+    private (Point Center, double Distance) GetTouchGestureGeometry()
+    {
+        using var enumerator = _touchPoints.Values.GetEnumerator();
+        enumerator.MoveNext();
+        var first = enumerator.Current;
+        enumerator.MoveNext();
+        var second = enumerator.Current;
+        var delta = second - first;
+
+        return (
+            new Point((first.X + second.X) / 2, (first.Y + second.Y) / 2),
+            Math.Sqrt(delta.X * delta.X + delta.Y * delta.Y));
+    }
+
+    private void EndTouch(IPointer pointer)
+    {
+        _touchPoints.Remove(pointer);
+        UpdateTouchGestureBaseline();
     }
 
     private void EndPan()
