@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -14,6 +15,9 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using ImageViewer.Models;
 using ImageViewer.Services;
+using ImageFormatException = SixLabors.ImageSharp.ImageFormatException;
+using InvalidImageContentException = SixLabors.ImageSharp.InvalidImageContentException;
+using UnknownImageFormatException = SixLabors.ImageSharp.UnknownImageFormatException;
 
 namespace ImageViewer;
 
@@ -22,12 +26,14 @@ public partial class MainWindow : Window
     private const double WheelZoomStep = 1.10;
 
     private readonly ImageDirectoryService _directoryService = new();
+    private readonly ImageFilePreparationService _imageFilePreparationService = new();
     private readonly ImageLayoutService _layoutService = new();
     private readonly ImageZoomService _zoomService = new();
     private readonly ImageViewerState _state = new();
     private readonly DispatcherTimer _zoomIndicatorTimer;
     private readonly DispatcherTimer _fullscreenChromeTimer;
     private readonly Dictionary<IPointer, Point> _touchPoints = new();
+    private CancellationTokenSource? _imageLoadCancellationTokenSource;
     private Bitmap? _currentBitmap;
     private Point? _lastTouchCenter;
     private double _lastTouchDistance;
@@ -54,8 +60,8 @@ public partial class MainWindow : Window
         _fullscreenChromeTimer.Tick += (_, _) => HideChromeIfFullscreen();
 
         OpenButton.Click += OpenButtonClick;
-        PreviousButton.Click += (_, _) => NavigateBy(-1);
-        NextButton.Click += (_, _) => NavigateBy(1);
+        PreviousButton.Click += async (_, _) => await NavigateByAsync(-1);
+        NextButton.Click += async (_, _) => await NavigateByAsync(1);
         FitButton.Click += (_, _) => SetFitMode();
         ActualSizeButton.Click += (_, _) => SetActualSizeMode();
         RotateLeftButton.Click += (_, _) => RotateBy(-90);
@@ -81,6 +87,7 @@ public partial class MainWindow : Window
         ViewerHost.DoubleTapped += (_, _) => ToggleActualSize();
         ViewerHost.PointerMoved += (_, _) => ShowChromeIfFullscreen();
         KeyDown += MainWindowKeyDown;
+        Closed += MainWindowClosed;
 
         UpdateEmptyState();
 
@@ -116,7 +123,7 @@ public partial class MainWindow : Window
             [
                 new FilePickerFileType("图片文件")
                 {
-                    Patterns = ["*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif", "*.webp", "*.tif", "*.tiff"]
+                    Patterns = _directoryService.SupportedFilePatterns
                 },
                 FilePickerFileTypes.All
             ]
@@ -129,13 +136,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private Task LoadFromPathAsync(string filePath)
-    {
-        LoadFromPath(filePath);
-        return Task.CompletedTask;
-    }
-
-    private void LoadFromPath(string filePath)
+    private async Task LoadFromPathAsync(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
         {
@@ -155,10 +156,10 @@ public partial class MainWindow : Window
             .FirstOrDefault(item => string.Equals(Path.GetFullPath(item.path), Path.GetFullPath(filePath), StringComparison.OrdinalIgnoreCase))
             ?.index ?? 0;
 
-        LoadImageAt(currentIndex);
+        await LoadImageAtAsync(currentIndex);
     }
 
-    private void LoadImageAt(int index)
+    private async Task LoadImageAtAsync(int index)
     {
         if (index < 0 || index >= _state.ImagePaths.Count)
         {
@@ -166,38 +167,105 @@ public partial class MainWindow : Window
         }
 
         var filePath = _state.ImagePaths[index];
+        var cancellationTokenSource = new CancellationTokenSource();
+        var previousCancellationTokenSource = _imageLoadCancellationTokenSource;
+        _imageLoadCancellationTokenSource = cancellationTokenSource;
+        previousCancellationTokenSource?.Cancel();
+        ShowLoading(filePath);
+
         try
         {
-            var bitmap = new Bitmap(filePath);
+            var loadedImage = await Task.Run(
+                () => LoadImageAsync(filePath, cancellationTokenSource.Token),
+                cancellationTokenSource.Token);
+
+            if (!ReferenceEquals(_imageLoadCancellationTokenSource, cancellationTokenSource)
+                || cancellationTokenSource.IsCancellationRequested)
+            {
+                loadedImage.Bitmap.Dispose();
+                return;
+            }
+
             _currentBitmap?.Dispose();
-            _currentBitmap = bitmap;
+            _currentBitmap = loadedImage.Bitmap;
             _state.CurrentIndex = index;
+            _state.CurrentInfo = loadedImage.FileInfo;
 
-            var fileInfo = new FileInfo(filePath);
-            _state.CurrentInfo = new ImageFileInfo(
-                filePath,
-                Path.GetFileName(filePath),
-                fileInfo.Length,
-                bitmap.PixelSize.Width,
-                bitmap.PixelSize.Height,
-                _directoryService.GetFormatName(filePath));
-
-            ViewerImage.Source = bitmap;
+            ViewerImage.Source = loadedImage.Bitmap;
             ViewerImage.IsVisible = true;
             EmptyStatePanel.IsVisible = false;
             ErrorStatePanel.IsVisible = false;
+            LoadingStatePanel.IsVisible = false;
             _state.RotationDegrees = 0;
             _state.PanOffset = default;
             SetFitMode(showIndicator: false);
             UpdateTitleAndStatus();
         }
+        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+        {
+        }
         catch (NotSupportedException)
         {
-            ShowError("不支持的图片格式", isCorrupt: false);
+            ShowLoadError(cancellationTokenSource, "不支持的图片格式", isCorrupt: false);
+        }
+        catch (UnknownImageFormatException)
+        {
+            ShowLoadError(cancellationTokenSource, "不支持的图片格式", isCorrupt: false);
+        }
+        catch (Exception ex) when (ex is ImageFormatException or InvalidImageContentException)
+        {
+            ShowLoadError(cancellationTokenSource, "文件可能已损坏", isCorrupt: true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
         {
-            ShowError("文件可能已损坏", isCorrupt: true);
+            ShowLoadError(cancellationTokenSource, "文件可能已损坏", isCorrupt: true);
+        }
+        finally
+        {
+            if (ReferenceEquals(_imageLoadCancellationTokenSource, cancellationTokenSource))
+            {
+                _imageLoadCancellationTokenSource = null;
+                UpdateNavigationButtons();
+            }
+
+            cancellationTokenSource.Dispose();
+        }
+    }
+
+    private async Task<LoadedImage> LoadImageAsync(string filePath, CancellationToken cancellationToken)
+    {
+        using var preparedImageFile = await _imageFilePreparationService
+            .PrepareAsync(filePath, cancellationToken)
+            .ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var bitmap = new Bitmap(preparedImageFile.FilePath);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var fileInfo = new FileInfo(filePath);
+            return new LoadedImage(
+                bitmap,
+                new ImageFileInfo(
+                    filePath,
+                    Path.GetFileName(filePath),
+                    fileInfo.Length,
+                    bitmap.PixelSize.Width,
+                    bitmap.PixelSize.Height,
+                    _directoryService.GetFormatName(filePath)));
+        }
+        catch
+        {
+            bitmap.Dispose();
+            throw;
+        }
+    }
+
+    private void ShowLoadError(CancellationTokenSource cancellationTokenSource, string message, bool isCorrupt)
+    {
+        if (ReferenceEquals(_imageLoadCancellationTokenSource, cancellationTokenSource))
+        {
+            ShowError(message, isCorrupt);
         }
     }
 
@@ -208,6 +276,7 @@ public partial class MainWindow : Window
         ViewerImage.IsVisible = false;
         EmptyStatePanel.IsVisible = true;
         ErrorStatePanel.IsVisible = false;
+        LoadingStatePanel.IsVisible = false;
         StatusText.Text = "未打开图片";
         ZoomStatusText.Text = string.Empty;
         ToolbarFileNameText.Text = string.Empty;
@@ -220,12 +289,26 @@ public partial class MainWindow : Window
         ViewerImage.IsVisible = false;
         EmptyStatePanel.IsVisible = false;
         ErrorStatePanel.IsVisible = true;
+        LoadingStatePanel.IsVisible = false;
         ErrorMessageText.Text = message;
         ErrorIconText.Foreground = SolidColorBrush.Parse(isCorrupt ? "#D4A040" : "#E05555");
         StatusText.Text = message;
         ZoomStatusText.Text = string.Empty;
         ToolbarFileNameText.Text = string.Empty;
         Title = "无法打开此文件 - 图片查看器";
+        UpdateNavigationButtons();
+    }
+
+    private void ShowLoading(string filePath)
+    {
+        ViewerImage.IsVisible = false;
+        EmptyStatePanel.IsVisible = false;
+        ErrorStatePanel.IsVisible = false;
+        LoadingStatePanel.IsVisible = true;
+        LoadingFileNameText.Text = Path.GetFileName(filePath);
+        StatusText.Text = "正在后台加载图片…";
+        ZoomStatusText.Text = string.Empty;
+        ToolbarFileNameText.Text = Path.GetFileName(filePath);
         UpdateNavigationButtons();
     }
 
@@ -270,7 +353,8 @@ public partial class MainWindow : Window
 
     private void UpdateNavigationButtons()
     {
-        var hasImage = _state.CurrentInfo is not null;
+        var isLoading = _imageLoadCancellationTokenSource is not null;
+        var hasImage = _state.CurrentInfo is not null && !isLoading;
         PreviousButton.IsEnabled = hasImage && _state.CurrentIndex > 0;
         NextButton.IsEnabled = hasImage && _state.CurrentIndex >= 0 && _state.CurrentIndex < _state.ImagePaths.Count - 1;
         FitButton.IsEnabled = hasImage;
@@ -280,7 +364,7 @@ public partial class MainWindow : Window
         FullscreenButton.IsEnabled = true;
     }
 
-    private void NavigateBy(int direction)
+    private async Task NavigateByAsync(int direction)
     {
         if (_state.CurrentInfo is null)
         {
@@ -293,10 +377,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        LoadImageAt(nextIndex);
+        await LoadImageAtAsync(nextIndex);
     }
 
-    private void NavigateToBoundary(bool first)
+    private async Task NavigateToBoundaryAsync(bool first)
     {
         if (_state.CurrentInfo is null || _state.ImagePaths.Count == 0)
         {
@@ -306,7 +390,7 @@ public partial class MainWindow : Window
         var targetIndex = first ? 0 : _state.ImagePaths.Count - 1;
         if (targetIndex != _state.CurrentIndex)
         {
-            LoadImageAt(targetIndex);
+            await LoadImageAtAsync(targetIndex);
         }
     }
 
@@ -490,7 +574,7 @@ public partial class MainWindow : Window
         _zoomIndicatorTimer.Start();
     }
 
-    private void ViewerHostPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    private async void ViewerHostPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         if (_state.CurrentInfo is null)
         {
@@ -505,7 +589,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        NavigateBy(e.Delta.Y < 0 ? 1 : -1);
+        await NavigateByAsync(e.Delta.Y < 0 ? 1 : -1);
         e.Handled = true;
     }
 
@@ -748,7 +832,7 @@ public partial class MainWindow : Window
             Math.Clamp(_state.PanOffset.Y, -maxY, maxY));
     }
 
-    private void MainWindowKeyDown(object? sender, KeyEventArgs e)
+    private async void MainWindowKeyDown(object? sender, KeyEventArgs e)
     {
         if ((e.KeyModifiers & KeyModifiers.Control) == KeyModifiers.Control)
         {
@@ -817,22 +901,29 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 break;
             case Key.Left:
-                NavigateBy(-1);
+                await NavigateByAsync(-1);
                 e.Handled = true;
                 break;
             case Key.Right:
-                NavigateBy(1);
+                await NavigateByAsync(1);
                 e.Handled = true;
                 break;
             case Key.Home:
-                NavigateToBoundary(first: true);
+                await NavigateToBoundaryAsync(first: true);
                 e.Handled = true;
                 break;
             case Key.End:
-                NavigateToBoundary(first: false);
+                await NavigateToBoundaryAsync(first: false);
                 e.Handled = true;
                 break;
         }
+    }
+
+    private void MainWindowClosed(object? sender, EventArgs e)
+    {
+        _imageLoadCancellationTokenSource?.Cancel();
+        _currentBitmap?.Dispose();
+        _currentBitmap = null;
     }
 
     private static string FormatFileSize(long bytes)
@@ -848,4 +939,6 @@ public partial class MainWindow : Window
 
         return unit == 0 ? $"{bytes} B" : $"{size:0.#} {units[unit]}";
     }
+
+    private sealed record LoadedImage(Bitmap Bitmap, ImageFileInfo FileInfo);
 }

@@ -41,5 +41,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="PublishAotClang" Version="1.0.5" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 </Project>

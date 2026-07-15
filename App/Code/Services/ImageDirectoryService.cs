@@ -2,24 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SixLabors.ImageSharp;
 
 namespace ImageViewer.Services;
 
 internal sealed class ImageDirectoryService
 {
-    private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".bmp",
-        ".gif",
-        ".webp",
-        ".tif",
-        ".tiff"
-    };
+    private static readonly HashSet<string> SupportedExtensions = Configuration.Default.ImageFormatsManager.ImageFormats
+        .SelectMany(format => format.FileExtensions)
+        .Select(extension => $".{extension}")
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     private readonly NaturalFileComparer _fileComparer = new();
+
+    public IReadOnlyList<string> SupportedFilePatterns { get; } = SupportedExtensions
+        .Select(extension => $"*{extension}")
+        .OrderBy(pattern => pattern, StringComparer.OrdinalIgnoreCase)
+        .ToArray();
 
     public IReadOnlyList<string> GetImagesInSameDirectory(string filePath)
     {
@@ -72,6 +71,7 @@ internal sealed class ImageDirectoryService
             ".gif" => "GIF",
             ".webp" => "WebP",
             ".tif" or ".tiff" => "TIFF",
+            var extension when SupportedExtensions.Contains(extension) => extension.TrimStart('.').ToUpperInvariant(),
             _ => "未知格式"
         };
     }

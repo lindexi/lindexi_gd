@@ -148,6 +148,27 @@
                            HorizontalAlignment="Center" />
             </StackPanel>
 
+            <StackPanel x:Name="LoadingStatePanel"
+                        IsVisible="False"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="14">
+                <ProgressBar Width="220"
+                             Height="4"
+                             IsIndeterminate="True" />
+                <TextBlock Text="正在后台加载图片…"
+                           Foreground="{StaticResource PrimaryTextBrush}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center" />
+                <TextBlock x:Name="LoadingFileNameText"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           FontSize="12"
+                           MaxWidth="360"
+                           TextTrimming="CharacterEllipsis"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
             <Border x:Name="ZoomIndicator"
                     IsVisible="False"
                     HorizontalAlignment="Right"
