@@ -86,6 +86,9 @@ public partial class MainWindow : Window
         ViewerHost.PointerCaptureLost += ViewerHostPointerCaptureLost;
         ViewerHost.DoubleTapped += (_, _) => ToggleActualSize();
         ViewerHost.PointerMoved += (_, _) => ShowChromeIfFullscreen();
+        DragDrop.SetAllowDrop(this, true);
+        DragDrop.AddDragOverHandler(this, MainWindowDragOver);
+        DragDrop.AddDropHandler(this, MainWindowDrop);
         KeyDown += MainWindowKeyDown;
         Closed += MainWindowClosed;
 
@@ -157,6 +160,24 @@ public partial class MainWindow : Window
             ?.index ?? 0;
 
         await LoadImageAtAsync(currentIndex);
+    }
+
+    private void MainWindowDragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = DragDropEffects.Copy;
+        e.Handled = true;
+    }
+
+    private async void MainWindowDrop(object? sender, DragEventArgs e)
+    {
+        e.Handled = true;
+
+        var files = e.DataTransfer.TryGetFiles();
+        var filePath = files?.FirstOrDefault()?.Path.LocalPath;
+        if (!string.IsNullOrWhiteSpace(filePath))
+        {
+            await LoadFromPathAsync(filePath);
+        }
     }
 
     private async Task LoadImageAtAsync(int index)

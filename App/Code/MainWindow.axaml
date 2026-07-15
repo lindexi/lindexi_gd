@@ -103,7 +103,7 @@
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center" />
                 </Border>
-                <TextBlock Text="请打开一张图片"
+                <TextBlock Text="请打开或拖入一张图片"
                            Foreground="{StaticResource PrimaryTextBrush}"
                            FontSize="22"
                            FontWeight="SemiBold"
