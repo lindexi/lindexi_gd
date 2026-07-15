@@ -1,10 +1,22 @@
 using Avalonia;
+using System;
 
 namespace ImageViewer.Services;
 
 internal sealed class ImageLayoutService
 {
     private readonly ImageZoomService _zoomService = new();
+
+    public Point RotatePanOffset(Point panOffset, int degrees)
+    {
+        var radians = degrees * Math.PI / 180;
+        var cosine = Math.Cos(radians);
+        var sine = Math.Sin(radians);
+
+        return new Point(
+            panOffset.X * cosine - panOffset.Y * sine,
+            panOffset.X * sine + panOffset.Y * cosine);
+    }
 
     public ImageLayout CalculateLayout(
         Size viewportSize,

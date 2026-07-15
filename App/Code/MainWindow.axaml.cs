@@ -365,6 +365,7 @@ public partial class MainWindow : Window
         }
         else
         {
+            _state.PanOffset = _layoutService.RotatePanOffset(_state.PanOffset, degrees);
             ApplyImageLayout();
         }
 
@@ -445,6 +446,7 @@ public partial class MainWindow : Window
 
         ViewerImage.Width = layout.ImageSize.Width;
         ViewerImage.Height = layout.ImageSize.Height;
+        ViewerImage.RenderTransformOrigin = RelativePoint.Center;
         ViewerImage.RenderTransform = new RotateTransform(_state.RotationDegrees);
         Canvas.SetLeft(ViewerImage, layout.CanvasPosition.X);
         Canvas.SetTop(ViewerImage, layout.CanvasPosition.Y);

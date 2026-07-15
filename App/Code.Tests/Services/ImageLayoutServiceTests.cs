@@ -9,6 +9,37 @@ public sealed class ImageLayoutServiceTests
     private readonly ImageLayoutService _service = new();
 
     [Theory]
+    [InlineData(90, 40, 75)]
+    [InlineData(-90, -40, -75)]
+    [InlineData(180, -75, 40)]
+    public void WhenPannedImageIsRotatedThenPanOffsetRotatesAroundViewportCenter(
+        int degrees,
+        double expectedX,
+        double expectedY)
+    {
+        var result = _service.RotatePanOffset(new Point(75, -40), degrees);
+
+        Assert.Equal(expectedX, result.X, 10);
+        Assert.Equal(expectedY, result.Y, 10);
+    }
+
+    [Theory]
+    [InlineData(90)]
+    [InlineData(-90)]
+    public void WhenPannedImageIsRotatedThenViewportCenterKeepsSameImagePoint(int degrees)
+    {
+        var panOffset = new Point(75, -40);
+        var imagePointAtViewportCenter = _service.RotatePanOffset(
+            new Point(-panOffset.X, -panOffset.Y),
+            -30);
+        var rotatedPanOffset = _service.RotatePanOffset(panOffset, degrees);
+        var rotatedImagePoint = _service.RotatePanOffset(imagePointAtViewportCenter, 30 + degrees);
+
+        Assert.Equal(0, rotatedPanOffset.X + rotatedImagePoint.X, 10);
+        Assert.Equal(0, rotatedPanOffset.Y + rotatedImagePoint.Y, 10);
+    }
+
+    [Theory]
     [InlineData(0, 400, 200)]
     [InlineData(90, 200, 400)]
     [InlineData(180, 400, 200)]

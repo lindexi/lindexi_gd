@@ -14,7 +14,7 @@ public sealed class RotatedImageLayoutTests
     private readonly ImageLayoutService _layoutService = new();
 
     [AvaloniaFact]
-    public void WhenMainWindowIsLoadedThenImageRotationOriginIsItsCenter()
+    public void WhenMainWindowIsLoadedThenImageUsesAvaloniaDefaultCenterOrigin()
     {
         var window = new MainWindow();
         var image = window.FindControl<Image>("ViewerImage");

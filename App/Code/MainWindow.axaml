@@ -83,8 +83,7 @@
                     ClipToBounds="True">
                 <Image x:Name="ViewerImage"
                        Stretch="Fill"
-                       IsVisible="False"
-                       RenderTransformOrigin="50%,50%" />
+                       IsVisible="False" />
             </Canvas>
 
             <StackPanel x:Name="EmptyStatePanel"
