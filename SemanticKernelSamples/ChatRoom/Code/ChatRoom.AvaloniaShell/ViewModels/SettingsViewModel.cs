@@ -287,12 +287,20 @@ public sealed class SettingsViewModel : ViewModelBase
     /// <summary>
     /// 使用指定的服务创建设置 ViewModel。
     /// </summary>
-    public SettingsViewModel(SettingsService settingsService, ChatRoomService chatRoomService)
+    /// <param name="settingsService">设置持久化服务。</param>
+    /// <param name="chatRoomService">聊天室服务。</param>
+    /// <param name="appSettings">已异步加载的应用设置。</param>
+    public SettingsViewModel(
+        SettingsService settingsService,
+        ChatRoomService chatRoomService,
+        AppSettings appSettings)
     {
+        ArgumentNullException.ThrowIfNull(settingsService);
+        ArgumentNullException.ThrowIfNull(chatRoomService);
+        ArgumentNullException.ThrowIfNull(appSettings);
         _settingsService = settingsService;
         _chatRoomService = chatRoomService;
-        // 通过 Task.Run 避开 Avalonia UI SynchronizationContext，防止 sync-over-async 死锁
-        _appSettings = Task.Run(() => settingsService.LoadAsync()).GetAwaiter().GetResult();
+        _appSettings = appSettings;
 
         _persistencePath = _appSettings.PersistencePath;
         _defaultMaxRounds = _appSettings.DefaultMaxRounds;

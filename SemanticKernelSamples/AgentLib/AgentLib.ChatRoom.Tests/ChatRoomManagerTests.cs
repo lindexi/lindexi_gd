@@ -1,9 +1,16 @@
 ﻿using System.ComponentModel;
 using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
+using AgentLib.ChatRoom.Services;
+using AgentLib.ChatRoom.Tools;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
+using AgentLib.Model;
+
+using Microsoft.Extensions.AI;
+
 using Moq;
 
 namespace AgentLib.ChatRoom.Tests;
@@ -137,7 +144,7 @@ public sealed class ChatRoomManagerTests
 
         Assert.IsTrue(manager.CanStartLoop);
 
-        manager.RemoveRole(role.Definition.RoleId);
+        await manager.RemoveRoleAsync(role.Definition.RoleId);
 
         Assert.IsFalse(manager.CanStartLoop);
     }
@@ -756,11 +763,11 @@ public sealed class ChatRoomManagerTests
     {
         var manager = new ChatRoomManager();
 
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => manager.AddRoleAsync(null!));
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => manager.AddRoleAsync((ChatRoomRole)null!));
     }
 
     [TestMethod]
-    public async Task RemoveRole_ExistingRole_RemovesFromRoles()
+    public async Task RemoveRoleAsync_ExistingRole_RemovesFromRoles()
     {
         var manager = new ChatRoomManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
@@ -773,25 +780,25 @@ public sealed class ChatRoomManagerTests
 
         Assert.HasCount(1, manager.Roles);
 
-        manager.RemoveRole("role-1");
+        await manager.RemoveRoleAsync("role-1");
 
         Assert.HasCount(0, manager.Roles);
     }
 
     [TestMethod]
-    public async Task RemoveRole_NonExistentRole_DoesNotThrow()
+    public async Task RemoveRoleAsync_NonExistentRole_DoesNotThrow()
     {
         var manager = new ChatRoomManager();
 
-        manager.RemoveRole("non-existent");
+        await manager.RemoveRoleAsync("non-existent");
     }
 
     [TestMethod]
-    public void RemoveRole_EmptyRoleId_ThrowsArgumentException()
+    public async Task RemoveRoleAsync_EmptyRoleId_ThrowsArgumentException()
     {
         var manager = new ChatRoomManager();
 
-        Assert.ThrowsExactly<ArgumentException>(() => manager.RemoveRole(""));
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() => manager.RemoveRoleAsync(""));
     }
 
     [TestMethod]
@@ -1066,6 +1073,290 @@ public sealed class ChatRoomManagerTests
         {
             CleanupTempFolder(tempFolder);
         }
+    }
+
+    [TestMethod(DisplayName = "设置工作区时应向全部角色同步路径")]
+    public async Task SetWorkspacePathAsyncShouldPublishPathToAllRoles()
+    {
+        string workspacePath = CreateWorkspacePath();
+        var firstTool = new TestChatRoomRoleTool();
+        var secondTool = new TestChatRoomRoleTool();
+        await using ChatRoomManager manager = await CreateManagerWithRolesAsync(
+            CreateRole("role-1", "角色一", firstTool),
+            CreateRole("role-2", "角色二", secondTool));
+
+        await manager.SetWorkspacePathAsync(workspacePath);
+
+        Assert.AreEqual(workspacePath, firstTool.WorkspacePath);
+        Assert.AreEqual(workspacePath, secondTool.WorkspacePath);
+    }
+
+    [TestMethod(DisplayName = "角色更新工作区失败时应保留管理器原路径")]
+    public async Task SetWorkspacePathAsyncFailedRoleUpdateShouldKeepCurrentWorkspace()
+    {
+        string oldPath = CreateWorkspacePath();
+        string newPath = CreateWorkspacePath();
+        var roleTool = new TestChatRoomRoleTool { FailurePath = newPath };
+        await using ChatRoomManager manager = await CreateManagerWithRolesAsync(
+            CreateRole("role-1", "角色一", roleTool));
+        await manager.SetWorkspacePathAsync(oldPath);
+
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => manager.SetWorkspacePathAsync(newPath));
+
+        Assert.AreEqual(Path.GetFullPath(oldPath), manager.WorkspacePath);
+        Assert.AreEqual(Path.GetFullPath(oldPath), roleTool.WorkspacePath);
+        Assert.AreEqual(4, roleTool.SetWorkspacePathCount);
+    }
+
+    [TestMethod(DisplayName = "后续角色更新失败时应回滚先前已更新角色")]
+    public async Task SetWorkspacePathAsyncShouldRollbackPreviouslyUpdatedRoles()
+    {
+        string oldPath = CreateWorkspacePath();
+        string newPath = CreateWorkspacePath();
+        var firstTool = new TestChatRoomRoleTool();
+        var secondTool = new TestChatRoomRoleTool { FailurePath = newPath };
+        await using ChatRoomManager manager = await CreateManagerWithRolesAsync(
+            CreateRole("role-1", "角色一", firstTool),
+            CreateRole("role-2", "角色二", secondTool));
+        await manager.SetWorkspacePathAsync(oldPath);
+
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => manager.SetWorkspacePathAsync(newPath));
+
+        Assert.AreEqual(Path.GetFullPath(oldPath), firstTool.WorkspacePath);
+        Assert.AreEqual(Path.GetFullPath(oldPath), secondTool.WorkspacePath);
+    }
+
+    [TestMethod(DisplayName = "设置相同工作区路径时不应重复通知角色")]
+    public async Task SetWorkspacePathAsyncSamePathShouldNotNotifyRoleAgain()
+    {
+        string workspacePath = CreateWorkspacePath();
+        var roleTool = new TestChatRoomRoleTool();
+        await using ChatRoomManager manager = await CreateManagerWithRolesAsync(
+            CreateRole("role-1", "角色一", roleTool));
+        await manager.SetWorkspacePathAsync(workspacePath);
+
+        await manager.SetWorkspacePathAsync(Path.GetFullPath(workspacePath));
+
+        Assert.AreEqual(2, roleTool.SetWorkspacePathCount);
+    }
+
+    [TestMethod(DisplayName = "关闭聊天室应释放角色工具且保持幂等")]
+    public async Task CloseAsyncShouldDisposeRoleToolOnce()
+    {
+        string workspacePath = CreateWorkspacePath();
+        var roleTool = new TestChatRoomRoleTool();
+        ChatRoomManager manager = await CreateManagerWithRolesAsync(
+            CreateRole("role-1", "角色一", roleTool));
+        await manager.SetWorkspacePathAsync(workspacePath);
+
+        await manager.CloseAsync();
+        await manager.CloseAsync();
+
+        Assert.AreEqual(1, roleTool.DisposeCount);
+        Assert.IsNull(manager.WorkspacePath);
+        Assert.IsEmpty(manager.Roles);
+    }
+
+    [TestMethod(DisplayName = "工作区切换未完成时关闭聊天室不应等待且切换不得重新提交路径")]
+    [Timeout(5000)]
+    public async Task CloseAsyncShouldNotWaitForPendingWorkspaceChange()
+    {
+        string workspacePath = CreateWorkspacePath();
+        var workspaceChangeStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseWorkspaceChange = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var roleTool = new TestChatRoomRoleTool
+        {
+            BlockingPath = workspacePath,
+            WorkspaceChangeStarted = workspaceChangeStarted,
+            ReleaseWorkspaceChange = releaseWorkspaceChange,
+        };
+        ChatRoomManager manager = await CreateManagerWithRolesAsync(
+            CreateRole("role-1", "角色一", roleTool));
+        Task workspaceChangeTask = manager.SetWorkspacePathAsync(workspacePath);
+        await workspaceChangeStarted.Task.WaitAsync(TimeSpan.FromSeconds(1));
+
+        await manager.CloseAsync().WaitAsync(TimeSpan.FromSeconds(1));
+
+        Assert.AreEqual(1, roleTool.DisposeCount);
+        releaseWorkspaceChange.SetResult();
+        await Assert.ThrowsExactlyAsync<ObjectDisposedException>(async () =>
+            await workspaceChangeTask.WaitAsync(TimeSpan.FromSeconds(1)));
+        Assert.IsNull(manager.WorkspacePath);
+    }
+
+    [TestMethod(DisplayName = "模型流不响应取消时关闭聊天室应在超时后返回并延迟释放角色")]
+    [Timeout(10000)]
+    public async Task CloseAsyncShouldReturnWhenModelStreamIgnoresCancellation()
+    {
+        var streamStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseStream = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var roleTool = new TestChatRoomRoleTool();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "角色一",
+            ModelProviderId = "test-provider",
+        };
+        var role = new ChatRoomRole(definition, null, [roleTool]);
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, _) => StreamBlockingResponseIgnoringCancellationAsync(
+                streamStarted,
+                releaseStream),
+        };
+        var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, client);
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("开始", "human", "用户");
+        Task runningTask = manager.StartAutoLoopAsync();
+        await streamStarted.Task.WaitAsync(TimeSpan.FromSeconds(1));
+
+        await manager.CloseAsync().WaitAsync(TimeSpan.FromSeconds(3));
+
+        Assert.AreEqual(0, roleTool.DisposeCount);
+        releaseStream.SetResult();
+        await runningTask.WaitAsync(TimeSpan.FromSeconds(1));
+        await WaitUntilAsync(() => roleTool.DisposeCount == 1, TimeSpan.FromSeconds(1));
+    }
+
+    [TestMethod(DisplayName = "聊天室关闭后应拒绝新增角色切换工作区加载和发言")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ClosedManager_ShouldRejectNewOperations()
+    {
+        var manager = await CreateManagerWithRolesAsync();
+        await manager.CloseAsync();
+
+        await Assert.ThrowsExactlyAsync<ObjectDisposedException>(() => manager.AddRoleAsync(
+            CreateRole("role-1", "角色一")));
+        await Assert.ThrowsExactlyAsync<ObjectDisposedException>(() => manager.SetWorkspacePathAsync(null));
+        await Assert.ThrowsExactlyAsync<ObjectDisposedException>(() => manager.LoadAsync("session"));
+        await Assert.ThrowsExactlyAsync<ObjectDisposedException>(() => manager.HumanInterjectAsync("消息", "human", "用户"));
+        await Assert.ThrowsExactlyAsync<ObjectDisposedException>(() => manager.StartAutoLoopAsync());
+    }
+
+    private static async Task<ChatRoomManager> CreateManagerWithRolesAsync(params ChatRoomRole[] roles)
+    {
+        var manager = new ChatRoomManager(new ChatRoomSession(), new ChatRoomRoleFactory());
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
+        foreach (ChatRoomRole role in roles)
+        {
+            await manager.AddRoleAsync(role);
+        }
+        return manager;
+    }
+
+    private static ChatRoomRole CreateRole(
+        string roleId,
+        string roleName,
+        IChatRoomRoleTool? roleTool = null)
+    {
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = roleId,
+            RoleName = roleName,
+            IsHuman = true,
+        };
+
+        return roleTool is null
+            ? new ChatRoomRole(definition)
+            : new ChatRoomRole(definition, null, [roleTool]);
+    }
+
+    private static string CreateWorkspacePath()
+    {
+        string path = Path.Join(Path.GetTempPath(), "ChatRoomManagerTests", Path.GetRandomFileName());
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static void RegisterFakeModel(ChatRoomManager manager, FakeChatClient client)
+    {
+        var model = new FakeLanguageModel(client)
+        {
+            ModelDefinition = new ModelDefinition
+            {
+                Provider = "test-provider",
+                ModelName = "Fake",
+                ModelId = "Fake",
+            },
+        };
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = new FakeLanguageModelProvider([model]),
+        });
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> StreamBlockingResponseIgnoringCancellationAsync(
+        TaskCompletionSource streamStarted,
+        TaskCompletionSource releaseStream)
+    {
+        streamStarted.SetResult();
+        await releaseStream.Task;
+        yield return new ChatResponseUpdate
+        {
+            Role = ChatRole.Assistant,
+            Contents = [new TextContent("完成")],
+        };
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(timeout);
+        while (!condition())
+        {
+            await Task.Delay(10, cancellationTokenSource.Token);
+        }
+    }
+
+    private sealed class TestChatRoomRoleTool : IChatRoomRoleTool, IChatRoomWorkspaceAwareTool
+    {
+        public IReadOnlyList<AITool> AITools { get; } = [];
+
+        public string? FailurePath { get; init; }
+
+        public string? BlockingPath { get; init; }
+
+        public TaskCompletionSource? WorkspaceChangeStarted { get; init; }
+
+        public TaskCompletionSource? ReleaseWorkspaceChange { get; init; }
+
+        public string? WorkspacePath { get; private set; }
+
+        public int SetWorkspacePathCount { get; private set; }
+
+        public int DisposeCount { get; private set; }
+
+        public async Task SetWorkspacePathAsync(string? workspacePath, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            SetWorkspacePathCount++;
+            if (FailurePath is not null && PathsEqual(workspacePath, FailurePath))
+            {
+                throw new InvalidOperationException("更新角色工作区失败");
+            }
+
+            if (BlockingPath is not null && PathsEqual(workspacePath, BlockingPath))
+            {
+                WorkspaceChangeStarted?.TrySetResult();
+                if (ReleaseWorkspaceChange is not null)
+                {
+                    await ReleaseWorkspaceChange.Task;
+                }
+            }
+
+            WorkspacePath = workspacePath;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            DisposeCount++;
+            return ValueTask.CompletedTask;
+        }
+
+        private static bool PathsEqual(string? left, string? right) => string.Equals(
+            left,
+            right,
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
     #endregion

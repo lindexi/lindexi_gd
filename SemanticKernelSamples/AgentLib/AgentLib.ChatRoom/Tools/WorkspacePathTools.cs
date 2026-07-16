@@ -3,7 +3,6 @@ using AgentLib.Tools;
 using Microsoft.Extensions.AI;
 
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,7 +26,7 @@ public static class WorkspacePathTools
         ArgumentNullException.ThrowIfNull(chatRoomManager);
 
         AITool tool = AIFunctionFactory.Create(
-            (string path) => SetWorkspacePath(chatRoomManager, path),
+            (string path, CancellationToken cancellationToken) => SetWorkspacePathAsync(chatRoomManager, path, cancellationToken),
             name: "set_workspace_path",
             description: "设置工作区路径，启用文件系统工具（读写文件、搜索文件等）。调用后需用户审批同意才会生效。" +
                 "参数：path（必填，工作区根目录的绝对路径）。");
@@ -40,28 +39,24 @@ public static class WorkspacePathTools
         })];
     }
 
-    private static Task<string> SetWorkspacePath(ChatRoomManager chatRoomManager, string path)
+    private static async Task<string> SetWorkspacePathAsync(
+        ChatRoomManager chatRoomManager,
+        string path,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            return Task.FromResult("错误：工作区路径不能为空。");
+            return "错误：工作区路径不能为空。";
         }
-
-        string trimmedPath = path.Trim();
 
         try
         {
-            if (!Directory.Exists(trimmedPath))
-            {
-                return Task.FromResult($"错误：目录不存在: {trimmedPath}");
-            }
-
-            chatRoomManager.SetWorkspacePath(trimmedPath);
-            return Task.FromResult($"✅ 工作区路径已设置为: {trimmedPath}");
+            await chatRoomManager.SetWorkspacePathAsync(path, cancellationToken).ConfigureAwait(false);
+            return $"工作区路径已设置为: {chatRoomManager.WorkspacePath}";
         }
         catch (Exception ex)
         {
-            return Task.FromResult($"设置工作区路径失败: {ex.Message}");
+            return $"设置工作区路径失败: {ex.Message}";
         }
     }
 }

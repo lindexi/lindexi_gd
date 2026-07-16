@@ -55,7 +55,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         return resultObj.ToString() ?? string.Empty;
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 使用已注册提供商时新角色应获得模型")]
     public async Task CreateCharacter_WithRegisteredProviders_NewRoleHasModels()
     {
         var manager = new ChatRoomManager();
@@ -86,7 +86,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.HasCount(1, newRole.EndpointManager.GetSupportedModels());
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 输入有效时应添加角色")]
     public async Task CreateCharacter_ValidInputs_RoleAddedToRoles()
     {
         var manager = new ChatRoomManager();
@@ -118,7 +118,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, manager.Roles[0].Definition.ParticipationMode);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 新角色默认仅在被提及时参与")]
     public async Task CreateCharacter_NewRoleDefaultsToMentionOnly()
     {
         var manager = new ChatRoomManager();
@@ -145,7 +145,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, manager.Roles[0].Definition.ParticipationMode);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 角色名为空时应返回错误")]
     public async Task CreateCharacter_WithEmptyRoleName_ReturnsError()
     {
         var manager = new ChatRoomManager();
@@ -168,7 +168,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.HasCount(0, manager.Roles);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 人设为空时应返回错误")]
     public async Task CreateCharacter_WithEmptySystemPrompt_ReturnsError()
     {
         var manager = new ChatRoomManager();
@@ -191,7 +191,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.HasCount(0, manager.Roles);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "list_characters 有角色时应返回格式化表格")]
     public async Task ListCharacters_WithRoles_ReturnsFormattedTable()
     {
         var manager = new ChatRoomManager();
@@ -213,7 +213,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.Contains("architect", result);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "list_characters 无角色时应返回空列表提示")]
     public async Task ListCharacters_WithNoRoles_ReturnsEmptyMessage()
     {
         var manager = new ChatRoomManager();
@@ -227,7 +227,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.Contains("没有角色", result);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "edit_character 应更新已有角色属性")]
     public async Task EditCharacter_ExistingRole_UpdatesProperties()
     {
         var manager = new ChatRoomManager();
@@ -259,7 +259,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.AreEqual("新人设", manager.Roles[0].Definition.SystemPrompt);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "edit_character 角色不存在时应返回错误")]
     public async Task EditCharacter_NonExistentRole_ReturnsError()
     {
         var manager = new ChatRoomManager();
@@ -282,7 +282,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.Contains("❌", result);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 仅指定提供商时应保留提供商标识")]
     public async Task CreateCharacter_WithOnlyModelProviderId_PreservesProviderId()
     {
         var manager = new ChatRoomManager();
@@ -310,7 +310,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.IsNull(manager.Roles[0].Definition.ModelId);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 同时指定模型和提供商时应保留两者")]
     public async Task CreateCharacter_WithBothModelIdAndProviderId_PreservesBoth()
     {
         var manager = new ChatRoomManager();
@@ -338,7 +338,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.AreEqual("test-model", manager.Roles[0].Definition.ModelId);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 空白模型配置应视为空值")]
     public async Task CreateCharacter_WithWhitespaceModelProviderId_TreatedAsNull()
     {
         var manager = new ChatRoomManager();
@@ -366,7 +366,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.IsNull(manager.Roles[0].Definition.ModelId);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 无模型提供商时应失败且不保留角色")]
     public async Task CreateCharacter_WithoutProviders_ReturnsErrorAndRoleNotAdded()
     {
         var manager = new ChatRoomManager();
@@ -389,7 +389,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.HasCount(0, manager.Roles);
     }
 
-    [TestMethod]
+    [TestMethod(DisplayName = "create_character 已注册提供商时应通过模型可用性校验")]
     public async Task CreateCharacter_WithRegisteredProviders_NewRolePassesEnsureModelAvailable()
     {
         var manager = new ChatRoomManager();
@@ -474,4 +474,5 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.Contains("无法被 @ 正确解析", result);
         Assert.AreEqual("原角色名", manager.Roles[0].Definition.RoleName);
     }
+
 }

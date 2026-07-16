@@ -18,8 +18,8 @@
 
         <Border Grid.Row="1" Classes="Card" Padding="16" Margin="16,0" IsVisible="{Binding IsPromotePanelVisible}">
             <StackPanel Spacing="12">
-                <TextBlock Text="提升角色到大厅" Classes="Title" />
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <TextBlock Text="{Binding PanelTitle}" Classes="Title" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" IsVisible="{Binding !IsEditingTemplate}">
                     <StackPanel Grid.Column="0" Spacing="4">
                         <TextBlock Text="来源角色" Classes="Subtitle" />
                         <ComboBox ItemsSource="{Binding SessionRoles}" SelectedValue="{Binding PromoteSelectedRoleId}" SelectedValueBinding="{Binding RoleId}" DisplayMemberBinding="{Binding RoleName}" />
@@ -41,10 +41,14 @@
                     <TextBlock Text="标签（逗号分隔）" Classes="Subtitle" />
                     <TextBox Classes="Rounded" Text="{Binding PromoteTags}" PlaceholderText="如：架构, 系统设计" />
                 </StackPanel>
+                <StackPanel Spacing="4" IsVisible="{Binding IsEditingTemplate}">
+                    <TextBlock Text="系统提示词" Classes="Subtitle" />
+                    <TextBox Classes="Rounded" Text="{Binding TemplateSystemPrompt}" AcceptsReturn="True" MinHeight="120" TextWrapping="Wrap" />
+                </StackPanel>
                 <TextBlock Text="{Binding PromoteErrorMessage}" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" IsVisible="{Binding HasPromoteErrorMessage}" />
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                     <Button Classes="Flat" Content="取消" Command="{Binding CancelPromoteCommand}" />
-                    <Button Classes="Primary" Content="提升到大厅" Command="{Binding ConfirmPromoteCommand}" IsEnabled="{Binding !IsBusy}" />
+                    <Button Classes="Primary" Content="{Binding ConfirmPanelText}" Command="{Binding ConfirmPromoteCommand}" IsEnabled="{Binding !IsBusy}" />
                 </StackPanel>
             </StackPanel>
         </Border>

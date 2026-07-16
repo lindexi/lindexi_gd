@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -61,8 +62,17 @@ internal sealed class RoslynLspClient : IAsyncDisposable
             StandardErrorEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
         };
 
-        Process process = Process.Start(startInfo)
-            ?? throw new InvalidOperationException($"无法启动 {command}。");
+        Process process;
+        try
+        {
+            process = StartProcess(startInfo);
+        }
+        catch (Win32Exception exception) when (exception.NativeErrorCode == 0x00000002)
+        {
+            startInfo.FileName = FindInstalledLanguageServer(exception);
+            process = StartProcess(startInfo);
+        }
+
         RoslynLspClient client = new(process);
 
         try
@@ -416,6 +426,89 @@ internal sealed class RoslynLspClient : IAsyncDisposable
         {
             await Task.Delay(50, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private static Process StartProcess(ProcessStartInfo startInfo)
+    {
+        return Process.Start(startInfo)
+            ?? throw new InvalidOperationException($"无法启动 {startInfo.FileName}。");
+    }
+
+    private static string FindInstalledLanguageServer(Win32Exception startException)
+    {
+        string? userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+        if (string.IsNullOrWhiteSpace(userProfile))
+        {
+            throw new FileNotFoundException("无法从 USERPROFILE 环境变量定位 Roslyn Language Server。", startException);
+        }
+
+        string packageRoot = Path.Join(
+            userProfile,
+            ".dotnet",
+            "tools",
+            ".store",
+            "roslyn-language-server");
+        if (!Directory.Exists(packageRoot))
+        {
+            throw new FileNotFoundException($"未找到 Roslyn Language Server 工具目录：{packageRoot}", startException);
+        }
+
+        IEnumerable<string> versionDirectories = Directory
+            .EnumerateDirectories(packageRoot)
+            .OrderByDescending(
+                static directory => Path.GetFileName(directory)!,
+                Comparer<string>.Create(ComparePackageVersions));
+        foreach (string versionDirectory in versionDirectories)
+        {
+            string? executablePath = Directory
+                .EnumerateFiles(versionDirectory, "Microsoft.CodeAnalysis.LanguageServer.exe", SearchOption.AllDirectories)
+                .FirstOrDefault();
+            if (executablePath is not null)
+            {
+                return executablePath;
+            }
+        }
+
+        throw new FileNotFoundException($"在 Roslyn Language Server 工具目录中未找到可执行文件：{packageRoot}", startException);
+    }
+
+    private static int ComparePackageVersions(string? left, string? right)
+    {
+        if (ReferenceEquals(left, right))
+        {
+            return 0;
+        }
+
+        if (left is null)
+        {
+            return -1;
+        }
+
+        if (right is null)
+        {
+            return 1;
+        }
+
+        string[] leftParts = left.Split('-', 2);
+        string[] rightParts = right.Split('-', 2);
+        if (Version.TryParse(leftParts[0], out Version? leftVersion)
+            && Version.TryParse(rightParts[0], out Version? rightVersion))
+        {
+            int versionComparison = leftVersion.CompareTo(rightVersion);
+            if (versionComparison != 0)
+            {
+                return versionComparison;
+            }
+
+            bool leftIsRelease = leftParts.Length == 1;
+            bool rightIsRelease = rightParts.Length == 1;
+            if (leftIsRelease != rightIsRelease)
+            {
+                return leftIsRelease ? 1 : -1;
+            }
+        }
+
+        return StringComparer.OrdinalIgnoreCase.Compare(left, right);
     }
 
     private static void ThrowIfNullOrWhiteSpace(string value, string parameterName)

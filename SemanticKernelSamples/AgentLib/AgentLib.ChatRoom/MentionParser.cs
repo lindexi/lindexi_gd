@@ -87,20 +87,13 @@ internal static class MentionParser
             throw new ArgumentException("角色名不能为空或空白字符。", nameof(roleName));
         }
 
-        // 构造一个临时角色用于 ParseMentions 的 RoleName → RoleId 映射
-        var tempRole = new ChatRoomRole(new ChatRoomRoleDefinition
+        Match match = MentionRegex.Match($"@{roleName} ");
+        if (!match.Success)
         {
-            RoleId = "validation-test",
-            RoleName = roleName,
-        });
+            return false;
+        }
 
-        // 构造模拟消息：@角色名 后跟空格（最宽松的 @ 格式）
-        string testMessage = $"@{roleName} ";
-
-        // 用 ParseMentions 尝试解析
-        IReadOnlyList<string> result = ParseMentions(testMessage, [tempRole]);
-
-        // 如果解析结果包含临时角色的 RoleId，说明角色名能被正确提取和匹配
-        return result.Count > 0 && result[0] == "validation-test";
+        string parsedName = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+        return string.Equals(parsedName, roleName, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -1,4 +1,5 @@
 using AgentLib.ChatRoom.Model;
+using AgentLib.ChatRoom.Services;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
@@ -18,23 +19,36 @@ namespace AgentLib.ChatRoom;
 /// 聊天室核心管理器（导演）。负责编排多角色的发言顺序、管理共享对话历史、
 /// 处理人类插话和持久化。
 /// </summary>
-public sealed partial class ChatRoomManager : NotifyBase
+public sealed partial class ChatRoomManager : NotifyBase, IAsyncDisposable
 {
     private bool _isRunning;
     private ChatRoomRole? _currentSpeaker;
     private readonly ChatRoomAutoLoopRunner _autoLoopRunner;
+    private readonly IChatRoomRoleFactory _roleFactory;
+    private readonly SemaphoreSlim _workspaceChangeLock = new(1, 1);
     private IReadOnlyDictionary<string, ILanguageModelProvider>? _languageModelProviders;
     private string? _workspacePath;
     private Guid? _persistenceSessionId;
     private DateTimeOffset? _persistenceCreatedAt;
+    private readonly object _closeSync = new();
+    private Task? _closeTask;
+    private int _isClosingOrClosed;
 
     /// <summary>
     /// 使用指定的会话创建聊天室管理器。
     /// </summary>
     /// <param name="session">聊天室会话。</param>
     public ChatRoomManager(ChatRoomSession session)
+        : this(session, new ChatRoomRoleFactory(session?.MainThreadDispatcher))
+    {
+    }
+
+    internal ChatRoomManager(
+        ChatRoomSession session,
+        IChatRoomRoleFactory roleFactory)
     {
         Session = session ?? throw new ArgumentNullException(nameof(session));
+        _roleFactory = roleFactory ?? throw new ArgumentNullException(nameof(roleFactory));
         _autoLoopRunner = new ChatRoomAutoLoopRunner(this);
     }
 
@@ -68,7 +82,7 @@ public sealed partial class ChatRoomManager : NotifyBase
     public string? DefaultPrimaryModelId { get; set; }
 
     /// <summary>
-    /// 当前工作区路径。设置后传播到所有角色的文件系统工具。
+    /// 当前工作区路径。此属性是管理器及全部角色工作区状态的唯一权威来源。
     /// </summary>
     public string? WorkspacePath => _workspacePath;
 
@@ -77,15 +91,68 @@ public sealed partial class ChatRoomManager : NotifyBase
     private DateTimeOffset CurrentPersistenceCreatedAt => _persistenceCreatedAt ?? Session.CreatedAt;
 
     /// <summary>
-    /// 设置工作区路径并传播到所有角色。新添加的角色也会自动应用此路径。
+    /// 异步设置工作区路径并向全部角色发布共享工作区会话中的授权工具。
     /// </summary>
     /// <param name="path">工作区路径。</param>
-    public void SetWorkspacePath(string? path)
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task SetWorkspacePathAsync(string? path, CancellationToken cancellationToken = default)
     {
-        _workspacePath = string.IsNullOrWhiteSpace(path) ? null : path;
-        foreach (ChatRoomRole role in Roles)
+        ThrowIfClosingOrClosed();
+        string? newPath = NormalizeWorkspacePath(path);
+        await _workspaceChangeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            role.WorkspacePath = _workspacePath;
+            ThrowIfClosingOrClosed();
+            if (PathsEqual(_workspacePath, newPath))
+            {
+                return;
+            }
+
+            string? oldPath = _workspacePath;
+            ChatRoomRole[] roles = Roles.ToArray();
+            var attemptedRoles = new List<ChatRoomRole>(roles.Length);
+            try
+            {
+                foreach (ChatRoomRole role in roles)
+                {
+                    attemptedRoles.Add(role);
+                    await role.SetWorkspacePathAsync(newPath, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception changeException)
+            {
+                List<Exception>? rollbackExceptions = null;
+                for (int i = attemptedRoles.Count - 1; i >= 0; i--)
+                {
+                    try
+                    {
+                        await attemptedRoles[i].SetWorkspacePathAsync(oldPath, CancellationToken.None).ConfigureAwait(false);
+                    }
+                    catch (Exception rollbackException)
+                    {
+                        (rollbackExceptions ??= []).Add(rollbackException);
+                    }
+                }
+
+                if (rollbackExceptions is { Count: > 0 })
+                {
+                    var exceptions = new List<Exception>(rollbackExceptions.Count + 1)
+                    {
+                        changeException,
+                    };
+                    exceptions.AddRange(rollbackExceptions);
+                    throw new AggregateException("工作区切换失败，且一个或多个角色回滚失败。", exceptions);
+                }
+
+                throw;
+            }
+
+            ThrowIfClosingOrClosed();
+            _workspacePath = newPath;
+        }
+        finally
+        {
+            _workspaceChangeLock.Release();
         }
     }
 
@@ -153,12 +220,18 @@ public sealed partial class ChatRoomManager : NotifyBase
     public event EventHandler<RoleSpeakFailedEventArgs>? OnRoleSpeakFailed;
 
     /// <summary>
+    /// 角色从聊天室移除后的通知。
+    /// </summary>
+    public event EventHandler<ChatRoomRole>? RoleRemoved;
+
+    /// <summary>
     /// 启动自动循环。自动循环按当前消息上下文调度待发言角色，并在普通角色无法继续推进时让管理者介入。
     /// 流式内容直接追加到 <see cref="ChatRoomSession.Messages"/> 集合，UI 绑定感知实时更新。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task StartAutoLoopAsync(CancellationToken cancellationToken = default)
     {
+        ThrowIfClosingOrClosed();
         await _autoLoopRunner.StartAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -173,6 +246,7 @@ public sealed partial class ChatRoomManager : NotifyBase
     public async Task<ChatRoomMessage?> StepAsync(ChatRoomRole role,
         CancellationToken cancellationToken = default)
     {
+        ThrowIfClosingOrClosed();
         return await _autoLoopRunner.StepAsync(role, cancellationToken).ConfigureAwait(false);
     }
 
@@ -186,6 +260,7 @@ public sealed partial class ChatRoomManager : NotifyBase
     public async Task HumanInterjectAsync(string content, string humanRoleId, string humanRoleName, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(content);
+        ThrowIfClosingOrClosed();
 
         var message = ChatRoomMessage.CreateHuman(content, humanRoleId, humanRoleName);
 
@@ -210,6 +285,14 @@ public sealed partial class ChatRoomManager : NotifyBase
     }
 
     /// <summary>
+    /// 停止自动循环并等待当前循环退出。
+    /// </summary>
+    public async Task StopAsync()
+    {
+        await _autoLoopRunner.StopAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 添加角色到聊天室并完成初始化（技能加载、模型注册）。
     /// 外部应通过此方法添加角色，不直接操作 <see cref="Roles"/> 集合。
     /// </summary>
@@ -218,34 +301,50 @@ public sealed partial class ChatRoomManager : NotifyBase
     public async Task AddRoleAsync(ChatRoomRole role, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(role);
-
-        // 应用工作区路径到新角色
-        role.WorkspacePath = _workspacePath;
-
-        await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
-        RegisterModelProvidersForRole(role);
-        Roles.Add(role);
-
-        await SaveAsync(cancellationToken).ConfigureAwait(false);
+        ThrowIfClosingOrClosed();
+        bool added = false;
+        await _workspaceChangeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            ThrowIfClosingOrClosed();
+            ValidateRoleCanBeAdded(role);
+            await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
+            await role.SetWorkspacePathAsync(_workspacePath, cancellationToken).ConfigureAwait(false);
+            RegisterModelProvidersForRole(role);
+            Roles.Add(role);
+            added = true;
+            await SaveAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            if (added)
+            {
+                Roles.Remove(role);
+            }
+            await role.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
+        finally
+        {
+            _workspaceChangeLock.Release();
+        }
     }
 
     /// <summary>
-    /// 从聊天室移除指定角色。
+    /// 使用管理器持有的统一角色工厂创建角色并添加到聊天室。
     /// </summary>
-    /// <param name="roleId">要移除的角色 ID。</param>
-    public void RemoveRole(string roleId)
+    /// <param name="definition">角色定义。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>已添加并完成初始化的聊天室角色。</returns>
+    public async Task<ChatRoomRole> AddRoleAsync(
+        ChatRoomRoleDefinition definition,
+        CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(roleId))
-        {
-            throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
 
-        ChatRoomRole? role = Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
-        if (role is not null)
-        {
-            Roles.Remove(role);
-            _ = SaveAsync();
-        }
+        ChatRoomRole role = _roleFactory.CreateRole(definition);
+        await AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
+        return role;
     }
 
     /// <summary>
@@ -260,11 +359,42 @@ public sealed partial class ChatRoomManager : NotifyBase
             throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
         }
 
+        ThrowIfClosingOrClosed();
+        ThrowIfClosingOrClosed();
         ChatRoomRole? role = Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
-        if (role is not null)
+        if (role is null)
         {
-            Roles.Remove(role);
+            return;
+        }
+
+        Roles.Remove(role);
+        RoleRemoved?.Invoke(this, role);
+        List<Exception>? exceptions = null;
+        try
+        {
             await SaveAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            (exceptions ??= []).Add(ex);
+        }
+
+        try
+        {
+            await role.DisposeAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            (exceptions ??= []).Add(ex);
+        }
+
+        if (exceptions is { Count: 1 })
+        {
+            throw exceptions[0];
+        }
+        if (exceptions is { Count: > 1 })
+        {
+            throw new AggregateException("移除角色后持久化或释放资源时发生错误。", exceptions);
         }
     }
 
@@ -280,6 +410,7 @@ public sealed partial class ChatRoomManager : NotifyBase
             throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
         }
 
+        ThrowIfClosingOrClosed();
         ChatRoomRole? role = Roles.FirstOrDefault(r => r.Definition.RoleId == roleId);
         if (role is null)
         {
@@ -435,80 +566,226 @@ public sealed partial class ChatRoomManager : NotifyBase
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task LoadAsync(string sessionId, CancellationToken cancellationToken = default)
     {
+        ThrowIfClosingOrClosed();
         if (Persistence is null)
         {
             return;
         }
 
-        ChatRoomSessionData? data = await Persistence.LoadConfigAsync(sessionId, cancellationToken);
+        ThrowIfClosingOrClosed();
+        ChatRoomSessionData? data = await Persistence.LoadConfigAsync(sessionId, cancellationToken).ConfigureAwait(false);
         if (data is null)
         {
             return;
         }
 
-        // 用持久化数据替换当前 Session 的状态
-        _persistenceSessionId = data.SessionId;
-        _persistenceCreatedAt = data.CreatedAt;
-        Session.Title = data.Title;
-
-        // 恢复角色。模型解析失败（如提供商配置已变更）不应阻止会话加载，
-        // 否则消息历史将无法还原。失败的角色仍会被添加到 Roles 列表，
-        // 用户可在设置中重新配置模型后再使用该角色。
-        Roles.Clear();
-        foreach (ChatRoomRoleDefinition roleDef in data.Roles)
+        await _workspaceChangeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var candidateRoles = new List<ChatRoomRole>(data.Roles.Count);
+        var candidateMessages = new List<ChatRoomMessage>(data.Messages.Count);
+        try
         {
-            var role = new ChatRoomRole(roleDef)
-                        {
-                            MainThreadDispatcher = Session.MainThreadDispatcher,
-                        };
-
-            // 应用工作区路径到恢复的角色
-            role.WorkspacePath = _workspacePath;
-
-            await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-            try
+            foreach (ChatRoomRoleDefinition roleDef in data.Roles)
             {
-                RegisterModelProvidersForRole(role);
-            }
-            catch (InvalidOperationException)
-            {
-                // 模型提供商尚未注册或角色定义的模型已不可用（如提供商配置已变更），
-                // 跳过首选模型设置但不阻止会话恢复，用户可在设置中重新配置模型后再使用该角色。
-            }
+                ChatRoomRole role = _roleFactory.CreateRole(roleDef);
+                candidateRoles.Add(role);
+                await role.InitializeAsync(cancellationToken).ConfigureAwait(false);
+                await role.SetWorkspacePathAsync(_workspacePath, cancellationToken).ConfigureAwait(false);
 
-            Roles.Add(role);
-        }
-
-        // 恢复消息。反序列化后 CopilotChatMessage 为 null（JsonIgnore），
-        // 需要从 StaticContent 重建，使 UI 绑定的 MessageItems 能正常渲染历史消息内容。
-        Session.Messages.Clear();
-        foreach (ChatRoomMessage msg in data.Messages)
-        {
-            msg.RestoreCopilotChatMessage();
-            await Session.AddMessageAsync(msg);
-        }
-
-        foreach (ChatRoomRole role in Roles)
-        {
-            JsonElement? agentSessionState = await Persistence
-                .LoadRoleAgentSessionStateAsync(CurrentPersistenceSessionId, role.Definition.RoleId, cancellationToken)
-                .ConfigureAwait(false);
-            if (agentSessionState is JsonElement serializedState)
-            {
                 try
+                {
+                    RegisterModelProvidersForRole(role);
+                }
+                catch (InvalidOperationException)
+                {
+                    // 模型配置变化不阻止恢复公开历史，后续可重新注册提供商。
+                }
+
+                JsonElement? agentSessionState = await Persistence
+                    .LoadRoleAgentSessionStateAsync(data.SessionId, role.Definition.RoleId, cancellationToken)
+                    .ConfigureAwait(false);
+                if (agentSessionState is JsonElement serializedState)
                 {
                     await role.RestoreAgentSessionStateAsync(serializedState, cancellationToken).ConfigureAwait(false);
                 }
-                catch (ArgumentException)
-                {
-                    Debug.Fail($"恢复角色「{role.Definition.RoleName}」的 AgentSession 状态失败。");
-                }
-                catch (JsonException)
-                {
-                    Debug.Fail($"恢复角色「{role.Definition.RoleName}」的 AgentSession 状态失败。");
-                }
             }
+
+            foreach (ChatRoomMessage message in data.Messages)
+            {
+                message.RestoreCopilotChatMessage();
+                candidateMessages.Add(message);
+            }
+        }
+        catch
+        {
+            await DisposeRolesBestEffortAsync(candidateRoles).ConfigureAwait(false);
+            _workspaceChangeLock.Release();
+            throw;
+        }
+
+        ChatRoomRole[] oldRoles;
+        try
+        {
+            oldRoles = Roles.ToArray();
+            _persistenceSessionId = data.SessionId;
+            _persistenceCreatedAt = data.CreatedAt;
+            Session.Title = data.Title;
+            Roles.Clear();
+            foreach (ChatRoomRole role in candidateRoles)
+            {
+                Roles.Add(role);
+            }
+
+            Session.Messages.Clear();
+            foreach (ChatRoomMessage message in candidateMessages)
+            {
+                await Session.AddMessageAsync(message).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _workspaceChangeLock.Release();
+        }
+
+        await DisposeRolesBestEffortAsync(oldRoles).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 异步关闭聊天室，停止自动循环并尽力释放全部角色。重复调用不会重复释放。
+    /// </summary>
+    /// <param name="cancellationToken">仅在进入实际释放阶段前生效的取消令牌。</param>
+    public Task CloseAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (_closeSync)
+        {
+            return _closeTask ??= CloseCoreAsync(cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        await CloseAsync().ConfigureAwait(false);
+    }
+
+    private async Task CloseCoreAsync(CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+        if (Interlocked.Exchange(ref _isClosingOrClosed, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            _autoLoopRunner.Stop();
+            bool stopped = await _autoLoopRunner.TryStopAsync().ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            ChatRoomRole[] roles = Roles.ToArray();
+            Roles.Clear();
+            CurrentSpeaker = null;
+            _workspacePath = null;
+
+            if (!stopped && _autoLoopRunner.GetRunningTask() is { } runningTask)
+            {
+                _ = DisposeRolesAfterTaskAsync(runningTask, roles);
+                return;
+            }
+
+            await DisposeRolesBestEffortAsync(roles).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            Volatile.Write(ref _isClosingOrClosed, 0);
+            lock (_closeSync)
+            {
+                _closeTask = null;
+            }
+            throw;
+        }
+    }
+
+    private static async Task DisposeRolesAfterTaskAsync(Task runningTask, IEnumerable<ChatRoomRole> roles)
+    {
+        try
+        {
+            await runningTask.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"自动循环结束时发生错误：{ex}");
+        }
+
+        try
+        {
+            await DisposeRolesBestEffortAsync(roles).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"延迟释放聊天室角色时发生错误：{ex}");
+        }
+    }
+
+    private void ValidateRoleCanBeAdded(ChatRoomRole role)
+    {
+        if (Roles.Any(existing => string.Equals(existing.Definition.RoleId, role.Definition.RoleId, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException($"角色 ID 已存在：{role.Definition.RoleId}");
+        }
+
+        if (Roles.Any(existing => string.Equals(existing.Definition.RoleName, role.Definition.RoleName, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException($"角色名称已存在：{role.Definition.RoleName}");
+        }
+    }
+
+    private static async Task DisposeRolesBestEffortAsync(IEnumerable<ChatRoomRole> roles)
+    {
+        List<Exception>? exceptions = null;
+        foreach (ChatRoomRole role in roles)
+        {
+            try
+            {
+                await role.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                (exceptions ??= []).Add(ex);
+            }
+        }
+
+        if (exceptions is { Count: > 0 })
+        {
+            throw new AggregateException("释放聊天室角色时发生错误。", exceptions);
+        }
+    }
+
+    private static string? NormalizeWorkspacePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        string normalizedPath = Path.GetFullPath(path);
+        if (!Directory.Exists(normalizedPath))
+        {
+            throw new DirectoryNotFoundException($"指定的工作区目录不存在: {normalizedPath}");
+        }
+
+        return normalizedPath;
+    }
+
+    private static bool PathsEqual(string? left, string? right) => string.Equals(
+        left,
+        right,
+        OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+
+    private void ThrowIfClosingOrClosed()
+    {
+        if (Volatile.Read(ref _isClosingOrClosed) != 0)
+        {
+            throw new ObjectDisposedException(nameof(ChatRoomManager));
         }
     }
 
@@ -520,17 +797,10 @@ public sealed partial class ChatRoomManager : NotifyBase
         // 持久化完整会话配置（含角色和消息列表）到 room.config.json
         await SaveAsync().ConfigureAwait(false);
 
-        // 持久化公开消息到文本日志（fire-and-forget，异常通过 ContinueWith 记录）
+        // 持久化公开消息到文本日志。
         if (Persistence is not null)
         {
-            _ = Persistence.SavePublicMessageAsync(CurrentPersistenceSessionId, message)
-                .ContinueWith(static t =>
-                {
-                    if (t.IsFaulted && t.Exception is not null)
-                    {
-                        Debug.Fail($"持久化公开消息失败: {t.Exception.InnerException?.Message}");
-                    }
-                }, TaskContinuationOptions.OnlyOnFaulted);
+            await Persistence.SavePublicMessageAsync(CurrentPersistenceSessionId, message).ConfigureAwait(false);
         }
     }
 

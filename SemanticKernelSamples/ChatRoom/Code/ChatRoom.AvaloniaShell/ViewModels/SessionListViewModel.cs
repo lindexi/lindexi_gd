@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -174,7 +175,6 @@ public sealed class SessionListViewModel : ViewModelBase
         OpenLobbyCommand = new SimpleCommand(() => OpenLobbyRequested?.Invoke(this, EventArgs.Empty));
 
         _chatRoomService.SessionChanged += OnSessionChanged;
-        RefreshSessions();
     }
 
     private void OnSessionChanged(object? sender, ChatRoomManager? manager)
@@ -206,12 +206,14 @@ public sealed class SessionListViewModel : ViewModelBase
     /// <summary>
     /// 刷新会话列表。
     /// </summary>
-    public void RefreshSessions()
+    /// <returns>表示异步刷新操作的任务。</returns>
+    public async Task RefreshSessionsAsync()
     {
         string? selectedSessionId = SelectedSession?.SessionId;
         Sessions.Clear();
 
-        foreach (SessionSummary summary in _sessionService.ListSessions())
+        IReadOnlyList<SessionSummary> summaries = await _sessionService.ListSessionsAsync().ConfigureAwait(true);
+        foreach (SessionSummary summary in summaries)
         {
             Sessions.Add(new SessionItemViewModel(summary));
         }

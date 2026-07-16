@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -27,7 +28,7 @@ public class ChatRoomServiceTests
     [TestInitialize]
     public void Setup()
     {
-        _tempDir = Path.Combine(Path.GetTempPath(), "ChatRoomServiceTests_" + Guid.NewGuid().ToString("N"));
+        _tempDir = Path.Join(Path.GetTempPath(), $"ChatRoomServiceTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
 
         _dispatcher = new TestMainThreadDispatcher();
@@ -58,9 +59,9 @@ public class ChatRoomServiceTests
     }
 
     [TestCleanup]
-    public void Cleanup()
+    public async Task Cleanup()
     {
-        _chatRoomService.CloseCurrentSession();
+        await _chatRoomService.CloseCurrentSessionAsync();
         if (Directory.Exists(_tempDir))
         {
             Directory.Delete(_tempDir, recursive: true);
@@ -105,6 +106,97 @@ public class ChatRoomServiceTests
         Assert.AreEqual("test-role", _chatRoomService.CurrentManager.Roles[0].Definition.RoleId);
     }
 
+    [TestMethod(DisplayName = "按定义添加角色时应使用统一角色工厂并委托管理器添加")]
+    public async Task AddRoleDefinitionShouldUseUnifiedFactoryAndManager()
+    {
+        var roleFactory = new TrackingRoleFactory();
+        await _chatRoomService.DisposeAsync();
+        _chatRoomService = new ChatRoomService(
+            _dispatcher,
+            _modelProviderService,
+            _tempDir,
+            5,
+            roleFactory);
+        await _chatRoomService.CreateNewSessionAsync();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "factory-role",
+            RoleName = "统一工厂角色",
+            IsHuman = true,
+        };
+
+        await _chatRoomService.AddRoleAsync(definition);
+
+        Assert.AreSame(definition, roleFactory.LastDefinition);
+        Assert.AreSame(roleFactory.LastRole, _chatRoomService.CurrentManager!.Roles.Single());
+    }
+
+    [TestMethod(DisplayName = "加载历史会话时应使用服务持有的同一统一角色工厂")]
+    public async Task LoadSessionShouldUseSameUnifiedRoleFactory()
+    {
+        var roleFactory = new TrackingRoleFactory();
+        await _chatRoomService.DisposeAsync();
+        _chatRoomService = new ChatRoomService(
+            _dispatcher,
+            _modelProviderService,
+            _tempDir,
+            5,
+            roleFactory);
+        ChatRoomManager manager = await _chatRoomService.CreateNewSessionAsync("编程助手会话");
+        await _chatRoomService.AddRoleAsync(new ChatRoomRoleDefinition
+        {
+            RoleId = "restored-role",
+            RoleName = "历史角色",
+            IsHuman = true,
+        });
+        await _chatRoomService.HumanInterjectAsync("保存会话", "restored-role", "历史角色");
+        await _chatRoomService.SaveAsync();
+        string sessionId = manager.Session.SessionId.ToString("N");
+        int createCountBeforeLoad = roleFactory.CreateCount;
+
+        ChatRoomManager loadedManager = await _chatRoomService.LoadSessionAsync(sessionId);
+
+        Assert.AreEqual(createCountBeforeLoad + 1, roleFactory.CreateCount);
+        Assert.AreEqual("restored-role", loadedManager.Roles.Single().Definition.RoleId);
+    }
+
+    [TestMethod(DisplayName = "关闭当前会话时应只委托管理器释放角色运行时")]
+    public async Task CloseCurrentSessionShouldDelegateCloseToManager()
+    {
+        var roleFactory = new TrackingRoleFactory();
+        await _chatRoomService.DisposeAsync();
+        _chatRoomService = new ChatRoomService(
+            _dispatcher,
+            _modelProviderService,
+            _tempDir,
+            5,
+            roleFactory);
+        await _chatRoomService.CreateNewSessionAsync();
+        ChatRoomManager manager = await _chatRoomService.CreateNewSessionAsync();
+        await _chatRoomService.AddRoleAsync(new ChatRoomRoleDefinition
+        {
+            RoleId = "runtime-role",
+            RoleName = "运行时角色",
+            IsHuman = true,
+        });
+
+        await _chatRoomService.CloseCurrentSessionAsync();
+
+        Assert.AreEqual(0, manager.Roles.Count);
+        Assert.IsNull(_chatRoomService.CurrentManager);
+    }
+
+    [TestMethod(DisplayName = "重复释放聊天室服务时应保持幂等")]
+    public async Task DisposeAsyncShouldBeIdempotent()
+    {
+        await _chatRoomService.CreateNewSessionAsync();
+
+        await _chatRoomService.DisposeAsync();
+        await _chatRoomService.DisposeAsync();
+
+        Assert.IsFalse(_chatRoomService.HasActiveSession);
+    }
+
     /// <summary>
     /// 移除角色后 Roles 集合不应包含该角色。
     /// </summary>
@@ -123,7 +215,7 @@ public class ChatRoomServiceTests
 
         Assert.AreEqual(1, _chatRoomService.CurrentManager!.Roles.Count);
 
-        _chatRoomService.RemoveRole("removable-role");
+        await _chatRoomService.RemoveRoleAsync("removable-role");
 
         Assert.AreEqual(0, _chatRoomService.CurrentManager.Roles.Count);
     }
@@ -137,7 +229,7 @@ public class ChatRoomServiceTests
         await _chatRoomService.CreateNewSessionAsync();
         Assert.IsTrue(_chatRoomService.HasActiveSession);
 
-        _chatRoomService.CloseCurrentSession();
+        await _chatRoomService.CloseCurrentSessionAsync();
 
         Assert.IsFalse(_chatRoomService.HasActiveSession);
         Assert.IsNull(_chatRoomService.CurrentManager);
@@ -189,7 +281,7 @@ public class ChatRoomServiceTests
         await _chatRoomService.CreateNewSessionAsync();
         Assert.AreEqual(1, eventCount);
 
-        _chatRoomService.CloseCurrentSession();
+        await _chatRoomService.CloseCurrentSessionAsync();
         Assert.AreEqual(2, eventCount);
     }
 
@@ -210,7 +302,7 @@ public class ChatRoomServiceTests
         await _chatRoomService.SaveAsync();
 
         var sessionService = new SessionService(new ChatRoomPersistence(_tempDir));
-        var sessions = sessionService.ListSessions();
+        IReadOnlyList<SessionSummary> sessions = await sessionService.ListSessionsAsync();
 
         Assert.IsTrue(sessions.Count >= 1);
         Assert.IsTrue(sessions.Any(s => s.Title == "持久化测试"));
@@ -234,7 +326,7 @@ public class ChatRoomServiceTests
         await _chatRoomService.SaveAsync();
 
         var sessionService = new SessionService(new ChatRoomPersistence(_tempDir));
-        var sessions = sessionService.ListSessions();
+        IReadOnlyList<SessionSummary> sessions = await sessionService.ListSessionsAsync();
 
         Assert.IsFalse(sessions.Any(s => s.Title == "空会话"));
     }
@@ -255,7 +347,7 @@ public class ChatRoomServiceTests
         });
         await _chatRoomService.HumanInterjectAsync("有内容", "role-1", "角色1");
         await _chatRoomService.SaveAsync();
-        _chatRoomService.CloseCurrentSession();
+        await _chatRoomService.CloseCurrentSessionAsync();
 
         // 手动在持久化目录创建一个空消息的配置文件
         var emptyData = new ChatRoomSessionData
@@ -270,7 +362,7 @@ public class ChatRoomServiceTests
         await persistence.SaveConfigAsync(emptyData);
 
         var sessionService = new SessionService(persistence);
-        var sessions = sessionService.ListSessions();
+        IReadOnlyList<SessionSummary> sessions = await sessionService.ListSessionsAsync();
 
         Assert.IsTrue(sessions.Any(s => s.Title == "有效会话"));
         Assert.IsFalse(sessions.Any(s => s.Title == "空消息会话"));
@@ -291,18 +383,18 @@ public class ChatRoomServiceTests
         });
         await _chatRoomService.HumanInterjectAsync("内容", "role-1", "角色1");
         await _chatRoomService.SaveAsync();
-        _chatRoomService.CloseCurrentSession();
+        await _chatRoomService.CloseCurrentSessionAsync();
 
         var persistence = new ChatRoomPersistence(_tempDir);
         var sessionService = new SessionService(persistence);
 
-        var sessionsBefore = sessionService.ListSessions();
+        IReadOnlyList<SessionSummary> sessionsBefore = await sessionService.ListSessionsAsync();
         Assert.IsTrue(sessionsBefore.Any(s => s.Title == "待删除会话"));
 
         string sessionId = sessionsBefore.First(s => s.Title == "待删除会话").SessionId;
         sessionService.DeleteSession(sessionId);
 
-        var sessionsAfter = sessionService.ListSessions();
+        IReadOnlyList<SessionSummary> sessionsAfter = await sessionService.ListSessionsAsync();
         Assert.IsFalse(sessionsAfter.Any(s => s.Title == "待删除会话"));
     }
 
@@ -353,5 +445,22 @@ public class ChatRoomServiceTests
         }
 
         Assert.IsNotNull(thrown);
+    }
+
+    private sealed class TrackingRoleFactory : IChatRoomRoleFactory
+    {
+        public int CreateCount { get; private set; }
+
+        public ChatRoomRoleDefinition? LastDefinition { get; private set; }
+
+        public ChatRoomRole? LastRole { get; private set; }
+
+        public ChatRoomRole CreateRole(ChatRoomRoleDefinition definition)
+        {
+            CreateCount++;
+            LastDefinition = definition;
+            LastRole = new ChatRoomRole(definition);
+            return LastRole;
+        }
     }
 }

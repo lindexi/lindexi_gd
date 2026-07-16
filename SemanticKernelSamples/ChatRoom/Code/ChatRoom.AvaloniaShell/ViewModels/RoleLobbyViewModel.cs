@@ -103,7 +103,9 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     private string _promoteDescription = string.Empty;
     private string _promoteCategory = "通用";
     private string _promoteTags = string.Empty;
+    private string _templateSystemPrompt = string.Empty;
     private string? _promoteSelectedRoleId;
+    private string? _editingTemplateId;
     private string _promoteErrorMessage = string.Empty;
 
     private IReadOnlyList<RoleTemplate> _allTemplates = [];
@@ -137,6 +139,30 @@ public sealed class RoleLobbyViewModel : ViewModelBase
             }
         }
     }
+
+    /// <summary>
+    /// 模板编辑时的系统提示词。
+    /// </summary>
+    public string TemplateSystemPrompt
+    {
+        get => _templateSystemPrompt;
+        set => SetField(ref _templateSystemPrompt, value);
+    }
+
+    /// <summary>
+    /// 当前面板是否处于模板编辑模式。
+    /// </summary>
+    public bool IsEditingTemplate => _editingTemplateId is not null;
+
+    /// <summary>
+    /// 当前面板标题。
+    /// </summary>
+    public string PanelTitle => IsEditingTemplate ? "编辑角色模板" : "提升角色到大厅";
+
+    /// <summary>
+    /// 当前面板确认按钮文本。
+    /// </summary>
+    public string ConfirmPanelText => IsEditingTemplate ? "保存本次编辑" : "提升到大厅";
 
     /// <summary>
     /// 当前选中的分类筛选。为 null 时表示"全部"。
@@ -282,8 +308,12 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     /// </summary>
     /// <param name="templateService">角色模板服务。</param>
     /// <param name="chatRoomService">聊天室服务。</param>
-    public RoleLobbyViewModel(RoleTemplateService templateService, ChatRoomService chatRoomService)
+    public RoleLobbyViewModel(
+        RoleTemplateService templateService,
+        ChatRoomService chatRoomService)
     {
+        ArgumentNullException.ThrowIfNull(templateService);
+        ArgumentNullException.ThrowIfNull(chatRoomService);
         _templateService = templateService;
         _chatRoomService = chatRoomService;
 
@@ -344,6 +374,7 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     /// <param name="roleId">要提升的角色 ID。为 null 时由用户选择。</param>
     public void OpenPromotePanelForRole(string? roleId)
     {
+        _editingTemplateId = null;
         RefreshSessionRoles();
         PromoteSelectedRoleId = roleId;
         PromoteErrorMessage = string.Empty;
@@ -366,7 +397,11 @@ public sealed class RoleLobbyViewModel : ViewModelBase
 
         PromoteCategory = "通用";
         PromoteTags = string.Empty;
+        TemplateSystemPrompt = string.Empty;
         IsPromotePanelVisible = true;
+        OnPropertyChanged(nameof(IsEditingTemplate));
+        OnPropertyChanged(nameof(PanelTitle));
+        OnPropertyChanged(nameof(ConfirmPanelText));
     }
 
     private void OnSessionChanged(object? sender, ChatRoomManager? manager)
@@ -428,8 +463,7 @@ public sealed class RoleLobbyViewModel : ViewModelBase
             }
 
             ChatRoomRoleDefinition definition = _templateService.ToDefinition(template);
-            await _chatRoomService.AddRoleAsync(definition).ConfigureAwait(false);
-            await _chatRoomService.SaveAsync().ConfigureAwait(false);
+            await _chatRoomService.AddRoleAsync(definition).ConfigureAwait(true);
 
             BackRequested?.Invoke(this, EventArgs.Empty);
         }
@@ -441,10 +475,28 @@ public sealed class RoleLobbyViewModel : ViewModelBase
 
     private void OnEditTemplate(RoleTemplateCardViewModel? card)
     {
-        if (card is not null)
+        if (card is null)
         {
-            EditTemplateRequested?.Invoke(this, card.TemplateId);
+            return;
         }
+
+        RoleTemplate? template = _allTemplates.FirstOrDefault(item => item.TemplateId == card.TemplateId);
+        if (template is null)
+        {
+            return;
+        }
+
+        _editingTemplateId = template.TemplateId;
+        PromoteName = template.Name;
+        PromoteDescription = template.Description;
+        PromoteCategory = template.Category;
+        PromoteTags = string.Join(",", template.Tags);
+        TemplateSystemPrompt = template.Definition.SystemPrompt;
+        PromoteErrorMessage = string.Empty;
+        IsPromotePanelVisible = true;
+        OnPropertyChanged(nameof(IsEditingTemplate));
+        OnPropertyChanged(nameof(PanelTitle));
+        OnPropertyChanged(nameof(ConfirmPanelText));
     }
 
     private async Task DeleteTemplateAsync(RoleTemplateCardViewModel? card)
@@ -474,12 +526,22 @@ public sealed class RoleLobbyViewModel : ViewModelBase
 
     private void ClosePromotePanel()
     {
+        _editingTemplateId = null;
         PromoteErrorMessage = string.Empty;
         IsPromotePanelVisible = false;
+        OnPropertyChanged(nameof(IsEditingTemplate));
+        OnPropertyChanged(nameof(PanelTitle));
+        OnPropertyChanged(nameof(ConfirmPanelText));
     }
 
     private async Task ConfirmPromoteAsync()
     {
+        if (_editingTemplateId is not null)
+        {
+            await SaveTemplateEditAsync(_editingTemplateId).ConfigureAwait(false);
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(PromoteSelectedRoleId))
         {
             PromoteErrorMessage = "请选择要提升到大厅的来源角色。";
@@ -532,7 +594,44 @@ public sealed class RoleLobbyViewModel : ViewModelBase
                     tags);
             }
 
-            await _templateService.SaveAsync(template).ConfigureAwait(false);
+            await _templateService.SaveAsync(template).ConfigureAwait(true);
+            RefreshTemplates();
+            ClosePromotePanel();
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task SaveTemplateEditAsync(string templateId)
+    {
+        RoleTemplate? template = _allTemplates.FirstOrDefault(item => item.TemplateId == templateId);
+        if (template is null)
+        {
+            PromoteErrorMessage = "未找到要编辑的角色模板。";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(PromoteName))
+        {
+            PromoteErrorMessage = "模板名称不能为空。";
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            template.Name = PromoteName.Trim();
+            template.Description = string.IsNullOrWhiteSpace(PromoteDescription) ? "（无描述）" : PromoteDescription.Trim();
+            template.Category = string.IsNullOrWhiteSpace(PromoteCategory) ? "通用" : PromoteCategory.Trim();
+            template.Tags.Clear();
+            template.Tags.AddRange(PromoteTags.Split(
+                ',',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            template.Definition.RoleName = template.Name;
+            template.Definition.SystemPrompt = TemplateSystemPrompt;
+            await _templateService.SaveAsync(template).ConfigureAwait(true);
             RefreshTemplates();
             ClosePromotePanel();
         }
