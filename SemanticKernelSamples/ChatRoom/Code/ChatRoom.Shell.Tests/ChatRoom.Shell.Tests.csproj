@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AgentLib\AgentLib.ChatRoom\AgentLib.ChatRoom.csproj" />
+    <ProjectReference Include="..\ChatRoom.AvaloniaShell\ChatRoom.AvaloniaShell.csproj" />
   </ItemGroup>
 
   <ItemGroup>

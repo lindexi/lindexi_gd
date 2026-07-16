@@ -21,6 +21,8 @@ public sealed class RoleTemplateService
 {
     private readonly string _templatesFolder;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly Dictionary<string, RoleTemplate> _runtimeTemplates = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _hiddenRuntimeTemplateIds = new(StringComparer.Ordinal);
 
     /// <summary>
     /// 使用指定的模板持久化目录创建服务。
@@ -54,7 +56,10 @@ public sealed class RoleTemplateService
 #else
                 RoleTemplate? template = JsonSerializer.Deserialize(json, RoleTemplateJsonSerializerContext.Default.RoleTemplate);
 #endif
-                if (template is not null && !string.IsNullOrEmpty(template.TemplateId))
+                if (template is not null
+                    && !string.IsNullOrEmpty(template.TemplateId)
+                    && !_runtimeTemplates.ContainsKey(template.TemplateId)
+                    && !_hiddenRuntimeTemplateIds.Contains(template.TemplateId))
                 {
                     result.Add(template);
                 }
@@ -69,9 +74,27 @@ public sealed class RoleTemplateService
             }
         }
 
+        result.AddRange(_runtimeTemplates.Values);
         return result
             .OrderByDescending(t => t.UpdatedAt)
             .ToList();
+    }
+
+    /// <summary>
+    /// 注册或替换仅在当前进程中存在的内置模板。
+    /// 同 ID 的磁盘模板会在加载结果中被该模板遮蔽。
+    /// </summary>
+    /// <param name="template">运行时内置模板。</param>
+    public void RegisterRuntimeTemplate(RoleTemplate template)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        if (string.IsNullOrWhiteSpace(template.TemplateId))
+        {
+            throw new ArgumentException("模板 ID 不能为空。", nameof(template));
+        }
+
+        _runtimeTemplates[template.TemplateId] = template;
+        _hiddenRuntimeTemplateIds.Remove(template.TemplateId);
     }
 
     /// <summary>
@@ -85,6 +108,14 @@ public sealed class RoleTemplateService
         if (string.IsNullOrWhiteSpace(template.TemplateId))
         {
             throw new ArgumentException("模板 ID 不能为空。", nameof(template.TemplateId));
+        }
+
+        if (_runtimeTemplates.ContainsKey(template.TemplateId))
+        {
+            template.UpdatedAt = DateTimeOffset.Now;
+            _runtimeTemplates[template.TemplateId] = template;
+            _hiddenRuntimeTemplateIds.Remove(template.TemplateId);
+            return;
         }
 
         template.UpdatedAt = DateTimeOffset.Now;
@@ -121,6 +152,12 @@ public sealed class RoleTemplateService
         {
             throw new ArgumentException("模板 ID 不能为空。", nameof(templateId));
         }
+        if (_runtimeTemplates.Remove(templateId))
+        {
+            _hiddenRuntimeTemplateIds.Add(templateId);
+            return;
+        }
+
         string filePath = GetTemplateFilePath(templateId);
         if (File.Exists(filePath))
         {
@@ -142,13 +179,13 @@ public sealed class RoleTemplateService
         return new ChatRoomRoleDefinition
         {
             RoleId = Guid.NewGuid().ToString("N"),
+            Kind = source.Kind,
             RoleName = source.RoleName,
             SystemPrompt = source.SystemPrompt,
             IsHuman = source.IsHuman,
             ModelProviderId = source.ModelProviderId,
             ModelId = source.ModelId,
             SkillFolders = [..source.SkillFolders],
-            Tools = [..source.Tools],
             MemoryContent = source.MemoryContent,
             ParticipationMode = source.ParticipationMode,
             IsManagerRole = source.IsManagerRole,
@@ -188,13 +225,13 @@ public sealed class RoleTemplateService
             Definition = new ChatRoomRoleDefinition
             {
                 RoleId = definition.RoleId,
+                Kind = definition.Kind,
                 RoleName = definition.RoleName,
                 SystemPrompt = definition.SystemPrompt,
                 IsHuman = definition.IsHuman,
                 ModelProviderId = definition.ModelProviderId,
                 ModelId = definition.ModelId,
                 SkillFolders = [..definition.SkillFolders],
-                Tools = [..definition.Tools],
                 MemoryContent = definition.MemoryContent,
                 ParticipationMode = definition.ParticipationMode,
                 IsManagerRole = definition.IsManagerRole,
@@ -230,13 +267,13 @@ public sealed class RoleTemplateService
         template.Definition = new ChatRoomRoleDefinition
         {
             RoleId = definition.RoleId,
+            Kind = definition.Kind,
             RoleName = definition.RoleName,
             SystemPrompt = definition.SystemPrompt,
             IsHuman = definition.IsHuman,
             ModelProviderId = definition.ModelProviderId,
             ModelId = definition.ModelId,
             SkillFolders = [..definition.SkillFolders],
-            Tools = [..definition.Tools],
             MemoryContent = definition.MemoryContent,
             ParticipationMode = definition.ParticipationMode,
             IsManagerRole = definition.IsManagerRole,
@@ -244,19 +281,20 @@ public sealed class RoleTemplateService
     }
 
     /// <summary>
-    /// 首次启动时写入预置模板。仅当模板目录完全为空时执行。
+    /// 按模板 ID 补齐缺失的预置模板，不覆盖已有同 ID 文件。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task EnsurePresetTemplatesAsync(CancellationToken cancellationToken = default)
     {
-        if (Directory.EnumerateFiles(_templatesFolder, "*.json").Any())
-        {
-            return;
-        }
-
+        HashSet<string> existingTemplateIds = LoadAll()
+            .Select(template => template.TemplateId)
+            .ToHashSet(StringComparer.Ordinal);
         foreach (RoleTemplate preset in PresetTemplates.GetPresets())
         {
-            await SaveAsync(preset, cancellationToken).ConfigureAwait(false);
+            if (!existingTemplateIds.Contains(preset.TemplateId))
+            {
+                await SaveAsync(preset, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 

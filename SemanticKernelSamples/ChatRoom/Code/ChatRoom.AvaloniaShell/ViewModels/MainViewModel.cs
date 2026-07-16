@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 
 using AgentLib.ChatRoom;
+using AgentLib.ChatRoom.Configuration;
 using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
 using AgentLib.Model;
@@ -163,7 +164,7 @@ public sealed class MainViewModel : ViewModelBase
     /// </summary>
     public async Task InitializeAsync()
     {
-        await _chatRoomService.CreateNewSessionAsync().ConfigureAwait(false);
+        await _chatRoomService.CreateNewSessionAsync().ConfigureAwait(true);
 
         var assistantDefinition = new ChatRoomRoleDefinition
         {
@@ -172,17 +173,17 @@ public sealed class MainViewModel : ViewModelBase
             SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
             IsManagerRole = true,
         };
-        await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
+        await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(true);
 
         // 持久化到磁盘并刷新会话列表
-        await _chatRoomService.SaveAsync().ConfigureAwait(false);
-        SessionListViewModel.RefreshSessions();
+        await _chatRoomService.SaveAsync().ConfigureAwait(true);
+        await SessionListViewModel.RefreshSessionsAsync().ConfigureAwait(true);
         SessionListViewModel.OpenCurrentSession();
     }
 
-    private void OnSettingsRequested(object? sender, EventArgs e)
+    private async void OnSettingsRequested(object? sender, EventArgs e)
     {
-        NavigateToSettings();
+        await NavigateToSettingsAsync().ConfigureAwait(false);
     }
 
     private void OnSessionOpened(object? sender, string sessionId)
@@ -199,11 +200,11 @@ public sealed class MainViewModel : ViewModelBase
             SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
             IsManagerRole = true,
         };
-        await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(false);
+        await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(true);
 
         // 持久化到磁盘并刷新会话列表
-        await _chatRoomService.SaveAsync().ConfigureAwait(false);
-        SessionListViewModel.RefreshSessions();
+        await _chatRoomService.SaveAsync().ConfigureAwait(true);
+        await SessionListViewModel.RefreshSessionsAsync().ConfigureAwait(true);
         SessionListViewModel.OpenCurrentSession();
         NavigateToChat();
     }
@@ -227,9 +228,11 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>
     /// 导航到设置页面。
     /// </summary>
-    public void NavigateToSettings()
+    /// <returns>表示异步加载设置并完成导航的任务。</returns>
+    public async Task NavigateToSettingsAsync()
     {
-        SettingsViewModel = new SettingsViewModel(_settingsService, _chatRoomService);
+        AppSettings appSettings = await _settingsService.LoadAsync().ConfigureAwait(true);
+        SettingsViewModel = new SettingsViewModel(_settingsService, _chatRoomService, appSettings);
         SettingsViewModel.BackRequested += OnSettingsBack;
         CurrentPage = AppPage.Settings;
         RaisePageChanged();

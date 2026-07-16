@@ -13,11 +13,19 @@ public sealed class RoslynAgentTools : IAsyncDisposable
 {
     private const string DefaultLanguageServerCommand = "roslyn-language-server";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly RoslynLspClient _lspClient;
+    private static readonly string LanguageServerUnavailableResult = JsonSerializer.Serialize(new
+    {
+        error = new
+        {
+            code = "roslyn_language_server_unavailable",
+            message = "Roslyn Language Server 不可用，无法执行代码符号查询。请确认已安装 roslyn-language-server 且启动命令可用。"
+        }
+    }, JsonOptions);
+    private readonly RoslynLspClient? _lspClient;
     private readonly WorkspaceProjectCatalog _catalog;
     private readonly string _workspacePath;
 
-    private RoslynAgentTools(RoslynLspClient lspClient, string workspacePath)
+    private RoslynAgentTools(RoslynLspClient? lspClient, string workspacePath)
     {
         _lspClient = lspClient;
         _workspacePath = Path.GetFullPath(workspacePath);
@@ -44,6 +52,12 @@ public sealed class RoslynAgentTools : IAsyncDisposable
             .StartAsync(fullWorkspacePath, languageServerCommand, cancellationToken)
             .ConfigureAwait(false);
         return new RoslynAgentTools(lspClient, fullWorkspacePath);
+    }
+
+    internal static RoslynAgentTools CreateUnavailable(string workspacePath)
+    {
+        ThrowIfNullOrWhiteSpace(workspacePath, nameof(workspacePath));
+        return new RoslynAgentTools(null, Path.GetFullPath(workspacePath));
     }
 
     /// <summary>
@@ -94,13 +108,18 @@ public sealed class RoslynAgentTools : IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(search_queries);
+        RoslynLspClient? lspClient = _lspClient;
+        if (lspClient is null)
+        {
+            return LanguageServerUnavailableResult;
+        }
 
         List<JsonNode?> results = new(search_queries.Length);
         foreach (string query in search_queries
                      .Where(query => !string.IsNullOrWhiteSpace(query))
                      .Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            JsonNode? symbols = await _lspClient
+            JsonNode? symbols = await lspClient
                 .RequestAsync("workspace/symbol", new { query }, cancellationToken)
                 .ConfigureAwait(false);
             results.Add(new JsonObject
@@ -129,8 +148,13 @@ public sealed class RoslynAgentTools : IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         ThrowIfNullOrWhiteSpace(symbol_name, nameof(symbol_name));
+        RoslynLspClient? lspClient = _lspClient;
+        if (lspClient is null)
+        {
+            return LanguageServerUnavailableResult;
+        }
 
-        JsonNode? symbols = await _lspClient
+        JsonNode? symbols = await lspClient
             .RequestAsync("workspace/symbol", new { query = symbol_name }, cancellationToken)
             .ConfigureAwait(false);
         JsonArray matches = SelectExactOrBestMatches(symbols, symbol_name, 10);
@@ -155,15 +179,16 @@ public sealed class RoslynAgentTools : IAsyncDisposable
                 continue;
             }
 
-            await _lspClient.OpenDocumentAsync(filePath, cancellationToken).ConfigureAwait(false);
+            await lspClient.OpenDocumentAsync(filePath, cancellationToken).ConfigureAwait(false);
             object position = CreateTextDocumentPosition(filePath, line, character);
-            JsonNode? definitions = await _lspClient
+            JsonNode? definitions = await lspClient
                 .RequestAsync("textDocument/definition", position, cancellationToken)
                 .ConfigureAwait(false);
-            JsonNode? implementations = await _lspClient
+            JsonNode? implementations = await lspClient
                 .RequestAsync("textDocument/implementation", position, cancellationToken)
                 .ConfigureAwait(false);
             JsonNode? references = await RequestReferencesAsync(
+                lspClient,
                 filePath,
                 line,
                 character,
@@ -214,10 +239,17 @@ public sealed class RoslynAgentTools : IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(character), character, "字符位置不能小于零。");
         }
 
+        RoslynLspClient? lspClient = _lspClient;
+        if (lspClient is null)
+        {
+            return LanguageServerUnavailableResult;
+        }
+
         file_path = Path.GetFullPath(file_path);
         EnsurePathInsideWorkspace(file_path);
-        await _lspClient.OpenDocumentAsync(file_path, cancellationToken).ConfigureAwait(false);
+        await lspClient.OpenDocumentAsync(file_path, cancellationToken).ConfigureAwait(false);
         JsonNode? references = await RequestReferencesAsync(
+            lspClient,
             file_path,
             line,
             character,
@@ -227,15 +259,16 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     }
 
     /// <inheritdoc />
-    public ValueTask DisposeAsync() => _lspClient.DisposeAsync();
+    public ValueTask DisposeAsync() => _lspClient is null ? default : _lspClient.DisposeAsync();
 
     private Task<JsonNode?> RequestReferencesAsync(
+        RoslynLspClient lspClient,
         string filePath,
         int line,
         int character,
         bool includeDeclaration,
         CancellationToken cancellationToken) =>
-        _lspClient.RequestAsync(
+        lspClient.RequestAsync(
             "textDocument/references",
             new
             {

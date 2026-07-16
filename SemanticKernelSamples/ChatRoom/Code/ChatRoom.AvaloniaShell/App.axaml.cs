@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -28,13 +29,26 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            _ = InitializeApp(desktop);
+            InitializeApp(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    private async Task InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
+    private async void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        try
+        {
+            await InitializeAppCoreAsync(desktop).ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError($"应用初始化失败：{exception}");
+            desktop.TryShutdown(1);
+        }
+    }
+
+    private async Task InitializeAppCoreAsync(IClassicDesktopStyleApplicationLifetime desktop)
     {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var settingsFile = new FileInfo(Path.Join(appData, "AgentRoundtable", "AppConfiguration.json"));
@@ -58,18 +72,21 @@ public partial class App : Application
             new ChatRoomPersistence(persistencePath));
 
         // 5. 聊天室服务
+        var roleFactory = new ChatRoomRoleFactory(dispatcher);
         var chatRoomService = new ChatRoomService(
             dispatcher,
             modelProviderService,
             persistencePath,
-            appSettings.DefaultMaxRounds);
-
+            appSettings.DefaultMaxRounds,
+            roleFactory);
         // 5.1 角色模板服务
         string roleTemplatesPath = string.IsNullOrWhiteSpace(appSettings.RoleTemplatesPath)
             ? Path.Join(appData, "AgentRoundtable", "RoleTemplates")
             : appSettings.RoleTemplatesPath;
         var roleTemplateService = new RoleTemplateService(roleTemplatesPath);
         await roleTemplateService.EnsurePresetTemplatesAsync();
+        var codingAssistantRoleFactory = new CodingAssistantRoleFactory(dispatcher);
+        roleTemplateService.RegisterRuntimeTemplate(codingAssistantRoleFactory.CreateRuntimeTemplate());
 
         // 6. 主 ViewModel
         var mainViewModel = new MainViewModel(

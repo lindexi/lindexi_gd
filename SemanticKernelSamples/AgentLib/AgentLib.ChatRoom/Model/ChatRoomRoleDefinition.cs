@@ -20,7 +20,23 @@ public enum ChatRoomParticipationMode
 }
 
 /// <summary>
-/// 聊天室角色定义（可编辑的配置）。包含角色的身份、系统提示词、模型选择、技能和工具。
+/// 聊天室角色的稳定种类，用于选择当前版本的运行时创建逻辑。
+/// </summary>
+public enum ChatRoomRoleKind
+{
+    /// <summary>
+    /// 不装配专用运行时工具的普通角色。
+    /// </summary>
+    Standard,
+
+    /// <summary>
+    /// 由代码装配编程工作区工具的编程助手。
+    /// </summary>
+    CodingAssistant,
+}
+
+/// <summary>
+/// 聊天室角色定义（可编辑的配置）。包含角色的身份、系统提示词、模型选择和技能。
 /// 此定义可序列化到持久化配置文件中。
 /// </summary>
 public sealed class ChatRoomRoleDefinition
@@ -29,6 +45,11 @@ public sealed class ChatRoomRoleDefinition
     /// 角色唯一标识。
     /// </summary>
     public string RoleId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 角色的稳定种类。运行时工具由对应种类的代码创建逻辑装配。
+    /// </summary>
+    public ChatRoomRoleKind Kind { get; init; }
 
     /// <summary>
     /// 角色显示名，如 "代码审查员"。
@@ -61,11 +82,6 @@ public sealed class ChatRoomRoleDefinition
     public List<string> SkillFolders { get; init; } = [];
 
     /// <summary>
-    /// 角色专属工具定义列表。
-    /// </summary>
-    public List<ToolDefinition> Tools { get; init; } = [];
-
-    /// <summary>
     /// 角色记忆内容（可选）。注入到角色首次发言的系统提示词中。
     /// </summary>
     public string? MemoryContent { get; set; }
@@ -90,20 +106,4 @@ public sealed class ChatRoomRoleDefinition
     /// </list>
     /// </summary>
     public bool IsManagerRole { get; set; }
-}
-
-/// <summary>
-/// 工具定义（简化描述）。用于配置文件中声明角色可以使用的工具。
-/// </summary>
-public sealed class ToolDefinition
-{
-    /// <summary>
-    /// 工具名称。
-    /// </summary>
-    public string Name { get; init; } = string.Empty;
-
-    /// <summary>
-    /// 工具描述。
-    /// </summary>
-    public string Description { get; init; } = string.Empty;
 }

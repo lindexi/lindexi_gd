@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using AgentLib.ChatRoom.Model;
 
@@ -57,14 +59,18 @@ public sealed class SessionService
     /// <summary>
     /// 列出所有历史会话摘要。
     /// </summary>
-    public IReadOnlyList<SessionSummary> ListSessions()
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>按创建时间降序排列的历史会话摘要。</returns>
+    public async Task<IReadOnlyList<SessionSummary>> ListSessionsAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyList<string> sessionIds = _persistence.ListSessionIds();
         var summaries = new List<SessionSummary>(sessionIds.Count);
 
         foreach (string sessionId in sessionIds)
         {
-            ChatRoomSessionData? data = _persistence.LoadConfigAsync(sessionId).GetAwaiter().GetResult();
+            ChatRoomSessionData? data = await _persistence
+                .LoadConfigAsync(sessionId, cancellationToken)
+                .ConfigureAwait(false);
             if (data is null)
             {
                 continue;
@@ -107,12 +113,15 @@ public sealed class SessionService
     /// <summary>
     /// 加载指定会话的持久化数据。
     /// </summary>
-    public ChatRoomSessionData? LoadSession(string sessionId)
+    /// <param name="sessionId">会话 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>会话持久化数据；不存在时返回 <see langword="null"/>。</returns>
+    public async Task<ChatRoomSessionData?> LoadSessionAsync(string sessionId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(sessionId))
         {
             throw new ArgumentException("会话 ID 不能为空。", nameof(sessionId));
         }
-        return _persistence.LoadConfigAsync(sessionId).GetAwaiter().GetResult();
+        return await _persistence.LoadConfigAsync(sessionId, cancellationToken).ConfigureAwait(false);
     }
 }

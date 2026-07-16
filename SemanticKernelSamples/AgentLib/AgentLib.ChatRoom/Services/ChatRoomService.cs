@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using AgentLib.ChatRoom.Configuration;
 using AgentLib.ChatRoom.Model;
-using AgentLib.ChatRoom.Services;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
@@ -17,11 +16,12 @@ namespace AgentLib.ChatRoom.Services;
 /// 聊天室应用服务。封装 <see cref="ChatRoomManager"/> 生命周期管理，
 /// 包括创建/加载/删除会话、注册模型提供商、人类插话、启动/停止循环等操作。
 /// </summary>
-public sealed class ChatRoomService
+public sealed class ChatRoomService : IAsyncDisposable
 {
     private readonly IMainThreadDispatcher _mainThreadDispatcher;
     private readonly ModelProviderService _modelProviderService;
     private readonly string _persistencePath;
+    private readonly IChatRoomRoleFactory _roleFactory;
 
     private ChatRoomManager? _currentManager;
     private ChatRoomPersistence? _persistence;
@@ -57,11 +57,14 @@ public sealed class ChatRoomService
     /// <param name="mainThreadDispatcher">UI 线程调度器。</param>
     /// <param name="modelProviderService">模型提供商服务。</param>
     /// <param name="persistencePath">持久化根目录路径。</param>
+    /// <param name="defaultMaxRounds">默认最大对话轮次。</param>
+    /// <param name="roleFactory">通用聊天室角色工厂。</param>
     public ChatRoomService(
         IMainThreadDispatcher mainThreadDispatcher,
         ModelProviderService modelProviderService,
         string persistencePath,
-        int defaultMaxRounds = 10)
+        int defaultMaxRounds = 10,
+        IChatRoomRoleFactory? roleFactory = null)
     {
         ArgumentNullException.ThrowIfNull(mainThreadDispatcher);
         ArgumentNullException.ThrowIfNull(modelProviderService);
@@ -73,6 +76,7 @@ public sealed class ChatRoomService
         _mainThreadDispatcher = mainThreadDispatcher;
         _modelProviderService = modelProviderService;
         _persistencePath = persistencePath;
+        _roleFactory = roleFactory ?? new ChatRoomRoleFactory(mainThreadDispatcher);
     }
 
     /// <summary>
@@ -83,7 +87,7 @@ public sealed class ChatRoomService
     /// <returns>新创建的 <see cref="ChatRoomManager"/>。</returns>
     public async Task<ChatRoomManager> CreateNewSessionAsync(string title = "新聊天室", CancellationToken cancellationToken = default)
     {
-        CloseCurrentSession();
+        await CloseCurrentSessionCoreAsync(cancellationToken).ConfigureAwait(true);
 
         _persistence = new ChatRoomPersistence(_persistencePath);
 
@@ -93,7 +97,7 @@ public sealed class ChatRoomService
         };
         session.Title = title;
 
-        _currentManager = new ChatRoomManager(session)
+        _currentManager = new ChatRoomManager(session, _roleFactory)
         {
             Persistence = _persistence,
         };
@@ -120,7 +124,7 @@ public sealed class ChatRoomService
             throw new ArgumentException("会话 ID 不能为空。", nameof(sessionId));
         }
 
-        CloseCurrentSession();
+        await CloseCurrentSessionCoreAsync(cancellationToken).ConfigureAwait(true);
 
         _persistence = new ChatRoomPersistence(_persistencePath);
 
@@ -129,37 +133,39 @@ public sealed class ChatRoomService
             MainThreadDispatcher = _mainThreadDispatcher,
         };
 
-        _currentManager = new ChatRoomManager(session)
+        var manager = new ChatRoomManager(session, _roleFactory)
         {
             Persistence = _persistence,
         };
 
-        AttachEvents(_currentManager);
+        AttachEvents(manager);
 
-        // 先注册模型提供商，确保 LoadAsync 内部 AddRoleAsync 时角色能正确绑定模型
-        RegisterProviders(_currentManager);
+        // 先注册模型提供商，确保 LoadAsync 使用同一角色工厂恢复角色时能正确绑定模型
+        RegisterProviders(manager);
 
-        await _currentManager.LoadAsync(sessionId, cancellationToken);
+        try
+        {
+            await manager.LoadAsync(sessionId, cancellationToken).ConfigureAwait(true);
+        }
+        catch
+        {
+            DetachEvents(manager);
+            await manager.CloseAsync().ConfigureAwait(false);
+            throw;
+        }
 
-        SessionChanged?.Invoke(this, _currentManager);
-        return _currentManager;
+        _currentManager = manager;
+        SessionChanged?.Invoke(this, manager);
+        return manager;
     }
 
     /// <summary>
-    /// 关闭当前会话。
+    /// 异步关闭当前会话并清理服务持有的会话引用和事件订阅。
     /// </summary>
-    public void CloseCurrentSession()
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task CloseCurrentSessionAsync(CancellationToken cancellationToken = default)
     {
-        if (_currentManager is null)
-        {
-            return;
-        }
-
-        _currentManager.Stop();
-        DetachEvents(_currentManager);
-        _currentManager = null;
-        _persistence = null;
-        SessionChanged?.Invoke(this, null);
+        await CloseCurrentSessionCoreAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -242,6 +248,7 @@ public sealed class ChatRoomService
     /// </summary>
     /// <param name="definition">角色定义。</param>
     /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>表示添加和初始化操作的任务。</returns>
     public async Task AddRoleAsync(ChatRoomRoleDefinition definition, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -251,24 +258,15 @@ public sealed class ChatRoomService
             throw new InvalidOperationException("没有活跃的会话。");
         }
 
-        var role = new ChatRoomRole(definition)
-        {
-            MainThreadDispatcher = _mainThreadDispatcher,
-        };
-        await _currentManager.AddRoleAsync(role, cancellationToken).ConfigureAwait(false);
-
-        // 早期校验：确保角色有可用模型，避免发言时才发现问题
-        if (!definition.IsHuman)
-        {
-            role.EnsureModelAvailable();
-        }
+        await _currentManager.AddRoleAsync(definition, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// 从当前会话中移除角色。
+    /// 从当前会话中移除角色并等待其资源释放。
     /// </summary>
     /// <param name="roleId">角色 ID。</param>
-    public void RemoveRole(string roleId)
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task RemoveRoleAsync(string roleId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(roleId))
         {
@@ -280,7 +278,7 @@ public sealed class ChatRoomService
             return;
         }
 
-        _currentManager.RemoveRole(roleId);
+        await _currentManager.RemoveRoleAsync(roleId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -378,6 +376,27 @@ public sealed class ChatRoomService
         manager.OnSpeakingChanged -= OnSpeakingChanged;
     }
 
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        await CloseCurrentSessionAsync().ConfigureAwait(false);
+    }
+
+    private async Task CloseCurrentSessionCoreAsync(CancellationToken cancellationToken)
+    {
+        if (_currentManager is null)
+        {
+            return;
+        }
+
+        ChatRoomManager manager = _currentManager;
+        await manager.CloseAsync(cancellationToken).ConfigureAwait(true);
+        DetachEvents(manager);
+        _currentManager = null;
+        _persistence = null;
+        SessionChanged?.Invoke(this, null);
+    }
+
     private void OnRoleSpeakFailed(object? sender, RoleSpeakFailedEventArgs e)
     {
         RoleSpeakFailed?.Invoke(this, (e.Role, e.Exception));
@@ -386,6 +405,6 @@ public sealed class ChatRoomService
     private void OnSpeakingChanged(object? sender, SpeakingChangedEventArgs e)
     {
         SpeakingChanged?.Invoke(this, (e.PreviousSpeaker, e.CurrentSpeaker));
-    }
+}
 
     }

@@ -234,7 +234,7 @@ public sealed class RoleEditViewModel : ViewModelBase
         if (IsEditing && _editingRoleId is not null)
         {
             // 编辑模式：移除旧角色，添加更新后的角色
-            _chatRoomService.RemoveRole(_editingRoleId);
+            await _chatRoomService.RemoveRoleAsync(_editingRoleId).ConfigureAwait(true);
         }
 
         var definition = new ChatRoomRoleDefinition
@@ -251,10 +251,10 @@ public sealed class RoleEditViewModel : ViewModelBase
             ParticipationMode = mode,
         };
 
-        await _chatRoomService.AddRoleAsync(definition).ConfigureAwait(false);
+        await _chatRoomService.AddRoleAsync(definition).ConfigureAwait(true);
 
         // 确保持久化到磁盘并刷新会话列表
-        await _chatRoomService.SaveAsync().ConfigureAwait(false);
+        await _chatRoomService.SaveAsync().ConfigureAwait(true);
 
         SaveCompleted?.Invoke(this, EventArgs.Empty);
     }

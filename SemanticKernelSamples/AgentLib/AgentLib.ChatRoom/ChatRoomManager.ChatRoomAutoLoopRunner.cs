@@ -23,10 +23,13 @@ public sealed partial class ChatRoomManager
         }
 
         private readonly ChatRoomManager _manager;
+        private readonly object _stateSync = new();
 
         private const int MaxSpeakCountPerRole = 5;
+        private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(2);
 
         private CancellationTokenSource? _autoLoopCancellationTokenSource;
+        private Task? _runningTask;
 
         /// <summary>
         /// 人类插话信号。当自动循环运行期间用户插话时设置为 1，
@@ -36,56 +39,155 @@ public sealed partial class ChatRoomManager
         /// </summary>
         private int _humanInterjectSignal;
 
-        public async Task StartAsync(CancellationToken cancellationToken = default)
+        public Task StartAsync(CancellationToken cancellationToken = default)
         {
-            if (_manager.IsRunning)
+            lock (_stateSync)
             {
-                return;
+                if (_runningTask is { IsCompleted: false })
+                {
+                    return _runningTask;
+                }
+
+                _autoLoopCancellationTokenSource?.Dispose();
+                _autoLoopCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                _manager.IsRunning = true;
+                _runningTask = RunWithCleanupAsync(
+                    _autoLoopCancellationTokenSource,
+                    _autoLoopCancellationTokenSource.Token);
+                return _runningTask;
             }
+        }
 
-            _autoLoopCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            CancellationToken loopCancellationToken = _autoLoopCancellationTokenSource.Token;
-
-            _manager.IsRunning = true;
-
+        private async Task RunWithCleanupAsync(
+            CancellationTokenSource cancellationTokenSource,
+            CancellationToken cancellationToken)
+        {
             try
             {
-                while (!loopCancellationToken.IsCancellationRequested)
-                {
-                    ChatRoomMessage? triggerMessage = GetLatestTriggerMessage();
-                    if (triggerMessage is null)
-                    {
-                        break;
-                    }
-
-                    bool shouldRestart = await RunAutoLoopTurnAsync(triggerMessage, loopCancellationToken)
-                        .ConfigureAwait(false);
-                    if (!shouldRestart)
-                    {
-                        break;
-                    }
-                }
+                await RunCoreAsync(cancellationToken).ConfigureAwait(true);
             }
-            catch (OperationCanceledException) when (loopCancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // 正常取消
             }
             finally
             {
-                _manager.IsRunning = false;
-                _manager.CurrentSpeaker = null;
-                _autoLoopCancellationTokenSource?.Dispose();
-                _autoLoopCancellationTokenSource = null;
+                lock (_stateSync)
+                {
+                    _manager.IsRunning = false;
+                    _manager.CurrentSpeaker = null;
+                }
 
-                // 自动循环结束后持久化会话（AI 发言产生的新消息已通过 AppendMessageAsync 持久化，
-                // 此处兜底确保角色定义等状态变更被保存）
-                _ = _manager.SaveAsync();
+                try
+                {
+                    // 自动循环结束后持久化会话（AI 发言产生的新消息已通过 AppendMessageAsync 持久化，
+                    // 此处兜底确保角色定义等状态变更被保存）
+                    if (Volatile.Read(ref _manager._isClosingOrClosed) == 0)
+                    {
+                        await _manager.SaveAsync().ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    lock (_stateSync)
+                    {
+                        if (ReferenceEquals(_autoLoopCancellationTokenSource, cancellationTokenSource))
+                        {
+                            _autoLoopCancellationTokenSource.Dispose();
+                            _autoLoopCancellationTokenSource = null;
+                        }
+                    }
+                }
             }
         }
 
         public void Stop()
         {
-            _autoLoopCancellationTokenSource?.Cancel();
+            lock (_stateSync)
+            {
+                _autoLoopCancellationTokenSource?.Cancel();
+            }
+        }
+
+        public async Task StopAsync()
+        {
+            (Task? runningTask, CancellationTokenSource? cancellationTokenSource) = StopAndGetRunningTask();
+            if (runningTask is null)
+            {
+                return;
+            }
+
+            try
+            {
+                await runningTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationTokenSource?.IsCancellationRequested == true)
+            {
+                // 主动停止产生的正常取消。
+            }
+        }
+
+        public async Task<bool> TryStopAsync()
+        {
+            (Task? runningTask, CancellationTokenSource? cancellationTokenSource) = StopAndGetRunningTask();
+            if (runningTask is null)
+            {
+                return true;
+            }
+
+            Task completedTask = await Task.WhenAny(runningTask, Task.Delay(StopTimeout)).ConfigureAwait(false);
+            if (!ReferenceEquals(completedTask, runningTask))
+            {
+                return false;
+            }
+
+            try
+            {
+                await runningTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationTokenSource?.IsCancellationRequested == true)
+            {
+                // 主动停止产生的正常取消。
+            }
+
+            return true;
+        }
+
+        private (Task? RunningTask, CancellationTokenSource? CancellationTokenSource) StopAndGetRunningTask()
+        {
+            lock (_stateSync)
+            {
+                CancellationTokenSource? cancellationTokenSource = _autoLoopCancellationTokenSource;
+                cancellationTokenSource?.Cancel();
+                return (_runningTask, cancellationTokenSource);
+            }
+        }
+
+        public Task? GetRunningTask()
+        {
+            lock (_stateSync)
+            {
+                return _runningTask;
+            }
+        }
+
+        private async Task RunCoreAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                ChatRoomMessage? triggerMessage = GetLatestTriggerMessage();
+                if (triggerMessage is null)
+                {
+                    break;
+                }
+
+                bool shouldRestart = await RunAutoLoopTurnAsync(triggerMessage, cancellationToken)
+                    .ConfigureAwait(true);
+                if (!shouldRestart)
+                {
+                    break;
+                }
+            }
         }
 
         private async Task<bool> RunAutoLoopTurnAsync(ChatRoomMessage triggerMessage, CancellationToken cancellationToken)
@@ -462,14 +564,9 @@ public sealed partial class ChatRoomManager
             else if (_manager.Persistence is not null)
             {
                 // 流式消息已在 Messages 集合中，UI 通过 CollectionChanged 感知；无需重复触发 OnMessageAdded，仅持久化。
-                _ = _manager.Persistence.SavePublicMessageAsync(_manager.CurrentPersistenceSessionId, message)
-                    .ContinueWith(static t =>
-                    {
-                        if (t.IsFaulted && t.Exception is not null)
-                        {
-                            Debug.Fail($"持久化公开消息失败: {t.Exception.InnerException?.Message}");
-                        }
-                    }, TaskContinuationOptions.OnlyOnFaulted);
+                await _manager.Persistence
+                    .SavePublicMessageAsync(_manager.CurrentPersistenceSessionId, message)
+                    .ConfigureAwait(false);
             }
 
             return mentionedRoleIds;

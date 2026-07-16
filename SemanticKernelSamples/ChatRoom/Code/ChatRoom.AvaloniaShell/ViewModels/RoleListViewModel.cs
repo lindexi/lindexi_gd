@@ -183,7 +183,7 @@ public sealed class RoleListViewModel : ViewModelBase
                 EditRoleRequested?.Invoke(this, role.RoleId);
             }
         });
-        DeleteRoleCommand = new SimpleCommand<RoleItemViewModel>(DeleteRole);
+        DeleteRoleCommand = new SimpleAsyncCommand<RoleItemViewModel>(DeleteRoleAsync);
         OpenLobbyCommand = new SimpleCommand(() => OpenLobbyRequested?.Invoke(this, EventArgs.Empty));
         PromoteToLobbyCommand = new SimpleCommand<RoleItemViewModel>(role =>
         {
@@ -237,17 +237,14 @@ public sealed class RoleListViewModel : ViewModelBase
         }
     }
 
-    private void DeleteRole(RoleItemViewModel? role)
+    private async System.Threading.Tasks.Task DeleteRoleAsync(RoleItemViewModel? role)
     {
         if (role is null)
         {
             return;
         }
 
-        _chatRoomService.RemoveRole(role.RoleId);
-
-        // 确保持久化到磁盘
-        _ = _chatRoomService.SaveAsync();
+        await _chatRoomService.RemoveRoleAsync(role.RoleId).ConfigureAwait(false);
     }
 
     private async System.Threading.Tasks.Task ReduceRoleSessionAsync(RoleItemViewModel? role)

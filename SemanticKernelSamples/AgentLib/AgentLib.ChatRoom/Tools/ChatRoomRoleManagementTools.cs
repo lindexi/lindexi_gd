@@ -36,8 +36,8 @@ public static class ChatRoomRoleManagementTools
                 name: "list_characters",
                 description: "列出当前聊天室中的所有角色，包括角色ID（RoleId）、名称（RoleName）、人设摘要、模型信息和参与模式。"),
             AIFunctionFactory.Create(
-                (string roleName, string systemPrompt, string? modelId = null, string? modelProviderId = null, string? memoryContent = null) =>
-                    CreateCharacter(chatRoomManager, roleName, systemPrompt, modelId, modelProviderId, memoryContent),
+                (string roleName, string systemPrompt, string? modelId, string? modelProviderId, string? memoryContent, CancellationToken cancellationToken) =>
+                    CreateCharacter(chatRoomManager, roleName, systemPrompt, modelId, modelProviderId, memoryContent, cancellationToken),
                 name: "create_character",
                 description: "创建一个新角色并立即加入当前聊天室。参数：roleName（必填，角色显示名）、systemPrompt（必填，角色人设）、modelId（可选）、modelProviderId（可选）、memoryContent（可选，长期记忆）。"),
             AIFunctionFactory.Create(
@@ -84,7 +84,8 @@ public static class ChatRoomRoleManagementTools
         string systemPrompt,
         string? modelId,
         string? modelProviderId,
-        string? memoryContent)
+        string? memoryContent,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(roleName))
         {
@@ -120,8 +121,9 @@ public static class ChatRoomRoleManagementTools
                 ParticipationMode = ChatRoomParticipationMode.MentionOnly,
             };
 
-            var role = new ChatRoomRole(definition);
-            await chatRoomManager.AddRoleAsync(role).ConfigureAwait(false);
+            ChatRoomRole role = await chatRoomManager
+                .AddRoleAsync(definition, cancellationToken)
+                .ConfigureAwait(false);
 
             // 早期校验：确保新角色有可用模型，避免被 @ 发言时才抛出异常
             role.EnsureModelAvailable();

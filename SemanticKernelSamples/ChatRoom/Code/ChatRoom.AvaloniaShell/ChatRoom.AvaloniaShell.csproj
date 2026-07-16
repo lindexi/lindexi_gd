@@ -23,6 +23,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="ChatRoom.Shell.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChatRoom.Shell.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Styles\Colors.axaml" />
     <AvaloniaResource Include="Styles\Controls.axaml" />
     <AvaloniaResource Include="Styles\MessageBubble.axaml" />

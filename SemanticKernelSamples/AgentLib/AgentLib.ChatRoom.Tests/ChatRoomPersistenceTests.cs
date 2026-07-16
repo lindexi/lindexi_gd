@@ -162,6 +162,33 @@ public sealed class ChatRoomPersistenceTests
         Assert.AreEqual("加载测试", result.Title);
     }
 
+    [TestMethod(DisplayName = "源生成上下文应往返角色种类且不写出工具字段")]
+    public void SourceGeneratedContextShouldRoundTripRoleKindWithoutTools()
+    {
+        var data = new ChatRoomSessionData
+        {
+            SessionId = Guid.NewGuid(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            Roles =
+            [
+                new ChatRoomRoleDefinition
+                {
+                    RoleId = "coding-role",
+                    Kind = ChatRoomRoleKind.CodingAssistant,
+                    RoleName = "编程角色",
+                },
+            ],
+        };
+
+        string json = JsonSerializer.Serialize(data, ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
+        ChatRoomSessionData? result = JsonSerializer.Deserialize(
+            json,
+            ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
+
+        Assert.AreEqual(ChatRoomRoleKind.CodingAssistant, result!.Roles.Single().Kind);
+        Assert.IsFalse(json.Contains("Tools", StringComparison.Ordinal));
+    }
+
     #endregion
 
     #region SavePublicMessageAsync Tests
