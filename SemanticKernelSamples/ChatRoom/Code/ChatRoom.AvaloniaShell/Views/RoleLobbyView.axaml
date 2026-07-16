@@ -10,7 +10,7 @@
         <conv:RoleColorConverter x:Key="RoleColor" />
     </UserControl.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*" Background="{StaticResource BackgroundBrush}">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Background="{StaticResource BackgroundBrush}">
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="16,12">
             <Button Classes="Flat" Content="← 返回" Command="{Binding BackCommand}" />
             <TextBlock Grid.Column="1" Text="角色大厅" Classes="Title" HorizontalAlignment="Center" />
@@ -61,7 +61,12 @@
             </StackPanel>
         </Grid>
 
-        <ScrollViewer Grid.Row="3" Padding="16,0">
+        <StackPanel Grid.Row="3" Margin="24,0,24,8">
+            <TextBlock Text="{Binding AddToSessionSuccessMessage}" Foreground="{StaticResource SuccessBrush}" TextWrapping="Wrap" IsVisible="{Binding HasAddToSessionSuccessMessage}" />
+            <TextBlock Text="{Binding AddToSessionErrorMessage}" Foreground="{StaticResource ErrorBrush}" TextWrapping="Wrap" IsVisible="{Binding HasAddToSessionErrorMessage}" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="4" Padding="16,0">
             <ItemsControl ItemsSource="{Binding Templates}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

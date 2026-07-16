@@ -107,6 +107,8 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     private string? _promoteSelectedRoleId;
     private string? _editingTemplateId;
     private string _promoteErrorMessage = string.Empty;
+    private string _addToSessionSuccessMessage = string.Empty;
+    private string _addToSessionErrorMessage = string.Empty;
 
     private IReadOnlyList<RoleTemplate> _allTemplates = [];
 
@@ -252,6 +254,46 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     /// 是否存在提升表单错误提示。
     /// </summary>
     public bool HasPromoteErrorMessage => !string.IsNullOrWhiteSpace(PromoteErrorMessage);
+
+    /// <summary>
+    /// 添加角色到当前会话后的成功提示。
+    /// </summary>
+    public string AddToSessionSuccessMessage
+    {
+        get => _addToSessionSuccessMessage;
+        private set
+        {
+            if (SetField(ref _addToSessionSuccessMessage, value))
+            {
+                OnPropertyChanged(nameof(HasAddToSessionSuccessMessage));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 是否存在添加角色成功提示。
+    /// </summary>
+    public bool HasAddToSessionSuccessMessage => !string.IsNullOrWhiteSpace(AddToSessionSuccessMessage);
+
+    /// <summary>
+    /// 添加角色到当前会话失败时的错误提示。
+    /// </summary>
+    public string AddToSessionErrorMessage
+    {
+        get => _addToSessionErrorMessage;
+        private set
+        {
+            if (SetField(ref _addToSessionErrorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasAddToSessionErrorMessage));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 是否存在添加角色错误提示。
+    /// </summary>
+    public bool HasAddToSessionErrorMessage => !string.IsNullOrWhiteSpace(AddToSessionErrorMessage);
 
     /// <summary>
     /// 是否有活跃会话（控制"添加到当前会话"按钮可用性）。
@@ -456,16 +498,35 @@ public sealed class RoleLobbyViewModel : ViewModelBase
         IsBusy = true;
         try
         {
+            AddToSessionSuccessMessage = string.Empty;
+            AddToSessionErrorMessage = string.Empty;
+
             RoleTemplate? template = _allTemplates.FirstOrDefault(t => t.TemplateId == card.TemplateId);
             if (template is null)
             {
+                AddToSessionErrorMessage = "未找到要添加的角色模板，请刷新角色大厅后重试。";
+                return;
+            }
+
+            string roleName = template.Definition.RoleName;
+            if (_chatRoomService.CurrentManager?.Roles.Any(role =>
+                string.Equals(role.Definition.RoleName, roleName, StringComparison.Ordinal)) == true)
+            {
+                AddToSessionErrorMessage = $"角色“{roleName}”已在当前会话中。";
                 return;
             }
 
             ChatRoomRoleDefinition definition = _templateService.ToDefinition(template);
-            await _chatRoomService.AddRoleAsync(definition).ConfigureAwait(true);
-
-            BackRequested?.Invoke(this, EventArgs.Empty);
+            try
+            {
+                await _chatRoomService.AddRoleAsync(definition).ConfigureAwait(true);
+                AddToSessionSuccessMessage = $"已将角色“{roleName}”添加到当前会话，可继续添加其他角色。";
+            }
+            catch (InvalidOperationException ex) when (_chatRoomService.CurrentManager?.Roles.Any(role =>
+                string.Equals(role.Definition.RoleName, roleName, StringComparison.Ordinal)) == true)
+            {
+                AddToSessionErrorMessage = ex.Message;
+            }
         }
         finally
         {
