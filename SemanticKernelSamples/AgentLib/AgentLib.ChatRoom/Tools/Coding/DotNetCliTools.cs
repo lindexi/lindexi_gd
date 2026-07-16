@@ -19,7 +19,6 @@ public sealed class DotNetCliTools
     private const int MaxSearchMatches = 200;
     private static readonly TimeSpan RegexMatchTimeout = TimeSpan.FromSeconds(2);
     private readonly string _workspacePath;
-    private readonly SemaphoreSlim _commandLock = new(1, 1);
     private LogSnapshot? _lastLogSnapshot;
 
     /// <summary>
@@ -209,91 +208,83 @@ public sealed class DotNetCliTools
 
     private async Task<string> RunDotNetCommandAsync(string command, string? targetPath, CancellationToken cancellationToken)
     {
-        await _commandLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        if (!TryResolveTarget(targetPath, out string? resolvedTargetPath, out string errorMessage))
+        {
+            return errorMessage;
+        }
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "dotnet",
+            WorkingDirectory = _workspacePath,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8
+        };
+        startInfo.ArgumentList.Add(command);
+        if (resolvedTargetPath is not null)
+        {
+            startInfo.ArgumentList.Add(resolvedTargetPath);
+        }
+
+        startInfo.Environment["DOTNET_NOLOGO"] = "1";
+        startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
+
+        using var process = new Process { StartInfo = startInfo };
         try
         {
-            if (!TryResolveTarget(targetPath, out string? resolvedTargetPath, out string errorMessage))
+            if (!process.Start())
             {
-                return errorMessage;
+                return $"无法启动 dotnet {command}。";
             }
 
-            var startInfo = new ProcessStartInfo
+            Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync();
+            Task<string> standardErrorTask = process.StandardError.ReadToEndAsync();
+
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            string standardOutput = await standardOutputTask.ConfigureAwait(false);
+            string standardError = await standardErrorTask.ConfigureAwait(false);
+
+            // 将完整日志保存到实例内存
+            string full = FormatResult(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError);
+            string[] lines = full.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            var snapshot = new LogSnapshot(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
+            _lastLogSnapshot = snapshot;
+
+            // 返回简短摘要
+            int totalLines = lines.Length;
+            if (process.ExitCode == 0)
             {
-                FileName = "dotnet",
-                WorkingDirectory = _workspacePath,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
-            };
-            startInfo.ArgumentList.Add(command);
-            if (resolvedTargetPath is not null)
-            {
-                startInfo.ArgumentList.Add(resolvedTargetPath);
+                return $"执行成功。完整日志共 {totalLines} 行，可使用 read_last_log_lines 按行读取。";
             }
 
-            startInfo.Environment["DOTNET_NOLOGO"] = "1";
-            startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
-
-            using var process = new Process { StartInfo = startInfo };
-            try
+            // 查找首个包含 error 的行（不区分大小写）
+            string? firstErrorLine = lines.FirstOrDefault(l => l.IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0);
+            if (!string.IsNullOrEmpty(firstErrorLine))
             {
-                if (!process.Start())
-                {
-                    return $"无法启动 dotnet {command}。";
-                }
-
-                Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync();
-                Task<string> standardErrorTask = process.StandardError.ReadToEndAsync();
-
-                await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-                string standardOutput = await standardOutputTask.ConfigureAwait(false);
-                string standardError = await standardErrorTask.ConfigureAwait(false);
-
-                // 将完整日志保存到实例内存
-                string full = FormatResult(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError);
-                string[] lines = full.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-                var snapshot = new LogSnapshot(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
-                _lastLogSnapshot = snapshot;
-
-                // 返回简短摘要
-                int totalLines = lines.Length;
-                if (process.ExitCode == 0)
-                {
-                    return $"执行成功。完整日志共 {totalLines} 行，可使用 read_last_log_lines 按行读取。";
-                }
-
-                // 查找首个包含 error 的行（不区分大小写）
-                string? firstErrorLine = lines.FirstOrDefault(l => l.IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0);
-                if (!string.IsNullOrEmpty(firstErrorLine))
-                {
-                    string preview = firstErrorLine.Length <= MaxErrorPreviewCharacters
-                        ? firstErrorLine
-                        : $"{firstErrorLine[..MaxErrorPreviewCharacters]}…【该错误行已截断】";
-                    return $"执行失败。完整日志共 {totalLines} 行。首个包含 error 的行：{preview}";
-                }
-
-                return $"执行失败。完整日志共 {totalLines} 行，可使用 read_last_log_lines 按行读取。";
+                string preview = firstErrorLine.Length <= MaxErrorPreviewCharacters
+                    ? firstErrorLine
+                    : $"{firstErrorLine[..MaxErrorPreviewCharacters]}…【该错误行已截断】";
+                return $"执行失败。完整日志共 {totalLines} 行。首个包含 error 的行：{preview}";
             }
-            catch (OperationCanceledException)
-            {
-                if (!process.HasExited)
-                {
-                    process.Kill(entireProcessTree: true);
-                }
 
-                throw;
-            }
-            catch (Win32Exception ex)
-            {
-                return $"无法启动 dotnet {command}: {ex.Message}";
-            }
+            return $"执行失败。完整日志共 {totalLines} 行，可使用 read_last_log_lines 按行读取。";
         }
-        finally
+        catch (OperationCanceledException)
         {
-            _commandLock.Release();
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+            }
+
+            throw;
+        }
+        catch (Win32Exception ex)
+        {
+            return $"无法启动 dotnet {command}: {ex.Message}";
         }
     }
 
