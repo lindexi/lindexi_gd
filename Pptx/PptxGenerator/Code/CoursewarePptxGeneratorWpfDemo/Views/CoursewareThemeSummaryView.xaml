@@ -12,8 +12,14 @@
             <Setter Property="Margin" Value="0,0,0,10" />
         </Style>
         <Style x:Key="ThemeColumnTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource AnalysisCardTitleTextStyle}">
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Margin" Value="0,0,0,11" />
+        </Style>
+        <Style x:Key="ThemeContentTextStyle" TargetType="TextBlock" BasedOn="{StaticResource AnalysisBodyTextStyle}">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="LineHeight" Value="23" />
         </Style>
     </UserControl.Resources>
 
@@ -25,28 +31,27 @@
         <StackPanel>
             <TextBlock Text="主题方案" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="21" FontWeight="Bold" />
             <TextBlock Margin="0,3,0,12"
-                       Text="{Binding ThemeTitle, StringFormat=主题方向：{0} · 年级上册，理性、清晰、现代，呈现数学与理性空间}"
-                       Foreground="{StaticResource AnalysisBodyBrush}"
-                       FontSize="12" />
+                       Text="{Binding ThemeDescription}"
+                       Style="{StaticResource ThemeContentTextStyle}" />
 
             <StackPanel>
                 <Border Style="{StaticResource ThemeColumnStyle}">
                     <StackPanel>
                         <TextBlock Text="风格关键词" Style="{StaticResource ThemeColumnTitleStyle}" />
-                        <UniformGrid Columns="2" Rows="2">
-                            <Border Background="#EAF8F7" CornerRadius="7" Margin="0,0,7,7" Padding="8">
-                                <StackPanel><TextBlock Text="⌘" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="21" HorizontalAlignment="Center" /><TextBlock Text="清晰几何" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" /></StackPanel>
-                            </Border>
-                            <Border Background="#EAF8F7" CornerRadius="7" Margin="0,0,0,7" Padding="8">
-                                <StackPanel><TextBlock Text="♧" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="21" HorizontalAlignment="Center" /><TextBlock Text="配色克制" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" /></StackPanel>
-                            </Border>
-                            <Border Background="#EAF8F7" CornerRadius="7" Margin="0,0,7,0" Padding="8">
-                                <StackPanel><TextBlock Text="▣" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="20" HorizontalAlignment="Center" /><TextBlock Text="严谨方案" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" /></StackPanel>
-                            </Border>
-                            <Border Background="#EAF8F7" CornerRadius="7" Padding="8">
-                                <StackPanel><TextBlock Text="▱" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="21" HorizontalAlignment="Center" /><TextBlock Text="重视留白" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" /></StackPanel>
-                            </Border>
-                        </UniformGrid>
+                        <ItemsControl ItemsSource="{Binding StyleKeywords}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#EAF8F7" CornerRadius="7" Margin="0,0,7,7" Padding="10,7">
+                                        <TextBlock Text="{Binding}"
+                                                   Style="{StaticResource ThemeContentTextStyle}"
+                                                   Foreground="{StaticResource AnalysisNavyBrush}" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
 
@@ -61,14 +66,18 @@
                                         <Border Height="32" CornerRadius="16" BorderBrush="#D7E2E7" BorderThickness="1">
                                             <Border.Background><SolidColorBrush Color="{Binding HexValue}" /></Border.Background>
                                         </Border>
-                                        <TextBlock Text="{Binding Usage}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,6,0,0" />
+                                        <TextBlock Text="{Binding Usage}"
+                                                   Style="{StaticResource ThemeContentTextStyle}"
+                                                   Foreground="{StaticResource AnalysisNavyBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,6,0,0" />
                                         <TextBlock Text="{Binding HexValue}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <Border Background="#F4F8FA" CornerRadius="6" Margin="0,13,0,0" Padding="9">
-                            <TextBlock Text="蓝色建立教学秩序，橙色只用于结论、重点和课堂提示。" Style="{StaticResource AnalysisBodyTextStyle}" FontSize="12" LineHeight="18" />
+                            <TextBlock Text="{Binding ColorRationale}" Style="{StaticResource ThemeContentTextStyle}" />
                         </Border>
                     </StackPanel>
                 </Border>
@@ -81,13 +90,21 @@
                                 <DataTemplate>
                                     <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="76" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="12" FontWeight="SemiBold" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Specification}" Foreground="#2563EB" FontSize="12" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Name}"
+                                                   Style="{StaticResource ThemeContentTextStyle}"
+                                                   Foreground="{StaticResource AnalysisNavyBrush}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Specification}"
+                                                   Style="{StaticResource ThemeContentTextStyle}"
+                                                   Foreground="#2563EB" />
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="微软雅黑 / 等宽无衬线中文字体" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding FontRecommendationText}"
+                                   Style="{StaticResource ThemeContentTextStyle}"
+                                   Foreground="{StaticResource AnalysisMutedBrush}"
+                                   Margin="0,4,0,0" />
                     </StackPanel>
                 </Border>
 
@@ -98,7 +115,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="#F3F9F9" CornerRadius="6" Padding="7" Margin="0,0,0,7">
-                                        <TextBlock Text="{Binding}" Foreground="{StaticResource AnalysisBodyBrush}" FontSize="12" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding}" Style="{StaticResource ThemeContentTextStyle}" />
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -114,20 +131,30 @@
                                 <Grid Margin="10">
                                     <Rectangle Fill="White" Stroke="#C2D3D9" StrokeThickness="1" />
                                     <Rectangle Margin="12,9" Stroke="{StaticResource AnalysisTealBrush}" StrokeThickness="1.5" StrokeDashArray="4,3" />
-                                    <TextBlock Text="安全区" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" />
+                                     <TextBlock Text="安全区" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" />
                                 </Grid>
                             </Border>
-                            <TextBlock Text="左右 0.6 in · 上下 0.4 in" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" Margin="0,7,0,0" />
+                             <TextBlock Text="{Binding SafeAreaText}"
+                                        Style="{StaticResource ThemeContentTextStyle}"
+                                        Foreground="{StaticResource AnalysisMutedBrush}"
+                                        Margin="0,7,0,0" />
                         </StackPanel>
                         <StackPanel Margin="0,14,0,0">
                             <TextBlock Text="输入风险提示" Style="{StaticResource ThemeColumnTitleStyle}" />
-                            <StackPanel Margin="0,1,0,0">
-                                <TextBlock Text="▲ 第 3 页背景图像素较低" Foreground="#B76C00" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                <TextBlock Text="▲ 第 8 页公式字号偏小" Foreground="#B76C00" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                <TextBlock Text="▲ 第 15 页单位不统一" Foreground="#B76C00" FontSize="12" TextWrapping="Wrap" />
-                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding AnalysisWarnings}" Margin="0,1,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                         <TextBlock Text="{Binding StringFormat='▲ {0}'}"
+                                                    Style="{StaticResource ThemeContentTextStyle}"
+                                                    Foreground="#B76C00"
+                                                    Margin="0,0,0,8" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             <Border Background="#EAF8F5" CornerRadius="6" Padding="7" Margin="0,12,0,0">
-                                <TextBlock Text="这些提示不影响进入工作台" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                 <TextBlock Text="这些提示不影响进入工作台"
+                                            Style="{StaticResource ThemeContentTextStyle}"
+                                            Foreground="{StaticResource AnalysisTealDarkBrush}" />
                             </Border>
                         </StackPanel>
                     </StackPanel>

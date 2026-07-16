@@ -105,7 +105,7 @@ public sealed class CoursewareThumbnailOverviewTests
 
         Assert.AreEqual("Uniform", (string?) image.Attribute("Stretch"));
         Assert.AreEqual("{x:Static views:ThumbnailAspectRatio.Standard}", (string?) aspectRatioTrigger.Attribute("Value"));
-        Assert.AreEqual(4, overviews.Count);
+        Assert.AreEqual(3, overviews.Count);
         Assert.IsTrue(overviews.All(element => ((string?) element.Attribute("ThumbnailAspectRatio"))?.Contains("CoursewareAnalysisView", StringComparison.Ordinal) == true));
         CollectionAssert.IsSubsetOf(
             new[]
@@ -177,8 +177,6 @@ public sealed class CoursewareThumbnailOverviewTests
 
     private static async Task PumpDispatcherAsync(Window window)
     {
-        await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Task;
-        await Task.Delay(50);
         await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Task;
     }
 

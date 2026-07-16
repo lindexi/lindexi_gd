@@ -1,7 +1,6 @@
 <UserControl x:Class="CoursewarePptxGeneratorWpfDemo.Views.CopilotPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:agent="clr-namespace:AgentLib.Model;assembly=AgentLib"
              xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -13,89 +12,6 @@
              d:DesignHeight="760"
              d:DesignWidth="420"
              mc:Ignorable="d">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
-
-        <views:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
-            <views:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
-                <DataTemplate DataType="{x:Type agent:CopilotChatTextItem}">
-                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" />
-                </DataTemplate>
-            </views:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
-            <views:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
-                <DataTemplate DataType="{x:Type agent:CopilotChatReasoningItem}">
-                    <Border Background="#FFF1F5F9" BorderBrush="#FFCBD5E1" BorderThickness="3,0,0,0" CornerRadius="4" Padding="12,8" Margin="0,2">
-                        <StackPanel>
-                            <TextBlock Text="思考过程" FontSize="11" Foreground="#FF94A3B8" FontWeight="Medium" />
-                            <TextBlock Text="{Binding Text}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </views:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
-            <views:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
-                <DataTemplate DataType="{x:Type agent:CopilotChatToolItem}">
-                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="0,2">
-                        <StackPanel>
-                            <Border Background="#FFF8FAFC" Padding="12,8">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🔧" FontSize="12" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding ToolName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
-                                </StackPanel>
-                            </Border>
-                            <Border Padding="12,8">
-                                <StackPanel>
-                                    <StackPanel Margin="0,0,0,6" Visibility="{Binding HasInputText, Converter={StaticResource BooleanToVisibility}}">
-                                        <TextBlock Text="输入" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
-                                        <Border Background="#FFF8FAFC" Padding="8" CornerRadius="4" Margin="0,2,0,0">
-                                            <TextBlock Text="{Binding InputText}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
-                                        </Border>
-                                    </StackPanel>
-                                    <StackPanel Visibility="{Binding HasOutputText, Converter={StaticResource BooleanToVisibility}}">
-                                        <TextBlock Text="输出" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
-                                        <Border Background="#FFF8FAFC" Padding="8" CornerRadius="4" Margin="0,2,0,0">
-                                            <TextBlock Text="{Binding OutputText}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" />
-                                        </Border>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </views:CopilotChatMessageItemTemplateSelector.ToolItemTemplate>
-            <views:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
-                <DataTemplate DataType="{x:Type agent:CopilotChatSubAgentItem}">
-                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="0,2">
-                        <StackPanel>
-                            <Border Background="#FFF8FAFC" Padding="12,8">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🔧" FontSize="12" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding ToolName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
-                                </StackPanel>
-                            </Border>
-                            <Border Padding="12,8">
-                                <StackPanel>
-                                    <ItemsControl ItemsSource="{Binding MessageItems}" ItemTemplateSelector="{StaticResource ChatMessageItemTemplateSelector}" />
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </views:CopilotChatMessageItemTemplateSelector.SubAgentItemTemplate>
-            <views:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
-                <DataTemplate DataType="{x:Type agent:CopilotChatImageItem}">
-                    <Image Source="{Binding Data, Converter={x:Static converters:BinaryDataToBitmapConverter.Instance}}" MaxWidth="320" Stretch="Uniform" Margin="0,4" />
-                </DataTemplate>
-            </views:CopilotChatMessageItemTemplateSelector.ImageItemTemplate>
-            <views:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
-                <DataTemplate DataType="{x:Type agent:CopilotChatAudioItem}">
-                    <Border Background="#FFF1F5F9" CornerRadius="8" Padding="12,8">
-                        <TextBlock Text="{Binding DisplayText}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
-                    </Border>
-                </DataTemplate>
-            </views:CopilotChatMessageItemTemplateSelector.AudioItemTemplate>
-        </views:CopilotChatMessageItemTemplateSelector>
-    </UserControl.Resources>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -120,59 +36,9 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1">
-            <ListBox x:Name="ChatListBox"
-                     ItemsSource="{Binding CopilotChatManager.ChatMessages}"
-                     Background="White"
-                     BorderThickness="0"
-                     Padding="8"
-                     ScrollViewer.CanContentScroll="False"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     VirtualizingPanel.ScrollUnit="Pixel">
-                <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type agent:CopilotChatMessage}">
-                        <Border Margin="4,6"
-                                Padding="14"
-                                CornerRadius="16"
-                                MaxWidth="360"
-                                HorizontalAlignment="{Binding Role, Converter={x:Static converters:ChatBubbleAlignmentConverter.Instance}}"
-                                Background="{Binding Role, Converter={x:Static converters:ChatBubbleBackgroundConverter.Instance}}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Author}"
-                                           FontWeight="Bold"
-                                           FontSize="12"
-                                           Foreground="{Binding Role, Converter={x:Static converters:ChatBubbleAuthorColorConverter.Instance}}" />
-                                <ItemsControl ItemsSource="{Binding MessageItems}"
-                                              ItemTemplateSelector="{StaticResource ChatMessageItemTemplateSelector}"
-                                              Margin="0,6,0,0" />
-                                <TextBlock Text="{Binding UsageSummaryText}"
-                                           FontSize="10"
-                                           Foreground="#FF94A3B8"
-                                           Visibility="{Binding HasUsageDetails, Converter={StaticResource BooleanToVisibility}}"
-                                           Margin="0,4,0,0" />
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-
-            <Button x:Name="ScrollToBottomButton"
-                    Click="ScrollToBottomButton_OnClick"
-                    Visibility="Collapsed"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Margin="0,0,20,16"
-                    Width="40"
-                    Height="40"
-                    Background="{StaticResource PrimaryBlueBrush}"
-                    Foreground="White"
-                    BorderThickness="0"
-                    Padding="0"
-                    ToolTip="滚动到底部并保持"
-                    Cursor="Hand">
-                <TextBlock Text="↓" FontSize="20" FontWeight="Bold" Foreground="White" />
-            </Button>
-        </Grid>
+        <views:CopilotMessageStream Grid.Row="1"
+                                    ItemsSource="{Binding CopilotChatManager.ChatMessages}"
+                                    ListBackground="White" />
 
         <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,8">
             <DockPanel>

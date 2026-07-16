@@ -3,6 +3,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
 using CoursewarePptxGeneratorWpfDemo.Views;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -66,11 +67,11 @@ public sealed class MainWindowCompositionTests
             var workspaceView = window.FindName("WorkspaceView") as SlideWorkspaceView;
             Assert.IsNotNull(analysisView, "未找到全课件分析页。");
             Assert.IsNotNull(workspaceView, "未找到单页工作台。");
-            Assert.IsTrue(viewModel.IsWelcome, "应用启动时应显示 Welcome 演示状态。");
+            Assert.IsTrue(viewModel.IsCoursewareWelcome, "应用启动时应显示课件欢迎状态。");
             Assert.AreEqual(Visibility.Visible, analysisView.Visibility, "应用启动时应显示分析页。");
             Assert.AreEqual(Visibility.Collapsed, workspaceView.Visibility, "应用启动时不应显示单页工作台。");
 
-            viewModel.ShowDemoStageCommand.Execute(nameof(CoursewareAnalysisStage.AnalysisReady));
+            viewModel.ShowDemoStageCommand.Execute(nameof(CoursewareWorkspaceState.AnalysisReady));
             viewModel.SelectedSlide = viewModel.Slides[8];
             viewModel.EnterWorkspaceCommand.Execute(null);
             await PumpDispatcherAsync(window);

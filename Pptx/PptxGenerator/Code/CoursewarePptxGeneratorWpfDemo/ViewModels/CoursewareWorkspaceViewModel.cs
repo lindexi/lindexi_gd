@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
+using AgentLib.Model;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Threading;
@@ -25,59 +26,25 @@ public enum PrototypePage
 }
 
 /// <summary>
-/// Identifies the presentation-only state of the courseware analysis page.
-/// </summary>
-public enum CoursewareAnalysisStage
-{
-    /// <summary>
-    /// No courseware has been opened.
-    /// </summary>
-    Welcome,
-
-    /// <summary>
-    /// The demonstration courseware is being loaded.
-    /// </summary>
-    LoadingCourseware,
-
-    /// <summary>
-    /// The demonstration theme is being analyzed.
-    /// </summary>
-    AnalyzingTheme,
-
-    /// <summary>
-    /// The demonstration theme is ready.
-    /// </summary>
-    AnalysisReady,
-
-    /// <summary>
-    /// The demonstration analysis failed.
-    /// </summary>
-    AnalysisFailed,
-
-    /// <summary>
-    /// The demonstration analysis was canceled.
-    /// </summary>
-    Canceled,
-}
-
-/// <summary>
 /// Provides data and navigation for the courseware workspace.
 /// </summary>
 public sealed class CoursewareWorkspaceViewModel : ObservableObject
 {
     private const int DemoSlideCount = 60;
     private readonly CoursewareFolderLoader _coursewareFolderLoader;
+    private readonly ICoursewareThemeAnalysisService _themeAnalysisService;
     private readonly IViewModelDispatcher _dispatcher;
     private readonly RelayCommand _enterWorkspaceCommand;
+    private readonly RelayCommand _reanalyzeCommand;
+    private readonly RelayCommand _cancelAnalysisCommand;
     private DemoSlideViewModel? _selectedSlide;
     private string _demoInputText = string.Empty;
     private PrototypePage _currentPage = PrototypePage.CoursewareAnalysis;
-    private CoursewareAnalysisStage _analysisStage = CoursewareAnalysisStage.Welcome;
     private CoursewareWorkspaceState _workspaceState = CoursewareWorkspaceState.Welcome;
     private CoursewareWorkspaceSession? _coursewareSession;
     private string? _loadErrorMessage;
     private string? _loadErrorDetails;
-    private CancellationTokenSource? _loadCancellationTokenSource;
+    private CancellationTokenSource? _workflowCancellationTokenSource;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursewareWorkspaceViewModel" /> class.
@@ -92,29 +59,27 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     /// </summary>
     /// <param name="coursewareFolderLoader">The courseware export folder loader.</param>
     /// <param name="dispatcher">The dispatcher used for ViewModel state updates.</param>
+    /// <param name="themeAnalysisService">The service used to analyze the loaded courseware theme.</param>
     public CoursewareWorkspaceViewModel(
         CoursewareFolderLoader coursewareFolderLoader,
-        IViewModelDispatcher? dispatcher = null)
+        IViewModelDispatcher? dispatcher = null,
+        ICoursewareThemeAnalysisService? themeAnalysisService = null)
     {
         ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
 
         _coursewareFolderLoader = coursewareFolderLoader;
+        _themeAnalysisService = themeAnalysisService ?? new CoursewareThemeAnalysisService();
         _dispatcher = dispatcher ?? WpfViewModelDispatcher.Instance;
         Slides = new ObservableCollection<DemoSlideViewModel>(CreateSlides());
         CoursewareThumbnails = new ObservableCollection<CoursewareThumbnailItemViewModel>();
-        ThemeColors = new ObservableCollection<DemoThemeColorViewModel>(CreateThemeColors());
-        TypographyLevels = new ObservableCollection<DemoTypographyLevelViewModel>(CreateTypographyLevels());
-        LayoutPrinciples = new ObservableCollection<string>(
-        [
-            "标题区保持稳定高度和对齐起点",
-            "每页只保留一个主要视觉焦点",
-            "公式、图形和说明文字遵守统一对齐线",
-            "例题、步骤和结论使用一致的视觉节奏",
-            "章节页与普通内容页形成明确变化",
-        ]);
-        PageTypeRecommendations = new ObservableCollection<DemoPageTypeRecommendationViewModel>(CreatePageTypeRecommendations());
-        ContentRules = new ObservableCollection<DemoThemeRuleViewModel>(CreateContentRules());
-        AnalysisSteps = new ObservableCollection<DemoAnalysisStepViewModel>(CreateAnalysisSteps());
+        ThemeColors = new ObservableCollection<DemoThemeColorViewModel>();
+        TypographyLevels = new ObservableCollection<DemoTypographyLevelViewModel>();
+        LayoutPrinciples = new ObservableCollection<string>();
+        PageTypeRecommendations = new ObservableCollection<DemoPageTypeRecommendationViewModel>();
+        ContentRules = new ObservableCollection<DemoThemeRuleViewModel>();
+        StyleKeywords = new ObservableCollection<string>();
+        AnalysisEvents = new ObservableCollection<CoursewareAnalysisEvent>();
+        AnalysisChatMessages = new ObservableCollection<CopilotChatMessage>();
         ChatMessages = new ObservableCollection<DemoChatMessageViewModel>(
         [
             new("Copilot", "我已读取当前页面内容和全局主题。可以继续调整例题讲解结构、视觉层级或生成新的 SlideML。", false),
@@ -125,7 +90,13 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
         _selectedSlide = Slides[4];
         _enterWorkspaceCommand = new RelayCommand(
             _ => CurrentPage = PrototypePage.SlideWorkspace,
-            _ => AnalysisStage == CoursewareAnalysisStage.AnalysisReady);
+            _ => WorkspaceState == CoursewareWorkspaceState.AnalysisReady);
+        _reanalyzeCommand = new RelayCommand(
+            _ => _ = ReanalyzeAsync(),
+            _ => CoursewareSession is not null && WorkspaceState is CoursewareWorkspaceState.AnalysisReady or CoursewareWorkspaceState.AnalysisFailed or CoursewareWorkspaceState.Canceled);
+        _cancelAnalysisCommand = new RelayCommand(
+            _ => _workflowCancellationTokenSource?.Cancel(),
+            _ => WorkspaceState == CoursewareWorkspaceState.AnalyzingCourseware);
         BackToAnalysisCommand = new RelayCommand(_ => CurrentPage = PrototypePage.CoursewareAnalysis);
         OpenDemoCommand = new RelayCommand(
             parameter =>
@@ -136,12 +107,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
                 }
             },
             _ => !IsCoursewareLoading);
-        ContinueLoadingCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.AnalyzingTheme);
-        CompleteAnalysisCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.AnalysisReady);
-        CancelDemoCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.Canceled);
-        ReanalyzeCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.AnalyzingTheme);
-        RetryDemoCommand = new RelayCommand(_ => AnalysisStage = CoursewareAnalysisStage.AnalyzingTheme);
-        OpenOtherCoursewareCommand = new RelayCommand(_ => ResetDemoCourseware());
+        OpenOtherCoursewareCommand = new RelayCommand(_ => ResetCourseware());
         ShowDemoStageCommand = new RelayCommand(ShowDemoStage);
         SendDemoMessageCommand = new RelayCommand(_ => AddDemoReply());
     }
@@ -159,12 +125,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     /// <summary>
     /// Gets the generated courseware theme name.
     /// </summary>
-    public string ThemeTitle => "数学推导与理性空间";
+    public string ThemeTitle => CoursewareSession?.ThemeAnalysisResult?.ThemeTitle ?? "正在形成课件主题";
 
     /// <summary>
     /// Gets the generated courseware theme summary.
     /// </summary>
-    public string ThemeDescription => "以清晰推导和理性表达为核心，通过稳定的蓝色体系、明确的标题层级和规整的图文对齐，建立适合初中数学教学的现代课堂视觉风格。";
+    public string ThemeDescription => CoursewareSession?.ThemeAnalysisResult?.ThemeDescription ?? "分析完成后将在这里展示整份课件的统一视觉主题。";
 
     /// <summary>
     /// Gets the slide count summary.
@@ -211,6 +177,10 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
                 OnPropertyChanged(nameof(CoursewareTitle));
                 OnPropertyChanged(nameof(SlideCountText));
                 OnPropertyChanged(nameof(InputHealthText));
+                OnPropertyChanged(nameof(ThemeTitle));
+                OnPropertyChanged(nameof(ThemeDescription));
+                OnPropertyChanged(nameof(ShowsCoursewareContext));
+                OnPropertyChanged(nameof(ShowsThemeResult));
             }
         }
     }
@@ -227,10 +197,18 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(IsCoursewareWelcome));
                 OnPropertyChanged(nameof(IsCoursewareLoading));
-                OnPropertyChanged(nameof(IsCoursewareLoaded));
+                OnPropertyChanged(nameof(IsAnalyzingTheme));
+                OnPropertyChanged(nameof(IsAnalysisReady));
                 OnPropertyChanged(nameof(IsCoursewareLoadFailed));
+                OnPropertyChanged(nameof(IsAnalysisFailed));
+                OnPropertyChanged(nameof(IsCanceled));
+                OnPropertyChanged(nameof(ShowsCoursewareContext));
+                OnPropertyChanged(nameof(ShowsThemeResult));
                 OnPropertyChanged(nameof(AnalysisStatus));
                 OnPropertyChanged(nameof(AnalysisCaption));
+                _enterWorkspaceCommand.RaiseCanExecuteChanged();
+                _reanalyzeCommand.RaiseCanExecuteChanged();
+                _cancelAnalysisCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -246,14 +224,39 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     public bool IsCoursewareLoading => WorkspaceState == CoursewareWorkspaceState.LoadingCourseware;
 
     /// <summary>
-    /// Gets a value indicating whether a real courseware package is available.
+    /// Gets a value indicating whether the loaded courseware is being analyzed.
     /// </summary>
-    public bool IsCoursewareLoaded => WorkspaceState == CoursewareWorkspaceState.CoursewareLoaded;
+    public bool IsAnalyzingTheme => WorkspaceState == CoursewareWorkspaceState.AnalyzingCourseware;
+
+    /// <summary>
+    /// Gets a value indicating whether the theme result is ready for review.
+    /// </summary>
+    public bool IsAnalysisReady => WorkspaceState == CoursewareWorkspaceState.AnalysisReady;
 
     /// <summary>
     /// Gets a value indicating whether the last real courseware load failed.
     /// </summary>
     public bool IsCoursewareLoadFailed => WorkspaceState == CoursewareWorkspaceState.LoadFailed;
+
+    /// <summary>
+    /// Gets a value indicating whether the last theme analysis failed.
+    /// </summary>
+    public bool IsAnalysisFailed => WorkspaceState == CoursewareWorkspaceState.AnalysisFailed;
+
+    /// <summary>
+    /// Gets a value indicating whether the current analysis was canceled.
+    /// </summary>
+    public bool IsCanceled => WorkspaceState == CoursewareWorkspaceState.Canceled;
+
+    /// <summary>
+    /// Gets a value indicating whether loaded courseware context is available.
+    /// </summary>
+    public bool ShowsCoursewareContext => CoursewareSession is not null;
+
+    /// <summary>
+    /// Gets a value indicating whether a complete theme result is available.
+    /// </summary>
+    public bool ShowsThemeResult => CoursewareSession?.ThemeAnalysisResult is not null;
 
     /// <summary>
     /// Gets the user-facing courseware load error.
@@ -299,9 +302,59 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     public ObservableCollection<DemoThemeRuleViewModel> ContentRules { get; }
 
     /// <summary>
-    /// Gets the completed analysis stages.
+    /// Gets style keywords produced by the active theme analysis.
     /// </summary>
-    public ObservableCollection<DemoAnalysisStepViewModel> AnalysisSteps { get; }
+    public ObservableCollection<string> StyleKeywords { get; }
+
+    /// <summary>
+    /// Gets user-facing events produced by the active theme analysis.
+    /// </summary>
+    public ObservableCollection<CoursewareAnalysisEvent> AnalysisEvents { get; }
+
+    /// <summary>
+    /// Gets the user-facing Copilot messages produced during theme analysis.
+    /// </summary>
+    public ObservableCollection<CopilotChatMessage> AnalysisChatMessages { get; }
+
+    /// <summary>
+    /// Gets the theme font recommendation summary.
+    /// </summary>
+    public string FontRecommendationText
+    {
+        get
+        {
+            var fonts = CoursewareSession?.ThemeAnalysisResult?.Theme.Fonts;
+            return fonts is null
+                ? "分析完成后显示字体建议"
+                : $"中文标题：{fonts.EastAsianHeading} · 中文正文：{fonts.EastAsianBody} · 西文：{fonts.LatinHeading} / {fonts.LatinBody}";
+        }
+    }
+
+    /// <summary>
+    /// Gets the theme safe-area summary.
+    /// </summary>
+    public string SafeAreaText
+    {
+        get
+        {
+            var safeArea = CoursewareSession?.ThemeAnalysisResult?.Theme.SafeArea;
+            return safeArea is null
+                ? "分析完成后显示安全区"
+                : $"左 {safeArea.Left:0.#} · 上 {safeArea.Top:0.#} · 右 {safeArea.Right:0.#} · 下 {safeArea.Bottom:0.#}";
+        }
+    }
+
+    /// <summary>
+    /// Gets the color-scheme rationale.
+    /// </summary>
+    public string ColorRationale => CoursewareSession?.ThemeAnalysisResult?.Theme.Colors.Rationale ?? "分析完成后显示配色依据。";
+
+    /// <summary>
+    /// Gets combined input and analysis warnings.
+    /// </summary>
+    public IReadOnlyList<string> AnalysisWarnings => CoursewareSession?.ThemeAnalysisResult?.Warnings
+        ?? CoursewareSession?.InputPackage.Warnings.Select(warning => warning.Message).ToArray()
+        ?? [];
 
     /// <summary>
     /// Gets the demonstration chat messages for the slide workspace.
@@ -385,89 +438,17 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     public bool IsWorkspacePage => CurrentPage == PrototypePage.SlideWorkspace;
 
     /// <summary>
-    /// Gets or sets the presentation-only state of the analysis page.
-    /// </summary>
-    public CoursewareAnalysisStage AnalysisStage
-    {
-        get => _analysisStage;
-        private set
-        {
-            if (SetProperty(ref _analysisStage, value))
-            {
-                CurrentPage = PrototypePage.CoursewareAnalysis;
-                OnPropertyChanged(nameof(IsWelcome));
-                OnPropertyChanged(nameof(IsLoadingCourseware));
-                OnPropertyChanged(nameof(IsAnalyzingTheme));
-                OnPropertyChanged(nameof(IsAnalysisReady));
-                OnPropertyChanged(nameof(IsAnalysisFailed));
-                OnPropertyChanged(nameof(IsCanceled));
-                OnPropertyChanged(nameof(ShowsCoursewareContext));
-                OnPropertyChanged(nameof(ShowsThemeResult));
-                OnPropertyChanged(nameof(AnalysisStatus));
-                OnPropertyChanged(nameof(AnalysisCaption));
-                _enterWorkspaceCommand.RaiseCanExecuteChanged();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether the welcome state is visible.
-    /// </summary>
-    public bool IsWelcome => AnalysisStage == CoursewareAnalysisStage.Welcome;
-
-    /// <summary>
-    /// Gets a value indicating whether the loading state is visible.
-    /// </summary>
-    public bool IsLoadingCourseware => AnalysisStage == CoursewareAnalysisStage.LoadingCourseware;
-
-    /// <summary>
-    /// Gets a value indicating whether the analyzing state is visible.
-    /// </summary>
-    public bool IsAnalyzingTheme => AnalysisStage == CoursewareAnalysisStage.AnalyzingTheme;
-
-    /// <summary>
-    /// Gets a value indicating whether the theme result is ready.
-    /// </summary>
-    public bool IsAnalysisReady => AnalysisStage == CoursewareAnalysisStage.AnalysisReady;
-
-    /// <summary>
-    /// Gets a value indicating whether the failed state is visible.
-    /// </summary>
-    public bool IsAnalysisFailed => AnalysisStage == CoursewareAnalysisStage.AnalysisFailed;
-
-    /// <summary>
-    /// Gets a value indicating whether the canceled state is visible.
-    /// </summary>
-    public bool IsCanceled => AnalysisStage == CoursewareAnalysisStage.Canceled;
-
-    /// <summary>
-    /// Gets a value indicating whether courseware context is available.
-    /// </summary>
-    public bool ShowsCoursewareContext => AnalysisStage != CoursewareAnalysisStage.Welcome;
-
-    /// <summary>
-    /// Gets a value indicating whether a complete theme result is available.
-    /// </summary>
-    public bool ShowsThemeResult => AnalysisStage == CoursewareAnalysisStage.AnalysisReady;
-
-    /// <summary>
     /// Gets the current analysis status.
     /// </summary>
     public string AnalysisStatus => WorkspaceState switch
     {
         CoursewareWorkspaceState.LoadingCourseware => "正在读取课件",
-        CoursewareWorkspaceState.CoursewareLoaded => "课件已加载",
+        CoursewareWorkspaceState.AnalyzingCourseware => "正在分析全课件主题",
+        CoursewareWorkspaceState.AnalysisReady => "全课件分析已完成",
         CoursewareWorkspaceState.LoadFailed => "课件读取失败",
-        _ => AnalysisStage switch
-        {
-            CoursewareAnalysisStage.Welcome => "等待打开课件",
-            CoursewareAnalysisStage.LoadingCourseware => "正在读取课件",
-            CoursewareAnalysisStage.AnalyzingTheme => "正在分析全课件主题",
-            CoursewareAnalysisStage.AnalysisReady => "全课件分析已完成",
-            CoursewareAnalysisStage.AnalysisFailed => "主题分析失败",
-            CoursewareAnalysisStage.Canceled => "主题分析已取消",
-            _ => string.Empty,
-        },
+        CoursewareWorkspaceState.AnalysisFailed => "主题分析失败",
+        CoursewareWorkspaceState.Canceled => "主题分析已取消",
+        _ => "等待打开课件",
     };
 
     /// <summary>
@@ -476,18 +457,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     public string AnalysisCaption => WorkspaceState switch
     {
         CoursewareWorkspaceState.LoadingCourseware => "正在解析清单、Markdown、资源和截图",
-        CoursewareWorkspaceState.CoursewareLoaded => $"已加载 {CoursewareThumbnails.Count} 页，等待后续主题分析",
+        CoursewareWorkspaceState.AnalyzingCourseware => $"已读取 {CoursewareThumbnails.Count} 页，正在归纳内容层级、配色、字体与版式",
+        CoursewareWorkspaceState.AnalysisReady => $"已完整查看 {CoursewareThumbnails.Count} 页课件并形成统一主题",
         CoursewareWorkspaceState.LoadFailed => "请选择有效的课件 Markdown 导出文件夹",
-        _ => AnalysisStage switch
-        {
-            CoursewareAnalysisStage.Welcome => "打开课件后将先形成统一视觉主题",
-            CoursewareAnalysisStage.LoadingCourseware => $"正在准备 {Slides.Count} 页演示课件内容",
-            CoursewareAnalysisStage.AnalyzingTheme => "正在归纳内容层级、配色、字体与版式",
-            CoursewareAnalysisStage.AnalysisReady => $"已完整查看 {Slides.Count} 页课件并形成统一主题",
-            CoursewareAnalysisStage.AnalysisFailed => "演示错误：主题结构校验未通过",
-            CoursewareAnalysisStage.Canceled => "已保留课件概览，可随时重新分析",
-            _ => string.Empty,
-        },
+        CoursewareWorkspaceState.AnalysisFailed => "课件和缩略图已保留，可以修复配置后重试",
+        CoursewareWorkspaceState.Canceled => "已保留课件概览，可随时重新分析",
+        _ => "打开课件后将自动形成统一视觉主题",
     };
 
     /// <summary>
@@ -506,29 +481,19 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     public ICommand OpenDemoCommand { get; }
 
     /// <summary>
-    /// Gets the command that advances loading to theme analysis.
+    /// Gets the command that cancels the active theme analysis.
     /// </summary>
-    public ICommand ContinueLoadingCommand { get; }
-
-    /// <summary>
-    /// Gets the command that completes the demonstration analysis.
-    /// </summary>
-    public ICommand CompleteAnalysisCommand { get; }
-
-    /// <summary>
-    /// Gets the command that cancels the demonstration analysis.
-    /// </summary>
-    public ICommand CancelDemoCommand { get; }
+    public ICommand CancelAnalysisCommand => _cancelAnalysisCommand;
 
     /// <summary>
     /// Gets the command that restarts the demonstration analysis.
     /// </summary>
-    public ICommand ReanalyzeCommand { get; }
+    public ICommand ReanalyzeCommand => _reanalyzeCommand;
 
     /// <summary>
     /// Gets the command that retries the failed demonstration analysis.
     /// </summary>
-    public ICommand RetryDemoCommand { get; }
+    public ICommand RetryDemoCommand => _reanalyzeCommand;
 
     /// <summary>
     /// Gets the command that resets the prototype to another demonstration courseware.
@@ -558,7 +523,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
         }
 
         var cancellationTokenSource = new CancellationTokenSource();
-        var previousCancellationTokenSource = Interlocked.Exchange(ref _loadCancellationTokenSource, cancellationTokenSource);
+        var previousCancellationTokenSource = Interlocked.Exchange(ref _workflowCancellationTokenSource, cancellationTokenSource);
         previousCancellationTokenSource?.Cancel();
         previousCancellationTokenSource?.Dispose();
 
@@ -571,7 +536,8 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
 
         try
         {
-            var package = await _coursewareFolderLoader.LoadAsync(folderPath, cancellationTokenSource.Token).ConfigureAwait(false);
+            var package = await _coursewareFolderLoader.LoadAsync(folderPath, cancellationTokenSource.Token).ConfigureAwait(true);
+            var analysisRunId = Guid.NewGuid();
             var thumbnails = new List<CoursewareThumbnailItemViewModel>(package.Slides.Count);
             foreach (var slide in package.Slides)
             {
@@ -582,19 +548,40 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
             await _dispatcher.InvokeAsync(() =>
             {
                 CoursewareThumbnails.Clear();
+                CoursewareSession = null;
                 foreach (var thumbnail in thumbnails)
                 {
                     CoursewareThumbnails.Add(thumbnail);
                 }
 
-                CoursewareSession = new CoursewareWorkspaceSession(package);
-                WorkspaceState = CoursewareWorkspaceState.CoursewareLoaded;
+                CoursewareSession = new CoursewareWorkspaceSession(package)
+                {
+                    ActiveAnalysisRunId = analysisRunId,
+                    AnalysisStartedAt = DateTimeOffset.UtcNow,
+                };
+                ClearAnalysisPresentation();
+                WorkspaceState = CoursewareWorkspaceState.AnalyzingCourseware;
                 OnPropertyChanged(nameof(SlideCountText));
                 OnPropertyChanged(nameof(InputHealthText));
             });
+
+            var progress = CreateAnalysisProgress(package, analysisRunId);
+            var analysisResult = await _themeAnalysisService.AnalyzeAsync(
+                package,
+                progress,
+                CreateAnalysisMessageProgress(package, analysisRunId),
+                cancellationTokenSource.Token).ConfigureAwait(false);
+            await _dispatcher.InvokeAsync(() => PublishAnalysisResult(package, analysisRunId, analysisResult));
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
         {
+            await _dispatcher.InvokeAsync(() =>
+            {
+                if (ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource) && CoursewareSession is not null)
+                {
+                    WorkspaceState = CoursewareWorkspaceState.Canceled;
+                }
+            });
         }
         catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or InvalidDataException or IOException or UnauthorizedAccessException or JsonException)
         {
@@ -607,12 +594,249 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
                 WorkspaceState = CoursewareWorkspaceState.LoadFailed;
             });
         }
+        catch (Exception ex) when (ex is InvalidOperationException or TimeoutException)
+        {
+            await _dispatcher.InvokeAsync(() =>
+            {
+                LoadErrorMessage = ex.Message;
+                LoadErrorDetails = ex.ToString();
+                WorkspaceState = CoursewareWorkspaceState.AnalysisFailed;
+            });
+        }
         finally
         {
-            if (ReferenceEquals(Interlocked.CompareExchange(ref _loadCancellationTokenSource, null, cancellationTokenSource), cancellationTokenSource))
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _workflowCancellationTokenSource, null, cancellationTokenSource), cancellationTokenSource))
             {
                 cancellationTokenSource.Dispose();
             }
+        }
+    }
+
+    private async Task ReanalyzeAsync()
+    {
+        var session = CoursewareSession;
+        if (session is null)
+        {
+            return;
+        }
+
+        var cancellationTokenSource = new CancellationTokenSource();
+        var analysisRunId = Guid.NewGuid();
+        var previousCancellationTokenSource = Interlocked.Exchange(ref _workflowCancellationTokenSource, cancellationTokenSource);
+        previousCancellationTokenSource?.Cancel();
+        previousCancellationTokenSource?.Dispose();
+
+        await _dispatcher.InvokeAsync(() =>
+        {
+            session.ThemeAnalysisResult = null;
+            session.ActiveAnalysisRunId = analysisRunId;
+            session.AnalysisStartedAt = DateTimeOffset.UtcNow;
+            ClearAnalysisPresentation();
+            LoadErrorMessage = null;
+            LoadErrorDetails = null;
+            WorkspaceState = CoursewareWorkspaceState.AnalyzingCourseware;
+            OnPropertyChanged(nameof(ShowsThemeResult));
+        });
+
+        try
+        {
+            var progress = CreateAnalysisProgress(session.InputPackage, analysisRunId);
+            var analysisResult = await _themeAnalysisService.AnalyzeAsync(
+                session.InputPackage,
+                progress,
+                CreateAnalysisMessageProgress(session.InputPackage, analysisRunId),
+                cancellationTokenSource.Token).ConfigureAwait(false);
+            await _dispatcher.InvokeAsync(() => PublishAnalysisResult(session.InputPackage, analysisRunId, analysisResult));
+        }
+        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+        {
+            await _dispatcher.InvokeAsync(() =>
+            {
+                if (ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
+                {
+                    WorkspaceState = CoursewareWorkspaceState.Canceled;
+                }
+            });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or TimeoutException)
+        {
+            await _dispatcher.InvokeAsync(() =>
+            {
+                LoadErrorMessage = ex.Message;
+                LoadErrorDetails = ex.ToString();
+                WorkspaceState = CoursewareWorkspaceState.AnalysisFailed;
+            });
+        }
+        finally
+        {
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _workflowCancellationTokenSource, null, cancellationTokenSource), cancellationTokenSource))
+            {
+                cancellationTokenSource.Dispose();
+            }
+        }
+    }
+
+    private void PublishAnalysisResult(
+        CoursewareInputPackage inputPackage,
+        Guid analysisRunId,
+        CoursewareThemeAnalysisResult analysisResult)
+    {
+        if (CoursewareSession is null
+            || !ReferenceEquals(CoursewareSession.InputPackage, inputPackage)
+            || CoursewareSession.ActiveAnalysisRunId != analysisRunId)
+        {
+            return;
+        }
+
+        CoursewareSession.ThemeAnalysisResult = analysisResult;
+        ApplyThemePresentation(analysisResult.Theme);
+        WorkspaceState = CoursewareWorkspaceState.AnalysisReady;
+        OnPropertyChanged(nameof(ThemeTitle));
+        OnPropertyChanged(nameof(ThemeDescription));
+        OnPropertyChanged(nameof(ShowsThemeResult));
+        OnPropertyChanged(nameof(FontRecommendationText));
+        OnPropertyChanged(nameof(SafeAreaText));
+        OnPropertyChanged(nameof(ColorRationale));
+        OnPropertyChanged(nameof(AnalysisWarnings));
+    }
+
+    private IProgress<CoursewareAnalysisEvent> CreateAnalysisProgress(
+        CoursewareInputPackage inputPackage,
+        Guid analysisRunId)
+    {
+        return new AnalysisProgress<CoursewareAnalysisEvent>(analysisEvent =>
+        {
+            _ = _dispatcher.InvokeAsync(() =>
+            {
+                if (CoursewareSession is null
+                    || !ReferenceEquals(CoursewareSession.InputPackage, inputPackage)
+                    || CoursewareSession.ActiveAnalysisRunId != analysisRunId)
+                {
+                    return;
+                }
+
+                UpdateAnalysisStage(analysisEvent);
+            });
+        });
+    }
+
+    private IProgress<CopilotChatMessage> CreateAnalysisMessageProgress(
+        CoursewareInputPackage inputPackage,
+        Guid analysisRunId)
+    {
+        return new AnalysisProgress<CopilotChatMessage>(message =>
+        {
+            _ = _dispatcher.InvokeAsync(() =>
+            {
+                if (CoursewareSession is null
+                    || !ReferenceEquals(CoursewareSession.InputPackage, inputPackage)
+                    || CoursewareSession.ActiveAnalysisRunId != analysisRunId)
+                {
+                    return;
+                }
+
+                AnalysisChatMessages.Add(message);
+            });
+        });
+    }
+
+    private sealed class AnalysisProgress<T>(Action<T> report) : IProgress<T>
+    {
+        private readonly Action<T> _report = report;
+
+        public void Report(T value)
+        {
+            _report(value);
+        }
+    }
+
+    private void UpdateAnalysisStage(CoursewareAnalysisEvent analysisEvent)
+    {
+        var existingIndex = -1;
+        for (var index = 0; index < AnalysisEvents.Count; index++)
+        {
+            if (AnalysisEvents[index].Stage == analysisEvent.Stage)
+            {
+                existingIndex = index;
+                break;
+            }
+        }
+
+        if (existingIndex >= 0)
+        {
+            AnalysisEvents[existingIndex] = analysisEvent;
+            return;
+        }
+
+        var insertIndex = 0;
+        while (insertIndex < AnalysisEvents.Count && AnalysisEvents[insertIndex].Stage < analysisEvent.Stage)
+        {
+            insertIndex++;
+        }
+
+        AnalysisEvents.Insert(insertIndex, analysisEvent);
+    }
+
+    private void ApplyThemePresentation(CoursewareTheme theme)
+    {
+        ThemeColors.Clear();
+        foreach (var color in theme.Colors.EnumerateColors())
+        {
+            ThemeColors.Add(new DemoThemeColorViewModel(color.Usage, color.Name, color.HexValue));
+        }
+
+        TypographyLevels.Clear();
+        foreach (var level in theme.Typography.EnumerateLevels())
+        {
+            TypographyLevels.Add(new DemoTypographyLevelViewModel(
+                level.Name,
+                $"{level.FontSize:0.#} / {level.FontWeight}",
+                level.Purpose));
+        }
+
+        ReplaceItems(StyleKeywords, theme.StyleKeywords);
+        ReplaceItems(LayoutPrinciples, theme.LayoutPrinciples);
+
+        PageTypeRecommendations.Clear();
+        var recommendationNumber = 1;
+        foreach (var recommendation in theme.PageTypes.EnumerateRecommendations())
+        {
+            PageTypeRecommendations.Add(new DemoPageTypeRecommendationViewModel(
+                recommendation.Name,
+                recommendationNumber.ToString("00"),
+                recommendation.Description));
+            recommendationNumber++;
+        }
+
+        ContentRules.Clear();
+        foreach (var rule in theme.ContentPresentationRules)
+        {
+            ContentRules.Add(new DemoThemeRuleViewModel("内容呈现", rule));
+        }
+    }
+
+    private void ClearAnalysisPresentation()
+    {
+        AnalysisEvents.Clear();
+        AnalysisChatMessages.Clear();
+        StyleKeywords.Clear();
+        ThemeColors.Clear();
+        TypographyLevels.Clear();
+        LayoutPrinciples.Clear();
+        PageTypeRecommendations.Clear();
+        ContentRules.Clear();
+        OnPropertyChanged(nameof(FontRecommendationText));
+        OnPropertyChanged(nameof(SafeAreaText));
+        OnPropertyChanged(nameof(ColorRationale));
+        OnPropertyChanged(nameof(AnalysisWarnings));
+    }
+
+    private static void ReplaceItems<T>(ObservableCollection<T> target, IEnumerable<T> source)
+    {
+        target.Clear();
+        foreach (var item in source)
+        {
+            target.Add(item);
         }
     }
 
@@ -632,58 +856,22 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
         }
     }
 
-    private static IEnumerable<DemoThemeColorViewModel> CreateThemeColors()
+    private void ResetCourseware()
     {
-        yield return new DemoThemeColorViewModel("主色", "教学蓝", "#2563EB");
-        yield return new DemoThemeColorViewModel("强调色", "重点橙", "#F59E0B");
-        yield return new DemoThemeColorViewModel("页面背景", "雾白", "#F8FAFC");
-        yield return new DemoThemeColorViewModel("主文字", "深墨", "#0F172A");
-        yield return new DemoThemeColorViewModel("次文字", "石板灰", "#475569");
-    }
-
-    private static IEnumerable<DemoTypographyLevelViewModel> CreateTypographyLevels()
-    {
-        yield return new DemoTypographyLevelViewModel("一级标题", "32 pt / Bold", "建立课题与章节焦点");
-        yield return new DemoTypographyLevelViewModel("二级标题", "24 pt / SemiBold", "组织推导步骤与知识模块");
-        yield return new DemoTypographyLevelViewModel("正文", "18 pt / Regular", "保证教室投影下的远距离阅读");
-        yield return new DemoTypographyLevelViewModel("辅助文字", "14 pt / Regular", "仅用于注释、来源和次要说明");
-    }
-
-    private static IEnumerable<DemoPageTypeRecommendationViewModel> CreatePageTypeRecommendations()
-    {
-        yield return new DemoPageTypeRecommendationViewModel("封面页", "01", "聚焦课题名称，以几何线框建立学科识别，减少说明文字。");
-        yield return new DemoPageTypeRecommendationViewModel("章节页", "02", "使用大标题、章节编号和留白，形成清晰的课堂节奏变化。");
-        yield return new DemoPageTypeRecommendationViewModel("内容页", "03", "优先展示推导关系，图形、公式和解释沿统一基线组织。");
-        yield return new DemoPageTypeRecommendationViewModel("练习与总结", "04", "练习页突出任务边界，总结页集中呈现方法与关键结论。");
-    }
-
-    private static IEnumerable<DemoThemeRuleViewModel> CreateContentRules()
-    {
-        yield return new DemoThemeRuleViewModel("公式与推导", "按步骤逐层展开；等号与关键符号对齐；最终结论使用橙色强调带。");
-        yield return new DemoThemeRuleViewModel("几何图形", "图形与条件说明成组摆放，辅助线使用低饱和蓝，避免与结论争夺焦点。");
-        yield return new DemoThemeRuleViewModel("课堂节奏", "导入保持轻量，例题强化步骤，练习减少装饰，总结回收核心方法。");
-    }
-
-    private static IEnumerable<DemoAnalysisStepViewModel> CreateAnalysisSteps()
-    {
-        yield return new DemoAnalysisStepViewModel("1. 课件读取", "已读取课件基本信息");
-        yield return new DemoAnalysisStepViewModel("2. 页面结构识别", "已识别封面、章节页和内容页结构");
-        yield return new DemoAnalysisStepViewModel("3. 内容层级归纳", "已归纳数学课件的内容层级与讲解节奏");
-        yield return new DemoAnalysisStepViewModel("4. 视觉重点分析", "已分析页面比例、图文分布和视觉重点");
-        yield return new DemoAnalysisStepViewModel("5. 主题建议生成", "已形成配色、字体和版式建议");
-        yield return new DemoAnalysisStepViewModel("6. 主题结构校验", "已完成主题结构校验");
-    }
-
-    private void ResetDemoCourseware()
-    {
-        AnalysisStage = CoursewareAnalysisStage.Welcome;
+        _workflowCancellationTokenSource?.Cancel();
+        CoursewareSession = null;
+        CoursewareThumbnails.Clear();
+        ClearAnalysisPresentation();
+        LoadErrorMessage = null;
+        LoadErrorDetails = null;
+        WorkspaceState = CoursewareWorkspaceState.Welcome;
     }
 
     private void ShowDemoStage(object? parameter)
     {
-        if (parameter is string stageName && Enum.TryParse<CoursewareAnalysisStage>(stageName, out var stage))
+        if (parameter is string stageName && Enum.TryParse<CoursewareWorkspaceState>(stageName, out var stage))
         {
-            AnalysisStage = stage;
+            WorkspaceState = stage;
         }
     }
 
@@ -747,3 +935,4 @@ public sealed record DemoAnalysisStepViewModel(string Title, string Description)
 /// Represents a demonstration chat message.
 /// </summary>
 public sealed record DemoChatMessageViewModel(string Author, string Text, bool IsUser);
+

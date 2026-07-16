@@ -12,4 +12,6 @@ namespace CoursewarePptxGeneratorWpfDemo.Models;
 [JsonSerializable(typeof(CoursewareExportSlideEntry))]
 [JsonSerializable(typeof(CoursewareResourceEntry))]
 [JsonSerializable(typeof(CoursewareResourceEntry[]))]
+[JsonSerializable(typeof(CoursewareTheme))]
+[JsonSerializable(typeof(CoursewareThemeAnalysisResult))]
 public sealed partial class CoursewareExportJsonSerializerContext : JsonSerializerContext;

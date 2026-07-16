@@ -1,7 +1,5 @@
-using System.IO;
 using AgentLib;
 using AgentLib.Core;
-using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using PptxGenerator;
 using PptxGenerator.Evaluation;
 using PptxGenerator.Pipeline;
@@ -14,22 +12,32 @@ namespace CoursewarePptxGeneratorWpfDemo.Services;
 /// </summary>
 public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
 {
-    private const string AgentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
-    private const string DefaultModelName = "qwen3.7-plus";
-
     /// <summary>
     /// Gets the default MCP service URL used by the courseware renderer.
     /// </summary>
     public static string DefaultMcpServiceUrl => "http://127.0.0.1:64773/mcp";
 
     private readonly WpfDispatcher _dispatcher;
+    private readonly ICopilotChatManagerFactory _chatManagerFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SlideChatManagerFactory" /> class.
     /// </summary>
     public SlideChatManagerFactory()
+        : this(new CopilotChatManagerFactory())
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SlideChatManagerFactory" /> class.
+    /// </summary>
+    /// <param name="chatManagerFactory">The shared language-model chat manager factory.</param>
+    public SlideChatManagerFactory(ICopilotChatManagerFactory chatManagerFactory)
+    {
+        ArgumentNullException.ThrowIfNull(chatManagerFactory);
+
         _dispatcher = WpfDispatcher.Instance;
+        _chatManagerFactory = chatManagerFactory;
     }
 
     /// <summary>
@@ -38,7 +46,8 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
     /// <returns>The configured <see cref="SlideChatManager" />.</returns>
     public async Task<SlideChatManager> CreateAsync()
     {
-        var copilotChatManager = await CreateCopilotChatManagerAsync(useMainThreadDispatcher: true).ConfigureAwait(false);
+        var copilotChatManager = await _chatManagerFactory.CreateAsync(
+            AgentWorkload.SlideGeneration).ConfigureAwait(false);
         var renderPipeline = CreateRenderPipeline();
         _ = Task.Run(async () =>
         {
@@ -47,7 +56,8 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
 
         var slideMlRenderTool = CreateRenderTool(renderPipeline);
 
-        var evaluatorChatManager = await CreateCopilotChatManagerAsync(useMainThreadDispatcher: false).ConfigureAwait(false);
+        var evaluatorChatManager = await _chatManagerFactory.CreateAsync(
+            AgentWorkload.Evaluation).ConfigureAwait(false);
         var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
         var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
         var promptOptimizer = new AiPromptOptimizer(evaluatorChatManager);
@@ -81,22 +91,4 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
         return new SlideMlRenderTool(renderPipeline, _dispatcher);
     }
 
-    private async Task<CopilotChatManager> CreateCopilotChatManagerAsync(bool useMainThreadDispatcher)
-    {
-        var copilotChatManager = useMainThreadDispatcher
-            ? new CopilotChatManager { MainThreadDispatcher = _dispatcher }
-            : new CopilotChatManager();
-
-        var endpointManager = copilotChatManager.AgentApiEndpointManager;
-        await endpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(AgentConfigurationFile)).ConfigureAwait(false);
-
-        var primaryModel = endpointManager.GetModel(DefaultModelName);
-        if (primaryModel is null)
-        {
-            throw new InvalidOperationException("未找到指定的语言模型。");
-        }
-
-        endpointManager.PrimaryModel = primaryModel;
-        return copilotChatManager;
-    }
 }

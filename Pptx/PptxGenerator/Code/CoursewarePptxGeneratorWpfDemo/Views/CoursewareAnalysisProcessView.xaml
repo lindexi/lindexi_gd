@@ -10,28 +10,69 @@
     <Border Style="{StaticResource AnalysisCardStyle}">
         <StackPanel>
             <TextBlock Text="分析过程" Style="{StaticResource AnalysisSectionTitleTextStyle}" />
-            <ItemsControl ItemsSource="{Binding AnalysisSteps}" Margin="0,12,0,0">
+            <ItemsControl ItemsSource="{Binding AnalysisEvents}" Margin="0,12,0,0">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <DockPanel Margin="0,0,0,12">
                             <Border Width="20"
                                     Height="20"
-                                    Background="{StaticResource AnalysisTealLightBrush}"
                                     CornerRadius="10"
                                     Margin="0,0,9,0">
-                                <TextBlock Text="✓"
-                                           Foreground="{StaticResource AnalysisTealDarkBrush}"
-                                           FontSize="12"
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#E9F0F2" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding State}" Value="Running">
+                                                <Setter Property="Background" Value="#DCECF8" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding State}" Value="Completed">
+                                                <Setter Property="Background" Value="{StaticResource AnalysisTealLightBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding State}" Value="Warning">
+                                                <Setter Property="Background" Value="#FFF3D6" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding State}" Value="Failed">
+                                                <Setter Property="Background" Value="#FDE8E8" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock FontSize="12"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" />
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="○" />
+                                            <Setter Property="Foreground" Value="{StaticResource AnalysisMutedBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding State}" Value="Running">
+                                                    <Setter Property="Text" Value="…" />
+                                                    <Setter Property="Foreground" Value="#2563A5" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Completed">
+                                                    <Setter Property="Text" Value="✓" />
+                                                    <Setter Property="Foreground" Value="{StaticResource AnalysisTealDarkBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Warning">
+                                                    <Setter Property="Text" Value="!" />
+                                                    <Setter Property="Foreground" Value="#B76C00" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Failed">
+                                                    <Setter Property="Text" Value="×" />
+                                                    <Setter Property="Foreground" Value="#B42318" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </Border>
                             <StackPanel>
                                 <TextBlock Text="{Binding Title}"
                                            Foreground="{StaticResource AnalysisNavyBrush}"
                                            FontSize="14"
                                            FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding Description}"
+                                <TextBlock Text="{Binding Message}"
                                            Style="{StaticResource AnalysisBodyTextStyle}"
                                            FontSize="12"
                                            LineHeight="18" />
@@ -52,14 +93,9 @@
                     </Style>
                 </StackPanel.Style>
                 <Button Content="取消分析"
-                        Command="{Binding CancelDemoCommand}"
+                        Command="{Binding CancelAnalysisCommand}"
                         Style="{StaticResource AnalysisSecondaryButtonStyle}"
                         HorizontalAlignment="Left" />
-                <Button Content="完成分析"
-                        Command="{Binding CompleteAnalysisCommand}"
-                        Style="{StaticResource AnalysisPrimaryButtonStyle}"
-                        HorizontalAlignment="Left"
-                        Margin="0,8,0,0" />
             </StackPanel>
         </StackPanel>
     </Border>

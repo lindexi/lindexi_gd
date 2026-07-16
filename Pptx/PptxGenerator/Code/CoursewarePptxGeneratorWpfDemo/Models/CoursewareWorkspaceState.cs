@@ -16,12 +16,27 @@ public enum CoursewareWorkspaceState
     LoadingCourseware,
 
     /// <summary>
-    /// The courseware input package and thumbnails are available.
+    /// The loaded courseware is being analyzed as a whole.
     /// </summary>
-    CoursewareLoaded,
+    AnalyzingCourseware,
+
+    /// <summary>
+    /// The courseware theme analysis result is available for review.
+    /// </summary>
+    AnalysisReady,
 
     /// <summary>
     /// The selected courseware folder could not be loaded.
     /// </summary>
     LoadFailed,
+
+    /// <summary>
+    /// The courseware was loaded, but its theme analysis failed.
+    /// </summary>
+    AnalysisFailed,
+
+    /// <summary>
+    /// The current courseware workflow was canceled.
+    /// </summary>
+    Canceled,
 }

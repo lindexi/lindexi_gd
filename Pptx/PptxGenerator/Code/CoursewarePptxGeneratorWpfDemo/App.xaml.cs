@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using CoursewarePptxGeneratorWpfDemo.Services;
+using CoursewarePptxGeneratorWpfDemo.Threading;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
 
 namespace CoursewarePptxGeneratorWpfDemo;
@@ -14,7 +16,10 @@ public partial class App : Application
 
         var mainWindow = new MainWindow
         {
-            DataContext = new CoursewareWorkspaceViewModel(),
+            DataContext = new CoursewareWorkspaceViewModel(
+                new CoursewareFolderLoader(),
+                WpfViewModelDispatcher.Instance,
+                themeAnalysisService: new CoursewareThemeAnalysisService()),
         };
         mainWindow.Show();
     }
