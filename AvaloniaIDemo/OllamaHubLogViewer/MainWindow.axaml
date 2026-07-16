@@ -59,7 +59,7 @@
                                                Grid.Column="1"
                                                Margin="8,0,0,0"
                                                Classes="Metadata"
-                                               Text="{Binding FileSummary}" />
+                                               Text="{Binding SessionSummaryText}" />
                                     <TextBlock Grid.Row="1"
                                                Grid.Column="0"
                                                Grid.ColumnSpan="2"
@@ -100,6 +100,9 @@
                         <TextBlock Classes="Secondary"
                                    Text="{Binding StatusText}"
                                    TextWrapping="Wrap" />
+                        <TextBlock Classes="MergeText"
+                                   IsVisible="{Binding HasMergeStatus}"
+                                   Text="{Binding MergeStatusText}" />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -115,6 +118,17 @@
                         <SelectableTextBlock Classes="DetailContent"
                                              IsVisible="{Binding HasSessionMetadata}"
                                              Text="{Binding SessionMetadataText}" />
+                        <Border Classes="MergeCard"
+                                Margin="0,4,0,0"
+                                IsVisible="{Binding HasMergedSelectedSession}">
+                            <StackPanel Spacing="2">
+                                <TextBlock Classes="MergeText"
+                                           FontWeight="SemiBold"
+                                           Text="已自动切换到合并会话" />
+                                <SelectableTextBlock Classes="MergeContent"
+                                                     Text="{Binding SelectedSessionMergeText}" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <Border Grid.Column="1"
@@ -185,11 +199,11 @@
                                TextAlignment="Center" />
                 </StackPanel>
 
-                <ScrollViewer Padding="16,12,20,24"
-                              IsVisible="{Binding HasMessages}"
+                <ScrollViewer IsVisible="{Binding HasMessages}"
                               HorizontalScrollBarVisibility="Disabled"
                               VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Messages}">
+                    <ItemsControl Margin="16,12,20,24"
+                                  ItemsSource="{Binding Messages}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChatMessageViewModel">
                                 <Grid Margin="8,5" ColumnDefinitions="40,*,40">

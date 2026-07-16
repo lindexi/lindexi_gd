@@ -31,6 +31,8 @@ internal sealed class OpenAiLogLoader
         List<LogChatMessage> messages = [];
         List<string> warnings = [];
         string requestModel = string.Empty;
+        int requestMessageCount = 0;
+        bool requestParseSucceeded = false;
 
         if (File.Exists(requestPath))
         {
@@ -39,6 +41,8 @@ internal sealed class OpenAiLogLoader
                 (IReadOnlyList<LogChatMessage> requestMessages, requestModel) =
                     await ParseRequestAsync(requestPath, cancellationToken).ConfigureAwait(false);
                 messages.AddRange(requestMessages);
+                requestMessageCount = requestMessages.Count;
+                requestParseSucceeded = true;
             }
             catch (JsonException exception)
             {
@@ -61,6 +65,10 @@ internal sealed class OpenAiLogLoader
             : requestModel;
         return new LogConversation(
             messages,
+            requestMessageCount,
+            requestParseSucceeded,
+            responseResult.InvalidLineCount,
+            responseResult.Completed,
             model,
             responseResult.ResponseId,
             responseResult.CreatedAt,
@@ -127,6 +135,7 @@ internal sealed class OpenAiLogLoader
         DateTimeOffset? createdAt = null;
         var usageBuilder = new UsageBuilder();
         int invalidLineCount = 0;
+        bool completed = false;
 
         await using FileStream stream = new(
             responsePath,
@@ -141,8 +150,14 @@ internal sealed class OpenAiLogLoader
         {
             cancellationToken.ThrowIfCancellationRequested();
             string payload = NormalizeResponseLine(line);
-            if (payload.Length == 0 || string.Equals(payload, "[DONE]", StringComparison.Ordinal))
+            if (payload.Length == 0)
             {
+                continue;
+            }
+
+            if (string.Equals(payload, "[DONE]", StringComparison.Ordinal))
+            {
+                completed = true;
                 continue;
             }
 
@@ -154,6 +169,7 @@ internal sealed class OpenAiLogLoader
                 model = FirstNonEmpty(model, GetString(root, "model"));
                 createdAt ??= ReadResponseTimestamp(root);
                 usageBuilder.Append(root);
+                completed |= IsResponseCompleted(root);
 
                 if (root.TryGetProperty("choices", out JsonElement choicesElement)
                     && choicesElement.ValueKind == JsonValueKind.Array)
@@ -201,7 +217,45 @@ internal sealed class OpenAiLogLoader
             warnings.Add("response.log 中没有可显示的助手响应。");
         }
 
-        return new ResponseParseResult(messages, model, responseId, createdAt, usageBuilder.Build(), warnings);
+        return new ResponseParseResult(
+            messages,
+            model,
+            responseId,
+            createdAt,
+            usageBuilder.Build(),
+            warnings,
+            invalidLineCount,
+            completed);
+    }
+
+    private static bool IsResponseCompleted(JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (root.TryGetProperty("done", out JsonElement doneElement)
+            && doneElement.ValueKind == JsonValueKind.True)
+        {
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(GetString(root, "finish_reason"))
+            || !string.IsNullOrWhiteSpace(GetString(root, "done_reason")))
+        {
+            return true;
+        }
+
+        if (!root.TryGetProperty("choices", out JsonElement choicesElement)
+            || choicesElement.ValueKind != JsonValueKind.Array)
+        {
+            return false;
+        }
+
+        return choicesElement
+            .EnumerateArray()
+            .Any(static choice => !string.IsNullOrWhiteSpace(GetString(choice, "finish_reason")));
     }
 
     private static void AppendNonStreamingResponse(
@@ -659,11 +713,13 @@ internal sealed class OpenAiLogLoader
         string ResponseId,
         DateTimeOffset? CreatedAt,
         LogUsage? Usage,
-        IReadOnlyList<string> Warnings)
+        IReadOnlyList<string> Warnings,
+        int InvalidLineCount,
+        bool Completed)
     {
         public static ResponseParseResult Empty(string warning)
         {
-            return new ResponseParseResult([], string.Empty, string.Empty, null, null, [warning]);
+            return new ResponseParseResult([], string.Empty, string.Empty, null, null, [warning], 0, false);
         }
     }
 }
