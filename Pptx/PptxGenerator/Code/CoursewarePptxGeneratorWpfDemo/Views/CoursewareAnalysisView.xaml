@@ -199,20 +199,24 @@
                             <DataTrigger Binding="{Binding IsAnalyzingTheme}" Value="True">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding IsAnalysisReady}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Grid.Style>
-                <Grid Margin="24,16,24,22">
+                <Grid Margin="18,14,18,18">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0" Style="{StaticResource AnalysisCardStyle}" Padding="14" Margin="0,0,0,14">
                         <ScrollViewer MaxHeight="147"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled"
                                       PanningMode="VerticalOnly">
-                            <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, ElementName=Root}" />
+                            <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, RelativeSource={RelativeSource AncestorType={x:Type views:CoursewareAnalysisView}}}" />
                         </ScrollViewer>
                     </Border>
                     <Grid Grid.Row="1">
@@ -220,7 +224,7 @@
                             <ColumnDefinition Width="0.75*" />
                             <ColumnDefinition Width="1.75*" />
                         </Grid.ColumnDefinitions>
-                        <views:CoursewareAnalysisProcessView Margin="0,0,14,0" />
+                        <views:CoursewareAnalysisProcessView ShowActions="{Binding IsAnalyzingTheme}" Margin="0,0,14,0" />
                         <Border Grid.Column="1" Style="{StaticResource AnalysisCardStyle}">
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -230,50 +234,52 @@
                                 <TextBlock Text="主题分析"
                                            Style="{StaticResource AnalysisSectionTitleTextStyle}"
                                            Margin="0,0,0,12" />
-                                <views:CopilotMessageStream x:Name="AnalysisChatMessageStream"
-                                                            Grid.Row="1"
-                                                            ItemsSource="{Binding AnalysisChatMessages}"
-                                                            ListBackground="Transparent"
-                                                            AutomationProperties.Name="主题分析 Copilot 输出" />
+                                <TabControl x:Name="AnalysisTabControl"
+                                            Grid.Row="1"
+                                            Style="{StaticResource AnalysisTabControlStyle}"
+                                            SelectedIndex="{Binding SelectedAnalysisTabIndex, Mode=TwoWay}">
+                                    <TabItem x:Name="AnalysisConversationTab"
+                                             Header="分析对话"
+                                             Style="{StaticResource AnalysisTabItemStyle}"
+                                             AutomationProperties.Name="分析对话">
+                                        <views:CopilotMessageStream x:Name="AnalysisChatMessageStream"
+                                                                    ItemsSource="{Binding AnalysisChatMessages}"
+                                                                    ListBackground="Transparent"
+                                                                    AutomationProperties.Name="主题分析 Copilot 输出" />
+                                    </TabItem>
+                                    <TabItem x:Name="AnalysisThemeResultTab"
+                                             Header="主题结果"
+                                             IsEnabled="{Binding IsAnalysisReady}"
+                                             Style="{StaticResource AnalysisTabItemStyle}"
+                                             AutomationProperties.Name="主题结果">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      PanningMode="VerticalOnly">
+                                            <views:CoursewareThemeSummaryView />
+                                        </ScrollViewer>
+                                    </TabItem>
+                                </TabControl>
                             </Grid>
                         </Border>
                     </Grid>
-                </Grid>
-            </Grid>
-
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
-                <ScrollViewer.Style>
-                    <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Type ScrollViewer}}">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsAnalysisReady}" Value="True">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ScrollViewer.Style>
-                <Grid Margin="18,14,18,18">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.75*" />
-                            <ColumnDefinition Width="1.75*" />
-                        </Grid.ColumnDefinitions>
-                        <views:CoursewareAnalysisProcessView ShowActions="False" Margin="0,0,14,0" />
-                        <views:CoursewareThemeSummaryView Grid.Column="1" />
-                    </Grid>
-
-                    <Grid Grid.Row="1" Margin="0,13,0,0">
+                    <Grid Grid.Row="2" Margin="0,13,0,0">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsAnalysisReady}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="进入页面美化" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" MinWidth="205" AutomationProperties.Name="进入页面美化" />
                             <Button Content="重新分析" Command="{Binding ReanalyzeCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" Margin="10,0,0,0" AutomationProperties.Name="重新分析" />
                         </StackPanel>
                     </Grid>
                 </Grid>
-            </ScrollViewer>
+            </Grid>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <ScrollViewer.Style>
@@ -288,7 +294,7 @@
                 </ScrollViewer.Style>
                 <StackPanel Margin="24,16,24,24">
                     <Border Style="{StaticResource AnalysisCardStyle}" Padding="12" Margin="0,0,0,16">
-                        <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, ElementName=Root}" />
+                        <views:CoursewareThumbnailOverview ThumbnailAspectRatio="{Binding ThumbnailAspectRatio, RelativeSource={RelativeSource AncestorType={x:Type views:CoursewareAnalysisView}}}" />
                     </Border>
                     <Border Style="{StaticResource AnalysisCardStyle}" MaxWidth="820" HorizontalAlignment="Center" Padding="26">
                         <StackPanel>

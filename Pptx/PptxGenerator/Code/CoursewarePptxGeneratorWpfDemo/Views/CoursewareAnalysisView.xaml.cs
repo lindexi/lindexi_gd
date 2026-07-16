@@ -145,15 +145,9 @@ public partial class CoursewareAnalysisView : UserControl
 
     private void CoursewareThumbnails_OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Reset)
+        if (e.Action == NotifyCollectionChangedAction.Reset || _hasCompletedThumbnailProbe)
         {
             BeginThumbnailProbeRound();
-            return;
-        }
-
-        if (!_hasCompletedThumbnailProbe)
-        {
-            ScheduleThumbnailProbe(_thumbnailProbeGeneration);
         }
     }
 
@@ -162,14 +156,18 @@ public partial class CoursewareAnalysisView : UserControl
         _thumbnailProbeGeneration++;
         _hasCompletedThumbnailProbe = false;
         SetValue(ThumbnailAspectRatioPropertyKey, ThumbnailAspectRatio.Widescreen);
-        ScheduleThumbnailProbe(_thumbnailProbeGeneration);
+        ScheduleThumbnailProbe();
     }
 
-    private void ScheduleThumbnailProbe(long generation)
+    private void ScheduleThumbnailProbe()
     {
-        _pendingThumbnailProbe?.Abort();
+        if (_pendingThumbnailProbe is not null)
+        {
+            return;
+        }
+
         _pendingThumbnailProbe = Dispatcher.InvokeAsync(
-            () => ProbeThumbnailAspectRatio(generation),
+            () => ProbeThumbnailAspectRatio(_thumbnailProbeGeneration),
             DispatcherPriority.ContextIdle);
     }
 

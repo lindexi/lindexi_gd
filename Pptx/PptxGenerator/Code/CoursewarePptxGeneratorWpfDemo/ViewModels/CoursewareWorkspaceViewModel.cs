@@ -26,6 +26,22 @@ public enum PrototypePage
 }
 
 /// <summary>
+/// Identifies the content displayed in the courseware analysis workspace.
+/// </summary>
+public enum CoursewareAnalysisTab
+{
+    /// <summary>
+    /// The Copilot conversation produced during theme analysis.
+    /// </summary>
+    Conversation,
+
+    /// <summary>
+    /// The completed courseware theme result.
+    /// </summary>
+    ThemeResult,
+}
+
+/// <summary>
 /// Provides data and navigation for the courseware workspace.
 /// </summary>
 public sealed class CoursewareWorkspaceViewModel : ObservableObject
@@ -40,6 +56,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     private DemoSlideViewModel? _selectedSlide;
     private string _demoInputText = string.Empty;
     private PrototypePage _currentPage = PrototypePage.CoursewareAnalysis;
+    private CoursewareAnalysisTab _selectedAnalysisTab = CoursewareAnalysisTab.Conversation;
     private CoursewareWorkspaceState _workspaceState = CoursewareWorkspaceState.Welcome;
     private CoursewareWorkspaceSession? _coursewareSession;
     private string? _loadErrorMessage;
@@ -209,6 +226,15 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
                 _enterWorkspaceCommand.RaiseCanExecuteChanged();
                 _reanalyzeCommand.RaiseCanExecuteChanged();
                 _cancelAnalysisCommand.RaiseCanExecuteChanged();
+
+                if (value == CoursewareWorkspaceState.AnalyzingCourseware)
+                {
+                    SelectedAnalysisTab = CoursewareAnalysisTab.Conversation;
+                }
+                else if (value == CoursewareWorkspaceState.AnalysisReady)
+                {
+                    SelectedAnalysisTab = CoursewareAnalysisTab.ThemeResult;
+                }
             }
         }
     }
@@ -257,6 +283,41 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     /// Gets a value indicating whether a complete theme result is available.
     /// </summary>
     public bool ShowsThemeResult => CoursewareSession?.ThemeAnalysisResult is not null;
+
+    /// <summary>
+    /// Gets or sets the content selected in the courseware analysis workspace.
+    /// </summary>
+    public CoursewareAnalysisTab SelectedAnalysisTab
+    {
+        get => _selectedAnalysisTab;
+        set
+        {
+            if (value == CoursewareAnalysisTab.ThemeResult && !IsAnalysisReady)
+            {
+                return;
+            }
+
+            if (SetProperty(ref _selectedAnalysisTab, value))
+            {
+                OnPropertyChanged(nameof(SelectedAnalysisTabIndex));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the zero-based index selected in the courseware analysis workspace.
+    /// </summary>
+    public int SelectedAnalysisTabIndex
+    {
+        get => (int)SelectedAnalysisTab;
+        set
+        {
+            if (Enum.IsDefined(typeof(CoursewareAnalysisTab), value))
+            {
+                SelectedAnalysisTab = (CoursewareAnalysisTab)value;
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the user-facing courseware load error.

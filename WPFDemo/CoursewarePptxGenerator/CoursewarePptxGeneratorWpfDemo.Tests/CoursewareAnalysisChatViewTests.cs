@@ -7,6 +7,7 @@ using AgentLib;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
 using CoursewarePptxGeneratorWpfDemo.Services;
+using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 using CoursewarePptxGeneratorWpfDemo.Threading;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
 using CoursewarePptxGeneratorWpfDemo.Views;
@@ -31,6 +32,13 @@ public sealed class CoursewareAnalysisChatViewTests
     public void CopilotOutputShouldRenderAsVisibleTextInAnalysisView()
     {
         RunOnStaThreadAsync(CopilotOutputShouldRenderAsVisibleTextInAnalysisViewAsync).GetAwaiter().GetResult();
+    }
+
+    [TestMethod(DisplayName = "主题分析 Tab 应在分析时锁定对话并在完成后自动显示结果")]
+    [Timeout(60_000)]
+    public void AnalysisTabsShouldLockConversationAndSelectCompletedResult()
+    {
+        RunOnStaThreadAsync(AnalysisTabsShouldLockConversationAndSelectCompletedResultAsync).GetAwaiter().GetResult();
     }
 
     private static async Task SharedMessageStreamShouldRenderReasoningAndToolCallAsync()
@@ -168,6 +176,72 @@ public sealed class CoursewareAnalysisChatViewTests
         finally
         {
             responseGate.Release.TrySetResult();
+            window.Close();
+        }
+    }
+
+    private static async Task AnalysisTabsShouldLockConversationAndSelectCompletedResultAsync()
+    {
+        EnsureApplicationResources();
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", "#### 内容\n```\n测试标题\n测试内容\n```")
+            .Build();
+        var analysisStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseAnalysis = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var analysisService = new FakeCoursewareThemeAnalysisService(async (inputPackage, _, _, cancellationToken) =>
+        {
+            analysisStarted.TrySetResult();
+            await releaseAnalysis.Task.WaitAsync(cancellationToken);
+            return FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(inputPackage);
+        });
+        var viewModel = new CoursewareWorkspaceViewModel(
+            new CoursewareFolderLoader(),
+            new DispatcherViewModelDispatcher(Dispatcher.CurrentDispatcher),
+            analysisService);
+        var view = new CoursewareAnalysisView
+        {
+            DataContext = viewModel,
+        };
+        var window = new Window
+        {
+            Width = 1360,
+            Height = 820,
+            Content = view,
+        };
+
+        try
+        {
+            window.Show();
+            var openTask = viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+            await analysisStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await PumpDispatcherUntilAsync(window, () => viewModel.IsAnalyzingTheme);
+
+            var tabControl = view.FindName("AnalysisTabControl") as TabControl;
+            var resultTab = view.FindName("AnalysisThemeResultTab") as TabItem;
+            Assert.IsNotNull(tabControl, "主题分析工作区应包含 TabControl。");
+            Assert.IsNotNull(resultTab, "主题分析工作区应包含结果 Tab。");
+            Assert.AreEqual(0, tabControl.SelectedIndex, "分析期间应保持显示分析对话。");
+            Assert.IsFalse(resultTab.IsEnabled, "分析期间结果 Tab 应不可用。");
+
+            releaseAnalysis.TrySetResult();
+            await openTask;
+            await PumpDispatcherUntilAsync(
+                window,
+                () => viewModel.IsAnalysisReady && resultTab.IsEnabled && tabControl.SelectedIndex == 1);
+
+            Assert.AreEqual(1, tabControl.SelectedIndex, "分析完成后应自动显示主题结果。");
+            Assert.IsTrue(resultTab.IsEnabled, "分析完成后结果 Tab 应可用。");
+
+            tabControl.SelectedIndex = 0;
+            await PumpDispatcherUntilAsync(
+                window,
+                () => viewModel.SelectedAnalysisTab == CoursewareAnalysisTab.Conversation);
+
+            Assert.AreEqual(CoursewareAnalysisTab.Conversation, viewModel.SelectedAnalysisTab);
+        }
+        finally
+        {
+            releaseAnalysis.TrySetResult();
             window.Close();
         }
     }

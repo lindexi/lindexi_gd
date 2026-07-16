@@ -46,6 +46,64 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.IsTrue(viewModel.CoursewareThumbnails[1].HasWarning);
     }
 
+    [TestMethod(DisplayName = "主题分析期间应固定显示分析对话并拒绝选择结果")]
+    [Timeout(60_000)]
+    public async Task AnalyzingThemeShouldKeepConversationTabSelected()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var analysisStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseAnalysis = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var analysisService = new FakeCoursewareThemeAnalysisService(async (inputPackage, _, _, cancellationToken) =>
+        {
+            analysisStarted.TrySetResult();
+            await releaseAnalysis.Task.WaitAsync(cancellationToken);
+            return FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(inputPackage);
+        });
+        var viewModel = CreateViewModel(analysisService);
+        var analysisTask = viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+
+        await analysisStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        try
+        {
+            Assert.AreEqual(CoursewareAnalysisTab.Conversation, viewModel.SelectedAnalysisTab);
+            Assert.AreEqual(0, viewModel.SelectedAnalysisTabIndex);
+
+            viewModel.SelectedAnalysisTab = CoursewareAnalysisTab.ThemeResult;
+            viewModel.SelectedAnalysisTabIndex = 1;
+
+            Assert.AreEqual(CoursewareAnalysisTab.Conversation, viewModel.SelectedAnalysisTab);
+            Assert.AreEqual(0, viewModel.SelectedAnalysisTabIndex);
+        }
+        finally
+        {
+            releaseAnalysis.TrySetResult();
+            await analysisTask;
+        }
+    }
+
+    [TestMethod(DisplayName = "主题分析完成后应自动显示结果并允许切回对话")]
+    [Timeout(60_000)]
+    public async Task CompletedThemeAnalysisShouldSelectResultAndAllowConversationSelection()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var viewModel = CreateViewModel(new FakeCoursewareThemeAnalysisService());
+
+        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+
+        Assert.AreEqual(CoursewareAnalysisTab.ThemeResult, viewModel.SelectedAnalysisTab);
+        Assert.AreEqual(1, viewModel.SelectedAnalysisTabIndex);
+
+        viewModel.SelectedAnalysisTabIndex = 0;
+
+        Assert.AreEqual(CoursewareAnalysisTab.Conversation, viewModel.SelectedAnalysisTab);
+        Assert.AreEqual(0, viewModel.SelectedAnalysisTabIndex);
+    }
+
     [TestMethod(DisplayName = "主题分析失败后应保留已加载课件并显示分析错误")]
     [Timeout(60_000)]
     public async Task OpenCoursewareFolderAsyncShouldKeepLoadedCoursewareWhenAnalysisFails()

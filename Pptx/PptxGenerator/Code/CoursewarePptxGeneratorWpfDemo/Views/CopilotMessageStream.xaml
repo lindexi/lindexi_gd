@@ -12,7 +12,7 @@
         <views:CopilotChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector">
             <views:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
                 <DataTemplate DataType="{x:Type agent:CopilotChatTextItem}">
-                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Style="{x:Null}" Text="{Binding Text}" TextWrapping="Wrap" FontSize="15" Foreground="{StaticResource TextPrimaryBrush}" />
                 </DataTemplate>
             </views:CopilotChatMessageItemTemplateSelector.TextItemTemplate>
             <views:CopilotChatMessageItemTemplateSelector.ReasoningItemTemplate>
