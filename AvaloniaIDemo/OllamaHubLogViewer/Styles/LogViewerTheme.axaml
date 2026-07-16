@@ -23,6 +23,9 @@
         <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFFFF8E6" />
         <SolidColorBrush x:Key="WarningBorderBrush" Color="#FFF0C96A" />
         <SolidColorBrush x:Key="WarningTextBrush" Color="#FF835E09" />
+        <SolidColorBrush x:Key="MergeSurfaceBrush" Color="#FFECFDF5" />
+        <SolidColorBrush x:Key="MergeBorderBrush" Color="#FFA7F3D0" />
+        <SolidColorBrush x:Key="MergeTextBrush" Color="#FF047857" />
     </Styles.Resources>
 
     <Style Selector="Window.LogViewer">
@@ -53,6 +56,13 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="10,8" />
+    </Style>
+    <Style Selector="Border.MergeCard">
+        <Setter Property="Background" Value="{StaticResource MergeSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource MergeBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="10,7" />
     </Style>
 
     <Style Selector="Button.Primary">
@@ -121,6 +131,11 @@
         <Setter Property="Foreground" Value="{StaticResource WarningTextBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <Style Selector="TextBlock.MergeText">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource MergeTextBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
 
     <Style Selector="Border.Avatar">
         <Setter Property="Width" Value="36" />
@@ -161,6 +176,12 @@
     <Style Selector="SelectableTextBlock.MessageContent">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="LineHeight" Value="21" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="SelectableTextBlock.MergeContent">
+        <Setter Property="Foreground" Value="{StaticResource MergeTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="LineHeight" Value="18" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="SelectableTextBlock.UserMessageContent">

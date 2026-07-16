@@ -49,6 +49,10 @@ internal sealed record LogUsage(
 
 internal sealed record LogConversation(
     IReadOnlyList<LogChatMessage> Messages,
+    int RequestMessageCount,
+    bool RequestParseSucceeded,
+    int InvalidResponseLineCount,
+    bool ResponseCompleted,
     string Model,
     string ResponseId,
     DateTimeOffset? ResponseCreatedAt,

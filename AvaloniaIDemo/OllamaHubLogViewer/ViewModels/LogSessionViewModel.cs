@@ -1,12 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using OllamaHubLogViewer.Infrastructure;
 
 namespace OllamaHubLogViewer.ViewModels;
 
-internal sealed class LogSessionViewModel
+internal sealed class LogSessionViewModel : ObservableObject
 {
     private const string DirectoryTimestampFormat = "yyyy-MM-dd_HH-mm-ss";
+    private string? _mergedDirectoryPath;
+    private IReadOnlyList<string> _mergedSourceDirectoryNames = [];
 
     public LogSessionViewModel(string directoryPath)
     {
@@ -45,6 +50,55 @@ internal sealed class LogSessionViewModel
     public bool HasRequest { get; }
 
     public bool HasResponse { get; }
+
+    public string ConversationDirectoryPath => _mergedDirectoryPath ?? DirectoryPath;
+
+    public bool IsMerged => _mergedDirectoryPath is not null;
+
+    public int MergedSourceCount => _mergedSourceDirectoryNames.Count;
+
+    public string SessionSummaryText => IsMerged
+        ? $"已合并 {MergedSourceCount} 次请求"
+        : FileSummary;
+
+    public string MergeSourceText => IsMerged
+        ? $"合并来源：{string.Join(" → ", _mergedSourceDirectoryNames)}"
+        : string.Empty;
+
+    public string DisplayTitle => IsMerged
+        ? $"{DateText} · 合并会话"
+        : DateText;
+
+    internal void ApplyMergedSession(
+        string? mergedDirectoryPath,
+        IReadOnlyList<string> sourceDirectoryNames)
+    {
+        ArgumentNullException.ThrowIfNull(sourceDirectoryNames);
+
+        string? fullMergedDirectoryPath = string.IsNullOrWhiteSpace(mergedDirectoryPath)
+            ? null
+            : Path.GetFullPath(mergedDirectoryPath);
+        string[] sourceNames = fullMergedDirectoryPath is null
+            ? []
+            : sourceDirectoryNames.ToArray();
+        if (string.Equals(
+                _mergedDirectoryPath,
+                fullMergedDirectoryPath,
+                StringComparison.OrdinalIgnoreCase)
+            && _mergedSourceDirectoryNames.SequenceEqual(sourceNames, StringComparer.Ordinal))
+        {
+            return;
+        }
+
+        _mergedDirectoryPath = fullMergedDirectoryPath;
+        _mergedSourceDirectoryNames = sourceNames;
+        OnPropertyChanged(nameof(ConversationDirectoryPath));
+        OnPropertyChanged(nameof(IsMerged));
+        OnPropertyChanged(nameof(MergedSourceCount));
+        OnPropertyChanged(nameof(SessionSummaryText));
+        OnPropertyChanged(nameof(MergeSourceText));
+        OnPropertyChanged(nameof(DisplayTitle));
+    }
 
     private static DateTimeOffset? ParseTimestamp(string directoryName)
     {
