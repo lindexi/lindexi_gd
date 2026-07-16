@@ -185,11 +185,11 @@
                                TextAlignment="Center" />
                 </StackPanel>
 
-                <ScrollViewer Padding="16,12,20,24"
-                              IsVisible="{Binding HasMessages}"
+                <ScrollViewer IsVisible="{Binding HasMessages}"
                               HorizontalScrollBarVisibility="Disabled"
                               VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Messages}">
+                    <ItemsControl Margin="16,12,20,24"
+                                  ItemsSource="{Binding Messages}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChatMessageViewModel">
                                 <Grid Margin="8,5" ColumnDefinitions="40,*,40">
