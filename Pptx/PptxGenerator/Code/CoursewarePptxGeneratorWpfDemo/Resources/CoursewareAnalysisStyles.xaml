@@ -76,13 +76,25 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Border Background="#F4F8FA"
-                                BorderBrush="{StaticResource AnalysisBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="4">
-                            <TabPanel IsItemsHost="True" />
-                        </Border>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="主题分析"
+                                       Style="{StaticResource AnalysisSectionTitleTextStyle}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,16,0" />
+                            <Border Grid.Column="1"
+                                    Background="#F4F8FA"
+                                    BorderBrush="{StaticResource AnalysisBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="4">
+                                <TabPanel IsItemsHost="True" />
+                            </Border>
+                        </Grid>
                         <ContentPresenter x:Name="PART_SelectedContentHost"
                                           Grid.Row="1"
                                           ContentSource="SelectedContent"
