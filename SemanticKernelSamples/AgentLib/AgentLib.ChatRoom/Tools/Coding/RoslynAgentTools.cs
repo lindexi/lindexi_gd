@@ -66,8 +66,8 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     /// <returns>解决方案目录、项目文件、符号搜索、符号详情和引用查询工具。</returns>
     public IReadOnlyList<AITool> AsAITools() =>
     [
-        AIFunctionFactory.Create(GetProjectsInSolutionAsync, "get_projects_in_solution"),
-        AIFunctionFactory.Create(GetFilesInProjectAsync, "get_files_in_project"),
+        AIFunctionFactory.Create(GetProjectsInSolution, "get_projects_in_solution"),
+        AIFunctionFactory.Create(GetFilesInProject, "get_files_in_project"),
         AIFunctionFactory.Create(CodeSearchAsync, "code_search"),
         AIFunctionFactory.Create(FindSymbolAsync, "find_symbol"),
         AIFunctionFactory.Create(FindAllReferencesAsync, "find_all_references")
@@ -79,10 +79,10 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     /// <param name="solution_path">解决方案的绝对路径或工作区相对路径。</param>
     /// <returns>包含项目路径的 JSON。</returns>
     [Description("返回当前解决方案中的项目。仅在需要了解工作区整体结构时使用。solution_path 可省略。")]
-    public Task<string> GetProjectsInSolutionAsync(
+    public string GetProjectsInSolution(
         [Description("解决方案的绝对路径或工作区相对路径；省略时自动选择工作区根目录中的唯一 .sln/.slnx。")]
         string? solution_path = null) =>
-        Task.FromResult(_catalog.GetProjectsInSolution(solution_path));
+        _catalog.GetProjectsInSolution(solution_path);
 
     /// <summary>
     /// 返回指定项目包含的文件。
@@ -90,10 +90,10 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     /// <param name="project_path">项目的绝对路径或工作区相对路径。</param>
     /// <returns>包含项目和文件路径的 JSON。</returns>
     [Description("返回指定项目包含的文件。先用 get_projects_in_solution 获取项目路径。")]
-    public Task<string> GetFilesInProjectAsync(
+    public string GetFilesInProject(
         [Description("项目的绝对路径或工作区相对路径。")]
         string project_path) =>
-        Task.FromResult(_catalog.GetFilesInProject(project_path));
+        _catalog.GetFilesInProject(project_path);
 
     /// <summary>
     /// 使用 Roslyn 工作区符号索引按查询词搜索代码符号。
