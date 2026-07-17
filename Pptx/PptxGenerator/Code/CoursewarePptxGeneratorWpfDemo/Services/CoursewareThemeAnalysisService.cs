@@ -23,7 +23,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursewareThemeAnalysisService" /> class.
     /// </summary>
-    /// <param name="inputBuilder">The bounded analysis input builder.</param>
+    /// <param name="inputBuilder">The complete analysis input builder.</param>
     /// <param name="themeAgent">The optional injected theme agent.</param>
     public CoursewareThemeAnalysisService(
         ICoursewareAnalysisInputBuilder inputBuilder,
@@ -49,23 +49,26 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
         progress?.Report(CreateProgressEvent(
             CoursewareAnalysisStage.PreparingInput,
             "正在准备分析输入",
-            $"正在整理 {inputPackage.SlideCount} 页课件的标题、正文摘要、资源和警告。",
+            $"正在整理 {inputPackage.SlideCount} 页课件的完整 Markdown、逻辑资源目录和加载警告。",
             CoursewareAnalysisEventState.Running));
         var analysisInput = _inputBuilder.Build(inputPackage, cancellationToken);
+        var inputFingerprintPrefix = analysisInput.InputFingerprint[..Math.Min(12, analysisInput.InputFingerprint.Length)];
         progress?.Report(CreateProgressEvent(
             CoursewareAnalysisStage.PreparingInput,
             "分析输入准备完成",
-            $"已整理 {analysisInput.AnalyzedSlideCount} 页课件输入。",
+            $"已完整整理 {analysisInput.AnalyzedSlideCount}/{analysisInput.TotalSlideCount} 页，"
+            + $"约 {analysisInput.EstimatedTokenCount} Token，未裁剪；输入指纹 {inputFingerprintPrefix}。",
             CoursewareAnalysisEventState.Completed));
         progress?.Report(CreateProgressEvent(
             CoursewareAnalysisStage.ReadingStructure,
             "正在读取课件结构",
-            "正在识别页面顺序、标题、正文和资源分布。",
+            "正在基于全部页面原始 Markdown 识别页面顺序、内容层级、版式参数和资源引用。",
             CoursewareAnalysisEventState.Running));
         progress?.Report(CreateProgressEvent(
             CoursewareAnalysisStage.ReadingStructure,
             "课件结构读取完成",
-            $"已将 {analysisInput.AnalyzedSlideCount} 页纳入分析输入，共 {analysisInput.CharacterCount} 个字符。",
+            $"全部 {analysisInput.AnalyzedSlideCount} 页均已纳入分析输入，共 {analysisInput.CharacterCount} 个字符，"
+            + $"页面分区 {analysisInput.SectionCharacterCounts.Slides} 个字符。",
             CoursewareAnalysisEventState.Completed));
         progress?.Report(CreateProgressEvent(
             CoursewareAnalysisStage.AnalyzingContentHierarchy,

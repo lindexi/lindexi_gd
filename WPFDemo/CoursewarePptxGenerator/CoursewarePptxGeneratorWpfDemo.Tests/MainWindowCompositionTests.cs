@@ -42,6 +42,30 @@ public sealed class MainWindowCompositionTests
         Assert.IsNull(openButton.Attribute("Command"), "首页按钮不应直接执行缺少文件夹路径的命令。");
     }
 
+    [TestMethod(DisplayName = "主题分析失败页应绑定真实错误和技术详情")]
+    [Timeout(60_000)]
+    public void AnalysisFailureViewShouldBindRealErrorAndTechnicalDetails()
+    {
+        var analysisViewXaml = XDocument.Load(Path.Join(GetApplicationProjectDirectory(), "Views", "CoursewareAnalysisView.xaml"));
+        XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+
+        var failureView = analysisViewXaml
+            .Descendants(presentation + "ScrollViewer")
+            .Single(element => element
+                .Descendants(presentation + "DataTrigger")
+                .Any(trigger => string.Equals((string?) trigger.Attribute("Binding"), "{Binding IsAnalysisFailed}", StringComparison.Ordinal)));
+        var errorMessage = failureView
+            .Descendants(presentation + "TextBlock")
+            .Single(element => ((string?) element.Attribute("Text"))?.Contains("LoadErrorMessage", StringComparison.Ordinal) == true);
+        var errorDetails = failureView
+            .Descendants(presentation + "TextBox")
+            .Single(element => ((string?) element.Attribute("Text"))?.Contains("LoadErrorDetails", StringComparison.Ordinal) == true);
+
+        Assert.IsNotNull(errorMessage);
+        Assert.IsNotNull(errorDetails);
+        Assert.IsFalse(analysisViewXaml.ToString(SaveOptions.DisableFormatting).Contains("THEME_VALIDATION_FAILED", StringComparison.Ordinal));
+    }
+
     [TestMethod(DisplayName = "双页原型往返导航应保留工作台界面状态")]
     [Timeout(60_000)]
     public void PrototypeNavigationShouldPreserveWorkspaceState()

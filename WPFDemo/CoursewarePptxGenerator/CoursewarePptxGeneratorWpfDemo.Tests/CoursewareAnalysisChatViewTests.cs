@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using AgentLib;
+using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
 using CoursewarePptxGeneratorWpfDemo.Services;
@@ -356,9 +357,24 @@ public sealed class CoursewareAnalysisChatViewTests
                 OnGetStreamingResponseAsync = (_, _, token) => responseGate.StreamAsync(token),
             };
             var chatManager = new CopilotChatManager();
-            chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider(fakeChatClient));
+            var fakeModel = new FakeLanguageModel(fakeChatClient)
+            {
+                ModelDefinition = CreateThemeAnalysisModelDefinition(),
+            };
+            chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([fakeModel]));
             return Task.FromResult(chatManager);
         }
+    }
+
+    private static ModelDefinition CreateThemeAnalysisModelDefinition()
+    {
+        return new ModelDefinition
+        {
+            Provider = "test",
+            ModelName = "test-theme-model",
+            ContextWindowSize = 100_000,
+            MaxOutputTokens = 8_000,
+        };
     }
 
     private sealed class DispatcherViewModelDispatcher(Dispatcher dispatcher) : IViewModelDispatcher

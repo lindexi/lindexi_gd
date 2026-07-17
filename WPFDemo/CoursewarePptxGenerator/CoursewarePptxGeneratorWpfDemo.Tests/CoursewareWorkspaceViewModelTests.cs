@@ -1,5 +1,6 @@
 using System.IO;
 using AgentLib;
+using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
 using CoursewarePptxGeneratorWpfDemo.Models;
@@ -281,7 +282,17 @@ public sealed class CoursewareWorkspaceViewModelTests
                 OnGetStreamingResponseAsync = (_, _, token) => StreamResponseAsync(assistantText, token),
             };
             var chatManager = new CopilotChatManager();
-            chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider(fakeChatClient));
+            var fakeModel = new FakeLanguageModel(fakeChatClient)
+            {
+                ModelDefinition = new ModelDefinition
+                {
+                    Provider = "test",
+                    ModelName = "test-theme-model",
+                    ContextWindowSize = 100_000,
+                    MaxOutputTokens = 8_000,
+                },
+            };
+            chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([fakeModel]));
             return Task.FromResult(chatManager);
         }
 

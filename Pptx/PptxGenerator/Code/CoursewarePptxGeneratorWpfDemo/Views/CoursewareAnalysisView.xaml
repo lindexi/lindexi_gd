@@ -291,11 +291,25 @@
                             <Border Width="54" Height="54" Background="#FFF3D6" CornerRadius="27" HorizontalAlignment="Left">
                                 <TextBlock Text="!" Foreground="#B76C00" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Text="未能形成有效的统一主题" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="25" Margin="0,16,0,0" />
-                            <TextBlock Text="主题结构校验未通过。课件已经载入，但当前没有可进入工作台的有效主题。" Style="{StaticResource AnalysisBodyTextStyle}" Margin="0,8,0,0" />
+                            <TextBlock Text="课件主题分析未完成" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="25" Margin="0,16,0,0" />
+                            <TextBlock Text="课件已经成功载入，但主题分析过程中发生了错误。请根据下面的信息检查模型服务或课件输入后重试。" Style="{StaticResource AnalysisBodyTextStyle}" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding LoadErrorMessage, Mode=OneWay, TargetNullValue=主题分析未返回可用结果，请重试。}"
+                                       Style="{StaticResource AnalysisBodyTextStyle}"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       Margin="0,12,0,0" />
+                            <TextBlock Text="如果重试后仍然失败，请展开技术详情，并检查语言模型服务是否可用、模型是否支持工具调用，以及课件输入是否完整。"
+                                       Style="{StaticResource AnalysisBodyTextStyle}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,8,0,0" />
                             <Expander Header="查看技术详情" Margin="0,16,0,0">
-                                <TextBox Text="THEME_VALIDATION_FAILED&#x0a;Theme hierarchy contains inconsistent heading levels."
-                                         IsReadOnly="True" TextWrapping="Wrap" Padding="10" Margin="0,8,0,0" />
+                                <TextBox Text="{Binding LoadErrorDetails, Mode=OneWay, TargetNullValue=暂无更多技术详情。}"
+                                         IsReadOnly="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MaxHeight="220"
+                                         Padding="10"
+                                         Margin="0,8,0,0" />
                             </Expander>
                             <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
                                 <Button Content="重试主题分析" Command="{Binding RetryDemoCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" />
