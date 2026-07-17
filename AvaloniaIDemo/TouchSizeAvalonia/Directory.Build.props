@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <!-- 这是私有的版本：https://github.com/dotnet-campus/Avalonia/releases/tag/11.1.3-hotfix05 -->
-    <AvaloniaVersion>11.1.3-hotfix05</AvaloniaVersion>
+    <!-- 这是私有的版本：https://github.com/dotnet-campus/Avalonia/releases/tag/11.3.6-hotfix.4 -->
+    <AvaloniaVersion>11.3.6-hotfix.4</AvaloniaVersion>
   </PropertyGroup>
 </Project>
