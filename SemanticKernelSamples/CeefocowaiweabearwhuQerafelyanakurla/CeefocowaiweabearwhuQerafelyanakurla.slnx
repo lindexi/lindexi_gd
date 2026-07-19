@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../AgentLib/AgentLib/AgentLib.csproj" />
+  <Project Path="../Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
+  <Project Path="../Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+  <Project Path="CeefocowaiweabearwhuQerafelyanakurla.csproj" />
+</Solution>
