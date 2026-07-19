@@ -1,91 +1,57 @@
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.ComponentModel;
+using AgentLib;
+using AgentLib.Model;
 using DeepSeekWpf.Infrastructure;
-using DeepSeekWpf.Models;
 using DeepSeekWpf.Services;
 
 namespace DeepSeekWpf.ViewModels;
 
 public sealed class ChatWorkspaceViewModel : ViewModelBase
 {
-    private readonly IAiChatService _aiChatService;
-    private readonly IChatRepository _chatRepository;
-    private readonly ISettingsService _settingsService;
+    private readonly CopilotChatManager _chatManager;
     private readonly IAppLogger _logger;
-    private readonly ObservableCollection<ChatMessage> _emptyMessages = [];
     private readonly AsyncRelayCommand _sendMessageCommand;
     private readonly RelayCommand _stopCommand;
     private readonly RelayCommand _newChatCommand;
     private readonly RelayCommand _deleteSelectedChatCommand;
-    private readonly AsyncRelayCommand _reloadSessionsCommand;
-    private readonly RelayCommand _beginInlineEditCommand;
-    private readonly RelayCommand _saveInlineEditCommand;
-    private readonly RelayCommand _cancelInlineEditCommand;
-    private ChatSession? _selectedSession;
-    private ChatMessage? _selectedMessage;
-    private CancellationTokenSource? _responseCancellationTokenSource;
     private string _pendingUserMessage = string.Empty;
     private string _statusMessage = "就绪";
-    private bool _isResponding;
-    private bool _isLoadingSessions;
 
-    public ChatWorkspaceViewModel(
-        IAiChatService aiChatService,
-        IChatRepository chatRepository,
-        ISettingsService settingsService,
-        IAppLogger logger)
+    public ChatWorkspaceViewModel(CopilotChatManager chatManager, IAppLogger logger)
     {
-        _aiChatService = aiChatService;
-        _chatRepository = chatRepository;
-        _settingsService = settingsService;
+        _chatManager = chatManager;
         _logger = logger;
-
-        Sessions = [];
         _sendMessageCommand = new AsyncRelayCommand(SendMessageAsync, CanSendMessage);
         _stopCommand = new RelayCommand(StopResponse, () => IsResponding);
-        _newChatCommand = new RelayCommand(CreateNewChat, CanCreateNewChat);
+        _newChatCommand = new RelayCommand(CreateNewChat, () => !IsResponding);
         _deleteSelectedChatCommand = new RelayCommand(DeleteSelectedChat, CanDeleteSelectedChat);
-        _reloadSessionsCommand = new AsyncRelayCommand(ReloadSessionsAsync, CanReloadSessions);
-        _beginInlineEditCommand = new RelayCommand(BeginInlineEdit, CanBeginInlineEdit);
-        _saveInlineEditCommand = new RelayCommand(SaveInlineEdit, CanSaveInlineEdit);
-        _cancelInlineEditCommand = new RelayCommand(CancelInlineEdit, CanCancelInlineEdit);
+        _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
     }
 
-    public ObservableCollection<ChatSession> Sessions { get; }
+    public ObservableCollection<CopilotChatSession> Sessions => _chatManager.ChatSessions;
 
-    public IEnumerable<ChatMessage> CurrentMessages => SelectedSession?.Messages ?? _emptyMessages;
+    public ObservableCollection<CopilotChatMessage> CurrentMessages => _chatManager.ChatMessages;
 
-    public ChatSession? SelectedSession
+    public CopilotChatSession SelectedSession
     {
-        get => _selectedSession;
+        get => _chatManager.SelectedSession;
         set
         {
-            if (!SetProperty(ref _selectedSession, value))
+            if (ReferenceEquals(_chatManager.SelectedSession, value))
             {
                 return;
             }
 
+            _chatManager.SelectedSession = value;
+            OnPropertyChanged();
             OnPropertyChanged(nameof(CurrentMessages));
             OnPropertyChanged(nameof(CurrentSessionTitle));
-            SelectedMessage = value?.Messages.LastOrDefault();
-            CancelEditingOnOtherMessages(null);
             NotifyCommandStates();
         }
     }
 
-    public ChatMessage? SelectedMessage
-    {
-        get => _selectedMessage;
-        set
-        {
-            if (SetProperty(ref _selectedMessage, value))
-            {
-                NotifyCommandStates();
-            }
-        }
-    }
-
-    public string CurrentSessionTitle => SelectedSession?.Title ?? "未选择会话";
+    public string CurrentSessionTitle => SelectedSession.Title;
 
     public string PendingUserMessage
     {
@@ -102,32 +68,10 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
     public string StatusMessage
     {
         get => _statusMessage;
-        set => SetProperty(ref _statusMessage, value);
+        private set => SetProperty(ref _statusMessage, value);
     }
 
-    public bool IsResponding
-    {
-        get => _isResponding;
-        private set
-        {
-            if (SetProperty(ref _isResponding, value))
-            {
-                NotifyCommandStates();
-            }
-        }
-    }
-
-    public bool IsLoadingSessions
-    {
-        get => _isLoadingSessions;
-        private set
-        {
-            if (SetProperty(ref _isLoadingSessions, value))
-            {
-                NotifyCommandStates();
-            }
-        }
-    }
+    public bool IsResponding => _chatManager.IsChatting;
 
     public AsyncRelayCommand SendMessageCommand => _sendMessageCommand;
 
@@ -137,105 +81,11 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
 
     public RelayCommand DeleteSelectedChatCommand => _deleteSelectedChatCommand;
 
-    public AsyncRelayCommand ReloadSessionsCommand => _reloadSessionsCommand;
-
-    public RelayCommand BeginInlineEditCommand => _beginInlineEditCommand;
-
-    public RelayCommand SaveInlineEditCommand => _saveInlineEditCommand;
-
-    public RelayCommand CancelInlineEditCommand => _cancelInlineEditCommand;
-
-    public Task InitializeAsync()
+    public void SetConfigurationStatus(AgentConfigurationLoadResult result)
     {
-        return ReloadSessionsAsync();
-    }
-
-    public async Task ReloadSessionsAsync()
-    {
-        if (IsLoadingSessions)
-        {
-            return;
-        }
-
-        try
-        {
-            IsLoadingSessions = true;
-            StatusMessage = "正在异步加载历史会话...";
-            var previousSessionId = SelectedSession?.Id;
-            var loadedSessions = await _chatRepository.LoadSessionsAsync();
-
-            Sessions.Clear();
-            foreach (var session in loadedSessions)
-            {
-                Sessions.Add(session);
-            }
-
-            if (Sessions.Count == 0)
-            {
-                CreateNewChat();
-                StatusMessage = "未找到历史会话，已创建新会话";
-                return;
-            }
-
-            SelectedSession = Sessions.FirstOrDefault(session => session.Id == previousSessionId) ?? Sessions[0];
-            StatusMessage = $"已加载 {Sessions.Count} 个会话";
-            _logger.Log($"异步加载会话完成，总数：{Sessions.Count}");
-        }
-        catch (Exception exception)
-        {
-            StatusMessage = "加载历史会话失败";
-            _logger.Log($"加载历史会话失败：{exception.Message}");
-        }
-        finally
-        {
-            IsLoadingSessions = false;
-        }
-    }
-
-    private void CreateNewChat()
-    {
-        var session = new ChatSession();
-        session.Touch();
-        Sessions.Insert(0, session);
-        SelectedSession = session;
-        PersistSession(session);
-        StatusMessage = "已创建新会话";
-        _logger.Log($"创建新会话：{session.Id}");
-    }
-
-    private bool CanCreateNewChat()
-    {
-        return !IsResponding && !IsLoadingSessions;
-    }
-
-    private void DeleteSelectedChat()
-    {
-        if (SelectedSession is null)
-        {
-            return;
-        }
-
-        var deletedSessionId = SelectedSession.Id;
-        _chatRepository.DeleteSession(deletedSessionId);
-        Sessions.Remove(SelectedSession);
-
-        if (Sessions.Count == 0)
-        {
-            SelectedSession = null;
-            CreateNewChat();
-        }
-        else
-        {
-            SelectedSession = Sessions[0];
-        }
-
-        StatusMessage = "已删除选中会话";
-        _logger.Log($"删除会话：{deletedSessionId}");
-    }
-
-    private bool CanDeleteSelectedChat()
-    {
-        return SelectedSession is not null && !IsResponding && !IsLoadingSessions;
+        StatusMessage = result.IsDebugFallback
+            ? $"已使用本地调试配置：{result.SourceDescription}"
+            : $"已加载配置：{result.SourceDescription}";
     }
 
     private async Task SendMessageAsync()
@@ -246,229 +96,82 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
             return;
         }
 
-        if (SelectedSession is null)
-        {
-            CreateNewChat();
-        }
-
-        var session = SelectedSession!;
-        CancelEditingOnOtherMessages(null);
-
-        var userMessage = new ChatMessage
-        {
-            Role = ChatRole.User,
-            Content = prompt,
-            CreatedAt = DateTime.Now,
-        };
-
-        session.Messages.Add(userMessage);
-        session.RefreshTitleFromMessages();
-        session.Touch();
         PendingUserMessage = string.Empty;
-        MoveSessionToTop(session);
-        PersistSession(session);
-        OnPropertyChanged(nameof(CurrentSessionTitle));
-        _logger.Log($"发送消息，会话：{session.Id}");
-
-        var assistantMessage = new ChatMessage
-        {
-            Role = ChatRole.Assistant,
-            Content = string.Empty,
-            ThoughtContent = string.Empty,
-            CreatedAt = DateTime.Now,
-        };
-
-        session.Messages.Add(assistantMessage);
-        SelectedMessage = assistantMessage;
-        PersistSession(session);
-
-        _responseCancellationTokenSource = new CancellationTokenSource();
-        IsResponding = true;
         StatusMessage = "模型正在流式生成回复";
+        _logger.Log($"发送消息，会话：{_chatManager.CurrentSessionId}");
 
         try
         {
-            await foreach (var chunk in _aiChatService.GetReplyAsync(
-                               session,
-                               assistantMessage,
-                               _settingsService.CurrentSettings,
-                               _responseCancellationTokenSource.Token))
-            {
-                if (chunk.Part == AiResponsePart.Thought)
-                {
-                    assistantMessage.ThoughtContent += chunk.Delta;
-                }
-                else
-                {
-                    assistantMessage.Content += chunk.Delta;
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(assistantMessage.Content))
-            {
-                assistantMessage.Content = "模型未返回正文内容。";
-            }
-
-            StatusMessage = "回复完成";
-            _logger.Log($"收到流式回复，会话：{session.Id}");
-        }
-        catch (OperationCanceledException)
-        {
-            if (string.IsNullOrWhiteSpace(assistantMessage.Content))
-            {
-                assistantMessage.Content = "已停止生成。";
-            }
-
-            StatusMessage = "已停止生成";
-            _logger.Log($"停止生成，会话：{session.Id}");
+            await _chatManager.SendMessageAsync(prompt);
+            StatusMessage = _chatManager.WasLastChatCanceled ? "已停止生成" : "回复完成";
         }
         catch (Exception exception)
         {
-            assistantMessage.Content = $"生成失败：{exception.Message}";
             StatusMessage = "生成失败";
-            _logger.Log($"生成失败，会话：{session.Id}，错误：{exception.Message}");
+            _logger.Log($"生成失败，会话：{_chatManager.CurrentSessionId}，错误：{exception}");
         }
         finally
         {
-            session.Touch();
-            MoveSessionToTop(session);
-            PersistSession(session);
-            _responseCancellationTokenSource?.Dispose();
-            _responseCancellationTokenSource = null;
-            IsResponding = false;
+            OnPropertyChanged(nameof(CurrentSessionTitle));
+            NotifyCommandStates();
         }
     }
 
     private bool CanSendMessage()
     {
-        return !IsResponding && !IsLoadingSessions && !string.IsNullOrWhiteSpace(PendingUserMessage);
-    }
-
-    private bool CanReloadSessions()
-    {
-        return !IsResponding && !IsLoadingSessions;
+        return !IsResponding && !string.IsNullOrWhiteSpace(PendingUserMessage);
     }
 
     private void StopResponse()
     {
-        _responseCancellationTokenSource?.Cancel();
+        _chatManager.CancelCurrentChat();
         StatusMessage = "正在停止生成";
     }
 
-    private void BeginInlineEdit(object? parameter)
+    private void CreateNewChat()
     {
-        if (parameter is not ChatMessage message || SelectedSession is null)
-        {
-            return;
-        }
-
-        CancelEditingOnOtherMessages(message);
-        message.EditingContent = message.Content;
-        message.EditingThoughtContent = message.ThoughtContent;
-        message.IsEditing = true;
-        SelectedMessage = message;
-        StatusMessage = "正在编辑消息";
-        NotifyCommandStates();
-    }
-
-    private bool CanBeginInlineEdit(object? parameter)
-    {
-        return parameter is ChatMessage && !IsResponding && !IsLoadingSessions;
-    }
-
-    private void SaveInlineEdit(object? parameter)
-    {
-        if (parameter is not ChatMessage message || SelectedSession is null)
-        {
-            return;
-        }
-
-        var updatedContent = message.EditingContent.Trim();
-        if (string.IsNullOrWhiteSpace(updatedContent))
-        {
-            return;
-        }
-
-        message.Content = updatedContent;
-        if (message.IsAssistant)
-        {
-            message.ThoughtContent = message.EditingThoughtContent.Trim();
-        }
-
-        message.IsEditing = false;
-        SelectedSession.RefreshTitleFromMessages();
-        SelectedSession.Touch();
-        PersistSession(SelectedSession);
+        _chatManager.CreateNewSession();
+        OnPropertyChanged(nameof(SelectedSession));
+        OnPropertyChanged(nameof(CurrentMessages));
         OnPropertyChanged(nameof(CurrentSessionTitle));
-        StatusMessage = "已保存消息编辑";
-        _logger.Log($"编辑消息，会话：{SelectedSession.Id}，消息：{message.Id}");
+        StatusMessage = "已创建新会话";
         NotifyCommandStates();
     }
 
-    private bool CanSaveInlineEdit(object? parameter)
+    private void DeleteSelectedChat()
     {
-        if (parameter is not ChatMessage message || SelectedSession is null || IsResponding || IsLoadingSessions)
-        {
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(message.EditingContent))
-        {
-            return false;
-        }
-
-        return !string.Equals(message.Content, message.EditingContent, StringComparison.Ordinal) ||
-               !string.Equals(message.ThoughtContent, message.EditingThoughtContent, StringComparison.Ordinal);
-    }
-
-    private void CancelInlineEdit(object? parameter)
-    {
-        if (parameter is not ChatMessage message)
+        if (Sessions.Count <= 1)
         {
             return;
         }
 
-        message.EditingContent = message.Content;
-        message.EditingThoughtContent = message.ThoughtContent;
-        message.IsEditing = false;
-        StatusMessage = "已取消消息编辑";
-        NotifyCommandStates();
+        var session = SelectedSession;
+        var selectedIndex = Sessions.IndexOf(session);
+        Sessions.Remove(session);
+        SelectedSession = Sessions[Math.Min(selectedIndex, Sessions.Count - 1)];
+        StatusMessage = "已从当前运行实例删除会话";
+        _logger.Log($"删除运行期会话：{session.SessionId}");
     }
 
-    private bool CanCancelInlineEdit(object? parameter)
+    private bool CanDeleteSelectedChat()
     {
-        return parameter is ChatMessage message && message.IsEditing;
+        return !IsResponding && Sessions.Count > 1;
     }
 
-    private void CancelEditingOnOtherMessages(ChatMessage? excludedMessage)
+    private void OnChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (SelectedSession is null)
+        if (e.PropertyName == nameof(CopilotChatManager.IsChatting))
         {
-            return;
+            OnPropertyChanged(nameof(IsResponding));
+            NotifyCommandStates();
         }
-
-        foreach (var message in SelectedSession.Messages.Where(message => !ReferenceEquals(message, excludedMessage) && message.IsEditing))
+        else if (e.PropertyName == nameof(CopilotChatManager.SelectedSession))
         {
-            message.EditingContent = message.Content;
-            message.EditingThoughtContent = message.ThoughtContent;
-            message.IsEditing = false;
+            OnPropertyChanged(nameof(SelectedSession));
+            OnPropertyChanged(nameof(CurrentMessages));
+            OnPropertyChanged(nameof(CurrentSessionTitle));
+            NotifyCommandStates();
         }
-    }
-
-    private void PersistSession(ChatSession session)
-    {
-        _chatRepository.SaveSession(session);
-    }
-
-    private void MoveSessionToTop(ChatSession session)
-    {
-        var existingIndex = Sessions.IndexOf(session);
-        if (existingIndex <= 0)
-        {
-            return;
-        }
-
-        Sessions.Move(existingIndex, 0);
     }
 
     private void NotifyCommandStates()
@@ -477,9 +180,5 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         _stopCommand.NotifyCanExecuteChanged();
         _newChatCommand.NotifyCanExecuteChanged();
         _deleteSelectedChatCommand.NotifyCanExecuteChanged();
-        _reloadSessionsCommand.NotifyCanExecuteChanged();
-        _beginInlineEditCommand.NotifyCanExecuteChanged();
-        _saveInlineEditCommand.NotifyCanExecuteChanged();
-        _cancelInlineEditCommand.NotifyCanExecuteChanged();
     }
 }
