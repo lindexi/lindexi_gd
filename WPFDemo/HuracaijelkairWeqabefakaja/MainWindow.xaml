@@ -1,0 +1,207 @@
+﻿<Window x:Class="HuracaijelkairWeqabefakaja.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HuracaijelkairWeqabefakaja"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=local:MainWindowViewModel, IsDesignTimeCreatable=False}"
+        Title="{StaticResource ApplicationTitle}"
+        Width="1180"
+        Height="760"
+        MinWidth="960"
+        MinHeight="660"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource AppWindowStyle}">
+    <Grid Margin="44,36,44,40">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="8,0,8,30">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" MaxWidth="720" HorizontalAlignment="Left">
+                <TextBlock Style="{StaticResource TitleTextStyle}"
+                           Text="{StaticResource HeroTitle}" />
+                <TextBlock Margin="0,8,0,0"
+                           Style="{StaticResource SubtitleTextStyle}"
+                           Text="{StaticResource HeroSubtitle}" />
+            </StackPanel>
+
+            <Border Grid.Column="1"
+                    Margin="28,4,0,0"
+                    Padding="15,9"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Background="#19E55783"
+                    BorderBrush="#35E55783"
+                    BorderThickness="1"
+                    CornerRadius="18">
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                           Foreground="{StaticResource AccentPurpleBrush}"
+                           Text="{StaticResource TechnologyBadgeText}" />
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.16*" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="0.84*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Padding="28"
+                    Style="{StaticResource CardBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Style="{StaticResource SectionTitleTextStyle}"
+                                   Text="{StaticResource PreviewTitle}" />
+                        <TextBlock Grid.Column="1"
+                                   Margin="20,0,0,0"
+                                   Style="{StaticResource CaptionTextStyle}"
+                                   Text="{StaticResource PreviewCaption}" />
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            Margin="0,20"
+                            Padding="18"
+                            Background="White"
+                            BorderBrush="#18542E69"
+                            BorderThickness="1"
+                            CornerRadius="22">
+                        <Image MaxWidth="470"
+                               MaxHeight="470"
+                               Source="{Binding PreviewSource}"
+                               Style="{StaticResource PreviewImageStyle}" />
+                    </Border>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0"
+                                Width="10"
+                                Height="10"
+                                Margin="0,2,10,0"
+                                VerticalAlignment="Top"
+                                Background="{StaticResource AccentRoseBrush}"
+                                CornerRadius="5" />
+                        <TextBlock Grid.Column="1"
+                                   Style="{StaticResource CaptionTextStyle}"
+                                   Text="{StaticResource OpenFolderHintText}" />
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Padding="28"
+                    Style="{StaticResource CardBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                   Text="{StaticResource OutputTitle}" />
+                        <Border Margin="0,12,0,0"
+                                Padding="14,12"
+                                Style="{StaticResource InsetBorderStyle}">
+                            <TextBlock Style="{StaticResource BodyTextStyle}"
+                                       Text="{Binding OutputDirectory}"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding OutputDirectory}" />
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" Margin="0,28,0,0">
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                                   Text="{StaticResource FormatsTitle}" />
+                        <WrapPanel Margin="0,12,0,0">
+                            <Border Style="{StaticResource SizeBadgeStyle}">
+                                <TextBlock Style="{StaticResource BodyTextStyle}"
+                                           Text="{StaticResource PngSizesText}" />
+                            </Border>
+                            <Border Style="{StaticResource SizeBadgeStyle}">
+                                <TextBlock Style="{StaticResource BodyTextStyle}"
+                                           Text="{StaticResource IcoSizesText}" />
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <Border Grid.Row="2"
+                            Margin="0,22,0,0"
+                            Padding="16"
+                            Background="#0F71359A"
+                            BorderBrush="#2371359A"
+                            BorderThickness="1"
+                            CornerRadius="16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0"
+                                    Background="{StaticResource PrimaryButtonBrush}"
+                                    CornerRadius="3" />
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Style="{StaticResource BodyTextStyle}"
+                                           FontWeight="SemiBold"
+                                           Text="{StaticResource TransparentPngTitle}" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource CaptionTextStyle}"
+                                           Text="{StaticResource TransparentPngDescription}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Row="4" Margin="0,28,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Button Grid.Row="0"
+                                Command="{Binding SaveIconsCommand}"
+                                Content="{StaticResource SaveButtonText}"
+                                Style="{StaticResource PrimaryButtonStyle}" />
+
+                        <ProgressBar Grid.Row="1"
+                                     Margin="12,10"
+                                     Style="{StaticResource StatusProgressBarStyle}"
+                                     Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                        <Border Grid.Row="2" Style="{StaticResource StatusBorderStyle}">
+                            <TextBlock Style="{StaticResource StatusTextStyle}"
+                                       Text="{Binding StatusMessage}" />
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
