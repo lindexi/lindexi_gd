@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -49,7 +50,9 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
         _logLoader = logLoader;
         _logMergeService = logMergeService;
         _logRootPath = FindDefaultLogRoot();
-        RefreshCommand = new AsyncCommand(RefreshAsync, () => !IsBusy);
+        RefreshCommand = new AsyncCommand(
+            () => RefreshAsync(rebuildMergedSessions: true),
+            () => !IsBusy);
     }
 
     public ObservableCollection<LogSessionViewModel> Sessions { get; } = [];
@@ -222,7 +225,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public Task InitializeAsync()
     {
-        return RefreshAsync();
+        return RefreshAsync(rebuildMergedSessions: false);
     }
 
     public void Dispose()
@@ -241,7 +244,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
         cancellationTokenSource?.Cancel();
     }
 
-    private async Task RefreshAsync()
+    private async Task RefreshAsync(bool rebuildMergedSessions)
     {
         if (_isDisposed)
         {
@@ -261,40 +264,20 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
         StatusText = "正在扫描日志目录...";
         WarningText = string.Empty;
         MergeStatusText = string.Empty;
-        string? previouslySelectedPath = SelectedSession?.DirectoryPath;
         IReadOnlyList<LogSessionViewModel>? scannedSessions = null;
         CancellationToken cancellationToken = _lifetimeCancellationTokenSource.Token;
         try
         {
-            Task<IReadOnlyList<LogSessionViewModel>> scanTask = Task.Run(
+            IReadOnlyList<LogSessionViewModel> sessions = await Task.Run(
                 () => ScanSessions(rootPath, cancellationToken),
                 cancellationToken);
-            Task<LogMergeResult> existingMergeTask = _logMergeService.LoadExistingAsync(
-                rootPath,
-                MergedLogOutputPath,
-                cancellationToken);
-            IReadOnlyList<LogSessionViewModel> sessions = await scanTask;
-            LogMergeResult existingMergeResult = await existingMergeTask;
             cancellationToken.ThrowIfCancellationRequested();
-            ApplyMergeResult(sessions, existingMergeResult);
             scannedSessions = sessions;
             ReplaceSessions(sessions);
 
-            LogSessionViewModel? sessionToSelect = sessions.FirstOrDefault(session =>
-                string.Equals(session.DirectoryPath, previouslySelectedPath, StringComparison.OrdinalIgnoreCase))
-                ?? sessions.FirstOrDefault();
-            if (ReferenceEquals(SelectedSession, sessionToSelect))
-            {
-                LoadSelectedSessionAsync(sessionToSelect);
-            }
-            else
-            {
-                SelectedSession = sessionToSelect;
-            }
-
             StatusText = sessions.Count == 0
                 ? "目录中没有找到包含 request.log 或 response.log 的会话。"
-                : $"已找到 {sessions.Count} 个日志会话。";
+                : $"已找到 {sessions.Count} 个日志会话，请选择需要加载的内容。";
         }
         catch (DirectoryNotFoundException)
         {
@@ -327,7 +310,7 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
             IsScanning = false;
         }
 
-        if (scannedSessions is not null && !_isDisposed)
+        if (rebuildMergedSessions && scannedSessions is not null && !_isDisposed)
         {
             await RebuildMergedSessionsAsync(rootPath);
         }
@@ -348,8 +331,17 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
         UsageDetailsText = string.Empty;
         if (session is null || _isDisposed)
         {
+            if (ReferenceEquals(
+                    Interlocked.CompareExchange(
+                        ref _sessionLoadCancellationTokenSource,
+                        null,
+                        cancellationTokenSource),
+                    cancellationTokenSource))
+            {
+                IsLoading = false;
+            }
+
             cancellationTokenSource.Dispose();
-            Interlocked.CompareExchange(ref _sessionLoadCancellationTokenSource, null, cancellationTokenSource);
             return;
         }
 
@@ -432,20 +424,21 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
                 cancellationTokenSource.Token);
             cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-            string? previousConversationDirectoryPath = SelectedSession?.ConversationDirectoryPath;
+            LogSessionViewModel? selectedSession = SelectedSession;
+            string? previousConversationDirectoryPath = selectedSession?.ConversationDirectoryPath;
             ApplyMergeResult(Sessions, mergeResult);
             OnPropertyChanged(nameof(SessionTitle));
             OnPropertyChanged(nameof(HasMergedSelectedSession));
             OnPropertyChanged(nameof(SelectedSessionMergeText));
 
-            if (SelectedSession is { } selectedSession
-                && (selectedSession.IsMerged
-                    || !string.Equals(
-                        previousConversationDirectoryPath,
-                        selectedSession.ConversationDirectoryPath,
-                        StringComparison.OrdinalIgnoreCase)))
+            if (selectedSession is not null
+                && !string.Equals(
+                    previousConversationDirectoryPath,
+                    selectedSession.ConversationDirectoryPath,
+                    StringComparison.OrdinalIgnoreCase))
             {
-                LoadSelectedSessionAsync(selectedSession);
+                SelectedSession = null;
+                StatusText = "合并结果已更新，请重新选择会话以加载内容。";
             }
 
             int sourceSessionCount = mergeResult.MergedSessions
@@ -521,15 +514,11 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void ReplaceSessions(IReadOnlyList<LogSessionViewModel> sessions)
     {
+        SelectedSession = null;
         Sessions.Clear();
         foreach (LogSessionViewModel session in sessions)
         {
             Sessions.Add(session);
-        }
-
-        if (sessions.Count == 0)
-        {
-            SelectedSession = null;
         }
 
         OnPropertyChanged(nameof(HasSessions));
@@ -659,16 +648,28 @@ internal sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private static string FindDefaultLogRoot()
     {
-        string? configuredPath = Environment.GetEnvironmentVariable("OLLAMA_HUB_LOG_PATH");
-        if (!string.IsNullOrWhiteSpace(configuredPath))
+        string logFolder = Path.Join(AppContext.BaseDirectory, "Session");
+
+        if (Directory.Exists(logFolder))
         {
-            return configuredPath;
+            return logFolder;
         }
 
+        var testLogFolder = @"C:\lindexi\Work\OllamaHubTest";
+        if (Directory.Exists(testLogFolder))
+        {
+            return testLogFolder;
+        }
+        else
+        {
+            // 不知道怎么处理
 #if DEBUG
-        return @"C:\lindexi\Work\OllamaHubTest";
-#else
-        return Path.Join(AppContext.BaseDirectory, "Session");
+            if (Debugger.IsAttached)
+            {
+                Debugger.Break();
+            }
 #endif
+            return logFolder;
+        }
     }
 }

@@ -1,9 +1,11 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -116,73 +118,6 @@ internal sealed class LogMergeService
         }
     }
 
-    public async Task<LogMergeResult> LoadExistingAsync(
-        string sourceRootPath,
-        string outputRootPath,
-        CancellationToken cancellationToken)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(sourceRootPath);
-        ArgumentException.ThrowIfNullOrWhiteSpace(outputRootPath);
-
-        string fullSourceRootPath = Path.GetFullPath(sourceRootPath);
-        string sourceRootFingerprint = ComputeSourceRootFingerprint(fullSourceRootPath);
-        string sourceOutputRootPath = Path.Join(Path.GetFullPath(outputRootPath), sourceRootFingerprint);
-        string indexPath = Path.Join(sourceOutputRootPath, IndexFileName);
-        if (!File.Exists(indexPath))
-        {
-            return LogMergeResult.Empty(sourceOutputRootPath);
-        }
-
-        try
-        {
-            await using FileStream stream = OpenRead(indexPath);
-            LogMergeIndex? index = await JsonSerializer
-                .DeserializeAsync(
-                    stream,
-                    LogMergeJsonContext.Default.LogMergeIndex,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            if (index is null
-                || index.FormatVersion != CurrentFormatVersion
-                || index.Sessions is null
-                || !string.Equals(
-                    index.SourceRootFingerprint,
-                    sourceRootFingerprint,
-                    StringComparison.Ordinal))
-            {
-                return LogMergeResult.Empty(sourceOutputRootPath);
-            }
-
-            LogMergeIndex validatedIndex = await ValidateExistingIndexAsync(
-                    index,
-                    sourceOutputRootPath,
-                    sourceRootFingerprint,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            return BuildResult(validatedIndex, sourceOutputRootPath);
-        }
-        catch (JsonException exception)
-        {
-            Trace.TraceWarning("无法解析合并日志索引 {0}：{1}", indexPath, exception.Message);
-            return LogMergeResult.Empty(sourceOutputRootPath);
-        }
-        catch (IOException exception)
-        {
-            Trace.TraceWarning("无法读取合并日志索引 {0}：{1}", indexPath, exception.Message);
-            return LogMergeResult.Empty(sourceOutputRootPath);
-        }
-        catch (UnauthorizedAccessException exception)
-        {
-            Trace.TraceWarning("没有权限读取合并日志索引 {0}：{1}", indexPath, exception.Message);
-            return LogMergeResult.Empty(sourceOutputRootPath);
-        }
-        catch (ArgumentException exception)
-        {
-            Trace.TraceWarning("合并日志索引包含无效路径 {0}：{1}", indexPath, exception.Message);
-            return LogMergeResult.Empty(sourceOutputRootPath);
-        }
-    }
-
     private async Task<IReadOnlyList<SourceSession>> LoadSourceSessionsAsync(
         string sourceRootPath,
         string stagingRootPath,
@@ -266,12 +201,17 @@ internal sealed class LogMergeService
                 continue;
             }
 
-            IReadOnlyList<LogChatMessage> requestMessages = conversation.Messages
-                .Take(conversation.RequestMessageCount)
-                .ToArray();
-            IReadOnlyList<LogChatMessage> responseMessages = conversation.Messages
-                .Skip(conversation.RequestMessageCount)
-                .ToArray();
+            MessageSignature[] requestMessages = BuildMessageSignatures(
+                conversation.Messages,
+                startIndex: 0,
+                conversation.RequestMessageCount);
+            MessageSignature[] responseMessages = BuildMessageSignatures(
+                conversation.Messages,
+                conversation.RequestMessageCount,
+                conversation.Messages.Count - conversation.RequestMessageCount);
+            string[] responseToolCallIds = GetResponseToolCallIds(
+                conversation.Messages,
+                conversation.RequestMessageCount);
             sourceSessions.Add(new SourceSession(
                 sessionDirectory,
                 snapshotDirectory,
@@ -279,6 +219,7 @@ internal sealed class LogMergeService
                 GetSessionSortTimestamp(sessionDirectory),
                 requestMessages,
                 responseMessages,
+                responseToolCallIds,
                 sourceHasResponse));
         }
 
@@ -292,44 +233,44 @@ internal sealed class LogMergeService
         IReadOnlyList<SourceSession> sourceSessions,
         CancellationToken cancellationToken)
     {
-        SourceSession?[] parents = new SourceSession?[sourceSessions.Count];
-        var childCounts = new Dictionary<SourceSession, int>(sourceSessions.Count);
+        int[] parentIndexes = new int[sourceSessions.Count];
+        Array.Fill(parentIndexes, -1);
+        int[] childCounts = new int[sourceSessions.Count];
 
         for (int childIndex = 0; childIndex < sourceSessions.Count; childIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             SourceSession child = sourceSessions[childIndex];
-            SourceSession? parent = null;
+            int bestParentIndex = -1;
             int bestContinuationMessageCount = -1;
 
             for (int parentIndex = childIndex - 1; parentIndex >= 0; parentIndex--)
             {
                 SourceSession candidate = sourceSessions[parentIndex];
-                int continuationMessageCount = candidate.RequestMessages.Count
-                                               + candidate.ResponseMessages.Count;
+                int continuationMessageCount = candidate.RequestMessages.Length
+                                               + candidate.ResponseMessages.Length;
                 if (continuationMessageCount <= bestContinuationMessageCount
                     || !IsStrictContinuation(candidate, child))
                 {
                     continue;
                 }
 
-                parent = candidate;
+                bestParentIndex = parentIndex;
                 bestContinuationMessageCount = continuationMessageCount;
             }
 
-            parents[childIndex] = parent;
-            childCounts.TryAdd(child, 0);
-            if (parent is not null)
+            parentIndexes[childIndex] = bestParentIndex;
+            if (bestParentIndex >= 0)
             {
-                childCounts[parent] = childCounts.GetValueOrDefault(parent) + 1;
+                childCounts[bestParentIndex]++;
             }
         }
 
-        List<SessionChain> chains = [];
+        List<SessionChain> chains = new(sourceSessions.Count);
         for (int sessionIndex = 0; sessionIndex < sourceSessions.Count; sessionIndex++)
         {
             SourceSession terminalSession = sourceSessions[sessionIndex];
-            if (childCounts.GetValueOrDefault(terminalSession) > 0)
+            if (childCounts[sessionIndex] > 0)
             {
                 continue;
             }
@@ -340,10 +281,7 @@ internal sealed class LogMergeService
             {
                 SourceSession currentSession = sourceSessions[currentIndex];
                 chainSessions.Add(currentSession);
-                SourceSession? parent = parents[currentIndex];
-                currentIndex = parent is null
-                    ? -1
-                    : FindSessionIndex(sourceSessions, parent, currentIndex - 1);
+                currentIndex = parentIndexes[currentIndex];
             }
 
             chainSessions.Reverse();
@@ -358,18 +296,18 @@ internal sealed class LogMergeService
 
     private static bool IsStrictContinuation(SourceSession parent, SourceSession child)
     {
-        if (parent.ResponseMessages.Count == 0)
+        if (parent.ResponseMessages.Length == 0)
         {
             return false;
         }
 
-        int expectedPrefixCount = parent.RequestMessages.Count + parent.ResponseMessages.Count;
-        if (child.RequestMessages.Count <= expectedPrefixCount)
+        int expectedPrefixCount = parent.RequestMessages.Length + parent.ResponseMessages.Length;
+        if (child.RequestMessages.Length <= expectedPrefixCount)
         {
             return false;
         }
 
-        for (int index = 0; index < parent.RequestMessages.Count; index++)
+        for (int index = 0; index < parent.RequestMessages.Length; index++)
         {
             if (!AreEquivalent(parent.RequestMessages[index], child.RequestMessages[index]))
             {
@@ -377,46 +315,50 @@ internal sealed class LogMergeService
             }
         }
 
-        for (int index = 0; index < parent.ResponseMessages.Count; index++)
+        for (int index = 0; index < parent.ResponseMessages.Length; index++)
         {
             if (!AreEquivalent(
                     parent.ResponseMessages[index],
-                    child.RequestMessages[parent.RequestMessages.Count + index]))
+                    child.RequestMessages[parent.RequestMessages.Length + index]))
             {
                 return false;
             }
         }
 
-        IReadOnlyList<LogChatMessage> appendedMessages = child.RequestMessages
-            .Skip(expectedPrefixCount)
-            .ToArray();
-        return IsToolRoundTrip(parent.ResponseMessages, appendedMessages);
+        return IsToolRoundTrip(
+            parent.ResponseToolCallIds,
+            child.RequestMessages,
+            expectedPrefixCount);
     }
 
     private static bool IsToolRoundTrip(
-        IReadOnlyList<LogChatMessage> responseMessages,
-        IReadOnlyList<LogChatMessage> appendedMessages)
+        IReadOnlyList<string> responseToolCallIds,
+        MessageSignature[] childRequestMessages,
+        int appendedMessageStartIndex)
     {
-        LogToolCall[] toolCalls = responseMessages
-            .SelectMany(static message => message.ToolCalls)
-            .ToArray();
-        if (toolCalls.Length == 0
-            || toolCalls.Any(static toolCall => string.IsNullOrWhiteSpace(toolCall.Id)))
+        if (responseToolCallIds.Count == 0)
         {
             return false;
         }
 
-        HashSet<string> pendingToolCallIds = toolCalls
-            .Select(static toolCall => toolCall.Id)
-            .ToHashSet(StringComparer.Ordinal);
-        if (pendingToolCallIds.Count != toolCalls.Length
-            || appendedMessages.Count != pendingToolCallIds.Count)
+        HashSet<string> pendingToolCallIds = new(responseToolCallIds.Count, StringComparer.Ordinal);
+        foreach (string toolCallId in responseToolCallIds)
+        {
+            if (string.IsNullOrWhiteSpace(toolCallId) || !pendingToolCallIds.Add(toolCallId))
+            {
+                return false;
+            }
+        }
+
+        int appendedMessageCount = childRequestMessages.Length - appendedMessageStartIndex;
+        if (appendedMessageCount != pendingToolCallIds.Count)
         {
             return false;
         }
 
-        foreach (LogChatMessage message in appendedMessages)
+        for (int index = appendedMessageStartIndex; index < childRequestMessages.Length; index++)
         {
+            MessageSignature message = childRequestMessages[index];
             if (message.Role != LogChatRole.Tool
                 || string.IsNullOrWhiteSpace(message.ToolCallId)
                 || !pendingToolCallIds.Remove(message.ToolCallId))
@@ -428,34 +370,130 @@ internal sealed class LogMergeService
         return pendingToolCallIds.Count == 0;
     }
 
-    private static bool AreEquivalent(LogChatMessage left, LogChatMessage right)
+    private static bool AreEquivalent(MessageSignature left, MessageSignature right)
     {
-        if (left.Role != right.Role
-            || !string.Equals(left.RawRole, right.RawRole, StringComparison.OrdinalIgnoreCase)
-            || !string.Equals(left.Content, right.Content, StringComparison.Ordinal)
-            || !string.Equals(left.ReasoningContent, right.ReasoningContent, StringComparison.Ordinal)
-            || !string.Equals(left.Name, right.Name, StringComparison.Ordinal)
-            || !string.Equals(left.ToolCallId, right.ToolCallId, StringComparison.Ordinal)
-            || left.ToolCalls.Count != right.ToolCalls.Count)
+        return left.Fingerprint == right.Fingerprint;
+    }
+
+    private static MessageSignature[] BuildMessageSignatures(
+        IReadOnlyList<LogChatMessage> messages,
+        int startIndex,
+        int count)
+    {
+        if (count == 0)
         {
-            return false;
+            return [];
         }
 
-        for (int index = 0; index < left.ToolCalls.Count; index++)
+        MessageSignature[] signatures = new MessageSignature[count];
+        using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        for (int index = 0; index < count; index++)
         {
-            LogToolCall leftToolCall = left.ToolCalls[index];
-            LogToolCall rightToolCall = right.ToolCalls[index];
-            if (leftToolCall.Index != rightToolCall.Index
-                || !string.Equals(leftToolCall.Id, rightToolCall.Id, StringComparison.Ordinal)
-                || !string.Equals(leftToolCall.Type, rightToolCall.Type, StringComparison.Ordinal)
-                || !string.Equals(leftToolCall.Name, rightToolCall.Name, StringComparison.Ordinal)
-                || !string.Equals(leftToolCall.Arguments, rightToolCall.Arguments, StringComparison.Ordinal))
+            LogChatMessage message = messages[startIndex + index];
+            signatures[index] = CreateMessageSignature(message, hash);
+        }
+
+        return signatures;
+    }
+
+    private static MessageSignature CreateMessageSignature(
+        LogChatMessage message,
+        IncrementalHash hash)
+    {
+        AppendInt32(hash, (int) message.Role);
+        AppendOrdinalIgnoreCaseString(hash, message.RawRole);
+        AppendString(hash, message.Content);
+        AppendString(hash, message.ReasoningContent);
+        AppendString(hash, message.Name);
+        AppendString(hash, message.ToolCallId);
+        AppendInt32(hash, message.ToolCalls.Count);
+        foreach (LogToolCall toolCall in message.ToolCalls)
+        {
+            AppendInt32(hash, toolCall.Index);
+            AppendString(hash, toolCall.Id);
+            AppendString(hash, toolCall.Type);
+            AppendString(hash, toolCall.Name);
+            AppendString(hash, toolCall.Arguments);
+        }
+
+        Span<byte> fingerprintBytes = stackalloc byte[32];
+        if (!hash.TryGetHashAndReset(fingerprintBytes, out int bytesWritten)
+            || bytesWritten != fingerprintBytes.Length)
+        {
+            throw new CryptographicException("无法计算日志消息指纹。");
+        }
+
+        var fingerprint = new MessageFingerprint(
+            BinaryPrimitives.ReadUInt64LittleEndian(fingerprintBytes),
+            BinaryPrimitives.ReadUInt64LittleEndian(fingerprintBytes[8..]),
+            BinaryPrimitives.ReadUInt64LittleEndian(fingerprintBytes[16..]),
+            BinaryPrimitives.ReadUInt64LittleEndian(fingerprintBytes[24..]));
+        string toolCallId = message.Role == LogChatRole.Tool
+            ? message.ToolCallId
+            : string.Empty;
+        return new MessageSignature(fingerprint, message.Role, toolCallId);
+    }
+
+    private static string[] GetResponseToolCallIds(
+        IReadOnlyList<LogChatMessage> messages,
+        int responseStartIndex)
+    {
+        int toolCallCount = 0;
+        for (int index = responseStartIndex; index < messages.Count; index++)
+        {
+            toolCallCount += messages[index].ToolCalls.Count;
+        }
+
+        if (toolCallCount == 0)
+        {
+            return [];
+        }
+
+        string[] toolCallIds = new string[toolCallCount];
+        int toolCallIndex = 0;
+        for (int index = responseStartIndex; index < messages.Count; index++)
+        {
+            foreach (LogToolCall toolCall in messages[index].ToolCalls)
             {
-                return false;
+                toolCallIds[toolCallIndex++] = toolCall.Id;
             }
         }
 
-        return true;
+        return toolCallIds;
+    }
+
+    private static void AppendInt32(IncrementalHash hash, int value)
+    {
+        Span<byte> valueBytes = stackalloc byte[sizeof(int)];
+        BinaryPrimitives.WriteInt32LittleEndian(valueBytes, value);
+        hash.AppendData(valueBytes);
+    }
+
+    private static void AppendString(IncrementalHash hash, string value)
+    {
+        AppendInt32(hash, value.Length);
+        if (value.Length > 0)
+        {
+            hash.AppendData(MemoryMarshal.AsBytes(value.AsSpan()));
+        }
+    }
+
+    private static void AppendOrdinalIgnoreCaseString(IncrementalHash hash, string value)
+    {
+        AppendInt32(hash, value.Length);
+        Span<char> normalizedCharacters = stackalloc char[64];
+        int offset = 0;
+        while (offset < value.Length)
+        {
+            int chunkLength = Math.Min(normalizedCharacters.Length, value.Length - offset);
+            for (int index = 0; index < chunkLength; index++)
+            {
+                normalizedCharacters[index] = char.ToUpperInvariant(value[offset + index]);
+            }
+
+            hash.AppendData(MemoryMarshal.AsBytes(normalizedCharacters[..chunkLength]));
+            offset += chunkLength;
+        }
     }
 
     private static async Task<LogMergeIndexEntry> WriteSnapshotAsync(
@@ -650,31 +688,6 @@ internal sealed class LogMergeService
         byte[] rightHash = await ComputeFileHashAsync(rightPath, cancellationToken).ConfigureAwait(false);
 
         return leftHash.AsSpan().SequenceEqual(rightHash);
-    }
-
-    private static async Task<LogMergeIndex> ValidateExistingIndexAsync(
-        LogMergeIndex index,
-        string sourceOutputRootPath,
-        string sourceRootFingerprint,
-        CancellationToken cancellationToken)
-    {
-        List<LogMergeIndexEntry> validEntries = new(index.Sessions.Length);
-        foreach (LogMergeIndexEntry? entry in index.Sessions)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (entry is not null
-                && await TryValidateSnapshotAsync(
-                        entry,
-                        sourceOutputRootPath,
-                        sourceRootFingerprint,
-                        cancellationToken)
-                    .ConfigureAwait(false))
-            {
-                validEntries.Add(entry);
-            }
-        }
-
-        return index with { Sessions = validEntries.ToArray() };
     }
 
     private static async Task<bool> TryValidateSnapshotAsync(
@@ -1042,22 +1055,6 @@ internal sealed class LogMergeService
         return new DateTimeOffset(lastWriteTime);
     }
 
-    private static int FindSessionIndex(
-        IReadOnlyList<SourceSession> sourceSessions,
-        SourceSession session,
-        int startIndex)
-    {
-        for (int index = startIndex; index >= 0; index--)
-        {
-            if (ReferenceEquals(sourceSessions[index], session))
-            {
-                return index;
-            }
-        }
-
-        return -1;
-    }
-
     private static void TryDeleteDirectory(string path)
     {
         if (!Directory.Exists(path))
@@ -1084,9 +1081,21 @@ internal sealed class LogMergeService
         string SnapshotDirectoryPath,
         string DirectoryName,
         DateTimeOffset SortTimestamp,
-        IReadOnlyList<LogChatMessage> RequestMessages,
-        IReadOnlyList<LogChatMessage> ResponseMessages,
+        MessageSignature[] RequestMessages,
+        MessageSignature[] ResponseMessages,
+        IReadOnlyList<string> ResponseToolCallIds,
         bool HasResponse);
+
+    private readonly record struct MessageSignature(
+        MessageFingerprint Fingerprint,
+        LogChatRole Role,
+        string ToolCallId);
+
+    private readonly record struct MessageFingerprint(
+        ulong Part1,
+        ulong Part2,
+        ulong Part3,
+        ulong Part4);
 
     private readonly record struct FileSnapshot(long Length, DateTime LastWriteTimeUtc);
 
