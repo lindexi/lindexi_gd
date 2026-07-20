@@ -76,46 +76,46 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     /// <summary>
     /// 返回当前解决方案中的项目。
     /// </summary>
-    /// <param name="solution_path">解决方案的绝对路径或工作区相对路径。</param>
+    /// <param name="solutionPath">解决方案的绝对路径或工作区相对路径。</param>
     /// <returns>包含项目路径的 JSON。</returns>
-    [Description("返回当前解决方案中的项目。仅在需要了解工作区整体结构时使用。solution_path 可省略。")]
+    [Description("返回当前解决方案中的项目。仅在需要了解工作区整体结构时使用。solutionPath 可省略。")]
     public string GetProjectsInSolution(
         [Description("解决方案的绝对路径或工作区相对路径；省略时自动选择工作区根目录中的唯一 .sln/.slnx。")]
-        string? solution_path = null) =>
-        _catalog.GetProjectsInSolution(solution_path);
+        string? solutionPath = null) =>
+        _catalog.GetProjectsInSolution(solutionPath);
 
     /// <summary>
     /// 返回指定项目包含的文件。
     /// </summary>
-    /// <param name="project_path">项目的绝对路径或工作区相对路径。</param>
+    /// <param name="projectPath">项目的绝对路径或工作区相对路径。</param>
     /// <returns>包含项目和文件路径的 JSON。</returns>
     [Description("返回指定项目包含的文件。先用 get_projects_in_solution 获取项目路径。")]
     public string GetFilesInProject(
         [Description("项目的绝对路径或工作区相对路径。")]
-        string project_path) =>
-        _catalog.GetFilesInProject(project_path);
+        string projectPath) =>
+        _catalog.GetFilesInProject(projectPath);
 
     /// <summary>
     /// 使用 Roslyn 工作区符号索引按查询词搜索代码符号。
     /// </summary>
-    /// <param name="search_queries">符号名称或与符号名称相关的查询词。</param>
+    /// <param name="searchQueries">符号名称或与符号名称相关的查询词。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>按查询词分组的符号结果 JSON。</returns>
     [Description("按符号名称或名称片段搜索工作区代码符号。该工具使用 Roslyn workspace/symbol 索引，不是自然语言语义搜索。")]
     public async Task<string> CodeSearchAsync(
         [Description("一个或多个符号名称、名称片段或代码概念关键词。")]
-        string[] search_queries,
+        string[] searchQueries,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(search_queries);
+        ArgumentNullException.ThrowIfNull(searchQueries);
         RoslynLspClient? lspClient = _lspClient;
         if (lspClient is null)
         {
             return LanguageServerUnavailableResult;
         }
 
-        List<JsonNode?> results = new(search_queries.Length);
-        foreach (string query in search_queries
+        List<JsonNode?> results = new(searchQueries.Length);
+        foreach (string query in searchQueries
                      .Where(query => !string.IsNullOrWhiteSpace(query))
                      .Distinct(StringComparer.OrdinalIgnoreCase))
         {
@@ -135,19 +135,19 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     /// <summary>
     /// 查找符号，并返回其定义、实现和引用。
     /// </summary>
-    /// <param name="symbol_name">符号名称。</param>
-    /// <param name="include_declaration">引用结果是否包含声明。</param>
+    /// <param name="symbolName">符号名称。</param>
+    /// <param name="includeDeclaration">引用结果是否包含声明。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>符号详情 JSON。</returns>
     [Description("查找符号并追踪其定义、实现和调用引用。需要了解符号用法、定义、接口实现或代码依赖时使用。")]
     public async Task<string> FindSymbolAsync(
         [Description("要查找的类型、方法、属性、字段或其他符号名称。")]
-        string symbol_name,
+        string symbolName,
         [Description("是否在引用结果中包含符号声明本身。")]
-        bool include_declaration = true,
+        bool includeDeclaration = true,
         CancellationToken cancellationToken = default)
     {
-        ThrowIfNullOrWhiteSpace(symbol_name, nameof(symbol_name));
+        ThrowIfNullOrWhiteSpace(symbolName, nameof(symbolName));
         RoslynLspClient? lspClient = _lspClient;
         if (lspClient is null)
         {
@@ -155,9 +155,9 @@ public sealed class RoslynAgentTools : IAsyncDisposable
         }
 
         JsonNode? symbols = await lspClient
-            .RequestAsync("workspace/symbol", new { query = symbol_name }, cancellationToken)
+            .RequestAsync("workspace/symbol", new { query = symbolName }, cancellationToken)
             .ConfigureAwait(false);
-        JsonArray matches = SelectExactOrBestMatches(symbols, symbol_name, 10);
+        JsonArray matches = SelectExactOrBestMatches(symbols, symbolName, 10);
         JsonArray detailedMatches = [];
 
         foreach (JsonNode? match in matches)
@@ -192,7 +192,7 @@ public sealed class RoslynAgentTools : IAsyncDisposable
                 filePath,
                 line,
                 character,
-                include_declaration,
+                includeDeclaration,
                 cancellationToken).ConfigureAwait(false);
 
             detailedMatches.Add(new JsonObject
@@ -210,25 +210,25 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     /// <summary>
     /// 查找指定源码位置处符号的全部引用。
     /// </summary>
-    /// <param name="file_path">源码文件路径。</param>
+    /// <param name="filePath">源码文件路径。</param>
     /// <param name="line">从零开始的 LSP 行号。</param>
     /// <param name="character">从零开始、按 UTF-16 代码单元计算的字符位置。</param>
-    /// <param name="include_declaration">是否包含符号声明。</param>
+    /// <param name="includeDeclaration">是否包含符号声明。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>引用位置 JSON。</returns>
     [Description("查找给定源码位置处符号的所有引用。位置使用从 0 开始的 LSP 行号和 UTF-16 字符偏移。")]
     public async Task<string> FindAllReferencesAsync(
         [Description("源码文件的绝对路径。")]
-        string file_path,
+        string filePath,
         [Description("从 0 开始的行号。")]
         int line,
         [Description("从 0 开始、按 UTF-16 代码单元计算的字符位置。")]
         int character,
         [Description("是否包含符号声明本身。")]
-        bool include_declaration = true,
+        bool includeDeclaration = true,
         CancellationToken cancellationToken = default)
     {
-        ThrowIfNullOrWhiteSpace(file_path, nameof(file_path));
+        ThrowIfNullOrWhiteSpace(filePath, nameof(filePath));
         if (line < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(line), line, "行号不能小于零。");
@@ -245,15 +245,15 @@ public sealed class RoslynAgentTools : IAsyncDisposable
             return LanguageServerUnavailableResult;
         }
 
-        file_path = Path.GetFullPath(file_path);
-        EnsurePathInsideWorkspace(file_path);
-        await lspClient.OpenDocumentAsync(file_path, cancellationToken).ConfigureAwait(false);
+        filePath = Path.GetFullPath(filePath);
+        EnsurePathInsideWorkspace(filePath);
+        await lspClient.OpenDocumentAsync(filePath, cancellationToken).ConfigureAwait(false);
         JsonNode? references = await RequestReferencesAsync(
             lspClient,
-            file_path,
+            filePath,
             line,
             character,
-            include_declaration,
+            includeDeclaration,
             cancellationToken).ConfigureAwait(false);
         return SanitizeForOutput(references)?.ToJsonString(JsonOptions) ?? "null";
     }

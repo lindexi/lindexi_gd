@@ -1,9 +1,7 @@
-using AgentLib.Coding;
 using AgentLib.ChatRoom.Model;
+using AgentLib.ChatRoom.Services;
 using AgentLib.ChatRoom.Tools;
 using AgentLib.Core;
-
-using CodingRoleFactory = AgentLib.Coding.CodingAssistantRoleFactory;
 
 namespace AgentLib.ChatRoom;
 
@@ -13,7 +11,7 @@ namespace AgentLib.ChatRoom;
 public sealed class ChatRoomRoleFactory : IChatRoomRoleFactory
 {
     private readonly IMainThreadDispatcher? _mainThreadDispatcher;
-    private readonly CodingRoleFactory _codingAssistantRoleFactory;
+    private readonly CodingAssistantRoleFactory _codingAssistantRoleFactory;
 
     /// <summary>
     /// 创建通用角色工厂。
@@ -24,7 +22,7 @@ public sealed class ChatRoomRoleFactory : IChatRoomRoleFactory
         string roslynLanguageServerCommand = "roslyn-language-server")
     {
         _mainThreadDispatcher = mainThreadDispatcher;
-        _codingAssistantRoleFactory = new CodingRoleFactory(roslynLanguageServerCommand);
+        _codingAssistantRoleFactory = new CodingAssistantRoleFactory(roslynLanguageServerCommand);
     }
 
     /// <summary>
@@ -33,7 +31,7 @@ public sealed class ChatRoomRoleFactory : IChatRoomRoleFactory
     /// <returns>新的聊天室角色定义。</returns>
     public ChatRoomRoleDefinition CreateCodingAssistantDefinition()
     {
-        return ToChatRoomDefinition(_codingAssistantRoleFactory.CreateDefinition());
+        return _codingAssistantRoleFactory.CreateDefinition();
     }
 
     /// <summary>
@@ -42,20 +40,7 @@ public sealed class ChatRoomRoleFactory : IChatRoomRoleFactory
     /// <returns>不会由模板服务写入磁盘的运行时模板。</returns>
     public RoleTemplate CreateCodingAssistantRuntimeTemplate()
     {
-        CodingAssistantRoleTemplate template = _codingAssistantRoleFactory.CreateRuntimeTemplate();
-        DateTimeOffset now = DateTimeOffset.Now;
-        return new RoleTemplate
-        {
-            TemplateId = template.TemplateId,
-            Name = template.Name,
-            Description = template.Description,
-            Category = template.Category,
-            Tags = [.. template.Tags],
-            CreatedAt = now,
-            UpdatedAt = now,
-            IsPreset = true,
-            Definition = ToChatRoomDefinition(template.Definition),
-        };
+        return _codingAssistantRoleFactory.CreateRuntimeTemplate();
     }
 
     /// <inheritdoc />
@@ -78,22 +63,6 @@ public sealed class ChatRoomRoleFactory : IChatRoomRoleFactory
         return new ChatRoomRole(definition)
         {
             MainThreadDispatcher = _mainThreadDispatcher,
-        };
-    }
-
-    private static ChatRoomRoleDefinition ToChatRoomDefinition(CodingAssistantRoleDefinition definition)
-    {
-        return new ChatRoomRoleDefinition
-        {
-            RoleId = Guid.NewGuid().ToString("N"),
-            Kind = ChatRoomRoleKind.CodingAssistant,
-            RoleName = definition.RoleName,
-            SystemPrompt = definition.SystemPrompt,
-            IsHuman = definition.IsHuman,
-            ParticipationMode = definition.RequiresExplicitMention
-                ? ChatRoomParticipationMode.MentionOnly
-                : ChatRoomParticipationMode.AlwaysParticipate,
-            IsManagerRole = definition.IsManagerRole,
         };
     }
 }

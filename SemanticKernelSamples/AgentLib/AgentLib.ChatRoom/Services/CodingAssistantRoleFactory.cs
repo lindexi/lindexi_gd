@@ -1,14 +1,17 @@
-namespace AgentLib.Coding;
+using AgentLib.Coding;
+using AgentLib.ChatRoom.Model;
+
+namespace AgentLib.ChatRoom.Services;
 
 /// <summary>
-/// 创建编程助手描述和工作区工具提供器。
+/// 创建编程助手角色定义、运行时模板和工作区工具提供器。
 /// </summary>
 public sealed class CodingAssistantRoleFactory
 {
     private readonly string _roslynLanguageServerCommand;
 
     /// <summary>
-    /// 获取编程助手模板的稳定标识。
+    /// 编程助手运行时模板的固定标识。
     /// </summary>
     public const string TemplateId = "runtime_coding_assistant";
 
@@ -28,7 +31,7 @@ public sealed class CodingAssistantRoleFactory
         """;
 
     /// <summary>
-    /// 创建编程助手工厂。
+    /// 创建编程助手角色工厂。
     /// </summary>
     /// <param name="roslynLanguageServerCommand">Roslyn Language Server 启动命令。</param>
     public CodingAssistantRoleFactory(string roslynLanguageServerCommand = "roslyn-language-server")
@@ -42,33 +45,43 @@ public sealed class CodingAssistantRoleFactory
     }
 
     /// <summary>
-    /// 创建编程助手角色定义。
+    /// 创建可持久化的编程助手角色定义。
     /// </summary>
-    /// <returns>新的中立角色定义。</returns>
-    public CodingAssistantRoleDefinition CreateDefinition()
+    /// <returns>新的聊天室角色定义。</returns>
+    public ChatRoomRoleDefinition CreateDefinition()
     {
-        return new CodingAssistantRoleDefinition(
-            "编程助手",
-            SystemPrompt,
-            isHuman: false,
-            requiresExplicitMention: true,
-            isManagerRole: false);
+        return new ChatRoomRoleDefinition
+        {
+            RoleId = Guid.NewGuid().ToString("N"),
+            Kind = ChatRoomRoleKind.CodingAssistant,
+            RoleName = "编程助手",
+            SystemPrompt = SystemPrompt,
+            IsHuman = false,
+            ParticipationMode = ChatRoomParticipationMode.MentionOnly,
+            IsManagerRole = false,
+        };
     }
 
     /// <summary>
-    /// 创建编程助手运行时模板描述。
+    /// 创建仅在当前进程中存在的编程助手模板。
     /// </summary>
-    /// <returns>新的中立模板描述。</returns>
-    public CodingAssistantRoleTemplate CreateRuntimeTemplate()
+    /// <returns>不会由模板服务写入磁盘的运行时模板。</returns>
+    public RoleTemplate CreateRuntimeTemplate()
     {
-        CodingAssistantRoleDefinition definition = CreateDefinition();
-        return new CodingAssistantRoleTemplate(
-            TemplateId,
-            definition.RoleName,
-            "探索代码、修改文件并运行 .NET 构建与测试",
-            "开发",
-            ["开发", "编程", ".NET"],
-            definition);
+        ChatRoomRoleDefinition definition = CreateDefinition();
+        DateTimeOffset now = DateTimeOffset.Now;
+        return new RoleTemplate
+        {
+            TemplateId = TemplateId,
+            Name = definition.RoleName,
+            Description = "探索代码、修改文件并运行 .NET 构建与测试",
+            Category = "开发",
+            Tags = ["开发", "编程", ".NET"],
+            CreatedAt = now,
+            UpdatedAt = now,
+            IsPreset = true,
+            Definition = definition,
+        };
     }
 
     /// <summary>

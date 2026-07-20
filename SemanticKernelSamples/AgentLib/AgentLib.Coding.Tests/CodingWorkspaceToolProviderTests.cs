@@ -50,7 +50,7 @@ public sealed class CodingWorkspaceToolProviderTests
 
         object? result = await codeSearch.InvokeAsync(new AIFunctionArguments
         {
-            ["search_queries"] = new[] { "Sample" },
+            ["searchQueries"] = new[] { "Sample" },
         });
 
         StringAssert.Contains(result?.ToString(), "roslyn_language_server_unavailable");
