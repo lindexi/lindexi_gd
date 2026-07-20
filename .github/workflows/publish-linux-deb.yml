@@ -1,0 +1,149 @@
+name: Publish Linux deb packages
+
+on:
+  push:
+    branches:
+      - ImageViewer
+
+permissions:
+  contents: read
+
+jobs:
+  publish-native-aot:
+    name: Publish ${{ matrix.platform }} NativeAOT
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runtime: linux-x64
+          - platform: linux-arm64
+            runtime: linux-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Prepare package path
+        id: package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $project = 'App/Code/ImageViewer.csproj'
+          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE 'App/artifacts/${{ matrix.platform }}'
+          $packageId = (& dotnet msbuild $project -getProperty:AppName | Select-Object -Last 1).Trim().ToLowerInvariant()
+          $version = (& dotnet msbuild $project -getProperty:Version -p:Configuration=Release | Select-Object -Last 1).Trim()
+          $buildDate = [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')
+          $commitShort = (& git rev-parse --short=10 HEAD).Trim()
+          $outputName = "${packageId}_${{ matrix.platform }}_${version}-${buildDate}-${commitShort}.deb"
+          $outputPath = Join-Path $outputDirectory $outputName
+
+          Remove-Item $outputDirectory -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item $outputDirectory -ItemType Directory -Force | Out-Null
+          "path=$outputPath" >> $env:GITHUB_OUTPUT
+          "name=$outputName" >> $env:GITHUB_OUTPUT
+
+      - name: Publish deb package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet publish App/Code/ImageViewer.csproj `
+            --configuration Release `
+            --runtime "${{ matrix.runtime }}" `
+            --self-contained true `
+            -p:PublishAot=true `
+            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" `
+            -t:CreateDebUOS
+
+      - name: Upload ${{ matrix.platform }} package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error
+
+  publish-loongarch64:
+    name: Publish linux-loongarch64-${{ matrix.abi }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: ABI1.0
+            source_name: nuget.loongnix.cn
+            source_url: https://nuget.loongnix.cn/v3/index.json
+          - abi: ABI2.0
+            source_name: lnuget.loongnix.cn
+            source_url: https://lnuget.loongnix.cn/v3/index.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.109
+
+      - name: Add LoongArch NuGet source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet nuget add source "${{ matrix.source_url }}" `
+            --name "${{ matrix.source_name }}" `
+            --protocol-version 3 `
+            --allow-insecure-connections
+
+      - name: Prepare package path
+        id: package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $project = 'App/Code/ImageViewer.csproj'
+          $platform = 'linux-loongarch64-${{ matrix.abi }}'
+          $outputDirectory = Join-Path $env:GITHUB_WORKSPACE "App/artifacts/$platform"
+          $packageId = (& dotnet msbuild $project -getProperty:AppName | Select-Object -Last 1).Trim().ToLowerInvariant()
+          $version = (& dotnet msbuild $project -getProperty:Version -p:Configuration=Release | Select-Object -Last 1).Trim()
+          $buildDate = [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')
+          $commitShort = (& git rev-parse --short=10 HEAD).Trim()
+          $outputName = "${packageId}_${platform}_${version}-${buildDate}-${commitShort}.deb"
+          $outputPath = Join-Path $outputDirectory $outputName
+
+          Remove-Item $outputDirectory -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item $outputDirectory -ItemType Directory -Force | Out-Null
+          "path=$outputPath" >> $env:GITHUB_OUTPUT
+          "name=$outputName" >> $env:GITHUB_OUTPUT
+
+      - name: Publish deb package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet publish App/Code/ImageViewer.csproj `
+            --configuration Release `
+            --runtime linux-loongarch64 `
+            --self-contained true `
+            -p:PublishAot=false `
+            -p:DebUOSOutputFilePath="${{ steps.package.outputs.path }}" `
+            -t:CreateDebUOS
+
+      - name: Upload linux-loongarch64-${{ matrix.abi }} package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error

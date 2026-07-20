@@ -1,0 +1,213 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="680"
+        x:Class="ImageViewer.MainWindow"
+        Title="图片查看器"
+        Icon="avares://ImageViewer/Icons/AppIcon.ico"
+        Width="900"
+        Height="680"
+        MinWidth="640"
+        MinHeight="420"
+        Background="#1A1A1A">
+    <Window.Resources>
+        <SolidColorBrush x:Key="ChromeBrush" Color="#2C2C2C" />
+        <SolidColorBrush x:Key="ImageAreaBrush" Color="#1A1A1A" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#E8E8E8" />
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#999999" />
+        <SolidColorBrush x:Key="DisabledTextBrush" Color="#555555" />
+        <SolidColorBrush x:Key="DividerBrush" Color="#3A3A3A" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#4A90D9" />
+        <SolidColorBrush x:Key="WarningBrush" Color="#D4A040" />
+        <SolidColorBrush x:Key="ErrorBrush" Color="#E05555" />
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.toolbar-button">
+            <Setter Property="MinWidth" Value="34" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.toolbar-button:pointerover">
+            <Setter Property="Background" Value="#0FFFFFFF" />
+        </Style>
+        <Style Selector="Button.toolbar-button:disabled">
+            <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource ImageAreaBrush}">
+        <Border x:Name="TopToolbar"
+                Grid.Row="0"
+                Background="{StaticResource ChromeBrush}"
+                BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="14,9">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                    <Button x:Name="OpenButton" Classes="toolbar-button" Content="打开" />
+                    <Button x:Name="PreviousButton" Classes="toolbar-button" Content="←" />
+                    <Button x:Name="NextButton" Classes="toolbar-button" Content="→" />
+                    <Button x:Name="FitButton" Classes="toolbar-button" Content="适应窗口" />
+                    <Button x:Name="ActualSizeButton" Classes="toolbar-button" Content="1:1" />
+                    <Button x:Name="RotateLeftButton" Classes="toolbar-button" Content="↺" />
+                    <Button x:Name="RotateRightButton" Classes="toolbar-button" Content="↻" />
+                    <Button x:Name="FullscreenButton" Classes="toolbar-button" Content="全屏" />
+                </StackPanel>
+                <TextBlock x:Name="ToolbarFileNameText"
+                           Grid.Column="2"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           Margin="20,0,0,0"
+                           MaxWidth="300"
+                           TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </Border>
+
+        <Grid x:Name="ViewerHost"
+              Grid.Row="1"
+              Background="{StaticResource ImageAreaBrush}"
+              ClipToBounds="True"
+              Focusable="True">
+            <Canvas x:Name="ImageCanvas"
+                    Background="Transparent"
+                    ClipToBounds="True">
+                <Image x:Name="ViewerImage"
+                       Stretch="Fill"
+                       IsVisible="False" />
+            </Canvas>
+
+            <StackPanel x:Name="EmptyStatePanel"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                <Border Width="44"
+                        Height="44"
+                        HorizontalAlignment="Center"
+                        Background="#202020"
+                        BorderBrush="{StaticResource DividerBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10">
+                    <TextBlock Text="□"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontSize="24"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="请打开或拖入一张图片"
+                           Foreground="{StaticResource PrimaryTextBrush}"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,4,0,0"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="支持 JPEG / PNG / BMP / GIF / WebP / TIFF"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           FontSize="13"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel x:Name="ErrorStatePanel"
+                        IsVisible="False"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                <Border Width="44"
+                        Height="44"
+                        HorizontalAlignment="Center"
+                        Background="#202020"
+                        BorderBrush="{StaticResource DividerBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10">
+                    <TextBlock x:Name="ErrorIconText"
+                               Text="!"
+                               Foreground="{StaticResource ErrorBrush}"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="无法打开此文件"
+                           Foreground="{StaticResource PrimaryTextBrush}"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,4,0,0"
+                           HorizontalAlignment="Center" />
+                <TextBlock x:Name="ErrorMessageText"
+                           Text="不支持的图片格式"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           FontSize="13"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel x:Name="LoadingStatePanel"
+                        IsVisible="False"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="14">
+                <ProgressBar Width="220"
+                             Height="4"
+                             IsIndeterminate="True" />
+                <TextBlock Text="正在后台加载图片…"
+                           Foreground="{StaticResource PrimaryTextBrush}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center" />
+                <TextBlock x:Name="LoadingFileNameText"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           FontSize="12"
+                           MaxWidth="360"
+                           TextTrimming="CharacterEllipsis"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <Border x:Name="ZoomIndicator"
+                    IsVisible="False"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,20,20"
+                    Background="#DD2C2C2C"
+                    BorderBrush="#555555"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,6">
+                <TextBlock x:Name="ZoomIndicatorText"
+                           Foreground="{StaticResource AccentBrush}"
+                           FontSize="16"
+                           FontWeight="SemiBold" />
+            </Border>
+        </Grid>
+
+        <Border x:Name="StatusBar"
+                Grid.Row="2"
+                Background="{StaticResource ChromeBrush}"
+                BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="14,7">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock x:Name="StatusText"
+                           Grid.Column="0"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           FontSize="12"
+                           Text="未打开图片"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="ZoomStatusText"
+                           Grid.Column="1"
+                           Foreground="{StaticResource AccentBrush}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

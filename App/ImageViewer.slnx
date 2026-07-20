@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Code/">
+    <File Path="../.github/workflows/publish-linux-deb.yml" />
+    <Project Path="Code.Tests/ImageViewer.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="Code/ImageViewer.csproj" />
+  </Folder>
+  <Project Path="Docs/Docs.csproj" />
+</Solution>

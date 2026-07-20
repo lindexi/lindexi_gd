@@ -1,6 +1,0 @@
-<Solution>
-  <Folder Name="/Code/">
-    <Project Path="Code/ImageViewer.csproj" />
-  </Folder>
-  <Project Path="Docs/Docs.csproj" />
-</Solution>
