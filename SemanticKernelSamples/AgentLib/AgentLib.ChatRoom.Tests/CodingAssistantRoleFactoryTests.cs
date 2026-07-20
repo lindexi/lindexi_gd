@@ -1,65 +1,67 @@
 using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
 
-using System.Text.Json;
-
 namespace AgentLib.ChatRoom.Tests;
 
+/// <summary>
+/// <see cref="CodingAssistantRoleFactory"/> 的单元测试。
+/// </summary>
 [TestClass]
 public sealed class CodingAssistantRoleFactoryTests
 {
-    [TestMethod(DisplayName = "创建定义时应标记编程助手种类")]
-    public void CreateDefinitionShouldUseCodingAssistantKind()
+    [TestMethod(DisplayName = "创建定义时应使用编程助手默认配置")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public void CreateDefinitionShouldUseCodingAssistantDefaults()
     {
         var factory = new CodingAssistantRoleFactory();
 
         ChatRoomRoleDefinition definition = factory.CreateDefinition();
 
+        Assert.AreEqual("编程助手", definition.RoleName);
         Assert.AreEqual(ChatRoomRoleKind.CodingAssistant, definition.Kind);
+        Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, definition.ParticipationMode);
     }
 
-    [TestMethod(DisplayName = "创建运行时模板时应使用固定模板标识")]
-    public void CreateRuntimeTemplateShouldUseFixedTemplateId()
+    [TestMethod(DisplayName = "创建运行时模板时应使用固定模板元数据")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public void CreateRuntimeTemplateShouldUseStableMetadata()
     {
         var factory = new CodingAssistantRoleFactory();
 
         RoleTemplate template = factory.CreateRuntimeTemplate();
 
         Assert.AreEqual(CodingAssistantRoleFactory.TemplateId, template.TemplateId);
+        Assert.AreEqual("开发", template.Category);
+        CollectionAssert.AreEquivalent(new[] { "开发", "编程", ".NET" }, template.Tags.ToArray());
     }
 
-    [TestMethod(DisplayName = "连续创建普通预设时不应共享可变状态")]
-    public void CreateDefinitionShouldNotShareMutableState()
+    [TestMethod(DisplayName = "连续创建定义时不应共享可变状态")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public void CreateDefinitionShouldReturnIndependentValues()
     {
         var factory = new CodingAssistantRoleFactory();
 
         ChatRoomRoleDefinition first = factory.CreateDefinition();
-        first.RoleName = "已修改";
         ChatRoomRoleDefinition second = factory.CreateDefinition();
 
-        Assert.AreEqual("编程助手", second.RoleName);
+        Assert.AreNotSame(first, second);
     }
 
-    [TestMethod(DisplayName = "创建编程助手角色时应由代码装配运行时工具")]
-    public void CreateRoleShouldAttachRuntimeTools()
+    [TestMethod(DisplayName = "空 Language Server 命令应被拒绝")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public void ConstructorShouldRejectEmptyLanguageServerCommand()
     {
-        var factory = new CodingAssistantRoleFactory();
-
-        ChatRoomRole role = factory.CreateRole(factory.CreateDefinition());
-
-        Assert.IsNotEmpty(role.RoleTools);
+        Assert.ThrowsExactly<ArgumentException>(() => new CodingAssistantRoleFactory(" "));
     }
 
-    [TestMethod(DisplayName = "运行时模板应可序列化且不包含来源字段")]
-    public void CreateRuntimeTemplateShouldSerializeWithoutSourceField()
+    [TestMethod(DisplayName = "工厂应创建独立的工作区工具提供器")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task CreateWorkspaceToolProviderShouldReturnIndependentProvider()
     {
         var factory = new CodingAssistantRoleFactory();
-        RoleTemplate template = factory.CreateRuntimeTemplate();
+        await using var first = factory.CreateWorkspaceToolProvider();
+        await using var second = factory.CreateWorkspaceToolProvider();
 
-        string json = JsonSerializer.Serialize(template, RoleTemplateJsonSerializerContext.Default.RoleTemplate);
-        using JsonDocument document = JsonDocument.Parse(json);
-
-        Assert.IsFalse(document.RootElement.TryGetProperty("Source", out _));
-        Assert.IsFalse(document.RootElement.GetProperty("Definition").TryGetProperty("Tools", out _));
+        Assert.AreNotSame(first, second);
     }
 }

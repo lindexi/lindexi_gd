@@ -10,6 +10,7 @@ namespace AgentLib.ChatRoom.Tests;
 public sealed class ChatRoomRoleFactoryTests
 {
     [TestMethod(DisplayName = "角色工厂应保留角色定义")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void CreateRoleShouldKeepDefinition()
     {
         var factory = new ChatRoomRoleFactory();
@@ -21,6 +22,7 @@ public sealed class ChatRoomRoleFactoryTests
     }
 
     [TestMethod(DisplayName = "角色工厂应设置主线程调度器")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void CreateRoleShouldSetMainThreadDispatcher()
     {
         var dispatcher = new Mock<IMainThreadDispatcher>();
@@ -32,6 +34,7 @@ public sealed class ChatRoomRoleFactoryTests
     }
 
     [TestMethod(DisplayName = "普通角色不应获得编程运行时工具")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void CreateStandardRoleShouldNotAttachCodingTools()
     {
         var factory = new ChatRoomRoleFactory();
@@ -42,6 +45,7 @@ public sealed class ChatRoomRoleFactoryTests
     }
 
     [TestMethod(DisplayName = "编程助手角色应按当前代码获得编程运行时工具")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void CreateCodingAssistantRoleShouldAttachCodingTools()
     {
         var factory = new ChatRoomRoleFactory();
@@ -59,6 +63,7 @@ public sealed class ChatRoomRoleFactoryTests
     }
 
     [TestMethod(DisplayName = "管理器按定义添加角色时应使用角色工厂")]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task AddRoleDefinitionShouldUseRoleFactory()
     {
         var roleFactory = new RecordingRoleFactory();
@@ -73,6 +78,7 @@ public sealed class ChatRoomRoleFactoryTests
     }
 
     [TestMethod(DisplayName = "历史加载角色时应使用角色工厂")]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task LoadAsyncShouldUseRoleFactory()
     {
         string persistencePath = Path.Join(Path.GetTempPath(), "ChatRoomRoleFactoryTests", Path.GetRandomFileName());

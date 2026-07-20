@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.AI;
 
-namespace AgentLib.ChatRoom.Tools.Coding;
+namespace AgentLib.Coding;
 
 /// <summary>
 /// 提供限定在代码工作区内的 .NET 构建与测试工具。

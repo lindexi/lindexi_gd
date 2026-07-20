@@ -1,14 +1,16 @@
-using AgentLib.ChatRoom.Tools.Coding;
+using AgentLib.Coding;
 
-namespace AgentLib.ChatRoom.Tests.Tools.Coding;
+namespace AgentLib.Coding.Tests;
 
 /// <summary>
 /// <see cref="DotNetCliTools"/> 的单元测试。
 /// </summary>
 [TestClass]
+[DoNotParallelize]
 public sealed class DotNetCliToolsTests
 {
     [TestMethod(DisplayName = "不存在的工作区应拒绝创建工具")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void Constructor_WhenWorkspaceDoesNotExist_ThrowsDirectoryNotFoundException()
     {
         string workspacePath = Path.Join(CreateTestDirectory(), "missing");
@@ -17,6 +19,7 @@ public sealed class DotNetCliToolsTests
     }
 
     [TestMethod(DisplayName = "构建工具应拒绝工作区外的项目路径")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public async Task RunBuildAsync_WhenTargetIsOutsideWorkspace_ReturnsErrorMessage()
     {
         string testRoot = CreateTestDirectory();
@@ -33,6 +36,7 @@ public sealed class DotNetCliToolsTests
     }
 
     [TestMethod(DisplayName = "构建工具应拒绝非解决方案或项目文件")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public async Task RunBuildAsync_WhenTargetIsNotProjectOrSolution_ReturnsErrorMessage()
     {
         string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
@@ -46,6 +50,7 @@ public sealed class DotNetCliToolsTests
     }
 
     [TestMethod(DisplayName = "构建工具应使用 dotnet build 构建指定项目")]
+    [Timeout(30000, CooperativeCancellation = true)]
     public async Task RunBuildAsync_WhenProjectIsValid_ReturnsSuccessfulResult()
     {
         string workspacePath = await CreateMinimalProjectAsync();
@@ -58,6 +63,7 @@ public sealed class DotNetCliToolsTests
     }
 
     [TestMethod(DisplayName = "测试工具应使用 dotnet test 测试指定项目")]
+    [Timeout(30000, CooperativeCancellation = true)]
     public async Task RunTestsAsync_WhenProjectIsValid_ReturnsSuccessfulResult()
     {
         string workspacePath = await CreateMinimalProjectAsync();
@@ -70,6 +76,7 @@ public sealed class DotNetCliToolsTests
     }
 
     [TestMethod(DisplayName = "读取构建日志应返回元数据和实际行范围")]
+    [Timeout(30000, CooperativeCancellation = true)]
     public async Task ReadLastLogLines_WhenBuildHasCompleted_ReturnsFriendlyMetadata()
     {
         string workspacePath = await CreateMinimalProjectAsync();

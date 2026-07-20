@@ -1,20 +1,17 @@
+using AgentLib.Coding;
 using AgentLib.ChatRoom.Model;
-using AgentLib.ChatRoom.Tools;
-using AgentLib.ChatRoom.Tools.Coding;
-using AgentLib.Core;
 
 namespace AgentLib.ChatRoom.Services;
 
 /// <summary>
-/// 集中创建编程助手角色定义和角色大厅运行时模板。
+/// 创建编程助手角色定义、运行时模板和工作区工具提供器。
 /// </summary>
 public sealed class CodingAssistantRoleFactory
 {
-    private readonly IMainThreadDispatcher? _mainThreadDispatcher;
     private readonly string _roslynLanguageServerCommand;
 
     /// <summary>
-    /// 角色大厅中编程助手运行时模板的固定标识。
+    /// 编程助手运行时模板的固定标识。
     /// </summary>
     public const string TemplateId = "runtime_coding_assistant";
 
@@ -36,25 +33,21 @@ public sealed class CodingAssistantRoleFactory
     /// <summary>
     /// 创建编程助手角色工厂。
     /// </summary>
-    /// <param name="mainThreadDispatcher">可选的主线程调度器。</param>
     /// <param name="roslynLanguageServerCommand">Roslyn Language Server 启动命令。</param>
-    public CodingAssistantRoleFactory(
-        IMainThreadDispatcher? mainThreadDispatcher = null,
-        string roslynLanguageServerCommand = "roslyn-language-server")
+    public CodingAssistantRoleFactory(string roslynLanguageServerCommand = "roslyn-language-server")
     {
         if (string.IsNullOrWhiteSpace(roslynLanguageServerCommand))
         {
             throw new ArgumentException("Roslyn Language Server 命令不能为空。", nameof(roslynLanguageServerCommand));
         }
 
-        _mainThreadDispatcher = mainThreadDispatcher;
         _roslynLanguageServerCommand = roslynLanguageServerCommand;
     }
 
     /// <summary>
-    /// 创建编程助手角色定义。
+    /// 创建可持久化的编程助手角色定义。
     /// </summary>
-    /// <returns>新的可持久化角色定义。</returns>
+    /// <returns>新的聊天室角色定义。</returns>
     public ChatRoomRoleDefinition CreateDefinition()
     {
         return new ChatRoomRoleDefinition
@@ -70,30 +63,7 @@ public sealed class CodingAssistantRoleFactory
     }
 
     /// <summary>
-    /// 根据编程助手定义创建并装配当前版本工具的运行时角色。
-    /// </summary>
-    /// <param name="definition">编程助手角色定义。</param>
-    /// <returns>尚未初始化的编程助手角色。</returns>
-    public ChatRoomRole CreateRole(ChatRoomRoleDefinition definition)
-    {
-        ArgumentNullException.ThrowIfNull(definition);
-        if (definition.Kind != ChatRoomRoleKind.CodingAssistant)
-        {
-            throw new ArgumentException("角色定义不是编程助手类型。", nameof(definition));
-        }
-
-        IReadOnlyList<IChatRoomRoleTool> roleTools =
-        [
-            new CodingWorkspaceRoleTool(_roslynLanguageServerCommand),
-        ];
-        return new ChatRoomRole(definition, null, roleTools)
-        {
-            MainThreadDispatcher = _mainThreadDispatcher,
-        };
-    }
-
-    /// <summary>
-    /// 创建仅在当前进程中存在的角色大厅模板。
+    /// 创建仅在当前进程中存在的编程助手模板。
     /// </summary>
     /// <returns>不会由模板服务写入磁盘的运行时模板。</returns>
     public RoleTemplate CreateRuntimeTemplate()
@@ -114,4 +84,12 @@ public sealed class CodingAssistantRoleFactory
         };
     }
 
+    /// <summary>
+    /// 创建可绑定代码工作区的工具提供器。
+    /// </summary>
+    /// <returns>新的工作区工具提供器。</returns>
+    public CodingWorkspaceToolProvider CreateWorkspaceToolProvider()
+    {
+        return new CodingWorkspaceToolProvider(_roslynLanguageServerCommand);
+    }
 }
