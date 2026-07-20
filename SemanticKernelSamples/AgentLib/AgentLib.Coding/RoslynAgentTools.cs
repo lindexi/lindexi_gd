@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 
 using Microsoft.Extensions.AI;
 
-namespace AgentLib.ChatRoom.Tools.Coding;
+namespace AgentLib.Coding;
 
 /// <summary>
 /// 提供基于 Roslyn Language Server 的解决方案目录与代码符号查询工具。

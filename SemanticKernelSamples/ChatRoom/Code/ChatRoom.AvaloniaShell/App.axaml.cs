@@ -85,8 +85,7 @@ public partial class App : Application
             : appSettings.RoleTemplatesPath;
         var roleTemplateService = new RoleTemplateService(roleTemplatesPath);
         await roleTemplateService.EnsurePresetTemplatesAsync();
-        var codingAssistantRoleFactory = new CodingAssistantRoleFactory(dispatcher);
-        roleTemplateService.RegisterRuntimeTemplate(codingAssistantRoleFactory.CreateRuntimeTemplate());
+        roleTemplateService.RegisterRuntimeTemplate(roleFactory.CreateCodingAssistantRuntimeTemplate());
 
         // 6. 主 ViewModel
         var mainViewModel = new MainViewModel(

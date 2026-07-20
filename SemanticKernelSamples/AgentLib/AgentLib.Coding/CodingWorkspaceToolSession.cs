@@ -1,7 +1,6 @@
-using AgentLib.ChatRoom.Tools.Coding;
 using Microsoft.Extensions.AI;
 
-namespace AgentLib.ChatRoom.Services;
+namespace AgentLib.Coding;
 
 internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 {

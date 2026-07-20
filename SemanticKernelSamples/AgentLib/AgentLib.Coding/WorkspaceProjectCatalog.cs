@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Xml.Linq;
 
-namespace AgentLib.ChatRoom.Tools.Coding;
+namespace AgentLib.Coding;
 
 /// <summary>
 /// 提供工作区中的解决方案、项目与项目文件目录查询能力。

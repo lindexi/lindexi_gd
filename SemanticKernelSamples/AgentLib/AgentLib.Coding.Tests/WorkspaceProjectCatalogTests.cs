@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-using AgentLib.ChatRoom.Tools.Coding;
+using AgentLib.Coding;
 
-namespace AgentLib.ChatRoom.Tests.Tools;
+namespace AgentLib.Coding.Tests;
 
 /// <summary>
 /// <see cref="WorkspaceProjectCatalog"/> 的单元测试。
@@ -11,6 +11,7 @@ namespace AgentLib.ChatRoom.Tests.Tools;
 public sealed class WorkspaceProjectCatalogTests
 {
     [TestMethod(DisplayName = "读取 slnx 时返回其中的项目路径")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void GetProjectsInSolution_WithSlnx_ReturnsProjectPath()
     {
         string workspacePath = CreateWorkspace();
@@ -29,6 +30,7 @@ public sealed class WorkspaceProjectCatalogTests
     }
 
     [TestMethod(DisplayName = "枚举 SDK 项目时返回源文件")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void GetFilesInProject_WithDefaultItems_ReturnsSourceFile()
     {
         string workspacePath = CreateWorkspace();
@@ -47,6 +49,7 @@ public sealed class WorkspaceProjectCatalogTests
     }
 
     [TestMethod(DisplayName = "枚举项目文件时忽略 bin 目录")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void GetFilesInProject_WithBinDirectory_ExcludesGeneratedFile()
     {
         string workspacePath = CreateWorkspace();
@@ -65,12 +68,14 @@ public sealed class WorkspaceProjectCatalogTests
     }
 
     [TestMethod(DisplayName = "创建目录查询器时拒绝空工作区路径")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void Constructor_WithEmptyWorkspacePath_ThrowsArgumentException()
     {
         Assert.ThrowsExactly<ArgumentException>(() => new WorkspaceProjectCatalog(" "));
     }
 
     [TestMethod(DisplayName = "项目路径逃逸工作区时拒绝访问")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void GetFilesInProject_WithParentTraversal_ThrowsUnauthorizedAccessException()
     {
         string workspacePath = CreateWorkspace();
@@ -80,6 +85,7 @@ public sealed class WorkspaceProjectCatalogTests
     }
 
     [TestMethod(DisplayName = "项目目录结果不暴露工作区绝对路径")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void GetProjectsInSolution_ReturnsRelativeWorkspaceMarker()
     {
         string workspacePath = CreateWorkspace();
@@ -94,6 +100,7 @@ public sealed class WorkspaceProjectCatalogTests
     }
 
     [TestMethod(DisplayName = "项目 Include 指向工作区外文件时忽略该文件")]
+    [Timeout(5000, CooperativeCancellation = true)]
     public void GetFilesInProject_WithExternalInclude_ExcludesExternalFile()
     {
         string workspacePath = CreateWorkspace();
@@ -111,7 +118,7 @@ public sealed class WorkspaceProjectCatalogTests
 
     private static string CreateWorkspace()
     {
-        string workspacePath = Path.Join(Path.GetTempPath(), "AgentLib.ChatRoom.Tests", Guid.NewGuid().ToString("N"));
+        string workspacePath = Path.Join(Path.GetTempPath(), "AgentLib.Coding.Tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(workspacePath);
         return workspacePath;
     }
