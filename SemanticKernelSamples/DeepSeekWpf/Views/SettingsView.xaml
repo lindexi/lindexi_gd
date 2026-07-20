@@ -17,7 +17,7 @@
                        Text="设置界面" />
             <TextBlock Margin="0,8,0,20"
                        Foreground="#FF6B7280"
-                       Text="配置缓存目录、数据目录、日志目录和模型接入信息。保存后将返回主界面。" />
+                       Text="管理应用目录和 AgentApiManagerConfiguration。API Key 仅保存在用户配置文件中。" />
         </StackPanel>
 
         <Border Grid.Row="1"
@@ -76,17 +76,22 @@
                                 Content="打开目录" />
                     </Grid>
 
-                    <TextBlock FontWeight="SemiBold" Text="模型名称" />
-                    <TextBox Margin="0,8,0,16"
-                             Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock FontWeight="SemiBold" Text="Agent API 配置文件" />
+                    <TextBox Margin="0,8,0,12"
+                             IsReadOnly="True"
+                             Text="{Binding AgentConfigurationPath}" />
+                    <StackPanel Margin="0,0,0,16" Orientation="Horizontal">
+                        <Button Margin="0,0,12,0"
+                                Command="{Binding OpenAgentConfigurationCommand}"
+                                Content="编辑配置文件" />
+                        <Button Command="{Binding ValidateAgentConfigurationCommand}"
+                                Content="校验配置" />
+                    </StackPanel>
 
-                    <TextBlock FontWeight="SemiBold" Text="API 地址" />
-                    <TextBox Margin="0,8,0,16"
-                             Text="{Binding ApiAddress, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock FontWeight="SemiBold" Text="API Key" />
-                    <TextBox Margin="0,8,0,16"
-                             Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Margin="0,0,0,16"
+                               Foreground="#FF6B7280"
+                               TextWrapping="Wrap"
+                               Text="配置文件支持多个 OpenAI 协议终结点和模型。修改配置或日志目录后请重启应用，避免运行期重复注册模型。" />
 
                     <TextBlock Foreground="#FF6B7280" Text="{Binding StatusMessage}" />
                 </StackPanel>

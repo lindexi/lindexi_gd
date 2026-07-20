@@ -6,10 +6,25 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon />
+    <AssemblyName>DeepSeekWpf</AssemblyName>
+    <Product>DeepSeekWpf</Product>
+    <Description>基于 AgentLib 的 Windows AI 会话客户端</Description>
+    <Authors>lindexi</Authors>
+    <Version>0.1.0</Version>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include=".github\copilot-instructions.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AgentLib\AgentLib\AgentLib.csproj" />
   </ItemGroup>
 
 </Project>
