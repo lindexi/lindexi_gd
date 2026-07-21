@@ -282,6 +282,46 @@ public sealed class ChatRoomService : IAsyncDisposable
     }
 
     /// <summary>
+    /// 原位更新当前会话中的角色，保留其执行器和 AgentSession。
+    /// </summary>
+    /// <param name="roleId">目标角色 ID。</param>
+    /// <param name="roleName">新的角色显示名。</param>
+    /// <param name="systemPrompt">新的系统提示词。</param>
+    /// <param name="isHuman">是否为人类角色。</param>
+    /// <param name="modelProviderId">新的模型提供商 ID。</param>
+    /// <param name="modelId">新的模型 ID。</param>
+    /// <param name="memoryContent">新的角色记忆。</param>
+    /// <param name="participationMode">新的参与模式。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task UpdateRoleAsync(
+        string roleId,
+        string roleName,
+        string systemPrompt,
+        bool isHuman,
+        string? modelProviderId,
+        string? modelId,
+        string? memoryContent,
+        ChatRoomParticipationMode participationMode,
+        CancellationToken cancellationToken = default)
+    {
+        if (_currentManager is null)
+        {
+            throw new InvalidOperationException("没有活跃的会话。");
+        }
+
+        await _currentManager.UpdateRoleAsync(
+            roleId,
+            roleName,
+            systemPrompt,
+            isHuman,
+            modelProviderId,
+            modelId,
+            memoryContent,
+            participationMode,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 压缩指定角色的内部对话历史，不修改聊天室共享消息。
     /// </summary>
     /// <param name="roleId">角色 ID。</param>

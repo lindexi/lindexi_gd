@@ -220,6 +220,39 @@ public class ChatRoomServiceTests
         Assert.AreEqual(0, _chatRoomService.CurrentManager.Roles.Count);
     }
 
+    [TestMethod(DisplayName = "原位更新角色应保留运行时实例和执行种类")]
+    public async Task UpdateRoleAsyncShouldKeepRoleInstanceAndExecutionKind()
+    {
+        await _chatRoomService.CreateNewSessionAsync();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "editable-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Standard,
+            RoleName = "旧名称",
+            IsHuman = true,
+            IsManagerRole = true,
+        };
+        await _chatRoomService.AddRoleAsync(definition);
+        ChatRoomRole originalRole = _chatRoomService.CurrentManager!.Roles.Single();
+
+        await _chatRoomService.UpdateRoleAsync(
+            definition.RoleId,
+            "新名称",
+            "新提示词",
+            isHuman: true,
+            modelProviderId: null,
+            modelId: null,
+            memoryContent: "新记忆",
+            ChatRoomParticipationMode.MentionOnly);
+
+        ChatRoomRole updatedRole = _chatRoomService.CurrentManager.Roles.Single();
+        Assert.AreSame(originalRole, updatedRole);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Standard, updatedRole.Definition.ExecutionKind);
+        Assert.IsTrue(updatedRole.Definition.IsManagerRole);
+        Assert.AreEqual("新名称", updatedRole.Definition.RoleName);
+        Assert.AreEqual("新记忆", updatedRole.Definition.MemoryContent);
+    }
+
     /// <summary>
     /// 关闭会话后 HasActiveSession 应为 false。
     /// </summary>

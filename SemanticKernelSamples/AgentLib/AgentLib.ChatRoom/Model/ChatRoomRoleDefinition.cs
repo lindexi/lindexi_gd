@@ -20,19 +20,19 @@ public enum ChatRoomParticipationMode
 }
 
 /// <summary>
-/// 聊天室角色的稳定种类，用于选择当前版本的运行时创建逻辑。
+/// 聊天室角色的稳定执行种类，用于选择当前版本的运行引擎。
 /// </summary>
-public enum ChatRoomRoleKind
+public enum ChatRoomRoleExecutionKind
 {
     /// <summary>
-    /// 不装配专用运行时工具的普通角色。
+    /// 使用标准聊天室发送流程。
     /// </summary>
     Standard,
 
     /// <summary>
-    /// 由代码装配编程工作区工具的编程助手。
+    /// 使用专用编程代理流程。
     /// </summary>
-    CodingAssistant,
+    Coding,
 }
 
 /// <summary>
@@ -47,9 +47,9 @@ public sealed class ChatRoomRoleDefinition
     public string RoleId { get; init; } = string.Empty;
 
     /// <summary>
-    /// 角色的稳定种类。运行时工具由对应种类的代码创建逻辑装配。
+    /// 角色的稳定执行种类。角色工厂根据该值装配对应运行引擎。
     /// </summary>
-    public ChatRoomRoleKind Kind { get; init; }
+    public ChatRoomRoleExecutionKind ExecutionKind { get; init; } = ChatRoomRoleExecutionKind.Standard;
 
     /// <summary>
     /// 角色显示名，如 "代码审查员"。

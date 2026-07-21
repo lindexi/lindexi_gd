@@ -67,6 +67,7 @@ internal static class PresetTemplates
             Definition = new ChatRoomRoleDefinition
             {
                 RoleId = templateId,
+                ExecutionKind = ChatRoomRoleExecutionKind.Standard,
                 RoleName = name,
                 SystemPrompt = systemPrompt,
                 IsManagerRole = isManagerRole,

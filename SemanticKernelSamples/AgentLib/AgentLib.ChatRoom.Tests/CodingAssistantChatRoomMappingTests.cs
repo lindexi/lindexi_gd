@@ -15,7 +15,7 @@ public sealed class CodingAssistantChatRoomMappingTests
 
         ChatRoomRoleDefinition definition = factory.CreateCodingAssistantDefinition();
 
-        Assert.AreEqual(ChatRoomRoleKind.CodingAssistant, definition.Kind);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, definition.ExecutionKind);
         Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, definition.ParticipationMode);
         Assert.IsFalse(definition.IsHuman);
     }
@@ -46,7 +46,7 @@ public sealed class CodingAssistantChatRoomMappingTests
         Assert.AreEqual("编程助手", second.RoleName);
     }
 
-    [TestMethod(DisplayName = "创建编程助手角色时应由代码装配运行时工具")]
+    [TestMethod(DisplayName = "创建编程助手角色时应装配 Coding 执行器")]
     [Timeout(5000, CooperativeCancellation = true)]
     public void CreateRoleShouldAttachRuntimeTools()
     {
@@ -54,10 +54,10 @@ public sealed class CodingAssistantChatRoomMappingTests
 
         ChatRoomRole role = factory.CreateRole(factory.CreateCodingAssistantDefinition());
 
-        Assert.IsNotEmpty(role.RoleTools);
+        Assert.IsInstanceOfType<CodingChatRoomRoleExecutor>(role.Executor);
     }
 
-    [TestMethod(DisplayName = "每个编程助手角色应获得独立的运行时工具")]
+    [TestMethod(DisplayName = "每个编程助手角色应获得独立的执行器")]
     [Timeout(5000, CooperativeCancellation = true)]
     public void CreateRoleShouldAttachIndependentRuntimeTools()
     {
@@ -66,7 +66,7 @@ public sealed class CodingAssistantChatRoomMappingTests
         ChatRoomRole first = factory.CreateRole(factory.CreateCodingAssistantDefinition());
         ChatRoomRole second = factory.CreateRole(factory.CreateCodingAssistantDefinition());
 
-        Assert.AreNotSame(first.RoleTools.Single(), second.RoleTools.Single());
+        Assert.AreNotSame(first.Executor, second.Executor);
     }
 
     [TestMethod(DisplayName = "运行时模板应可序列化且不包含来源字段")]
@@ -81,5 +81,6 @@ public sealed class CodingAssistantChatRoomMappingTests
 
         Assert.IsFalse(document.RootElement.TryGetProperty("Source", out _));
         Assert.IsFalse(document.RootElement.GetProperty("Definition").TryGetProperty("Tools", out _));
+        Assert.IsFalse(document.RootElement.GetProperty("Definition").TryGetProperty("CodingAgent", out _));
     }
 }

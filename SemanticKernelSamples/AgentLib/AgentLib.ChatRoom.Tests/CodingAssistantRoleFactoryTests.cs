@@ -18,8 +18,9 @@ public sealed class CodingAssistantRoleFactoryTests
         ChatRoomRoleDefinition definition = factory.CreateDefinition();
 
         Assert.AreEqual("编程助手", definition.RoleName);
-        Assert.AreEqual(ChatRoomRoleKind.CodingAssistant, definition.Kind);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, definition.ExecutionKind);
         Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, definition.ParticipationMode);
+        Assert.AreEqual(string.Empty, definition.SystemPrompt);
     }
 
     [TestMethod(DisplayName = "创建运行时模板时应使用固定模板元数据")]
@@ -47,21 +48,4 @@ public sealed class CodingAssistantRoleFactoryTests
         Assert.AreNotSame(first, second);
     }
 
-    [TestMethod(DisplayName = "空 Language Server 命令应被拒绝")]
-    [Timeout(5000, CooperativeCancellation = true)]
-    public void ConstructorShouldRejectEmptyLanguageServerCommand()
-    {
-        Assert.ThrowsExactly<ArgumentException>(() => new CodingAssistantRoleFactory(" "));
-    }
-
-    [TestMethod(DisplayName = "工厂应创建独立的工作区工具提供器")]
-    [Timeout(5000, CooperativeCancellation = true)]
-    public async Task CreateWorkspaceToolProviderShouldReturnIndependentProvider()
-    {
-        var factory = new CodingAssistantRoleFactory();
-        await using var first = factory.CreateWorkspaceToolProvider();
-        await using var second = factory.CreateWorkspaceToolProvider();
-
-        Assert.AreNotSame(first, second);
-    }
 }

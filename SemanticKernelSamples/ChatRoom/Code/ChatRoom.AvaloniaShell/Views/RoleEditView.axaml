@@ -19,6 +19,11 @@
         <!-- 编辑表单 -->
         <ScrollViewer Grid.Row="1" Padding="16,0">
             <StackPanel Spacing="16" MaxWidth="500" HorizontalAlignment="Stretch">
+                <Border Classes="Card" Padding="12" IsVisible="{Binding HasErrorMessage}">
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                               TextWrapping="Wrap" />
+                </Border>
+
                 <!-- 基本信息 -->
                 <Border Classes="Card" Padding="16">
                     <StackPanel Spacing="12">
@@ -30,7 +35,8 @@
                                      PlaceholderText="输入角色名称" />
                         </StackPanel>
 
-                        <CheckBox Content="是否人类角色" IsChecked="{Binding IsHuman}" />
+                        <CheckBox Content="是否人类角色" IsChecked="{Binding IsHuman}"
+                                  IsEnabled="{Binding CanEditIsHuman}" />
                     </StackPanel>
                 </Border>
 

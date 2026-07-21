@@ -33,33 +33,100 @@ public sealed class ChatRoomRoleFactoryTests
         Assert.AreSame(dispatcher.Object, role.MainThreadDispatcher);
     }
 
-    [TestMethod(DisplayName = "普通角色不应获得编程运行时工具")]
+    [TestMethod(DisplayName = "Standard 定义应创建 Standard 执行器")]
     [Timeout(5000, CooperativeCancellation = true)]
-    public void CreateStandardRoleShouldNotAttachCodingTools()
+    public void CreateStandardRoleShouldUseStandardExecutor()
     {
         var factory = new ChatRoomRoleFactory();
 
         ChatRoomRole role = factory.CreateRole(CreateDefinition());
 
-        Assert.IsEmpty(role.RoleTools);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Standard, role.Executor.ExecutionKind);
+        Assert.IsInstanceOfType<StandardChatRoomRoleExecutor>(role.Executor);
     }
 
-    [TestMethod(DisplayName = "编程助手角色应按当前代码获得编程运行时工具")]
+    [TestMethod(DisplayName = "Coding 定义应创建 Coding 执行器")]
     [Timeout(5000, CooperativeCancellation = true)]
-    public void CreateCodingAssistantRoleShouldAttachCodingTools()
+    public void CreateCodingRoleShouldUseCodingExecutor()
     {
         var factory = new ChatRoomRoleFactory();
         var definition = new ChatRoomRoleDefinition
         {
             RoleId = "coding-role",
-            Kind = ChatRoomRoleKind.CodingAssistant,
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
             RoleName = "编程角色",
-            IsHuman = true,
+            IsHuman = false,
         };
 
         ChatRoomRole role = factory.CreateRole(definition);
 
-        Assert.IsNotEmpty(role.RoleTools);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, role.Executor.ExecutionKind);
+        Assert.IsInstanceOfType<CodingChatRoomRoleExecutor>(role.Executor);
+    }
+
+    [TestMethod(DisplayName = "人类角色不能使用 Coding 执行种类")]
+    public void CreateRoleShouldRejectHumanCodingDefinition()
+    {
+        var factory = new ChatRoomRoleFactory();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-human",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+            IsHuman = true,
+        };
+
+        Assert.ThrowsExactly<ArgumentException>(() => factory.CreateRole(definition));
+    }
+
+    [TestMethod(DisplayName = "未知执行种类应被拒绝")]
+    public void CreateRoleShouldRejectUnknownExecutionKind()
+    {
+        var factory = new ChatRoomRoleFactory();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "unknown-role",
+            ExecutionKind = (ChatRoomRoleExecutionKind)99,
+        };
+
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => factory.CreateRole(definition));
+    }
+
+    [TestMethod(DisplayName = "重复注册同一执行种类应被拒绝")]
+    public void ConstructorShouldRejectDuplicateExecutionKindFactories()
+    {
+        Assert.ThrowsExactly<ArgumentException>(() => new ChatRoomRoleFactory(
+            null,
+            [
+                new RecordingExecutorFactory(ChatRoomRoleExecutionKind.Standard),
+                new RecordingExecutorFactory(ChatRoomRoleExecutionKind.Standard),
+            ]));
+    }
+
+    [TestMethod(DisplayName = "缺少执行器工厂时应立即失败")]
+    public void CreateRoleShouldFailWhenFactoryRegistrationIsMissing()
+    {
+        var factory = new ChatRoomRoleFactory(
+            null,
+            [new RecordingExecutorFactory(ChatRoomRoleExecutionKind.Standard)]);
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+        };
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => factory.CreateRole(definition));
+    }
+
+    [TestMethod(DisplayName = "工厂返回错误执行种类时应立即失败并释放执行器")]
+    public void CreateRoleShouldFailWhenFactoryReturnsWrongExecutorKind()
+    {
+        var executor = new RecordingExecutor(ChatRoomRoleExecutionKind.Coding);
+        var factory = new ChatRoomRoleFactory(
+            null,
+            [new RecordingExecutorFactory(ChatRoomRoleExecutionKind.Standard, executor)]);
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => factory.CreateRole(CreateDefinition()));
+        Assert.AreEqual(1, executor.DisposeCount);
     }
 
     [TestMethod(DisplayName = "管理器按定义添加角色时应使用角色工厂")]
@@ -123,6 +190,41 @@ public sealed class ChatRoomRoleFactoryTests
             LastDefinition = definition;
             LastRole = new ChatRoomRole(definition);
             return LastRole;
+        }
+    }
+
+    private sealed class RecordingExecutorFactory(
+        ChatRoomRoleExecutionKind executionKind,
+        IChatRoomRoleExecutor? executor = null) : IChatRoomRoleExecutorFactory
+    {
+        public ChatRoomRoleExecutionKind ExecutionKind { get; } = executionKind;
+
+        public IChatRoomRoleExecutor Create(ChatRoomRoleExecutorCreationContext context)
+        {
+            return executor ?? new RecordingExecutor(ExecutionKind);
+        }
+    }
+
+    private sealed class RecordingExecutor(ChatRoomRoleExecutionKind executionKind) : IChatRoomRoleExecutor
+    {
+        public ChatRoomRoleExecutionKind ExecutionKind { get; } = executionKind;
+
+        public int DisposeCount { get; private set; }
+
+        public Task<ChatRoomRoleExecutionResult> RunAsync(
+            ChatRoomRoleExecutionContext context,
+            IReadOnlyList<Microsoft.Extensions.AI.AIContent> contents,
+            CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task SetWorkspacePathAsync(
+            CopilotChatManager chatManager,
+            string? workspacePath,
+            CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public ValueTask DisposeAsync()
+        {
+            DisposeCount++;
+            return default;
         }
     }
 }

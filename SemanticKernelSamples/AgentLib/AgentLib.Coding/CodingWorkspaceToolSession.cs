@@ -1,3 +1,5 @@
+using AgentLib.Tools;
+
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding;
@@ -5,7 +7,11 @@ namespace AgentLib.Coding;
 internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 {
     private readonly IAsyncDisposable? _asyncDisposable;
-    private int _isDisposed;
+    private readonly object _lifecycleLock = new();
+    private readonly TaskCompletionSource _disposalCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private int _leaseCount;
+    private bool _isRetired;
+    private bool _isDisposalStarted;
 
     internal CodingWorkspaceToolSession(
         string workspacePath,
@@ -26,6 +32,30 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
     public string WorkspacePath { get; }
 
     public IReadOnlyList<AITool> Tools { get; }
+
+    internal int LeaseCount
+    {
+        get
+        {
+            lock (_lifecycleLock)
+            {
+                return _leaseCount;
+            }
+        }
+    }
+
+    internal bool IsRetired
+    {
+        get
+        {
+            lock (_lifecycleLock)
+            {
+                return _isRetired;
+            }
+        }
+    }
+
+    internal Task DisposalTask => _disposalCompletion.Task;
 
     public static async Task<CodingWorkspaceToolSession> CreateAsync(
         string workspacePath,
@@ -51,6 +81,10 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
         RoslynAgentTools? roslynTools = null;
         try
         {
+            var workspaceTools = new WorkspaceToolProvider
+            {
+                WorkspacePath = fullWorkspacePath,
+            };
             var dotNetCliTools = new DotNetCliTools(fullWorkspacePath);
             IReadOnlyList<AITool> dotNetTools = dotNetCliTools.AsAITools();
             try
@@ -64,7 +98,12 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
                 roslynTools = RoslynAgentTools.CreateUnavailable(fullWorkspacePath);
             }
 
-            IReadOnlyList<AITool> tools = [.. roslynTools.AsAITools(), .. dotNetTools];
+            IReadOnlyList<AITool> tools =
+            [
+                .. roslynTools.AsAITools(),
+                .. workspaceTools.CreateDefaultTools(),
+                .. dotNetTools,
+            ];
             return new CodingWorkspaceToolSession(
                 fullWorkspacePath,
                 tools,
@@ -81,13 +120,97 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    internal CodingWorkspaceToolLease AcquireLease()
     {
-        if (Interlocked.Exchange(ref _isDisposed, 1) != 0 || _asyncDisposable is null)
+        lock (_lifecycleLock)
         {
-            return;
+            if (_isRetired)
+            {
+                throw new ObjectDisposedException(nameof(CodingWorkspaceToolSession));
+            }
+
+            _leaseCount++;
         }
 
-        await _asyncDisposable.DisposeAsync().ConfigureAwait(false);
+        return new CodingWorkspaceToolLease(this);
+    }
+
+    internal Task Retire()
+    {
+        lock (_lifecycleLock)
+        {
+            _isRetired = true;
+            if (_leaseCount == 0)
+            {
+                _ = StartDisposalLocked();
+            }
+
+            return _disposalCompletion.Task;
+        }
+    }
+
+    internal ValueTask ReleaseLeaseAsync()
+    {
+        Task? disposalTask = null;
+        lock (_lifecycleLock)
+        {
+            if (_leaseCount <= 0)
+            {
+                throw new InvalidOperationException("工作区工具租约已全部释放。");
+            }
+
+            _leaseCount--;
+            if (_isRetired && _leaseCount == 0)
+            {
+                disposalTask = StartDisposalLocked();
+            }
+        }
+
+        return disposalTask is null ? default : new ValueTask(disposalTask);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Task disposalTask;
+        lock (_lifecycleLock)
+        {
+            _isRetired = true;
+            if (_leaseCount == 0)
+            {
+                _ = StartDisposalLocked();
+            }
+
+            disposalTask = _disposalCompletion.Task;
+        }
+
+        await disposalTask.ConfigureAwait(false);
+    }
+
+    private Task StartDisposalLocked()
+    {
+        if (!_isDisposalStarted)
+        {
+            _isDisposalStarted = true;
+            _ = DisposeResourceAsync();
+        }
+
+        return _disposalCompletion.Task;
+    }
+
+    private async Task DisposeResourceAsync()
+    {
+        try
+        {
+            if (_asyncDisposable is not null)
+            {
+                await _asyncDisposable.DisposeAsync().ConfigureAwait(false);
+            }
+
+            _disposalCompletion.TrySetResult();
+        }
+        catch (Exception ex)
+        {
+            _disposalCompletion.TrySetException(ex);
+        }
     }
 }
