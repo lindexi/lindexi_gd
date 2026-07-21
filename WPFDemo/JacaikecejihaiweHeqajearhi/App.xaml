@@ -8,6 +8,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/PerformanceDemoTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <FontFamily x:Key="ApplicationFontFamily">Microsoft YaHei</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
