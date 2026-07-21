@@ -1,3 +1,5 @@
+using CoursewarePptxGenerator.Core.Models;
+
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
 /// <summary>
@@ -9,6 +11,11 @@ public sealed record CoursewareThemeAnalysisResult
     /// Gets the validated whole-courseware theme.
     /// </summary>
     public required CoursewareTheme Theme { get; init; }
+
+    /// <summary>
+    /// Gets the independently verifiable capability states for this result.
+    /// </summary>
+    public CoursewareAnalysisCapabilityStates CapabilityStates { get; init; } = new();
 
     /// <summary>
     /// Gets the generated theme display name.

@@ -7,6 +7,7 @@ using AgentLib;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
+using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 using CoursewarePptxGeneratorWpfDemo.Threading;
@@ -141,35 +142,50 @@ public sealed class CoursewareAnalysisChatViewTests
             Assert.AreEqual(ChatRole.Assistant, viewModel.AnalysisChatMessages[1].Role);
             var messageStream = view.FindName("AnalysisChatMessageStream") as CopilotMessageStream;
             Assert.IsNotNull(messageStream, "主题分析页应使用共享 Copilot 消息流控件。\n");
-            var chatListBox = FindVisualChildren<ListBox>(messageStream).SingleOrDefault();
+            messageStream.ApplyTemplate();
+            messageStream.UpdateLayout();
+            var chatListBox = messageStream.FindName("MessageListBox") as ListBox;
             Assert.IsNotNull(chatListBox, "共享 Copilot 消息流应生成消息列表。\n");
-            chatListBox.UpdateLayout();
-            var userMessageContainer = chatListBox.ItemContainerGenerator.ContainerFromIndex(0) as ListBoxItem;
-            Assert.IsNotNull(userMessageContainer, "用户消息应生成可视容器。\n");
-            var assistantMessageContainer = chatListBox.ItemContainerGenerator.ContainerFromIndex(1) as ListBoxItem;
-            Assert.IsNotNull(assistantMessageContainer, "Copilot 消息应生成可视容器。\n");
-            var userVisibleTexts = FindVisualChildren<TextBlock>(userMessageContainer)
-                .Where(textBlock => textBlock.IsVisible)
-                .Select(textBlock => textBlock.Text)
-                .ToList();
-            var assistantVisibleTexts = FindVisualChildren<TextBlock>(assistantMessageContainer)
-                .Where(textBlock => textBlock.IsVisible)
-                .Select(textBlock => textBlock.Text)
-                .ToList();
+            Assert.HasCount(2, chatListBox.Items);
+            Assert.AreSame(viewModel.AnalysisChatMessages[0], chatListBox.Items[0]);
+            Assert.AreSame(viewModel.AnalysisChatMessages[1], chatListBox.Items[1]);
+            var assistantMessageContent = CreateTemplateContent(chatListBox.ItemTemplate, viewModel.AnalysisChatMessages[1]);
+            var templateSelector = messageStream.Resources["ChatMessageItemTemplateSelector"] as CopilotChatMessageItemTemplateSelector;
+            Assert.IsNotNull(templateSelector, "共享消息流应提供文本项模板选择器。\n");
+            var userTextItem = viewModel.AnalysisChatMessages[0].MessageItems.OfType<CopilotChatTextItem>().Single();
+            var assistantTextItem = viewModel.AnalysisChatMessages[1].MessageItems.OfType<CopilotChatTextItem>().Single();
+            var userTextContent = CreateTemplateContent(templateSelector.SelectTemplate(userTextItem, messageStream), userTextItem);
+            var assistantTextContent = CreateTemplateContent(templateSelector.SelectTemplate(assistantTextItem, messageStream), assistantTextItem);
+            var templateWindow = new Window
+            {
+                Width = 920,
+                Height = 520,
+                Content = new StackPanel
+                {
+                    Children =
+                    {
+                        assistantMessageContent,
+                        userTextContent,
+                        assistantTextContent,
+                    },
+                },
+            };
+            templateWindow.Show();
+            await templateWindow.Dispatcher.InvokeAsync(() => templateWindow.UpdateLayout(), DispatcherPriority.ApplicationIdle).Task;
+            var userTextBlock = userTextContent as TextBlock;
+            var assistantTextBlock = assistantTextContent as TextBlock;
 
-            Assert.IsTrue(
-                userVisibleTexts.Any(text => text.Contains(viewModel.AnalysisChatMessages[0].Content, StringComparison.Ordinal)),
-                "课件分析输入应作为用户消息显示。\n");
-            Assert.IsTrue(
-                assistantVisibleTexts.Any(text => text.Contains(assistantText, StringComparison.Ordinal)),
-                "Copilot 可读输出应出现在分析页的可见 TextBlock 中。\n");
+            Assert.IsNotNull(userTextBlock, "用户文本模板应生成 TextBlock。\n");
+            Assert.IsNotNull(assistantTextBlock, "Copilot 文本模板应生成 TextBlock。\n");
+            Assert.AreEqual(viewModel.AnalysisChatMessages[0].Content, userTextBlock.Text);
+            Assert.AreEqual(assistantText, assistantTextBlock.Text);
             Assert.IsNull(
                 FindVisualAncestor<ScrollViewer>(messageStream),
                 "主题分析消息流外层不应再嵌套页面级滚动条。\n");
-            var messageBubble = FindVisualChildren<Border>(assistantMessageContainer)
-                .FirstOrDefault(border => border.MaxWidth > 0 && border.CornerRadius == new CornerRadius(16));
+            var messageBubble = assistantMessageContent as Border;
             Assert.IsNotNull(messageBubble, "Copilot 消息应使用聊天气泡。\n");
             Assert.AreEqual(860d, messageBubble.MaxWidth, "宽屏主题分析区域应使用更宽的消息气泡。\n");
+            templateWindow.Close();
 
             responseGate.Release.TrySetResult();
             await openTask;

@@ -1,4 +1,5 @@
 using AgentLib.Model;
+using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;

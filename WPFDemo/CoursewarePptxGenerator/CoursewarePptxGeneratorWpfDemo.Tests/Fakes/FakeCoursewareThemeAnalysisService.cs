@@ -1,4 +1,5 @@
 using AgentLib.Model;
+using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 
@@ -41,6 +42,15 @@ internal sealed class FakeCoursewareThemeAnalysisService : ICoursewareThemeAnaly
         return new CoursewareThemeAnalysisResult
         {
             Theme = CreateTheme(),
+            CapabilityStates = new CoursewareAnalysisCapabilityStates
+            {
+                TextAnalysis = CoursewareCapabilityStatus.Passed,
+                ThemeSuggestion = CoursewareCapabilityStatus.Passed,
+                DesignSystem = CoursewareCapabilityStatus.NotSupported,
+                TemplateValidation = CoursewareCapabilityStatus.NotSupported,
+                VisualAnalysis = CoursewareCapabilityStatus.NotRequested,
+                PageGeneration = CoursewareCapabilityStatus.NotSupported,
+            },
             AnalyzedAt = DateTimeOffset.UtcNow,
             TotalSlideCount = inputPackage.SlideCount,
             AnalyzedSlideCount = inputPackage.SlideCount,

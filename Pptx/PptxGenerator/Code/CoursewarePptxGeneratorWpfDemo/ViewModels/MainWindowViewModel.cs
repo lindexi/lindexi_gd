@@ -5,6 +5,8 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using AgentLib;
+using CoursewarePptxGenerator.Core.Analysis;
+using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Threading;

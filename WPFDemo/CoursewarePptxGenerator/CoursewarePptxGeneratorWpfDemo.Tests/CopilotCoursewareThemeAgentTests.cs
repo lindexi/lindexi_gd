@@ -1,6 +1,8 @@
 using AgentLib;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
+using CoursewarePptxGenerator.Core.Analysis;
+using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using Microsoft.Extensions.AI;
@@ -15,7 +17,8 @@ public sealed class CopilotCoursewareThemeAgentTests
     [Timeout(60_000)]
     public async Task AnalyzeAsyncShouldIncludeCompleteOriginalInputInRepairRequest()
     {
-        const string originalPrompt = "<slides>\n第一页完整内容\n第二页完整内容\nTAIL-MARKER\n</slides>";
+        var analysisInput = CreateAnalysisInput("第一页完整内容", "第二页完整内容\nTAIL-MARKER");
+        var originalPrompt = analysisInput.Prompt;
         var capturedMessages = new List<IReadOnlyList<ChatMessage>>();
         var fakeChatClient = new FakeChatClient
         {
@@ -30,16 +33,24 @@ public sealed class CopilotCoursewareThemeAgentTests
             new CoursewareThemeValidator());
 
         var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => agent.AnalyzeAsync(CreateAnalysisInput(originalPrompt), 1280, 720));
+            () => agent.AnalyzeAsync(analysisInput, 1280, 720));
 
-        Assert.HasCount(2, capturedMessages);
+        Assert.HasCount(2, capturedMessages, exception.ToString());
         var firstRequestText = string.Join("\n", capturedMessages[0].Select(message => message.Text));
-        var repairRequestText = string.Join("\n", capturedMessages[1].Select(message => message.Text));
+        var repairRequestText = capturedMessages[1]
+            .Select(message => message.Text)
+            .Where(text => text.TrimStart().StartsWith('{'))
+            .Single(text => text.Contains("courseware-theme-repair/v1", StringComparison.Ordinal));
         StringAssert.Contains(firstRequestText, originalPrompt);
-        StringAssert.Contains(repairRequestText, "<repair-task>");
+        using var repairDocument = System.Text.Json.JsonDocument.Parse(repairRequestText);
+        Assert.AreEqual("courseware-theme-repair/v1", repairDocument.RootElement.GetProperty("schemaVersion").GetString());
         StringAssert.Contains(repairRequestText, "上一轮没有调用 submit_courseware_theme");
-        StringAssert.Contains(repairRequestText, originalPrompt);
         StringAssert.Contains(repairRequestText, "TAIL-MARKER");
+        var embeddedOriginal = repairDocument.RootElement.GetProperty("originalAnalysisEnvelope");
+        using var originalDocument = System.Text.Json.JsonDocument.Parse(originalPrompt);
+        Assert.IsTrue(System.Text.Json.JsonElement.DeepEquals(originalDocument.RootElement, embeddedOriginal));
+        Assert.AreEqual(analysisInput.TotalSlideCount, embeddedOriginal.GetProperty("slides").GetArrayLength());
+        Assert.IsFalse(repairRequestText.Contains("<repair-task>", StringComparison.Ordinal));
         StringAssert.Contains(exception.Message, "未调用 submit_courseware_theme");
     }
 
@@ -73,7 +84,7 @@ public sealed class CopilotCoursewareThemeAgentTests
                 720,
                 new SynchronousProgress<CoursewareAnalysisEvent>(events.Add)));
 
-        Assert.AreEqual(2, invocationCount);
+        Assert.AreEqual(2, invocationCount, exception.ToString());
         Assert.IsTrue(events.Any(item => item.Message.Contains("已跳过本地预算预检", StringComparison.Ordinal)));
         StringAssert.Contains(exception.Message, "未调用 submit_courseware_theme");
     }
@@ -96,8 +107,7 @@ public sealed class CopilotCoursewareThemeAgentTests
             ContextWindowSize = 4_000,
             MaxOutputTokens = 1_000,
         };
-        var originalPrompt = $"<slides>\n{new string('文', 5_000)}\nTAIL-MARKER\n</slides>";
-        var analysisInput = CreateAnalysisInput(originalPrompt);
+        var analysisInput = CreateAnalysisInput($"{new string('文', 5_000)}\nTAIL-MARKER");
         var agent = new CopilotCoursewareThemeAgent(
             new FakeThemeChatManagerFactory(fakeChatClient, modelDefinition),
             new CoursewareThemeValidator());
@@ -112,26 +122,46 @@ public sealed class CopilotCoursewareThemeAgentTests
         StringAssert.Contains(exception.Message, "不会静默截断或丢弃页面");
     }
 
-    private static CoursewareAnalysisInput CreateAnalysisInput(string prompt)
+    [TestMethod(DisplayName = "分析输入应为外部不可构造且不可修改的只读产物")]
+    [Timeout(60_000)]
+    public void AnalysisInputShouldNotExposePublicConstructionOrMutation()
     {
-        return new CoursewareAnalysisInput
+        Assert.IsEmpty(typeof(CoursewareAnalysisInput).GetConstructors());
+        Assert.IsTrue(typeof(CoursewareAnalysisInput)
+            .GetProperties()
+            .All(property => property.SetMethod is null || !property.SetMethod.IsPublic));
+        Assert.IsEmpty(typeof(CoursewareAnalysisSourceSnapshot).GetConstructors());
+        Assert.IsTrue(typeof(CoursewareAnalysisSourceSnapshot)
+            .GetProperties()
+            .All(property => property.SetMethod is null || !property.SetMethod.IsPublic));
+    }
+
+    private static CoursewareAnalysisInput CreateAnalysisInput(params string[] slideContents)
+    {
+        var contents = slideContents.Length == 0 ? ["测试内容"] : slideContents;
+        var slides = new CoursewareSlideInput[contents.Length];
+        for (var index = 0; index < contents.Length; index++)
         {
-            Prompt = prompt,
-            TotalSlideCount = 2,
-            AnalyzedSlideCount = 2,
-            CharacterCount = prompt.Length,
-            EstimatedTokenCount = prompt.Length,
-            WasTruncated = false,
-            SectionCharacterCounts = new CoursewareAnalysisInputSectionCharacterCounts
+            var slideId = $"slide-{index + 1}";
+            var markdown = $"## 页面信息\n\n- Id: {slideId}\n- 尺寸: 1280×720\n- 序号(1-base): {index + 1}\n\n---\n\n## 元素细节\n\n{contents[index]}";
+            slides[index] = new CoursewareSlideInput
             {
-                Task = 0,
-                CoursewareOverview = 0,
-                ResourceCatalog = 0,
-                Slides = prompt.Length,
-                OutputRequirements = 0,
-            },
-            InputFingerprint = new string('A', 64),
-        };
+                SlideIndex = index,
+                PageNumber = index + 1,
+                SlideId = slideId,
+                Width = 1280,
+                Height = 720,
+                MarkdownFile = new System.IO.FileInfo(System.IO.Path.Join(System.IO.Path.GetTempPath(), $"Slide{index:D3}.md")),
+                MarkdownText = markdown,
+            };
+        }
+
+        return new CoursewareAnalysisInputBuilder().Build(new CoursewareInputPackage
+        {
+            RootDirectory = new System.IO.DirectoryInfo(System.IO.Path.GetTempPath()),
+            CoursewareName = "测试课件",
+            Slides = slides,
+        });
     }
 
     private static ModelDefinition CreateModelDefinition()

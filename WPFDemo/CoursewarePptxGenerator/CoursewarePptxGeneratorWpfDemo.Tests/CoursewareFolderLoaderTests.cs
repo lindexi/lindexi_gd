@@ -1,5 +1,5 @@
 using System.IO;
-using CoursewarePptxGeneratorWpfDemo.Services;
+using CoursewarePptxGenerator.Core.Analysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests;

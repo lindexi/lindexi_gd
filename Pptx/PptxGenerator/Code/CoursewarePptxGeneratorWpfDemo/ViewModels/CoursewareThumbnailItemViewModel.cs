@@ -1,4 +1,4 @@
-using CoursewarePptxGeneratorWpfDemo.Models;
+using CoursewarePptxGenerator.Core.Models;
 
 namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
 

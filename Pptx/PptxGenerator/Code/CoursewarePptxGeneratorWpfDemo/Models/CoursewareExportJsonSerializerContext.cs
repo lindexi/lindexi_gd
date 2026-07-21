@@ -8,10 +8,6 @@ namespace CoursewarePptxGeneratorWpfDemo.Models;
 [JsonSourceGenerationOptions(
     PropertyNameCaseInsensitive = true,
     ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip)]
-[JsonSerializable(typeof(CoursewareExportManifest))]
-[JsonSerializable(typeof(CoursewareExportSlideEntry))]
-[JsonSerializable(typeof(CoursewareResourceEntry))]
-[JsonSerializable(typeof(CoursewareResourceEntry[]))]
 [JsonSerializable(typeof(CoursewareTheme))]
 [JsonSerializable(typeof(CoursewareThemeAnalysisResult))]
 public sealed partial class CoursewareExportJsonSerializerContext : JsonSerializerContext;

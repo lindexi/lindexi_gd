@@ -93,7 +93,8 @@ CoursewarePptxGeneratorWpfDemo/
 - `CoursewareFolderLoader`
   - 只负责本地 I/O、JSON 解析、路径解析、格式校验和加载警告收集。
   - 不依赖 WPF UI。
-  - 不创建 `SlideChatManager`。 // 注： 我计划将这部分逻辑进行拆分，与 UI 框架无关的逻辑应该在一个独立的程序集里面，类似 PptxGenerator.Core 的角色
+  - 不创建 `SlideChatManager`。
+  - 与 UI 框架无关的加载、事实提取、分析、编译和持久化逻辑应迁入独立核心程序集；WPF 项目只保留组合、视图模型、视图和平台渲染适配。
 - `CoursewareInputPackage`
   - 表示已经加载完成的课件输入包。
   - 包含课件根目录、课件名、页面集合、资源集合和加载警告。
@@ -137,9 +138,7 @@ CoursewarePptxGeneratorWpfDemo/
 
 `OpenCoursewareFolderCommand` 可以保持 `RelayCommand`，内部触发 `_ = OpenCoursewareFolderAsync(path)`，并通过 `IsBusy` 禁用其他操作。
 
-服务层与 UI 无关的 `await` 使用 `ConfigureAwait(false)`。回到 `ObservableCollection` 和属性更新时，通过 WPF Dispatcher 或当前 ViewModel 已有的 UI 线程上下文处理。
-
-// 注： 采用 `ConfigureAwait(false)` 时，需要提示要分派子智能体去审查，确保上下路径里面没有 UI 线程依赖的代码。否则应该用 `ConfigureAwait(true)`  逻辑。要用子智能体去审查
+服务层与 UI 无关的 `await` 使用 `ConfigureAwait(false)`。回到 `ObservableCollection` 和属性更新时，通过 WPF Dispatcher 或当前 ViewModel 已有的 UI 线程上下文处理。实施时已专项审查该异步调用链：`CoursewareFolderLoader` 和分析服务不访问 UI；`CoursewareWorkspaceViewModel` 在后台等待后通过 `IViewModelDispatcher` 发布集合和属性；必须在 UI Dispatcher 内继续执行的页面项创建保留 `ConfigureAwait(true)`。
 
 ---
 
@@ -162,7 +161,7 @@ CoursewarePptxGeneratorWpfDemo/
 
 - 使用 `System.Text.Json`。
 - JSON 属性名通过 `[JsonPropertyName]` 显式映射小驼峰字段。
-- 如果后续开启 AOT，可补充 `JsonSerializerContext` 源生成上下文。 // 注： 现在就要做
+- 当前即使用 `JsonSerializerContext` 源生成上下文，不把 AOT 所需序列化元数据推迟到后续阶段。
 - 当前支持 `exportVersion = 1`。
 
 ### 4.2 CoursewareExportSlideEntry
@@ -916,6 +915,4 @@ private async Task OpenCoursewareFolderAsync(string? folderPath)
 6. 单元测试或手工测试样例。
 7. 后续再进入全局主题分析和逐页美化。
 
-该顺序可以先形成稳定的本地输入初始化闭环，避免过早引入 LLM 调用、主题分析和批量生成带来的复杂度。
-
-// 注： 一口气完成，不要分开兼容
+该顺序只用于说明依赖关系。正式实施应以完整闭环一次性交付，不保留长期并行的新旧模型或兼容执行路径。

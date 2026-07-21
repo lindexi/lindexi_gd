@@ -1,6 +1,9 @@
 using System.IO;
 using AgentLib.Model;
+using CoursewarePptxGenerator.Core.Analysis;
+using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
+using CoursewarePptxGeneratorWpfDemo.Resources;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
@@ -103,14 +106,26 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
             {
                 Stage = CoursewareAnalysisStage.Completed,
                 Kind = CoursewareAnalysisEventKind.Progress,
-                Title = "全课件主题分析完成",
-                Message = $"已形成“{theme.Title}”主题，可进入页面美化工作台。",
+                Title = CoursewareUiStrings.AnalysisCompletedTitle,
+                Message = string.Format(
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    CoursewareUiStrings.AnalysisCompletedMessageFormat,
+                    theme.Title),
                 State = CoursewareAnalysisEventState.Completed,
             });
 
             return new CoursewareThemeAnalysisResult
             {
                 Theme = theme,
+                CapabilityStates = new CoursewareAnalysisCapabilityStates
+                {
+                    TextAnalysis = CoursewareCapabilityStatus.Passed,
+                    ThemeSuggestion = CoursewareCapabilityStatus.Passed,
+                    DesignSystem = CoursewareCapabilityStatus.NotSupported,
+                    TemplateValidation = CoursewareCapabilityStatus.NotSupported,
+                    VisualAnalysis = CoursewareCapabilityStatus.NotRequested,
+                    PageGeneration = CoursewareCapabilityStatus.NotSupported,
+                },
                 AnalyzedAt = completedAt,
                 TotalSlideCount = inputPackage.SlideCount,
                 AnalyzedSlideCount = analysisInput.AnalyzedSlideCount,

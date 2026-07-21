@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>CoursewarePptxGenerator.Core</RootNamespace>
+    <AssemblyName>CoursewarePptxGenerator.Core</AssemblyName>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CoursewarePptxGenerator.Core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Polyfills\" />
+  </ItemGroup>
+
+</Project>

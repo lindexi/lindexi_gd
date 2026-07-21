@@ -1,6 +1,8 @@
 using System.IO;
 using System.Text.Json;
-using CoursewarePptxGeneratorWpfDemo.Models;
+using System.Text.RegularExpressions;
+using CoursewarePptxGenerator.Core.Models;
+using CoursewarePptxGenerator.Core.Serialization;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests;
 
@@ -21,7 +23,7 @@ internal sealed class TestCoursewareExportBuilder
         var markdownFile = $"Slides/Slide{slideIndex:D3}.md";
         var screenshotFile = $"Slides/Slide{slideIndex:D3}.jpg";
 
-        WriteText(markdownFile, markdownText);
+        WriteText(markdownFile, NormalizeMarkdownIdentity(markdownText, slideId, slideIndex + 1));
         if (hasScreenshot)
         {
             WriteBytes(screenshotFile, Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="));
@@ -86,6 +88,34 @@ internal sealed class TestCoursewareExportBuilder
         var filePath = Path.Join(RootDirectory.FullName, relativePath);
         Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
         File.WriteAllBytes(filePath, data);
+    }
+
+    private static string NormalizeMarkdownIdentity(string markdownText, string slideId, int pageNumber)
+    {
+        var normalized = markdownText;
+        var idPattern = new Regex(@"(?im)^\s*-\s*Id\s*:\s*[^\r\n]*$", RegexOptions.CultureInvariant);
+        var pageNumberPattern = new Regex(
+            @"(?im)^\s*-\s*序号\s*\(\s*1-base\s*\)\s*:\s*[^\r\n]*$",
+            RegexOptions.CultureInvariant);
+        var hasId = idPattern.IsMatch(normalized);
+        var hasPageNumber = pageNumberPattern.IsMatch(normalized);
+        if (hasId)
+        {
+            normalized = idPattern.Replace(normalized, $"- Id: {slideId}", 1);
+        }
+
+        if (hasPageNumber)
+        {
+            normalized = pageNumberPattern.Replace(normalized, $"- 序号(1-base): {pageNumber}", 1);
+        }
+
+        if (hasId && hasPageNumber)
+        {
+            return normalized;
+        }
+
+        var metadata = $"## 页面信息\n\n- Id: {slideId}\n- 尺寸: 1280×720\n- 序号(1-base): {pageNumber}\n\n---\n\n";
+        return metadata + normalized;
     }
 
     private void WriteJson<T>(string relativePath, T value, System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> jsonTypeInfo)

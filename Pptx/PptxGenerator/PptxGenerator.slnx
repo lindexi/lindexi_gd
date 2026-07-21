@@ -21,9 +21,11 @@
     <Project Path="Code/PptxGeneratorWpfDemo/PptxGeneratorWpfDemo.csproj" />
   </Folder>
   <Folder Name="/05-CoursewareGenerator/">
+    <Project Path="Code/CoursewarePptxGenerator.Core/CoursewarePptxGenerator.Core.csproj" />
     <Project Path="Code/CoursewarePptxGeneratorWpfDemo/CoursewarePptxGeneratorWpfDemo.csproj" />
   </Folder>
   <Folder Name="/06-Test/">
+    <Project Path="../../WPFDemo/CoursewarePptxGenerator/CoursewarePptxGenerator.Core.Tests/CoursewarePptxGenerator.Core.Tests.csproj" />
     <Project Path="../../WPFDemo/CoursewarePptxGenerator/CoursewarePptxGeneratorWpfDemo.Tests/CoursewarePptxGeneratorWpfDemo.Tests.csproj" />
     <Project Path="Code/PptxGenerator.Tests/PptxGenerator.Tests.csproj" />
   </Folder>

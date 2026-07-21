@@ -1,4 +1,5 @@
 using AgentLib.Core.AgentApiManagers.Contexts;
+using CoursewarePptxGenerator.Core.Analysis;
 using Microsoft.Extensions.AI;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;

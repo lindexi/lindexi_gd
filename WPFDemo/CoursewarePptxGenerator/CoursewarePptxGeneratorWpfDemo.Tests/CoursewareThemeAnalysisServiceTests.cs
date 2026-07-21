@@ -1,4 +1,6 @@
 using AgentLib.Model;
+using CoursewarePptxGenerator.Core.Analysis;
+using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,6 +11,7 @@ namespace CoursewarePptxGeneratorWpfDemo.Tests;
 public sealed class CoursewareThemeAnalysisServiceTests
 {
     [TestMethod(DisplayName = "正式分析服务应返回 Agent 主题并发布业务过程事件")]
+    [Timeout(60_000)]
     public async Task AnalyzeAsyncShouldReturnAgentThemeAndPublishEvents()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
@@ -26,8 +29,16 @@ public sealed class CoursewareThemeAnalysisServiceTests
 
         Assert.AreEqual("清晰课堂", result.Theme.Title);
         Assert.AreEqual(1, result.AnalyzedSlideCount);
+        Assert.AreEqual(CoursewareCapabilityStatus.Passed, result.CapabilityStates.TextAnalysis);
+        Assert.AreEqual(CoursewareCapabilityStatus.Passed, result.CapabilityStates.ThemeSuggestion);
+        Assert.AreEqual(CoursewareCapabilityStatus.NotSupported, result.CapabilityStates.DesignSystem);
+        Assert.AreEqual(CoursewareCapabilityStatus.NotSupported, result.CapabilityStates.TemplateValidation);
+        Assert.AreEqual(CoursewareCapabilityStatus.NotRequested, result.CapabilityStates.VisualAnalysis);
+        Assert.AreEqual(CoursewareCapabilityStatus.NotSupported, result.CapabilityStates.PageGeneration);
         Assert.IsTrue(events.Any(item => item.Stage == CoursewareAnalysisStage.PreparingInput));
-        Assert.IsTrue(events.Any(item => item.Stage == CoursewareAnalysisStage.Completed));
+        var completedEvent = events.Single(item => item.Stage == CoursewareAnalysisStage.Completed);
+        Assert.AreEqual("课件文本分析完成", completedEvent.Title);
+        StringAssert.Contains(completedEvent.Message, "设计系统、模板、视觉分析和真实页面生成尚未完成");
     }
 
     private sealed class FakeThemeAgent : ICoursewareThemeAgent

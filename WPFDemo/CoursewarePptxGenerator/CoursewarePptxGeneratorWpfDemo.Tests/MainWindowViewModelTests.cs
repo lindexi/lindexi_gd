@@ -1,3 +1,4 @@
+using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;

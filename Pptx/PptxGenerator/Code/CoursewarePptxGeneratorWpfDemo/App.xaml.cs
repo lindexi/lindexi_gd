@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Threading;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;

@@ -29,10 +29,59 @@
             CornerRadius="12"
             Padding="16,13">
         <StackPanel>
-            <TextBlock Text="主题方案" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="21" FontWeight="Bold" />
+            <TextBlock Text="{StaticResource ThemeSuggestionPanelTitleText}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="21" FontWeight="Bold" />
             <TextBlock Margin="0,3,0,12"
                        Text="{Binding ThemeDescription}"
                        Style="{StaticResource ThemeContentTextStyle}" />
+            <Border Style="{StaticResource AnalysisWarningBannerStyle}" Margin="0,0,0,12">
+                <TextBlock Text="{StaticResource ThemeSuggestionWarningText}"
+                           Style="{StaticResource ThemeContentTextStyle}"
+                           Foreground="#8A5A00" />
+            </Border>
+
+            <Border Style="{StaticResource ThemeColumnStyle}">
+                <StackPanel>
+                    <TextBlock Text="能力状态" Style="{StaticResource ThemeColumnTitleStyle}" />
+                    <UniformGrid Columns="3">
+                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="全文本分析" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
+                                <TextBlock Text="{Binding TextAnalysisCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="主题建议" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
+                                <TextBlock Text="{Binding ThemeSuggestionCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="可执行设计系统" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
+                                <TextBlock Text="{Binding DesignSystemCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="模板编译验证" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
+                                <TextBlock Text="{Binding TemplateValidationCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="视觉分析" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
+                                <TextBlock Text="{Binding VisualAnalysisCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="真实页面生成" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
+                                <TextBlock Text="{Binding PageGenerationCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
 
             <StackPanel>
                 <Border Style="{StaticResource ThemeColumnStyle}">
@@ -152,7 +201,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <Border Background="#EAF8F5" CornerRadius="6" Padding="7" Margin="0,12,0,0">
-                                 <TextBlock Text="这些提示不影响进入工作台"
+                                 <TextBlock Text="{StaticResource InputWarningsFootnoteText}"
                                             Style="{StaticResource ThemeContentTextStyle}"
                                             Foreground="{StaticResource AnalysisTealDarkBrush}" />
                             </Border>

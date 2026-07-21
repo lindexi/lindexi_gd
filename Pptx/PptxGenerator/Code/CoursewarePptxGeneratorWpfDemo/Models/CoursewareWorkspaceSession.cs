@@ -1,3 +1,5 @@
+using CoursewarePptxGenerator.Core.Models;
+
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
 /// <summary>

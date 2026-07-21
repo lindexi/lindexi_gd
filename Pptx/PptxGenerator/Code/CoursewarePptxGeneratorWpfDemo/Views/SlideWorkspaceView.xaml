@@ -53,13 +53,13 @@
             <DockPanel>
                 <Button x:Name="BackToAnalysisButton"
                         DockPanel.Dock="Left"
-                        Content="← 返回主题概览"
+                        Content="{StaticResource BackToThemeSuggestionText}"
                         Command="{Binding BackToAnalysisCommand}"
                         Style="{StaticResource AnalysisSecondaryButtonStyle}"
-                        AutomationProperties.Name="返回主题概览" />
+                        AutomationProperties.Name="{StaticResource BackToThemeSuggestionAutomationText}" />
                 <StackPanel Margin="18,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="单页美化工作台" Foreground="{StaticResource TextPrimaryBrush}" FontSize="17" FontWeight="Bold" />
-                    <TextBlock Text="{Binding SelectedSlideNumberText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                    <TextBlock Text="{StaticResource PrototypeWorkspaceTitleText}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="17" FontWeight="Bold" />
+                    <TextBlock Text="{StaticResource PrototypeWorkspaceDescriptionText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -74,7 +74,7 @@
             <Border Grid.Column="0" Style="{StaticResource WorkspacePanelStyle}" BorderThickness="0,0,1,0">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Margin="16">
-                        <TextBlock Text="课件页面" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" />
+                        <TextBlock Text="{StaticResource PrototypeSlideListTitleText}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" />
                         <TextBlock Text="{Binding SlideCountText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
                     </StackPanel>
                     <ListBox ItemsSource="{Binding Slides}"
@@ -173,11 +173,11 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <DockPanel Grid.Column="0">
-                            <TextBlock DockPanel.Dock="Top" Text="SlideML" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
+                            <TextBlock DockPanel.Dock="Top" Text="{StaticResource PrototypeSlideMlTitleText}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
                             <TextBox Text="{Binding SelectedSlideXml, Mode=OneWay}" IsReadOnly="True" Style="{StaticResource CodeTextBoxStyle}" />
                         </DockPanel>
                         <DockPanel Grid.Column="1" Background="#F8FAFC">
-                            <TextBlock DockPanel.Dock="Top" Text="渲染日志" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
+                            <TextBlock DockPanel.Dock="Top" Text="{StaticResource PrototypeRenderingLogTitleText}" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Margin="14,10" />
                             <TextBox Text="{Binding RenderingLog, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="#F8FAFC" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Padding="14" />
                         </DockPanel>
                     </Grid>
@@ -194,7 +194,7 @@
                     <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,14">
                         <StackPanel>
                             <TextBlock Text="Copilot" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold" />
-                            <TextBlock Text="基于已确认的全课件主题优化当前页面" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
+                            <TextBlock Text="{StaticResource PrototypeWorkspaceDescriptionText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" />
                         </StackPanel>
                     </Border>
                     <ListBox Grid.Row="1" ItemsSource="{Binding ChatMessages}" BorderThickness="0" Background="White" Padding="10" ScrollViewer.HorizontalScrollBarVisibility="Disabled">

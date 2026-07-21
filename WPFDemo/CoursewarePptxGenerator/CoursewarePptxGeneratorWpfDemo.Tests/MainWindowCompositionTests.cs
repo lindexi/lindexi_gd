@@ -14,6 +14,7 @@ namespace CoursewarePptxGeneratorWpfDemo.Tests;
 public sealed class MainWindowCompositionTests
 {
     [TestMethod(DisplayName = "主窗口应直接承载全课件分析页和单页工作台")]
+    [Timeout(60_000)]
     public void MainWindowShouldHostBothPrototypePages()
     {
         var mainWindowXaml = XDocument.Load(Path.Join(GetApplicationProjectDirectory(), "MainWindow.xaml"));
@@ -28,6 +29,7 @@ public sealed class MainWindowCompositionTests
     }
 
     [TestMethod(DisplayName = "首页打开课件按钮应调用真实文件夹选择事件")]
+    [Timeout(60_000)]
     public void WelcomeOpenCoursewareButtonShouldUseFolderPickerClickHandler()
     {
         var analysisViewXaml = XDocument.Load(Path.Join(GetApplicationProjectDirectory(), "Views", "CoursewareAnalysisView.xaml"));
@@ -40,6 +42,28 @@ public sealed class MainWindowCompositionTests
 
         Assert.AreEqual("OpenCoursewareButton_OnClick", (string?) openButton.Attribute("Click"));
         Assert.IsNull(openButton.Attribute("Command"), "首页按钮不应直接执行缺少文件夹路径的命令。");
+    }
+
+    [TestMethod(DisplayName = "分析结果与工作台应明确标记当前原型能力边界")]
+    [Timeout(60_000)]
+    public void AnalysisAndWorkspaceViewsShouldDescribePrototypeCapabilityBoundary()
+    {
+        var projectDirectory = GetApplicationProjectDirectory();
+        var analysisView = XDocument.Load(Path.Join(projectDirectory, "Views", "CoursewareAnalysisView.xaml"));
+        var themeView = XDocument.Load(Path.Join(projectDirectory, "Views", "CoursewareThemeSummaryView.xaml"));
+        var workspaceView = XDocument.Load(Path.Join(projectDirectory, "Views", "SlideWorkspaceView.xaml"));
+        var combinedXaml = string.Concat(
+            analysisView.ToString(SaveOptions.DisableFormatting),
+            themeView.ToString(SaveOptions.DisableFormatting),
+            workspaceView.ToString(SaveOptions.DisableFormatting));
+
+        StringAssert.Contains(combinedXaml, "PrototypeWorkspaceButtonText");
+        StringAssert.Contains(combinedXaml, "ThemeSuggestionWarningText");
+        StringAssert.Contains(combinedXaml, "DesignSystemCapabilityText");
+        StringAssert.Contains(combinedXaml, "TemplateValidationCapabilityText");
+        StringAssert.Contains(combinedXaml, "VisualAnalysisCapabilityText");
+        StringAssert.Contains(combinedXaml, "PageGenerationCapabilityText");
+        StringAssert.Contains(combinedXaml, "PrototypeWorkspaceDescriptionText");
     }
 
     [TestMethod(DisplayName = "主题分析失败页应绑定真实错误和技术详情")]

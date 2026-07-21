@@ -1,7 +1,10 @@
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using CoursewarePptxGeneratorWpfDemo.Models;
-using CoursewarePptxGeneratorWpfDemo.Services;
+using System.Text.Json;
+using CoursewarePptxGenerator.Core.Analysis;
+using CoursewarePptxGenerator.Core.Models;
+using CoursewarePptxGenerator.Core.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests;
@@ -23,10 +26,16 @@ public sealed class CoursewareAnalysisInputBuilderTests
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
 
         var result = new CoursewareAnalysisInputBuilder().Build(package);
+        var envelope = DeserializeEnvelope(result.Prompt);
 
-        StringAssert.Contains(result.Prompt, firstMarkdown);
-        StringAssert.Contains(result.Prompt, secondMarkdown);
-        StringAssert.Contains(result.Prompt, "image-cover | image | 已存在");
+        Assert.AreEqual("slide-first", envelope.Slides[0].SlideId);
+        Assert.AreEqual("slide-second", envelope.Slides[1].SlideId);
+        StringAssert.Contains(envelope.Slides[0].Markdown, "封面标题");
+        StringAssert.Contains(envelope.Slides[0].Markdown, "</slides>");
+        StringAssert.Contains(envelope.Slides[1].Markdown, "章节标题");
+        Assert.AreEqual("image-cover", envelope.Resources[0].ResourceId);
+        Assert.AreEqual("image", envelope.Resources[0].ResourceType);
+        Assert.IsTrue(envelope.Resources[0].Exists);
         Assert.IsFalse(result.Prompt.Contains(exportDirectory.FullName, StringComparison.OrdinalIgnoreCase));
         Assert.IsFalse(result.Prompt.Contains(package.Slides[0].MarkdownFile.FullName, StringComparison.OrdinalIgnoreCase));
         Assert.IsFalse(result.Prompt.Contains(package.Resources[0].ResolvedFilePath!, StringComparison.OrdinalIgnoreCase));
@@ -37,11 +46,13 @@ public sealed class CoursewareAnalysisInputBuilderTests
         Assert.AreEqual(result.Prompt.Length, result.CharacterCount);
         Assert.IsGreaterThan(0, result.EstimatedTokenCount);
         Assert.IsFalse(result.WasTruncated);
-        Assert.AreEqual(64, result.InputFingerprint.Length);
+        Assert.AreEqual(64, result.SourceFingerprint.Length);
+        Assert.AreEqual(64, result.AnalysisViewFingerprint.Length);
         Assert.AreEqual(
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(result.Prompt))),
-            result.InputFingerprint);
-        Assert.AreEqual("courseware-analysis-statistics/v1", result.StatisticsVersion);
+            result.AnalysisViewFingerprint);
+        Assert.AreEqual(result.AnalysisViewFingerprint, result.InputFingerprint);
+        Assert.AreEqual("courseware-analysis-statistics/v2", result.StatisticsVersion);
         Assert.AreEqual(
             result.CharacterCount,
             result.SectionCharacterCounts.Task
@@ -51,9 +62,9 @@ public sealed class CoursewareAnalysisInputBuilderTests
             + result.SectionCharacterCounts.OutputRequirements);
     }
 
-    [TestMethod(DisplayName = "页面段落应仅包含单行页分隔符和原始 Markdown")]
+    [TestMethod(DisplayName = "页面数组应按顺序携带稳定身份和完整 Markdown")]
     [Timeout(60_000)]
-    public async Task BuildShouldUseCompactSlideSeparators()
+    public async Task BuildShouldUseStructuredSlideIdentityAndCompleteMarkdown()
     {
         const string firstMarkdown = "第一页 Markdown";
         const string secondMarkdown = "第二页 Markdown";
@@ -64,9 +75,17 @@ public sealed class CoursewareAnalysisInputBuilderTests
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
 
         var result = new CoursewareAnalysisInputBuilder().Build(package);
+        var envelope = DeserializeEnvelope(result.Prompt);
 
-        var expectedSlidesSection = $"<slides>\n---Slide 1---\n{firstMarkdown}\n---Slide 2---\n{secondMarkdown}\n</slides>\n\n";
-        StringAssert.Contains(result.Prompt, expectedSlidesSection);
+        Assert.HasCount(2, envelope.Slides);
+        Assert.AreEqual("slide-first", envelope.Slides[0].SlideId);
+        Assert.AreEqual(1, envelope.Slides[0].PageNumber);
+        Assert.AreEqual(0, envelope.Slides[0].SlideIndex);
+        Assert.AreEqual(package.Slides[0].MarkdownText, envelope.Slides[0].Markdown);
+        Assert.AreEqual("slide-second", envelope.Slides[1].SlideId);
+        Assert.AreEqual(2, envelope.Slides[1].PageNumber);
+        Assert.AreEqual(1, envelope.Slides[1].SlideIndex);
+        Assert.AreEqual(package.Slides[1].MarkdownText, envelope.Slides[1].Markdown);
     }
 
     [TestMethod(DisplayName = "页面加载警告不应发送给模型")]
@@ -79,8 +98,10 @@ public sealed class CoursewareAnalysisInputBuilderTests
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
 
         var result = new CoursewareAnalysisInputBuilder().Build(package);
+        var envelope = DeserializeEnvelope(result.Prompt);
 
         Assert.IsFalse(result.Prompt.Contains("MissingScreenshotFile", StringComparison.Ordinal));
+        Assert.IsEmpty(envelope.CoursewareOverview.Warnings);
     }
 
     [TestMethod(DisplayName = "超长课件应保留全部页面且不静默截断")]
@@ -150,9 +171,9 @@ public sealed class CoursewareAnalysisInputBuilderTests
         Assert.HasCount(1, result.Warnings);
     }
 
-    [TestMethod(DisplayName = "页面原文中的课件目录绝对路径应保持不变")]
+    [TestMethod(DisplayName = "页面原文中的课件目录绝对路径应只在分析视图脱敏")]
     [Timeout(60_000)]
-    public async Task BuildShouldPreserveKnownHostPathInSlideMarkdown()
+    public async Task BuildShouldRedactKnownHostPathInAnalysisViewWithoutChangingSourceFacts()
     {
         var exportBuilder = new TestCoursewareExportBuilder();
         var expectedPath = exportBuilder.RootDirectory.FullName;
@@ -165,15 +186,22 @@ public sealed class CoursewareAnalysisInputBuilderTests
 
         var result = new CoursewareAnalysisInputBuilder().Build(package);
 
-        StringAssert.Contains(result.Prompt, expectedPath);
+        Assert.IsFalse(result.Prompt.Contains(expectedPath, StringComparison.OrdinalIgnoreCase));
+        StringAssert.Contains(result.Prompt, "[已移除本地路径]");
+        Assert.HasCount(1, result.PrivacyDiagnostics);
+        Assert.AreEqual("slide-markdown", result.PrivacyDiagnostics[0].Section);
+        Assert.AreEqual("slide-first", result.PrivacyDiagnostics[0].SlideId);
+        StringAssert.Contains(package.Slides[0].MarkdownText, expectedPath);
+        Assert.AreNotEqual(result.SourceFingerprint, result.AnalysisViewFingerprint);
     }
 
-    [DataTestMethod(DisplayName = "页面原文中的绝对路径文本应保持不变")]
+    [TestMethod(DisplayName = "页面原文中的绝对路径文本应在发送前脱敏")]
     [DataRow(@"C:\Users\teacher\Desktop\answer.txt")]
     [DataRow(@"\\server\courseware\answer.txt")]
     [DataRow("file:///C:/Users/teacher/Desktop/answer.txt")]
+    [DataRow("/home/teacher/courseware/answer.txt")]
     [Timeout(60_000)]
-    public async Task BuildShouldPreserveAbsolutePathInSlideMarkdown(string absolutePath)
+    public async Task BuildShouldRedactAbsolutePathInSlideMarkdown(string absolutePath)
     {
         var exportDirectory = new TestCoursewareExportBuilder()
             .AddSlide(
@@ -184,11 +212,58 @@ public sealed class CoursewareAnalysisInputBuilderTests
 
         var result = new CoursewareAnalysisInputBuilder().Build(package);
 
-        StringAssert.Contains(result.Prompt, absolutePath);
+        Assert.IsFalse(result.Prompt.Contains(absolutePath, StringComparison.OrdinalIgnoreCase));
+        StringAssert.Contains(result.Prompt, "[已移除本地路径]");
+        Assert.HasCount(1, result.PrivacyDiagnostics);
+        Assert.AreEqual(CoursewarePathPrivacyAction.Redacted, result.PrivacyDiagnostics[0].Action);
+        Assert.AreEqual(64, result.PrivacyDiagnostics[0].OriginalValueFingerprint.Length);
+    }
+
+    [TestMethod(DisplayName = "阻断策略应在绝对路径发送模型前失败")]
+    [Timeout(60_000)]
+    public async Task BuildShouldBlockAbsolutePathWhenPrivacyModeIsBlock()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("标题", @"路径：C:\Users\teacher\Desktop\answer.txt"))
+            .Build();
+        var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
+        var builder = new CoursewareAnalysisInputBuilder(
+            new CoursewareAnalysisSourceSnapshotBuilder(),
+            CoursewarePathPrivacyMode.Block);
+
+        var exception = Assert.ThrowsExactly<CoursewarePathPrivacyException>(() => builder.Build(package));
+
+        StringAssert.Contains(exception.Message, "隐私策略禁止发送");
+        Assert.AreEqual(CoursewarePathPrivacyAction.Blocked, exception.Diagnostic.Action);
+    }
+
+    [TestMethod(DisplayName = "清单 SlideId 与 Markdown Id 不一致时应拒绝分析")]
+    [Timeout(60_000)]
+    public async Task BuildShouldRejectMismatchedManifestAndMarkdownSlideIds()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("标题", "正文"))
+            .Build();
+        var markdownPath = Path.Join(exportDirectory.FullName, "Slides", "Slide000.md");
+        var markdown = await File.ReadAllTextAsync(markdownPath);
+        await File.WriteAllTextAsync(markdownPath, markdown.Replace("- Id: slide-first", "- Id: other-slide", StringComparison.Ordinal));
+        var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
+
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() => new CoursewareAnalysisInputBuilder().Build(package));
+
+        StringAssert.Contains(exception.Message, "与清单 SlideId");
     }
 
     private static string CreateSlideMarkdown(string title, string content)
     {
         return $"## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
+    }
+
+    private static CoursewareAnalysisEnvelope DeserializeEnvelope(string prompt)
+    {
+        return JsonSerializer.Deserialize(
+                   prompt,
+                   CoursewareAnalysisJsonSerializerContext.Default.CoursewareAnalysisEnvelope)
+               ?? throw new AssertFailedException("分析输入 JSON 信封不能为空。");
     }
 }

@@ -51,6 +51,35 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
+    <Style x:Key="AnalysisCapabilityCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="#F7FAFB" />
+        <Setter Property="BorderBrush" Value="{StaticResource AnalysisBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="Margin" Value="0,0,7,7" />
+    </Style>
+
+    <Style x:Key="AnalysisCapabilityNameTextStyle" TargetType="TextBlock" BasedOn="{StaticResource AnalysisBodyTextStyle}">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource AnalysisMutedBrush}" />
+    </Style>
+
+    <Style x:Key="AnalysisCapabilityStatusTextStyle" TargetType="TextBlock" BasedOn="{StaticResource AnalysisBodyTextStyle}">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource AnalysisNavyBrush}" />
+        <Setter Property="Margin" Value="0,3,0,0" />
+    </Style>
+
+    <Style x:Key="AnalysisWarningBannerStyle" TargetType="Border">
+        <Setter Property="Background" Value="#FFF8E8" />
+        <Setter Property="BorderBrush" Value="#F0C36A" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="Padding" Value="10,8" />
+    </Style>
+
     <Style x:Key="AnalysisCardStyle" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource AnalysisSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource AnalysisBorderBrush}" />

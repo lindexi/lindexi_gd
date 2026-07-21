@@ -3,7 +3,10 @@ using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
 using AgentLib.Model;
+using CoursewarePptxGenerator.Core.Analysis;
+using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
+using CoursewarePptxGeneratorWpfDemo.Resources;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Threading;
 
@@ -169,7 +172,43 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     /// <summary>
     /// Gets the rendering log for the selected page.
     /// </summary>
-    public string RenderingLog => "当前页面已应用全局主题。";
+    public string RenderingLog => CoursewareUiStrings.PrototypeRenderingLog;
+
+    /// <summary>
+    /// Gets the full-text analysis capability status.
+    /// </summary>
+    public string TextAnalysisCapabilityText => FormatCapabilityStatus(
+        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.TextAnalysis ?? CoursewareCapabilityStatus.NotRequested);
+
+    /// <summary>
+    /// Gets the theme-suggestion capability status.
+    /// </summary>
+    public string ThemeSuggestionCapabilityText => FormatCapabilityStatus(
+        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.ThemeSuggestion ?? CoursewareCapabilityStatus.NotRequested);
+
+    /// <summary>
+    /// Gets the executable design-system capability status.
+    /// </summary>
+    public string DesignSystemCapabilityText => FormatCapabilityStatus(
+        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.DesignSystem ?? CoursewareCapabilityStatus.NotRequested);
+
+    /// <summary>
+    /// Gets the template-validation capability status.
+    /// </summary>
+    public string TemplateValidationCapabilityText => FormatCapabilityStatus(
+        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.TemplateValidation ?? CoursewareCapabilityStatus.NotRequested);
+
+    /// <summary>
+    /// Gets the visual-analysis capability status.
+    /// </summary>
+    public string VisualAnalysisCapabilityText => FormatCapabilityStatus(
+        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.VisualAnalysis ?? CoursewareCapabilityStatus.NotRequested);
+
+    /// <summary>
+    /// Gets the real page-generation capability status.
+    /// </summary>
+    public string PageGenerationCapabilityText => FormatCapabilityStatus(
+        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.PageGeneration ?? CoursewareCapabilityStatus.NotRequested);
 
     /// <summary>
     /// Gets the presentation thumbnails and workspace pages.
@@ -198,6 +237,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
                 OnPropertyChanged(nameof(ThemeDescription));
                 OnPropertyChanged(nameof(ShowsCoursewareContext));
                 OnPropertyChanged(nameof(ShowsThemeResult));
+                OnPropertyChanged(nameof(TextAnalysisCapabilityText));
+                OnPropertyChanged(nameof(ThemeSuggestionCapabilityText));
+                OnPropertyChanged(nameof(DesignSystemCapabilityText));
+                OnPropertyChanged(nameof(TemplateValidationCapabilityText));
+                OnPropertyChanged(nameof(VisualAnalysisCapabilityText));
+                OnPropertyChanged(nameof(PageGenerationCapabilityText));
             }
         }
     }
@@ -451,7 +496,10 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     /// </summary>
     public string SelectedSlideSummary => SelectedSlide is null
         ? "请选择课件页面。"
-        : $"{SelectedSlide.Title} · 已应用“数学推导与理性空间”全局主题";
+        : string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            CoursewareUiStrings.PrototypeSlideSummaryFormat,
+            SelectedSlide.Title);
 
     /// <summary>
     /// Gets the demonstration SlideML content for the selected slide.
@@ -505,7 +553,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     {
         CoursewareWorkspaceState.LoadingCourseware => "正在读取课件",
         CoursewareWorkspaceState.AnalyzingCourseware => "正在分析全课件主题",
-        CoursewareWorkspaceState.AnalysisReady => "全课件分析已完成",
+        CoursewareWorkspaceState.AnalysisReady => CoursewareUiStrings.AnalysisReadyStatus,
         CoursewareWorkspaceState.LoadFailed => "课件读取失败",
         CoursewareWorkspaceState.AnalysisFailed => "主题分析失败",
         CoursewareWorkspaceState.Canceled => "主题分析已取消",
@@ -519,7 +567,10 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
     {
         CoursewareWorkspaceState.LoadingCourseware => "正在解析清单、Markdown、资源和截图",
         CoursewareWorkspaceState.AnalyzingCourseware => $"已读取 {CoursewareThumbnails.Count} 页，正在归纳内容层级、配色、字体与版式",
-        CoursewareWorkspaceState.AnalysisReady => $"已完整查看 {CoursewareThumbnails.Count} 页课件并形成统一主题",
+        CoursewareWorkspaceState.AnalysisReady => string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            CoursewareUiStrings.AnalysisReadyCaptionFormat,
+            CoursewareThumbnails.Count),
         CoursewareWorkspaceState.LoadFailed => "请选择有效的课件 Markdown 导出文件夹",
         CoursewareWorkspaceState.AnalysisFailed => "课件和缩略图已保留，可以修复配置后重试",
         CoursewareWorkspaceState.Canceled => "已保留课件概览，可随时重新分析",
@@ -759,6 +810,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(SafeAreaText));
         OnPropertyChanged(nameof(ColorRationale));
         OnPropertyChanged(nameof(AnalysisWarnings));
+        OnPropertyChanged(nameof(TextAnalysisCapabilityText));
+        OnPropertyChanged(nameof(ThemeSuggestionCapabilityText));
+        OnPropertyChanged(nameof(DesignSystemCapabilityText));
+        OnPropertyChanged(nameof(TemplateValidationCapabilityText));
+        OnPropertyChanged(nameof(VisualAnalysisCapabilityText));
+        OnPropertyChanged(nameof(PageGenerationCapabilityText));
     }
 
     private IProgress<CoursewareAnalysisEvent> CreateAnalysisProgress(
@@ -809,6 +866,18 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
         {
             _report(value);
         }
+    }
+
+    private static string FormatCapabilityStatus(CoursewareCapabilityStatus status)
+    {
+        return status switch
+        {
+            CoursewareCapabilityStatus.Passed => CoursewareUiStrings.CapabilityPassed,
+            CoursewareCapabilityStatus.NotRequested => CoursewareUiStrings.CapabilityNotRequested,
+            CoursewareCapabilityStatus.NotSupported => CoursewareUiStrings.CapabilityNotSupported,
+            CoursewareCapabilityStatus.Failed => CoursewareUiStrings.CapabilityFailed,
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, CoursewareUiStrings.UnknownCapabilityStatus),
+        };
     }
 
     private void UpdateAnalysisStage(CoursewareAnalysisEvent analysisEvent)
@@ -890,6 +959,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(SafeAreaText));
         OnPropertyChanged(nameof(ColorRationale));
         OnPropertyChanged(nameof(AnalysisWarnings));
+        OnPropertyChanged(nameof(TextAnalysisCapabilityText));
+        OnPropertyChanged(nameof(ThemeSuggestionCapabilityText));
+        OnPropertyChanged(nameof(DesignSystemCapabilityText));
+        OnPropertyChanged(nameof(TemplateValidationCapabilityText));
+        OnPropertyChanged(nameof(VisualAnalysisCapabilityText));
+        OnPropertyChanged(nameof(PageGenerationCapabilityText));
     }
 
     private static void ReplaceItems<T>(ObservableCollection<T> target, IEnumerable<T> source)
