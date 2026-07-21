@@ -10,7 +10,7 @@
     MinWidth="960"
     MinHeight="640"
     AllowsTransparency="False"
-    ResizeMode="CanResize"
+    ResizeMode="CanMinimize"
     Style="{StaticResource PerformanceWindowStyle}"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"

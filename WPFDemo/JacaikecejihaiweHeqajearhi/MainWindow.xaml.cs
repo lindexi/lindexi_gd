@@ -43,6 +43,7 @@ public partial class MainWindow : Window
 
         TransitionShield.Visibility = Visibility.Visible;
         _viewModel.MarkUpgrading();
+        WindowShell.Background = Brushes.Transparent;
 
         try
         {
